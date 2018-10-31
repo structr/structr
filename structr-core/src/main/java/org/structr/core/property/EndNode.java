@@ -147,9 +147,22 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	@Override
 	public Object setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
 
-		OneEndpoint<T> endpoint  = relation.getTarget();
+		final OneEndpoint<T> endpoint  = relation.getTarget();
 
-		return endpoint.set(securityContext, (NodeInterface)obj, value);
+		try {
+
+			return endpoint.set(securityContext, (NodeInterface)obj, value);
+
+		} catch (RuntimeException r) {
+
+			final Throwable cause = r.getCause();
+			if (cause instanceof FrameworkException) {
+
+				throw (FrameworkException)cause;
+			}
+		}
+
+		return null;
 	}
 
 	@Override

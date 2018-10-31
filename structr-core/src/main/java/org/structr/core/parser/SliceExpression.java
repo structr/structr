@@ -24,6 +24,7 @@ import java.util.LinkedList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
@@ -130,9 +131,14 @@ public class SliceExpression extends Expression {
 				final Object src = listExpression.evaluate(ctx, entity);
 				List list       = null;
 
-				// handle list argument
-				if (src instanceof List) {
+				if (src instanceof Iterable) {
 
+					// handle iterable argument
+					list = Iterables.toList((Iterable)src);
+
+				} else if (src instanceof List) {
+
+					// handle list argument
 					list = (List)src;
 
 				// handle array argument

@@ -82,7 +82,7 @@ public interface Image extends File {
 		image.addPropertyGetter("isCreatingThumb", Boolean.TYPE);
 		image.addPropertySetter("isCreatingThumb", Boolean.TYPE);
 		image.addPropertyGetter("originalImage",   Image.class);
-		image.addPropertyGetter("thumbnails",      List.class);
+		image.addPropertyGetter("thumbnails",      Iterable.class);
 
 		image.addPropertyGetter("width",       Integer.class);
 		image.addPropertySetter("width",       Integer.class);
@@ -150,7 +150,7 @@ public interface Image extends File {
 	Image getScaledImage(final int maxWidth, final int maxHeight);
 	Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit);
 
-	List<Image> getThumbnails();
+	Iterable<Image> getThumbnails();
 
 	Folder getThumbnailParentFolder(final Folder originalParentFolder, final SecurityContext securityContext) throws FrameworkException;
 
@@ -232,9 +232,7 @@ public interface Image extends File {
 
 			if ( !propertiesCopiedToAllThumbnails.isEmpty() ) {
 
-				final List<Image> thumbnails = thisImage.getThumbnails();
-
-				for (Image tn : thumbnails) {
+				for (final Image tn : thisImage.getThumbnails()) {
 
 					if (!tn.getUuid().equals(thisImage.getUuid())) {
 

@@ -54,7 +54,7 @@ public class OtherNodeTypeFilter implements Predicate<Relationship> {
 	@Override
 	public boolean accept(final Relationship item) {
 
-		final NodeInterface otherNode = nodeFactory.instantiate(item.getOtherNode(thisNode), item);
+		final NodeInterface otherNode = nodeFactory.instantiate(item.getOtherNode(thisNode), item.getId());
 
 		// check predicate if exists
 		if (otherNode != null && (nodePredicate == null || nodePredicate.accept(otherNode))) {

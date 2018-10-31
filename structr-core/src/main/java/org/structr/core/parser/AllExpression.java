@@ -19,6 +19,7 @@
 package org.structr.core.parser;
 
 import java.util.List;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
@@ -85,9 +86,9 @@ public class AllExpression extends Expression {
 
 		final Object listSource = listExpression.evaluate(ctx, entity);
 
-		if (listSource != null && listSource instanceof List) {
+		if (listSource != null && listSource instanceof Iterable) {
 
-			final List source         = (List)listSource;
+			final List source         = Iterables.toList((Iterable)listSource);
 			final Object oldDataValue = ctx.getConstant("data");
 
 			for (Object obj : source) {

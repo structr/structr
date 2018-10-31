@@ -26,7 +26,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -480,10 +479,10 @@ public abstract class Function<S, T> extends Hint {
 
 				recursivelyConvertMapToGraphObjectMap(obj, map, depth + 1);
 
-			} else if (value instanceof Collection) {
+			} else if (value instanceof Iterable) {
 
-				final List list = new LinkedList();
-				final Collection collection = (Collection)value;
+				final List list           = new LinkedList();
+				final Iterable collection = (Iterable)value;
 
 				for (final Object obj : collection) {
 

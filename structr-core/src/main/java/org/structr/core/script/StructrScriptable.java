@@ -338,8 +338,8 @@ public class StructrScriptable extends ScriptableObject {
 	// ----- private methods -----
 	private Object wrap(final Context context, final Scriptable scope, final String key, final Object value) {
 
-		if (value instanceof Collection) {
-			return new StructrArray(scope, key, wrapCollection(context, scope, key, (Collection)value));
+		if (value instanceof Iterable) {
+			return new StructrArray(scope, key, wrapIterable(context, scope, key, (Iterable)value));
 		}
 
 		if (value instanceof Object[]) {
@@ -372,17 +372,15 @@ public class StructrScriptable extends ScriptableObject {
 		return value;
 	}
 
-	private Object[] wrapCollection(final Context context, final Scriptable scope, final String key, final Collection collection) {
+	private Object[] wrapIterable(final Context context, final Scriptable scope, final String key, final Iterable iterable) {
 
-		final int size       = collection.size();
-		final Object[] array = new Object[size];
-		int i                = 0;
+		final ArrayList list = new ArrayList();
 
-		for (final Object obj : collection) {
-			array[i++] = wrap(context, scope, key, obj);
+		for (final Object obj : iterable) {
+			list.add(wrap(context, scope, key, obj));
 		}
 
-		return array;
+		return list.toArray();
 	}
 
 	public Object unwrap(final Object source) {

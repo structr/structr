@@ -18,7 +18,6 @@
  */
 package org.structr.bolt.index;
 
-import org.structr.api.QueryResult;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.QueryUtils;
 import org.structr.bolt.BoltDatabaseService;
@@ -94,7 +93,7 @@ public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 	}
 
 	@Override
-	public QueryResult<Relationship> getResult(final PageableQuery query) {
+	public Iterable<Relationship> getResult(final PageableQuery query) {
 		return QueryUtils.map(new RelationshipRelationshipMapper(db), new RelationshipResultStream(db, query));
 	}
 }

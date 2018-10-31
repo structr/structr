@@ -68,6 +68,7 @@ public class Settings {
 	public static final Setting<String> LayoutsPath           = new StringSetting(generalGroup,   "Paths",       "layouts.path",               "layouts" + File.separator, "IMPORTANT: Path is relative to base.path");
 	public static final Setting<String> WebDataPath           = new StringSetting(generalGroup,   "Paths",       "data.webapp.path",           "webapp-data" + File.separator, "IMPORTANT: Path is relative to base.path");
 	public static final Setting<Boolean> LogSchemaOutput      = new BooleanSetting(generalGroup,  "Logging",     "NodeExtender.log",           false);
+	public static final Setting<Boolean> LogSchemaErrors      = new BooleanSetting(generalGroup,  "Logging",     "NodeExtender.log.errors",    false);
 	public static final Setting<Boolean> RequestLogging       = new BooleanSetting(generalGroup,  "Logging",     "log.requests",               false);
 	public static final Setting<String> LogPrefix             = new StringSetting(generalGroup,   "Logging",     "log.prefix",                 "structr");
 	public static final Setting<String> LogName               = new StringSetting(generalGroup,   "Logging",     "log.name",                   "structr-yyyy_mm_dd.request.log");
@@ -124,7 +125,7 @@ public class Settings {
 	public static final Setting<Integer> RelationshipCacheSize  = new IntegerSetting(databaseGroup, "Caching",             "database.cache.relationship.size", 500000);
 	public static final Setting<Integer> NodeCacheSize          = new IntegerSetting(databaseGroup, "Caching",             "database.cache.node.size",         100000);
 	public static final Setting<Integer> UuidCacheSize          = new IntegerSetting(databaseGroup, "Caching",             "database.cache.uuid.size",         1000000);
-	public static final Setting<Integer> QueryCacheSize         = new IntegerSetting(databaseGroup, "Caching",             "database.cache.query.size",        1000);
+	public static final Setting<Boolean> ForceResultStreaming   = new BooleanSetting(databaseGroup, "Result Streaming",    "database.result.lazy",             false, "Forces Structr to use lazy evaluation for relationship queries");
 	public static final Setting<Boolean> CypherDebugLogging     = new BooleanSetting(databaseGroup, "Debugging",           "log.cypher.debug",                 false, "Turns on debug logging for the generated Cypher queries");
 	public static final Setting<Boolean> CypherDebugLoggingPing = new BooleanSetting(databaseGroup, "Debugging",           "log.cypher.debug.ping",            false, "Turns on debug logging for the generated Cypher queries of the websocket PING command. Can only be used in conjunction with log.cypher.debug");
 	public static final Setting<Boolean> SyncDebugging          = new BooleanSetting(databaseGroup, "Sync debugging",      "sync.debug",                       false);

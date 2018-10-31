@@ -32,10 +32,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.structr.api.util.Iterables;
 
 public class FlowCollectionDataSource extends FlowDataSource implements DeployableEntity {
 
-	public static final Property<List<DataSource>> dataSources = new StartNodes<>("dataSources", FlowDataInputs.class);
+	public static final Property<Iterable<DataSource>> dataSources = new StartNodes<>("dataSources", FlowDataInputs.class);
 
 	public static final View defaultView = new View(FlowObjectDataSource.class, PropertyView.Public, dataSources);
 	public static final View uiView      = new View(FlowObjectDataSource.class, PropertyView.Ui, dataSources);
@@ -43,8 +44,8 @@ public class FlowCollectionDataSource extends FlowDataSource implements Deployab
 	@Override
 	public Object get(final Context context) throws FlowException {
 
-		List<Object> result = new ArrayList<>();
-		List<DataSource> sources = getProperty(dataSources);
+		List<DataSource> sources = Iterables.toList(getProperty(dataSources));
+		List<Object> result      = new ArrayList<>();
 
 		if (sources != null && sources.size() > 0) {
 

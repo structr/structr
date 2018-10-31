@@ -24,11 +24,11 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 
-import java.util.List;
 
 public class TestEleven extends AbstractNode {
-    public static final Property<List<TestTwo>> testTwos = new EndNodes<>("test_twos", ElevenTwoOneToMany.class);
-    public static final Property<List<TestTwo>> testTwosAlt = new EndNodes<>("testTwos", ElevenTwoOneToMany.class);
+	
+    public static final Property<Iterable<TestTwo>> testTwos    = new EndNodes<>("test_twos", ElevenTwoOneToMany.class);
+    public static final Property<Iterable<TestTwo>> testTwosAlt = new EndNodes<>("testTwos", ElevenTwoOneToMany.class);
 
     public static final View defaultView = new View(TestEleven.class, PropertyView.Public,
             name, testTwos, testTwosAlt

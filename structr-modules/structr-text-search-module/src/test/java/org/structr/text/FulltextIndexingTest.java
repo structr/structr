@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import org.junit.Assert;
 import static org.junit.Assert.fail;
 import org.junit.Test;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.Indexable;
 import org.structr.core.GraphObject;
@@ -207,7 +208,7 @@ public class FulltextIndexingTest extends TextSearchModuleTest {
 
 			Assert.assertNotNull("File should exist", file);
 
-			final List<String> indexedWords  = file.getProperty(StructrApp.key(File.class, "indexedWords"));
+			final List<String> indexedWords  = Iterables.toList((Iterable)file.getProperty(StructrApp.key(File.class, "indexedWords")));
 
 			Assert.assertNotNull("There should be at least one indexed word", indexedWords);
 
@@ -237,7 +238,7 @@ public class FulltextIndexingTest extends TextSearchModuleTest {
 
 			Assert.assertNotNull("File should exist", file);
 
-			final List<String> indexedWords  = file.getProperty(StructrApp.key(File.class, "indexedWords"));
+			final List<String> indexedWords  = Iterables.toList((Iterable)file.getProperty(StructrApp.key(File.class, "indexedWords")));
 
 			Assert.assertNotNull("There should be at least one indexed word", indexedWords);
 			Assert.assertEquals("Invalid number of extracted words", 100, indexedWords.size());

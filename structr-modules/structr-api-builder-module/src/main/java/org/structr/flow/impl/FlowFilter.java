@@ -33,17 +33,16 @@ import org.structr.module.api.DeployableEntity;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class FlowFilter extends FlowNode implements DataSource, Filter, DeployableEntity {
-	public static final Property<DataSource> dataSource 					= new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<List<FlowBaseNode>> dataTarget 			= new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<FlowCondition> condition					= new StartNode<>("condition", FlowConditionBaseNode.class);
+	public static final Property<DataSource> dataSource             = new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<FlowCondition> condition           = new StartNode<>("condition", FlowConditionBaseNode.class);
 
-	public static final View defaultView 									= new View(FlowDataSource.class, PropertyView.Public, dataTarget, dataSource, condition);
-	public static final View uiView      									= new View(FlowDataSource.class, PropertyView.Ui, dataTarget, dataSource, condition);
+	public static final View defaultView = new View(FlowDataSource.class, PropertyView.Public, dataTarget, dataSource, condition);
+	public static final View uiView      = new View(FlowDataSource.class, PropertyView.Ui, dataTarget, dataSource, condition);
 
 	@Override
 	public Object get(Context context) throws FlowException {
@@ -57,6 +56,7 @@ public class FlowFilter extends FlowNode implements DataSource, Filter, Deployab
 
 	@Override
 	public void filter(Context context) throws FlowException {
+		
 		DataSource ds = getProperty(dataSource);
 		FlowCondition condition = getProperty(FlowFilter.condition);
 

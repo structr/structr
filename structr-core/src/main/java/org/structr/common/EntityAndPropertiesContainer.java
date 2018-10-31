@@ -25,7 +25,6 @@ import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
-import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.error.ErrorBuffer;
@@ -164,12 +163,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public void setRawPathSegment(Relationship pathSegment) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public Relationship getRawPathSegment() {
+	public void setRawPathSegmentId(final long pathSegmentId) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 

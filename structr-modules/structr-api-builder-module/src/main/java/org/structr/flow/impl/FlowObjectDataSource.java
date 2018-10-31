@@ -19,7 +19,6 @@
 package org.structr.flow.impl;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +38,7 @@ public class FlowObjectDataSource extends FlowDataSource {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowObjectDataSource.class);
 
-	public static final Property<List<FlowKeyValue>> keyValueSources = new StartNodes<>("keyValueSources", FlowKeyValueObjectInput.class);
+	public static final Property<Iterable<FlowKeyValue>> keyValueSources = new StartNodes<>("keyValueSources", FlowKeyValueObjectInput.class);
 
 	public static final View defaultView = new View(FlowObjectDataSource.class, PropertyView.Public, keyValueSources);
 	public static final View uiView      = new View(FlowObjectDataSource.class, PropertyView.Ui,     keyValueSources);

@@ -31,12 +31,9 @@ import org.structr.flow.api.KeyValue;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowDataInput;
-import org.structr.flow.impl.rels.FlowKeySource;
-import org.structr.flow.impl.rels.FlowValueSource;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,7 +44,7 @@ public class FlowKeyValue extends FlowBaseNode implements DataSource, Deployable
 	private static final Logger logger = LoggerFactory.getLogger(FlowKeyValue.class);
 
 	public static final Property<DataSource> dataSource 		= new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<List<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
 
 	public static final Property<String> key             		= new StringProperty("key");
 

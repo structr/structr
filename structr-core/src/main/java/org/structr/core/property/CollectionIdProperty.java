@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.List;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertyNotion;
@@ -30,13 +29,13 @@ import org.structr.core.notion.PropertyNotion;
  * @param <T>
  */
 public class CollectionIdProperty<T extends AbstractNode> extends CollectionNotionProperty<T, String> {
-	
-	public CollectionIdProperty(String name, Property<List<T>> base) {
+
+	public CollectionIdProperty(String name, Property<Iterable<T>> base) {
 		this(name, base, false);
 	}
-	
-	public CollectionIdProperty(String name, Property<List<T>> base, boolean createIfNotExisting) {
-		
+
+	public CollectionIdProperty(String name, Property<Iterable<T>> base, boolean createIfNotExisting) {
+
 		super(name, base, new PropertyNotion(GraphObject.id, createIfNotExisting));
 	}
 }

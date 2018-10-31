@@ -21,20 +21,16 @@ package org.structr.api;
 import java.util.Iterator;
 import org.structr.api.util.PagingIterator;
 
-public class PagedQueryResult<T> implements QueryResult<T> {
-	private final QueryResult<T> result;
+public class PagedQueryResult<T> implements Iterable<T> {
+
+	private final Iterable<T> result;
 	private final int page;
 	private final int pageSize;
 
-	public PagedQueryResult(final QueryResult<T> result, final int page, final int pageSize) {
+	public PagedQueryResult(final Iterable<T> result, final int page, final int pageSize) {
 		this.result = result;
 		this.page = page;
 		this.pageSize = pageSize;
-	}
-
-	@Override
-	public void close() {
-		result.close();
 	}
 
 	@Override

@@ -32,6 +32,7 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
@@ -384,7 +385,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// create view with sort order
-			final List<SchemaView> list = test.getProperty(SchemaNode.schemaViews);
+			final List<SchemaView> list = Iterables.toList(test.getProperty(SchemaNode.schemaViews));
 
 			// create properties
 			app.create(SchemaProperty.class,

@@ -18,11 +18,11 @@
  */
 package org.structr.core.notion;
 
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.Set;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -77,14 +77,14 @@ public abstract class DeserializationStrategy<S, T extends NodeInterface> {
 
 	protected Object merge(final Object oldValue, final Object newValue) {
 
-		if (oldValue instanceof Collection && newValue instanceof Collection) {
+		if (oldValue instanceof Iterable && newValue instanceof Iterable) {
 
-			final Collection oldCollection = (Collection)oldValue;
-			final Collection newCollection = (Collection)newValue;
+			final Iterable oldCollection = (Iterable)oldValue;
+			final Iterable newCollection = (Iterable)newValue;
 			final Set merged               = new LinkedHashSet<>();
 
-			merged.addAll(newCollection);
-			merged.addAll(oldCollection);
+			Iterables.addAll(merged, newCollection);
+			Iterables.addAll(merged, oldCollection);
 
 			return new LinkedList<>(merged);
 		};

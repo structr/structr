@@ -32,7 +32,6 @@ import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,13 +39,13 @@ import java.util.Map;
  */
 public class FlowDataSource extends FlowBaseNode implements DataSource, DeployableEntity, ThrowingElement {
 
-	public static final Property<DataSource> dataSource 					= new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<List<FlowBaseNode>> dataTarget 			= new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
-	public static final Property<String> query             					= new StringProperty("query");
+	public static final Property<DataSource> dataSource = new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<FlowExceptionHandler> exceptionHandler = new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
+	public static final Property<String> query = new StringProperty("query");
 
-	public static final View defaultView 									= new View(FlowDataSource.class, PropertyView.Public, query, dataTarget, exceptionHandler, dataSource);
-	public static final View uiView      									= new View(FlowDataSource.class, PropertyView.Ui,     query, dataTarget, exceptionHandler, dataSource);
+	public static final View defaultView = new View(FlowDataSource.class, PropertyView.Public, query, dataTarget, exceptionHandler, dataSource);
+	public static final View uiView = new View(FlowDataSource.class, PropertyView.Ui,     query, dataTarget, exceptionHandler, dataSource);
 
 	@Override
 	public Object get(final Context context) throws FlowException {

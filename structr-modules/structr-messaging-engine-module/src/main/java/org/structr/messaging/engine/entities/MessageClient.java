@@ -32,7 +32,6 @@ import org.structr.schema.json.JsonSchema;
 
 import java.net.URI;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public interface MessageClient extends NodeInterface {
@@ -51,8 +50,8 @@ public interface MessageClient extends NodeInterface {
 			type.addViewProperty(PropertyView.Public, "subscribers");
 			type.addViewProperty(PropertyView.Ui,     "subscribers");
 
-			type.addPropertyGetter("subscribers", List.class);
-			type.addPropertySetter("subscribers", List.class).addException("FrameworkException");
+			type.addPropertyGetter("subscribers", Iterable.class);
+			type.addPropertySetter("subscribers", Iterable.class).addException("FrameworkException");
 
 			type.addMethod("sendMessage")
 				.setReturnType(RestMethodResult.class.getName())
@@ -82,15 +81,15 @@ public interface MessageClient extends NodeInterface {
         }
     }
 
-    List<MessageSubscriber> getSubscribers();
-    void setSubscribers(List<MessageSubscriber> subs) throws FrameworkException;
+    Iterable<MessageSubscriber> getSubscribers();
+    void setSubscribers(Iterable<MessageSubscriber> subs) throws FrameworkException;
 
     static RestMethodResult sendMessage(MessageClient thisClient, final String topic, final String message) throws FrameworkException {
 
         final App app = StructrApp.getInstance();
         try (final Tx tx = app.tx()) {
 
-            List<MessageSubscriber> subscribers = thisClient.getSubscribers();
+            Iterable<MessageSubscriber> subscribers = thisClient.getSubscribers();
             if (subscribers != null) {
                 subscribers.forEach(sub -> {
 					String subTopic = sub.getProperty(StructrApp.key(MessageSubscriber.class,"topic"));

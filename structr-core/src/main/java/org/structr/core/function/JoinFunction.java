@@ -18,7 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -42,9 +41,9 @@ public class JoinFunction extends Function<Object, Object> {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
-			if (sources[0] instanceof Collection) {
+			if (sources[0] instanceof Iterable) {
 
-				return StringUtils.join((Collection)sources[0], sources[1].toString());
+				return StringUtils.join((Iterable)sources[0], sources[1].toString());
 
 			} else if (sources[0].getClass().isArray()) {
 

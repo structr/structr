@@ -35,16 +35,15 @@ import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class FlowExceptionHandler extends FlowNode implements Exception, DataSource, DeployableEntity {
 
-	public static final Property<List<FlowBaseNode>> handledNodes 			= new StartNodes<>("handledNodes", FlowExceptionHandlerNodes.class);
-	public static final Property<List<FlowBaseNode>> dataTarget 			= new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<Iterable<FlowBaseNode>> handledNodes = new StartNodes<>("handledNodes", FlowExceptionHandlerNodes.class);
+	public static final Property<Iterable<FlowBaseNode>> dataTarget   = new EndNodes<>("dataTarget", FlowDataInput.class);
 
-	public static final View defaultView 									= new View(FlowNode.class, PropertyView.Public,  next, handledNodes, dataTarget);
-	public static final View uiView      									= new View(FlowNode.class, PropertyView.Ui,      next, handledNodes, dataTarget);
+	public static final View defaultView = new View(FlowNode.class, PropertyView.Public,  next, handledNodes, dataTarget);
+	public static final View uiView      = new View(FlowNode.class, PropertyView.Ui,      next, handledNodes, dataTarget);
 
 
 	@Override

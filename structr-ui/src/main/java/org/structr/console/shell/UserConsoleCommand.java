@@ -194,7 +194,7 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 
 				if (user != null) {
 
-					if (user.getProperty(Principal.ownedNodes).isEmpty()) {
+					if (!user.getProperty(Principal.ownedNodes).iterator().hasNext()) {
 
 						app.delete(user);
 

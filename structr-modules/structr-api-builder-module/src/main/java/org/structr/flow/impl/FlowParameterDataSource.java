@@ -27,40 +27,42 @@ import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowDataInput;
-import org.structr.flow.impl.rels.FlowDataInputs;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class FlowParameterDataSource extends FlowBaseNode implements DataSource, DeployableEntity {
 
-    public static final Property<List<FlowBaseNode>> dataTarget 	= new EndNodes<>("dataTarget", FlowDataInput.class);
-    public static final Property<String> key             		    = new StringProperty("key");
+	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<String> key = new StringProperty("key");
 
-    public static final View defaultView 						    = new View(FlowDataSource.class, PropertyView.Public, key, dataTarget);
-    public static final View uiView      						    = new View(FlowDataSource.class, PropertyView.Ui, key, dataTarget);
+	public static final View defaultView = new View(FlowDataSource.class, PropertyView.Public, key, dataTarget);
+	public static final View uiView = new View(FlowDataSource.class, PropertyView.Ui, key, dataTarget);
 
-    @Override
-    public Object get(Context context) throws FlowException {
-        String _key = getProperty(key);
-        if (_key != null) {
-           return context.getParameter(_key);
-        }
-        return null;
-    }
+	@Override
+	public Object get(Context context) throws FlowException {
 
-    @Override
-    public Map<String, Object> exportData() {
-        Map<String, Object> result = new HashMap<>();
+		final String _key = getProperty(key);
+		if (_key != null) {
 
-        result.put("id", this.getUuid());
-        result.put("type", this.getClass().getSimpleName());
-        result.put("key", this.getProperty(key));
-        result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-        result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+			return context.getParameter(_key);
+		}
 
-        return result;
-    }
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> exportData() {
+
+		final Map<String, Object> result = new HashMap<>();
+
+		result.put("id", this.getUuid());
+		result.put("type", this.getClass().getSimpleName());
+		result.put("key", this.getProperty(key));
+		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
+		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+
+		return result;
+	}
 }

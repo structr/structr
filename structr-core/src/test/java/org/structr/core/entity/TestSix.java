@@ -18,7 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.util.List;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
@@ -30,17 +29,17 @@ import org.structr.core.property.Property;
  */
 public class TestSix extends AbstractNode {
 
-	public static final Property<List<TestOne>>   manyToManyTestOnes                   = new EndNodes<>("manyToManyTestOnes", SixOneManyToMany.class);
-	public static final Property<List<TestOne>>   oneToManyTestOnes                    = new EndNodes<>("oneToManyTestOnes",  SixOneOneToMany.class);
+	public static final Property<Iterable<TestOne>>   manyToManyTestOnes                   = new EndNodes<>("manyToManyTestOnes", SixOneManyToMany.class);
+	public static final Property<Iterable<TestOne>>   oneToManyTestOnes                    = new EndNodes<>("oneToManyTestOnes",  SixOneOneToMany.class);
 
-	public static final Property<TestThree>       oneToOneTestThree                    = new EndNode<>("oneToOneTestThree",    SixThreeOneToOne.class);
-	public static final Property<List<TestThree>> oneToManyTestThrees                  = new EndNodes<>("oneToManyTestThrees", SixThreeOneToMany.class);
+	public static final Property<TestThree>           oneToOneTestThree                    = new EndNode<>("oneToOneTestThree",    SixThreeOneToOne.class);
+	public static final Property<Iterable<TestThree>> oneToManyTestThrees                  = new EndNodes<>("oneToManyTestThrees", SixThreeOneToMany.class);
 
-	public static final Property<List<TestThree>> oneToManyTestThreesCascadeOut        = new EndNodes<>("oneToManyTestThreesCascadeOut",       SixThreeOneToManyCascadeOutgoing.class);
-	public static final Property<List<TestThree>> oneToManyTestThreesCascadeIn         = new EndNodes<>("oneToManyTestThreesCascadeIn",        SixThreeOneToManyCascadeIncoming.class);
-	public static final Property<List<TestThree>> oneToManyTestThreesCascadeBoth       = new EndNodes<>("oneToManyTestThreesCascadeBoth",      SixThreeOneToManyCascadeBoth.class);
+	public static final Property<Iterable<TestThree>> oneToManyTestThreesCascadeOut        = new EndNodes<>("oneToManyTestThreesCascadeOut",       SixThreeOneToManyCascadeOutgoing.class);
+	public static final Property<Iterable<TestThree>> oneToManyTestThreesCascadeIn         = new EndNodes<>("oneToManyTestThreesCascadeIn",        SixThreeOneToManyCascadeIncoming.class);
+	public static final Property<Iterable<TestThree>> oneToManyTestThreesCascadeBoth       = new EndNodes<>("oneToManyTestThreesCascadeBoth",      SixThreeOneToManyCascadeBoth.class);
 
-	public static final Property<List<TestNine>>  oneToManyTestNinesCascadeConstraint  = new EndNodes<>("oneToManyTestNinesCascadeConstraint", SixNineOneToManyCascadeConstraint.class);
+	public static final Property<Iterable<TestNine>>  oneToManyTestNinesCascadeConstraint  = new EndNodes<>("oneToManyTestNinesCascadeConstraint", SixNineOneToManyCascadeConstraint.class);
 
-	public static final Property<Integer>         index                                = new IntProperty("index");
+	public static final Property<Integer>             index                                = new IntProperty("index");
 }

@@ -41,6 +41,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISDocumentInfo;
 import org.structr.common.ConstantBooleanTrue;
@@ -115,7 +116,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addStringProperty("sha512");
 		type.addIntegerProperty("position").setIndexed(true);
 
-		type.addPropertyGetter("minificationTargets", List.class);
+		type.addPropertyGetter("minificationTargets", Iterable.class);
 		type.addPropertyGetter("cacheForSeconds", Integer.class);
 		type.addPropertyGetter("checksum", Long.class);
 		type.addPropertyGetter("md5", String.class);
@@ -230,7 +231,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	}}
 
-	List<AbstractMinifiedFile> getMinificationTargets();
+	Iterable<AbstractMinifiedFile> getMinificationTargets();
 
 	String getXMLStructure() throws FrameworkException;
 	void doCSVImport(final Map<String, Object> parameters) throws FrameworkException;
@@ -381,7 +382,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	static void triggerMinificationIfNeeded(final File thisFile, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		final List<AbstractMinifiedFile> targets = thisFile.getMinificationTargets();
+		final List<AbstractMinifiedFile> targets = Iterables.toList(thisFile.getMinificationTargets());
 		final PropertyKey<Integer> versionKey    = StructrApp.key(File.class, "version");
 
 		if (!targets.isEmpty()) {

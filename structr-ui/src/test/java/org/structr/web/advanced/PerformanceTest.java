@@ -32,6 +32,7 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -283,6 +284,8 @@ public class PerformanceTest extends StructrUiTest {
 
 			// flush caches
 			FlushCachesCommand.flushAll();
+
+			Settings.CypherDebugLogging.setValue(true);
 
 			for (int i=0; i<loop; i++) {
 

@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -134,9 +135,9 @@ public class RenderContextTest extends StructrUiTest {
 			// verify that parentItem can be accessed....
 			final Object value = parent.getProperty(childrenProperty);
 
-			assertTrue(value instanceof Collection);
+			assertTrue(value instanceof Iterable);
 
-			final Collection coll = (Collection)value;
+			final Collection coll = Iterables.toList((Iterable)value);
 			assertEquals(2, coll.size());
 
 			tx.success();

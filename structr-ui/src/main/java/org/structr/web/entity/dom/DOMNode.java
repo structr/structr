@@ -134,10 +134,10 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.addPropertyGetter("hideConditions", String.class);
 
 		type.addPropertyGetter("parent", DOMNode.class);
-		type.addPropertyGetter("children", List.class);
+		type.addPropertyGetter("children", Iterable.class);
 		type.addPropertyGetter("nextSibling", DOMNode.class);
 		type.addPropertyGetter("previousSibling", DOMNode.class);
-		type.addPropertyGetter("syncedNodes", List.class);
+		type.addPropertyGetter("syncedNodes", Iterable.class);
 		type.addPropertyGetter("ownerDocument", Page.class);
 		type.addPropertyGetter("sharedComponent", DOMNode.class);
 		type.addPropertyGetter("sharedComponentConfiguration", String.class);
@@ -175,7 +175,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.overrideMethod("renderDetails",               false, "return getProperty(renderDetailsProperty);");
 		type.overrideMethod("hideOnIndex",                 false, "return getProperty(hideOnIndexProperty);");
 		type.overrideMethod("hideOnDetail",                false, "return getProperty(hideOnDetailProperty);");
-		type.overrideMethod("isSynced",                    false, "return getSyncedNodes().size() > 0 || getSharedComponent() != null;");
+		type.overrideMethod("isSynced",                    false, "return Iterables.count(getSyncedNodes()) > 0 || getSharedComponent() != null;");
 
 		// ----- interface org.w3c.dom.Node -----
 		type.overrideMethod("setUserData",                         false, "return null;");
@@ -208,7 +208,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.overrideMethod("replaceChild",                        false, "return " + DOMNode.class.getName() + ".replaceChild(this, arg0, arg1);");
 		type.overrideMethod("removeChild",                         false, "return " + DOMNode.class.getName() + ".removeChild(this, arg0);");
 		type.overrideMethod("appendChild",                         false, "return " + DOMNode.class.getName() + ".appendChild(this, arg0);");
-		type.overrideMethod("hasChildNodes",                       false, "return !getProperty(childrenProperty).isEmpty();");
+		type.overrideMethod("hasChildNodes",                       false, "return getProperty(childrenProperty).iterator().hasNext();");
 
 		type.overrideMethod("displayForLocale",                    false, "return " + DOMNode.class.getName() + ".displayForLocale(this, arg0);");
 		type.overrideMethod("displayForConditions",                false, "return " + DOMNode.class.getName() + ".displayForConditions(this, arg0);");
@@ -348,8 +348,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	DOMNode getParent();
 	DOMNode getSharedComponent();
-	List<DOMNode> getChildren();
-	List<DOMNode> getSyncedNodes();
+	Iterable<DOMNode> getChildren();
+	Iterable<DOMNode> getSyncedNodes();
 
 	@Override
 	Page getOwnerDocument();
@@ -514,9 +514,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 				}
 
-				final List<DOMNode> _syncedNodes = template.getSyncedNodes();
-
-				for (final DOMNode syncedNode : _syncedNodes) {
+				for (final DOMNode syncedNode : template.getSyncedNodes()) {
 
 					doc = syncedNode.getOwnerDocument();
 
@@ -1748,47 +1746,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		return oldChild;
 	}
 
-	/*
-	@Override
-	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		if (super.onCreation(securityContext, errorBuffer)) {
-
-			return checkName(errorBuffer);
-		}
-
-		return false;
-	}
-
-	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
-
-			if (customProperties != null) {
-
-				// invalidate data property cache
-				customProperties.clear();
-			}
-
-
-			try {
-
-				increasePageVersion();
-
-			} catch (FrameworkException ex) {
-
-				logger.warn("Updating page version failed", ex);
-
-			}
-
-			return checkName(errorBuffer);
-		}
-
-		return false;
-	}
-	*/
-
 	/**
 	 * Get all ancestors of this node
 	 *
@@ -1848,8 +1805,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			} else {
 
-				final List<DOMNode> _syncedNodes = thisNode.getSyncedNodes();
-				for (final DOMNode syncedNode : _syncedNodes) {
+				for (final DOMNode syncedNode : thisNode.getSyncedNodes()) {
 
 					DOMNode.increasePageVersion(syncedNode);
 				}
@@ -1862,265 +1818,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			page.increaseVersion();
 
 		}
-
 	}
-
-	/*
-	protected boolean avoidWhitespace() {
-
-		return false;
-
-	}
-
-	/**
-	 * Decide whether this node should be displayed for the given conditions string.
-	 *
-	 * @param renderContext
-	 * @return true if node should be displayed
-	protected boolean displayForConditions(final RenderContext renderContext) {
-
-		// In raw or widget mode, render everything
-		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
-		if (EditMode.DEPLOYMENT.equals(editMode) || EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
-			return true;
-		}
-
-		String _showConditions = getProperty(DOMNode.showConditions);
-		String _hideConditions = getProperty(DOMNode.hideConditions);
-
-		// If both fields are empty, render node
-		if (StringUtils.isBlank(_hideConditions) && StringUtils.isBlank(_showConditions)) {
-			return true;
-		}
-		try {
-			// If hide conditions evaluate to "true", don't render
-			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(Scripting.evaluate(renderContext, this, "${".concat(_hideConditions).concat("}"), "hide condition"))) {
-				return false;
-			}
-
-		} catch (UnlicensedException|FrameworkException ex) {
-			logger.error("Hide conditions " + _hideConditions + " could not be evaluated.", ex);
-		}
-		try {
-			// If show conditions evaluate to "false", don't render
-			if (StringUtils.isNotBlank(_showConditions) && Boolean.FALSE.equals(Scripting.evaluate(renderContext, this, "${".concat(_showConditions).concat("}"), "show condition"))) {
-				return false;
-			}
-
-		} catch (UnlicensedException|FrameworkException ex) {
-			logger.error("Show conditions " + _showConditions + " could not be evaluated.", ex);
-		}
-
-		return true;
-
-	}
-
-	// ----- interface org.w3c.dom.Node -----
-	@Override
-	public String getTextContent() throws DOMException {
-
-		final DOMNodeList results = new DOMNodeList();
-		final TextCollector textCollector = new TextCollector();
-
-		collectNodesByPredicate(this, results, textCollector, 0, false);
-
-		return textCollector.getText();
-	}
-
-	@Override
-	public void setTextContent(String textContent) throws DOMException {
-		// TODO: implement?
-	}
-
-	@Override
-	public Node getParentNode() {
-		// FIXME: type cast correct here?
-		return (Node)getProperty(parent);
-	}
-
-	@Override
-	public NodeList getChildNodes() {
-		checkReadAccess();
-		return new DOMNodeList(treeGetChildren());
-	}
-
-	@Override
-	public Node getFirstChild() {
-		checkReadAccess();
-		return treeGetFirstChild();
-	}
-
-	@Override
-	public Node getLastChild() {
-		return treeGetLastChild();
-	}
-
-	@Override
-	public Node getPreviousSibling() {
-		return listGetPrevious(this);
-	}
-
-	@Override
-	public Node getNextSibling() {
-		return listGetNext(this);
-	}
-
-	@Override
-	public Document getOwnerDocument() {
-		return getProperty(ownerDocument);
-	}
-
-	@Override
-	public boolean hasChildNodes() {
-		return !getProperty(children).isEmpty();
-	}
-
-	@Override
-	public boolean isSupported(String string, String string1) {
-		return false;
-	}
-
-	@Override
-	public String getNamespaceURI() {
-		return null; //return "http://www.w3.org/1999/xhtml";
-	}
-
-	@Override
-	public String getPrefix() {
-		return null;
-	}
-
-	@Override
-	public void setPrefix(String prefix) throws DOMException {
-	}
-
-	@Override
-	public String getBaseURI() {
-		return null;
-	}
-
-	@Override
-	public short compareDocumentPosition(Node node) throws DOMException {
-		return 0;
-	}
-
-	@Override
-	public String lookupPrefix(String string) {
-		return null;
-	}
-
-	@Override
-	public boolean isDefaultNamespace(String string) {
-		return true;
-	}
-
-	@Override
-	public String lookupNamespaceURI(String string) {
-		return null;
-	}
-
-	@Override
-	public boolean isEqualNode(Node node) {
-		return equals(node);
-	}
-
-	@Override
-	public Object getFeature(String string, String string1) {
-		return null;
-	}
-
-	@Override
-	public Object setUserData(String string, Object o, UserDataHandler udh) {
-		return null;
-	}
-
-	@Override
-	public Object getUserData(String string) {
-		return null;
-	}
-
-	// ----- interface DOMAdoptable -----
-
-	public static GraphObjectMap extractHeaders(final Header[] headers) {
-
-		final GraphObjectMap map = new GraphObjectMap();
-
-		for (final Header header : headers) {
-
-			map.put(new StringProperty(header.getName()), header.getValue());
-		}
-
-		return map;
-	}
-
-	// ----- interface Syncable -----
-	@Override
-	public List<GraphObject> getSyncData() throws FrameworkException {
-
-		final List<GraphObject> data = super.getSyncData();
-
-		// nodes
-		data.addAll(getProperty(DOMNode.children));
-
-		final DOMNode sibling = getProperty(DOMNode.nextSibling);
-		if (sibling != null) {
-
-			data.add(sibling);
-		}
-
-		// relationships
-		for (final DOMChildren child : getOutgoingRelationships(DOMChildren.class)) {
-			data.add(child);
-		}
-
-		final DOMSiblings siblingRel = getOutgoingRelationship(DOMSiblings.class);
-		if (siblingRel != null) {
-
-			data.add(siblingRel);
-		}
-
-		// for template nodes
-		data.add(getProperty(DOMNode.sharedComponent));
-		data.add(getIncomingRelationship(Sync.class));
-
-		// add parent page
-		data.add(getProperty(ownerDocument));
-		data.add(getOutgoingRelationship(PageLink.class));
-
-		// add parent element
-		data.add(getProperty(DOMNode.parent));
-		data.add(getIncomingRelationship(DOMChildren.class));
-
-		return data;
-	}
-
-	protected static class TagPredicate implements Predicate<Node> {
-
-		private String tagName = null;
-
-		public TagPredicate(String tagName) {
-			this.tagName = tagName;
-		}
-
-		@Override
-		public boolean accept(Node obj) {
-
-			if (obj instanceof DOMElement) {
-
-				DOMElement elem = (DOMElement)obj;
-
-				if (tagName.equals(elem.getProperty(DOMElement.tag))) {
-					return true;
-				}
-			}
-
-			return false;
-		}
-	}
-
-	private String cachedPagePath = null;
-
-	*/
 
 	public static String getPagePath(final DOMNode thisNode) {
 
@@ -2152,21 +1850,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			errorBuffer.add(new SemanticErrorToken(thisNode.getType(), AbstractNode.name, "may_not_contain_slashes", _name));
 		}
 	}
-
-	/*
-
-	public void setVisibility(final boolean publicUsers, final boolean authenticatedUsers) throws FrameworkException {
-
-		final PropertyMap map = new PropertyMap();
-
-		map.put(NodeInterface.visibleToPublicUsers, publicUsers);
-		map.put(NodeInterface.visibleToAuthenticatedUsers, authenticatedUsers);
-
-		setProperties(securityContext, map);
-	}
-
-	// ----- private methods -----
-	*/
 
 	// ----- nested classes -----
 	static class TextCollector implements Predicate<Node> {

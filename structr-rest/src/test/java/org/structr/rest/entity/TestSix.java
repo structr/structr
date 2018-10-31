@@ -18,7 +18,6 @@
  */
 package org.structr.rest.entity;
 
-import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
@@ -39,16 +38,16 @@ public class TestSix extends AbstractNode {
 
 	public static final Property<TestSeven>       testSeven        = new StartNode<>("testSeven", SevenSixOneToMany.class);
 	public static final Property<String>          testSevenName    = new EntityNotionProperty("testSevenName", testSeven, new PropertyNotion(TestSeven.name));
-	
-	public static final Property<List<TestEight>> testEights       = new EndNodes<>("testEights", SixEightManyToMany.class);
-	public static final Property<List<Integer>>   testEightInts    = new CollectionNotionProperty("testEightInts", testEights, new PropertyNotion(TestEight.anInt));
-	public static final Property<List<String>>    testEightStrings = new CollectionNotionProperty("testEightStrings", testEights, new PropertyNotion(TestEight.aString));
-	    
+
+	public static final Property<Iterable<TestEight>> testEights       = new EndNodes<>("testEights", SixEightManyToMany.class);
+	public static final Property<Iterable<Integer>>   testEightInts    = new CollectionNotionProperty("testEightInts", testEights, new PropertyNotion(TestEight.anInt));
+	public static final Property<Iterable<String>>    testEightStrings = new CollectionNotionProperty("testEightStrings", testEights, new PropertyNotion(TestEight.aString));
+
 	public static final Property<String>          aString          = new StringProperty("aString").indexed();
 	public static final Property<Integer>         anInt            = new IntProperty("anInt").indexed();
-	
+
 	public static final View defaultView = new View(TestSix.class, PropertyView.Public,
 		name, testSevenName, testEightInts, testEightStrings, aString, anInt
 	);
-	
+
 }

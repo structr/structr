@@ -20,8 +20,8 @@ package org.structr.api.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -35,6 +35,7 @@ public class Iterables {
 		final Iterator<? extends T> iterator = iterable.iterator();
 
 		try {
+
 			while (iterator.hasNext()) {
 
 				final T next = iterator.next();
@@ -44,9 +45,6 @@ public class Iterables {
 				}
 			}
 
-		} catch (Throwable t) {
-
-			t.printStackTrace();
 
 		} finally {
 
@@ -65,9 +63,9 @@ public class Iterables {
 		return collection;
 	}
 
-	public static long count(Iterable<?> iterable) {
+	public static int count(Iterable<?> iterable) {
 
-		long c = 0;
+		int c = 0;
 
 		for (Iterator<?> iterator = iterable.iterator(); iterator.hasNext(); iterator.next()) {
 			c++;
@@ -80,11 +78,53 @@ public class Iterables {
 		return !iterable.iterator().hasNext();
 	}
 
-	public static <X> Iterable<X> filter(Predicate<? super X> specification, Iterable<X> i) {
+	public static <T> T first(final Iterable<T> iterable) {
+
+		final Iterator<T> iterator = iterable.iterator();
+		if (iterator.hasNext()) {
+
+			return iterator.next();
+		}
+
+		return null;
+	}
+
+	public static <T> T last(final Iterable<T> iterable) {
+
+		final Iterator<T> iterator = iterable.iterator();
+		T tmp                      = null;
+
+		while (iterator.hasNext()) {
+
+			tmp = iterator.next();
+		}
+
+		return tmp;
+	}
+
+	public static <T> T nth(final Iterable<T> iterable, final int index) {
+
+		final Iterator<T> iterator = iterable.iterator();
+		int count                  = 0;
+		T tmp                      = null;
+
+		while (iterator.hasNext()) {
+
+			tmp = iterator.next();
+
+			if (count++ == index) {
+				return tmp;
+			}
+		}
+
+		return null;
+	}
+
+	public static <T> Iterable<T> filter(Predicate<? super T> specification, Iterable<T> i) {
 		return new FilterIterable<>(i, specification);
 	}
 
-	public static <X> Iterator<X> filter(Predicate<? super X> specification, Iterator<X> i) {
+	public static <T> Iterator<T> filter(Predicate<? super T> specification, Iterator<T> i) {
 		return new FilterIterable.FilterIterator<>(i, specification);
 	}
 
@@ -102,7 +142,7 @@ public class Iterables {
 			return (List<T>)iterable;
 		}
 
-		return addAll(new ArrayList<T>(), iterable);
+		return addAll(new ArrayList<>(), iterable);
 	}
 
 	public static <T> List<T> toList(Iterator<T> iterator) {
@@ -121,7 +161,7 @@ public class Iterables {
 	}
 
 	public static <T> Set<T> toSet(Iterable<T> iterable) {
-		return addAll(new HashSet<T>(), iterable);
+		return addAll(new LinkedHashSet<T>(), iterable);
 	}
 
 	private static class MapIterable<FROM, TO> implements Iterable<TO> {

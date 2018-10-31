@@ -18,7 +18,6 @@
  */
 package org.structr.rest.entity;
 
-import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import static org.structr.core.GraphObject.id;
@@ -34,12 +33,12 @@ import org.structr.core.property.StartNode;
  *
  */
 public class TestFive extends AbstractNode {
-	
-	public static final Property<List<TestOne>> manyToManyTestOnes = new EndNodes<>("manyToManyTestOnes", FiveOneManyToMany.class, new PropertyNotion(id));
-	public static final Property<List<TestOne>> oneToManyTestOnes  = new EndNodes<>("oneToManyTestOnes",  FiveOneOneToMany.class, new PropertyNotion(id));
-	
+
+	public static final Property<Iterable<TestOne>> manyToManyTestOnes = new EndNodes<>("manyToManyTestOnes", FiveOneManyToMany.class, new PropertyNotion(id));
+	public static final Property<Iterable<TestOne>> oneToManyTestOnes  = new EndNodes<>("oneToManyTestOnes",  FiveOneOneToMany.class, new PropertyNotion(id));
+
 	public static final Property<TestThree>     oneToOneTestThree  = new EndNode<>("oneToOneTestThree",  FiveThreeOneToOne.class);
 	public static final Property<TestThree>     manyToOneTestThree = new StartNode<>("manyToOneTestThree", ThreeFiveOneToMany.class);
-	
+
 	public static final View defaultView = new View(TestFive.class, PropertyView.Public, AbstractNode.name, manyToManyTestOnes, oneToManyTestOnes, oneToOneTestThree, manyToOneTestThree);
 }
