@@ -47,7 +47,7 @@ import org.structr.websocket.message.WebSocketMessage;
 public abstract class AbstractCommand {
 
 	public static final String COMMAND_KEY = "command";
-	public static final String ID_KEY      = "id";	
+	public static final String ID_KEY      = "id";
 	private static final Logger logger     = LoggerFactory.getLogger(AbstractCommand.class.getName());
 
 	protected Session session              = null;
@@ -296,20 +296,29 @@ public abstract class AbstractCommand {
 
 		final App app = StructrApp.getInstance();
 
-		ShadowDocument doc = app.nodeQuery(ShadowDocument.class).includeHidden().getFirst();
-		if (doc == null) {
+		try (final Tx tx = app.tx()) {
 
-			final PropertyMap properties = new PropertyMap();
-			properties.put(AbstractNode.type, ShadowDocument.class.getSimpleName());
-			properties.put(AbstractNode.name, "__ShadowDocument__");
-			properties.put(AbstractNode.hidden, true);
-			properties.put(AbstractNode.visibleToAuthenticatedUsers, true);
+			ShadowDocument doc = app.nodeQuery(ShadowDocument.class).includeHidden().getFirst();
+			if (doc == null) {
 
-			doc = app.create(ShadowDocument.class, properties);
+				final PropertyMap properties = new PropertyMap();
+				properties.put(AbstractNode.type, ShadowDocument.class.getSimpleName());
+				properties.put(AbstractNode.name, "__ShadowDocument__");
+				properties.put(AbstractNode.hidden, true);
+				properties.put(AbstractNode.visibleToAuthenticatedUsers, true);
+
+				doc = app.create(ShadowDocument.class, properties);
+			}
+			
+			tx.success();
+
+			return doc;
+
+		} catch (FrameworkException fex) {
+			logger.warn("Unable to create container for shared components: {}", fex.getMessage());
 		}
 
-		return doc;
-
+		return null;
 	}
 
 	public void setSession(final Session session) {

@@ -186,6 +186,16 @@ public class Settings {
 	public static final Setting<Boolean> RestUserAutologin    = new BooleanSetting(servletsGroup, "JsonRestServlet", "JsonRestServlet.user.autologin",   false);
 	public static final Setting<Boolean> RestUserAutocreate   = new BooleanSetting(servletsGroup, "JsonRestServlet", "JsonRestServlet.user.autocreate",  false);
 
+	public static final Setting<String> FlowServletPath       = new StringSetting(servletsGroup,  "FlowServlet", "FlowServlet.path",             "/structr/flow/*");
+	public static final Setting<String> FlowServletClass      = new StringSetting(servletsGroup,  "FlowServlet", "FlowServlet.class",            "org.structr.flow.servlet.FlowServlet");
+	public static final Setting<String> FlowAuthenticator     = new StringSetting(servletsGroup,  "FlowServlet", "FlowServlet.authenticator",    "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> FlowDefaultView       = new StringSetting(servletsGroup,  "FlowServlet", "FlowServlet.defaultview",      "public");
+	public static final Setting<Integer> FlowOutputDepth      = new IntegerSetting(servletsGroup, "FlowServlet", "FlowServlet.outputdepth",      3);
+	public static final Setting<String> FlowResourceProvider  = new StringSetting(servletsGroup,  "FlowServlet", "FlowServlet.resourceprovider", "org.structr.web.common.UiResourceProvider");
+	public static final Setting<String> FlowUserClass         = new StringSetting(servletsGroup,  "FlowServlet", "FlowServlet.user.class",       "org.structr.dynamic.User");
+	public static final Setting<Boolean> FlowUserAutologin    = new BooleanSetting(servletsGroup, "FlowServlet", "FlowServlet.user.autologin",   false);
+	public static final Setting<Boolean> FlowUserAutocreate   = new BooleanSetting(servletsGroup, "FlowServlet", "FlowServlet.user.autocreate",  false);
+
 	public static final Setting<String> HtmlServletPath           = new StringSetting(servletsGroup,  "HtmlServlet", "HtmlServlet.path",                  "/structr/html/*");
 	public static final Setting<String> HtmlServletClass          = new StringSetting(servletsGroup,  "HtmlServlet", "HtmlServlet.class",                 "org.structr.web.servlet.HtmlServlet");
 	public static final Setting<String> HtmlAuthenticator         = new StringSetting(servletsGroup,  "HtmlServlet", "HtmlServlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
