@@ -81,7 +81,7 @@ public class PagingIterator<T> implements Iterator<T> {
 
 		} else if (currentIndex >= getOffset() && currentIndex < getLimitOffset()) {
 
-			return true;
+			return iterator.hasNext();
 
 		}
 

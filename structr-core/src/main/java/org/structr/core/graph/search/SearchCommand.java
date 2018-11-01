@@ -225,7 +225,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				}
 
 				// do query
-				indexHits = new PagingIterable<>(Iterables.map(factory, index.query(getQueryContext(), rootGroup)), page, pageSize);
+				indexHits = new PagingIterable<>(Iterables.map(factory, index.query(getQueryContext(), rootGroup)), pageSize, page);
 
 				if (comparator != null) {
 

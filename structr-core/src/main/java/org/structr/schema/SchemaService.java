@@ -74,6 +74,7 @@ import org.structr.schema.compiler.BlacklistUnlicensedTypes;
 import org.structr.schema.compiler.ExtendNotionPropertyWithUuid;
 import org.structr.schema.compiler.MigrationHandler;
 import org.structr.schema.compiler.NodeExtender;
+import org.structr.schema.compiler.RemoveDuplicateClasses;
 import org.structr.schema.compiler.RemoveMethodsWithUnusedSignature;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.JsonSchema;
@@ -99,6 +100,7 @@ public class SchemaService implements Service {
 		migrationHandlers.add(new RemoveMethodsWithUnusedSignature());
 		migrationHandlers.add(new ExtendNotionPropertyWithUuid());
 		migrationHandlers.add(new BlacklistUnlicensedTypes());
+		migrationHandlers.add(new RemoveDuplicateClasses());
 	}
 
 	@Override
