@@ -18,6 +18,7 @@
  */
 package org.structr.flow.servlet;
 
+import com.google.common.graph.Graph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -34,6 +35,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.rest.servlet.ResourceHelper;
+import org.structr.web.function.UiFunction;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -117,7 +119,7 @@ public class FlowServlet extends JsonRestServlet {
 						result = new Result((GraphObject) resultObject, false);
 					} else {
 
-						result = new Result(resultObject);
+						result = new Result((GraphObject)UiFunction.toGraphObject(resultObject, 1), false);
 					}
 
 					if (returnContent) {
