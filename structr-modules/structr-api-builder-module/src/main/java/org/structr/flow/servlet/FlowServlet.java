@@ -103,7 +103,15 @@ public class FlowServlet extends JsonRestServlet {
 					if (resultObject instanceof Collection) {
 
 						Collection col = (Collection) resultObject;
-						result = new Result(new ArrayList(col), col.size(), true, false);
+
+						boolean isPrimitiveArray = false;
+
+						Iterator it = col.iterator();
+						if (it.hasNext() && !(it.next() instanceof GraphObject)) {
+							isPrimitiveArray = true;
+						}
+
+						result = new Result(new ArrayList(col), col.size(), true, isPrimitiveArray);
 					} else if (resultObject instanceof GraphObject) {
 
 						result = new Result((GraphObject) resultObject, false);
