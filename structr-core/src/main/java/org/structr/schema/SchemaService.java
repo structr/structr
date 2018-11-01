@@ -215,7 +215,7 @@ public class SchemaService implements Service {
 									// try to handle certain errors automatically
 									handleAutomaticMigration(errorBuffer);
 
-									if (retryCount == 1) {
+									if (retryCount == 0) {
 
 										for (final ErrorToken token : errorBuffer.getErrorTokens()) {
 											logger.error("{}", token.toString());
