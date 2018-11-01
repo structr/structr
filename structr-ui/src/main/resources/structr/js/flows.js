@@ -97,15 +97,62 @@ var _Flows = {
         let rest = new Rest();
 		let persistence = new Persistence();
 
-		function createFlow(inputElement) {
+		async function getOrCreateFlowPackage(packageArray) {
+
+		    if (packageArray !== null && packageArray.length > 0) {
+
+		        let currentPackage = packageArray[packageArray.length-1];
+		        packageArray.pop();
+
+                let result = await persistence.getNodesByName(currentPackage, {type:"FlowContainerPackage"});
+
+                if (result != null && result.length > 0 && result[0].effectiveName === (packageArray.join('.') + '.' + currentPackage)) {
+
+                    result = result[0];
+                } else {
+
+                    result = await persistence.createNode({type: "FlowContainerPackage", name: currentPackage});
+                }
+
+		        if (packageArray.length > 0) {
+		            result.parent = await getOrCreateFlowPackage(packageArray);
+                }
+
+		        return result;
+            }
+
+            return null;
+        }
+
+		async function createFlow(inputElement) {
             let name = inputElement.value;
             inputElement.value = "";
-            persistence.createNode({type:"FlowContainer", name:name}).then( (r) => {
+
+            let parentPackage = null;
+
+            if (name.indexOf(".") !== -1) {
+                let nameElements = name.split(".");
+                name = nameElements[nameElements.length -1];
+                nameElements.pop();
+
+                parentPackage = await getOrCreateFlowPackage(nameElements);
+            }
+
+            let flowObject = {
+                type: "FlowContainer",
+                name: name
+            };
+
+            if (parentPackage !== null) {
+                flowObject.flowPackage = parentPackage.id;
+            }
+
+            persistence.createNode(flowObject).then( (r) => {
                if (r !== null && r !== undefined && r.id !== null && r.id !== undefined) {
-               	_Flows.refreshTree(() => {
-                    $(flowsTree).jstree("deselect_all");
-                    $(flowsTree).jstree(true).select_node('li[id=\"' + r.id + '\"]');
-				});
+                    _Flows.refreshTree(() => {
+                        $(flowsTree).jstree("deselect_all");
+                        $(flowsTree).jstree(true).select_node('li[id=\"' + r.id + '\"]');
+                    });
                }
             });
         }
