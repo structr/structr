@@ -35,6 +35,8 @@ import org.eclipse.jetty.websocket.api.WebSocketException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.RelationshipType;
+import org.structr.api.util.Iterables;
+import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -93,7 +95,7 @@ public class WebsocketController implements StructrTransactionListener {
 		final String pagePath                        = webSocketData.getNodeDataStringValue("pagePath");
 		final String encodedPath                     = URIUtil.encodePath(pagePath);
 		final List<StructrWebSocket> clientsToRemove = new LinkedList<>();
-		final List<? extends GraphObject> result     = webSocketData.getResult();
+		final Iterable<? extends GraphObject> result = webSocketData.getResult();
 		final String command                         = webSocketData.getCommand();
 		final GraphObject obj                        = webSocketData.getGraphObject();
 
@@ -136,7 +138,7 @@ public class WebsocketController implements StructrTransactionListener {
 					}
 				}
 
-				if (result != null && !result.isEmpty() && BroadcastCommands.contains(command)) {
+				if (result != null && BroadcastCommands.contains(command)) {
 
 					final WebSocketMessage clientData = webSocketData.copy();
 
@@ -177,19 +179,8 @@ public class WebsocketController implements StructrTransactionListener {
 		}
 	}
 
-	private <T extends GraphObject> List<T> filter(final SecurityContext securityContext, final List<T> all) {
-
-		List<T> filteredResult = new LinkedList<>();
-		for (T obj : all) {
-
-			if (securityContext.isVisible((AbstractNode) obj)) {
-
-				filteredResult.add(obj);
-			}
-		}
-
-		return filteredResult;
-
+	private <T extends GraphObject> Iterable<T> filter(final SecurityContext securityContext, final Iterable<T> all) {
+		return Iterables.filter(e -> { return securityContext.isVisible((AccessControllable)e); }, all);
 	}
 
 	// ----- interface StructrTransactionListener -----

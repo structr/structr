@@ -629,7 +629,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 	 */
 	public static void writeCsv(final Result result, final Writer out, final String propertyView) throws IOException {
 
-		final List<GraphObject> list = result.getResults();
+		final List<GraphObject> list = result.getAsList();
 		final StringBuilder row      = new StringBuilder();
 		boolean headerWritten        = false;
 

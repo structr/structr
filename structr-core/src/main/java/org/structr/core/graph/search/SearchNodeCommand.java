@@ -26,8 +26,6 @@ import org.structr.core.graph.Factory;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Search for nodes by their attributes.
  * <p>

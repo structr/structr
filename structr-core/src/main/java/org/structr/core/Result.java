@@ -19,9 +19,11 @@
 package org.structr.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.structr.api.util.Iterables;
 
 /**
  * Encapsulates the result of a query operation.
@@ -36,8 +38,10 @@ public class Result<T extends GraphObject> {
 	private boolean isCollection      = false;
 	private boolean isPrimitiveArray  = false;
 	private boolean hasPartialContent = false;
+	private boolean isEmpty           = false;
 	private String propertyView       = null;
-	private List<T> results           = null;
+	private Iterable<T> source        = null;
+	private List<T> list              = null;
 
 	private String searchString       = null;
 	private String queryTime          = null;
@@ -53,52 +57,48 @@ public class Result<T extends GraphObject> {
 	private GraphObject metaData      = null;
 	private Object nonGraphObject     = null;
 
-	public Result(final List<T> listResult, final Integer rawResultCount, final boolean isCollection, final boolean isPrimitiveArray) {
+	public Result(final Iterable<T> listResult, final Integer rawResultCount, final boolean isCollection, final boolean isPrimitiveArray) {
 
 		this.isCollection     = isCollection;
 		this.isPrimitiveArray = isPrimitiveArray;
-		this.results          = listResult;
-		this.resultCount      = (rawResultCount != null ? rawResultCount : (results != null ? results.size() : 0));
+		this.source           = listResult;
+		this.resultCount      = 0;
+		this.isEmpty          = !listResult.iterator().hasNext();
 	}
 
 	public Result(T singleResult, final boolean isPrimitiveArray) {
 
 		this.isCollection     = false;
 		this.isPrimitiveArray = isPrimitiveArray;
-		this.results          = new ArrayList<>();
-		this.resultCount      = singleResult != null ? 1 : 0;
-
-		if (singleResult != null) {
-
-			// add result
-			results.add(singleResult);
-		}
+		this.list             = Arrays.asList(singleResult);
+		this.resultCount      = list.size();
+		this.isEmpty          = list.isEmpty();
 	}
 
 	public Result(final Object nonGraphObjectResult) {
 
 		this.isCollection     = nonGraphObjectResult instanceof Collection;
 		this.isPrimitiveArray = false;
-		this.results          = new ArrayList<>();
-		this.resultCount      = isCollection ? ((Collection)nonGraphObjectResult).size() : 1;
+		this.list             = new ArrayList<>();
+		this.resultCount      = 0;
 		this.nonGraphObject   = nonGraphObjectResult;
-	}
-
-	@Override
-	public String toString() {
-		return "Result(" + (results != null ? results.size() : 0) + ")";
+		this.isEmpty          = false;
 	}
 
 	public T get(final int i) {
-		return results.get(i);
+		return Iterables.nth(source, i);
 	}
 
 	public boolean isEmpty() {
-		return results == null || results.isEmpty();
+		return this.isEmpty;
 	}
 
-	public List<T> getResults() {
-		return results;
+	public Iterable<T> getResults() {
+		return source;
+	}
+
+	public List<T> getAsList() {
+		return getList();
 	}
 
 	public void setQueryTime(final String queryTime) {
@@ -203,7 +203,7 @@ public class Result<T extends GraphObject> {
 	}
 
 	public int size() {
-		return !isEmpty() ? results.size() : 0;
+		return getList().size();
 	}
 
 	public void setHasPartialContent(boolean hasPartialContent) {
@@ -224,5 +224,16 @@ public class Result<T extends GraphObject> {
 
 	public Object getNonGraphObjectResult() {
 		return nonGraphObject;
+	}
+
+	// ----- private methods ----
+	private List<T> getList() {
+
+		if (list == null && source != null) {
+
+			list = Iterables.toList(source);
+		}
+
+		return list;
 	}
 }

@@ -58,7 +58,7 @@ public class RelationshipNodeResource extends WrappingResource {
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
-		List<? extends GraphObject> results = wrappedResource.doGet(sortKey, sortDescending, pageSize, page).getResults();
+		List<? extends GraphObject> results = wrappedResource.doGet(sortKey, sortDescending, pageSize, page).getAsList();
 		if(results != null && !results.isEmpty()) {
 
 			try {

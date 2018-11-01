@@ -104,7 +104,7 @@ public class GetByTypeCommand extends AbstractCommand {
 			int resultCountBeforePaging = result.size();
 
 			// set full result list
-			webSocketData.setResult(PagingHelper.subList(result.getResults(), pageSize, page));
+			webSocketData.setResult(PagingHelper.subList(result.getAsList(), pageSize, page));
 			webSocketData.setRawResultCount(resultCountBeforePaging);
 
 			// send only over local connection

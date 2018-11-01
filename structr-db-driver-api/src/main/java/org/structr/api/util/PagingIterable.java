@@ -16,26 +16,27 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt.index;
+package org.structr.api.util;
 
-import java.util.Map;
-import org.structr.bolt.BoltDatabaseService;
-import org.structr.bolt.SessionTransaction;
-import org.structr.bolt.mapper.NodeId;
+import java.util.Iterator;
 
 /**
+ * An iterable that supports pagination and result counting.
  */
-public class NodeIdResultStream extends AbstractResultStream<NodeId> {
+public class PagingIterable<T> implements Iterable<T> {
 
-	public NodeIdResultStream(final BoltDatabaseService db, final PageableQuery query) {
-		super(db, query);
+	private PagingIterator<T> source = null;
+
+	public PagingIterable(final Iterable<T> source, final int pageSize, final int page) {
+		this.source = new PagingIterator<>(source.iterator(), page, pageSize);
 	}
 
 	@Override
-	protected Iterable<NodeId> fetchData(final BoltDatabaseService db, final String statement, final Map<String, Object> data) {
+	public Iterator<T> iterator() {
+		return source;
+	}
 
-		final SessionTransaction tx = db.getCurrentTransaction();
-		tx.setIsPing(getQuery().getQueryContext().isPing());
-		return tx.getNodeIds(statement, data);
+	public int getResultCount() {
+		return source.getResultCount();
 	}
 }

@@ -62,7 +62,7 @@ public class SortResource extends WrappingResource {
 			Result result = wrappedResource.doGet(sortKey, sortDescending, pageSize, page);
 
 			try {
-				Collections.sort(result.getResults(), new GraphObjectComparator(sortKey, sortOrder));
+				Collections.sort(result.getAsList(), new GraphObjectComparator(sortKey, sortOrder));
 
 			} catch(Throwable t) {
 

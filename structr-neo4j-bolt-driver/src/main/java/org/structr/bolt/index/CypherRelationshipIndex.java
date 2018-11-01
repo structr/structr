@@ -21,6 +21,7 @@ package org.structr.bolt.index;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.QueryUtils;
 import org.structr.bolt.BoltDatabaseService;
+import org.structr.bolt.SessionTransaction;
 import org.structr.bolt.mapper.RelationshipRelationshipMapper;
 
 /**
@@ -94,6 +95,11 @@ public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 
 	@Override
 	public Iterable<Relationship> getResult(final PageableQuery query) {
-		return QueryUtils.map(new RelationshipRelationshipMapper(db), new RelationshipResultStream(db, query));
+
+		final SessionTransaction tx = db.getCurrentTransaction();
+
+		tx.setIsPing(query.getQueryContext().isPing());
+
+		return QueryUtils.map(new RelationshipRelationshipMapper(db), tx.getRelationships(query.getStatement(), query.getParameters()));
 	}
 }

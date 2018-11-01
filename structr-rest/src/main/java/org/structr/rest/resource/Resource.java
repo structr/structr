@@ -118,10 +118,10 @@ public abstract class Resource {
 
 				// always fetch the first page
 				final Result<GraphObject> result = doGet(null, false, pageSize, 1);
-				final List<GraphObject> list     = result.getResults();
+				final Iterable<GraphObject> list = result.getResults();
 
 				// delete finished?
-				hasMore = list.size() == pageSize;
+				hasMore = result.size() == pageSize;
 
 				for (final GraphObject obj : list) {
 
@@ -157,7 +157,7 @@ public abstract class Resource {
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
 		final Result<GraphObject> result = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE);
-		final List<GraphObject> results  = result.getResults();
+		final List<GraphObject> results  = result.getAsList();
 
 		if (results != null && !results.isEmpty()) {
 

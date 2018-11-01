@@ -69,7 +69,7 @@ public abstract class StreamingWriter {
 		idTypeNameOnly.add(GraphObject.id);
 		idTypeNameOnly.add(AbstractNode.type);
 		idTypeNameOnly.add(AbstractNode.name);
-		
+
 		restrictedViews.add(PropertyView.All);
 		restrictedViews.add(PropertyView.Ui);
 		restrictedViews.add(PropertyView.Custom);
@@ -145,18 +145,18 @@ public abstract class StreamingWriter {
 		configureWriter(rootWriter);
 
 		// result fields in alphabetical order
-		final List<? extends GraphObject> results = result.getResults();
-		final Set<Integer> visitedObjects         = new LinkedHashSet<>();
-		final Integer outputNestingDepth          = result.getOutputNestingDepth();
-		final Integer page                        = result.getPage();
-		final Integer pageCount                   = result.getPageCount();
-		final Integer pageSize                    = result.getPageSize();
-		final String queryTime                    = result.getQueryTime();
-		final Integer resultCount                 = result.getRawResultCount();
-		final String searchString                 = result.getSearchString();
-		final String sortKey                      = result.getSortKey();
-		final String sortOrder                    = result.getSortOrder();
-		final GraphObject metaData                = result.getMetaData();
+		final Iterable<? extends GraphObject> results = result.getResults();
+		final Set<Integer> visitedObjects             = new LinkedHashSet<>();
+		final Integer outputNestingDepth              = result.getOutputNestingDepth();
+		final Integer page                            = result.getPage();
+		final Integer pageCount                       = result.getPageCount();
+		final Integer pageSize                        = result.getPageSize();
+		final String queryTime                        = result.getQueryTime();
+		final Integer resultCount                     = result.getRawResultCount();
+		final String searchString                     = result.getSearchString();
+		final String sortKey                          = result.getSortKey();
+		final String sortOrder                        = result.getSortOrder();
+		final GraphObject metaData                    = result.getMetaData();
 
 		rootWriter.beginDocument(baseUrl, propertyView.get(securityContext));
 
@@ -189,11 +189,11 @@ public abstract class StreamingWriter {
 
 		if (results != null) {
 
-			if (results.isEmpty() && result.isPrimitiveArray()) {
+			if (result.isEmpty() && result.isPrimitiveArray()) {
 
 				rootWriter.name(resultKeyName).nullValue();
 
-			} else if (results.isEmpty() && !result.isPrimitiveArray()) {
+			} else if (result.isEmpty() && !result.isPrimitiveArray()) {
 
 				rootWriter.name(resultKeyName).beginArray().endArray();
 
@@ -201,13 +201,13 @@ public abstract class StreamingWriter {
 
 				rootWriter.name(resultKeyName);
 
-				if (results.size() > 1) {
+				if (result.size() > 1) {
 					rootWriter.beginArray();
 				}
 
-				if (securityContext.doMultiThreadedJsonOutput() && results.size() > parallelizationThreshold) {
+				if (securityContext.doMultiThreadedJsonOutput() && result.size() > parallelizationThreshold) {
 
-					doParallel(results, rootWriter, visitedObjects, (writer, o, nestedObjects) -> {
+					doParallel(result.getAsList(), rootWriter, visitedObjects, (writer, o, nestedObjects) -> {
 
 						writePrimitive(o, writer, nestedObjects);
 					});
@@ -223,7 +223,7 @@ public abstract class StreamingWriter {
 					}
 				}
 
-				if (results.size() > 1) {
+				if (result.size() > 1) {
 
 					rootWriter.endArray();
 
@@ -233,19 +233,13 @@ public abstract class StreamingWriter {
 
 				final String localPropertyView  = propertyView.get(null);
 
-				// result is an attribute called via REST API
-				if (results.size() > 1 && !result.isCollection()) {
-
-					throw new IllegalStateException(result.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
-				}
-
 				if (result.isCollection()) {
 
 					rootWriter.name(resultKeyName).beginArray();
 
-					if (securityContext.doMultiThreadedJsonOutput() && results.size() > parallelizationThreshold) {
+					if (securityContext.doMultiThreadedJsonOutput() && result.size() > parallelizationThreshold) {
 
-						doParallel(results, rootWriter, visitedObjects, (writer, o, nestedObjects) -> {
+						doParallel(result.getAsList(), rootWriter, visitedObjects, (writer, o, nestedObjects) -> {
 
 							root.serialize(writer, (GraphObject)o, localPropertyView, 0, nestedObjects);
 						});
@@ -264,7 +258,7 @@ public abstract class StreamingWriter {
 				} else {
 
 					rootWriter.name(resultKeyName);
-					root.serialize(rootWriter, results.get(0), localPropertyView, 0, visitedObjects);
+					root.serialize(rootWriter, result.get(0), localPropertyView, 0, visitedObjects);
 				}
 			}
 		}

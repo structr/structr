@@ -40,6 +40,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -240,13 +241,15 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		// serialize result list
 		if (src.getResult() != null) {
 
+			final List<? extends GraphObject> list = Iterables.toList(src.getResult());
+
 			if ("GRAPHQL".equals(src.getCommand())) {
 
 				try {
 
-					if (src.getResult() != null && !src.getResult().isEmpty()) {
+					if (!list.isEmpty()) {
 
-						final GraphObject firstResultObject = src.getResult().get(0);
+						final GraphObject firstResultObject   = list.get(0);
 						final SecurityContext securityContext = firstResultObject.getSecurityContext();
 
 						final StringWriter output = new StringWriter();

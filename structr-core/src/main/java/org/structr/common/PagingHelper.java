@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.core.Result;
 
 /**
@@ -108,7 +109,7 @@ public class PagingHelper {
 		result.setPage(page);
 		result.setPageSize(pageSize);
 
-		return new Result(subList(result.getResults(), pageSize, page), result.getResults().size(), result.isCollection(), result.isPrimitiveArray());
+		return new Result(subList(Iterables.toList(result.getResults()), pageSize, page), 0, result.isCollection(), result.isPrimitiveArray());
 	}
 
 	public static Result addPagingParameter(Result result, int pageSize, int page) {

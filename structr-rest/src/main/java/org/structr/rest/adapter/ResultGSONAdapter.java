@@ -30,7 +30,6 @@ import com.google.gson.JsonSerializer;
 import java.lang.reflect.Type;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.List;
 import java.util.Locale;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
@@ -59,16 +58,16 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 		JsonObject result = new JsonObject();
 
 		// result fields in alphabetical order
-		List<? extends GraphObject> results = src.getResults();
-		Integer page = src.getPage();
-		Integer pageCount = src.getPageCount();
-		Integer pageSize = src.getPageSize();
-		String queryTime = src.getQueryTime();
-		Integer resultCount = src.getRawResultCount();
-		String searchString = src.getSearchString();
-		String sortKey = src.getSortKey();
-		String sortOrder = src.getSortOrder();
-		GraphObject metaData = src.getMetaData();
+		Iterable<? extends GraphObject> results = src.getResults();
+		Integer page                            = src.getPage();
+		Integer pageCount                       = src.getPageCount();
+		Integer pageSize                        = src.getPageSize();
+		String queryTime                        = src.getQueryTime();
+		Integer resultCount                     = src.getRawResultCount();
+		String searchString                     = src.getSearchString();
+		String sortKey                          = src.getSortKey();
+		String sortOrder                        = src.getSortOrder();
+		GraphObject metaData                    = src.getMetaData();
 
 		if(page != null) {
 			result.add("page", new JsonPrimitive(page));
@@ -92,7 +91,7 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 
 		if(results != null) {
 
-			if(results.isEmpty()) {
+			if(src.isEmpty()) {
 
 				final Object nonGraphObjectResult = src.getNonGraphObjectResult();
 				if (nonGraphObjectResult != null) {
@@ -123,8 +122,8 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 			} else {
 
 				// FIXME: do we need this check, or does it cause trouble?
-				if (results.size() > 1 && !src.isCollection()){
-					throw new IllegalStateException(src.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
+				if (src.size() > 1 && !src.isCollection()){
+					throw new IllegalStateException(src.getClass().getSimpleName() + " is not a collection resource, but result set has size " + src.size());
 				}
 
 				// keep track of serialization time
@@ -156,7 +155,7 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 				} else {
 
 					// use GraphObject adapter to serialize single result
-					result.add("result", graphObjectGsonAdapter.serialize(results.get(0), startTime));
+					result.add("result", graphObjectGsonAdapter.serialize(src.get(0), startTime));
 				}
 			}
 		}

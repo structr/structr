@@ -103,4 +103,15 @@ public class PagingIterator<T> implements Iterator<T> {
 		throw new NoSuchElementException("No element available for next() call!");
 	}
 
+	public int getResultCount() {
+
+		// exhaust iterator and return final result count
+		while (iterator.hasNext()) {
+			iterator.next();
+			currentIndex++;
+		}
+
+		return currentIndex;
+	}
+
 }

@@ -50,7 +50,7 @@ public class AdvancedCypherQuery implements PageableQuery {
 
 	public AdvancedCypherQuery(final QueryContext queryContext, final AbstractCypherIndex<?> index) {
 		this.queryContext = queryContext;
-		this.pageSize = 100000;
+		this.pageSize = 1000000;
 		this.index    = index;
 	}
 
@@ -159,6 +159,7 @@ public class AdvancedCypherQuery implements PageableQuery {
 			}
 		}
 
+		/*
 		if (queryContext.isSliced()) {
 
 			buf.append(" SKIP ");
@@ -174,6 +175,7 @@ public class AdvancedCypherQuery implements PageableQuery {
 			buf.append(pageSize);
 
 		}
+		*/
 
 		return buf.toString();
 	}

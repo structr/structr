@@ -1948,7 +1948,7 @@ public class SearchAndSortingTest extends StructrTest {
 			final Result<TestOne> result = app.nodeQuery(TestOne.class).includeHidden(false).getResult();
 
 			assertEquals("Result count should not include hidden nodes", 8, (int)result.getRawResultCount());
-			assertEquals("Actual result size should be equal to result count", 8, (int)result.getResults().size());
+			assertEquals("Actual result size should be equal to result count", 8, (int)result.size());
 
 
 			tx.success();

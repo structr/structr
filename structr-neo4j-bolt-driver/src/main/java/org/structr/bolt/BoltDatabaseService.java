@@ -332,7 +332,6 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		query.getParameters().put("type", type);
 
-		//return QueryUtils.map(mapper, tx.getNodes("MATCH (n) WHERE n.type = {type} RETURN n", map));
 		return QueryUtils.map(new NodeNodeMapper(this), new NodeResultStream(this, query));
 	}
 

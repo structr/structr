@@ -23,8 +23,8 @@ import org.structr.api.search.QueryContext;
 
 public interface PageableQuery {
 
-	int pageSize();
 	void nextPage();
+	int pageSize();
 	String getSortKey();
 	String getStatement();
 	Map<String, Object> getParameters();

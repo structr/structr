@@ -30,8 +30,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.RelationshipInterface;
@@ -72,9 +70,7 @@ public class RelationshipResource extends WrappingResource {
 	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
 
 		// fetch all results, paging is applied later
-		final List<? extends GraphObject> results = wrappedResource.doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE).getResults();
-		final App app                             = StructrApp.getInstance();
-
+		final List<? extends GraphObject> results = wrappedResource.doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE).getAsList();
 		if (results != null && !results.isEmpty()) {
 
 			try {

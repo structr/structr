@@ -152,7 +152,7 @@ public class ToCsvFunction extends UiFunction {
 			final Locale locale
 	) throws IOException {
 
-		final List<GraphObject> list = result.getResults();
+		final List<GraphObject> list = result.getAsList();
 
 		writeCsv(list, out, propertyView, properties, quoteChar, delimiterChar, recordSeparator, includeHeader, localizeHeader, headerLocalizationDomain, locale);
 	}

@@ -1353,7 +1353,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			logger.debug("Found {} pages and {} files/folders", new Object[] { pages.size(), files.size() });
 
 			final List<Linkable> linkables = (List<Linkable>) pages.getResults();
-			linkables.addAll(files.getResults());
+			linkables.addAll(files.getAsList());
 
 			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, linkables);
 

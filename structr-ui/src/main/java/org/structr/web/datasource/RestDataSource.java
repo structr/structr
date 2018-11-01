@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
@@ -70,7 +69,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 	public Iterable<GraphObject> getData(final ActionContext actionContext, NodeInterface referenceNode) throws FrameworkException {
 
 		final RenderContext renderContext = (RenderContext) actionContext;
-		
+
 		final PropertyKey<String> restQueryKey = StructrApp.key(DOMNode.class, "restQuery");
 		final String restQuery                 = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(renderContext, restQueryKey);
 
@@ -82,7 +81,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 	}
 
 	// FIXME: this method is needed by the websocket search command because there is no reference node for the above method
-	public List<GraphObject> getData(final RenderContext renderContext, final String restQuery) throws FrameworkException {
+	public Iterable<GraphObject> getData(final RenderContext renderContext, final String restQuery) throws FrameworkException {
 
 		final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 		final SecurityContext securityContext                     = renderContext.getSecurityContext();
@@ -234,7 +233,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		//Integer rawResultCount = (Integer) Services.getAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId());
 		PagingHelper.addPagingParameter(result, pageSize, page);
 
-		List<GraphObject> res = result.getResults();
+		Iterable<GraphObject> res = result.getResults();
 
 		renderContext.setResult(result);
 
