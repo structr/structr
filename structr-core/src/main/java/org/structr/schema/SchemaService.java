@@ -215,11 +215,22 @@ public class SchemaService implements Service {
 									// try to handle certain errors automatically
 									handleAutomaticMigration(errorBuffer);
 
-									// clear errors for next try
-									errorBuffer.getErrorTokens().clear();
+									if (retryCount == 0) {
 
-									// back to top..
-									continue;
+										for (final ErrorToken token : errorBuffer.getErrorTokens()) {
+											logger.error("{}", token.toString());
+										}
+
+										return false;
+
+									} else {
+
+										// clear errors for next try
+										errorBuffer.getErrorTokens().clear();
+
+										// back to top..
+										continue;
+									}
 
 								} else {
 

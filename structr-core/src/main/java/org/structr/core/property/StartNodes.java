@@ -173,20 +173,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 
 		final ManyStartpoint<S> startpoint = relation.getSource();
 
-		try {
-
-			return startpoint.set(securityContext, (NodeInterface)obj, collection);
-
-		} catch (RuntimeException r) {
-
-			final Throwable cause = r.getCause();
-			if (cause instanceof FrameworkException) {
-
-				throw (FrameworkException)cause;
-			}
-		}
-
-		return null;
+		return startpoint.set(securityContext, (NodeInterface)obj, collection);
 	}
 
 	@Override
