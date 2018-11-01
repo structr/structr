@@ -174,6 +174,11 @@ var _Flows = {
             return packages.result.length > 0 ? packages.result[0] : null;
         }
 
+        document.querySelector('#name-input').onkeydown = ((event) => {
+            if (event.key === "Enter") {
+                createFlow(document.getElementById('name-input'));
+            }
+		});
 		document.querySelector('#create-new-flow').onclick = () => createFlow(document.getElementById('name-input'));
 		document.querySelector('.reset_view_icon').onclick = () => editor.resetView();
 
