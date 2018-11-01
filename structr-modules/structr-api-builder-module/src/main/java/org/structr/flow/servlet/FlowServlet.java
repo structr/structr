@@ -20,7 +20,6 @@ package org.structr.flow.servlet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -33,7 +32,6 @@ import org.structr.core.graph.Tx;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.resource.Resource;
-import org.structr.rest.serialization.StreamingHtmlWriter;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.rest.servlet.ResourceHelper;
 
@@ -192,5 +190,23 @@ public class FlowServlet extends JsonRestServlet {
 		return "api-builder";
 	}
 
+	@Override
+	protected void doDelete(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+		throw new UnsupportedOperationException("DELETE is not supported by the FlowServlet");
+	}
+
+	@Override
+	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		throw new UnsupportedOperationException("POST is not supported by the FlowServlet");
+	}
+
+	@Override
+	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+		throw new UnsupportedOperationException("PUT is not supported by the FlowServlet");
+	}
+
+	protected void doPatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		throw new UnsupportedOperationException("PATCH is not supported by the FlowServlet");
+	}
 
 }
