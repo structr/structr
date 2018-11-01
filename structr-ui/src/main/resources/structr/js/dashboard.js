@@ -317,11 +317,14 @@ var _Dashboard = {
 		var deploymentBox  = _Dashboard.appendBox('Deployment', 'deployment');
 		var container      = $('<div></div>').appendTo(deploymentBox);
 
-		container.append('<h3>Import application from repository</h3>');
-		container.append('<div style="padding-right: 12px; "><input type="text" id="deployment-source-input" style="width: 100%;" /> <button class="action" style="margin-top: 6px;" id="do-import">Import</button></div>');
+		container.append('<h3>Import application from local directory</h3>');
+		container.append('<div><input type="text" id="deployment-source-input" size="60" placeholder="Enter directory path..."> <button class="action" id="do-import">Import from local directory</button></div>');
 
-		container.append('<h3>Export application to repository</h3>');
-		container.append('<div style="padding-right: 12px; "><input type="text" id="deployment-target-input" style="width: 100%;" /> <button class="action" style="margin-top: 6px;" id="do-export">Export</button></div>');
+		container.append('<h3>Import application from URL</h3>');
+		container.append('<form action="/structr/deploy" method="POST" enctype="multipart/form-data"><input type="hidden" name="redirectUrl" value="' + window.location.href + '"><input type="text" id="deployment-url-input" size="60" placeholder="Enter download URL..." name="downloadUrl"> <button type="submit" class="action">Import from URL</button></form>');
+
+		container.append('<h3>Export application to local directory</h3>');
+		container.append('<div><input type="text" id="deployment-target-input" size="60" placeholder="Enter directory path..."> <button class="action" id="do-export">Export to local directory</button></div>');
 
 		$('button#do-import').on('click', function() {
 			var location = $('#deployment-source-input').val();

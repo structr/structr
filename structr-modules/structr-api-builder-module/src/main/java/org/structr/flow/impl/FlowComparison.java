@@ -21,6 +21,7 @@ package org.structr.flow.impl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.structr.api.util.Iterables;
 
 import org.structr.common.PropertyView;
 import org.structr.common.View;
@@ -36,10 +37,10 @@ import org.structr.module.api.DeployableEntity;
  */
 public class FlowComparison extends FlowCondition implements DataSource, DeployableEntity {
 
-	public static final Property<List<DataSource>> dataSources 	= new StartNodes<>("dataSources", FlowDataInputs.class);
-	public static final Property<DataSource> dataSource			= new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<Iterable<DataSource>> dataSources 	= new StartNodes<>("dataSources", FlowDataInputs.class);
+	public static final Property<DataSource> dataSource		= new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<FlowCondition> condition 		= new EndNode<>("condition", FlowConditionCondition.class);
-	public static final Property<List<FlowDecision>> decision 	= new EndNodes<>("decision", FlowDecisionCondition.class);
+	public static final Property<Iterable<FlowDecision>> decision 	= new EndNodes<>("decision", FlowDecisionCondition.class);
 
 	public static final Property<Operation> operation 			= new EnumProperty<>("operation", Operation.class);
 
@@ -49,7 +50,7 @@ public class FlowComparison extends FlowCondition implements DataSource, Deploya
 	@Override
 	public Object get(final Context context) throws FlowException {
 
-		final List<DataSource> _dataSources = getProperty(dataSources);
+		final List<DataSource> _dataSources = Iterables.toList(getProperty(dataSources));
 		if (_dataSources.isEmpty()) {
 
 			return false;
@@ -103,7 +104,7 @@ public class FlowComparison extends FlowCondition implements DataSource, Deploya
 			}
 
 		} else {
-			
+
 			return false;
 		}
 

@@ -20,6 +20,7 @@ package org.structr.core.entity;
 
 import java.net.URI;
 import java.util.List;
+import org.structr.api.util.Iterables;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
@@ -44,7 +45,7 @@ public interface Group extends Principal {
 		group.setCategory("core");
 
 		group.addBooleanProperty("isGroup", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
-		group.addPropertyGetter("members", List.class);
+		group.addPropertyGetter("members", Iterable.class);
 
 		group.addMethod("addMember")
 				.setSource(Group.class.getName() + ".addMember(this, member);")
@@ -75,7 +76,7 @@ public interface Group extends Principal {
 
 	void addMember(final Principal member) throws FrameworkException;
 	void removeMember(final Principal member) throws FrameworkException;
-	List<Principal> getMembers();
+	Iterable<Principal> getMembers();
 
 
 	public static void addMember(final Group group, final Principal user) throws FrameworkException {
@@ -83,9 +84,9 @@ public interface Group extends Principal {
 		if (user == null) {
 			throw new FrameworkException(422, "Unable to add user " + user + " to group " + group);
 		}
-		
-		final PropertyKey<List<Principal>> key = StructrApp.key(group.getClass(), "members");
-		final List<Principal> _users           = group.getProperty(key);
+
+		final PropertyKey<Iterable<Principal>> key = StructrApp.key(group.getClass(), "members");
+		final List<Principal> _users               = Iterables.toList(group.getProperty(key));
 
 		_users.add(user);
 
@@ -98,8 +99,8 @@ public interface Group extends Principal {
 			throw new FrameworkException(422, "Unable to remove member " + member + " from group " + group);
 		}
 
-		final PropertyKey<List<Principal>> key = StructrApp.key(group.getClass(), "members");
-		final List<Principal> _users           = group.getProperty(key);
+		final PropertyKey<Iterable<Principal>> key = StructrApp.key(group.getClass(), "members");
+		final List<Principal> _users               = Iterables.toList(group.getProperty(key));
 
 		_users.remove(member);
 

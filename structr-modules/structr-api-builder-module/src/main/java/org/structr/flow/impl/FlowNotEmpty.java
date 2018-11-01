@@ -36,15 +36,16 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.structr.api.util.Iterables;
 
 /**
  *
  */
 public class FlowNotEmpty extends FlowCondition implements DataSource, DeployableEntity {
 
-	public static final Property<List<DataSource>> dataSources = new StartNodes<>("dataSources", FlowDataInputs.class);
-	public static final Property<FlowCondition> condition = new EndNode<>("condition", FlowConditionCondition.class);
-	public static final Property<List<FlowDecision>> decision = new EndNodes<>("decision", FlowDecisionCondition.class);
+	public static final Property<Iterable<DataSource>> dataSources = new StartNodes<>("dataSources", FlowDataInputs.class);
+	public static final Property<FlowCondition> condition          = new EndNode<>("condition", FlowConditionCondition.class);
+	public static final Property<Iterable<FlowDecision>> decision  = new EndNodes<>("decision", FlowDecisionCondition.class);
 
 	public static final View defaultView = new View(FlowNotNull.class, PropertyView.Public, dataSources, condition, decision);
 	public static final View uiView      = new View(FlowNotNull.class, PropertyView.Ui,     dataSources, condition, decision);
@@ -52,7 +53,7 @@ public class FlowNotEmpty extends FlowCondition implements DataSource, Deployabl
 	@Override
 	public Object get(final Context context) throws FlowException {
 
-		final List<DataSource> _dataSources = getProperty(dataSources);
+		final List<DataSource> _dataSources = Iterables.toList(getProperty(dataSources));
 		if (_dataSources.isEmpty()) {
 
 			return false;

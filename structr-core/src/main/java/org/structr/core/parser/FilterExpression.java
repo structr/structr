@@ -72,9 +72,9 @@ public class FilterExpression extends Expression {
 		final Object listSource = listExpression.evaluate(ctx, entity);
 		final List target       = new LinkedList<>();
 
-		if (listSource != null && listSource instanceof List) {
+		if (listSource != null && listSource instanceof Iterable) {
 
-			final List source         = (List)listSource;
+			final Iterable source     = (Iterable)listSource;
 			final Object oldDataValue = ctx.getConstant("data");
 
 			for (Object obj : source) {

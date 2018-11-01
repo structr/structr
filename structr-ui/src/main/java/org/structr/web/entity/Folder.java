@@ -20,7 +20,6 @@ package org.structr.web.entity;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.structr.api.util.Iterables;
 import org.structr.cmis.CMISInfo;
@@ -69,7 +68,7 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextA
 		type.addPropertyGetter("mountTarget", String.class);
 		type.addPropertyGetter("enabledChecksums", String.class);
 
-		type.addPropertyGetter("children", List.class);
+		type.addPropertyGetter("children", Iterable.class);
 
 		type.overrideMethod("onCreation",     true, Folder.class.getName() + ".onCreation(this, arg0, arg1);");
 		type.overrideMethod("onModification", true, Folder.class.getName() + ".onModification(this, arg0, arg1, arg2);");
@@ -80,7 +79,7 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextA
 		type.overrideMethod("isMounted",      false, "return " + Folder.class.getName() + ".isMounted(this);");
 
 		type.overrideMethod("getFileOnDisk",  false, "return " + Folder.class.getName() + ".getFileOnDisk(this, arg0, arg1, arg2);");
-		
+
 		// ContextAwareEntity
 		type.overrideMethod("getEntityContextPath",  false, "return getPath();");
 

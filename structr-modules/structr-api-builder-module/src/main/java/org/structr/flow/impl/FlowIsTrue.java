@@ -34,15 +34,16 @@ import org.structr.flow.impl.rels.FlowDecisionCondition;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.structr.api.util.Iterables;
 
 /**
  *
  */
 public class FlowIsTrue extends FlowCondition {
 
-	public static final Property<List<DataSource>> dataSources = new StartNodes<>("dataSources", FlowDataInputs.class);
-	public static final Property<FlowCondition> condition = new EndNode<>("condition", FlowConditionCondition.class);
-	public static final Property<List<FlowDecision>> decision = new EndNodes<>("decision", FlowDecisionCondition.class);
+	public static final Property<Iterable<DataSource>> dataSources = new StartNodes<>("dataSources", FlowDataInputs.class);
+	public static final Property<FlowCondition> condition          = new EndNode<>("condition", FlowConditionCondition.class);
+	public static final Property<Iterable<FlowDecision>> decision  = new EndNodes<>("decision", FlowDecisionCondition.class);
 
 	public static final View defaultView = new View(FlowNotNull.class, PropertyView.Public, dataSources, condition, decision);
 	public static final View uiView      = new View(FlowNotNull.class, PropertyView.Ui,     dataSources, condition, decision);
@@ -50,7 +51,7 @@ public class FlowIsTrue extends FlowCondition {
 	@Override
 	public Object get(final Context context) throws FlowException {
 
-		final List<DataSource> _dataSources = getProperty(FlowIsTrue.dataSources);
+		final List<DataSource> _dataSources = Iterables.toList(getProperty(FlowIsTrue.dataSources));
 		if (_dataSources.isEmpty()) {
 
 			return false;

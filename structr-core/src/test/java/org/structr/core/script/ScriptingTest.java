@@ -40,6 +40,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrTest;
@@ -211,10 +212,10 @@ public class ScriptingTest extends StructrTest {
 
 				// test contents of "targets" property
 				final Object targetNodesObject = sourceNode.getProperty(targetsProperty);
-				assertTrue("Invalid getProperty result for scripted association", targetNodesObject instanceof List);
+				assertTrue("Invalid getProperty result for scripted association", targetNodesObject instanceof Iterable);
 
-				final List list = (List)targetNodesObject;
-				assertEquals("Invalid getProperty result for scripted association", 5, list.size());
+				final Iterable iterable = (Iterable)targetNodesObject;
+				assertEquals("Invalid getProperty result for scripted association", 5, Iterables.count(iterable));
 			}
 
 			final GraphObject sourceNode = app.nodeQuery(sourceType).getFirst();
@@ -486,12 +487,12 @@ public class ScriptingTest extends StructrTest {
 	@Test
 	public void testCollectionOperations() {
 
-		final Class groupType                      = StructrApp.getConfiguration().getNodeEntityClass("Group");
-		final PropertyKey<List<Principal>> members = StructrApp.key(groupType, "members");
-		Group group            = null;
-		Principal user1         = null;
-		Principal user2         = null;
-		TestOne testOne        = null;
+		final Class groupType                          = StructrApp.getConfiguration().getNodeEntityClass("Group");
+		final PropertyKey<Iterable<Principal>> members = StructrApp.key(groupType, "members");
+		Group group                                    = null;
+		Principal user1                                = null;
+		Principal user2                                = null;
+		TestOne testOne                                = null;
 
 		// setup phase
 		try (final Tx tx = app.tx()) {
@@ -520,32 +521,32 @@ public class ScriptingTest extends StructrTest {
 			final ActionContext actionContext = new ActionContext(securityContext);
 
 			// test prerequisites
-			assertEquals("Invalid prerequisite",     1, group.getProperty(members).size());
+			assertEquals("Invalid prerequisite",     1, Iterables.count(group.getProperty(members)));
 			assertEquals("Invalid prerequisite", user2, Scripting.evaluate(actionContext, group, "${{ return Structr.find('Principal', { name: 'Tester2' })[0]; }}", "test"));
 
 			// test scripting association
 			Scripting.evaluate(actionContext, group, "${{ var group = Structr.find('Group')[0]; var users = group.members; users.push(Structr.find('Principal', { name: 'Tester2' })[0]); }}", "test");
-			assertEquals("Invalid scripted array operation result", 2, group.getProperty(members).size());
+			assertEquals("Invalid scripted array operation result", 2, Iterables.count(group.getProperty(members)));
 
 			// reset group
 			group.setProperty(members, Arrays.asList(new Principal[] { user1 } ));
 
 			// test prerequisites
-			assertEquals("Invalid prerequisite",     1, group.getProperty(members).size());
+			assertEquals("Invalid prerequisite",     1, Iterables.count(group.getProperty(members)));
 
 			// test direct push on member property
 			Scripting.evaluate(actionContext, group, "${{ var group = Structr.find('Group')[0]; group.members.push(Structr.find('Principal', { name: 'Tester2' })[0]); }}", "test");
-			assertEquals("Invalid scripted array operation result", 2, group.getProperty(members).size());
+			assertEquals("Invalid scripted array operation result", 2, Iterables.count(group.getProperty(members)));
 
 
 
 			// test scripting association
 			Scripting.evaluate(actionContext, group, "${{ var test = Structr.find('TestOne')[0]; var testSixs = test.manyToManyTestSixs; testSixs.push(Structr.find('TestSix')[0]); }}", "test");
-			assertEquals("Invalid scripted array operation result", 1, testOne.getProperty(TestOne.manyToManyTestSixs).size());
+			assertEquals("Invalid scripted array operation result", 1, Iterables.count(testOne.getProperty(TestOne.manyToManyTestSixs)));
 
 			// test direct push on member property
 			Scripting.evaluate(actionContext, group, "${{ var test = Structr.find('TestOne')[0]; var testSixs = test.manyToManyTestSixs.push(Structr.find('TestSix')[1]); }}", "test");
-			assertEquals("Invalid scripted array operation result", 2, testOne.getProperty(TestOne.manyToManyTestSixs).size());
+			assertEquals("Invalid scripted array operation result", 2, Iterables.count(testOne.getProperty(TestOne.manyToManyTestSixs)));
 
 
 			tx.success();
@@ -1475,7 +1476,7 @@ public class ScriptingTest extends StructrTest {
 
 			// test with interval larger than number of elements
 			assertEquals("Invalid slice() result for invalid inputs",
-				testOne.getProperty(TestOne.manyToManyTestSixs).toString(),
+				Iterables.toList(testOne.getProperty(TestOne.manyToManyTestSixs)).toString(),
 				Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 0, 1000)}")
 			);
 
@@ -2693,6 +2694,42 @@ public class ScriptingTest extends StructrTest {
 			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
+	}
 
+	@Test
+	public void testConversionError() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createEmptySchema();
+
+			schema.addType("Test").addBooleanProperty("boolTest").setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final String script =  "${{ var test = Structr.create('Test'); test.boolTest = true; }}\n";
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx  = new ActionContext(securityContext, null);
+
+			// just run without an error, that's enough for this test
+			Scripting.evaluate(ctx, null, script, "test");
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
 	}
 }

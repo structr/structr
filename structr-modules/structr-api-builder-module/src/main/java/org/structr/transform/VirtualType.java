@@ -91,7 +91,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 
 	Integer getPosition();
 	String getFilterExpression();
-	List<VirtualProperty> getVirtualProperties();
+	Iterable<VirtualProperty> getVirtualProperties();
 
 	/*
 
@@ -119,7 +119,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 
 	public static Result transformOutput(final VirtualType thisType, final SecurityContext securityContext, final Class sourceType, final Result result) throws FrameworkException {
 
-		final List<VirtualProperty> props         = VirtualType.sort(thisType.getVirtualProperties());
+		final List<VirtualProperty> props         = VirtualType.sort(Iterables.toList(thisType.getVirtualProperties()));
 		final Mapper mapper                       = new Mapper(securityContext, props, StructrApp.getConfiguration().getNodeEntityClass(thisType.getSourceType()));
 		final Filter filter                       = new Filter(securityContext, thisType.getFilterExpression());
 		final Iterable<GraphObject> iterable      = Iterables.map(mapper, Iterables.filter(filter, result.getResults()));
@@ -131,7 +131,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 	public static void transformInput(final VirtualType thisType, final SecurityContext securityContext, final Class type, final Map<String, Object> propertySet) throws FrameworkException {
 
 		final ActionContext actionContext = new ActionContext(securityContext);
-		final List<VirtualProperty> props = VirtualType.sort(thisType.getVirtualProperties());
+		final List<VirtualProperty> props = VirtualType.sort(Iterables.toList(thisType.getVirtualProperties()));
 		final Set<String> targetNames     = VirtualType.extractTargetNames(props);
 
 		// remove all properties for which no VirtualProperty exists

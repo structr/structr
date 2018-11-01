@@ -507,6 +507,11 @@ var _Crud = {
 
 	},
 	removeRecentType: function (typeToRemove) {
+		
+		var currentType = LSWrapper.getItem(crudTypeKey);
+		if (typeToRemove === currentType) {
+			LSWrapper.removeItem(crudTypeKey);
+		}
 
 		var recentTypes = LSWrapper.getItem(crudRecentTypesKey);
 

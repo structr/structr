@@ -31,23 +31,22 @@ import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
 
-import javax.script.ScriptException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class FlowAction extends FlowActionNode implements DataSource, DeployableEntity, ThrowingElement {
 
-	public static final Property<DataSource> dataSource 					= new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<List<FlowBaseNode>> dataTarget				= new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
-	public static final Property<String> script             				= new StringProperty("script");
+	public static final Property<DataSource> dataSource                 = new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<Iterable<FlowBaseNode>> dataTarget     = new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<FlowExceptionHandler> exceptionHandler = new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
+	public static final Property<String> script                         = new StringProperty("script");
 
-	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, script, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer);
-	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui,     script, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer);
+	public static final View defaultView = new View(FlowAction.class, PropertyView.Public, script, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer);
+	public static final View uiView      = new View(FlowAction.class, PropertyView.Ui,     script, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer);
 
 	@Override
 	public void execute(final Context context) throws FlowException {
+
 		final String _script = getProperty(script);
 		if (_script != null) {
 
@@ -87,6 +86,7 @@ public class FlowAction extends FlowActionNode implements DataSource, Deployable
 
 	@Override
 	public Map<String, Object> exportData() {
+		
 		Map<String, Object> result = new HashMap<>();
 
 		result.put("id", this.getUuid());

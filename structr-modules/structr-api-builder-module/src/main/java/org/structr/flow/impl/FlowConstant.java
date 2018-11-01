@@ -29,16 +29,16 @@ import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class FlowConstant extends FlowBaseNode implements DataSource, DeployableEntity {
-	public static final Property<List<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<String> value 					= new StringProperty("value");
-	public static final Property<ConstantType> constantType 	= new EnumProperty<>("constantType", ConstantType.class);
 
-	public static final View defaultView 						= new View(FlowDataSource.class, PropertyView.Public, value, dataTarget, constantType);
-	public static final View uiView								= new View(FlowDataSource.class, PropertyView.Public, value, dataTarget, constantType);
+	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<String> value                      = new StringProperty("value");
+	public static final Property<ConstantType> constantType         = new EnumProperty<>("constantType", ConstantType.class);
+
+	public static final View defaultView = new View(FlowDataSource.class, PropertyView.Public, value, dataTarget, constantType);
+	public static final View uiView      = new View(FlowDataSource.class, PropertyView.Public, value, dataTarget, constantType);
 
 
 	@Override

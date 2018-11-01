@@ -18,7 +18,6 @@
  */
 package org.structr.flow.impl;
 
-import com.sun.tools.javac.comp.Flow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
@@ -37,7 +36,6 @@ import org.structr.flow.impl.rels.FlowContainerPackagePackage;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -46,13 +44,13 @@ import java.util.Set;
  */
 public class FlowContainerPackage extends AbstractNode implements DeployableEntity {
 
-	public static final Property<FlowContainerPackage> parent			= new StartNode<>("parent", FlowContainerPackagePackage.class);
-	public static final Property<List<FlowContainerPackage>> packages	= new EndNodes<>("packages", FlowContainerPackagePackage.class);
-	public static final Property<List<FlowContainer>> flows				= new EndNodes<>("flows", FlowContainerPackageFlow.class);
+	public static final Property<FlowContainerPackage> parent             = new StartNode<>("parent", FlowContainerPackagePackage.class);
+	public static final Property<Iterable<FlowContainerPackage>> packages = new EndNodes<>("packages", FlowContainerPackagePackage.class);
+	public static final Property<Iterable<FlowContainer>> flows           = new EndNodes<>("flows", FlowContainerPackageFlow.class);
 
-	public static final Property<String> name 							= new StringProperty("name").notNull().indexed();
-	public static final Property<Object> effectiveName					= new FunctionProperty<>("effectiveName").indexed().unique().notNull().readFunction("if(empty(this.parent), this.name, concat(this.parent.effectiveName, \".\", this.name))").typeHint("String");
-	public static final Property<Boolean> scheduledForIndexing			= new BooleanProperty("scheduledForIndexing").defaultValue(false);
+	public static final Property<String> name                             = new StringProperty("name").notNull().indexed();
+	public static final Property<Object> effectiveName                    = new FunctionProperty<>("effectiveName").indexed().unique().notNull().readFunction("if(empty(this.parent), this.name, concat(this.parent.effectiveName, \".\", this.name))").typeHint("String");
+	public static final Property<Boolean> scheduledForIndexing            = new BooleanProperty("scheduledForIndexing").defaultValue(false);
 
 	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public, name, effectiveName, packages, flows, parent, scheduledForIndexing);
 	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui,     name, effectiveName, packages, flows, parent, scheduledForIndexing);
@@ -101,12 +99,12 @@ public class FlowContainerPackage extends AbstractNode implements DeployableEnti
 
 	private void scheduleIndexingForRelatedEntities() {
 
-		List<FlowContainerPackage> p = getProperty(packages);
-		List<FlowContainer> c = getProperty(flows);
+		final Iterable<FlowContainerPackage> p = getProperty(packages);
+		final Iterable<FlowContainer> c        = getProperty(flows);
+		final App app                          = StructrApp.getInstance();
 
-		App app = StructrApp.getInstance();
+		try (Tx tx = app.tx()) {
 
-		try (Tx tx = app.tx()){
 			for (FlowContainerPackage pack : p) {
 				pack.setProperty(FlowContainerPackage.scheduledForIndexing, true);
 			}
@@ -116,6 +114,7 @@ public class FlowContainerPackage extends AbstractNode implements DeployableEnti
 			}
 
 			tx.success();
+
 		} catch (FrameworkException ex) {
 			logger.warn("Could not handle onDelete for FlowContainerPackage: " + ex.getMessage());
 		}
@@ -124,11 +123,12 @@ public class FlowContainerPackage extends AbstractNode implements DeployableEnti
 
 	private void deleteChildren() {
 
-		List<FlowContainerPackage> p = getProperty(packages);
-		List<FlowContainer> c = getProperty(flows);
-		App app = StructrApp.getInstance();
+		final Iterable<FlowContainerPackage> p = getProperty(packages);
+		final Iterable<FlowContainer> c        = getProperty(flows);
+		final App app                          = StructrApp.getInstance();
 
 		try (Tx tx = app.tx()) {
+
 			for (FlowContainerPackage pack : p) {
 				app.delete(pack);
 			}
@@ -138,6 +138,7 @@ public class FlowContainerPackage extends AbstractNode implements DeployableEnti
 			}
 
 			tx.success();
+
 		} catch (FrameworkException ex) {
 			logger.warn("Could not handle onDelete for FlowContainerPackage: " + ex.getMessage());
 		}

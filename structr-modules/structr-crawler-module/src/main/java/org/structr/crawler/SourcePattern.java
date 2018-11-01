@@ -30,6 +30,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
@@ -50,20 +51,18 @@ public class SourcePattern extends AbstractNode {
 
 	private static final Logger logger = LoggerFactory.getLogger(SourcePattern.class.getName());
 
-	public static final Property<List<SourcePattern>> subPatternsProperty             = new EndNodes<>("subPatterns", SourcePatternSUBSourcePattern.class);
-	public static final Property<SourcePage>          subPageProperty                 = new EndNode<>("subPage", SourcePatternSUBPAGESourcePage.class);
-	public static final Property<SourcePage>          sourcePageProperty              = new StartNode<>("sourcePage", SourcePageUSESourcePattern.class);
-	public static final Property<SourcePattern>       parentPatternProperty           = new StartNode<>("parentPattern", SourcePatternSUBSourcePattern.class);
+	public static final Property<Iterable<SourcePattern>> subPatternsProperty             = new EndNodes<>("subPatterns", SourcePatternSUBSourcePattern.class);
+	public static final Property<SourcePage>              subPageProperty                 = new EndNode<>("subPage", SourcePatternSUBPAGESourcePage.class);
+	public static final Property<SourcePage>              sourcePageProperty              = new StartNode<>("sourcePage", SourcePageUSESourcePattern.class);
+	public static final Property<SourcePattern>           parentPatternProperty           = new StartNode<>("parentPattern", SourcePatternSUBSourcePattern.class);
 
-	public static final Property<Long>                fromProperty                    = new LongProperty("from");
-	public static final Property<Long>                toProperty                      = new LongProperty("to");
-	public static final Property<String>              selectorProperty                = new StringProperty("selector").indexed();
-	public static final Property<String>              mappedTypeProperty              = new StringProperty("mappedType").indexed();
-	public static final Property<String>              mappedAttributeProperty         = new StringProperty("mappedAttribute").indexed();
-	public static final Property<String>              mappedAttributeFunctionProperty = new StringProperty("mappedAttributeFunction");
-//	public static final Property<String>              mappedAttributeFormatProperty   = new StringProperty("mappedAttributeFormat");
-//	public static final Property<String>              mappedAttributeLocaleProperty   = new StringProperty("mappedAttributeLocale");
-	public static final Property<String>              inputValue                      = new StringProperty("inputValue").indexed();
+	public static final Property<Long>                    fromProperty                    = new LongProperty("from");
+	public static final Property<Long>                    toProperty                      = new LongProperty("to");
+	public static final Property<String>                  selectorProperty                = new StringProperty("selector").indexed();
+	public static final Property<String>                  mappedTypeProperty              = new StringProperty("mappedType").indexed();
+	public static final Property<String>                  mappedAttributeProperty         = new StringProperty("mappedAttribute").indexed();
+	public static final Property<String>                  mappedAttributeFunctionProperty = new StringProperty("mappedAttributeFunction");
+	public static final Property<String>                  inputValue                      = new StringProperty("inputValue").indexed();
 
 	public static final View uiView = new View(SourcePattern.class, "ui",
 		subPatternsProperty, subPageProperty, sourcePageProperty, parentPatternProperty, fromProperty, toProperty, selectorProperty, mappedTypeProperty, mappedAttributeProperty, mappedAttributeFunctionProperty, inputValue
@@ -189,76 +188,14 @@ public class SourcePattern extends AbstractNode {
 			// Parse the content into a document
 			final Document subDoc = Jsoup.parse(subContent);
 
-			final List<SourcePattern> subPagePatterns = subPage.getProperty(SourcePage.patterns);
-
 			// Loop through all patterns of the sub page
-			for (final SourcePattern subPagePattern : subPagePatterns) {
+			for (final SourcePattern subPagePattern : subPage.getProperty(SourcePage.patterns)) {
 
 				final Map<String, Object> params = new HashMap<>();
 				params.put("document", subDoc);
 				params.put("object", obj);
 
 				subPagePattern.extract(params);
-
-//				final String subPagePatternSelector = subPagePattern.getProperty(SourcePattern.selectorProperty);
-//
-//
-//				// Extract
-//				final String subEx = subDoc.select(subPagePatternSelector).text();
-//				final String subPagePatternType = subPagePattern.getProperty(SourcePattern.mappedTypeProperty);
-//
-//				if (subPagePatternType != null) {
-//
-//
-//					final Elements subParts = subDoc.select(subPagePatternSelector);
-//
-//					final Long j = 1L;
-//
-//					for (final Element subPart : subParts) {
-//
-//						final NodeInterface subObj = create(subPagePatternType);
-//
-//						final List<SourcePattern> subPagePatternPatterns = subPagePattern.getProperty(SourcePattern.subPatternsProperty);
-//
-//						for (final SourcePattern subPageSubPattern : subPagePatternPatterns) {
-//
-//
-//							final String subPagePatternSelector = subPageSubPattern.getProperty(SourcePattern.selectorProperty);
-//
-//
-//
-//							final String subPageSubPatternSelector = subPagePatternSelector + ":nth-child(" + j + ") > " + subPagePatternSelector;
-//
-//							extractAndSetValue(subObj, subDoc, subSelector, mappedType, subPatternMappedAttribute);
-//
-//
-//							final String subSubEx = subDoc.select(subPageSubPatternSelector).text();
-//
-//							if (subSubEx != null && subSubEx != = '' && subPageSubPattern.mappedAttribute != null) {
-//
-//							final PropertyKey key = StructrApp.key(type(mappedType), subPatternMappedAttribute);
-//							if (key != null) {
-//
-//								subObj.setProperty(key, subSubEx);
-//							}
-//
-//						}
-//
-//						final String subPagePatternMappedAttribute = subPagePattern.getProperty(SourcePattern.mappedAttributeProperty);
-//
-//						final PropertyKey key = StructrApp.key(type(mappedType), subPagePatternMappedAttribute);
-//						if (key != null) {
-//
-//							obj.setProperty(key, subSubEx);
-//						}
-//
-//					}
-//
-//				} else {
-//
-//					if (subEx != null && subEx != = '' && subPagePattern.mappedAttribute != null) {
-//						obj[subPagePattern.mappedAttribute] = subEx;
-	//					}
 			}
 		}
 	}
@@ -280,7 +217,7 @@ public class SourcePattern extends AbstractNode {
 		final Long   from     = getProperty(fromProperty);
 		final Long   to       = getProperty(toProperty);
 
-		final List<SourcePattern> subPatterns = getProperty(subPatternsProperty);
+		final List<SourcePattern> subPatterns = Iterables.toList(getProperty(subPatternsProperty));
 
 
 		Document doc = null;

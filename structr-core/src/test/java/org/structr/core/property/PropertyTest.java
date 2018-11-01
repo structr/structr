@@ -277,8 +277,8 @@ public class PropertyTest extends StructrTest {
 	public void testOneToManyOnCollectionProperty() throws Exception {
 
 		TestOne testOne                   = null;
-		List<TestSix> testSixs            = null;
-		List<TestSix> testSixs2           = null;
+		Iterable<TestSix> testSixs        = null;
+		Iterable<TestSix> testSixs2       = null;
 		int index                         = 0;
 
 		List<Integer> index1              = new LinkedList<>();
@@ -328,7 +328,7 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			Property<List<TestOne>> instance = TestSix.manyToManyTestOnes;
+			Property<Iterable<TestOne>> instance = TestSix.manyToManyTestOnes;
 			TestSix testSix1  = null;
 			TestSix testSix2  = null;
 			TestOne testOne1  = null;
@@ -359,8 +359,8 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<TestOne> testOnesFromTestSix1 = instance.getProperty(securityContext, testSix1, true);
-				List<TestOne> testOnesFromTestSix2 = instance.getProperty(securityContext, testSix2, true);
+				List<TestOne> testOnesFromTestSix1 = Iterables.toList(instance.getProperty(securityContext, testSix1, true));
+				List<TestOne> testOnesFromTestSix2 = Iterables.toList(instance.getProperty(securityContext, testSix2, true));
 
 				assertNotNull(testOnesFromTestSix1);
 				assertNotNull(testOnesFromTestSix2);
@@ -383,7 +383,7 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<TestOne> oneTestOnesFromTestSix1 = instance.getProperty(securityContext, testSix1, true);
+				List<TestOne> oneTestOnesFromTestSix1 = Iterables.toList(instance.getProperty(securityContext, testSix1, true));
 
 				// entity should have exactly one related node
 				assertNotNull(oneTestOnesFromTestSix1);
@@ -404,7 +404,7 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testTypeNameOnCollectionProperty() {
 
-		Property<List<TestOne>> instance = TestSix.manyToManyTestOnes;
+		Property<Iterable<TestOne>> instance = TestSix.manyToManyTestOnes;
 		String expResult = "collection";
 		String result = instance.typeName();
 		assertEquals(expResult, result);
@@ -416,7 +416,7 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testDatabaseConverterOnCollectionProperty() {
 
-		Property<List<TestOne>> instance = TestSix.manyToManyTestOnes;
+		Property<Iterable<TestOne>> instance = TestSix.manyToManyTestOnes;
 		PropertyConverter expResult = null;
 		PropertyConverter result = instance.databaseConverter(securityContext, null);
 		assertEquals(expResult, result);
@@ -428,7 +428,7 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testInputConverterOnCollectionProperty() {
 
-		Property<List<TestOne>> instance = TestSix.manyToManyTestOnes;
+		Property<Iterable<TestOne>> instance = TestSix.manyToManyTestOnes;
 		PropertyConverter result = instance.inputConverter(securityContext);
 
 		assertTrue(result != null);
@@ -440,7 +440,7 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testRelatedTypeOnCollectionProperty() {
 
-		Property<List<TestOne>> instance = TestSix.manyToManyTestOnes;
+		Property<Iterable<TestOne>> instance = TestSix.manyToManyTestOnes;
 		Class expResult = TestOne.class;
 		Class result = instance.relatedType();
 		assertEquals(expResult, result);
@@ -452,7 +452,7 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testIsCollectionOnCollectionProperty() {
 
-		Property<List<TestOne>> instance = TestSix.manyToManyTestOnes;
+		Property<Iterable<TestOne>> instance = TestSix.manyToManyTestOnes;
 		boolean expResult = true;
 		boolean result = instance.isCollection();
 		assertEquals(expResult, result);
@@ -991,8 +991,8 @@ public class PropertyTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// verify connections
-				List<TestThree> verifyB = testSix1.getProperty(TestSix.oneToManyTestThrees);
-				List<TestThree> verifyD = testSix2.getProperty(TestSix.oneToManyTestThrees);
+				List<TestThree> verifyB = Iterables.toList(testSix1.getProperty(TestSix.oneToManyTestThrees));
+				List<TestThree> verifyD = Iterables.toList(testSix2.getProperty(TestSix.oneToManyTestThrees));
 
 				assertTrue(verifyB != null && verifyB.get(0).equals(testThree1));
 				assertTrue(verifyD != null && verifyD.get(0).equals(testThree2));
@@ -1013,12 +1013,12 @@ public class PropertyTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// verify connection
-				List<TestThree> verifyD2 = testSix1.getProperty(TestSix.oneToManyTestThrees);
+				List<TestThree> verifyD2 = Iterables.toList(testSix1.getProperty(TestSix.oneToManyTestThrees));
 				assertEquals(1, verifyD2.size());
 				assertEquals(testThree2, verifyD2.get(0));
 
 				// testSix2 should not have a testThree associated
-				List<TestThree> vrfy4 = testSix2.getProperty(TestSix.oneToManyTestThrees);
+				List<TestThree> vrfy4 = Iterables.toList(testSix2.getProperty(TestSix.oneToManyTestThrees));
 				assertEquals(0, vrfy4.size());
 			}
 

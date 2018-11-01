@@ -31,22 +31,20 @@ import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.flow.impl.rels.FlowScriptConditionSource;
 import org.structr.module.api.DeployableEntity;
-import scala.reflect.internal.util.DeprecatedPosition;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class FlowScriptCondition extends FlowCondition implements 	DeployableEntity, ThrowingElement {
 
-	public static final Property<DataSource> scriptSource 					= new StartNode<>("scriptSource", FlowScriptConditionSource.class);
-	public static final Property<DataSource> dataSource 					= new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<List<FlowBaseNode>> dataTarget 			= new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
-	public static final Property<String> script 							= new StringProperty("script");
+	public static final Property<DataSource> scriptSource               = new StartNode<>("scriptSource", FlowScriptConditionSource.class);
+	public static final Property<DataSource> dataSource                 = new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<Iterable<FlowBaseNode>> dataTarget     = new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<FlowExceptionHandler> exceptionHandler = new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
+	public static final Property<String> script                         = new StringProperty("script");
 
-	public static final View defaultView 									= new View(FlowScriptCondition.class, PropertyView.Public, script, scriptSource, dataSource, dataTarget, exceptionHandler);
-	public static final View uiView     									= new View(FlowScriptCondition.class, PropertyView.Ui,     script, scriptSource, dataSource, dataTarget, exceptionHandler);
+	public static final View defaultView    = new View(FlowScriptCondition.class, PropertyView.Public, script, scriptSource, dataSource, dataTarget, exceptionHandler);
+	public static final View uiView         = new View(FlowScriptCondition.class, PropertyView.Ui,     script, scriptSource, dataSource, dataTarget, exceptionHandler);
 
 	@Override
 	public Object get(final Context context) throws FlowException {

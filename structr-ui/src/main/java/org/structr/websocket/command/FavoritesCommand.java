@@ -21,6 +21,7 @@ package org.structr.websocket.command;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -70,7 +71,7 @@ public class FavoritesCommand extends AbstractCommand {
 				final Favoritable file = app.get(Favoritable.class, favoritableId);
 				if (file != null) {
 
-					final List<Favoritable> favorites = currentUser.getFavorites();
+					final List<Favoritable> favorites = Iterables.toList(currentUser.getFavorites());
 
 					switch (mode) {
 

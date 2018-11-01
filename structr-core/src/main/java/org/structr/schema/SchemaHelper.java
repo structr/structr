@@ -48,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.service.LicenseManager;
+import org.structr.api.util.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PermissionPropagation;
@@ -764,7 +765,7 @@ public class SchemaHelper {
 			}
 		}
 
-		final List<SchemaProperty> schemaProperties = entity.getSchemaProperties();
+		final List<SchemaProperty> schemaProperties = Iterables.toList(entity.getSchemaProperties());
 		if (schemaProperties != null) {
 
 			// sort properties to avoid initialization issues with notion properties
@@ -916,7 +917,7 @@ public class SchemaHelper {
 			}
 		}
 
-		final List<SchemaView> schemaViews = entity.getSchemaViews();
+		final Iterable<SchemaView> schemaViews = entity.getSchemaViews();
 		if (schemaViews != null) {
 
 			for (final SchemaView schemaView : schemaViews) {
@@ -932,7 +933,7 @@ public class SchemaHelper {
 					views.put(viewName, view);
 				}
 
-				final List<SchemaProperty> schemaProperties = schemaView.getProperty(SchemaView.schemaProperties);
+				final Iterable<SchemaProperty> schemaProperties = schemaView.getProperty(SchemaView.schemaProperties);
 
 				for (final SchemaProperty property : schemaProperties) {
 
@@ -1010,7 +1011,7 @@ public class SchemaHelper {
 			}
 		}
 
-		final List<SchemaMethod> schemaMethods = entity.getSchemaMethods();
+		final Iterable<SchemaMethod> schemaMethods = entity.getSchemaMethods();
 		if (schemaMethods != null) {
 
 			for (final SchemaMethod schemaMethod : schemaMethods) {
@@ -1129,6 +1130,7 @@ public class SchemaHelper {
 		src.append("import ").append(StructrApp.class.getName()).append(";\n");
 		src.append("import ").append(LinkedList.class.getName()).append(";\n");
 		src.append("import ").append(Collection.class.getName()).append(";\n");
+		src.append("import ").append(Iterables.class.getName()).append(";\n");
 		src.append("import ").append(Services.class.getName()).append(";\n");
 		src.append("import ").append(Actions.class.getName()).append(";\n");
 		src.append("import ").append(HashMap.class.getName()).append(";\n");

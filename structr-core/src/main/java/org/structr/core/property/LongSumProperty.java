@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.List;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -60,7 +59,7 @@ public class LongSumProperty extends AbstractReadOnlyProperty<Long> {
 	@Override
 	public Long getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		List<? extends GraphObject> collection = obj.getProperty(collectionProperty);
+		final Iterable<? extends GraphObject> collection = obj.getProperty(collectionProperty);
 		if (collection != null) {
 
 			long sum = 0L;

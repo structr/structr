@@ -18,7 +18,6 @@
  */
 package org.structr.api.index;
 
-import org.structr.api.QueryResult;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.QueryPredicate;
 
@@ -27,5 +26,5 @@ import org.structr.api.search.QueryPredicate;
  */
 public interface Index<T> {
 
-	QueryResult<T> query(final QueryContext context, final QueryPredicate predicate);
+	Iterable<T> query(final QueryContext context, final QueryPredicate predicate);
 }

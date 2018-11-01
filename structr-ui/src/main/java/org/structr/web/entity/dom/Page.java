@@ -21,7 +21,6 @@ package org.structr.web.entity.dom;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -94,7 +93,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		type.addStringProperty("category", PropertyView.Public, PropertyView.Ui, "category" ).setIndexed(true);
 
 		type.addPropertyGetter("path", String.class);
-		type.addPropertyGetter("elements", List.class);
+		type.addPropertyGetter("elements", Iterable.class);
 		type.addPropertyGetter("cacheForSeconds", Integer.class);
 		type.addPropertyGetter("site", Site.class);
 
@@ -198,7 +197,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 	Element createElement(final String tag, final boolean suppressException);
 	Integer getCacheForSeconds();
 
-	List<DOMNode> getElements();
+	Iterable<DOMNode> getElements();
 
 	Site getSite();
 

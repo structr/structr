@@ -19,7 +19,6 @@
 package org.structr.messaging.implementation.kafka.entity;
 
 import com.google.gson.JsonSyntaxException;
-import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -28,7 +27,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.NetworkException;
 import org.structr.api.NotInTransactionException;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -47,7 +45,6 @@ import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 
-import java.lang.reflect.Array;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,7 +66,7 @@ public interface KafkaClient extends MessageClient {
 			type.addStringProperty("groupId", PropertyView.Public, PropertyView.Ui);
 
 			type.addPropertyGetter("groupId", String.class);
-			type.addPropertyGetter("subscribers", List.class);
+			type.addPropertyGetter("subscribers", Iterable.class);
 
 			type.addMethod("setServers")
 					.setReturnType("void")
@@ -124,7 +121,7 @@ public interface KafkaClient extends MessageClient {
 	String getGroupId();
 	String[] getServers();
 	void setServers(String[] servers) throws FrameworkException;
-	List<MessageSubscriber> getSubscribers();
+	Iterable<MessageSubscriber> getSubscribers();
 
 	static void onCreation(final KafkaClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 		refreshConfiguration(thisClient);

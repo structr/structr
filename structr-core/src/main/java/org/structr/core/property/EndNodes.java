@@ -51,7 +51,7 @@ import org.structr.core.notion.ObjectNotion;
  *
  *
  */
-public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends Property<List<T>> implements RelationProperty<T> {
+public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends Property<Iterable<T>> implements RelationProperty<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(EndNodes.class.getName());
 
@@ -129,46 +129,59 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	}
 
 	@Override
-	public PropertyConverter<List<T>, ?> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<Iterable<T>, ?> databaseConverter(SecurityContext securityContext) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<List<T>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<Iterable<T>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<?, List<T>> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Iterable<T>> inputConverter(SecurityContext securityContext) {
 		return getNotion().getCollectionConverter(securityContext);
 	}
 
 	@Override
-	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		ManyEndpoint<T> endpoint = relation.getTarget();
 
 		if (predicate != null) {
 
-			return Iterables.toList(Iterables.filter(predicate, Iterables.filter(new NotNullPredicate(), endpoint.get(securityContext, (NodeInterface)obj, new TruePredicate(predicate.comparator())))));
+			return Iterables.filter(predicate, Iterables.filter(new NotNullPredicate(), endpoint.get(securityContext, (NodeInterface)obj, new TruePredicate(predicate.comparator()))));
 
 		} else {
 
-			return Iterables.toList(Iterables.filter(new NotNullPredicate(), endpoint.get(securityContext, (NodeInterface)obj, null)));
+			return Iterables.filter(new NotNullPredicate(), endpoint.get(securityContext, (NodeInterface)obj, null));
 		}
 	}
 
 	@Override
-	public Object setProperty(SecurityContext securityContext, GraphObject obj, List<T> collection) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, Iterable<T> collection) throws FrameworkException {
 
 		ManyEndpoint<T> endpoint = relation.getTarget();
 
-		return endpoint.set(securityContext, (NodeInterface)obj, collection);
+		try {
+
+			return endpoint.set(securityContext, (NodeInterface)obj, collection);
+
+		} catch (RuntimeException r) {
+
+			final Throwable cause = r.getCause();
+			if (cause instanceof FrameworkException) {
+
+				throw (FrameworkException)cause;
+			}
+		}
+
+		return null;
 	}
 
 	@Override
@@ -187,12 +200,12 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	}
 
 	@Override
-	public Property<List<T>> indexed() {
+	public Property<Iterable<T>> indexed() {
 		return this;
 	}
 
 	@Override
-	public Property<List<T>> passivelyIndexed() {
+	public Property<Iterable<T>> passivelyIndexed() {
 		return this;
 	}
 
@@ -220,7 +233,8 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	@Override
 	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final T t) throws FrameworkException {
 
-		List<T> list = getProperty(securityContext, obj, false);
+		final List<T> list = Iterables.toList(getProperty(securityContext, obj, false));
+
 		list.add(t);
 
 		setProperty(securityContext, obj, list);
@@ -232,7 +246,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	}
 
 	@Override
-	public List<T> convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException {
+	public Iterable<T> convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException {
 
 		final PropertyConverter inputConverter = inputConverter(securityContext);
 		if (inputConverter != null) {
@@ -245,19 +259,19 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 				}
 			}
 
-			return (List<T>)inputConverter.convert(sources);
+			return (Iterable<T>)inputConverter.convert(sources);
 		}
 
 		return null;
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, List<T> searchValue, boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, Iterable<T> searchValue, boolean exactMatch, final Query query) {
 
 		final Predicate<GraphObject> predicate    = query != null ? query.toPredicate() : null;
 		final SourceSearchAttribute attr          = new SourceSearchAttribute(occur);
 
-		if (searchValue != null && !searchValue.isEmpty()) {
+		if (searchValue != null && searchValue.iterator().hasNext()) {
 
 			if (!Occurrence.FORBIDDEN.equals(occur)) {
 

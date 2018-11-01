@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -713,7 +714,7 @@ public class SystemTest extends StructrTest {
 
 				// check for a single relationship since all three parts of
 				// both relationships are equal => only one should be created
-				final List<TestOne> list = source.getProperty(TestSix.oneToManyTestOnes);
+				final List<TestOne> list = Iterables.toList(source.getProperty(TestSix.oneToManyTestOnes));
 
 				assertEquals("Invalid concurrent identical relationship creation result", 1, list.size());
 

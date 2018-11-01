@@ -21,6 +21,7 @@ package org.structr.websocket.command;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.PagingHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.dom.DOMNode;
@@ -59,7 +60,7 @@ public class ListComponentsCommand extends AbstractCommand {
 
 			final ShadowDocument hiddenDoc     = CreateComponentCommand.getOrCreateHiddenDocument();
 			List<DOMNode> filteredResults      = new LinkedList();
-			List<DOMNode> resultList           = hiddenDoc.getElements();
+			List<DOMNode> resultList           = Iterables.toList(hiddenDoc.getElements());
 
 			// Filter list and return only top level nodes
 			for (DOMNode node : resultList) {

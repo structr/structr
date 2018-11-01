@@ -21,6 +21,7 @@ package org.structr.flow.impl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.structr.api.util.Iterables;
 
 import org.structr.common.PropertyView;
 import org.structr.common.View;
@@ -38,7 +39,7 @@ import org.structr.module.api.DeployableEntity;
  */
 public abstract class FlowLogicCondition extends FlowCondition implements DeployableEntity {
 
-	public static final Property<List<FlowCondition>> dataSources = new StartNodes<>("conditions", FlowConditionCondition.class);
+	public static final Property<Iterable<FlowCondition>> dataSources = new StartNodes<>("conditions", FlowConditionCondition.class);
 
 	public static final View defaultView = new View(FlowAnd.class, PropertyView.Public, script, dataSources);
 	public static final View uiView      = new View(FlowAnd.class, PropertyView.Ui,     script, dataSources);
@@ -48,7 +49,7 @@ public abstract class FlowLogicCondition extends FlowCondition implements Deploy
 	@Override
 	public Object get(final Context context) throws FlowException {
 
-		final List<FlowCondition> _dataSources = getProperty(dataSources);
+		final List<FlowCondition> _dataSources = Iterables.toList(getProperty(dataSources));
 		if (_dataSources.isEmpty()) {
 
 			return false;

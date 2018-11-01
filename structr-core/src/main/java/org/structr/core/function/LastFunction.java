@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import java.util.List;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -40,6 +41,12 @@ public class LastFunction extends Function<Object, Object> {
 		try {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
+
+			if (sources[0] instanceof Iterable) {
+
+				final Iterable iterable = (Iterable)sources[0];
+				return Iterables.last(iterable);
+			}
 
 			if (sources[0] instanceof List && !((List)sources[0]).isEmpty()) {
 

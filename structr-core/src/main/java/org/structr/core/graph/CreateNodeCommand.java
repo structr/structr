@@ -160,7 +160,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 				}
 			}
 
-			node = (T) nodeFactory.instantiateWithType(createNode(graphDb, user, labels, tmp.getData()), nodeType, null, isCreation);
+			node = (T) nodeFactory.instantiateWithType(createNode(graphDb, user, labels, tmp.getData()), nodeType, -1, isCreation);
 			if (node != null) {
 
 				TransactionCommand.nodeCreated(user, node);

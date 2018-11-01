@@ -37,6 +37,7 @@ import org.mozilla.javascript.Undefined;
 import org.renjin.script.RenjinScriptEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
@@ -517,11 +518,30 @@ public class Scripting {
 
 			return DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
 
+		} else if (value instanceof Iterable) {
+
+			return Iterables.toList((Iterable)value).toString();
+
 		} else {
 
 			return value.toString();
 
 		}
+	}
+
+	// ----- private methods -----
+	private static String toString(final Object obj) {
+
+		if (obj instanceof Iterable) {
+
+			return Iterables.toList((Iterable)obj).toString();
+		}
+
+		if (obj != null) {
+			return obj.toString();
+		}
+
+		return "";
 	}
 
 	// ----- nested classes -----

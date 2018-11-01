@@ -19,7 +19,6 @@
 package org.structr.web.entity;
 
 import java.net.URI;
-import java.util.List;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation.Cardinality;
@@ -46,7 +45,7 @@ public interface ContentContainer extends NodeInterface {
 		type.addCustomProperty("path", ContentPathProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setTypeHint("String").setReadOnly(true).setIndexed(true);
 
 		type.addPropertyGetter("parent", ContentContainer.class);
-		type.addPropertyGetter("items", List.class);
+		type.addPropertyGetter("items", Iterable.class);
 
 		type.relate(type, "CONTAINS", Cardinality.OneToMany,  "parent",     "childContainers");
 		type.relate(item, "CONTAINS", Cardinality.ManyToMany, "containers", "items");
@@ -66,7 +65,7 @@ public interface ContentContainer extends NodeInterface {
 	}}
 
 	ContentContainer getParent();
-	List<ContentItem> getItems();
+	Iterable<ContentItem> getItems();
 
 
 	/*

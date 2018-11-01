@@ -38,7 +38,6 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.Tx;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 
 /**
@@ -466,7 +465,6 @@ public class PropertyMap {
 	public static PropertyMap cmisTypeToJavaType(final SecurityContext securityContext, final Class type, final Properties properties) throws FrameworkException {
 
 		final Map<String, PropertyData<?>> map = properties.getProperties();
-		final ConfigurationProvider config     = StructrApp.getConfiguration();
 		final PropertyMap propertyMap          = new PropertyMap();
 
 		for (final Entry<String, PropertyData<?>> entry : map.entrySet()) {

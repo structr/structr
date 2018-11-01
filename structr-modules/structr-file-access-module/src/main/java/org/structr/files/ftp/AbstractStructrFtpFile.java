@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -33,8 +34,8 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.File;
 import org.structr.web.entity.User;
 
 /**
@@ -194,7 +195,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 			if (owner != null) {
 
-				final List<Principal> parents = owner.getParents();
+				final List<Principal> parents = Iterables.toList(owner.getParents());
 				if (!parents.isEmpty()) {
 
 					name = parents.get(0).getProperty(AbstractNode.name);

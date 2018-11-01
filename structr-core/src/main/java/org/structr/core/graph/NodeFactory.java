@@ -25,7 +25,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Node;
-import org.structr.api.graph.Relationship;
 import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -59,25 +58,25 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 
 	@Override
 	public T instantiate(final Node node) {
-		return instantiate(node, null);
+		return instantiate(node, -1);
 	}
 
 	@Override
-	public T instantiate(final Node node, final Relationship pathSegment) {
+	public T instantiate(final Node node, final long pathSegmentId) {
 
 		if (node == null) {
 			return null;
 		}
 
 		if (TransactionCommand.isDeleted(node)) {
-			return (T)instantiateWithType(node, null, pathSegment, false);
+			return (T)instantiateWithType(node, null, pathSegmentId, false);
 		}
 
-		return (T) instantiateWithType(node, factoryDefinition.determineNodeType(node), pathSegment, false);
+		return (T) instantiateWithType(node, factoryDefinition.determineNodeType(node), pathSegmentId, false);
 	}
 
 	@Override
-	public T instantiateWithType(final Node node, final Class<T> nodeClass, final Relationship pathSegment, boolean isCreation) {
+	public T instantiateWithType(final Node node, final Class<T> nodeClass, final long pathSegmentId, boolean isCreation) {
 
 		// cannot instantiate node without type
 		if (nodeClass == null) {
@@ -99,7 +98,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 		}
 
 		newNode.init(factoryProfile.getSecurityContext(), node, nodeClass, isCreation);
-		newNode.setRawPathSegment(pathSegment);
+		newNode.setRawPathSegmentId(pathSegmentId);
 		newNode.onNodeInstantiation(isCreation);
 
 		// check access

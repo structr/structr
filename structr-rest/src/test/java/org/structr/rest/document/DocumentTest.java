@@ -281,6 +281,7 @@ public class DocumentTest extends StructrRestTest {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()

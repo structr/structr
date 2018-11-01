@@ -20,15 +20,46 @@ package org.structr.bolt.mapper;
 
 import java.util.function.Function;
 import org.neo4j.driver.v1.Record;
+import org.neo4j.driver.v1.Value;
 import org.neo4j.driver.v1.types.Relationship;
+import org.structr.bolt.BoltDatabaseService;
+import org.structr.bolt.wrapper.NodeWrapper;
 
 /**
  *
  */
 public class RecordRelationshipMapper implements Function<Record, Relationship> {
 
+	private BoltDatabaseService db = null;
+
+	public RecordRelationshipMapper(final BoltDatabaseService db) {
+		this.db = db;
+	}
+
 	@Override
-	public Relationship apply(final Record t) {
-		return t.get(0).asRelationship();
+	public Relationship apply(final Record record) {
+
+		// target node present?
+		final Value t = record.get("t");
+		if (!t.isNull()) {
+
+			NodeWrapper.newInstance(db, t.asNode());
+		}
+
+		// source node present?
+		final Value s = record.get("s");
+		if (!s.isNull()) {
+
+			NodeWrapper.newInstance(db, s.asNode());
+		}
+
+		// "other" node present (direction unknown)?
+		final Value o = record.get("o");
+		if (!o.isNull()) {
+
+			NodeWrapper.newInstance(db, o.asNode());
+		}
+
+		return record.get(0).asRelationship();
 	}
 }

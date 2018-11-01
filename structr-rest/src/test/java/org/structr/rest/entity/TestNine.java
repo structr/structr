@@ -18,7 +18,6 @@
  */
 package org.structr.rest.entity;
 
-import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -44,8 +43,8 @@ import org.structr.core.property.StringProperty;
  */
 public class TestNine extends AbstractNode {
 
-	public static final Property<List<TestEight>> testEights   = new EndNodes<>("testEights", NineEightManyToMany.class);
-	public static final Property<List<String>>    testEightIds = new CollectionNotionProperty("testEightIds", testEights, new PropertyNotion(GraphObject.id));
+	public static final Property<Iterable<TestEight>> testEights   = new EndNodes<>("testEights", NineEightManyToMany.class);
+	public static final Property<Iterable<String>>    testEightIds = new CollectionNotionProperty("testEightIds", testEights, new PropertyNotion(GraphObject.id));
 
 	public static final Property<String>          city         = new StringProperty("city").indexed().indexedWhenEmpty();
 	public static final Property<String>          street       = new StringProperty("street").indexed().indexedWhenEmpty();

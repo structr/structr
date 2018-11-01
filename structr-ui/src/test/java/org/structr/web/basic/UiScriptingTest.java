@@ -60,6 +60,7 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -681,7 +682,7 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// check that the user is not in the group at first
-			assertFalse("User should not be in the test group before testing", group.getMembers().contains(tester));
+			assertFalse("User should not be in the test group before testing", Iterables.toList(group.getMembers()).contains(tester));
 
 			// check that is_in_group returns the correct result
 			assertEquals("Function is_in_group should return false.", false, Scripting.evaluate(renderContext, null, "${is_in_group(first(find('Group')), first(find('User')))}", "test"));
@@ -690,7 +691,7 @@ public class UiScriptingTest extends StructrUiTest {
 			Scripting.evaluate(renderContext, null, "${add_to_group(first(find('Group')), first(find('User')))}", "test");
 
 			// check that the user is in the group after the call to add_to_group
-			final List<Principal> members = group.getMembers();
+			final List<Principal> members = Iterables.toList(group.getMembers());
 			assertTrue("User should be in the test group now", members.contains(tester));
 
 			// check that is_in_group returns the correct result
@@ -700,7 +701,7 @@ public class UiScriptingTest extends StructrUiTest {
 			Scripting.evaluate(renderContext, null, "${remove_from_group(first(find('Group')), first(find('User')))}", "test");
 
 			// check that the user is not in the group any more after the call to remove_from_group
-			assertFalse("User should not be in the test group before testing", group.getMembers().contains(tester));
+			assertFalse("User should not be in the test group before testing", Iterables.toList(group.getMembers()).contains(tester));
 
 			// check that is_in_group returns the correct result
 			assertEquals("Function is_in_group should return false.", false, Scripting.evaluate(renderContext, null, "${is_in_group(first(find('Group')), first(find('User')))}", "test"));

@@ -55,6 +55,10 @@ public class EmptyFunction extends Function<Object, Object> {
 
 			return ((Collection) sources[0]).isEmpty();
 
+		} else if (sources[0] instanceof Iterable) {
+
+			return !((Iterable) sources[0]).iterator().hasNext();
+
 		} else if (sources[0].getClass().isArray()) {
 
 			return (((Object[]) sources[0]).length == 0);

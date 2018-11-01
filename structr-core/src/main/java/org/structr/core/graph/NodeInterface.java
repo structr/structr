@@ -21,7 +21,6 @@ package org.structr.core.graph;
 import java.util.List;
 import java.util.Map;
 import org.structr.api.graph.Node;
-import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
@@ -51,14 +50,14 @@ import org.structr.core.property.StringProperty;
 public interface NodeInterface extends GraphObject, Comparable, AccessControllable {
 
 	// properties
-	public static final Property<String>          name               = new StringProperty("name").indexed().partOfBuiltInSchema();
-	public static final Property<Boolean>         hidden             = new BooleanProperty("hidden").indexed().partOfBuiltInSchema();
+	public static final Property<String>              name         = new StringProperty("name").indexed().partOfBuiltInSchema();
+	public static final Property<Boolean>             hidden       = new BooleanProperty("hidden").indexed().partOfBuiltInSchema();
 
-	public static final Property<Principal>       owner              = new StartNode<>("owner", PrincipalOwnsNode.class).partOfBuiltInSchema();
-	public static final Property<String>          ownerId            = new EntityIdProperty("ownerId", owner).partOfBuiltInSchema();
+	public static final Property<Principal>           owner        = new StartNode<>("owner", PrincipalOwnsNode.class).partOfBuiltInSchema();
+	public static final Property<String>              ownerId      = new EntityIdProperty("ownerId", owner).partOfBuiltInSchema();
 
-	public static final Property<List<Principal>> grantees           = new StartNodes<>("grantees", Security.class).partOfBuiltInSchema();
-	public static final Property<String>          internalPath       = new InternalPathProperty("internalEntityContextPath").partOfBuiltInSchema();
+	public static final Property<Iterable<Principal>> grantees     = new StartNodes<>("grantees", Security.class).partOfBuiltInSchema();
+	public static final Property<String>              internalPath = new InternalPathProperty("internalEntityContextPath").partOfBuiltInSchema();
 
 	public static final View graphView = new View(NodeInterface.class, View.INTERNAL_GRAPH_VIEW,
 		id, name, type
@@ -95,8 +94,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(final Class<R> type);
 	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(final Class<R> type);
 
-	void setRawPathSegment(final Relationship pathSegment);
-	Relationship getRawPathSegment();
+	void setRawPathSegmentId(final long pathSegmentId);
 
 	List<Security> getSecurityRelationships();
 

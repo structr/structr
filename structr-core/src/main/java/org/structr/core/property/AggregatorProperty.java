@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.Aggregation;
@@ -68,9 +69,9 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 			for(Property property : aggregation.getAggregationProperties()) {
 
 				Object obj = sourceNode.getProperty(property);
-				if (obj != null && obj instanceof Collection) {
+				if (obj != null && obj instanceof Iterable) {
 
-					nodes.addAll((Collection)obj);
+					Iterables.addAll(nodes, (Collection)obj);
 				}
 			}
 

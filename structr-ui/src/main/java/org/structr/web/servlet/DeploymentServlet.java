@@ -26,10 +26,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.servlet.ServletException;
@@ -37,6 +37,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemIterator;
+import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -46,14 +48,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
+import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.graph.Tx;
+import org.structr.rest.common.HttpHelper;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
-import org.structr.schema.SchemaHelper;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.maintenance.DeployCommand;
 
@@ -65,6 +68,8 @@ public class DeploymentServlet extends HttpServlet implements HttpServiceServlet
 
 	private static final Logger logger = LoggerFactory.getLogger(DeploymentServlet.class.getName());
 
+	private static final String DOWNLOAD_URL_PARAMETER = "downloadUrl";
+	private static final String REDIRECT_URL_PARAMETER = "redirectUrl";
 	private static final int MEGABYTE = 1024 * 1024;
 	private static final int MEMORY_THRESHOLD = 10 * MEGABYTE;  // above 10 MB, files are stored on disk
 
@@ -118,6 +123,8 @@ public class DeploymentServlet extends HttpServlet implements HttpServiceServlet
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 
+		String redirectUrl = null;
+		
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			if (!ServletFileUpload.isMultipartContent(request)) {
@@ -156,62 +163,97 @@ public class DeploymentServlet extends HttpServlet implements HttpServiceServlet
 				return;
 			}
 
-			final String pathInfo = request.getPathInfo();
-			String type = null;
-
-			if (StringUtils.isNotBlank(pathInfo)) {
-
-				type = SchemaHelper.normalizeEntityName(StringUtils.stripStart(pathInfo.trim(), "/"));
-
-			}
-
 			uploader.setFileSizeMax(MEGABYTE * Settings.DeploymentMaxFileSize.getValue());
 			uploader.setSizeMax(MEGABYTE * Settings.DeploymentMaxRequestSize.getValue());
 
 			response.setContentType("text/html");
 
-			final List<FileItem> fileItemsList         = uploader.parseRequest(request);
-			final Iterator<FileItem> fileItemsIterator = fileItemsList.iterator();
+			//final List<FileItem> fileItemsList         = uploader.parseRequest(request);
+			final FileItemIterator fileItemsIterator   = uploader.getItemIterator(request);
 			final Map<String, Object> params           = new HashMap<>();
 
+			String downloadUrl = null;
+			String fileName    = null;
+			
 			while (fileItemsIterator.hasNext()) {
 
-				final FileItem item = fileItemsIterator.next();
+				final FileItemStream item = fileItemsIterator.next();
+				
+				if (item.isFormField()) {
 
-				try {
-					final String directoryPath = "/tmp/" + UUID.randomUUID();
-					final String filePath      = directoryPath + ".zip";
+					final String fieldName = item.getFieldName();
+					final String fieldValue = IOUtils.toString(item.openStream(), "UTF-8");
 
-					File file = new File(filePath);
-					Files.write(IOUtils.toByteArray(item.getInputStream()), file);
+					if (DOWNLOAD_URL_PARAMETER.equals(fieldName)) {
+
+						downloadUrl = fieldValue;
+						params.put(fieldName, fieldValue);
+						
+					} else if (REDIRECT_URL_PARAMETER.equals(fieldName)) {
+						
+						redirectUrl = fieldValue;
+						params.put(fieldName, fieldValue);
+					}
+
+				}
+				
+				final String directoryPath = "/tmp/" + UUID.randomUUID();
+				final String filePath      = directoryPath + ".zip";
+				final File file = new File(filePath);
+
+				if (StringUtils.isNotBlank(downloadUrl)) {
+					
+					HttpHelper.streamURLToFile(downloadUrl, file);
+					fileName = PathHelper.getName(downloadUrl);
+					
+				} else {
+						Files.write(IOUtils.toByteArray(item.openStream()), file);
+						fileName = item.getName();
+				}
+
+				if (file.exists() && file.length() > 0L) {
 
 					unzip(file, directoryPath);
 
 					DeployCommand deployCommand = StructrApp.getInstance(securityContext).command(DeployCommand.class);
 
 					final Map<String, Object> attributes = new HashMap<>();
-					attributes.put("source", directoryPath  + "/" + StringUtils.substringBeforeLast(item.getName(), "."));
+					attributes.put("source", directoryPath  + "/" + StringUtils.substringBeforeLast(fileName, "."));
 
 					deployCommand.execute(attributes);
 
-					file.deleteOnExit();
-					File dir = new File(directoryPath);
-
-					dir.deleteOnExit();
-
-				} catch (IOException ex) {
-					logger.warn("Could not upload file", ex);
 				}
 
+				file.delete();
+				File dir = new File(directoryPath);
+				dir.delete();
 			}
 
 			tx.success();
 
-		} catch (FrameworkException | IOException | FileUploadException t) {
+			// send redirect to allow form-based file upload without JavaScript..
+			if (StringUtils.isNotBlank(redirectUrl)) {
 
+				response.sendRedirect(redirectUrl);
+			}
+			
+		} catch (Exception t) {
 
 			logger.error("Exception while processing request", t);
-			UiAuthenticator.writeInternalServerError(response);
+
+			// send redirect to allow form-based file upload without JavaScript..
+			if (StringUtils.isNotBlank(redirectUrl)) {
+
+				try {
+					response.sendRedirect(redirectUrl);
+				} catch (IOException ex) {
+					logger.error("Unable to redirect to " + redirectUrl);
+				}
+			
+			} else {
+
+				UiAuthenticator.writeInternalServerError(response);
+			}
 		}
 	}
 

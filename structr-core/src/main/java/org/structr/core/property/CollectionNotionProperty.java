@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -53,14 +54,14 @@ import org.structr.core.notion.Notion;
  *
  *
  */
-public class CollectionNotionProperty<S extends NodeInterface, T> extends Property<List<T>> {
+public class CollectionNotionProperty<S extends NodeInterface, T> extends Property<Iterable<T>> {
 
 	private static final Logger logger = LoggerFactory.getLogger(CollectionIdProperty.class.getName());
 
-	private Property<List<S>> collectionProperty = null;
+	private Property<Iterable<S>> collectionProperty = null;
 	private Notion<S, T> notion                  = null;
 
-	public CollectionNotionProperty(String name, Property<List<S>> base, Notion<S, T> notion) {
+	public CollectionNotionProperty(String name, Property<Iterable<S>> base, Notion<S, T> notion) {
 
 		super(name);
 
@@ -71,12 +72,12 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	}
 
 	@Override
-	public Property<List<T>> indexed() {
+	public Property<Iterable<T>> indexed() {
 		return this;
 	}
 
 	@Override
-	public Property<List<T>> passivelyIndexed() {
+	public Property<Iterable<T>> passivelyIndexed() {
 		return this;
 	}
 
@@ -96,27 +97,27 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	}
 
 	@Override
-	public PropertyConverter<List<T>, ?> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<Iterable<T>, ?> databaseConverter(SecurityContext securityContext) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<List<T>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<Iterable<T>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<?, List<T>> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Iterable<T>> inputConverter(SecurityContext securityContext) {
 		return null;
 	}
 
 	@Override
-	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		try {
 
@@ -131,7 +132,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	}
 
 	@Override
-	public Object setProperty(SecurityContext securityContext, GraphObject obj, List<T> value) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, Iterable<T> value) throws FrameworkException {
 
 		if (value != null) {
 
@@ -187,9 +188,10 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, List<T> searchValues, boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, Iterable<T> searchValueIterable, boolean exactMatch, final Query query) {
 
 		final Predicate<GraphObject> predicate    = query != null ? query.toPredicate() : null;
+		final List<T> searchValues                = Iterables.toList(searchValueIterable);
 		final SourceSearchAttribute attr          = new SourceSearchAttribute(occur);
 		final Set<GraphObject> intersectionResult = new LinkedHashSet<>();
 		boolean alreadyAdded                      = false;

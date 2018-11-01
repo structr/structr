@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -106,7 +107,7 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 			final Principal owner = file.getOwnerNode();
 			if (owner != null) {
 
-				groups.addAll(owner.getGroups());
+				groups.addAll(Iterables.toList(owner.getGroups()));
 			}
 
 			tx.success();

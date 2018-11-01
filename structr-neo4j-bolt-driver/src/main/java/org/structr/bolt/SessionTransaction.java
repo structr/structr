@@ -21,7 +21,6 @@ package org.structr.bolt;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
@@ -44,7 +43,6 @@ import org.structr.api.DataFormatException;
 import org.structr.api.NativeResult;
 import org.structr.api.NetworkException;
 import org.structr.api.NotFoundException;
-import org.structr.api.QueryResult;
 import org.structr.api.RetryException;
 import org.structr.api.util.QueryUtils;
 import org.structr.bolt.mapper.RecordNodeMapper;
@@ -324,13 +322,13 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		}
 	}
 
-	public QueryResult<Node> getNodes(final String statement, final Map<String, Object> map) {
+	public Iterable<Node> getNodes(final String statement, final Map<String, Object> map) {
 
 		final long t0 = System.currentTimeMillis();
 
 		try {
 
-			return QueryUtils.map(new RecordNodeMapper(), new StatementIterable(tx.run(statement, map)));
+			return QueryUtils.map(new RecordNodeMapper(), new IteratorWrapper<>(tx.run(statement, map)));
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -344,13 +342,13 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		}
 	}
 
-	public QueryResult<Relationship> getRelationships(final String statement, final Map<String, Object> map) {
+	public Iterable<Relationship> getRelationships(final String statement, final Map<String, Object> map) {
 
 		final long t0 = System.currentTimeMillis();
 
 		try {
 
-			return QueryUtils.map(new RecordRelationshipMapper(), new StatementIterable(tx.run(statement, map)));
+			return QueryUtils.map(new RecordRelationshipMapper(db), new IteratorWrapper<>(tx.run(statement, map)));
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -364,13 +362,13 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		}
 	}
 
-	public QueryResult<NodeId> getNodeIds(final String statement, final Map<String, Object> map) {
+	public Iterable<NodeId> getNodeIds(final String statement, final Map<String, Object> map) {
 
 		final long t0 = System.currentTimeMillis();
 
 		try {
 
-			return QueryUtils.map(new RecordNodeIdMapper(), new StatementIterable(tx.run(statement, map)));
+			return QueryUtils.map(new RecordNodeIdMapper(), new IteratorWrapper<>(tx.run(statement, map)));
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -384,28 +382,17 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		}
 	}
 
-	public QueryResult<String> getStrings(final String statement, final Map<String, Object> map) {
+	public Iterable<String> getStrings(final String statement, final Map<String, Object> map) {
 
 		final long t0 = System.currentTimeMillis();
 
 		try {
 
 			final StatementResult result = tx.run(statement, map);
-			final Record record = result.next();
-			final Value value = record.get(0);
+			final Record record          = result.next();
+			final Value value            = record.get(0);
 
-			return new QueryResult<String>() {
-
-				@Override
-				public void close() {
-					result.consume();
-				}
-
-				@Override
-				public Iterator<String> iterator() {
-					return value.asList(Values.ofString()).iterator();
-				}
-			};
+			return new IteratorWrapper<>(value.asList(Values.ofString()).iterator());
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -543,21 +530,17 @@ public class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	// ----- nested classes -----
-	private class StatementIterable implements QueryResult<Record> {
+	private class IteratorWrapper<T> implements Iterable<T> {
 
-		private List<Record> result = null;
+		private Iterator<T> iterator = null;
 
-		public StatementIterable(final StatementResult result) {
-			this.result = result.list();
+		public IteratorWrapper(final Iterator<T> iterator) {
+			this.iterator = iterator;
 		}
 
 		@Override
-		public void close() {
-		}
-
-		@Override
-		public Iterator<Record> iterator() {
-			return result.iterator();
+		public Iterator<T> iterator() {
+			return iterator;
 		}
 	}
 }

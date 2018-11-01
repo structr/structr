@@ -30,7 +30,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.QueryResult;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
 import org.structr.api.search.Occurrence;
@@ -223,7 +222,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				}
 
 				// do query
-				final QueryResult hits = index.query(getQueryContext(), rootGroup);
+				final Iterable hits = index.query(getQueryContext(), rootGroup);
 				intermediateResult     = factory.instantiate(hits);
 
 				if (comparator != null) {

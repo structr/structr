@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
@@ -66,7 +67,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 
 	@Override
 	public GroupPrincipal group() {
-		final List<Group> groups = file.getOwnerNode().getGroups();
+		final List<Group> groups = Iterables.toList(file.getOwnerNode().getGroups());
 		return groups != null && groups.size() > 0 ? groups.get(0)::getName : null;
 	}
 
