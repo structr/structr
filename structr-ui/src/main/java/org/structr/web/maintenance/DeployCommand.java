@@ -102,6 +102,7 @@ import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.maintenance.deploy.ComponentImportVisitor;
 import org.structr.web.maintenance.deploy.FileImportVisitor;
+import org.structr.web.maintenance.deploy.ImportFailureException;
 import org.structr.web.maintenance.deploy.PageImportVisitor;
 import org.structr.web.maintenance.deploy.SchemaImportVisitor;
 import org.structr.web.maintenance.deploy.TemplateImportVisitor;
@@ -262,8 +263,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				tx.success();
 
 			} catch (Throwable t) {
-				logger.warn("", t);
-				publishDeploymentWarningMessage("Exception caught while importing pre-deploy.conf", t.toString());
+
+				final String msg = "Exception caught while importing pre-deploy.conf";
+				logger.warn(msg, t);
+				publishDeploymentWarningMessage(msg, t.toString());
 			}
 		}
 
@@ -374,7 +377,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				info("Importing data from schema/ directory");
 				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing schema");
 
-				Files.walkFileTree(schema, new SchemaImportVisitor(schema));
+				Files.walkFileTree(schema, new SchemaImportVisitor());
+
+			} catch (ImportFailureException fex) {
+
+				logger.warn("Unable to import schema, aborting.");
+				throw new FrameworkException(422, fex.getMessage(), fex.getErrorBuffer());
 
 			} catch (IOException ioex) {
 				logger.warn("Exception while importing schema", ioex);
