@@ -130,7 +130,7 @@ public class SchemaNode extends AbstractSchemaNode {
 	@Override
 	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
 
-		final List<PropertyKey> propertyKeys = new LinkedList<>(Iterables.toList(super.getPropertyKeys(propertyView)));
+		final List<PropertyKey> propertyKeys = Iterables.toList(super.getPropertyKeys(propertyView));
 
 		// add "custom" property keys as String properties
 		for (final String key : SchemaHelper.getProperties(getNode())) {

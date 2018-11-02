@@ -23,7 +23,6 @@
 
 package org.structr.core.property;
 
-import java.util.List;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -36,7 +35,7 @@ import org.structr.core.notion.Notion;
  *
  *
  */
-public class NodeRelationshipProperty<T extends AbstractRelationship> extends AbstractReadOnlyProperty<List<T>> {
+public class NodeRelationshipProperty<T extends AbstractRelationship> extends AbstractReadOnlyProperty<Iterable<T>> {
 
 	private Notion notion = null;
 	private Class<T> type = null;
@@ -74,7 +73,7 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 	}
 
 	@Override
-	public PropertyConverter<?, List<T>> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Iterable<T>> inputConverter(SecurityContext securityContext) {
 
 		if (notion != null) {
 			return notion.getCollectionConverter(securityContext);
@@ -84,12 +83,12 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 	}
 
 	@Override
-	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		// FIXME
 

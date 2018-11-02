@@ -1961,9 +1961,9 @@ public class SearchAndSortingTest extends StructrTest {
 	@Test
 	public void testManyToManyReverseNodeSearch() {
 
-		final Class<Group> groupType                 = StructrApp.getConfiguration().getNodeEntityClass("Group");
-		final PropertyKey<List<Principal>> groupsKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "groups");
-		final List<Group> groups                     = new LinkedList<>();
+		final Class<Group> groupType                     = StructrApp.getConfiguration().getNodeEntityClass("Group");
+		final PropertyKey<Iterable<Principal>> groupsKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "groups");
+		final List<Group> groups                         = new LinkedList<>();
 
 		try (final Tx tx = app.tx()) {
 

@@ -470,7 +470,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		// make sure shadow document is created in any case
 		CreateComponentCommand.getOrCreateHiddenDocument();
-		
+
 		// import components, must be done before pages so the shared components exist
 		if (Files.exists(components)) {
 
@@ -874,7 +874,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				entry.put("visibleToPublicUsers",        site.getProperty(Site.visibleToPublicUsers));
 
 				final List<String> pageNames = new LinkedList<>();
-				for (final Page page : (List<Page>)site.getProperty(StructrApp.key(Site.class, "pages"))) {
+				for (final Page page : (Iterable<Page>)site.getProperty(StructrApp.key(Site.class, "pages"))) {
 					pageNames.add(page.getName());
 				}
 				entry.put("pages", pageNames);
@@ -1347,11 +1347,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> entry = new TreeMap<>();
 				mailTemplates.add(entry);
 
-				entry.put("name",   mailTemplate.getProperty(MailTemplate.name));
-				entry.put("text",   mailTemplate.getProperty(textKey));
-				entry.put("locale", mailTemplate.getProperty(localeKey));
-				entry.put("visibleToAuthenticatedUsers", mailTemplate.getProperty(MailTemplate.visibleToAuthenticatedUsers));
-				entry.put("visibleToPublicUsers", mailTemplate.getProperty(MailTemplate.visibleToPublicUsers));
+				putIf(entry, "name",                        mailTemplate.getProperty(MailTemplate.name));
+				putIf(entry, "text",                        mailTemplate.getProperty(textKey));
+				putIf(entry, "locale",                      mailTemplate.getProperty(localeKey));
+				putIf(entry, "visibleToAuthenticatedUsers", mailTemplate.getProperty(MailTemplate.visibleToAuthenticatedUsers));
+				putIf(entry, "visibleToPublicUsers",        mailTemplate.getProperty(MailTemplate.visibleToPublicUsers));
 			}
 
 			tx.success();
@@ -1387,15 +1387,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> entry = new TreeMap<>();
 				widgets.add(entry);
 
-				entry.put("name",                        widget.getProperty(Widget.name));
-				entry.put("visibleToAuthenticatedUsers", widget.getProperty(Widget.visibleToAuthenticatedUsers));
-				entry.put("visibleToPublicUsers",        widget.getProperty(Widget.visibleToPublicUsers));
-				entry.put("source",                      widget.getProperty(StructrApp.key(Widget.class, "source")));
-				entry.put("description",                 widget.getProperty(StructrApp.key(Widget.class, "description")));
-				entry.put("isWidget",                    widget.getProperty(StructrApp.key(Widget.class, "isWidget")));
-				entry.put("treePath",                    widget.getProperty(StructrApp.key(Widget.class, "treePath")));
-				entry.put("pictures",                    widget.getProperty(StructrApp.key(Widget.class, "pictures")));
-				entry.put("configuration",               widget.getProperty(StructrApp.key(Widget.class, "configuration")));
+				putIf(entry, "name",                        widget.getProperty(Widget.name));
+				putIf(entry, "visibleToAuthenticatedUsers", widget.getProperty(Widget.visibleToAuthenticatedUsers));
+				putIf(entry, "visibleToPublicUsers",        widget.getProperty(Widget.visibleToPublicUsers));
+				putIf(entry, "source",                      widget.getProperty(StructrApp.key(Widget.class, "source")));
+				putIf(entry, "description",                 widget.getProperty(StructrApp.key(Widget.class, "description")));
+				putIf(entry, "isWidget",                    widget.getProperty(StructrApp.key(Widget.class, "isWidget")));
+				putIf(entry, "treePath",                    widget.getProperty(StructrApp.key(Widget.class, "treePath")));
+				putIf(entry, "pictures",                    widget.getProperty(StructrApp.key(Widget.class, "pictures")));
+				putIf(entry, "configuration",               widget.getProperty(StructrApp.key(Widget.class, "configuration")));
 			}
 
 			tx.success();
@@ -1428,13 +1428,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> entry = new TreeMap<>();
 				localizations.add(entry);
 
-				entry.put("name",                        localization.getProperty(Localization.name));
-				entry.put("localizedName",               localization.getProperty(localizedNameKey));
-				entry.put("domain",                      localization.getProperty(domainKey));
-				entry.put("locale",                      localization.getProperty(localeKey));
-				entry.put("imported",                    localization.getProperty(importedKey));
-				entry.put("visibleToAuthenticatedUsers", localization.getProperty(MailTemplate.visibleToAuthenticatedUsers));
-				entry.put("visibleToPublicUsers",        localization.getProperty(MailTemplate.visibleToPublicUsers));
+				putIf(entry, "name",                        localization.getProperty(Localization.name));
+				putIf(entry, "localizedName",               localization.getProperty(localizedNameKey));
+				putIf(entry, "domain",                      localization.getProperty(domainKey));
+				putIf(entry, "locale",                      localization.getProperty(localeKey));
+				putIf(entry, "imported",                    localization.getProperty(importedKey));
+				putIf(entry, "visibleToAuthenticatedUsers", localization.getProperty(MailTemplate.visibleToAuthenticatedUsers));
+				putIf(entry, "visibleToPublicUsers",        localization.getProperty(MailTemplate.visibleToPublicUsers));
 			}
 
 			tx.success();
@@ -1486,9 +1486,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (value != null) {
 
-			final boolean isList = value instanceof List;
+			final boolean isList = value instanceof Iterable;
+			final List list      = Iterables.toList((Iterable)value);
 
-			if (!isList || (isList && !((List)value).isEmpty()) ) {
+			if (!isList || (isList && !list.isEmpty())) {
 				target.put(key, value);
 			}
 		}

@@ -36,8 +36,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.GenericProperty;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Executes the given Cypher query and tries to convert the result in a List
  * of {@link GraphObject}s.

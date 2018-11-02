@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -53,12 +52,12 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 	}
 
 	@Override
-	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public List<T> getProperty(SecurityContext securityContext, GraphObject currentObject, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject currentObject, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		if(currentObject != null && currentObject instanceof AbstractNode) {
 
@@ -71,7 +70,7 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 				Object obj = sourceNode.getProperty(property);
 				if (obj != null && obj instanceof Iterable) {
 
-					Iterables.addAll(nodes, (Collection)obj);
+					Iterables.addAll(nodes, (Iterable)obj);
 				}
 			}
 
