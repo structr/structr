@@ -37,15 +37,11 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Websocket command to retrieve nodes of a given type which are on root level,
  * i.e. not children of another node.
  *
  * To get all nodes of a certain type, see the {@link GetCommand}.
- *
- *
- *
  */
 public class QueryCommand extends AbstractCommand {
 
@@ -117,12 +113,8 @@ public class QueryCommand extends AbstractCommand {
 			// do search
 			final Result result = query.getResult();
 
-			// save raw result count
-			int resultCountBeforePaging = result.getRawResultCount(); // filteredResults.size();
-
 			// set full result list
 			webSocketData.setResult(result.getResults());
-			webSocketData.setRawResultCount(resultCountBeforePaging);
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);
@@ -131,17 +123,11 @@ public class QueryCommand extends AbstractCommand {
 
 			logger.warn("Exception occured", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
-
 		}
-
 	}
 
-	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
-
 		return "QUERY";
-
 	}
-
 }

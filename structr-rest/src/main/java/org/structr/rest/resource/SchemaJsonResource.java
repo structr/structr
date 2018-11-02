@@ -84,22 +84,17 @@ public class SchemaJsonResource extends Resource {
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		final GraphObjectMap schema = new GraphObjectMap();
-		int resultCount = 0;
 
 		try {
 
 			final JsonSchema jsonSchema = StructrSchema.createFromDatabase(StructrApp.getInstance());
 			schema.setProperty(new StringProperty("schema"), jsonSchema.toString());
 
-			resultCount = 1;
-
 		} catch (URISyntaxException ex) {
 			logger.error("Error while creating JsonSchema: " + ex.getMessage());
 		}
 
-		Result res = new Result(schema, true);
-		res.setRawResultCount(resultCount);
-		return res;
+		return new Result(schema, true);
 
 	}
 

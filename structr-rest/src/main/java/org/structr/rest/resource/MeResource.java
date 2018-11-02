@@ -84,7 +84,7 @@ public class MeResource extends TypedIdResource {
 			List<GraphObject> resultList = new LinkedList<>();
 			resultList.add(user);
 
-			return new Result(resultList, null,  isCollectionResource(), isPrimitiveArray());
+			return new Result(resultList, isCollectionResource(), isPrimitiveArray());
 
 		} else {
 

@@ -68,12 +68,9 @@ import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.schema.parser.DatePropertyParser;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * This servlet produces CSV (comma separated value) lists out of a search
- * result
- *
- *
+ * result.
  */
 public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 

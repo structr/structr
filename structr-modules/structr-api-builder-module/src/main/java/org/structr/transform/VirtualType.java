@@ -125,7 +125,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 		final Iterable<GraphObject> iterable      = Iterables.map(mapper, Iterables.filter(filter, result.getResults()));
 		final List<GraphObject> transformedResult = Iterables.toList(iterable);
 
-		return new Result(transformedResult,transformedResult.size(), result.isCollection(), result.isPrimitiveArray());
+		return new Result(transformedResult, result.isCollection(), result.isPrimitiveArray());
 	}
 
 	public static void transformInput(final VirtualType thisType, final SecurityContext securityContext, final Class type, final Map<String, Object> propertySet) throws FrameworkException {

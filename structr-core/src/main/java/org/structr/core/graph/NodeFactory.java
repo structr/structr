@@ -21,14 +21,12 @@ package org.structr.core.graph;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Node;
 import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.NodeHasLocation;
 
 /**
@@ -117,31 +115,6 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 		factoryProfile.setPublicOnly(publicOnly);
 
 		return instantiate(node);
-	}
-
-	@Override
-	public T instantiateDummy(final Node entity, final String entityType) throws FrameworkException {
-
-		Map<String, Class<? extends NodeInterface>> entities = StructrApp.getConfiguration().getNodeEntities();
-		Class<T> nodeClass                                   = (Class<T>)entities.get(entityType);
-		T newNode                                            = null;
-
-		if (nodeClass != null) {
-
-			try {
-
-				newNode = nodeClass.newInstance();
-				newNode.init(factoryProfile.getSecurityContext(), entity, nodeClass, false);
-
-			} catch (InstantiationException|IllegalAccessException itex) {
-
-				logger.warn("", itex);
-			}
-
-		}
-
-		return newNode;
-
 	}
 
 	/**

@@ -57,7 +57,7 @@ public class ListCommand extends AbstractCommand {
 		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		
+
 		final String rawType                  = webSocketData.getNodeDataStringValue("type");
 		final String properties               = webSocketData.getNodeDataStringValue("properties");
 		final boolean rootOnly                = webSocketData.getNodeDataBooleanValue("rootOnly");
@@ -102,12 +102,8 @@ public class ListCommand extends AbstractCommand {
 			// do search
 			final Result result = query.getResult();
 
-			// save raw result count
-			int resultCountBeforePaging = result.getRawResultCount(); // filteredResults.size();
-
 			// set full result list
 			webSocketData.setResult(result.getResults());
-			webSocketData.setRawResultCount(resultCountBeforePaging);
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);
@@ -118,15 +114,10 @@ public class ListCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 		}
-
 	}
 
-	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
-
 		return "LIST";
-
 	}
-
 }

@@ -21,9 +21,9 @@ package org.structr.core;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import org.structr.api.util.Iterables;
+import org.structr.api.util.PagingIterable;
 
 /**
  * Encapsulates the result of a query operation.
@@ -33,36 +33,31 @@ import org.structr.api.util.Iterables;
  */
 public class Result<T extends GraphObject> {
 
-	public static final Result EMPTY_RESULT = new Result(Collections.EMPTY_LIST, 0, false, false);
+	private boolean isCollection       = false;
+	private boolean isPrimitiveArray   = false;
+	private boolean hasPartialContent  = false;
+	private boolean isEmpty            = false;
+	private String propertyView        = null;
+	private Iterable<T> source         = null;
+	private List<T> list               = null;
 
-	private boolean isCollection      = false;
-	private boolean isPrimitiveArray  = false;
-	private boolean hasPartialContent = false;
-	private boolean isEmpty           = false;
-	private String propertyView       = null;
-	private Iterable<T> source        = null;
-	private List<T> list              = null;
+	private String searchString        = null;
+	private String queryTime           = null;
+	private String sortOrder           = null;
+	private String sortKey             = null;
 
-	private String searchString       = null;
-	private String queryTime          = null;
-	private String sortOrder          = null;
-	private String sortKey            = null;
+	private Integer pageSize           = null;
+	private Integer page               = null;
+	private Integer outputNestingDepth = null;
 
-	private Integer resultCount       	= null;
-	private Integer pageCount         	= null;
-	private Integer pageSize          	= null;
-	private Integer page              	= null;
-	private Integer outputNestingDepth	= null;
+	private GraphObject metaData       = null;
+	private Object nonGraphObject      = null;
 
-	private GraphObject metaData      = null;
-	private Object nonGraphObject     = null;
-
-	public Result(final Iterable<T> listResult, final Integer rawResultCount, final boolean isCollection, final boolean isPrimitiveArray) {
+	public Result(final Iterable<T> listResult, final boolean isCollection, final boolean isPrimitiveArray) {
 
 		this.isCollection     = isCollection;
 		this.isPrimitiveArray = isPrimitiveArray;
 		this.source           = listResult;
-		this.resultCount      = 0;
 		this.isEmpty          = !listResult.iterator().hasNext();
 	}
 
@@ -71,7 +66,6 @@ public class Result<T extends GraphObject> {
 		this.isCollection     = false;
 		this.isPrimitiveArray = isPrimitiveArray;
 		this.list             = Arrays.asList(singleResult);
-		this.resultCount      = list.size();
 		this.isEmpty          = list.isEmpty();
 	}
 
@@ -80,13 +74,12 @@ public class Result<T extends GraphObject> {
 		this.isCollection     = nonGraphObjectResult instanceof Collection;
 		this.isPrimitiveArray = false;
 		this.list             = new ArrayList<>();
-		this.resultCount      = 0;
 		this.nonGraphObject   = nonGraphObjectResult;
 		this.isEmpty          = false;
 	}
 
 	public T get(final int i) {
-		return Iterables.nth(source, i);
+		return getList().get(i);
 	}
 
 	public boolean isEmpty() {
@@ -123,27 +116,6 @@ public class Result<T extends GraphObject> {
 
 	public void setSortKey(final String sortKey) {
 		this.sortKey = sortKey;
-	}
-
-	public Integer getRawResultCount() {
-
-		if (resultCount != null) {
-			return resultCount;
-		}
-
-		return size();
-	}
-
-	public void setRawResultCount(final Integer resultCount) {
-		this.resultCount = resultCount;
-	}
-
-	public Integer getPageCount() {
-		return pageCount;
-	}
-
-	public void setPageCount(final Integer pageCount) {
-		this.pageCount = pageCount;
 	}
 
 	public Integer getPage() {
@@ -203,6 +175,16 @@ public class Result<T extends GraphObject> {
 	}
 
 	public int size() {
+		return getList().size();
+	}
+
+	public int getUnpagedResultCount() {
+
+		if (source instanceof PagingIterable) {
+
+			return ((PagingIterable)source).getResultCount();
+		}
+		
 		return getList().size();
 	}
 

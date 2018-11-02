@@ -30,9 +30,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.schema.SchemaHelper;
 
-//~--- classes ----------------------------------------------------------------
 /**
- *
  *
  */
 public class SchemaTypeResource extends Resource {
@@ -43,7 +41,6 @@ public class SchemaTypeResource extends Resource {
 	protected TypeResource typeResource  = null;
 	private   String propertyView        = null;
 
-	//~--- methods --------------------------------------------------------
 	public SchemaTypeResource(SecurityContext securityContext, TypeResource typeResource) {
 		this.securityContext = securityContext;
 		this.typeResource = typeResource;
@@ -52,16 +49,13 @@ public class SchemaTypeResource extends Resource {
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
-
 		return true;
-
 	}
 
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 		Class type = typeResource.getEntityClass();
 		return getSchemaTypeResult(securityContext, type, propertyView);
-
 	}
 
 	@Override
@@ -80,39 +74,28 @@ public class SchemaTypeResource extends Resource {
 		return this;
 	}
 
-	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getUriPart() {
-
 		return rawType;
-
 	}
 
 	public String getRawType() {
-
 		return rawType;
-
 	}
 
 	@Override
 	public Class getEntityClass() {
-
 		return entityClass;
-
 	}
 
 	@Override
 	public String getResourceSignature() {
-
 		return SchemaResource.UriPart._schema.name().concat("/").concat(SchemaHelper.normalizeEntityName(getUriPart()));
-
 	}
 
 	@Override
 	public boolean isCollectionResource() {
-
 		return true;
-
 	}
 
 	// ----- public static methods -----
@@ -120,8 +103,6 @@ public class SchemaTypeResource extends Resource {
 
 		List<GraphObjectMap> resultList = SchemaHelper.getSchemaTypeInfo(securityContext, rawType, type, propertyView);
 
-		return new Result(resultList, resultList.size(), false, false);
-
+		return new Result(resultList, false, false);
 	}
-
 }

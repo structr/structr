@@ -117,9 +117,7 @@ public class RelationshipResource extends WrappingResource {
 					}
 				}
 
-				final int rawResultCount = resultList.size();
-
-				return new Result(PagingHelper.subList(resultList, pageSize, page), rawResultCount, true, false);
+				return new Result(PagingHelper.subList(resultList, pageSize, page), true, false);
 
 			} catch (Throwable t) {
 

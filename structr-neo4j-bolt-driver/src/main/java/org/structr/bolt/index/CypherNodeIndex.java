@@ -73,11 +73,11 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
 		if (query.idsOnly()) {
 
-			buf.append(" RETURN DISTINCT id(n)");
+			buf.append(" RETURN id(n)");
 
 		} else {
 
-			buf.append(" RETURN DISTINCT n");
+			buf.append(" RETURN n");
 		}
 
 		if (sortKey != null) {

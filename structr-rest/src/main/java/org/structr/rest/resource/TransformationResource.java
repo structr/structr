@@ -18,12 +18,13 @@
  */
 package org.structr.rest.resource;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import org.neo4j.driver.internal.util.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.PagingIterable;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -61,35 +62,32 @@ public class TransformationResource extends WrappingResource {
 			// allow view transformation to avoid evaluation of wrapped resource
 			if (transformation.evaluateWrappedResource()) {
 
-				Result result = wrappedResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE);
+				final List list = wrappedResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE).getAsList();
 
 				try {
 
-					transformation.apply(securityContext, result.getResults());
-					result.setRawResultCount(result.size());
+					transformation.apply(securityContext, list);
 
 				} catch(Throwable t) {
 					logger.warn("", t);
 				}
 
 				// apply paging later
-				return PagingHelper.subResult(result, pageSize, page);
+				return new Result(PagingHelper.subList(Iterables.asList(list), pageSize, page), wrappedResource.isCollectionResource(), wrappedResource.isPrimitiveArray());
 
 			} else {
 
-				List<? extends GraphObject> listToTransform = new LinkedList<GraphObject>();
-				transformation.apply(securityContext, listToTransform);
+				List<? extends GraphObject> list = new LinkedList<>();
 
-				Result result = new Result(listToTransform, listToTransform.size(), wrappedResource.isCollectionResource(), wrappedResource.isPrimitiveArray());
+				transformation.apply(securityContext, list);
 
 				// apply paging later
-				return PagingHelper.subResult(result, pageSize, page);
+				return new Result(PagingHelper.subList(Iterables.asList(list), pageSize, page), wrappedResource.isCollectionResource(), wrappedResource.isPrimitiveArray());
 
 			}
 		}
 
-		List emptyList = Collections.emptyList();
-		return new Result(emptyList, null, isCollectionResource(), isPrimitiveArray());
+		return new Result(PagingIterable.EMPTY_ITERABLE, isCollectionResource(), isPrimitiveArray());
 	}
 
 	@Override

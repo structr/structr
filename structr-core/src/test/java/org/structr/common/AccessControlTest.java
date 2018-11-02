@@ -340,7 +340,6 @@ public class AccessControlTest extends StructrTest {
 				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(AbstractNode.createdDate).getResult();
 
 				assertEquals(3, result.size());
-				assertEquals(3, (int) result.getRawResultCount());
 
 				// test order of elements (works again)
 				assertEquals(nodes.get(3).getUuid(), result.get(0).getUuid());
@@ -395,7 +394,6 @@ public class AccessControlTest extends StructrTest {
 				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
 				assertEquals(2, result.size());
-				assertEquals(4, (int) result.getRawResultCount());
 
 				assertEquals(nodes.get(3).getUuid(), result.get(0).getUuid());
 				assertEquals(nodes.get(5).getUuid(), result.get(1).getUuid());

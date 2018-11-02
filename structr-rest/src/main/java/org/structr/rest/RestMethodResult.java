@@ -103,7 +103,7 @@ public class RestMethodResult {
 			if (content != null) {
 
 				// serialize result set
-				gson.toJson(new Result(this.content, this.content.size(), this.content.size() > 1 || serializeSingleObjectAsCollection, serializeAsPrimitiveArray), writer);
+				gson.toJson(new Result(this.content, this.content.size() > 1 || serializeSingleObjectAsCollection, serializeAsPrimitiveArray), writer);
 			}
 
 			if (content == null) {

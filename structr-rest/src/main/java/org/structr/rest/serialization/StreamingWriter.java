@@ -39,6 +39,7 @@ import org.apache.commons.collections4.ListUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.util.PagingIterable;
 import org.structr.common.PropertyView;
 import org.structr.common.QueryRange;
 import org.structr.common.SecurityContext;
@@ -82,6 +83,7 @@ public abstract class StreamingWriter {
 	private final Set<String> nonSerializerClasses        = new LinkedHashSet<>();
 	private final DecimalFormat decimalFormat             = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private String resultKeyName                          = "result";
+	private boolean renderResultCountTime                 = true;
 	private boolean renderSerializationTime               = true;
 	private boolean renderResultCount                     = true;
 	private boolean reduceRedundancy                      = false;
@@ -149,10 +151,8 @@ public abstract class StreamingWriter {
 		final Set<Integer> visitedObjects             = new LinkedHashSet<>();
 		final Integer outputNestingDepth              = result.getOutputNestingDepth();
 		final Integer page                            = result.getPage();
-		final Integer pageCount                       = result.getPageCount();
 		final Integer pageSize                        = result.getPageSize();
 		final String queryTime                        = result.getQueryTime();
-		final Integer resultCount                     = result.getRawResultCount();
 		final String searchString                     = result.getSearchString();
 		final String sortKey                          = result.getSortKey();
 		final String sortOrder                        = result.getSortOrder();
@@ -162,30 +162,6 @@ public abstract class StreamingWriter {
 
 		// open result set
 		rootWriter.beginObject();
-
-		if (outputNestingDepth != null) {
-			rootWriter.name("output_nesting_depth").value(outputNestingDepth);
-		}
-
-		if (page != null) {
-			rootWriter.name("page").value(page);
-		}
-
-		if (pageCount != null) {
-			rootWriter.name("page_count").value(pageCount);
-		}
-
-		if (pageSize != null) {
-			rootWriter.name("page_size").value(pageSize);
-		}
-
-		if (queryTime != null) {
-			rootWriter.name("query_time").value(queryTime);
-		}
-
-		if (resultCount != null && renderResultCount) {
-			rootWriter.name("result_count").value(resultCount);
-		}
 
 		if (results != null) {
 
@@ -263,6 +239,25 @@ public abstract class StreamingWriter {
 			}
 		}
 
+		// time delta for serialization
+		long t1 = System.nanoTime();
+
+		if (outputNestingDepth != null) {
+			rootWriter.name("output_nesting_depth").value(outputNestingDepth);
+		}
+
+		if (page != null) {
+			rootWriter.name("page").value(page);
+		}
+
+		if (pageSize != null) {
+			rootWriter.name("page_size").value(pageSize);
+		}
+
+		if (queryTime != null) {
+			rootWriter.name("query_time").value(queryTime);
+		}
+
 		if (searchString != null) {
 			rootWriter.name("search_string").value(searchString);
 		}
@@ -283,8 +278,20 @@ public abstract class StreamingWriter {
 			root.serialize(rootWriter, metaData, localPropertyView, 0, visitedObjects);
 		}
 
+		if (renderResultCount && results instanceof PagingIterable) {
+
+			final PagingIterable iterable = (PagingIterable)results;
+
+			rootWriter.name("result_count").value(iterable.getResultCount());
+			rootWriter.name("page_count").value(iterable.getPageCount());
+
+			if (renderResultCountTime) {
+				rootWriter.name("result_count_time").value(decimalFormat.format((System.nanoTime() - t1) / 1000000000.0));
+			}
+		}
+
 		if (renderSerializationTime) {
-			rootWriter.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
+			rootWriter.name("serialization_time").value(decimalFormat.format((t1 - t0) / 1000000000.0));
 		}
 
 		// finished

@@ -224,7 +224,7 @@ public class SchemaResource extends Resource {
 
 		}
 
-		return new Result(resultList, resultList.size(), false, false);
+		return new Result(resultList, false, false);
 
 	}
 

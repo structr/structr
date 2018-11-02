@@ -21,7 +21,6 @@ package org.structr.rest.servlet;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 
-import java.awt.*;
 import java.io.IOException;
 import java.io.Writer;
 import java.text.DecimalFormat;
@@ -57,7 +56,6 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
@@ -68,7 +66,6 @@ import org.structr.rest.resource.Resource;
 import org.structr.rest.resource.StaticRelationshipResource;
 import org.structr.rest.serialization.StreamingHtmlWriter;
 import org.structr.rest.serialization.StreamingJsonWriter;
-import org.structr.rest.serialization.StreamingWriter;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
@@ -886,10 +883,9 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
-		Result result                   = null;
 		Resource resource               = null;
 
-		try {
+		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			// first thing to do!
 			request.setCharacterEncoding("UTF-8");
@@ -897,27 +893,18 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			response.setContentType("application/json; charset=utf-8");
 
 			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-				authenticator = config.getAuthenticator();
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				tx.success();
-			}
-
-			final App app = StructrApp.getInstance(securityContext);
+			authenticator = config.getAuthenticator();
+			securityContext = authenticator.initializeAndExamineRequest(request, response);
 
 			// set default value for property view
 			propertyView.set(securityContext, config.getDefaultPropertyView());
 
 			// evaluate constraints and measure query time
-			double queryTimeStart    = System.nanoTime();
+			double queryTimeStart = System.nanoTime();
 
 			// isolate resource authentication
-			try (final Tx tx = app.tx()) {
-
-				resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView), propertyView);
-				authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
-				tx.success();
-			}
+			resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView), propertyView);
+			authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 
 			// add sorting & paging
 			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
@@ -946,20 +933,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName, false);
 			}
 
-			// isolate doGet
-			boolean retry = true;
-			while (retry) {
-
-				try (final Tx tx = app.tx()) {
-					result = resource.doGet(sortKey, sortDescending, pageSize, page);
-					tx.success();
-					retry = false;
-
-				} catch (RetryException ddex) {
-					retry = true;
-				}
-			}
-
+			final Result result = resource.doGet(sortKey, sortDescending, pageSize, page);
 			if (result == null) {
 
 				throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Unable to retrieve result, check database connection");
@@ -997,6 +971,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				processResult(securityContext, request, response, result, depth);
 			}
 
+			tx.success();
+
 			response.setStatus(HttpServletResponse.SC_OK);
 
 		} catch (FrameworkException frameworkException) {
@@ -1032,7 +1008,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 	protected void processResult(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final Result result, final Integer outputDepth) throws ServletException, IOException {
 
-		final App app                  = StructrApp.getInstance(securityContext);
 		final int depth                = outputDepth != null && outputDepth >= 0 ? outputDepth : config.getOutputNestingDepth();
 		final String baseUrl           = request.getRequestURI();
 
@@ -1040,7 +1015,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		try {
 
-			final String accept      = request.getHeader("Accept");
+			final String accept = request.getHeader("Accept");
 
 			if (accept != null && accept.contains("text/html")) {
 
@@ -1050,21 +1025,14 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 				final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(this.propertyView, indentJson, depth);
 
-				// isolate write output
-				try (final Tx tx = app.tx()) {
+				// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
+				response.setContentType("application/json; charset=utf-8");
 
-					// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
-					response.setContentType("application/json; charset=utf-8");
+				final Writer writer = response.getWriter();
 
-					final Writer writer = response.getWriter();
-
-					jsonStreamer.stream(securityContext, writer, result, baseUrl);
-					writer.write(10);    // useful newline
-					writer.flush();
-
-					tx.success();
-				}
-
+				jsonStreamer.stream(securityContext, writer, result, baseUrl);
+				writer.write(10);    // useful newline
+				writer.flush();
 			}
 
 			response.setStatus(HttpServletResponse.SC_OK);

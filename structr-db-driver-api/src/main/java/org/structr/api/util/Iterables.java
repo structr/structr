@@ -129,11 +129,7 @@ public class Iterables {
 	}
 
 	public static <FROM, TO> Iterable<TO> map(Function<? super FROM, ? extends TO> function, Iterable<FROM> from) {
-		return new MapIterable<>(from, function);
-	}
-
-	public static <FROM, TO> Iterator<TO> map(Function<? super FROM, ? extends TO> function, Iterator<FROM> from) {
-		return new MapIterable.MapIterator<>(from, function);
+		return new FilterIterable<>(new MapIterable<>(from, function), e -> { return e != null; });
 	}
 
 	public static <T> List<T> toList(Iterable<T> iterable) {

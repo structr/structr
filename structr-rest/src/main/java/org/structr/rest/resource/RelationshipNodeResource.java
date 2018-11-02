@@ -62,8 +62,10 @@ public class RelationshipNodeResource extends WrappingResource {
 		if(results != null && !results.isEmpty()) {
 
 			try {
-				List<GraphObject> resultList = new LinkedList<GraphObject>();
+				List<GraphObject> resultList = new LinkedList<>();
 				for(GraphObject obj : results) {
+
+					// FIXME: this can be replaced by Iterables.map(...)
 
 					if(obj instanceof AbstractRelationship) {
 
@@ -79,7 +81,7 @@ public class RelationshipNodeResource extends WrappingResource {
 					}
 				}
 
-				return new Result(resultList, null, isCollectionResource(), isPrimitiveArray());
+				return new Result(resultList, isCollectionResource(), isPrimitiveArray());
 
 			} catch(Throwable t) {
 

@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -26,8 +25,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.PagingIterable;
 import org.structr.common.GraphObjectComparator;
-import org.structr.common.PagingHelper;
 import org.structr.common.ResultTransformer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
@@ -164,9 +163,10 @@ public class TypeResource extends SortableResource {
 					.order(actualSortOrder)
 					.getResult();
 
-				final Result result = virtualType.transformOutput(securityContext, entityClass, untransformedResult);
+				//final Result result = virtualType.transformOutput(securityContext, entityClass, untransformedResult);
+				return virtualType.transformOutput(securityContext, entityClass, untransformedResult);
 
-				return PagingHelper.subResult(result, pageSize, page);
+				//return PagingHelper.subResult(result, pageSize, page);
 
 			} else {
 
@@ -185,8 +185,7 @@ public class TypeResource extends SortableResource {
 			logger.warn("type was null");
 		}
 
-		List emptyList = Collections.emptyList();
-		return new Result(emptyList, null, isCollectionResource(), isPrimitiveArray());
+		return new Result(PagingIterable.EMPTY_ITERABLE, isCollectionResource(), isPrimitiveArray());
 	}
 
 	@Override

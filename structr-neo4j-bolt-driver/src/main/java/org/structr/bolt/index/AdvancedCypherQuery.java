@@ -49,6 +49,7 @@ public class AdvancedCypherQuery implements PageableQuery {
 	private QueryContext queryContext               = null;
 
 	public AdvancedCypherQuery(final QueryContext queryContext, final AbstractCypherIndex<?> index) {
+		
 		this.queryContext = queryContext;
 		this.pageSize = 1000000;
 		this.index    = index;
@@ -159,23 +160,13 @@ public class AdvancedCypherQuery implements PageableQuery {
 			}
 		}
 
-		/*
 		if (queryContext.isSliced()) {
 
 			buf.append(" SKIP ");
 			buf.append(queryContext.getSkip());
 			buf.append(" LIMIT ");
 			buf.append(queryContext.getLimit());
-
-		} else {
-
-			buf.append(" SKIP ");
-			buf.append(page * pageSize);
-			buf.append(" LIMIT ");
-			buf.append(pageSize);
-
 		}
-		*/
 
 		return buf.toString();
 	}

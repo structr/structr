@@ -71,7 +71,7 @@ public class CypherQueryResource extends Resource {
 				String query                 = queryObject.toString();
 				List<GraphObject> resultList = StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(query, Collections.EMPTY_MAP);
 
-				return new Result(resultList, resultList.size(), true, false);
+				return new Result(resultList, true, false);
 			}
 
 		} catch (org.structr.api.NotFoundException nfe) {
@@ -79,7 +79,7 @@ public class CypherQueryResource extends Resource {
 			throw new NotFoundException("Entity not found for the given query");
 		}
 
-		return new Result(Collections.EMPTY_LIST, 0, false, false);
+		return new Result(Collections.EMPTY_LIST, false, false);
 	}
 
 	@Override

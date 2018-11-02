@@ -64,30 +64,25 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 
-//~--- classes ----------------------------------------------------------------
 /**
- *
  *
  */
 public class StaticRelationshipResource extends SortableResource {
 
 	private static final Logger logger = LoggerFactory.getLogger(StaticRelationshipResource.class.getName());
 
-	//~--- fields ---------------------------------------------------------
 	TypeResource typeResource = null;
 	TypedIdResource typedIdResource = null;
 	PropertyKey propertyKey = null;
 
-	//~--- constructors ---------------------------------------------------constructors
 	public StaticRelationshipResource(final SecurityContext securityContext, final TypedIdResource typedIdResource, final TypeResource typeResource) {
 
 		this.securityContext = securityContext;
 		this.typedIdResource = typedIdResource;
-		this.typeResource = typeResource;
-		this.propertyKey = findPropertyKey(typedIdResource, typeResource);
+		this.typeResource    = typeResource;
+		this.propertyKey     = findPropertyKey(typedIdResource, typeResource);
 	}
 
-	//~--- methods --------------------------------------------------------
 	@Override
 	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
 
@@ -102,12 +97,12 @@ public class StaticRelationshipResource extends SortableResource {
 
 					if (!typeResource.isNode) {
 
-						final NodeInterface source = (NodeInterface) sourceEntity;
-						final Node sourceNode = source.getNode();
+						final NodeInterface source   = (NodeInterface) sourceEntity;
+						final Node sourceNode        = source.getNode();
 						final Class relationshipType = typeResource.entityClass;
-						final Relation relation = AbstractNode.getRelationshipForType(relationshipType);
-						final Class destNodeType = relation.getOtherType(typedIdResource.getEntityClass());
-						final Set partialResult = new LinkedHashSet<>(typeResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE).getAsList());
+						final Relation relation      = AbstractNode.getRelationshipForType(relationshipType);
+						final Class destNodeType     = relation.getOtherType(typedIdResource.getEntityClass());
+						final Set partialResult      = new LinkedHashSet<>(typeResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE).getAsList());
 
 						// filter list according to end node type
 						final Set<GraphObject> set = Iterables.toSet(Iterables.filter(new OtherNodeTypeRelationFilter(securityContext, sourceNode, destNodeType), source.getRelationships(relationshipType)));
@@ -121,7 +116,7 @@ public class StaticRelationshipResource extends SortableResource {
 						applyDefaultSorting(finalResult, sortKey, sortDescending);
 
 						// return result
-						return new Result(PagingHelper.subList(finalResult, pageSize, page), finalResult.size(), isCollectionResource(), isPrimitiveArray());
+						return new Result(PagingHelper.subList(finalResult, pageSize, page), isCollectionResource(), isPrimitiveArray());
 
 					} else {
 
@@ -174,9 +169,11 @@ public class StaticRelationshipResource extends SortableResource {
 						if (rawResultCount > 0 && !iterableContainsGraphObject) {
 
 							GraphObjectMap gObject = new GraphObjectMap();
+
 							gObject.setProperty(new ArrayProperty(this.typeResource.rawType, Object.class), propertyResults.toArray());
-							Result r = new Result(gObject, true);
-							r.setRawResultCount(rawResultCount);
+
+							final Result r = new Result(gObject, true);
+
 							return r;
 
 						}
@@ -190,9 +187,7 @@ public class StaticRelationshipResource extends SortableResource {
 						applyDefaultSorting(finalResult, sortKey, sortDescending);
 
 						// return result
-						Result r = new Result(PagingHelper.subList(finalResult, pageSize, page), finalResult.size(), isCollectionResource(), isPrimitiveArray());
-						r.setRawResultCount(rawResultCount);
-						return r;
+						return new Result(PagingHelper.subList(finalResult, pageSize, page), isCollectionResource(), isPrimitiveArray());
 
 					} else if (value instanceof GraphObject) {
 
@@ -228,9 +223,8 @@ public class StaticRelationshipResource extends SortableResource {
 						}
 
 						gObject.setProperty(key, value);
-						Result r = new Result(gObject, true);
-						r.setRawResultCount(resultCount);
-						return r;
+
+						return new Result(gObject, true);
 
 					}
 				}
@@ -238,14 +232,14 @@ public class StaticRelationshipResource extends SortableResource {
 				// check propertyKey to return the right variant of empty result
 				if (!(propertyKey instanceof StartNode || propertyKey instanceof EndNode)) {
 
-					return new Result(Collections.EMPTY_LIST, 1, false, true);
+					return new Result(Collections.EMPTY_LIST, false, true);
 
 				}
 
 			}
 		}
 
-		return new Result(Collections.EMPTY_LIST, 0, false, true);
+		return new Result(Collections.EMPTY_LIST, false, true);
 	}
 
 	@Override

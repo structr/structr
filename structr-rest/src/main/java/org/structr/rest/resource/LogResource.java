@@ -221,7 +221,7 @@ public class LogResource extends Resource {
 				// sort result
 				logState.sortEntries();
 
-				return new Result(wrap(logState.entries()), logState.size(), true, false);
+				return new Result(wrap(logState.entries()), true, false);
 			}
 		}
 

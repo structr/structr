@@ -110,7 +110,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		if (page == 0 || pageSize <= 0) {
 
-			return null;
+			return PagingIterable.EMPTY_ITERABLE;
 		}
 
 		final Factory<S, T> factory  = getFactory(securityContext, includeHidden, publicOnly, pageSize, page);
@@ -340,7 +340,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	@Override
 	public Result<T> getResult() throws FrameworkException {
-		return new Result<T>(doSearch(), 0, true, false);
+		return new Result<T>(doSearch(), true, false);
 	}
 
 	@Override
@@ -351,9 +351,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public T getFirst() throws FrameworkException {
 
-		final Result<T> result = getResult();
+		final List<T> result = getAsList();
 
-		if (result == null || result.isEmpty()) {
+		if (result.isEmpty()) {
 
 			return null;
 		}

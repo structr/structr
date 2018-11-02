@@ -19,7 +19,6 @@
 package org.structr.web.function;
 
 import java.io.StringWriter;
-import java.util.List;
 import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -71,17 +70,17 @@ public class ToJsonFunction extends UiFunction {
 
 					jsonStreamer.streamSingle(securityContext, writer, (GraphObject)sources[0]);
 
-				} else if (sources[0] instanceof List) {
+				} else if (sources[0] instanceof Iterable) {
 
-					final List list = (List)sources[0];
+					final Iterable list = (Iterable)sources[0];
 
-					jsonStreamer.stream(securityContext, writer, new Result(list, list.size(), true, false), null);
+					jsonStreamer.stream(securityContext, writer, new Result(list, true, false), null);
 
 				} else if (sources[0] instanceof Map) {
 
 					final GraphObjectMap map  = new GraphObjectMap();
 
-					this.recursivelyConvertMapToGraphObjectMap(map, (Map)sources[0], outputDepth);
+					UiFunction.recursivelyConvertMapToGraphObjectMap(map, (Map)sources[0], outputDepth);
 
 					jsonStreamer.stream(securityContext, writer, new Result(map, false), null);
 

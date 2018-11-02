@@ -31,6 +31,7 @@ import java.lang.reflect.Type;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
+import org.structr.api.util.PagingIterable;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Value;
@@ -38,8 +39,6 @@ import org.structr.core.rest.GraphObjectGSONAdapter;
 
 /**
  * Controls deserialization of property sets.
- *
- *
  */
 public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializer<Result> {
 
@@ -60,34 +59,12 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 		// result fields in alphabetical order
 		Iterable<? extends GraphObject> results = src.getResults();
 		Integer page                            = src.getPage();
-		Integer pageCount                       = src.getPageCount();
 		Integer pageSize                        = src.getPageSize();
 		String queryTime                        = src.getQueryTime();
-		Integer resultCount                     = src.getRawResultCount();
 		String searchString                     = src.getSearchString();
 		String sortKey                          = src.getSortKey();
 		String sortOrder                        = src.getSortOrder();
 		GraphObject metaData                    = src.getMetaData();
-
-		if(page != null) {
-			result.add("page", new JsonPrimitive(page));
-		}
-
-		if(pageCount != null) {
-			result.add("page_count", new JsonPrimitive(pageCount));
-		}
-
-		if(pageSize != null) {
-			result.add("page_size", new JsonPrimitive(pageSize));
-		}
-
-		if(queryTime != null) {
-			result.add("query_time", new JsonPrimitive(queryTime));
-		}
-
-		if(resultCount != null) {
-			result.add("result_count", new JsonPrimitive(resultCount));
-		}
 
 		if(results != null) {
 
@@ -160,6 +137,20 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 			}
 		}
 
+		final long t1 = System.nanoTime();
+
+		if(page != null) {
+			result.add("page", new JsonPrimitive(page));
+		}
+
+		if(pageSize != null) {
+			result.add("page_size", new JsonPrimitive(pageSize));
+		}
+
+		if(queryTime != null) {
+			result.add("query_time", new JsonPrimitive(queryTime));
+		}
+
 		if(searchString != null) {
 			result.add("search_string", new JsonPrimitive(searchString));
 		}
@@ -181,7 +172,17 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 			}
 		}
 
-		result.add("serialization_time", new JsonPrimitive(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0)));
+		if (results instanceof PagingIterable) {
+
+			final PagingIterable iterable = (PagingIterable)results;
+
+			result.add("result_count", new JsonPrimitive(iterable.getResultCount()));
+			result.add("page_count", new JsonPrimitive(iterable.getPageCount()));
+
+			result.add("result_count_time", new JsonPrimitive(decimalFormat.format((System.nanoTime() - t1) / 1000000000.0)));
+		}
+
+		result.add("serialization_time", new JsonPrimitive(decimalFormat.format((t1 - t0) / 1000000000.0)));
 
 		return result;
 	}

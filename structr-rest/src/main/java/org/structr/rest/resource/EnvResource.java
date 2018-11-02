@@ -85,7 +85,7 @@ public class EnvResource extends Resource {
 
 		resultList.add(info);
 
-		return new Result(resultList, resultList.size(), false, false);
+		return new Result(resultList, false, false);
 	}
 
 	@Override

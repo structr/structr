@@ -39,4 +39,22 @@ public class PagingIterable<T> implements Iterable<T> {
 	public int getResultCount() {
 		return source.getResultCount();
 	}
+
+	public int getPageCount() {
+		return source.getPageCount();
+	}
+
+	public static final PagingIterable EMPTY_ITERABLE = new PagingIterable(() -> new Iterator() {
+
+		@Override
+		public boolean hasNext() {
+			return false;
+		}
+
+		@Override
+		public Object next() {
+			throw new IllegalStateException("This iterator is empty.");
+		}
+
+	}, Integer.MAX_VALUE, 1);
 }

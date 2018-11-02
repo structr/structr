@@ -30,7 +30,6 @@ import org.apache.commons.collections.iterators.IteratorEnumeration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.PagingHelper;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -216,29 +215,24 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 			sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName, false);
 		}
 
-		// do action
-		Result result = Result.EMPTY_RESULT;
-
 		try {
-			result = resource.doGet(sortKey, sortDescending, pageSize, page);
+			final Result result             = resource.doGet(sortKey, sortDescending, pageSize, page);
+			final Iterable<GraphObject> res = result.getResults();
+
+			result.setIsCollection(resource.isCollectionResource());
+			result.setIsPrimitiveArray(resource.isPrimitiveArray());
+			result.setPageSize(pageSize);
+			result.setPage(page);
+
+			renderContext.setResult(result);
+
+			return res;
 
 		} catch (NotFoundException nfe) {
 			logger.warn("No result from internal REST query: {}", restQuery);
 		}
 
-
-		result.setIsCollection(resource.isCollectionResource());
-		result.setIsPrimitiveArray(resource.isPrimitiveArray());
-
-		//Integer rawResultCount = (Integer) Services.getAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId());
-		PagingHelper.addPagingParameter(result, pageSize, page);
-
-		Iterable<GraphObject> res = result.getResults();
-
-		renderContext.setResult(result);
-
-		return res != null ? res : Collections.EMPTY_LIST;
-
+		return Collections.EMPTY_LIST;
 	}
 
 	/**

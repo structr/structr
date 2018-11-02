@@ -19,7 +19,6 @@
 package org.structr.core.graph;
 
 
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Relationship;
@@ -27,13 +26,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * A factory for structr relationships. This class exists because we need a fast
  * way to instantiate and initialize structr relationships, as this is the most-
  * used operation.
- *
  *
  * @param <T>
  */
@@ -41,7 +37,6 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 
 	private static final Logger logger = LoggerFactory.getLogger(RelationshipFactory.class.getName());
 
-	// private Map<String, Class> nodeTypeCache = new ConcurrentHashMap<String, Class>();
 	public RelationshipFactory(final SecurityContext securityContext) {
 		super(securityContext);
 	}
@@ -123,34 +118,5 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 		factoryProfile.setPublicOnly(publicOnly);
 
 		return instantiate(obj);
-	}
-
-	@Override
-	public T instantiateDummy(final Relationship entity, final String entityType) throws FrameworkException {
-
-		Map<String, Class<? extends RelationshipInterface>> entities = StructrApp.getConfiguration().getRelationshipEntities();
-		Class<T> relClass                                            = (Class<T>)entities.get(entityType);
-		T newRel                                                     = null;
-
-		if (relClass != null) {
-
-			try {
-
-				newRel = relClass.newInstance();
-				newRel.init(factoryProfile.getSecurityContext(), entity, relClass);
-
-				// let rel. know of its instantiation so it can cache its start- and end node ID.
-				newRel.onRelationshipInstantiation();
-
-			} catch (Throwable t) {
-
-				newRel = null;
-
-			}
-
-		}
-
-		return newRel;
-
 	}
 }

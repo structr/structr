@@ -20,7 +20,6 @@ package org.structr.bolt.wrapper;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.function.Function;
 import org.neo4j.driver.v1.Records;
 import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.Value;
@@ -52,16 +51,9 @@ public class StatementResultWrapper<T> implements NativeResult<T> {
 	@Override
 	public Iterator columnAs(final String name) {
 
-		final Iterator<Value> it = result.list(Records.column(name)).iterator();
+		final Iterable<Value> it = result.list(Records.column(name));
 
-		return Iterables.map(new Function<Value, Object>() {
-
-			@Override
-			public Object apply(final Value t) {
-				return wrapper.apply(t.asObject());
-			}
-
-		}, it);
+		return Iterables.map(t -> wrapper.apply(t.asObject()), it).iterator();
 	}
 
 	@Override

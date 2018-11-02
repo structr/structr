@@ -447,16 +447,6 @@ public class RenderContext extends ActionContext {
 						}
 						break;
 
-					case "result_count":
-					case "result_size":
-
-						final Result sizeResult = this.getResult();
-						if (sizeResult != null) {
-
-							return sizeResult.getRawResultCount();
-						}
-						break;
-
 					case "page_size":
 
 						final Result pageSizeResult = this.getResult();
@@ -466,24 +456,6 @@ public class RenderContext extends ActionContext {
 
 						}
 						break;
-
-					case "page_count":
-
-						final Result pageCountResult = this.getResult();
-						if (pageCountResult != null) {
-
-							Integer pageCount = result.getPageCount();
-							if (pageCount != null) {
-
-								return pageCount;
-
-							} else {
-
-								return 1;
-							}
-						}
-						break;
-
 
 					case "page_no":
 

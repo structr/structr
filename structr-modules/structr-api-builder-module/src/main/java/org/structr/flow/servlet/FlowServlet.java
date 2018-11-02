@@ -98,15 +98,17 @@ public class FlowServlet extends JsonRestServlet {
 
 					flowResult = ((FlowContainer)result.get(0)).evaluate(flowParameters);
 
-					Object resultObject = flowResult.get("result");
+					final Object resultObject = flowResult.get("result");
 
-					if (resultObject instanceof Collection) {
+					if (resultObject instanceof Iterable) {
 
-						Collection col = (Collection) resultObject;
-						result = new Result(new ArrayList(col), col.size(), true, false);
+						Iterable iterable = (Iterable) resultObject;
+						result = new Result(iterable, true, false);
+
 					} else if (resultObject instanceof GraphObject) {
 
 						result = new Result((GraphObject) resultObject, false);
+
 					} else {
 
 						result = new Result(resultObject);

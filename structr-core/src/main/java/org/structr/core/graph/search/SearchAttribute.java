@@ -137,10 +137,10 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 	public String getSortKey() {
 
 		if (sortKey != null) {
-			return sortKey.dbName();
+			return sortKey.jsonName();
 		}
 
-		return "name";
+		return null;
 	}
 
 	@Override
