@@ -380,11 +380,11 @@ public class LDAPService extends Thread implements RunnableService {
 
 	private LDAPUser resolveUser(final Dn dn) throws FrameworkException {
 
-		final Class<Group> groupType             = StructrApp.getConfiguration().getNodeEntityClass("Group");
-		final PropertyKey<List<Group>> groupsKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "groups");
-		final List<Rdn> rdns                     = new LinkedList<>(dn.getRdns());
-		final PropertyMap attrs                  = new PropertyMap();
-		Group currentGroup                       = null;
+		final Class<Group> groupType                 = StructrApp.getConfiguration().getNodeEntityClass("Group");
+		final PropertyKey<Iterable<Group>> groupsKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "groups");
+		final List<Rdn> rdns                         = new LinkedList<>(dn.getRdns());
+		final PropertyMap attrs                      = new PropertyMap();
+		Group currentGroup                           = null;
 
 		Collections.reverse(rdns);
 

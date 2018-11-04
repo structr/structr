@@ -34,7 +34,6 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -78,7 +77,7 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).getResult();
+				List result = StructrApp.getInstance(publicContext).nodeQuery(type).getAsList();
 
 				// Node should not be visible in public context (no user logged in)
 				assertTrue(result.isEmpty());
@@ -116,7 +115,7 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).getResult();
+				List<GraphObject> result = StructrApp.getInstance(publicContext).nodeQuery(type).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(t1.getUuid(), result.get(0).getUuid());
@@ -158,7 +157,7 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).getResult();
+				List<GraphObject> result = StructrApp.getInstance(publicContext).nodeQuery(type).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(t1.getUuid(), result.get(0).getUuid());
@@ -201,7 +200,7 @@ public class AccessControlTest extends StructrTest {
 			SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Backend);
 
 			try (final Tx tx = app.tx()) {
-				Result result = StructrApp.getInstance(user2Context).nodeQuery(type).getResult();
+				List<GraphObject> result = StructrApp.getInstance(user2Context).nodeQuery(type).getAsList();
 
 				assertEquals(2, result.size());
 			}
@@ -244,7 +243,7 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				Result result = StructrApp.getInstance(user2Context).nodeQuery(type).getResult();
+				List<GraphObject> result = StructrApp.getInstance(user2Context).nodeQuery(type).getAsList();
 
 				assertEquals(2, result.size());
 			}
@@ -269,7 +268,7 @@ public class AccessControlTest extends StructrTest {
 			List<Principal> users = createTestNodes(Principal.class, 2);
 			Principal user1 = (Principal) users.get(0);
 			Principal user2 = (Principal) users.get(1);
-			Result result = null;
+			List<GraphObject> result = null;
 
 			// Let user 1 create a node
 			Class type = TestOne.class;
@@ -287,7 +286,7 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				result = StructrApp.getInstance(user2Context).nodeQuery(type).getResult();
+				result = StructrApp.getInstance(user2Context).nodeQuery(type).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(t1.getUuid(), result.get(0).getUuid());
@@ -302,7 +301,7 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				result = StructrApp.getInstance(user2Context).nodeQuery(type).getResult();
+				result = StructrApp.getInstance(user2Context).nodeQuery(type).getAsList();
 				assertTrue(result.isEmpty());
 			}
 
@@ -337,7 +336,7 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(AbstractNode.createdDate).getResult();
+				List<GraphObject> result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(AbstractNode.createdDate).getAsList();
 
 				assertEquals(3, result.size());
 
@@ -391,7 +390,7 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
+				List<GraphObject> result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getAsList();
 
 				assertEquals(2, result.size());
 

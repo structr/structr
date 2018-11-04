@@ -23,9 +23,13 @@ import java.util.Iterator;
 /**
  * An iterable that supports pagination and result counting.
  */
-public class PagingIterable<T> implements Iterable<T> {
+public class PagingIterable<T> implements ResultStream<T> {
 
 	private PagingIterator<T> source = null;
+
+	public PagingIterable(final Iterable<T> source) {
+		this(source, Integer.MAX_VALUE, 1);
+	}
 
 	public PagingIterable(final Iterable<T> source, final int pageSize, final int page) {
 		this.source = new PagingIterator<>(source.iterator(), page, pageSize);
@@ -36,11 +40,13 @@ public class PagingIterable<T> implements Iterable<T> {
 		return source;
 	}
 
-	public int getResultCount() {
+	@Override
+	public int calculateTotalResultCount() {
 		return source.getResultCount();
 	}
 
-	public int getPageCount() {
+	@Override
+	public int calculatePageCount() {
 		return source.getPageCount();
 	}
 

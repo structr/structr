@@ -25,10 +25,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
@@ -62,7 +62,7 @@ public class RenderContext extends ActionContext {
 	private HttpServletRequest request                 = null;
 	private HttpServletResponse response               = null;
 	private ResourceProvider resourceProvider          = null;
-	private Result result                              = null;
+	private ResultStream result                              = null;
 	private boolean anyChildNodeCreatesNewLine         = false;
 	private boolean indentHtml                         = true;
 
@@ -161,7 +161,7 @@ public class RenderContext extends ActionContext {
 		this.listSource = listSource;
 	}
 
-	public void setResult(Result result) {
+	public void setResult(ResultStream result) {
 		this.result = result;
 	}
 
@@ -345,7 +345,7 @@ public class RenderContext extends ActionContext {
 		return (page != null ? page.getUuid() : null);
 	}
 
-	public Result getResult() {
+	public ResultStream getResult() {
 		return result;
 	}
 
@@ -449,7 +449,7 @@ public class RenderContext extends ActionContext {
 
 					case "page_size":
 
-						final Result pageSizeResult = this.getResult();
+						final ResultStream pageSizeResult = this.getResult();
 						if (pageSizeResult != null) {
 
 							return pageSizeResult.getPageSize();
@@ -459,7 +459,7 @@ public class RenderContext extends ActionContext {
 
 					case "page_no":
 
-						final Result pageNoResult = this.getResult();
+						final ResultStream pageNoResult = this.getResult();
 						if (pageNoResult != null) {
 
 							return pageNoResult.getPage();

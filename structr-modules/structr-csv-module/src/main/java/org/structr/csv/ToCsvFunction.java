@@ -31,7 +31,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
+import org.structr.core.ResultStream;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.DateProperty;
@@ -139,7 +139,7 @@ public class ToCsvFunction extends UiFunction {
 	}
 
 	public static void writeCsv(
-			final Result result,
+			final ResultStream result,
 			final Writer out,
 			final String propertyView,
 			final List<String> properties,

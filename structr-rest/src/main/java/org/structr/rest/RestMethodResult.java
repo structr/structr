@@ -32,8 +32,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.util.ResultStream;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 
 /**
  * Encapsulates the result of a REST HTTP method call, i.e. headers, response
@@ -103,7 +103,7 @@ public class RestMethodResult {
 			if (content != null) {
 
 				// serialize result set
-				gson.toJson(new Result(this.content, this.content.size() > 1 || serializeSingleObjectAsCollection, serializeAsPrimitiveArray), writer);
+				gson.toJson(new ResultStream(this.content, this.content.size() > 1 || serializeSingleObjectAsCollection, serializeAsPrimitiveArray), writer);
 			}
 
 			if (content == null) {
@@ -115,7 +115,7 @@ public class RestMethodResult {
 				} else {
 
 					// serialize result set
-					gson.toJson(new Result(nonGraphObjectResult), writer);
+					gson.toJson(new ResultStream(nonGraphObjectResult), writer);
 				}
 
 			}

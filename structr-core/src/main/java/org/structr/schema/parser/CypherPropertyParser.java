@@ -46,7 +46,7 @@ public class CypherPropertyParser extends PropertySourceGenerator {
 
 	@Override
 	public String getValueType() {
-		return "List<GraphObject>";
+		return "Iterable<GraphObject>";
 	}
 
 	@Override

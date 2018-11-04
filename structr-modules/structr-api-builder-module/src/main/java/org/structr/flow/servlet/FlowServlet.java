@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
+import org.structr.core.ResultStream;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -34,6 +34,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.rest.servlet.ResourceHelper;
+import org.structr.web.function.UiFunction;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -43,6 +44,7 @@ import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
+import org.structr.api.util.Iterables;
 
 public class FlowServlet extends JsonRestServlet {
 
@@ -53,7 +55,7 @@ public class FlowServlet extends JsonRestServlet {
 
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
-		Result result                   = null;
+		ResultStream result                   = null;
 		Resource resource				= null;
 
 		try {
@@ -102,16 +104,22 @@ public class FlowServlet extends JsonRestServlet {
 
 					if (resultObject instanceof Iterable) {
 
-						Iterable iterable = (Iterable) resultObject;
-						result = new Result(iterable, true, false);
+						final List list = Iterables.toList((Iterable)resultObject);
+						boolean isPrimitiveArray = false;
+
+						if (!list.isEmpty() && !(list.get(0) instanceof GraphObject)) {
+							isPrimitiveArray = true;
+						}
+
+						result = new ResultStream(list, true, isPrimitiveArray);
 
 					} else if (resultObject instanceof GraphObject) {
 
-						result = new Result((GraphObject) resultObject, false);
+						result = new ResultStream((GraphObject) resultObject, false);
 
 					} else {
 
-						result = new Result(resultObject);
+						result = new ResultStream((GraphObject)UiFunction.toGraphObject(resultObject, 1), false);
 					}
 
 					if (returnContent) {
@@ -168,7 +176,7 @@ public class FlowServlet extends JsonRestServlet {
 	}
 
 	@Override
-	protected void writeHtml(final SecurityContext securityContext, final HttpServletResponse response, final Result result, final String baseUrl, final boolean indentJson, final int depth) throws FrameworkException, IOException {
+	protected void writeHtml(final SecurityContext securityContext, final HttpServletResponse response, final ResultStream result, final String baseUrl, final boolean indentJson, final int depth) throws FrameworkException, IOException {
 		final App app                          = StructrApp.getInstance(securityContext);
 		final StreamingFlowWriter flowStreamer = new StreamingFlowWriter(this.propertyView, indentJson, depth);
 		// isolate write output

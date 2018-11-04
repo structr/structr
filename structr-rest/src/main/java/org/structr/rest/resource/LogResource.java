@@ -49,13 +49,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -139,7 +140,7 @@ public class LogResource extends Resource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		final HttpServletRequest request = securityContext.getRequest();
 		if (request != null) {
@@ -204,7 +205,7 @@ public class LogResource extends Resource {
 				overviewMap.put(firstEntryProperty, new Date(logState.beginTimestamp()));
 				overviewMap.put(lastEntryProperty, new Date(logState.endTimestamp()));
 
-				return new Result(overviewMap, false);
+				return new PagingIterable<>(Arrays.asList(overviewMap));
 
 			} else if (logState.doHistogram()) {
 
@@ -221,7 +222,8 @@ public class LogResource extends Resource {
 				// sort result
 				logState.sortEntries();
 
-				return new Result(wrap(logState.entries()), true, false);
+				return new PagingIterable<>(wrap(logState.entries()));
+				//return new ResultStream(wrap(logState.entries()), true, false);
 			}
 		}
 
@@ -528,7 +530,7 @@ public class LogResource extends Resource {
 		return buf.toString();
 	}
 
-	private Result aggregate(final LogState state) throws FrameworkException {
+	private ResultStream aggregate(final LogState state) throws FrameworkException {
 
 		// sort entries before aggregation
 		state.sortEntries();
@@ -576,22 +578,22 @@ public class LogResource extends Resource {
 			result.put(new GenericProperty(Long.toString(current)), sum);
 		}
 
-		return new Result(result, false);
+		return new PagingIterable<>(Arrays.asList(result));
 	}
 
-	private Result histogram(final LogState state) throws FrameworkException {
+	private ResultStream histogram(final LogState state) throws FrameworkException {
 
 		// sort entries before creating the histogram
 		state.sortEntries();
 
-		final String dateFormat = state.aggregate();
-		final long startTimestamp = state.beginTimestamp();
-		final long endTimestamp = state.endTimestamp();
-		final GraphObjectMap result = new GraphObjectMap();
-		final long interval = findInterval(dateFormat);
-		final long start = alignDateOnFormat(dateFormat, startTimestamp);
+		final String dateFormat                           = state.aggregate();
+		final long startTimestamp                         = state.beginTimestamp();
+		final long endTimestamp                           = state.endTimestamp();
+		final GraphObjectMap result                       = new GraphObjectMap();
+		final long interval                               = findInterval(dateFormat);
+		final long start                                  = alignDateOnFormat(dateFormat, startTimestamp);
 		final TreeMap<Long, Map<String, Object>> countMap = toHistogramCountMap(state);
-		final Set<String> countProperties = getCountProperties(countMap);
+		final Set<String> countProperties                 = getCountProperties(countMap);
 
 		for (long current = start; current <= endTimestamp; current += interval) {
 
@@ -628,7 +630,7 @@ public class LogResource extends Resource {
 			result.put(new GenericProperty(Long.toString(current)), sum);
 		}
 
-		return new Result(result, false);
+		return new PagingIterable<>(Arrays.asList(result));
 	}
 
 	private long alignDateOnFormat(final String dateFormat, final long timestamp) {

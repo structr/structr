@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
 import org.structr.api.config.Settings;
+import org.structr.api.util.ResultStream;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -49,7 +50,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.IJsonInput;
 import org.structr.core.JsonInput;
 import org.structr.core.JsonSingleInput;
-import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.app.App;
@@ -316,7 +316,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
 
-				resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView), propertyView);
+				resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 				authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 				tx.success();
 			}
@@ -427,7 +427,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView), propertyView);
+					resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
@@ -609,7 +609,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				try (final Tx tx = app.tx()) {
 
 					// evaluate constraint chain
-					resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView), propertyView);
+					resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
@@ -742,7 +742,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView), propertyView);
+					resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
@@ -903,7 +903,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			double queryTimeStart = System.nanoTime();
 
 			// isolate resource authentication
-			resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView), propertyView);
+			resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 			authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 
 			// add sorting & paging
@@ -933,7 +933,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName, false);
 			}
 
-			final Result result = resource.doGet(sortKey, sortDescending, pageSize, page);
+			final ResultStream result = resource.doGet(sortKey, sortDescending, pageSize, page);
 			if (result == null) {
 
 				throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Unable to retrieve result, check database connection");
@@ -1006,7 +1006,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		}
 	}
 
-	protected void processResult(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final Result result, final Integer outputDepth) throws ServletException, IOException {
+	protected void processResult(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final ResultStream result, final Integer outputDepth) throws ServletException, IOException {
 
 		final int depth                = outputDepth != null && outputDepth >= 0 ? outputDepth : config.getOutputNestingDepth();
 		final String baseUrl           = request.getRequestURI();
@@ -1087,7 +1087,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 	}
 
-	protected void writeHtml(final SecurityContext securityContext, final HttpServletResponse response, final Result result, final String baseUrl, final boolean indentJson, final int depth) throws FrameworkException, IOException {
+	protected void writeHtml(final SecurityContext securityContext, final HttpServletResponse response, final ResultStream result, final String baseUrl, final boolean indentJson, final int depth) throws FrameworkException, IOException {
 		final App app                          = StructrApp.getInstance(securityContext);
 		final StreamingHtmlWriter htmlStreamer = new StreamingHtmlWriter(this.propertyView, indentJson, depth);
 		// isolate write output

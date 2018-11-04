@@ -44,7 +44,6 @@ import org.structr.bolt.wrapper.NodeWrapper;
 import org.structr.bolt.wrapper.RelationshipWrapper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AOneToOne;
@@ -171,7 +170,7 @@ public class BasicTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				Result result = app.nodeQuery().uuid(uuid).getResult();
+				List result = app.nodeQuery().uuid(uuid).getAsList();
 
 				assertEquals("Node should have been deleted", 0, result.size());
 

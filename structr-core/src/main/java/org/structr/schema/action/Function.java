@@ -41,6 +41,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
+import org.structr.core.property.DoubleProperty;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.LongProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.parser.DatePropertyParser;
@@ -546,6 +549,8 @@ public abstract class Function<S, T> extends Hint {
 
 					res.add(Function.wrapStringInGraphObjectMap((String)o));
 
+				} else if (o instanceof Number) {
+					res.add(Function.wrapNumberInGraphObjectMap((Number)o));
 				}
 			}
 
@@ -574,6 +579,9 @@ public abstract class Function<S, T> extends Hint {
 
 			return Function.wrapStringInGraphObjectMap((String)sourceObject);
 
+		} else if (sourceObject instanceof Number) {
+			
+			return Function.wrapNumberInGraphObjectMap((Number)sourceObject);
 		}
 
 		return null;
@@ -585,6 +593,24 @@ public abstract class Function<S, T> extends Hint {
 		final GraphObjectMap stringWrapperObject = new GraphObjectMap();
 		stringWrapperObject.put(new StringProperty("value"), str);
 		return stringWrapperObject;
+
+	}
+
+	public static GraphObjectMap wrapNumberInGraphObjectMap (final Number num) {
+
+		final GraphObjectMap numberWrapperObject = new GraphObjectMap();
+
+		if (num instanceof Integer) {
+			numberWrapperObject.put(new IntProperty("value"), num);
+		} else if (num instanceof Double) {
+			numberWrapperObject.put(new DoubleProperty("value"), num);
+		} else if (num instanceof Long) {
+			numberWrapperObject.put(new LongProperty("value"), num);
+		} else if (num instanceof Float) {
+			numberWrapperObject.put(new DoubleProperty("value"), num);
+		}
+
+		return numberWrapperObject;
 
 	}
 

@@ -40,12 +40,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
 import org.structr.common.PropertyView;
 import org.structr.common.QueryRange;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -138,7 +138,7 @@ public abstract class StreamingWriter {
 
 	}
 
-	public void stream(final SecurityContext securityContext, final Writer output, final Result result, final String baseUrl) throws IOException {
+	public void stream(final SecurityContext securityContext, final Writer output, final ResultStream result, final String baseUrl) throws IOException {
 
 		long t0 = System.nanoTime();
 
@@ -283,7 +283,7 @@ public abstract class StreamingWriter {
 			final PagingIterable iterable = (PagingIterable)results;
 
 			rootWriter.name("result_count").value(iterable.getResultCount());
-			rootWriter.name("page_count").value(iterable.getPageCount());
+			rootWriter.name("page_count").value(iterable.calculatePageCount());
 
 			if (renderResultCountTime) {
 				rootWriter.name("result_count_time").value(decimalFormat.format((System.nanoTime() - t1) / 1000000000.0));

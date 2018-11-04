@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.Result;
 
 /**
  * Utility for pagination.
@@ -78,6 +77,7 @@ public class PagingHelper {
 
 	}
 
+	/*
 	public static Result addPagingParameter(Result result, int pageSize, int page) {
 
 		if (pageSize > 0 && pageSize < Integer.MAX_VALUE) {
@@ -88,5 +88,5 @@ public class PagingHelper {
 
 		return result;
 	}
-
+	*/
 }

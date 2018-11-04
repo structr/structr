@@ -66,7 +66,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
+import org.structr.core.ResultStream;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
@@ -986,7 +986,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			}
 
 
-			final Result results = query.getResult();
+			final ResultStream results = query.getResultStream();
 
 			logger.debug("{} results", results.size());
 			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, results.getResults());
@@ -1163,10 +1163,10 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			final App app = StructrApp.getInstance();
 
-			Result<Principal> results;
+			ResultStream<Principal> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery(Principal.class).and(confirmationKeyKey, key).getResult();
+				results = app.nodeQuery(Principal.class).and(confirmationKeyKey, key).getResultStream();
 
 				tx.success();
 			}
@@ -1246,10 +1246,10 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			final App app = StructrApp.getInstance();
 
-			Result<Principal> results;
+			ResultStream<Principal> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery(Principal.class).and(confirmationKeyKey, key).getResult();
+				results = app.nodeQuery(Principal.class).and(confirmationKeyKey, key).getResultStream();
 
 				tx.success();
 			}
@@ -1317,7 +1317,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			query.and().orType(Page.class).orTypes(File.class);
 
 			// Searching for pages needs super user context anyway
-			Result results = query.getResult();
+			ResultStream results = query.getResultStream();
 
 			logger.debug("{} results", results.size());
 			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, results.getResults());
@@ -1343,12 +1343,12 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			final Query pageQuery = StructrApp.getInstance(securityContext).nodeQuery();
 
 			pageQuery.and(StructrApp.key(Page.class, "path"), path).andType(Page.class);
-			final Result pages = pageQuery.getResult();
+			final ResultStream pages = pageQuery.getResultStream();
 
 			final Query fileQuery = StructrApp.getInstance(securityContext).nodeQuery();
 			fileQuery.and(StructrApp.key(AbstractFile.class, "path"), path).andTypes(File.class);
 
-			final Result files = fileQuery.getResult();
+			final ResultStream files = fileQuery.getResultStream();
 
 			logger.debug("Found {} pages and {} files/folders", new Object[] { pages.size(), files.size() });
 

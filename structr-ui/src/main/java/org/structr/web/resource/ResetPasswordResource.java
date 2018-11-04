@@ -30,7 +30,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.MailHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
+import org.structr.core.ResultStream;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.MailTemplate;
@@ -79,7 +79,7 @@ public class ResetPasswordResource extends Resource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 		throw new NotAllowedException("GET not allowed on " + getResourceSignature());
 	}
 

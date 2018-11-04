@@ -23,7 +23,7 @@ import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.Result;
+import org.structr.core.ResultStream;
 import org.structr.core.StaticValue;
 import org.structr.core.Value;
 import org.structr.rest.serialization.StreamingJsonWriter;
@@ -74,7 +74,7 @@ public class ToJsonFunction extends UiFunction {
 
 					final Iterable list = (Iterable)sources[0];
 
-					jsonStreamer.stream(securityContext, writer, new Result(list, true, false), null);
+					jsonStreamer.stream(securityContext, writer, new ResultStream(list, true, false), null);
 
 				} else if (sources[0] instanceof Map) {
 
@@ -82,7 +82,7 @@ public class ToJsonFunction extends UiFunction {
 
 					UiFunction.recursivelyConvertMapToGraphObjectMap(map, (Map)sources[0], outputDepth);
 
-					jsonStreamer.stream(securityContext, writer, new Result(map, false), null);
+					jsonStreamer.stream(securityContext, writer, new ResultStream(map, false), null);
 
 				}
 

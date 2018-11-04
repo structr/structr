@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
+import org.structr.core.ResultStream;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
@@ -111,7 +111,7 @@ public class QueryCommand extends AbstractCommand {
 		try {
 
 			// do search
-			final Result result = query.getResult();
+			final ResultStream result = query.getResultStream();
 
 			// set full result list
 			webSocketData.setResult(result.getResults());

@@ -18,13 +18,12 @@
  */
 package org.structr.rest.resource;
 
-import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObjectMap;
-import org.structr.core.Result;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
@@ -53,7 +52,7 @@ public class SchemaTypeResource extends Resource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 		Class type = typeResource.getEntityClass();
 		return getSchemaTypeResult(securityContext, type, propertyView);
 	}
@@ -99,10 +98,7 @@ public class SchemaTypeResource extends Resource {
 	}
 
 	// ----- public static methods -----
-	public static Result getSchemaTypeResult(final SecurityContext securityContext, final Class type, final String propertyView) throws FrameworkException {
-
-		List<GraphObjectMap> resultList = SchemaHelper.getSchemaTypeInfo(securityContext, rawType, type, propertyView);
-
-		return new Result(resultList, false, false);
+	public static ResultStream getSchemaTypeResult(final SecurityContext securityContext, final Class type, final String propertyView) throws FrameworkException {
+		return new PagingIterable<>(SchemaHelper.getSchemaTypeInfo(securityContext, rawType, type, propertyView));
 	}
 }

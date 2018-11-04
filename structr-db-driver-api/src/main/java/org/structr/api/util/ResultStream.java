@@ -16,27 +16,29 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.resource;
-
-import org.structr.common.error.FrameworkException;
+package org.structr.api.util;
 
 /**
- * A resource constraint that implements the generic ability to be
- * combined with a SortResource in order to sort the result
- * set.
- *
- *
+ * The result stream of a query operation.
  */
-public abstract class SortableResource extends FilterableResource {
 
-	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
+public interface ResultStream<T> extends Iterable<T> {
 
-		if (next instanceof SortResource) {
-			((SortResource)next).wrapResource(this);
-			return next;
-		}
+	/**
+	 * Calculates and returns the total number of results
+	 * in this result stream. Note that calling this method
+	 * causes the full result to be pulled into memory.
+	 *
+	 * @return the total number of results in this result stream
+	 */
+	int calculateTotalResultCount();
 
-		return super.tryCombineWith(next);
-	}
+	/**
+	 * Calculates and returns the total number of result pages
+	 * in this result stream. Note that calling this method
+	 * causes the full result to be pulled into memory.
+	 *
+	 * @return the total number of result pages in this result stream
+	 */
+	int calculatePageCount();
 }

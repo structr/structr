@@ -336,10 +336,10 @@ var _Entities = {
 
 			flowSelector.append('<option>--- Select Flow ---</option>');
 			// (type, pageSize, page, sort, order, properties, includeHidden, callback)
-			Command.getByType('FlowContainer', 1000, 1, 'name', 'asc', null, false, function(flows) {
+			Command.getByType('FlowContainer', 1000, 1, 'effectiveName', 'asc', null, false, function(flows) {
 
 				flows.forEach(function(flow) {
-					flowSelector.append('<option value="' + flow.id + '">' + flow.name + '</option>');
+					flowSelector.append('<option value="' + flow.id + '">' + flow.effectiveName + '</option>');
 				});
 
 				initRepeaterInputs();

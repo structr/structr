@@ -21,10 +21,10 @@ package org.structr.websocket.command;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.ResultStream;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
@@ -98,7 +98,7 @@ public class GetByTypeCommand extends AbstractCommand {
 			}
 
 			// do search
-			Result result = query.getResult();
+			ResultStream result = query.getResultStream();
 
 			// save raw result count
 			int resultCountBeforePaging = result.size();

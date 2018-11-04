@@ -37,11 +37,6 @@ import org.structr.schema.export.StructrSchema;
 public class SchemaImportVisitor implements FileVisitor<Path> {
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaImportVisitor.class.getName());
-	private Path basePath              = null;
-
-	public SchemaImportVisitor(final Path basePath) {
-		this.basePath = basePath;
-	}
 
 	@Override
 	public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
@@ -66,7 +61,8 @@ public class SchemaImportVisitor implements FileVisitor<Path> {
 					StructrSchema.replaceDatabaseSchema(app, StructrSchema.createFromSource(reader));
 
 				} catch (Throwable t) {
-					logger.warn("", t);
+
+					throw new ImportFailureException("Unable to import schema, aborting.", t);
 				}
 			}
 		}

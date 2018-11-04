@@ -45,12 +45,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
+import org.structr.api.util.ResultStream;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.JsonInput;
-import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.app.App;
@@ -127,7 +127,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws UnsupportedEncodingException {
 
 		Authenticator authenticator = null;
-		Result result = null;
+		ResultStream result = null;
 		Resource resource = null;
 
 		try {
@@ -315,7 +315,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView), propertyView);
+					resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
@@ -624,13 +624,12 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 	 * @param propertyView
 	 * @throws IOException
 	 */
-	public static void writeCsv(final Result result, final Writer out, final String propertyView) throws IOException {
+	public static void writeCsv(final ResultStream<GraphObject> result, final Writer out, final String propertyView) throws IOException {
 
-		final List<GraphObject> list = result.getAsList();
 		final StringBuilder row      = new StringBuilder();
 		boolean headerWritten        = false;
 
-		for (final GraphObject obj : list) {
+		for (final GraphObject obj : result) {
 
 			// Write column headers
 			if (!headerWritten) {

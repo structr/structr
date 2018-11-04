@@ -19,14 +19,16 @@
 package org.structr.rest.resource;
 
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
@@ -81,7 +83,7 @@ public class SchemaJsonResource extends Resource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		final GraphObjectMap schema = new GraphObjectMap();
 
@@ -94,7 +96,7 @@ public class SchemaJsonResource extends Resource {
 			logger.error("Error while creating JsonSchema: " + ex.getMessage());
 		}
 
-		return new Result(schema, true);
+		return new PagingIterable<>(Arrays.asList(schema));
 
 	}
 

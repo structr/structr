@@ -18,14 +18,16 @@
  */
 package org.structr.rest.resource;
 
+import java.util.Arrays;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.GenericNode;
@@ -67,8 +69,8 @@ public class TypedIdResource extends FilterableResource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
-		return new Result(getEntity(), isPrimitiveArray());
+	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+		return new PagingIterable<>(Arrays.asList(getEntity()));
 	}
 
 	@Override

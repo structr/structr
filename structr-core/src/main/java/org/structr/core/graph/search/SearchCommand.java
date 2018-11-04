@@ -37,14 +37,13 @@ import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryContext;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
 import org.structr.common.GraphObjectComparator;
-import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -106,7 +105,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public abstract boolean isRelationshipSearch();
 	public abstract Index<S> getIndex();
 
-	private Iterable<T> doSearch() throws FrameworkException {
+	private ResultStream<T> doSearch() throws FrameworkException {
 
 		if (page == 0 || pageSize <= 0) {
 
@@ -225,17 +224,19 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				}
 
 				// do query
-				indexHits = new PagingIterable<>(Iterables.map(factory, index.query(getQueryContext(), rootGroup)), pageSize, page);
+				indexHits = Iterables.map(factory, index.query(getQueryContext(), rootGroup));
+				//indexHits = new PagingIterable<>(Iterables.map(factory, index.query(getQueryContext(), rootGroup)), pageSize, page);
 
 				if (comparator != null) {
 
+					// pull results into memory
 					final List<T> rawResult = Iterables.toList(indexHits);
 
+					// sort result
 					Collections.sort(rawResult, comparator);
 
-					return PagingHelper.subList(rawResult, pageSize, page);
-
-					//return new Result(PagingHelper.subList(rawResult, pageSize, page), rawResult.size(), true, false);
+					// return paging iterable
+					return new PagingIterable(indexHits, pageSize, page);
 				}
 			}
 		}
@@ -287,7 +288,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			// sort list
 			Collections.sort(finalResult, new GraphObjectComparator(sortKey, sortDescending));
 
-			return PagingHelper.subList(finalResult, pageSize, page);
+			return new PagingIterable(finalResult, pageSize, page);
 
 			// return paged final result
 			//return new Result(PagingHelper.subList(finalResult, pageSize, page), resultCount, true, false);
@@ -295,7 +296,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		} else {
 
 			// no filtering
-			return indexHits;
+			return new PagingIterable(indexHits, pageSize, page);
 		}
 	}
 
@@ -339,8 +340,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
-	public Result<T> getResult() throws FrameworkException {
-		return new Result<T>(doSearch(), true, false);
+	public ResultStream<T> getResultStream() throws FrameworkException {
+		return doSearch();
 	}
 
 	@Override

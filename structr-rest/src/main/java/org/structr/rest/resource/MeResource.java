@@ -18,16 +18,16 @@
  */
 package org.structr.rest.resource;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
@@ -76,15 +76,13 @@ public class MeResource extends TypedIdResource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		Principal user = securityContext.getUser(true);
 		if (user != null) {
 
-			List<GraphObject> resultList = new LinkedList<>();
-			resultList.add(user);
-
-			return new Result(resultList, isCollectionResource(), isPrimitiveArray());
+			return new PagingIterable<>(Arrays.asList(user));
+			//return new ResultStream(resultList, isCollectionResource(), isPrimitiveArray());
 
 		} else {
 

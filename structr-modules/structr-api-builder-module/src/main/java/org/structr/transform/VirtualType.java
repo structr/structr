@@ -37,7 +37,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.Result;
+import org.structr.core.ResultStream;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -117,7 +117,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 	}
 	*/
 
-	public static Result transformOutput(final VirtualType thisType, final SecurityContext securityContext, final Class sourceType, final Result result) throws FrameworkException {
+	public static ResultStream transformOutput(final VirtualType thisType, final SecurityContext securityContext, final Class sourceType, final ResultStream result) throws FrameworkException {
 
 		final List<VirtualProperty> props         = VirtualType.sort(Iterables.toList(thisType.getVirtualProperties()));
 		final Mapper mapper                       = new Mapper(securityContext, props, StructrApp.getConfiguration().getNodeEntityClass(thisType.getSourceType()));
@@ -125,7 +125,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 		final Iterable<GraphObject> iterable      = Iterables.map(mapper, Iterables.filter(filter, result.getResults()));
 		final List<GraphObject> transformedResult = Iterables.toList(iterable);
 
-		return new Result(transformedResult, result.isCollection(), result.isPrimitiveArray());
+		return new ResultStream(transformedResult, result.isCollection(), result.isPrimitiveArray());
 	}
 
 	public static void transformInput(final VirtualType thisType, final SecurityContext securityContext, final Class type, final Map<String, Object> propertySet) throws FrameworkException {

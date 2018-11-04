@@ -33,7 +33,6 @@ import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -235,9 +234,8 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 					if (exactMatch) {
 
-						Result<AbstractNode> result = app.nodeQuery(collectionProperty.relatedType()).and(notion.getPrimaryPropertyKey(), searchValue).getResult();
-
-						for (AbstractNode node : result.getResults()) {
+						final List<AbstractNode> result = app.nodeQuery(collectionProperty.relatedType()).and(notion.getPrimaryPropertyKey(), searchValue).getAsList();
+						for (AbstractNode node : result) {
 
 							switch (occur) {
 
@@ -269,10 +267,9 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 					} else {
 
-						Result<AbstractNode> result = app.nodeQuery(collectionProperty.relatedType()).and(notion.getPrimaryPropertyKey(), searchValue, false).getResult();
-
-						// loose search behaves differently, all results must be combined
-						for (AbstractNode node : result.getResults()) {
+						// inexact search behaves differently, all results must be combined
+						final List<AbstractNode> result = app.nodeQuery(collectionProperty.relatedType()).and(notion.getPrimaryPropertyKey(), searchValue, false).getAsList();
+						for (AbstractNode node : result) {
 
 							intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
 						}

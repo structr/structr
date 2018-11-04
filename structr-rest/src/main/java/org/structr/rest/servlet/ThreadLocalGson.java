@@ -21,9 +21,9 @@ package org.structr.rest.servlet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.structr.api.config.Settings;
+import org.structr.api.util.ResultStream;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.IJsonInput;
-import org.structr.core.Result;
 import org.structr.core.Value;
 import org.structr.core.rest.JsonInputGSONAdapter;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
@@ -55,7 +55,7 @@ public class ThreadLocalGson extends ThreadLocal<Gson> {
 			.serializeNulls()
 			.registerTypeHierarchyAdapter(FrameworkException.class, new FrameworkExceptionGSONAdapter())
 			.registerTypeAdapter(IJsonInput.class, jsonInputAdapter)
-			.registerTypeAdapter(Result.class, resultGsonAdapter);
+			.registerTypeAdapter(ResultStream.class, resultGsonAdapter);
 
 
 		final boolean lenient = Settings.JsonLenient.getValue();

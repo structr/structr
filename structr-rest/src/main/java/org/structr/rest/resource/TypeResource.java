@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.ResultTransformer;
 import org.structr.common.SecurityContext;
@@ -33,7 +34,6 @@ import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -61,7 +61,7 @@ import org.structr.schema.SchemaHelper;
  * that is not the first element in an URI will try to find a pre-defined
  * relationship between preceding and the node type and follow that path.
  */
-public class TypeResource extends SortableResource {
+public class TypeResource extends WrappingResource {
 
 	private static final Logger logger = LoggerFactory.getLogger(TypeResource.class.getName());
 
@@ -114,7 +114,7 @@ public class TypeResource extends SortableResource {
 	}
 
 	@Override
-	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
+	public ResultStream doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
 
 		boolean includeHidden                  = true;
 		boolean publicOnly                     = false;
@@ -156,12 +156,12 @@ public class TypeResource extends SortableResource {
 
 			if (virtualType != null) {
 
-				final Result untransformedResult = query
+				final ResultStream untransformedResult = query
 					.includeHidden(includeHidden)
 					.publicOnly(publicOnly)
 					.sort(actualSortKey)
 					.order(actualSortOrder)
-					.getResult();
+					.getResultStream();
 
 				//final Result result = virtualType.transformOutput(securityContext, entityClass, untransformedResult);
 				return virtualType.transformOutput(securityContext, entityClass, untransformedResult);
@@ -177,7 +177,7 @@ public class TypeResource extends SortableResource {
 					.order(actualSortOrder)
 					.pageSize(pageSize)
 					.page(page)
-					.getResult();
+					.getResultStream();
 			}
 
 		} else {
@@ -185,7 +185,7 @@ public class TypeResource extends SortableResource {
 			logger.warn("type was null");
 		}
 
-		return new Result(PagingIterable.EMPTY_ITERABLE, isCollectionResource(), isPrimitiveArray());
+		return PagingIterable.EMPTY_ITERABLE;
 	}
 
 	@Override

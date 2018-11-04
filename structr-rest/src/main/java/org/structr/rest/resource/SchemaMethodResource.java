@@ -25,11 +25,11 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ScriptRuntime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
@@ -44,7 +44,7 @@ import org.structr.schema.action.Actions;
 /**
  *
  */
-public class SchemaMethodResource extends SortableResource {
+public class SchemaMethodResource extends WrappingResource {
 
 	private static final Logger logger   = LoggerFactory.getLogger(SchemaMethodResource.class);
 	private TypeResource typeResource   = null;
@@ -72,7 +72,7 @@ public class SchemaMethodResource extends SortableResource {
 	}
 
 	@Override
-	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
+	public ResultStream doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
 		throw new IllegalMethodException("GET not allowed on " + getResourceSignature());
 	}
 

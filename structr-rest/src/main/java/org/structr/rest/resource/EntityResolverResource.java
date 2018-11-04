@@ -21,9 +21,9 @@ package org.structr.rest.resource;
 import java.util.Collection;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
 import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -35,7 +35,7 @@ import org.structr.rest.exception.IllegalMethodException;
  *
  *
  */
-public class EntityResolverResource extends SortableResource {
+public class EntityResolverResource extends WrappingResource {
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
@@ -44,7 +44,7 @@ public class EntityResolverResource extends SortableResource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 		throw new IllegalMethodException("GET not allowed on " + getResourceSignature());
 	}
 

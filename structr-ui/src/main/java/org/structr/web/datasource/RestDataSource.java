@@ -34,7 +34,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
+import org.structr.core.ResultStream;
 import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -216,7 +216,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		}
 
 		try {
-			final Result result             = resource.doGet(sortKey, sortDescending, pageSize, page);
+			final ResultStream result             = resource.doGet(sortKey, sortDescending, pageSize, page);
 			final Iterable<GraphObject> res = result.getResults();
 
 			result.setIsCollection(resource.isCollectionResource());

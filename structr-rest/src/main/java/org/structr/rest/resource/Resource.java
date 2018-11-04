@@ -28,13 +28,14 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
+import org.structr.api.util.ResultStream;
 import org.structr.common.CaseHelper;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
@@ -78,7 +79,7 @@ public abstract class Resource {
 	public abstract String getResourceSignature();
 	public abstract boolean isCollectionResource() throws FrameworkException;
 
-	public abstract Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException;
+	public abstract ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException;
 	public abstract RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException;
 
 	@Override
@@ -109,6 +110,9 @@ public abstract class Resource {
 
 		while (hasMore) {
 
+			// will be set to true below if at least one result was processed
+			hasMore = false;
+
 			try (final Tx tx = app.tx(false, false, false)) {
 
 				chunk++;
@@ -117,13 +121,11 @@ public abstract class Resource {
 				securityContext.ignoreResultCount(true);
 
 				// always fetch the first page
-				final Result<GraphObject> result = doGet(null, false, pageSize, 1);
-				final Iterable<GraphObject> list = result.getResults();
+				final ResultStream<GraphObject> result = doGet(null, false, pageSize, 1);
 
-				// delete finished?
-				hasMore = result.size() == pageSize;
+				for (final GraphObject obj : result) {
 
-				for (final GraphObject obj : list) {
+					hasMore = true;
 
 					if (obj.isNode()) {
 
@@ -156,8 +158,8 @@ public abstract class Resource {
 
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
-		final Result<GraphObject> result = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE);
-		final List<GraphObject> results  = result.getAsList();
+		final ResultStream<GraphObject> result = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE);
+		final List<GraphObject> results        = Iterables.toList(result);
 
 		if (results != null && !results.isEmpty()) {
 
@@ -190,7 +192,7 @@ public abstract class Resource {
 	public void configurePropertyView(final Value<String> propertyView) {
 	}
 
-	public void postProcessResultSet(final Result result) {
+	public void postProcessResultSet(final ResultStream result) {
 	}
 
 	public boolean isPrimitiveArray() {

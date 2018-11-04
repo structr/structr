@@ -24,10 +24,12 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
+import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
@@ -56,9 +58,9 @@ public class RelationshipNodeResource extends WrappingResource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
-		List<? extends GraphObject> results = wrappedResource.doGet(sortKey, sortDescending, pageSize, page).getAsList();
+		List<? extends GraphObject> results = Iterables.toList(wrappedResource.doGet(sortKey, sortDescending, pageSize, page));
 		if(results != null && !results.isEmpty()) {
 
 			try {
@@ -81,7 +83,8 @@ public class RelationshipNodeResource extends WrappingResource {
 					}
 				}
 
-				return new Result(resultList, isCollectionResource(), isPrimitiveArray());
+				return new PagingIterable<>(resultList, pageSize, page);
+				//return new ResultStream(resultList, isCollectionResource(), isPrimitiveArray());
 
 			} catch(Throwable t) {
 

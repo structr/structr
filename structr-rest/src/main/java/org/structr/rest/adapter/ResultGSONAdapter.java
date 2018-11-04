@@ -32,15 +32,15 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.Value;
 import org.structr.core.rest.GraphObjectGSONAdapter;
 
 /**
  * Controls deserialization of property sets.
  */
-public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializer<Result> {
+public class ResultGSONAdapter implements JsonSerializer<ResultStream>, JsonDeserializer<ResultStream> {
 
 	private final DecimalFormat decimalFormat             = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private GraphObjectGSONAdapter graphObjectGsonAdapter = null;
@@ -50,7 +50,7 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 	}
 
 	@Override
-	public JsonElement serialize(Result src, Type typeOfSrc, JsonSerializationContext context) {
+	public JsonElement serialize(ResultStream src, Type typeOfSrc, JsonSerializationContext context) {
 
 		long t0 = System.nanoTime();
 
@@ -177,7 +177,7 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 			final PagingIterable iterable = (PagingIterable)results;
 
 			result.add("result_count", new JsonPrimitive(iterable.getResultCount()));
-			result.add("page_count", new JsonPrimitive(iterable.getPageCount()));
+			result.add("page_count", new JsonPrimitive(iterable.calculatePageCount()));
 
 			result.add("result_count_time", new JsonPrimitive(decimalFormat.format((System.nanoTime() - t1) / 1000000000.0)));
 		}
@@ -188,7 +188,7 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 	}
 
 	@Override
-	public Result deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	public ResultStream deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 		return null;
 	}
 

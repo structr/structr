@@ -23,11 +23,12 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.api.service.LicenseManager;
+import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.GenericProperty;
@@ -56,7 +57,7 @@ public class EnvResource extends Resource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		final List<GraphObjectMap> resultList             = new LinkedList<>();
 		final GraphObjectMap info                         = new GraphObjectMap();
@@ -85,7 +86,7 @@ public class EnvResource extends Resource {
 
 		resultList.add(info);
 
-		return new Result(resultList, false, false);
+		return new PagingIterable(resultList);
 	}
 
 	@Override

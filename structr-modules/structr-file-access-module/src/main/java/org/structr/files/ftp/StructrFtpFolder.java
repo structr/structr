@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
+import org.structr.core.ResultStream;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -106,7 +106,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 			if ("/".equals(requestedPath)) {
 				try {
-					Result<Folder> folders = app.nodeQuery(Folder.class).getResult();
+					ResultStream<Folder> folders = app.nodeQuery(Folder.class).getResultStream();
 					logger.debug("{} folders found", folders.size());
 
 					for (Folder f : folders.getResults()) {
@@ -122,7 +122,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 					}
 
-					Result<File> files = app.nodeQuery(File.class).getResult();
+					ResultStream<File> files = app.nodeQuery(File.class).getResultStream();
 					logger.debug("{} files found", files.size());
 
 					for (File f : files.getResults()) {
@@ -140,7 +140,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 					}
 
-					Result<Page> pages = app.nodeQuery(Page.class).getResult();
+					ResultStream<Page> pages = app.nodeQuery(Page.class).getResultStream();
 					logger.debug("{} pages found", pages.size());
 
 					for (Page p : pages.getResults()) {
