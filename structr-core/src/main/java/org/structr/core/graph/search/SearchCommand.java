@@ -236,7 +236,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 					Collections.sort(rawResult, comparator);
 
 					// return paging iterable
-					return new PagingIterable(indexHits, pageSize, page);
+					return new PagingIterable(rawResult, pageSize, page);
 				}
 			}
 		}

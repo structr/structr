@@ -22,14 +22,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.ResultStream;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -41,10 +39,7 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
 /**
- *
- *
  */
 public class SearchCommand extends AbstractCommand {
 
@@ -56,7 +51,7 @@ public class SearchCommand extends AbstractCommand {
 	private static final String CYPHER_QUERY_KEY  = "cypherQuery";
 	private static final String CYPHER_PARAMS_KEY = "cypherParams";
 	private static final String TYPE_KEY          = "type";
-	
+
 	static {
 
 		StructrWebSocket.addCommand(SearchCommand.class);
@@ -67,21 +62,21 @@ public class SearchCommand extends AbstractCommand {
 	public void processMessage(final WebSocketMessage webSocketData) {
 
 		setDoTransactionNotifications(false);
-		
+
 		try {
-			
+
 			final SecurityContext securityContext = getWebSocket().getSecurityContext();
-			
+
 			final String searchString = webSocketData.getNodeDataStringValue(SEARCH_STRING_KEY);
-			
+
 			String typeString = null;
 			Boolean exactSearch = null;
-			
+
 			if (searchString != null) {
 				typeString  = webSocketData.getNodeDataStringValue(TYPE_KEY);
 				exactSearch = webSocketData.getNodeDataBooleanValue(EXACT_KEY);
 			}
-			
+
 			final String restQuery    = webSocketData.getNodeDataStringValue(REST_QUERY_KEY);
 			final String cypherQuery  = webSocketData.getNodeDataStringValue(CYPHER_QUERY_KEY);
 			final String paramString  = webSocketData.getNodeDataStringValue(CYPHER_PARAMS_KEY);
@@ -166,10 +161,10 @@ public class SearchCommand extends AbstractCommand {
 			try {
 
 				// do search
-				final ResultStream result = query.getResultStream();
+				final List<AbstractNode> result = query.getAsList();
 
 				// set full result list
-				webSocketData.setResult(result.getResults());
+				webSocketData.setResult(result);
 
 				// send only over local connection
 				getWebSocket().send(webSocketData, true);
@@ -180,7 +175,7 @@ public class SearchCommand extends AbstractCommand {
 				getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 			}
-			
+
 		} catch (FrameworkException ex) {
 			logger.warn("Exception occured", ex);
 			getWebSocket().send(MessageBuilder.status().code(ex.getStatus()).message(ex.getMessage()).build(), true);

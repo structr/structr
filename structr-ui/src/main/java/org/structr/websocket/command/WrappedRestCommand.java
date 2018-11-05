@@ -140,7 +140,7 @@ public class WrappedRestCommand extends AbstractCommand {
 		final StaticValue fakePropertyView = new StaticValue(PropertyView.Public);
 		try {
 
-			resource = ResourceHelper.applyViewTransformation(wrappedRequest, socket.getSecurityContext(), ResourceHelper.optimizeNestedResourceChain(socket.getSecurityContext(), wrappedRequest, resourceMap, fakePropertyView), fakePropertyView);
+			resource = ResourceHelper.optimizeNestedResourceChain(socket.getSecurityContext(), wrappedRequest, resourceMap, fakePropertyView);
 
 		} catch (IllegalPathException | NotFoundException e) {
 

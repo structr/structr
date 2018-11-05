@@ -30,7 +30,6 @@ import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.ResultStream;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -365,7 +364,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		final String _tag                     = thisElement.getTag();
 
 		// non-final variables
-		ResultStream localResult                 = renderContext.getResult();
 		boolean anyChildNodeCreatesNewLine = false;
 
 		thisElement.renderStructrAppLib(out, securityContext, renderContext, depth);
@@ -471,11 +469,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				}
 			}
 
-		}
-
-		// Set result for this level again, if there was any
-		if (localResult != null) {
-			renderContext.setResult(localResult);
 		}
 	}
 

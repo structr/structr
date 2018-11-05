@@ -122,4 +122,11 @@ public class PagingIterator<T> implements Iterator<T> {
 		return (int) Math.rint(Math.ceil(resultCount / pageSize));
 	}
 
+	public int getPageSize() {
+		return this.pageSize;
+	}
+
+	public int getPage() {
+		return this.page;
+	}
 }

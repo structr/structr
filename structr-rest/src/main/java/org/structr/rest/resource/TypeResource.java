@@ -204,10 +204,8 @@ public class TypeResource extends WrappingResource {
 			if (newNode != null) {
 
 				result.addHeader("Location", buildLocationHeader(newNode));
-				result.addContent(newNode);
+				result.addContent(newNode.getUuid());
 			}
-
-			result.serializeAsPrimitiveArray(true);
 
 			// finally: return 201 Created
 			return result;
@@ -245,10 +243,8 @@ public class TypeResource extends WrappingResource {
 				if (newRelationship != null) {
 
 					result.addHeader("Location", buildLocationHeader(newRelationship));
-					result.addContent(newRelationship);
+					result.addContent(newRelationship.getUuid());
 				}
-
-				result.serializeAsPrimitiveArray(true);
 
 				// finally: return 201 Created
 				return result;

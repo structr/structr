@@ -28,8 +28,8 @@ import org.structr.core.Value;
  */
 public class StreamingJsonWriter extends StreamingWriter {
 
-	public StreamingJsonWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth) {
-		super(propertyView, indent, outputNestingDepth);
+	public StreamingJsonWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray) {
+		super(propertyView, indent, outputNestingDepth, wrapSingleResultInArray);
 	}
 
 	@Override

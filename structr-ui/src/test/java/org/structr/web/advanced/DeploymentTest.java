@@ -1711,7 +1711,7 @@ public class DeploymentTest extends StructrUiTest {
 			Div clonedNode = (Div)obj;
 
 			assertEquals(0, clonedNode.getChildNodes().getLength());
-			assertEquals(3, app.nodeQuery(Div.class).andName("TestComponent").getResultStream().size());
+			assertEquals(3, app.nodeQuery(Div.class).andName("TestComponent").getAsList().size());
 
 			tx.success();
 

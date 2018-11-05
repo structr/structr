@@ -28,11 +28,9 @@ import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.export.StructrSchema;
@@ -85,12 +83,12 @@ public class SchemaJsonResource extends Resource {
 	@Override
 	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
-		final GraphObjectMap schema = new GraphObjectMap();
+		String schema = null;
 
 		try {
 
 			final JsonSchema jsonSchema = StructrSchema.createFromDatabase(StructrApp.getInstance());
-			schema.setProperty(new StringProperty("schema"), jsonSchema.toString());
+			schema                      = jsonSchema.toString();
 
 		} catch (URISyntaxException ex) {
 			logger.error("Error while creating JsonSchema: " + ex.getMessage());

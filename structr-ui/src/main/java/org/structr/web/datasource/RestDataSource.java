@@ -34,7 +34,6 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.ResultStream;
 import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -165,7 +164,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		Resource resource = null;
 		try {
 
-			resource = ResourceHelper.applyViewTransformation(wrappedRequest, securityContext, ResourceHelper.optimizeNestedResourceChain(securityContext, wrappedRequest, resourceMap, propertyView), propertyView);
+			resource = ResourceHelper.optimizeNestedResourceChain(securityContext, wrappedRequest, resourceMap, propertyView);
 
 		} catch (IllegalPathException | NotFoundException e) {
 
@@ -216,17 +215,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		}
 
 		try {
-			final ResultStream result             = resource.doGet(sortKey, sortDescending, pageSize, page);
-			final Iterable<GraphObject> res = result.getResults();
-
-			result.setIsCollection(resource.isCollectionResource());
-			result.setIsPrimitiveArray(resource.isPrimitiveArray());
-			result.setPageSize(pageSize);
-			result.setPage(page);
-
-			renderContext.setResult(result);
-
-			return res;
+			return resource.doGet(sortKey, sortDescending, pageSize, page);
 
 		} catch (NotFoundException nfe) {
 			logger.warn("No result from internal REST query: {}", restQuery);

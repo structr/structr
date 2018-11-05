@@ -18,22 +18,14 @@
  */
 package org.structr.rest;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonIOException;
-import java.io.IOException;
-import java.io.Writer;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.api.util.ResultStream;
-import org.structr.core.GraphObject;
 
 /**
  * Encapsulates the result of a REST HTTP method call, i.e. headers, response
@@ -46,9 +38,8 @@ public class RestMethodResult {
 	private static final Logger logger = LoggerFactory.getLogger(RestMethodResult.class.getName());
 
 	private boolean serializeSingleObjectAsCollection = Settings.ForceArrays.getValue(false);
-	private boolean serializeAsPrimitiveArray         = false;
 	private Map<String, String> headers               = null;
-	private List<GraphObject> content                 = null;
+	private List<Object> content                      = null;
 	private Object nonGraphObjectResult               = null;
 	private int responseCode                          = 0;
 	private String message                            = null;
@@ -74,7 +65,7 @@ public class RestMethodResult {
 		headers.put(key, value);
 	}
 
-	public void addContent(final GraphObject graphObject) {
+	public void addContent(final Object graphObject) {
 
 		if (this.content == null) {
 			this.content = new LinkedList<>();
@@ -87,74 +78,33 @@ public class RestMethodResult {
 		this.nonGraphObjectResult = result;
 	}
 
-	public void commitResponse(final Gson gson, final HttpServletResponse response) {
-
-		// set headers
-		for (Entry<String, String> header : headers.entrySet()) {
-			response.setHeader(header.getKey(), header.getValue());
-		}
-
-		// set  response code
-		response.setStatus(responseCode);
-
-		try {
-
-			Writer writer = response.getWriter();
-			if (content != null) {
-
-				// serialize result set
-				gson.toJson(new ResultStream(this.content, this.content.size() > 1 || serializeSingleObjectAsCollection, serializeAsPrimitiveArray), writer);
-			}
-
-			if (content == null) {
-
-				if (message != null) {
-
-					writer.append(jsonMessage(responseCode, message));
-
-				} else {
-
-					// serialize result set
-					gson.toJson(new ResultStream(nonGraphObjectResult), writer);
-				}
-
-			}
-
-			// add newline
-			writer.append("\n");
-
-			//writer.flush();
-			//writer.close();
-		} catch (JsonIOException | IOException t) {
-
-			logger.warn("Unable to commit HttpServletResponse", t);
-		}
-	}
-
-	public void serializeAsPrimitiveArray(final boolean value) {
-
-		this.serializeAsPrimitiveArray = value;
-
-	}
-
 	public Map<String, String> getHeaders() {
 		return headers;
 	}
 
-	public List<GraphObject> getContent() {
+	public List<Object> getContent() {
 		return content;
 	}
 
+	public int getResponseCode() {
+		return responseCode;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public Object getNonGraphObjectResult() {
+		return nonGraphObjectResult;
+	}
+
+	// ----- public static methods -----
 	public static String jsonError(final int code, final String message) {
-
 		return jsonMessage(code, message, "error");
-
 	}
 
 	public static String jsonMessage(final int code, final String message) {
-
 		return jsonMessage(code, message, "message");
-
 	}
 
 	public static String jsonMessage(final int code, final String message, final String messageKey) {
@@ -178,5 +128,4 @@ public class RestMethodResult {
 
 		return buf.toString();
 	}
-
 }

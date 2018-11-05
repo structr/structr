@@ -41,4 +41,10 @@ public interface ResultStream<T> extends Iterable<T> {
 	 * @return the total number of result pages in this result stream
 	 */
 	int calculatePageCount();
+
+	int getPageSize();
+	int getPage();
+
+	void setQueryTime(final String formattedTime);
+	String getQueryTime();
 }

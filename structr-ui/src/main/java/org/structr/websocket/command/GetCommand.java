@@ -27,8 +27,6 @@ import org.structr.core.GraphObject;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Websocket command to retrieve a single graph object by id.
  *

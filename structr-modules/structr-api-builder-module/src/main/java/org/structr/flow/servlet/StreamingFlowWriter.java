@@ -25,7 +25,6 @@ import org.structr.common.SecurityContext;
 import org.structr.core.Value;
 import org.structr.rest.serialization.RestWriter;
 import org.structr.rest.serialization.StreamingWriter;
-import org.structr.rest.serialization.StructrJsonHtmlWriter;
 
 /**
  *
@@ -33,8 +32,8 @@ import org.structr.rest.serialization.StructrJsonHtmlWriter;
  */
 public class StreamingFlowWriter extends StreamingWriter {
 
-	public StreamingFlowWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth) {
-		super(propertyView, indent, outputNestingDepth);
+	public StreamingFlowWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray) {
+		super(propertyView, indent, outputNestingDepth, wrapSingleResultInArray);
 	}
 
 	@Override

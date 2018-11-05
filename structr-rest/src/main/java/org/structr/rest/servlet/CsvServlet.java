@@ -35,9 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Pattern;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections4.ListUtils;
@@ -46,7 +44,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
 import org.structr.api.util.ResultStream;
-import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -65,14 +62,13 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.common.CsvHelper;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.service.HttpServiceServlet;
-import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.schema.parser.DatePropertyParser;
 
 /**
  * This servlet produces CSV (comma separated value) lists out of a search
  * result.
  */
-public class CsvServlet extends HttpServlet implements HttpServiceServlet {
+public class CsvServlet extends AbstractServletBase implements HttpServiceServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(CsvServlet.class.getName());
 
@@ -95,33 +91,9 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 	private static final String WRITE_BOM = "bom";
 
 	private SecurityContext securityContext;
-	private final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
-	private Value<String> propertyView = null;
 
 	private static boolean removeLineBreaks = false;
 	private static boolean writeBom = false;
-
-	private String defaultPropertyView;
-	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
-	private ThreadLocalGson gson                  = null;
-
-	@Override
-	public StructrHttpServiceConfig getConfig() {
-		return config;
-	}
-
-	@Override
-	public void init() {
-
-		// inject resources
-		resourceMap.putAll(config.getResourceProvider().getResources());
-
-		// initialize variables
-		this.propertyView        = new ThreadLocalPropertyView();
-		this.defaultPropertyView = config.getDefaultPropertyView();
-		this.gson                = new ThreadLocalGson(propertyView, config.getOutputNestingDepth());
-
-	}
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws UnsupportedEncodingException {
@@ -195,6 +167,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 				result = resource.doGet(sortKey, sortDescending, pageSize, page);
 				if (result != null) {
 
+					/*
 					result.setIsCollection(resource.isCollectionResource());
 					result.setIsPrimitiveArray(resource.isPrimitiveArray());
 
@@ -205,13 +178,16 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 					// store property view that will be used to render the results
 					result.setPropertyView(propertyView.get(securityContext));
+					*/
 
 					// allow resource to modify result set
 					resource.postProcessResultSet(result);
 
+					/*
 					DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 
 					result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
+					*/
 
 					Writer writer = response.getWriter();
 
@@ -449,7 +425,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 								for (final RestMethodResult r : results) {
 
-									final GraphObject objectCreated = r.getContent().get(0);
+									final Object objectCreated = r.getContent().get(0);
 									if (!result.getContent().contains(objectCreated)) {
 
 										result.addContent(objectCreated);
@@ -462,7 +438,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 								result.addHeader("Location", null);
 							}
 
-							result.commitResponse(gson.get(), response);
+							commitResponse(securityContext, request, response, result, resource.isCollectionResource());
 						}
 
 					}
@@ -475,7 +451,10 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 				// isolate write output
 				try (final Tx tx = app.tx()) {
 
-					new RestMethodResult(HttpServletResponse.SC_FORBIDDEN).commitResponse(gson.get(), response);
+					final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+
+					commitResponse(securityContext, request, response, result, false);
+
 					tx.success();
 				}
 
@@ -483,10 +462,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (FrameworkException frameworkException) {
 
-			// set status & write JSON output
-			response.setStatus(frameworkException.getStatus());
-			gson.get().toJson(frameworkException, response.getWriter());
-			response.getWriter().println();
+			writeException(response, frameworkException);
 
 		} catch (JsonSyntaxException jsex) {
 

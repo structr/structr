@@ -25,7 +25,8 @@ import java.util.Iterator;
  */
 public class PagingIterable<T> implements ResultStream<T> {
 
-	private PagingIterator<T> source = null;
+	private PagingIterator<T> source  = null;
+	private String queryTimeFormatted = null;
 
 	public PagingIterable(final Iterable<T> source) {
 		this(source, Integer.MAX_VALUE, 1);
@@ -48,6 +49,26 @@ public class PagingIterable<T> implements ResultStream<T> {
 	@Override
 	public int calculatePageCount() {
 		return source.getPageCount();
+	}
+
+	@Override
+	public int getPageSize() {
+		return source.getPageSize();
+	}
+
+	@Override
+	public int getPage() {
+		return source.getPage();
+	}
+
+	@Override
+	public void setQueryTime(String formattedTime) {
+		this.queryTimeFormatted = formattedTime;
+	}
+
+	@Override
+	public String getQueryTime() {
+		return queryTimeFormatted;
 	}
 
 	public static final PagingIterable EMPTY_ITERABLE = new PagingIterable(() -> new Iterator() {

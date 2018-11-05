@@ -25,7 +25,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
-import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -62,7 +61,6 @@ public class RenderContext extends ActionContext {
 	private HttpServletRequest request                 = null;
 	private HttpServletResponse response               = null;
 	private ResourceProvider resourceProvider          = null;
-	private ResultStream result                              = null;
 	private boolean anyChildNodeCreatesNewLine         = false;
 	private boolean indentHtml                         = true;
 
@@ -100,7 +98,6 @@ public class RenderContext extends ActionContext {
 		this.request = other.request;
 		this.response = other.response;
 		this.resourceProvider = other.resourceProvider;
-		this.result = other.result;
 		this.anyChildNodeCreatesNewLine = other.anyChildNodeCreatesNewLine;
 		this.locale = other.locale;
 		this.indentHtml = other.indentHtml;
@@ -159,10 +156,6 @@ public class RenderContext extends ActionContext {
 
 	public void setListSource(Iterable<GraphObject> listSource) {
 		this.listSource = listSource;
-	}
-
-	public void setResult(ResultStream result) {
-		this.result = result;
 	}
 
 	public Iterable<GraphObject> getListSource() {
@@ -345,10 +338,6 @@ public class RenderContext extends ActionContext {
 		return (page != null ? page.getUuid() : null);
 	}
 
-	public ResultStream getResult() {
-		return result;
-	}
-
 	public void setAnyChildNodeCreatesNewLine(final boolean anyChildNodeCreatesNewLine) {
 		this.anyChildNodeCreatesNewLine = anyChildNodeCreatesNewLine;
 	}
@@ -446,26 +435,6 @@ public class RenderContext extends ActionContext {
 							return linkSource.getLinkable();
 						}
 						break;
-
-					case "page_size":
-
-						final ResultStream pageSizeResult = this.getResult();
-						if (pageSizeResult != null) {
-
-							return pageSizeResult.getPageSize();
-
-						}
-						break;
-
-					case "page_no":
-
-						final ResultStream pageNoResult = this.getResult();
-						if (pageNoResult != null) {
-
-							return pageNoResult.getPage();
-						}
-						break;
-
 				}
 			}
 

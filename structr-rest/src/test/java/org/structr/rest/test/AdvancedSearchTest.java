@@ -977,6 +977,7 @@ public class AdvancedSearchTest extends IndexingTest {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
@@ -1267,7 +1268,6 @@ public class AdvancedSearchTest extends IndexingTest {
 				.expect()
 				.statusCode(200)
 
-				.body("output_nesting_depth", equalTo(0))
 				.body("result", hasSize(2))
 				.body("result_count", equalTo(2))
 				.body("result[0].testTwos", hasSize(0))
@@ -1291,7 +1291,6 @@ public class AdvancedSearchTest extends IndexingTest {
 				.expect()
 				.statusCode(200)
 
-				.body("output_nesting_depth", equalTo(1))
 				.body("result", hasSize(2))
 				.body("result_count", equalTo(2))
 				.body("result[0].testTwos", hasSize(2))
@@ -1316,7 +1315,6 @@ public class AdvancedSearchTest extends IndexingTest {
 				.expect()
 				.statusCode(200)
 
-				.body("output_nesting_depth", equalTo(2))
 				.body("result", hasSize(2))
 				.body("result_count", equalTo(2))
 				.body("result[0].testTwos", hasSize(2))
@@ -1341,7 +1339,6 @@ public class AdvancedSearchTest extends IndexingTest {
 				.expect()
 				.statusCode(200)
 
-				.body("output_nesting_depth", nullValue())
 				.body("result", hasSize(2))
 				.body("result_count", equalTo(2))
 
