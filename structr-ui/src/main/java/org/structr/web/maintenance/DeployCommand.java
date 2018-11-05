@@ -1494,10 +1494,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (value != null) {
 
-			final boolean isList = value instanceof Iterable;
-			final List list      = Iterables.toList((Iterable)value);
+			if (value instanceof Iterable) {
 
-			if (!isList || (isList && !list.isEmpty())) {
+				final List list = Iterables.toList((Iterable)value);
+				if (!list.isEmpty()) {
+
+					target.put(key, list);
+				}
+
+			} else {
+
 				target.put(key, value);
 			}
 		}
