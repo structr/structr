@@ -102,7 +102,7 @@ public class GraphQLQuery {
 
 					final Field childField      = (Field)selection;
 					final SelectionSet childSet = childField.getSelectionSet();
-					final PropertyKey key       = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, childField.getName());
+					final PropertyKey key       = StructrApp.key(type, childField.getName());
 					final Class relatedType     = key.relatedType() != null ? key.relatedType() : type;
 
 					// add field to property set
