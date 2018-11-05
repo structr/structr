@@ -39,26 +39,23 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Command to interact with a multi-mode server console.
  */
 public class ConsoleCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(ConsoleCommand.class.getName());
-	
+
 	private static final String LINE_KEY           = "line";
 	private static final String MODE_KEY           = "mode";
 	private static final String COMPLETION_KEY     = "completion";
 	private static final String COMMANDS_KEY       = "commands";
 	private static final String PROMPT_KEY         = "prompt";
 	private static final String VERSION_INFO_KEY   = "versionInfo";
-	
+
 	static {
 
 		StructrWebSocket.addCommand(ConsoleCommand.class);
-
 	}
 
 	@Override
@@ -128,7 +125,7 @@ public class ConsoleCommand extends AbstractCommand {
 						.message(ex.getMessage())
 						.build(), true);
 			}
-			
+
 		} catch (FrameworkException ex) {
 			logger.warn("Exception occured", ex);
 			getWebSocket().send(MessageBuilder.status().code(ex.getStatus()).message(ex.getMessage()).build(), true);
@@ -139,8 +136,6 @@ public class ConsoleCommand extends AbstractCommand {
 	public boolean requiresEnclosingTransaction() {
 		return false;
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {

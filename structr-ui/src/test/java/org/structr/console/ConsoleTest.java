@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console.ConsoleMode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
@@ -78,7 +79,7 @@ public class ConsoleTest extends StructrUiTest {
 			// check success
 			try (final Tx tx = app.tx()) {
 
-				final User user = app.nodeQuery(User.class).andName("tester").getFirst();
+				final User user = app.nodeQuery(User.class).andName("tester").sort(AbstractNode.name).getFirst();
 
 				assertNotNull("Invalid console execution result", user);
 				assertEquals("Invalid console execution result", "tester",         user.getProperty(User.name));
