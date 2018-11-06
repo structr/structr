@@ -25,6 +25,7 @@ import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
 import org.structr.files.ssh.StructrShellCommand;
 import org.structr.web.entity.AbstractFile;
@@ -52,7 +53,7 @@ public class LsCommand extends NonInteractiveShellCommand {
 
 			} else {
 
-				listFolder(parent, app.nodeQuery(AbstractFile.class).and(StructrApp.key(AbstractFile.class, "parent"), null).getAsList());
+				listFolder(parent, app.nodeQuery(AbstractFile.class).and(StructrApp.key(AbstractFile.class, "parent"), null).sort(AbstractNode.name).getAsList());
 			}
 
 			tx.success();

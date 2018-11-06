@@ -109,16 +109,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public PropertyKey getDefaultSortKey() {
-		return null;
-	}
-
-	@Override
-	public String getDefaultSortOrder() {
-		return "asc";
-	}
-
-	@Override
 	public void unlockReadOnlyPropertiesOnce() {
 	}
 

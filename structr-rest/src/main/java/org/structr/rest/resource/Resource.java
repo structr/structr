@@ -247,27 +247,11 @@ public abstract class Resource {
 
 	protected void applyDefaultSorting(List<? extends GraphObject> list, PropertyKey sortKey, boolean sortDescending) {
 
-		if (!list.isEmpty()) {
+		String finalSortOrder = sortDescending ? "desc" : "asc";
 
-			String finalSortOrder = sortDescending ? "desc" : "asc";
+		if (sortKey != null) {
 
-			if (sortKey == null) {
-
-				// Apply default sorting, if defined
-				final GraphObject obj = list.get(0);
-
-				final PropertyKey defaultSort = obj.getDefaultSortKey();
-
-				if (defaultSort != null) {
-
-					sortKey = defaultSort;
-					finalSortOrder = obj.getDefaultSortOrder();
-				}
-			}
-
-			if (sortKey != null) {
-				Collections.sort(list, new GraphObjectComparator(sortKey, finalSortOrder));
-			}
+			Collections.sort(list, new GraphObjectComparator(sortKey, finalSortOrder));
 		}
 	}
 

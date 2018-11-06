@@ -63,7 +63,6 @@ import org.structr.cmis.info.CMISPolicyInfo;
 import org.structr.cmis.info.CMISRelationshipInfo;
 import org.structr.cmis.info.CMISSecondaryInfo;
 import org.structr.common.AccessControllable;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
 import org.structr.common.PermissionPropagation;
 import org.structr.common.PermissionResolutionMask;
@@ -329,16 +328,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			dbNode.removeProperty(key.dbName());
 		}
 
-	}
-
-	@Override
-	public final PropertyKey getDefaultSortKey() {
-		return AbstractNode.name;
-	}
-
-	@Override
-	public final String getDefaultSortOrder() {
-		return GraphObjectComparator.ASCENDING;
 	}
 
 	@Override

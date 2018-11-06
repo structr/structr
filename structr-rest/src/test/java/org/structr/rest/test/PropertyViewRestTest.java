@@ -69,8 +69,6 @@ import org.structr.rest.common.EntityMatcher;
 import org.structr.rest.entity.TestOne;
 import org.structr.rest.entity.TestTwo;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Test for property views
  */
@@ -78,8 +76,6 @@ public class PropertyViewRestTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(PropertyViewRestTest.class.getName());
 	protected static final Map<String, Object> staticConfig = new HashMap<>();
-
-	//~--- fields ---------------------------------------------------------
 
 	protected static SecurityContext securityContext = null;
 	protected static App app                         = null;
@@ -309,7 +305,7 @@ public class PropertyViewRestTest {
 				.body("result[1].parents[0].depth",                         equalTo(1))
 				.body("result[1].parents[0].name",                          equalTo("ScriptTest1"))
 
-			.when().get(resource);
+			.when().get(resource + "?sort=name");
 
 		RestAssured
 

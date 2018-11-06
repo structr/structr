@@ -380,20 +380,6 @@ public interface GraphObject {
 	public void removeProperty(final PropertyKey key) throws FrameworkException;
 
 	/**
-	 * Returns the default sort key for this entity.
-	 *
-	 * @return the default sort key
-	 */
-	public PropertyKey getDefaultSortKey();
-
-	/**
-	 * Returns the default sort order for this entity.
-	 *
-	 * @return the default sort order
-	 */
-	public String getDefaultSortOrder();
-
-	/**
 	 * Unlock all system properties in this entity for a single <code>setProperty</code>
 	 * call.
 	 */

@@ -45,6 +45,9 @@ public class Iterables {
 				}
 			}
 
+		} catch (Throwable t) {
+
+			t.printStackTrace();
 
 		} finally {
 

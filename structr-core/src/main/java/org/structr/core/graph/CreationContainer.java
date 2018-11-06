@@ -145,16 +145,6 @@ public class CreationContainer implements GraphObject, PropertyContainer {
 	}
 
 	@Override
-	public PropertyKey getDefaultSortKey() {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public String getDefaultSortOrder() {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
 	public void unlockSystemPropertiesOnce() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}

@@ -181,7 +181,7 @@ public class StructrSchemaViewPath extends StructrPath {
 			try (final Tx tx = app.tx()) {
 
 				// remove /files from path since it is a virtual directory
-				schemaNode = app.nodeQuery(AbstractSchemaNode.class).and(AbstractNode.name, name).getFirst();
+				schemaNode = app.nodeQuery(AbstractSchemaNode.class).and(AbstractNode.name, name).sort(AbstractNode.name).getFirst();
 
 				tx.success();
 

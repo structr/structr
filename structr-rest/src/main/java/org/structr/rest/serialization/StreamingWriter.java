@@ -82,9 +82,7 @@ public abstract class StreamingWriter {
 	private final Set<String> nonSerializerClasses        = new LinkedHashSet<>();
 	private final DecimalFormat decimalFormat             = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private String resultKeyName                          = "result";
-	private boolean renderResultCountTime                 = true;
 	private boolean renderSerializationTime               = true;
-	private boolean renderResultCount                     = true;
 	private boolean reduceRedundancy                      = false;
 	private int outputNestingDepth                        = 3;
 	private Value<String> propertyView                    = null;
@@ -165,7 +163,7 @@ public abstract class StreamingWriter {
 
 		if (pageSize != null && !pageSize.equals(Integer.MAX_VALUE)) {
 
-			if (page !=null) {
+			if (page != null) {
 
 				rootWriter.name("page").value(page);
 			}
@@ -177,41 +175,15 @@ public abstract class StreamingWriter {
 			rootWriter.name("query_time").value(queryTime);
 		}
 
-		/*
-
-		if (searchString != null) {
-			rootWriter.name("search_string").value(searchString);
-		}
-
-		if (sortKey != null) {
-			rootWriter.name("sort_key").value(sortKey);
-		}
-
-		if (sortOrder != null) {
-			rootWriter.name("sort_order").value(sortOrder);
-		}
-
-		if (metaData != null) {
-
-			String localPropertyView  = propertyView.get(null);
-
-			rootWriter.name("meta_data");
-			root.serialize(rootWriter, metaData, localPropertyView, 0, visitedObjects);
-		}
-		*/
-
-		if (renderResultCount) {
+		if (!securityContext.ignoreResultCount()) {
 
 			rootWriter.name("result_count").value(result.calculateTotalResultCount());
 			rootWriter.name("page_count").value(result.calculatePageCount());
-
-			if (renderResultCountTime) {
-				rootWriter.name("result_count_time").value(decimalFormat.format((System.nanoTime() - t1) / 1000000000.0));
-			}
+			rootWriter.name("result_count_time").value(decimalFormat.format((System.nanoTime() - t1) / 1000000000.0));
 		}
 
 		if (renderSerializationTime) {
-			rootWriter.name("serialization_time").value(decimalFormat.format((t1 - t0) / 1000000000.0));
+			rootWriter.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
 		}
 
 		// finished
@@ -227,10 +199,6 @@ public abstract class StreamingWriter {
 
 	public void setRenderSerializationTime(final boolean doRender) {
 		this.renderSerializationTime = doRender;
-	}
-
-	public void setRenderResultCount(final boolean doRender) {
-		this.renderResultCount = doRender;
 	}
 
 	private Serializer getSerializerForType(Class type) {

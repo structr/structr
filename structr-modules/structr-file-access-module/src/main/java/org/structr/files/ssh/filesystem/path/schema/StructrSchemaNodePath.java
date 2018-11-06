@@ -212,7 +212,7 @@ public class StructrSchemaNodePath extends StructrPath {
 			try (final Tx tx = app.tx()) {
 
 				// remove /files from path since it is a virtual directory
-				cachedSchemaNode = app.nodeQuery(AbstractSchemaNode.class).and(AbstractNode.name, name).getFirst();
+				cachedSchemaNode = app.nodeQuery(AbstractSchemaNode.class).and(AbstractNode.name, name).sort(AbstractNode.name).getFirst();
 
 				tx.success();
 

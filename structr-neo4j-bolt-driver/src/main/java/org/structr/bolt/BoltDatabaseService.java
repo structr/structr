@@ -60,7 +60,7 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.index.Index;
-import org.structr.api.util.QueryUtils;
+import org.structr.api.util.Iterables;
 import org.structr.bolt.index.CypherNodeIndex;
 import org.structr.bolt.index.CypherRelationshipIndex;
 import org.structr.bolt.index.NodeResultStream;
@@ -284,7 +284,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		buf.append(") RETURN n");
 
-		return QueryUtils.map(new NodeNodeMapper(this), new NodeResultStream(this, new SimpleCypherQuery(buf.toString())));
+		return Iterables.map(new NodeNodeMapper(this), new NodeResultStream(this, new SimpleCypherQuery(buf.toString())));
 	}
 
 	@Override
@@ -307,7 +307,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		buf.append(type);
 		buf.append(") RETURN n");
 
-		return QueryUtils.map(new NodeNodeMapper(this), new NodeResultStream(this, new SimpleCypherQuery(buf.toString())));
+		return Iterables.map(new NodeNodeMapper(this), new NodeResultStream(this, new SimpleCypherQuery(buf.toString())));
 	}
 
 	@Override
@@ -332,7 +332,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		query.getParameters().put("type", type);
 
-		return QueryUtils.map(new NodeNodeMapper(this), new NodeResultStream(this, query));
+		return Iterables.map(new NodeNodeMapper(this), new NodeResultStream(this, query));
 	}
 
 	@Override
@@ -356,7 +356,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		buf.append(") RETURN r");
 
-		return QueryUtils.map(new RelationshipRelationshipMapper(this), new RelationshipResultStream(this, new SimpleCypherQuery(buf.toString())));
+		return Iterables.map(new RelationshipRelationshipMapper(this), new RelationshipResultStream(this, new SimpleCypherQuery(buf.toString())));
 	}
 
 	@Override
@@ -386,7 +386,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		buf.append(") RETURN r");
 
-		return QueryUtils.map(new RelationshipRelationshipMapper(this), new RelationshipResultStream(this, new SimpleCypherQuery(buf.toString())));
+		return Iterables.map(new RelationshipRelationshipMapper(this), new RelationshipResultStream(this, new SimpleCypherQuery(buf.toString())));
 	}
 
 	@Override

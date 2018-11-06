@@ -243,16 +243,6 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public PropertyKey getDefaultSortKey() {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public String getDefaultSortOrder() {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
 	public void unlockSystemPropertiesOnce() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}

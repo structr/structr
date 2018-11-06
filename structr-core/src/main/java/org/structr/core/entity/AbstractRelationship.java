@@ -35,7 +35,6 @@ import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.cmis.CMISInfo;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -252,20 +251,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	 */
 	public boolean propagatesModifications(Direction direction) {
 		return false;
-	}
-
-	@Override
-	public final PropertyKey getDefaultSortKey() {
-
-		return null;
-
-	}
-
-	@Override
-	public final String getDefaultSortOrder() {
-
-		return GraphObjectComparator.ASCENDING;
-
 	}
 
 	@Override

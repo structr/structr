@@ -19,7 +19,7 @@
 package org.structr.bolt.index;
 
 import org.structr.api.graph.Relationship;
-import org.structr.api.util.QueryUtils;
+import org.structr.api.util.Iterables;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.SessionTransaction;
 import org.structr.bolt.mapper.RelationshipRelationshipMapper;
@@ -100,6 +100,6 @@ public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 
 		tx.setIsPing(query.getQueryContext().isPing());
 
-		return QueryUtils.map(new RelationshipRelationshipMapper(db), tx.getRelationships(query.getStatement(), query.getParameters()));
+		return Iterables.map(new RelationshipRelationshipMapper(db), tx.getRelationships(query.getStatement(), query.getParameters()));
 	}
 }

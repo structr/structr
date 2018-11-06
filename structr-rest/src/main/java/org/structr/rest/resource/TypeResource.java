@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.ResultTransformer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
@@ -116,10 +115,8 @@ public class TypeResource extends WrappingResource {
 	@Override
 	public ResultStream doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
 
-		boolean includeHidden                  = true;
-		boolean publicOnly                     = false;
-		PropertyKey actualSortKey              = sortKey;
-		boolean actualSortOrder                = sortDescending;
+		boolean includeHidden   = true;
+		boolean publicOnly      = false;
 
 		if (rawType != null) {
 
@@ -129,52 +126,24 @@ public class TypeResource extends WrappingResource {
 
 			collectSearchAttributes(query);
 
-			// default sort key & order
-			if (actualSortKey == null) {
-
-				try {
-
-					GraphObject templateEntity  = ((GraphObject)entityClass.newInstance());
-					PropertyKey sortKeyProperty = templateEntity.getDefaultSortKey();
-					actualSortOrder             = GraphObjectComparator.DESCENDING.equals(templateEntity.getDefaultSortOrder());
-
-					if (sortKeyProperty != null) {
-
-						actualSortKey = sortKeyProperty;
-
-					} else {
-
-						actualSortKey = AbstractNode.name;
-					}
-
-				} catch(Throwable t) {
-
-					// fallback to name
-					actualSortKey = AbstractNode.name;
-				}
-			}
-
 			if (virtualType != null) {
 
 				final ResultStream untransformedResult = query
 					.includeHidden(includeHidden)
 					.publicOnly(publicOnly)
-					.sort(actualSortKey)
-					.order(actualSortOrder)
+					.sort(sortKey)
+					.order(sortDescending)
 					.getResultStream();
 
-				//final Result result = virtualType.transformOutput(securityContext, entityClass, untransformedResult);
 				return virtualType.transformOutput(securityContext, entityClass, untransformedResult);
-
-				//return PagingHelper.subResult(result, pageSize, page);
 
 			} else {
 
 				return query
 					.includeHidden(includeHidden)
 					.publicOnly(publicOnly)
-					.sort(actualSortKey)
-					.order(actualSortOrder)
+					.sort(sortKey)
+					.order(sortDescending)
 					.pageSize(pageSize)
 					.page(page)
 					.getResultStream();

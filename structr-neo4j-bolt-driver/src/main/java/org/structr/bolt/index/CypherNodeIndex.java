@@ -19,11 +19,10 @@
 package org.structr.bolt.index;
 
 import org.structr.api.graph.Node;
-import org.structr.api.util.QueryUtils;
+import org.structr.api.util.Iterables;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.SessionTransaction;
 import org.structr.bolt.mapper.NodeNodeMapper;
-import org.structr.bolt.mapper.NodeIdNodeMapper;
 
 /**
  *
@@ -71,14 +70,7 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 		final StringBuilder buf = new StringBuilder();
 		final String sortKey    = query.getSortKey();
 
-		if (query.idsOnly()) {
-
-			buf.append(" RETURN id(n)");
-
-		} else {
-
-			buf.append(" RETURN n");
-		}
+		buf.append(" RETURN n");
 
 		if (sortKey != null) {
 
@@ -98,14 +90,7 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
 			tx.setIsPing(query.getQueryContext().isPing());
 
-			if (query.idsOnly()) {
-
-				return QueryUtils.map(new NodeIdNodeMapper(db), tx.getNodeIds(query.getStatement(), query.getParameters()));
-
-			} else {
-
-				return QueryUtils.map(new NodeNodeMapper(db), tx.getNodes(query.getStatement(), query.getParameters()));
-			}
+			return Iterables.map(new NodeNodeMapper(db), tx.getNodes(query.getStatement(), query.getParameters()));
 
 		} finally {
 

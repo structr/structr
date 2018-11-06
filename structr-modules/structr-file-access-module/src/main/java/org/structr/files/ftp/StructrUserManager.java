@@ -34,6 +34,7 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.rest.auth.AuthHelper;
@@ -74,7 +75,7 @@ public class StructrUserManager implements UserManager {
 
 			try {
 
-				Iterables.addAll(result, StructrApp.getInstance(securityContext).nodeQuery(Principal.class).getResultStream());
+				Iterables.addAll(result, StructrApp.getInstance(securityContext).nodeQuery(Principal.class).sort(AbstractNode.name).getResultStream());
 
 			} catch (FrameworkException ex) {
 

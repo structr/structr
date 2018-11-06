@@ -44,7 +44,7 @@ import org.structr.api.NativeResult;
 import org.structr.api.NetworkException;
 import org.structr.api.NotFoundException;
 import org.structr.api.RetryException;
-import org.structr.api.util.QueryUtils;
+import org.structr.api.util.Iterables;
 import org.structr.bolt.mapper.RecordNodeMapper;
 import org.structr.bolt.mapper.RecordNodeIdMapper;
 import org.structr.bolt.mapper.RecordRelationshipMapper;
@@ -328,7 +328,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
-			return QueryUtils.map(new RecordNodeMapper(), new IteratorWrapper<>(tx.run(statement, map)));
+			return Iterables.map(new RecordNodeMapper(), new IteratorWrapper<>(tx.run(statement, map)));
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -348,7 +348,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
-			return QueryUtils.map(new RecordRelationshipMapper(db), new IteratorWrapper<>(tx.run(statement, map)));
+			return Iterables.map(new RecordRelationshipMapper(db), new IteratorWrapper<>(tx.run(statement, map)));
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -368,7 +368,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
-			return QueryUtils.map(new RecordNodeIdMapper(), new IteratorWrapper<>(tx.run(statement, map)));
+			return Iterables.map(new RecordNodeIdMapper(), new IteratorWrapper<>(tx.run(statement, map)));
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -530,7 +530,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	// ----- nested classes -----
-	private class IteratorWrapper<T> implements Iterable<T> {
+	public class IteratorWrapper<T> implements Iterable<T> {
 
 		private Iterator<T> iterator = null;
 
@@ -540,7 +540,17 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		@Override
 		public Iterator<T> iterator() {
-			return iterator;
+
+			return new Iterator<T>() {
+
+				public boolean hasNext() {
+					return iterator.hasNext();
+				}
+
+				public T next() {
+					return iterator.next();
+				}
+			};
 		}
 	}
 }

@@ -171,20 +171,6 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public PropertyKey getDefaultSortKey() {
-
-		return null;
-
-	}
-
-	@Override
-	public String getDefaultSortOrder() {
-
-		return null;
-
-	}
-
-	@Override
 	public List<Principal> getParents() {
 
 		return Collections.emptyList();

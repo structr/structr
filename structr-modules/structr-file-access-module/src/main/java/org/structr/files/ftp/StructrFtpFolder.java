@@ -32,6 +32,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -106,7 +107,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 			if ("/".equals(requestedPath)) {
 				try {
-					ResultStream<Folder> folders = app.nodeQuery(Folder.class).getResultStream();
+					ResultStream<Folder> folders = app.nodeQuery(Folder.class).sort(AbstractNode.name).getResultStream();
 
 					for (Folder f : folders) {
 
@@ -121,7 +122,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 					}
 
-					ResultStream<File> files = app.nodeQuery(File.class).getResultStream();
+					ResultStream<File> files = app.nodeQuery(File.class).sort(AbstractNode.name).getResultStream();
 					for (File f : files) {
 
 						if (f.getHasParent()) {
@@ -137,7 +138,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 					}
 
-					ResultStream<Page> pages = app.nodeQuery(Page.class).getResultStream();
+					ResultStream<Page> pages = app.nodeQuery(Page.class).sort(AbstractNode.name).getResultStream();
 					for (Page p : pages) {
 
 						logger.debug("Structr page found: {}", p);
