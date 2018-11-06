@@ -221,19 +221,6 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		return session;
 	}
 
-	public static void closeThreadTx() {
-		SessionTransaction session = sessions.get();
-
-		if (session != null) {
-
-			if (!session.isClosed()) {
-				session.close();
-			}
-
-			sessions.remove();
-		}
-	}
-
 	@Override
 	public Node createNode(final Set<String> labels, final Map<String, Object> properties) {
 
