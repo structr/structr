@@ -19,6 +19,7 @@
 package org.structr.rest.servlet;
 
 import com.google.gson.JsonIOException;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
@@ -119,7 +120,7 @@ public abstract class AbstractServletBase extends HttpServlet implements HttpSer
 				final String message = result.getMessage();
 				if (message != null) {
 
-					writeJson(securityContext, response, new PagingIterable(Arrays.asList(message)), baseUrl, outputDepth, wrapSingleResultInArray);
+					writeStatus(response, result.getResponseCode(), message);
 
 				} else {
 
@@ -242,6 +243,18 @@ public abstract class AbstractServletBase extends HttpServlet implements HttpSer
 		response.getWriter().println();
 	}
 
+	protected void writeStatus(final HttpServletResponse response, final int statusCode, final String message) throws IOException {
+
+		final JsonObject obj = new JsonObject();
+
+		obj.addProperty("code", statusCode);
+		obj.addProperty("message", message);
+
+		// set status & write JSON output
+		response.setStatus(statusCode);
+		response.getWriter().println(obj.toString());
+		response.getWriter().println();
+	}
 
 	protected void assertInitialized() throws FrameworkException {
 

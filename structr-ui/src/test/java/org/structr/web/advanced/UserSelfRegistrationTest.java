@@ -263,6 +263,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		RestAssured
 			.given()
 				.body("{ eMail: '" + eMail + "', password: 'incorrect' }")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.statusCode(401)
 			.body("code", equalTo(401))

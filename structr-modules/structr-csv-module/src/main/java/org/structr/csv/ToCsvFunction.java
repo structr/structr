@@ -29,9 +29,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.util.Iterables;
+import org.structr.api.util.ResultStream;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.ResultStream;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.DateProperty;
@@ -152,7 +153,7 @@ public class ToCsvFunction extends UiFunction {
 			final Locale locale
 	) throws IOException {
 
-		final List<GraphObject> list = result.getAsList();
+		final List<GraphObject> list = Iterables.toList(result);
 
 		writeCsv(list, out, propertyView, properties, quoteChar, delimiterChar, recordSeparator, includeHeader, localizeHeader, headerLocalizationDomain, locale);
 	}

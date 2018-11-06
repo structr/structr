@@ -43,7 +43,9 @@ import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
+import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
+import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 
 public class FlowServlet extends JsonRestServlet {
@@ -55,12 +57,11 @@ public class FlowServlet extends JsonRestServlet {
 
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
-		ResultStream result                   = null;
-		Resource resource				= null;
+		ResultStream result             = null;
+		Resource resource               = null;
 
 		try {
 
-			final FlowContainer container;
 			final Map<String, Object> flowParameters = new HashMap<>();
 			final Map<String, Object> flowResult;
 			final int depth = Services.parseInt(request.getParameter(REQUEST_PARAMTER_OUTPUT_DEPTH), config.getOutputNestingDepth());
@@ -94,11 +95,11 @@ public class FlowServlet extends JsonRestServlet {
 
 			try (final Tx tx = app.tx()) {
 
-				result = resource.doGet(null, false, -1, -1);
+				final List<GraphObject> source = Iterables.toList(resource.doGet(null, false, -1, -1));
 
-				if (!result.isEmpty() && result.size() == 1 && result.get(0) instanceof FlowContainer) {
+				if (!source.isEmpty() && source.size() == 1 && source.get(0) instanceof FlowContainer) {
 
-					flowResult = ((FlowContainer)result.get(0)).evaluate(flowParameters);
+					flowResult = ((FlowContainer)source.get(0)).evaluate(flowParameters);
 
 					final Object resultObject = flowResult.get("result");
 
@@ -111,15 +112,15 @@ public class FlowServlet extends JsonRestServlet {
 							isPrimitiveArray = true;
 						}
 
-						result = new ResultStream(list, true, isPrimitiveArray);
+						result = new PagingIterable<>(list);
 
 					} else if (resultObject instanceof GraphObject) {
 
-						result = new ResultStream((GraphObject) resultObject, false);
+						result = new PagingIterable(Arrays.asList((GraphObject) resultObject));
 
 					} else {
 
-						result = new ResultStream((GraphObject)UiFunction.toGraphObject(resultObject, 1), false);
+						result = new PagingIterable(Arrays.asList((GraphObject)UiFunction.toGraphObject(resultObject, 1)));
 					}
 
 					if (returnContent) {
@@ -127,13 +128,10 @@ public class FlowServlet extends JsonRestServlet {
 						// timing..
 						double queryTimeEnd = System.nanoTime();
 
-						// store property view that will be used to render the results
-						result.setPropertyView(propertyView.get(securityContext));
-
 						DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 						result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
-						processResult(securityContext, request, response, result, depth);
+						processResult(securityContext, request, response, result, depth, resource.isCollectionResource());
 					}
 
 					response.setStatus(HttpServletResponse.SC_OK);
@@ -145,10 +143,7 @@ public class FlowServlet extends JsonRestServlet {
 
 		} catch (FrameworkException frameworkException) {
 
-			// set status & write JSON output
-			response.setStatus(frameworkException.getStatus());
-			gson.get().toJson(frameworkException, response.getWriter());
-			response.getWriter().println();
+			writeException(response, frameworkException);
 
 		} catch (Throwable t) {
 
@@ -176,9 +171,12 @@ public class FlowServlet extends JsonRestServlet {
 	}
 
 	@Override
-	protected void writeHtml(final SecurityContext securityContext, final HttpServletResponse response, final ResultStream result, final String baseUrl, final boolean indentJson, final int depth) throws FrameworkException, IOException {
+	protected void writeHtml(final SecurityContext securityContext, final HttpServletResponse response, final ResultStream result, final String baseUrl, final int nestingDepth, final boolean wrapSingleResultInArray) throws FrameworkException, IOException {
+
 		final App app                          = StructrApp.getInstance(securityContext);
-		final StreamingFlowWriter flowStreamer = new StreamingFlowWriter(this.propertyView, indentJson, depth);
+		final boolean indentJson               = Settings.JsonIndentation.getValue();
+		final StreamingFlowWriter flowStreamer = new StreamingFlowWriter(propertyView, indentJson, nestingDepth, wrapSingleResultInArray);
+		
 		// isolate write output
 		try (final Tx tx = app.tx()) {
 

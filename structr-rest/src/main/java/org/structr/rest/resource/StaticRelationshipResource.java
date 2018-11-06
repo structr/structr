@@ -71,9 +71,10 @@ public class StaticRelationshipResource extends WrappingResource {
 
 	private static final Logger logger = LoggerFactory.getLogger(StaticRelationshipResource.class.getName());
 
-	TypeResource typeResource = null;
+	TypeResource typeResource       = null;
 	TypedIdResource typedIdResource = null;
-	PropertyKey propertyKey = null;
+	PropertyKey propertyKey         = null;
+	boolean isCollectionResource    = true;
 
 	public StaticRelationshipResource(final SecurityContext securityContext, final TypedIdResource typedIdResource, final TypeResource typeResource) {
 
@@ -202,7 +203,6 @@ public class StaticRelationshipResource extends WrappingResource {
 						GraphObjectMap gObject = new GraphObjectMap();
 						PropertyKey key;
 						String keyName = this.typeResource.rawType;
-						int resultCount = 1;
 
 						//FIXME: Dynamically resolve all property types and their result count
 						if (value instanceof String) {
@@ -220,9 +220,9 @@ public class StaticRelationshipResource extends WrappingResource {
 						} else if (value instanceof String[]) {
 
 							key = new ArrayProperty(keyName, String.class);
-							resultCount = ((String[]) value).length;
 
 						} else {
+
 							key = new GenericProperty(keyName);
 						}
 
@@ -337,6 +337,14 @@ public class StaticRelationshipResource extends WrappingResource {
 
 		} else {
 
+			/**
+			 * The below code is used when a schema method is called on an entity via REST. The
+			 * result of this operation should not be wrapped in an array, so we set the flag
+			 * accordingly.
+			 */
+			this.isCollectionResource = false;
+
+
 			final Class entityType  = typedIdResource.getTypeResource().getEntityClass();
 			final String methodName = typeResource.getRawType();
 
@@ -405,7 +413,7 @@ public class StaticRelationshipResource extends WrappingResource {
 
 	@Override
 	public boolean isCollectionResource() {
-		return true;
+		return isCollectionResource;
 	}
 
 	@Override

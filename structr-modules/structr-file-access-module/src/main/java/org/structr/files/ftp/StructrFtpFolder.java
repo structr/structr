@@ -27,9 +27,9 @@ import java.util.List;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.ResultStream;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -107,9 +107,8 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 			if ("/".equals(requestedPath)) {
 				try {
 					ResultStream<Folder> folders = app.nodeQuery(Folder.class).getResultStream();
-					logger.debug("{} folders found", folders.size());
 
-					for (Folder f : folders.getResults()) {
+					for (Folder f : folders) {
 
 						if (f.getHasParent()) {
 							continue;
@@ -123,9 +122,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 					}
 
 					ResultStream<File> files = app.nodeQuery(File.class).getResultStream();
-					logger.debug("{} files found", files.size());
-
-					for (File f : files.getResults()) {
+					for (File f : files) {
 
 						if (f.getHasParent()) {
 							continue;
@@ -141,9 +138,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 					}
 
 					ResultStream<Page> pages = app.nodeQuery(Page.class).getResultStream();
-					logger.debug("{} pages found", pages.size());
-
-					for (Page p : pages.getResults()) {
+					for (Page p : pages) {
 
 						logger.debug("Structr page found: {}", p);
 

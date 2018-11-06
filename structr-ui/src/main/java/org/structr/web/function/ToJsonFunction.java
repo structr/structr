@@ -66,7 +66,6 @@ public class ToJsonFunction extends UiFunction {
 				final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, true);
 				final StringWriter writer = new StringWriter();
 
-
 				if (sources[0] instanceof GraphObject) {
 
 					jsonStreamer.streamSingle(securityContext, writer, (GraphObject)sources[0]);

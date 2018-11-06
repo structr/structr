@@ -20,6 +20,7 @@ package org.structr.web.advanced;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import org.hamcrest.Matchers;
@@ -518,27 +519,30 @@ public class AdvancedSchemaTest extends FrontendTest {
 			.split("[\\W]+");
 
 		// we can only test the actual ORDER of the JSON result object by splitting it on whitespace and validating the resulting array
-		assertEquals("Invalid JSON result for sorted property view", "",                   actual[ 0]);
-		assertEquals("Invalid JSON result for sorted property view", "query_time",         actual[ 1]);
-		assertEquals("Invalid JSON result for sorted property view", "0",                  actual[ 2]);
-		assertEquals("Invalid JSON result for sorted property view", "result_count",       actual[ 4]);
-		assertEquals("Invalid JSON result for sorted property view", "1",                  actual[ 5]);
-		assertEquals("Invalid JSON result for sorted property view", "result",             actual[ 6]);
-		assertEquals("Invalid JSON result for sorted property view", "id",                 actual[ 7]);
-		assertEquals("Invalid JSON result for sorted property view", id,                   actual[ 8]);
-		assertEquals("Invalid JSON result for sorted property view", "type",               actual[ 9]);
-		assertEquals("Invalid JSON result for sorted property view", "Test",               actual[10]);
-		assertEquals("Invalid JSON result for sorted property view", "name",               actual[11]);
-		assertEquals("Invalid JSON result for sorted property view", "null",               actual[12]);
-		assertEquals("Invalid JSON result for sorted property view", "one",                actual[13]);
-		assertEquals("Invalid JSON result for sorted property view", "null",               actual[14]);
-		assertEquals("Invalid JSON result for sorted property view", "two",                actual[15]);
-		assertEquals("Invalid JSON result for sorted property view", "null",               actual[16]);
-		assertEquals("Invalid JSON result for sorted property view", "three",              actual[17]);
-		assertEquals("Invalid JSON result for sorted property view", "null",               actual[18]);
-		assertEquals("Invalid JSON result for sorted property view", "four",               actual[19]);
-		assertEquals("Invalid JSON result for sorted property view", "null",               actual[20]);
-		assertEquals("Invalid JSON result for sorted property view", "serialization_time", actual[21]);
+		assertEquals("Invalid JSON result for sorted property view", "result",             actual[1]);
+		assertEquals("Invalid JSON result for sorted property view", "id",                 actual[2]);
+		assertEquals("Invalid JSON result for sorted property view", id,                   actual[3]);
+		assertEquals("Invalid JSON result for sorted property view", "type",               actual[4]);
+		assertEquals("Invalid JSON result for sorted property view", "Test",               actual[5]);
+		assertEquals("Invalid JSON result for sorted property view", "name",               actual[6]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[7]);
+		assertEquals("Invalid JSON result for sorted property view", "one",                actual[8]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[9]);
+		assertEquals("Invalid JSON result for sorted property view", "two",                actual[10]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[11]);
+		assertEquals("Invalid JSON result for sorted property view", "three",              actual[12]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[13]);
+		assertEquals("Invalid JSON result for sorted property view", "four",               actual[14]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[15]);
+		assertEquals("Invalid JSON result for sorted property view", "query_time",         actual[16]);
+		assertEquals("Invalid JSON result for sorted property view", "0",                  actual[17]);
+		assertEquals("Invalid JSON result for sorted property view", "result_count",       actual[19]);
+		assertEquals("Invalid JSON result for sorted property view", "1",                  actual[20]);
+		assertEquals("Invalid JSON result for sorted property view", "page_count",         actual[21]);
+		assertEquals("Invalid JSON result for sorted property view", "1",                  actual[22]);
+		assertEquals("Invalid JSON result for sorted property view", "result_count_time",  actual[23]);
+		assertEquals("Invalid JSON result for sorted property view", "0",                  actual[24]);
+		assertEquals("Invalid JSON result for sorted property view", "serialization_time", actual[26]);
 
 		// try built-in function
 		try {
@@ -737,28 +741,33 @@ public class AdvancedSchemaTest extends FrontendTest {
 			.replaceAll("[\\s]+", "")
 			.split("[\\W]+");
 
+		System.out.println(Arrays.asList(actual));
+
 		// we can only test the actual ORDER of the JSON result object by splitting it on whitespace and validating the resulting array
-		assertEquals("Invalid JSON result for sorted property view", "",                   actual[ 0]);
-		assertEquals("Invalid JSON result for sorted property view", "query_time",         actual[ 1]);
-		assertEquals("Invalid JSON result for sorted property view", "0",                  actual[ 2]);
-		assertEquals("Invalid JSON result for sorted property view", "result_count",       actual[ 4]);
-		assertEquals("Invalid JSON result for sorted property view", "1",                  actual[ 5]);
-		assertEquals("Invalid JSON result for sorted property view", "result",             actual[ 6]);
-		assertEquals("Invalid JSON result for sorted property view", "type",               actual[ 7]);
-		assertEquals("Invalid JSON result for sorted property view", "Test",               actual[ 8]);
-		assertEquals("Invalid JSON result for sorted property view", "one",                actual[ 9]);
-		assertEquals("Invalid JSON result for sorted property view", "null",               actual[10]);
-		assertEquals("Invalid JSON result for sorted property view", "id",                 actual[11]);
-		assertEquals("Invalid JSON result for sorted property view", id,                   actual[12]);
-		assertEquals("Invalid JSON result for sorted property view", "two",                actual[13]);
-		assertEquals("Invalid JSON result for sorted property view", "null",               actual[14]);
-		assertEquals("Invalid JSON result for sorted property view", "three",              actual[15]);
-		assertEquals("Invalid JSON result for sorted property view", "null",               actual[16]);
-		assertEquals("Invalid JSON result for sorted property view", "four",               actual[17]);
-		assertEquals("Invalid JSON result for sorted property view", "null",               actual[18]);
-		assertEquals("Invalid JSON result for sorted property view", "name",               actual[19]);
-		assertEquals("Invalid JSON result for sorted property view", "null",               actual[20]);
-		assertEquals("Invalid JSON result for sorted property view", "serialization_time", actual[21]);
+		assertEquals("Invalid JSON result for sorted property view", "result",             actual[1]);
+		assertEquals("Invalid JSON result for sorted property view", "type",               actual[2]);
+		assertEquals("Invalid JSON result for sorted property view", "Test",               actual[3]);
+		assertEquals("Invalid JSON result for sorted property view", "one",                actual[4]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[5]);
+		assertEquals("Invalid JSON result for sorted property view", "id",                 actual[6]);
+		assertEquals("Invalid JSON result for sorted property view", id,                   actual[7]);
+		assertEquals("Invalid JSON result for sorted property view", "two",                actual[8]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[9]);
+		assertEquals("Invalid JSON result for sorted property view", "three",              actual[10]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[11]);
+		assertEquals("Invalid JSON result for sorted property view", "four",               actual[12]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[13]);
+		assertEquals("Invalid JSON result for sorted property view", "name",               actual[14]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[15]);
+		assertEquals("Invalid JSON result for sorted property view", "query_time",         actual[16]);
+		assertEquals("Invalid JSON result for sorted property view", "0",                  actual[17]);
+		assertEquals("Invalid JSON result for sorted property view", "result_count",       actual[19]);
+		assertEquals("Invalid JSON result for sorted property view", "1",                  actual[20]);
+		assertEquals("Invalid JSON result for sorted property view", "page_count",         actual[21]);
+		assertEquals("Invalid JSON result for sorted property view", "1",                  actual[22]);
+		assertEquals("Invalid JSON result for sorted property view", "result_count_time",  actual[23]);
+		assertEquals("Invalid JSON result for sorted property view", "0",                  actual[24]);
+		assertEquals("Invalid JSON result for sorted property view", "serialization_time", actual[26]);
 
 
 		// try built-in function
@@ -963,27 +972,30 @@ public class AdvancedSchemaTest extends FrontendTest {
 			.split("[\\W]+");
 
 		// we can only test the actual ORDER of the JSON result object by splitting it on whitespace and validating the resulting array
-		assertEquals("Invalid JSON result for sorted property view", "",                   actual[ 0]);
-		assertEquals("Invalid JSON result for sorted property view", "query_time",         actual[ 1]);
-		assertEquals("Invalid JSON result for sorted property view", "0",                  actual[ 2]);
-		assertEquals("Invalid JSON result for sorted property view", "result_count",       actual[ 4]);
-		assertEquals("Invalid JSON result for sorted property view", "1",                  actual[ 5]);
-		assertEquals("Invalid JSON result for sorted property view", "result",             actual[ 6]);
-		assertEquals("Invalid JSON result for sorted property view", "type",               actual[ 7]);
-		assertEquals("Invalid JSON result for sorted property view", "Test",               actual[ 8]);
-		assertEquals("Invalid JSON result for sorted property view", "one",                actual[ 9]);
-		assertEquals("Invalid JSON result for sorted property view", "null",               actual[10]);
-		assertEquals("Invalid JSON result for sorted property view", "id",                 actual[11]);
-		assertEquals("Invalid JSON result for sorted property view", id,                   actual[12]);
-		assertEquals("Invalid JSON result for sorted property view", "two",                actual[13]);
-		assertEquals("Invalid JSON result for sorted property view", "null",               actual[14]);
-		assertEquals("Invalid JSON result for sorted property view", "three",              actual[15]);
-		assertEquals("Invalid JSON result for sorted property view", "null",               actual[16]);
-		assertEquals("Invalid JSON result for sorted property view", "four",               actual[17]);
-		assertEquals("Invalid JSON result for sorted property view", "null",               actual[18]);
-		assertEquals("Invalid JSON result for sorted property view", "name",               actual[19]);
-		assertEquals("Invalid JSON result for sorted property view", "null",               actual[20]);
-		assertEquals("Invalid JSON result for sorted property view", "serialization_time", actual[21]);
+		assertEquals("Invalid JSON result for sorted property view", "result",             actual[1]);
+		assertEquals("Invalid JSON result for sorted property view", "type",               actual[2]);
+		assertEquals("Invalid JSON result for sorted property view", "Test",               actual[3]);
+		assertEquals("Invalid JSON result for sorted property view", "one",                actual[4]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[5]);
+		assertEquals("Invalid JSON result for sorted property view", "id",                 actual[6]);
+		assertEquals("Invalid JSON result for sorted property view", id,                   actual[7]);
+		assertEquals("Invalid JSON result for sorted property view", "two",                actual[8]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[9]);
+		assertEquals("Invalid JSON result for sorted property view", "three",              actual[10]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[11]);
+		assertEquals("Invalid JSON result for sorted property view", "four",               actual[12]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[13]);
+		assertEquals("Invalid JSON result for sorted property view", "name",               actual[14]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[15]);
+		assertEquals("Invalid JSON result for sorted property view", "query_time",         actual[16]);
+		assertEquals("Invalid JSON result for sorted property view", "0",                  actual[17]);
+		assertEquals("Invalid JSON result for sorted property view", "result_count",       actual[19]);
+		assertEquals("Invalid JSON result for sorted property view", "1",                  actual[20]);
+		assertEquals("Invalid JSON result for sorted property view", "page_count",         actual[21]);
+		assertEquals("Invalid JSON result for sorted property view", "1",                  actual[22]);
+		assertEquals("Invalid JSON result for sorted property view", "result_count_time",  actual[23]);
+		assertEquals("Invalid JSON result for sorted property view", "0",                  actual[24]);
+		assertEquals("Invalid JSON result for sorted property view", "serialization_time", actual[26]);
 
 
 		// try built-in function

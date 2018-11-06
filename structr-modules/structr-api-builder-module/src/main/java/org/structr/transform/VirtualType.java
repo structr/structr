@@ -30,6 +30,7 @@ import java.util.function.Function;
 import org.apache.commons.lang.StringUtils;
 import org.structr.api.Predicate;
 import org.structr.api.util.Iterables;
+import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
@@ -81,51 +82,20 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 		type.addViewProperty(PropertyView.Public, "properties");
 
 		type.addViewProperty(PropertyView.Ui, "properties");
-
-		/*
-	public Result transformOutput(final SecurityContext securityContext, final Class sourceType, final Result result) throws FrameworkException {
-	public void transformInput(final SecurityContext securityContext, final Class type, final Map<String, Object> propertySet) throws FrameworkException {
-		*/
-
 	}}
 
 	Integer getPosition();
 	String getFilterExpression();
 	Iterable<VirtualProperty> getVirtualProperties();
 
-	/*
-
-	private static final Logger logger = LoggerFactory.getLogger(VirtualType.class.getName());
-
-	public static final Property<List<VirtualProperty>> properties = new EndNodes<>("properties", VirtualTypeProperty.class);
-	public static final Property<Integer> position                 = new IntProperty("position").indexed();
-	public static final Property<String> sourceType                = new StringProperty("sourceType");
-	public static final Property<String> filterExpression          = new StringProperty("filterExpression");
-
-	public static final View defaultView = new View(VirtualType.class, PropertyView.Public,
-		name, sourceType, position, properties, filterExpression
-	);
-
-	public static final View uiView = new View(VirtualType.class, PropertyView.Ui,
-		name, sourceType, position, properties, filterExpression
-	);
-
-	// ----- interface ResultTransformer -----
-	@Override
-	public String getSourceType() {
-		return getProperty(sourceType);
-	}
-	*/
-
 	public static ResultStream transformOutput(final VirtualType thisType, final SecurityContext securityContext, final Class sourceType, final ResultStream result) throws FrameworkException {
 
 		final List<VirtualProperty> props         = VirtualType.sort(Iterables.toList(thisType.getVirtualProperties()));
 		final Mapper mapper                       = new Mapper(securityContext, props, StructrApp.getConfiguration().getNodeEntityClass(thisType.getSourceType()));
 		final Filter filter                       = new Filter(securityContext, thisType.getFilterExpression());
-		final Iterable<GraphObject> iterable      = Iterables.map(mapper, Iterables.filter(filter, result.getResults()));
-		final List<GraphObject> transformedResult = Iterables.toList(iterable);
+		final Iterable<GraphObject> iterable      = Iterables.map(mapper, Iterables.filter(filter, result));
 
-		return new ResultStream(transformedResult, result.isCollection(), result.isPrimitiveArray());
+		return new PagingIterable(iterable);
 	}
 
 	public static void transformInput(final VirtualType thisType, final SecurityContext securityContext, final Class type, final Map<String, Object> propertySet) throws FrameworkException {
@@ -152,13 +122,6 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 			transformation.transformInput(actionContext, propertySet);
 		}
 	}
-
-	/*
-	@Override
-	public boolean isPrimitiveArray() {
-		return false;
-	}
-	*/
 
 	// ----- private methods -----
 	static List<VirtualProperty> sort(final List<VirtualProperty> source) {
