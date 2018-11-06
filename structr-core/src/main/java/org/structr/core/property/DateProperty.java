@@ -176,7 +176,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 							return result;
 						}
 
-						throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new DateFormatToken(declaringClass.getSimpleName(), DateProperty.this));
+						throw new FrameworkException(422, "Cannot parse input " + source + " for property " + jsonName(), new DateFormatToken(declaringClass.getSimpleName(), DateProperty.this));
 
 					}
 
@@ -187,7 +187,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 				} else {
 
-					throw new FrameworkException(422, "Unkown input type for date property " + jsonName() + ": " + (source.getClass().getName()), new DateFormatToken(declaringClass.getSimpleName(), DateProperty.this));
+					throw new FrameworkException(422, "Unnkown input type for date property " + jsonName() + ": " + (source.getClass().getName()), new DateFormatToken(declaringClass.getSimpleName(), DateProperty.this));
 
 				}
 			}

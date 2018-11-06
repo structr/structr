@@ -20,6 +20,9 @@ package org.structr.core.graph;
 
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
+
+import org.neo4j.driver.v1.exceptions.TransientException;
 import org.structr.api.RetryException;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;

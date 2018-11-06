@@ -19,6 +19,7 @@
 package org.structr.flow.impl;
 
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -84,17 +85,6 @@ public class FlowFork extends FlowNode implements Fork, DataSource, DeployableEn
 	@Override
 	public FlowNode getForkBody() {
 		return getProperty(forkBody);
-	}
-
-	@Override
-	public Tx createTransaction() throws FlowException {
-
-		try {
-			return StructrApp.getInstance(securityContext).tx();
-		} catch (FrameworkException ex) {
-			throw new FlowException(ex);
-		}
-
 	}
 
 	@Override

@@ -18,6 +18,7 @@
  */
 package org.structr.flow.api;
 
+import org.structr.common.SecurityContext;
 import org.structr.core.graph.Tx;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
@@ -32,7 +33,7 @@ public interface Fork extends FlowElement {
 
 	FlowNode getForkBody();
 
-	Tx createTransaction() throws FlowException;
+	SecurityContext getSecurityContext();
 
 	@Override
 	default FlowType getFlowType() {
