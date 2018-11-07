@@ -141,7 +141,7 @@ var _UsersAndGroups = {
 
 		var userDiv = _UsersAndGroups.createUserElement(user);
 		$('.typeIcon', userDiv).removeClass('typeIcon-nochildren');
-		
+
 		_Security.users.append(userDiv);
 
 		userDiv.draggable({
@@ -274,7 +274,7 @@ var _UsersAndGroups = {
 			tolerance: 'pointer',
 			drop: function(event, ui) {
 				var nodeId;
-				
+
 				if (ui.draggable.hasClass('user')) {
 					nodeId = Structr.getUserId(ui.draggable);
 				} else if (ui.draggable.hasClass('group')) {
@@ -419,13 +419,15 @@ var _ResourceAccessGrants = {
 			AUTH_USER_DELETE            : 8,
 			AUTH_USER_OPTIONS           : 256,
 			AUTH_USER_HEAD              : 1024,
+			AUTH_USER_PATCH             : 4096,
 
 			NON_AUTH_USER_GET           : 16,
 			NON_AUTH_USER_PUT           : 32,
 			NON_AUTH_USER_POST          : 64,
 			NON_AUTH_USER_DELETE        : 128,
 			NON_AUTH_USER_OPTIONS       : 512,
-			NON_AUTH_USER_HEAD          : 2048
+			NON_AUTH_USER_HEAD          : 2048,
+			NON_AUTH_USER_PATCH         : 8192
 		};
 
 		var flags = parseInt(resourceAccess.flags);

@@ -52,11 +52,11 @@ import org.structr.web.servlet.HtmlServlet;
  */
 public class UiAuthenticator implements Authenticator {
 
-	private static final Logger logger       = LoggerFactory.getLogger(UiAuthenticator.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(UiAuthenticator.class.getName());
 
 	protected boolean examined = false;
 
-	private enum Method { GET, PUT, POST, DELETE, HEAD, OPTIONS }
+	private enum Method { GET, PUT, POST, DELETE, HEAD, OPTIONS, PATCH }
 	private static final Map<String, Method> methods = new LinkedHashMap();
 
 	// HTTP methods
@@ -66,6 +66,7 @@ public class UiAuthenticator implements Authenticator {
 		methods.put("PUT", Method.PUT);
 		methods.put("POST", Method.POST);
 		methods.put("HEAD", Method.HEAD);
+		methods.put("PATCH", Method.PATCH);
 		methods.put("DELETE", Method.DELETE);
 		methods.put("OPTIONS", Method.OPTIONS);
 
@@ -88,6 +89,9 @@ public class UiAuthenticator implements Authenticator {
 
 	public static final long AUTH_USER_HEAD		= 1024;
 	public static final long NON_AUTH_USER_HEAD	= 2048;
+
+	public static final long AUTH_USER_PATCH	= 4096;
+	public static final long NON_AUTH_USER_PATCH	= 8192;
 
 	/**
 	 * Examine request and try to find a user.
@@ -207,7 +211,7 @@ public class UiAuthenticator implements Authenticator {
 
 			throw new UnauthorizedException("Forbidden");
 
-		} else {
+		} else if (method != null) {
 
 			switch (method) {
 
@@ -294,7 +298,25 @@ public class UiAuthenticator implements Authenticator {
 					}
 
 					break;
+
+				case PATCH :
+
+					if (!validUser && resourceAccess.hasFlag(NON_AUTH_USER_PATCH)) {
+
+						return;
+					}
+
+					if (validUser && resourceAccess.hasFlag(AUTH_USER_PATCH)) {
+
+						return;
+					}
+
+					break;
 			}
+
+		} else {
+
+			logger.warn("Unknown method {}, cannot determine resource access.", request.getMethod());
 		}
 
 		logger.info("Resource access grant found for signature {}, but method {} not allowed for {}.", new Object[] { rawResourceSignature, method, validUser ? "authenticated users" : "public users" } );
