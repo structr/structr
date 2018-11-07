@@ -117,7 +117,7 @@ public class ODFTest extends StructrODFModuleTest {
 			.body("result[0].name",  equalTo("template"))
 			.body("result[1].name",  equalTo("test.ods_template"))
 			.when()
-			.get("/File");
+			.get("/File?sort=name");
 
 		// use RestAssured to call exported methods on file
 		RestAssured
@@ -135,6 +135,6 @@ public class ODFTest extends StructrODFModuleTest {
 			.body("result[0].resultDocument.name",   equalTo("test.ods_template"))
 			.body("result[0].resultDocument.path",   equalTo("/test.ods_template"))
 			.when()
-			.get("/ODFExporter");
+			.get("/ODFExporter?sort=name");
 	}
 }
