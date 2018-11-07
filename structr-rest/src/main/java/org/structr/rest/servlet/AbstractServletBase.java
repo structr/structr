@@ -18,11 +18,14 @@
  */
 package org.structr.rest.servlet;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -40,11 +43,13 @@ import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import static org.structr.core.GraphObject.logger;
+import org.structr.core.IJsonInput;
 import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.core.rest.JsonInputGSONAdapter;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.resource.Resource;
@@ -237,23 +242,28 @@ public abstract class AbstractServletBase extends HttpServlet implements HttpSer
 
 	protected void writeException(final HttpServletResponse response, final FrameworkException fex) throws IOException {
 
+		final PrintWriter writer = response.getWriter();
+		final Gson gson          = getGson();
+
 		// set status & write JSON output
 		response.setStatus(fex.getStatus());
-		response.getWriter().print(fex.toJSON().toString());
-		response.getWriter().println();
+		gson.toJson(fex.toJSON(), writer);
+		writer.println();
 	}
 
 	protected void writeStatus(final HttpServletResponse response, final int statusCode, final String message) throws IOException {
 
-		final JsonObject obj = new JsonObject();
+		final PrintWriter writer = response.getWriter();
+		final Gson gson          = getGson();
+		final JsonObject obj     = new JsonObject();
 
 		obj.addProperty("code", statusCode);
 		obj.addProperty("message", message);
 
 		// set status & write JSON output
 		response.setStatus(statusCode);
-		response.getWriter().println(obj.toString());
-		response.getWriter().println();
+		gson.toJson(obj, writer);
+		writer.println();
 	}
 
 	protected void assertInitialized() throws FrameworkException {
@@ -261,6 +271,26 @@ public abstract class AbstractServletBase extends HttpServlet implements HttpSer
 		if (!Services.getInstance().isInitialized()) {
 			throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "System is not initialized yet");
 		}
+	}
+
+	protected Gson getGson() {
+
+		final JsonInputGSONAdapter jsonInputAdapter = new JsonInputGSONAdapter();
+
+		// create GSON serializer
+		final GsonBuilder gsonBuilder = new GsonBuilder()
+			.setPrettyPrinting()
+			.serializeNulls()
+			.registerTypeAdapter(IJsonInput.class, jsonInputAdapter);
+
+		final boolean lenient = Settings.JsonLenient.getValue();
+		if (lenient) {
+
+			// Serializes NaN, -Infinity, Infinity, see http://code.google.com/p/google-gson/issues/detail?id=378
+			gsonBuilder.serializeSpecialFloatingPointValues();
+		}
+
+		return gsonBuilder.create();
 	}
 
 	// ----- nested classes -----

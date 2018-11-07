@@ -19,7 +19,6 @@
 package org.structr.rest.servlet;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 
@@ -40,7 +39,6 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
-import org.structr.api.config.Settings;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -57,7 +55,6 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.rest.JsonInputGSONAdapter;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.resource.Resource;
 import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
@@ -958,26 +955,5 @@ public class JsonRestServlet extends AbstractServletBase {
 			}
 
 		}
-	}
-
-	// ----- private methods -----
-	private Gson getGson() {
-
-		final JsonInputGSONAdapter jsonInputAdapter = new JsonInputGSONAdapter();
-
-		// create GSON serializer
-		final GsonBuilder gsonBuilder = new GsonBuilder()
-			.setPrettyPrinting()
-			.serializeNulls()
-			.registerTypeAdapter(IJsonInput.class, jsonInputAdapter);
-
-		final boolean lenient = Settings.JsonLenient.getValue();
-		if (lenient) {
-
-			// Serializes NaN, -Infinity, Infinity, see http://code.google.com/p/google-gson/issues/detail?id=378
-			gsonBuilder.serializeSpecialFloatingPointValues();
-		}
-
-		return gsonBuilder.create();
 	}
 }
