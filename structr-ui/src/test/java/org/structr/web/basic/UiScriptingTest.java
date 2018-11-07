@@ -715,6 +715,52 @@ public class UiScriptingTest extends StructrUiTest {
 		}
 	}
 
+	@Test
+	public void testToJsonFunctions() {
+
+		try (final Tx tx = app.tx()) {
+
+			// create admin user
+			createTestNode(User.class,
+				new NodeAttribute<>(StructrApp.key(User.class, "id"),       "d7b5f5008fdf4066a1b9c2a74479ba5f"),
+				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final RenderContext renderContext = new RenderContext(SecurityContext.getSuperUserInstance(), new RequestMockUp(), new ResponseMockUp(), RenderContext.EditMode.NONE);
+
+		try (final Tx tx = app.tx()) {
+
+			// unprivileged call
+			final Object result1 = Scripting.evaluate(renderContext, null, "${{ return Structr.toJson({ name: 'Test' }); }}",        "test1");
+			final Object result2 = Scripting.evaluate(renderContext, null, "${{ return Structr.toJson([{ name: 'Test' }]); }}",      "test2");
+			final Object result3 = Scripting.evaluate(renderContext, null, "${{ return Structr.toJson(Structr.find('User')[0]); }}", "test3");
+			final Object result4 = Scripting.evaluate(renderContext, null, "${{ return Structr.toJson(Structr.find('User')); }}",    "test4");
+
+			assertEquals("Invalid result for Structr.toJson() on Javascript object", "{\n\t\"result\": {\n\t\t\"name\": \"Test\"\n\t}\n}", result1);
+			assertEquals("Invalid result for Structr.toJson() on Javascript array",  "{\n\t\"result\": [\n\t\t{\n\t\t\t\"name\": \"Test\"\n\t\t}\n\t]\n}", result2);
+			assertEquals("Invalid result for Structr.toJson() on GraphObject",       "{\n\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\"type\": \"User\",\n\t\"isUser\": true,\n\t\"name\": \"admin\"\n}", result3);
+			assertEquals("Invalid result for Structr.toJson() on GraphObject array", "{\n\t\"result\": [\n\t\t{\n\t\t\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\t\t\"type\": \"User\",\n\t\t\t\"isUser\": true,\n\t\t\t\"name\": \"admin\"\n\t\t}\n\t]\n}", result4);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+	}
+
 	// ----- private methods -----
 	private String getEncodingInUse() {
 		OutputStreamWriter writer = new OutputStreamWriter(new ByteArrayOutputStream());

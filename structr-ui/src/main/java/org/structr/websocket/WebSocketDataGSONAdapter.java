@@ -55,8 +55,6 @@ import static org.structr.core.rest.JsonInputGSONAdapter.fromPrimitive;
 import org.structr.rest.serialization.GraphQLWriter;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  *
  *
@@ -67,13 +65,9 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 	private final Value<String> propertyView             = new StaticValue<>(PropertyView.Public);
 	private GraphObjectGSONAdapter graphObjectSerializer = null;
 
-	//~--- constructors ---------------------------------------------------
-
 	public WebSocketDataGSONAdapter(final int outputNestingDepth) {
 		graphObjectSerializer = new GraphObjectGSONAdapter(propertyView, outputNestingDepth);
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public JsonElement serialize(WebSocketMessage src, Type typeOfSrc, JsonSerializationContext context) {
@@ -299,7 +293,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 				JsonArray result = new JsonArray();
 
-				for (GraphObject obj : src.getResult()) {
+				for (GraphObject obj : list) {
 
 					result.add(graphObjectSerializer.serialize(obj, System.currentTimeMillis()));
 				}

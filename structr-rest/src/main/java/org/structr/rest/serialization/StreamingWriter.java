@@ -136,6 +136,10 @@ public abstract class StreamingWriter {
 	}
 
 	public void stream(final SecurityContext securityContext, final Writer output, final ResultStream result, final String baseUrl) throws IOException {
+		stream(securityContext, output, result, baseUrl, true);
+	}
+
+	public void stream(final SecurityContext securityContext, final Writer output, final ResultStream result, final String baseUrl, final boolean includeMetadata) throws IOException {
 
 		long t0 = System.nanoTime();
 
@@ -158,32 +162,35 @@ public abstract class StreamingWriter {
 			root.serializeRoot(rootWriter, result, propertyView.get(securityContext), 0, visitedObjects);
 		}
 
-		// time delta for serialization
-		long t1 = System.nanoTime();
+		if (includeMetadata) {
 
-		if (pageSize != null && !pageSize.equals(Integer.MAX_VALUE)) {
+			// time delta for serialization
+			long t1 = System.nanoTime();
 
-			if (page != null) {
+			if (pageSize != null && !pageSize.equals(Integer.MAX_VALUE)) {
 
-				rootWriter.name("page").value(page);
+				if (page != null) {
+
+					rootWriter.name("page").value(page);
+				}
+
+				rootWriter.name("page_size").value(pageSize);
 			}
 
-			rootWriter.name("page_size").value(pageSize);
-		}
+			if (queryTime != null) {
+				rootWriter.name("query_time").value(queryTime);
+			}
 
-		if (queryTime != null) {
-			rootWriter.name("query_time").value(queryTime);
-		}
+			if (!securityContext.ignoreResultCount()) {
 
-		if (!securityContext.ignoreResultCount()) {
+				rootWriter.name("result_count").value(result.calculateTotalResultCount());
+				rootWriter.name("page_count").value(result.calculatePageCount());
+				rootWriter.name("result_count_time").value(decimalFormat.format((System.nanoTime() - t1) / 1000000000.0));
+			}
 
-			rootWriter.name("result_count").value(result.calculateTotalResultCount());
-			rootWriter.name("page_count").value(result.calculatePageCount());
-			rootWriter.name("result_count_time").value(decimalFormat.format((System.nanoTime() - t1) / 1000000000.0));
-		}
-
-		if (renderSerializationTime) {
-			rootWriter.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
+			if (renderSerializationTime) {
+				rootWriter.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
+			}
 		}
 
 		// finished

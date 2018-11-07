@@ -51,6 +51,7 @@ public class ToJsonFunction extends UiFunction {
 			try {
 
 				final SecurityContext securityContext = ctx.getSecurityContext();
+				final StringWriter writer             = new StringWriter();
 
 				final Value<String> view = new StaticValue<>("public");
 				if (sources.length > 1) {
@@ -63,27 +64,27 @@ public class ToJsonFunction extends UiFunction {
 					outputDepth = ((Number)sources[2]).intValue();
 				}
 
-				final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, true);
-				final StringWriter writer = new StringWriter();
-
 				if (sources[0] instanceof GraphObject) {
+
+					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, false);
 
 					jsonStreamer.streamSingle(securityContext, writer, (GraphObject)sources[0]);
 
 				} else if (sources[0] instanceof Iterable) {
 
-					final Iterable list = (Iterable)sources[0];
+					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, true);
+					final Iterable list                    = (Iterable)sources[0];
 
-					jsonStreamer.stream(securityContext, writer, new PagingIterable<>(list), null);
+					jsonStreamer.stream(securityContext, writer, new PagingIterable<>(list), null, false);
 
 				} else if (sources[0] instanceof Map) {
 
-					final GraphObjectMap map  = new GraphObjectMap();
+					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, false);
+					final GraphObjectMap map               = new GraphObjectMap();
 
 					UiFunction.recursivelyConvertMapToGraphObjectMap(map, (Map)sources[0], outputDepth);
 
-					jsonStreamer.stream(securityContext, writer, new PagingIterable<>(Arrays.asList(map)), null);
-
+					jsonStreamer.stream(securityContext, writer, new PagingIterable<>(Arrays.asList(map)), null, false);
 				}
 
 				return writer.getBuffer().toString();

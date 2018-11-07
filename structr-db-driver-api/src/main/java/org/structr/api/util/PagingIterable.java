@@ -19,14 +19,17 @@
 package org.structr.api.util;
 
 import java.util.Iterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An iterable that supports pagination and result counting.
  */
 public class PagingIterable<T> implements ResultStream<T> {
 
-	private PagingIterator<T> source  = null;
-	private String queryTimeFormatted = null;
+	private static final Logger logger = LoggerFactory.getLogger(PagingIterable.class);
+	private PagingIterator<T> source   = null;
+	private String queryTimeFormatted  = null;
 
 	public PagingIterable(final Iterable<T> source) {
 		this(source, Integer.MAX_VALUE, 1);
@@ -38,6 +41,13 @@ public class PagingIterable<T> implements ResultStream<T> {
 
 	@Override
 	public Iterator<T> iterator() {
+
+		if (source.isConsumed()) {
+
+			logger.error("PagingIterable already consumed, please use Iterables.toList() to be able to iterate a streaming result more than once.");
+			Thread.dumpStack();
+		}
+
 		return source;
 	}
 

@@ -181,11 +181,6 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 		}
 
-		// experimental: disable result count, prevents instantiation
-		// of large collections just for counting all the objects..
-		securityContext.ignoreResultCount(true);
-
-
 		// TODO: decide if we need to rest the REST request here
 		//securityContext.checkResourceAccess(request, resource.getResourceSignature(), resource.getGrant(request, response), PropertyView.Ui);
 		// add sorting & paging
