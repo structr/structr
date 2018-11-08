@@ -215,17 +215,24 @@ export class QueryOperation {
 	<div class="query-operation">
 		<select class="query-key-select"><option>N/A</option></select>
 		<select class="query-operation-select">
-			<option value="eq">Equal</option>
-			<option value="neq">Not Equal</option>
-			<option value="gt">Greater</option>
-			<option value="gteq">Greater/Equal</option>
-			<option value="ls">Less</option>
-			<option value="lseq">Less/Equal</option>
-			<option value="null">Null</option>
-			<option value="notNull">NotNull</option>
-			<option value="startsWith">StartsWith</option>
-			<option value="endsWith">EndsWith</option>
-			<option value="contains">Contains</option>
+		    <optgroup label="Exact">
+                <option value="eq">Equal</option>
+                <option value="neq">Not Equal</option>
+                <option value="gt">Greater</option>
+                <option value="gteq">Greater/Equal</option>
+                <option value="ls">Less</option>
+                <option value="lseq">Less/Equal</option>
+                <option value="null">Null</option>
+                <option value="notNull">NotNull</option>
+                <option value="startsWith">StartsWith</option>
+                <option value="endsWith">EndsWith</option>
+                <option value="contains">Contains</option>
+			</optgroup>
+			<optgroup label="Case Insensitive">
+			    <option value="caseInsensitiveStartsWith">StartsWith</option>
+                <option value="caseInsensitiveEndsWith">EndsWith</option>
+                <option value="caseInsensitiveContains">Contains</option>
+			</optgroup>
 		</select>
 		<button class="query-operation-delete"><i class="sprite sprite-delete"></i></button>
 	</div>

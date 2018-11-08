@@ -31,7 +31,11 @@ public interface ComparisonQuery<T> extends QueryPredicate {
 		isNotNull,
 		startsWith,
 		endsWith,
-		contains
+		contains,
+		caseInsensitiveStartsWith,
+		caseInsensitiveEndsWith,
+		caseInsensitiveContains
+
 	}
 
 	T getSearchValue();

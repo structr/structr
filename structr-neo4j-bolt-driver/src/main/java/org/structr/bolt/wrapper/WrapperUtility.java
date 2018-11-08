@@ -18,7 +18,6 @@
  */
 package org.structr.bolt.wrapper;
 
-import org.neo4j.driver.v1.exceptions.TransientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
@@ -26,6 +25,10 @@ import org.structr.api.RetryException;
 import java.util.function.Supplier;
 
 public abstract class WrapperUtility {
+	private static final int maxRetries = 20;
+	private static final int retryDelay = 100;
+	private static final int firstRetryDelay = 10;
+
 	private static final Logger logger = LoggerFactory.getLogger(WrapperUtility.class);
 
 	// ---- public static methods ----
@@ -39,13 +42,13 @@ public abstract class WrapperUtility {
 
 				return supplier.get();
 
-			} catch (TransientException ex) {
+			} catch (RetryException ex) {
 
-				logger.info("Caught TransientException in executeWithRetry. Waiting 100 ms and then performing retry #" + retries);
+				logger.info("Caught TransientException in executeWithRetry. Waiting " + (retries > 0 ? retryDelay : firstRetryDelay) + " ms and then performing retry #" + retries);
 
 				try {
 
-					Thread.sleep(100);
+					Thread.sleep(retries > 0 ? retryDelay : firstRetryDelay);
 				} catch (InterruptedException iex) {
 
 					break;
@@ -56,7 +59,7 @@ public abstract class WrapperUtility {
 
 			}
 
-		} while (retry && retries < 5);
+		} while (retry && retries < maxRetries);
 
 		throw new RetryException("executeWithRetry exceeded maximum amount of retries.");
 	}

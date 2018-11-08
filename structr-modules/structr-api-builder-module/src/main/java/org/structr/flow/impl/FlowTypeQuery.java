@@ -238,6 +238,15 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 				case "contains":
 					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.contains, value, Occurrence.REQUIRED));
 					break;
+				case "caseInsensitiveStartsWith":
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.caseInsensitiveStartsWith, value, Occurrence.REQUIRED));
+					break;
+				case "caseInsensitiveEndsWith":
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.caseInsensitiveEndsWith, value, Occurrence.REQUIRED));
+					break;
+				case "caseInsensitiveContains":
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.caseInsensitiveContains, value, Occurrence.REQUIRED));
+					break;
 			}
 
 			query.attributes(attributes);
