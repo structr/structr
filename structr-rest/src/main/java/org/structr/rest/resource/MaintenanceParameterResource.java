@@ -30,6 +30,7 @@ import org.structr.core.graph.BulkChangeNodePropertyKeyCommand;
 import org.structr.core.graph.BulkCopyRelationshipPropertyCommand;
 import org.structr.core.graph.BulkCreateLabelsCommand;
 import org.structr.core.graph.BulkFixNodePropertiesCommand;
+import org.structr.core.graph.BulkMigrateChangelogCommand;
 import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.BulkSetNodePropertiesCommand;
 import org.structr.core.graph.BulkSetRelationshipPropertiesCommand;
@@ -72,6 +73,7 @@ public class MaintenanceParameterResource extends Resource {
 		maintenanceCommandMap.put("snapshot", SnapshotCommand.class);
 		maintenanceCommandMap.put("flushCaches", FlushCachesCommand.class);
 		maintenanceCommandMap.put("analyzeSchema", SchemaAnalyzer.class);
+		maintenanceCommandMap.put("migrateChangelog", BulkMigrateChangelogCommand.class);
 
 	}
 
