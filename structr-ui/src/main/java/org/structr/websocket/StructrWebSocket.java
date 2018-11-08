@@ -361,7 +361,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		} catch (Throwable t) {
 			// ignore
-			logger.info("Unable to send websocket message to remote client");
+			logger.warn("Unable to send websocket message to remote client: {}", t.getMessage());
 		}
 
 	}
