@@ -25,6 +25,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -102,7 +103,7 @@ public class SearchCommand extends AbstractCommand {
 
 						}
 
-						final List<GraphObject> result = StructrApp.getInstance(securityContext).cypher(cypherQuery, obj);
+						final List<GraphObject> result = Iterables.toList(StructrApp.getInstance(securityContext).cypher(cypherQuery, obj));
 
 						int resultCountBeforePaging = result.size();
 						webSocketData.setRawResultCount(resultCountBeforePaging);

@@ -280,10 +280,10 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public <T extends GraphObject> List<T> get(final Class<T> type) throws FrameworkException {
+	public <T extends GraphObject> Iterable<T> get(final Class<T> type) throws FrameworkException {
 
 		final Query<T> query = command(SearchNodeCommand.class);
-		return query.andType(type).getAsList();
+		return query.andType(type).getResultStream();
 	}
 
 	@Override
@@ -360,7 +360,7 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public List<GraphObject> cypher(final String cypherQuery, final Map<String, Object> parameters) throws FrameworkException {
+	public Iterable<GraphObject> cypher(final String cypherQuery, final Map<String, Object> parameters) throws FrameworkException {
 		return Services.getInstance().command(securityContext, CypherQueryCommand.class).execute(cypherQuery, parameters);
 	}
 

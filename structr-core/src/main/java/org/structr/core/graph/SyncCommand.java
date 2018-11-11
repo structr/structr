@@ -195,8 +195,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 				conditionalIncludeFiles = false;
 
-				final List<GraphObject> result = StructrApp.getInstance().cypher(query, null);
-				for (final GraphObject obj : result) {
+				for (final GraphObject obj : StructrApp.getInstance().cypher(query, null)) {
 
 					if (obj.isNode()) {
 						nodes.add((AbstractNode)obj.getSyncNode());

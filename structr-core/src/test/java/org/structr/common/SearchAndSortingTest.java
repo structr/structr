@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Occurrence;
+import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -1617,7 +1618,8 @@ public class SearchAndSortingTest extends StructrTest {
 			}
 
 			try (final Tx tx = app.tx()) {
-				List<NodeInterface> result = app.get(type);
+
+				List<NodeInterface> result = Iterables.toList(app.get(type));
 
 				assertTrue(result.size() == number);
 

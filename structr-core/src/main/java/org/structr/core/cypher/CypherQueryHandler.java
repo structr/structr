@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.NativeResult;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
@@ -52,7 +51,7 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 	protected SecurityContext securityContext = null;
 	protected String query                    = null;
 
-	public abstract Object handleQueryResults(final NativeResult result) throws FrameworkException;
+	public abstract Object handleQueryResults(final Iterable<Map<String, Object>> result) throws FrameworkException;
 
 	public CypherQueryHandler(Object... query) {
 

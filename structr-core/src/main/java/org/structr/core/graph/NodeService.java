@@ -24,7 +24,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.NativeResult;
 import org.structr.api.Transaction;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Node;
@@ -266,10 +265,8 @@ public class NodeService implements SingletonService {
 
 	private int getCount(final String query, final String resultKey) {
 
-		final NativeResult result = graphDb.execute(query);
-		if (result.hasNext()) {
+		for (final Map<String, Object> row : graphDb.execute(query)) {
 
-			final Map<String, Object> row = result.next();
 			if (row.containsKey(resultKey)) {
 
 				final Object value = row.get(resultKey);

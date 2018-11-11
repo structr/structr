@@ -19,7 +19,6 @@
 package org.structr.rest.resource;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.api.util.PagingIterable;
@@ -66,8 +65,8 @@ public class CypherQueryResource extends Resource {
 			Object queryObject = securityContext.getRequest().getParameter("query");
 			if (queryObject != null) {
 
-				String query                 = queryObject.toString();
-				List<GraphObject> resultList = StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(query, Collections.EMPTY_MAP);
+				String query                     = queryObject.toString();
+				Iterable<GraphObject> resultList = StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(query, Collections.EMPTY_MAP);
 
 				return new PagingIterable<>(resultList);
 				//return new ResultStream(resultList, true, false);
@@ -98,8 +97,8 @@ public class CypherQueryResource extends Resource {
 
 			if (queryObject != null) {
 
-				String query                 = queryObject.toString();
-				List<GraphObject> resultList = StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(query, propertySet);
+				String query                     = queryObject.toString();
+				Iterable<GraphObject> resultList = StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(query, propertySet);
 
 				for (GraphObject obj : resultList) {
 
