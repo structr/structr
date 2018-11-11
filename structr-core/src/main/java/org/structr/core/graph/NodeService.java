@@ -303,9 +303,9 @@ public class NodeService implements SingletonService {
 			final String part             = tenantIdentifier != null ? ":" + tenantIdentifier : "";
 
 			// do some very quick count queries to determine the number of Structr nodes and rels in the database
-			this.abstractNodeCount  = getCount("MATCH (n" + part + ":AbstractNode) RETURN count(n) AS count", "count");
-			this.nodeInterfaceCount = getCount("MATCH (n" + part + ":NodeInterface) RETURN count(n) AS count", "count");
-			this.relationshipCount  = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN count(DISTINCT r) AS count", "count");
+			this.abstractNodeCount  = getCount("MATCH (n" + part + ":AbstractNode) RETURN COUNT(n) AS count", "count");
+			this.nodeInterfaceCount = getCount("MATCH (n" + part + ":NodeInterface) RETURN COUNT(n) AS count", "count");
+			this.relationshipCount  = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN count(r) AS count", "count");
 		}
 	}
 }
