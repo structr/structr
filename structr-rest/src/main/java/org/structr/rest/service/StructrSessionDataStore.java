@@ -36,6 +36,7 @@ import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.PropertyMap;
 
 import java.util.*;
+import org.structr.api.util.Iterables;
 
 /**
  */
@@ -57,7 +58,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 			Map<String, Object> params = new HashMap<>();
 			params.put("id", id);
-			List<GraphObject> results = app.cypher("MATCH (n:User) WHERE {id} IN n.sessionIds RETURN count(n) > 0 as result", params);
+			List<GraphObject> results = Iterables.toList(app.cypher("MATCH (n:User) WHERE {id} IN n.sessionIds RETURN count(n) > 0 as result", params));
 			boolean isAuthenticated = results.get(0).getProperty(new BooleanProperty("result"));
 
 			if (isAuthenticated) {

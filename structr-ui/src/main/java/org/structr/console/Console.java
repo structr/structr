@@ -29,6 +29,7 @@ import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ScriptableObject;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
@@ -239,7 +240,7 @@ public class Console {
 		try (final Tx tx = app.tx()) {
 
 			final long t0                  = System.currentTimeMillis();
-			final List<GraphObject> result = app.cypher(line, Collections.emptyMap());
+			final List<GraphObject> result = Iterables.toList(app.cypher(line, Collections.emptyMap()));
 			final long t1                  = System.currentTimeMillis();
 			final int size                 = result.size();
 

@@ -49,7 +49,6 @@ import org.neo4j.kernel.configuration.BoltConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.NativeResult;
 import org.structr.api.NetworkException;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.Transaction;
@@ -424,18 +423,13 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 				}
 			 */
 
-			try (final NativeResult result = execute("CALL db.indexes() YIELD description, state, type WHERE type = 'node_label_property' RETURN {description: description, state: state}")) {
+			for (final Map<String, Object> row : execute("CALL db.indexes() YIELD description, state, type WHERE type = 'node_label_property' RETURN {description: description, state: state}")) {
 
-				while (result.hasNext()) {
+				for (final Object value : row.values()) {
 
-					final Map<String, Object> row = result.next();
+					final Map<String, String> valueMap = (Map<String, String>)value;
 
-					for (final Object value : row.values()) {
-
-						final Map<String, String> valueMap = (Map<String, String>)value;
-
-						existingDbIndexes.put(valueMap.get("description"), valueMap.get("state"));
-					}
+					existingDbIndexes.put(valueMap.get("description"), valueMap.get("state"));
 				}
 			}
 
@@ -558,12 +552,12 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 
 	@Override
-	public NativeResult execute(final String nativeQuery, final Map<String, Object> parameters) {
+	public Iterable<Map<String, Object>> execute(final String nativeQuery, final Map<String, Object> parameters) {
 		return getCurrentTransaction().run(nativeQuery, parameters);
 	}
 
 	@Override
-	public NativeResult execute(final String nativeQuery) {
+	public Iterable<Map<String, Object>> execute(final String nativeQuery) {
 		return execute(nativeQuery, Collections.EMPTY_MAP);
 	}
 

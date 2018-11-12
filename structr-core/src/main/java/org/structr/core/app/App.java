@@ -19,7 +19,6 @@
 package org.structr.core.app;
 
 import java.io.Closeable;
-import java.util.List;
 import java.util.Map;
 import org.structr.agent.Task;
 import org.structr.api.DatabaseService;
@@ -62,7 +61,7 @@ public interface App extends Closeable {
 	public NodeInterface getNodeById(final String uuid) throws FrameworkException;
 	public RelationshipInterface getRelationshipById(final Class type, final String uuid) throws FrameworkException;
 	public RelationshipInterface getRelationshipById(final String uuid) throws FrameworkException;
-	public <T extends GraphObject> List<T> get(final Class<T> type) throws FrameworkException;
+	public <T extends GraphObject> Iterable<T> get(final Class<T> type) throws FrameworkException;
 	public <T extends GraphObject> T get(final Class<T> type, final String uuid) throws FrameworkException;
 
 	public Query<? extends NodeInterface> nodeQuery();
@@ -80,7 +79,7 @@ public interface App extends Closeable {
 
 	public FulltextIndexer getFulltextIndexer(final Object... params);
 
-	public List<GraphObject> cypher(final String cypherQuery, final Map<String, Object> parameters) throws FrameworkException;
+	public Iterable<GraphObject> cypher(final String cypherQuery, final Map<String, Object> parameters) throws FrameworkException;
 
 	public <T extends Service> T getService(final Class<T> serviceClass);
 	public DatabaseService getDatabaseService();

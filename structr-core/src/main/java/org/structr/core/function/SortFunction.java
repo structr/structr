@@ -18,10 +18,9 @@
  */
 package org.structr.core.function;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
+import org.structr.api.util.Iterables;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -44,30 +43,28 @@ public class SortFunction extends Function<Object, Object> {
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
-		
+
 		if (sources == null || sources.length == 0) {
-			
+
 			return null;
 		}
-		
+
 		// Default sort key
 		String sortKey = "name";
-		
+
 		if (sources.length > 1 && sources[1] instanceof String) {
-			
-			sortKey = (String) sources[1];			
+
+			sortKey = (String) sources[1];
 		}
-		
+
 		if (sources.length >= 1) {
-			
-			if (sources[0] instanceof List) {
-				
-				final List list = (List)sources[0];
-				final Iterator iterator = list.iterator();
 
-				if (iterator.hasNext()) {
+			if (sources[0] instanceof Iterable) {
 
-					final Object firstElement = iterator.next();
+				final List list = Iterables.toList((Iterable)sources[0]);
+				if (!list.isEmpty()) {
+
+					final Object firstElement = list.get(0);
 					if (firstElement instanceof GraphObject) {
 
 						final Class type         = firstElement.getClass();
@@ -81,16 +78,14 @@ public class SortFunction extends Function<Object, Object> {
 
 							return sortCollection;
 						}
-					} else if (firstElement instanceof String) {
-						
-						final String[] stringArray = (String[]) list.toArray(new String[list.size()]);
-						Arrays.sort(stringArray);
-						return Arrays.asList(stringArray);
-					}
 
+					} else if (firstElement instanceof String) {
+
+						Collections.sort(list);
+					}
 				}
 			}
-			
+
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());

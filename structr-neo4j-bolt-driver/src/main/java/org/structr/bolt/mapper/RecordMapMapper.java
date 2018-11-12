@@ -16,22 +16,27 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.bolt.mapper;
 
-import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Function;
+import org.neo4j.driver.v1.Record;
+import org.structr.bolt.BoltDatabaseService;
+import org.structr.bolt.wrapper.MapResultWrapper;
 
 /**
  *
  */
-public interface NativeResult<T> extends AutoCloseable {
+public class RecordMapMapper implements Function<Record, Map<String, Object>> {
 
-	Iterator<T> columnAs(final String name);
+	private BoltDatabaseService db = null;
 
-	boolean hasNext();
-
-	Map<String, Object> next();
+	public RecordMapMapper(final BoltDatabaseService db) {
+		this.db = db;
+	}
 
 	@Override
-	void close();
+	public Map<String, Object> apply(final Record t) {
+		return new MapResultWrapper(db, t.asMap());
+	}
 }

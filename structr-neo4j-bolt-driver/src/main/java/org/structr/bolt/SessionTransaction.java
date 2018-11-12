@@ -40,7 +40,6 @@ import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Relationship;
 import org.structr.api.ConstraintViolationException;
 import org.structr.api.DataFormatException;
-import org.structr.api.NativeResult;
 import org.structr.api.NetworkException;
 import org.structr.api.NotFoundException;
 import org.structr.api.RetryException;
@@ -49,10 +48,10 @@ import org.structr.bolt.mapper.RecordNodeMapper;
 import org.structr.bolt.mapper.RecordNodeIdMapper;
 import org.structr.bolt.mapper.RecordRelationshipMapper;
 import org.structr.bolt.mapper.NodeId;
+import org.structr.bolt.mapper.RecordMapMapper;
 import org.structr.bolt.wrapper.EntityWrapper;
 import org.structr.bolt.wrapper.NodeWrapper;
 import org.structr.bolt.wrapper.RelationshipWrapper;
-import org.structr.bolt.wrapper.StatementResultWrapper;
 
 /**
  *
@@ -406,13 +405,13 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		}
 	}
 
-	public NativeResult run(final String statement, final Map<String, Object> map) {
+	public Iterable<Map<String, Object>> run(final String statement, final Map<String, Object> map) {
 
 		final long t0 = System.currentTimeMillis();
 
 		try {
 
-			return new StatementResultWrapper(db, tx.run(statement, map));
+			return Iterables.map(new RecordMapMapper(db), new IteratorWrapper<>(tx.run(statement, map)));
 
 		} catch (TransientException tex) {
 			closed = true;
