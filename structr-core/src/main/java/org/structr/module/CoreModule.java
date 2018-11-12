@@ -160,6 +160,7 @@ import org.structr.core.function.UnwindFunction;
 import org.structr.core.function.UpperFunction;
 import org.structr.core.function.UrlEncodeFunction;
 import org.structr.core.function.ValuesFunction;
+import org.structr.core.function.WeekDaysFunction;
 import org.structr.core.function.WriteFunction;
 import org.structr.core.function.XPathFunction;
 import org.structr.core.function.XmlFunction;
@@ -284,6 +285,7 @@ public class CoreModule implements StructrModule {
 		Functions.put(true, LicenseManager.Community, "set_locale", new SetLocaleFunction());
 		Functions.put(true, LicenseManager.Community, "date_format", new DateFormatFunction());
 		Functions.put(true, LicenseManager.Community, "parse_date", new ParseDateFunction());
+		Functions.put(true, LicenseManager.Community, "week_days", new WeekDaysFunction());
 		Functions.put(true, LicenseManager.Community, "to_date", new ToDateFunction());
 		Functions.put(true, LicenseManager.Community, "number_format", new NumberFormatFunction());
 		Functions.put(true, LicenseManager.Community, "parse_number", new ParseNumberFunction());
