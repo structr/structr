@@ -175,6 +175,7 @@ public class StringPropertyRestTest extends IndexingTest {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.body(" { 'name': '" + length + "', 'stringProperty' : '" + largeString + "' } ")
 		.expect()
 			.statusCode(expectedStatusCode)

@@ -30,7 +30,7 @@ import org.structr.api.Predicate;
 
 public class Iterables {
 
-	public static <T, C extends Collection<T>> C addAll(C collection, Iterable<? extends T> iterable) {
+	public static <T, C extends Collection<T>> C addAll(final C collection, final Iterable<? extends T> iterable) {
 
 		final Iterator<? extends T> iterator = iterable.iterator();
 
@@ -66,11 +66,11 @@ public class Iterables {
 		return collection;
 	}
 
-	public static int count(Iterable<?> iterable) {
+	public static int count(final Iterable<?> iterable) {
 
 		int c = 0;
 
-		for (Iterator<?> iterator = iterable.iterator(); iterator.hasNext(); iterator.next()) {
+		for (final Iterator<?> iterator = iterable.iterator(); iterator.hasNext(); iterator.next()) {
 			c++;
 		}
 
@@ -123,19 +123,19 @@ public class Iterables {
 		return null;
 	}
 
-	public static <T> Iterable<T> filter(Predicate<? super T> specification, Iterable<T> i) {
+	public static <T> Iterable<T> filter(final Predicate<? super T> specification, Iterable<T> i) {
 		return new FilterIterable<>(i, specification);
 	}
 
-	public static <T> Iterator<T> filter(Predicate<? super T> specification, Iterator<T> i) {
+	public static <T> Iterator<T> filter(final Predicate<? super T> specification, final Iterator<T> i) {
 		return new FilterIterable.FilterIterator<>(i, specification);
 	}
 
-	public static <FROM, TO> Iterable<TO> map(Function<? super FROM, ? extends TO> function, Iterable<FROM> from) {
+	public static <S, T> Iterable<T> map(final Function<? super S, ? extends T> function, final Iterable<S> from) {
 		return new FilterIterable<>(new MapIterable<>(from, function), e -> { return e != null; });
 	}
 
-	public static <T> List<T> toList(Iterable<T> iterable) {
+	public static <T> List<T> toList(final Iterable<T> iterable) {
 
 		if (iterable instanceof List) {
 			return (List<T>)iterable;
@@ -159,31 +159,31 @@ public class Iterables {
 		return list;
 	}
 
-	public static <T> Set<T> toSet(Iterable<T> iterable) {
-		return addAll(new LinkedHashSet<T>(), iterable);
+	public static <T> Set<T> toSet(final Iterable<T> iterable) {
+		return addAll(new LinkedHashSet<>(), iterable);
 	}
 
-	private static class MapIterable<FROM, TO> implements Iterable<TO> {
+	private static class MapIterable<S, T> implements Iterable<T> {
 
-		private final Iterable<FROM> from;
-		private final Function<? super FROM, ? extends TO> function;
+		private final Iterable<S> from;
+		private final Function<? super S, ? extends T> function;
 
-		public MapIterable(final Iterable<FROM> from, Function<? super FROM, ? extends TO> function) {
+		public MapIterable(final Iterable<S> from, Function<? super S, ? extends T> function) {
 			this.from = from;
 			this.function = function;
 		}
 
 		@Override
-		public Iterator<TO> iterator() {
+		public Iterator<T> iterator() {
 			return new MapIterator<>(from.iterator(), function);
 		}
 
-		static class MapIterator<FROM, TO> implements Iterator<TO> {
+		static class MapIterator<S, T> implements Iterator<T> {
 
-			private final Function<? super FROM, ? extends TO> function;
-			private final Iterator<FROM> fromIterator;
+			private final Function<? super S, ? extends T> function;
+			private final Iterator<S> fromIterator;
 
-			public MapIterator(Iterator<FROM> fromIterator, Function<? super FROM, ? extends TO> function) {
+			public MapIterator(Iterator<S> fromIterator, Function<? super S, ? extends T> function) {
 
 				this.fromIterator = fromIterator;
 				this.function     = function;
@@ -195,9 +195,9 @@ public class Iterables {
 			}
 
 			@Override
-			public TO next() {
+			public T next() {
 
-				final FROM from = fromIterator.next();
+				final S from = fromIterator.next();
 				return function.apply(from);
 			}
 
@@ -244,12 +244,12 @@ public class Iterables {
 
 				while (!found && iterator.hasNext()) {
 
-					final T currentValue = iterator.next();
+					final T nextValue = iterator.next();
 
-					if (currentValue != null && specification.accept(currentValue)) {
+					if (nextValue != null && specification.accept(nextValue)) {
 
 						found             = true;
-						this.currentValue = currentValue;
+						this.currentValue = nextValue;
 						nextConsumed      = false;
 					}
 				}
@@ -291,6 +291,7 @@ public class Iterables {
 
 			@Override
 			public void remove() {
+				throw new UnsupportedOperationException("This iterator does not support remooval of elements");
 			}
 		}
 	}

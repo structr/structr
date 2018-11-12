@@ -542,12 +542,31 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 			return new Iterator<T>() {
 
+				@Override
 				public boolean hasNext() {
-					return iterator.hasNext();
+
+					try {
+						return iterator.hasNext();
+
+					} catch (ClientException dex) {
+						throw SessionTransaction.translateClientException(dex);
+					} catch (DatabaseException dex) {
+						throw SessionTransaction.translateDatabaseException(dex);
+					}
 				}
 
+				@Override
 				public T next() {
-					return iterator.next();
+
+					try {
+
+						return iterator.next();
+
+					} catch (ClientException dex) {
+						throw SessionTransaction.translateClientException(dex);
+					} catch (DatabaseException dex) {
+						throw SessionTransaction.translateDatabaseException(dex);
+					}
 				}
 			};
 		}
