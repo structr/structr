@@ -135,6 +135,10 @@ public class Iterables {
 		return new FilterIterable<>(new MapIterable<>(from, function), e -> { return e != null; });
 	}
 
+	public static <T> Iterable<T> flatten(final Iterable<Iterable<T>> source) {
+		return new FlatteningIterable<>(source);
+	}
+
 	public static <T> List<T> toList(final Iterable<T> iterable) {
 
 		if (iterable instanceof List) {
@@ -293,6 +297,50 @@ public class Iterables {
 			public void remove() {
 				throw new UnsupportedOperationException("This iterator does not support remooval of elements");
 			}
+		}
+	}
+
+	private static class FlatteningIterable<T> implements Iterable<T> {
+
+		private Iterator<Iterable<T>> source = null;
+		private Iterator<T> current          = null;
+
+		public FlatteningIterable(final Iterable<Iterable<T>> source) {
+			this.source = source.iterator();
+		}
+
+		@Override
+		public Iterator<T> iterator() {
+
+			return new Iterator<T>() {
+
+				@Override
+				public boolean hasNext() {
+
+					if (current == null || !current.hasNext()) {
+
+						// fetch more?
+						if (source.hasNext()) {
+
+							current = source.next().iterator();
+
+							// does the next result have elements?
+							if (!current.hasNext()) {
+
+								// no more elements
+								return false;
+							}
+						}
+					}
+
+					return current != null && current.hasNext();
+				}
+
+				@Override
+				public T next() {
+					return current.next();
+				}
+			};
 		}
 	}
 }

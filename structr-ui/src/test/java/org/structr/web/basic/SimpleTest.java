@@ -470,7 +470,7 @@ public class SimpleTest extends StructrUiTest {
 			long t1 = System.currentTimeMillis();
 			long duration = t1 - t0;
 
-			assertTrue("Iteration of 100 nodes via getNextSibling should not take longer than 50ms, took " + duration + "!", duration < 50);
+			assertTrue("Iteration of 100 nodes via getNextSibling should not take longer than 100ms, took " + duration + "!", duration < 100);
 
 			tx.success();
 

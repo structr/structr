@@ -65,8 +65,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 			final Iterable<Map<String, Object>> result = graphDb.execute(query, parameters != null ? parameters : Collections.emptyMap());
 			final Iterable<Iterable<GraphObject>> test = extractRows(result, includeHiddenAndDeleted, publicOnly);
 
-			// test?
-			return com.google.common.collect.Iterables.concat(test);
+			return Iterables.flatten(test);
 		}
 
 		return Collections.emptyList();
