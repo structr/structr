@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt.wrapper;
+package org.structr.api.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,12 +24,12 @@ import org.structr.api.RetryException;
 
 import java.util.function.Supplier;
 
-public abstract class WrapperUtility {
+public abstract class RetryWrapper {
 	private static final int maxRetries = 20;
 	private static final int retryDelay = 100;
 	private static final int firstRetryDelay = 10;
 
-	private static final Logger logger = LoggerFactory.getLogger(WrapperUtility.class);
+	private static final Logger logger = LoggerFactory.getLogger(RetryWrapper.class);
 
 	// ---- public static methods ----
 	public static  <T> T executeWithRetry(Supplier<T> supplier) {
@@ -44,7 +44,7 @@ public abstract class WrapperUtility {
 
 			} catch (RetryException ex) {
 
-				logger.info("Caught TransientException in executeWithRetry. Waiting " + (retries > 0 ? retryDelay : firstRetryDelay) + " ms and then performing retry #" + retries);
+				logger.info("Caught RetryException in executeWithRetry. Waiting " + (retries > 0 ? retryDelay : firstRetryDelay) + " ms and then performing retry #" + retries);
 
 				try {
 
