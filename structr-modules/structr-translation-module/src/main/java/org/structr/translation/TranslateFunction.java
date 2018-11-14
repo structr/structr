@@ -23,13 +23,17 @@ import com.google.cloud.translate.Translate.TranslateOption;
 import com.google.cloud.translate.TranslateException;
 import com.google.cloud.translate.TranslateOptions;
 import com.google.cloud.translate.Translation;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.UiFunction;
 
 public class TranslateFunction extends UiFunction {
 
-	public static final String ERROR_MESSAGE_TRANSLATE    = "Usage: ${translate(text, sourceLanguage, targetLanguage)}. Example: ${translate(\"Hello world!\", \"en\", \"ru\")}";
-	public static final String ERROR_MESSAGE_TRANSLATE_JS = "Usage: ${{Structr.translate(text, sourceLanguage, targetLanguage)}}. Example: ${{Structr.translate(\"Hello world!\", \"en\", \"ru\"))}";
+	public static final String ERROR_MESSAGE_TRANSLATE    = "Usage: ${translate(text, sourceLanguage, targetLanguage[, translationProvider])}. Supported translation providers: google, deepl. Example: ${translate(\"Hello world!\", \"en\", \"ru\", \"deepl\")}";
+	public static final String ERROR_MESSAGE_TRANSLATE_JS = "Usage: ${{Structr.translate(text, sourceLanguage, targetLanguage[, translationProvider])}}. Supported translation providers: google, deepl. Example: ${{Structr.translate(\"Hello world!\", \"en\", \"ru\", \"deepl\"))}";
 
 	@Override
 	public String getName() {
@@ -40,30 +44,63 @@ public class TranslateFunction extends UiFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		try {
-			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 3);
 
 			try {
-
-				final String gctAPIKey = TranslationModule.TranslationAPIKey.getValue();
-
-				if (gctAPIKey == null) {
-					logger.error("Google Cloud Translation API Key not configured in structr.conf");
-					return "";
-				}
 
 				final String text = sources[0].toString();
 				final String sourceLanguage = sources[1].toString();
 				final String targetLanguage = sources[2].toString();
 
-				final Translate translate = TranslateOptions.builder().apiKey(gctAPIKey).build().service();
+				// default is google
+				String translationProvider = "google";
+				
+				if (sources.length == 4 && sources[3] instanceof String) {
+					translationProvider = (String) sources[3];
+				}
+				
+				switch (translationProvider) {
+					
+					case "google": {
+						final String gctAPIKey = TranslationModule.TranslationGoogleAPIKey.getValue();
 
-				Translation translation = translate.translate(
-					text,
-					TranslateOption.sourceLanguage(sourceLanguage),
-					TranslateOption.targetLanguage(targetLanguage)
-				);
+						if (gctAPIKey == null) {
+							logger.error("Google Cloud Translation API Key not configured in structr.conf");
+							return "";
+						}
+						
 
-				return translation.translatedText();
+						final Translate translate = TranslateOptions.builder().apiKey(gctAPIKey).build().service();
+
+						Translation translation = translate.translate(
+							text,
+							TranslateOption.sourceLanguage(sourceLanguage),
+							TranslateOption.targetLanguage(targetLanguage)
+						);
+
+						return translation.translatedText();
+					}	
+					case "deepl": {	
+						final String deeplAPIKey = TranslationModule.TranslationDeepLAPIKey.getValue();
+
+						if (deeplAPIKey == null) {
+							logger.error("DeepL Translation API Key not configured in structr.conf");
+							return "";
+						}
+						
+						final String response = HttpHelper.get("https://api.deepl.com/v2/translate?text=" + encodeURL(text) + "&source_lang=" + sourceLanguage.toUpperCase() + "&target_lang=" + targetLanguage.toUpperCase() + "&auth_key=" + deeplAPIKey);
+
+						final JsonObject resultObject = new JsonParser().parse(response).getAsJsonObject();
+						final JsonArray translations = (JsonArray) resultObject.getAsJsonArray("translations");
+						
+						if (translations.size() > 0) {
+							final JsonObject translation = translations.get(0).getAsJsonObject();
+							return translation.get("text").getAsString();
+						}
+					}
+				}
+				
+
 
 			} catch (TranslateException te) {
 
@@ -90,6 +127,6 @@ public class TranslateFunction extends UiFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Translates the given string from the source language to the target language";
+		return "Translates the given string from the source language to the target language.";
 	}
 }
