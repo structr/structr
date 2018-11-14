@@ -105,14 +105,8 @@ var _Crud = {
 			}
 		});
 	}),
-	getProperties: function(type, callback) {
-
-		// We need at least the type to do anything
-		if (type === null) {
-			return;
-		}
-
-		var url = rootUrl + '_schema/' + type + '/' + defaultView;
+	addSchemaProperties: function(type, view, properties, callback) {
+		let url = rootUrl + '_schema/' + type + '/' + view;
 		$.ajax({
 			url: url,
 			dataType: 'json',
@@ -123,20 +117,19 @@ var _Crud = {
 					// no schema entry found?
 					if (!data || !data.result || data.result_count === 0) {
 
-						new MessageBuilder().warning("Unable to find schema information for type '" + type + "'. There might be database nodes with no type information or a type unknown to Structr in the database.").show();
-
+						//
+						
 					} else {
 
-						var properties = {};
 						data.result.forEach(function(prop) {
 							properties[prop.jsonName] = prop;
 						});
 
 						_Crud.keys[type] = properties;
-
-						if (callback) {
-							callback(type, properties);
-						}
+					}
+					
+					if (callback) {
+						callback();
 					}
 				},
 				400: function(data) {
@@ -158,8 +151,130 @@ var _Crud = {
 			error:function () {
 				console.log("ERROR: loading Schema " + type);
 			}
+		});		
+	},
+	getProperties: function(type, callback) {
 
+		// We need at least the type to do anything
+		if (type === null) {
+			return;
+		}
+		let properties = {};
+		_Crud.addSchemaProperties(type, 'public', properties, function() {
+			_Crud.addSchemaProperties(type, 'custom', properties, function() {
+				_Crud.addSchemaProperties(type, 'all', properties, function() {
+					
+					if (Object.keys(properties).length === 0) {
+						new MessageBuilder().warning("Unable to find schema information for type '" + type + "'. There might be database nodes with no type information or a type unknown to Structr in the database.").show();
+					} else {
+					
+						if (callback) {
+							callback(type, properties);
+						}
+					}
+				});
+			});
 		});
+		
+//
+//		var url = rootUrl + '_schema/' + type + '/custom';
+//		
+//		$.ajax({
+//			url: url,
+//			dataType: 'json',
+//			contentType: 'application/json; charset=utf-8',
+//			statusCode: {
+//				200: function(data) {
+//
+//					// no schema entry found?
+//					if (!data || !data.result || data.result_count === 0) {
+//
+//						new MessageBuilder().warning("Unable to find schema information for type '" + type + "'. There might be database nodes with no type information or a type unknown to Structr in the database.").show();
+//
+//					} else {
+//
+//						var properties = {};
+//						data.result.forEach(function(prop) {
+//							properties[prop.jsonName] = prop;
+//						});
+//
+//						_Crud.keys[type] = properties;
+//
+//
+//		
+////						if (callback) {
+////							callback(type, properties);
+////						}
+//					}
+//				},
+//				400: function(data) {
+//					Structr.errorFromResponse(data.responseJSON, url);
+//				},
+//				401: function(data) {
+//					Structr.errorFromResponse(data.responseJSON, url);
+//				},
+//				403: function(data) {
+//					Structr.errorFromResponse(data.responseJSON, url);
+//				},
+//				404: function(data) {
+//					Structr.errorFromResponse(data.responseJSON, url);
+//				},
+//				422: function(data) {
+//					Structr.errorFromResponse(data.responseJSON, url);
+//				}
+//			},
+//			error:function () {
+//				console.log("ERROR: loading Schema " + type);
+//			}
+//		});
+
+//		var url = rootUrl + '_schema/' + type + '/' + defaultView;
+//		$.ajax({
+//			url: url,
+//			dataType: 'json',
+//			contentType: 'application/json; charset=utf-8',
+//			statusCode: {
+//				200: function(data) {
+//
+//					// no schema entry found?
+//					if (!data || !data.result || data.result_count === 0) {
+//
+//						new MessageBuilder().warning("Unable to find schema information for type '" + type + "'. There might be database nodes with no type information or a type unknown to Structr in the database.").show();
+//
+//					} else {
+//
+//						var properties = {};
+//						data.result.forEach(function(prop) {
+//							properties[prop.jsonName] = prop;
+//						});
+//
+//						_Crud.keys[type] = properties;
+//
+//						if (callback) {
+//							callback(type, properties);
+//						}
+//					}
+//				},
+//				400: function(data) {
+//					Structr.errorFromResponse(data.responseJSON, url);
+//				},
+//				401: function(data) {
+//					Structr.errorFromResponse(data.responseJSON, url);
+//				},
+//				403: function(data) {
+//					Structr.errorFromResponse(data.responseJSON, url);
+//				},
+//				404: function(data) {
+//					Structr.errorFromResponse(data.responseJSON, url);
+//				},
+//				422: function(data) {
+//					Structr.errorFromResponse(data.responseJSON, url);
+//				}
+//			},
+//			error:function () {
+//				console.log("ERROR: loading Schema " + type);
+//			}
+//		});
 
 	},
 	type: null,
@@ -971,6 +1086,10 @@ var _Crud = {
 		_Crud.showLoadingMessageAfterDelay('Loading data for type <b>' + type + '</b>', 100);
 
 		var hiddenKeys             = _Crud.getHiddenKeys(type);
+		
+		// 'id' attribute is mandatory for request
+		hiddenKeys.splice(hiddenKeys.indexOf('id'));
+		
 		var acceptHeaderProperties = Object.keys(properties).filter(function(key) { return !hiddenKeys.includes(key); }).join(',');
 
 		$.ajax({
@@ -2664,95 +2783,111 @@ var _Crud = {
 			if (_Crud.isPrincipalType(_Crud.types[type])) {
 
 				// hidden keys for Principal types
-				Object.keys(_Crud.keys[type]).forEach(function(key) {
-					switch (key) {
-						case 'isUser':
-						case 'isAdmin':
-						case 'createdBy':
-						case 'sessionIds':
-						case 'publicKeys':
-						case 'sessionData':
-						case 'password':
-						case 'passwordChangeDate':
-						case 'salt':
-						case 'twoFactorSecret':
-						case 'twoFactorToken':
-						case 'isTwoFactorUser':
-						case 'twoFactorConfirmed':
-						case 'ownedNodes':
-						case 'localStorage':
-						case 'customPermissionQueryAccessControl':
-						case 'customPermissionQueryDelete':
-						case 'customPermissionQueryRead':
-						case 'customPermissionQueryWrite':
-							hiddenKeys.push(key);
-							break;
+				[
+					'isUser',
+					'isAdmin',
+					'createdBy',
+					'sessionIds',
+					'publicKeys',
+					'sessionData',
+					'password',
+					'passwordChangeDate',
+					'salt',
+					'twoFactorSecret',
+					'twoFactorToken',
+					'isTwoFactorUser',
+					'twoFactorConfirmed',
+					'ownedNodes',
+					'localStorage',
+					'customPermissionQueryAccessControl',
+					'customPermissionQueryDelete',
+					'customPermissionQueryRead',
+					'customPermissionQueryWrite'].forEach(function(key) {
+					if (hiddenKeys.indexOf(key) === -1) {
+						hiddenKeys.push(key);
 					}
 				});
 
-			} else if (_Crud.isImageType(_Crud.types[type])) {
+			}
+			
+			if (_Crud.isImageType(_Crud.types[type])) {
 
 				// hidden keys for Image types
-				Object.keys(_Crud.keys[type]).forEach(function(key) {
-					switch (key) {
-						case 'base64Data':
-						case 'image64Data':
-						case 'favoriteContent':
-						case 'favoriteContext':
-						case 'favoriteUsers':
-						case 'resultDocumentForExporter':
-						case 'documentTemplateForExporter':
-						case 'isFile':
-						case 'position':
-						case 'extractedContent':
-						case 'indexedWords':
-						case 'minificationTargets':
-						case 'fileModificationDate':
-							hiddenKeys.push(key);
-							break;
+				[
+					'base64Data',
+					'imageData',
+					'favoriteContent',
+					'favoriteContext',
+					'favoriteUsers',
+					'resultDocumentForExporter',
+					'documentTemplateForExporter',
+					'isFile',
+					'position',
+					'extractedContent',
+					'indexedWords',
+					'minificationTargets',
+					'fileModificationDate'].forEach(function(key) {
+					if (hiddenKeys.indexOf(key) === -1) {
+						hiddenKeys.push(key);
 					}
 				});
 
-			} else if (_Crud.isFileType(_Crud.types[type])) {
+			}
+			
+			if (_Crud.isFileType(_Crud.types[type])) {
 
 				// hidden keys for File types
-				Object.keys(_Crud.keys[type]).forEach(function(key) {
-					switch (key) {
-						case 'base64Data':
-						case 'favoriteContent':
-						case 'favoriteContext':
-						case 'favoriteUsers':
-						case 'resultDocumentForExporter':
-						case 'documentTemplateForExporter':
-						case 'isFile':
-						case 'position':
-						case 'extractedContent':
-						case 'indexedWords':
-						case 'minificationTargets':
-						case 'fileModificationDate':
-							hiddenKeys.push(key);
-							break;
+				[
+					'base64Data',
+					'favoriteContent',
+					'favoriteContext',
+					'favoriteUsers',
+					'relationshipId',
+					'resultDocumentForExporter',
+					'documentTemplateForExporter',
+					'isFile',
+					'position',
+					'extractedContent',
+					'indexedWords',
+					'minificationTargets',
+					'fileModificationDate',
+					'nextSiblingId'
+				].forEach(function(key) {
+					if (hiddenKeys.indexOf(key) === -1) {
+						hiddenKeys.push(key);
 					}
 				});
 			}
 		}
 
-		['internalEntityContextPath', 'grantees'].forEach(function (alwaysHiddenProperty) {
-			if (hiddenKeys.indexOf(alwaysHiddenProperty) === -1) {
-				hiddenKeys.push(alwaysHiddenProperty);
+		// hidden keys for all types
+		[
+			'base',
+			'createdBy',
+			'lastModifiedBy',
+			'ownerId',
+			'hidden',
+			'internalEntityContextPath',
+			'grantees'
+		].forEach(function(key) {
+			if (hiddenKeys.indexOf(key) === -1) {
+				hiddenKeys.push(key);
 			}
 		});
 
 		return hiddenKeys;
 	},
 	isPrincipalType: function (typeDef) {
-		return _Crud.inheritsFromAncestorType(typeDef, 'org.structr.dynamic.Principal');
+		let cls = 'org.structr.dynamic.Principal';
+		return typeDef.className === cls || _Crud.inheritsFromAncestorType(typeDef, cls);
 	},
 	isFileType: function (typeDef) {
-		return _Crud.inheritsFromAncestorType(typeDef, 'org.structr.dynamic.AbstractFile');
+		let cls = 'org.structr.dynamic.AbstractFile';
+		return typeDef.className === cls || _Crud.inheritsFromAncestorType(typeDef, cls);
 	},
 	isImageType: function (typeDef) {
-		return _Crud.inheritsFromAncestorType(typeDef, 'org.structr.dynamic.Image');
+		let cls = 'org.structr.dynamic.Image';
+		return typeDef.className === cls || _Crud.inheritsFromAncestorType(typeDef, cls);
 	},
 	inheritsFromAncestorType: function (typeDef, ancestorFQCN) {
 
@@ -2781,6 +2916,8 @@ var _Crud = {
 		if (!sourceArray) {
 			return;
 		}
+
+		//### TODO: Sort by order of views: public -> custom -> ui ...
 
 		return sourceArray.filter(function(key) {
 			return !(hiddenKeys.includes(key));
