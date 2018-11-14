@@ -21,7 +21,6 @@ package org.structr.core.entity;
 import java.net.URI;
 import org.structr.api.Predicate;
 import org.structr.common.ConstantBooleanTrue;
-import org.structr.common.ContextAwareEntity;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -51,7 +50,7 @@ public interface Favoritable extends NodeInterface {
 		type.addCustomProperty("favoriteContext",    FavoriteContextProperty.class.getName(),      "fav").setTypeHint("String");
 
 		// add relationshipId to public and fav view
-		type.addFunctionProperty("relationshipId", "fav").setReadFunction("this._path.id").setTypeHint("String");
+		type.addFunctionProperty("relationshipId", "fav").setReadFunction("this._path.id").setTypeHint("String").setReadOnly(true);
 
 		type.addViewProperty("fav", "id");
 		type.addViewProperty("fav", "name");
