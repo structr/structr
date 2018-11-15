@@ -66,6 +66,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.GenericProperty;
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
@@ -590,16 +591,25 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				registerProperty(type, propertyKey);
 			}
 
-			for (Map.Entry<Field, View> entry : views.entrySet()) {
+			for (final Map.Entry<Field, View> entry : views.entrySet()) {
 
 				final Field field = entry.getKey();
 				final View view = entry.getValue();
 
-				for (PropertyKey propertyKey : view.properties()) {
+				for (final PropertyKey propertyKey : view.properties()) {
 
 					// register field in view for entity class and declaring superclass
 					registerPropertySet(field.getDeclaringClass(), view.name(), propertyKey);
 					registerPropertySet(type, view.name(), propertyKey);
+					
+					// replace field in any other view of this type (not superclass!)
+					for (final Map.Entry<Field, View> other : views.entrySet()) {
+						for (final Property property : other.getValue().properties()) {
+							if (propertyKey.jsonName().equals(property.jsonName())) {
+								registerPropertySet(type, other.getValue().name(), propertyKey);
+							}
+						}
+					}
 				}
 			}
 
@@ -839,7 +849,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		// allow properties to override existing ones as they
 		// are most likely from a more concrete class.
 		for (final PropertyKey key : propertySet) {
-
+			
 			// property keys are referenced by their names,
 			// that's why we seemingly remove the existing
 			// key, but the set does not differentiate

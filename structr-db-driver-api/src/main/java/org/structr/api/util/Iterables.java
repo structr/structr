@@ -171,6 +171,7 @@ public class Iterables {
 
 		private final Iterable<S> from;
 		private final Function<? super S, ? extends T> function;
+		private Iterator<T> iterator = null;
 
 		public MapIterable(final Iterable<S> from, Function<? super S, ? extends T> function) {
 			this.from = from;
@@ -179,7 +180,12 @@ public class Iterables {
 
 		@Override
 		public Iterator<T> iterator() {
-			return new MapIterator<>(from.iterator(), function);
+
+			if (iterator == null) {
+				iterator = new MapIterator<>(from.iterator(), function);
+			}
+
+			return iterator;
 		}
 
 		static class MapIterator<S, T> implements Iterator<T> {
@@ -216,6 +222,7 @@ public class Iterables {
 
 		private final Predicate<? super T> specification;
 		private final Iterable<T> iterable;
+		private Iterator<T> iterator = null;
 
 		public FilterIterable(Iterable<T> iterable, Predicate<? super T> specification) {
 
@@ -225,7 +232,12 @@ public class Iterables {
 
 		@Override
 		public Iterator<T> iterator() {
-			return new FilterIterator<>(iterable.iterator(), specification);
+
+			if (iterator == null) {
+				iterator = new FilterIterator<>(iterable.iterator(), specification);
+			}
+
+			return iterator;
 		}
 
 		static class FilterIterator<T> implements Iterator<T> {
@@ -304,6 +316,7 @@ public class Iterables {
 
 		private Iterator<Iterable<T>> source = null;
 		private Iterator<T> current          = null;
+		private Iterator<T> iterator         = null;
 
 		public FlatteningIterable(final Iterable<Iterable<T>> source) {
 			this.source = source.iterator();
@@ -312,35 +325,40 @@ public class Iterables {
 		@Override
 		public Iterator<T> iterator() {
 
-			return new Iterator<T>() {
+			if (iterator == null) {
 
-				@Override
-				public boolean hasNext() {
+				iterator = new Iterator<T>() {
 
-					if (current == null || !current.hasNext()) {
+					@Override
+					public boolean hasNext() {
 
-						// fetch more?
-						if (source.hasNext()) {
+						if (current == null || !current.hasNext()) {
 
-							current = source.next().iterator();
+							// fetch more?
+							if (source.hasNext()) {
 
-							// does the next result have elements?
-							if (!current.hasNext()) {
+								current = source.next().iterator();
 
-								// no more elements
-								return false;
+								// does the next result have elements?
+								if (!current.hasNext()) {
+
+									// no more elements
+									return false;
+								}
 							}
 						}
+
+						return current != null && current.hasNext();
 					}
 
-					return current != null && current.hasNext();
-				}
+					@Override
+					public T next() {
+						return current.next();
+					}
+				};
+			}
 
-				@Override
-				public T next() {
-					return current.next();
-				}
-			};
+			return iterator;
 		}
 	}
 }
