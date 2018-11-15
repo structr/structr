@@ -117,18 +117,6 @@ public class Scripting {
 		} else {
 
 			value = rawValue.toString();
-
-		}
-
-		if (Functions.NULL_STRING.equals(value)) {
-
-			// return literal null for a single ___NULL___
-			return null;
-
-		} else {
-
-			// Replace ___NULL___ by empty string
-			value = StringUtils.replaceAll(value, Functions.NULL_STRING, "");
 		}
 
 		return value;
