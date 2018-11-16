@@ -147,7 +147,7 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 			viewNames.add(View.INTERNAL_GRAPH_VIEW);
 			viewNames.add(PropertyView.All);
 
-			for (final SchemaView view : node.getProperty(schemaViews)) {
+			for (final SchemaView view : StructrApp.getInstance().getNodeById(node.getUuid()).getProperty(schemaViews)) {
 				viewNames.add(view.getProperty(AbstractNode.name));
 			}
 			// determine runtime type
@@ -192,6 +192,8 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 							new NodeAttribute(SchemaView.schemaProperties, properties),
 							new NodeAttribute(SchemaView.isBuiltinView, true)
 						);
+						
+						System.out.println("Added view " + view + " to schema node " + node.getName() + " (" + node.getUuid());
 					}
 				}
 			}
