@@ -493,8 +493,8 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("${id} should be equal to ${current.id}", "true", Scripting.replaceVariables(ctx, p1, "${equal(id, current.id)}"));
 			assertEquals("${element} should evaluate to the current DOM node", p1.toString(), Scripting.replaceVariables(ctx, p1, "${element}"));
 
-			assertNull(Scripting.replaceVariables(ctx, p1, "${if(true, null, \"no\")}"));
-			assertNull(Scripting.replaceVariables(ctx, p1, "${null}"));
+			assertEquals("", Scripting.replaceVariables(ctx, p1, "${if(true, null, \"no\")}"));
+			assertEquals("", Scripting.replaceVariables(ctx, p1, "${null}"));
 
 			assertEquals("Invalid replacement result", "/testpage?" + page.getUuid(), Scripting.replaceVariables(ctx, p1, "/${page.name}?${page.id}"));
 			assertEquals("Invalid replacement result", "/testpage?" + page.getUuid(), Scripting.replaceVariables(ctx, a, "/${link.name}?${link.id}"));

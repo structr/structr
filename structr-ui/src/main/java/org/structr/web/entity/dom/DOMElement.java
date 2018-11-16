@@ -552,7 +552,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					value = escapeForHtmlAttributes(value);
 				}
 
-				if (value != null) {
+				if (StringUtils.isNotBlank(value)) {
 
 					String key = attribute.jsonName().substring(PropertyView.Html.length());
 
