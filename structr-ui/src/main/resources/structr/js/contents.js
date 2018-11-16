@@ -612,176 +612,179 @@ var _Contents = {
 
 			Command.query('SchemaNode', 1, 1, 'name', 'asc', { name: entity.type }, function(schemaNodes) {
 
-				schemaNodes[0].schemaProperties.reverse().forEach(function(prop) {
+				_Contents.sortBySchemaOrder(entity.type, 'custom', schemaNodes[0].schemaProperties, function(props) {
 
-					dialogText.append('<div id="prop-' + prop.id + '" class="prop"><label for="' + prop.id + '"><h3>' + formatKey(prop.name) + '</h3></label></div>');
-					var div = $('#prop-' + prop.id);
+					props.forEach(function(prop) {
+
+						dialogText.append('<div id="prop-' + prop.id + '" class="prop"><label for="' + prop.id + '"><h3>' + formatKey(prop.name) + '</h3></label></div>');
+						var div = $('#prop-' + prop.id);
 
 
-					var key = prop.name;
-					var isReadOnly = typeInfo[key].isReadOnly;
-					var isSystem   = typeInfo[key].system;
-					//var isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
+						var key = prop.name;
+						var isReadOnly = typeInfo[key].isReadOnly;
+						var isSystem   = typeInfo[key].system;
+						//var isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
 
-					var oldVal = entity[key];
+						var oldVal = entity[key];
 
-					if (prop.propertyType === 'Boolean') {
+						if (prop.propertyType === 'Boolean') {
 
-						div.removeClass('value').append('<div class="value-container"><input type="checkbox" class="' + key + '_"></div>');
-						var checkbox = div.find('input[type="checkbox"].' + key + '_');
-						Command.getProperty(entity.id, key, function(val) {
-							if (val) {
-								checkbox.prop('checked', true);
-							}
-							if ((!isReadOnly || isAdmin) && !isSystem) {
-								checkbox.on('change', function() {
-									var checked = checkbox.prop('checked');
-									_Contents.checkValueHasChanged(oldVal, checked || false, [dialogSaveButton, saveAndClose]);
-								});
-							} else {
-								checkbox.prop('disabled', 'disabled');
-								checkbox.addClass('readOnly');
-								checkbox.addClass('disabled');
-							}
-						});
-					} else if (prop.propertyType === 'Date' && !isReadOnly) {
-
-						$.get(rootUrl + '_schema/' + entity.type + '/ui', function(data) {
-
-							var typeInfo = data.result.filter(function(obj) { return obj.jsonName === prop.name; })[0];
-
-							//console.log(typeInfo.format);
-							div.append('<div class="value-container"></div>');
-							_Entities.appendDatePicker($('.value-container', div), entity, prop.name, typeInfo.format);
-							var valueInput = $('.value-container input', div);
-							valueInput.on('change', function(e) {
-								if (e.keyCode !== 27) {
-									Command.get(entity.id, prop.name, function(newEntity) {
-										_Contents.checkValueHasChanged(newEntity[prop.name], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
+							div.removeClass('value').append('<div class="value-container"><input type="checkbox" class="' + key + '_"></div>');
+							var checkbox = div.find('input[type="checkbox"].' + key + '_');
+							Command.getProperty(entity.id, key, function(val) {
+								if (val) {
+									checkbox.prop('checked', true);
+								}
+								if ((!isReadOnly || isAdmin) && !isSystem) {
+									checkbox.on('change', function() {
+										var checked = checkbox.prop('checked');
+										_Contents.checkValueHasChanged(oldVal, checked || false, [dialogSaveButton, saveAndClose]);
 									});
+								} else {
+									checkbox.prop('disabled', 'disabled');
+									checkbox.addClass('readOnly');
+									checkbox.addClass('disabled');
 								}
 							});
-						});
+						} else if (prop.propertyType === 'Date' && !isReadOnly) {
 
-					} else {
+							$.get(rootUrl + '_schema/' + entity.type + '/ui', function(data) {
 
-						if (prop.contentType && prop.contentType === 'text/html') {
-							div.append('<div class="value-container edit-area">' + (oldVal || '') + '</div>');
-							var editArea = $('.edit-area', div);
-							editArea.trumbowyg({
-								//btns: ['strong', 'em', '|', 'insertImage'],
-								//autogrow: true
-							}).on('tbwchange', function() {
-								Command.get(entity.id, prop.name, function(newEntity) {
-									_Contents.checkValueHasChanged(newEntity[prop.name], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
-								});
-							}).on('tbwpaste', function() {
-								Command.get(entity.id, prop.name, function(newEntity) {
-									_Contents.checkValueHasChanged(newEntity[prop.name], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
+								var typeInfo = data.result.filter(function(obj) { return obj.jsonName === prop.name; })[0];
+
+								//console.log(typeInfo.format);
+								div.append('<div class="value-container"></div>');
+								_Entities.appendDatePicker($('.value-container', div), entity, prop.name, typeInfo.format);
+								var valueInput = $('.value-container input', div);
+								valueInput.on('change', function(e) {
+									if (e.keyCode !== 27) {
+										Command.get(entity.id, prop.name, function(newEntity) {
+											_Contents.checkValueHasChanged(newEntity[prop.name], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
+										});
+									}
 								});
 							});
 
 						} else {
-							div.append('<div class="value-container"><input value="' + (oldVal || '') + '">');
-							var valueInput = $('.value-container input', div);
-							valueInput.on('keyup', function(e) {
 
-								if (e.keyCode !== 27) {
+							if (prop.contentType && prop.contentType === 'text/html') {
+								div.append('<div class="value-container edit-area">' + (oldVal || '') + '</div>');
+								var editArea = $('.edit-area', div);
+								editArea.trumbowyg({
+									//btns: ['strong', 'em', '|', 'insertImage'],
+									//autogrow: true
+								}).on('tbwchange', function() {
 									Command.get(entity.id, prop.name, function(newEntity) {
-										_Contents.checkValueHasChanged(newEntity[prop.name], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
+										_Contents.checkValueHasChanged(newEntity[prop.name], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
 									});
-								}
-							});
-						}
-					}
-				});
-
-				schemaNodes[0].relatedTo.reverse().forEach(function(prop) {
-
-					var key = prop.targetJsonName;
-
-					var type = typeInfo[key].type;
-					var isRelated    = false;
-					var isCollection = false;
-
-					if (type) {
-						isRelated = typeInfo[key].relatedType;
-						if (isRelated) {
-							isCollection = typeInfo[key].isCollection;
-						}
-					}
-
-					if (isRelated) {
-
-						dialogText.append('<div id="prop-' + prop.id + '" class="prop"><label for="' + prop.id + '"><h3>' + formatKey(key) + '</h3></label><i class="add ' + _Icons.getFullSpriteClass(_Icons._Icons.add_grey_icon) + '" /><div class="related-nodes"></div></div>');
-						var div = $('#prop-' + prop.id);
-						div.prepend();
-						div.children('.add').on('click', function() {
-							Structr.dialog('Add ' + typeInfo[key].type, function() {
-							}, function() {
-								_Contents.editItem(item);
-							});
-							_Entities.displaySearch(entity.id, key, typeInfo[key].type, dialogText, isCollection);
-						});
-
-						if (entity[key]) {
-
-							var relatedNodes = $('.related-nodes', div);
-
-							if (!isCollection) {
-
-								var nodeId = entity[key].id || entity[key];
-
-								Command.get(nodeId, "id,type,tag,isContent,content,name", function(node) {
-
-									_Entities.appendRelatedNode(relatedNodes, node, function(nodeEl) {
-
-										$('.remove', nodeEl).on('click', function(e) {
-											e.preventDefault();
-											_Entities.setProperty(entity.id, key, null, false, function(newVal) {
-												if (!newVal) {
-													blinkGreen(relatedNodes);
-													Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
-													nodeEl.remove();
-												} else {
-													blinkRed(relatedNodes);
-												}
-											});
-											return false;
-										});
-
+								}).on('tbwpaste', function() {
+									Command.get(entity.id, prop.name, function(newEntity) {
+										_Contents.checkValueHasChanged(newEntity[prop.name], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
 									});
-
 								});
 
 							} else {
+								div.append('<div class="value-container"><input value="' + (oldVal || '') + '">');
+								var valueInput = $('.value-container input', div);
+								valueInput.on('keyup', function(e) {
 
-								entity[key].forEach(function(obj) {
+									if (e.keyCode !== 27) {
+										Command.get(entity.id, prop.name, function(newEntity) {
+											_Contents.checkValueHasChanged(newEntity[prop.name], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
+										});
+									}
+								});
+							}
+						}
+					});
 
-									var nodeId = obj.id || obj;
+					schemaNodes[0].relatedTo.reverse().forEach(function(prop) {
+
+						var key = prop.targetJsonName;
+
+						var type = typeInfo[key].type;
+						var isRelated    = false;
+						var isCollection = false;
+
+						if (type) {
+							isRelated = typeInfo[key].relatedType;
+							if (isRelated) {
+								isCollection = typeInfo[key].isCollection;
+							}
+						}
+
+						if (isRelated) {
+
+							dialogText.append('<div id="prop-' + prop.id + '" class="prop"><label for="' + prop.id + '"><h3>' + formatKey(key) + '</h3></label><i class="add ' + _Icons.getFullSpriteClass(_Icons._Icons.add_grey_icon) + '" /><div class="related-nodes"></div></div>');
+							var div = $('#prop-' + prop.id);
+							div.prepend();
+							div.children('.add').on('click', function() {
+								Structr.dialog('Add ' + typeInfo[key].type, function() {
+								}, function() {
+									_Contents.editItem(item);
+								});
+								_Entities.displaySearch(entity.id, key, typeInfo[key].type, dialogText, isCollection);
+							});
+
+							if (entity[key]) {
+
+								var relatedNodes = $('.related-nodes', div);
+
+								if (!isCollection) {
+
+									var nodeId = entity[key].id || entity[key];
 
 									Command.get(nodeId, "id,type,tag,isContent,content,name", function(node) {
 
 										_Entities.appendRelatedNode(relatedNodes, node, function(nodeEl) {
+
 											$('.remove', nodeEl).on('click', function(e) {
 												e.preventDefault();
-												Command.removeFromCollection(entity.id, key, node.id, function() {
-													var nodeEl = $('._' + node.id, relatedNodes);
-													nodeEl.remove();
-													blinkGreen(relatedNodes);
-													Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
+												_Entities.setProperty(entity.id, key, null, false, function(newVal) {
+													if (!newVal) {
+														blinkGreen(relatedNodes);
+														Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
+														nodeEl.remove();
+													} else {
+														blinkRed(relatedNodes);
+													}
 												});
 												return false;
 											});
+
 										});
+
 									});
 
-								});
+								} else {
+
+									entity[key].forEach(function(obj) {
+
+										var nodeId = obj.id || obj;
+
+										Command.get(nodeId, "id,type,tag,isContent,content,name", function(node) {
+
+											_Entities.appendRelatedNode(relatedNodes, node, function(nodeEl) {
+												$('.remove', nodeEl).on('click', function(e) {
+													e.preventDefault();
+													Command.removeFromCollection(entity.id, key, node.id, function() {
+														var nodeEl = $('._' + node.id, relatedNodes);
+														nodeEl.remove();
+														blinkGreen(relatedNodes);
+														Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
+													});
+													return false;
+												});
+											});
+										});
+
+									});
+
+								}
 
 							}
-
 						}
-					}
+					});
 				});
 
 			}, true);
@@ -851,6 +854,63 @@ var _Contents = {
 
 		});
 
+	},
+	sortBySchemaOrder: function(type, view, properties, callback) {
+		
+		let url = rootUrl + '_schema/' + type + '/' + view;
+		$.ajax({
+			url: url,
+			dataType: 'json',
+			contentType: 'application/json; charset=utf-8',
+			statusCode: {
+				200: function(data) {
+
+					// no schema entry found?
+					if (!data || !data.result || data.result_count === 0) {
+
+						//
+
+					} else {
+
+						let sortedProperties = [];
+
+						data.result.forEach(function(prop) {
+							sortedProperties.push(prop.jsonName);
+						});
+
+						console.log(sortedProperties, properties);
+
+						properties.sort(function(a, b) {
+							return sortedProperties.indexOf(a.name) - sortedProperties.indexOf(b.name);
+						});
+
+						console.log(properties);
+					}
+
+					if (callback) {
+						callback(properties);
+					}
+				},
+				400: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url);
+				},
+				401: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url);
+				},
+				403: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url);
+				},
+				404: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url);
+				},
+				422: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url);
+				}
+			},
+			error:function () {
+				console.log("ERROR: loading Schema " + type);
+			}
+		});		
 	},
 	appendEditFileIcon: function(parent, item) {
 
