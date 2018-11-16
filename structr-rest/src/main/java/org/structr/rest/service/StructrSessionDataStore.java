@@ -239,4 +239,9 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 		return node;
 	}
+
+	@Override
+	public SessionData doLoad(String id) throws Exception {
+		return load(id);
+	}
 }
