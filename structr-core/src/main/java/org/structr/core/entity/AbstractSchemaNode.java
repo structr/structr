@@ -192,8 +192,6 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 							new NodeAttribute(SchemaView.schemaProperties, properties),
 							new NodeAttribute(SchemaView.isBuiltinView, true)
 						);
-						
-						System.out.println("Added view " + view + " to schema node " + node.getName() + " (" + node.getUuid());
 					}
 				}
 			}
