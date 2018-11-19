@@ -1187,7 +1187,10 @@ var _Entities = {
 						_Logger.log(_LogType.ENTITIES, 'existing key: Command.setProperty(', objId, key, val);
 						_Entities.setProperty(objId, key, val, false, function(newVal) {
 							if (isPassword || (newVal !== oldVal)) {
-								blinkGreen(input);
+								blinkGreen(input);console.log(typeof newVal)
+								if (newVal.constructor === Array) {
+									newVal = newVal.join(',');
+								}
 								input.val(newVal);
 								let valueMsg = newVal ? 'value "' + newVal : 'empty value';
 								Structr.showAndHideInfoBoxMessage('Updated property "' + key + '"' + (!isPassword ? ' with ' + valueMsg + '".' : '.'), 'success', 2000, 200);
@@ -1998,11 +2001,10 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 		return '<div title="' + displayName + '" id="_' + obj.id + '" class="node ' + (obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')) + ' ' + obj.id + '_">' + fitStringToWidth(displayName, 80) + '<i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>';
 
 	} else if (obj.constructor === Array) {
-
-		return obj.reduce(function (acc, v) {
-			return acc + formatValueInputField(key, v, isPassword, isReadOnly, isMultiline) + '<br>';
-		}, '');
-
+//		return obj.reduce(function (acc, v) {
+//			return acc + formatValueInputField(key, v, isPassword, isReadOnly, isMultiline) + '<br>';
+//		}, '');
+		return formatRegularValueField(key, escapeForHtmlAttributes(obj.join(',')), isMultiline, isReadOnly, isPassword);
 	} else {
 
 		return formatRegularValueField(key, escapeForHtmlAttributes(obj), isMultiline, isReadOnly, isPassword);
