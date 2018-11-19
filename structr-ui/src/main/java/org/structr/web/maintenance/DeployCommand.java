@@ -381,11 +381,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			} catch (ImportFailureException fex) {
 
-				logger.warn("Unable to import schema, aborting.");
+				logger.warn("Unable to import schema: {}", fex.getMessage());
 				throw new FrameworkException(422, fex.getMessage(), fex.getErrorBuffer());
 
-			} catch (IOException ioex) {
-				logger.warn("Exception while importing schema", ioex);
+			} catch (Throwable t) {
+				logger.warn("Unable to import schema: {}", t.getMessage());
 			}
 		}
 

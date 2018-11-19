@@ -62,7 +62,7 @@ public class SchemaImportVisitor implements FileVisitor<Path> {
 
 				} catch (Throwable t) {
 
-					throw new ImportFailureException("Unable to import schema, aborting.", t);
+					throw new ImportFailureException(t.getMessage(), t);
 				}
 			}
 		}
