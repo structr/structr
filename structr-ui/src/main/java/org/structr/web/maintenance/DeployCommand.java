@@ -381,11 +381,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			} catch (ImportFailureException fex) {
 
-				logger.warn("Unable to import schema, aborting.");
+				logger.warn("Unable to import schema: {}", fex.getMessage());
 				throw new FrameworkException(422, fex.getMessage(), fex.getErrorBuffer());
 
-			} catch (IOException ioex) {
-				logger.warn("Exception while importing schema", ioex);
+			} catch (Throwable t) {
+				logger.warn("Unable to import schema: {}", t.getMessage());
 			}
 		}
 
@@ -1157,7 +1157,23 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
 
-			getGson().toJson(grants, fos);
+			final Gson gson = new GsonBuilder().serializeNulls().create();
+
+			final StringBuilder sb = new StringBuilder("[");
+
+			List<String> jsonStrings = new LinkedList();
+
+			for (Map<String, Object> grant : grants) {
+				jsonStrings.add("\t" + gson.toJson(grant));
+			}
+
+			if (!jsonStrings.isEmpty()) {
+				sb.append("\n").append(String.join(",\n", jsonStrings)).append("\n");
+			}
+
+			sb.append("]");
+
+			fos.write(sb.toString());
 
 		} catch (IOException ioex) {
 			logger.warn("", ioex);
@@ -1476,14 +1492,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			if (!jsonStrings.isEmpty()) {
 
 				sb.append("\n").append(String.join(",\n", jsonStrings)).append("\n");
-
 			}
 
 			sb.append("]");
 
 			fos.write(sb.toString());
-
-//			getGson().toJson(localizations, fos);
 
 		} catch (IOException ioex) {
 			logger.warn("", ioex);
