@@ -178,16 +178,16 @@ public class ActionEntry implements Comparable<ActionEntry> {
 		return doExport;
 	}
 
-	public String getSource(final String objVariable, final String securityContextVariable) {
-		return getSource(objVariable, securityContextVariable, false);
+	public String getSource(final String objVariable, final String securityContextVariable, final boolean includeModifications) {
+		return getSource(objVariable, securityContextVariable, false, includeModifications);
 	}
 
-	public String getSource(final String objVariable, final boolean includeParameters) {
+	public String getSource(final String objVariable, final boolean includeParameters, final boolean includeModifications) {
 
-		return getSource(objVariable, "securityContext", includeParameters);
+		return getSource(objVariable, "securityContext", includeParameters, includeModifications);
 	}
 
-	public String getSource(final String objVariable, final String securityContextVariable, final boolean includeParameters) {
+	public String getSource(final String objVariable, final String securityContextVariable, final boolean includeParameters, final boolean includeModifications) {
 
 		final StringBuilder buf = new StringBuilder();
 
@@ -217,7 +217,13 @@ public class ActionEntry implements Comparable<ActionEntry> {
 				buf.append(this.type.getLogName());
 			}
 
-			buf.append("\", arg2)");
+			buf.append("\"");
+
+			if (includeModifications) {
+				buf.append(", arg2");
+			}
+
+			buf.append(")");
 		}
 
 		return buf.toString();

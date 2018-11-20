@@ -40,7 +40,6 @@ import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.entity.SchemaMethod;
@@ -729,10 +728,22 @@ public class SchemaTest extends StructrTest {
 			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Test");
 
+			type.addStringProperty("desc");
 			type.addStringProperty("nameBefore");
 			type.addStringProperty("nameAfter");
+			type.addStringProperty("descBefore");
+			type.addStringProperty("descAfter");
 
-			type.addMethod("onSave", "{ var self = Structr.this; var mod = Structr.retrieve('modifications'); self.nameBefore = mod.before.name; self.nameAfter = mod.after.name; }", "");
+			type.addMethod("onSave",
+				"{"
+					+ " var self = Structr.this;"
+					+ " var mod = Structr.retrieve('modifications');"
+					+ " self.nameBefore = mod.before.name;"
+					+ " self.nameAfter  = mod.after.name;"
+					+ " self.descBefore = mod.before.desc;"
+					+ " self.descAfter  = mod.after.desc;"
+				+ " }",
+			"");
 
 			// add new type
 			StructrSchema.extendDatabaseSchema(app, schema);
@@ -772,6 +783,8 @@ public class SchemaTest extends StructrTest {
 
 			assertNull("Invalid value before modification", test.getProperty("nameBefore"));
 			assertNull("Invalid value before modification", test.getProperty("nameAfter"));
+			assertNull("Invalid value before modification", test.getProperty("descBefore"));
+			assertNull("Invalid value before modification", test.getProperty("descAfter"));
 
 			tx.success();
 
@@ -786,7 +799,8 @@ public class SchemaTest extends StructrTest {
 			final GraphObject test = app.get(type, uuid);
 			assertNotNull(test);
 
-			test.setProperty(AbstractNode.name, "new test");
+			test.setProperty(StructrApp.key(type, "name"), "new test");
+			test.setProperty(StructrApp.key(type, "desc"), "description");
 
 			tx.success();
 
@@ -801,8 +815,10 @@ public class SchemaTest extends StructrTest {
 			final GraphObject test = app.get(type, uuid);
 			assertNotNull(test);
 
-			assertEquals("Invalid value after modification", "test",     test.getProperty("nameBefore"));
-			assertEquals("Invalid value after modification", "new test", test.getProperty("nameAfter"));
+			assertEquals("Invalid value after modification", "test",        test.getProperty("nameBefore"));
+			assertEquals("Invalid value after modification", "new test",    test.getProperty("nameAfter"));
+			assertNull("Invalid value after modification",                  test.getProperty("descBefore"));
+			assertEquals("Invalid value after modification", "description", test.getProperty("descAfter"));
 
 			tx.success();
 
