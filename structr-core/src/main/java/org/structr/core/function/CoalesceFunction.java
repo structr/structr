@@ -42,7 +42,7 @@ public class CoalesceFunction extends Function<Object, Object> {
 
 			for (int i = 0; i < length; i++) {
 
-				if (sources[i] != null && !sources[i].equals(Functions.NULL_STRING)) {
+				if (sources[i] != null) {
 					return sources[i].toString();
 				}
 

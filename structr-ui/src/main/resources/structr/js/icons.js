@@ -216,7 +216,7 @@ var _Icons = {
 
 	},
 	getImageOrIcon: function(image) {
-		return (image.contentType.startsWith('image/svg') ? _Icons.getImageMarkup(image.path) : (image.tnSmall ? _Icons.getImageMarkup(image.tnSmall.path) : '<i class="icon sprite sprite-image" />'));
+		return (image.contentType && image.contentType.startsWith('image/svg') ? _Icons.getImageMarkup(image.path) : (image.tnSmall ? _Icons.getImageMarkup(image.tnSmall.path) : '<i class="icon sprite sprite-image" />'));
 	},
 	getImageMarkup: function (path) {
 		return '<img class="icon" src="' + path + '">';

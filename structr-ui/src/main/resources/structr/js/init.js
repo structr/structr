@@ -564,6 +564,11 @@ var Structr = {
 			dialogText.empty();
 			dialogMsg.empty();
 			dialogMeta.empty();
+			dialogBtn.empty();
+			
+			dialogBtn.html('<button class="closeButton">Close</button>');
+			dialogCancelButton = $('.closeButton', dialogBox);
+			
 			$('.speechToText', dialogBox).remove();
 
 			if (text) {

@@ -4266,16 +4266,34 @@ input#element-class {
 
 .value-container {
     display: inline-block;
+	width: calc(100% - 236px);
 }
 
-.value-container input {
+.value-container input[type=text], .value-container textarea {
+	width: 100%;
     font-size: 1.2em;
-    padding: .5em 1em;
+    padding: 4px;
+}
+
+.value-container textarea {
+	margin: 6px 0;
+	vertical-align: middle;
+}
+
+.value-container.related-nodes {
+	background-color: #fff;
+	border: 1px solid rgba(0,0,0,.125);
+	padding: 4px;
+}
+
+.value-container.related-nodes i.add {
+	vertical-align: text-bottom;
 }
 
 .item-title:hover b {
     cursor: pointer;
 }
+
 
 /**
  * Favorites

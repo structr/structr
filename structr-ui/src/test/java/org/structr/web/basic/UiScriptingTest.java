@@ -53,6 +53,7 @@ import javax.servlet.http.Part;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -758,8 +759,119 @@ public class UiScriptingTest extends StructrUiTest {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 	}
+
+	@Test
+	public void testElementAttributeScripting() {
+
+		try (final Tx tx = app.tx()) {
+
+			// create admin user
+			createTestNode(User.class,
+				new NodeAttribute<>(StructrApp.key(User.class, "id"),       "d7b5f5008fdf4066a1b9c2a74479ba5f"),
+				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			);
+
+			final Page page = Page.createNewPage(securityContext, "testpage");
+
+			page.setProperties(page.getSecurityContext(), new PropertyMap(Page.visibleToPublicUsers, true));
+
+			assertTrue(page != null);
+			assertTrue(page instanceof Page);
+
+			final DOMNode html  = (DOMNode) page.createElement("html");
+			final DOMNode head  = (DOMNode) page.createElement("head");
+			final DOMNode body  = (DOMNode) page.createElement("body");
+			final DOMNode title = (DOMNode) page.createElement("title");
+			final DOMNode div01 = (DOMNode) page.createElement("div");
+			final DOMNode div02 = (DOMNode) page.createElement("div");
+			final DOMNode div03 = (DOMNode) page.createElement("div");
+			final DOMNode div04 = (DOMNode) page.createElement("div");
+			final DOMNode div05 = (DOMNode) page.createElement("div");
+			final DOMNode div06 = (DOMNode) page.createElement("div");
+			final DOMNode div07 = (DOMNode) page.createElement("div");
+			final DOMNode div08 = (DOMNode) page.createElement("div");
+			final DOMNode div09 = (DOMNode) page.createElement("div");
+			final DOMNode div10 = (DOMNode) page.createElement("div");
+			final DOMNode div11 = (DOMNode) page.createElement("div");
+
+			// add HTML element to page
+			page.appendChild(html);
+
+			// add HEAD and BODY elements to HTML
+			html.appendChild(head);
+			html.appendChild(body);
+
+			// add TITLE element to HEAD
+			head.appendChild(title);
+
+			body.appendChild(div01);
+			body.appendChild(div02);
+			body.appendChild(div03);
+			body.appendChild(div04);
+			body.appendChild(div05);
+			body.appendChild(div06);
+			body.appendChild(div07);
+			body.appendChild(div08);
+			body.appendChild(div09);
+			body.appendChild(div10);
+			body.appendChild(div11);
+
+			div01.setProperty(StructrApp.key(Div.class, "_html_class"), "test");
+			div02.setProperty(StructrApp.key(Div.class, "_html_class"), "${if(false, 'false', null)}");
+			div03.setProperty(StructrApp.key(Div.class, "_html_class"), "${if(true, 'true', null)}");
+			div04.setProperty(StructrApp.key(Div.class, "_html_class"), "${is(true, null)}");
+			div05.setProperty(StructrApp.key(Div.class, "_html_class"), "${is(true, 'true')}");
+
+			div06.setProperty(StructrApp.key(Div.class, "_html_class"), "other ${if(false, 'false', null)}");
+			div07.setProperty(StructrApp.key(Div.class, "_html_class"), "other ${if(true, 'true', null)}");
+			div08.setProperty(StructrApp.key(Div.class, "_html_class"), "other ${is(true, null)}");
+			div09.setProperty(StructrApp.key(Div.class, "_html_class"), "other ${is(true, 'true')}");
+
+			div10.setProperty(StructrApp.key(Div.class, "_html_class"), "");
+			div11.setProperty(StructrApp.key(Div.class, "_html_class"), "${invalid_script(code..");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		// test successful basic auth
+		RestAssured
+			.given()
+				.headers("X-User", "admin" , "X-Password", "admin")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+				.statusCode(200)
+				.body("html.body.div[0].@class" , equalTo("test"))
+				.body("html.body.div[1].@class" , nullValue())
+				.body("html.body.div[2].@class" , equalTo("true"))
+				.body("html.body.div[3].@class" , nullValue())
+				.body("html.body.div[4].@class" , equalTo("true"))
+				.body("html.body.div[5].@class" , equalTo("other"))
+				.body("html.body.div[6].@class" , equalTo("other true"))
+				.body("html.body.div[7].@class" , equalTo("other"))
+				.body("html.body.div[8].@class" , equalTo("other true"))
+				.body("html.body.div[9].@class" , equalTo(""))
+				.body("html.body.div[10].@class" , equalTo("${invalid_script(code.."))
+
+
+			.when()
+			.get("/testpage");
+	}
+
 
 	// ----- private methods -----
 	private String getEncodingInUse() {

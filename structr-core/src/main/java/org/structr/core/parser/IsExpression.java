@@ -81,7 +81,7 @@ public class IsExpression extends Expression {
 
 		} else {
 
-			return Functions.NULL_STRING;
+			return null;
 
 		}
 	}

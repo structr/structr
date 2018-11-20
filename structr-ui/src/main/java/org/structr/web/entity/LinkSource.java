@@ -53,7 +53,8 @@ public interface LinkSource extends DOMElement {
 		final JsonReferenceType rel = type.relate(linkable, "LINK", Relation.Cardinality.ManyToOne, "linkingElements", "linkable");
 
 		type.addIdReferenceProperty("linkableId", rel.getTargetProperty());
-
+		linkable.addIdReferenceProperty("linkingElementsIds", rel.getSourceProperty());
+		
 		// view configuration
 		type.addViewProperty(PropertyView.Ui, "children");
 		type.addViewProperty(PropertyView.Ui, "linkable");

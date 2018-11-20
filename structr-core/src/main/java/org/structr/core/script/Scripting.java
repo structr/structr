@@ -59,12 +59,23 @@ public class Scripting {
 	private static final Map<String, Script> compiledScripts = Collections.synchronizedMap(new LRUMap<>(10000));
 
 	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue) throws FrameworkException {
+		return replaceVariables(actionContext, entity, rawValue, false);
+	}
+
+	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue, final boolean returnNullValueForEmptyResult) throws FrameworkException {
 
 		if (rawValue == null) {
 
 			return null;
 		}
 
+		// don't parse empty values
+		if (StringUtils.isEmpty(rawValue.toString())) {
+
+			return "";
+		}
+
+		boolean valueWasNull = true;
 		String value;
 
 		if (rawValue instanceof String) {
@@ -82,16 +93,15 @@ public class Scripting {
 						final Object extractedValue = evaluate(actionContext, entity, expression, "script source");
 						String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
 
+						// non-null value?
+						valueWasNull &= extractedValue == null;
+
 						if (partValue != null) {
 
 							replacements.add(new Tuple(expression, partValue));
 
 						} else {
 
-							// If the whole expression should be replaced, and partValue is null
-							// replace it by null to make it possible for HTML attributes to not be rendered
-							// and avoid something like ... selected="" ... which is interpreted as selected==true by
-							// all browsers
 							if (!value.equals(expression)) {
 								replacements.add(new Tuple(expression, ""));
 							}
@@ -117,18 +127,10 @@ public class Scripting {
 		} else {
 
 			value = rawValue.toString();
-
 		}
 
-		if (Functions.NULL_STRING.equals(value)) {
-
-			// return literal null for a single ___NULL___
+		if (returnNullValueForEmptyResult && valueWasNull && StringUtils.isBlank(value)) {
 			return null;
-
-		} else {
-
-			// Replace ___NULL___ by empty string
-			value = StringUtils.replaceAll(value, Functions.NULL_STRING, "");
 		}
 
 		return value;

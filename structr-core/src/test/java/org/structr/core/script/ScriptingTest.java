@@ -926,7 +926,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid trim() result", "test", Scripting.replaceVariables(ctx, testOne, "${trim('test   \t\t\t\r\r\r\n\n\n')}"));
 			assertEquals("Invalid trim() result", "test", Scripting.replaceVariables(ctx, testOne, "${trim('   \t\t\t\r\r\r\n\n\ntest   \t\t\t\r\r\r\n\n\n')}"));
 			assertEquals("Invalid trim() result", "test", Scripting.replaceVariables(ctx, testOne, "${trim('   test   ')}"));
-			assertEquals("Invalid trim() result with null value", null, Scripting.replaceVariables(ctx, testOne, "${trim(null)}"));
+			assertEquals("Invalid trim() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${trim(null)}"));
 			assertEquals("Invalid trim() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${trim(this.alwaysNull)}"));
 
 			// urlencode
@@ -944,7 +944,7 @@ public class ScriptingTest extends StructrTest {
 
 			// is
 			assertEquals("Invalid is() result", "true",  Scripting.replaceVariables(ctx, testOne,  "${is(\"true\", \"true\")}"));
-			assertEquals("Invalid is() result", null,    Scripting.replaceVariables(ctx, testOne,  "${is(\"false\", \"true\")}"));
+			assertEquals("Invalid is() result", "",      Scripting.replaceVariables(ctx, testOne,  "${is(\"false\", \"true\")}"));
 
 			// is + equal
 			assertEquals("Invalid is(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${is(equal(this.id, this.id), \"true\")}"));
@@ -957,8 +957,8 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid is(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${is(equal(\"23.44242222243633337234623462\", \"23.44242222243633337234623462\"), \"true\")}"));
 			assertEquals("Invalid is(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${is(equal(13, 013), \"true\")}"));
 			assertEquals("Invalid is(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${is(equal(13, \"013\"), \"true\")}"));
-			assertEquals("Invalid is(equal()) result", null,    Scripting.replaceVariables(ctx, testOne, "${is(equal(\"13\", \"013\"), \"true\")}"));
-			assertEquals("Invalid is(equal()) result", null,    Scripting.replaceVariables(ctx, testOne, "${is(equal(\"13\", \"00013\"), \"true\")}"));
+			assertEquals("Invalid is(equal()) result", "",      Scripting.replaceVariables(ctx, testOne, "${is(equal(\"13\", \"013\"), \"true\")}"));
+			assertEquals("Invalid is(equal()) result", "",      Scripting.replaceVariables(ctx, testOne, "${is(equal(\"13\", \"00013\"), \"true\")}"));
 
 			// if etc.
 			assertEquals("Invalid if() result", "true",  Scripting.replaceVariables(ctx, testOne,  "${if(\"true\", \"true\", \"false\")}"));
@@ -1512,8 +1512,6 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid slice() result", testSixs.get(18), sliceResult5.get(3));
 			assertEquals("Invalid slice() result", testSixs.get(19), sliceResult5.get(4));
 
-
-
 			// first / last / nth with null
 			assertEquals("Invalid first() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${first(this.alwaysNull)}"));
 			assertEquals("Invalid last() result with null value",  "", Scripting.replaceVariables(ctx, testOne, "${last(this.alwaysNull)}"));
@@ -1568,8 +1566,8 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid if(equal()) result", "String",  Scripting.replaceVariables(ctx, testOne, "${if(empty(this.alwaysNull), titleize(this.aString, '-'), this.alwaysNull)}"));
 			assertEquals("Invalid if(equal()) result", "String",  Scripting.replaceVariables(ctx, testOne, "${if(empty(this.aString), titleize(this.alwaysNull, '-'), this.aString)}"));
 
-			assertNull("Invalid result for special null value", Scripting.replaceVariables(ctx, testOne, "${null}"));
-			assertNull("Invalid result for special null value", Scripting.replaceVariables(ctx, testOne, "${if(equal(this.anInt, 15), \"selected\", null)}"));
+			assertEquals("Invalid result for special null value", "", Scripting.replaceVariables(ctx, testOne, "${null}"));
+			assertEquals("Invalid result for special null value", "", Scripting.replaceVariables(ctx, testOne, "${if(equal(this.anInt, 15), \"selected\", null)}"));
 
 			// tests from real-life examples
 			assertEquals("Invalid replacement result", "tile plan ", Scripting.replaceVariables(ctx, testOne, "tile plan ${plan.bannerTag}"));
@@ -1583,10 +1581,10 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid replacement result", "STRINGtrueFALSE", Scripting.replaceVariables(ctx, testOne, "${upper(this.aString)}${lower(true)}${upper(false)}"));
 
 			// null and NULL_STRING
-			assertEquals("Invalid result for ___NULL___", null, Scripting.replaceVariables(ctx, testOne, "${null}"));
-			assertEquals("Invalid result for ___NULL___", null, Scripting.replaceVariables(ctx, testOne, "${___NULL___}"));
-			assertEquals("Invalid result for ___NULL___", null, Scripting.replaceVariables(ctx, testOne, "${is(true, ___NULL___)}"));
-			assertEquals("Invalid result for ___NULL___", null, Scripting.replaceVariables(ctx, testOne, "${is(false, ___NULL___)}"));
+			assertEquals("Invalid result for ___NULL___", "", Scripting.replaceVariables(ctx, testOne, "${null}"));
+			assertEquals("Invalid result for ___NULL___", "", Scripting.replaceVariables(ctx, testOne, "${___NULL___}"));
+			assertEquals("Invalid result for ___NULL___", "", Scripting.replaceVariables(ctx, testOne, "${is(true, ___NULL___)}"));
+			assertEquals("Invalid result for ___NULL___", "", Scripting.replaceVariables(ctx, testOne, "${is(false, ___NULL___)}"));
 			assertEquals("Invalid result for ___NULL___", "xy", Scripting.replaceVariables(ctx, testOne, "x${___NULL___}y"));
 			assertEquals("Invalid result for ___NULL___", "xz", Scripting.replaceVariables(ctx, testOne, "x${is(true, ___NULL___)}z"));
 			assertEquals("Invalid result for ___NULL___", "xz", Scripting.replaceVariables(ctx, testOne, "x${is(false, ___NULL___)}z"));

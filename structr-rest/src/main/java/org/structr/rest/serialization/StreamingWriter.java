@@ -262,7 +262,7 @@ public abstract class StreamingWriter {
 
 	private void serializePrimitive(RestWriter writer, final Object value) throws IOException {
 
-		if (value != null && !Functions.NULL_STRING.equals(value)) {
+		if (value != null) {
 
 			if (value instanceof Number) {
 

@@ -576,7 +576,7 @@ var _Elements = {
 
 					_Pager.initPager('folders-to-link', 'Folder', 1, 25);
 					_Pager.initFilters('folders-to-link', 'Folder', { hasParent: false });
-					var linkFolderPager = _Pager.addPager('folders-to-link', foldersToLink, true, 'Folder', 'public', function(folders) {
+					var linkFolderPager = _Pager.addPager('folders-to-link', foldersToLink, true, 'Folder', 'ui', function(folders) {
 
 						folders.forEach(function(folder) {
 
@@ -610,7 +610,7 @@ var _Elements = {
 					linkFolderPager.activateFilterElements();
 
 					_Pager.initPager('files-to-link', 'File', 1, 25);
-					var linkFilesPager = _Pager.addPager('files-to-link', filesToLink, true, 'File', 'public', function(files) {
+					var linkFilesPager = _Pager.addPager('files-to-link', filesToLink, true, 'File', 'ui', function(files) {
 
 						files.forEach(function(file) {
 
@@ -637,7 +637,7 @@ var _Elements = {
 					var imagesToLink = $('#imagesToLink');
 
 					_Pager.initPager('images-to-link', 'Image', 1, 25);
-					_Pager.addPager('images-to-link', imagesToLink, false, 'Image', 'public', function(images) {
+					_Pager.addPager('images-to-link', imagesToLink, false, 'Image', 'ui', function(images) {
 
 						images.forEach(function(image) {
 
@@ -725,7 +725,7 @@ var _Elements = {
 	},
 	handleLinkableElement: function (div, entityToLinkTo, linkableObject) {
 
-		if (isIn(entityToLinkTo.id, linkableObject.linkingElements)) {
+		if (isIn(entityToLinkTo.id, linkableObject.linkingElementsIds)) { 
 			div.addClass('nodeActive');
 		}
 
