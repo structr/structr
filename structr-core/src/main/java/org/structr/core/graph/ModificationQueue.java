@@ -45,8 +45,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.Principal;
 import org.structr.core.function.ChangelogFunction;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -426,6 +428,34 @@ public class ModificationQueue {
 
 		return modifiedKeys;
 
+	}
+
+	public GraphObjectMap getModifications(final GraphObject forObject) {
+
+		final GraphObjectMap result = new GraphObjectMap();
+		final GraphObjectModificationState state;
+
+		if (forObject.isNode()) {
+
+			state = getState((NodeInterface)forObject);
+
+		} else {
+
+			state = getState((RelationshipInterface)forObject);
+		}
+
+		final GraphObjectMap before = new GraphObjectMap();
+		final GraphObjectMap after  = new GraphObjectMap();
+
+		before.putAll(state.getRemovedProperties());
+
+		after.putAll(state.getModifiedProperties());
+		after.putAll(state.getNewProperties());
+
+		result.put(new GenericProperty("before"), before);
+		result.put(new GenericProperty("after"),  after);
+
+		return result;
 	}
 
 	// ----- private methods -----

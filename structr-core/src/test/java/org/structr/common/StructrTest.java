@@ -162,6 +162,7 @@ public class StructrTest {
 		Settings.SuperUserPassword.setValue("sehrgeheim");
 
 		//Settings.CypherDebugLogging.setValue(true);
+		//Settings.LogSchemaOutput.setValue(true);
 
 		final Services services = Services.getInstance();
 
