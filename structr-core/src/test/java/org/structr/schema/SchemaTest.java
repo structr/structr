@@ -817,7 +817,7 @@ public class SchemaTest extends StructrTest {
 
 			assertEquals("Invalid value after modification", "test",        test.getProperty("nameBefore"));
 			assertEquals("Invalid value after modification", "new test",    test.getProperty("nameAfter"));
-			assertEquals("Invalid value after modification", null,          test.getProperty("descBefore"));
+			assertNull("Invalid value after modification",                  test.getProperty("descBefore"));
 			assertEquals("Invalid value after modification", "description", test.getProperty("descAfter"));
 
 			tx.success();

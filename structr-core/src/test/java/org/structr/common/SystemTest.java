@@ -655,6 +655,8 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testGrantFunctionPerformance() {
 
+		Settings.LogSchemaOutput.setValue(true);
+
 		// test setup, create a supernode with 10000 relationships
 		try (final Tx tx = app.tx()) {
 

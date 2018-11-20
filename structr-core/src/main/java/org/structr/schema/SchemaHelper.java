@@ -1275,7 +1275,7 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			src.append("\t\t").append(action.getSource("this", "arg0")).append(";\n");
+			src.append("\t\t").append(action.getSource("this", "arg0", false)).append(";\n");
 		}
 
 		src.append("\t}\n");
@@ -1294,7 +1294,7 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			src.append("\t\t").append(action.getSource("this", "arg0")).append(";\n");
+			src.append("\t\t").append(action.getSource("this", "arg0", false)).append(";\n");
 		}
 
 		src.append("\t}\n");
@@ -1313,7 +1313,7 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			src.append("\t\t").append(action.getSource("this", "arg0")).append(";\n");
+			src.append("\t\t").append(action.getSource("this", "arg0", true)).append(";\n");
 		}
 
 		src.append("\t}\n");
@@ -1334,7 +1334,7 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			src.append("\t\t\t").append(action.getSource("this", "arg0")).append(";\n");
+			src.append("\t\t\t").append(action.getSource("this", "arg0", false)).append(";\n");
 		}
 
 		src.append("\t\t} catch (FrameworkException fex) {\n");
@@ -1354,7 +1354,7 @@ public class SchemaHelper {
 
 			} else {
 
-				final String source                  = action.getSource("this", true);
+				final String source                  = action.getSource("this", true, false);
 				final String returnType              = action.getReturnType();
 				final Map<String, String> parameters = action.getParameters();
 
@@ -1452,7 +1452,7 @@ public class SchemaHelper {
 		src.append("(final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {\n\n");
 
 		src.append("\t\treturn ");
-		src.append(action.getSource("this", true));
+		src.append(action.getSource("this", true, false));
 		src.append(";\n\n");
 		src.append("\t}\n");
 	}
