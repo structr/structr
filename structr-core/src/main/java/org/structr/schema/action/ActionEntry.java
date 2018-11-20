@@ -217,7 +217,7 @@ public class ActionEntry implements Comparable<ActionEntry> {
 				buf.append(this.type.getLogName());
 			}
 
-			buf.append("\")");
+			buf.append("\", arg2)");
 		}
 
 		return buf.toString();
