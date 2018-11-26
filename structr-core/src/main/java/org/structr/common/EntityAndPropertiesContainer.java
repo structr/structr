@@ -83,7 +83,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 
 	// dummy implementation of NodeInterface
 	@Override
-	public void init(SecurityContext securityContext, Node dbNode, Class type, boolean isCreation) {
+	public void init(SecurityContext securityContext, Node dbNode, Class type, boolean isCreation, final long transactionId) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
@@ -455,5 +455,10 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	@Override
 	public Map<String, Object> getTemporaryStorage() {
 		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public long getSourceTransactionId() {
+		return entity.getSourceTransactionId();
 	}
 }

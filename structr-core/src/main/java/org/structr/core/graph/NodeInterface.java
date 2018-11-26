@@ -63,7 +63,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 		id, name, type
 	);
 
-	void init(final SecurityContext securityContext, final Node dbNode, final Class type, final boolean isCreation);
+	void init(final SecurityContext securityContext, final Node dbNode, final Class type, final boolean isCreation, final long sourceTransactionId);
 
 	void onNodeCreation();
 	void onNodeInstantiation(final boolean isCreation);

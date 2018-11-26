@@ -34,10 +34,10 @@ import org.structr.schema.SchemaHelper;
 
 public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>, Function<S, T> {
 
-	private static final Logger logger = LoggerFactory.getLogger(Factory.class.getName());
+	private static final Logger logger          = LoggerFactory.getLogger(Factory.class.getName());
 	public static final ExecutorService service = Executors.newCachedThreadPool();
-	public static final int DEFAULT_PAGE_SIZE = Integer.MAX_VALUE;
-	public static final int DEFAULT_PAGE      = 1;
+	public static final int DEFAULT_PAGE_SIZE   = Integer.MAX_VALUE;
+	public static final int DEFAULT_PAGE        = 1;
 
 	// encapsulates all criteria for node creation
 	protected FactoryDefinition factoryDefinition = StructrApp.getConfiguration().getFactoryDefinition();

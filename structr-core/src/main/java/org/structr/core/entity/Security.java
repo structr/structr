@@ -18,9 +18,6 @@
  */
 package org.structr.core.entity;
 
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.structr.api.graph.Relationship;
@@ -52,8 +49,8 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 
 	public Security() {}
 
-	public Security(SecurityContext securityContext, Relationship dbRelationship) {
-		init(securityContext, dbRelationship, Security.class);
+	public Security(SecurityContext securityContext, Relationship dbRelationship, final long transactionId) {
+		init(securityContext, dbRelationship, Security.class, transactionId);
 	}
 
 	@Override

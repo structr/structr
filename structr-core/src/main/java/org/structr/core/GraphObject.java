@@ -142,6 +142,11 @@ public interface GraphObject {
 	public Set<PropertyKey> getPropertyKeys(String propertyView);
 
 	/**
+	 * Returns the ID of the transaction in which this object was instantiated.
+ 	 */
+	long getSourceTransactionId();
+
+	/**
 	 * Sets the property with the given key to the given value.
 	 *
 	 * @param <T>

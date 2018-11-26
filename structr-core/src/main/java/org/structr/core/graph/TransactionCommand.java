@@ -34,6 +34,8 @@ import org.structr.common.error.DatabaseServiceNetworkException;
 import org.structr.common.error.DatabaseServiceNotAvailableException;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.TransactionSource;
 import org.structr.core.app.StructrApp;
@@ -214,6 +216,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 		return null;
 	}
 
+	// ----- static methods -----
 	public static void postProcess(final String key, final TransactionPostProcess process) {
 
 		TransactionCommand command = currentCommand.get();
@@ -231,7 +234,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 		} else {
 
-			logger.error("Trying to register transaction post processing while outside of transaction!");
+			throw new NotInTransactionException("Not in transaction.");
 		}
 
 	}
@@ -240,6 +243,8 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
+
+			assertSameTransaction(node, command.getTransactionId());
 
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
@@ -253,7 +258,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 		} else {
 
-			logger.error("Node created while outside of transaction!");
+			throw new NotInTransactionException("Not in transaction.");
 		}
 	}
 
@@ -261,6 +266,8 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
+
+			assertSameTransaction(node, command.getTransactionId());
 
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
@@ -274,7 +281,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 		} else {
 
-			logger.error("Node deleted while outside of transaction!");
+			throw new NotInTransactionException("Not in transaction.");
 		}
 	}
 
@@ -282,6 +289,8 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
+
+			assertSameTransaction(node, command.getTransactionId());
 
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
@@ -295,7 +304,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 		} else {
 
-			logger.error("Node deleted while outside of transaction!");
+			throw new NotInTransactionException("Not in transaction.");
 		}
 	}
 
@@ -303,6 +312,8 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
+
+			assertSameTransaction(relationship, command.getTransactionId());
 
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
@@ -316,7 +327,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 		} else {
 
-			logger.error("Relationships created while outside of transaction!");
+			throw new NotInTransactionException("Not in transaction.");
 		}
 	}
 
@@ -324,6 +335,8 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
+
+			assertSameTransaction(relationship, command.getTransactionId());
 
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
@@ -337,7 +350,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 		} else {
 
-			logger.error("Relationship deleted while outside of transaction!");
+			throw new NotInTransactionException("Not in transaction.");
 		}
 	}
 
@@ -345,6 +358,8 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
+
+			assertSameTransaction(relationship, command.getTransactionId());
 
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
@@ -358,7 +373,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 		} else {
 
-			logger.error("Relationship deleted while outside of transaction!");
+			throw new NotInTransactionException("Not in transaction.");
 		}
 	}
 
@@ -411,6 +426,17 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 	public static boolean inTransaction() {
 		return currentCommand.get() != null;
+	}
+
+	public static long getCurrentTransactionId() {
+
+		final TransactionCommand cmd = currentCommand.get();
+		if (cmd != null) {
+
+			return cmd.getTransactionId();
+		}
+
+		throw new NotInTransactionException("Not in transaction.");
 	}
 
 	public static boolean isDeleted(final Node node) {
@@ -485,8 +511,35 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 	}
 
+	private static void assertSameTransaction(final GraphObject obj, final long currentTransactionId) {
+
+		// many nodes in the tests are re-used over transaction
+		// boundaries, so this warning is disabled in test mode.
+		if (Services.isTesting()) {
+			return;
+		}
+
+		final long nodeTransactionId = obj.getSourceTransactionId();
+
+		if (currentTransactionId != nodeTransactionId) {
+			logger.warn("Possible leaking AbstractNode instance detected: created in transaction {}, modified in {}", nodeTransactionId, currentTransactionId);
+			Thread.dumpStack();
+		}
+	}
+
 	// ----- private methods -----
 	private ModificationQueue getModificationQueue() {
 		return queues.get();
+	}
+
+	private long getTransactionId() {
+
+		final TransactionReference tx = transactions.get();
+		if (tx != null) {
+
+			return tx.getTransactionId();
+		}
+
+		return -1;
 	}
 }

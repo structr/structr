@@ -83,6 +83,11 @@ public class TransactionReference implements Transaction {
 	}
 
 	@Override
+	public long getTransactionId() {
+		return tx.getTransactionId();
+	}
+
+	@Override
 	public void close() {
 
 		// only finish transaction if we are at root level

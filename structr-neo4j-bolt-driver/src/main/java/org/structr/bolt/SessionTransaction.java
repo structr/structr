@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
@@ -58,21 +59,24 @@ import org.structr.bolt.wrapper.RelationshipWrapper;
  */
 public class SessionTransaction implements org.structr.api.Transaction {
 
+	private static final AtomicLong idSource          = new AtomicLong();
 	private final Set<EntityWrapper> modifiedEntities = new HashSet<>();
 	private final Set<Long> deletedNodes              = new HashSet<>();
 	private final Set<Long> deletedRels               = new HashSet<>();
 	private BoltDatabaseService db                    = null;
 	private Session session                           = null;
 	private Transaction tx                            = null;
+	private long transactionId                        = 0L;
 	private boolean closed                            = false;
 	private boolean success                           = false;
 	private boolean isPing                            = false;
 
 	public SessionTransaction(final BoltDatabaseService db, final Session session) {
 
-		this.session = session;
-		this.tx      = session.beginTransaction();
-		this.db      = db;
+		this.transactionId = idSource.getAndIncrement();
+		this.session       = session;
+		this.tx            = session.beginTransaction();
+		this.db            = db;
 	}
 
 	@Override
@@ -497,6 +501,10 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 	public void setIsPing(final boolean isPing) {
 		this.isPing = isPing;
+	}
+
+	public long getTransactionId() {
+		return this.transactionId;
 	}
 
 	// ----- public static methods -----

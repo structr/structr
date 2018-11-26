@@ -328,4 +328,14 @@ public class CreationContainer implements GraphObject, PropertyContainer {
 	public Class getEntityType() {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
+
+	@Override
+	public long getSourceTransactionId() {
+
+		if (wrappedObj != null) {
+			return wrappedObj.getSourceTransactionId();
+		}
+
+		return -1L;
+	}
 }

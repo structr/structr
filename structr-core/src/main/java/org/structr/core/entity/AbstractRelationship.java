@@ -101,6 +101,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	public boolean internalSystemPropertiesUnlocked = false;
 
+	private long transactionId                 = -1;
 	private boolean readOnlyPropertiesUnlocked = false;
 
 	private String cachedEndNodeId             = null;
@@ -112,14 +113,14 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	public AbstractRelationship() {}
 
-	public AbstractRelationship(final SecurityContext securityContext, final Relationship dbRel, final Class entityType) {
-
-		init(securityContext, dbRel, entityType);
+	public AbstractRelationship(final SecurityContext securityContext, final Relationship dbRel, final Class entityType, final long transactionId) {
+		init(securityContext, dbRel, entityType, transactionId);
 	}
 
 	@Override
-	public final void init(final SecurityContext securityContext, final Relationship dbRel, final Class entityType) {
+	public final void init(final SecurityContext securityContext, final Relationship dbRel, final Class entityType, final long transactionId) {
 
+		this.transactionId   = transactionId;
 		this.dbRelationship  = dbRel;
 		this.entityType      = entityType;
 		this.securityContext = securityContext;
@@ -140,6 +141,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public Class getEntityType() {
 		return entityType;
+	}
+
+	@Override
+	public long getSourceTransactionId() {
+		return transactionId;
 	}
 
 	/**

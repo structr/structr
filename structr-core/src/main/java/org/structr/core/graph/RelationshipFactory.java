@@ -100,7 +100,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 			newRel = (T)StructrApp.getConfiguration().getFactoryDefinition().createGenericRelationship();
 		}
 
-		newRel.init(securityContext, relationship, relClass);
+		newRel.init(securityContext, relationship, relClass, TransactionCommand.getCurrentTransactionId());
 		newRel.onRelationshipInstantiation();
 
 		return newRel;
