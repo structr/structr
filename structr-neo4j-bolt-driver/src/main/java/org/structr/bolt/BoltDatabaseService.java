@@ -146,7 +146,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 			driver = GraphDatabase.driver(databaseDriverUrl,
 				AuthTokens.basic(username, password),
-				Config.build().withoutEncryption().toConfig()
+				Config.build().withEncryption().toConfig()
 			);
 
 			final int relCacheSize  = Settings.RelationshipCacheSize.getValue();
