@@ -63,8 +63,6 @@ import org.structr.web.entity.Folder;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 
-
-//~--- classes ----------------------------------------------------------------
 /**
  * Simple upload servlet.
  */
@@ -85,7 +83,6 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 	public UploadServlet() {
 	}
 
-	//~--- methods --------------------------------------------------------
 	@Override
 	public StructrHttpServiceConfig getConfig() {
 		return config;
@@ -98,9 +95,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 	@Override
 	public void init() {
-
 		uploader = new ServletFileUpload();
-
 	}
 
 	@Override

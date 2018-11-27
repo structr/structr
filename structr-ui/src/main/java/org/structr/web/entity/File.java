@@ -18,6 +18,7 @@
  */
 package org.structr.web.entity;
 
+import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.BufferedReader;
@@ -129,6 +130,10 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		type.addCustomProperty("base64Data", FileDataProperty.class.getName()).setTypeHint("String");
 
+		// override setProperty methods, but don't call super first (we need the previous value)
+		type.overrideMethod("setProperty",                 false,  "if (parentProperty.equals(arg0)) { " + File.class.getName() + ".checkMoveBinaryContents(this, arg0, arg1); }\n\t\treturn super.setProperty(arg0, arg1, false);");
+		type.overrideMethod("setProperties",               false,  "if (arg1.containsKey(parentProperty)) { " + File.class.getName() + ".checkMoveBinaryContents(this, parentProperty, arg1.get(parentProperty)); }\n\t\tsuper.setProperties(arg0, arg1, false);");
+
 		type.overrideMethod("onCreation",                  true,  File.class.getName() + ".onCreation(this, arg0, arg1);");
 		type.overrideMethod("onModification",              true,  File.class.getName() + ".onModification(this, arg0, arg1, arg2);");
 		type.overrideMethod("onNodeDeletion",              true,  File.class.getName() + ".onNodeDeletion(this);");
@@ -224,10 +229,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		type.addViewProperty(PropertyView.Ui, "hasParent");
 		type.addViewProperty(PropertyView.Ui, "path");
-
-		/* TODO:
-			public static final Property<List<User>> favoriteOfUsers                     = new StartNodes<>("favoriteOfUsers", UserFavoriteFile.class);
-		*/
 
 	}}
 
@@ -787,6 +788,30 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		}
 
 		return new LineAndSeparator(lines.toString(), new String(separator, 0, separatorLength));
+	}
+
+	static void checkMoveBinaryContents(final File thisFile, final PropertyKey key, final Object value) {
+
+		final Folder previousParent     = (Folder)thisFile.getProperty(key);
+		final Folder newParent          = (Folder)value;
+		final java.io.File previousFile = thisFile.getFileOnDisk(false);
+		java.io.File newFile            = null;
+
+		if (newParent != null && !newParent.equals(previousParent)) {
+
+			newFile = newParent.getFileOnDisk(thisFile, "", true);
+		}
+
+		if (previousFile != null && newFile != null && !previousFile.equals(newFile)) {
+
+			try {
+
+				Files.move(previousFile, newFile);
+
+			} catch (IOException ioex) {
+				ioex.printStackTrace();
+			}
+		}
 	}
 
 	// ----- interface JavaScriptSource -----
