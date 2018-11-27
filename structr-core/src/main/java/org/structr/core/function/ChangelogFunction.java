@@ -185,7 +185,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 
 		final String changelogPath = Settings.ChangelogPath.getValue();
 		final String uuidPath      = getDirectoryPath(uuid);
-		final java.io.File file    = new java.io.File(changelogPath + "/" + typeFolderName + "/" + uuidPath + "/" + uuid);
+		final java.io.File file    = new java.io.File(changelogPath + java.io.File.separator + typeFolderName + java.io.File.separator + uuidPath + java.io.File.separator + uuid);
 
 		// create parent directory tree
 		file.getParentFile().mkdirs();
