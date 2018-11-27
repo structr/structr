@@ -252,6 +252,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				try (final Tx tx = app.tx()) {
 
+					tx.disableChangelog();
+
 					final String confSource = new String(Files.readAllBytes(preDeployConf), Charset.forName("utf-8")).trim();
 
 					if (confSource.length() > 0) {
@@ -436,6 +438,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				try (final Tx tx = app.tx()) {
 
+					tx.disableChangelog();
+
 					final String tenantIdentifier    = app.getDatabaseService().getTenantIdentifier();
 					final String optionalTenantLabel = (tenantIdentifier != null) ? ":" + tenantIdentifier : "";
 
@@ -521,6 +525,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try (final Tx tx = app.tx()) {
 
+				tx.disableChangelog();
+
 				deferredPageLinks.forEach((String linkableUUID, String pagePath) -> {
 
 					try {
@@ -544,6 +550,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			if (Files.exists(postDeployConf)) {
 
 				try (final Tx tx = app.tx()) {
+
+					tx.disableChangelog();
 
 					final String confSource = new String(Files.readAllBytes(postDeployConf), Charset.forName("utf-8")).trim();
 
@@ -1545,6 +1553,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
+			tx.disableChangelog();
+
 			for (final T toDelete : app.nodeQuery(type).getAsList()) {
 				app.delete(toDelete);
 			}
@@ -1579,6 +1589,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final App app                 = StructrApp.getInstance(context);
 
 		try (final Tx tx = app.tx()) {
+
+			tx.disableChangelog();
 
 			for (Map<String, Object> entry : data) {
 

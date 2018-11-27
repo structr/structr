@@ -184,6 +184,8 @@ public class PageImportVisitor implements FileVisitor<Path> {
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
+			tx.disableChangelog();
+
 			final PropertyMap properties = getPropertiesForPage(name);
 
 			if (properties == null) {

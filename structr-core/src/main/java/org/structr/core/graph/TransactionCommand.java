@@ -53,9 +53,9 @@ public class TransactionCommand {
 	private static final ThreadLocal<TransactionCommand> commands  = new ThreadLocal<>();
 	private static final MultiSemaphore                  semaphore = new MultiSemaphore();
 
+	private TransactionReference transaction = null;
 	private ModificationQueue queue          = null;
 	private ErrorBuffer errorBuffer          = null;
-	private TransactionReference transaction = null;
 
 
 	private static TransactionCommand getInstance() {
@@ -191,7 +191,27 @@ public class TransactionCommand {
 		return modificationQueue;
 	}
 
-	// ----- static methods -----
+	public static void disableChangelog() {
+
+		TransactionCommand command = commands.get();
+		if (command != null) {
+
+			ModificationQueue modificationQueue = command.getModificationQueue();
+			if (modificationQueue != null) {
+
+				modificationQueue.disableChangelog();
+
+			} else {
+
+				logger.error("Got empty changeSet from command!");
+			}
+
+		} else {
+
+			throw new NotInTransactionException("Not in transaction.");
+		}
+	}
+
 	public static void postProcess(final String key, final TransactionPostProcess process) {
 
 		TransactionCommand command = commands.get();

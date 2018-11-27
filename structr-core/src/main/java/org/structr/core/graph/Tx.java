@@ -37,7 +37,6 @@ public class Tx implements AutoCloseable {
 	private boolean doValidation            = true;
 	private boolean doCallbacks             = true;
 	private boolean doNotifications         = true;
-	private TransactionCommand cmd          = null;
 
 	public Tx(final SecurityContext securityContext) {
 		this(securityContext, true, true);
@@ -57,7 +56,7 @@ public class Tx implements AutoCloseable {
 
 	public Tx begin() throws FrameworkException {
 
-		cmd = TransactionCommand.beginTx(securityContext);
+		TransactionCommand.beginTx(securityContext);
 
 		return this;
 	}
@@ -71,7 +70,7 @@ public class Tx implements AutoCloseable {
 	@Override
 	public void close() throws FrameworkException {
 
-		final ModificationQueue modificationQueue = cmd.finishTx();
+		final ModificationQueue modificationQueue = TransactionCommand.finishTx();
 
 		if (success && guard.compareAndSet(false, true)) {
 
@@ -123,8 +122,12 @@ public class Tx implements AutoCloseable {
 
 			if (sc.isSuperUserSecurityContext() == Boolean.FALSE) {
 
-				securityContext     = sc;
+				securityContext = sc;
 			}
 		}
+	}
+
+	public void disableChangelog() {
+		TransactionCommand.disableChangelog();
 	}
 }

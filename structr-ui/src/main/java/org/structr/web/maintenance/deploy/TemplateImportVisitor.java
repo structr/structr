@@ -165,6 +165,8 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
+			tx.disableChangelog();
+
 			final PropertyMap properties  = getPropertiesForTemplate(templateName);
 
 			if (properties == null) {

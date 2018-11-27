@@ -194,6 +194,8 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
+			tx.disableChangelog();
+
 			final DOMNode existingComponent = (byId ? app.get(DOMNode.class, componentName) : (byNameAndId ? app.get(DOMNode.class, componentName.substring(componentName.length() - 32)) : getExistingComponent(componentName)));
 
 			final PropertyMap properties    = getPropertiesForComponent(componentName);

@@ -65,6 +65,15 @@ public class ModificationQueue {
 	private final Map<String, TransactionPostProcess> postProcesses                         = new LinkedHashMap<>();
 	private final Set<String> alreadyPropagated                                             = new LinkedHashSet<>();
 	private final Set<String> synchronizationKeys                                           = new TreeSet<>();
+	private boolean doUpateChangelogIfEnabled                                               = true;
+
+	public ModificationQueue() {
+		this(true);
+	}
+
+	public ModificationQueue(final boolean doUpdateChangelogIfEnabled) {
+		this.doUpateChangelogIfEnabled = doUpdateChangelogIfEnabled;
+	}
 
 	/**
 	 * Returns a set containing the different entity types of
@@ -183,7 +192,7 @@ public class ModificationQueue {
 
 	public void updateChangelog() {
 
-		if ((Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue()) && !modificationEvents.isEmpty()) {
+		if (doUpateChangelogIfEnabled && (Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue())) {
 
 			for (final ModificationEvent ev: modificationEvents) {
 
@@ -471,6 +480,10 @@ public class ModificationQueue {
 		result.put(new GenericProperty("after"),  after);
 
 		return result;
+	}
+
+	public void disableChangelog() {
+		this.doUpateChangelogIfEnabled = false;
 	}
 
 	// ----- private methods -----
