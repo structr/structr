@@ -34,6 +34,7 @@ import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
+import org.mozilla.javascript.WrappedException;
 import org.renjin.script.RenjinScriptEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -283,6 +284,19 @@ public class Scripting {
 
 			// just throw the FrameworkException so we dont lose the information contained
 			throw fex;
+
+		} catch (final WrappedException w) {
+
+			if (w.getWrappedException() instanceof FrameworkException) {
+				throw (FrameworkException)w.getWrappedException();
+			}
+
+			if (!actionContext.getDisableVerboseExceptionLogging()) {
+				logger.warn("Exception in Scripting context", w);
+			}
+
+			// if any other kind of Throwable is encountered throw a new FrameworkException and be done with it
+			throw new FrameworkException(422, w.getMessage());
 
 		} catch (final Throwable t) {
 
