@@ -18,6 +18,8 @@
  */
 package org.structr.files;
 
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -29,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
 import org.apache.cxf.helpers.IOUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -37,14 +40,21 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 import org.structr.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.Image;
+import org.structr.web.entity.User;
 
 
 /**
@@ -495,9 +505,120 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 				ex.printStackTrace();
 			}
 		}
-
 	}
 
+	@Test
+	public void testImageDataUploadToMountedFolder() {
+
+		final String base64Data = "iVBORw0KGgoAAAANSUhEUgAAAFYAAAAXCAYAAAHmVYioAAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9sEBxYRJKsLwDYAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAD00lEQVRYw+1Y3XXyMAy9zuE1XSALhAHsBVigXsAL4AUyAQOQBeoF0gHIANECZIB6gTCAvhecY0wClNLv0HO4L4Cw/CNL8pWElBIAUFUVbzYbgUvouo632y0zM0spsd1uWUqJruv44+ODpZRYr9fcdR0vrLWCiDgoO+fG2eu6FgBARAIAi7CNOTjn2BgjACAzxjAAKKW4bVsOvwHAGMNlWY7fs7AsEYn9fp/OKuLvZ9sgIlZKXbZKgimdTGvNVVXxlEJd1xy2m8rmoJRiAMiGYYD3/kQhnggADocDjDFsjGHv/TgmtVusc/VGriHPcz4cDqdmwA+htT6TZUTExhherVYc26ZpmvGIwRHjz9gEQSfIF6l7HD0VRVGcyCccVQR7Bp0gz5RSQmvNbdsyHoTMGMN5niPPcwCAtZbzPD9bIL3hcPzgHd+6/XsC47swxrC1FlfXkVLi6+uLY3Rdx1JKSCkRy4Ms1QnpLB2TzhXGpHOm8jD+/f39RL6o65qLorh4qvQ/ImIigtb6Wxa/Zr30v6ZpYK0dnT2z1oqjgImItdaMJ0UWwlQpJZRSwnuP+AF6Jiw2mw2vVqsTYVVV8aMwbj6+kql8s1wuOT5o3/ew1oqpueKrT3XnXOViNlBKsdYaVVX9ejbo+37WEDe9MXVdj3nyN2Gtvd1n/wzmcl+aY2N5rDMMA4ex6/X6LM/O5WZm5kA1p2RSSux2uxP5wlqLtm2Rcr44SOq6Prs25xyGYbjZKE3TcFEUJ3MR0YnL9X2PQLy01rxarcbxRITFMfpnHXsYhknHDzz6VhRFASKaZTBpgIVYiceHPMtFUfCzu2ymlBJEhKZp8Eja9WsvmLVWKKXE8conqdzTbDbi5WKOnz/Fc5sS3BjeeyilRhJ8id6HLLHb7RgAlsvlxblChPd9L2Jd7z3atp1+bpmZ06gMxW+ccuI3e4qQl2XJzrkzjhEvHM8V0pVzThRFwU3TjAew1oopQv6jOjGqxk4Iy19EMM41wnZXfL3wwFzwiEne3t7GnkF4oEOM/0UcW2bjefb7PdLuzVXDHptct4T9bLiXZXlGy5RSs6F2qay9NSQvpaFra6V581olcBx30iZzziHOwen4RVwo3tt1uSXHhs3+j3z807Wu5Vit9WjUubHZVEv1hQeQQ2utCG4e2g+hVf+sjPZPGDZUfaHJZa2F9x6h3CUids5xWZYvI/+EbhGRMMaMhm6aBmVZwjmHS9XEC9/ksW3bvqx0B0TXdZxSo0uvofde3EJr0tfy1irtGpWZqJjOOPM9dCvPc/78/Jxs7KZ7voUS/gORqW62f9bxTgAAAABJRU5ErkJggg==";
+		final String dirName    = "mountServiceTest";
+		final Path base         = Paths.get(basePath);
+		Path testDir            = null;
+
+		try {
+
+			testDir = Files.createDirectory(base.resolve(dirName));
+
+		} catch (IOException ioex) {
+			fail("Unable to create test files.");
+		}
+
+		// mount directory
+		try (final Tx tx = app.tx()) {
+
+			// create test user
+			final User tester = app.create(User.class,
+				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "tester"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "tester")
+			);
+
+			// create folder to mount
+			final Folder folder = app.create(Folder.class,
+				new NodeAttribute<>(Folder.name, "mounted"),
+				new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), false),
+				new NodeAttribute<>(StructrApp.key(Folder.class, "mountTarget"), testDir.toString())
+			);
+
+			// make folder writable for user
+			folder.grant(Permission.read, tester);
+			folder.grant(Permission.write, tester);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			// set resource access flags to be able to POS to /Image
+			final ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, "Image").getFirst();
+			if (grant != null) {
+
+				grant.setProperty(ResourceAccess.flags, 4L);
+
+			} else {
+
+				app.create(ResourceAccess.class,
+					new NodeAttribute<>(ResourceAccess.signature, "Image"),
+					new NodeAttribute<>(ResourceAccess.flags,          4L)
+				);
+			}
+
+			// add onCreate method that sets the parent of an uploaded image
+			final JsonSchema schema  = StructrSchema.createFromDatabase(app);
+			final JsonType imageType = schema.getType("Image");
+			imageType.addMethod("onCreation", "set(this, 'parent', first(find('Folder', 'name', 'mounted')))", "");
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("X-User", "tester" , "X-Password", "tester")
+				.body("{ name: 'test.png', imageData: '" + base64Data + "' }")
+
+			.expect()
+
+				.statusCode(201)
+
+			.when()
+				.post("/Image");
+
+
+		try (final Tx tx = app.tx()) {
+
+			final List<Image> images = app.nodeQuery(Image.class).getAsList();
+
+			assertEquals("Only one image should exist", 1, images.size());
+
+			final Image image = images.get(0);
+
+			assertNotNull(image);
+			assertEquals("Invalid name of uploaded image", "test.png", image.getName());
+			assertEquals("Invalid binary data of uploaded image", base64Data, image.getProperty(StructrApp.key(Image.class, "imageData")));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
 
 	// ----- private methods -----
 	private void createTestFile(final Path path, final String content) throws IOException {

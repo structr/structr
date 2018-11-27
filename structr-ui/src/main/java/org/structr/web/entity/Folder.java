@@ -60,10 +60,9 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextA
 		type.addStringProperty("enabledChecksums",         PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("mountTarget",              PropertyView.Ui);
 		type.addBooleanProperty("mountDoFulltextIndexing", PropertyView.Public, PropertyView.Ui);
+		type.addBooleanProperty("mountWatchContents",      PropertyView.Public, PropertyView.Ui);
 		type.addIntegerProperty("mountScanInterval",       PropertyView.Public, PropertyView.Ui);
 		type.addLongProperty("mountLastScanned",           PropertyView.Public, PropertyView.Ui);
-
-		type.addBooleanProperty("mountWatchContents");
 
 		type.addPropertyGetter("mountTarget", String.class);
 		type.addPropertyGetter("enabledChecksums", String.class);
