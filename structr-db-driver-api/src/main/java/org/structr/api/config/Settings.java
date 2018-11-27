@@ -131,7 +131,8 @@ public class Settings {
 	public static final Setting<Boolean> SyncDebugging          = new BooleanSetting(databaseGroup, "Sync debugging",      "sync.debug",                       false);
 
 	// application settings
-	public static final Setting<Boolean> ChangelogEnabled         = new BooleanSetting(applicationGroup, "Changelog",    "application.changelog.enabled",               false);
+	public static final Setting<Boolean> ChangelogEnabled         = new BooleanSetting(applicationGroup, "Changelog",    "application.changelog.enabled",               false, "Turns on logging of changes to nodes and relationships");
+	public static final Setting<Boolean> UserChangelogEnabled     = new BooleanSetting(applicationGroup, "Changelog",    "application.changelog.user_centric.enabled",  false, "Turns on user-centric logging of what a user changed/created/deleted");
 	public static final Setting<Boolean> FilesystemEnabled        = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.enabled",              false);
 	public static final Setting<Boolean> UniquePaths              = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.unique.paths",         true);
 	public static final Setting<String> DefaultChecksums          = new StringSetting(applicationGroup,  "Filesystem",   "application.filesystem.checksums.default",    "", "List of checksums to be calculated on file creation by default.");
