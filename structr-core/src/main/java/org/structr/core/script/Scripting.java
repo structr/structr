@@ -236,6 +236,9 @@ public class Scripting {
 			final Scriptable scope = scriptingContext.initStandardObjects();
 			final StructrScriptable scriptable = new StructrScriptable(actionContext, entity, scriptingContext);
 
+			// don't wrap Java primitives
+			scriptingContext.getWrapFactory().setJavaPrimitiveWrap(false);
+
 			scriptable.setParentScope(scope);
 
 			// register Structr scriptable
