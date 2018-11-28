@@ -32,21 +32,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.Property;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 public class LayoutsCommand extends AbstractCommand {
 
-	private static final Logger logger                          = LoggerFactory.getLogger(LayoutsCommand.class.getName());
-	private static final Property<List<String>> layoutsProperty = new GenericProperty<>("layouts");
+	private static final Logger logger = LoggerFactory.getLogger(LayoutsCommand.class.getName());
 
 	static {
 
@@ -63,8 +58,6 @@ public class LayoutsCommand extends AbstractCommand {
 
 		if (mode != null) {
 
-			final List<GraphObject> result = new LinkedList<>();
-
 			switch (mode) {
 
 				case "list":
@@ -73,14 +66,7 @@ public class LayoutsCommand extends AbstractCommand {
 
 					if (layouts != null) {
 
-						final GraphObjectMap layoutContainer = new GraphObjectMap();
-
-						layoutContainer.put(layoutsProperty, layouts);
-						result.add(layoutContainer);
-
-						webSocketData.setResult(result);
-						webSocketData.setRawResultCount(1);
-						getWebSocket().send(webSocketData, true);
+						getWebSocket().send(MessageBuilder.forName(getCommand()).callback(callback).data("layouts", layouts).build(), true);
 					}
 
 					break;
@@ -91,19 +77,16 @@ public class LayoutsCommand extends AbstractCommand {
 
 						final String content = new String(Files.readAllBytes(locateFile(name).toPath()));
 
-						getWebSocket().send(MessageBuilder.finished().callback(callback).data("schemaLayout", content).build(), true);
+						getWebSocket().send(MessageBuilder.forName(getCommand()).callback(callback).data("schemaLayout", content).build(), true);
 
 					} catch (IOException | FrameworkException ex) {
 
 						logger.error("", ex);
-
 					}
 
 					break;
 
 				case "add":
-
-					final String positions = webSocketData.getNodeDataStringValue("schemaLayout");
 
 					try {
 
@@ -111,20 +94,39 @@ public class LayoutsCommand extends AbstractCommand {
 
 						if (layoutFile.exists()) {
 
-							getWebSocket().send(MessageBuilder.status().code(422).message("Layout already exists!").build(), true);
+							getWebSocket().send(MessageBuilder.forName(getCommand()).callback(callback).data("error", "Layout already exists").data("message", "To explicitly overwrite the layout, please use the overwrite function.").build(), true);
 
 						} else {
 
-							createLayout(name, positions);
+							createLayout(name, webSocketData.getNodeDataStringValue("schemaLayout"));
+							getWebSocket().send(MessageBuilder.forName(getCommand()).callback(callback).build(), true);
 
 						}
-
-						getWebSocket().send(MessageBuilder.finished().callback(callback).build(), true);
 
 					} catch (FrameworkException ex) {
 
 						logger.error("", ex);
+					}
 
+					break;
+
+				case "overwrite":
+
+					try {
+
+						final File layoutFile = locateFile(name);
+
+						if (layoutFile.exists()) {
+
+							layoutFile.delete();
+						}
+
+						createLayout(name, webSocketData.getNodeDataStringValue("schemaLayout"));
+						getWebSocket().send(MessageBuilder.forName(getCommand()).callback(callback).build(), true);
+
+					} catch (FrameworkException ex) {
+
+						logger.error("", ex);
 					}
 
 					break;
@@ -135,12 +137,11 @@ public class LayoutsCommand extends AbstractCommand {
 
 						deleteLayout(name);
 
-						getWebSocket().send(MessageBuilder.finished().callback(callback).build(), true);
+						getWebSocket().send(MessageBuilder.forName(getCommand()).callback(callback).build(), true);
 
 					} catch (FrameworkException ex) {
 
 						logger.error("", ex);
-
 					}
 
 					break;
@@ -161,7 +162,6 @@ public class LayoutsCommand extends AbstractCommand {
 	public String getCommand() {
 
 		return "LAYOUTS";
-
 	}
 
 
@@ -200,7 +200,7 @@ public class LayoutsCommand extends AbstractCommand {
 
 		} else {
 
-			throw new FrameworkException(422, "Please supply schema name to import.");
+			throw new FrameworkException(422, "Please supply layout name to delete.");
 		}
 	}
 
