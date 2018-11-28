@@ -285,7 +285,7 @@ input.readonly {
 .exportArea, .importArea {
 	border: none;
 	margin: 0 0 0 4px;
-	width: 862px ! important;
+/*	width: 862px ! important; */
 	height: 470px;
 	overflow: auto;
 }
