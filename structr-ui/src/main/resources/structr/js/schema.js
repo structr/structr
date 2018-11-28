@@ -3041,23 +3041,43 @@ var _Schema = {
 			container.append(html);
 
 			$('#reset-schema-positions', container).on('click', _Schema.clearPositions);
-			var layoutSelector = $('#saved-layout-selector', container);
+			var layoutSelector      = $('#saved-layout-selector', container);
+			var layoutFilenameInput = $('#layout-filename', container);
 
-			$('#save-layout-file', container).click(function() {
-				var fileName = $('#save-layout-filename').val().replaceAll(/[^\w_\-\. ]+/, '-');
+			var saveLayoutFunction = function(mode) {
+
+				var fileName = layoutFilenameInput.val().replaceAll(/[^\w_\-\. ]+/, '-');
 
 				if (fileName && fileName.length) {
 
-					Command.layouts('add', fileName, JSON.stringify(_Schema.getSchemaLayoutConfiguration()), function() {
-						updateLayoutSelector();
-						$('#save-layout-filename').val('');
+					Command.layouts(mode, fileName, JSON.stringify(_Schema.getSchemaLayoutConfiguration()), function(data) {
 
-						blinkGreen(layoutSelector);
+						if (!data.error) {
+
+							new MessageBuilder().success("Layout saved").show();
+
+							updateLayoutSelector();
+							layoutFilenameInput.val('');
+
+							blinkGreen(layoutSelector);
+
+						} else {
+
+							new MessageBuilder().error().title(data.error).text(data.message).show();
+						}
 					});
 
 				} else {
 					Structr.error('Schema layout name is required.');
 				}
+			};
+
+			$('#create-layout-file', container).click(function() {
+				saveLayoutFunction('add');
+			});
+
+			$('#overwrite-layout-file', container).click(function() {
+				saveLayoutFunction('overwrite');
 			});
 
 			$('#restore-layout').click(function() {
@@ -3066,12 +3086,12 @@ var _Schema = {
 
 				if (selectedLayout && selectedLayout.length) {
 
-					Command.layouts('get', selectedLayout, null, function(result) {
+					Command.layouts('get', selectedLayout, null, function(data) {
 
 						var loadedConfig;
 
 						try {
-							loadedConfig = JSON.parse(result.schemaLayout);
+							loadedConfig = JSON.parse(data.schemaLayout);
 
 							if (loadedConfig._version) {
 
@@ -3150,10 +3170,10 @@ var _Schema = {
 
 				if (selectedLayout && selectedLayout.length) {
 
-					Command.layouts('get', selectedLayout, null, function(result) {
+					Command.layouts('get', selectedLayout, null, function(data) {
 
 						var element = document.createElement('a');
-						element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(result.schemaLayout));
+						element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data.schemaLayout));
 						element.setAttribute('download', selectedLayout + '.json');
 
 						element.style.display = 'none';
@@ -3185,16 +3205,14 @@ var _Schema = {
 
 			var updateLayoutSelector = function() {
 
-				Command.layouts('list', '', null, function(result) {
+				Command.layouts('list', '', null, function(data) {
 
 					layoutSelector.empty();
 					layoutSelector.append('<option selected value="" disabled>-- Select Layout --</option>');
 
-					result.forEach(function(data) {
+					data.layouts.forEach(function(layoutFile) {
 
-						data.layouts.forEach(function(layoutFile) {
-							layoutSelector.append('<option>' + layoutFile.slice(0, -5) + '</option>');
-						});
+						layoutSelector.append('<option>' + layoutFile.slice(0, -5) + '</option>');
 					});
 				});
 			};
