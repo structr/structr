@@ -814,12 +814,12 @@ var _Entities = {
 					cell.prev('td.key').append('<div class="pager up disabled"><i title="Previous Page" class="fa fa-caret-up"></i></div><div class="pager range"></div><div class="pager down"><i title="Next Page" class="fa fa-caret-down"></i></div>');
 
 					// display result count
-					cell.prev('td.key').append(' <span>(' + (resultCount || '?') + ')</span>');
+					cell.prev('td.key').append(' <span></span>');
 
 				}
 
 				// update result count
-				cell.prev('td.key').find('span').text('(' + (resultCount || '?') + ')');
+				cell.prev('td.key').find('span').text('(' + ((resultCount !== undefined) ? resultCount : '?') + ')');
 
 				let pageUpButton   = cell.prev('td.key').find('.pager.up');
 				let pageDownButton = cell.prev('td.key').find('.pager.down');
@@ -848,8 +848,10 @@ var _Entities = {
 					cell.children('.node').remove();
 				}
 
-				// display current range
-				cell.prev('td.key').find('.pager.range').text((page-1)*pageSize+1 + '..' + (resultCount ? Math.min(resultCount, page*pageSize) : '?'));
+				if (resultCount === undefined || resultCount > 0) {
+					// display current range
+					cell.prev('td.key').find('.pager.range').text((page-1)*pageSize+1 + '..' + (resultCount ? Math.min(resultCount, page*pageSize) : '?'));
+				}
 				
 				if (data.result.length) {
 
