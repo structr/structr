@@ -18,6 +18,7 @@
  */
 package org.structr.common;
 
+import java.net.URISyntaxException;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -38,6 +39,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.TestOne;
@@ -47,6 +49,9 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 
 /**
  * Test access control with different permission levels.
@@ -1516,131 +1521,80 @@ public class AccessControlTest extends StructrTest {
 		}
 	}
 
-	/**
-	 * Test whether users are allowed to add themselves to a group they don't have write access for (they shouldn't).
-	 *
-	 * This method is exactly like {@link AccessControlTest#test11GroupMembership()} but uses the {@link AbstractNode#setProperty} method.
-	 */
-//	@Test
-//	public void test11GroupMembership2() {
-//
-//		// remove auto-generated resource access objects
-//		clearResourceAccess();
-//
-//		Principal user1 = null;
-//		Principal user2 = null;
-//
-//		// ################################################################################################################
-//		// create three users
-//
-//		try (final Tx tx = app.tx()) {
-//
-//			user1 = createTestNode(Principal.class, "user1");
-//			user2 = createTestNode(Principal.class, "user2");
-//
-//			tx.success();
-//
-//		} catch (FrameworkException t) {
-//
-//			logger.warn("", t);
-//			fail("Unexpected exception.");
-//		}
-//
-//		assertNotNull(user1);
-//		assertNotNull(user2);
-//
-//		final SecurityContext user1Context = SecurityContext.getInstance(user1, AccessMode.Backend);
-//		final App user1App                 = StructrApp.getInstance(user1Context);
-//
-//		final SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Backend);
-//		final App user2App                 = StructrApp.getInstance(user2Context);
-//
-//		String groupId = null;
-//
-//		// ################################################################################################################
-//		// Let user2 create a group and grant read permissions to user1
-//
-//		try (final Tx tx = user2App.tx()) {
-//
-//			Group group = user2App.create(Group.class, "group");
-//
-//			assertEquals("Invalid group owner", user2, group.getOwnerNode());
-//
-//			group.grant(Permission.read, user1);
-//
-//			groupId = group.getUuid();
-//
-//			tx.success();
-//
-//		} catch (FrameworkException t) {
-//
-//			logger.warn("", t);
-//			fail("Unexpected exception.");
-//		}
-//
-//		// ################################################################################################################
-//		// Let user1 try to add itself to group
-//
-//		try (final Tx tx = user1App.tx()) {
-//
-//			Group group = user1App.get(Group.class, groupId);
-//
-//			assertNotNull(group);
-//
-//			// Add user1 to group
-//			//group.addMember(user1);
-//			user1.setProperty(StructrApp.key(Principal.class, "groups"), Arrays.asList(group));
-//
-//			tx.success();
-//
-//			fail("Expected a 'Modification not permitted' FrameworkException");
-//
-//		} catch (FrameworkException t) {
-//
-//		}
-//
-//
-//		// ################################################################################################################
-//		// As admin, grant write access on user1 to user2 so user2 can modify user1
-//
-//		try (final Tx tx = app.tx()) {
-//
-//			Group group = app.get(Group.class, groupId);
-//
-//			// Grant write permission on group to user1
-//			group.grant(Permission.write, user1);
-//
-//			tx.success();
-//
-//		} catch (FrameworkException t) {
-//
-//			logger.warn("", t);
-//			fail("Unexpected exception.");
-//		}
-//
-//
-//		// ################################################################################################################
-//		// Try again
-//
-//		try (final Tx tx = user1App.tx()) {
-//
-//			Group group = user1App.get(Group.class, groupId);
-//
-//			// Add user1 to group
-//			//group.addMember(user1);
-//			user1.setProperty(StructrApp.key(Principal.class, "groups"), Arrays.asList(group));
-//
-//			assertEquals(user1, group.getMembers().get(0));
-//
-//			tx.success();
-//
-//		} catch (FrameworkException t) {
-//
-//			logger.warn("", t);
-//			fail("Unexpected exception.");
-//
-//		}
-//	}
+	@Test
+	public void testGroupPermissions() {
+
+		Principal deleter = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.getType("Principal");
+
+			type.addStringProperty("test");
+			type.addMethod("onModification", "set_privileged(this, 'test', now)", "");
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (URISyntaxException | FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Group read        = app.create(Group.class, "READ");
+			final Group write       = app.create(Group.class, "WRITE");
+			final Group delete      = app.create(Group.class, "DELETE");
+			final Principal owner   = app.create(Principal.class, "owner");
+
+			deleter = app.create(Principal.class, "deleter");
+
+			// create object with "owner" as owner
+			final MailTemplate test = StructrApp.getInstance(SecurityContext.getInstance(owner, AccessMode.Backend)).create(MailTemplate.class, "testobject");
+
+			test.grant(Permission.read,   read);
+			test.grant(Permission.write,  write);
+			test.grant(Permission.delete, delete);
+
+			test.grant(Permission.delete, deleter);
+
+			read.addMember(deleter);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+
+		}
+
+		final App deleterApp = StructrApp.getInstance(SecurityContext.getInstance(deleter, AccessMode.Backend));
+
+		try (final Tx tx = deleterApp.tx()) {
+
+			final MailTemplate test = deleterApp.nodeQuery(MailTemplate.class).getFirst();
+
+			assertNotNull("Test object should be visible to user", test);
+
+			deleterApp.delete(test);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+
+		}
+
+	}
+
 
 	// ----- private methods -----
 	public static void clearResourceAccess() {

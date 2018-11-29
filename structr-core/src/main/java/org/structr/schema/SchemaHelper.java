@@ -1853,6 +1853,7 @@ public class SchemaHelper {
 							.name(selectionName)
 							.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
 							.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(getGraphQLInputTypeForProperty(property)).build())
+							.field(GraphQLInputObjectField.newInputObjectField().name("_conj").type(Scalars.GraphQLString).build())
 							.build();
 
 						selectionTypes.put(selectionName, selectionType);
@@ -1902,6 +1903,7 @@ public class SchemaHelper {
 						.name(selectionName)
 						.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
 						.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(getGraphQLInputTypeForProperty(property)).build())
+						.field(GraphQLInputObjectField.newInputObjectField().name("_conj").type(Scalars.GraphQLString).build())
 						.build();
 
 					selectionTypes.put(selectionName, selectionType);
@@ -1920,6 +1922,7 @@ public class SchemaHelper {
 					.name("nameSelection")
 					.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
 					.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(Scalars.GraphQLString).build())
+					.field(GraphQLInputObjectField.newInputObjectField().name("_conj").type(Scalars.GraphQLString).build())
 					.build();
 
 				selectionTypes.put("nameSelection", selectionType);

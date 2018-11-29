@@ -27,6 +27,7 @@ import graphql.language.ObjectField;
 import graphql.language.ObjectValue;
 import graphql.language.StringValue;
 import graphql.language.Value;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -224,7 +225,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 					break;
 
 				case "_conj":
-					occurrence = getOccurrence(value);
+					occurrence = getOccurrenceForSearchValue(value);
 					break;
 
 				default:
@@ -298,18 +299,30 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		return map;
 	}
 
-	private Occurrence getOccurrence(final Value value) {
+	private Occurrence getOccurrenceForSearchValue(final Value value) {
 
 		final String val = getStringValue(value, null);
 		if (val != null) {
 
-			switch (val.toLowerCase()) {
+			return getOccurrence(val);
+		}
 
-				case "and":
-					return Occurrence.REQUIRED;
+		return Occurrence.REQUIRED;
+	}
+
+	private Occurrence getOccurrence(final Object value) {
+
+		if (value instanceof String) {
+
+			final String conj = value.toString().toLowerCase();
+
+			switch (conj) {
 
 				case "or":
 					return Occurrence.OPTIONAL;
+
+				case "and":
+					return Occurrence.REQUIRED;
 
 				case "not":
 					return Occurrence.FORBIDDEN;
@@ -505,6 +518,31 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 							}
 						}
 
+					} else if (searchValue instanceof List) {
+
+						// handle multiple values with conjunction (AND or OR)
+						final List list  = (List)searchValue;
+						Occurrence occur = Occurrence.REQUIRED;
+
+						if (input.containsKey("_conj")) {
+
+							occur = getOccurrence(input.get("_conj"));
+						}
+
+						for (final Object listValue : list) {
+
+							switch (searchKey) {
+
+								case "_contains":
+									addAttribute(key, key.getSearchAttribute(securityContext, occur, listValue, false, null), Occurrence.REQUIRED);
+									break;
+
+								case "_equals":
+									addAttribute(key, key.getSearchAttribute(securityContext, occur, listValue, true, null), Occurrence.REQUIRED);
+									break;
+							}
+						}
+
 					} else {
 
 						switch (searchKey) {
@@ -535,27 +573,51 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 			if (child instanceof ObjectValue) {
 
-				map.put(name, unwrapValue((ObjectValue)child));
+				putObjectOrList(map, name, unwrapValue((ObjectValue)child));
 
 			} else if (child instanceof StringValue) {
 
-				map.put(name, ((StringValue)child).getValue());
+				putObjectOrList(map, name, ((StringValue)child).getValue());
 
 			} else if (child instanceof IntValue) {
 
-				map.put(name, ((IntValue)child).getValue().intValue());
+				putObjectOrList(map, name, ((IntValue)child).getValue().intValue());
 
 			} else if (child instanceof FloatValue) {
 
-				map.put(name, ((FloatValue)child).getValue().doubleValue());
+				putObjectOrList(map, name, ((FloatValue)child).getValue().doubleValue());
 
 			} else if (child instanceof BooleanValue) {
 
-				map.put(name, ((BooleanValue)child).isValue());
+				putObjectOrList(map, name, ((BooleanValue)child).isValue());
 			}
 		}
 
 		return map;
+	}
+
+	private void putObjectOrList(final Map<String, Object> map, final String key, final Object value) {
+
+		if (map.containsKey(key)) {
+
+			final Object existingValue = map.get(key);
+			if (existingValue instanceof List) {
+
+				((List)existingValue).add(value);
+
+			} else {
+
+				final List list = new ArrayList();
+				list.add(existingValue);
+				list.add(value);
+
+				map.put(key, list);
+			}
+
+		} else {
+
+			map.put(key, value);
+		}
 	}
 
 	// ----- nested classes -----
