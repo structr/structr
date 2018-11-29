@@ -647,6 +647,11 @@ img.disabled {
 	position: relative;
 	width: 50%;
 	font-size: 1.2em;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-o-user-select: none;
+	user-select: none;	
 }
 
 .props td.key .hint {
@@ -696,6 +701,43 @@ img.disabled {
 	cursor: pointer;
 	vertical-align: middle;
 	margin: 0 2px 2px 0;
+}
+
+.props tr td .pager {
+	width: 16px;
+	position: absolute;
+	right: 2px;
+	cursor: pointer;
+}
+
+.props tr td .pager.disabled {
+	cursor: default;
+}
+
+.props tr td .pager.up {
+	top: 2px;
+}
+
+.props tr td .pager.down {
+	bottom: 2px;
+}
+
+.props tr td .pager i {
+	color: #000;
+}
+
+.props tr td .pager.disabled i {
+	color: #ccc;
+	cursor: default;
+}
+
+.props tr td .pager.range {
+	top: calc(50% - 8px);
+	height: 16px;
+	width: 100px;
+	cursor: default;
+	right: 6px;
+	text-align: right;
 }
 
 ul#previewTabs {
