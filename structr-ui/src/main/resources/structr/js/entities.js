@@ -2158,7 +2158,7 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 
 function formatRegularValueField(key, value, isMultiline, isReadOnly, isPassword) {
 	if (isMultiline) {
-		return '<textarea name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + '>' + value + '</textarea>';
+		return '<textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + '>' + value + '</textarea>';
 	} else {
 		return '<input name="' + key + '" type="' + (isPassword ? 'password" autocomplete="new-password' : 'text') + '" value="' + value + '"' + (isReadOnly ? 'readonly class="readonly"' : '') + '>';
 	}
