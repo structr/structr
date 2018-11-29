@@ -726,7 +726,7 @@ var _Entities = {
 			});
 
 			$.ajax({
-				url: rootUrl + entity.type + '/' + entity.id,
+				url: rootUrl + entity.type + '/' + entity.id + '/all',
 				dataType: 'json',
 				headers: {
 					Accept: 'application/json; charset=utf-8; properties=' + filteredProperties.join(',')
@@ -2136,7 +2136,7 @@ var _Entities = {
 
 function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 
-	if (obj === null) {
+	if (!obj) {
 
 		return formatRegularValueField(key, '', isMultiline, isReadOnly, isPassword);
 
