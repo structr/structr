@@ -46,6 +46,7 @@ var _Icons = {
 	clone_icon: 'icon/page_copy.png',
 	group_icon: 'icon/group.png',
 	group_add_icon: 'icon/group_add.png',
+	group_link_icon: 'icon/group_link.png',
 	user_icon: 'icon/user.png',
 	user_add_icon: 'icon/user_add.png',
 	user_delete_icon: 'icon/user_delete.png',
