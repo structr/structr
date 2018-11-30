@@ -651,7 +651,7 @@ img.disabled {
 	-moz-user-select: none;
 	-ms-user-select: none;
 	-o-user-select: none;
-	user-select: none;	
+	user-select: none;
 }
 
 .props td.key .hint {
@@ -3369,6 +3369,10 @@ td#cascading-options, td#propagation-options {
 	margin-left: 0;
 }
 
+#folder-contents-container select.select-create-type {
+	min-width: 100px;
+}
+
 #folder-contents-container select:hover, #code-contents-container select:hover, #contents-contents-container select:hover, #crawler-list-container select:hover, #flows-canvas-container select:hover {
 	background-color: #fff;
 }
@@ -4985,6 +4989,10 @@ input.newKey {
 
 .sprite-zoom {
 	background-position: -320px -114px;
+}
+
+.sprite-group-link {
+	background-position: -221px -124px;
 }
 
 /**

@@ -18,21 +18,11 @@
  */
 package org.structr.ldap;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import org.junit.Assert;
-import static org.junit.Assert.fail;
-import org.junit.Test;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.ResourceAccess;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.Tx;
-import org.structr.web.entity.User;
-
 /**
  */
 public class TestLDAPClient extends StructrLDAPClientModuleTest {
 
+	/* this test cannot run without an Active Directory server
 	@Test
 	public void testLDAPClient() {
 
@@ -91,53 +81,5 @@ public class TestLDAPClient extends StructrLDAPClientModuleTest {
 
 		try {Thread.sleep(1000); } catch (Throwable t) {}
 	}
+	*/
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

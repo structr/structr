@@ -46,7 +46,7 @@ public interface LDAPUser extends User {
 		type.setExtends(schema.getType("User"));
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/LDAPUser"));
 
-		type.addStringProperty("distinguishedName", PropertyView.Public).setUnique(true).setIndexed(true);
+		type.addStringProperty("distinguishedName", PropertyView.Public, PropertyView.Ui).setUnique(true).setIndexed(true);
 
 		type.addPropertyGetter("distinguishedName", String.class);
 		type.addPropertySetter("distinguishedName", String.class);

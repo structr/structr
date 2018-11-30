@@ -44,7 +44,7 @@ public interface LDAPGroup extends Group {
 		type.setExtends(schema.getType("Group"));
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/LDAPGroup"));
 
-		type.addStringProperty("distinguishedName", PropertyView.Public).setUnique(true).setIndexed(true);
+		type.addStringProperty("distinguishedName", PropertyView.Public, PropertyView.Ui).setUnique(true).setIndexed(true);
 
 		type.addPropertyGetter("distinguishedName", String.class);
 		type.addPropertySetter("distinguishedName", String.class);
