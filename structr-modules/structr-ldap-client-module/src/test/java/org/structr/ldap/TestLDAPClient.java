@@ -18,20 +18,11 @@
  */
 package org.structr.ldap;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import org.junit.Assert;
-import static org.junit.Assert.fail;
-import org.junit.Test;
-import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.Tx;
-import org.structr.web.entity.User;
-
 /**
  */
 public class TestLDAPClient extends StructrLDAPClientModuleTest {
 
+	/* this test cannot run without an Active Directory server
 	@Test
 	public void testLDAPClient() {
 
@@ -47,85 +38,48 @@ public class TestLDAPClient extends StructrLDAPClientModuleTest {
 				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
 			);
 
-			tx.success();
-
-		} catch (Throwable t) {
-			fail("Unexpected exception");
-		}
-
-		try (final Tx tx = app.tx()) {
-
-			app.create(type,
-				new NodeAttribute<>(StructrApp.key(LDAPUser.class, "name"),              "test"),
-				new NodeAttribute<>(StructrApp.key(LDAPUser.class, "distinguishedName"), "distinguishedName"),
-				new NodeAttribute<>(StructrApp.key(LDAPUser.class, "description"),       "description"),
-				new NodeAttribute<>(StructrApp.key(LDAPUser.class, "commonName"),        "commonName")
+			app.create(LDAPGroup.class,
+				new NodeAttribute<>(StructrApp.key(LDAPGroup.class, "name"),              "group1"),
+				new NodeAttribute<>(StructrApp.key(LDAPGroup.class, "distinguishedName"), "ou=page1,dc=test,dc=structr,dc=org")
 			);
 
+			app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, "User").getFirst().setProperty(ResourceAccess.flags, 1L);
+
 			tx.success();
 
 		} catch (Throwable t) {
 			fail("Unexpected exception");
 		}
 
+		RestAssured.basePath = "/structr/rest";
 		RestAssured
+
 			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
-				.headers("X-User", "admin" , "X-Password", "admin")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.headers("X-User", "admin", "X-Password", "admin")
+
 			.expect()
 				.statusCode(200)
+
 			.when()
-				.get("/LDAPUser");
+				.get("/User/ui");
 
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.headers("X-User", "tester", "X-Password", "password")
+
+			.expect()
+				.statusCode(200)
+
+			.when()
+				.get("/User/me");
+
+
+		try {Thread.sleep(1000); } catch (Throwable t) {}
 	}
+	*/
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

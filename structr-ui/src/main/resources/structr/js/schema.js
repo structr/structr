@@ -3861,5 +3861,44 @@ var _Schema = {
 				callback(typeInfo);
 			});
 		}
+	},
+	getDerivedTypes: function(baseType, blacklist, callback) {
+
+		Command.getByType('SchemaNode', 10000, 1, 'name', 'asc', 'name,extendsClass,isAbstract', false, function(result) {
+
+			var fileTypes = [];
+			var depth     = 5;
+			var types     = {};
+
+			var collect = function(list, type) {
+
+				list.forEach(function(n) {
+
+					if (n.extendsClass === type) {
+
+						fileTypes.push('org.structr.dynamic.' + n.name);
+
+						if (!n.isAbstract && !blacklist.includes(n.name)) {
+							types[n.name] = 1;
+						}
+					}
+
+				});
+			}
+
+			collect(result, baseType);
+
+			for (var i=0; i<depth; i++) {
+
+				fileTypes.forEach(function(type) {
+
+					collect(result, type);
+				});
+			}
+
+			if (callback && typeof callback === 'function') {
+				callback(Object.keys(types));
+			}
+		});
 	}
 };

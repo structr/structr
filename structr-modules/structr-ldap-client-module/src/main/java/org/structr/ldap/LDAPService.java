@@ -18,125 +18,171 @@
  */
 package org.structr.ldap;
 
+import ch.qos.logback.classic.Level;
+import com.google.gson.GsonBuilder;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
+import org.apache.directory.api.ldap.codec.osgi.DefaultLdapCodecService;
+import org.apache.directory.api.ldap.codec.standalone.CodecFactoryUtil;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.entry.Value;
 import org.apache.directory.api.ldap.model.exception.LdapException;
-import org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueException;
 import org.apache.directory.api.ldap.model.message.SearchScope;
 import org.apache.directory.api.ldap.model.name.Dn;
-import org.apache.directory.api.ldap.model.name.Rdn;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
-import org.structr.api.service.RunnableService;
+import org.structr.api.service.SingletonService;
 import org.structr.api.service.StructrServices;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
-import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
 /**
  * The LDAP synchronization service. This is a system service that requires
  * superuser permissions.
  */
-public class LDAPService extends Thread implements RunnableService {
+public class LDAPService extends Thread implements SingletonService {
 
 	private static final Logger logger               = LoggerFactory.getLogger(LDAPService.class.getName());
 	private static final Set<String> structuralTypes = new LinkedHashSet<>(Arrays.asList("ou", "dc"));
 
-	public static final String CONFIG_KEY_UPDATE_INTERVAL = "ldap.updateInterval";
 	public static final String CONFIG_KEY_LDAP_BINDDN     = "ldap.bindDn";
 	public static final String CONFIG_KEY_LDAP_SECRET     = "ldap.secret";
 	public static final String CONFIG_KEY_LDAP_HOST       = "ldap.host";
 	public static final String CONFIG_KEY_LDAP_PORT       = "ldap.port";
 	public static final String CONFIG_KEY_LDAP_SSL        = "ldap.useSsl";
 	public static final String CONFIG_KEY_LDAP_BASEDN     = "ldap.baseDn";
-	public static final String CONFIG_KEY_LDAP_FILTER     = "ldap.filter";
 	public static final String CONFIG_KEY_LDAP_SCOPE      = "ldap.scope";
+	public static final String CONFIG_KEY_LDAP_MAPPING    = "ldap.propertyMapping";
 
-	private long updateInterval = 1800;		// completely arbitrary update interval, set your own in structr.conf!
-	private String host         = "localhost";
-	private String binddn       = null;
-	private String secret       = null;
-	private String baseDn       = null;
-	private String filter       = null;
-	private String scope        = null;
-	private boolean useSsl      = true;
-	private boolean doRun       = true;
-	private int port            = 389;
+	private final long connectionTimeout = 1000;
 
 	public LDAPService() {
 
 		super("Structr LDAP Service");
-		this.setDaemon(true);
+
+		((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(DefaultLdapCodecService.class)).setLevel(Level.WARN);
+		((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(CodecFactoryUtil.class)).setLevel(Level.WARN);
 	}
 
 	// ----- public methods -----
-	public String fetchObjectInfo(final String dn) {
+	public void synchronizeGroup(final LDAPGroup group)  throws IOException, LdapException, CursorException, FrameworkException {
 
+		final String scope              = getScope();
+		final String secret             = getSecret();
+		final String bindDn             = getBindDN();
+		final String host               = getHost();
+		final int port                  = getPort();
+		final boolean useSsl            = getUseSSL();
 		final LdapConnection connection = new LdapNetworkConnection(host, port, useSsl);
-		final StringBuilder buf         = new StringBuilder();
+		final List<LDAPUser> members    = new LinkedList<>();
+		final Set<String> memberDNs     = new LinkedHashSet<>();
+		final String groupName          = group.getName();
+		final String groupDn            = group.getDistinguishedName();
+
+		if (StringUtils.isEmpty(groupDn)) {
+
+			logger.warn("Unable to update group {}: distinguishedName property not set", groupName);
+			return;
+		}
 
 		if (connection != null) {
 
-			try {
-				if (connection.connect()) {
+			connection.setTimeOut(connectionTimeout);
 
-					if (StringUtils.isNotBlank(binddn) && StringUtils.isNotBlank(secret)) {
+			if (connection.connect()) {
 
-						connection.bind(binddn, secret);
+				logger.info("Updating LDAPGroup {} ({}) with {} on LDAP server {}:{}..", groupName, group.getUuid(), groupDn, host, port);
 
-					} else if (StringUtils.isNotBlank(binddn)) {
+				if (StringUtils.isNotBlank(bindDn) && StringUtils.isNotBlank(secret)) {
 
-						connection.bind(binddn);
-					}
+					connection.bind(bindDn, secret);
 
-					final EntryCursor cursor = connection.search(dn, "(objectclass=*)", SearchScope.OBJECT);
-					while (cursor.next()) {
+				} else if (StringUtils.isNotBlank(bindDn)) {
 
-						buf.append(cursor.get());
-						buf.append("\n");
-					}
-
-					cursor.close();
-
-					connection.close();
+					connection.bind(bindDn);
 				}
 
-				connection.close();
+				// fetch DNs of all group members
+				try (final EntryCursor cursor = connection.search(groupDn, "(objectclass=*)", SearchScope.valueOf(scope))) {
 
-			} catch (CursorException | LdapException | IOException ex) {
-				logger.warn("", ex);
+					while (cursor.next()) {
+
+						final Entry entry           = cursor.get();
+						final Attribute objectClass = entry.get("objectclass");
+
+						if (objectClass.contains("groupOfNames")) {
+
+							// add group members
+							final Attribute uniqueMembers = entry.get("member");
+							if (uniqueMembers != null) {
+
+								for (final Value value : uniqueMembers) {
+
+									memberDNs.add(value.getString());
+								}
+							}
+						}
+
+						if (objectClass.contains("groupOfUniqueNames")) {
+
+							// add group members
+							final Attribute uniqueMembers = entry.get("uniqueMember");
+							if (uniqueMembers != null) {
+
+								for (final Value value : uniqueMembers) {
+
+									memberDNs.add(value.getString());
+								}
+							}
+						}
+					}
+				}
+
+				// resolve users
+				for (final String memberDN : memberDNs) {
+
+					try (final EntryCursor cursor = connection.search(memberDN, "(objectclass=*)", SearchScope.valueOf(scope))) {
+
+						while (cursor.next()) {
+
+							members.add(getOrCreateUser(cursor.get()));
+						}
+					}
+				}
+
+				logger.info("{} users updated", members.size());
+
+				// update members of group to new state (will remove all members that are not part of the group, as expected)
+				group.setProperty(StructrApp.key(Group.class, "members"), members);
 			}
 		}
-
-		return buf.toString();
 	}
 
 	public boolean canSuccessfullyBind(final String dn, final String secret) {
 
+		final String host               = getHost();
+		final int port                  = getPort();
+		final boolean useSsl            = getUseSSL();
 		final LdapConnection connection = new LdapNetworkConnection(host, port, useSsl);
 		if (connection != null) {
+
+			connection.setTimeOut(connectionTimeout);
 
 			try {
 				if (connection.connect()) {
@@ -150,163 +196,50 @@ public class LDAPService extends Thread implements RunnableService {
 				return true;
 
 			} catch (LdapException | IOException ex) {
-				logger.warn("", ex);
+				logger.warn("Cannot bind {} on LDAP server {}: {}", dn, (host + ":" + port), ex.getMessage());
 			}
 		}
 
 		return false;
 	}
 
-	public void doUpdate() throws IOException, LdapException, CursorException, FrameworkException {
+	public Map<String, String> getPropertyMapping() {
+		return new GsonBuilder().create().fromJson(Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_MAPPING).getValue("{}"), Map.class);
+	}
 
-		final LdapConnection connection                 = new LdapNetworkConnection(host, port, useSsl);
-		final Map<Group, Set<String>> unresolvedMembers = new LinkedHashMap<>();
-		final Map<String, Object> metadata              = new LinkedHashMap<>();
-		final App app                                   = StructrApp.getInstance();
+	public String getHost() {
+		return Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_HOST).getValue("localhost");
+	}
 
-		metadata.put("users",        0);
-		metadata.put("groups",       0);
-		metadata.put("deletedUsers", 0);
+	public int getPort() {
+		return Settings.getOrCreateIntegerSetting(CONFIG_KEY_LDAP_PORT).getValue(389);
+	}
 
-		if (connection != null) {
+	public String getBindDN() {
+		return Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_BINDDN).getValue("");
+	}
 
-			// make connection persistent
-			connection.setTimeOut(0);
+	public String getSecret() {
+		return Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_SECRET).getValue("");
+	}
 
-			if (connection.connect()) {
+	public String getBaseDN() {
+		return Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_BASEDN).getValue("");
+	}
 
-				logger.info("Updating user/group information from LDAP server {}:{}..", host, port);
+	public String getScope() {
+		return Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_SCOPE).getValue("SUBTREE");
+	}
 
-				if (StringUtils.isNotBlank(binddn) && StringUtils.isNotBlank(secret)) {
-
-					connection.bind(binddn, secret);
-
-				} else if (StringUtils.isNotBlank(binddn)) {
-
-					connection.bind(binddn);
-				}
-
-				// step 1: fetch / update all users from LDAP server
-				final EntryCursor cursor = connection.search(baseDn, filter, SearchScope.valueOf(scope));
-				while (cursor.next()) {
-
-					try (final Tx tx = app.tx()) {
-
-						synchronizeEntry(cursor.get(), unresolvedMembers, metadata);
-						tx.success();
-
-					} catch (FrameworkException fex) {
-						fex.printStackTrace();
-					}
-				}
-
-				// step 2: resolve group members and create connections
-				try (final Tx tx = app.tx()) {
-
-					for (final Map.Entry<Group, Set<String>> entry : unresolvedMembers.entrySet()) {
-
-						final Group group         = entry.getKey();
-						final Set<String> members = entry.getValue();
-
-						for (final String member : members) {
-
-							final LDAPUser resolvedUser = resolveUser(new Dn(member.split(",")));
-							if (resolvedUser != null) {
-
-								group.addMember(resolvedUser);
-							}
-						}
-					}
-
-					tx.success();
-
-				} catch (FrameworkException fex) {
-					fex.printStackTrace();
-				}
-
-				// step 3: examine local users and refresh / remove
-				try (final Tx tx = app.tx()) {
-
-					for (final LDAPUser user : app.nodeQuery(LDAPUser.class).getAsList()) {
-
-						final String dn = user.getDistinguishedName();
-						if (dn != null) {
-
-							final Entry userEntry = connection.lookup(dn);
-							if (userEntry != null) {
-
-								// update user information
-								user.initializeFrom(userEntry);
-
-							} else {
-
-								logger.info("User {} doesn't exist in LDAP directory, deleting.", user);
-								app.delete(user);
-
-								count(metadata, "deletedUser");
-							}
-
-						} else {
-
-							logger.warn("User {} doesn't have an LDAP distinguished name, ignoring.", user);
-						}
-					}
-
-					tx.success();
-
-				} catch (FrameworkException fex) {
-					fex.printStackTrace();
-				}
-
-				cursor.close();
-				connection.close();
-
-				logger.info("Synchronized {} users and {} groups, deleted {} users", metadata.get("users"), metadata.get("groups"), metadata.get("deletedUsers"));
-
-			} else {
-
-				logger.info("Connection to LDAP server {} failed", host);
-			}
-		}
+	public boolean getUseSSL() {
+		return Settings.getOrCreateBooleanSetting(CONFIG_KEY_LDAP_SSL).getValue(false);
 	}
 
 	// ----- private methods -----
-	private void synchronizeEntry(final Entry entry, final Map<Group, Set<String>> unresolvedMembers, final Map<String, Object> metadata) throws FrameworkException {
+	private LDAPUser getOrCreateUser(final Entry userEntry) throws FrameworkException {
 
-		// entry can be either user or group and must be handled accordingly
-		final Attribute objectClass = entry.get("objectclass");
-		if (objectClass.contains("groupOfUniqueNames")) {
-
-			synchronizeGroup(entry, unresolvedMembers);
-			count(metadata, "groups");
-
-		} else if (objectClass.contains("organizationalPerson")) {
-
-			synchronizeUser(entry);
-			count(metadata, "users");
-		}
-	}
-
-	private void synchronizeGroup(final Entry groupEntry, final Map<Group, Set<String>> unresolvedMembers) throws FrameworkException {
-
-		final Set<String> members = new LinkedHashSet<>();
-		final Group group         = getOrCreateGroupHierarchy(groupEntry.getDn());
-
-		// add group members
-		final Attribute uniqueMembers = groupEntry.get("uniqueMember");
-		if (uniqueMembers != null) {
-
-			for (final Value value : uniqueMembers) {
-
-				members.add(value.getString());
-			}
-
-			unresolvedMembers.put(group, members);
-		}
-	}
-
-	private void synchronizeUser(final Entry userEntry) throws FrameworkException {
-
+		final App app                = StructrApp.getInstance();
+		final PropertyMap attributes = new PropertyMap();
 		final Dn dn                  = userEntry.getDn();
 		Dn parent                    = dn;
 
@@ -316,168 +249,22 @@ public class LDAPService extends Thread implements RunnableService {
 			parent = parent.getParent();
 		}
 
-		final Group parentGroup = getOrCreateGroupHierarchy(parent);
-		final App app           = StructrApp.getInstance();
+		attributes.put(StructrApp.key(LDAPUser.class, "distinguishedName"), dn.getNormName());
 
-		try (final Tx tx = app.tx()) {
+		LDAPUser user = app.nodeQuery(LDAPUser.class).and(attributes).getFirst();
+		if (user == null) {
 
-			final PropertyMap attributes = new PropertyMap();
-
-			attributes.put(StructrApp.key(LDAPUser.class, "distinguishedName"), dn.getNormName());
-			attributes.put(StructrApp.key(LDAPUser.class, "name"),              dn.getRdn().getNormName());
-			attributes.put(StructrApp.key(LDAPUser.class, "groups"),            Arrays.asList(parentGroup));
-
-			LDAPUser user = app.nodeQuery(LDAPUser.class).and(attributes).getFirst();
-			if (user == null) {
-
-				user = app.create(LDAPUser.class, attributes);
-				user.initializeFrom(userEntry);
-			}
-
-			tx.success();
-
-		} catch (FrameworkException | LdapInvalidAttributeValueException fex) {
-			logger.warn("Unable to update LDAP information", fex);
-		}
-	}
-
-	private Group getOrCreateGroupHierarchy(final Dn dn) throws FrameworkException {
-
-		final List<Rdn> rdns = new LinkedList<>(dn.getRdns());
-		Group currentGroup   = null;
-
-		Collections.reverse(rdns);
-
-		for (final Rdn rdn : rdns) {
-
-			currentGroup = getOrCreateGroup(currentGroup, rdn.getNormName());
+			user = app.create(LDAPUser.class, attributes);
+			user.initializeFrom(userEntry);
 		}
 
-		return currentGroup;
+		return user;
 	}
 
-	private Group getOrCreateGroup(final Group parent, final String name) throws FrameworkException {
-
-		final PropertyMap attributes = new PropertyMap();
-		final List<Group> parents    = new LinkedList<>();
-
-		if (parent != null) {
-			parents.add(parent);
-		}
-
-		attributes.put(StructrApp.key(Group.class, "name"),   name);
-		attributes.put(StructrApp.key(Group.class, "groups"), parents);
-
-		final Group group = StructrApp.getInstance().nodeQuery(Group.class).and(attributes).getFirst();
-		if (group != null) {
-
-			return group;
-		}
-
-		// not found => create
-		return StructrApp.getInstance().create(Group.class, attributes);
-	}
-
-	private LDAPUser resolveUser(final Dn dn) throws FrameworkException {
-
-		final Class<Group> groupType                 = StructrApp.getConfiguration().getNodeEntityClass("Group");
-		final PropertyKey<Iterable<Group>> groupsKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "groups");
-		final List<Rdn> rdns                         = new LinkedList<>(dn.getRdns());
-		final PropertyMap attrs                      = new PropertyMap();
-		Group currentGroup                           = null;
-
-		Collections.reverse(rdns);
-
-		for (final Rdn rdn : rdns) {
-
-			if (structuralTypes.contains(rdn.getNormType())) {
-
-				currentGroup = getOrCreateGroup(currentGroup, rdn.getNormName());
-
-			} else {
-
-				final PropertyKey<String> key = StructrApp.key(LDAPUser.class, rdn.getNormType());
-				if (key != null) {
-
-					attrs.put(key, rdn.getValue());
-
-				} else {
-
-					logger.warn("No property key found for Rdn component {}, ignoring", rdn.getNormName());
-				}
-			}
-		}
-
-		// try to find a user with the given group and attribute set
-		return StructrApp.getInstance()
-			.nodeQuery(LDAPUser.class)
-			.and(attrs)
-			.and(groupsKey, Arrays.asList(currentGroup), false)
-			.getFirst();
-	}
-
-	private void count(final Map<String, Object> data, final String key) {
-
-		final Integer value = (Integer)data.get(key);
-		if (value != null) {
-
-			data.put(key, value + 1);
-
-		} else {
-
-			data.put(key, 1);
-		}
-	}
-
-	// ----- class Thread -----
-	@Override
-	public void run() {
-
-		// wait for service layer to be fully initialized
-		while (!Services.getInstance().isInitialized()) {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException itex) {
-			}
-		}
-
-		while (doRun) {
-
-			try {
-
-				doUpdate();
-
-			} catch (Throwable t) {
-				t.printStackTrace();
-				logger.warn("Unable to update LDAP information: {}", t.getMessage());
-			}
-
-			// sleep until next update
-			try { Thread.sleep(updateInterval * 1000); } catch (InterruptedException itex) { }
-		}
-	}
-
-	// ----- interface RunnableService -----
-	@Override
-	public void startService() throws Exception {
-
-		logger.info("Starting LDAPService, update interval {} s", updateInterval);
-		this.start();
-	}
-
-	@Override
-	public void stopService() {
-		doRun = false;
-	}
-
-	@Override
-	public boolean runOnStartup() {
-		return true;
-	}
-
+	// ----- interface SingletonService -----
 	@Override
 	public boolean isRunning() {
-		return doRun;
+		return true;
 	}
 
 	@Override
@@ -487,25 +274,19 @@ public class LDAPService extends Thread implements RunnableService {
 	@Override
 	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		this.updateInterval = Settings.getOrCreateIntegerSetting(CONFIG_KEY_UPDATE_INTERVAL).getValue(1800);
-
-		this.binddn         = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_BINDDN).getValue("");
-		this.secret         = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_SECRET).getValue("");
-
-		this.host           = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_HOST).getValue("localhost");
-		this.baseDn         = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_BASEDN).getValue("");
-		this.filter         = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_FILTER).getValue("(objectclass=*)");
-		this.scope          = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_SCOPE).getValue("SUBTREE");
-
-		this.port           = Settings.getOrCreateIntegerSetting(CONFIG_KEY_LDAP_PORT).getValue(389);
-		this.useSsl         = Settings.getOrCreateBooleanSetting(CONFIG_KEY_LDAP_SSL).getValue(false);
+		logger.info("host:    {}", Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_HOST).getValue("localhost"));
+		logger.info("port:    {}", Settings.getOrCreateIntegerSetting(CONFIG_KEY_LDAP_PORT).getValue(389));
+		logger.info("use SSL: {}", Settings.getOrCreateBooleanSetting(CONFIG_KEY_LDAP_SSL).getValue(false));
+		logger.info("bind DN: {}", Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_BINDDN).getValue(""));
+		logger.info("base DN: {}", Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_BASEDN).getValue(""));
+		logger.info("scope:   {}", Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_SCOPE).getValue("SUBTREE"));
+		logger.info("mapping: {}", Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_MAPPING).getValue("{}"));
 
 		return true;
 	}
 
 	@Override
 	public void shutdown() {
-		doRun = false;
 	}
 
 	@Override

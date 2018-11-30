@@ -784,6 +784,7 @@ public class SchemaHelper {
 					}
 
 					logger.warn("Property name {} already present in type {}, renaming to {}", oldName, entity.getClassName(), propertyName);
+					logger.warn("Offending property is {} with ID {}, name {}, type {}", schemaProperty.getClass().getSimpleName(), schemaProperty.getUuid(), schemaProperty.getName(), schemaProperty.getPropertyType());
 
 					schemaProperty.setProperty(SchemaProperty.name, propertyName);
 				}

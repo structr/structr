@@ -46,6 +46,7 @@ var _Icons = {
 	clone_icon: 'icon/page_copy.png',
 	group_icon: 'icon/group.png',
 	group_add_icon: 'icon/group_add.png',
+	group_link_icon: 'icon/group_link.png',
 	user_icon: 'icon/user.png',
 	user_add_icon: 'icon/user_add.png',
 	user_delete_icon: 'icon/user_delete.png',
@@ -153,6 +154,7 @@ var _Icons = {
 			case _Icons.clone_icon:                   return 'sprite-page_copy';
 			case _Icons.group_icon:                   return 'sprite-group';
 			case _Icons.group_add_icon:               return 'sprite-group_add';
+			case _Icons.group_link_icon:              return 'sprite-group-link';
 			case _Icons.user_icon:                    return 'sprite-user';
 			case _Icons.user_add_icon:                return 'sprite-user_add';
 			case _Icons.user_delete_icon:             return 'sprite-user_delete';
