@@ -118,10 +118,12 @@ var _UsersAndGroups = {
 		});
 	},
 	createUserElement:function (user, group) {
+
 		var userName = user.name ? user.name : user.eMail ? '[' + user.eMail + ']' : '[unnamed]';
+		var userIcon = user.type === 'LDAPUser' ? _Icons.getFullSpriteClass(_Icons.user_icon) : _Icons.getFullSpriteClass(_Icons.user_icon);
 
 		var userElement = $('<div class="node user userid_' + user.id + '">'
-				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.user_icon) + ' typeIcon-nochildren" />'
+				+ '<i class="typeIcon ' + userIcon + ' typeIcon-nochildren" />'
 				+ ' <b title="' + userName + '" class="name_">' + userName + '</b> <span class="id">' + user.id + '</span>'
 				+ '</div>'
 		);
@@ -266,9 +268,9 @@ var _UsersAndGroups = {
 	},
 	createGroupElement: function (group) {
 
-		var icon = group.type === 'LDAPGroup' ? _Icons.getFullSpriteClass(_Icons.group_link_icon) : _Icons.getFullSpriteClass(_Icons.group_icon);
+		var groupIcon = group.type === 'LDAPGroup' ? _Icons.getFullSpriteClass(_Icons.group_link_icon) : _Icons.getFullSpriteClass(_Icons.group_icon);
 		var groupElement = $('<div class="node group groupid_' + group.id + '">'
-				+ '<i class="typeIcon ' + icon + ' typeIcon-nochildren" />'
+				+ '<i class="typeIcon ' + groupIcon + ' typeIcon-nochildren" />'
 				+ ' <b title="' + group.name + '" class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
 				+ '<i title="Delete Group ' + group.id + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />'
 				+ '</div>'
