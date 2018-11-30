@@ -1776,7 +1776,7 @@ button.disabled {
 }
 
 .input-and-button {
-	display: inline;
+	display: inline-block;
 }
 
 .input-and-button input[type=text] {
@@ -2815,12 +2815,6 @@ th.center {
 input.bitmask {
 	text-align: right;
 	width: calc(100% - 14px);
-}
-
-#resource-signature {
-	height: 18px;
-	padding: 2px 4px;
-	margin: 0 4px;
 }
 
 #add-resource-access-grant {
