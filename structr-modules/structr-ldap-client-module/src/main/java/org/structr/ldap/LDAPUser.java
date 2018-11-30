@@ -19,6 +19,8 @@
 package org.structr.ldap;
 
 import java.net.URI;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueException;
@@ -45,40 +47,43 @@ public interface LDAPUser extends User {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/LDAPUser"));
 
 		type.addStringProperty("distinguishedName", PropertyView.Public).setUnique(true).setIndexed(true);
-		type.addStringProperty("description",       PropertyView.Public).setIndexed(true);
-		type.addStringProperty("commonName",        PropertyView.Public).setIndexed(true);
-		type.addStringProperty("uid",               PropertyView.Public).setIndexed(true);
 
 		type.addPropertyGetter("distinguishedName", String.class);
-		type.addPropertyGetter("description",       String.class);
-		type.addPropertyGetter("commonName",        String.class);
-		type.addPropertyGetter("uid",               String.class);
-
 		type.addPropertySetter("distinguishedName", String.class);
-		type.addPropertySetter("description",       String.class);
-		type.addPropertySetter("commonName",        String.class);
-		type.addPropertySetter("uid",               String.class);
 
 		type.overrideMethod("initializeFrom",  false, LDAPUser.class.getName() + ".initializeFrom(this, arg0);");
-		type.overrideMethod("printDebug",      false, LDAPUser.class.getName() + ".printDebug(this);").setDoExport(true);
 		type.overrideMethod("isValidPassword", false, "return " + LDAPUser.class.getName() + ".isValidPassword(this, arg0);");
 	}}
 
 	String getDistinguishedName();
-	String getDescription();
-	String getCommonName();
 
-	void initializeFrom(final Entry entry) throws FrameworkException, LdapInvalidAttributeValueException;
+	void initializeFrom(final Entry entry) throws FrameworkException;
 	void setDistinguishedName(final String distinguishedName) throws FrameworkException;
-	void setDescription(final String description) throws FrameworkException;
-	void setCommonName(final String commonName) throws FrameworkException;
 
-	static void initializeFrom(final LDAPUser thisUser, final Entry entry) throws FrameworkException, LdapInvalidAttributeValueException {
+	static void initializeFrom(final LDAPUser thisUser, final Entry entry) throws FrameworkException {
 
-		thisUser.setProperty(StructrApp.key(LDAPUser.class, "description"), LDAPUser.getString(entry, "description"));
-		thisUser.setProperty(StructrApp.key(LDAPUser.class, "commonName"),  LDAPUser.getString(entry, "cn"));
-		thisUser.setProperty(StructrApp.key(LDAPUser.class, "eMail"),       LDAPUser.getString(entry, "mail"));
-		thisUser.setProperty(StructrApp.key(LDAPUser.class, "uid"),         LDAPUser.getString(entry, "uid"));
+		final LDAPService ldapService      = Services.getInstance().getService(LDAPService.class);
+		final Map<String, String> mappings = new LinkedHashMap<>();
+
+		if (ldapService != null) {
+
+			mappings.putAll(ldapService.getPropertyMapping());
+		}
+
+		try {
+
+			// apply mappings
+			for (final String key : mappings.keySet()) {
+
+				final String structrName = mappings.get(key);
+				final String ldapName    = key;
+
+				thisUser.setProperty(StructrApp.key(LDAPUser.class, structrName), LDAPUser.getString(entry, ldapName));
+			}
+
+		} catch (final LdapInvalidAttributeValueException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	static boolean isValidPassword(final LDAPUser thisUser, final String password) {
@@ -96,21 +101,6 @@ public interface LDAPUser extends User {
 		}
 
 		return false;
-	}
-
-	static void printDebug(final LDAPUser thisUser) {
-
-		final LDAPService ldapService = Services.getInstance().getService(LDAPService.class);
-		final String dn               = thisUser.getDistinguishedName();
-
-		if (ldapService != null) {
-
-			System.out.println(ldapService.fetchObjectInfo(dn));
-
-		} else {
-
-			logger.warn("Unable to reach LDAP server for user information of {}", dn);
-		}
 	}
 
 	static String getString(final Entry entry, final String key) throws LdapInvalidAttributeValueException {

@@ -89,8 +89,6 @@ import org.w3c.dom.Text;
  */
 public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, DOMImportable, LinkedTreeNode<DOMNode>, ContextAwareEntity {
 
-	//public static final Property<DataSourceInterface> flow				= new EndNode<>("flow", DOMNodeFLOWDataSourceInterface.class);
-
 	static class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
