@@ -37,8 +37,8 @@ import java.util.List;
 
 public class PDFFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_PDF = "Usage: ${ pdf(page [, wkhtmltopdfParameter, baseUrl]) }";
-	public static final String ERROR_MESSAGE_PDF_JS = "Usage: ${{ Structr.pdf(page [, wkhtmltopdfParameter, baseUrl]); }}";
+	public static final String ERROR_MESSAGE_PDF = "Usage: ${ pdf(page [, wkhtmltopdfParameter, baseUrl, runWithXServer, xServerSettings]) }";
+	public static final String ERROR_MESSAGE_PDF_JS = "Usage: ${{ Structr.pdf(page [, wkhtmltopdfParameter, baseUrl, runWithXServer, xServerSettings]); }}";
 
 
 	@Override
@@ -49,24 +49,35 @@ public class PDFFunction extends Function<Object, Object> {
 		String baseUrl = null;
 		String userParamter = null;
 
+		Boolean runWithXserver = false;
+		String xServerSettings = null;
+
 		final String page = sources[0].toString();
 
-		if (sources.length == 2) {
+		if (sources.length >= 2) {
 
 			userParamter = sources[1].toString();
 		}
 
-		if (sources.length == 3) {
+		if (sources.length >= 3) {
 
 			 baseUrl = sources[2].toString();
 		}
 
-		if (baseUrl == null) {
+		if (sources.length >= 4) {
+
+			runWithXserver = (Boolean) sources[3];
+		}
+
+		if (sources.length >= 5) {
+
+			xServerSettings = sources[4].toString();
+		}
+
+		if (baseUrl == null || baseUrl.length() == 0) {
 
 			baseUrl = ctx.getBaseUrl() + "/";
 		}
-
-		logger.warn("Converting page {}{} to pdf.", baseUrl, page);
 
 		Principal currentUser = ctx.getSecurityContext().getUser(false);
 
@@ -87,28 +98,48 @@ public class PDFFunction extends Function<Object, Object> {
 
 		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
-			Pdf pdf = new Pdf();
-			pdf.addPageFromUrl(baseUrl + page);
-			addParametersToPdf(pdf, parameterList);
 
-			return convertPageToPdf(pdf, baos);
+			if (!runWithXserver) {
+				return convertPageToPdfWithoutXServer(baseUrl, page, parameterList, baos);
+			} else {
+				return convertPageToPdfWithXServer(baseUrl, page, parameterList, baos, xServerSettings);
+			}
 
 		} catch (PDFExportException e) {
+
 			logger.warn("Could not convert page {}{} to pdf... retrying with xvfb...", baseUrl, page);
 
-			XvfbConfig xc = new XvfbConfig();
-			xc.addParams(new Param("--auto-servernum"), new Param("--server-num=1"));
-
-			WrapperConfig wc = new WrapperConfig();
-			wc.setXvfbConfig(xc);
-
-			Pdf pdf = new Pdf(wc);
-			pdf.addPageFromUrl(baseUrl + page);
-			addParametersToPdf(pdf, parameterList);
-
-
-			return convertPageToPdf(pdf, baos);
+			return convertPageToPdfWithXServer(baseUrl, page, parameterList, baos, xServerSettings);
 		}
+	}
+
+	private  String convertPageToPdfWithoutXServer (String baseUrl, String page, List<Param> parameterList, ByteArrayOutputStream baos) {
+		Pdf pdf = new Pdf();
+		pdf.addPageFromUrl(baseUrl + page);
+		addParametersToPdf(pdf, parameterList);
+
+		return convertPageToPdf(pdf, baos);
+	}
+
+	private String convertPageToPdfWithXServer (String baseUrl, String page, List<Param> parameterList, ByteArrayOutputStream baos, String xServerSettings) {
+		XvfbConfig xc = new XvfbConfig();
+
+		if (xServerSettings == null || xServerSettings.length() == 0) {
+
+			xc.addParams(new Param("--auto-servernum"), new Param("--server-num=1"));
+		} else {
+
+			xc.addParams(new Param(xServerSettings));
+		}
+
+		WrapperConfig wc = new WrapperConfig();
+		wc.setXvfbConfig(xc);
+
+		Pdf pdf = new Pdf(wc);
+		pdf.addPageFromUrl(baseUrl + page);
+		addParametersToPdf(pdf, parameterList);
+
+		return convertPageToPdf(pdf, baos);
 	}
 
 	private String convertPageToPdf (Pdf pdf, ByteArrayOutputStream baos) {
