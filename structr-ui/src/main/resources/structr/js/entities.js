@@ -726,7 +726,7 @@ var _Entities = {
 			});
 
 			$.ajax({
-				url: rootUrl + entity.type + '/' + entity.id,
+				url: rootUrl + entity.type + '/' + entity.id + '/all',
 				dataType: 'json',
 				headers: {
 					Accept: 'application/json; charset=utf-8; properties=' + filteredProperties.join(',')
@@ -814,12 +814,12 @@ var _Entities = {
 					cell.prev('td.key').append('<div class="pager up disabled"><i title="Previous Page" class="fa fa-caret-up"></i></div><div class="pager range"></div><div class="pager down"><i title="Next Page" class="fa fa-caret-down"></i></div>');
 
 					// display result count
-					cell.prev('td.key').append(' <span>(' + (resultCount || '?') + ')</span>');
+					cell.prev('td.key').append(' <span></span>');
 
 				}
 
 				// update result count
-				cell.prev('td.key').find('span').text('(' + (resultCount || '?') + ')');
+				cell.prev('td.key').find('span').text('(' + ((resultCount !== undefined) ? resultCount : '?') + ')');
 
 				let pageUpButton   = cell.prev('td.key').find('.pager.up');
 				let pageDownButton = cell.prev('td.key').find('.pager.down');
@@ -848,8 +848,10 @@ var _Entities = {
 					cell.children('.node').remove();
 				}
 
-				// display current range
-				cell.prev('td.key').find('.pager.range').text((page-1)*pageSize+1 + '..' + (resultCount ? Math.min(resultCount, page*pageSize) : '?'));
+				if (resultCount === undefined || resultCount > 0) {
+					// display current range
+					cell.prev('td.key').find('.pager.range').text((page-1)*pageSize+1 + '..' + (resultCount ? Math.min(resultCount, page*pageSize) : '?'));
+				}
 				
 				if (data.result.length) {
 
@@ -2136,7 +2138,7 @@ var _Entities = {
 
 function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 
-	if (obj === null) {
+	if (!obj) {
 
 		return formatRegularValueField(key, '', isMultiline, isReadOnly, isPassword);
 
@@ -2158,7 +2160,7 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 
 function formatRegularValueField(key, value, isMultiline, isReadOnly, isPassword) {
 	if (isMultiline) {
-		return '<textarea name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + '>' + value + '</textarea>';
+		return '<textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + '>' + value + '</textarea>';
 	} else {
 		return '<input name="' + key + '" type="' + (isPassword ? 'password" autocomplete="new-password' : 'text') + '" value="' + value + '"' + (isReadOnly ? 'readonly class="readonly"' : '') + '>';
 	}

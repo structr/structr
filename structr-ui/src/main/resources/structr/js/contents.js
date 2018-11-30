@@ -769,13 +769,10 @@ var _Contents = {
 								div.append('<div class="value-container"></div>');
 								let valueContainer = $('.value-container', div);
 								let valueInput;
-								if (typeInfo[key].format === 'multi-line') {
-									valueContainer.append('<textarea rows="4">' + (oldVal || '') + '</textarea>');
-									valueInput = $('textarea', valueContainer);
-								} else {
-									valueContainer.append('<input type="text" value="' + (oldVal || '') + '">');
-									valueInput = $('input', valueContainer);
-								}
+								
+								valueContainer.append(formatValueInputField(prop.name, oldVal, false, typeInfo[key].readOnly, typeInfo[key].format === 'multi-line'));
+								valueInput = valueContainer.find('[name=' + prop.name + ']');
+
 								valueInput.on('keyup', function(e) {
 									if (e.keyCode !== 27) {
 										Command.get(entity.id, prop.name, function(newEntity) {
