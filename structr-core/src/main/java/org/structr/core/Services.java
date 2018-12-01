@@ -383,7 +383,11 @@ public class Services implements StructrServices {
 	 * @param serviceClass the service class to register
 	 */
 	public void registerServiceClass(Class serviceClass) {
+
 		registeredServiceClasses.add(serviceClass);
+
+		// make it possible to select options in configuration editor
+		Settings.Services.addAvailableOption(serviceClass.getSimpleName());
 	}
 
 	public Class getServiceClassForName(final String serviceClassName) {
