@@ -104,6 +104,10 @@ var _UsersAndGroups = {
 				return Command.create({type: $('select#user-type').val()});
 			});
 
+			$('select#user-type').on('change', function() {
+				$('#add-user-button', main).find('span').text('Add ' + $(this).val());
+			});
+
 			// list types that extend User
 			_Schema.getDerivedTypes('org.structr.dynamic.User', [], function(types) {
 				var elem = $('select#user-type');
@@ -254,13 +258,18 @@ var _UsersAndGroups = {
 				return Command.create({type: $('select#group-type').val()});
 			});
 
-				// list types that extend User
-				_Schema.getDerivedTypes('org.structr.dynamic.Group', [], function(types) {
-					var elem = $('select#group-type');
-					types.forEach(function(type) {
-						elem.append('<option value="' + type + '">' + type + '</option>');
-					});
+			$('select#group-type').on('change', function() {
+				$('#add-group-button', main).find('span').text('Add ' + $(this).val());
+			});
+
+			// list types that extend User
+			_Schema.getDerivedTypes('org.structr.dynamic.Group', [], function(types) {
+				var elem = $('select#group-type');
+				types.forEach(function(type) {
+					elem.append('<option value="' + type + '">' + type + '</option>');
 				});
+			});
+
 			var groupPager = _Pager.addPager('groups', _Security.groups, true, 'Group', 'public');
 			groupPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
 			groupPager.activateFilterElements();

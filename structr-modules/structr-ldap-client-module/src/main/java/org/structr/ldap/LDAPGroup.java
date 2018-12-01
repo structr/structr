@@ -29,6 +29,7 @@ import org.structr.core.Services;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonMethod;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 
@@ -48,6 +49,10 @@ public interface LDAPGroup extends Group {
 
 		type.addPropertyGetter("distinguishedName", String.class);
 		type.addPropertySetter("distinguishedName", String.class);
+
+		final JsonMethod updateMethod = type.addMethod("update");
+		updateMethod.setSource(LDAPGroup.class.getName() + ".update(this);");
+		updateMethod.setDoExport(true);
 
 		type.overrideMethod("onCreation",     true,  LDAPGroup.class.getName() + ".onCreation(this, arg0, arg1);");
 		type.overrideMethod("onModification", true,  LDAPGroup.class.getName() + ".onModification(this, arg0, arg1, arg2);");

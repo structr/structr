@@ -185,6 +185,14 @@ var _Files = {
 				Command.create({ type: $('select#folder-type').val(), parentId: currentWorkingDir ? currentWorkingDir.id : null });
 			});
 
+			$('select#file-type').on('change', function() {
+				$('#add-file-button', main).find('span').text('Add ' + $(this).val());
+			});
+
+			$('select#folder-type').on('change', function() {
+				$('#add-folder-button', main).find('span').text('Add ' + $(this).val());
+			});
+
 			// list types that extend File
 			_Schema.getDerivedTypes('org.structr.dynamic.File', ['CsvFile'], function(types) {
 				var elem = $('select#file-type');

@@ -194,17 +194,6 @@ var _Entities = {
 	},
 	queryDialog: function(entity, el) {
 
-//		el.append('<table class="props"></table>');
-//		var t = $('.props', el);
-
-//		t.append('<tr><td class="key">Query auto-limit</td><td class="value" id="queryAutoLimit"></td></tr>');
-//		t.append('<tr><td class="key">Hide in index mode</td><td  class="value" id="hideIndexMode"></td></tr>');
-//		t.append('<tr><td class="key">Hide in details mode</td><td  class="value" id="hideDetailsMode"></td></tr>');
-
-//		_Entities.appendBooleanSwitch($('#queryAutoLimit', t), entity, 'renderDetails', ['Query is limited', 'Query is not limited'], 'Limit result to the object with the ID the URL ends with.');
-//		_Entities.appendBooleanSwitch($('#hideIndexMode', t), entity, 'hideOnIndex', ['Hidden in index mode', 'Visible in index mode'], 'if URL does not end with an ID');
-//		_Entities.appendBooleanSwitch($('#hideDetailsMode', t), entity, 'hideOnDetail', ['Hidden in details mode', 'Visible in details mode'], 'if URL ends with an ID.');
-
 		_Entities.repeaterConfig(entity, el);
 
 	},
@@ -531,14 +520,14 @@ var _Entities = {
 					let properties = {};
 					// no schema entry found?
 					if (!data || !data.result || data.result_count === 0) {
-						
+
 					} else {
 
 						data.result.forEach(function(prop) {
 							properties[prop.jsonName] = prop;
 						});
 					}
-					
+
 					if (callback) {
 						callback(properties);
 					}
@@ -562,8 +551,8 @@ var _Entities = {
 			error:function () {
 				console.log("ERROR: loading Schema " + type);
 			}
-		});		
-	},	
+		});
+	},
 	showProperties: function(obj, activeViewOverride) {
 
 		var handleGraphObject = function(entity) {
@@ -610,9 +599,12 @@ var _Entities = {
 				var mainTabs = tabsdiv.append('<ul></ul>');
 				var contentEl = dialog.append('<div></div>');
 
+				// custom dialog tab?
+				var hasCustomDialog = _Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
+
 				if (entity.isDOMNode) {
 
-					_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', true, function(c) {
+					_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', !hasCustomDialog, function(c) {
 						_Entities.queryDialog(entity, c, typeInfo);
 					});
 
@@ -645,7 +637,7 @@ var _Entities = {
 			Command.get(obj.id, null, function(entity) { handleGraphObject(entity); });
 		}
 	},
-	appendPropTab: function(entity, tabsEl, contentEl, name, label, active, callback, initCallback) {
+	appendPropTab: function(entity, tabsEl, contentEl, name, label, active, callback, initCallback, showCallback) {
 
 		var ul = tabsEl.children('ul');
 		ul.append('<li id="tab-' + name + '"><div class="fill-pixel"></div>' + label + '</li>');
@@ -666,6 +658,16 @@ var _Entities = {
 			if (typeof initCallback === "function") {
 				initCallback();
 			}
+
+			if (typeof showCallback === "function") {
+
+				// update entity for show callback
+				if (entity.relType) {
+					Command.getRelationship(entity.id, entity.target, null, function(e) { showCallback(e); });
+				} else {
+					Command.get(entity.id, null, function(e) { showCallback(e); });
+				}
+			}
 		});
 		contentEl.append('<div class="propTabContent" id="tabView-' + name + '"></div>');
 		var content = $('#tabView-' + name);
@@ -673,7 +675,7 @@ var _Entities = {
 			content.show();
 		}
 		if (callback) {
-			callback(content);
+			callback(content, entity);
 		}
 		if (active && typeof initCallback === "function") {
 			initCallback();
@@ -714,13 +716,13 @@ var _Entities = {
 		return '<i id="' + _Entities.null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />';
 	},
 	listProperties: function (entity, view, tabView, typeInfo) {
-		
+
 		_Entities.getSchemaProperties(entity.type, view, function(properties) {
-			
+
 			let filteredProperties = Object.keys(properties).filter(function(key) {
 				return !typeInfo[key].isCollection;
 			});
-			
+
 			let collectionProperties = Object.keys(properties).filter(function(key) {
 				return typeInfo[key].isCollection;
 			});
@@ -744,7 +746,7 @@ var _Entities = {
 
 					// ID of graph object to edit
 					$(data.result).each(function(i, res) {
-						
+
 						// reset id for each object group
 						var keys = Object.keys(properties);
 
@@ -782,13 +784,13 @@ var _Entities = {
 					});
 				}
 			});
-		
+
 		});
 	},
 	displayCollectionPager: function(tempNodeCache, entity, key, page) {
-		
+
 		let pageSize = 10, resultCount;
-		
+
 		let cell = $('.value.' + key + '_');
 		cell.css('height', '60px');
 
@@ -807,7 +809,7 @@ var _Entities = {
 					_Entities.collectionPropertiesResultCount[key] = (page-1)*pageSize+data.result.length;
 					resultCount = _Entities.collectionPropertiesResultCount[key];
 				}
-				
+
 				if (!cell.prev('td.key').find('.pager').length) {
 
 					// display arrow buttons
@@ -852,7 +854,7 @@ var _Entities = {
 					// display current range
 					cell.prev('td.key').find('.pager.range').text((page-1)*pageSize+1 + '..' + (resultCount ? Math.min(resultCount, page*pageSize) : '?'));
 				}
-				
+
 				if (data.result.length) {
 
 					(data.result[0][key] || data.result).forEach(function(obj) {
@@ -877,9 +879,9 @@ var _Entities = {
 				}
 
 			}
-		});		
-		
-		
+		});
+
+
 	},
 	createPropertyTable: function(heading, keys, res, entity, view, tabView, typeInfo, tempNodeCache) {
 
@@ -1017,7 +1019,7 @@ var _Entities = {
 											});
 										});
 									});
-									
+
 								} else {
 									// will be appended asynchronously
 								}
@@ -1031,7 +1033,7 @@ var _Entities = {
 								});
 								_Entities.displaySearch(id, key, typeInfo[key].type, dialogText, isCollection);
 							});
-							
+
 
 						} else {
 							cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly, isMultiline));
@@ -1334,7 +1336,8 @@ var _Entities = {
 						_Logger.log(_LogType.ENTITIES, 'existing key: Command.setProperty(', objId, key, val);
 						_Entities.setProperty(objId, key, val, false, function(newVal) {
 							if (isPassword || (newVal !== oldVal)) {
-								blinkGreen(input);console.log(typeof newVal)
+								blinkGreen(input);
+								//console.log(typeof newVal)
 								if (newVal.constructor === Array) {
 									newVal = newVal.join(',');
 								}
@@ -2133,6 +2136,23 @@ var _Entities = {
 	},
 	isContentElement: function (entity) {
 		return (entity.type === 'Template' || entity.type === 'Content');
+	},
+	setPropertyWithFeedback: function(entity, key, newVal, input) {
+		var oldVal = entity[key];
+		Command.setProperty(entity.id, key, newVal, false, function(result) {
+			var newVal= result[key];
+			if (newVal !== oldVal) {
+				blinkGreen(input);
+				if (newVal.constructor === Array) {
+					newVal = newVal.join(',');
+				}
+				input.val(newVal);
+				let valueMsg = newVal ? 'value "' + newVal : 'empty value';
+				Structr.showAndHideInfoBoxMessage('Updated property "' + key + '" with ' + valueMsg, 'success', 2000, 200);
+			} else {
+				input.val(oldVal);
+			}
+		});
 	}
 };
 
@@ -2148,10 +2168,9 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 		return '<div title="' + displayName + '" id="_' + obj.id + '" class="node ' + (obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')) + ' ' + obj.id + '_">' + fitStringToWidth(displayName, 80) + '<i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>';
 
 	} else if (obj.constructor === Array) {
-//		return obj.reduce(function (acc, v) {
-//			return acc + formatValueInputField(key, v, isPassword, isReadOnly, isMultiline) + '<br>';
-//		}, '');
+
 		return formatRegularValueField(key, escapeForHtmlAttributes(obj.join(',')), isMultiline, isReadOnly, isPassword);
+
 	} else {
 
 		return formatRegularValueField(key, escapeForHtmlAttributes(obj), isMultiline, isReadOnly, isPassword);
@@ -2159,9 +2178,13 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 };
 
 function formatRegularValueField(key, value, isMultiline, isReadOnly, isPassword) {
+
 	if (isMultiline) {
+
 		return '<textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + '>' + value + '</textarea>';
+
 	} else {
+
 		return '<input name="' + key + '" type="' + (isPassword ? 'password" autocomplete="new-password' : 'text') + '" value="' + value + '"' + (isReadOnly ? 'readonly class="readonly"' : '') + '>';
 	}
 };

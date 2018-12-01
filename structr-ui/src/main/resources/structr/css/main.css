@@ -1775,7 +1775,7 @@ button.disabled {
 	opacity: 0.6;
 }
 
-.input-and-button {
+.input-and-button, .select-and-button {
 	display: inline-block;
 }
 
@@ -1784,7 +1784,14 @@ button.disabled {
 	height: 20px;
 	padding: 1px 4px;
 	font-size: 14px;
+}
 
+.input-and-button select {
+	padding: 2px 2px 3px 2px;
+	margin: 0 !important;
+	border: 1px solid rgba(0,0,0,.125);
+	background-color: #fff !important;
+	height: 24px;
 }
 
 .input-and-button button,
@@ -1795,6 +1802,27 @@ button.disabled {
 	border-left: none;
 	margin: 0;
 	margin-top: -5px;
+	height: 24px;
+	vertical-align: middle;
+	padding: 0 5px 0 4px;
+}
+
+.select-and-button select {
+	padding: 2px 2px 3px 2px;
+	margin: 0 !important;
+	border: 1px solid rgba(0,0,0,.125);
+	background-color: #fff !important;
+	height: 24px;
+}
+
+.select-and-button button,
+.select-and-button button:hover,
+.select-and-button button:focus,
+.select-and-button button:visited,
+.select-and-button button:active {
+	border-left: none;
+	margin: 0;
+	margin-top: -4px;
 	height: 24px;
 	vertical-align: middle;
 	padding: 0 5px 0 4px;
