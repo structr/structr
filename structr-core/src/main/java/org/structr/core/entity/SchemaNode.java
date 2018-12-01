@@ -274,7 +274,6 @@ public class SchemaNode extends AbstractSchemaNode {
 		final String tmp = getProperty(extendsClass);
 		if (tmp != null) {
 
-
 			final String interfaces = getProperty(implementsInterfaces);
 			String _extendsClass = StringUtils.substringBefore(tmp, "<"); // remove optional generic parts from class name
 
@@ -345,6 +344,19 @@ public class SchemaNode extends AbstractSchemaNode {
 
 				setProperty(implementsInterfaces, addToList(interfaces, _extendsClass));
 				removeProperty(extendsClass);
+			}
+
+			// migrate LDAPUser
+			if ("LDAPUser".equals(getName())) {
+
+				// remove method printDebug()
+				for (final SchemaMethod m : getProperty(SchemaNode.schemaMethods)) {
+
+					if ("printDebug".equals(m.getName())) {
+
+						StructrApp.getInstance().delete(m);
+					}
+				}
 			}
 		}
 	}
