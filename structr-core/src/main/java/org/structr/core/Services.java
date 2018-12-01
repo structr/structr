@@ -77,14 +77,12 @@ public class Services implements StructrServices {
 	private final Map<String, Object> attributes               = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Map<Class, Service> serviceCache             = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Set<Class> registeredServiceClasses          = new LinkedHashSet<>();
-	private final Set<String> configuredServiceClasses         = new LinkedHashSet<>();
 	private LicenseManager licenseManager                      = null;
 	private ConfigurationProvider configuration                = null;
 	private boolean initializationDone                         = false;
 	private boolean overridingSchemaTypesAllowed               = true;
 	private boolean shuttingDown                               = false;
 	private boolean shutdownDone                               = false;
-	private String configuredServiceNames                      = null;
 	private String configurationClass                          = null;
 
 	private Services() { }
@@ -119,7 +117,7 @@ public class Services implements StructrServices {
 			// inject security context first
 			command.setArgument("securityContext", securityContext);
 
-			if ((serviceClass != null) && configuredServiceClasses.contains(serviceClass.getSimpleName())) {
+			if (serviceClass != null) {
 
 				// search for already running service..
 				Service service = serviceCache.get(serviceClass);
@@ -137,6 +135,7 @@ public class Services implements StructrServices {
 					}
 
 				}
+
 				if (service != null) {
 
 					logger.debug("Initializing command ", commandType.getName());
@@ -190,11 +189,12 @@ public class Services implements StructrServices {
 
 	private void doInitialize() {
 
-		configurationClass     = Settings.Configuration.getValue();
-		configuredServiceNames = Settings.Services.getValue();
+		final Set<String> configuredServiceClasses = getCongfiguredServiceClasses();
+
+		configurationClass = Settings.Configuration.getValue();
 
 		// create set of configured services
-		configuredServiceClasses.addAll(Arrays.asList(configuredServiceNames.split("[ ,]+")));
+		configuredServiceClasses.addAll(Arrays.asList(Settings.Services.getValue().split("[ ,]+")));
 
 		if (!isTesting()) {
 
@@ -352,6 +352,7 @@ public class Services implements StructrServices {
 
 			System.out.println("INFO: Shutting down...");
 
+			final Set<String> configuredServiceClasses = getCongfiguredServiceClasses();
 			final List<String> reverseServiceClassNames = new LinkedList<>(configuredServiceClasses);
 			Collections.reverse(reverseServiceClassNames);
 
@@ -466,6 +467,12 @@ public class Services implements StructrServices {
 		int retryDelay       = Settings.ServicesStartTimeout.getValue(30);
 		boolean waitAndRetry = true;
 		boolean isVital      = false;
+
+		if (!getCongfiguredServiceClasses().contains(serviceClass.getSimpleName())) {
+
+			logger.warn("Service {} is not listed in {}, will not be started.", serviceClass.getName(), "configured.services");
+			return;
+		}
 
 		logger.info("Creating {}..", serviceClass.getSimpleName());
 
@@ -601,7 +608,8 @@ public class Services implements StructrServices {
 	 */
 	public List<String> getServices() {
 
-		List<String> services = new LinkedList<>();
+		final Set<String> configuredServiceClasses = getCongfiguredServiceClasses();
+		final List<String> services                = new LinkedList<>();
 
 		for (Class serviceClass : registeredServiceClasses) {
 
@@ -681,6 +689,10 @@ public class Services implements StructrServices {
 		}
 
 		return resources;
+	}
+
+	public Set<String> getCongfiguredServiceClasses() {
+		return new LinkedHashSet<>(Arrays.asList(Settings.Services.getValue().split("[ ,]+")));
 	}
 
 	// ----- static methods -----

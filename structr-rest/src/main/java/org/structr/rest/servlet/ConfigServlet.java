@@ -50,8 +50,7 @@ public class ConfigServlet extends HttpServlet {
 	private static final Set<String> authenticatedSessions = new HashSet<>();
 	private static final String ConfigUrl                  = "/structr/config";
 	private static final String ConfigName                 = "structr.conf";
-
-	private static final String TITLE						= "Structr Configuration Editor";
+	private static final String TITLE                      =  "Structr Configuration Editor";
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {

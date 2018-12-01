@@ -51,6 +51,7 @@ public class Settings {
 	public static final SettingsGroup cronGroup               = new SettingsGroup("cron",        "Cron Jobs");
 	public static final SettingsGroup securityGroup           = new SettingsGroup("security",    "Security Settings");
 	public static final SettingsGroup oauthGroup              = new SettingsGroup("oauth",       "OAuth Settings");
+	public static final SettingsGroup ldapGroup               = new SettingsGroup("ldap",        "LDAP Settings");
 	public static final SettingsGroup miscGroup               = new SettingsGroup("misc",        "Miscellaneous");
 
 	// general settings
