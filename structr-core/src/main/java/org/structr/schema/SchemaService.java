@@ -50,6 +50,7 @@ import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.Service;
+import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.StructrServices;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessPathCache;
@@ -66,6 +67,7 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
@@ -80,9 +82,9 @@ import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.JsonSchema;
 
 /**
- *
- *
+ * Structr Schema Service for dynamic class support at runtime.
  */
+@ServiceDependency(NodeService.class)
 public class SchemaService implements Service {
 
 	public static final URI DynamicSchemaRootURI                  = URI.create("https://structr.org/v2.0/#");

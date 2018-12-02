@@ -22,9 +22,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,7 @@ import org.structr.api.service.InitializationCallback;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.Service;
+import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.StructrServices;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
@@ -76,14 +78,13 @@ public class Services implements StructrServices {
 	private final Set<Permission> permissionsForOwnerlessNodes = new LinkedHashSet<>();
 	private final Map<String, Object> attributes               = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Map<Class, Service> serviceCache             = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private final Set<Class> registeredServiceClasses          = new LinkedHashSet<>();
+	private final Map<String, Class> registeredServiceClasses  = new LinkedHashMap<>();
 	private LicenseManager licenseManager                      = null;
 	private ConfigurationProvider configuration                = null;
 	private boolean initializationDone                         = false;
 	private boolean overridingSchemaTypesAllowed               = true;
 	private boolean shuttingDown                               = false;
 	private boolean shutdownDone                               = false;
-	private String configurationClass                          = null;
 
 	private Services() { }
 
@@ -189,13 +190,6 @@ public class Services implements StructrServices {
 
 	private void doInitialize() {
 
-		final Set<String> configuredServiceClasses = getCongfiguredServiceClasses();
-
-		configurationClass = Settings.Configuration.getValue();
-
-		// create set of configured services
-		configuredServiceClasses.addAll(Arrays.asList(Settings.Services.getValue().split("[ ,]+")));
-
 		if (!isTesting()) {
 
 			// read license
@@ -214,20 +208,19 @@ public class Services implements StructrServices {
 
 		logger.info("{} processors available, {} GB max heap memory", processors, max);
 		if (max < 8) {
+
 			logger.warn("Maximum heap size is smaller than recommended, this can lead to problems with large databases!");
 			logger.warn("Please configure AT LEAST 8 GBs of heap memory using -Xmx8g.");
 		}
 
-		logger.info("Starting services: {}", configuredServiceClasses);
+		final List<Class> configuredServiceClasses = getCongfiguredServiceClasses();
+
+		logger.info("Starting services: {}", configuredServiceClasses.stream().map(Class::getSimpleName).collect(Collectors.toList()));
 
 		// initialize other services
-		for (final String serviceClassName : configuredServiceClasses) {
+		for (final Class serviceClass : configuredServiceClasses) {
 
-				Class serviceClass = getServiceClassForName(serviceClassName);
-				if (serviceClass != null) {
-
-					startService(serviceClass);
-				}
+			startService(serviceClass);
 		}
 
 		logger.info("{} service(s) processed", serviceCache.size());
@@ -352,12 +345,12 @@ public class Services implements StructrServices {
 
 			System.out.println("INFO: Shutting down...");
 
-			final Set<String> configuredServiceClasses = getCongfiguredServiceClasses();
-			final List<String> reverseServiceClassNames = new LinkedList<>(configuredServiceClasses);
+			final List<Class> configuredServiceClasses = getCongfiguredServiceClasses();
+			final List<Class> reverseServiceClassNames = new LinkedList<>(configuredServiceClasses);
 			Collections.reverse(reverseServiceClassNames);
 
-			for (final String serviceClassName : reverseServiceClassNames) {
-				shutdownService(serviceClassName);
+			for (final Class serviceClass : reverseServiceClassNames) {
+				shutdownService(serviceClass);
 			}
 
 			serviceCache.clear();
@@ -384,28 +377,22 @@ public class Services implements StructrServices {
 	 */
 	public void registerServiceClass(Class serviceClass) {
 
-		registeredServiceClasses.add(serviceClass);
+		registeredServiceClasses.put(serviceClass.getSimpleName(), serviceClass);
 
 		// make it possible to select options in configuration editor
 		Settings.Services.addAvailableOption(serviceClass.getSimpleName());
 	}
 
 	public Class getServiceClassForName(final String serviceClassName) {
-
-		for (Class serviceClass : registeredServiceClasses) {
-
-			if (serviceClass.getSimpleName().equals(serviceClassName)) {
-				return serviceClass;
-			}
-		}
-
-		return null;
+		return registeredServiceClasses.get(serviceClassName);
 	}
 
 	public ConfigurationProvider getConfigurationProvider() {
 
 		// instantiate configuration provider
 		if (configuration == null) {
+
+			final String configurationClass = Settings.Configuration.getValue();
 
 			// when executing tests, the configuration class may already exist,
 			// so we don't instantiate it again since all the entities are already
@@ -472,7 +459,7 @@ public class Services implements StructrServices {
 		boolean waitAndRetry = true;
 		boolean isVital      = false;
 
-		if (!getCongfiguredServiceClasses().contains(serviceClass.getSimpleName())) {
+		if (!getCongfiguredServiceClasses().contains(serviceClass)) {
 
 			logger.warn("Service {} is not listed in {}, will not be started.", serviceClass.getName(), "configured.services");
 			return;
@@ -610,22 +597,8 @@ public class Services implements StructrServices {
 	 *
 	 * @return list of services
 	 */
-	public List<String> getServices() {
-
-		final Set<String> configuredServiceClasses = getCongfiguredServiceClasses();
-		final List<String> services                = new LinkedList<>();
-
-		for (Class serviceClass : registeredServiceClasses) {
-
-			final String serviceName = serviceClass.getSimpleName();
-
-			if (configuredServiceClasses.contains(serviceName)) {
-
-				services.add(serviceName);
-			}
-		}
-
-		return services;
+	public List<Class> getServices() {
+		return new LinkedList<>(registeredServiceClasses.values());
 	}
 
 	@Override
@@ -695,8 +668,56 @@ public class Services implements StructrServices {
 		return resources;
 	}
 
-	public Set<String> getCongfiguredServiceClasses() {
-		return new LinkedHashSet<>(Arrays.asList(Settings.Services.getValue().split("[ ,]+")));
+	public List<Class> getCongfiguredServiceClasses() {
+
+		final String[] names                  = Settings.Services.getValue("").split("[ ,]+");
+		final Map<Class, Class> dependencyMap = new LinkedHashMap<>();
+		final List<Class> classes             = new LinkedList<>();
+
+		for (final String name : names) {
+
+			final String trimmed = name.trim();
+			if (StringUtils.isNotBlank(trimmed)) {
+
+				final Class serviceClass = getServiceClassForName(name);
+				if (serviceClass != null ) {
+
+					classes.add(serviceClass);
+				}
+			}
+		}
+
+		// extract annotation information for service dependency tree
+		for (final Class service : classes) {
+
+			final ServiceDependency annotation = (ServiceDependency)service.getAnnotation(ServiceDependency.class);
+			if (annotation != null) {
+
+				final Class dependency = annotation.value();
+				if (dependency != null) {
+
+					dependencyMap.put(service, dependency);
+				}
+
+			} else {
+
+				// warn user
+				if (!NodeService.class.equals(service)) {
+					logger.warn("Service {} does not have @ServiceDependency annotation, this is likely a bug.", service);
+				}
+			}
+		}
+
+		// sort classes according to dependency order..
+		classes.sort((s1, s2) -> {
+
+			final Integer level1 = recursiveGetHierarchyLevel(dependencyMap, new LinkedHashSet<>(), s1, 0);
+			final Integer level2 = recursiveGetHierarchyLevel(dependencyMap, new LinkedHashSet<>(), s2, 0);
+
+			return level1.compareTo(level2);
+		});
+
+		return classes;
 	}
 
 	// ----- static methods -----
@@ -808,5 +829,24 @@ public class Services implements StructrServices {
 
 		}
 		System.exit(1);
+	}
+
+	private int recursiveGetHierarchyLevel(final Map<Class, Class> dependencyMap, final Set<String> alreadyCalculated, final Class c, final int depth) {
+
+		// stop at level 20
+		if (depth > 20) {
+			return 20;
+		}
+
+		Class dependency = dependencyMap.get(c);
+		if (dependency == null) {
+
+			return 0;
+
+		} else  {
+
+			// recurse upwards
+			return recursiveGetHierarchyLevel(dependencyMap, alreadyCalculated, dependency, depth + 1) + 1;
+		}
 	}
 }

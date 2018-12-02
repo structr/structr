@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
+import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.StructrServices;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -52,10 +53,12 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.schema.SchemaService;
 import org.structr.web.entity.Folder;
 
 /**
  */
+@ServiceDependency(SchemaService.class)
 public class DirectoryWatchService extends Thread implements RunnableService {
 
 	private static final Logger logger                 = LoggerFactory.getLogger(DirectoryWatchService.class);

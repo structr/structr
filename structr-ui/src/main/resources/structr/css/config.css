@@ -175,3 +175,12 @@ form.config-form .tab-content button {
 .form-group span.context-help-text {
 	display: none;
 }
+
+button.toggle-option {
+	margin: 4px 4px 0 0;
+	background-color: #fff !important;
+}
+
+button.active {
+	background-color: #ccc !important;
+}

@@ -74,7 +74,7 @@ public class Settings {
 	public static final Setting<String> LogPrefix             = new StringSetting(generalGroup,             "Logging",     "log.prefix",                 "structr");
 	public static final Setting<String> LogName               = new StringSetting(generalGroup,             "Logging",     "log.name",                   "structr-yyyy_mm_dd.request.log");
 	public static final Setting<String> Configuration         = new StringSetting(generalGroup,             "hidden",      "configuration.provider",     "org.structr.module.JarConfigurationProvider");
-	public static final StringMultiChoiceSetting Services     = new StringMultiChoiceSetting(generalGroup,  "Services",    "configured.services",        "NodeService AgentService CronService SchemaService LogService HttpService");
+	public static final StringMultiChoiceSetting Services     = new StringMultiChoiceSetting(generalGroup,  "Services",    "configured.services",        "NodeService AgentService CronService SchemaService HttpService");
 	public static final Setting<Integer> ServicesStartTimeout = new IntegerSetting(generalGroup,            "Services",    "services.start.timeout",     30);
 	public static final Setting<Integer> ServicesStartRetries = new IntegerSetting(generalGroup,            "Services",    "services.start.retries",     10);
 

@@ -26,12 +26,15 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
+import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.StructrServices;
+import org.structr.schema.SchemaService;
 
 /**
  *
  *
  */
+@ServiceDependency(SchemaService.class)
 public class FtpService implements RunnableService {
 
 	private static final Logger logger = LoggerFactory.getLogger(FtpService.class.getName());

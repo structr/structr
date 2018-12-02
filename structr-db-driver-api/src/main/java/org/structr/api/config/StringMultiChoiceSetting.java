@@ -20,6 +20,7 @@ package org.structr.api.config;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
@@ -81,26 +82,21 @@ public class StringMultiChoiceSetting extends Setting<String> {
 
 		final Tag group = parent.block("div").css("form-group");
 		final Tag label = group.block("label").text(getKey());
+		final String id = RandomStringUtils.randomAlphabetic(8);
 
 		if (getComment() != null) {
 			label.attr(new Attr("class", "has-comment"));
 			label.attr(new Attr("data-comment", getComment()));
 		}
 
-		final Tag table = group.block("table");
+		final Tag input = group.empty("input").attr(
+			new Attr("type",         "text"),
+			new Attr("name",         getKey()),
+			new Attr("id",           id),
+			new Attr("class",        "ordered-multi-select hidden"),
+			new Attr("data-choices", StringUtils.join(AvailableOptions, ","))
+		);
 
-		for (final String option : AvailableOptions) {
-
-			final Tag row   = table.block("tr");
-			final Tag left  = row.block("t");
-			final Tag right = row.block("td");
-
-			left.text(option);
-
-			final Tag input = right.empty("input").attr(new Attr("type", "checkbox"), new Attr("name", getKey()));
-		}
-
-		/*
 		final String value = getValue();
 
 		// display value if non-empty
@@ -108,9 +104,19 @@ public class StringMultiChoiceSetting extends Setting<String> {
 			input.attr(new Attr("value", value));
 		}
 
+		final Tag options = group.block("div");
 
-		renderResetButton(group);
-		*/
+		for (final String option : AvailableOptions) {
+			options.block("button").attr(
+				new Attr("type", "button"),
+				new Attr("class", "toggle-option" + (value.contains(option) ? " active" : "")),
+				new Attr("title", "Toggle " + option),
+				new Attr("data-value", option),
+				new Attr("data-target", id)
+			).text(option);
+		}
+
+		renderResetButton(options);
 	}
 
 	@Override
