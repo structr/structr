@@ -162,7 +162,7 @@ var _Entities = {
 	appendRowWithInputField: function(entity, el, key, label, typeInfo) {
 		el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + (entity[key] ? escapeForHtmlAttributes(entity[key]) : '') + '"></td><td><i id="null_' + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
 		var inp = $('[name="' + key + '"]', el);
-		_Entities.activateInput(inp, entity.id, entity.pageId);
+		_Entities.activateInput(inp, entity.id, entity.pageId, typeInfo);
 		var nullIcon = $('#null_' + key, el);
 		nullIcon.on('click', function() {
 			Command.setProperty(entity.id, key, null, false, function() {
@@ -720,11 +720,11 @@ var _Entities = {
 		_Entities.getSchemaProperties(entity.type, view, function(properties) {
 
 			let filteredProperties = Object.keys(properties).filter(function(key) {
-				return !typeInfo[key].isCollection;
+				return !(typeInfo[key].isCollection && typeInfo[key].relatedType);
 			});
 
 			let collectionProperties = Object.keys(properties).filter(function(key) {
-				return typeInfo[key].isCollection;
+				return typeInfo[key].isCollection && typeInfo[key].relatedType;
 			});
 
 			$.ajax({
@@ -1085,8 +1085,8 @@ var _Entities = {
 
 
 		propsTable.append('<tr class="hidden"><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
-		$('.props tr td.value input',    dialog).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId); });
-		$('.props tr td.value textarea', dialog).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId); });
+		$('.props tr td.value input',    dialog).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId, typeInfo); });
+		$('.props tr td.value textarea', dialog).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId, typeInfo); });
 
 		Structr.appendInfoTextToElement({
 			element: $('.newKey', propsTable),
@@ -1279,19 +1279,27 @@ var _Entities = {
 			return onDelete(nodeEl);
 		}
 	},
-	activateInput: function(el, id, pageId) {
+	activateInput: function(el, id, pageId, typeInfo) {
 
 		var input = $(el);
 		var oldVal = input.val();
 		var relId = input.parent().attr('rel_id');
+		var objId = relId ? relId : id;
+		var key = input.prop('name');
 
 		if (!input.hasClass('readonly') && !input.hasClass('newKey')) {
 
-			input.on('focus', function() {
+			input.closest('.array-attr').find('i.remove').off('click').on('click', function(el) {
+				let cell = input.closest('.value');
+				input.parent().remove();
+				_Entities.saveArrayValue(cell, objId, key, oldVal, id, pageId, typeInfo);
+			});
+
+			input.off('focus').on('focus', function() {
 				input.addClass('active');
 			});
 
-			input.on('change', function() {
+			input.off('change').on('change', function() {
 				input.data('changed', true);
 
 				if (pageId && pageId === activeTab) {
@@ -1300,9 +1308,8 @@ var _Entities = {
 				}
 			});
 
-			input.on('focusout', function() {
+			input.off('focusout').on('focusout', function() {
 				_Logger.log(_LogType.ENTITIES, 'relId', relId);
-				var objId = relId ? relId : id;
 				_Logger.log(_LogType.ENTITIES, 'set properties of obj', objId);
 
 				var keyInput = input.parent().parent().children('td').first().children('input');
@@ -1328,28 +1335,7 @@ var _Entities = {
 					}
 
 				} else {
-					var key = input.prop('name');
-					var val = input.val();
-					var isPassword = input.prop('type') === 'password';
-					if (input.data('changed')) {
-						input.data('changed', false);
-						_Logger.log(_LogType.ENTITIES, 'existing key: Command.setProperty(', objId, key, val);
-						_Entities.setProperty(objId, key, val, false, function(newVal) {
-							if (isPassword || (newVal !== oldVal)) {
-								blinkGreen(input);
-								//console.log(typeof newVal)
-								if (newVal.constructor === Array) {
-									newVal = newVal.join(',');
-								}
-								input.val(newVal);
-								let valueMsg = newVal ? 'value "' + newVal : 'empty value';
-								Structr.showAndHideInfoBoxMessage('Updated property "' + key + '"' + (!isPassword ? ' with ' + valueMsg + '".' : '.'), 'success', 2000, 200);
-							} else {
-								input.val(oldVal);
-							}
-							oldVal = newVal;
-						});
-					}
+					_Entities.saveValue(input, objId, key, oldVal, id, pageId, typeInfo);
 				}
 				input.removeClass('active');
 				input.parent().children('.icon').each(function(i, icon) {
@@ -1358,6 +1344,74 @@ var _Entities = {
 			});
 		}
 	},
+	getArrayValue: function(key) {
+		let values = [];
+		$('[name="' + key + '"]').each(function(i, el) {
+			let value = $(el).val();
+			if (value && value.length) {
+				values.push(value);
+			}
+		});
+		return values;
+	},
+	saveValue: function(input, objId, key, oldVal, id, pageId, typeInfo) {
+		
+		var val;
+
+		// Array?
+		if (typeInfo[key].isCollection && !typeInfo[key].relatedType) {
+			val = _Entities.getArrayValue(key);
+		} else {
+			val = input.val();
+		}
+
+		var isPassword = input.prop('type') === 'password';
+		if (input.data('changed')) {
+			input.data('changed', false);
+			_Logger.log(_LogType.ENTITIES, 'existing key: Command.setProperty(', objId, key, val);
+			_Entities.setProperty(objId, key, val, false, function(newVal) {
+				if (isPassword || (newVal !== oldVal)) {
+					blinkGreen(input);
+					let valueMsg;
+					if (newVal.constructor === Array) {
+						input.closest('.value').html(formatArrayValueField(key, newVal, typeInfo[key].format === 'multi-line', typeInfo[key].readOnly, isPassword));
+						$('[name="' + key + '"]').each(function(i, el) {
+							_Entities.activateInput(el, id, pageId, typeInfo);
+						});
+						valueMsg = newVal ? 'value [' + newVal.join(',\n') + ']': 'empty value';
+					} else {
+						input.val(newVal);
+						valueMsg = newVal ? 'value "' + newVal + '"': 'empty value';
+					}
+					Structr.showAndHideInfoBoxMessage('Updated property "' + key + '"' + (!isPassword ? ' with ' + valueMsg + '' : ''), 'success', 2000, 200);
+				} else {
+					input.val(oldVal);
+				}
+				oldVal = newVal;
+			});
+		}
+		
+	},
+	saveArrayValue: function(cell, objId, key, oldVal, id, pageId, typeInfo) {
+		
+		var val = _Entities.getArrayValue(key);
+
+		_Logger.log(_LogType.ENTITIES, 'existing key: Command.setProperty(', objId, key, val);
+		_Entities.setProperty(objId, key, val, false, function(newVal) {
+			if (newVal !== oldVal) {
+				blinkGreen(cell);
+				let valueMsg;
+				cell.html(formatArrayValueField(key, newVal, typeInfo[key].format === 'multi-line', typeInfo[key].readOnly, false));
+				$('[name="' + key + '"]').each(function(i, el) {
+					_Entities.activateInput(el, id, pageId, typeInfo);
+				});
+				valueMsg = newVal ? 'value [' + newVal.join(',\n') + ']': 'empty value';
+				Structr.showAndHideInfoBoxMessage('Updated property "' + key + '" with ' + valueMsg + '.', 'success', 2000, 200);
+			}
+			oldVal = newVal;
+		});
+		
+	},	
 	setProperty: function(id, key, val, recursive, callback) {
 		Command.setProperty(id, key, val, recursive, function() {
 			Command.getProperty(id, key, callback);
@@ -2169,12 +2223,41 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 
 	} else if (obj.constructor === Array) {
 
-		return formatRegularValueField(key, escapeForHtmlAttributes(obj.join(',')), isMultiline, isReadOnly, isPassword);
+		return formatArrayValueField(key, obj, isMultiline, isReadOnly, isPassword);
 
 	} else {
 
 		return formatRegularValueField(key, escapeForHtmlAttributes(obj), isMultiline, isReadOnly, isPassword);
 	}
+};
+
+function formatArrayValueField(key, values, isMultiline, isReadOnly, isPassword) {
+
+	let html = '';
+
+	values.forEach(function(value) {
+
+		if (isMultiline) {
+
+			html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + '>' + value + '</textarea> <i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i></div>';
+
+		} else {
+
+			html += '<div class="array-attr"><input name="' + key + '" type="' + (isPassword ? 'password" autocomplete="new-password' : 'text') + '" value="' + value + '"' + (isReadOnly ? 'readonly class="readonly"' : '') + '> <i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i></div>';
+		}
+	});
+
+	if (isMultiline) {
+
+		html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + '></textarea></div>';
+
+	} else {
+
+		html += '<div class="array-attr"><input name="' + key + '" type="' + (isPassword ? 'password" autocomplete="new-password' : 'text') + '" value=""' + (isReadOnly ? 'readonly class="readonly"' : '') + '></div>';
+	}
+	
+	return html;
+
 };
 
 function formatRegularValueField(key, value, isMultiline, isReadOnly, isPassword) {
