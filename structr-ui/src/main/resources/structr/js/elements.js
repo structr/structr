@@ -792,7 +792,7 @@ var _Elements = {
 
 		var leftOrRight = 'left';
 		var topOrBottom = 'top';
-		var x = (e.pageX - 8);
+		var x = (e.clientX - 8);
 		var y = (div.offset().top - 58);
 
 		if (e.pageX > ($(window).width() / 2)) {
@@ -800,7 +800,6 @@ var _Elements = {
 		}
 
 		if (e.pageY > ($(window).height() - menuHeight)) {
-			topOrBottom = 'bottom';
 			y -= 20 + menuHeight - ($(window).height() - e.pageY);
 		}
 
