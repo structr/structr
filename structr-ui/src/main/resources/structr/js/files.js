@@ -169,7 +169,7 @@ var _Files = {
 		_Files.moveResizer();
 		Structr.initVerticalSlider($('.column-resizer', filesMain), filesResizerLeftKey, 204, _Files.moveResizer);
 
-		Structr.fetchHtmlTemplate('files/button.file.new', {}, function (html) {
+		Structr.fetchHtmlTemplate('files/button.file.new', {}, function(html) {
 
 			$('#folder-contents-container').prepend(html);
 

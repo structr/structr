@@ -104,82 +104,51 @@ var _Contents = {
 		_Contents.moveResizer();
 		Structr.initVerticalSlider($('.column-resizer', contentsMain), contentsResizerLeftKey, 204, _Contents.moveResizer);
 
-		var contentsContentsContainer = $('#contents-contents-container');
 
-		var selectWrapper = $('<div></div>');
-		contentsContentsContainer.prepend(selectWrapper);
+		Structr.fetchHtmlTemplate('contents/buttons.new', {}, function(html) {
 
-		var containerTypesWrapper = $('<span><select id="add-content-container"><option value="">Add Content Container</option></select></span>');
-		var containerTypesSelector = $('#add-content-container', containerTypesWrapper);
-		selectWrapper.append(containerTypesWrapper);
+            $('#contents-contents-container').prepend(html);
 
-		Command.query('SchemaNode', 1000, 1, 'name', 'asc', { extendsClass: 'org.structr.dynamic.ContentContainer' }, function(schemaNodes) {
-			schemaNodes.forEach(function(schemaNode) {
-				var type = schemaNode.name;
-				containerTypesSelector.append('<option value="' + type + '">' + type + '</option>');
-			});
-
-			if (schemaNodes.length === 0) {
-				Structr.appendInfoTextToElement({
-					text: "You need to create a custom type extending <b>org.structr.dynamic.<u>ContentContainer</u></b> to add ContentContainers",
-					element: containerTypesWrapper,
-					css: {
-						marginLeft: '4px',
-						marginRight: '4px'
-					}
-				});
-			}
-
-		}, true);
-
-		containerTypesSelector.on('change', function(e) {
-			e.stopPropagation();
-			var sel = $(this);
-			var type = sel.val();
-			if (type) {
-				Command.create({ type: type, parent: currentContentContainer ? currentContentContainer.id : null }, function(f) {
-					_Contents.appendItemOrContainerRow(f);
-					_Contents.refreshTree();
-					containerTypesSelector.prop('selectedIndex', 0);
-				});
-			}
-		});
-
-		var itemTypesWrapper = $('<span><select id="add-content-item"><option value="">Add Content Item</option></select></span>');
-		var itemTypesSelector = $('#add-content-item', itemTypesWrapper);
-		selectWrapper.append(itemTypesWrapper);
-
-		Command.query('SchemaNode', 1000, 1, 'name', 'asc', { extendsClass: 'org.structr.dynamic.ContentItem' }, function(schemaNodes) {
-			schemaNodes.forEach(function(schemaNode) {
-				var type = schemaNode.name;
-				itemTypesSelector.append('<option value="' + type + '">' + type + '</option>');
-			});
-
-			if (schemaNodes.length === 0) {
-				Structr.appendInfoTextToElement({
-					text: "You need to create a custom type extending <b>org.structr.dynamic.<u>ContentItem</u></b> to add ContentItem",
-					element: itemTypesWrapper,
-					css: {
-						marginLeft: '4px',
-						marginRight: '4px'
-					}
-				});
-			}
-
-		}, true);
-
-		itemTypesSelector.on('change', function(e) {
-			e.stopPropagation();
-			var sel = $(this);
-			var type = sel.val();
-			if (type) {
+            $('.add_item_icon', main).on('click', function(e) {
 				var containers = (currentContentContainer ? [ { id : currentContentContainer.id } ] : null);
-				Command.create({ type: type, size: 0, containers: containers }, function(f) {
+				Command.create({ type: $('select#content-item-type').val(), size: 0, containers: containers }, function(f) {
 					_Contents.appendItemOrContainerRow(f);
 					_Contents.refreshTree();
-					itemTypesSelector.prop('selectedIndex', 0);
 				});
-			}
+            });
+
+
+            $('.add_container_icon', main).on('click', function(e) {
+				Command.create({ type: $('select#content-container-type').val(), parent: currentContentContainer ? currentContentContainer.id : null }, function(f) {
+					_Contents.appendItemOrContainerRow(f);
+					_Contents.refreshTree();
+				});
+            });
+
+            $('select#content-item-type').on('change', function() {
+                    $('#add-item-button', main).find('span').text('Add ' + $(this).val());
+            });
+
+            $('select#content-container-type').on('change', function() {
+                    $('#add-container-button', main).find('span').text('Add ' + $(this).val());
+            });
+
+            // list types that extend ContentItem
+            _Schema.getDerivedTypes('org.structr.dynamic.ContentItem', [], function(types) {
+                    var elem = $('select#content-item-type');
+                    types.forEach(function(type) {
+                            elem.append('<option value="' + type + '">' + type + '</option>');
+                    });
+            });
+
+            // list types that extend ContentContainer
+            _Schema.getDerivedTypes('org.structr.dynamic.ContentContainer', [], function(types) {
+                    var elem = $('select#content-container-type');
+                    types.forEach(function(type) {
+                            elem.append('<option value="' + type + '">' + type + '</option>');
+                    });
+            });
+
 		});
 
 		$.jstree.defaults.core.themes.dots      = false;
@@ -838,7 +807,7 @@ var _Contents = {
 					});
 					
 					setTimeout(function() {
-						_Contents.editItem(item);
+						refreshBtn.click();
 					}, 500);
 					
 
@@ -855,7 +824,7 @@ var _Contents = {
 					dialogSaveButton.remove();
 					saveAndClose.remove();
 					dialogCancelButton.click();
-				}, 500);
+				}, 1000);
 			});
 
 			refreshBtn.on('click', function(e) {

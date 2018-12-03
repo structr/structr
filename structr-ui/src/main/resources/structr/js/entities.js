@@ -2064,6 +2064,8 @@ var _Entities = {
 				blinkGreen(element.find('.' + attributeName + '_').first());
 				if (Structr.isModuleActive(_Pages)) {
 					_Pages.reloadPreviews();
+				} else if (Structr.isModuleActive(_Contents)) {
+					_Contents.refreshTree();
 				} else if (Structr.isModuleActive(_Files) && attributeName === 'name') {
 					var a = element.closest('td').prev().children('a').first();
 					Command.getProperty(id, 'path', function(newPath) {
