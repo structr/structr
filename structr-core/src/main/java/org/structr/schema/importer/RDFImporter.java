@@ -38,7 +38,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.MaintenanceCommand;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -48,11 +47,13 @@ import org.xml.sax.SAXException;
  *
  *
  */
-public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
+public class RDFImporter extends SchemaAnalyzer {
 
 	private static final Logger logger = LoggerFactory.getLogger(RDFImporter.class.getName());
 
 	private static String separator = null;
+
+	private final static String RDF_IMPORT_STATUS   = "RDF_IMPORT_STATUS";
 
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
@@ -110,7 +111,7 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 			logger.warn("", t);
 		}
 
-		analyzeSchema();
+		analyzeSchema(RDF_IMPORT_STATUS);
 	}
 
 	@Override

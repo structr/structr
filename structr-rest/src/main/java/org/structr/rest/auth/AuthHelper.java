@@ -47,17 +47,12 @@ import org.structr.schema.action.Actions;
 
 
 /**
- * Utility class for authentication
- *
- *
+ * Utility class for authentication.
  */
 public class AuthHelper {
 
 	public static final String STANDARD_ERROR_MSG = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
-
 	private static final Logger logger            = LoggerFactory.getLogger(AuthHelper.class.getName());
-
-	//~--- get methods ----------------------------------------------------
 
 	/**
 	 * Find a {@link Principal} for the given credential
@@ -84,7 +79,6 @@ public class AuthHelper {
 
 				logger.warn("Error while searching for principal: {}", fex.getMessage());
 			}
-
 		}
 
 		return null;
@@ -167,8 +161,10 @@ public class AuthHelper {
 				} else {
 
 					AuthHelper.handleForcePasswordChange(principal);
-
 					AuthHelper.resetFailedLoginAttemptsCounter(principal);
+
+					// allow external users (LDAP etc.) to update group membership
+					principal.onAuthenticate();
 				}
 			}
 		}
