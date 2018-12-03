@@ -108,5 +108,37 @@ $(function () {
 	let anchor = getAnchorFromUrl(window.location.href) || 'general';
 	$('a[href=#' + anchor + ']').click();
 
+	$("button.toggle-option").on('click', function() {
+
+		var button = $(this);
+		var target = $('#' + button.data('target'));
+		if (target) {
+
+			var value = button.data('value');
+			var list  = target.val();
+			var parts = list.split(" ");
+
+			// remove empty elements
+			parts.forEach(function(p, i) {
+
+				if (p.length < 2) {
+					parts.splice(i, 1);
+				}
+			});
+			var pos = parts.indexOf(value);
+			if (pos >= 0) {
+
+				parts.splice(pos, 1);
+				button.removeClass('active');
+
+			} else {
+
+				parts.push(value);
+				button.addClass('active');
+			}
+
+			target.val(parts.filter(function(e) { return e && e.length; }).join(' '));
+		}
+	});
 });
 

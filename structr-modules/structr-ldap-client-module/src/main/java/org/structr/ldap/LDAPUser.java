@@ -18,16 +18,21 @@
  */
 package org.structr.ldap;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueException;
+import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
@@ -47,10 +52,12 @@ public interface LDAPUser extends User {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/LDAPUser"));
 
 		type.addStringProperty("distinguishedName", PropertyView.Public, PropertyView.Ui).setUnique(true).setIndexed(true);
+		type.addLongProperty("lastLDAPSync");
 
 		type.addPropertyGetter("distinguishedName", String.class);
 		type.addPropertySetter("distinguishedName", String.class);
 
+		type.overrideMethod("onAuthenticate",   true, LDAPUser.class.getName() + ".onAuthenticate(this);");
 		type.overrideMethod("initializeFrom",  false, LDAPUser.class.getName() + ".initializeFrom(this, arg0);");
 		type.overrideMethod("isValidPassword", false, "return " + LDAPUser.class.getName() + ".isValidPassword(this, arg0);");
 	}}
@@ -81,6 +88,10 @@ public interface LDAPUser extends User {
 				thisUser.setProperty(StructrApp.key(LDAPUser.class, structrName), LDAPUser.getString(entry, ldapName));
 			}
 
+			// update lastUpdate timestamp
+			thisUser.setProperty(StructrApp.key(LDAPUser.class, "lastLDAPSync"), System.currentTimeMillis());
+
+
 		} catch (final LdapInvalidAttributeValueException ex) {
 			ex.printStackTrace();
 		}
@@ -101,6 +112,35 @@ public interface LDAPUser extends User {
 		}
 
 		return false;
+	}
+
+	static void onAuthenticate(final LDAPUser thisUser) {
+
+		final PropertyKey<Long> lastUpdateKey = StructrApp.key(LDAPUser.class, "lastLDAPSync");
+		final Long lastUpdate = thisUser.getProperty(lastUpdateKey);
+
+		if ((lastUpdate == null || System.currentTimeMillis() > (lastUpdate + (Settings.LDAPUpdateInterval.getValue(600) * 1000)))) {
+
+			try {
+
+				// update all LDAP groups..
+				logger.info("Updating LDAP information for {} ({})", thisUser.getName(), thisUser.getProperty(StructrApp.key(LDAPUser.class, "distinguishedName")));
+
+				final LDAPService service = Services.getInstance().getService(LDAPService.class);
+				if (service != null) {
+
+						for (final LDAPGroup group : StructrApp.getInstance().nodeQuery(LDAPGroup.class).getAsList()) {
+
+							service.synchronizeGroup(group);
+						}
+				}
+
+				thisUser.setProperty(lastUpdateKey, System.currentTimeMillis());
+
+			} catch (CursorException | LdapException | IOException | FrameworkException fex) {
+				logger.warn("Unable to update LDAP information for user {}: {}", thisUser.getName(), fex.getMessage());
+			}
+		}
 	}
 
 	static String getString(final Entry entry, final String key) throws LdapInvalidAttributeValueException {

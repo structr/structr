@@ -28,10 +28,12 @@ import org.structr.agent.Task;
 import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
+import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.StructrServices;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.schema.SchemaService;
 import org.structr.schema.action.Actions;
 
 /**
@@ -40,6 +42,7 @@ import org.structr.schema.action.Actions;
  *
  *
  */
+@ServiceDependency(SchemaService.class)
 public class CronService extends Thread implements RunnableService {
 
 	private static final Logger logger           = LoggerFactory.getLogger(CronService.class.getName());

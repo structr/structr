@@ -3048,6 +3048,10 @@ input.bitmask {
 	margin-bottom: 5px;
 }
 
+#info-area .message li {
+	list-style: decimal;
+}
+
 #info-area .message .furtherText {
 	display: block;
 	padding-top: 10px;
@@ -5001,20 +5005,24 @@ input.newKey {
 	background-position: -424px -90px;
 }
 
-.sprite-wand {
+.sprite-user_suit {
 	background-position: -448px -90px;
 }
 
-.sprite-wrench {
+.sprite-wand {
 	background-position: -472px -90px;
 }
 
-.sprite-xhtml_add {
+.sprite-wrench {
 	background-position: -296px -114px;
 }
 
-.sprite-zoom {
+.sprite-xhtml_add {
 	background-position: -320px -114px;
+}
+
+.sprite-zoom {
+	background-position: -344px -114px;
 }
 
 /**

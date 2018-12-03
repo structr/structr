@@ -189,13 +189,13 @@ public class StructrLDAPClientModuleTest {
 
 		Settings.LogSchemaErrors.setValue(true);
 
-		Settings.getOrCreateStringSetting(LDAPService.CONFIG_KEY_LDAP_HOST).setValue("localhost");
-		Settings.getOrCreateIntegerSetting(LDAPService.CONFIG_KEY_LDAP_PORT).setValue(10389);
-		Settings.getOrCreateStringSetting(LDAPService.CONFIG_KEY_LDAP_BINDDN).setValue("uid=admin,ou=system");
-		Settings.getOrCreateStringSetting(LDAPService.CONFIG_KEY_LDAP_SECRET).setValue("secret");
-		Settings.getOrCreateStringSetting(LDAPService.CONFIG_KEY_LDAP_BASEDN).setValue("dc=structr,dc=org");
-		Settings.getOrCreateBooleanSetting(LDAPService.CONFIG_KEY_LDAP_SSL).setValue(false);
-		Settings.getOrCreateStringSetting(LDAPService.CONFIG_KEY_LDAP_MAPPING).setValue("{ sn: name, mail: eMail }");
+		Settings.LDAPHost.setValue("localhost");
+		Settings.LDAPPort.setValue(10389);
+		Settings.LDAPBindDN.setValue("uid=admin,ou=system");
+		Settings.LDAPSecret.setValue("secret");
+		Settings.LDAPUseSSL.setValue(false);
+		Settings.LDAPPropertyMapping.setValue("{ sn: name, mail: eMail }");
+		Settings.LDAPUpdateInterval.setValue(600);
 
 		final Services services = Services.getInstance();
 

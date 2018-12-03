@@ -111,6 +111,7 @@ public class BasicTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -125,6 +126,7 @@ public class BasicTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}
