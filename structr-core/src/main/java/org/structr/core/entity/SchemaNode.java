@@ -79,7 +79,7 @@ public class SchemaNode extends AbstractSchemaNode {
 	public static final String schemaNodeNamePattern    = "[A-Z][a-zA-Z0-9_]*";
 
 	private static final Set<String> EntityNameBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
-		"Relation"
+		"Relation", "Property"
 	}));
 
 	public static final Property<Iterable<SchemaRelationshipNode>> relatedTo        = new EndNodes<>("relatedTo", SchemaRelationshipSourceNode.class);
