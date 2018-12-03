@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
+import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.SingletonService;
 import org.structr.api.service.StructrServices;
 import org.structr.common.error.FrameworkException;
@@ -51,11 +52,13 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.property.PropertyMap;
+import org.structr.schema.SchemaService;
 
 /**
  * The LDAP synchronization service. This is a system service that requires
  * superuser permissions.
  */
+@ServiceDependency(SchemaService.class)
 public class LDAPService extends Thread implements SingletonService {
 
 	private static final Logger logger               = LoggerFactory.getLogger(LDAPService.class.getName());

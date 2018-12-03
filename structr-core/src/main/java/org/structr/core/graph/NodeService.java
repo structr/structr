@@ -36,12 +36,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 
-
 /**
- * The graph/node service main class.
- *
- *
- *
+ * The graph/node service.
  */
 public class NodeService implements SingletonService {
 

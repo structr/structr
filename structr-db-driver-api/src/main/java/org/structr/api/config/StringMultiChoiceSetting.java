@@ -18,6 +18,9 @@
  */
 package org.structr.api.config;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
@@ -25,8 +28,9 @@ import org.structr.api.util.html.Tag;
 /**
  * A configuration setting with a key and a type.
  */
-public class StringSetting extends Setting<String> {
+public class StringMultiChoiceSetting extends Setting<String> {
 
+	private Set<String> AvailableOptions = new LinkedHashSet<>();
 
 	/**
 	 * Constructor to create an empty StringSetting with NO default value.
@@ -34,7 +38,7 @@ public class StringSetting extends Setting<String> {
 	 * @param group
 	 * @param key
 	 */
-	public StringSetting(final SettingsGroup group, final String key) {
+	public StringMultiChoiceSetting(final SettingsGroup group, final String key) {
 		this(group, key, null);
 	}
 
@@ -45,7 +49,7 @@ public class StringSetting extends Setting<String> {
 	 * @param key
 	 * @param value
 	 */
-	public StringSetting(final SettingsGroup group, final String key, final String value) {
+	public StringMultiChoiceSetting(final SettingsGroup group, final String key, final String value) {
 		this(group, null, key, value);
 	}
 
@@ -57,7 +61,7 @@ public class StringSetting extends Setting<String> {
 	 * @param key
 	 * @param value
 	 */
-	public StringSetting(final SettingsGroup group, final String categoryName, final String key, final String value) {
+	public StringMultiChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value) {
 		super(group, categoryName, key, value);
 	}
 
@@ -69,7 +73,7 @@ public class StringSetting extends Setting<String> {
 	 * @param value
 	 * @param comment
 	 */
-	public StringSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final String comment) {
+	public StringMultiChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final String comment) {
 		super(group, categoryName, key, value, comment);
 	}
 
@@ -78,13 +82,21 @@ public class StringSetting extends Setting<String> {
 
 		final Tag group = parent.block("div").css("form-group");
 		final Tag label = group.block("label").text(getKey());
+		final String id = RandomStringUtils.randomAlphabetic(8);
 
 		if (getComment() != null) {
 			label.attr(new Attr("class", "has-comment"));
 			label.attr(new Attr("data-comment", getComment()));
 		}
 
-		final Tag input    = group.empty("input").attr(new Attr("type", "text"), new Attr("name", getKey()));
+		final Tag input = group.empty("input").attr(
+			new Attr("type",         "text"),
+			new Attr("name",         getKey()),
+			new Attr("id",           id),
+			new Attr("class",        "ordered-multi-select hidden"),
+			new Attr("data-choices", StringUtils.join(AvailableOptions, ","))
+		);
+
 		final String value = getValue();
 
 		// display value if non-empty
@@ -92,7 +104,19 @@ public class StringSetting extends Setting<String> {
 			input.attr(new Attr("value", value));
 		}
 
-		renderResetButton(group);
+		final Tag options = group.block("div");
+
+		for (final String option : AvailableOptions) {
+			options.block("button").attr(
+				new Attr("type", "button"),
+				new Attr("class", "toggle-option" + (value.contains(option) ? " active" : "")),
+				new Attr("title", "Toggle " + option),
+				new Attr("data-value", option),
+				new Attr("data-target", id)
+			).text(option);
+		}
+
+		renderResetButton(options);
 	}
 
 	@Override
@@ -114,5 +138,9 @@ public class StringSetting extends Setting<String> {
 		}
 
 		return getValue();
+	}
+
+	public void addAvailableOption(final String option) {
+		this.AvailableOptions.add(option);
 	}
 }
