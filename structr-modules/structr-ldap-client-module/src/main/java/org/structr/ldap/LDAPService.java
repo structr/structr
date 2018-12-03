@@ -61,15 +61,6 @@ public class LDAPService extends Thread implements SingletonService {
 	private static final Logger logger               = LoggerFactory.getLogger(LDAPService.class.getName());
 	private static final Set<String> structuralTypes = new LinkedHashSet<>(Arrays.asList("ou", "dc"));
 
-	public static final String CONFIG_KEY_LDAP_BINDDN     = "ldap.bindDn";
-	public static final String CONFIG_KEY_LDAP_SECRET     = "ldap.secret";
-	public static final String CONFIG_KEY_LDAP_HOST       = "ldap.host";
-	public static final String CONFIG_KEY_LDAP_PORT       = "ldap.port";
-	public static final String CONFIG_KEY_LDAP_SSL        = "ldap.useSsl";
-	public static final String CONFIG_KEY_LDAP_BASEDN     = "ldap.baseDn";
-	public static final String CONFIG_KEY_LDAP_SCOPE      = "ldap.scope";
-	public static final String CONFIG_KEY_LDAP_MAPPING    = "ldap.propertyMapping";
-
 	private final long connectionTimeout = 1000;
 
 	public LDAPService() {
@@ -204,35 +195,31 @@ public class LDAPService extends Thread implements SingletonService {
 	}
 
 	public Map<String, String> getPropertyMapping() {
-		return new GsonBuilder().create().fromJson(Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_MAPPING).getValue("{}"), Map.class);
+		return new GsonBuilder().create().fromJson(Settings.LDAPPropertyMapping.getValue("{ sn: name, email: eMail }"), Map.class);
 	}
 
 	public String getHost() {
-		return Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_HOST).getValue("localhost");
+		return Settings.LDAPHost.getValue("localhost");
 	}
 
 	public int getPort() {
-		return Settings.getOrCreateIntegerSetting(CONFIG_KEY_LDAP_PORT).getValue(389);
+		return Settings.LDAPPort.getValue(389);
 	}
 
 	public String getBindDN() {
-		return Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_BINDDN).getValue("");
+		return Settings.LDAPBindDN.getValue("");
 	}
 
 	public String getSecret() {
-		return Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_SECRET).getValue("");
-	}
-
-	public String getBaseDN() {
-		return Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_BASEDN).getValue("");
+		return Settings.LDAPSecret.getValue("");
 	}
 
 	public String getScope() {
-		return Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_SCOPE).getValue("SUBTREE");
+		return Settings.LDAPScope.getValue("SUBTREE");
 	}
 
 	public boolean getUseSSL() {
-		return Settings.getOrCreateBooleanSetting(CONFIG_KEY_LDAP_SSL).getValue(false);
+		return Settings.LDAPUseSSL.getValue(false);
 	}
 
 	// ----- private methods -----
@@ -274,13 +261,12 @@ public class LDAPService extends Thread implements SingletonService {
 	@Override
 	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		logger.info("host:    {}", Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_HOST).getValue("localhost"));
-		logger.info("port:    {}", Settings.getOrCreateIntegerSetting(CONFIG_KEY_LDAP_PORT).getValue(389));
-		logger.info("use SSL: {}", Settings.getOrCreateBooleanSetting(CONFIG_KEY_LDAP_SSL).getValue(false));
-		logger.info("bind DN: {}", Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_BINDDN).getValue(""));
-		logger.info("base DN: {}", Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_BASEDN).getValue(""));
-		logger.info("scope:   {}", Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_SCOPE).getValue("SUBTREE"));
-		logger.info("mapping: {}", Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_MAPPING).getValue("{}"));
+		logger.info("host:    {}", Settings.LDAPHost.getValue("localhost"));
+		logger.info("port:    {}", Settings.LDAPPort.getValue(389));
+		logger.info("use SSL: {}", Settings.LDAPUseSSL.getValue(false));
+		logger.info("bind DN: {}", Settings.LDAPBindDN.getValue(""));
+		logger.info("scope:   {}", Settings.LDAPScope.getValue("SUBTREE"));
+		logger.info("mapping: {}", Settings.LDAPPropertyMapping.getValue("{ sn: name, email: eMail }"));
 
 		return true;
 	}

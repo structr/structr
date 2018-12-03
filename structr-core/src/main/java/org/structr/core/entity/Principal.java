@@ -136,6 +136,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.overrideMethod("isValidPassword",                 false, "return " + Principal.class.getName() + ".isValidPassword(this, arg0);");
 		principal.overrideMethod("addSessionId",                    false, Principal.class.getName() + ".addSessionId(this, arg0);");
 		principal.overrideMethod("removeSessionId",                 false, Principal.class.getName() + ".removeSessionId(this, arg0);");
+		principal.overrideMethod("onAuthenticate",                  false, "");
 
 		// override getProperty
 		principal.addMethod("getProperty")
@@ -181,6 +182,8 @@ public interface Principal extends NodeInterface, AccessControllable {
 	boolean isAdmin();
 	boolean isBlocked();
 	boolean shouldSkipSecurityRelationships();
+
+	default void onAuthenticate() {}
 
 	void setFavorites(final Iterable<Favoritable> favorites) throws FrameworkException;
 	void setIsAdmin(final boolean isAdmin) throws FrameworkException;
