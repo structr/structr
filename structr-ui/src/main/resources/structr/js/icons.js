@@ -48,6 +48,10 @@ var _Icons = {
 	group_add_icon: 'icon/group_add.png',
 	group_link_icon: 'icon/group_link.png',
 	user_icon: 'icon/user.png',
+	user_gray_icon: 'icon/user_gray.png',
+	user_green_icon: 'icon/user_green.png',
+	user_orange_icon: 'icon/user_orange.png',
+	user_red_icon: 'icon/user_red.png',
 	user_suit_icon: 'icon/user_suit.png',
 	user_add_icon: 'icon/user_add.png',
 	user_delete_icon: 'icon/user_delete.png',
@@ -157,7 +161,11 @@ var _Icons = {
 			case _Icons.group_add_icon:               return 'sprite-group_add';
 			case _Icons.group_link_icon:              return 'sprite-group_link';
 			case _Icons.user_icon:                    return 'sprite-user';
-			case _Icons.user_suit:                    return 'sprite-user_suit';
+			case _Icons.user_gray_icon:               return 'sprite-user_gray';
+			case _Icons.user_green_icon:              return 'sprite-user_green';
+			case _Icons.user_orange_icon:             return 'sprite-user_orange';
+			case _Icons.user_red_icon:                return 'sprite-user_red';
+			case _Icons.user_suit_icon:               return 'sprite-user_suit';
 			case _Icons.user_add_icon:                return 'sprite-user_add';
 			case _Icons.user_delete_icon:             return 'sprite-user_delete';
 			case _Icons.compress_icon:                return 'sprite-compress';
