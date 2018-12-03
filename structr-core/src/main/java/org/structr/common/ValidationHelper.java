@@ -164,7 +164,29 @@ public class ValidationHelper {
 	public static boolean isValidStringMatchingRegex(final GraphObject node, final PropertyKey<String> key, final String expression, final ErrorBuffer errorBuffer) {
 
 		final String value = node.getProperty(key);
-		Pattern pattern    = patterns.get(expression);
+
+		if (isValidStringMatchingRegex(value, expression)) {
+			return true;
+		}
+
+		// no match
+		errorBuffer.add(new MatchToken(node.getType(), key, expression));
+		return false;
+	}
+
+	/**
+	 * Checks whether the value of the given property key of the given node
+	 * if not null and matches the given regular expression.
+	 *
+	 * @param node
+	 * @param key
+	 * @param expression
+	 * @param errorBuffer
+	 * @return true if string matches expression
+	 */
+	public static boolean isValidStringMatchingRegex(final String value, final String expression) {
+
+		Pattern pattern = patterns.get(expression);
 
 		if (pattern == null) {
 
@@ -172,14 +194,7 @@ public class ValidationHelper {
 			patterns.put(expression, pattern);
 		}
 
-		if (value != null && pattern.matcher(value).matches()) {
-
-			return true;
-		}
-
-		// no match
-		errorBuffer.add(new MatchToken(node.getType(), key, expression));
-		return false;
+		return (value != null && pattern.matcher(value).matches());
 	}
 
 	public static boolean isValidIntegerInRange(final GraphObject node, final PropertyKey<Integer> key, final String range, final ErrorBuffer errorBuffer) {

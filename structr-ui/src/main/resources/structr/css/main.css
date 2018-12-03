@@ -3048,6 +3048,10 @@ input.bitmask {
 	margin-bottom: 5px;
 }
 
+#info-area .message li {
+	list-style: decimal;
+}
+
 #info-area .message .furtherText {
 	display: block;
 	padding-top: 10px;
