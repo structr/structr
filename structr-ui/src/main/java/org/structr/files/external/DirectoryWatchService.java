@@ -70,6 +70,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 	public DirectoryWatchService() {
 		super("DirectoryWatchService");
+		setDaemon(true);
 	}
 
 	public void mountFolder(final Folder folder) {

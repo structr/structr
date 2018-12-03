@@ -478,7 +478,7 @@ public class Settings {
 		}
 
 		// integer
-		if (StringUtils.isNumeric(value)) {
+		if (Settings.isNumeric(value)) {
 
 			final Setting<Integer> setting = new IntegerSetting(group, key);
 			setting.setIsDynamic(true);
@@ -629,5 +629,21 @@ public class Settings {
 		options.put(6, "6 Digits");
 		options.put(8, "8 Digits");
 		return options;
+	}
+
+	public static boolean isNumeric(final String source) {
+
+		try {
+
+			final Integer value = Integer.parseInt(source);
+			if (value.toString().equals(source)) {
+
+				// value is not changed by parsing and toString()
+				return true;
+			}
+
+		} catch (Throwable t) {}
+
+		return false;
 	}
 }
