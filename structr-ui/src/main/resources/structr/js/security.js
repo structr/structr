@@ -124,7 +124,7 @@ var _UsersAndGroups = {
 	createUserElement:function (user, group) {
 
 		var userName = user.name ? user.name : user.eMail ? '[' + user.eMail + ']' : '[unnamed]';
-		var userIcon = user.type === 'LDAPUser' ? _Icons.getFullSpriteClass(_Icons.user_icon) : _Icons.getFullSpriteClass(_Icons.user_icon);
+		var userIcon = user.type === 'LDAPUser' ? _Icons.getFullSpriteClass(_Icons.user_suit_icon) : _Icons.getFullSpriteClass(_Icons.user_icon);
 
 		var userElement = $('<div class="node user userid_' + user.id + '">'
 				+ '<i class="typeIcon ' + userIcon + ' typeIcon-nochildren" />'
