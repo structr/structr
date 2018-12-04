@@ -358,4 +358,21 @@ public class LongArrayPropertyRestTest extends StructrRestTest {
 		.when()
 			.get("/test_threes?sort=name&longArrayProperty=1,2,3");
 	}
+
+	@Test
+	public void testLongArrayPropertyValidation() {
+
+		RestAssured.given()
+
+			.contentType("application/json; charset=UTF-8")
+			.body(" { 'longArrayProperty' : [1, 2, test] } ")
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+
+		.expect()
+
+			.statusCode(422)
+
+		.when()
+			.post("/test_threes");
+	}
 }
