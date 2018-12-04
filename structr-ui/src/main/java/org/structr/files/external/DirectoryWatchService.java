@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
+import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.StructrServices;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -52,10 +53,12 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.schema.SchemaService;
 import org.structr.web.entity.Folder;
 
 /**
  */
+@ServiceDependency(SchemaService.class)
 public class DirectoryWatchService extends Thread implements RunnableService {
 
 	private static final Logger logger                 = LoggerFactory.getLogger(DirectoryWatchService.class);
@@ -67,6 +70,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 	public DirectoryWatchService() {
 		super("DirectoryWatchService");
+		setDaemon(true);
 	}
 
 	public void mountFolder(final Folder folder) {
@@ -136,6 +140,8 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 	@Override
 	public void run() {
 
+		final Map<String, WatchEventItem> eventQueue = new LinkedHashMap<>();
+
 		while (running) {
 
 			if (!Services.getInstance().isInitialized()) {
@@ -175,10 +181,6 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 					if (root != null) {
 
-						final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-
-						try (final Tx tx = StructrApp.getInstance(securityContext).tx(true, true, false)) {
-
 							for (final WatchEvent event : key.pollEvents()) {
 
 								final Kind kind = event.kind();
@@ -187,24 +189,10 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 									continue;
 								}
 
-								if (!handleWatchEvent(true, root, (Path)key.watchable(), event)) {
-
-									System.out.println("cancelling watch key for " + key.watchable());
-
-									key.cancel();
-								}
+								addToQueue(eventQueue, new WatchEventItem(root, (Path)key.watchable(), event));
 							}
 
-							tx.success();
-
-						} catch (Throwable t) {
-
-							t.printStackTrace();
-
-						} finally {
-
 							key.reset();
-						}
 
 					} else {
 
@@ -215,9 +203,33 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 			} catch (InterruptedException ex) {
 				ex.printStackTrace();
 			}
+
+			final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+
+			try (final Tx tx = StructrApp.getInstance(securityContext).tx(true, true, false)) {
+
+				// handle all watch events that are older than 2 seconds
+				for (final Iterator<WatchEventItem> it = eventQueue.values().iterator(); it.hasNext();) {
+
+					final WatchEventItem item = it.next();
+					if (item.olderThan(2000)) {
+
+						handleWatchEvent(true, item);
+
+						it.remove();
+					}
+				}
+
+				tx.success();
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+			}
+
 		}
 
-		System.out.println("DirectoryWatchService ended..");
+		logger.info("DirectoryWatchService stopped");
 	}
 
 	@Override
@@ -305,9 +317,12 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 	}
 
 	// ----- private methods -----
-	private boolean handleWatchEvent(final boolean registerWatchKey, final Path root, final Path parent, final WatchEvent event) throws IOException {
+	private boolean handleWatchEvent(final boolean registerWatchKey, final WatchEventItem item) throws IOException {
 
-		boolean result = true; // default is "don't cancel watch key"
+		final WatchEvent event = item.getEvent();
+		final Path root        = item.getRoot();
+		final Path parent      = item.getPath();
+		boolean result         = true; // default is "don't cancel watch key"
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
@@ -409,6 +424,87 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 			// recurse (but not in a new thread)
 			new ScanWorker(registerWatchKey, root, directory.getAbsolutePath(), false).run();
+		}
+	}
+
+	private void addToQueue(final Map<String, WatchEventItem> queue, final WatchEventItem item) {
+
+		final String key = item.getKey();
+		if (key != null) {
+
+			// queue should contain at most one item for the given key
+			final WatchEventItem existingItem = queue.get(key);
+			if (existingItem != null) {
+
+				final Kind kindOfExistingItem = existingItem.getKind();
+				final Kind kindOfNewItem      = item.getKind();
+
+				if (StandardWatchEventKinds.ENTRY_CREATE.equals(kindOfExistingItem)) {
+
+					if (StandardWatchEventKinds.ENTRY_CREATE.equals(kindOfNewItem)) {
+
+						// delay CREATE (duplicate CREATE?)
+						existingItem.setTime(item.getTime());
+					}
+
+					if (StandardWatchEventKinds.ENTRY_MODIFY.equals(kindOfNewItem)) {
+
+						// delay CREATE
+						existingItem.setTime(item.getTime());
+					}
+
+					if (StandardWatchEventKinds.ENTRY_DELETE.equals(kindOfNewItem)) {
+
+						// remove CREATE due to DELETE
+						queue.remove(key);
+					}
+				}
+
+				if (StandardWatchEventKinds.ENTRY_MODIFY.equals(kindOfExistingItem)) {
+
+					if (StandardWatchEventKinds.ENTRY_CREATE.equals(kindOfNewItem)) {
+
+						// CREATE replaces MODIFY
+						queue.put(key, item);
+					}
+
+					if (StandardWatchEventKinds.ENTRY_MODIFY.equals(kindOfNewItem)) {
+
+						// delay MODIFY
+						existingItem.setTime(item.getTime());
+					}
+
+					if (StandardWatchEventKinds.ENTRY_DELETE.equals(kindOfNewItem)) {
+
+						// DELETE replaces MODIFY
+						queue.put(key, item);
+					}
+				}
+
+				if (StandardWatchEventKinds.ENTRY_DELETE.equals(kindOfExistingItem)) {
+
+					if (StandardWatchEventKinds.ENTRY_CREATE.equals(kindOfNewItem)) {
+
+						// CREATE removes DELETE (no change?)
+						queue.put(key, item);
+					}
+
+					if (StandardWatchEventKinds.ENTRY_MODIFY.equals(kindOfNewItem)) {
+
+						// MODIFY replaces DELETE?
+						queue.put(key, item);
+					}
+
+					if (StandardWatchEventKinds.ENTRY_DELETE.equals(kindOfNewItem)) {
+
+						// earlier DELETE can stay in the queue
+					}
+				}
+
+			} else {
+
+				queue.put(key, item);
+			}
 		}
 	}
 
@@ -551,6 +647,74 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 		public boolean shouldScan() {
 			return scanInterval > 0 && System.currentTimeMillis() > (lastScanned + scanInterval);
+		}
+	}
+
+	private static final class WatchEventItem implements Comparable<WatchEventItem> {
+
+		private WatchEvent event = null;
+		private String key       = null;
+		private Path root        = null;
+		private Path path        = null;
+		private long time        = 0L;
+
+		public WatchEventItem(final Path root, final Path path, final WatchEvent event) {
+
+			this.time  = System.nanoTime();
+			this.event = event;
+			this.root  = root;
+			this.path  = path;
+
+			if (path != null) {
+
+				this.key = root.resolve((Path)event.context()).toString();
+			}
+		}
+
+		@Override
+		public String toString() {
+			return "WatchEventItem(" + event.kind().toString() + ", " + root + ", " + path + ", " + event.context() + ")";
+		}
+
+		public WatchEvent getEvent() {
+			return event;
+		}
+
+		public Path getRoot() {
+			return root;
+		}
+
+		public Path getPath() {
+			return path;
+		}
+
+		public Kind getKind() {
+			return event.kind();
+		}
+
+		public String getKey() {
+			return key;
+		}
+
+		public long getTime() {
+			return time;
+		}
+
+		public void setTime(final long time) {
+			this.time = time;
+		}
+
+		public boolean olderThan(final long milliseconds) {
+
+			final double now = System.nanoTime();
+			final double dt  = now - time;
+
+			return dt > (milliseconds * 1_000_000);
+		}
+
+		@Override
+		public int compareTo(final WatchEventItem o) {
+			return Long.valueOf(time).compareTo(o.getTime());
 		}
 	}
 }

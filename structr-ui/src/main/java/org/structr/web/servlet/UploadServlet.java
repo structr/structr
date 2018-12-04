@@ -19,9 +19,13 @@
 package org.structr.web.servlet;
 
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import javax.servlet.ServletException;
@@ -47,12 +51,17 @@ import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.IJsonInput;
+import org.structr.core.JsonInput;
+import org.structr.core.JsonSingleInput;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.rest.JsonInputGSONAdapter;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.schema.SchemaHelper;
@@ -63,8 +72,6 @@ import org.structr.web.entity.Folder;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 
-
-//~--- classes ----------------------------------------------------------------
 /**
  * Simple upload servlet.
  */
@@ -85,7 +92,6 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 	public UploadServlet() {
 	}
 
-	//~--- methods --------------------------------------------------------
 	@Override
 	public StructrHttpServiceConfig getConfig() {
 		return config;
@@ -98,9 +104,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 	@Override
 	public void init() {
-
 		uploader = new ServletFileUpload();
-
 	}
 
 	@Override
@@ -153,6 +157,8 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 			logger.warn("No SecurityContext, aborting.");
 			return;
 		}
+
+		final App app              = StructrApp.getInstance(securityContext);
 
 		try {
 
@@ -218,7 +224,16 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 					} else {
 
-						params.put(fieldName, fieldValue);
+						try {
+							
+							final IJsonInput jsonInput = cleanAndParseJsonString(app, "{" + fieldName + ":" + fieldValue + "}");
+							for (final JsonInput input : jsonInput.getJsonInputs()) {
+								params.put(fieldName, convertPropertySetToMap(input).get(fieldName));
+							}
+							
+						} catch (final FrameworkException fex) {
+							params.put(fieldName, fieldValue);
+						}
 					}
 
 				} else {
@@ -465,6 +480,71 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 			logger.error("Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
+	}
+
+	protected Gson getGson() {
+
+		final JsonInputGSONAdapter jsonInputAdapter = new JsonInputGSONAdapter();
+
+		// create GSON serializer
+		final GsonBuilder gsonBuilder = new GsonBuilder()
+			.setPrettyPrinting()
+			.serializeNulls()
+			.registerTypeAdapter(IJsonInput.class, jsonInputAdapter);
+
+		final boolean lenient = Settings.JsonLenient.getValue();
+		if (lenient) {
+
+			// Serializes NaN, -Infinity, Infinity, see http://code.google.com/p/google-gson/issues/detail?id=378
+			gsonBuilder.serializeSpecialFloatingPointValues();
+		}
+
+		return gsonBuilder.create();
+	}
+
+	private IJsonInput cleanAndParseJsonString(final App app, final String input) throws FrameworkException {
+
+		final Gson gson      = getGson();
+		IJsonInput jsonInput = null;
+
+		// isolate input parsing (will include read and write operations)
+		try (final Tx tx = app.tx()) {
+
+			jsonInput   = gson.fromJson(input, IJsonInput.class);
+			tx.success();
+
+		} catch (JsonSyntaxException jsx) {
+			//logger.warn("", jsx);
+			throw new FrameworkException(400, jsx.getMessage());
+		}
+
+		if (jsonInput == null) {
+
+			if (org.tuckey.web.filters.urlrewrite.utils.StringUtils.isBlank(input)) {
+
+				try (final Tx tx = app.tx()) {
+
+					jsonInput   = gson.fromJson("{}", IJsonInput.class);
+					tx.success();
+				}
+
+			} else {
+
+				jsonInput = new JsonSingleInput();
+			}
+		}
+
+		return jsonInput;
+
+	}
+	
+	private Map<String, Object> convertPropertySetToMap(JsonInput propertySet) {
+
+		if (propertySet != null) {
+			return propertySet.getAttributes();
+		}
+
+		return new LinkedHashMap<>();
 	}
 
 	private synchronized Folder getOrCreateFolderPath(SecurityContext securityContext, String path) {

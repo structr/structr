@@ -48,8 +48,8 @@ public class GenericRelationship extends ManyToMany<NodeInterface, NodeInterface
 
 	public GenericRelationship() {}
 
-	public GenericRelationship(SecurityContext securityContext, Relationship dbRelationship) {
-		init(securityContext, dbRelationship, GenericRelationship.class);
+	public GenericRelationship(final SecurityContext securityContext, final Relationship dbRelationship, final long transactionId) {
+		init(securityContext, dbRelationship, GenericRelationship.class, transactionId);
 	}
 
 	@Override

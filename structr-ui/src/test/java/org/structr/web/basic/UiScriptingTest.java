@@ -65,11 +65,13 @@ import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -77,6 +79,9 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.Folder;
@@ -870,6 +875,77 @@ public class UiScriptingTest extends StructrUiTest {
 
 			.when()
 			.get("/testpage");
+	}
+
+	@Test
+	public void testBooleanValues() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Test");
+
+			type.addMethod("testBoolean1", "{ return true; }", "");
+			type.addMethod("testBoolean2", "{ return false; }", "");
+			type.addMethod("testBoolean3", "{ return true; }", "");
+			type.addMethod("testBoolean4", "{ return false; }", "");
+
+			type.addStringProperty("log");
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			// create global schema method for JavaScript
+			app.create(SchemaMethod.class,
+				new NodeAttribute<>(SchemaMethod.name,   "globalTest1"),
+				new NodeAttribute<>(SchemaMethod.source,
+					  "{"
+					+ "	var test = Structr.create('Test');\n"
+					+ "	var log  = '';\n"
+					+ "	var b1   = test.testBoolean1();\n"
+					+ "	var b2   = test.testBoolean2();\n"
+					+ "	var b3   = test.testBoolean3();\n"
+					+ "	var b4   = test.testBoolean4();\n"
+					+ "	Structr.log(b1 + ': ' + typeof b1);\n"
+					+ "	Structr.log(b2 + ': ' + typeof b2);\n"
+					+ "	Structr.log(b3 + ': ' + typeof b3);\n"
+					+ "	Structr.log(b4 + ': ' + typeof b4);\n"
+					+ "	if (b1) { log += 'b1 is true,'; }\n"
+					+ "	if (!b1) { log += 'b1 is false,'; }\n"
+					+ "	if (b2) { log += 'b2 is true,'; }\n"
+					+ "	if (!b2) { log += 'b2 is false,'; }\n"
+					+ "	if (b3) { log += 'b3 is true,'; }\n"
+					+ "	if (!b3) { log += 'b3 is false,'; }\n"
+					+ "	if (b4) { log += 'b4 is true,'; }\n"
+					+ "	if (!b4) { log += 'b4 is false,'; }\n"
+					+ "	test.log = log;\n"
+					+ "}"
+				)
+			);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			fail("Unexpected exception");
+			t.printStackTrace();
+		}
+
+		final RenderContext renderContext = new RenderContext(SecurityContext.getSuperUserInstance(), new RequestMockUp(), new ResponseMockUp(), RenderContext.EditMode.NONE);
+
+		try (final Tx tx = app.tx()) {
+
+			Scripting.evaluate(renderContext, null, "${{ Structr.call('globalTest1'); }}", "test");
+
+			final GraphObject obj = app.nodeQuery(StructrApp.getConfiguration().getNodeEntityClass("Test")).getFirst();
+			final Object result   = obj.getProperty("log");
+
+			assertEquals("Invalid conversion of boolean values in scripting", "b1 is true,b2 is false,b3 is true,b4 is false,", result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception");
+			fex.printStackTrace();
+		}
 	}
 
 

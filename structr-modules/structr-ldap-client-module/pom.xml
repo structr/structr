@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-modules</artifactId>
-		<version>3.0.3-SNAPSHOT</version>
+		<version>3.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>structr-ldap-client-module</artifactId>
 	<packaging>jar</packaging>
@@ -100,6 +100,14 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<debug>true</debug>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

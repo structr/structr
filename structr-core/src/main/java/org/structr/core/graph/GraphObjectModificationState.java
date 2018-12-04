@@ -24,6 +24,7 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -58,18 +59,19 @@ public class GraphObjectModificationState implements ModificationEvent {
 	public static final int STATE_PROPAGATING_MODIFICATION = 128;
 	public static final int STATE_PROPAGATED_MODIFICATION =  256;
 
-	private final long timestamp                 = System.nanoTime();
-	private final PropertyMap modifiedProperties = new PropertyMap();
-	private final PropertyMap removedProperties  = new PropertyMap();
-	private final PropertyMap newProperties      = new PropertyMap();
-	private StringBuilder changeLog              = null;
-	private RelationshipType relType             = null;
-	private boolean isNode                       = false;
-	private boolean modified                     = false;
-	private GraphObject object                   = null;
-	private String uuid                          = null;
-	private int status                           = 0;
-	private String callbackId                    = null;
+	private final long timestamp                      = System.nanoTime();
+	private final PropertyMap modifiedProperties      = new PropertyMap();
+	private final PropertyMap removedProperties       = new PropertyMap();
+	private final PropertyMap newProperties           = new PropertyMap();
+	private StringBuilder changeLog                   = null;
+	private Map<String, StringBuilder> userChangeLogs = null;
+	private RelationshipType relType                  = null;
+	private boolean isNode                            = false;
+	private boolean modified                          = false;
+	private GraphObject object                        = null;
+	private String uuid                               = null;
+	private int status                                = 0;
+	private String callbackId                         = null;
 
 	private long validationTime = 0;
 	private long indexingTime = 0;
@@ -108,6 +110,12 @@ public class GraphObjectModificationState implements ModificationEvent {
 			// create on demand
 			changeLog = new StringBuilder();
 		}
+
+		if (Settings.UserChangelogEnabled.getValue()) {
+
+			// create on demand
+			userChangeLogs = new HashMap<>();
+		}
 	}
 
 	@Override
@@ -123,6 +131,13 @@ public class GraphObjectModificationState implements ModificationEvent {
 		}
 
 		return null;
+	}
+
+	@Override
+	public Map getUserChangeLogs() {
+
+		return userChangeLogs;
+
 	}
 
 	public void propagatedModification() {
@@ -464,9 +479,10 @@ public class GraphObjectModificationState implements ModificationEvent {
 		return modified;
 	}
 
+	// Update changelog for Verb.change
 	public void updateChangeLog(final Principal user, final Verb verb, final PropertyKey key, final Object previousValue, final Object newValue) {
 
-		if (Settings.ChangelogEnabled.getValue() && changeLog != null && key != null) {
+		if ((Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue()) && key != null) {
 
 			final String name = key.jsonName();
 
@@ -474,87 +490,127 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 				final JsonObject obj = new JsonObject();
 
-				obj.add("time", toElement(System.currentTimeMillis()));
-				obj.add("userId", toElement(user.getUuid()));
+				obj.add("time",     toElement(System.currentTimeMillis()));
+				obj.add("userId",   toElement(user.getUuid()));
 				obj.add("userName", toElement(user.getName()));
-				obj.add("verb", toElement(verb));
-				obj.add("key", toElement(key.jsonName()));
-				obj.add("prev", toElement(previousValue));
-				obj.add("val", toElement(newValue));
+				obj.add("verb",     toElement(verb));
+				obj.add("key",      toElement(key.jsonName()));
+				obj.add("prev",     toElement(previousValue));
+				obj.add("val",      toElement(newValue));
 
-				changeLog.append(obj.toString());
-				changeLog.append("\n");
+				if (Settings.ChangelogEnabled.getValue()) {
+					changeLog.append(obj.toString());
+					changeLog.append("\n");
+				}
+
+				if (Settings.UserChangelogEnabled.getValue()) {
+
+					// remove user for user-centric logging to reduce redundancy
+					obj.remove("userId");
+					obj.remove("userName");
+
+					// add target to identify change event
+					obj.add("target", toElement(getUuid()));
+
+					appendUserChangelog(user.getUuid(), obj.toString());
+				}
 			}
 		}
 	}
 
+	// Update *node* changelog for Verb.link
 	public void updateChangeLog(final Principal user, final Verb verb, final String linkType, final String linkId, final String object, final Direction direction) {
 
-		if (Settings.ChangelogEnabled.getValue() && changeLog != null) {
+		if (Settings.ChangelogEnabled.getValue()) {
 
 			final JsonObject obj = new JsonObject();
 
-			obj.add("time", toElement(System.currentTimeMillis()));
-			obj.add("userId", toElement(user.getUuid()));
+			obj.add("time",     toElement(System.currentTimeMillis()));
+			obj.add("userId",   toElement(user.getUuid()));
 			obj.add("userName", toElement(user.getName()));
-			obj.add("verb", toElement(verb));
-			obj.add("rel", toElement(linkType));
-			obj.add("relId", toElement(linkId));
-			obj.add("relDir", toElement(direction));
-			obj.add("target", toElement(object));
+			obj.add("verb",     toElement(verb));
+			obj.add("rel",      toElement(linkType));
+			obj.add("relId",    toElement(linkId));
+			obj.add("relDir",   toElement(direction));
+			obj.add("target",   toElement(object));
 
 			changeLog.append(obj.toString());
 			changeLog.append("\n");
 		}
 	}
 
+	// Update *relationship* changelog for Verb.create
 	public void updateChangeLog(final Principal user, final Verb verb, final String linkType, final String linkId, final String sourceUuid, final String targetUuid) {
 
-		if (Settings.ChangelogEnabled.getValue() && changeLog != null) {
+		if ((Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue())) {
 
 			final JsonObject obj = new JsonObject();
 
-			obj.add("time", toElement(System.currentTimeMillis()));
-			obj.add("userId", toElement(user.getUuid()));
+			obj.add("time",     toElement(System.currentTimeMillis()));
+			obj.add("userId",   toElement(user.getUuid()));
 			obj.add("userName", toElement(user.getName()));
-			obj.add("verb", toElement(verb));
-			obj.add("rel", toElement(linkType));
-			obj.add("relId", toElement(linkId));
-			obj.add("source", toElement(sourceUuid));
-			obj.add("target", toElement(targetUuid));
+			obj.add("verb",     toElement(verb));
+			obj.add("rel",      toElement(linkType));
+			obj.add("relId",    toElement(linkId));
+			obj.add("source",   toElement(sourceUuid));
+			obj.add("target",   toElement(targetUuid));
 
-			changeLog.append(obj.toString());
-			changeLog.append("\n");
+			if (Settings.ChangelogEnabled.getValue()) {
+				changeLog.append(obj.toString());
+				changeLog.append("\n");
+			}
+
+			if (Settings.UserChangelogEnabled.getValue()) {
+
+				// remove user for user-centric logging to reduce redundancy
+				obj.remove("userId");
+				obj.remove("userName");
+
+				appendUserChangelog(user.getUuid(), obj.toString());
+			}
 		}
 	}
 
+	// Update changelog for Verb.create and Verb.delete
 	public void updateChangeLog(final Principal user, final Verb verb, final String object) {
 
-		if (Settings.ChangelogEnabled.getValue() && changeLog != null) {
+		if ((Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue())) {
 
 			final JsonObject obj = new JsonObject();
 
 			obj.add("time", toElement(System.currentTimeMillis()));
 
 			if (user != null) {
-				obj.add("userId", toElement(user.getUuid()));
+				obj.add("userId",   toElement(user.getUuid()));
 				obj.add("userName", toElement(user.getName()));
 			} else {
-				obj.add("userId", JsonNull.INSTANCE);
+				obj.add("userId",   JsonNull.INSTANCE);
 				obj.add("userName", JsonNull.INSTANCE);
 			}
 
-			obj.add("verb", toElement(verb));
+			obj.add("verb",   toElement(verb));
 			obj.add("target", toElement(object));
 
 
-			if (changeLog.length() > 0 && verb.equals(Verb.create)) {
-				// ensure that node creation appears first in the log
-				changeLog.insert(0, "\n");
-				changeLog.insert(0, obj.toString());
-			} else {
-				changeLog.append(obj.toString());
-				changeLog.append("\n");
+			if (Settings.ChangelogEnabled.getValue()) {
+
+				if (changeLog.length() > 0 && verb.equals(Verb.create)) {
+					// ensure that node creation appears first in the log
+					changeLog.insert(0, "\n");
+					changeLog.insert(0, obj.toString());
+				} else {
+					changeLog.append(obj.toString());
+					changeLog.append("\n");
+				}
+			}
+
+			if (Settings.UserChangelogEnabled.getValue() && user != null) {
+
+				// remove user for user-centric logging to reduce redundancy
+				obj.remove("userId");
+				obj.remove("userName");
+
+				appendUserChangelog(user.getUuid(), obj.toString());
 			}
 		}
 	}
@@ -593,6 +649,28 @@ public class GraphObjectModificationState implements ModificationEvent {
 		}
 
 		return JsonNull.INSTANCE;
+	}
+
+	private StringBuilder getUserChangelogForUserId(final String uuid) {
+
+		if (Settings.UserChangelogEnabled.getValue()) {
+
+			if (!userChangeLogs.containsKey(uuid)) {
+				userChangeLogs.put(uuid, new StringBuilder());
+			}
+
+			return userChangeLogs.get(uuid);
+		}
+
+		return null;
+	}
+
+	private void appendUserChangelog(final String userUUID, final String changelog) {
+
+		if (Settings.UserChangelogEnabled.getValue()) {
+			// write user-centric changelog
+			getUserChangelogForUserId(userUUID).append(changelog).append("\n");
+		}
 	}
 
 	public long getTimestamp() {

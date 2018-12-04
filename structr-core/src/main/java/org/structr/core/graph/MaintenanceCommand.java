@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
@@ -33,12 +34,68 @@ public interface MaintenanceCommand {
 
 	final Map<String, String> customHeaders = new LinkedHashMap();
 
+	final static String COMMAND_TYPE_KEY         = "type";
+	final static String COMMAND_SUBTYPE_KEY      = "subtype";
+	final static String COMMAND_TITLE_KEY        = "title";
+	final static String COMMAND_MESSAGE_KEY      = "message";
+
+	final static String COMMAND_SUBTYPE_BEGIN    = "BEGIN";
+	final static String COMMAND_SUBTYPE_PROGRESS = "PROGRESS";
+	final static String COMMAND_SUBTYPE_END      = "END";
+	final static String COMMAND_SUBTYPE_WARNING  = "WARNING";
+
 	public void execute(Map<String, Object> attributes) throws FrameworkException;
 	public boolean requiresEnclosingTransaction();
 	public boolean requiresFlushingOfCaches();
 
 	default public Map<String, String> getCustomHeaders () {
 		return customHeaders;
+	}
+
+	default void publishBeginMessage (final String type, final Map additionalInfo) {
+
+		final Map<String, Object> msgData = new HashMap();
+		msgData.put(COMMAND_TYPE_KEY,    type);
+		msgData.put(COMMAND_SUBTYPE_KEY, COMMAND_SUBTYPE_BEGIN);
+
+		if (additionalInfo != null) {
+			msgData.putAll(additionalInfo);
+		}
+
+		TransactionCommand.simpleBroadcastGenericMessage(msgData);
+	}
+
+	default void publishProgressMessage (final String type, final String message) {
+
+		final Map<String, Object> msgData = new HashMap();
+		msgData.put(COMMAND_TYPE_KEY,    type);
+		msgData.put(COMMAND_SUBTYPE_KEY, COMMAND_SUBTYPE_PROGRESS);
+		msgData.put(COMMAND_MESSAGE_KEY, message);
+
+		TransactionCommand.simpleBroadcastGenericMessage(msgData);
+	}
+
+	default void publishEndMessage (final String type, final Map additionalInfo) {
+
+		final Map<String, Object> msgData = new HashMap();
+		msgData.put(COMMAND_TYPE_KEY,    type);
+		msgData.put(COMMAND_SUBTYPE_KEY, COMMAND_SUBTYPE_END);
+
+		if (additionalInfo != null) {
+			msgData.putAll(additionalInfo);
+		}
+
+		TransactionCommand.simpleBroadcastGenericMessage(msgData);
+	}
+
+	default void publishWarningMessage (final String title, final String text) {
+
+		final Map<String, Object> warningMsgData = new HashMap();
+		warningMsgData.put(COMMAND_TYPE_KEY,    COMMAND_SUBTYPE_WARNING);
+		warningMsgData.put(COMMAND_TITLE_KEY,   title);
+		warningMsgData.put(COMMAND_MESSAGE_KEY, text);
+
+		TransactionCommand.simpleBroadcastGenericMessage(warningMsgData);
 	}
 
 }

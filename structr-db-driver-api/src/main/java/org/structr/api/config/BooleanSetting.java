@@ -93,7 +93,7 @@ public class BooleanSetting extends Setting<Boolean> {
 		final Tag falseInput = group.empty("input").attr(new Attr("type", "radio"), new Attr("name", getKey()), new Attr("value", "false"));
 		group.block("span").text("Disabled");
 
-		if (getValue()) {
+		if (getValue(false)) {
 
 			trueInput.attr(new Attr("checked", "checked"));
 

@@ -41,7 +41,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.StructrTransactionListener;
-import org.structr.core.TransactionSource;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.ModificationEvent;
@@ -185,11 +184,11 @@ public class WebsocketController implements StructrTransactionListener {
 
 	// ----- interface StructrTransactionListener -----
 	@Override
-	public void beforeCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents, final TransactionSource source) {
+	public void beforeCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents) {
 	}
 
 	@Override
-	public void afterCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents, final TransactionSource source) {
+	public void afterCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents) {
 
 		for (final ModificationEvent event : modificationEvents) {
 

@@ -93,21 +93,41 @@ var _Security = {
 var _UsersAndGroups = {
 
 	refreshUsers: function() {
-		_Security.users.empty();
-		_Security.users.append('<button class="action add_user_icon button"><i title="Add User" class="' + _Icons.getFullSpriteClass(_Icons.user_add_icon) + '" /> Add User</button>');
-		$('.add_user_icon', main).on('click', function(e) {
-			e.stopPropagation();
-			return Command.create({type: 'User'});
+
+		Structr.fetchHtmlTemplate('security/button.user.new', {}, function (html) {
+
+			_Security.users.empty();
+			_Security.users.append(html);
+
+			$('.add_user_icon', main).on('click', function(e) {
+				e.stopPropagation();
+				return Command.create({type: $('select#user-type').val()});
+			});
+
+			$('select#user-type').on('change', function() {
+				$('#add-user-button', main).find('span').text('Add ' + $(this).val());
+			});
+
+			// list types that extend User
+			_Schema.getDerivedTypes('org.structr.dynamic.User', [], function(types) {
+				var elem = $('select#user-type');
+				types.forEach(function(type) {
+					elem.append('<option value="' + type + '">' + type + '</option>');
+				});
+			});
+
+			var userPager = _Pager.addPager('users', _Security.users, true, 'User', 'public');
+			userPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></th></div>');
+			userPager.activateFilterElements();
 		});
-		var userPager = _Pager.addPager('users', _Security.users, true, 'User', 'public');
-		userPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></th></div>');
-		userPager.activateFilterElements();
 	},
 	createUserElement:function (user, group) {
+
 		var userName = user.name ? user.name : user.eMail ? '[' + user.eMail + ']' : '[unnamed]';
+		var userIcon = user.type === 'LDAPUser' ? _Icons.getFullSpriteClass(_Icons.user_suit_icon) : _Icons.getFullSpriteClass(_Icons.user_icon);
 
 		var userElement = $('<div class="node user userid_' + user.id + '">'
-				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.user_icon) + ' typeIcon-nochildren" />'
+				+ '<i class="typeIcon ' + userIcon + ' typeIcon-nochildren" />'
 				+ ' <b title="' + userName + '" class="name_">' + userName + '</b> <span class="id">' + user.id + '</span>'
 				+ '</div>'
 		);
@@ -227,19 +247,39 @@ var _UsersAndGroups = {
 		_Entities.deleteNode(button, user);
 	},
 	refreshGroups: function() {
-		_Security.groups.empty();
-		_Security.groups.append('<button class="action add_group_icon button"><i title="Add Group" class="' + _Icons.getFullSpriteClass(_Icons.group_add_icon) + '" /> Add Group</button>');
-		$('.add_group_icon', main).on('click', function(e) {
-			e.stopPropagation();
-			return Command.create({type: 'Group'});
+
+		Structr.fetchHtmlTemplate('security/button.group.new', {}, function (html) {
+
+			_Security.groups.empty();
+			_Security.groups.append(html);
+
+			$('.add_group_icon', main).on('click', function(e) {
+				e.stopPropagation();
+				return Command.create({type: $('select#group-type').val()});
+			});
+
+			$('select#group-type').on('change', function() {
+				$('#add-group-button', main).find('span').text('Add ' + $(this).val());
+			});
+
+			// list types that extend User
+			_Schema.getDerivedTypes('org.structr.dynamic.Group', [], function(types) {
+				var elem = $('select#group-type');
+				types.forEach(function(type) {
+					elem.append('<option value="' + type + '">' + type + '</option>');
+				});
+			});
+
+			var groupPager = _Pager.addPager('groups', _Security.groups, true, 'Group', 'public');
+			groupPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
+			groupPager.activateFilterElements();
 		});
-		var groupPager = _Pager.addPager('groups', _Security.groups, true, 'Group', 'public');
-		groupPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
-		groupPager.activateFilterElements();
 	},
 	createGroupElement: function (group) {
+
+		var groupIcon = group.type === 'LDAPGroup' ? _Icons.getFullSpriteClass(_Icons.group_link_icon) : _Icons.getFullSpriteClass(_Icons.group_icon);
 		var groupElement = $('<div class="node group groupid_' + group.id + '">'
-				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.group_icon) + ' typeIcon-nochildren" />'
+				+ '<i class="typeIcon ' + groupIcon + ' typeIcon-nochildren" />'
 				+ ' <b title="' + group.name + '" class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
 				+ '<i title="Delete Group ' + group.id + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />'
 				+ '</div>'

@@ -784,6 +784,7 @@ public class SchemaHelper {
 					}
 
 					logger.warn("Property name {} already present in type {}, renaming to {}", oldName, entity.getClassName(), propertyName);
+					logger.warn("Offending property is {} with ID {}, name {}, type {}", schemaProperty.getClass().getSimpleName(), schemaProperty.getUuid(), schemaProperty.getName(), schemaProperty.getPropertyType());
 
 					schemaProperty.setProperty(SchemaProperty.name, propertyName);
 				}
@@ -1853,6 +1854,7 @@ public class SchemaHelper {
 							.name(selectionName)
 							.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
 							.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(getGraphQLInputTypeForProperty(property)).build())
+							.field(GraphQLInputObjectField.newInputObjectField().name("_conj").type(Scalars.GraphQLString).build())
 							.build();
 
 						selectionTypes.put(selectionName, selectionType);
@@ -1902,6 +1904,7 @@ public class SchemaHelper {
 						.name(selectionName)
 						.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
 						.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(getGraphQLInputTypeForProperty(property)).build())
+						.field(GraphQLInputObjectField.newInputObjectField().name("_conj").type(Scalars.GraphQLString).build())
 						.build();
 
 					selectionTypes.put(selectionName, selectionType);
@@ -1920,6 +1923,7 @@ public class SchemaHelper {
 					.name("nameSelection")
 					.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
 					.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(Scalars.GraphQLString).build())
+					.field(GraphQLInputObjectField.newInputObjectField().name("_conj").type(Scalars.GraphQLString).build())
 					.build();
 
 				selectionTypes.put("nameSelection", selectionType);

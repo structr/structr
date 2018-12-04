@@ -16,19 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core;
+package org.structr.api.service;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Identifies the source of a transaction. This interface exists in order to be
- * able to differentiate between local and remote transactions (i.e. those
- * coming from a replication master).
- *
- *
  */
-public interface TransactionSource {
 
-	public boolean isLocal();
-	public boolean isRemote();
-
-	public String getOriginAddress();
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface ServiceDependency {
+	Class value();
 }

@@ -38,6 +38,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.NonIndexed;
@@ -231,7 +232,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public void init(SecurityContext securityContext, Node dbNode, final Class entityType, final boolean isCreation) {
+	public void init(SecurityContext securityContext, Node dbNode, final Class entityType, final boolean isCreation, final long transactionId) {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
@@ -522,5 +523,10 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	@Override
 	public List<Group> getGroups() {
 		return Collections.emptyList();
+	}
+
+	@Override
+	public long getSourceTransactionId() {
+		return TransactionCommand.getCurrentTransactionId();
 	}
 }

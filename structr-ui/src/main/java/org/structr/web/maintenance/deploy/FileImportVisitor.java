@@ -119,6 +119,8 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 				try (final Tx tx = app.tx(true, false, false)) {
 
+					tx.disableChangelog();
+
 					// set properties from files.json
 					final PropertyMap fileProperties                          = getPropertiesForFileOrFolder(file.getPath());
 					final PropertyKey<Map<String, String>> sourcesPropertyKey = new GenericProperty("minificationSources");
@@ -178,6 +180,8 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
+			tx.disableChangelog();
+
 			if (getExistingFolder(folderPath) == null) {
 
 				final PropertyMap folderProperties = new PropertyMap(AbstractNode.name, folderObj.getFileName().toString());
@@ -211,6 +215,8 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		String newFileUuid = null;
 
 		try (final Tx tx = app.tx(true, false, false)) {
+
+			tx.disableChangelog();
 
 			final String fullPath            = harmonizeFileSeparators("/", basePath.relativize(path).toString());
 			final PropertyMap fileProperties = getPropertiesForFileOrFolder(fullPath);

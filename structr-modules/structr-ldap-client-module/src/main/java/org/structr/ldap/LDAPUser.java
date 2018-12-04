@@ -18,14 +18,21 @@
  */
 package org.structr.ldap;
 
+import java.io.IOException;
 import java.net.URI;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueException;
+import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
@@ -44,41 +51,50 @@ public interface LDAPUser extends User {
 		type.setExtends(schema.getType("User"));
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/LDAPUser"));
 
-		type.addStringProperty("distinguishedName", PropertyView.Public).setUnique(true).setIndexed(true);
-		type.addStringProperty("description",       PropertyView.Public).setIndexed(true);
-		type.addStringProperty("commonName",        PropertyView.Public).setIndexed(true);
-		type.addStringProperty("uid",               PropertyView.Public).setIndexed(true);
+		type.addStringProperty("distinguishedName", PropertyView.Public, PropertyView.Ui).setUnique(true).setIndexed(true);
+		type.addLongProperty("lastLDAPSync");
 
 		type.addPropertyGetter("distinguishedName", String.class);
-		type.addPropertyGetter("description",       String.class);
-		type.addPropertyGetter("commonName",        String.class);
-		type.addPropertyGetter("uid",               String.class);
-
 		type.addPropertySetter("distinguishedName", String.class);
-		type.addPropertySetter("description",       String.class);
-		type.addPropertySetter("commonName",        String.class);
-		type.addPropertySetter("uid",               String.class);
 
+		type.overrideMethod("onAuthenticate",   true, LDAPUser.class.getName() + ".onAuthenticate(this);");
 		type.overrideMethod("initializeFrom",  false, LDAPUser.class.getName() + ".initializeFrom(this, arg0);");
-		type.overrideMethod("printDebug",      false, LDAPUser.class.getName() + ".printDebug(this);").setDoExport(true);
 		type.overrideMethod("isValidPassword", false, "return " + LDAPUser.class.getName() + ".isValidPassword(this, arg0);");
 	}}
 
 	String getDistinguishedName();
-	String getDescription();
-	String getCommonName();
 
-	void initializeFrom(final Entry entry) throws FrameworkException, LdapInvalidAttributeValueException;
+	void initializeFrom(final Entry entry) throws FrameworkException;
 	void setDistinguishedName(final String distinguishedName) throws FrameworkException;
-	void setDescription(final String description) throws FrameworkException;
-	void setCommonName(final String commonName) throws FrameworkException;
 
-	static void initializeFrom(final LDAPUser thisUser, final Entry entry) throws FrameworkException, LdapInvalidAttributeValueException {
+	static void initializeFrom(final LDAPUser thisUser, final Entry entry) throws FrameworkException {
 
-		thisUser.setProperty(StructrApp.key(LDAPUser.class, "description"), LDAPUser.getString(entry, "description"));
-		thisUser.setProperty(StructrApp.key(LDAPUser.class, "commonName"),  LDAPUser.getString(entry, "cn"));
-		thisUser.setProperty(StructrApp.key(LDAPUser.class, "eMail"),       LDAPUser.getString(entry, "mail"));
-		thisUser.setProperty(StructrApp.key(LDAPUser.class, "uid"),         LDAPUser.getString(entry, "uid"));
+		final LDAPService ldapService      = Services.getInstance().getService(LDAPService.class);
+		final Map<String, String> mappings = new LinkedHashMap<>();
+
+		if (ldapService != null) {
+
+			mappings.putAll(ldapService.getPropertyMapping());
+		}
+
+		try {
+
+			// apply mappings
+			for (final String key : mappings.keySet()) {
+
+				final String structrName = mappings.get(key);
+				final String ldapName    = key;
+
+				thisUser.setProperty(StructrApp.key(LDAPUser.class, structrName), LDAPUser.getString(entry, ldapName));
+			}
+
+			// update lastUpdate timestamp
+			thisUser.setProperty(StructrApp.key(LDAPUser.class, "lastLDAPSync"), System.currentTimeMillis());
+
+
+		} catch (final LdapInvalidAttributeValueException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	static boolean isValidPassword(final LDAPUser thisUser, final String password) {
@@ -98,18 +114,32 @@ public interface LDAPUser extends User {
 		return false;
 	}
 
-	static void printDebug(final LDAPUser thisUser) {
+	static void onAuthenticate(final LDAPUser thisUser) {
 
-		final LDAPService ldapService = Services.getInstance().getService(LDAPService.class);
-		final String dn               = thisUser.getDistinguishedName();
+		final PropertyKey<Long> lastUpdateKey = StructrApp.key(LDAPUser.class, "lastLDAPSync");
+		final Long lastUpdate = thisUser.getProperty(lastUpdateKey);
 
-		if (ldapService != null) {
+		if ((lastUpdate == null || System.currentTimeMillis() > (lastUpdate + (Settings.LDAPUpdateInterval.getValue(600) * 1000)))) {
 
-			System.out.println(ldapService.fetchObjectInfo(dn));
+			try {
 
-		} else {
+				// update all LDAP groups..
+				logger.info("Updating LDAP information for {} ({})", thisUser.getName(), thisUser.getProperty(StructrApp.key(LDAPUser.class, "distinguishedName")));
 
-			logger.warn("Unable to reach LDAP server for user information of {}", dn);
+				final LDAPService service = Services.getInstance().getService(LDAPService.class);
+				if (service != null) {
+
+						for (final LDAPGroup group : StructrApp.getInstance().nodeQuery(LDAPGroup.class).getAsList()) {
+
+							service.synchronizeGroup(group);
+						}
+				}
+
+				thisUser.setProperty(lastUpdateKey, System.currentTimeMillis());
+
+			} catch (CursorException | LdapException | IOException | FrameworkException fex) {
+				logger.warn("Unable to update LDAP information for user {}: {}", thisUser.getName(), fex.getMessage());
+			}
 		}
 	}
 

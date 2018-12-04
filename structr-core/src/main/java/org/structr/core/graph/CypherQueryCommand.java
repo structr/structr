@@ -65,6 +65,11 @@ public class CypherQueryCommand extends NodeServiceCommand {
 			final Iterable<Map<String, Object>> result = graphDb.execute(query, parameters != null ? parameters : Collections.emptyMap());
 			final Iterable<Iterable<GraphObject>> test = extractRows(result, includeHiddenAndDeleted, publicOnly);
 
+			if (query.matches("(?i)(?s)(?m).*\\s+(delete|set|remove)\\s+.*")) {
+				logger.info("Clearing all caches due to DELETE, SET or REMOVE found in Cypher query: " + query);
+				FlushCachesCommand.flushAll();
+			}
+
 			return Iterables.flatten(test);
 		}
 

@@ -2970,28 +2970,11 @@ var _Schema = {
 							window.setTimeout(function() {
 								_Schema.openSchemaToolsDialog();
 
-								new MessageBuilder()
-										.title("Analyzing Database")
-										.info("Analyzing the database contents - depending on the database content this might take a while.<br>Please refer to the server log for more info.")
-										.delayDuration(5000)
-										.show();
-
 								$.ajax({
 									url: rootUrl + 'maintenance/analyzeSchema',
 									type: 'POST',
 									data: JSON.stringify({}),
-									contentType: 'application/json',
-									statusCode: {
-										200: function() {
-											new MessageBuilder()
-													.title("Finished analyzing database")
-													.info("Analyzing the database contents has finished. Reload the page to see the changes.")
-													.specialInteractionButton("Reload", function () {
-														location.reload();
-													}, "Ignore")
-													.show();
-										}
-									}
+									contentType: 'application/json'
 								});
 							}, 100);
 						});
@@ -3041,23 +3024,43 @@ var _Schema = {
 			container.append(html);
 
 			$('#reset-schema-positions', container).on('click', _Schema.clearPositions);
-			var layoutSelector = $('#saved-layout-selector', container);
+			var layoutSelector      = $('#saved-layout-selector', container);
+			var layoutFilenameInput = $('#layout-filename', container);
 
-			$('#save-layout-file', container).click(function() {
-				var fileName = $('#save-layout-filename').val().replaceAll(/[^\w_\-\. ]+/, '-');
+			var saveLayoutFunction = function(mode) {
+
+				var fileName = layoutFilenameInput.val().replaceAll(/[^\w_\-\. ]+/, '-');
 
 				if (fileName && fileName.length) {
 
-					Command.layouts('add', fileName, JSON.stringify(_Schema.getSchemaLayoutConfiguration()), function() {
-						updateLayoutSelector();
-						$('#save-layout-filename').val('');
+					Command.layouts(mode, fileName, JSON.stringify(_Schema.getSchemaLayoutConfiguration()), function(data) {
 
-						blinkGreen(layoutSelector);
+						if (!data.error) {
+
+							new MessageBuilder().success("Layout saved").show();
+
+							updateLayoutSelector();
+							layoutFilenameInput.val('');
+
+							blinkGreen(layoutSelector);
+
+						} else {
+
+							new MessageBuilder().error().title(data.error).text(data.message).show();
+						}
 					});
 
 				} else {
 					Structr.error('Schema layout name is required.');
 				}
+			};
+
+			$('#create-layout-file', container).click(function() {
+				saveLayoutFunction('add');
+			});
+
+			$('#overwrite-layout-file', container).click(function() {
+				saveLayoutFunction('overwrite');
 			});
 
 			$('#restore-layout').click(function() {
@@ -3066,12 +3069,12 @@ var _Schema = {
 
 				if (selectedLayout && selectedLayout.length) {
 
-					Command.layouts('get', selectedLayout, null, function(result) {
+					Command.layouts('get', selectedLayout, null, function(data) {
 
 						var loadedConfig;
 
 						try {
-							loadedConfig = JSON.parse(result.schemaLayout);
+							loadedConfig = JSON.parse(data.schemaLayout);
 
 							if (loadedConfig._version) {
 
@@ -3150,10 +3153,10 @@ var _Schema = {
 
 				if (selectedLayout && selectedLayout.length) {
 
-					Command.layouts('get', selectedLayout, null, function(result) {
+					Command.layouts('get', selectedLayout, null, function(data) {
 
 						var element = document.createElement('a');
-						element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(result.schemaLayout));
+						element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data.schemaLayout));
 						element.setAttribute('download', selectedLayout + '.json');
 
 						element.style.display = 'none';
@@ -3185,16 +3188,14 @@ var _Schema = {
 
 			var updateLayoutSelector = function() {
 
-				Command.layouts('list', '', null, function(result) {
+				Command.layouts('list', '', null, function(data) {
 
 					layoutSelector.empty();
 					layoutSelector.append('<option selected value="" disabled>-- Select Layout --</option>');
 
-					result.forEach(function(data) {
+					data.layouts.forEach(function(layoutFile) {
 
-						data.layouts.forEach(function(layoutFile) {
-							layoutSelector.append('<option>' + layoutFile.slice(0, -5) + '</option>');
-						});
+						layoutSelector.append('<option>' + layoutFile.slice(0, -5) + '</option>');
 					});
 				});
 			};
@@ -3843,5 +3844,44 @@ var _Schema = {
 				callback(typeInfo);
 			});
 		}
+	},
+	getDerivedTypes: function(baseType, blacklist, callback) {
+
+		Command.getByType('SchemaNode', 10000, 1, 'name', 'asc', 'name,extendsClass,isAbstract', false, function(result) {
+
+			var fileTypes = [];
+			var depth     = 5;
+			var types     = {};
+
+			var collect = function(list, type) {
+
+				list.forEach(function(n) {
+
+					if (n.extendsClass === type) {
+
+						fileTypes.push('org.structr.dynamic.' + n.name);
+
+						if (!n.isAbstract && !blacklist.includes(n.name)) {
+							types[n.name] = 1;
+						}
+					}
+
+				});
+			}
+
+			collect(result, baseType);
+
+			for (var i=0; i<depth; i++) {
+
+				fileTypes.forEach(function(type) {
+
+					collect(result, type);
+				});
+			}
+
+			if (callback && typeof callback === 'function') {
+				callback(Object.keys(types));
+			}
+		});
 	}
 };

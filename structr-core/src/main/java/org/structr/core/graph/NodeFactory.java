@@ -95,7 +95,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 			newNode = (T)factoryDefinition.createGenericNode();
 		}
 
-		newNode.init(factoryProfile.getSecurityContext(), node, nodeClass, isCreation);
+		newNode.init(factoryProfile.getSecurityContext(), node, nodeClass, isCreation, TransactionCommand.getCurrentTransactionId());
 		newNode.setRawPathSegmentId(pathSegmentId);
 		newNode.onNodeInstantiation(isCreation);
 

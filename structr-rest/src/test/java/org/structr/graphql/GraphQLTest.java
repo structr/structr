@@ -2218,6 +2218,141 @@ public class GraphQLTest extends StructrGraphQLTest {
 		}
 	}
 
+	@Test
+	public void testOrConjuctionOnIds() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType taskGroup = schema.addType("TaskGroup");
+			final JsonObjectType project   = schema.addType("Project");
+			final JsonObjectType task      = schema.addType("Task");
+
+			project.relate(task,   "TASK",    Relation.Cardinality.OneToMany, "project",   "tasks");
+			taskGroup.relate(task, "PART_OF", Relation.Cardinality.OneToMany, "taskGroup", "tasks");
+
+			// add function property that extracts the project ID
+			final JsonFunctionProperty projectId = task.addFunctionProperty("projectId");
+
+			projectId.setIndexed(true);
+			projectId.setReadFunction("this.project.id");
+			projectId.setTypeHint("String");
+
+			// add function property that extracts the project ID
+			final JsonFunctionProperty taskGroupId = task.addFunctionProperty("taskGroupId");
+
+			taskGroupId.setIndexed(true);
+			taskGroupId.setReadFunction("this.taskGroup.id");
+			taskGroupId.setTypeHint("String");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (URISyntaxException|FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final Class taskGroup             = StructrApp.getConfiguration().getNodeEntityClass("TaskGroup");
+		final Class project               = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final Class task                  = StructrApp.getConfiguration().getNodeEntityClass("Task");
+		final PropertyKey projectKey      = StructrApp.getConfiguration().getPropertyKeyForJSONName(task, "project");
+		final PropertyKey projectTasksKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(project, "tasks");
+		final PropertyKey groupTasksKey   = StructrApp.getConfiguration().getPropertyKeyForJSONName(taskGroup, "tasks");
+
+		String group1Id            = null;
+		String group2Id            = null;
+		String group3Id            = null;
+		String group4Id            = null;
+		String project1Id          = null;
+		String project2Id          = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final List<NodeInterface> tasks1 = new LinkedList<>();
+			final List<NodeInterface> tasks2 = new LinkedList<>();
+
+			final NodeInterface project1     = app.create(project, "Project1");
+			final NodeInterface project2     = app.create(project, "Project2");
+
+			project1Id = project1.getUuid();
+			project2Id = project2.getUuid();
+
+			final NodeInterface group1 = app.create(taskGroup, "Group1");
+			final NodeInterface group2 = app.create(taskGroup, "Group2");
+			final NodeInterface group3 = app.create(taskGroup, "Group3");
+			final NodeInterface group4 = app.create(taskGroup, "Group4");
+
+			group1Id = group1.getUuid();
+			group2Id = group2.getUuid();
+			group3Id = group3.getUuid();
+			group4Id = group4.getUuid();
+
+			tasks1.add(app.create(task, "Task1.1"));
+			tasks1.add(app.create(task, "Task1.2"));
+			tasks1.add(app.create(task, "Task1.3"));
+			tasks1.add(app.create(task, "Task1.4"));
+			tasks1.add(app.create(task, "Task1.5"));
+			tasks1.add(app.create(task, "Task1.6"));
+			tasks1.add(app.create(task, "Task1.7"));
+
+			tasks2.add(app.create(task, "Task2.1"));
+			tasks2.add(app.create(task, "Task2.2"));
+			tasks2.add(app.create(task, "Task2.3"));
+			tasks2.add(app.create(task, "Task2.4"));
+			tasks2.add(app.create(task, "Task2.5"));
+			tasks2.add(app.create(task, "Task2.6"));
+			tasks2.add(app.create(task, "Task2.7"));
+
+			project1.setProperty(projectTasksKey, tasks1);
+			project2.setProperty(projectTasksKey, tasks2);
+
+			group1.setProperty(groupTasksKey, Arrays.asList( tasks1.get(0), tasks1.get(2), tasks1.get(3)));
+			group2.setProperty(groupTasksKey, Arrays.asList( tasks2.get(2), tasks2.get(4), tasks2.get(5)));
+			group3.setProperty(groupTasksKey, Arrays.asList( tasks1.get(1), tasks1.get(4), tasks1.get(5)));
+			group4.setProperty(groupTasksKey, Arrays.asList( tasks2.get(0), tasks2.get(1), tasks2.get(3)));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task { id, type, name, projectId, taskGroupId, project { id, name }, taskGroup { id, name } }}");
+			assertMapPathValueIs(result, "Task.#",                  14);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(taskGroupId: {_equals: \"" + group1Id + "\"}) { id, type, name, projectId, taskGroupId, project { id, name }, taskGroup { id, name } }}");
+			assertMapPathValueIs(result, "Task.#",                  3);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(taskGroupId: {_equals: \"" + group1Id + "\", _equals: \"" + group2Id + "\", _conj: \"OR\"}) { id, type, name, projectId, taskGroupId, project { id, name }, taskGroup { id, name } }}");
+			assertMapPathValueIs(result, "Task.#",                  6);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(taskGroupId: {_equals: \"" + group2Id + "\", _equals: \"" + group3Id + "\", _conj: \"OR\"}) { id, type, name, projectId, taskGroupId, project { id, name }, taskGroup { id, name } }}");
+			assertMapPathValueIs(result, "Task.#",                  6);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(projectId: {_equals: \"" + project1Id + "\", _equals: \"" + project2Id + "\", _conj: \"OR\"}) { id, type, name, projectId, taskGroupId, project { id, name }, taskGroup { id, name } }}");
+			assertMapPathValueIs(result, "Task.#",                  14);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(projectId: {_equals: \"" + project1Id + "\"}, taskGroupId: {_equals: \"" + group2Id + "\", _equals: \"" + group3Id + "\", _conj: \"OR\"}) { id, type, name, projectId, taskGroupId, project { id, name }, taskGroup { id, name } }}");
+			assertMapPathValueIs(result, "Task.#",                  3);
+		}
+	}
+
 	// ----- private methods -----
 	private String eq(final String value) {
 		return "{ name: { _equals: \"" + value + "\" }}";

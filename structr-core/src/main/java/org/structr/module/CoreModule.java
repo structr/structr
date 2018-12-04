@@ -159,6 +159,7 @@ import org.structr.core.function.UnlockSystemPropertiesFunction;
 import org.structr.core.function.UnwindFunction;
 import org.structr.core.function.UpperFunction;
 import org.structr.core.function.UrlEncodeFunction;
+import org.structr.core.function.UserChangelogFunction;
 import org.structr.core.function.ValuesFunction;
 import org.structr.core.function.WeekDaysFunction;
 import org.structr.core.function.WriteFunction;
@@ -180,6 +181,7 @@ public class CoreModule implements StructrModule {
 		Functions.put(licensed, LicenseManager.Basic, "error", new ErrorFunction());
 		Functions.put(licensed, LicenseManager.Basic, "config", new ConfigFunction());
 		Functions.put(licensed, LicenseManager.Basic, "changelog", new ChangelogFunction());
+		Functions.put(licensed, LicenseManager.Basic, "user_changelog", new UserChangelogFunction());
 		Functions.put(licensed, LicenseManager.Basic, "serverlog", new ServerLogFunction());
 
 		Functions.put(licensed, LicenseManager.Basic, "grant", new GrantFunction());

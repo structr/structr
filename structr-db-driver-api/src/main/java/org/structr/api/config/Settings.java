@@ -51,31 +51,32 @@ public class Settings {
 	public static final SettingsGroup cronGroup               = new SettingsGroup("cron",        "Cron Jobs");
 	public static final SettingsGroup securityGroup           = new SettingsGroup("security",    "Security Settings");
 	public static final SettingsGroup oauthGroup              = new SettingsGroup("oauth",       "OAuth Settings");
+	public static final SettingsGroup ldapGroup               = new SettingsGroup("ldap",        "LDAP Settings");
 	public static final SettingsGroup miscGroup               = new SettingsGroup("misc",        "Miscellaneous");
 
 	// general settings
-	public static final Setting<String> ApplicationTitle      = new StringSetting(generalGroup,   "Application", "application.title",          "Structr");
-	public static final Setting<String> InstanceName          = new StringSetting(generalGroup,   "Application", "application.instance.name",  "");
-	public static final Setting<String> InstanceStage         = new StringSetting(generalGroup,   "Application", "application.instance.stage", "");
-	public static final Setting<String> MenuEntries           = new StringSetting(generalGroup,   "Application", "application.menu.main",      "Pages,Files,Security,Schema,Data", "The main menu entries - all other entries remain in the submenu");
-	public static final Setting<String> BasePath              = new StringSetting(generalGroup,   "Paths",       "base.path",                  ".");
-	public static final Setting<String> TmpPath               = new StringSetting(generalGroup,   "Paths",       "tmp.path",                   "/tmp");
-	public static final Setting<String> DatabasePath          = new StringSetting(generalGroup,   "Paths",       "database.path",              "db");
-	public static final Setting<String> FilesPath             = new StringSetting(generalGroup,   "Paths",       "files.path",                 System.getProperty("user.dir").concat(File.separator + "files"));
-	public static final Setting<String> ChangelogPath         = new StringSetting(generalGroup,   "Paths",       "changelog.path",             System.getProperty("user.dir").concat(File.separator + "changelog"));
-	public static final Setting<String> DataExchangePath      = new StringSetting(generalGroup,   "Paths",       "data.exchange.path",         "exchange" + File.separator, "IMPORTANT: Path is relative to base.path");
-	public static final Setting<String> SnapshotsPath         = new StringSetting(generalGroup,   "Paths",       "snapshot.path",              "snapshots" + File.separator, "IMPORTANT: Path is relative to base.path");
-	public static final Setting<String> LayoutsPath           = new StringSetting(generalGroup,   "Paths",       "layouts.path",               "layouts" + File.separator, "IMPORTANT: Path is relative to base.path");
-	public static final Setting<String> WebDataPath           = new StringSetting(generalGroup,   "Paths",       "data.webapp.path",           "webapp-data" + File.separator, "IMPORTANT: Path is relative to base.path");
-	public static final Setting<Boolean> LogSchemaOutput      = new BooleanSetting(generalGroup,  "Logging",     "NodeExtender.log",           false);
-	public static final Setting<Boolean> LogSchemaErrors      = new BooleanSetting(generalGroup,  "Logging",     "NodeExtender.log.errors",    false);
-	public static final Setting<Boolean> RequestLogging       = new BooleanSetting(generalGroup,  "Logging",     "log.requests",               false);
-	public static final Setting<String> LogPrefix             = new StringSetting(generalGroup,   "Logging",     "log.prefix",                 "structr");
-	public static final Setting<String> LogName               = new StringSetting(generalGroup,   "Logging",     "log.name",                   "structr-yyyy_mm_dd.request.log");
-	public static final Setting<String> Configuration         = new StringSetting(generalGroup,   "hidden",      "configuration.provider",     "org.structr.module.JarConfigurationProvider");
-	public static final StringSetting Services                = new StringSetting(generalGroup,   "Services",    "configured.services",        "NodeService AgentService CronService SchemaService LogService HttpService");
-	public static final Setting<Integer> ServicesStartTimeout = new IntegerSetting(generalGroup,  "Services",    "services.start.timeout",     30);
-	public static final Setting<Integer> ServicesStartRetries = new IntegerSetting(generalGroup,  "Services",    "services.start.retries",     10);
+	public static final Setting<String> ApplicationTitle      = new StringSetting(generalGroup,             "Application", "application.title",          "Structr");
+	public static final Setting<String> InstanceName          = new StringSetting(generalGroup,             "Application", "application.instance.name",  "");
+	public static final Setting<String> InstanceStage         = new StringSetting(generalGroup,             "Application", "application.instance.stage", "");
+	public static final Setting<String> MenuEntries           = new StringSetting(generalGroup,             "Application", "application.menu.main",      "Pages,Files,Security,Schema,Data", "The main menu entries - all other entries remain in the submenu");
+	public static final Setting<String> BasePath              = new StringSetting(generalGroup,             "Paths",       "base.path",                  ".");
+	public static final Setting<String> TmpPath               = new StringSetting(generalGroup,             "Paths",       "tmp.path",                   "/tmp");
+	public static final Setting<String> DatabasePath          = new StringSetting(generalGroup,             "Paths",       "database.path",              "db");
+	public static final Setting<String> FilesPath             = new StringSetting(generalGroup,             "Paths",       "files.path",                 System.getProperty("user.dir").concat(File.separator + "files"));
+	public static final Setting<String> ChangelogPath         = new StringSetting(generalGroup,             "Paths",       "changelog.path",             System.getProperty("user.dir").concat(File.separator + "changelog"));
+	public static final Setting<String> DataExchangePath      = new StringSetting(generalGroup,             "Paths",       "data.exchange.path",         "exchange" + File.separator, "IMPORTANT: Path is relative to base.path");
+	public static final Setting<String> SnapshotsPath         = new StringSetting(generalGroup,             "Paths",       "snapshot.path",              "snapshots" + File.separator, "IMPORTANT: Path is relative to base.path");
+	public static final Setting<String> LayoutsPath           = new StringSetting(generalGroup,             "Paths",       "layouts.path",               "layouts" + File.separator, "IMPORTANT: Path is relative to base.path");
+	public static final Setting<String> WebDataPath           = new StringSetting(generalGroup,             "Paths",       "data.webapp.path",           "webapp-data" + File.separator, "IMPORTANT: Path is relative to base.path");
+	public static final Setting<Boolean> LogSchemaOutput      = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log",           false);
+	public static final Setting<Boolean> LogSchemaErrors      = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log.errors",    false);
+	public static final Setting<Boolean> RequestLogging       = new BooleanSetting(generalGroup,            "Logging",     "log.requests",               false);
+	public static final Setting<String> LogPrefix             = new StringSetting(generalGroup,             "Logging",     "log.prefix",                 "structr");
+	public static final Setting<String> LogName               = new StringSetting(generalGroup,             "Logging",     "log.name",                   "structr-yyyy_mm_dd.request.log");
+	public static final Setting<String> Configuration         = new StringSetting(generalGroup,             "hidden",      "configuration.provider",     "org.structr.module.JarConfigurationProvider");
+	public static final StringMultiChoiceSetting Services     = new StringMultiChoiceSetting(generalGroup,  "Services",    "configured.services",        "NodeService AgentService CronService SchemaService HttpService");
+	public static final Setting<Integer> ServicesStartTimeout = new IntegerSetting(generalGroup,            "Services",    "services.start.timeout",     30);
+	public static final Setting<Integer> ServicesStartRetries = new IntegerSetting(generalGroup,            "Services",    "services.start.retries",     10);
 
 	public static final Setting<Integer> NodeServiceStartTimeout = new IntegerSetting(generalGroup,  "Services",    "NodeService.start.timeout",     30);
 	public static final Setting<Integer> NodeServiceStartRetries = new IntegerSetting(generalGroup,  "Services",    "NodeService.start.retries",     3);
@@ -131,7 +132,8 @@ public class Settings {
 	public static final Setting<Boolean> SyncDebugging          = new BooleanSetting(databaseGroup, "Sync debugging",      "sync.debug",                       false);
 
 	// application settings
-	public static final Setting<Boolean> ChangelogEnabled         = new BooleanSetting(applicationGroup, "Changelog",    "application.changelog.enabled",               false);
+	public static final Setting<Boolean> ChangelogEnabled         = new BooleanSetting(applicationGroup, "Changelog",    "application.changelog.enabled",               false, "Turns on logging of changes to nodes and relationships");
+	public static final Setting<Boolean> UserChangelogEnabled     = new BooleanSetting(applicationGroup, "Changelog",    "application.changelog.user_centric.enabled",  false, "Turns on user-centric logging of what a user changed/created/deleted");
 	public static final Setting<Boolean> FilesystemEnabled        = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.enabled",              false);
 	public static final Setting<Boolean> UniquePaths              = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.unique.paths",         true);
 	public static final Setting<String> DefaultChecksums          = new StringSetting(applicationGroup,  "Filesystem",   "application.filesystem.checksums.default",    "", "List of checksums to be calculated on file creation by default.");
@@ -172,7 +174,7 @@ public class Settings {
 	public static final Setting<Boolean> CmisEnabled             = new BooleanSetting(advancedGroup, "hidden",      "cmis.enabled",                  false);
 
 	// servlets
-	public static final Setting<String> Servlets              = new StringSetting(servletsGroup,  "General", "HttpService.servlets",             "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet");
+	public static final Setting<String> Servlets              = new StringMultiChoiceSetting(servletsGroup,  "General", "HttpService.servlets",             "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet");
 
 	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "ConfigServlet.enabled",             true);
 
@@ -370,6 +372,17 @@ public class Settings {
 	public static final Setting<String> OAuthAuth0ErrorUri       = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.error_uri", "");
 	public static final Setting<String> OAuthAuth0ReturnUri      = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.return_uri", "");
 
+	// LDAP settings
+	public static final Setting<String> LDAPHost            = new StringSetting(ldapGroup, "General",  "ldap.host", "localhost");
+	public static final Setting<Integer> LDAPPort           = new IntegerSetting(ldapGroup, "General", "ldap.port", 389);
+	public static final Setting<Integer> LDAPConnectTimeout = new IntegerSetting(ldapGroup, "General", "ldap.connectTimeout", 1000, "Connection timeout in milliseconds");
+	public static final Setting<String> LDAPBindDN          = new StringSetting(ldapGroup, "General",  "ldap.bindDn", "", "DN that is used to authenticate synchronization");
+	public static final Setting<String> LDAPSecret          = new StringSetting(ldapGroup, "General",  "ldap.secret", "");
+	public static final Setting<Boolean> LDAPUseSSL         = new BooleanSetting(ldapGroup, "General", "ldap.useSsl", false);
+	public static final Setting<String> LDAPScope           = new StringSetting(ldapGroup, "General",  "ldap.scope", "SUBTREE");
+	public static final Setting<String> LDAPPropertyMapping = new StringSetting(ldapGroup, "General",  "ldap.propertyMapping", "{ sn: name, email: eMail } ", "Mapping from LDAP properties to Structr properties");
+	public static final Setting<Integer> LDAPUpdateInterval = new IntegerSetting(ldapGroup, "General", "ldap.updateInterval", 600, "Update interval for group synchronization in seconds");
+
 	// miscellaneous settings
 	public static final Setting<String> TranslationGoogleApiKey = new StringSetting(miscGroup,  "Translation Module", "translation.google.apikey",         "");
 
@@ -476,7 +489,7 @@ public class Settings {
 		}
 
 		// integer
-		if (StringUtils.isNumeric(value)) {
+		if (Settings.isNumeric(value)) {
 
 			final Setting<Integer> setting = new IntegerSetting(group, key);
 			setting.setIsDynamic(true);
@@ -627,5 +640,21 @@ public class Settings {
 		options.put(6, "6 Digits");
 		options.put(8, "8 Digits");
 		return options;
+	}
+
+	public static boolean isNumeric(final String source) {
+
+		try {
+
+			final Integer value = Integer.parseInt(source);
+			if (value.toString().equals(source)) {
+
+				// value is not changed by parsing and toString()
+				return true;
+			}
+
+		} catch (Throwable t) {}
+
+		return false;
 	}
 }

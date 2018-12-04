@@ -72,12 +72,11 @@ public class StringSetting extends Setting<String> {
 	public StringSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final String comment) {
 		super(group, categoryName, key, value, comment);
 	}
-	
+
 	@Override
 	public void render(final Tag parent) {
 
 		final Tag group = parent.block("div").css("form-group");
-
 		final Tag label = group.block("label").text(getKey());
 
 		if (getComment() != null) {
@@ -102,7 +101,7 @@ public class StringSetting extends Setting<String> {
 		if (source == null) {
 			return;
 		}
-		
+
 		setValue(source);
 	}
 

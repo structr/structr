@@ -40,32 +40,30 @@ public class GroupQueryFactory extends AbstractQueryFactory {
 			final GroupQuery group   = (GroupQuery)predicate;
 
 			// Filter type predicates since they require special handling
-			List<QueryPredicate> predicateList = group.getQueryPredicates();
-
-			List<QueryPredicate> typePredicates = predicateList.stream().filter((p) -> {
-				return p instanceof TypeQuery;
-			}).collect(Collectors.toList());
-
-			List<QueryPredicate> attributeAndGroupPredicates = predicateList.stream().filter((p) -> {
-				return !(p instanceof TypeQuery);
-			}).collect(Collectors.toList());
+			final List<QueryPredicate> predicateList               = group.getQueryPredicates();
+			final List<QueryPredicate> typePredicates              = predicateList.stream().filter((p) -> { return p instanceof TypeQuery; }).collect(Collectors.toList());
+			final List<QueryPredicate> attributeAndGroupPredicates = predicateList.stream().filter((p) -> { return !(p instanceof TypeQuery); }).collect(Collectors.toList());
 
 			// Apply all type queries first as they affect as different part of the query expression
 			for (final QueryPredicate p : typePredicates) {
+
 				parent.createQuery(parent, p, query, isFirst);
 			}
 
 			// Apply any group and attribute predicates, if existent
-			if (attributeAndGroupPredicates.size() > 0) {
+			if (!attributeAndGroupPredicates.isEmpty()) {
 
 				// Check if any child group contains elements
 				boolean allChildrenAreGroups = true;
-				boolean nonEmptyGroup = false;
+				boolean nonEmptyGroup        = false;
 
 				for (QueryPredicate p : attributeAndGroupPredicates) {
+
 					if (p instanceof GroupQuery) {
-						List<QueryPredicate> containedPredicates = ((GroupQuery)p).getQueryPredicates();
+
+						final List<QueryPredicate> containedPredicates = ((GroupQuery)p).getQueryPredicates();
 						if (containedPredicates.size() > 0) {
+
 							nonEmptyGroup = true;
 						}
 					} else {

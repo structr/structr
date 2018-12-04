@@ -601,7 +601,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 					// register field in view for entity class and declaring superclass
 					registerPropertySet(field.getDeclaringClass(), view.name(), propertyKey);
 					registerPropertySet(type, view.name(), propertyKey);
-					
+
 					// replace field in any other view of this type (not superclass!)
 					for (final Map.Entry<Field, View> other : views.entrySet()) {
 						for (final Property property : other.getValue().properties()) {
@@ -849,7 +849,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		// allow properties to override existing ones as they
 		// are most likely from a more concrete class.
 		for (final PropertyKey key : propertySet) {
-			
+
 			// property keys are referenced by their names,
 			// that's why we seemingly remove the existing
 			// key, but the set does not differentiate

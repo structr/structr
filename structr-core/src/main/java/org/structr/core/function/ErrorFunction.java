@@ -41,8 +41,8 @@ public class ErrorFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		Class entityType = null;
-		String type = null;
+		Class entityType = GraphObject.class;
+		String type      = "GraphObject";
 
 		if (caller != null && caller instanceof GraphObject) {
 

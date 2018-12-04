@@ -115,6 +115,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	private Map<String, Object> tmpStorageContainer = null;
 	public boolean internalSystemPropertiesUnlocked = false;
 	private long rawPathSegmentId                   = -1;
+	private long sourceTransactionId                = -1;
 	private boolean readOnlyPropertiesUnlocked      = false;
 	private boolean isCreation                      = false;
 	protected String cachedUuid                     = null;
@@ -126,8 +127,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	public AbstractNode() {
 	}
 
-	public AbstractNode(SecurityContext securityContext, final Node dbNode, final Class entityType) {
-		init(securityContext, dbNode, entityType, false);
+	public AbstractNode(SecurityContext securityContext, final Node dbNode, final Class entityType, final long sourceTransactionId) {
+		init(securityContext, dbNode, entityType, false, sourceTransactionId);
 	}
 
 	@Override
@@ -144,12 +145,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public final void init(final SecurityContext securityContext, final Node dbNode, final Class entityType, final boolean isCreation) {
+	public final void init(final SecurityContext securityContext, final Node dbNode, final Class entityType, final boolean isCreation, final long sourceTransactionId) {
 
-		this.isCreation      = isCreation;
-		this.dbNode          = dbNode;
-		this.entityType      = entityType;
-		this.securityContext = securityContext;
+		this.sourceTransactionId = sourceTransactionId;
+		this.isCreation          = isCreation;
+		this.dbNode              = dbNode;
+		this.entityType          = entityType;
+		this.securityContext     = securityContext;
 
 		// simple validity check
 		if (dbNode != null && !this.isGenericNode()) {
@@ -162,6 +164,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				logger.error("{} {} failed validity check: actual type in node with ID {}: {}", typeName, getUuid(), dbNode.getId(), typeValue);
 			}
 		}
+	}
+
+	@Override
+	public long getSourceTransactionId() {
+		return sourceTransactionId;
 	}
 
 	@Override

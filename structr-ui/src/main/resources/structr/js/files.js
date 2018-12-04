@@ -169,33 +169,46 @@ var _Files = {
 		_Files.moveResizer();
 		Structr.initVerticalSlider($('.column-resizer', filesMain), filesResizerLeftKey, 204, _Files.moveResizer);
 
-		$('#folder-contents-container').prepend(
-				'<button class="add_folder_icon button"><i title="Add Folder" class="' + _Icons.getFullSpriteClass(_Icons.add_folder_icon) + '"></i> Add Folder</button>'
-				+ '<button class="add_file_icon button"><i title="Add File" class="' + _Icons.getFullSpriteClass(_Icons.add_file_icon) + '"></i> Add File</button>'
-				+ '<button class="add_minified_css_file_icon button"><i title="Add Minified CSS File" class="' + _Icons.getFullSpriteClass(_Icons.minification_dialog_css_icon) + '"></i>' + ' Add Minified CSS File</button>'
-				+ '<button class="add_minified_js_file_icon button"><i title="Add Minified JS File" class="' + _Icons.getFullSpriteClass(_Icons.minification_dialog_js_icon) + '"></i>' + ' Add Minified JS File</button>'
-				+ '<button class="duplicate_finder button"><i title="Find duplicates" class="' + _Icons.getFullSpriteClass(_Icons.search_icon) + '"></i> Find Duplicates</button>'
-				+ '<button class="mount_folder button"><i title="Mount Folder" class="' + _Icons.getFullSpriteClass(_Icons.folder_connect_icon) + '"></i> Mount Folder</button>'
-				);
+		Structr.fetchHtmlTemplate('files/button.file.new', {}, function(html) {
 
-		$('.add_file_icon', main).on('click', function(e) {
-			Command.create({ type: 'File', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null });
-		});
+			$('#folder-contents-container').prepend(html);
 
-		$('.add_minified_css_file_icon', main).on('click', function(e) {
-			Command.create({ type: 'MinifiedCssFile', contentType: 'text/css', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null });
-		});
+			$('.add_file_icon', main).on('click', function(e) {
+				Command.create({ type: $('select#file-type').val(), size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null });
+			});
 
-		$('.add_minified_js_file_icon', main).on('click', function(e) {
-			Command.create({ type: 'MinifiedJavaScriptFile', contentType: 'text/javascript', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null });
-		});
+			$('.duplicate_finder', main).on('click', _DuplicateFinder.openDuplicateFinderDialog);
 
-		$('.duplicate_finder', main).on('click', _DuplicateFinder.openDuplicateFinderDialog);
+			$('.mount_folder', main).on('click', _Files.openMountDialog);
 
-		$('.mount_folder', main).on('click', _Files.openMountDialog);
+			$('.add_folder_icon', main).on('click', function(e) {
+				Command.create({ type: $('select#folder-type').val(), parentId: currentWorkingDir ? currentWorkingDir.id : null });
+			});
 
-		$('.add_folder_icon', main).on('click', function(e) {
-			Command.create({ type: 'Folder', parentId: currentWorkingDir ? currentWorkingDir.id : null });
+			$('select#file-type').on('change', function() {
+				$('#add-file-button', main).find('span').text('Add ' + $(this).val());
+			});
+
+			$('select#folder-type').on('change', function() {
+				$('#add-folder-button', main).find('span').text('Add ' + $(this).val());
+			});
+
+			// list types that extend File
+			_Schema.getDerivedTypes('org.structr.dynamic.File', ['CsvFile'], function(types) {
+				var elem = $('select#file-type');
+				types.forEach(function(type) {
+					elem.append('<option value="' + type + '">' + type + '</option>');
+				});
+			});
+
+			// list types that extend folder
+			_Schema.getDerivedTypes('org.structr.dynamic.Folder', ['Trash'], function(types) {
+				var elem = $('select#folder-type');
+				types.forEach(function(type) {
+					elem.append('<option value="' + type + '">' + type + '</option>');
+				});
+			});
+
 		});
 
 		$.jstree.defaults.core.themes.dots      = false;
