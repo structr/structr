@@ -685,6 +685,16 @@ img.disabled {
 	color: #a0a0a0;
 }
 
+.props tr td.value .array-attr input,
+.props tr td.value .array-attr textarea {
+	width: calc(100% - 24px);
+}
+
+.props tr td.value .array-attr i.remove {
+	vertical-align: middle;
+    margin: 7px 0 6px 2px;
+}
+
 .props tr td.value input.active {
 	margin: -3px;
 	border: 1px solid #ccc;
@@ -700,7 +710,7 @@ img.disabled {
 	border: none;
 	cursor: pointer;
 	vertical-align: middle;
-	margin: 0 2px 2px 0;
+	margin: 0 2px 3px 0;
 }
 
 .props tr td .pager {
