@@ -236,6 +236,12 @@ public class Services implements StructrServices {
 			}
 		});
 
+		final NodeService nodeService = getService(NodeService.class);
+		if (nodeService != null) {
+
+			nodeService.createAdminUser();
+		}
+
 		// read permissions for ownerless nodes
 		final String configForOwnerlessNodes = Settings.OwnerlessNodes.getValue();
 		if (StringUtils.isNotBlank(configForOwnerlessNodes)) {
