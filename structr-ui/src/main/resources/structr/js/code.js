@@ -243,20 +243,10 @@ var _Code = {
 						}
 				}
 
-				var hasVisibleChildren = false;
-
-				if (d.schemaMethods) {
-					d.schemaMethods.forEach(function(m) {
-						if (id === 'custom' || !m.isPartOfBuiltInSchema) {
-							hasVisibleChildren = true;
-						}
-					});
-				}
-
 				list.push({
 					id: d.id,
 					text:  d.name ? d.name : '[unnamed]',
-					children: hasVisibleChildren,
+					children: d.schemaMethods && d.schemaMethods.length > 0,
 					icon: 'fa ' + icon,
 					data: {
 						type: d.type
