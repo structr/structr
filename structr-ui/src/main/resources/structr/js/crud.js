@@ -1392,29 +1392,31 @@ var _Crud = {
 				borderColor: '#b5b5b5'
 			});
 
-			$.each(resp.errors, function(i, error) {
+			window.setTimeout(function() {
+				$.each(resp.errors, function(i, error) {
 
-                var key = error.property;
-                var errorMsg = error.token;
+					var key = error.property;
+					var errorMsg = error.token;
 
-				var input = $('td [name="' + key + '"]', dialogText);
-				if (input.length) {
+					var input = $('td [name="' + key + '"]', dialogText);
+					if (input.length) {
 
-					var errorText = '';
-                    errorText += '"' + key + '" ' + errorMsg.replace(/_/gi, ' ');
+						var errorText = '';
+						errorText += '"' + key + '" ' + errorMsg.replace(/_/gi, ' ');
 
-                    if (error.detail) {
-                        errorText += ' ' + error.detail;
-                    }
+						if (error.detail) {
+							errorText += ' ' + error.detail;
+						}
 
-					Structr.showAndHideInfoBoxMessage(errorText, 'error', 2000, 1000);
+						Structr.showAndHideInfoBoxMessage(errorText, 'error', 2000, 1000);
 
-					input.css({
-						backgroundColor: '#fee',
-						borderColor: '#933'
-					});
-				}
-			});
+						input.css({
+							backgroundColor: '#fee',
+							borderColor: '#933'
+						});
+					}
+				});
+			}, 100);
 		}
 	},
 	crudRefresh: function(id, key, oldValue) {
@@ -1865,15 +1867,38 @@ var _Crud = {
 			} else if (isCollection) { // Array types
 
 				let values = value || [];
+
+				if (!id) {
 					
-				_Schema.getTypeInfo(type, function(typeInfo) {
-					cell.append(formatArrayValueField(key, values, typeInfo.format === 'multi-line', typeInfo.readOnly, false));
-					cell.find('[name="' + key + '"]').each(function(i, el) {
-						_Entities.activateInput(el, id, null, typeInfo, function() {
-							_Crud.crudRefresh(id, key);
+					let focusAndActivateField = function(el) {
+						$(el).focus().on('keydown', function(e) {
+							if (e.which === 9) { // tab key
+								e.stopPropagation();
+								cell.append('<input name="' + key + '" size="4">');
+								focusAndActivateField(cell.find('[name="' + key + '"]').last());
+								return false;
+							}
+						});
+						return false;
+					}
+					
+					// create dialog
+					_Schema.getTypeInfo(type, function(typeInfo) {
+						cell.append('<input name="' + key + '" size="4">');
+						focusAndActivateField(cell.find('[name="' + key + '"]').last());
+					});
+					
+				} else {
+					// update existing object
+					_Schema.getTypeInfo(type, function(typeInfo) {
+						cell.append(formatArrayValueField(key, values, typeInfo.format === 'multi-line', typeInfo.readOnly, false));
+						cell.find('[name="' + key + '"]').each(function(i, el) {
+							_Entities.activateInput(el, id, null, typeInfo, function() {
+								_Crud.crudRefresh(id, key);
+							});
 						});
 					});
-				});
+				}
 
 			} else {
 				cell.text(nvl(formatValue(value), ''));
@@ -2634,7 +2659,7 @@ var _Crud = {
 
 		var dialogSaveButton = $('.save', $('#dialogBox'));
 		if (!(dialogSaveButton.length)) {
-			dialogBox.append('<button class="save" id="saveProperties">Save</button>');
+			dialogBtn.append('<button class="save" id="saveProperties">Save</button>');
 			dialogSaveButton = $('.save', $('#dialogBox'));
 		}
 
