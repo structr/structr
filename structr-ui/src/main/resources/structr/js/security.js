@@ -189,7 +189,7 @@ var _UsersAndGroups = {
 			return;
 		}
 
-		if (member.type === 'User') {
+		if (member.isUser) {
 
 			var userDiv = _UsersAndGroups.createUserElement(member, group);
 
