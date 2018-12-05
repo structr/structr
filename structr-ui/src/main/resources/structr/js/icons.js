@@ -17,6 +17,7 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var _Icons = {
+	application_form_add: 'icon/application_form_add.png',
 	add_icon: 'icon/add.png',
 	delete_icon: 'icon/delete.png',
 	delete_disabled_icon: 'icon/delete_gray.png',
@@ -130,6 +131,7 @@ var _Icons = {
 	getSpriteClassOnly: function (key) {
 
 		switch (key) {
+			case _Icons.application_form_add:         return 'sprite-application_form_add';
 			case _Icons.add_icon:                     return 'sprite-add';
 			case _Icons.delete_icon:                  return 'sprite-delete';
 			case _Icons.delete_disabled_icon:         return 'sprite-delete_gray';

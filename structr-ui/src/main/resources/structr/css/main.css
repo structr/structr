@@ -3409,6 +3409,10 @@ td#cascading-options, td#propagation-options {
 	min-width: 100px;
 }
 
+#code-button-container select, #code-button-container input {
+	min-width: 100px;
+}
+
 #folder-contents-container select:hover, #code-contents-container select:hover, #contents-contents-container select:hover, #crawler-list-container select:hover, #flows-canvas-container select:hover {
 	background-color: #fff;
 }
