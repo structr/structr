@@ -1391,63 +1391,67 @@ var _Schema = {
 
 		if (name && name.length) {
 
-			var obj                = {};
-			obj.schemaNode         = { id: entity.id };
-			obj.schemaProperties   = _Schema.findSchemaPropertiesByNodeAndName(entity, sortedAttrs);
-			obj.nonGraphProperties = _Schema.findNonGraphProperties(entity, sortedAttrs);
-			obj.name               = name;
-			obj.sortOrder          = sortedAttrs.join(',');
+			// update entity before storing the view to make sure that nonGraphProperties are correctly identified..
+			Command.get(entity.id, null, function(reloadedEntity) {
 
-			_Schema.storeSchemaEntity('schema_views', (view || {}), JSON.stringify(obj), function(result) {
+				var obj                = {};
+				obj.schemaNode         = { id: reloadedEntity.id };
+				obj.schemaProperties   = _Schema.findSchemaPropertiesByNodeAndName(reloadedEntity, sortedAttrs);
+				obj.nonGraphProperties = _Schema.findNonGraphProperties(reloadedEntity, sortedAttrs);
+				obj.name               = name;
+				obj.sortOrder          = sortedAttrs.join(',');
 
-				if (view) {
+				_Schema.storeSchemaEntity('schema_views', (view || {}), JSON.stringify(obj), function(result) {
 
-					// we saved a view
-					blinkGreen(tr);
-					_Schema.updateViewPreviewLink(tr, entity.name, name);
+					if (view) {
 
-					var oldName = view.name;
-					view.schemaProperties = obj.schemaProperties;
-					view.name             = obj.name;
+						// we saved a view
+						blinkGreen(tr);
+						_Schema.updateViewPreviewLink(tr, reloadedEntity.name, name);
 
-					tr.removeClass(oldName).addClass(view.name);
+						var oldName           = view.name;
+						view.schemaProperties = obj.schemaProperties;
+						view.name             = obj.name;
 
-					_Schema.deactivateEditModeForViewRow(tr);
+						tr.removeClass(oldName).addClass(view.name);
 
-				} else {
+						_Schema.deactivateEditModeForViewRow(tr);
 
-					// we created a view - get the view data
-					if (result && result.result) {
+					} else {
 
-						var id = result.result[0];
+						// we created a view - get the view data
+						if (result && result.result) {
 
-						$.ajax({
-							url: rootUrl + id,
-							type: 'GET',
-							dataType: 'json',
-							contentType: 'application/json; charset=utf-8',
-							statusCode: {
+							var id = result.result[0];
 
-								200: function(data) {
+							$.ajax({
+								url: rootUrl + id,
+								type: 'GET',
+								dataType: 'json',
+								contentType: 'application/json; charset=utf-8',
+								statusCode: {
 
-									var view = data.result;
-									var name = view.name;
+									200: function(data) {
 
-									blinkGreen(tr);
+										var view = data.result;
+										var name = view.name;
 
-									_Schema.reload();
+										blinkGreen(tr);
 
-									tr.addClass(name);
+										_Schema.reload();
 
-									_Schema.initViewRow(tr, entity, view);
+										tr.addClass(name);
+
+										_Schema.initViewRow(tr, reloadedEntity, view);
+									}
 								}
-							}
-						});
+							});
+						}
 					}
-				}
-			}, function(data) {
-				Structr.errorFromResponse(data.responseJSON);
-				blinkRed(tr);
+				}, function(data) {
+					Structr.errorFromResponse(data.responseJSON);
+					blinkRed(tr);
+				});
 			});
 
 		} else {
