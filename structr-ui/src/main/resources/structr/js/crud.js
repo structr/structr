@@ -1742,7 +1742,7 @@ var _Crud = {
 		row.empty();
 		if (properties) {
 			_Crud.filterKeys(type, Object.keys(properties)).forEach(function(key) {
-				row.append('<td class="___' + key + '"></td>');
+				row.append('<td class="value ___' + key + '"></td>');
 				var cells = _Crud.cells(id, key);
 				$.each(cells, function(i, cell) {
 					_Crud.populateCell(id, key, type, item[key], cell);
@@ -1861,28 +1861,18 @@ var _Crud = {
 					}
 				}
 
-			} else if (propertyType === 'String[]') {
+			//} else if (propertyType === 'String[]') {
+			} else if (isCollection) { // Array types
 
-				if (value && value.length) {
-					value.forEach(function (v, i) {
-						cell.append('<div title="' + v + '" class="node stringarray">' + fitStringToWidth(v, 80) + '<i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" data-string-element="' + escape(v) + '" data-string-position="' + i + '" /></div>');
+				let values = value || [];
+					
+				_Schema.getTypeInfo(type, function(typeInfo) {
+					cell.append(formatArrayValueField(key, values, typeInfo.format === 'multi-line', typeInfo.readOnly, false));
+					cell.find('[name="' + key + '"]').each(function(i, el) {
+						_Entities.activateInput(el, id, null, typeInfo, function() {
+							_Crud.crudRefresh(id, key);
+						});
 					});
-
-					$('.stringarray .remove', cell).on('click', function(e) {
-						e.preventDefault();
-						_Crud.removeStringFromArray(type, id, key, $(this).data('string-element'), $(this).data('string-position'));
-						return false;
-					});
-
-				}
-
-				cell.append('<i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" />');
-				$('.add', cell).on('click', function() {
-					var newStringElement = window.prompt("Enter new string");
-
-					if (newStringElement !== null) {
-						_Crud.addStringToArray(type, id, key, newStringElement);
-					}
 				});
 
 			} else {
@@ -1964,8 +1954,8 @@ var _Crud = {
 
 		}
 
-		if (!isSourceOrTarget && !readOnly && !relatedType && propertyType !== 'Boolean' && propertyType !== 'String[]') {
-			cell.append('<i title="Clear value" class="crud-clear-value ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />');
+		if (!isSourceOrTarget && !readOnly && !relatedType && propertyType !== 'Boolean') {
+			cell.prepend('<i title="Clear value" class="crud-clear-value ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /><br>');
 			$('.crud-clear-value', cell).on('click', function(e) {
 				e.preventDefault();
 				_Crud.crudRemoveProperty(id, key);
@@ -2422,7 +2412,7 @@ var _Crud = {
 		});
 	},
 	addStringToArray: function(type, id, key, obj, callback) {
-		var url = rootUrl + '/' + id + '/public';
+		var url = rootUrl + '/' + id + '/all';
 		$.ajax({
 			url: url,
 			type: 'GET',
@@ -2629,7 +2619,7 @@ var _Crud = {
 			var readOnly = _Crud.readOnly(key, type);
 			var isCollection = _Crud.isCollection(key, type);
 			var relatedType = _Crud.relatedType(key, type);
-			if (readOnly || (isCollection || relatedType)) {
+			if (readOnly || (isCollection && relatedType)) {
 				return;
 			}
 
