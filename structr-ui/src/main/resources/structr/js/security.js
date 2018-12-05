@@ -177,7 +177,7 @@ var _UsersAndGroups = {
 	},
 	appendMemberToGroup: function (member, group, groupEl) {
 		var groupId = group.id;
-		var prefix = (member.type === 'User') ? '.userid_' : '.groupid_';
+		var prefix = (member.isUser) ? '.userid_' : '.groupid_';
 
 		var isExpanded = Structr.isExpanded(groupId);
 
