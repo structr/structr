@@ -244,6 +244,16 @@
 	border-top: none;
 }
 
+.crud-table tr td .array-attr input,
+.crud-table tr td .array-attr textarea {
+	width: calc(100% - 30px);
+}
+
+.crud-table tr td .array-attr i.remove {
+	vertical-align: middle;
+    margin: 7px 0 6px 2px;
+}
+
 .resourceBox th i {
 	cursor: pointer;
 	display: inline-block;
