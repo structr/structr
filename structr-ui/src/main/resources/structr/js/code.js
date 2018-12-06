@@ -230,6 +230,11 @@ var _Code = {
 
 			result.forEach(function(d) {
 
+				// skip internal schema methods
+				if (d.type === 'SchemaMethod' && d.isPartOfBuiltInSchema) {
+					return;
+				}
+
 				var icon = 'fa-file-code-o gray';
 				switch (d.type) {
 					case "SchemaMethod":
@@ -243,10 +248,20 @@ var _Code = {
 						}
 				}
 
+				var hasVisibleChildren = false;
+
+				if (d.schemaMethods) {
+					d.schemaMethods.forEach(function(m) {
+						if (id === 'custom' || !m.isPartOfBuiltInSchema) {
+							hasVisibleChildren = true;
+						}
+					});
+				}
+
 				list.push({
 					id: d.id,
 					text:  d.name ? d.name : '[unnamed]',
-					children: d.schemaMethods && d.schemaMethods.length > 0,
+					children: hasVisibleChildren,
 					icon: 'fa ' + icon,
 					data: {
 						type: d.type
@@ -481,15 +496,15 @@ var _Code = {
 				$('#code-button-container').append(html);
 
 				$('#add-method-button').on('click', function() {
+					_Code.createMethodAndRefreshTree('SchemaMethod', $('#schema-method-name').val() || 'unnamed', schemaNodeId);
+				});
 
-					Command.create({
-						type: 'SchemaMethod',
-						schemaNode: schemaNodeId,
-						name: $('#schema-method-name').val() || 'unnamed',
-						source: ''
-					}, function() {
-						_TreeHelper.refreshTree('#code-tree');
-					});
+				$('#add-onCreate-button').on('click', function() {
+					_Code.createMethodAndRefreshTree('SchemaMethod', 'onCreate', schemaNodeId);
+				});
+
+				$('#add-onSave-button').on('click', function() {
+					_Code.createMethodAndRefreshTree('SchemaMethod', 'onSave', schemaNodeId);
 				});
 			});
 
@@ -502,13 +517,7 @@ var _Code = {
 				$('#code-button-container').append(html);
 
 				$('#create-global-method-button').on('click', function() {
-					Command.create({
-						type: 'SchemaMethod',
-						name: $('#schema-method-name').val() || 'unnamed',
-						source: ''
-					}, function() {
-						_TreeHelper.refreshTree('#code-tree');
-					});
+					_Code.createMethodAndRefreshTree('SchemaMethod', $('#schema-method-name').val() || 'unnamed');
 				});
 			});
 
@@ -521,16 +530,21 @@ var _Code = {
 				$('#code-button-container').append(html);
 
 				$('#add-type-button').on('click', function() {
-					Command.create({
-						type: 'SchemaNode',
-						name: $('#schema-type-name').val() || 'unnamed',
-						source: ''
-					}, function() {
-						_TreeHelper.refreshTree('#code-tree');
-					});
+					_Code.createMethodAndRefreshTree('SchemaNode', $('#schema-type-name').val());
 				});
 			});
 
 		}
+	},
+	createMethodAndRefreshTree: function(type, name, schemaNode) {
+
+		Command.create({
+			type: type,
+			name: name,
+			schemaNode: schemaNode,
+			source: ''
+		}, function() {
+			_TreeHelper.refreshTree('#code-tree');
+		});
 	}
 };
