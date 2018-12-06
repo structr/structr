@@ -307,7 +307,7 @@ public class Iterables {
 
 			@Override
 			public void remove() {
-				throw new UnsupportedOperationException("This iterator does not support remooval of elements");
+				throw new UnsupportedOperationException("This iterator does not support removal of elements");
 			}
 		}
 	}
@@ -335,15 +335,14 @@ public class Iterables {
 						if (current == null || !current.hasNext()) {
 
 							// fetch more?
-							if (source.hasNext()) {
+							while (source.hasNext()) {
 
 								current = source.next().iterator();
 
 								// does the next result have elements?
-								if (!current.hasNext()) {
+								if (current.hasNext()) {
 
-									// no more elements
-									return false;
+									break;
 								}
 							}
 						}
