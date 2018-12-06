@@ -20,6 +20,7 @@ package org.structr.api.util;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -33,7 +34,7 @@ public class IterablesTest {
 	@Test
 	public void testFilterIterable() {
 
-		final List<Integer> source       = Arrays.asList(new Integer[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 });
+		final List<Integer> source       = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9 );
 		final Iterable<Integer> filtered = Iterables.filter(i -> { return (i % 2) == 0; }, source);
 		final Iterator<Integer> iterator = filtered.iterator();
 
@@ -54,7 +55,7 @@ public class IterablesTest {
 	@Test
 	public void testMapIterable() {
 
-		final List<Integer> source       = Arrays.asList(new Integer[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 });
+		final List<Integer> source       = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9 );
 		final Iterable<Integer> mapped   = Iterables.map(i -> { return i * 2; }, source);
 		final Iterator<Integer> iterator = mapped.iterator();
 		int count                        = 0;
@@ -69,5 +70,48 @@ public class IterablesTest {
 			final Integer expected = source.get(count++) * 2;
 			assertEquals("Invalid mapping result", expected, i);
 		}
+	}
+
+	@Test
+	public void testFlatteningIterable() {
+
+		final Iterable<Integer> source1 = Arrays.asList(   1,  2,    3,  4,    5,  6,  7,  8);
+		final Iterable<Integer> source2 = Arrays.asList(null, null);
+		final Iterable<Integer> source3 = Arrays.asList(null, 10, null, 12, null, 14, 15, 16);
+		final Iterable<Integer> source4 = Arrays.asList(  17, 18,   19, 20,   21, 22, 23, 24);
+
+		final List<Iterable<Integer>> sources = new LinkedList<>();
+
+		sources.add(Iterables.map(e -> { return e; }, source1));
+		sources.add(Iterables.filter(e -> { return true; }, source2));
+		sources.add(source3);
+		sources.add(source4);
+
+		final Iterable<Integer> flat = Iterables.flatten(sources);
+		final List<Integer> result   = Iterables.toList(flat);
+
+		assertEquals(21, result.size());
+
+		assertEquals(Integer.valueOf( 1), result.get( 0));
+		assertEquals(Integer.valueOf( 2), result.get( 1));
+		assertEquals(Integer.valueOf( 3), result.get( 2));
+		assertEquals(Integer.valueOf( 4), result.get( 3));
+		assertEquals(Integer.valueOf( 5), result.get( 4));
+		assertEquals(Integer.valueOf( 6), result.get( 5));
+		assertEquals(Integer.valueOf( 7), result.get( 6));
+		assertEquals(Integer.valueOf( 8), result.get( 7));
+		assertEquals(Integer.valueOf(10), result.get( 8));
+		assertEquals(Integer.valueOf(12), result.get( 9));
+		assertEquals(Integer.valueOf(14), result.get(10));
+		assertEquals(Integer.valueOf(15), result.get(11));
+		assertEquals(Integer.valueOf(16), result.get(12));
+		assertEquals(Integer.valueOf(17), result.get(13));
+		assertEquals(Integer.valueOf(18), result.get(14));
+		assertEquals(Integer.valueOf(19), result.get(15));
+		assertEquals(Integer.valueOf(20), result.get(16));
+		assertEquals(Integer.valueOf(21), result.get(17));
+		assertEquals(Integer.valueOf(22), result.get(18));
+		assertEquals(Integer.valueOf(23), result.get(19));
+		assertEquals(Integer.valueOf(24), result.get(20));
 	}
 }
