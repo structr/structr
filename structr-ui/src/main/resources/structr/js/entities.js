@@ -712,13 +712,13 @@ var _Entities = {
 		});
 
 	},
-	getNullIconForKey: function (key) {
+	getNullIconForKey: function(key) {
 		return '<i id="' + _Entities.null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />';
 	},
-	listProperties: function (entity, view, tabView, typeInfo) {
+	listProperties: function(entity, view, tabView, typeInfo) {
 
 		_Entities.getSchemaProperties(entity.type, view, function(properties) {
-
+			
 			let filteredProperties = Object.keys(properties).filter(function(key) {
 				return !(typeInfo[key].isCollection && typeInfo[key].relatedType);
 			});
@@ -755,7 +755,8 @@ var _Entities = {
 
 						if (typeInfo) {
 							keys.forEach(function(key) {
-								if (typeInfo[key] && typeInfo[key].category && typeInfo[key].category !== "System") {
+								
+								if (typeInfo[key] && typeInfo[key].category && typeInfo[key].category !== 'System') {
 
 									var category = typeInfo[key].category;
 									if (!groupedKeys[category]) {
@@ -763,6 +764,15 @@ var _Entities = {
 									}
 									groupedKeys[category].push(key);
 								} else {
+									noCategoryKeys.push(key);
+								}
+							});
+						}
+						
+						if (view === '_html_') {
+							// add custom html attributes
+							Object.keys(res).forEach(function(key) {
+								if (key.startsWith('_custom_html_')) {
 									noCategoryKeys.push(key);
 								}
 							});
