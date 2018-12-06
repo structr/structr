@@ -28,6 +28,7 @@ import static org.structr.core.GraphObject.logger;
 import org.structr.core.Services;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonMethod;
 import org.structr.schema.json.JsonObjectType;
@@ -86,7 +87,11 @@ public interface LDAPGroup extends Group {
 
 		} else {
 
-			logger.warn("LDAPService not available, is it configured in structr.conf?");
+			final String message = "LDAPService not available, is it configured in structr.conf?";
+
+			TransactionCommand.simpleBroadcastWarning("Service not configured", message);
+
+			logger.warn(message);
 		}
 	}
 }

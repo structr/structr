@@ -19,6 +19,7 @@
 package org.structr.core.graph;
 
 
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -382,6 +383,17 @@ public class TransactionCommand {
 
 	public static Set<StructrTransactionListener> getTransactionListeners() {
 		return listeners;
+	}
+
+	public static void simpleBroadcastWarning(final String title, final String text) {
+
+		final Map<String, Object> messageData = new HashMap();
+
+		messageData.put("type",    "WARNING");
+		messageData.put("title",   title);
+		messageData.put("message", text);
+
+		TransactionCommand.simpleBroadcastGenericMessage(messageData);
 	}
 
 	public static void simpleBroadcastGenericMessage (final Map<String, Object> data) {

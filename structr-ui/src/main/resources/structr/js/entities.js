@@ -1365,7 +1365,7 @@ var _Entities = {
 		return values;
 	},
 	saveValue: function(input, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback) {
-		
+
 		let val;
 		let cell = input.closest('.value');
 
@@ -1406,10 +1406,10 @@ var _Entities = {
 				oldVal = newVal;
 			});
 		}
-		
+
 	},
 	saveArrayValue: function(cell, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback) {
-		
+
 		var val = _Entities.getArrayValue(key, cell);
 
 		_Logger.log(_LogType.ENTITIES, 'existing key: Command.setProperty(', objId, key, val);
@@ -1423,15 +1423,15 @@ var _Entities = {
 				});
 				valueMsg = newVal ? 'value [' + newVal.join(',\n') + ']': 'empty value';
 				Structr.showAndHideInfoBoxMessage('Updated property "' + key + '" with ' + valueMsg + '.', 'success', 2000, 200);
-				
+
 				if (onUpdateCallback) {
 					onUpdateCallback();
 				}
 			}
 			oldVal = newVal;
 		});
-		
-	},	
+
+	},
 	setProperty: function(id, key, val, recursive, callback) {
 		Command.setProperty(id, key, val, recursive, function() {
 			Command.getProperty(id, key, callback);
@@ -2277,7 +2277,7 @@ function formatArrayValueField(key, values, isMultiline, isReadOnly, isPassword)
 
 		html += '<div class="array-attr"><input name="' + key + '" type="' + (isPassword ? 'password" autocomplete="new-password' : 'text') + '" value=""' + (isReadOnly ? 'readonly class="readonly"' : '') + '></div>';
 	}
-	
+
 	return html;
 
 };
