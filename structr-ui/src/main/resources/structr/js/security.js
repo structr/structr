@@ -124,7 +124,7 @@ var _UsersAndGroups = {
 	createUserElement:function (user, group) {
 
 		var userName = user.name ? user.name : user.eMail ? '[' + user.eMail + ']' : '[unnamed]';
-		var userIcon = user.type === 'LDAPUser' ? _Icons.getFullSpriteClass(_Icons.user_suit_icon) : _Icons.getFullSpriteClass(_Icons.user_icon);
+		var userIcon = user.type === 'LDAPUser' ? _Icons.getFullSpriteClass(_Icons.user_orange_icon) : _Icons.getFullSpriteClass(_Icons.user_icon);
 
 		var userElement = $('<div class="node user userid_' + user.id + '">'
 				+ '<i class="typeIcon ' + userIcon + ' typeIcon-nochildren" />'
@@ -177,7 +177,7 @@ var _UsersAndGroups = {
 	},
 	appendMemberToGroup: function (member, group, groupEl) {
 		var groupId = group.id;
-		var prefix = (member.type === 'User') ? '.userid_' : '.groupid_';
+		var prefix = (member.isUser) ? '.userid_' : '.groupid_';
 
 		var isExpanded = Structr.isExpanded(groupId);
 
@@ -189,7 +189,7 @@ var _UsersAndGroups = {
 			return;
 		}
 
-		if (member.type === 'User') {
+		if (member.isUser) {
 
 			var userDiv = _UsersAndGroups.createUserElement(member, group);
 

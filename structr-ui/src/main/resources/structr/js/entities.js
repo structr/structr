@@ -1279,7 +1279,7 @@ var _Entities = {
 			return onDelete(nodeEl);
 		}
 	},
-	activateInput: function(el, id, pageId, typeInfo) {
+	activateInput: function(el, id, pageId, typeInfo, onUpdateCallback) {
 
 		var input = $(el);
 		var oldVal = input.val();
@@ -1292,7 +1292,7 @@ var _Entities = {
 			input.closest('.array-attr').find('i.remove').off('click').on('click', function(el) {
 				let cell = input.closest('.value');
 				input.parent().remove();
-				_Entities.saveArrayValue(cell, objId, key, oldVal, id, pageId, typeInfo);
+				_Entities.saveArrayValue(cell, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback);
 			});
 
 			input.off('focus').on('focus', function() {
@@ -1335,7 +1335,7 @@ var _Entities = {
 					}
 
 				} else {
-					_Entities.saveValue(input, objId, key, oldVal, id, pageId, typeInfo);
+					_Entities.saveValue(input, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback);
 				}
 				input.removeClass('active');
 				input.parent().children('.icon').each(function(i, icon) {
@@ -1344,9 +1344,9 @@ var _Entities = {
 			});
 		}
 	},
-	getArrayValue: function(key) {
+	getArrayValue: function(key, cell) {
 		let values = [];
-		$('[name="' + key + '"]').each(function(i, el) {
+		cell.find('[name="' + key + '"]').each(function(i, el) {
 			let value = $(el).val();
 			if (value && value.length) {
 				values.push(value);
@@ -1354,13 +1354,14 @@ var _Entities = {
 		});
 		return values;
 	},
-	saveValue: function(input, objId, key, oldVal, id, pageId, typeInfo) {
+	saveValue: function(input, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback) {
 		
-		var val;
+		let val;
+		let cell = input.closest('.value');
 
 		// Array?
 		if (typeInfo[key].isCollection && !typeInfo[key].relatedType) {
-			val = _Entities.getArrayValue(key);
+			val = _Entities.getArrayValue(key, cell);
 		} else {
 			val = input.val();
 		}
@@ -1374,8 +1375,8 @@ var _Entities = {
 					blinkGreen(input);
 					let valueMsg;
 					if (newVal.constructor === Array) {
-						input.closest('.value').html(formatArrayValueField(key, newVal, typeInfo[key].format === 'multi-line', typeInfo[key].readOnly, isPassword));
-						$('[name="' + key + '"]').each(function(i, el) {
+						cell.html(formatArrayValueField(key, newVal, typeInfo[key].format === 'multi-line', typeInfo[key].readOnly, isPassword));
+						cell.find('[name="' + key + '"]').each(function(i, el) {
 							_Entities.activateInput(el, id, pageId, typeInfo);
 						});
 						valueMsg = newVal ? 'value [' + newVal.join(',\n') + ']': 'empty value';
@@ -1384,6 +1385,11 @@ var _Entities = {
 						valueMsg = newVal ? 'value "' + newVal + '"': 'empty value';
 					}
 					Structr.showAndHideInfoBoxMessage('Updated property "' + key + '"' + (!isPassword ? ' with ' + valueMsg + '' : ''), 'success', 2000, 200);
+
+					if (onUpdateCallback) {
+						onUpdateCallback();
+					}
+
 				} else {
 					input.val(oldVal);
 				}
@@ -1392,9 +1398,9 @@ var _Entities = {
 		}
 		
 	},
-	saveArrayValue: function(cell, objId, key, oldVal, id, pageId, typeInfo) {
+	saveArrayValue: function(cell, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback) {
 		
-		var val = _Entities.getArrayValue(key);
+		var val = _Entities.getArrayValue(key, cell);
 
 		_Logger.log(_LogType.ENTITIES, 'existing key: Command.setProperty(', objId, key, val);
 		_Entities.setProperty(objId, key, val, false, function(newVal) {
@@ -1402,11 +1408,15 @@ var _Entities = {
 				blinkGreen(cell);
 				let valueMsg;
 				cell.html(formatArrayValueField(key, newVal, typeInfo[key].format === 'multi-line', typeInfo[key].readOnly, false));
-				$('[name="' + key + '"]').each(function(i, el) {
+				cell.find('[name="' + key + '"]').each(function(i, el) {
 					_Entities.activateInput(el, id, pageId, typeInfo);
 				});
 				valueMsg = newVal ? 'value [' + newVal.join(',\n') + ']': 'empty value';
 				Structr.showAndHideInfoBoxMessage('Updated property "' + key + '" with ' + valueMsg + '.', 'success', 2000, 200);
+				
+				if (onUpdateCallback) {
+					onUpdateCallback();
+				}
 			}
 			oldVal = newVal;
 		});

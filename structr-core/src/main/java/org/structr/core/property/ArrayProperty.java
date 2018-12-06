@@ -23,13 +23,13 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.NumberToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
@@ -103,7 +103,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		try {
 			return Class.forName("[L" + componentType.getName() + ";");
 		} catch (ClassNotFoundException ex) {}
-		
+
 		return componentType;
 	}
 
@@ -201,7 +201,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	}
 
 	// ----- private methods -----
-	private T[] convert(final List source) {
+	private T[] convert(final List source) throws FrameworkException {
 
 		final ArrayList<T> result = new ArrayList<>();
 
@@ -213,7 +213,13 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 			} else if (o != null) {
 
-				result.add(fromString(o.toString()));
+				final T value = fromString(o.toString());
+
+				if (value == null) {
+					throw new FrameworkException(422, "Invalid input", new NumberToken(this.getDeclaringClass().getSimpleName(), this));
+				}
+
+				result.add(value);
 
 			} else {
 

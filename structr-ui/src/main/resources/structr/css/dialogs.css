@@ -20,3 +20,11 @@
 div#ldap-group-config div.row {
 	margin-bottom: 12px;
 }
+
+div.custom-dialog {
+	padding: 12px 0 12px 0;
+}
+
+div.custom-dialog div.row label {
+	min-width: 120px !important;
+}
