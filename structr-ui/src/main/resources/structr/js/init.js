@@ -1615,13 +1615,13 @@ var Structr = {
 
 					var text = "Deployment Import started: " + new Date(data.start) + "<br>"
 							+ "Importing from: " + data.source + "<br><br>"
-							+ "Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><br>";
+							+ "Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class='message-steps'></ol>";
 
 					new MessageBuilder().title("Deployment Import Progress").uniqueClass('deployment-import').info(text).requiresConfirmation().updatesText().show();
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					new MessageBuilder().title("Deployment Import Progress").uniqueClass('deployment-import').info('<li>' + data.message + '</li>').requiresConfirmation().appendsText().show();
+					new MessageBuilder().title("Deployment Import Progress").uniqueClass('deployment-import').info('<li>' + data.message + '</li>').requiresConfirmation().appendsText('.message-steps').show();
 
 				} else if (data.subtype === 'END') {
 
@@ -1640,13 +1640,13 @@ var Structr = {
 
 					var text = "Deployment Export started: " + new Date(data.start) + "<br>"
 							+ "Exporting to: " + data.target + "<br><br>"
-							+ "System performance may be affected during Export.<br><br>";
+							+ "System performance may be affected during Export.<br><ol class='message-steps'></ol>";
 
 					new MessageBuilder().title("Deployment Export Progress").uniqueClass('deployment-export').info(text).requiresConfirmation().updatesText().show();
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					new MessageBuilder().title("Deployment Export Progress").uniqueClass('deployment-export').info('<li>' + data.message + '</li>').requiresConfirmation().appendsText().show();
+					new MessageBuilder().title("Deployment Export Progress").uniqueClass('deployment-export').info('<li>' + data.message + '</li>').requiresConfirmation().appendsText('.message-steps').show();
 
 				} else if (data.subtype === 'END') {
 
@@ -1663,13 +1663,13 @@ var Structr = {
 				if (data.subtype === 'BEGIN') {
 
 					var text = "Schema Analysis started: " + new Date(data.start) + "<br>"
-							+ "Please wait until the import process is finished. This message will be updated during the process.<br><br>";
+							+ "Please wait until the import process is finished. This message will be updated during the process.<br><ol class='message-steps'></ol>";
 
 					new MessageBuilder().title("Schema Analysis progress").uniqueClass('schema-analysis').info(text).requiresConfirmation().updatesText().show();
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					new MessageBuilder().title("Schema Analysis progress").uniqueClass('schema-analysis').info("<li>" + data.message + "</li>").requiresConfirmation().appendsText().show();
+					new MessageBuilder().title("Schema Analysis progress").uniqueClass('schema-analysis').info("<li>" + data.message + "</li>").requiresConfirmation().appendsText('.message-steps').show();
 
 				} else if (data.subtype === 'END') {
 
@@ -1789,7 +1789,7 @@ function MessageBuilder () {
 		updatesText: false,
 		updatesButtons: false,
 		appendsText: false,
-		appendSeparator: '',
+		appendSelector: '',
 		incrementsUniqueCount: false
 	};
 
@@ -1935,7 +1935,12 @@ function MessageBuilder () {
 					$('#info-area .message.' + this.params.uniqueClass + ' .text').html(this.params.text);
 				} else if (this.params.appendsText) {
 					$('#info-area .message.' + this.params.uniqueClass + ' .title').html(this.params.title);
-					$('#info-area .message.' + this.params.uniqueClass + ' .text').append(this.params.appendSeparator + this.params.text);
+
+					var selector = '#info-area .message.' + this.params.uniqueClass + ' .text';
+					if (this.params.appendSelector !== '') {
+						selector += ' ' + this.params.appendSelector;
+					}
+					$(selector).append(this.params.text);
 				}
 
 				if (this.params.updatesButtons) {
@@ -2018,9 +2023,9 @@ function MessageBuilder () {
 		return this;
 	};
 
-	this.appendsText = function (separator) {
-		this.params.appendsText     = true;
-		this.params.appendSeparator = separator || "";
+	this.appendsText = function (selector) {
+		this.params.appendsText    = true;
+		this.params.appendSelector = selector || '';
 		return this;
 	};
 
