@@ -34,6 +34,7 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.Predicate;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
@@ -86,7 +87,7 @@ public class WebsocketController implements StructrTransactionListener {
 		broadcast(webSocketData, null);
 	}
 
-	private void broadcast(final WebSocketMessage webSocketData, final String exemptedSessionId) {
+	private void broadcast(final WebSocketMessage webSocketData, final Predicate<String> receiverSessionPredicate) {
 
 		// session must be valid to be received by the client
 		webSocketData.setSessionValid(true);
@@ -114,8 +115,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 				final SecurityContext securityContext = socket.getSecurityContext();
 
-				if (exemptedSessionId != null && exemptedSessionId.equals(securityContext.getSessionId())) {
-					// session id is supposed to be exempted from this broadcast message
+				if (receiverSessionPredicate != null && !receiverSessionPredicate.accept(securityContext.getSessionId())) {
 					continue;
 				}
 
@@ -205,10 +205,8 @@ public class WebsocketController implements StructrTransactionListener {
 	}
 
 	@Override
-	public void simpleBroadcast(final String commandName, final Map<String, Object> data, final String exemptedSessionId) {
-
-		broadcast(MessageBuilder.forName(commandName).data(data).build(), exemptedSessionId);
-
+	public void simpleBroadcast(final String commandName, final Map<String, Object> data, final Predicate<String> sessionIdPredicate) {
+		broadcast(MessageBuilder.forName(commandName).data(data).build(), sessionIdPredicate);
 	}
 
 	// ----- private methods -----

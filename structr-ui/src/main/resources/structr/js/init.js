@@ -1685,6 +1685,10 @@ var Structr = {
 				new MessageBuilder().title(data.title).warning(data.message).requiresConfirmation().allowConfirmAll().show();
 				break;
 
+			case "SCRIPT_JOB_EXCEPTION":
+				new MessageBuilder().title('Exception in Scheduled Job').warning(data.message).requiresConfirmation().allowConfirmAll().show();
+				break;
+
 			default: {
 
 					var text = "<p>No handler for generic message of type <b>" + data.type + "</b> defined - printing complete message data.</p>";

@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.NetworkException;
 import org.structr.api.NotInTransactionException;
+import org.structr.api.Predicate;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
@@ -385,19 +386,23 @@ public class TransactionCommand {
 		return listeners;
 	}
 
-	public static void simpleBroadcastWarning(final String title, final String text) {
+	public static void simpleBroadcastWarning(final String title, final String text, final Predicate<String> sessionIdPredicate) {
 
 		final Map<String, Object> messageData = new HashMap();
 
-		messageData.put("type",    "WARNING");
-		messageData.put("title",   title);
-		messageData.put("message", text);
+		messageData.put(MaintenanceCommand.COMMAND_TYPE_KEY,    MaintenanceCommand.COMMAND_SUBTYPE_WARNING);
+		messageData.put(MaintenanceCommand.COMMAND_TITLE_KEY,   title);
+		messageData.put(MaintenanceCommand.COMMAND_MESSAGE_KEY, text);
 
-		TransactionCommand.simpleBroadcastGenericMessage(messageData);
+		TransactionCommand.simpleBroadcastGenericMessage(messageData, sessionIdPredicate);
 	}
 
 	public static void simpleBroadcastGenericMessage (final Map<String, Object> data) {
-		simpleBroadcast("GENERIC_MESSAGE", data, null);
+		simpleBroadcastGenericMessage(data, null);
+	}
+
+	public static void simpleBroadcastGenericMessage (final Map<String, Object> data, final Predicate<String> sessionIdPredicate) {
+		simpleBroadcast("GENERIC_MESSAGE", data, sessionIdPredicate);
 	}
 
 	public static void simpleBroadcastException (final Exception ex, final Map<String, Object> data, final boolean printStackTrace) {
@@ -416,12 +421,12 @@ public class TransactionCommand {
 		simpleBroadcast(messageName, data, null);
 	}
 
-	public static void simpleBroadcast (final String messageName, final Map<String, Object> data, final String exemptedSessionId) {
+	public static void simpleBroadcast (final String messageName, final Map<String, Object> data, final Predicate<String> sessionIdPredicate) {
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
-				listener.simpleBroadcast(messageName, data, exemptedSessionId);
+				listener.simpleBroadcast(messageName, data, sessionIdPredicate);
 			}
 
 			tx.success();

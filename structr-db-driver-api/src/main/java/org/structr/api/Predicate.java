@@ -36,4 +36,47 @@ public interface Predicate<T> {
 	default Comparator<T> comparator() {
 		return null;
 	}
+
+	public static <T> Predicate<T> all() {
+
+		return new Predicate<T>() {
+
+			@Override
+			public boolean accept(final T value) {
+				return true;
+			}
+		};
+	}
+
+	public static <T> Predicate<T> allExcept(final T given) {
+
+		return new Predicate<T>() {
+
+			@Override
+			public boolean accept(final T value) {
+
+				if (value != null && given != null) {
+					return !value.equals(given);
+				}
+
+				return true;
+			}
+		};
+	}
+
+	public static <T> Predicate<T> only(final T given) {
+
+		return new Predicate<T>() {
+
+			@Override
+			public boolean accept(final T value) {
+
+				if (value != null && given != null) {
+					return value.equals(given);
+				}
+
+				return false;
+			}
+		};
+	}
 }

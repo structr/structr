@@ -42,6 +42,7 @@ import javax.tools.ToolProvider;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.common.error.DiagnosticErrorToken;
 import org.structr.common.error.ErrorBuffer;
@@ -158,7 +159,7 @@ public class NodeExtender {
 
 				final Map<String, Object> data = new LinkedHashMap();
 				data.put("success", true);
-				TransactionCommand.simpleBroadcast("SCHEMA_COMPILED", data, getInitiatedBySessionId());
+				TransactionCommand.simpleBroadcast("SCHEMA_COMPILED", data, Predicate.allExcept(getInitiatedBySessionId()));
 
 				Services.getInstance().setOverridingSchemaTypesAllowed(false);
 			}
