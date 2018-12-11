@@ -71,6 +71,7 @@ public class Settings {
 	public static final Setting<Boolean> LogSchemaOutput      = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log",           false);
 	public static final Setting<Boolean> LogSchemaErrors      = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log.errors",    false);
 	public static final Setting<Boolean> RequestLogging       = new BooleanSetting(generalGroup,            "Logging",     "log.requests",               false);
+	public static final Setting<Boolean> DebugLogging         = new BooleanSetting(generalGroup,            "Logging",     "log.debug",                  false, "Controls the behaviour of the debug() function. If disabled, the debug() function behaves like a NOP. If enabled, it behaves exactly like the log() function.");
 	public static final Setting<String> LogPrefix             = new StringSetting(generalGroup,             "Logging",     "log.prefix",                 "structr");
 	public static final Setting<String> LogName               = new StringSetting(generalGroup,             "Logging",     "log.name",                   "structr-yyyy_mm_dd.request.log");
 	public static final Setting<String> Configuration         = new StringSetting(generalGroup,             "hidden",      "configuration.provider",     "org.structr.module.JarConfigurationProvider");
