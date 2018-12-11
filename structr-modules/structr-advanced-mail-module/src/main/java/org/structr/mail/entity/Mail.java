@@ -25,6 +25,7 @@ import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 
 import java.net.URI;
+import java.util.Date;
 
 public interface Mail extends NodeInterface {
 
@@ -38,16 +39,23 @@ public interface Mail extends NodeInterface {
 		type.addStringProperty("subject",          PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("from",             PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("to",               PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("content",               PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("content",          PropertyView.Public, PropertyView.Ui).setIndexed(false);
+		type.addStringProperty("folder",           PropertyView.Public, PropertyView.Ui).setIndexed(true);
+
+		type.addDateProperty("receivedDate",       PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addDateProperty("sentDate",           PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
 		type.addPropertyGetter("subject",           String.class);
 		type.addPropertyGetter("from",              String.class);
 		type.addPropertyGetter("to",                String.class);
 		type.addPropertyGetter("content",           String.class);
+		type.addPropertyGetter("folder",            String.class);
+		type.addPropertyGetter("receivedDate",      Date.class);
+		type.addPropertyGetter("sentDate",          Date.class);
 
 		// view configuration
-		type.addViewProperty(PropertyView.Public, "subject,from,to,content");
-		type.addViewProperty(PropertyView.Ui, "subject,from,to,content");
+		type.addViewProperty(PropertyView.Public, "subject,from,to,content,folder,receivedDate,sentDate,mailbox");
+		type.addViewProperty(PropertyView.Ui, "subject,from,to,content,folder,receivedDate,sentDate,mailbox");
 	}}
 
 }

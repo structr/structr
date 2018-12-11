@@ -24,6 +24,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
+import scala.sys.Prop;
 
 import java.net.URI;
 
@@ -36,17 +37,19 @@ public interface Mailbox extends NodeInterface {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Mailbox"));
 
-		type.addStringProperty("host",                     PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("user",                     PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("password",                 PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("mailProtocol",             PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("host",                     PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(true);
+		type.addStringProperty("user",                     PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(true);
+		type.addStringProperty("password",                 PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(false);
+		type.addEnumProperty("mailProtocol",               PropertyView.Public, PropertyView.Ui).setEnums("pop3,imaps").setIndexed(true).setRequired(true);
+		type.addIntegerProperty("port",                    PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
 		type.addPropertyGetter("host",              String.class);
 		type.addPropertyGetter("user",              String.class);
 		type.addPropertyGetter("password",          String.class);
-		type.addPropertyGetter("mailProtocol",      String.class);
+		type.addPropertyGetter("mailProtocol",      Object.class);
+		type.addPropertyGetter("port",      		Integer.class);
 
-		type.relate(mail, "CONTAINS_MAILS", Relation.Cardinality.OneToMany, "mails", "mailbox");
+		type.relate(mail, "CONTAINS_MAILS", Relation.Cardinality.OneToMany, "mailbox", "mails");
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "host,user,password,mailProtocol,mails");
@@ -56,6 +59,7 @@ public interface Mailbox extends NodeInterface {
 	String getHost();
 	String getUser();
 	String getPassword();
-	String getMailProtocol();
+	Object getMailProtocol();
+	Integer getPort();
 
 }
