@@ -1256,11 +1256,17 @@ public class GraphQLTest extends StructrGraphQLTest {
 			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task8"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "cancelled"))));
 			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task9"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "open"))));
 
-			projects.add(app.create(project, "project1"));
-			projects.add(app.create(project, "project2"));
-			projects.add(app.create(project, "project3"));
-			projects.add(app.create(project, "project4"));
-			projects.add(app.create(project, "project5"));
+			final NodeInterface project3 = app.create(project, "project3");
+			final NodeInterface project4 = app.create(project, "project4");
+			final NodeInterface project1 = app.create(project, "project1");
+			final NodeInterface project2 = app.create(project, "project2");
+			final NodeInterface project5 = app.create(project, "project5");
+
+			projects.add(project1);
+			projects.add(project2);
+			projects.add(project3);
+			projects.add(project4);
+			projects.add(project5);
 
 			projects.get(0).setProperty(tasksKey, tasks.subList(0,  2));
 			projects.get(1).setProperty(tasksKey, tasks.subList(2,  4));
@@ -1277,7 +1283,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		RestAssured.basePath = "/structr/graphql";
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Project { id, type, name, taskCount, tasks { id, type, name, projectId, status }}}");
+			final Map<String, Object> result = fetchGraphQL("{ Project(_sort: \"name\") { id, type, name, taskCount, tasks { id, type, name, projectId, status }}}");
 			assertMapPathValueIs(result, "Project.#",                   5);
 			assertMapPathValueIs(result, "Project.0.name",              "project1");
 			assertMapPathValueIs(result, "Project.0.taskCount",         2.0);
