@@ -18,6 +18,7 @@
  */
 package org.structr.mail.service;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.*;
@@ -142,6 +143,8 @@ public class MailService extends Thread implements RunnableService {
 			emailFolder.open(Folder.READ_ONLY);
 
 			Message[] messages = emailFolder.getMessages();
+
+			ArrayUtils.reverse(messages);
 
 			App app = StructrApp.getInstance();
 
