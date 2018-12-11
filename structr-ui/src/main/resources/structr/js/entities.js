@@ -1370,7 +1370,7 @@ var _Entities = {
 		let cell = input.closest('.value');
 
 		// Array?
-		if (typeInfo[key].isCollection && !typeInfo[key].relatedType) {
+		if (typeInfo[key] && typeInfo[key].isCollection && !typeInfo[key].relatedType) {
 			val = _Entities.getArrayValue(key, cell);
 		} else {
 			val = input.val();
