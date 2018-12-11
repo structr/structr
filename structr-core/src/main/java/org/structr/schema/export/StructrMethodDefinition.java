@@ -387,6 +387,10 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 				parameters.add(parameter);
 			}
 		}
+
+		Collections.sort(parameters, (p1, p2) -> {
+			return Integer.valueOf(p1.getIndex()).compareTo(p2.getIndex());
+		});
 	}
 
 	Map<String, Object> serialize() {

@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -26,15 +25,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.GraphObjectComparator;
-import org.structr.common.PagingHelper;
+import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
 import org.structr.common.ResultTransformer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -62,7 +60,7 @@ import org.structr.schema.SchemaHelper;
  * that is not the first element in an URI will try to find a pre-defined
  * relationship between preceding and the node type and follow that path.
  */
-public class TypeResource extends SortableResource {
+public class TypeResource extends WrappingResource {
 
 	private static final Logger logger = LoggerFactory.getLogger(TypeResource.class.getName());
 
@@ -115,12 +113,10 @@ public class TypeResource extends SortableResource {
 	}
 
 	@Override
-	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
+	public ResultStream doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
 
-		boolean includeHidden                  = true;
-		boolean publicOnly                     = false;
-		PropertyKey actualSortKey              = sortKey;
-		boolean actualSortOrder                = sortDescending;
+		boolean includeHidden   = true;
+		boolean publicOnly      = false;
 
 		if (rawType != null) {
 
@@ -130,54 +126,27 @@ public class TypeResource extends SortableResource {
 
 			collectSearchAttributes(query);
 
-			// default sort key & order
-			if (actualSortKey == null) {
-
-				try {
-
-					GraphObject templateEntity  = ((GraphObject)entityClass.newInstance());
-					PropertyKey sortKeyProperty = templateEntity.getDefaultSortKey();
-					actualSortOrder             = GraphObjectComparator.DESCENDING.equals(templateEntity.getDefaultSortOrder());
-
-					if (sortKeyProperty != null) {
-
-						actualSortKey = sortKeyProperty;
-
-					} else {
-
-						actualSortKey = AbstractNode.name;
-					}
-
-				} catch(Throwable t) {
-
-					// fallback to name
-					actualSortKey = AbstractNode.name;
-				}
-			}
-
 			if (virtualType != null) {
 
-				final Result untransformedResult = query
+				final ResultStream untransformedResult = query
 					.includeHidden(includeHidden)
 					.publicOnly(publicOnly)
-					.sort(actualSortKey)
-					.order(actualSortOrder)
-					.getResult();
+					.sort(sortKey)
+					.order(sortDescending)
+					.getResultStream();
 
-				final Result result = virtualType.transformOutput(securityContext, entityClass, untransformedResult);
-
-				return PagingHelper.subResult(result, pageSize, page);
+				return virtualType.transformOutput(securityContext, entityClass, untransformedResult);
 
 			} else {
 
 				return query
 					.includeHidden(includeHidden)
 					.publicOnly(publicOnly)
-					.sort(actualSortKey)
-					.order(actualSortOrder)
+					.sort(sortKey)
+					.order(sortDescending)
 					.pageSize(pageSize)
 					.page(page)
-					.getResult();
+					.getResultStream();
 			}
 
 		} else {
@@ -185,8 +154,7 @@ public class TypeResource extends SortableResource {
 			logger.warn("type was null");
 		}
 
-		List emptyList = Collections.emptyList();
-		return new Result(emptyList, null, isCollectionResource(), isPrimitiveArray());
+		return PagingIterable.EMPTY_ITERABLE;
 	}
 
 	@Override
@@ -205,10 +173,8 @@ public class TypeResource extends SortableResource {
 			if (newNode != null) {
 
 				result.addHeader("Location", buildLocationHeader(newNode));
-				result.addContent(newNode);
+				result.addContent(newNode.getUuid());
 			}
-
-			result.serializeAsPrimitiveArray(true);
 
 			// finally: return 201 Created
 			return result;
@@ -246,10 +212,8 @@ public class TypeResource extends SortableResource {
 				if (newRelationship != null) {
 
 					result.addHeader("Location", buildLocationHeader(newRelationship));
-					result.addContent(newRelationship);
+					result.addContent(newRelationship.getUuid());
 				}
-
-				result.serializeAsPrimitiveArray(true);
 
 				// finally: return 201 Created
 				return result;

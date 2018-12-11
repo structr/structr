@@ -27,7 +27,6 @@ import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
-import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.AccessControllable;
@@ -39,6 +38,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.NonIndexed;
@@ -172,20 +172,6 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public PropertyKey getDefaultSortKey() {
-
-		return null;
-
-	}
-
-	@Override
-	public String getDefaultSortOrder() {
-
-		return null;
-
-	}
-
-	@Override
 	public List<Principal> getParents() {
 
 		return Collections.emptyList();
@@ -246,7 +232,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public void init(SecurityContext securityContext, Node dbNode, final Class entityType, final boolean isCreation) {
+	public void init(SecurityContext securityContext, Node dbNode, final Class entityType, final boolean isCreation, final long transactionId) {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
@@ -441,12 +427,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public void setRawPathSegment(final Relationship rawSegment) {
-	}
-
-	@Override
-	public Relationship getRawPathSegment() {
-		return null;
+	public void setRawPathSegmentId(final long rawSegmentID) {
 	}
 
 	@Override
@@ -506,7 +487,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public void setFavorites(List<Favoritable> favorites) throws FrameworkException {
+	public void setFavorites(final Iterable<Favoritable> favorites) throws FrameworkException {
 	}
 
 	@Override
@@ -542,5 +523,10 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	@Override
 	public List<Group> getGroups() {
 		return Collections.emptyList();
+	}
+
+	@Override
+	public long getSourceTransactionId() {
+		return TransactionCommand.getCurrentTransactionId();
 	}
 }

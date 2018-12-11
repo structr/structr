@@ -18,6 +18,7 @@
  */
 package org.structr.web.entity;
 
+import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.BufferedReader;
@@ -41,6 +42,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISDocumentInfo;
 import org.structr.common.ConstantBooleanTrue;
@@ -115,7 +117,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addStringProperty("sha512");
 		type.addIntegerProperty("position").setIndexed(true);
 
-		type.addPropertyGetter("minificationTargets", List.class);
+		type.addPropertyGetter("minificationTargets", Iterable.class);
 		type.addPropertyGetter("cacheForSeconds", Integer.class);
 		type.addPropertyGetter("checksum", Long.class);
 		type.addPropertyGetter("md5", String.class);
@@ -127,6 +129,10 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addPropertyGetter("size", Long.class);
 
 		type.addCustomProperty("base64Data", FileDataProperty.class.getName()).setTypeHint("String");
+
+		// override setProperty methods, but don't call super first (we need the previous value)
+		type.overrideMethod("setProperty",                 false,  "if (parentProperty.equals(arg0)) { " + File.class.getName() + ".checkMoveBinaryContents(this, arg0, arg1); }\n\t\treturn super.setProperty(arg0, arg1, false);");
+		type.overrideMethod("setProperties",               false,  "if (arg1.containsKey(parentProperty)) { " + File.class.getName() + ".checkMoveBinaryContents(this, parentProperty, arg1.get(parentProperty)); }\n\t\tsuper.setProperties(arg0, arg1, false);");
 
 		type.overrideMethod("onCreation",                  true,  File.class.getName() + ".onCreation(this, arg0, arg1);");
 		type.overrideMethod("onModification",              true,  File.class.getName() + ".onModification(this, arg0, arg1, arg2);");
@@ -224,13 +230,9 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addViewProperty(PropertyView.Ui, "hasParent");
 		type.addViewProperty(PropertyView.Ui, "path");
 
-		/* TODO:
-			public static final Property<List<User>> favoriteOfUsers                     = new StartNodes<>("favoriteOfUsers", UserFavoriteFile.class);
-		*/
-
 	}}
 
-	List<AbstractMinifiedFile> getMinificationTargets();
+	Iterable<AbstractMinifiedFile> getMinificationTargets();
 
 	String getXMLStructure() throws FrameworkException;
 	void doCSVImport(final Map<String, Object> parameters) throws FrameworkException;
@@ -381,7 +383,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	static void triggerMinificationIfNeeded(final File thisFile, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		final List<AbstractMinifiedFile> targets = thisFile.getMinificationTargets();
+		final List<AbstractMinifiedFile> targets = Iterables.toList(thisFile.getMinificationTargets());
 		final PropertyKey<Integer> versionKey    = StructrApp.key(File.class, "version");
 
 		if (!targets.isEmpty()) {
@@ -786,6 +788,30 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		}
 
 		return new LineAndSeparator(lines.toString(), new String(separator, 0, separatorLength));
+	}
+
+	static void checkMoveBinaryContents(final File thisFile, final PropertyKey key, final Object value) {
+
+		final Folder previousParent     = (Folder)thisFile.getProperty(key);
+		final Folder newParent          = (Folder)value;
+		final java.io.File previousFile = thisFile.getFileOnDisk(false);
+		java.io.File newFile            = null;
+
+		if (newParent != null && !newParent.equals(previousParent)) {
+
+			newFile = newParent.getFileOnDisk(thisFile, "", true);
+		}
+
+		if (previousFile != null && newFile != null && !previousFile.equals(newFile)) {
+
+			try {
+
+				Files.move(previousFile, newFile);
+
+			} catch (IOException ioex) {
+				ioex.printStackTrace();
+			}
+		}
 	}
 
 	// ----- interface JavaScriptSource -----

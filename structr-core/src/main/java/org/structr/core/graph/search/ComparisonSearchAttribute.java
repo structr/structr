@@ -105,6 +105,12 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 						return true;
 					case contains:
 						return true;
+					case caseInsensitiveStartsWith:
+						return true;
+					case caseInsensitiveEndsWith:
+						return true;
+					case caseInsensitiveContains:
+						return true;
 
 				}
 

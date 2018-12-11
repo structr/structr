@@ -144,6 +144,7 @@ public abstract class StructrUiTest {
 		Settings.RelationshipCacheSize.setValue(100000);
 
 		//Settings.LogSchemaOutput.setValue(true);
+		//Settings.LogSchemaErrors.setValue(true);
 
 		final Services services = Services.getInstance();
 

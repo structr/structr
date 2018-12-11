@@ -100,7 +100,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result[1].id", equalTo(test02))
 
 			.when()
-				.get(concat("/test_sixs?testSevenName=test09"));
+				.get(concat("/test_sixs?sort=name&testSevenName=test09"));
 
 		// test inexact related search with one object,
 		// expected result is a list of four elements:
@@ -123,7 +123,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result[3].id", equalTo(test04))
 
 			.when()
-				.get(concat("/test_sixs?testSevenName=0&loose=1"));
+				.get(concat("/test_sixs?sort=name&testSevenName=0&loose=1"));
 
 
 		// test simple related search with two objects, AND,
@@ -140,7 +140,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result_count", equalTo(0))
 
 			.when()
-				.get(concat("/test_sevens?testSixIds=", test01, ",", test06));
+				.get(concat("/test_sevens?sort=name&testSixIds=", test01, ",", test06));
 
 		// test simple related search with two objects, OR
 		// expected result is a list of two elements:
@@ -159,7 +159,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result[1].id", equalTo(test11))
 
 			.when()
-				.get(concat("/test_sevens?testSixIds=", test01, ";", test06));
+				.get(concat("/test_sevens?sort=name&testSixIds=", test01, ";", test06));
 
 		// test simple related search with one object,
 		// expected result is a list of two elements
@@ -177,7 +177,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result[1].id", equalTo(test20))
 
 			.when()
-				.get(concat("/test_eights?testSixIds=", test01));
+				.get(concat("/test_eights?sort=name&testSixIds=", test01));
 
 		// test simple related search with two objects, OR
 		// expected result is a list of two elements:
@@ -198,7 +198,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result[3].id", equalTo(test20))
 
 			.when()
-				.get(concat("/test_eights?testSixIds=", test01, ";", test06));
+				.get(concat("/test_eights?sort=name&testSixIds=", test01, ";", test06));
 
 		// test related search with two related properties,
 		// expected result is a single object:
@@ -216,7 +216,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result[0].id", equalTo(test01))
 
 			.when()
-				.get(concat("/test_sixs?testSevenName=test09&testEightStrings=string20"));
+				.get(concat("/test_sixs?sort=name&testSevenName=test09&testEightStrings=string20"));
 
 
 		// test related search with a single related property and two
@@ -236,7 +236,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result[0].id", equalTo(test01))
 
 			.when()
-				.get(concat("/test_sixs?testSevenName=test09&aString=string01&anInt=1"));
+				.get(concat("/test_sixs?sort=name&testSevenName=test09&aString=string01&anInt=1"));
 
 		// test related search with two related properties and one
 		// indexed property that should filter the result set.
@@ -255,7 +255,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result[0].id", equalTo(test07))
 
 			.when()
-				.get(concat("/test_sixs?testEightStrings=string19&testSevenName=test12&anInt=7"));
+				.get(concat("/test_sixs?sort=name&testEightStrings=string19&testSevenName=test12&anInt=7"));
 
 		// test inexact related search with collection property
 		// expected result is a list of four objects:
@@ -276,7 +276,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result[3].id", equalTo(test22))
 
 			.when()
-				.get(concat("/test_sixs?testEightStrings=2&loose=1"));
+				.get(concat("/test_sixs?sort=name&testEightStrings=2&loose=1"));
 
 		// test inexact related search with two collection properties
 		// expected result is a list of four objects:
@@ -298,7 +298,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result[3].id", equalTo(test04))
 
 			.when()
-				.get(concat("/test_sixs?testEightStrings=1&testSevenName=0&loose=1"));
+				.get(concat("/test_sixs?sort=name&testEightStrings=1&testSevenName=0&loose=1"));
 
 		// test inexact related search with collection property and
 		// two filter properties,
@@ -317,7 +317,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result[0].id", equalTo(test08))
 
 			.when()
-				.get(concat("/test_sixs?testEightStrings=2&testSevenName=test12&anInt=8&loose=1"));
+				.get(concat("/test_sixs?sort=name&testEightStrings=2&testSevenName=test12&anInt=8&loose=1"));
 
 		// test related search with one empty related property,
 		// expected result is a list of two objects:
@@ -336,7 +336,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result[1].id", equalTo(test22))
 
 			.when()
-				.get(concat("/test_sixs?testSevenName="));
+				.get(concat("/test_sixs?sort=name&testSevenName="));
 
 
 		// test related search with one related property and one
@@ -357,7 +357,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result[1].id", equalTo(test22))
 
 			.when()
-				.get(concat("/test_sixs?testSevenName=&testEightStrings=string23"));
+				.get(concat("/test_sixs?sort=name&testSevenName=&testEightStrings=string23"));
 
 		// test related search with one related property, one empty
 		// related property and two indexed properties
@@ -376,7 +376,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result[0].id", equalTo(test21))
 
 			.when()
-				.get(concat("/test_sixs?testSevenName=&testEightStrings=string23&aString=string21&anInt=21"));
+				.get(concat("/test_sixs?sort=name&testSevenName=&testEightStrings=string23&aString=string21&anInt=21"));
 
 	}
 
@@ -425,7 +425,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result_count", equalTo(0))
 
 			.when()
-				.get(concat("/test_sevens?testSixs=", test01, ",", test06));
+				.get(concat("/test_sevens?sort=name&testSixs=", test01, ",", test06));
 
 		// test simple related search with two objects, AND,
 		// expected result is exactly one element
@@ -443,7 +443,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result[0].id", equalTo(test09))
 
 			.when()
-				.get(concat("/test_sevens?testSixs=", test01, ",", test02));
+				.get(concat("/test_sevens?sort=name&testSixs=", test01, ",", test02));
 
 		// test simple related search with two objects, OR
 		// expected result is a list of two elements:
@@ -462,7 +462,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result[1].id", equalTo(test11))
 
 			.when()
-				.get(concat("/test_sevens?testSixs=", test01, ";", test06));
+				.get(concat("/test_sevens?sort=name&testSixs=", test01, ";", test06));
 
 		// test simple related search with one object,
 		// expected result is a list of two elements
@@ -480,7 +480,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result[1].id", equalTo(test20))
 
 			.when()
-				.get(concat("/test_eights?testSixs=", test01));
+				.get(concat("/test_eights?sort=name&testSixs=", test01));
 
 		// test simple related search with two objects, OR
 		// expected result is a list of four elements:
@@ -500,7 +500,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result[3].id", equalTo(test20))
 
 			.when()
-				.get(concat("/test_eights?testSixs=", test01, ";", test06));
+				.get(concat("/test_eights?sort=name&testSixs=", test01, ";", test06));
 
 		// test simple related search with two objects, OR
 		// expected result is a list of two elements:
@@ -518,7 +518,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result[0].id", equalTo(test13))
 
 			.when()
-				.get(concat("/test_eights?testSixs=", test01, ",", test02));
+				.get(concat("/test_eights?sort=name&testSixs=", test01, ",", test02));
 
 	}
 
@@ -574,7 +574,7 @@ public class AdvancedSearchTest extends IndexingTest {
 				.body("result[1].id",         equalTo(test02))
 
 			.when()
-				.get(concat("/test_eights?testNinePostalCodes=44139"));
+				.get(concat("/test_eights?sort=name&testNinePostalCodes=44139"));
 
 		// test spatial search, expected result is a single object:
 		// test05
@@ -977,6 +977,7 @@ public class AdvancedSearchTest extends IndexingTest {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
@@ -1267,7 +1268,6 @@ public class AdvancedSearchTest extends IndexingTest {
 				.expect()
 				.statusCode(200)
 
-				.body("output_nesting_depth", equalTo(0))
 				.body("result", hasSize(2))
 				.body("result_count", equalTo(2))
 				.body("result[0].testTwos", hasSize(0))
@@ -1291,7 +1291,6 @@ public class AdvancedSearchTest extends IndexingTest {
 				.expect()
 				.statusCode(200)
 
-				.body("output_nesting_depth", equalTo(1))
 				.body("result", hasSize(2))
 				.body("result_count", equalTo(2))
 				.body("result[0].testTwos", hasSize(2))
@@ -1316,7 +1315,6 @@ public class AdvancedSearchTest extends IndexingTest {
 				.expect()
 				.statusCode(200)
 
-				.body("output_nesting_depth", equalTo(2))
 				.body("result", hasSize(2))
 				.body("result_count", equalTo(2))
 				.body("result[0].testTwos", hasSize(2))
@@ -1341,7 +1339,6 @@ public class AdvancedSearchTest extends IndexingTest {
 				.expect()
 				.statusCode(200)
 
-				.body("output_nesting_depth", nullValue())
 				.body("result", hasSize(2))
 				.body("result_count", equalTo(2))
 

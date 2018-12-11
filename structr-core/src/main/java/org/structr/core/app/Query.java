@@ -22,9 +22,9 @@ import java.util.Comparator;
 import java.util.List;
 import org.structr.api.Predicate;
 import org.structr.api.search.QueryContext;
+import org.structr.api.util.ResultStream;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.property.PropertyKey;
@@ -41,7 +41,7 @@ public interface Query<T extends GraphObject> extends Iterable<T> {
 	public QueryContext getQueryContext();
 	public Query<T> isPing(final boolean isPing);
 
-	public Result<T> getResult() throws FrameworkException;
+	public ResultStream<T> getResultStream() throws FrameworkException;
 	public List<T> getAsList() throws FrameworkException;
 	public T getFirst() throws FrameworkException;
 

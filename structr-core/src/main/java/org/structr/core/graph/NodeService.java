@@ -20,11 +20,10 @@ package org.structr.core.graph;
 
 import java.io.File;
 import java.util.Map;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.NativeResult;
 import org.structr.api.Transaction;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Node;
@@ -33,16 +32,13 @@ import org.structr.api.index.Index;
 import org.structr.api.service.Command;
 import org.structr.api.service.SingletonService;
 import org.structr.api.service.StructrServices;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-
+import org.structr.core.property.PropertyKey;
 
 /**
- * The graph/node service main class.
- *
- *
- *
+ * The graph/node service.
  */
 public class NodeService implements SingletonService {
 
@@ -122,7 +118,6 @@ public class NodeService implements SingletonService {
 		}
 
 		checkCacheSizes();
-		importSeedFile(basePath);
 	}
 
 	@Override
@@ -140,9 +135,7 @@ public class NodeService implements SingletonService {
 
 	@Override
 	public String getName() {
-
 		return NodeService.class.getSimpleName();
-
 	}
 
 	public DatabaseService getGraphDb() {
@@ -204,6 +197,43 @@ public class NodeService implements SingletonService {
 		return new CountResult();
 	}
 
+	public void createAdminUser() {
+
+		// do two very quick count queries to determine the number of Structr nodes in the database
+		final CountResult count           = getInitialCounts();
+		final long abstractNodeCount      = count.getAbstractNodeCount();
+		final long nodeInterfaceCount     = count.getNodeInterfaceCount();
+		final boolean hasApplicationNodes = abstractNodeCount == nodeInterfaceCount && abstractNodeCount > 0;
+
+		if (!hasApplicationNodes && !Services.isTesting()) {
+
+			logger.info("Creating initial user..");
+
+			final Class userType = StructrApp.getConfiguration().getNodeEntityClass("User");
+			if (userType != null) {
+
+				final PropertyKey<Boolean> isAdminKey = StructrApp.key(userType, "isAdmin");
+				final PropertyKey<String> passwordKey = StructrApp.key(userType, "password");
+				final PropertyKey<String> nameKey     = StructrApp.key(userType, "name");
+				final App app                         = StructrApp.getInstance();
+
+				try (final Tx tx = app.tx()) {
+
+					app.create(userType,
+						new NodeAttribute<>(nameKey,     "admin"),
+						new NodeAttribute<>(passwordKey, "admin"),
+						new NodeAttribute<>(isAdminKey,  true)
+					);
+
+					tx.success();
+
+				} catch (Throwable t) {
+					logger.warn("Unable to count number of nodes and relationships: {}", t.getMessage());
+				}
+			}
+		}
+	}
+
 	// ----- private methods -----
 	private void checkCacheSizes() {
 
@@ -211,18 +241,19 @@ public class NodeService implements SingletonService {
 		final long nodeCacheSize = Settings.NodeCacheSize.getValue();
 		final long relCacheSize  = Settings.RelationshipCacheSize.getValue();
 
-		logger.info("Database contains {} nodes, {} relationships.", counts.abstractNodeCount, counts.relationshipCount);
+		logger.info("Database contains {} nodes, {} relationships.", counts.getAbstractNodeCount(), counts.getRelationshipCount());
 
-		if (nodeCacheSize < counts.abstractNodeCount) {
-			logger.warn("Insufficient node cache size detected, please set application.cache.node.size to at least {} for best performance.", counts.abstractNodeCount);
+		if (nodeCacheSize < counts.getAbstractNodeCount()) {
+			logger.warn("Insufficient node cache size detected, please set application.cache.node.size to at least {} for best performance.", counts.getAbstractNodeCount());
 		}
 
-		if (relCacheSize < counts.relationshipCount) {
-			logger.warn("Insufficient relationship cache size detected, please set application.cache.relationship.size to at least {} for best performance.", counts.relationshipCount);
+		if (relCacheSize < counts.getRelationshipCount()) {
+			logger.warn("Insufficient relationship cache size detected, please set application.cache.relationship.size to at least {} for best performance.", counts.getRelationshipCount());
 		}
 
 	}
 
+	/* disabled
 	private void importSeedFile(final String basePath) {
 
 		final File seedFile = new File(Settings.trim(basePath) + "/" + INITIAL_SEED_FILE);
@@ -263,13 +294,12 @@ public class NodeService implements SingletonService {
 			logger.info("Done.");
 		}
 	}
+	*/
 
 	private int getCount(final String query, final String resultKey) {
 
-		final NativeResult result = graphDb.execute(query);
-		if (result.hasNext()) {
+		for (final Map<String, Object> row : graphDb.execute(query)) {
 
-			final Map<String, Object> row = result.next();
 			if (row.containsKey(resultKey)) {
 
 				final Object value = row.get(resultKey);
@@ -303,9 +333,21 @@ public class NodeService implements SingletonService {
 			final String part             = tenantIdentifier != null ? ":" + tenantIdentifier : "";
 
 			// do some very quick count queries to determine the number of Structr nodes and rels in the database
-			this.abstractNodeCount  = getCount("MATCH (n" + part + ":AbstractNode) RETURN count(n) AS count", "count");
-			this.nodeInterfaceCount = getCount("MATCH (n" + part + ":NodeInterface) RETURN count(n) AS count", "count");
-			this.relationshipCount  = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN count(DISTINCT r) AS count", "count");
+			this.abstractNodeCount  = getCount("MATCH (n" + part + ":AbstractNode) RETURN COUNT(n) AS count", "count");
+			this.nodeInterfaceCount = getCount("MATCH (n" + part + ":NodeInterface) RETURN COUNT(n) AS count", "count");
+			this.relationshipCount  = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN count(r) AS count", "count");
+		}
+
+		public long getAbstractNodeCount() {
+			return abstractNodeCount;
+		}
+
+		public long getRelationshipCount() {
+			return relationshipCount;
+		}
+
+		public long getNodeInterfaceCount() {
+			return nodeInterfaceCount;
 		}
 	}
 }

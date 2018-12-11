@@ -32,12 +32,12 @@ import org.structr.core.entity.AbstractNode;
  *
  *
  */
-public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNode> extends AbstractReadOnlyProperty<List<T>> {
+public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNode> extends AbstractReadOnlyProperty<Iterable<T>> {
 
-	Property<List<S>> step1 = null;
-	Property<T> step2       = null;
+	Property<Iterable<S>> step1 = null;
+	Property<T> step2           = null;
 
-	public HyperRelationProperty(String name, Property<List<S>> step1, Property<T> step2) {
+	public HyperRelationProperty(String name, Property<Iterable<S>> step1, Property<T> step2) {
 
 		super(name);
 
@@ -49,15 +49,15 @@ public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNod
 	}
 
 	@Override
-	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		List<S> connectors = obj.getProperty(step1);
-		List<T> endNodes   = new LinkedList<>();
+		Iterable<S> connectors = obj.getProperty(step1);
+		List<T> endNodes       = new LinkedList<>();
 
 		if (connectors != null) {
 

@@ -18,43 +18,37 @@
  */
 package org.structr.rest.resource;
 
+import java.util.Arrays;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Represents an exact UUID match.
- *
- *
  */
 public class UuidResource extends FilterableResource {
 
 	private static final Logger logger = LoggerFactory.getLogger(UuidResource.class.getName());
 
-	//~--- fields ---------------------------------------------------------
-
 	private String uuid = null;
 
-	//~--- methods --------------------------------------------------------
-
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		GraphObject obj = getEntity();
 		if (obj != null) {
 
-			return new Result(obj, isPrimitiveArray());
+			return new PagingIterable<>(Arrays.asList(obj));
 
 		}
 
@@ -105,36 +99,28 @@ public class UuidResource extends FilterableResource {
 	public String getUuid() {
 
 		return uuid;
-
 	}
 
 	@Override
 	public String getUriPart() {
 
 		return uuid;
-
 	}
 
 	@Override
 	public String getResourceSignature() {
 
 		return "/";
-
 	}
 
 	@Override
 	public boolean isCollectionResource() {
 
 		return false;
-
 	}
-
-	//~--- set methods ----------------------------------------------------
 
 	public void setUuid(String uuid) {
 
 		this.uuid = uuid;
-
 	}
-
 }

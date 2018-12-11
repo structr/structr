@@ -39,22 +39,24 @@ import org.structr.module.api.DeployableEntity;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.structr.api.util.Iterables;
 
 public class FlowCall extends FlowActionNode implements DataSource, DeployableEntity {
 
 	private static final Logger logger 									= LoggerFactory.getLogger(FlowCall.class);
 
-	public static final Property<List<FlowBaseNode>> dataTarget			= new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<List<FlowParameterInput>> parameters 	= new StartNodes<>("parameters", FlowCallParameter.class);
-	public static final Property<FlowContainer> flow                	= new EndNode<>("flow", FlowCallContainer.class);
+	public static final Property<Iterable<FlowBaseNode>> dataTarget       = new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<Iterable<FlowParameterInput>> parameters = new StartNodes<>("parameters", FlowCallParameter.class);
+	public static final Property<FlowContainer> flow                      = new EndNode<>("flow", FlowCallContainer.class);
 
 	public static final View defaultView 								= new View(FlowCall.class, PropertyView.Public, flow, dataTarget, parameters, isStartNodeOfContainer);
 	public static final View uiView      								= new View(FlowCall.class, PropertyView.Ui,     flow, dataTarget, parameters, isStartNodeOfContainer);
 
 	@Override
 	public void execute(Context context) throws FlowException {
-		FlowContainer flow = getProperty(FlowCall.flow);
-		List<FlowParameterInput> params = getProperty(parameters);
+
+		final List<FlowParameterInput> params = Iterables.toList(getProperty(parameters));
+		final FlowContainer flow              = getProperty(FlowCall.flow);
 
 		if (flow != null) {
 

@@ -50,12 +50,12 @@ import org.structr.schema.Schema;
  */
 public abstract class AbstractSchemaNode extends SchemaReloadingNode implements Schema {
 
-	public static final Property<List<SchemaProperty>> schemaProperties = new EndNodes<>("schemaProperties", SchemaNodeProperty.class);
-	public static final Property<List<SchemaMethod>>   schemaMethods    = new EndNodes<>("schemaMethods", SchemaNodeMethod.class);
-	public static final Property<List<SchemaView>>     schemaViews      = new EndNodes<>("schemaViews", SchemaNodeView.class);
-	public static final Property<String>               icon             = new StringProperty("icon");
-	public static final Property<String>               description      = new StringProperty("description");
-	public static final Set<String> hiddenPropertyNames                 = new LinkedHashSet<>();
+	public static final Property<Iterable<SchemaProperty>> schemaProperties = new EndNodes<>("schemaProperties", SchemaNodeProperty.class);
+	public static final Property<Iterable<SchemaMethod>>   schemaMethods    = new EndNodes<>("schemaMethods", SchemaNodeMethod.class);
+	public static final Property<Iterable<SchemaView>>     schemaViews      = new EndNodes<>("schemaViews", SchemaNodeView.class);
+	public static final Property<String>               icon                 = new StringProperty("icon");
+	public static final Property<String>               description          = new StringProperty("description");
+	public static final Set<String> hiddenPropertyNames                     = new LinkedHashSet<>();
 
 	public static final View defaultView = new View(AbstractSchemaNode.class, PropertyView.Public,
 		name, icon
@@ -103,17 +103,17 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 	}
 
 	@Override
-	public List<SchemaProperty> getSchemaProperties() {
+	public Iterable<SchemaProperty> getSchemaProperties() {
 		return getProperty(AbstractSchemaNode.schemaProperties);
 	}
 
 	@Override
-	public List<SchemaView> getSchemaViews() {
+	public Iterable<SchemaView> getSchemaViews() {
 		return getProperty(AbstractSchemaNode.schemaViews);
 	}
 
 	@Override
-	public List<SchemaMethod> getSchemaMethods() {
+	public Iterable<SchemaMethod> getSchemaMethods() {
 		return getProperty(AbstractSchemaNode.schemaMethods);
 	}
 
@@ -147,7 +147,7 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 			viewNames.add(View.INTERNAL_GRAPH_VIEW);
 			viewNames.add(PropertyView.All);
 
-			for (final SchemaView view : node.getProperty(schemaViews)) {
+			for (final SchemaView view : StructrApp.getInstance().getNodeById(node.getUuid()).getProperty(schemaViews)) {
 				viewNames.add(view.getProperty(AbstractNode.name));
 			}
 			// determine runtime type

@@ -25,13 +25,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Direction;
 import org.structr.api.util.Iterables;
-import org.structr.common.PagingHelper;
+import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.RelationshipInterface;
@@ -69,12 +67,10 @@ public class RelationshipResource extends WrappingResource {
 	}
 
 	@Override
-	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
+	public ResultStream doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
 
 		// fetch all results, paging is applied later
-		final List<? extends GraphObject> results = wrappedResource.doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE).getResults();
-		final App app                             = StructrApp.getInstance();
-
+		final List<? extends GraphObject> results = Iterables.toList(wrappedResource.doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
 		if (results != null && !results.isEmpty()) {
 
 			try {
@@ -121,9 +117,8 @@ public class RelationshipResource extends WrappingResource {
 					}
 				}
 
-				final int rawResultCount = resultList.size();
-
-				return new Result(PagingHelper.subList(resultList, pageSize, page), rawResultCount, true, false);
+				//return new ResultStream(PagingHelper.subList(resultList, pageSize, page), true, false);
+				return new PagingIterable<>(resultList, pageSize, page);
 
 			} catch (Throwable t) {
 

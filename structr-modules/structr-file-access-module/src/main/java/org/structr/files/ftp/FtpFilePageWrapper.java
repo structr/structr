@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import static org.structr.core.GraphObject.lastModifiedDate;
 import org.structr.core.app.App;
@@ -148,7 +149,7 @@ public class FtpFilePageWrapper implements FtpFile {
 			Principal owner = getOwner();
 
 			if (owner != null) {
-				List<Principal> parents = owner.getParents();
+				List<Principal> parents = Iterables.toList(owner.getParents());
 				if (!parents.isEmpty()) {
 
 					name = parents.get(0).getProperty(AbstractNode.name);

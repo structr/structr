@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import java.util.List;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -42,6 +43,11 @@ public class NthFunction extends Function<Object, Object> {
 			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
 			final int pos = Double.valueOf(sources[1].toString()).intValue();
+
+			if (sources[0] instanceof Iterable) {
+
+				return Iterables.nth((Iterable)sources[0], pos);
+			}
 
 			if (sources[0] instanceof List && !((List)sources[0]).isEmpty()) {
 

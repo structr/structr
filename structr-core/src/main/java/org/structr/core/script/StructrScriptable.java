@@ -338,8 +338,8 @@ public class StructrScriptable extends ScriptableObject {
 	// ----- private methods -----
 	private Object wrap(final Context context, final Scriptable scope, final String key, final Object value) {
 
-		if (value instanceof Collection) {
-			return new StructrArray(scope, key, wrapCollection(context, scope, key, (Collection)value));
+		if (value instanceof Iterable) {
+			return new StructrArray(scope, key, wrapIterable(context, scope, key, (Iterable)value));
 		}
 
 		if (value instanceof Object[]) {
@@ -372,17 +372,15 @@ public class StructrScriptable extends ScriptableObject {
 		return value;
 	}
 
-	private Object[] wrapCollection(final Context context, final Scriptable scope, final String key, final Collection collection) {
+	private Object[] wrapIterable(final Context context, final Scriptable scope, final String key, final Iterable iterable) {
 
-		final int size       = collection.size();
-		final Object[] array = new Object[size];
-		int i                = 0;
+		final ArrayList list = new ArrayList();
 
-		for (final Object obj : collection) {
-			array[i++] = wrap(context, scope, key, obj);
+		for (final Object obj : iterable) {
+			list.add(wrap(context, scope, key, obj));
 		}
 
-		return array;
+		return list.toArray();
 	}
 
 	public Object unwrap(final Object source) {
@@ -605,8 +603,11 @@ public class StructrScriptable extends ScriptableObject {
 						public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
 
 							if (args.length == 0) {
+
 								return super.call(cx, scope, thisObj, new Object[]{ new NativeObject() });
+
 							} else {
+
 								return super.call(cx, scope, thisObj, args);
 							}
 
@@ -663,15 +664,6 @@ public class StructrScriptable extends ScriptableObject {
 
 						// call enclosing class's unwrap method instead of ours
 						Object value = StructrScriptable.this.unwrap(o);
-	//
-	//					if (source instanceof Scriptable && "Date".equals(((Scriptable)source).getClassName())) {
-	//						return Context.jsToJava(source, Date.class);
-	//					}
-	//
-	//					// ECMA will return numbers a double, all the time.....
-	//					if (value instanceof Double && key instanceof NumericalPropertyKey) {
-	//						value = ((NumericalPropertyKey)key).convertToNumber((Double)value);
-	//					}
 	//
 						// use inputConverter of EnumProperty to convert to native enums
 						if (key instanceof EnumProperty) {

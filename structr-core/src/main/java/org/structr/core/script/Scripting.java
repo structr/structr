@@ -34,9 +34,11 @@ import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
+import org.mozilla.javascript.WrappedException;
 import org.renjin.script.RenjinScriptEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
@@ -58,12 +60,23 @@ public class Scripting {
 	private static final Map<String, Script> compiledScripts = Collections.synchronizedMap(new LRUMap<>(10000));
 
 	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue) throws FrameworkException {
+		return replaceVariables(actionContext, entity, rawValue, false);
+	}
+
+	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue, final boolean returnNullValueForEmptyResult) throws FrameworkException {
 
 		if (rawValue == null) {
 
 			return null;
 		}
 
+		// don't parse empty values
+		if (StringUtils.isEmpty(rawValue.toString())) {
+
+			return "";
+		}
+
+		boolean valueWasNull = true;
 		String value;
 
 		if (rawValue instanceof String) {
@@ -81,16 +94,15 @@ public class Scripting {
 						final Object extractedValue = evaluate(actionContext, entity, expression, "script source");
 						String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
 
+						// non-null value?
+						valueWasNull &= extractedValue == null;
+
 						if (partValue != null) {
 
 							replacements.add(new Tuple(expression, partValue));
 
 						} else {
 
-							// If the whole expression should be replaced, and partValue is null
-							// replace it by null to make it possible for HTML attributes to not be rendered
-							// and avoid something like ... selected="" ... which is interpreted as selected==true by
-							// all browsers
 							if (!value.equals(expression)) {
 								replacements.add(new Tuple(expression, ""));
 							}
@@ -116,18 +128,10 @@ public class Scripting {
 		} else {
 
 			value = rawValue.toString();
-
 		}
 
-		if (Functions.NULL_STRING.equals(value)) {
-
-			// return literal null for a single ___NULL___
+		if (returnNullValueForEmptyResult && valueWasNull && StringUtils.isBlank(value)) {
 			return null;
-
-		} else {
-
-			// Replace ___NULL___ by empty string
-			value = StringUtils.replaceAll(value, Functions.NULL_STRING, "");
 		}
 
 		return value;
@@ -232,6 +236,9 @@ public class Scripting {
 			final Scriptable scope = scriptingContext.initStandardObjects();
 			final StructrScriptable scriptable = new StructrScriptable(actionContext, entity, scriptingContext);
 
+			// don't wrap Java primitives
+			scriptingContext.getWrapFactory().setJavaPrimitiveWrap(false);
+
 			scriptable.setParentScope(scope);
 
 			// register Structr scriptable
@@ -280,6 +287,29 @@ public class Scripting {
 
 			// just throw the FrameworkException so we dont lose the information contained
 			throw fex;
+
+		} catch (final WrappedException w) {
+
+			if (w.getWrappedException() instanceof FrameworkException) {
+				throw (FrameworkException)w.getWrappedException();
+			}
+
+			if (!actionContext.getDisableVerboseExceptionLogging()) {
+				logger.warn("Exception in Scripting context", w);
+			}
+
+			// if any other kind of Throwable is encountered throw a new FrameworkException and be done with it
+			throw new FrameworkException(422, w.getMessage());
+
+		} catch (final NullPointerException npe) {
+
+			if (!actionContext.getDisableVerboseExceptionLogging()) {
+				logger.warn("Exception in Scripting context", npe);
+			}
+
+			final String message = "NullPointerException in " + npe.getStackTrace()[0].toString();
+
+			throw new FrameworkException(422, message);
 
 		} catch (final Throwable t) {
 
@@ -517,11 +547,30 @@ public class Scripting {
 
 			return DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
 
+		} else if (value instanceof Iterable) {
+
+			return Iterables.toList((Iterable)value).toString();
+
 		} else {
 
 			return value.toString();
 
 		}
+	}
+
+	// ----- private methods -----
+	private static String toString(final Object obj) {
+
+		if (obj instanceof Iterable) {
+
+			return Iterables.toList((Iterable)obj).toString();
+		}
+
+		if (obj != null) {
+			return obj.toString();
+		}
+
+		return "";
 	}
 
 	// ----- nested classes -----

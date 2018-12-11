@@ -49,12 +49,12 @@ public interface DatabaseService {
 	Node getNodeById(final long id);
 	Relationship getRelationshipById(final long id);
 
-	QueryResult<Node> getAllNodes();
-	QueryResult<Node> getNodesByLabel(final String label);
-	QueryResult<Node> getNodesByTypeProperty(final String type);
+	Iterable<Node> getAllNodes();
+	Iterable<Node> getNodesByLabel(final String label);
+	Iterable<Node> getNodesByTypeProperty(final String type);
 
-	QueryResult<Relationship> getAllRelationships();
-	QueryResult<Relationship> getRelationshipsByType(final String type);
+	Iterable<Relationship> getAllRelationships();
+	Iterable<Relationship> getRelationshipsByType(final String type);
 
 	GraphProperties getGlobalProperties();
 
@@ -66,7 +66,6 @@ public interface DatabaseService {
 	Index<Relationship> relationshipIndex();
 	void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfig, final Map<String, Map<String, Boolean>> removedClasses);
 
-
-	NativeResult execute(final String nativeQuery, final Map<String, Object> parameters);
-	NativeResult execute(final String nativeQuery);
+	Iterable<Map<String, Object>> execute(final String nativeQuery, final Map<String, Object> parameters);
+	Iterable<Map<String, Object>> execute(final String nativeQuery);
 }

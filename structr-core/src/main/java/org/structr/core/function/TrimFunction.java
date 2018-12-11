@@ -18,7 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
@@ -44,11 +43,11 @@ public class TrimFunction extends Function<Object, Object> {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			if (sources[0] instanceof Collection) {
+			if (sources[0] instanceof Iterable) {
 
 				final List<String> cleanList = new LinkedList<>();
 
-				for (final Object obj : (Collection)sources[0]) {
+				for (final Object obj : (Iterable)sources[0]) {
 
 					if (StringUtils.isBlank(obj.toString())) {
 

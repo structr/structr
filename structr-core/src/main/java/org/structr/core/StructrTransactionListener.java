@@ -20,6 +20,7 @@ package org.structr.core;
 
 import java.util.Collection;
 import java.util.Map;
+import org.structr.api.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.ModificationEvent;
@@ -34,12 +35,12 @@ import org.structr.core.graph.ModificationEvent;
  */
 public interface StructrTransactionListener {
 
-	public void beforeCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents, final TransactionSource source) throws FrameworkException;
-	public void afterCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents, final TransactionSource source);
+	public void beforeCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents) throws FrameworkException;
+	public void afterCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents);
 
 	default public void simpleBroadcast(final String messageName, final Map<String, Object> data) {
 		simpleBroadcast(messageName, data, null);
 	};
 
-	default public void simpleBroadcast(final String messageName, final Map<String, Object> data, final String exemptedSessionId) { };
+	void simpleBroadcast(final String messageName, final Map<String, Object> data, final Predicate<String> sessionIdPredicate);
 }

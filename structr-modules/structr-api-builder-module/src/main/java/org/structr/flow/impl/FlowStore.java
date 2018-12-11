@@ -31,7 +31,6 @@ import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class FlowStore extends FlowNode implements Store, DataSource, DeployableEntity {
@@ -43,10 +42,10 @@ public class FlowStore extends FlowNode implements Store, DataSource, Deployable
 
 	private static final Logger logger 							= LoggerFactory.getLogger(FlowStore.class);
 
-	public static final Property<DataSource> dataSource			= new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<List<FlowBaseNode>> dataTarget		= new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<Operation> operation			= new EnumProperty<>("operation", Operation.class);
-	public static final Property<String> key             		= new StringProperty("key");
+	public static final Property<DataSource> dataSource             = new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<Operation> operation               = new EnumProperty<>("operation", Operation.class);
+	public static final Property<String> key                        = new StringProperty("key");
 
 	public static final View defaultView 						= new View(FlowAction.class, PropertyView.Public, key, operation, dataSource, dataTarget, isStartNodeOfContainer);
 	public static final View uiView      						= new View(FlowAction.class, PropertyView.Ui,     key, operation, dataSource, dataTarget, isStartNodeOfContainer);

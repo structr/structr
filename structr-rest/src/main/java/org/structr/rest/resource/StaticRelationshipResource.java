@@ -18,7 +18,7 @@
  */
 package org.structr.rest.resource;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -33,12 +33,12 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Node;
 import org.structr.api.util.Iterables;
-import org.structr.common.PagingHelper;
+import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -64,32 +64,28 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 
-//~--- classes ----------------------------------------------------------------
 /**
  *
- *
  */
-public class StaticRelationshipResource extends SortableResource {
+public class StaticRelationshipResource extends WrappingResource {
 
 	private static final Logger logger = LoggerFactory.getLogger(StaticRelationshipResource.class.getName());
 
-	//~--- fields ---------------------------------------------------------
-	TypeResource typeResource = null;
+	TypeResource typeResource       = null;
 	TypedIdResource typedIdResource = null;
-	PropertyKey propertyKey = null;
+	PropertyKey propertyKey         = null;
+	boolean isCollectionResource    = true;
 
-	//~--- constructors ---------------------------------------------------constructors
 	public StaticRelationshipResource(final SecurityContext securityContext, final TypedIdResource typedIdResource, final TypeResource typeResource) {
 
 		this.securityContext = securityContext;
 		this.typedIdResource = typedIdResource;
-		this.typeResource = typeResource;
-		this.propertyKey = findPropertyKey(typedIdResource, typeResource);
+		this.typeResource    = typeResource;
+		this.propertyKey     = findPropertyKey(typedIdResource, typeResource);
 	}
 
-	//~--- methods --------------------------------------------------------
 	@Override
-	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
+	public ResultStream doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
 
 		// ok, source node exists, fetch it
 		final GraphObject sourceEntity = typedIdResource.getEntity();
@@ -102,12 +98,12 @@ public class StaticRelationshipResource extends SortableResource {
 
 					if (!typeResource.isNode) {
 
-						final NodeInterface source = (NodeInterface) sourceEntity;
-						final Node sourceNode = source.getNode();
+						final NodeInterface source   = (NodeInterface) sourceEntity;
+						final Node sourceNode        = source.getNode();
 						final Class relationshipType = typeResource.entityClass;
-						final Relation relation = AbstractNode.getRelationshipForType(relationshipType);
-						final Class destNodeType = relation.getOtherType(typedIdResource.getEntityClass());
-						final Set partialResult = new LinkedHashSet<>(typeResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE).getResults());
+						final Relation relation      = AbstractNode.getRelationshipForType(relationshipType);
+						final Class destNodeType     = relation.getOtherType(typedIdResource.getEntityClass());
+						final Set partialResult      = new LinkedHashSet<>(Iterables.toList(typeResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE)));
 
 						// filter list according to end node type
 						final Set<GraphObject> set = Iterables.toSet(Iterables.filter(new OtherNodeTypeRelationFilter(securityContext, sourceNode, destNodeType), source.getRelationships(relationshipType)));
@@ -121,7 +117,8 @@ public class StaticRelationshipResource extends SortableResource {
 						applyDefaultSorting(finalResult, sortKey, sortDescending);
 
 						// return result
-						return new Result(PagingHelper.subList(finalResult, pageSize, page), finalResult.size(), isCollectionResource(), isPrimitiveArray());
+						//return new ResultStream(PagingHelper.subList(finalResult, pageSize, page), isCollectionResource(), isPrimitiveArray());
+						return new PagingIterable<>(finalResult, pageSize, page);
 
 					} else {
 
@@ -174,10 +171,13 @@ public class StaticRelationshipResource extends SortableResource {
 						if (rawResultCount > 0 && !iterableContainsGraphObject) {
 
 							GraphObjectMap gObject = new GraphObjectMap();
+
 							gObject.setProperty(new ArrayProperty(this.typeResource.rawType, Object.class), propertyResults.toArray());
-							Result r = new Result(gObject, true);
-							r.setRawResultCount(rawResultCount);
-							return r;
+
+							return new PagingIterable<>(Arrays.asList(gObject));
+
+							//final ResultStream r = new ResultStream(gObject, true);
+							//return r;
 
 						}
 
@@ -190,20 +190,19 @@ public class StaticRelationshipResource extends SortableResource {
 						applyDefaultSorting(finalResult, sortKey, sortDescending);
 
 						// return result
-						Result r = new Result(PagingHelper.subList(finalResult, pageSize, page), finalResult.size(), isCollectionResource(), isPrimitiveArray());
-						r.setRawResultCount(rawResultCount);
-						return r;
+						//return new ResultStream(PagingHelper.subList(finalResult, pageSize, page), isCollectionResource(), isPrimitiveArray());
+						return new PagingIterable<>(finalResult, pageSize, page);
 
 					} else if (value instanceof GraphObject) {
 
-						return new Result((GraphObject) value, isPrimitiveArray());
+						return new PagingIterable<>(Arrays.asList(value));
+						//return new ResultStream((GraphObject) value, isPrimitiveArray());
 
 					} else {
 
 						GraphObjectMap gObject = new GraphObjectMap();
 						PropertyKey key;
 						String keyName = this.typeResource.rawType;
-						int resultCount = 1;
 
 						//FIXME: Dynamically resolve all property types and their result count
 						if (value instanceof String) {
@@ -221,16 +220,16 @@ public class StaticRelationshipResource extends SortableResource {
 						} else if (value instanceof String[]) {
 
 							key = new ArrayProperty(keyName, String.class);
-							resultCount = ((String[]) value).length;
 
 						} else {
+
 							key = new GenericProperty(keyName);
 						}
 
 						gObject.setProperty(key, value);
-						Result r = new Result(gObject, true);
-						r.setRawResultCount(resultCount);
-						return r;
+
+						return new PagingIterable<>(Arrays.asList(gObject));
+						//return new ResultStream(gObject, true);
 
 					}
 				}
@@ -238,20 +237,22 @@ public class StaticRelationshipResource extends SortableResource {
 				// check propertyKey to return the right variant of empty result
 				if (!(propertyKey instanceof StartNode || propertyKey instanceof EndNode)) {
 
-					return new Result(Collections.EMPTY_LIST, 1, false, true);
+					return PagingIterable.EMPTY_ITERABLE;
+					//return new ResultStream(Collections.EMPTY_LIST, false, true);
 
 				}
 
 			}
 		}
 
-		return new Result(Collections.EMPTY_LIST, 0, false, true);
+		return PagingIterable.EMPTY_ITERABLE;
+		//return new ResultStream(Collections.EMPTY_LIST, false, true);
 	}
 
 	@Override
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
-		final List<? extends GraphObject> results = typedIdResource.doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE).getResults();
+		final List<? extends GraphObject> results = Iterables.toList(typedIdResource.doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
 		final App app = StructrApp.getInstance(securityContext);
 
 		if (results != null) {
@@ -336,6 +337,14 @@ public class StaticRelationshipResource extends SortableResource {
 
 		} else {
 
+			/**
+			 * The below code is used when a schema method is called on an entity via REST. The
+			 * result of this operation should not be wrapped in an array, so we set the flag
+			 * accordingly.
+			 */
+			this.isCollectionResource = false;
+
+
 			final Class entityType  = typedIdResource.getTypeResource().getEntityClass();
 			final String methodName = typeResource.getRawType();
 
@@ -404,7 +413,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 	@Override
 	public boolean isCollectionResource() {
-		return true;
+		return isCollectionResource;
 	}
 
 	@Override

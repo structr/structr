@@ -29,18 +29,16 @@ import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class FlowParameterInput extends FlowBaseNode implements DeployableEntity {
 
-	public static final Property<List<FlowCall>> call 				= new EndNodes<>("call", FlowCallParameter.class);
-	public static final Property<DataSource> dataSource 			= new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<Iterable<FlowCall>> call = new EndNodes<>("call", FlowCallParameter.class);
+	public static final Property<DataSource> dataSource   = new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<String> key              = new StringProperty("key");
 
-	public static final Property<String> key             			= new StringProperty("key");
-
-	public static final View defaultView 							= new View(FlowDataSource.class, PropertyView.Public, key, call, dataSource);
-	public static final View uiView      							= new View(FlowDataSource.class, PropertyView.Ui, key, call, dataSource);
+	public static final View defaultView = new View(FlowDataSource.class, PropertyView.Public, key, call, dataSource);
+	public static final View uiView      = new View(FlowDataSource.class, PropertyView.Ui, key, call, dataSource);
 
 
 	public void process(final Context context, final Context functionContext) throws FlowException {

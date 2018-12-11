@@ -39,17 +39,16 @@ import org.apache.commons.collections4.ListUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.util.ResultStream;
 import org.structr.common.PropertyView;
 import org.structr.common.QueryRange;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.function.Functions;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -69,7 +68,7 @@ public abstract class StreamingWriter {
 		idTypeNameOnly.add(GraphObject.id);
 		idTypeNameOnly.add(AbstractNode.type);
 		idTypeNameOnly.add(AbstractNode.name);
-		
+
 		restrictedViews.add(PropertyView.All);
 		restrictedViews.add(PropertyView.Ui);
 		restrictedViews.add(PropertyView.Custom);
@@ -83,23 +82,22 @@ public abstract class StreamingWriter {
 	private final DecimalFormat decimalFormat             = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private String resultKeyName                          = "result";
 	private boolean renderSerializationTime               = true;
-	private boolean renderResultCount                     = true;
 	private boolean reduceRedundancy                      = false;
 	private int outputNestingDepth                        = 3;
-	private int parallelizationThreshold                  = 100;
 	private Value<String> propertyView                    = null;
 	protected boolean indent                              = true;
 	protected boolean compactNestedProperties             = true;
+	protected boolean wrapSingleResultInArray           = false;
 
 	public abstract RestWriter getRestWriter(final SecurityContext securityContext, final Writer writer);
 
-	public StreamingWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth) {
+	public StreamingWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray) {
 
-		this.parallelizationThreshold = Settings.JsonParallelizationThreshold.getValue(100);
-		this.reduceRedundancy         = Settings.JsonRedundancyReduction.getValue(true);
-		this.outputNestingDepth       = outputNestingDepth;
-		this.propertyView             = propertyView;
-		this.indent                   = indent;
+		this.wrapSingleResultInArray   = wrapSingleResultInArray;
+		this.reduceRedundancy          = Settings.JsonRedundancyReduction.getValue(true);
+		this.outputNestingDepth        = outputNestingDepth;
+		this.propertyView              = propertyView;
+		this.indent                    = indent;
 
 		serializers.put(GraphObject.class.getName(), root);
 		serializers.put(PropertyMap.class.getName(), new PropertyMapSerializer());
@@ -136,7 +134,11 @@ public abstract class StreamingWriter {
 
 	}
 
-	public void stream(final SecurityContext securityContext, final Writer output, final Result result, final String baseUrl) throws IOException {
+	public void stream(final SecurityContext securityContext, final Writer output, final ResultStream result, final String baseUrl) throws IOException {
+		stream(securityContext, output, result, baseUrl, true);
+	}
+
+	public void stream(final SecurityContext securityContext, final Writer output, final ResultStream result, final String baseUrl, final boolean includeMetadata) throws IOException {
 
 		long t0 = System.nanoTime();
 
@@ -145,152 +147,49 @@ public abstract class StreamingWriter {
 		configureWriter(rootWriter);
 
 		// result fields in alphabetical order
-		final List<? extends GraphObject> results = result.getResults();
-		final Set<Integer> visitedObjects         = new LinkedHashSet<>();
-		final Integer outputNestingDepth          = result.getOutputNestingDepth();
-		final Integer page                        = result.getPage();
-		final Integer pageCount                   = result.getPageCount();
-		final Integer pageSize                    = result.getPageSize();
-		final String queryTime                    = result.getQueryTime();
-		final Integer resultCount                 = result.getRawResultCount();
-		final String searchString                 = result.getSearchString();
-		final String sortKey                      = result.getSortKey();
-		final String sortOrder                    = result.getSortOrder();
-		final GraphObject metaData                = result.getMetaData();
+		final Set<Integer> visitedObjects             = new LinkedHashSet<>();
+		final String queryTime                        = result.getQueryTime();
+		final Integer page                            = result.getPage();
+		final Integer pageSize                        = result.getPageSize();
 
 		rootWriter.beginDocument(baseUrl, propertyView.get(securityContext));
-
-		// open result set
 		rootWriter.beginObject();
 
-		if (outputNestingDepth != null) {
-			rootWriter.name("output_nesting_depth").value(outputNestingDepth);
+		if (result != null) {
+
+			rootWriter.name(resultKeyName);
+			root.serializeRoot(rootWriter, result, propertyView.get(securityContext), 0, visitedObjects);
 		}
 
-		if (page != null) {
-			rootWriter.name("page").value(page);
-		}
+		if (includeMetadata) {
 
-		if (pageCount != null) {
-			rootWriter.name("page_count").value(pageCount);
-		}
+			// time delta for serialization
+			long t1 = System.nanoTime();
 
-		if (pageSize != null) {
-			rootWriter.name("page_size").value(pageSize);
-		}
+			if (pageSize != null && !pageSize.equals(Integer.MAX_VALUE)) {
 
-		if (queryTime != null) {
-			rootWriter.name("query_time").value(queryTime);
-		}
+				if (page != null) {
 
-		if (resultCount != null && renderResultCount) {
-			rootWriter.name("result_count").value(resultCount);
-		}
-
-		if (results != null) {
-
-			if (results.isEmpty() && result.isPrimitiveArray()) {
-
-				rootWriter.name(resultKeyName).nullValue();
-
-			} else if (results.isEmpty() && !result.isPrimitiveArray()) {
-
-				rootWriter.name(resultKeyName).beginArray().endArray();
-
-			} else if (result.isPrimitiveArray()) {
-
-				rootWriter.name(resultKeyName);
-
-				if (results.size() > 1) {
-					rootWriter.beginArray();
+					rootWriter.name("page").value(page);
 				}
 
-				if (securityContext.doMultiThreadedJsonOutput() && results.size() > parallelizationThreshold) {
-
-					doParallel(results, rootWriter, visitedObjects, (writer, o, nestedObjects) -> {
-
-						writePrimitive(o, writer, nestedObjects);
-					});
-
-				} else {
-
-					for (final Object object : results) {
-
-						if (object != null) {
-
-							writePrimitive(object, rootWriter, visitedObjects);
-						}
-					}
-				}
-
-				if (results.size() > 1) {
-
-					rootWriter.endArray();
-
-				}
-
-			} else {
-
-				final String localPropertyView  = propertyView.get(null);
-
-				// result is an attribute called via REST API
-				if (results.size() > 1 && !result.isCollection()) {
-
-					throw new IllegalStateException(result.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
-				}
-
-				if (result.isCollection()) {
-
-					rootWriter.name(resultKeyName).beginArray();
-
-					if (securityContext.doMultiThreadedJsonOutput() && results.size() > parallelizationThreshold) {
-
-						doParallel(results, rootWriter, visitedObjects, (writer, o, nestedObjects) -> {
-
-							root.serialize(writer, (GraphObject)o, localPropertyView, 0, nestedObjects);
-						});
-
-					} else {
-
-						// serialize list of results
-						for (GraphObject graphObject : results) {
-
-							root.serialize(rootWriter, graphObject, localPropertyView, 0, visitedObjects);
-						}
-					}
-
-					rootWriter.endArray();
-
-				} else {
-
-					rootWriter.name(resultKeyName);
-					root.serialize(rootWriter, results.get(0), localPropertyView, 0, visitedObjects);
-				}
+				rootWriter.name("page_size").value(pageSize);
 			}
-		}
 
-		if (searchString != null) {
-			rootWriter.name("search_string").value(searchString);
-		}
+			if (queryTime != null) {
+				rootWriter.name("query_time").value(queryTime);
+			}
 
-		if (sortKey != null) {
-			rootWriter.name("sort_key").value(sortKey);
-		}
+			if (!securityContext.ignoreResultCount()) {
 
-		if (sortOrder != null) {
-			rootWriter.name("sort_order").value(sortOrder);
-		}
+				rootWriter.name("result_count").value(result.calculateTotalResultCount());
+				rootWriter.name("page_count").value(result.calculatePageCount());
+				rootWriter.name("result_count_time").value(decimalFormat.format((System.nanoTime() - t1) / 1000000000.0));
+			}
 
-		if (metaData != null) {
-
-			String localPropertyView  = propertyView.get(null);
-
-			rootWriter.name("meta_data");
-			root.serialize(rootWriter, metaData, localPropertyView, 0, visitedObjects);
-		}
-
-		if (renderSerializationTime) {
-			rootWriter.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
+			if (renderSerializationTime) {
+				rootWriter.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
+			}
 		}
 
 		// finished
@@ -306,10 +205,6 @@ public abstract class StreamingWriter {
 
 	public void setRenderSerializationTime(final boolean doRender) {
 		this.renderSerializationTime = doRender;
-	}
-
-	public void setRenderResultCount(final boolean doRender) {
-		this.renderResultCount = doRender;
 	}
 
 	private Serializer getSerializerForType(Class type) {
@@ -366,7 +261,7 @@ public abstract class StreamingWriter {
 
 	private void serializePrimitive(RestWriter writer, final Object value) throws IOException {
 
-		if (value != null && !Functions.NULL_STRING.equals(value)) {
+		if (value != null) {
 
 			if (value instanceof Number) {
 
@@ -392,6 +287,7 @@ public abstract class StreamingWriter {
 		if (indent && !writer.getSecurityContext().doMultiThreadedJsonOutput()) {
 			writer.setIndent("	");
 		}
+
 	}
 
 	// ----- nested classes -----
@@ -527,31 +423,45 @@ public abstract class StreamingWriter {
 		@Override
 		public void serialize(final RestWriter parentWriter, final Iterable value, final String localPropertyView, final int depth, final Set<Integer> visitedObjects) throws IOException {
 
-			final SecurityContext securityContext = parentWriter.getSecurityContext();
+			final Iterator iterator  = value.iterator();
+			final Object firstValue  = iterator.hasNext() ? iterator.next() : null;
+			final Object secondValue = iterator.hasNext() ? iterator.next() : null;
 
-			parentWriter.beginArray();
+			if (!wrapSingleResultInArray && depth == 0 && firstValue != null && secondValue == null && !Settings.ForceArrays.getValue()) {
 
-			// prevent endless recursion by pruning at depth n
-			if (depth <= outputNestingDepth) {
+				// prevent endless recursion by pruning at depth n
+				if (depth <= outputNestingDepth) {
 
-				if (securityContext.doMultiThreadedJsonOutput() && value instanceof List && ((List)value).size() > parallelizationThreshold) {
+					serializeRoot(parentWriter, firstValue, localPropertyView, depth, visitedObjects);
+				}
 
-					doParallel((List)value, parentWriter, visitedObjects, (writer, o, nestedObjects) -> {
+			} else {
 
-						serializeRoot(writer, o, localPropertyView, depth, nestedObjects);
+				parentWriter.beginArray();
 
-					});
+				// prevent endless recursion by pruning at depth n
+				if (depth <= outputNestingDepth) {
 
-				} else {
+					// first value?
+					if (firstValue != null) {
+						serializeRoot(parentWriter, firstValue, localPropertyView, depth, visitedObjects);
+					}
 
-					for (Object o : value) {
+					// second value?
+					if (secondValue != null) {
 
-						serializeRoot(parentWriter, o, localPropertyView, depth, visitedObjects);
+						serializeRoot(parentWriter, secondValue, localPropertyView, depth, visitedObjects);
+
+						// more values?
+						while (iterator.hasNext()) {
+
+							serializeRoot(parentWriter, iterator.next(), localPropertyView, depth, visitedObjects);
+						}
 					}
 				}
-			}
 
-			parentWriter.endArray();
+				parentWriter.endArray();
+			}
 		}
 	}
 
@@ -666,29 +576,6 @@ public abstract class StreamingWriter {
 
 				t.printStackTrace();
 			}
-		}
-	}
-
-	private void writePrimitive(final Object o, final RestWriter writer, final Set<Integer> visitedObjects) throws IOException {
-
-		if (o instanceof GraphObject) {
-
-			final String localPropertyView    = propertyView.get(null);
-			final GraphObject obj             = (GraphObject)o;
-			final Iterator<PropertyKey> keyIt = obj.getPropertyKeys(localPropertyView).iterator();
-
-			while (keyIt.hasNext()) {
-
-				PropertyKey k = keyIt.next();
-				Object value  = obj.getProperty(k);
-
-				root.serializeProperty(writer, k, value, localPropertyView, 0, visitedObjects);
-
-			}
-
-		} else {
-
-			writer.value(o.toString());
 		}
 	}
 

@@ -27,11 +27,12 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -92,7 +93,7 @@ public class SchemaResource extends Resource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 		return getSchemaOverviewResult();
 	}
 
@@ -144,7 +145,7 @@ public class SchemaResource extends Resource {
 	}
 
 	// ----- public static methods -----
-	public static Result getSchemaOverviewResult() throws FrameworkException {
+	public static ResultStream getSchemaOverviewResult() throws FrameworkException {
 
 		final List<GraphObjectMap> resultList = new LinkedList<>();
 		final ConfigurationProvider config    = StructrApp.getConfiguration();
@@ -224,7 +225,7 @@ public class SchemaResource extends Resource {
 
 		}
 
-		return new Result(resultList, resultList.size(), false, false);
+		return new PagingIterable<>(resultList);
 
 	}
 

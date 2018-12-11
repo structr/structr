@@ -18,6 +18,7 @@
  */
 package org.structr.common;
 
+import java.net.URISyntaxException;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -34,11 +35,11 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.TestOne;
@@ -48,6 +49,9 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 
 /**
  * Test access control with different permission levels.
@@ -78,7 +82,7 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).getResult();
+				List result = StructrApp.getInstance(publicContext).nodeQuery(type).getAsList();
 
 				// Node should not be visible in public context (no user logged in)
 				assertTrue(result.isEmpty());
@@ -116,7 +120,7 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).getResult();
+				List<GraphObject> result = StructrApp.getInstance(publicContext).nodeQuery(type).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(t1.getUuid(), result.get(0).getUuid());
@@ -158,7 +162,7 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).getResult();
+				List<GraphObject> result = StructrApp.getInstance(publicContext).nodeQuery(type).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(t1.getUuid(), result.get(0).getUuid());
@@ -201,7 +205,7 @@ public class AccessControlTest extends StructrTest {
 			SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Backend);
 
 			try (final Tx tx = app.tx()) {
-				Result result = StructrApp.getInstance(user2Context).nodeQuery(type).getResult();
+				List<GraphObject> result = StructrApp.getInstance(user2Context).nodeQuery(type).getAsList();
 
 				assertEquals(2, result.size());
 			}
@@ -244,7 +248,7 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				Result result = StructrApp.getInstance(user2Context).nodeQuery(type).getResult();
+				List<GraphObject> result = StructrApp.getInstance(user2Context).nodeQuery(type).getAsList();
 
 				assertEquals(2, result.size());
 			}
@@ -269,7 +273,7 @@ public class AccessControlTest extends StructrTest {
 			List<Principal> users = createTestNodes(Principal.class, 2);
 			Principal user1 = (Principal) users.get(0);
 			Principal user2 = (Principal) users.get(1);
-			Result result = null;
+			List<GraphObject> result = null;
 
 			// Let user 1 create a node
 			Class type = TestOne.class;
@@ -287,7 +291,7 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				result = StructrApp.getInstance(user2Context).nodeQuery(type).getResult();
+				result = StructrApp.getInstance(user2Context).nodeQuery(type).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(t1.getUuid(), result.get(0).getUuid());
@@ -302,7 +306,7 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				result = StructrApp.getInstance(user2Context).nodeQuery(type).getResult();
+				result = StructrApp.getInstance(user2Context).nodeQuery(type).getAsList();
 				assertTrue(result.isEmpty());
 			}
 
@@ -337,10 +341,9 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(AbstractNode.createdDate).getResult();
+				List<GraphObject> result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(AbstractNode.createdDate).getAsList();
 
 				assertEquals(3, result.size());
-				assertEquals(3, (int) result.getRawResultCount());
 
 				// test order of elements (works again)
 				assertEquals(nodes.get(3).getUuid(), result.get(0).getUuid());
@@ -392,10 +395,9 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
+				List<GraphObject> result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getAsList();
 
 				assertEquals(2, result.size());
-				assertEquals(4, (int) result.getRawResultCount());
 
 				assertEquals(nodes.get(3).getUuid(), result.get(0).getUuid());
 				assertEquals(nodes.get(5).getUuid(), result.get(1).getUuid());
@@ -577,7 +579,7 @@ public class AccessControlTest extends StructrTest {
 
 		SecurityContext user1Context = null;
 		SecurityContext user2Context = null;
-		
+
 		// ################################################################################################################
 		// create two users
 
@@ -586,14 +588,14 @@ public class AccessControlTest extends StructrTest {
 			Principal user1 = createTestNode(Principal.class, "user1");
 			user1Id = user1.getUuid();
 			user1Context = SecurityContext.getInstance(user1, AccessMode.Backend);
-			
+
 			Principal user2 = createTestNode(Principal.class, "user2");
 			user2Id = user2.getUuid();
 			user2Context = SecurityContext.getInstance(user2, AccessMode.Backend);
 
 			// Grant user1 read permission on user2
 			user2.grant(Permission.read, user1);
-			
+
 			tx.success();
 
 		} catch (FrameworkException t) {
@@ -611,9 +613,9 @@ public class AccessControlTest extends StructrTest {
 
 			Group group = user1App.create(Group.class, "group");
 			groupId = group.getUuid();
-			
+
 			user1App.create(TestOne.class, "testone");
-			
+
 			Principal user1 = user1App.get(Principal.class, user1Id);
 			assertEquals("Invalid group owner", user1, group.getOwnerNode());
 
@@ -671,10 +673,10 @@ public class AccessControlTest extends StructrTest {
 		try (final Tx tx = user1App.tx()) {
 
 			Group group = user1App.get(Group.class, groupId);
-			
+
 			Principal user2 = user1App.get(Principal.class, user2Id);
 			assertNotNull(user2);
-			
+
 			group.addMember(user2);
 			tx.success();
 
@@ -691,8 +693,8 @@ public class AccessControlTest extends StructrTest {
 		try (final Tx tx = user1App.tx()) {
 
 			Principal user2 = user1App.get(Principal.class, user2Id);
-			assertEquals("User should have parents", 1, user2.getParents().size());
-			
+			assertEquals("User should have parents", 1, Iterables.count(user2.getParents()));
+
 			tx.success();
 
 		} catch (FrameworkException t) {
@@ -785,7 +787,7 @@ public class AccessControlTest extends StructrTest {
 
 			Group group     = user1App.get(Group.class, groupId);
 			Principal user2 = user1App.get(Principal.class, user2Id);
-			
+
 			group.removeMember(user2);
 			tx.success();
 
@@ -794,15 +796,15 @@ public class AccessControlTest extends StructrTest {
 			logger.warn("", t);
 			fail("Unexpected exception.");
 		}
-		
+
 		// ################################################################################################################
 		// check parents of user2
 
 		try (final Tx tx = app.tx()) {
 
 			Principal user2 = app.get(Principal.class, user2Id);
-			assertEquals("User should not have parents", 0, user2.getParents().size());
-			
+			assertEquals("User should not have parents", 0, Iterables.count(user2.getParents()));
+
 			tx.success();
 
 		} catch (FrameworkException t) {
@@ -827,27 +829,27 @@ public class AccessControlTest extends StructrTest {
 			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
-		
+
 		// ################################################################################################################
 		// now add user2 to the group and remove it again in same tx
 
 		try (final Tx tx = user1App.tx()) {
 
 			Group group = user1App.get(Group.class, groupId);
-			
+
 			Principal user2 = user1App.get(Principal.class, user2Id);
 			assertNotNull(user2);
-			
+
 			group.addMember(user2);
-			assertTrue("User should be in group", user2.getGroups().contains(group));
-			
+			assertTrue("User should be in group", Iterables.toList(user2.getGroups()).contains(group));
+
 			assertNotNull(user2App.nodeQuery(TestOne.class).getFirst());
-			
+
 			group.removeMember(user2);
-			assertFalse("User should not be in group", user2.getGroups().contains(group));
+			assertFalse("User should not be in group", Iterables.toList(user2.getGroups()).contains(group));
 
 			assertNull(user2App.nodeQuery(TestOne.class).getFirst());
-			
+
 			tx.success();
 
 		} catch (FrameworkException t) {
@@ -856,7 +858,7 @@ public class AccessControlTest extends StructrTest {
 			fail("Unexpected exception.");
 
 		}
-		
+
 	}
 
 	@Test
@@ -869,7 +871,7 @@ public class AccessControlTest extends StructrTest {
 
 		SecurityContext user1Context = null;
 		SecurityContext user2Context = null;
-		
+
 		// ################################################################################################################
 		// create two users
 
@@ -878,14 +880,14 @@ public class AccessControlTest extends StructrTest {
 			Principal user1 = createTestNode(Principal.class, "user1");
 			user1Id = user1.getUuid();
 			user1Context = SecurityContext.getInstance(user1, AccessMode.Backend);
-			
+
 			Principal user2 = createTestNode(Principal.class, "user2");
 			user2Id = user2.getUuid();
 			user2Context = SecurityContext.getInstance(user2, AccessMode.Backend);
 
 			// Grant user1 read permission on user2
 			user2.grant(Permission.read, user1);
-			
+
 			tx.success();
 
 		} catch (FrameworkException t) {
@@ -904,14 +906,14 @@ public class AccessControlTest extends StructrTest {
 
 			Group group1 = user1App.create(Group.class, "group1");
 			group1Id = group1.getUuid();
-			
+
 			Group group2 = user1App.create(Group.class, "group2");
 			group2Id = group2.getUuid();
-			
+
 			group1.addMember(group2);
 
 			user1App.create(TestOne.class, "testone");
-			
+
 			Principal user1 = user1App.get(Principal.class, user1Id);
 			assertEquals("Invalid group owner", user1, group1.getOwnerNode());
 
@@ -969,10 +971,10 @@ public class AccessControlTest extends StructrTest {
 		try (final Tx tx = user1App.tx()) {
 
 			Group group2 = user1App.get(Group.class, group2Id);
-			
+
 			Principal user2 = user1App.get(Principal.class, user2Id);
 			assertNotNull(user2);
-			
+
 			group2.addMember(user2);
 			tx.success();
 
@@ -989,8 +991,8 @@ public class AccessControlTest extends StructrTest {
 		try (final Tx tx = user1App.tx()) {
 
 			Principal user2 = user1App.get(Principal.class, user2Id);
-			assertEquals("User should have parents", 1, user2.getParents().size());
-			
+			assertEquals("User should have parents", 1, Iterables.count(user2.getParents()));
+
 			tx.success();
 
 		} catch (FrameworkException t) {
@@ -1015,7 +1017,7 @@ public class AccessControlTest extends StructrTest {
 			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
-		
+
 		// ################################################################################################################
 		// now remove group2 from group1
 
@@ -1023,11 +1025,11 @@ public class AccessControlTest extends StructrTest {
 
 			Group group1 = user1App.get(Group.class, group1Id);
 			Group group2 = user1App.get(Group.class, group2Id);
-			
+
 			group1.removeMember(group2);
 
 			assertNull(user2App.nodeQuery(TestOne.class).getFirst());
-			
+
 			tx.success();
 
 		} catch (FrameworkException t) {
@@ -1036,19 +1038,19 @@ public class AccessControlTest extends StructrTest {
 			fail("Unexpected exception.");
 
 		}
-	
+
 	}
-	
+
 	@Test
 	public void testGroupVisibilityForMembers() {
 
 		String user1Id = null;
 		String user2Id = null;
 		String groupId  = null;
-		
+
 		SecurityContext user1Context = null;
 		SecurityContext user2Context = null;
-		
+
 		// ################################################################################################################
 		// create two users
 
@@ -1064,7 +1066,7 @@ public class AccessControlTest extends StructrTest {
 
 			// Grant user1 read permissions on user2
 			user2.grant(Permission.read, user1);
-			
+
 			tx.success();
 
 		} catch (FrameworkException t) {
@@ -1084,7 +1086,7 @@ public class AccessControlTest extends StructrTest {
 			Group group = user1App.create(Group.class, "group");
 			Principal user1 = user1App.get(Principal.class, user1Id);
 			assertNotNull("User should be readable", user1);
-			
+
 			assertEquals("Invalid group owner", user1, group.getOwnerNode());
 
 			Principal user2 = user1App.get(Principal.class, user2Id);
@@ -1394,15 +1396,15 @@ public class AccessControlTest extends StructrTest {
 		}
 
 	}
-	
+
 	/**
 	 * Test whether users are allowed to add themselves to a group they don't have write access for (they shouldn't).
-	 * 
+	 *
 	 * This method uses the {@link Group#addMember} method.
 	 */
 	@Test
 	public void test11GroupMembership() {
-		
+
 		// remove auto-generated resource access objects
 		clearResourceAccess();
 
@@ -1427,15 +1429,15 @@ public class AccessControlTest extends StructrTest {
 
 		assertNotNull(user1);
 		assertNotNull(user2);
-		
+
 		final SecurityContext user1Context = SecurityContext.getInstance(user1, AccessMode.Backend);
 		final App user1App                 = StructrApp.getInstance(user1Context);
-		
+
 		final SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Backend);
 		final App user2App                 = StructrApp.getInstance(user2Context);
-		
+
 		String groupId = null;
-		
+
 		// ################################################################################################################
 		// Let user2 create a group and grant read permissions to user1
 
@@ -1444,9 +1446,9 @@ public class AccessControlTest extends StructrTest {
 			Group group = user2App.create(Group.class, "group");
 
 			assertEquals("Invalid group owner", user2, group.getOwnerNode());
-			
+
 			group.grant(Permission.read, user1);
-			
+
 			groupId = group.getUuid();
 
 			tx.success();
@@ -1455,24 +1457,24 @@ public class AccessControlTest extends StructrTest {
 
 			logger.warn("", t);
 			fail("Unexpected exception.");
-		}		
-		
+		}
+
 		// ################################################################################################################
 		// Let user1 try to add itself to group
-		
+
 		try (final Tx tx = user1App.tx()) {
 
 			Group group = user1App.get(Group.class, groupId);
-			
+
 			assertNotNull(group);
-			
+
 			// Add user1 to group
 			group.addMember(user1);
-			
+
 			tx.success();
-			
+
 			fail("Expected a 'Modification not permitted' FrameworkException");
-			
+
 		} catch (FrameworkException t) {
 
 		}
@@ -1480,16 +1482,16 @@ public class AccessControlTest extends StructrTest {
 
 		// ################################################################################################################
 		// As admin, grant write access on user1 to user2 so user2 can modify user1
-		
+
 		try (final Tx tx = app.tx()) {
 
 			Group group = app.get(Group.class, groupId);
-			
+
 			// Grant write permission on group to user1
 			group.grant(Permission.write, user1);
-			
+
 			tx.success();
-			
+
 		} catch (FrameworkException t) {
 
 			logger.warn("", t);
@@ -1499,152 +1501,101 @@ public class AccessControlTest extends StructrTest {
 
 		// ################################################################################################################
 		// Try again
-		
+
 		try (final Tx tx = user1App.tx()) {
-			
+
 			Group group = user1App.get(Group.class, groupId);
 
 			// Add user1 to group
 			group.addMember(user1);
 
-			assertEquals(user1, group.getMembers().get(0));
-			
+			assertEquals(user1, Iterables.toList(group.getMembers()).get(0));
+
 			tx.success();
-			
+
 		} catch (FrameworkException t) {
 
 			logger.warn("", t);
 			fail("Unexpected exception.");
 
-		}		
+		}
 	}
 
-	/**
-	 * Test whether users are allowed to add themselves to a group they don't have write access for (they shouldn't).
-	 * 
-	 * This method is exactly like {@link AccessControlTest#test11GroupMembership()} but uses the {@link AbstractNode#setProperty} method.
-	 */
-//	@Test
-//	public void test11GroupMembership2() {
-//		
-//		// remove auto-generated resource access objects
-//		clearResourceAccess();
-//
-//		Principal user1 = null;
-//		Principal user2 = null;
-//
-//		// ################################################################################################################
-//		// create three users
-//
-//		try (final Tx tx = app.tx()) {
-//
-//			user1 = createTestNode(Principal.class, "user1");
-//			user2 = createTestNode(Principal.class, "user2");
-//
-//			tx.success();
-//
-//		} catch (FrameworkException t) {
-//
-//			logger.warn("", t);
-//			fail("Unexpected exception.");
-//		}
-//
-//		assertNotNull(user1);
-//		assertNotNull(user2);
-//		
-//		final SecurityContext user1Context = SecurityContext.getInstance(user1, AccessMode.Backend);
-//		final App user1App                 = StructrApp.getInstance(user1Context);
-//		
-//		final SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Backend);
-//		final App user2App                 = StructrApp.getInstance(user2Context);
-//		
-//		String groupId = null;
-//		
-//		// ################################################################################################################
-//		// Let user2 create a group and grant read permissions to user1
-//
-//		try (final Tx tx = user2App.tx()) {
-//
-//			Group group = user2App.create(Group.class, "group");
-//
-//			assertEquals("Invalid group owner", user2, group.getOwnerNode());
-//			
-//			group.grant(Permission.read, user1);
-//			
-//			groupId = group.getUuid();
-//
-//			tx.success();
-//
-//		} catch (FrameworkException t) {
-//
-//			logger.warn("", t);
-//			fail("Unexpected exception.");
-//		}		
-//		
-//		// ################################################################################################################
-//		// Let user1 try to add itself to group
-//		
-//		try (final Tx tx = user1App.tx()) {
-//
-//			Group group = user1App.get(Group.class, groupId);
-//			
-//			assertNotNull(group);
-//			
-//			// Add user1 to group
-//			//group.addMember(user1);
-//			user1.setProperty(StructrApp.key(Principal.class, "groups"), Arrays.asList(group));
-//			
-//			tx.success();
-//			
-//			fail("Expected a 'Modification not permitted' FrameworkException");
-//			
-//		} catch (FrameworkException t) {
-//
-//		}
-//
-//
-//		// ################################################################################################################
-//		// As admin, grant write access on user1 to user2 so user2 can modify user1
-//		
-//		try (final Tx tx = app.tx()) {
-//
-//			Group group = app.get(Group.class, groupId);
-//			
-//			// Grant write permission on group to user1
-//			group.grant(Permission.write, user1);
-//			
-//			tx.success();
-//			
-//		} catch (FrameworkException t) {
-//
-//			logger.warn("", t);
-//			fail("Unexpected exception.");
-//		}
-//
-//
-//		// ################################################################################################################
-//		// Try again
-//		
-//		try (final Tx tx = user1App.tx()) {
-//			
-//			Group group = user1App.get(Group.class, groupId);
-//
-//			// Add user1 to group
-//			//group.addMember(user1);
-//			user1.setProperty(StructrApp.key(Principal.class, "groups"), Arrays.asList(group));
-//
-//			assertEquals(user1, group.getMembers().get(0));
-//			
-//			tx.success();
-//			
-//		} catch (FrameworkException t) {
-//
-//			logger.warn("", t);
-//			fail("Unexpected exception.");
-//
-//		}		
-//	}
-	
+	@Test
+	public void testGroupPermissions() {
+
+		Principal deleter = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.getType("Principal");
+
+			type.addStringProperty("test");
+			type.addMethod("onModification", "set_privileged(this, 'test', now)", "");
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (URISyntaxException | FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Group read        = app.create(Group.class, "READ");
+			final Group write       = app.create(Group.class, "WRITE");
+			final Group delete      = app.create(Group.class, "DELETE");
+			final Principal owner   = app.create(Principal.class, "owner");
+
+			deleter = app.create(Principal.class, "deleter");
+
+			// create object with "owner" as owner
+			final MailTemplate test = StructrApp.getInstance(SecurityContext.getInstance(owner, AccessMode.Backend)).create(MailTemplate.class, "testobject");
+
+			test.grant(Permission.read,   read);
+			test.grant(Permission.write,  write);
+			test.grant(Permission.delete, delete);
+
+			test.grant(Permission.delete, deleter);
+
+			read.addMember(deleter);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+
+		}
+
+		final App deleterApp = StructrApp.getInstance(SecurityContext.getInstance(deleter, AccessMode.Backend));
+
+		try (final Tx tx = deleterApp.tx()) {
+
+			final MailTemplate test = deleterApp.nodeQuery(MailTemplate.class).getFirst();
+
+			assertNotNull("Test object should be visible to user", test);
+
+			deleterApp.delete(test);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+
+		}
+
+	}
+
+
 	// ----- private methods -----
 	public static void clearResourceAccess() {
 

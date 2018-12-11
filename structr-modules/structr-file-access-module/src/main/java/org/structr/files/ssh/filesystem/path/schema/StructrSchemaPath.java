@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.Tx;
@@ -81,12 +82,12 @@ public class StructrSchemaPath extends StructrPath {
 
 					try (final Tx tx = app.tx()) {
 
-						for (final SchemaNode schemaNode : app.nodeQuery(SchemaNode.class).getAsList()) {
+						for (final SchemaNode schemaNode : app.nodeQuery(SchemaNode.class).sort(AbstractNode.name).getAsList()) {
 
 							nodes.add(new StructrSchemaNodePath(fs, StructrSchemaPath.this, schemaNode.getName()));
 						}
 
-						for (final SchemaRelationshipNode rel : app.nodeQuery(SchemaRelationshipNode.class).getAsList()) {
+						for (final SchemaRelationshipNode rel : app.nodeQuery(SchemaRelationshipNode.class).sort(AbstractNode.name).getAsList()) {
 
 							nodes.add(new StructrSchemaNodePath(fs, StructrSchemaPath.this, rel.getName()));
 						}

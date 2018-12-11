@@ -20,18 +20,24 @@ package org.structr.web.basic;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.File;
 import org.structr.web.entity.User;
 
@@ -75,34 +81,24 @@ public class SchemaMethodsTest extends FrontendTest {
 			logger.error("", ex);
 		}
 
-		try (final Tx tx = app.tx()) {
+		RestAssured
 
-			RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+			.body("{}")
+			.expect()
+				.statusCode(200)
 
-				.given()
-					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-					.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
-				.body("{}")
-				.expect()
-					.statusCode(200)
-
-				.when()
-					.post(builtinTypeName +"/" + schemaMethodName);
-
-			tx.success();
-
-		} catch (FrameworkException ex) {
-
-			logger.error(ex.toString());
-			fail("Unexpected exception");
-		}
-	}
+			.when()
+				.post(builtinTypeName +"/" + schemaMethodName);
+}
 
 	@Test
 	public void test02SchemaMethodOnCustomType() {
@@ -490,5 +486,102 @@ public class SchemaMethodsTest extends FrontendTest {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
+	}
+
+	@Test
+	public void testErrorMethodAndResponse() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Test");
+
+			type.addMethod("sendError", "error('test', 'test_error', 'errorrr')", "");
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			// create global schema method for JavaScript
+			app.create(SchemaMethod.class,
+				new NodeAttribute<>(SchemaMethod.name,   "globalTest1"),
+				new NodeAttribute<>(SchemaMethod.source, "{ Structr.find('Test')[0].sendError(); }")
+			);
+
+			// create global schema method for StructrScript
+			app.create(SchemaMethod.class,
+				new NodeAttribute<>(SchemaMethod.name,   "globalTest2"),
+				new NodeAttribute<>(SchemaMethod.source, "first(find('Test')).sendError")
+			);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			fail("Unexpected exception");
+			t.printStackTrace();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			// create instance of Test type to be able to call a method on
+			app.create(StructrApp.getConfiguration().getNodeEntityClass("Test"), "test");
+
+			// create admin user to call global schema methods with
+			createAdminUser();
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+			fail("Unexpected exception");
+			t.printStackTrace();
+		}
+
+			RestAssured
+
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+					.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+					.body("{}")
+
+				.expect()
+					.statusCode(422)
+					.body("code",                equalTo(422))
+					.body("message",             equalTo("Server-side scripting error"))
+					.body("errors[0].type",      equalTo("Test"))
+					.body("errors[0].property",  equalTo("test"))
+					.body("errors[0].token",     equalTo("test_error"))
+					.body("errors[0].detail",    equalTo("errorrr"))
+
+				.when()
+					.post("/maintenance/globalSchemaMethods/globalTest1");
+
+			RestAssured
+
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+					.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+					.body("{}")
+
+				.expect()
+					.statusCode(422)
+					.body("code",                equalTo(422))
+					.body("message",             equalTo("Server-side scripting error"))
+					.body("errors[0].type",      equalTo("Test"))
+					.body("errors[0].property",  equalTo("test"))
+					.body("errors[0].token",     equalTo("test_error"))
+					.body("errors[0].detail",    equalTo("errorrr"))
+
+				.when()
+					.post("/maintenance/globalSchemaMethods/globalTest2");
 	}
 }

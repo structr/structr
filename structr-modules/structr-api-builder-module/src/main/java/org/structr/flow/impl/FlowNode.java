@@ -29,7 +29,6 @@ import org.structr.core.property.StartNode;
 import org.structr.flow.api.FlowElement;
 import org.structr.flow.impl.rels.FlowContainerFlowNode;
 
-import java.util.List;
 
 /**
  *
@@ -37,9 +36,9 @@ import java.util.List;
 public abstract class FlowNode extends FlowBaseNode implements FlowElement {
 
 	public static final Property<FlowContainer> isStartNodeOfContainer = new StartNode<>("isStartNodeOfContainer", FlowContainerFlowNode.class);
-	public static final Property<List<FlowNode>> prev                        = new StartNodes<>("prev", FlowNodes.class);
+	public static final Property<Iterable<FlowNode>> prev              = new StartNodes<>("prev", FlowNodes.class);
 	public static final Property<FlowNode> next                        = new EndNode<>("next", FlowNodes.class);
-	public static final Property<FlowForEach> prevForEach			   = new StartNode<>("prevForEach", FlowForEachBody.class);
+	public static final Property<FlowForEach> prevForEach              = new StartNode<>("prevForEach", FlowForEachBody.class);
 
 	public static final View defaultView = new View(FlowNode.class, PropertyView.Public, prev, next, isStartNodeOfContainer);
 	public static final View uiView      = new View(FlowNode.class, PropertyView.Ui,     prev, next, isStartNodeOfContainer);

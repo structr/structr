@@ -18,20 +18,19 @@
  */
 package org.structr.crawler;
 
-import java.util.List;
 import org.structr.common.View;
 import org.structr.core.property.*;
 
 public class SourcePage extends CrawlerTreeNode {
 
-	public static final Property<List<SourcePattern>> patterns    = new EndNodes<>("patterns",    SourcePageUSESourcePattern.class);
-	public static final Property<List<SourcePage>>    subPages    = new EndNodes<>("subPages",    SourcePageSUBSourcePage.class);
-	public static final Property<SourceSite>          site        = new StartNode<>("site",       SourceSiteCONTAINSSourcePage.class);
-	public static final Property<SourcePage>          parentPage  = new StartNode<>("parentPage", SourcePageSUBSourcePage.class);
-	public static final Property<SourcePattern>       subPageOf   = new StartNode<>("subPageOf",  SourcePatternSUBPAGESourcePage.class);
- 
-	public static final Property<String>              url         = new StringProperty("url").indexed();
-	public static final Property<Boolean>             isLoginPage = new BooleanProperty("isLoginPage").indexed();
+	public static final Property<Iterable<SourcePattern>> patterns    = new EndNodes<>("patterns",    SourcePageUSESourcePattern.class);
+	public static final Property<Iterable<SourcePage>>    subPages    = new EndNodes<>("subPages",    SourcePageSUBSourcePage.class);
+	public static final Property<SourceSite>              site        = new StartNode<>("site",       SourceSiteCONTAINSSourcePage.class);
+	public static final Property<SourcePage>              parentPage  = new StartNode<>("parentPage", SourcePageSUBSourcePage.class);
+	public static final Property<SourcePattern>           subPageOf   = new StartNode<>("subPageOf",  SourcePatternSUBPAGESourcePage.class);
+
+	public static final Property<String>                  url         = new StringProperty("url").indexed();
+	public static final Property<Boolean>                 isLoginPage = new BooleanProperty("isLoginPage").indexed();
 
 	public static final View uiView = new View(SourcePage.class, "ui",
 		patterns, subPages, site, parentPage, subPageOf, url, isLoginPage
@@ -40,5 +39,5 @@ public class SourcePage extends CrawlerTreeNode {
 	public static final View publicView = new View(SourcePage.class, "public",
 		name, type, id
 	);
-	
+
 }

@@ -23,19 +23,13 @@ import org.structr.common.error.FrameworkException;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * A resource constraint that implements the generic ability to
- * wrap another constraint.
- *
- *
+ * A resource that implements the generic ability to
+ * wrap another resource.
  */
 public abstract class WrappingResource extends Resource {
 
 	protected Resource wrappedResource = null;
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
@@ -43,13 +37,12 @@ public abstract class WrappingResource extends Resource {
 		if (wrappedResource != null) {
 
 			return wrappedResource.doPost(propertySet);
-
 		}
 
 		throw new IllegalPathException("PUT not allowed on " + getResourceSignature());
 	}
 
-	protected void wrapResource(Resource wrappedResource) {
+	protected void wrapResource(final Resource wrappedResource) {
 		this.wrappedResource = wrappedResource;
 	}
 
@@ -61,13 +54,10 @@ public abstract class WrappingResource extends Resource {
 			((WrappingResource) next).wrapResource(this);
 
 			return next;
-
 		}
 
 		return null;
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public Class getEntityClass() {
@@ -75,7 +65,6 @@ public abstract class WrappingResource extends Resource {
 		if (wrappedResource != null) {
 
 			return wrappedResource.getEntityClass();
-
 		}
 
 		return null;
@@ -88,11 +77,12 @@ public abstract class WrappingResource extends Resource {
 
 	@Override
 	public boolean isPrimitiveArray() {
+
 		if (wrappedResource != null) {
 
 			return wrappedResource.isPrimitiveArray();
-
 		}
+
 		return false;
 	}
 
@@ -102,9 +92,8 @@ public abstract class WrappingResource extends Resource {
 		if (wrappedResource != null) {
 
 			return wrappedResource.isCollectionResource();
-
 		}
 
-		throw new IllegalPathException("Unable to determine type of wrapped resource, this should not happen. Please report the URL that led to this error to team@structr.com. Thank you!");
+		return false;
 	}
 }

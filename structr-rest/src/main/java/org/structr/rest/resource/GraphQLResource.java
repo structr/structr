@@ -20,10 +20,10 @@ package org.structr.rest.resource;
 
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
@@ -68,7 +68,7 @@ public class GraphQLResource extends Resource {
 	}
 
 	@Override
-	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
+	public ResultStream doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
 		throw new IllegalMethodException("GraphQL endpoint supports POST only.");
 	}
 

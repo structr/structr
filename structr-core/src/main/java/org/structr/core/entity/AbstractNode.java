@@ -22,7 +22,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -35,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.WeakHashMap;
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
@@ -44,6 +42,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseService;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
@@ -64,7 +63,6 @@ import org.structr.cmis.info.CMISPolicyInfo;
 import org.structr.cmis.info.CMISRelationshipInfo;
 import org.structr.cmis.info.CMISSecondaryInfo;
 import org.structr.common.AccessControllable;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
 import org.structr.common.PermissionPropagation;
 import org.structr.common.PermissionResolutionMask;
@@ -108,28 +106,29 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	private static final FixedSizeCache<String, Object> relationshipTemplateInstanceCache                 = new FixedSizeCache<>(1000);
 	private static final Map<Long, Map<Long, PermissionResolutionResult>> globalPermissionResolutionCache = new HashMap<>();
 
-	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
+	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type, name);
 
 	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
 		id, name, owner, type, createdBy, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers
 	);
 
-	private final Map<AbstractNode, Map<String, Object>> tmpStorageContainer = new WeakHashMap<>(2);
-	public boolean internalSystemPropertiesUnlocked                          = false;
-	private Relationship rawPathSegment                                      = null;
-	private boolean readOnlyPropertiesUnlocked                               = false;
-	private boolean isCreation                                               = false;
-	protected String cachedUuid                                              = null;
-	protected SecurityContext securityContext                                = null;
-	protected Principal cachedOwnerNode                                      = null;
-	protected Class entityType                                               = null;
-	protected Node dbNode                                                    = null;
+	private Map<String, Object> tmpStorageContainer = null;
+	public boolean internalSystemPropertiesUnlocked = false;
+	private long rawPathSegmentId                   = -1;
+	private long sourceTransactionId                = -1;
+	private boolean readOnlyPropertiesUnlocked      = false;
+	private boolean isCreation                      = false;
+	protected String cachedUuid                     = null;
+	protected SecurityContext securityContext       = null;
+	protected Principal cachedOwnerNode             = null;
+	protected Class entityType                      = null;
+	protected Node dbNode                           = null;
 
 	public AbstractNode() {
 	}
 
-	public AbstractNode(SecurityContext securityContext, final Node dbNode, final Class entityType) {
-		init(securityContext, dbNode, entityType, false);
+	public AbstractNode(SecurityContext securityContext, final Node dbNode, final Class entityType, final long sourceTransactionId) {
+		init(securityContext, dbNode, entityType, false, sourceTransactionId);
 	}
 
 	@Override
@@ -146,12 +145,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public final void init(final SecurityContext securityContext, final Node dbNode, final Class entityType, final boolean isCreation) {
+	public final void init(final SecurityContext securityContext, final Node dbNode, final Class entityType, final boolean isCreation, final long sourceTransactionId) {
 
-		this.isCreation      = isCreation;
-		this.dbNode          = dbNode;
-		this.entityType      = entityType;
-		this.securityContext = securityContext;
+		this.sourceTransactionId = sourceTransactionId;
+		this.isCreation          = isCreation;
+		this.dbNode              = dbNode;
+		this.entityType          = entityType;
+		this.securityContext     = securityContext;
 
 		// simple validity check
 		if (dbNode != null && !this.isGenericNode()) {
@@ -164,6 +164,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				logger.error("{} {} failed validity check: actual type in node with ID {}: {}", typeName, getUuid(), dbNode.getId(), typeValue);
 			}
 		}
+	}
+
+	@Override
+	public long getSourceTransactionId() {
+		return sourceTransactionId;
 	}
 
 	@Override
@@ -333,16 +338,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public final PropertyKey getDefaultSortKey() {
-		return AbstractNode.name;
-	}
-
-	@Override
-	public final String getDefaultSortOrder() {
-		return GraphObjectComparator.ASCENDING;
-	}
-
-	@Override
 	public final String getType() {
 		return getProperty(AbstractNode.type);
 	}
@@ -433,7 +428,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		// check for custom view in content-type field
 		if (securityContext != null && securityContext.hasCustomView()) {
 
-			final Set<PropertyKey> keys = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(entityType, propertyView));
+			final Set<PropertyKey> keys = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All));
 			final Set<String> customView = securityContext.getCustomView();
 
 			for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {
@@ -1583,7 +1578,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		try {
 
-			result = Scripting.replaceVariables(renderContext, this, value);
+			result = Scripting.replaceVariables(renderContext, this, value, true);
 
 		} catch (Throwable t) {
 
@@ -1603,9 +1598,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				return getOwnerNode();
 
 			case "_path":
-				if (rawPathSegment != null) {
+				if (rawPathSegmentId != -1) {
 
-					return new RelationshipFactory<>(actionContext.getSecurityContext()).adapt(rawPathSegment);
+					final SecurityContext currentSecurityContext = actionContext.getSecurityContext();
+					final DatabaseService databaseService        = StructrApp.getInstance(currentSecurityContext).getDatabaseService();
+					final Relationship rawPathSegment            = databaseService.getRelationshipById(rawPathSegmentId);
+
+					return new RelationshipFactory<>(currentSecurityContext).adapt(rawPathSegment);
 
 				} else {
 
@@ -1837,13 +1836,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public final void setRawPathSegment(final Relationship rawPathSegment) {
-		this.rawPathSegment = rawPathSegment;
-	}
-
-	@Override
-	public final Relationship getRawPathSegment() {
-		return rawPathSegment;
+	public final void setRawPathSegmentId(final long rawPathSegmentId) {
+		this.rawPathSegmentId = rawPathSegmentId;
 	}
 
 	public final void revokeAll() throws FrameworkException {
@@ -1865,29 +1859,25 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		final List<Security> grants = Iterables.toList(getIncomingRelationshipsAsSuperUser(Security.class));
 
 		// sort list by principal name (important for diff'able export)
-		Collections.sort(grants, new Comparator<Security>() {
+		Collections.sort(grants, (o1, o2) -> {
 
-			@Override
-			public int compare(final Security o1, final Security o2) {
+			final Principal p1 = o1.getSourceNode();
+			final Principal p2 = o2.getSourceNode();
+			final String n1    = p1 != null ? p1.getProperty(AbstractNode.name) : "empty";
+			final String n2    = p2 != null ? p2.getProperty(AbstractNode.name) : "empty";
 
-				final Principal p1 = o1.getSourceNode();
-				final Principal p2 = o2.getSourceNode();
-				final String n1    = p1 != null ? p1.getProperty(AbstractNode.name) : "empty";
-				final String n2    = p2 != null ? p2.getProperty(AbstractNode.name) : "empty";
+			if (n1 != null && n2 != null) {
+				return n1.compareTo(n2);
 
-				if (n1 != null && n2 != null) {
-					return n1.compareTo(n2);
+			} else if (n1 != null) {
 
-				} else if (n1 != null) {
+				return 1;
 
-					return 1;
-
-				} else if (n2 != null) {
-					return -1;
-				}
-
-				return 0;
+			} else if (n2 != null) {
+				return -1;
 			}
+
+			return 0;
 		});
 
 		return grants;
@@ -2049,14 +2039,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	@Override
 	public synchronized Map<String, Object> getTemporaryStorage() {
 
-		Map<String, Object> tmp = tmpStorageContainer.get(this);
-		if (tmp == null) {
-
-			tmp = new LinkedHashMap<>();
-			tmpStorageContainer.put(this, tmp);
+		if (tmpStorageContainer == null) {
+			tmpStorageContainer = new LinkedHashMap<>();
 		}
 
-		return tmp;
+		return tmpStorageContainer;
 	}
 
 	protected boolean isGenericNode() {

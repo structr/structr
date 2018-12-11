@@ -120,32 +120,25 @@ var _Code = {
 		$.jstree.defaults.dnd.large_drop_target = true;
 
 		codeTree.on('select_node.jstree', function(evt, data) {
-
+			$('#code-button-container').empty();
 			if (data.node && data.node.data && data.node.data.type) {
-
-				if (data.node.data.type === 'SchemaMethod') {
-
-					_Code.displayMethodContents(data.node.id);
-
-				} else {
-
-					if (data.node.state.opened) {
-						codeTree.jstree('close_node', data.node.id);
-						data.node.state.openend = false;
-					} else {
-						codeTree.jstree('open_node', data.node.id);
-						data.node.state.openend = true;
-					}
+				switch (data.node.data.type) {
+					case 'SchemaMethod':
+						_Code.displayMethodContents(data.node.id);
+						break;
+					case 'SchemaNode':
+						_Code.displayCreateButtons(true, false, false, data.node.id);
+						break;
 				}
-
 			} else {
 
-				if (data.node.state.opened) {
-					codeTree.jstree('close_node', data.node.id);
-					data.node.state.openend = false;
-				} else {
-					codeTree.jstree('open_node', data.node.id);
-					data.node.state.openend = true;
+				switch (data.node.id) {
+					case 'globals':
+						_Code.displayCreateButtons(false, true, false, '');
+						break;
+					case 'custom':
+						_Code.displayCreateButtons(false, false, true, '');
+						break;
 				}
 			}
 		});
@@ -234,8 +227,13 @@ var _Code = {
 		var displayFunction = function (result) {
 
 			var list = [];
-                        
+
 			result.forEach(function(d) {
+
+				// skip internal schema methods
+				if (d.type === 'SchemaMethod' && d.isPartOfBuiltInSchema) {
+					return;
+				}
 
 				var icon = 'fa-file-code-o gray';
 				switch (d.type) {
@@ -392,11 +390,13 @@ var _Code = {
 
 				var buttonArea = $('#code-button-container');
 				buttonArea.empty();
-				buttonArea.append('<button id="resetMethod" disabled="disabled" class="disabled"><i title="Add Method" class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /> Cancel</button>');
-				buttonArea.append('<button id="saveMethod" disabled="disabled" class="disabled"><i title="Add Method" class="' + _Icons.getFullSpriteClass(_Icons.floppy_icon) + '" /> Save</button>');
+				buttonArea.append('<button id="resetMethod" disabled="disabled" class="disabled"><i title="Cancel" class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /> Cancel</button>');
+				buttonArea.append('<button id="saveMethod" disabled="disabled" class="disabled"><i title="Save" class="' + _Icons.getFullSpriteClass(_Icons.floppy_icon) + '" /> Save</button>');
+				buttonArea.append('<button id="deleteMethod"><i title="Delete" class="' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /> Delete</button>');
 
-				var codeResetButton = $('#resetMethod', buttonArea);
-				var codeSaveButton  = $('#saveMethod', buttonArea);
+				var codeResetButton  = $('#resetMethod', buttonArea);
+				var codeSaveButton   = $('#saveMethod', buttonArea);
+				var codeDeleteButton = $('#deleteMethod', buttonArea);
 
 				editor.on('change', function(cm, change) {
 
@@ -433,6 +433,15 @@ var _Code = {
 					codeSaveButton.prop("disabled", true).addClass('disabled');
 					codeResetButton.prop("disabled", true).addClass('disabled');
 
+				});
+
+				codeDeleteButton.on('click', function(e) {
+
+					e.preventDefault();
+					e.stopPropagation();
+					_Entities.deleteNode(codeDeleteButton, method, false, function() {
+						_TreeHelper.refreshTree('#code-tree');
+					});
 				});
 
 				_Code.resize();
@@ -476,6 +485,66 @@ var _Code = {
 			error: function(xhr, statusText, error) {
 				console.log(xhr, statusText, error);
 			}
+		});
+	},
+	displayCreateButtons: function(showCreateMethodsButton, showCreateGlobalButton, showCreateTypeButton, schemaNodeId) {
+
+		if (showCreateMethodsButton) {
+
+			Structr.fetchHtmlTemplate('code/method-button', {}, function(html) {
+
+				$('#code-button-container').append(html);
+
+				$('#add-method-button').on('click', function() {
+					_Code.createMethodAndRefreshTree('SchemaMethod', $('#schema-method-name').val() || 'unnamed', schemaNodeId);
+				});
+
+				$('#add-onCreate-button').on('click', function() {
+					_Code.createMethodAndRefreshTree('SchemaMethod', 'onCreate', schemaNodeId);
+				});
+
+				$('#add-onSave-button').on('click', function() {
+					_Code.createMethodAndRefreshTree('SchemaMethod', 'onSave', schemaNodeId);
+				});
+			});
+
+		}
+
+		if (showCreateGlobalButton) {
+
+			Structr.fetchHtmlTemplate('code/global-button', {}, function(html) {
+
+				$('#code-button-container').append(html);
+
+				$('#create-global-method-button').on('click', function() {
+					_Code.createMethodAndRefreshTree('SchemaMethod', $('#schema-method-name').val() || 'unnamed');
+				});
+			});
+
+		}
+
+		if (showCreateTypeButton) {
+
+			Structr.fetchHtmlTemplate('code/type-button', {}, function(html) {
+
+				$('#code-button-container').append(html);
+
+				$('#add-type-button').on('click', function() {
+					_Code.createMethodAndRefreshTree('SchemaNode', $('#schema-type-name').val());
+				});
+			});
+
+		}
+	},
+	createMethodAndRefreshTree: function(type, name, schemaNode) {
+
+		Command.create({
+			type: type,
+			name: name,
+			schemaNode: schemaNode,
+			source: ''
+		}, function() {
+			_TreeHelper.refreshTree('#code-tree');
 		});
 	}
 };

@@ -48,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.service.LicenseManager;
+import org.structr.api.util.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PermissionPropagation;
@@ -764,7 +765,7 @@ public class SchemaHelper {
 			}
 		}
 
-		final List<SchemaProperty> schemaProperties = entity.getSchemaProperties();
+		final List<SchemaProperty> schemaProperties = Iterables.toList(entity.getSchemaProperties());
 		if (schemaProperties != null) {
 
 			// sort properties to avoid initialization issues with notion properties
@@ -783,6 +784,7 @@ public class SchemaHelper {
 					}
 
 					logger.warn("Property name {} already present in type {}, renaming to {}", oldName, entity.getClassName(), propertyName);
+					logger.warn("Offending property is {} with ID {}, name {}, type {}", schemaProperty.getClass().getSimpleName(), schemaProperty.getUuid(), schemaProperty.getName(), schemaProperty.getPropertyType());
 
 					schemaProperty.setProperty(SchemaProperty.name, propertyName);
 				}
@@ -916,7 +918,7 @@ public class SchemaHelper {
 			}
 		}
 
-		final List<SchemaView> schemaViews = entity.getSchemaViews();
+		final Iterable<SchemaView> schemaViews = entity.getSchemaViews();
 		if (schemaViews != null) {
 
 			for (final SchemaView schemaView : schemaViews) {
@@ -932,7 +934,7 @@ public class SchemaHelper {
 					views.put(viewName, view);
 				}
 
-				final List<SchemaProperty> schemaProperties = schemaView.getProperty(SchemaView.schemaProperties);
+				final Iterable<SchemaProperty> schemaProperties = schemaView.getProperty(SchemaView.schemaProperties);
 
 				for (final SchemaProperty property : schemaProperties) {
 
@@ -1010,7 +1012,7 @@ public class SchemaHelper {
 			}
 		}
 
-		final List<SchemaMethod> schemaMethods = entity.getSchemaMethods();
+		final Iterable<SchemaMethod> schemaMethods = entity.getSchemaMethods();
 		if (schemaMethods != null) {
 
 			for (final SchemaMethod schemaMethod : schemaMethods) {
@@ -1129,6 +1131,7 @@ public class SchemaHelper {
 		src.append("import ").append(StructrApp.class.getName()).append(";\n");
 		src.append("import ").append(LinkedList.class.getName()).append(";\n");
 		src.append("import ").append(Collection.class.getName()).append(";\n");
+		src.append("import ").append(Iterables.class.getName()).append(";\n");
 		src.append("import ").append(Services.class.getName()).append(";\n");
 		src.append("import ").append(Actions.class.getName()).append(";\n");
 		src.append("import ").append(HashMap.class.getName()).append(";\n");
@@ -1273,7 +1276,7 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			src.append("\t\t").append(action.getSource("this", "arg0")).append(";\n");
+			src.append("\t\t").append(action.getSource("this", "arg0", false)).append(";\n");
 		}
 
 		src.append("\t}\n");
@@ -1292,7 +1295,7 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			src.append("\t\t").append(action.getSource("this", "arg0")).append(";\n");
+			src.append("\t\t").append(action.getSource("this", "arg0", false)).append(";\n");
 		}
 
 		src.append("\t}\n");
@@ -1311,7 +1314,7 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			src.append("\t\t").append(action.getSource("this", "arg0")).append(";\n");
+			src.append("\t\t").append(action.getSource("this", "arg0", true)).append(";\n");
 		}
 
 		src.append("\t}\n");
@@ -1332,7 +1335,7 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			src.append("\t\t\t").append(action.getSource("this", "arg0")).append(";\n");
+			src.append("\t\t\t").append(action.getSource("this", "arg0", false)).append(";\n");
 		}
 
 		src.append("\t\t} catch (FrameworkException fex) {\n");
@@ -1352,7 +1355,7 @@ public class SchemaHelper {
 
 			} else {
 
-				final String source                  = action.getSource("this", true);
+				final String source                  = action.getSource("this", true, false);
 				final String returnType              = action.getReturnType();
 				final Map<String, String> parameters = action.getParameters();
 
@@ -1450,7 +1453,7 @@ public class SchemaHelper {
 		src.append("(final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {\n\n");
 
 		src.append("\t\treturn ");
-		src.append(action.getSource("this", true));
+		src.append(action.getSource("this", true, false));
 		src.append(";\n\n");
 		src.append("\t}\n");
 	}
@@ -1851,6 +1854,7 @@ public class SchemaHelper {
 							.name(selectionName)
 							.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
 							.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(getGraphQLInputTypeForProperty(property)).build())
+							.field(GraphQLInputObjectField.newInputObjectField().name("_conj").type(Scalars.GraphQLString).build())
 							.build();
 
 						selectionTypes.put(selectionName, selectionType);
@@ -1900,6 +1904,7 @@ public class SchemaHelper {
 						.name(selectionName)
 						.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
 						.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(getGraphQLInputTypeForProperty(property)).build())
+						.field(GraphQLInputObjectField.newInputObjectField().name("_conj").type(Scalars.GraphQLString).build())
 						.build();
 
 					selectionTypes.put(selectionName, selectionType);
@@ -1918,6 +1923,7 @@ public class SchemaHelper {
 					.name("nameSelection")
 					.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
 					.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(Scalars.GraphQLString).build())
+					.field(GraphQLInputObjectField.newInputObjectField().name("_conj").type(Scalars.GraphQLString).build())
 					.build();
 
 				selectionTypes.put("nameSelection", selectionType);

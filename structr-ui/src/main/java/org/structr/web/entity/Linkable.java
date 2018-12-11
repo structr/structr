@@ -45,6 +45,7 @@ public interface Linkable extends NodeInterface {
 
 		// view configuration
 		type.addViewProperty(PropertyView.Ui, "linkingElements");
+		type.addViewProperty(PropertyView.Ui, "linkingElementsIds");
 	}}
 
 	boolean getEnableBasicAuth();

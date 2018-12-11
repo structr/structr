@@ -18,7 +18,6 @@
  */
 package org.structr.javaparser.entity;
 
-import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
@@ -35,15 +34,15 @@ import org.structr.javaparser.entity.relation.MethodsCallMethods;
  *
  */
 public class Method extends AbstractNode {
-	
+
 	public static final Property<org.structr.javaparser.entity.ClassOrInterface> classOrInterface   = new StartNode<>("classOrInterface", ClassMethods.class);
 	public static final Property<String>    declaration                                             = new StringProperty("declaration").indexed();
 	public static final Property<String>    body                                                    = new StringProperty("body"); // .indexed();
 	public static final Property<Boolean>   resolved                                                = new BooleanProperty("resolved").indexed();
-	                              
-	public static final Property<List<Method>> callingMethods                                       = new StartNodes<>("callingMethods", MethodsCallMethods.class);
-	public static final Property<List<Method>> methodsCalled                                        = new EndNodes<>("methodsCalled", MethodsCallMethods.class);
-	
+
+	public static final Property<Iterable<Method>> callingMethods                                   = new StartNodes<>("callingMethods", MethodsCallMethods.class);
+	public static final Property<Iterable<Method>> methodsCalled                                    = new EndNodes<>("methodsCalled", MethodsCallMethods.class);
+
 	public static final View defaultView = new View(Method.class, PropertyView.Public, name, classOrInterface);
 	public static final View uiView      = new View(Method.class, PropertyView.Ui,     name, classOrInterface, body, resolved, callingMethods, methodsCalled);
 }

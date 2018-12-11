@@ -4,7 +4,7 @@
 
 <h3>Save Layout Configuration</h3>
 <p>Save the current layout configuration to backend (available to every backend user). This includes positions, visibility, zoom level, connector style and visibility of relationship labels.</p>
-<p><input id="save-layout-filename" placeholder="Enter name for layout"><button id="save-layout-file"><i class="${_Icons.getFullSpriteClass(_Icons.floppy_icon)}" /> Save Layout</button></p>
+<p><input id="layout-filename" placeholder="Enter name for layout"><button id="create-layout-file" title="Creates a layout. If it already exists this will result in an error (to protect from accidental overwrite)"><i class="${_Icons.getFullSpriteClass(_Icons.floppy_icon)}" /> Create Layout</button><button id="overwrite-layout-file" title="Overwrites/creates a layout. If a layout with the given name already exists it will be overwritten."><i class="${_Icons.getFullSpriteClass(_Icons.floppy_icon)}" /> Overwrite Layout</button></p>
 
 <h3>Available Layout Configurations</h3>
 <select id="saved-layout-selector"></select>

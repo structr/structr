@@ -26,11 +26,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.odftoolkit.simple.TextDocument;
+import org.structr.api.util.Iterables;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -77,11 +78,11 @@ public interface ODTExporter extends ODFExporter {
 		try {
 
 			final App app = StructrApp.getInstance();
-			final Result result = app.nodeQuery(AbstractNode.class).and(GraphObject.id, uuid).getResult();
-			final Result transformedResult = transformation.transformOutput(securityContext, AbstractNode.class, result);
+			final ResultStream result = app.nodeQuery(AbstractNode.class).and(GraphObject.id, uuid).getResultStream();
+			final ResultStream transformedResult = transformation.transformOutput(securityContext, AbstractNode.class, result);
 
 			Map<String, Object> nodeProperties = new HashMap<>();
-			GraphObjectMap node = (GraphObjectMap) transformedResult.get(0);
+			GraphObjectMap node = (GraphObjectMap) Iterables.first(transformedResult);
 			node.getPropertyKeys(null).forEach(
 				p -> nodeProperties.put(p.dbName(), node.getProperty(p))
 			);

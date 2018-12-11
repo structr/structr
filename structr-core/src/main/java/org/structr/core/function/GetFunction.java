@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -63,10 +64,10 @@ public class GetFunction extends Function<Object, Object> {
 			}
 
 			// handle first element of a list of graph objects
-			if (sources[0] instanceof List) {
+			if (sources[0] instanceof Iterable) {
 
-				final List list = (List)sources[0];
-				final int size = list.size();
+				final List list = Iterables.toList((Iterable)sources[0]);
+				final int size  = list.size();
 
 				if (size == 1) {
 

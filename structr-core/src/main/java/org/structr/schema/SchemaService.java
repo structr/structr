@@ -33,7 +33,6 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import java.lang.reflect.Modifier;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -51,7 +50,9 @@ import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.Service;
+import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.StructrServices;
+import org.structr.api.util.Iterables;
 import org.structr.common.AccessPathCache;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
@@ -66,6 +67,7 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
@@ -74,14 +76,15 @@ import org.structr.schema.compiler.BlacklistUnlicensedTypes;
 import org.structr.schema.compiler.ExtendNotionPropertyWithUuid;
 import org.structr.schema.compiler.MigrationHandler;
 import org.structr.schema.compiler.NodeExtender;
+import org.structr.schema.compiler.RemoveDuplicateClasses;
 import org.structr.schema.compiler.RemoveMethodsWithUnusedSignature;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.JsonSchema;
 
 /**
- *
- *
+ * Structr Schema Service for dynamic class support at runtime.
  */
+@ServiceDependency(NodeService.class)
 public class SchemaService implements Service {
 
 	public static final URI DynamicSchemaRootURI                  = URI.create("https://structr.org/v2.0/#");
@@ -99,6 +102,7 @@ public class SchemaService implements Service {
 		migrationHandlers.add(new RemoveMethodsWithUnusedSignature());
 		migrationHandlers.add(new ExtendNotionPropertyWithUuid());
 		migrationHandlers.add(new BlacklistUnlicensedTypes());
+		migrationHandlers.add(new RemoveDuplicateClasses());
 	}
 
 	@Override
@@ -123,6 +127,7 @@ public class SchemaService implements Service {
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final App app                      = StructrApp.getInstance();
 		boolean success                    = true;
+		int retryCount                     = 2;
 
 		// compiling must only be done once
 		if (compiling.compareAndSet(false, true)) {
@@ -133,186 +138,226 @@ public class SchemaService implements Service {
 
 			try {
 
-				final Map<String, Map<String, PropertyKey>> removedClasses = new HashMap<>(config.getTypeAndPropertyMapping());
-				final Map<String, GraphQLType> graphQLTypes                = new LinkedHashMap<>();
-				final Map<String, SchemaNode> schemaNodes                  = new LinkedHashMap<>();
-				final NodeExtender nodeExtender                            = new NodeExtender(initiatedBySessionId);
-				final Set<String> dynamicViews                             = new LinkedHashSet<>();
-
 				try (final Tx tx = app.tx()) {
 
-					// collect auto-generated schema nodes
-					SchemaService.ensureBuiltinTypesExist(app);
+					while (retryCount-- > 0) {
 
-					// collect list of schema nodes
-					app.nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
+						final Map<String, Map<String, PropertyKey>> removedClasses = new HashMap<>(config.getTypeAndPropertyMapping());
+						final Map<String, GraphQLType> graphQLTypes                = new LinkedHashMap<>();
+						final Map<String, SchemaNode> schemaNodes                  = new LinkedHashMap<>();
+						final NodeExtender nodeExtender                            = new NodeExtender(initiatedBySessionId);
+						final Set<String> dynamicViews                             = new LinkedHashSet<>();
 
-					// check licenses prior to source code generation
-					for (final SchemaNode schemaInfo : schemaNodes.values()) {
-						blacklist.addAll(SchemaHelper.getUnlicensedTypes(schemaInfo));
-					}
+						// collect auto-generated schema nodes
+						SchemaService.ensureBuiltinTypesExist(app);
 
-					// add schema nodes from database
-					for (final SchemaNode schemaInfo : schemaNodes.values()) {
+						// collect list of schema nodes
+						app.nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
 
-						final String name = schemaInfo.getName();
-						if (blacklist.contains(name)) {
-
-							continue;
+						// check licenses prior to source code generation
+						for (final SchemaNode schemaInfo : schemaNodes.values()) {
+							blacklist.addAll(SchemaHelper.getUnlicensedTypes(schemaInfo));
 						}
 
-						schemaInfo.handleMigration();
+						// add schema nodes from database
+						for (final SchemaNode schemaInfo : schemaNodes.values()) {
 
-						final String sourceCode = SchemaHelper.getSource(schemaInfo, schemaNodes, blacklist, errorBuffer);
-						if (sourceCode != null) {
+							final String name = schemaInfo.getName();
+							if (blacklist.contains(name)) {
 
-							final String className = schemaInfo.getClassName();
+								continue;
+							}
 
-							// only load dynamic node if there were no errors while generating
-							// the source code (missing modules etc.)
-							nodeExtender.addClass(className, sourceCode);
-							dynamicViews.addAll(schemaInfo.getDynamicViews());
+							schemaInfo.handleMigration();
 
-							// initialize GraphQL engine as well
-							schemaInfo.initializeGraphQL(schemaNodes, graphQLTypes, blacklist);
+							final String sourceCode = SchemaHelper.getSource(schemaInfo, schemaNodes, blacklist, errorBuffer);
+							if (sourceCode != null) {
+
+								final String className = schemaInfo.getClassName();
+
+								// only load dynamic node if there were no errors while generating
+								// the source code (missing modules etc.)
+								nodeExtender.addClass(className, sourceCode);
+								dynamicViews.addAll(schemaInfo.getDynamicViews());
+
+								// initialize GraphQL engine as well
+								schemaInfo.initializeGraphQL(schemaNodes, graphQLTypes, blacklist);
+							}
 						}
-					}
 
-					// collect relationship classes
-					for (final SchemaRelationshipNode schemaRelationship : app.nodeQuery(SchemaRelationshipNode.class).getAsList()) {
+						// collect relationship classes
+						for (final SchemaRelationshipNode schemaRelationship : app.nodeQuery(SchemaRelationshipNode.class).getAsList()) {
 
-						final String sourceType = schemaRelationship.getSchemaNodeSourceType();
-						final String targetType = schemaRelationship.getSchemaNodeTargetType();
+							final String sourceType = schemaRelationship.getSchemaNodeSourceType();
+							final String targetType = schemaRelationship.getSchemaNodeTargetType();
 
-						if (!blacklist.contains(sourceType) && !blacklist.contains(targetType)) {
+							if (!blacklist.contains(sourceType) && !blacklist.contains(targetType)) {
 
-							nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(schemaNodes, errorBuffer));
-							dynamicViews.addAll(schemaRelationship.getDynamicViews());
+								nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(schemaNodes, errorBuffer));
+								dynamicViews.addAll(schemaRelationship.getDynamicViews());
 
-							// initialize GraphQL engine as well
-							schemaRelationship.initializeGraphQL(graphQLTypes);
+								// initialize GraphQL engine as well
+								schemaRelationship.initializeGraphQL(graphQLTypes);
+							}
 						}
-					}
 
-					// this is a very critical section :)
-					synchronized (SchemaService.class) {
+						// this is a very critical section :)
+						synchronized (SchemaService.class) {
 
-						// clear propagating relationship cache
-						SchemaRelationshipNode.clearPropagatingRelationshipTypes();
+							// clear propagating relationship cache
+							SchemaRelationshipNode.clearPropagatingRelationshipTypes();
 
-						// compile all classes at once and register
-						final Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
+							// compile all classes at once and register
+							final Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
 
-						for (final Class newType : newTypes.values()) {
+							if (errorBuffer.hasError()) {
 
-							// instantiate classes to execute static initializer of helpers
-							try {
+								if (Settings.SchemAutoMigration.getValue()) {
 
-								// do full reload
-								config.registerEntityType(newType);
-								newType.newInstance();
+									logger.info("Attempting auto-migration of built-in schema..");
 
-							} catch (final Throwable t) {
+									// try to handle certain errors automatically
+									handleAutomaticMigration(errorBuffer);
 
-								// abstract classes and interfaces will throw errors here
-								if (newType.isInterface() || Modifier.isAbstract(newType.getModifiers())) {
-									// ignore
+									if (retryCount == 0) {
+
+										for (final ErrorToken token : errorBuffer.getErrorTokens()) {
+											logger.error("{}", token.toString());
+										}
+
+										return false;
+
+									} else {
+
+										// clear errors for next try
+										errorBuffer.getErrorTokens().clear();
+
+										// back to top..
+										continue;
+									}
+
 								} else {
 
-									// everything else is a severe problem and should be not only reported but also
-									// make the schema compilation fail (otherwise bad things will happen later)
-									errorBuffer.add(new InstantiationErrorToken(newType.getName(), t));
-									logger.error("Unable to instantiate dynamic entity {}", newType.getName(), t);
+									logger.error("Unable to compile dynamic schema, and automatic migration is not enabled. Please set application.schema.automigration = true in structr.conf to enable modification of existing schema classes.");
+								}
+
+							} else {
+
+								// no retry
+								retryCount = 0;
+							}
+
+							for (final Class newType : newTypes.values()) {
+
+								// instantiate classes to execute static initializer of helpers
+								try {
+
+									// do full reload
+									config.registerEntityType(newType);
+									newType.newInstance();
+
+								} catch (final Throwable t) {
+
+									// abstract classes and interfaces will throw errors here
+									if (newType.isInterface() || Modifier.isAbstract(newType.getModifiers())) {
+										// ignore
+									} else {
+
+										// everything else is a severe problem and should be not only reported but also
+										// make the schema compilation fail (otherwise bad things will happen later)
+										errorBuffer.add(new InstantiationErrorToken(newType.getName(), t));
+										logger.error("Unable to instantiate dynamic entity {}", newType.getName(), t);
+									}
+								}
+							}
+
+							// calculate difference between previous and new classes
+							removedClasses.keySet().removeAll(StructrApp.getConfiguration().getTypeAndPropertyMapping().keySet());
+						}
+
+						// create properties and views etc.
+						for (final SchemaNode schemaNode : schemaNodes.values()) {
+							schemaNode.createBuiltInSchemaEntities(errorBuffer);
+						}
+
+						success = !errorBuffer.hasError();
+
+						if (success) {
+
+							// prevent inheritance map from leaking
+							SearchCommand.clearInheritanceMap();
+							AccessPathCache.invalidate();
+
+							// clear relationship instance cache
+							AbstractNode.clearRelationshipTemplateInstanceCache();
+
+							// clear permission cache
+							AbstractNode.clearCaches();
+
+							// inject views in configuration provider
+							config.registerDynamicViews(dynamicViews);
+
+							if (Services.calculateHierarchy() || !Services.isTesting()) {
+
+								calculateHierarchy(schemaNodes);
+							}
+
+							if (Services.updateIndexConfiguration() || !Services.isTesting()) {
+
+								updateIndexConfiguration(removedClasses);
+							}
+
+							tx.success();
+
+
+							final GraphQLObjectType.Builder queryTypeBuilder         = GraphQLObjectType.newObject();
+							final Map<String, GraphQLInputObjectType> selectionTypes = new LinkedHashMap<>();
+							final Set<String> existingQueryTypeNames                 = new LinkedHashSet<>();
+
+							// register types in "Query" type
+							for (final Entry<String, GraphQLType> entry : graphQLTypes.entrySet()) {
+
+								final String className = entry.getKey();
+								final GraphQLType type = entry.getValue();
+
+								try {
+
+									// register type in query type
+									queryTypeBuilder.field(GraphQLFieldDefinition
+										.newFieldDefinition()
+										.name(className)
+										.type(new GraphQLList(type))
+										.argument(GraphQLArgument.newArgument().name("id").type(Scalars.GraphQLString).build())
+										.argument(GraphQLArgument.newArgument().name("type").type(Scalars.GraphQLString).build())
+										.argument(GraphQLArgument.newArgument().name("name").type(Scalars.GraphQLString).build())
+										.argument(GraphQLArgument.newArgument().name("_page").type(Scalars.GraphQLInt).build())
+										.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
+										.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
+										.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
+										.argument(SchemaHelper.getGraphQLQueryArgumentsForType(schemaNodes, selectionTypes, existingQueryTypeNames, className))
+									);
+
+								} catch (Throwable t) {
+									logger.warn("Unable to add GraphQL type {}: {}", className, t.getMessage());
+								}
+							}
+
+							// exchange graphQL schema after successful build
+							synchronized (SchemaService.class) {
+
+								try {
+
+									graphQLSchema = GraphQLSchema
+										.newSchema()
+										.query(queryTypeBuilder.name("Query").build())
+										.build(new LinkedHashSet<>(graphQLTypes.values()));
+
+								} catch (Throwable t) {
+									logger.warn("Unable to build GraphQL schema: {}", t.getMessage());
 								}
 							}
 						}
-
-						// calculate difference between previous and new classes
-						removedClasses.keySet().removeAll(StructrApp.getConfiguration().getTypeAndPropertyMapping().keySet());
-					}
-
-					// create properties and views etc.
-					for (final SchemaNode schemaNode : schemaNodes.values()) {
-						schemaNode.createBuiltInSchemaEntities(errorBuffer);
-					}
-
-					success = !errorBuffer.hasError();
-
-					if (success) {
-
-						// prevent inheritance map from leaking
-						SearchCommand.clearInheritanceMap();
-						AccessPathCache.invalidate();
-
-						// clear relationship instance cache
-						AbstractNode.clearRelationshipTemplateInstanceCache();
-
-						// clear permission cache
-						AbstractNode.clearCaches();
-
-						// inject views in configuration provider
-						config.registerDynamicViews(dynamicViews);
-
-						if (Services.calculateHierarchy() || !Services.isTesting()) {
-
-							calculateHierarchy(schemaNodes);
-						}
-
-						if (Services.updateIndexConfiguration() || !Services.isTesting()) {
-
-							updateIndexConfiguration(removedClasses);
-						}
-
-						tx.success();
-
-
-						final GraphQLObjectType.Builder queryTypeBuilder         = GraphQLObjectType.newObject();
-						final Map<String, GraphQLInputObjectType> selectionTypes = new LinkedHashMap<>();
-						final Set<String> existingQueryTypeNames                 = new LinkedHashSet<>();
-
-						// register types in "Query" type
-						for (final Entry<String, GraphQLType> entry : graphQLTypes.entrySet()) {
-
-							final String className = entry.getKey();
-							final GraphQLType type = entry.getValue();
-
-							try {
-
-								// register type in query type
-								queryTypeBuilder.field(GraphQLFieldDefinition
-									.newFieldDefinition()
-									.name(className)
-									.type(new GraphQLList(type))
-									.argument(GraphQLArgument.newArgument().name("id").type(Scalars.GraphQLString).build())
-									.argument(GraphQLArgument.newArgument().name("type").type(Scalars.GraphQLString).build())
-									.argument(GraphQLArgument.newArgument().name("name").type(Scalars.GraphQLString).build())
-									.argument(GraphQLArgument.newArgument().name("_page").type(Scalars.GraphQLInt).build())
-									.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
-									.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
-									.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
-									.argument(SchemaHelper.getGraphQLQueryArgumentsForType(schemaNodes, selectionTypes, existingQueryTypeNames, className))
-								);
-
-							} catch (Throwable t) {
-								logger.warn("Unable to add GraphQL type {}: {}", className, t.getMessage());
-							}
-						}
-
-						// exchange graphQL schema after successful build
-						synchronized (SchemaService.class) {
-
-							try {
-
-								graphQLSchema = GraphQLSchema
-									.newSchema()
-									.query(queryTypeBuilder.name("Query").build())
-									.build(new LinkedHashSet<>(graphQLTypes.values()));
-
-							} catch (Throwable t) {
-								logger.warn("Unable to build GraphQL schema: {}", t.getMessage());
-							}
-						}
-					}
+				}
 
 				} catch (FrameworkException fex) {
 
@@ -336,33 +381,6 @@ public class SchemaService implements Service {
 				if (!success) {
 
 					FlushCachesCommand.flushAll();
-
-					logger.error("Errors encountered during compilation:");
-					for (ErrorToken token : errorBuffer.getErrorTokens()) {
-						logger.error(" - {}", token.toString());
-					}
-
-					if (Settings.SchemAutoMigration.getValue()) {
-
-						logger.info("Attempting auto-migration...");
-
-						// handle migration in separate transaction
-						try (final Tx tx = app.tx()) {
-
-							// try to handle certain errors automatically
-							handleAutomaticMigration(errorBuffer);
-
-							tx.success();
-
-						} catch (FrameworkException fex) {
-
-						}
-
-					} else {
-
-						logger.error("Unable to compile dynamic schema, and automatic migration is not enabled. Please set application.schema.automigration = true in structr.conf to enable modification of existing schema classes.");
-
-					}
 				}
 
 			} finally {
@@ -452,8 +470,8 @@ public class SchemaService implements Service {
 			// calc hierarchy
 			for (final SchemaNode schemaNode : schemaNodes.values()) {
 
-				final int relCount = schemaNode.getProperty(SchemaNode.relatedFrom).size() + schemaNode.getProperty(SchemaNode.relatedTo).size();
-				final int level    = recursiveGetHierarchyLevel(schemaNodes, alreadyCalculated, schemaNode, 0);
+				final int relCount = Iterables.count(schemaNode.getProperty(SchemaNode.relatedFrom)) + Iterables.count(schemaNode.getProperty(SchemaNode.relatedTo));
+				final int level     = recursiveGetHierarchyLevel(schemaNodes, alreadyCalculated, schemaNode, 0);
 
 				schemaNode.setProperty(SchemaNode.hierarchyLevel, level);
 				schemaNode.setProperty(SchemaNode.relCount, relCount);

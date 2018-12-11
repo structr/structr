@@ -16,27 +16,27 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.resource;
+package org.structr.bolt.mapper;
 
-import org.structr.common.error.FrameworkException;
+import java.util.Map;
+import java.util.function.Function;
+import org.neo4j.driver.v1.Record;
+import org.structr.bolt.BoltDatabaseService;
+import org.structr.bolt.wrapper.MapResultWrapper;
 
 /**
- * A resource constraint that implements the generic ability to be
- * combined with a SortResource in order to sort the result
- * set.
- *
  *
  */
-public abstract class SortableResource extends FilterableResource {
+public class RecordMapMapper implements Function<Record, Map<String, Object>> {
+
+	private BoltDatabaseService db = null;
+
+	public RecordMapMapper(final BoltDatabaseService db) {
+		this.db = db;
+	}
 
 	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
-
-		if (next instanceof SortResource) {
-			((SortResource)next).wrapResource(this);
-			return next;
-		}
-
-		return super.tryCombineWith(next);
+	public Map<String, Object> apply(final Record t) {
+		return new MapResultWrapper(db, t.asMap());
 	}
 }

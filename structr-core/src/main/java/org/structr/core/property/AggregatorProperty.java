@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -27,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.Aggregation;
@@ -52,12 +52,12 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 	}
 
 	@Override
-	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public List<T> getProperty(SecurityContext securityContext, GraphObject currentObject, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject currentObject, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		if(currentObject != null && currentObject instanceof AbstractNode) {
 
@@ -68,9 +68,9 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 			for(Property property : aggregation.getAggregationProperties()) {
 
 				Object obj = sourceNode.getProperty(property);
-				if (obj != null && obj instanceof Collection) {
+				if (obj != null && obj instanceof Iterable) {
 
-					nodes.addAll((Collection)obj);
+					Iterables.addAll(nodes, (Iterable)obj);
 				}
 			}
 

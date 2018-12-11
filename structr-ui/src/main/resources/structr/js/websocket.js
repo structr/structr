@@ -397,7 +397,7 @@ function wsConnect() {
 
 				_Logger.log(_LogType.WS[command], result, data);
 
-				StructrModel.callCallback(data.callback, result);
+				StructrModel.callCallback(data.callback, data.data);
 
 			} else if (command.startsWith('LIST')) {
 

@@ -699,7 +699,7 @@ public class UiTest extends StructrUiTest {
 			image.getProperty(StructrApp.key(Image.class, "tnSmall"));
 			image.getProperty(StructrApp.key(Image.class, "tnMid"));
 
-			assertEquals("Image should have two thumbnails", 2, image.getThumbnails().size());
+			assertEquals("Image should have two thumbnails", 2, Iterables.count(image.getThumbnails()));
 
 			tx.success();
 

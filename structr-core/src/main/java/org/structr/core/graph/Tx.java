@@ -24,8 +24,6 @@ import org.structr.api.RetryException;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.StructrTransactionListener;
-import org.structr.core.TransactionSource;
-import org.structr.core.app.StructrApp;
 
 /**
  *
@@ -39,42 +37,40 @@ public class Tx implements AutoCloseable {
 	private boolean doValidation            = true;
 	private boolean doCallbacks             = true;
 	private boolean doNotifications         = true;
-	private TransactionCommand cmd          = null;
-	private StructrApp app                  = null;
 
-	public Tx(final SecurityContext securityContext, final StructrApp app) {
-		this(securityContext, app, true, true);
+	public Tx(final SecurityContext securityContext) {
+		this(securityContext, true, true);
 	}
 
-	public Tx(final SecurityContext securityContext, final StructrApp app, final boolean doValidation, final boolean doCallbacks) {
-		this(securityContext, app, doValidation, doCallbacks, ((securityContext == null) ? false : securityContext.doTransactionNotifications()));
+	public Tx(final SecurityContext securityContext, final boolean doValidation, final boolean doCallbacks) {
+		this(securityContext, doValidation, doCallbacks, ((securityContext == null) ? false : securityContext.doTransactionNotifications()));
 	}
 
-	public Tx(final SecurityContext securityContext, final StructrApp app, final boolean doValidation, final boolean doCallbacks, final boolean doNotifications) {
+	public Tx(final SecurityContext securityContext, final boolean doValidation, final boolean doCallbacks, final boolean doNotifications) {
 
 		this.securityContext = securityContext;
 		this.doNotifications = doNotifications;
 		this.doValidation    = doValidation;
 		this.doCallbacks     = doCallbacks;
-		this.app             = app;
 	}
 
 	public Tx begin() throws FrameworkException {
 
-		cmd = app.command(TransactionCommand.class).beginTx();
+		TransactionCommand.beginTx(securityContext);
 
 		return this;
 	}
 
 	public void success() throws FrameworkException {
-		cmd.commitTx(doValidation);
+
+		TransactionCommand.commitTx(securityContext, doValidation);
 		success = true;
 	}
 
 	@Override
 	public void close() throws FrameworkException {
 
-		final ModificationQueue modificationQueue = cmd.finishTx();
+		final ModificationQueue modificationQueue = TransactionCommand.finishTx();
 
 		if (success && guard.compareAndSet(false, true)) {
 
@@ -96,7 +92,7 @@ public class Tx implements AutoCloseable {
 							final Collection<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
 							for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
 
-								listener.afterCommit(securityContext, modificationEvents, cmd.getSource());
+								listener.afterCommit(securityContext, modificationEvents);
 							}
 						}
 
@@ -115,10 +111,6 @@ public class Tx implements AutoCloseable {
 		}
 	}
 
-	public void setSource(final TransactionSource source) {
-		cmd.setSource(source);
-	}
-
 	/**
 	 * Allow setting the securityContext if it was null.
 	 * Important for Login transactions.
@@ -126,13 +118,16 @@ public class Tx implements AutoCloseable {
 	 */
 	public void setSecurityContext(final SecurityContext sc) {
 
-		if (securityContext == null && cmd.securityContext == null) {
+		if (securityContext == null) {
 
 			if (sc.isSuperUserSecurityContext() == Boolean.FALSE) {
 
-				securityContext     = sc;
-				cmd.securityContext = sc;
+				securityContext = sc;
 			}
 		}
+	}
+
+	public void disableChangelog() {
+		TransactionCommand.disableChangelog();
 	}
 }

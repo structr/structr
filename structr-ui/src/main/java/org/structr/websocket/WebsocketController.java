@@ -34,12 +34,14 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.Predicate;
 import org.structr.api.graph.RelationshipType;
+import org.structr.api.util.Iterables;
+import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.StructrTransactionListener;
-import org.structr.core.TransactionSource;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.ModificationEvent;
@@ -85,7 +87,7 @@ public class WebsocketController implements StructrTransactionListener {
 		broadcast(webSocketData, null);
 	}
 
-	private void broadcast(final WebSocketMessage webSocketData, final String exemptedSessionId) {
+	private void broadcast(final WebSocketMessage webSocketData, final Predicate<String> receiverSessionPredicate) {
 
 		// session must be valid to be received by the client
 		webSocketData.setSessionValid(true);
@@ -93,7 +95,7 @@ public class WebsocketController implements StructrTransactionListener {
 		final String pagePath                        = webSocketData.getNodeDataStringValue("pagePath");
 		final String encodedPath                     = URIUtil.encodePath(pagePath);
 		final List<StructrWebSocket> clientsToRemove = new LinkedList<>();
-		final List<? extends GraphObject> result     = webSocketData.getResult();
+		final Iterable<? extends GraphObject> result = webSocketData.getResult();
 		final String command                         = webSocketData.getCommand();
 		final GraphObject obj                        = webSocketData.getGraphObject();
 
@@ -113,8 +115,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 				final SecurityContext securityContext = socket.getSecurityContext();
 
-				if (exemptedSessionId != null && exemptedSessionId.equals(securityContext.getSessionId())) {
-					// session id is supposed to be exempted from this broadcast message
+				if (receiverSessionPredicate != null && !receiverSessionPredicate.accept(securityContext.getSessionId())) {
 					continue;
 				}
 
@@ -136,7 +137,7 @@ public class WebsocketController implements StructrTransactionListener {
 					}
 				}
 
-				if (result != null && !result.isEmpty() && BroadcastCommands.contains(command)) {
+				if (result != null && BroadcastCommands.contains(command)) {
 
 					final WebSocketMessage clientData = webSocketData.copy();
 
@@ -177,28 +178,17 @@ public class WebsocketController implements StructrTransactionListener {
 		}
 	}
 
-	private <T extends GraphObject> List<T> filter(final SecurityContext securityContext, final List<T> all) {
-
-		List<T> filteredResult = new LinkedList<>();
-		for (T obj : all) {
-
-			if (securityContext.isVisible((AbstractNode) obj)) {
-
-				filteredResult.add(obj);
-			}
-		}
-
-		return filteredResult;
-
+	private <T extends GraphObject> Iterable<T> filter(final SecurityContext securityContext, final Iterable<T> all) {
+		return Iterables.filter(e -> { return securityContext.isVisible((AccessControllable)e); }, all);
 	}
 
 	// ----- interface StructrTransactionListener -----
 	@Override
-	public void beforeCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents, final TransactionSource source) {
+	public void beforeCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents) {
 	}
 
 	@Override
-	public void afterCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents, final TransactionSource source) {
+	public void afterCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents) {
 
 		for (final ModificationEvent event : modificationEvents) {
 
@@ -215,10 +205,8 @@ public class WebsocketController implements StructrTransactionListener {
 	}
 
 	@Override
-	public void simpleBroadcast(final String commandName, final Map<String, Object> data, final String exemptedSessionId) {
-
-		broadcast(MessageBuilder.forName(commandName).data(data).build(), exemptedSessionId);
-
+	public void simpleBroadcast(final String commandName, final Map<String, Object> data, final Predicate<String> sessionIdPredicate) {
+		broadcast(MessageBuilder.forName(commandName).data(data).build(), sessionIdPredicate);
 	}
 
 	// ----- private methods -----

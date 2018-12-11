@@ -19,7 +19,6 @@
 package org.structr.core.graph;
 
 import org.structr.api.Transaction;
-import org.structr.core.TransactionSource;
 
 /**
  *
@@ -27,10 +26,9 @@ import org.structr.core.TransactionSource;
  */
 public class TransactionReference implements Transaction {
 
-	private TransactionSource source = null;
-	private Transaction tx           = null;
-	private int referenceCount       = 0;
-	private boolean successful       = false;
+	private Transaction tx     = null;
+	private int referenceCount = 0;
+	private boolean successful = false;
 
 	public TransactionReference(final Transaction tx) {
 		this.tx          = tx;
@@ -52,18 +50,6 @@ public class TransactionReference implements Transaction {
 		referenceCount--;
 	}
 
-	public int getReferenceCount() {
-		return referenceCount;
-	}
-
-	public void setSource(final TransactionSource source) {
-		this.source = source;
-	}
-
-	public TransactionSource getSource() {
-		return source;
-	}
-
 	// ----- interface Transaction -----
 	@Override
 	public void failure() {
@@ -80,6 +66,11 @@ public class TransactionReference implements Transaction {
 			tx.success();
 			successful = true;
 		}
+	}
+
+	@Override
+	public long getTransactionId() {
+		return tx.getTransactionId();
 	}
 
 	@Override

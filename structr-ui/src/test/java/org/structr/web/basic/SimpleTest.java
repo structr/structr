@@ -470,7 +470,7 @@ public class SimpleTest extends StructrUiTest {
 			long t1 = System.currentTimeMillis();
 			long duration = t1 - t0;
 
-			assertTrue("Iteration of 100 nodes via getNextSibling should not take longer than 50ms, took " + duration + "!", duration < 50);
+			assertTrue("Iteration of 100 nodes via getNextSibling should not take longer than 100ms, took " + duration + "!", duration < 100);
 
 			tx.success();
 
@@ -947,7 +947,7 @@ public class SimpleTest extends StructrUiTest {
 			.header("X-XSS-Protection", "1;mode=block")
 			.header("Vary", "Accept-Encoding, User-Agent")
 			.header("Content-Length", "133")
-			.header("Server", "Jetty(9.4.9.v20180320)")
+			.header("Server", "Jetty(9.4.13.v20181111)")
 			.statusCode(200)
 			.when()
 			.get("http://127.0.0.1:8875/test");

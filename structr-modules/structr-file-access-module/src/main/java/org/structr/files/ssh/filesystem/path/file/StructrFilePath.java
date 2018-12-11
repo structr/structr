@@ -358,7 +358,7 @@ public class StructrFilePath extends StructrPath {
 			try (final Tx tx = app.tx()) {
 
 				// remove /files from path since it is a virtual directory
-				cachedActualFile = app.nodeQuery(AbstractFile.class).and(StructrApp.key(AbstractFile.class, "path"), filePath).getFirst();
+				cachedActualFile = app.nodeQuery(AbstractFile.class).and(StructrApp.key(AbstractFile.class, "path"), filePath).sort(AbstractNode.name).getFirst();
 
 				tx.success();
 

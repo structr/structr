@@ -89,10 +89,6 @@ public class FindFunction extends AbstractQueryFunction {
 				return ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED;
 			}
 
-			// experimental: disable result count, prevents instantiation
-			// of large collections just for counting all the objects..
-			securityContext.ignoreResultCount(true);
-
 			// extension for native javascript objects
 			if (sources.length == 2 && sources[1] instanceof Map) {
 

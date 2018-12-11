@@ -40,6 +40,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrTest;
@@ -211,10 +212,10 @@ public class ScriptingTest extends StructrTest {
 
 				// test contents of "targets" property
 				final Object targetNodesObject = sourceNode.getProperty(targetsProperty);
-				assertTrue("Invalid getProperty result for scripted association", targetNodesObject instanceof List);
+				assertTrue("Invalid getProperty result for scripted association", targetNodesObject instanceof Iterable);
 
-				final List list = (List)targetNodesObject;
-				assertEquals("Invalid getProperty result for scripted association", 5, list.size());
+				final Iterable iterable = (Iterable)targetNodesObject;
+				assertEquals("Invalid getProperty result for scripted association", 5, Iterables.count(iterable));
 			}
 
 			final GraphObject sourceNode = app.nodeQuery(sourceType).getFirst();
@@ -486,12 +487,12 @@ public class ScriptingTest extends StructrTest {
 	@Test
 	public void testCollectionOperations() {
 
-		final Class groupType                      = StructrApp.getConfiguration().getNodeEntityClass("Group");
-		final PropertyKey<List<Principal>> members = StructrApp.key(groupType, "members");
-		Group group            = null;
-		Principal user1         = null;
-		Principal user2         = null;
-		TestOne testOne        = null;
+		final Class groupType                          = StructrApp.getConfiguration().getNodeEntityClass("Group");
+		final PropertyKey<Iterable<Principal>> members = StructrApp.key(groupType, "members");
+		Group group                                    = null;
+		Principal user1                                = null;
+		Principal user2                                = null;
+		TestOne testOne                                = null;
 
 		// setup phase
 		try (final Tx tx = app.tx()) {
@@ -520,32 +521,32 @@ public class ScriptingTest extends StructrTest {
 			final ActionContext actionContext = new ActionContext(securityContext);
 
 			// test prerequisites
-			assertEquals("Invalid prerequisite",     1, group.getProperty(members).size());
+			assertEquals("Invalid prerequisite",     1, Iterables.count(group.getProperty(members)));
 			assertEquals("Invalid prerequisite", user2, Scripting.evaluate(actionContext, group, "${{ return Structr.find('Principal', { name: 'Tester2' })[0]; }}", "test"));
 
 			// test scripting association
 			Scripting.evaluate(actionContext, group, "${{ var group = Structr.find('Group')[0]; var users = group.members; users.push(Structr.find('Principal', { name: 'Tester2' })[0]); }}", "test");
-			assertEquals("Invalid scripted array operation result", 2, group.getProperty(members).size());
+			assertEquals("Invalid scripted array operation result", 2, Iterables.count(group.getProperty(members)));
 
 			// reset group
 			group.setProperty(members, Arrays.asList(new Principal[] { user1 } ));
 
 			// test prerequisites
-			assertEquals("Invalid prerequisite",     1, group.getProperty(members).size());
+			assertEquals("Invalid prerequisite",     1, Iterables.count(group.getProperty(members)));
 
 			// test direct push on member property
 			Scripting.evaluate(actionContext, group, "${{ var group = Structr.find('Group')[0]; group.members.push(Structr.find('Principal', { name: 'Tester2' })[0]); }}", "test");
-			assertEquals("Invalid scripted array operation result", 2, group.getProperty(members).size());
+			assertEquals("Invalid scripted array operation result", 2, Iterables.count(group.getProperty(members)));
 
 
 
 			// test scripting association
 			Scripting.evaluate(actionContext, group, "${{ var test = Structr.find('TestOne')[0]; var testSixs = test.manyToManyTestSixs; testSixs.push(Structr.find('TestSix')[0]); }}", "test");
-			assertEquals("Invalid scripted array operation result", 1, testOne.getProperty(TestOne.manyToManyTestSixs).size());
+			assertEquals("Invalid scripted array operation result", 1, Iterables.count(testOne.getProperty(TestOne.manyToManyTestSixs)));
 
 			// test direct push on member property
 			Scripting.evaluate(actionContext, group, "${{ var test = Structr.find('TestOne')[0]; var testSixs = test.manyToManyTestSixs.push(Structr.find('TestSix')[1]); }}", "test");
-			assertEquals("Invalid scripted array operation result", 2, testOne.getProperty(TestOne.manyToManyTestSixs).size());
+			assertEquals("Invalid scripted array operation result", 2, Iterables.count(testOne.getProperty(TestOne.manyToManyTestSixs)));
 
 
 			tx.success();
@@ -925,7 +926,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid trim() result", "test", Scripting.replaceVariables(ctx, testOne, "${trim('test   \t\t\t\r\r\r\n\n\n')}"));
 			assertEquals("Invalid trim() result", "test", Scripting.replaceVariables(ctx, testOne, "${trim('   \t\t\t\r\r\r\n\n\ntest   \t\t\t\r\r\r\n\n\n')}"));
 			assertEquals("Invalid trim() result", "test", Scripting.replaceVariables(ctx, testOne, "${trim('   test   ')}"));
-			assertEquals("Invalid trim() result with null value", null, Scripting.replaceVariables(ctx, testOne, "${trim(null)}"));
+			assertEquals("Invalid trim() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${trim(null)}"));
 			assertEquals("Invalid trim() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${trim(this.alwaysNull)}"));
 
 			// urlencode
@@ -943,7 +944,7 @@ public class ScriptingTest extends StructrTest {
 
 			// is
 			assertEquals("Invalid is() result", "true",  Scripting.replaceVariables(ctx, testOne,  "${is(\"true\", \"true\")}"));
-			assertEquals("Invalid is() result", null,    Scripting.replaceVariables(ctx, testOne,  "${is(\"false\", \"true\")}"));
+			assertEquals("Invalid is() result", "",      Scripting.replaceVariables(ctx, testOne,  "${is(\"false\", \"true\")}"));
 
 			// is + equal
 			assertEquals("Invalid is(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${is(equal(this.id, this.id), \"true\")}"));
@@ -956,8 +957,8 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid is(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${is(equal(\"23.44242222243633337234623462\", \"23.44242222243633337234623462\"), \"true\")}"));
 			assertEquals("Invalid is(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${is(equal(13, 013), \"true\")}"));
 			assertEquals("Invalid is(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${is(equal(13, \"013\"), \"true\")}"));
-			assertEquals("Invalid is(equal()) result", null,    Scripting.replaceVariables(ctx, testOne, "${is(equal(\"13\", \"013\"), \"true\")}"));
-			assertEquals("Invalid is(equal()) result", null,    Scripting.replaceVariables(ctx, testOne, "${is(equal(\"13\", \"00013\"), \"true\")}"));
+			assertEquals("Invalid is(equal()) result", "",      Scripting.replaceVariables(ctx, testOne, "${is(equal(\"13\", \"013\"), \"true\")}"));
+			assertEquals("Invalid is(equal()) result", "",      Scripting.replaceVariables(ctx, testOne, "${is(equal(\"13\", \"00013\"), \"true\")}"));
 
 			// if etc.
 			assertEquals("Invalid if() result", "true",  Scripting.replaceVariables(ctx, testOne,  "${if(\"true\", \"true\", \"false\")}"));
@@ -1475,7 +1476,7 @@ public class ScriptingTest extends StructrTest {
 
 			// test with interval larger than number of elements
 			assertEquals("Invalid slice() result for invalid inputs",
-				testOne.getProperty(TestOne.manyToManyTestSixs).toString(),
+				Iterables.toList(testOne.getProperty(TestOne.manyToManyTestSixs)).toString(),
 				Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 0, 1000)}")
 			);
 
@@ -1510,8 +1511,6 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid slice() result", testSixs.get(17), sliceResult5.get(2));
 			assertEquals("Invalid slice() result", testSixs.get(18), sliceResult5.get(3));
 			assertEquals("Invalid slice() result", testSixs.get(19), sliceResult5.get(4));
-
-
 
 			// first / last / nth with null
 			assertEquals("Invalid first() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${first(this.alwaysNull)}"));
@@ -1567,8 +1566,8 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid if(equal()) result", "String",  Scripting.replaceVariables(ctx, testOne, "${if(empty(this.alwaysNull), titleize(this.aString, '-'), this.alwaysNull)}"));
 			assertEquals("Invalid if(equal()) result", "String",  Scripting.replaceVariables(ctx, testOne, "${if(empty(this.aString), titleize(this.alwaysNull, '-'), this.aString)}"));
 
-			assertNull("Invalid result for special null value", Scripting.replaceVariables(ctx, testOne, "${null}"));
-			assertNull("Invalid result for special null value", Scripting.replaceVariables(ctx, testOne, "${if(equal(this.anInt, 15), \"selected\", null)}"));
+			assertEquals("Invalid result for special null value", "", Scripting.replaceVariables(ctx, testOne, "${null}"));
+			assertEquals("Invalid result for special null value", "", Scripting.replaceVariables(ctx, testOne, "${if(equal(this.anInt, 15), \"selected\", null)}"));
 
 			// tests from real-life examples
 			assertEquals("Invalid replacement result", "tile plan ", Scripting.replaceVariables(ctx, testOne, "tile plan ${plan.bannerTag}"));
@@ -1582,10 +1581,10 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid replacement result", "STRINGtrueFALSE", Scripting.replaceVariables(ctx, testOne, "${upper(this.aString)}${lower(true)}${upper(false)}"));
 
 			// null and NULL_STRING
-			assertEquals("Invalid result for ___NULL___", null, Scripting.replaceVariables(ctx, testOne, "${null}"));
-			assertEquals("Invalid result for ___NULL___", null, Scripting.replaceVariables(ctx, testOne, "${___NULL___}"));
-			assertEquals("Invalid result for ___NULL___", null, Scripting.replaceVariables(ctx, testOne, "${is(true, ___NULL___)}"));
-			assertEquals("Invalid result for ___NULL___", null, Scripting.replaceVariables(ctx, testOne, "${is(false, ___NULL___)}"));
+			assertEquals("Invalid result for ___NULL___", "", Scripting.replaceVariables(ctx, testOne, "${null}"));
+			assertEquals("Invalid result for ___NULL___", "", Scripting.replaceVariables(ctx, testOne, "${___NULL___}"));
+			assertEquals("Invalid result for ___NULL___", "", Scripting.replaceVariables(ctx, testOne, "${is(true, ___NULL___)}"));
+			assertEquals("Invalid result for ___NULL___", "", Scripting.replaceVariables(ctx, testOne, "${is(false, ___NULL___)}"));
 			assertEquals("Invalid result for ___NULL___", "xy", Scripting.replaceVariables(ctx, testOne, "x${___NULL___}y"));
 			assertEquals("Invalid result for ___NULL___", "xz", Scripting.replaceVariables(ctx, testOne, "x${is(true, ___NULL___)}z"));
 			assertEquals("Invalid result for ___NULL___", "xz", Scripting.replaceVariables(ctx, testOne, "x${is(false, ___NULL___)}z"));
@@ -1631,7 +1630,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid replace() result", "equal", Scripting.replaceVariables(ctx, testOne, "${if(equal(2, 2),\n    (\"equal\"),\n    (\"not equal\")\n)}"));
 			assertEquals("Invalid replace() result", "not equal", Scripting.replaceVariables(ctx, testOne, "${if(equal(2, 3),\n    (\"equal\"),\n    (\"not equal\")\n)}"));
 
-			assertEquals("Invalid keys() / join() result", "id,name,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers", Scripting.replaceVariables(ctx, testOne, "${join(keys(this, 'ui'), ',')}"));
+			assertEquals("Invalid keys() / join() result", "owner,createdBy,hidden,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,id,type,createdDate,name", Scripting.replaceVariables(ctx, testOne, "${join(keys(this, 'ui'), ',')}"));
 			assertEquals("Invalid values() / join() result", "A-nice-little-name-for-my-test-object,1,String", Scripting.replaceVariables(ctx, testOne, "${join(values(this, 'protected'), ',')}"));
 
 			// test default values
@@ -1853,6 +1852,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid sort result", "[b, a, c]", Scripting.replaceVariables(ctx, null, "${merge('b', 'a', 'c')}"));
 			assertEquals("Invalid sort result", "[a, b, c]", Scripting.replaceVariables(ctx, null, "${sort(merge('b', 'a', 'c'))}"));
 			assertEquals("Invalid sort result", "",          Scripting.replaceVariables(ctx, null, "${sort()}"));
+			assertEquals("Invalid sort result", "[TestSix19, TestSix18, TestSix17, TestSix16, TestSix15, TestSix14, TestSix13, TestSix12, TestSix11, TestSix10, TestSix09, TestSix08, TestSix07, TestSix06, TestSix05, TestSix04, TestSix03, TestSix02, TestSix01, TestSix00]",          Scripting.replaceVariables(ctx, testOne, "${extract(sort(this.manyToManyTestSixs, 'index', true), 'name')}"));
 			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this, this.testTwo, this.testThree), 'name'), 'name')}"));
 			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this.testTwo, this, this.testThree), 'name'), 'name')}"));
 			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this.testTwo, this.testThree, this), 'name'), 'name')}"));
@@ -2693,6 +2693,42 @@ public class ScriptingTest extends StructrTest {
 			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
+	}
 
+	@Test
+	public void testConversionError() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createEmptySchema();
+
+			schema.addType("Test").addBooleanProperty("boolTest").setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final String script =  "${{ var test = Structr.create('Test'); test.boolTest = true; }}\n";
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx  = new ActionContext(securityContext, null);
+
+			// just run without an error, that's enough for this test
+			Scripting.evaluate(ctx, null, script, "test");
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
 	}
 }

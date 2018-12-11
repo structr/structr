@@ -54,20 +54,20 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrJsonHtmlWriter.class.getName());
 
-	private static final Set<String> hiddenViews = new LinkedHashSet<>();
-	private static final int CLOSE_LEVEL         = 5;
-	private static final String LI               = "li";
-	private static final String UL               = "ul";
+	protected static final Set<String> hiddenViews = new LinkedHashSet<>();
+	protected static final int CLOSE_LEVEL         = 5;
+	protected static final String LI               = "li";
+	protected static final String UL               = "ul";
 
-	private final String restPath           = StringUtils.removeEnd(Settings.RestServletPath.getValue(), "/*");
-	private SecurityContext securityContext = null;
-	private Document doc                    = null;
-	private Tag currentElement              = null;
-	private GraphObject currentObject       = null;
-	private Tag previousElement             = null;
-	private boolean hasName                 = false;
-	private String lastName                 = null;
-	private String propertyView	        = "";
+	protected final String restPath           = StringUtils.removeEnd(Settings.RestServletPath.getValue(), "/*");
+	protected SecurityContext securityContext = null;
+	protected Document doc                    = null;
+	protected Tag currentElement              = null;
+	protected GraphObject currentObject       = null;
+	protected Tag previousElement             = null;
+	protected boolean hasName                 = false;
+	protected String lastName                 = null;
+	protected String propertyView	        = "";
 
 	static {
 
@@ -371,7 +371,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	}
 
 	@Override
-	public void raw(final String data) throws Exception {
+	public void raw(final String data) throws IOException {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 

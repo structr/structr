@@ -190,7 +190,7 @@ public class GraphQLWriter {
 
 	private void serializePrimitive(final RestWriter writer, final Object value) throws IOException {
 
-		if (value != null && !Functions.NULL_STRING.equals(value)) {
+		if (value != null) {
 
 			if (value instanceof Number) {
 

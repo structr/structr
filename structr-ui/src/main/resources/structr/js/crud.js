@@ -105,14 +105,8 @@ var _Crud = {
 			}
 		});
 	}),
-	getProperties: function(type, callback) {
-
-		// We need at least the type to do anything
-		if (type === null) {
-			return;
-		}
-
-		var url = rootUrl + '_schema/' + type + '/' + defaultView;
+	addSchemaProperties: function(type, view, properties, callback) {
+		let url = rootUrl + '_schema/' + type + '/' + view;
 		$.ajax({
 			url: url,
 			dataType: 'json',
@@ -123,20 +117,19 @@ var _Crud = {
 					// no schema entry found?
 					if (!data || !data.result || data.result_count === 0) {
 
-						new MessageBuilder().warning("Unable to find schema information for type '" + type + "'. There might be database nodes with no type information or a type unknown to Structr in the database.").show();
-
+						//
+						
 					} else {
 
-						var properties = {};
 						data.result.forEach(function(prop) {
 							properties[prop.jsonName] = prop;
 						});
 
 						_Crud.keys[type] = properties;
-
-						if (callback) {
-							callback(type, properties);
-						}
+					}
+					
+					if (callback) {
+						callback();
 					}
 				},
 				400: function(data) {
@@ -158,7 +151,29 @@ var _Crud = {
 			error:function () {
 				console.log("ERROR: loading Schema " + type);
 			}
+		});		
+	},
+	getProperties: function(type, callback) {
 
+		// We need at least the type to do anything
+		if (type === null) {
+			return;
+		}
+		let properties = {};
+		_Crud.addSchemaProperties(type, 'public', properties, function() {
+			_Crud.addSchemaProperties(type, 'custom', properties, function() {
+				_Crud.addSchemaProperties(type, 'all', properties, function() {
+					
+					if (Object.keys(properties).length === 0) {
+						new MessageBuilder().warning("Unable to find schema information for type '" + type + "'. There might be database nodes with no type information or a type unknown to Structr in the database.").show();
+					} else {
+					
+						if (callback) {
+							callback(type, properties);
+						}
+					}
+				});
+			});
 		});
 
 	},
@@ -507,6 +522,11 @@ var _Crud = {
 
 	},
 	removeRecentType: function (typeToRemove) {
+		
+		var currentType = LSWrapper.getItem(crudTypeKey);
+		if (typeToRemove === currentType) {
+			LSWrapper.removeItem(crudTypeKey);
+		}
 
 		var recentTypes = LSWrapper.getItem(crudRecentTypesKey);
 
@@ -966,6 +986,10 @@ var _Crud = {
 		_Crud.showLoadingMessageAfterDelay('Loading data for type <b>' + type + '</b>', 100);
 
 		var hiddenKeys             = _Crud.getHiddenKeys(type);
+		
+		// 'id' attribute is mandatory for request
+		hiddenKeys.splice(hiddenKeys.indexOf('id'));
+		
 		var acceptHeaderProperties = Object.keys(properties).filter(function(key) { return !hiddenKeys.includes(key); }).join(',');
 
 		$.ajax({
@@ -1368,29 +1392,31 @@ var _Crud = {
 				borderColor: '#b5b5b5'
 			});
 
-			$.each(resp.errors, function(i, error) {
+			window.setTimeout(function() {
+				$.each(resp.errors, function(i, error) {
 
-                var key = error.property;
-                var errorMsg = error.token;
+					var key = error.property;
+					var errorMsg = error.token;
 
-				var input = $('td [name="' + key + '"]', dialogText);
-				if (input.length) {
+					var input = $('td [name="' + key + '"]', dialogText);
+					if (input.length) {
 
-					var errorText = '';
-                    errorText += '"' + key + '" ' + errorMsg.replace(/_/gi, ' ');
+						var errorText = '';
+						errorText += '"' + key + '" ' + errorMsg.replace(/_/gi, ' ');
 
-                    if (error.detail) {
-                        errorText += ' ' + error.detail;
-                    }
+						if (error.detail) {
+							errorText += ' ' + error.detail;
+						}
 
-					Structr.showAndHideInfoBoxMessage(errorText, 'error', 2000, 1000);
+						Structr.showAndHideInfoBoxMessage(errorText, 'error', 2000, 1000);
 
-					input.css({
-						backgroundColor: '#fee',
-						borderColor: '#933'
-					});
-				}
-			});
+						input.css({
+							backgroundColor: '#fee',
+							borderColor: '#933'
+						});
+					}
+				});
+			}, 100);
 		}
 	},
 	crudRefresh: function(id, key, oldValue) {
@@ -1718,7 +1744,7 @@ var _Crud = {
 		row.empty();
 		if (properties) {
 			_Crud.filterKeys(type, Object.keys(properties)).forEach(function(key) {
-				row.append('<td class="___' + key + '"></td>');
+				row.append('<td class="value ___' + key + '"></td>');
 				var cells = _Crud.cells(id, key);
 				$.each(cells, function(i, cell) {
 					_Crud.populateCell(id, key, type, item[key], cell);
@@ -1837,29 +1863,42 @@ var _Crud = {
 					}
 				}
 
-			} else if (propertyType === 'String[]') {
+			//} else if (propertyType === 'String[]') {
+			} else if (isCollection) { // Array types
 
-				if (value && value.length) {
-					value.forEach(function (v, i) {
-						cell.append('<div title="' + v + '" class="node stringarray">' + fitStringToWidth(v, 80) + '<i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" data-string-element="' + escape(v) + '" data-string-position="' + i + '" /></div>');
-					});
+				let values = value || [];
 
-					$('.stringarray .remove', cell).on('click', function(e) {
-						e.preventDefault();
-						_Crud.removeStringFromArray(type, id, key, $(this).data('string-element'), $(this).data('string-position'));
+				if (!id) {
+					
+					let focusAndActivateField = function(el) {
+						$(el).focus().on('keydown', function(e) {
+							if (e.which === 9) { // tab key
+								e.stopPropagation();
+								cell.append('<input name="' + key + '" size="4">');
+								focusAndActivateField(cell.find('[name="' + key + '"]').last());
+								return false;
+							}
+						});
 						return false;
-					});
-
-				}
-
-				cell.append('<i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" />');
-				$('.add', cell).on('click', function() {
-					var newStringElement = window.prompt("Enter new string");
-
-					if (newStringElement !== null) {
-						_Crud.addStringToArray(type, id, key, newStringElement);
 					}
-				});
+					
+					// create dialog
+					_Schema.getTypeInfo(type, function(typeInfo) {
+						cell.append('<input name="' + key + '" size="4">');
+						focusAndActivateField(cell.find('[name="' + key + '"]').last());
+					});
+					
+				} else {
+					// update existing object
+					_Schema.getTypeInfo(type, function(typeInfo) {
+						cell.append(formatArrayValueField(key, values, typeInfo.format === 'multi-line', typeInfo.readOnly, false));
+						cell.find('[name="' + key + '"]').each(function(i, el) {
+							_Entities.activateInput(el, id, null, typeInfo, function() {
+								_Crud.crudRefresh(id, key);
+							});
+						});
+					});
+				}
 
 			} else {
 				cell.text(nvl(formatValue(value), ''));
@@ -1940,8 +1979,8 @@ var _Crud = {
 
 		}
 
-		if (!isSourceOrTarget && !readOnly && !relatedType && propertyType !== 'Boolean' && propertyType !== 'String[]') {
-			cell.append('<i title="Clear value" class="crud-clear-value ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />');
+		if (!isSourceOrTarget && !readOnly && !relatedType && propertyType !== 'Boolean') {
+			cell.prepend('<i title="Clear value" class="crud-clear-value ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /><br>');
 			$('.crud-clear-value', cell).on('click', function(e) {
 				e.preventDefault();
 				_Crud.crudRemoveProperty(id, key);
@@ -2398,7 +2437,7 @@ var _Crud = {
 		});
 	},
 	addStringToArray: function(type, id, key, obj, callback) {
-		var url = rootUrl + '/' + id + '/public';
+		var url = rootUrl + '/' + id + '/all';
 		$.ajax({
 			url: url,
 			type: 'GET',
@@ -2605,7 +2644,7 @@ var _Crud = {
 			var readOnly = _Crud.readOnly(key, type);
 			var isCollection = _Crud.isCollection(key, type);
 			var relatedType = _Crud.relatedType(key, type);
-			if (readOnly || (isCollection || relatedType)) {
+			if (readOnly || (isCollection && relatedType)) {
 				return;
 			}
 
@@ -2620,7 +2659,7 @@ var _Crud = {
 
 		var dialogSaveButton = $('.save', $('#dialogBox'));
 		if (!(dialogSaveButton.length)) {
-			dialogBox.append('<button class="save" id="saveProperties">Save</button>');
+			dialogBtn.append('<button class="save" id="saveProperties">Save</button>');
 			dialogSaveButton = $('.save', $('#dialogBox'));
 		}
 
@@ -2659,95 +2698,111 @@ var _Crud = {
 			if (_Crud.isPrincipalType(_Crud.types[type])) {
 
 				// hidden keys for Principal types
-				Object.keys(_Crud.keys[type]).forEach(function(key) {
-					switch (key) {
-						case 'isUser':
-						case 'isAdmin':
-						case 'createdBy':
-						case 'sessionIds':
-						case 'publicKeys':
-						case 'sessionData':
-						case 'password':
-						case 'passwordChangeDate':
-						case 'salt':
-						case 'twoFactorSecret':
-						case 'twoFactorToken':
-						case 'isTwoFactorUser':
-						case 'twoFactorConfirmed':
-						case 'ownedNodes':
-						case 'localStorage':
-						case 'customPermissionQueryAccessControl':
-						case 'customPermissionQueryDelete':
-						case 'customPermissionQueryRead':
-						case 'customPermissionQueryWrite':
-							hiddenKeys.push(key);
-							break;
+				[
+					'isUser',
+					'isAdmin',
+					'createdBy',
+					'sessionIds',
+					'publicKeys',
+					'sessionData',
+					'password',
+					'passwordChangeDate',
+					'salt',
+					'twoFactorSecret',
+					'twoFactorToken',
+					'isTwoFactorUser',
+					'twoFactorConfirmed',
+					'ownedNodes',
+					'localStorage',
+					'customPermissionQueryAccessControl',
+					'customPermissionQueryDelete',
+					'customPermissionQueryRead',
+					'customPermissionQueryWrite'].forEach(function(key) {
+					if (hiddenKeys.indexOf(key) === -1) {
+						hiddenKeys.push(key);
 					}
 				});
 
-			} else if (_Crud.isImageType(_Crud.types[type])) {
+			}
+			
+			if (_Crud.isImageType(_Crud.types[type])) {
 
 				// hidden keys for Image types
-				Object.keys(_Crud.keys[type]).forEach(function(key) {
-					switch (key) {
-						case 'base64Data':
-						case 'image64Data':
-						case 'favoriteContent':
-						case 'favoriteContext':
-						case 'favoriteUsers':
-						case 'resultDocumentForExporter':
-						case 'documentTemplateForExporter':
-						case 'isFile':
-						case 'position':
-						case 'extractedContent':
-						case 'indexedWords':
-						case 'minificationTargets':
-						case 'fileModificationDate':
-							hiddenKeys.push(key);
-							break;
+				[
+					'base64Data',
+					'imageData',
+					'favoriteContent',
+					'favoriteContext',
+					'favoriteUsers',
+					'resultDocumentForExporter',
+					'documentTemplateForExporter',
+					'isFile',
+					'position',
+					'extractedContent',
+					'indexedWords',
+					'minificationTargets',
+					'fileModificationDate'].forEach(function(key) {
+					if (hiddenKeys.indexOf(key) === -1) {
+						hiddenKeys.push(key);
 					}
 				});
 
-			} else if (_Crud.isFileType(_Crud.types[type])) {
+			}
+			
+			if (_Crud.isFileType(_Crud.types[type])) {
 
 				// hidden keys for File types
-				Object.keys(_Crud.keys[type]).forEach(function(key) {
-					switch (key) {
-						case 'base64Data':
-						case 'favoriteContent':
-						case 'favoriteContext':
-						case 'favoriteUsers':
-						case 'resultDocumentForExporter':
-						case 'documentTemplateForExporter':
-						case 'isFile':
-						case 'position':
-						case 'extractedContent':
-						case 'indexedWords':
-						case 'minificationTargets':
-						case 'fileModificationDate':
-							hiddenKeys.push(key);
-							break;
+				[
+					'base64Data',
+					'favoriteContent',
+					'favoriteContext',
+					'favoriteUsers',
+					'relationshipId',
+					'resultDocumentForExporter',
+					'documentTemplateForExporter',
+					'isFile',
+					'position',
+					'extractedContent',
+					'indexedWords',
+					'minificationTargets',
+					'fileModificationDate',
+					'nextSiblingId'
+				].forEach(function(key) {
+					if (hiddenKeys.indexOf(key) === -1) {
+						hiddenKeys.push(key);
 					}
 				});
 			}
 		}
 
-		['internalEntityContextPath', 'grantees'].forEach(function (alwaysHiddenProperty) {
-			if (hiddenKeys.indexOf(alwaysHiddenProperty) === -1) {
-				hiddenKeys.push(alwaysHiddenProperty);
+		// hidden keys for all types
+		[
+			'base',
+			'createdBy',
+			'lastModifiedBy',
+			'ownerId',
+			'hidden',
+			'internalEntityContextPath',
+			'grantees'
+		].forEach(function(key) {
+			if (hiddenKeys.indexOf(key) === -1) {
+				hiddenKeys.push(key);
 			}
 		});
 
 		return hiddenKeys;
 	},
 	isPrincipalType: function (typeDef) {
-		return _Crud.inheritsFromAncestorType(typeDef, 'org.structr.dynamic.Principal');
+		let cls = 'org.structr.dynamic.Principal';
+		return typeDef.className === cls || _Crud.inheritsFromAncestorType(typeDef, cls);
 	},
 	isFileType: function (typeDef) {
-		return _Crud.inheritsFromAncestorType(typeDef, 'org.structr.dynamic.AbstractFile');
+		let cls = 'org.structr.dynamic.AbstractFile';
+		return typeDef.className === cls || _Crud.inheritsFromAncestorType(typeDef, cls);
 	},
 	isImageType: function (typeDef) {
-		return _Crud.inheritsFromAncestorType(typeDef, 'org.structr.dynamic.Image');
+		let cls = 'org.structr.dynamic.Image';
+		return typeDef.className === cls || _Crud.inheritsFromAncestorType(typeDef, cls);
 	},
 	inheritsFromAncestorType: function (typeDef, ancestorFQCN) {
 
@@ -2776,6 +2831,8 @@ var _Crud = {
 		if (!sourceArray) {
 			return;
 		}
+
+		//### TODO: Sort by order of views: public -> custom -> ui ...
 
 		return sourceArray.filter(function(key) {
 			return !(hiddenKeys.includes(key));

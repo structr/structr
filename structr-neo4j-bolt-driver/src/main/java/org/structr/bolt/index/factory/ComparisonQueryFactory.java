@@ -74,6 +74,18 @@ public class ComparisonQueryFactory extends AbstractQueryFactory {
 				case contains:
 					operationString = "CONTAINS";
 					break;
+				case caseInsensitiveStartsWith:
+					operationString = "STARTS WITH";
+					query.addSimpleParameter(name, operationString, value.toString().toLowerCase(), true, true);
+					return true;
+				case caseInsensitiveEndsWith:
+					operationString = "ENDS WITH";
+					query.addSimpleParameter(name, operationString, value.toString().toLowerCase(), true, true);
+					return true;
+				case caseInsensitiveContains:
+					operationString = "CONTAINS";
+					query.addSimpleParameter(name, operationString, value.toString().toLowerCase(), true, true);
+					return true;
 			}
 
 			query.addSimpleParameter(name, operationString, value);

@@ -34,26 +34,18 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.Value;
-import org.structr.core.ViewTransformation;
-import org.structr.core.app.StructrApp;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.resource.Resource;
-import org.structr.rest.resource.TransformationResource;
 import org.structr.rest.resource.ViewFilterResource;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * Helper class for parsing and optimizing the resource path
- *
+ * Helper class for parsing and optimizing the resource path.
  */
 public class ResourceHelper {
 
 	private static final Logger logger = LoggerFactory.getLogger(ResourceHelper.class.getName());
-
-	//~--- methods --------------------------------------------------------
 
 	/**
 	 * Parse the request path and match with possible resource patterns
@@ -259,33 +251,4 @@ public class ResourceHelper {
 		throw new IllegalPathException("Cannot resolve URL path");
 
 	}
-
-	/**
-	 * Apply view transformation on final resource, if any
-	 *
-	 * @param request
-	 * @param securityContext
-	 * @param finalResource
-	 * @param propertyView
-	 * @return transformedResource
-	 * @throws FrameworkException
-	 */
-	public static Resource applyViewTransformation(final HttpServletRequest request, final SecurityContext securityContext, final Resource finalResource, final Value<String> propertyView) throws FrameworkException {
-
-		Resource transformedResource = finalResource;
-
-		// add view transformation
-		Class type = finalResource.getEntityClass();
-		if (type != null) {
-
-			ViewTransformation transformation = StructrApp.getConfiguration().getViewTransformation(type, propertyView.get(securityContext));
-			if (transformation != null) {
-
-				transformedResource = transformedResource.tryCombineWith(new TransformationResource(securityContext, transformation));
-			}
-		}
-
-		return transformedResource;
-	}
-
 }

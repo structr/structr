@@ -29,12 +29,8 @@ import org.structr.web.resource.LogoutResource;
 import org.structr.web.resource.RegistrationResource;
 import org.structr.web.resource.ResetPasswordResource;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * The default constraint provider for structr-ui
- *
- *
+ * The default resource provider for structr-ui.
  */
 public class UiResourceProvider implements ResourceProvider {
 

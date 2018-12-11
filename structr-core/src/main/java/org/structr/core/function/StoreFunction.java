@@ -39,10 +39,14 @@ public class StoreFunction extends Function<Object, Object> {
 
 		try {
 
-			if (sources != null && sources.length == 2 && sources[0] != null && sources[0] != Functions.NULL_STRING) {
-				if (sources[1] == null || sources[1] == Functions.NULL_STRING) {
+			if (sources != null && sources.length == 2 && sources[0] != null) {
+
+				if (sources[1] == null) {
+
 					ctx.getContextStore().remove(sources[0].toString());
+
 				} else {
+
 					ctx.store(sources[0].toString(), sources[1]);
 				}
 			}

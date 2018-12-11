@@ -21,7 +21,6 @@ package org.structr.module;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -67,6 +66,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.GenericProperty;
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
@@ -108,7 +108,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	private final Map<String, Map<String, PropertyKey>> globalBuiltinClassJSNamePropertyMap        = new ConcurrentHashMap<>(2000);
 	private final Map<String, Map<String, PropertyGroup>> globalAggregatedPropertyGroupMap         = new ConcurrentHashMap<>(100);
 	private final Map<String, Map<String, PropertyGroup>> globalPropertyGroupMap                   = new ConcurrentHashMap<>(100);
-	private final Map<String, Map<String, ViewTransformation>> viewTransformations                 = new ConcurrentHashMap<>(100);
 	private final Map<String, Set<Transformation<GraphObject>>> globalTransformationMap            = new ConcurrentHashMap<>(100);
 	private final Map<String, Map<String, Method>> exportedMethodMap                               = new ConcurrentHashMap<>(100);
 	private final Map<Class, Set<Class>> interfaceMap                                              = new ConcurrentHashMap<>(2000);
@@ -592,16 +591,25 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				registerProperty(type, propertyKey);
 			}
 
-			for (Map.Entry<Field, View> entry : views.entrySet()) {
+			for (final Map.Entry<Field, View> entry : views.entrySet()) {
 
 				final Field field = entry.getKey();
 				final View view = entry.getValue();
 
-				for (PropertyKey propertyKey : view.properties()) {
+				for (final PropertyKey propertyKey : view.properties()) {
 
 					// register field in view for entity class and declaring superclass
 					registerPropertySet(field.getDeclaringClass(), view.name(), propertyKey);
 					registerPropertySet(type, view.name(), propertyKey);
+
+					// replace field in any other view of this type (not superclass!)
+					for (final Map.Entry<Field, View> other : views.entrySet()) {
+						for (final Property property : other.getValue().properties()) {
+							if (propertyKey.jsonName().equals(property.jsonName())) {
+								registerPropertySet(type, other.getValue().name(), propertyKey);
+							}
+						}
+					}
 				}
 			}
 
@@ -765,16 +773,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		}
 
 		return group;
-	}
-
-	@Override
-	public void registerViewTransformation(Class type, String view, ViewTransformation transformation) {
-		getViewTransformationMapForType(type).put(view, transformation);
-	}
-
-	@Override
-	public ViewTransformation getViewTransformation(Class type, String view) {
-		return getViewTransformationMapForType(type).get(view);
 	}
 
 	@Override
@@ -1538,32 +1536,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		return transformations;
 	}
 
-	private Map<String, ViewTransformation> getViewTransformationMapForType(final Class type) {
-
-		Map<String, ViewTransformation> viewTransformationMap = viewTransformations.get(type.getName());
-		if (viewTransformationMap == null) {
-
-			viewTransformationMap = new LinkedHashMap<>();
-			viewTransformations.put(type.getName(), viewTransformationMap);
-		}
-
-		return viewTransformationMap;
-	}
-
-	private void consume(final InputStream is) {
-
-		final byte[] buffer = new byte[32768];
-
-		try (final InputStream stream = is) {
-
-			// read stream into buffer
-			while (stream.read(buffer, 0, 32768) != -1) {}
-
-		} catch (IOException ioex) {
-			ioex.printStackTrace();
-		}
-	}
-
 	public void printCacheStats() {
 
 		System.out.println("###################################################");
@@ -1579,7 +1551,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
  		System.out.println("" + globalClassJSNamePropertyMap.size());
 		System.out.println("" + globalAggregatedPropertyGroupMap.size());
 		System.out.println("" + globalPropertyGroupMap.size());
-		System.out.println("" + viewTransformations.size());
 		System.out.println("" + globalTransformationMap.size());
 		System.out.println("" + exportedMethodMap.size());
 		System.out.println("" + interfaceMap.size());

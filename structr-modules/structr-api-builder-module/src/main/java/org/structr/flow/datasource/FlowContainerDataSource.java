@@ -18,6 +18,7 @@
  */
 package org.structr.flow.datasource;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.LoggerFactory;
@@ -57,7 +58,7 @@ public class FlowContainerDataSource implements GraphDataSource<Iterable<GraphOb
 
 		try {
 
-			final Object result = Scripting.evaluate(renderContext, referenceNode, "${flow('" + ((String) flow.getProperty(FlowContainer.effectiveName)) + "')}", "flow query");
+			final Object result = Scripting.evaluate(renderContext, referenceNode, "${flow('" + (flow.getProperty(FlowContainer.effectiveName)) + "')}", "flow query");
 			if (result instanceof Iterable) {
 
 				return FlowContainerDataSource.map((Iterable)result);
@@ -65,6 +66,12 @@ public class FlowContainerDataSource implements GraphDataSource<Iterable<GraphOb
 			} else if (result instanceof Object[]) {
 
 				return (List<GraphObject>) UiFunction.toGraphObject(result, 1);
+			} else if (result != null) {
+
+				// Handle single result.
+				List<GraphObject> results = new ArrayList<>();
+				results.add((GraphObject)UiFunction.toGraphObject(result, 1));
+				return results ;
 			}
 
 		} catch (UnlicensedScriptException ex) {
@@ -81,14 +88,12 @@ public class FlowContainerDataSource implements GraphDataSource<Iterable<GraphOb
 
 			if (t instanceof GraphObject) {
 				return (GraphObject)t;
-			}
-
-			if (t instanceof Map) {
-
+			} else if (t instanceof Map) {
 				return Function.toGraphObjectMap((Map)t);
-			}
+			} else {
 
-			throw new ClassCastException(t.getClass() + " cannot be cast to " + GraphObject.class.getName());
+				return (GraphObject)UiFunction.toGraphObject(t, 1);
+			}
 
 		}, src);
 

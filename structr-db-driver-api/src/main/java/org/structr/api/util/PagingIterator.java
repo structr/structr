@@ -30,6 +30,7 @@ public class PagingIterator<T> implements Iterator<T> {
 	private final int page;
 	private final int pageSize;
 	private int currentIndex;
+	private boolean consumed = false;
 
 	public PagingIterator(final Iterator<T> iterator, final int page, final int pageSize) {
 
@@ -77,13 +78,24 @@ public class PagingIterator<T> implements Iterator<T> {
 		//Iterator was exhausted before starting offset was reached.
 		if (currentIndex < getOffset() && !iterator.hasNext()) {
 
+			consumed = currentIndex > 0;
+
 			return false;
 
 		} else if (currentIndex >= getOffset() && currentIndex < getLimitOffset()) {
 
-			return true;
+			final boolean hasNext = iterator.hasNext();
+			if (!hasNext) {
+
+				consumed = currentIndex > 0;
+			}
+
+			return hasNext;
 
 		}
+
+		// we need to make sure that an empty iterable is not marked as "consumed"
+		consumed = currentIndex > 0;
 
 		return false;
 	}
@@ -103,4 +115,36 @@ public class PagingIterator<T> implements Iterator<T> {
 		throw new NoSuchElementException("No element available for next() call!");
 	}
 
+	public int getResultCount() {
+
+		// exhaust iterator and return final result count
+		while (iterator.hasNext()) {
+			iterator.next();
+			currentIndex++;
+		}
+
+		consumed = true;
+
+		return currentIndex;
+	}
+
+	public int getPageCount() {
+
+		final double resultCount = getResultCount();
+		final double pageSize    = this.pageSize;
+
+		return (int) Math.rint(Math.ceil(resultCount / pageSize));
+	}
+
+	public int getPageSize() {
+		return this.pageSize;
+	}
+
+	public int getPage() {
+		return this.page;
+	}
+
+	public boolean isConsumed() {
+		return consumed;
+	}
 }

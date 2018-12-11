@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import java.util.Collection;
 import org.apache.commons.lang3.ArrayUtils;
+import org.python.google.common.collect.Iterables;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -48,6 +49,11 @@ public class ContainsFunction extends Function<Object, Object> {
 				final String part = sources[1].toString();
 
 				return source.contains(part);
+
+			} else if (sources[0] instanceof Iterable) {
+
+				final Iterable collection = (Iterable)sources[0];
+				return Iterables.contains(collection, sources[1]);
 
 			} else if (sources[0] instanceof Collection) {
 

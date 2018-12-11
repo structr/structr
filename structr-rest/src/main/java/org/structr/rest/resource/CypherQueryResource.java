@@ -19,13 +19,13 @@
 package org.structr.rest.resource;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.CypherQueryCommand;
 import org.structr.core.property.PropertyKey;
@@ -33,10 +33,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.exception.NotFoundException;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- *
  *
  */
 public class CypherQueryResource extends Resource {
@@ -54,7 +51,7 @@ public class CypherQueryResource extends Resource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		// Admins only
 		if (!securityContext.isSuperUser()) {
@@ -68,10 +65,11 @@ public class CypherQueryResource extends Resource {
 			Object queryObject = securityContext.getRequest().getParameter("query");
 			if (queryObject != null) {
 
-				String query                 = queryObject.toString();
-				List<GraphObject> resultList = StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(query, Collections.EMPTY_MAP);
+				String query                     = queryObject.toString();
+				Iterable<GraphObject> resultList = StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(query, Collections.EMPTY_MAP);
 
-				return new Result(resultList, resultList.size(), true, false);
+				return new PagingIterable<>(resultList);
+				//return new ResultStream(resultList, true, false);
 			}
 
 		} catch (org.structr.api.NotFoundException nfe) {
@@ -79,7 +77,7 @@ public class CypherQueryResource extends Resource {
 			throw new NotFoundException("Entity not found for the given query");
 		}
 
-		return new Result(Collections.EMPTY_LIST, 0, false, false);
+		return PagingIterable.EMPTY_ITERABLE;
 	}
 
 	@Override
@@ -99,8 +97,8 @@ public class CypherQueryResource extends Resource {
 
 			if (queryObject != null) {
 
-				String query                 = queryObject.toString();
-				List<GraphObject> resultList = StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(query, propertySet);
+				String query                     = queryObject.toString();
+				Iterable<GraphObject> resultList = StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(query, propertySet);
 
 				for (GraphObject obj : resultList) {
 

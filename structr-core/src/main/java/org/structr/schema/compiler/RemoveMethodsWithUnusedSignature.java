@@ -37,7 +37,7 @@ import org.structr.core.graph.Tx;
 public class RemoveMethodsWithUnusedSignature implements MigrationHandler {
 
 	//                                                                 name              signature                                          type
-	private static final Pattern PATTERN = Pattern.compile("method ([a-zA-Z0-9_]+)\\(([a-zA-Z0-9_ \\.]+)\\) is already defined in class ([a-zA-Z0-9\\.]+)");
+	private static final Pattern PATTERN = Pattern.compile("method ([a-zA-Z0-9_]+)\\(([a-zA-Z0-9_ \\.]*)\\) is already defined in class ([a-zA-Z0-9\\.]+)");
 	private static final Logger logger   = LoggerFactory.getLogger(RemoveMethodsWithUnusedSignature.class);
 
 	@Override
@@ -67,24 +67,13 @@ public class RemoveMethodsWithUnusedSignature implements MigrationHandler {
 						final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
 						if (schemaNode != null) {
 
-							final SchemaMethod method = app.nodeQuery(SchemaMethod.class)
+							for (final SchemaMethod method : app.nodeQuery(SchemaMethod.class)
 								.and(SchemaMethod.schemaNode, schemaNode)
 								.and(SchemaMethod.name,       methodName)
-								.getFirst();
-
-							if (method != null) {
-
-								// since the compiler transaction has been rolled back,
-								// the remaining method must be the duplicate that we
-								// want to delete => simple
-								logger.info("Deleting existing method {} ({}) to fix compiler error {}", method.getProperty(SchemaMethod.signature), method.getUuid(), detail);
+								.getAsList()) {
 
 								app.delete(method);
 							}
-
-						} else {
-
-							logger.info("No schema node with name {} found, ignoring {}.", type, detail);
 						}
 
 						tx.success();
@@ -94,11 +83,9 @@ public class RemoveMethodsWithUnusedSignature implements MigrationHandler {
 					}
 
 				} catch (ArrayIndexOutOfBoundsException ibex) {
-
 					logger.warn("Unable to extract error information from {}: {}", detail, ibex.getMessage());
 				}
 			}
 		}
-
 	}
 }

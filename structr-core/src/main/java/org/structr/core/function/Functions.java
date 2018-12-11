@@ -61,7 +61,6 @@ import org.structr.schema.action.Function;
 public class Functions {
 
 	private static final Map<String, Function<Object, Object>> functions = new LinkedHashMap<>();
-	public static final String NULL_STRING                               = "___NULL___";
 
 	public static void put(final boolean licensed, final int edition, final String name, final Function<Object, Object> function) {
 
@@ -305,10 +304,7 @@ public class Functions {
 				return new NoneExpression();
 
 			case "null":
-				return new ConstantExpression(NULL_STRING);
-
-			case NULL_STRING:
-				return new ConstantExpression(NULL_STRING);
+				return new ConstantExpression(null);
 				
 		}
 

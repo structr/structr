@@ -49,10 +49,8 @@ import org.neo4j.kernel.configuration.BoltConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.NativeResult;
 import org.structr.api.NetworkException;
 import org.structr.api.NotInTransactionException;
-import org.structr.api.QueryResult;
 import org.structr.api.Transaction;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.GraphProperties;
@@ -61,7 +59,7 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.index.Index;
-import org.structr.api.util.QueryUtils;
+import org.structr.api.util.Iterables;
 import org.structr.bolt.index.CypherNodeIndex;
 import org.structr.bolt.index.CypherRelationshipIndex;
 import org.structr.bolt.index.NodeResultStream;
@@ -148,7 +146,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 			driver = GraphDatabase.driver(databaseDriverUrl,
 				AuthTokens.basic(username, password),
-				Config.build().withoutEncryption().toConfig()
+				Config.build().withEncryption().toConfig()
 			);
 
 			final int relCacheSize  = Settings.RelationshipCacheSize.getValue();
@@ -222,19 +220,6 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		return session;
 	}
 
-	public static void closeThreadTx() {
-		SessionTransaction session = sessions.get();
-
-		if (session != null) {
-
-			if (!session.isClosed()) {
-				session.close();
-			}
-
-			sessions.remove();
-		}
-	}
-
 	@Override
 	public Node createNode(final Set<String> labels, final Map<String, Object> properties) {
 
@@ -268,37 +253,11 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 	@Override
 	public Relationship getRelationshipById(final long id) {
-
-		final StringBuilder buf       = new StringBuilder();
-		final SessionTransaction tx   = getCurrentTransaction();
-		final Map<String, Object> map = new HashMap<>();
-
-		map.put("id", id);
-
-		buf.append("MATCH (");
-
-		if (tenantId != null) {
-			buf.append(":");
-			buf.append(tenantId);
-		}
-
-		buf.append(")-[r]->(");
-
-		if (tenantId != null) {
-			buf.append(":");
-			buf.append(tenantId);
-		}
-
-		buf.append(") WHERE ID(r) = {id} RETURN r");
-
-		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship(buf.toString(), map);
-
-		return RelationshipWrapper.newInstance(this, rel);
-
+		return RelationshipWrapper.newInstance(this, id);
 	}
 
 	@Override
-	public QueryResult<Node> getAllNodes() {
+	public Iterable<Node> getAllNodes() {
 
 		final StringBuilder buf = new StringBuilder();
 
@@ -311,11 +270,11 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		buf.append(") RETURN n");
 
-		return QueryUtils.map(new NodeNodeMapper(this), new NodeResultStream(this, new SimpleCypherQuery(buf.toString())));
+		return Iterables.map(new NodeNodeMapper(this), new NodeResultStream(this, new SimpleCypherQuery(buf.toString())));
 	}
 
 	@Override
-	public QueryResult<Node> getNodesByLabel(final String type) {
+	public Iterable<Node> getNodesByLabel(final String type) {
 
 		if (type == null) {
 			return getAllNodes();
@@ -334,11 +293,11 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		buf.append(type);
 		buf.append(") RETURN n");
 
-		return QueryUtils.map(new NodeNodeMapper(this), new NodeResultStream(this, new SimpleCypherQuery(buf.toString())));
+		return Iterables.map(new NodeNodeMapper(this), new NodeResultStream(this, new SimpleCypherQuery(buf.toString())));
 	}
 
 	@Override
-	public QueryResult<Node> getNodesByTypeProperty(final String type) {
+	public Iterable<Node> getNodesByTypeProperty(final String type) {
 
 		if (type == null) {
 			return getAllNodes();
@@ -359,12 +318,11 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		query.getParameters().put("type", type);
 
-		//return QueryUtils.map(mapper, tx.getNodes("MATCH (n) WHERE n.type = {type} RETURN n", map));
-		return QueryUtils.map(new NodeNodeMapper(this), new NodeResultStream(this, query));
+		return Iterables.map(new NodeNodeMapper(this), new NodeResultStream(this, query));
 	}
 
 	@Override
-	public QueryResult<Relationship> getAllRelationships() {
+	public Iterable<Relationship> getAllRelationships() {
 
 		final StringBuilder buf = new StringBuilder();
 
@@ -384,11 +342,11 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		buf.append(") RETURN r");
 
-		return QueryUtils.map(new RelationshipRelationshipMapper(this), new RelationshipResultStream(this, new SimpleCypherQuery(buf.toString())));
+		return Iterables.map(new RelationshipRelationshipMapper(this), new RelationshipResultStream(this, new SimpleCypherQuery(buf.toString())));
 	}
 
 	@Override
-	public QueryResult<Relationship> getRelationshipsByType(final String type) {
+	public Iterable<Relationship> getRelationshipsByType(final String type) {
 
 		if (type == null) {
 			return getAllRelationships();
@@ -414,7 +372,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		buf.append(") RETURN r");
 
-		return QueryUtils.map(new RelationshipRelationshipMapper(this), new RelationshipResultStream(this, new SimpleCypherQuery(buf.toString())));
+		return Iterables.map(new RelationshipRelationshipMapper(this), new RelationshipResultStream(this, new SimpleCypherQuery(buf.toString())));
 	}
 
 	@Override
@@ -465,18 +423,13 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 				}
 			 */
 
-			try (final NativeResult result = execute("CALL db.indexes() YIELD description, state, type WHERE type = 'node_label_property' RETURN {description: description, state: state}")) {
+			for (final Map<String, Object> row : execute("CALL db.indexes() YIELD description, state, type WHERE type = 'node_label_property' RETURN {description: description, state: state}")) {
 
-				while (result.hasNext()) {
+				for (final Object value : row.values()) {
 
-					final Map<String, Object> row = result.next();
+					final Map<String, String> valueMap = (Map<String, String>)value;
 
-					for (final Object value : row.values()) {
-
-						final Map<String, String> valueMap = (Map<String, String>)value;
-
-						existingDbIndexes.put(valueMap.get("description"), valueMap.get("state"));
-					}
+					existingDbIndexes.put(valueMap.get("description"), valueMap.get("state"));
 				}
 			}
 
@@ -599,12 +552,12 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 
 	@Override
-	public NativeResult execute(final String nativeQuery, final Map<String, Object> parameters) {
+	public Iterable<Map<String, Object>> execute(final String nativeQuery, final Map<String, Object> parameters) {
 		return getCurrentTransaction().run(nativeQuery, parameters);
 	}
 
 	@Override
-	public NativeResult execute(final String nativeQuery) {
+	public Iterable<Map<String, Object>> execute(final String nativeQuery) {
 		return execute(nativeQuery, Collections.EMPTY_MAP);
 	}
 

@@ -46,8 +46,6 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 	private static final Logger logger = LoggerFactory.getLogger(BulkSetNodePropertiesCommand.class.getName());
 
-	//~--- methods --------------------------------------------------------
-
 	@Override
 	public void execute(final Map<String, Object> properties) throws FrameworkException {
 
@@ -75,7 +73,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 				try (final Tx tx = app.tx()) {
 
-					nodeIterator = app.nodeQuery(cls).getResult().getResults().iterator();
+					nodeIterator = app.nodeQuery(cls).getResultStream().iterator();
 					properties.remove(AbstractNode.type.dbName());
 
 					tx.success();

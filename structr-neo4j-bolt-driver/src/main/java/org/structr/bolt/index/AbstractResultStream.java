@@ -20,32 +20,23 @@ package org.structr.bolt.index;
 
 import java.util.Iterator;
 import java.util.Map;
-import org.structr.api.QueryResult;
 import org.structr.bolt.BoltDatabaseService;
 
 /**
  */
-public abstract class AbstractResultStream<T> implements QueryResult<T> {
+public abstract class AbstractResultStream<T> implements Iterable<T> {
 
-	private QueryResult<T> result   = null;
+	private Iterable<T> result   = null;
 	private PageableQuery query     = null;
 	private Iterator<T> current     = null;
 	private BoltDatabaseService db  = null;
 
-	protected abstract QueryResult<T> fetchData(final BoltDatabaseService db, final String statement, final Map<String, Object> data);
+	protected abstract Iterable<T> fetchData(final BoltDatabaseService db, final String statement, final Map<String, Object> data);
 
 	public AbstractResultStream(final BoltDatabaseService db, final PageableQuery query) {
 
 		this.query  = query;
 		this.db     = db;
-	}
-
-	@Override
-	public void close() {
-
-		if (result != null) {
-			result.close();
-		}
 	}
 
 	@Override
@@ -59,11 +50,6 @@ public abstract class AbstractResultStream<T> implements QueryResult<T> {
 			public boolean hasNext() {
 
 				if (current == null || !current.hasNext()) {
-
-					// close previous result
-					if (result != null) {
-						result.close();
-					}
 
 					// fetch more?
 					if (remaining == 0) {

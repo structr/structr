@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.Result;
 
 /**
  * Utility for pagination.
@@ -78,60 +77,16 @@ public class PagingHelper {
 
 	}
 
-	/**
-	 * Return a single page of the result with the given paging parameters.
-	 *
-	 * @param result
-	 * @param pageSize
-	 * @param page
-	 * @return subResult
-	 */
-	public static Result subResult(final Result result, int pageSize, int page) {
-
-		if (pageSize <= 0 || page == 0) {
-
-			return result;
-		}
-
-		int pageCount = getPageCount(result.getRawResultCount(), pageSize);
-
-		if (pageCount > 0) {
-
-			result.setPageCount(pageCount);
-		}
-
-		if (page > pageCount) {
-
-			page = pageCount;
-		}
-
-		result.setPage(page);
-		result.setPageSize(pageSize);
-
-		return new Result(subList(result.getResults(), pageSize, page), result.getResults().size(), result.isCollection(), result.isPrimitiveArray());
-	}
-
+	/*
 	public static Result addPagingParameter(Result result, int pageSize, int page) {
 
 		if (pageSize > 0 && pageSize < Integer.MAX_VALUE) {
 
-			int pageCount = getPageCount(result.getRawResultCount(), pageSize);
-
-			if (pageCount > 0) {
-
-				result.setPageCount(pageCount);
-			}
-
 			result.setPage(page);
 			result.setPageSize(pageSize);
-
 		}
 
 		return result;
 	}
-
-	private static int getPageCount(int resultCount, int pageSize) {
-
-		return (int) Math.rint(Math.ceil((double) resultCount / (double) pageSize));
-	}
+	*/
 }

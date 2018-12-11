@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.ConstraintViolationException;
 import org.structr.api.DataFormatException;
 import org.structr.api.DatabaseService;
-import org.structr.api.NativeResult;
 import org.structr.api.graph.Node;
 import org.structr.bolt.wrapper.NodeWrapper;
 import org.structr.bolt.wrapper.RelationshipWrapper;
@@ -160,7 +159,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 				}
 			}
 
-			node = (T) nodeFactory.instantiateWithType(createNode(graphDb, user, labels, tmp.getData()), nodeType, null, isCreation);
+			node = (T) nodeFactory.instantiateWithType(createNode(graphDb, user, labels, tmp.getData()), nodeType, -1, isCreation);
 			if (node != null) {
 
 				TransactionCommand.nodeCreated(user, node);
@@ -275,12 +274,11 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			parameters.put("securityProperties", securityProperties);
 			parameters.put("nodeProperties",     properties);
 
-			final NativeResult result = graphDb.execute(buf.toString(), parameters);
+			final Iterable<Map<String, Object>> result = graphDb.execute(buf.toString(), parameters);
 			try {
 
-				if (result.hasNext()) {
+				for (final Map<String, Object> data : result) {
 
-					final Map<String, Object> data = result.next();
 					final NodeWrapper newNode             = (NodeWrapper)         data.get("n");
 					final RelationshipWrapper securityRel = (RelationshipWrapper) data.get("s");
 					final RelationshipWrapper ownsRel     = (RelationshipWrapper) data.get("o");
@@ -325,12 +323,11 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			// make properties available to Cypher statement
 			parameters.put("nodeProperties", properties);
 
-			final NativeResult result = graphDb.execute(buf.toString(), parameters);
+			final Iterable<Map<String, Object>> result = graphDb.execute(buf.toString(), parameters);
 			try {
 
-				if (result.hasNext()) {
+				for (final Map<String, Object> data : result) {
 
-					final Map<String, Object> data = result.next();
 					final NodeWrapper newNode = (NodeWrapper) data.get("n");
 
 					newNode.setModified();

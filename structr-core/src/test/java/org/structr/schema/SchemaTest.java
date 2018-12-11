@@ -29,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
@@ -707,6 +708,117 @@ public class SchemaTest extends StructrTest {
 
 			// add new type
 			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testModifiedPropertyValueAccessInScripting() {
+
+		cleanDatabaseAndSchema();
+
+		// schema setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Test");
+
+			type.addStringProperty("desc");
+			type.addStringProperty("nameBefore");
+			type.addStringProperty("nameAfter");
+			type.addStringProperty("descBefore");
+			type.addStringProperty("descAfter");
+
+			type.addMethod("onSave",
+				"{"
+					+ " var self = Structr.this;"
+					+ " var mod = Structr.retrieve('modifications');"
+					+ " self.nameBefore = mod.before.name;"
+					+ " self.nameAfter  = mod.after.name;"
+					+ " self.descBefore = mod.before.desc;"
+					+ " self.descAfter  = mod.after.desc;"
+				+ " }",
+			"");
+
+			// add new type
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		String uuid = null;
+
+		final Class type = StructrApp.getConfiguration().getNodeEntityClass("Test");
+
+		// create test object
+		try (final Tx tx = app.tx()) {
+
+			assertNotNull(type);
+
+			final GraphObject obj = app.create(type, "test");
+
+			uuid = obj.getUuid();
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// test state before modification
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject test = app.get(type, uuid);
+			assertNotNull(test);
+
+			assertNull("Invalid value before modification", test.getProperty("nameBefore"));
+			assertNull("Invalid value before modification", test.getProperty("nameAfter"));
+			assertNull("Invalid value before modification", test.getProperty("descBefore"));
+			assertNull("Invalid value before modification", test.getProperty("descAfter"));
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// modify object
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject test = app.get(type, uuid);
+			assertNotNull(test);
+
+			test.setProperty(StructrApp.key(type, "name"), "new test");
+			test.setProperty(StructrApp.key(type, "desc"), "description");
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// test state after modification
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject test = app.get(type, uuid);
+			assertNotNull(test);
+
+			assertEquals("Invalid value after modification", "test",        test.getProperty("nameBefore"));
+			assertEquals("Invalid value after modification", "new test",    test.getProperty("nameAfter"));
+			assertNull("Invalid value after modification",                  test.getProperty("descBefore"));
+			assertEquals("Invalid value after modification", "description", test.getProperty("descAfter"));
 
 			tx.success();
 

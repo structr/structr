@@ -44,7 +44,6 @@ import org.structr.bolt.wrapper.NodeWrapper;
 import org.structr.bolt.wrapper.RelationshipWrapper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AOneToOne;
@@ -112,6 +111,7 @@ public class BasicTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -126,6 +126,7 @@ public class BasicTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}
@@ -171,7 +172,7 @@ public class BasicTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				Result result = app.nodeQuery().uuid(uuid).getResult();
+				List result = app.nodeQuery().uuid(uuid).getAsList();
 
 				assertEquals("Node should have been deleted", 0, result.size());
 
@@ -1974,7 +1975,7 @@ public class BasicTest extends StructrTest {
 
 			System.out.println("done.");
 
-			final List<RelationshipInterface> rels1 = app.cypher("MATCH ()-[r]-() RETURN DISTINCT r ORDER BY id(r)", Collections.EMPTY_MAP);
+			final Iterable<RelationshipInterface> rels1 = app.cypher("MATCH ()-[r]-() RETURN DISTINCT r ORDER BY id(r)", Collections.EMPTY_MAP);
 			System.out.println("Storing relationships in map...");
 
 			for (final RelationshipInterface rel : rels1) {
@@ -2011,7 +2012,7 @@ public class BasicTest extends StructrTest {
 
 
 			System.out.println("Comparing relationships with cache...");
-			final List<RelationshipInterface> rels2 = app.cypher("MATCH ()-[r]-() RETURN DISTINCT r ORDER BY id(r)", Collections.EMPTY_MAP);
+			final Iterable<RelationshipInterface> rels2 = app.cypher("MATCH ()-[r]-() RETURN DISTINCT r ORDER BY id(r)", Collections.EMPTY_MAP);
 
 			FixedSizeCache<Long, RelationshipWrapper> relCache = RelationshipWrapper.getCache();
 
@@ -2033,7 +2034,7 @@ public class BasicTest extends StructrTest {
 			System.out.println("done.");
 
 			System.out.println("Comparing nodes with cache...");
-			final List<NodeInterface> nodes = app.cypher("MATCH (n) RETURN DISTINCT n ORDER BY id(n)", Collections.EMPTY_MAP);
+			final Iterable<NodeInterface> nodes = app.cypher("MATCH (n) RETURN DISTINCT n ORDER BY id(n)", Collections.EMPTY_MAP);
 
 			FixedSizeCache<Long, NodeWrapper> nodeCache = NodeWrapper.getCache();
 

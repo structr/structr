@@ -27,7 +27,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.PropertiesNotFoundToken;
 import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -86,7 +85,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 
 		if (attributes != null) {
 
-			Result<T> result = Result.EMPTY_RESULT;
+			final List<T> result = new LinkedList<>();
 
 			// remove attributes that do not belong to the target node
 			final PropertyMap foreignProperties = new PropertyMap();
@@ -108,7 +107,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 			// Check if properties contain the UUID attribute
 			if (attributes.containsKey(GraphObject.id)) {
 
-				result = new Result(app.getNodeById(attributes.get(GraphObject.id)), false);
+				result.add((T)app.getNodeById(attributes.get(GraphObject.id)));
 
 			} else {
 
@@ -131,7 +130,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 						identifyingKeyValues.put(key, attributes.get(key));
 					}
 
-					result = app.nodeQuery(type).and(identifyingKeyValues).getResult();
+					result.addAll(app.nodeQuery(type).and(identifyingKeyValues).getAsList());
 
 				}
 			}
@@ -168,7 +167,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 
 				case 1:
 
-					final T typedResult = getTypedResult(result, type);
+					final T typedResult = getTypedResult(result.get(0), type);
 
 					notionPropertyMap.put(getStorageKey(relationProperty, typedResult, sourceTypeName), foreignProperties);
 
@@ -194,15 +193,13 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 		return null;
 	}
 
-	private T getTypedResult(Result<T> result, Class<T> type) throws FrameworkException {
-
-		GraphObject obj = result.get(0);
+	private T getTypedResult(final T obj, Class<T> type) throws FrameworkException {
 
 		if (!type.isAssignableFrom(obj.getClass())) {
 			throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
 		}
 
-		return result.get(0);
+		return obj;
 	}
 
 	private String getStorageKey(final RelationProperty relationProperty, final NodeInterface newNode, final String sourceTypeName) {

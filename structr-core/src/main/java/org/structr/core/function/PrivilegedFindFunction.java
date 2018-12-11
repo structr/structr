@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import java.util.List;
 import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -41,8 +42,8 @@ public class PrivilegedFindFunction extends Function<Object, Object> {
 		if (sources != null) {
 
 			final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-			final ConfigurationProvider config = StructrApp.getConfiguration();
-			final Query query = StructrApp.getInstance(securityContext).nodeQuery().sort(GraphObject.createdDate).order(false);
+			final ConfigurationProvider config    = StructrApp.getConfiguration();
+			final Query query                     = StructrApp.getInstance(securityContext).nodeQuery().sort(GraphObject.createdDate).order(false);
 
 			// the type to query for
 			Class type = null;
@@ -91,11 +92,12 @@ public class PrivilegedFindFunction extends Function<Object, Object> {
 
 				query.and(key, sources[1].toString());
 
-				final int resultCount = query.getResult().size();
+				final List<GraphObject> result = query.getAsList();
+				final int resultCount = result.size();
 
 				switch (resultCount) {
 					case 1:
-						return query.getFirst();
+						return result.get(0);
 					case 0:
 						return null;
 					default:

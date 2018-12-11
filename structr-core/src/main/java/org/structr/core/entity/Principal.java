@@ -117,12 +117,12 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		principal.addPropertyGetter("locale", String.class);
 		principal.addPropertyGetter("sessionData", String.class);
-		principal.addPropertyGetter("favorites", List.class);
-		principal.addPropertyGetter("groups", List.class);
+		principal.addPropertyGetter("favorites", Iterable.class);
+		principal.addPropertyGetter("groups", Iterable.class);
 		principal.addPropertyGetter("eMail", String.class);
 
 		principal.addPropertySetter("sessionData", String.class);
-		principal.addPropertySetter("favorites", List.class);
+		principal.addPropertySetter("favorites", Iterable.class);
 		principal.addPropertySetter("password", String.class);
 		principal.addPropertySetter("isAdmin", Boolean.TYPE);
 		principal.addPropertySetter("eMail", String.class);
@@ -136,6 +136,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.overrideMethod("isValidPassword",                 false, "return " + Principal.class.getName() + ".isValidPassword(this, arg0);");
 		principal.overrideMethod("addSessionId",                    false, Principal.class.getName() + ".addSessionId(this, arg0);");
 		principal.overrideMethod("removeSessionId",                 false, Principal.class.getName() + ".removeSessionId(this, arg0);");
+		principal.overrideMethod("onAuthenticate",                  false, "");
 
 		// override getProperty
 		principal.addMethod("getProperty")
@@ -161,12 +162,13 @@ public interface Principal extends NodeInterface, AccessControllable {
 	public static final String ANONYMOUS                         = "anonymous";
 	public static final String ANYONE                            = "anyone";
 
-	public static final Property<List<NodeInterface>> ownedNodes = new EndNodes<>("ownedNodes", PrincipalOwnsNode.class);
+	public static final Property<Iterable<NodeInterface>> ownedNodes = new EndNodes<>("ownedNodes", PrincipalOwnsNode.class);
 
-	List<Favoritable> getFavorites();
-	List<Principal> getParents();
+	Iterable<Favoritable> getFavorites();
+	Iterable<Group> getGroups();
+
+	Iterable<Principal> getParents();
 	List<Principal> getParentsPrivileged();
-	List<Group> getGroups();
 
 	boolean isValidPassword(final String password);
 
@@ -181,7 +183,9 @@ public interface Principal extends NodeInterface, AccessControllable {
 	boolean isBlocked();
 	boolean shouldSkipSecurityRelationships();
 
-	void setFavorites(final List<Favoritable> favorites) throws FrameworkException;
+	default void onAuthenticate() {}
+
+	void setFavorites(final Iterable<Favoritable> favorites) throws FrameworkException;
 	void setIsAdmin(final boolean isAdmin) throws FrameworkException;
 	void setPassword(final String password) throws FrameworkException;
 	void setEMail(final String eMail) throws FrameworkException;
@@ -189,7 +193,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 	String getLocale();
 
-	public static List<Principal> getParents(final Principal principal) {
+	public static Iterable<Principal> getParents(final Principal principal) {
 		return principal.getProperty(StructrApp.key(Principal.class, "groups"));
 	}
 
@@ -330,113 +334,3 @@ public interface Principal extends NodeInterface, AccessControllable {
 		}
 	}
 }
-
-
-/*
-
-	@Override
-	public boolean isValid(final ErrorBuffer errorBuffer) {
-
-		boolean valid = true;
-
-		valid &= ValidationHelper.isValidStringNotBlank(this, name, errorBuffer);
-		valid &= ValidationHelper.isValidUniqueProperty(this, eMail, errorBuffer);
-
-		final String _eMail = getProperty(eMail);
-		if (_eMail != null) {
-
-			// verify that the address contains at least the @ character,
-			// which is a requirement for it to be distinguishable from
-			// a user name, so email addresses can less easily interfere
-			// with user names.
-			if (!_eMail.contains("@")) {
-
-				valid = false;
-
-				errorBuffer.add(new SemanticErrorToken(getClass().getSimpleName(), eMail, "must_contain_at_character", _eMail));
-			}
-		}
-
-		return valid;
-	}
-
-public abstract class AbstractUser extends AbstractNode implements Principal {
-
-	private static final Logger logger = LoggerFactory.getLogger(AbstractUser.class.getName());
-	private Boolean cachedIsAdminFlag  = null;
-
-	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
-
-		boolean valid = true;
-
-		// call default method of principal
-		valid &= Principal.super.isValid(errorBuffer);
-		valid &= super.isValid(errorBuffer);
-
-		return valid;
-	}
-
-	@Override
-	public boolean isAdmin() {
-
-		if (cachedIsAdminFlag == null) {
-
-			cachedIsAdminFlag = getProperty(Principal.isAdmin);
-			if (cachedIsAdminFlag == null) {
-
-				cachedIsAdminFlag = false;
-			}
-		}
-
-		return cachedIsAdminFlag;
-	}
-
-	@Override
-	public List<Principal> getParents() {
-
-		List<Principal> parents         = new LinkedList<>();
-
-		for (Groups rel : getIncomingRelationships(Groups.class)) {
-
-			if (rel != null && rel.getSourceNode() != null) {
-
-				parents.add(rel.getSourceNode());
-
-			}
-		}
-
-		return parents;
-	}
-
-	@Override
-	public <T> T getProperty(final PropertyKey<T> key, final Predicate<GraphObject> predicate) {
-
-		if (password.equals(key) || salt.equals(key)) {
-
-			return (T) HIDDEN;
-
-		} else {
-
-			return super.getProperty(key, predicate);
-
-		}
-
-	}
-
-	@Override
-	public Set<String> getAllowedPermissions() {
-		return null;
-	}
-
-	@Override
-	public Set<String> getDeniedPermissions() {
-		return null;
-	}
-
-	@Override
-	public boolean shouldSkipSecurityRelationships() {
-		return false;
-	}
-}
-*/

@@ -35,6 +35,7 @@ import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.core.GraphObject;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
@@ -50,13 +51,17 @@ import org.structr.schema.SchemaHelper;
  */
 public class SecurityContext {
 
-
 	public static final String JSON_PARALLELIZATION_REQUEST_PARAMETER_NAME = "parallelizeJsonOutput";
 	public static final String LOCALE_KEY                                  = "locale";
+
+	public enum MergeMode {
+		Add, Remove, Toggle, Replace
+	}
 
 	private static final Logger logger                   = LoggerFactory.getLogger(SecurityContext.class.getName());
 	private static final Map<String, Long> resourceFlags = new ConcurrentHashMap<>();
 	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,-]+)");
+	private MergeMode remoteCollectionMergeMode  = MergeMode.Replace;
 	private boolean uuidWasSetManually                   = false;
 	private boolean doTransactionNotifications           = false;
 	private boolean forceMergeOfNestedProperties         = false;
@@ -473,9 +478,7 @@ public class SecurityContext {
 
 			default:
 				return false;
-
 		}
-
 	}
 
 	public boolean isReadable(final NodeInterface node, final boolean includeHidden, final boolean publicOnly) {
@@ -511,6 +514,10 @@ public class SecurityContext {
 		}
 
 		return node.isGranted(Permission.read, this);
+	}
+
+	public MergeMode getRemoteCollectionMergeMode() {
+		return remoteCollectionMergeMode;
 	}
 
 	// ----- private methods -----
@@ -582,7 +589,7 @@ public class SecurityContext {
 			final Principal owner = node.getOwnerNode();
 
 			// owner is always allowed to do anything with its nodes
-			if (user.equals(node) || user.equals(owner) || user.getParents().contains(owner)) {
+			if (user.equals(node) || user.equals(owner) || Iterables.toList(user.getParents()).contains(owner)) {
 
 				return true;
 			}

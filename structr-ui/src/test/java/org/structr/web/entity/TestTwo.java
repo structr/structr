@@ -18,7 +18,6 @@
  */
 package org.structr.web.entity;
 
-import java.util.List;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
@@ -27,6 +26,6 @@ import org.structr.core.property.Property;
  */
 public class TestTwo extends AbstractNode {
 
-	public static final Property<List<TestFive>> testFives = new EndNodes<>("testFives", TwoFiveOneToMany.class);
+	public static final Property<Iterable<TestFive>> testFives = new EndNodes<>("testFives", TwoFiveOneToMany.class);
 
 }

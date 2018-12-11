@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
@@ -84,12 +85,12 @@ public class StructrFilesPath extends StructrPath {
 
 					try (final Tx tx = app.tx()) {
 
-						for (final Folder folder : app.nodeQuery(Folder.class).and(hasParentKey, false).getAsList()) {
+						for (final Folder folder : app.nodeQuery(Folder.class).and(hasParentKey, false).sort(AbstractNode.name).getAsList()) {
 
 							files.add(new StructrFilePath(fs, StructrFilesPath.this, folder.getName()));
 						}
 
-						for (final File file : app.nodeQuery(File.class).and(hasParentKey, false).getAsList()) {
+						for (final File file : app.nodeQuery(File.class).and(hasParentKey, false).sort(AbstractNode.name).getAsList()) {
 
 							files.add(new StructrFilePath(fs, StructrFilesPath.this, file.getName()));
 						}

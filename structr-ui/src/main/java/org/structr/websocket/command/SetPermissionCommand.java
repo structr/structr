@@ -19,11 +19,11 @@
 package org.structr.websocket.command;
 
 import java.util.Arrays;
-import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.StaticValue;
 import org.structr.core.Value;
@@ -37,11 +37,8 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
 /**
- * Websocket command to grant or revoke a permission
- *
- *
+ * Websocket command to grant or revoke a permission.
  */
 public class SetPermissionCommand extends AbstractCommand {
 
@@ -51,24 +48,22 @@ public class SetPermissionCommand extends AbstractCommand {
 	private static final String PRINCIPAL_ID_KEY = "principalId";
 	private static final String PERMISSION_KEY   = "permission";
 	private static final String ACTION_KEY       = "action";
-	
+
 	static {
 
 		StructrWebSocket.addCommand(SetPermissionCommand.class);
-
 	}
 
 	private int sum   = 0;
 	private int count = 0;
 
-	//~--- methods --------------------------------------------------------
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
 		setDoTransactionNotifications(true);
 
 		try {
-		
+
 			AbstractNode obj   = getNode(webSocketData.getId());
 			boolean rec        = webSocketData.getNodeDataBooleanValue(RECURSIVE_KEY);
 			String principalId = webSocketData.getNodeDataStringValue(PRINCIPAL_ID_KEY);
@@ -79,26 +74,28 @@ public class SetPermissionCommand extends AbstractCommand {
 
 				logger.error("This command needs a principalId");
 				getWebSocket().send(MessageBuilder.status().code(400).build(), true);
-
 			}
 
 			Principal principal = (Principal) getNode(principalId);
-
 			if (principal == null) {
 
 				logger.error("No principal found with id {}", new Object[]{principalId});
 				getWebSocket().send(MessageBuilder.status().code(400).build(), true);
-
 			}
 
 			webSocketData.getNodeData().remove("recursive");
 
 			if (obj != null) {
 
-				final App app = StructrApp.getInstance(getWebSocket().getSecurityContext());
+				final SecurityContext securityContext = getWebSocket().getSecurityContext();
+
+				securityContext.setDoTransactionNotifications(false);
+				securityContext.disableEnsureCardinality();
+
+				final App app = StructrApp.getInstance(securityContext);
 				try (final Tx nestedTx = app.tx()) {
 
-					if (!((AbstractNode)obj).isGranted(Permission.accessControl, getWebSocket().getSecurityContext())) {
+					if (!((AbstractNode)obj).isGranted(Permission.accessControl, securityContext)) {
 
 						logger.warn("No access control permission for {} on {}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
 						getWebSocket().send(MessageBuilder.status().message("No access control permission").code(400).build(), true);
@@ -139,16 +136,14 @@ public class SetPermissionCommand extends AbstractCommand {
 
 					logger.error("Unable to set permissions: {}", ((FrameworkException) ex).toString());
 					getWebSocket().send(MessageBuilder.status().code(400).build(), true);
-
 				}
 
 			} else {
 
 				logger.warn("Graph object with uuid {} not found.", webSocketData.getId());
 				getWebSocket().send(MessageBuilder.status().code(404).build(), true);
-
 			}
-		
+
 		} catch (FrameworkException ex) {
 			logger.warn("Exception occured", ex);
 			getWebSocket().send(MessageBuilder.status().code(ex.getStatus()).message(ex.getMessage()).build(), true);
@@ -163,9 +158,7 @@ public class SetPermissionCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
-
 		return "SET_PERMISSION";
-
 	}
 
 	private void setPermission(final Value<Tx> transaction, final App app, final AbstractNode obj, final Principal principal, final String action, final Permission permission, final boolean rec) throws FrameworkException {
@@ -211,11 +204,7 @@ public class SetPermissionCommand extends AbstractCommand {
 			for (final Object t : ((LinkedTreeNode) obj).treeGetChildren()) {
 
 				setPermission(transaction, app, (AbstractNode) t, principal, action, permission, rec);
-
 			}
 		}
-
 	}
-
-
 }

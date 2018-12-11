@@ -1,0 +1,12 @@
+<div id="ldap-group-config">
+	<h3>Group synchronized with LDAP server</h3>
+	<div class="row">
+		<input type="text" size="80" id="ldap-group-dn" placeholder="Distinguished Name" value="${config.group.distinguishedName || ''}" />
+	</div>
+	<div class="row">
+		<button type="button" class="action" id="ldap-sync-button">Synchronize now</button>
+	</div>
+	<div class="row">
+		<a href="/structr/config" target="_blank">Open Structr configuration</a>
+	</div>
+</div>

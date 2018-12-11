@@ -19,18 +19,18 @@
 package org.structr.rest.resource;
 
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectMap;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.export.StructrSchema;
@@ -81,25 +81,20 @@ public class SchemaJsonResource extends Resource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
-		final GraphObjectMap schema = new GraphObjectMap();
-		int resultCount = 0;
+		String schema = null;
 
 		try {
 
 			final JsonSchema jsonSchema = StructrSchema.createFromDatabase(StructrApp.getInstance());
-			schema.setProperty(new StringProperty("schema"), jsonSchema.toString());
-
-			resultCount = 1;
+			schema                      = jsonSchema.toString();
 
 		} catch (URISyntaxException ex) {
 			logger.error("Error while creating JsonSchema: " + ex.getMessage());
 		}
 
-		Result res = new Result(schema, true);
-		res.setRawResultCount(resultCount);
-		return res;
+		return new PagingIterable<>(Arrays.asList(schema));
 
 	}
 

@@ -53,10 +53,6 @@
 	</fileSets>
 	<files>
 		<file>
-			<source>${project.parent.basedir}/structr-ui/seed.zip</source>
-			<outputDirectory>/</outputDirectory>
-		</file>
-		<file>
 			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/commons-daemon/amd64/prunsrv.exe</source>
 			<outputDirectory>/bin/commons-daemon/amd64</outputDirectory>
 		</file>

@@ -596,6 +596,6 @@ public class TypeResourceRelationshipTest extends StructrRestTest {
 				.body("result[0].type",     equalTo("BaseType"))
 				.body("result[1].type",     equalTo("DerivedType"))
 			.when()
-				.get("/BaseType");
+				.get("/BaseType?sort=name");
 	}
 }

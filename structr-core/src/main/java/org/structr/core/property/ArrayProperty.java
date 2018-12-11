@@ -23,13 +23,13 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.NumberToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
@@ -103,7 +103,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		try {
 			return Class.forName("[L" + componentType.getName() + ";");
 		} catch (ClassNotFoundException ex) {}
-		
+
 		return componentType;
 	}
 
@@ -114,14 +114,14 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 	@Override
 	public PropertyConverter<T[], ?> databaseConverter(SecurityContext securityContext) {
-		return null;
+		return new ArrayDatabaseConverter(securityContext);
 	}
 
 	@Override
 	public PropertyConverter<T[], ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		this.securityContext = securityContext;
 		this.entity = entity;
-		return null;
+		return databaseConverter(securityContext);
 	}
 
 	@Override
@@ -177,6 +177,55 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 	}
 
+	private class ArrayDatabaseConverter extends PropertyConverter<T[], Object> {
+
+		public ArrayDatabaseConverter(SecurityContext securityContext) {
+			super(securityContext, null);
+		}
+
+		@Override
+		public T[] revert(Object source) throws FrameworkException {
+			
+			if (source == null) {
+				return null;
+			}
+
+			if (source instanceof List) {
+				return ArrayProperty.this.convert((List)source);
+			}
+
+			if (source.getClass().isArray()) {
+				return revert(Arrays.asList((T[])source));
+			}
+
+			if (source instanceof String) {
+
+				final String s = (String)source;
+				if (s.contains(",")) {
+
+					return ArrayProperty.this.convert(Arrays.asList(s.split(",")));
+				}
+			}
+
+			// create array of componentTypes
+			final T[] result = (T[])Array.newInstance(componentType, 1);
+			final T value    = ArrayProperty.this.fromString(source.toString());
+
+			if (value != null) {
+				result[0] = value;
+			}
+
+			return result;
+		
+		}
+
+		@Override
+		public Object[] convert(T[] source) throws FrameworkException {
+			return source;
+		}
+
+	}
+
 	@Override
 	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, T[] searchValue, boolean exactMatch, Query query) {
 
@@ -201,7 +250,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	}
 
 	// ----- private methods -----
-	private T[] convert(final List source) {
+	private T[] convert(final List source) throws FrameworkException {
 
 		final ArrayList<T> result = new ArrayList<>();
 
@@ -213,7 +262,13 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 			} else if (o != null) {
 
-				result.add(fromString(o.toString()));
+				final T value = fromString(o.toString());
+
+				if (value == null) {
+					throw new FrameworkException(422, "Invalid input", new NumberToken(this.getDeclaringClass().getSimpleName(), this));
+				}
+
+				result.add(value);
 
 			} else {
 

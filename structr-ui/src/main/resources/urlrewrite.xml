@@ -7,14 +7,6 @@
 	<!-- execute a method in Structr context to access the "force https" setting -->
 	<class-rule class="org.structr.web.common.RewriteRule" method="checkConfig" />
 
-	<!-- the default rule to allow access to Structr pages -->
-	<rule match-type="regex">
-		<name>RedirectToHtmlServlet</name>
-		<condition type="request-uri" operator="notequal">^/structr/</condition>
-		<from>^/(.*)$</from>
-		<to type="forward" last="true">/structr/html/$1</to>
-	</rule>
-
 	<!--check for the presence of the structr.force.https request attribute that
 	    is set by the custom rewrite rule defined by the class-rule above -->
 	<rule>
@@ -24,5 +16,12 @@
 		<to type="permanent-redirect" last="true">https://%{server-name}/$1</to>
 	</rule>
 
+	<!-- the default rule to allow access to Structr pages -->
+	<rule match-type="regex">
+		<name>RedirectToHtmlServlet</name>
+		<condition type="request-uri" operator="notequal">^/structr/</condition>
+		<from>^/(.*)$</from>
+		<to type="forward" last="true">/structr/html/$1</to>
+	</rule>
 
 </urlrewrite>

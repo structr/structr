@@ -47,10 +47,12 @@ public class HTMLRestEndpointTest extends StructrRestTest {
 
 				.body("html.head.title", equalTo("/structr/rest/Group"))
 				.body("html.body.div[2].h1", equalTo("/structr/rest/Group"))
-				.body("html.body.div[2].ul.li[0].ul.li[0].b", equalTo("\"query_time\":"))
-				.body("html.body.div[2].ul.li[0].ul.li[1].b", equalTo("\"result_count\":"))
-				.body("html.body.div[2].ul.li[0].ul.li[2].b", equalTo("\"result\":"))
-				.body("html.body.div[2].ul.li[0].ul.li[3].b", equalTo("\"serialization_time\":"))
+				.body("html.body.div[2].ul.li[0].ul.li[0].b", equalTo("\"result\":"))
+				.body("html.body.div[2].ul.li[0].ul.li[1].b", equalTo("\"query_time\":"))
+				.body("html.body.div[2].ul.li[0].ul.li[2].b", equalTo("\"result_count\":"))
+				.body("html.body.div[2].ul.li[0].ul.li[3].b", equalTo("\"page_count\":"))
+				.body("html.body.div[2].ul.li[0].ul.li[4].b", equalTo("\"result_count_time\":"))
+				.body("html.body.div[2].ul.li[0].ul.li[5].b", equalTo("\"serialization_time\":"))
 
 			.when()
 				.get("/Group");

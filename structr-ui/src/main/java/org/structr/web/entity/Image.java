@@ -82,7 +82,7 @@ public interface Image extends File {
 		image.addPropertyGetter("isCreatingThumb", Boolean.TYPE);
 		image.addPropertySetter("isCreatingThumb", Boolean.TYPE);
 		image.addPropertyGetter("originalImage",   Image.class);
-		image.addPropertyGetter("thumbnails",      List.class);
+		image.addPropertyGetter("thumbnails",      Iterable.class);
 
 		image.addPropertyGetter("width",       Integer.class);
 		image.addPropertySetter("width",       Integer.class);
@@ -150,40 +150,9 @@ public interface Image extends File {
 	Image getScaledImage(final int maxWidth, final int maxHeight);
 	Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit);
 
-	List<Image> getThumbnails();
+	Iterable<Image> getThumbnails();
 
 	Folder getThumbnailParentFolder(final Folder originalParentFolder, final SecurityContext securityContext) throws FrameworkException;
-
-	//public Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit) {
-
-
-	/* TODO
-		public static final Property<Image> tnSmall                   = new ThumbnailProperty("tnSmall").format("100, 100, false");
-		public static final Property<Image> tnMid                     = new ThumbnailProperty("tnMid").format("300, 300, false");
-	*/
-
-	//public static final Property<Integer> height                  = new IntProperty("height").cmis().indexed();
-	//public static final Property<Integer> width                   = new IntProperty("width").cmis().indexed();
-	//public static final Property<Integer> orientation             = new IntProperty("orientation").cmis().indexed();
-	//public static final Property<String>  exifIFD0Data            = new StringProperty("exifIFD0Data").cmis().indexed();
-	//public static final Property<String>  exifSubIFDData          = new StringProperty("exifSubIFDData").cmis().indexed();
-	//public static final Property<String>  gpsData                 = new StringProperty("gpsData").cmis().indexed();
-
-	// public static final ImageDataProperty imageData               = new ImageDataProperty("imageData");
-
-	//public static final Property<Boolean> isThumbnail             = new BooleanProperty("isThumbnail").indexed().unvalidated().systemInternal();
-	//public static final Property<Boolean> isImage                 = new ConstantBooleanProperty("isImage", true);
-	//public static final Property<Boolean> isCreatingThumb         = new BooleanProperty("isCreatingThumb").systemInternal();
-
-	/*
-	public static final org.structr.common.View uiView            = new org.structr.common.View(Image.class, PropertyView.Ui,
-		type, name, contentType, size, relativeFilePath, width, height, orientation, exifIFD0Data, exifSubIFDData, gpsData, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage
-	);
-
-	public static final org.structr.common.View publicView        = new org.structr.common.View(Image.class, PropertyView.Public,
-		type, name, width, height, orientation, exifIFD0Data, exifSubIFDData, gpsData, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage
-	);
-	*/
 
 	public static boolean isGranted(final Image thisImage, final Permission permission, final SecurityContext context) {
 
@@ -232,9 +201,7 @@ public interface Image extends File {
 
 			if ( !propertiesCopiedToAllThumbnails.isEmpty() ) {
 
-				final List<Image> thumbnails = thisImage.getThumbnails();
-
-				for (Image tn : thumbnails) {
+				for (final Image tn : thisImage.getThumbnails()) {
 
 					if (!tn.getUuid().equals(thisImage.getUuid())) {
 

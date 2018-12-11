@@ -1391,63 +1391,67 @@ var _Schema = {
 
 		if (name && name.length) {
 
-			var obj                = {};
-			obj.schemaNode         = { id: entity.id };
-			obj.schemaProperties   = _Schema.findSchemaPropertiesByNodeAndName(entity, sortedAttrs);
-			obj.nonGraphProperties = _Schema.findNonGraphProperties(entity, sortedAttrs);
-			obj.name               = name;
-			obj.sortOrder          = sortedAttrs.join(',');
+			// update entity before storing the view to make sure that nonGraphProperties are correctly identified..
+			Command.get(entity.id, null, function(reloadedEntity) {
 
-			_Schema.storeSchemaEntity('schema_views', (view || {}), JSON.stringify(obj), function(result) {
+				var obj                = {};
+				obj.schemaNode         = { id: reloadedEntity.id };
+				obj.schemaProperties   = _Schema.findSchemaPropertiesByNodeAndName(reloadedEntity, sortedAttrs);
+				obj.nonGraphProperties = _Schema.findNonGraphProperties(reloadedEntity, sortedAttrs);
+				obj.name               = name;
+				obj.sortOrder          = sortedAttrs.join(',');
 
-				if (view) {
+				_Schema.storeSchemaEntity('schema_views', (view || {}), JSON.stringify(obj), function(result) {
 
-					// we saved a view
-					blinkGreen(tr);
-					_Schema.updateViewPreviewLink(tr, entity.name, name);
+					if (view) {
 
-					var oldName = view.name;
-					view.schemaProperties = obj.schemaProperties;
-					view.name             = obj.name;
+						// we saved a view
+						blinkGreen(tr);
+						_Schema.updateViewPreviewLink(tr, reloadedEntity.name, name);
 
-					tr.removeClass(oldName).addClass(view.name);
+						var oldName           = view.name;
+						view.schemaProperties = obj.schemaProperties;
+						view.name             = obj.name;
 
-					_Schema.deactivateEditModeForViewRow(tr);
+						tr.removeClass(oldName).addClass(view.name);
 
-				} else {
+						_Schema.deactivateEditModeForViewRow(tr);
 
-					// we created a view - get the view data
-					if (result && result.result) {
+					} else {
 
-						var id = result.result[0];
+						// we created a view - get the view data
+						if (result && result.result) {
 
-						$.ajax({
-							url: rootUrl + id,
-							type: 'GET',
-							dataType: 'json',
-							contentType: 'application/json; charset=utf-8',
-							statusCode: {
+							var id = result.result[0];
 
-								200: function(data) {
+							$.ajax({
+								url: rootUrl + id,
+								type: 'GET',
+								dataType: 'json',
+								contentType: 'application/json; charset=utf-8',
+								statusCode: {
 
-									var view = data.result;
-									var name = view.name;
+									200: function(data) {
 
-									blinkGreen(tr);
+										var view = data.result;
+										var name = view.name;
 
-									_Schema.reload();
+										blinkGreen(tr);
 
-									tr.addClass(name);
+										_Schema.reload();
 
-									_Schema.initViewRow(tr, entity, view);
+										tr.addClass(name);
+
+										_Schema.initViewRow(tr, reloadedEntity, view);
+									}
 								}
-							}
-						});
+							});
+						}
 					}
-				}
-			}, function(data) {
-				Structr.errorFromResponse(data.responseJSON);
-				blinkRed(tr);
+				}, function(data) {
+					Structr.errorFromResponse(data.responseJSON);
+					blinkRed(tr);
+				});
 			});
 
 		} else {
@@ -2970,28 +2974,11 @@ var _Schema = {
 							window.setTimeout(function() {
 								_Schema.openSchemaToolsDialog();
 
-								new MessageBuilder()
-										.title("Analyzing Database")
-										.info("Analyzing the database contents - depending on the database content this might take a while.<br>Please refer to the server log for more info.")
-										.delayDuration(5000)
-										.show();
-
 								$.ajax({
 									url: rootUrl + 'maintenance/analyzeSchema',
 									type: 'POST',
 									data: JSON.stringify({}),
-									contentType: 'application/json',
-									statusCode: {
-										200: function() {
-											new MessageBuilder()
-													.title("Finished analyzing database")
-													.info("Analyzing the database contents has finished. Reload the page to see the changes.")
-													.specialInteractionButton("Reload", function () {
-														location.reload();
-													}, "Ignore")
-													.show();
-										}
-									}
+									contentType: 'application/json'
 								});
 							}, 100);
 						});
@@ -3041,23 +3028,43 @@ var _Schema = {
 			container.append(html);
 
 			$('#reset-schema-positions', container).on('click', _Schema.clearPositions);
-			var layoutSelector = $('#saved-layout-selector', container);
+			var layoutSelector      = $('#saved-layout-selector', container);
+			var layoutFilenameInput = $('#layout-filename', container);
 
-			$('#save-layout-file', container).click(function() {
-				var fileName = $('#save-layout-filename').val().replaceAll(/[^\w_\-\. ]+/, '-');
+			var saveLayoutFunction = function(mode) {
+
+				var fileName = layoutFilenameInput.val().replaceAll(/[^\w_\-\. ]+/, '-');
 
 				if (fileName && fileName.length) {
 
-					Command.layouts('add', fileName, JSON.stringify(_Schema.getSchemaLayoutConfiguration()), function() {
-						updateLayoutSelector();
-						$('#save-layout-filename').val('');
+					Command.layouts(mode, fileName, JSON.stringify(_Schema.getSchemaLayoutConfiguration()), function(data) {
 
-						blinkGreen(layoutSelector);
+						if (!data.error) {
+
+							new MessageBuilder().success("Layout saved").show();
+
+							updateLayoutSelector();
+							layoutFilenameInput.val('');
+
+							blinkGreen(layoutSelector);
+
+						} else {
+
+							new MessageBuilder().error().title(data.error).text(data.message).show();
+						}
 					});
 
 				} else {
 					Structr.error('Schema layout name is required.');
 				}
+			};
+
+			$('#create-layout-file', container).click(function() {
+				saveLayoutFunction('add');
+			});
+
+			$('#overwrite-layout-file', container).click(function() {
+				saveLayoutFunction('overwrite');
 			});
 
 			$('#restore-layout').click(function() {
@@ -3066,12 +3073,12 @@ var _Schema = {
 
 				if (selectedLayout && selectedLayout.length) {
 
-					Command.layouts('get', selectedLayout, null, function(result) {
+					Command.layouts('get', selectedLayout, null, function(data) {
 
 						var loadedConfig;
 
 						try {
-							loadedConfig = JSON.parse(result.schemaLayout);
+							loadedConfig = JSON.parse(data.schemaLayout);
 
 							if (loadedConfig._version) {
 
@@ -3150,10 +3157,10 @@ var _Schema = {
 
 				if (selectedLayout && selectedLayout.length) {
 
-					Command.layouts('get', selectedLayout, null, function(result) {
+					Command.layouts('get', selectedLayout, null, function(data) {
 
 						var element = document.createElement('a');
-						element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(result.schemaLayout));
+						element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data.schemaLayout));
 						element.setAttribute('download', selectedLayout + '.json');
 
 						element.style.display = 'none';
@@ -3185,16 +3192,14 @@ var _Schema = {
 
 			var updateLayoutSelector = function() {
 
-				Command.layouts('list', '', null, function(result) {
+				Command.layouts('list', '', null, function(data) {
 
 					layoutSelector.empty();
 					layoutSelector.append('<option selected value="" disabled>-- Select Layout --</option>');
 
-					result.forEach(function(data) {
+					data.layouts.forEach(function(layoutFile) {
 
-						data.layouts.forEach(function(layoutFile) {
-							layoutSelector.append('<option>' + layoutFile.slice(0, -5) + '</option>');
-						});
+						layoutSelector.append('<option>' + layoutFile.slice(0, -5) + '</option>');
 					});
 				});
 			};
@@ -3843,5 +3848,44 @@ var _Schema = {
 				callback(typeInfo);
 			});
 		}
+	},
+	getDerivedTypes: function(baseType, blacklist, callback) {
+
+		Command.getByType('SchemaNode', 10000, 1, 'name', 'asc', 'name,extendsClass,isAbstract', false, function(result) {
+
+			var fileTypes = [];
+			var depth     = 5;
+			var types     = {};
+
+			var collect = function(list, type) {
+
+				list.forEach(function(n) {
+
+					if (n.extendsClass === type) {
+
+						fileTypes.push('org.structr.dynamic.' + n.name);
+
+						if (!n.isAbstract && !blacklist.includes(n.name)) {
+							types[n.name] = 1;
+						}
+					}
+
+				});
+			}
+
+			collect(result, baseType);
+
+			for (var i=0; i<depth; i++) {
+
+				fileTypes.forEach(function(type) {
+
+					collect(result, type);
+				});
+			}
+
+			if (callback && typeof callback === 'function') {
+				callback(Object.keys(types));
+			}
+		});
 	}
 };

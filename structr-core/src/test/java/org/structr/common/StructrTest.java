@@ -147,7 +147,7 @@ public class StructrTest {
 
 		basePath = "/tmp/structr-test-" + timestamp;
 
-		Settings.Services.setValue("NodeService LogService SchemaService");
+		Settings.Services.setValue("NodeService SchemaService");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 
 		// example for new configuration setup
@@ -162,6 +162,7 @@ public class StructrTest {
 		Settings.SuperUserPassword.setValue("sehrgeheim");
 
 		//Settings.CypherDebugLogging.setValue(true);
+		//Settings.LogSchemaOutput.setValue(true);
 
 		final Services services = Services.getInstance();
 

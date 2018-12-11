@@ -28,14 +28,14 @@ import org.structr.api.search.QueryContext;
 public class SimpleCypherQuery implements PageableQuery {
 
 	private final Map<String, Object> params = new LinkedHashMap<>();
+	private QueryContext queryContext        = new QueryContext();
 	private String base                      = null;
 	private int pageSize                     = 0;
 	private int page                         = 0;
-	private QueryContext queryContext        = new QueryContext();
 
 	public SimpleCypherQuery(final String base) {
 
-		this.pageSize = 10000;
+		this.pageSize = 100000;
 		this.base     = base;
 	}
 

@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.QueryResult;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
 import org.structr.api.search.*;
@@ -89,12 +88,12 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 		this.db = db;
 	}
 
-	public abstract QueryResult<T> getResult(final PageableQuery query);
+	public abstract Iterable<T> getResult(final PageableQuery query);
 	public abstract String getQueryPrefix(final String mainType, final String sourceTypeLabel, final String targetTypeLabel);
 	public abstract String getQuerySuffix(final PageableQuery query);
 
 	@Override
-	public QueryResult<T> query(final QueryContext context, final QueryPredicate predicate) {
+	public Iterable<T> query(final QueryContext context, final QueryPredicate predicate) {
 
 		final AdvancedCypherQuery query = new AdvancedCypherQuery(context, this);
 

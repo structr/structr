@@ -19,7 +19,6 @@
 package org.structr.core.function;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
@@ -43,10 +42,10 @@ public class MergeFunction extends Function<Object, Object> {
 		final List list = new ArrayList();
 		for (final Object source : sources) {
 
-			if (source instanceof Collection) {
+			if (source instanceof Iterable) {
 
 				// filter null objects
-				for (Object obj : (Collection)source) {
+				for (Object obj : (Iterable)source) {
 
 					if (obj != null) {
 

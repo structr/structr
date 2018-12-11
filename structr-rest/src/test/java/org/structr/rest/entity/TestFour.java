@@ -18,7 +18,6 @@
  */
 package org.structr.rest.entity;
 
-import java.util.List;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
@@ -31,8 +30,8 @@ import org.structr.core.property.StartNode;
  */
 public class TestFour extends AbstractNode {
 
-	public static final Property<List<TestOne>> manyToManyTestOnes = new EndNodes<>("manyToManyTestOnes", FourOneManyToMany.class);
-	public static final Property<List<TestOne>> oneToManyTestOnes  = new EndNodes<>("oneToManyTestOnes",  FourOneOneToMany.class);
+	public static final Property<Iterable<TestOne>> manyToManyTestOnes = new EndNodes<>("manyToManyTestOnes", FourOneManyToMany.class);
+	public static final Property<Iterable<TestOne>> oneToManyTestOnes  = new EndNodes<>("oneToManyTestOnes",  FourOneOneToMany.class);
 
 	public static final Property<TestThree>     oneToOneTestThree  = new EndNode<>("oneToOneTestThree",  FourThreeOneToOne.class);
 	public static final Property<TestThree>     manyToOneTestThree = new StartNode<>("manyToOneTestThree", ThreeFourOneToMany.class);

@@ -22,12 +22,10 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.engine.entities.MessageSubscriber;
@@ -41,6 +39,7 @@ import org.structr.schema.json.JsonSchema;
 
 import java.net.URI;
 import java.util.List;
+import org.structr.api.util.Iterables;
 
 public interface MQTTClient extends MessageClient, MQTTInfo {
 
@@ -67,7 +66,7 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 			type.addPropertyGetter("url",         String.class);
 			type.addPropertyGetter("port",        Integer.TYPE);
 			type.addPropertyGetter("qos",         Integer.TYPE);
-			type.addPropertyGetter("subscribers", List.class);
+			type.addPropertyGetter("subscribers", Iterable.class);
 
 			type.addPropertySetter("isConnected", Boolean.TYPE);
 
@@ -95,7 +94,7 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 	int getQos();
 	String getProtocol();
 	String getUrl();
-	List<MessageSubscriber> getSubscribers();
+	Iterable<MessageSubscriber> getSubscribers();
 
 	void setIsConnected(boolean connected) throws FrameworkException;
 
@@ -185,7 +184,7 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 		final App app = StructrApp.getInstance();
 		try (final Tx tx = app.tx()) {
 
-			List<MessageSubscriber> subs = thisClient.getSubscribers();
+			List<MessageSubscriber> subs = Iterables.toList(thisClient.getSubscribers());
 			String[] topics = new String[subs.size()];
 
 			for(int i = 0; i < subs.size(); i++) {
@@ -194,6 +193,7 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 			}
 
 			return topics;
+
 		} catch (FrameworkException ex ) {
 
 			logger.error("Couldn't retrieve client topics for MQTT subscription.");

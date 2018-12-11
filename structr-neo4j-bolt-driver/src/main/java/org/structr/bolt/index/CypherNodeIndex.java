@@ -18,12 +18,11 @@
  */
 package org.structr.bolt.index;
 
-import org.structr.api.QueryResult;
 import org.structr.api.graph.Node;
-import org.structr.api.util.QueryUtils;
+import org.structr.api.util.Iterables;
 import org.structr.bolt.BoltDatabaseService;
+import org.structr.bolt.SessionTransaction;
 import org.structr.bolt.mapper.NodeNodeMapper;
-import org.structr.bolt.mapper.NodeIdNodeMapper;
 
 /**
  *
@@ -71,14 +70,7 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 		final StringBuilder buf = new StringBuilder();
 		final String sortKey    = query.getSortKey();
 
-		if (query.idsOnly()) {
-
-			buf.append(" RETURN DISTINCT id(n)");
-
-		} else {
-
-			buf.append(" RETURN DISTINCT n");
-		}
+		buf.append(" RETURN n");
 
 		if (sortKey != null) {
 
@@ -91,15 +83,18 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	}
 
 	@Override
-	public QueryResult<Node> getResult(final PageableQuery query) {
+	public Iterable<Node> getResult(final PageableQuery query) {
 
-		if (query.idsOnly()) {
+		try {
+			final SessionTransaction tx = db.getCurrentTransaction();
 
-			return QueryUtils.map(new NodeIdNodeMapper(db), new NodeIdResultStream(db, query));
+			tx.setIsPing(query.getQueryContext().isPing());
 
-		} else {
+			return Iterables.map(new NodeNodeMapper(db), tx.getNodes(query.getStatement(), query.getParameters()));
 
-			return QueryUtils.map(new NodeNodeMapper(db), new NodeResultStream(db, query));
+		} finally {
+
+			query.nextPage();
 		}
 	}
 }

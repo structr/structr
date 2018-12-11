@@ -167,7 +167,7 @@ public class StructrLDAPClientModuleTest {
 
 		basePath = "/tmp/structr-test-" + timestamp;
 
-		Settings.Services.setValue("NodeService LogService SchemaService HttpService AgentService");
+		Settings.Services.setValue("NodeService LogService SchemaService HttpService AgentService LDAPService");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 
 		// example for new configuration setup
@@ -187,7 +187,15 @@ public class StructrLDAPClientModuleTest {
 
 		Settings.Servlets.setValue("JsonRestServlet");
 
-		//Settings.LogSchemaOutput.setValue(true);
+		Settings.LogSchemaErrors.setValue(true);
+
+		Settings.LDAPHost.setValue("localhost");
+		Settings.LDAPPort.setValue(10389);
+		Settings.LDAPBindDN.setValue("uid=admin,ou=system");
+		Settings.LDAPSecret.setValue("secret");
+		Settings.LDAPUseSSL.setValue(false);
+		Settings.LDAPPropertyMapping.setValue("{ sn: name, mail: eMail }");
+		Settings.LDAPUpdateInterval.setValue(600);
 
 		final Services services = Services.getInstance();
 

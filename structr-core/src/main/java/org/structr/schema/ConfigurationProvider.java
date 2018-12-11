@@ -29,7 +29,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.PropertyGroup;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Transformation;
-import org.structr.core.ViewTransformation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
@@ -71,10 +70,6 @@ public interface ConfigurationProvider {
 	public PropertyGroup getPropertyGroup(final Class type, final PropertyKey key);
 
 	public PropertyGroup getPropertyGroup(final Class type, final String key);
-
-	public void registerViewTransformation(final Class type, final String view, final ViewTransformation transformation);
-
-	public ViewTransformation getViewTransformation(final Class type, final String view);
 
 	public Set<String> getPropertyViews();
 	public Set<String> getPropertyViewsForType(final Class type);

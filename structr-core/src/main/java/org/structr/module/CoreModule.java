@@ -46,6 +46,7 @@ import org.structr.core.function.CreateFunction;
 import org.structr.core.function.CreateRelationshipFunction;
 import org.structr.core.function.CypherFunction;
 import org.structr.core.function.DateFormatFunction;
+import org.structr.core.function.DebugFunction;
 import org.structr.core.function.DeleteFunction;
 import org.structr.core.function.DisableCascadingDeleteFunction;
 import org.structr.core.function.DisableNotificationsFunction;
@@ -159,7 +160,9 @@ import org.structr.core.function.UnlockSystemPropertiesFunction;
 import org.structr.core.function.UnwindFunction;
 import org.structr.core.function.UpperFunction;
 import org.structr.core.function.UrlEncodeFunction;
+import org.structr.core.function.UserChangelogFunction;
 import org.structr.core.function.ValuesFunction;
+import org.structr.core.function.WeekDaysFunction;
 import org.structr.core.function.WriteFunction;
 import org.structr.core.function.XPathFunction;
 import org.structr.core.function.XmlFunction;
@@ -179,6 +182,7 @@ public class CoreModule implements StructrModule {
 		Functions.put(licensed, LicenseManager.Basic, "error", new ErrorFunction());
 		Functions.put(licensed, LicenseManager.Basic, "config", new ConfigFunction());
 		Functions.put(licensed, LicenseManager.Basic, "changelog", new ChangelogFunction());
+		Functions.put(licensed, LicenseManager.Basic, "user_changelog", new UserChangelogFunction());
 		Functions.put(licensed, LicenseManager.Basic, "serverlog", new ServerLogFunction());
 
 		Functions.put(licensed, LicenseManager.Basic, "grant", new GrantFunction());
@@ -284,6 +288,7 @@ public class CoreModule implements StructrModule {
 		Functions.put(true, LicenseManager.Community, "set_locale", new SetLocaleFunction());
 		Functions.put(true, LicenseManager.Community, "date_format", new DateFormatFunction());
 		Functions.put(true, LicenseManager.Community, "parse_date", new ParseDateFunction());
+		Functions.put(true, LicenseManager.Community, "week_days", new WeekDaysFunction());
 		Functions.put(true, LicenseManager.Community, "to_date", new ToDateFunction());
 		Functions.put(true, LicenseManager.Community, "number_format", new NumberFormatFunction());
 		Functions.put(true, LicenseManager.Community, "parse_number", new ParseNumberFunction());
@@ -317,6 +322,7 @@ public class CoreModule implements StructrModule {
 		Functions.put(true, LicenseManager.Community, "store", new StoreFunction());
 		Functions.put(true, LicenseManager.Community, "print", new PrintFunction());
 		Functions.put(true, LicenseManager.Community, "log", new LogFunction());
+		Functions.put(true, LicenseManager.Community, "debug", new DebugFunction());
 		Functions.put(true, LicenseManager.Community, "find", new FindFunction());
 		Functions.put(true, LicenseManager.Community, "get_or_create", new GetOrCreateFunction());
 		Functions.put(true, LicenseManager.Community, "find_relationship", new FindRelationshipFunction());

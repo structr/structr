@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.config.SettingsGroup;
-import org.structr.api.service.Service;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Document;
 import org.structr.api.util.html.Tag;
@@ -50,8 +49,7 @@ public class ConfigServlet extends HttpServlet {
 	private static final Set<String> authenticatedSessions = new HashSet<>();
 	private static final String ConfigUrl                  = "/structr/config";
 	private static final String ConfigName                 = "structr.conf";
-
-	private static final String TITLE						= "Structr Configuration Editor";
+	private static final String TITLE                      =  "Structr Configuration Editor";
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -290,10 +288,10 @@ public class ConfigServlet extends HttpServlet {
 		header.block("th").attr(new Attr("colspan", "2"));
 
 
-		for (final String serviceClassName : services.getServices()) {
+		for (final Class serviceClass : services.getServices()) {
 
-			final Class<Service> serviceClass = services.getServiceClassForName(serviceClassName);
-			final boolean running             = serviceClass != null ? services.isReady(serviceClass) : false;
+			final boolean running         = serviceClass != null ? services.isReady(serviceClass) : false;
+			final String serviceClassName = serviceClass.getSimpleName();
 
 			final Tag row  = table.block("tr");
 

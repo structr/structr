@@ -53,6 +53,7 @@ import javax.servlet.http.Part;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -60,14 +61,17 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -75,6 +79,9 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.Folder;
@@ -681,7 +688,7 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// check that the user is not in the group at first
-			assertFalse("User should not be in the test group before testing", group.getMembers().contains(tester));
+			assertFalse("User should not be in the test group before testing", Iterables.toList(group.getMembers()).contains(tester));
 
 			// check that is_in_group returns the correct result
 			assertEquals("Function is_in_group should return false.", false, Scripting.evaluate(renderContext, null, "${is_in_group(first(find('Group')), first(find('User')))}", "test"));
@@ -690,7 +697,7 @@ public class UiScriptingTest extends StructrUiTest {
 			Scripting.evaluate(renderContext, null, "${add_to_group(first(find('Group')), first(find('User')))}", "test");
 
 			// check that the user is in the group after the call to add_to_group
-			final List<Principal> members = group.getMembers();
+			final List<Principal> members = Iterables.toList(group.getMembers());
 			assertTrue("User should be in the test group now", members.contains(tester));
 
 			// check that is_in_group returns the correct result
@@ -700,7 +707,7 @@ public class UiScriptingTest extends StructrUiTest {
 			Scripting.evaluate(renderContext, null, "${remove_from_group(first(find('Group')), first(find('User')))}", "test");
 
 			// check that the user is not in the group any more after the call to remove_from_group
-			assertFalse("User should not be in the test group before testing", group.getMembers().contains(tester));
+			assertFalse("User should not be in the test group before testing", Iterables.toList(group.getMembers()).contains(tester));
 
 			// check that is_in_group returns the correct result
 			assertEquals("Function is_in_group should return false.", false, Scripting.evaluate(renderContext, null, "${is_in_group(first(find('Group')), first(find('User')))}", "test"));
@@ -713,6 +720,234 @@ public class UiScriptingTest extends StructrUiTest {
 			fail("Unexpected exception.");
 		}
 	}
+
+	@Test
+	public void testToJsonFunctions() {
+
+		try (final Tx tx = app.tx()) {
+
+			// create admin user
+			createTestNode(User.class,
+				new NodeAttribute<>(StructrApp.key(User.class, "id"),       "d7b5f5008fdf4066a1b9c2a74479ba5f"),
+				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final RenderContext renderContext = new RenderContext(SecurityContext.getSuperUserInstance(), new RequestMockUp(), new ResponseMockUp(), RenderContext.EditMode.NONE);
+
+		try (final Tx tx = app.tx()) {
+
+			// unprivileged call
+			final Object result1 = Scripting.evaluate(renderContext, null, "${{ return Structr.toJson({ name: 'Test' }); }}",        "test1");
+			final Object result2 = Scripting.evaluate(renderContext, null, "${{ return Structr.toJson([{ name: 'Test' }]); }}",      "test2");
+			final Object result3 = Scripting.evaluate(renderContext, null, "${{ return Structr.toJson(Structr.find('User')[0]); }}", "test3");
+			final Object result4 = Scripting.evaluate(renderContext, null, "${{ return Structr.toJson(Structr.find('User')); }}",    "test4");
+
+			assertEquals("Invalid result for Structr.toJson() on Javascript object", "{\n\t\"result\": {\n\t\t\"name\": \"Test\"\n\t}\n}", result1);
+			assertEquals("Invalid result for Structr.toJson() on Javascript array",  "{\n\t\"result\": [\n\t\t{\n\t\t\t\"name\": \"Test\"\n\t\t}\n\t]\n}", result2);
+			assertEquals("Invalid result for Structr.toJson() on GraphObject",       "{\n\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\"type\": \"User\",\n\t\"name\": \"admin\",\n\t\"isUser\": true\n}", result3);
+			assertEquals("Invalid result for Structr.toJson() on GraphObject array", "{\n\t\"result\": [\n\t\t{\n\t\t\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\t\t\"type\": \"User\",\n\t\t\t\"name\": \"admin\",\n\t\t\t\"isUser\": true\n\t\t}\n\t]\n}", result4);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testElementAttributeScripting() {
+
+		try (final Tx tx = app.tx()) {
+
+			// create admin user
+			createTestNode(User.class,
+				new NodeAttribute<>(StructrApp.key(User.class, "id"),       "d7b5f5008fdf4066a1b9c2a74479ba5f"),
+				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			);
+
+			final Page page = Page.createNewPage(securityContext, "testpage");
+
+			page.setProperties(page.getSecurityContext(), new PropertyMap(Page.visibleToPublicUsers, true));
+
+			assertTrue(page != null);
+			assertTrue(page instanceof Page);
+
+			final DOMNode html  = (DOMNode) page.createElement("html");
+			final DOMNode head  = (DOMNode) page.createElement("head");
+			final DOMNode body  = (DOMNode) page.createElement("body");
+			final DOMNode title = (DOMNode) page.createElement("title");
+			final DOMNode div01 = (DOMNode) page.createElement("div");
+			final DOMNode div02 = (DOMNode) page.createElement("div");
+			final DOMNode div03 = (DOMNode) page.createElement("div");
+			final DOMNode div04 = (DOMNode) page.createElement("div");
+			final DOMNode div05 = (DOMNode) page.createElement("div");
+			final DOMNode div06 = (DOMNode) page.createElement("div");
+			final DOMNode div07 = (DOMNode) page.createElement("div");
+			final DOMNode div08 = (DOMNode) page.createElement("div");
+			final DOMNode div09 = (DOMNode) page.createElement("div");
+			final DOMNode div10 = (DOMNode) page.createElement("div");
+			final DOMNode div11 = (DOMNode) page.createElement("div");
+
+			// add HTML element to page
+			page.appendChild(html);
+
+			// add HEAD and BODY elements to HTML
+			html.appendChild(head);
+			html.appendChild(body);
+
+			// add TITLE element to HEAD
+			head.appendChild(title);
+
+			body.appendChild(div01);
+			body.appendChild(div02);
+			body.appendChild(div03);
+			body.appendChild(div04);
+			body.appendChild(div05);
+			body.appendChild(div06);
+			body.appendChild(div07);
+			body.appendChild(div08);
+			body.appendChild(div09);
+			body.appendChild(div10);
+			body.appendChild(div11);
+
+			div01.setProperty(StructrApp.key(Div.class, "_html_class"), "test");
+			div02.setProperty(StructrApp.key(Div.class, "_html_class"), "${if(false, 'false', null)}");
+			div03.setProperty(StructrApp.key(Div.class, "_html_class"), "${if(true, 'true', null)}");
+			div04.setProperty(StructrApp.key(Div.class, "_html_class"), "${is(true, null)}");
+			div05.setProperty(StructrApp.key(Div.class, "_html_class"), "${is(true, 'true')}");
+
+			div06.setProperty(StructrApp.key(Div.class, "_html_class"), "other ${if(false, 'false', null)}");
+			div07.setProperty(StructrApp.key(Div.class, "_html_class"), "other ${if(true, 'true', null)}");
+			div08.setProperty(StructrApp.key(Div.class, "_html_class"), "other ${is(true, null)}");
+			div09.setProperty(StructrApp.key(Div.class, "_html_class"), "other ${is(true, 'true')}");
+
+			div10.setProperty(StructrApp.key(Div.class, "_html_class"), "");
+			div11.setProperty(StructrApp.key(Div.class, "_html_class"), "${invalid_script(code..");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		// test successful basic auth
+		RestAssured
+			.given()
+				.headers("X-User", "admin" , "X-Password", "admin")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+				.statusCode(200)
+				.body("html.body.div[0].@class" , equalTo("test"))
+				.body("html.body.div[1].@class" , nullValue())
+				.body("html.body.div[2].@class" , equalTo("true"))
+				.body("html.body.div[3].@class" , nullValue())
+				.body("html.body.div[4].@class" , equalTo("true"))
+				.body("html.body.div[5].@class" , equalTo("other"))
+				.body("html.body.div[6].@class" , equalTo("other true"))
+				.body("html.body.div[7].@class" , equalTo("other"))
+				.body("html.body.div[8].@class" , equalTo("other true"))
+				.body("html.body.div[9].@class" , equalTo(""))
+				.body("html.body.div[10].@class" , equalTo("${invalid_script(code.."))
+
+
+			.when()
+			.get("/testpage");
+	}
+
+	@Test
+	public void testBooleanValues() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Test");
+
+			type.addMethod("testBoolean1", "{ return true; }", "");
+			type.addMethod("testBoolean2", "{ return false; }", "");
+			type.addMethod("testBoolean3", "{ return true; }", "");
+			type.addMethod("testBoolean4", "{ return false; }", "");
+
+			type.addStringProperty("log");
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			// create global schema method for JavaScript
+			app.create(SchemaMethod.class,
+				new NodeAttribute<>(SchemaMethod.name,   "globalTest1"),
+				new NodeAttribute<>(SchemaMethod.source,
+					  "{"
+					+ "	var test = Structr.create('Test');\n"
+					+ "	var log  = '';\n"
+					+ "	var b1   = test.testBoolean1();\n"
+					+ "	var b2   = test.testBoolean2();\n"
+					+ "	var b3   = test.testBoolean3();\n"
+					+ "	var b4   = test.testBoolean4();\n"
+					+ "	Structr.log(b1 + ': ' + typeof b1);\n"
+					+ "	Structr.log(b2 + ': ' + typeof b2);\n"
+					+ "	Structr.log(b3 + ': ' + typeof b3);\n"
+					+ "	Structr.log(b4 + ': ' + typeof b4);\n"
+					+ "	if (b1) { log += 'b1 is true,'; }\n"
+					+ "	if (!b1) { log += 'b1 is false,'; }\n"
+					+ "	if (b2) { log += 'b2 is true,'; }\n"
+					+ "	if (!b2) { log += 'b2 is false,'; }\n"
+					+ "	if (b3) { log += 'b3 is true,'; }\n"
+					+ "	if (!b3) { log += 'b3 is false,'; }\n"
+					+ "	if (b4) { log += 'b4 is true,'; }\n"
+					+ "	if (!b4) { log += 'b4 is false,'; }\n"
+					+ "	test.log = log;\n"
+					+ "}"
+				)
+			);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			fail("Unexpected exception");
+			t.printStackTrace();
+		}
+
+		final RenderContext renderContext = new RenderContext(SecurityContext.getSuperUserInstance(), new RequestMockUp(), new ResponseMockUp(), RenderContext.EditMode.NONE);
+
+		try (final Tx tx = app.tx()) {
+
+			Scripting.evaluate(renderContext, null, "${{ Structr.call('globalTest1'); }}", "test");
+
+			final GraphObject obj = app.nodeQuery(StructrApp.getConfiguration().getNodeEntityClass("Test")).getFirst();
+			final Object result   = obj.getProperty("log");
+
+			assertEquals("Invalid conversion of boolean values in scripting", "b1 is true,b2 is false,b3 is true,b4 is false,", result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception");
+			fex.printStackTrace();
+		}
+	}
+
 
 	// ----- private methods -----
 	private String getEncodingInUse() {

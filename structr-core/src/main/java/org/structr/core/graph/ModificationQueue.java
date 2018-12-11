@@ -45,8 +45,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.Principal;
 import org.structr.core.function.ChangelogFunction;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -63,6 +65,15 @@ public class ModificationQueue {
 	private final Map<String, TransactionPostProcess> postProcesses                         = new LinkedHashMap<>();
 	private final Set<String> alreadyPropagated                                             = new LinkedHashSet<>();
 	private final Set<String> synchronizationKeys                                           = new TreeSet<>();
+	private boolean doUpateChangelogIfEnabled                                               = true;
+
+	public ModificationQueue() {
+		this(true);
+	}
+
+	public ModificationQueue(final boolean doUpdateChangelogIfEnabled) {
+		this.doUpateChangelogIfEnabled = doUpdateChangelogIfEnabled;
+	}
 
 	/**
 	 * Returns a set containing the different entity types of
@@ -181,23 +192,36 @@ public class ModificationQueue {
 
 	public void updateChangelog() {
 
-		if (Settings.ChangelogEnabled.getValue() && !modificationEvents.isEmpty()) {
+		if (doUpateChangelogIfEnabled && (Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue())) {
 
 			for (final ModificationEvent ev: modificationEvents) {
 
 				try {
 
-					final GraphObject obj = ev.getGraphObject();
-					final String newLog   = ev.getChangeLog();
+					if (Settings.ChangelogEnabled.getValue()) {
 
-					if (obj != null) {
+						final GraphObject obj = ev.getGraphObject();
+						final String newLog   = ev.getChangeLog();
 
-						final String uuid           = ev.isDeleted() ? ev.getUuid() : obj.getUuid();
-						final String typeFolderName = obj.isNode() ? "n" : "r";
+						if (obj != null) {
 
-						java.io.File file = ChangelogFunction.getChangeLogFileOnDisk(typeFolderName, uuid, true);
+							final String uuid           = ev.isDeleted() ? ev.getUuid() : obj.getUuid();
+							final String typeFolderName = obj.isNode() ? "n" : "r";
 
-						FileUtils.write(file, newLog, "utf-8", true);
+							java.io.File file = ChangelogFunction.getChangeLogFileOnDisk(typeFolderName, uuid, true);
+
+							FileUtils.write(file, newLog, "utf-8", true);
+						}
+					}
+
+					if (Settings.UserChangelogEnabled.getValue()) {
+
+						for (Map.Entry<String, StringBuilder> entry : ev.getUserChangeLogs().entrySet()) {
+
+							java.io.File file = ChangelogFunction.getChangeLogFileOnDisk("u", entry.getKey(), true);
+
+							FileUtils.write(file, entry.getValue().toString(), "utf-8", true);
+						}
 					}
 
 				} catch (IOException ioex) {
@@ -221,12 +245,11 @@ public class ModificationQueue {
 
 		getState(node).create();
 
-		if (Settings.ChangelogEnabled.getValue()) {
+		if (Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue()) {
 
-//			getState(user).updateChangeLog(user, GraphObjectModificationState.Verb.create, node.getUuid());
 			getState(node).updateChangeLog(user, GraphObjectModificationState.Verb.create, node.getUuid());
-		}
 
+		}
 	}
 
 	public <S extends NodeInterface, T extends NodeInterface> void create(final Principal user, final RelationshipInterface relationship) {
@@ -240,7 +263,7 @@ public class ModificationQueue {
 
 			modifyEndNodes(user, sourceNode, targetNode, relationship.getRelType());
 
-			if (Settings.ChangelogEnabled.getValue()) {
+			if (Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue()) {
 
 				getState(relationship).updateChangeLog(user, GraphObjectModificationState.Verb.create, relationship.getType(), relationship.getUuid(), sourceNode.getUuid(), targetNode.getUuid());
 
@@ -264,6 +287,7 @@ public class ModificationQueue {
 	}
 
 	public void modify(final Principal user, final NodeInterface node, final PropertyKey key, final Object previousValue, final Object newValue) {
+
 		getState(node).modify(user, key, previousValue, newValue);
 
 		if (key != null&& key.requiresSynchronization()) {
@@ -272,6 +296,7 @@ public class ModificationQueue {
 	}
 
 	public void modify(final Principal user, RelationshipInterface relationship, PropertyKey key, Object previousValue, Object newValue) {
+
 		getState(relationship).modify(user, key, previousValue, newValue);
 
 		if (key != null && key.requiresSynchronization()) {
@@ -291,14 +316,14 @@ public class ModificationQueue {
 				// save hash to avoid repeated propagation
 				alreadyPropagated.add(hash(node));
 			}
-	}
+		}
 	}
 
 	public void delete(final Principal user, final NodeInterface node) {
 
 		getState(node).delete(false);
 
-		if (Settings.ChangelogEnabled.getValue()) {
+		if (Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue()) {
 
 			getState(node).updateChangeLog(user, GraphObjectModificationState.Verb.delete, node.getUuid());
 		}
@@ -313,12 +338,13 @@ public class ModificationQueue {
 
 		modifyEndNodes(user, sourceNode, targetNode, relationship.getRelType());
 
-		if (Settings.ChangelogEnabled.getValue()) {
+		if (Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue()) {
 
 			getState(relationship).updateChangeLog(user, GraphObjectModificationState.Verb.delete, relationship.getType(), relationship.getUuid(), sourceNode.getUuid(), targetNode.getUuid());
 
 			getState(sourceNode).updateChangeLog(user, GraphObjectModificationState.Verb.unlink, relationship.getType(), relationship.getUuid(), targetNode.getUuid(), GraphObjectModificationState.Direction.out);
 			getState(targetNode).updateChangeLog(user, GraphObjectModificationState.Verb.unlink, relationship.getType(), relationship.getUuid(), sourceNode.getUuid(), GraphObjectModificationState.Direction.in);
+
 		}
 	}
 
@@ -426,6 +452,38 @@ public class ModificationQueue {
 
 		return modifiedKeys;
 
+	}
+
+	public GraphObjectMap getModifications(final GraphObject forObject) {
+
+		final GraphObjectMap result = new GraphObjectMap();
+		final GraphObjectModificationState state;
+
+		if (forObject.isNode()) {
+
+			state = getState((NodeInterface)forObject);
+
+		} else {
+
+			state = getState((RelationshipInterface)forObject);
+		}
+
+		final GraphObjectMap before = new GraphObjectMap();
+		final GraphObjectMap after  = new GraphObjectMap();
+
+		before.putAll(state.getRemovedProperties());
+
+		after.putAll(state.getModifiedProperties());
+		after.putAll(state.getNewProperties());
+
+		result.put(new GenericProperty("before"), before);
+		result.put(new GenericProperty("after"),  after);
+
+		return result;
+	}
+
+	public void disableChangelog() {
+		this.doUpateChangelogIfEnabled = false;
 	}
 
 	// ----- private methods -----

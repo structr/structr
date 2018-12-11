@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -134,9 +135,9 @@ public class RenderContextTest extends StructrUiTest {
 			// verify that parentItem can be accessed....
 			final Object value = parent.getProperty(childrenProperty);
 
-			assertTrue(value instanceof Collection);
+			assertTrue(value instanceof Iterable);
 
-			final Collection coll = (Collection)value;
+			final Collection coll = Iterables.toList((Iterable)value);
 			assertEquals(2, coll.size());
 
 			tx.success();
@@ -492,8 +493,8 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("${id} should be equal to ${current.id}", "true", Scripting.replaceVariables(ctx, p1, "${equal(id, current.id)}"));
 			assertEquals("${element} should evaluate to the current DOM node", p1.toString(), Scripting.replaceVariables(ctx, p1, "${element}"));
 
-			assertNull(Scripting.replaceVariables(ctx, p1, "${if(true, null, \"no\")}"));
-			assertNull(Scripting.replaceVariables(ctx, p1, "${null}"));
+			assertEquals("", Scripting.replaceVariables(ctx, p1, "${if(true, null, \"no\")}"));
+			assertEquals("", Scripting.replaceVariables(ctx, p1, "${null}"));
 
 			assertEquals("Invalid replacement result", "/testpage?" + page.getUuid(), Scripting.replaceVariables(ctx, p1, "/${page.name}?${page.id}"));
 			assertEquals("Invalid replacement result", "/testpage?" + page.getUuid(), Scripting.replaceVariables(ctx, a, "/${link.name}?${link.id}"));
@@ -552,9 +553,9 @@ public class RenderContextTest extends StructrUiTest {
 			final String sessionId       = HttpCookie.parse(sessionIdCookie).get(0).getValue();
 
 			// test authenticated GET request using session ID cookie
-			assertEquals("Invalid authenticated GET result", "admin",   Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/users')).result[0].name}"));
-			assertEquals("Invalid authenticated GET result", "tester1", Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/users')).result[1].name}"));
-			assertEquals("Invalid authenticated GET result", "tester2", Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/users')).result[2].name}"));
+			assertEquals("Invalid authenticated GET result", "admin",   Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/users?sort=name')).result[0].name}"));
+			assertEquals("Invalid authenticated GET result", "tester1", Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/users?sort=name')).result[1].name}"));
+			assertEquals("Invalid authenticated GET result", "tester2", Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/users?sort=name')).result[2].name}"));
 
 			// locale
 			final String localeString = ctx.getLocale().toString();

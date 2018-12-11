@@ -25,23 +25,19 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
 import org.structr.core.Value;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.schema.SchemaHelper;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * A resource constraint whose only purpose is to configure the
  * property view. This constraint must be wrapped around another
  * resource constraint, otherwise it will throw an IllegalPathException.
- *
- *
  */
 public class ViewFilterResource extends WrappingResource {
 
@@ -49,12 +45,8 @@ public class ViewFilterResource extends WrappingResource {
 	private static final Pattern uuidPattern = Pattern.compile("[a-fA-F0-9]{32}");
 	private String propertyView              = null;
 
-	//~--- constructors ---------------------------------------------------
-
 	// no-arg constructor for automatic instantiation
 	public ViewFilterResource() {}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
@@ -65,19 +57,17 @@ public class ViewFilterResource extends WrappingResource {
 			propertyView         = part;
 
 			return true;
-
 		}
 
 		return false;
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		if (wrappedResource != null) {
 
 			return wrappedResource.doGet(sortKey, sortDescending, pageSize, page);
-
 		}
 
 		throw new IllegalPathException("GET not allowed on " + getResourceSignature());
@@ -89,7 +79,6 @@ public class ViewFilterResource extends WrappingResource {
 		if (wrappedResource != null) {
 
 			return wrappedResource.doPost(propertySet);
-
 		}
 
 		throw new IllegalPathException("POST not allowed on " + getResourceSignature());
@@ -113,13 +102,10 @@ public class ViewFilterResource extends WrappingResource {
 		if (wrappedResource != null) {
 
 			return wrappedResource.createPostTransaction();
-
 		}
 
 		return true;
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getResourceSignature() {
@@ -141,7 +127,6 @@ public class ViewFilterResource extends WrappingResource {
 
 					signature.append(subPart);
 					signature.append("/");
-
 				}
 
 			}
@@ -149,7 +134,6 @@ public class ViewFilterResource extends WrappingResource {
 		} else {
 
 			signature.append(signaturePart);
-
 		}
 
 		if (propertyView != null) {

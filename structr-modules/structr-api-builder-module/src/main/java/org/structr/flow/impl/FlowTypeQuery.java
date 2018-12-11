@@ -18,14 +18,11 @@
  */
 package org.structr.flow.impl;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Occurrence;
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -33,7 +30,6 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.ComparisonSearchAttribute;
-import org.structr.core.graph.search.EmptySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
@@ -46,7 +42,6 @@ import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
 import org.structr.schema.action.ActionContext;
 
-import java.sql.Struct;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,12 +49,12 @@ import java.util.Map;
 
 public class FlowTypeQuery extends FlowBaseNode implements DataSource, DeployableEntity {
 
-	public static final Property<List<FlowBaseNode>> dataTarget				= new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<String> dataType							= new StringProperty("dataType");
-	public static final Property<String> query								= new StringProperty("query");
+	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<String> dataType = new StringProperty("dataType");
+	public static final Property<String> query = new StringProperty("query");
 
-	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, dataTarget, dataType, query);
-	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui, dataTarget, dataType, query);
+	public static final View defaultView = new View(FlowAction.class, PropertyView.Public, dataTarget, dataType, query);
+	public static final View uiView = new View(FlowAction.class, PropertyView.Ui, dataTarget, dataType, query);
 
 
 	@Override
@@ -242,6 +237,15 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 					break;
 				case "contains":
 					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.contains, value, Occurrence.REQUIRED));
+					break;
+				case "caseInsensitiveStartsWith":
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.caseInsensitiveStartsWith, value, Occurrence.REQUIRED));
+					break;
+				case "caseInsensitiveEndsWith":
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.caseInsensitiveEndsWith, value, Occurrence.REQUIRED));
+					break;
+				case "caseInsensitiveContains":
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.caseInsensitiveContains, value, Occurrence.REQUIRED));
 					break;
 			}
 

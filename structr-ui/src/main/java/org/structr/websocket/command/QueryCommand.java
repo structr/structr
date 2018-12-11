@@ -18,18 +18,21 @@
  */
 package org.structr.websocket.command;
 
+import com.drew.lang.Iterables;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper;
@@ -37,15 +40,11 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Websocket command to retrieve nodes of a given type which are on root level,
  * i.e. not children of another node.
  *
  * To get all nodes of a certain type, see the {@link GetCommand}.
- *
- *
- *
  */
 public class QueryCommand extends AbstractCommand {
 
@@ -115,14 +114,12 @@ public class QueryCommand extends AbstractCommand {
 		try {
 
 			// do search
-			final Result result = query.getResult();
-
-			// save raw result count
-			int resultCountBeforePaging = result.getRawResultCount(); // filteredResults.size();
+			final ResultStream<AbstractNode> result = query.getResultStream();
+			final List<AbstractNode> list           = Iterables.toList(result);
 
 			// set full result list
-			webSocketData.setResult(result.getResults());
-			webSocketData.setRawResultCount(resultCountBeforePaging);
+			webSocketData.setResult(list);
+			webSocketData.setRawResultCount(result.calculateTotalResultCount());
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);
@@ -131,17 +128,11 @@ public class QueryCommand extends AbstractCommand {
 
 			logger.warn("Exception occured", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
-
 		}
-
 	}
 
-	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
-
 		return "QUERY";
-
 	}
-
 }

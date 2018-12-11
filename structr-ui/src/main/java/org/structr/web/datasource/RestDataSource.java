@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
@@ -31,12 +30,10 @@ import org.apache.commons.collections.iterators.IteratorEnumeration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.PagingHelper;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -70,7 +67,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 	public Iterable<GraphObject> getData(final ActionContext actionContext, NodeInterface referenceNode) throws FrameworkException {
 
 		final RenderContext renderContext = (RenderContext) actionContext;
-		
+
 		final PropertyKey<String> restQueryKey = StructrApp.key(DOMNode.class, "restQuery");
 		final String restQuery                 = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(renderContext, restQueryKey);
 
@@ -82,7 +79,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 	}
 
 	// FIXME: this method is needed by the websocket search command because there is no reference node for the above method
-	public List<GraphObject> getData(final RenderContext renderContext, final String restQuery) throws FrameworkException {
+	public Iterable<GraphObject> getData(final RenderContext renderContext, final String restQuery) throws FrameworkException {
 
 		final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 		final SecurityContext securityContext                     = renderContext.getSecurityContext();
@@ -167,7 +164,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		Resource resource = null;
 		try {
 
-			resource = ResourceHelper.applyViewTransformation(wrappedRequest, securityContext, ResourceHelper.optimizeNestedResourceChain(securityContext, wrappedRequest, resourceMap, propertyView), propertyView);
+			resource = ResourceHelper.optimizeNestedResourceChain(securityContext, wrappedRequest, resourceMap, propertyView);
 
 		} catch (IllegalPathException | NotFoundException e) {
 
@@ -183,11 +180,6 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 			return Collections.EMPTY_LIST;
 
 		}
-
-		// experimental: disable result count, prevents instantiation
-		// of large collections just for counting all the objects..
-		securityContext.ignoreResultCount(true);
-
 
 		// TODO: decide if we need to rest the REST request here
 		//securityContext.checkResourceAccess(request, resource.getResourceSignature(), resource.getGrant(request, response), PropertyView.Ui);
@@ -217,29 +209,14 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 			sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName, false);
 		}
 
-		// do action
-		Result result = Result.EMPTY_RESULT;
-
 		try {
-			result = resource.doGet(sortKey, sortDescending, pageSize, page);
+			return resource.doGet(sortKey, sortDescending, pageSize, page);
 
 		} catch (NotFoundException nfe) {
 			logger.warn("No result from internal REST query: {}", restQuery);
 		}
 
-
-		result.setIsCollection(resource.isCollectionResource());
-		result.setIsPrimitiveArray(resource.isPrimitiveArray());
-
-		//Integer rawResultCount = (Integer) Services.getAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId());
-		PagingHelper.addPagingParameter(result, pageSize, page);
-
-		List<GraphObject> res = result.getResults();
-
-		renderContext.setResult(result);
-
-		return res != null ? res : Collections.EMPTY_LIST;
-
+		return Collections.EMPTY_LIST;
 	}
 
 	/**

@@ -76,12 +76,14 @@ public class SchemaNode extends AbstractSchemaNode {
 	private static final Logger logger                  = LoggerFactory.getLogger(SchemaNode.class.getName());
 	public static final String GraphQLNodeReferenceName = "StructrNodeReference";
 
+	public static final String schemaNodeNamePattern    = "[A-Z][a-zA-Z0-9_]*";
+
 	private static final Set<String> EntityNameBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
-		"Relation"
+		"Relation", "Property"
 	}));
 
-	public static final Property<List<SchemaRelationshipNode>> relatedTo            = new EndNodes<>("relatedTo", SchemaRelationshipSourceNode.class);
-	public static final Property<List<SchemaRelationshipNode>> relatedFrom          = new StartNodes<>("relatedFrom", SchemaRelationshipTargetNode.class);
+	public static final Property<Iterable<SchemaRelationshipNode>> relatedTo        = new EndNodes<>("relatedTo", SchemaRelationshipSourceNode.class);
+	public static final Property<Iterable<SchemaRelationshipNode>> relatedFrom      = new StartNodes<>("relatedFrom", SchemaRelationshipTargetNode.class);
 	public static final Property<String>                       extendsClass         = new StringProperty("extendsClass").indexed();
 	public static final Property<String>                       implementsInterfaces = new StringProperty("implementsInterfaces").indexed();
 	public static final Property<String>                       defaultSortKey       = new StringProperty("defaultSortKey");
@@ -130,7 +132,7 @@ public class SchemaNode extends AbstractSchemaNode {
 	@Override
 	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
 
-		final List<PropertyKey> propertyKeys = new LinkedList<>(Iterables.toList(super.getPropertyKeys(propertyView)));
+		final List<PropertyKey> propertyKeys = Iterables.toList(super.getPropertyKeys(propertyView));
 
 		// add "custom" property keys as String properties
 		for (final String key : SchemaHelper.getProperties(getNode())) {
@@ -152,7 +154,7 @@ public class SchemaNode extends AbstractSchemaNode {
 		boolean valid = super.isValid(errorBuffer);
 
 		valid &= ValidationHelper.isValidUniqueProperty(this, name, errorBuffer);
-		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, "[A-Z][a-zA-Z0-9_]*", errorBuffer);
+		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, schemaNodeNamePattern, errorBuffer);
 
 		return valid;
 	}
@@ -274,7 +276,6 @@ public class SchemaNode extends AbstractSchemaNode {
 		final String tmp = getProperty(extendsClass);
 		if (tmp != null) {
 
-
 			final String interfaces = getProperty(implementsInterfaces);
 			String _extendsClass = StringUtils.substringBefore(tmp, "<"); // remove optional generic parts from class name
 
@@ -345,6 +346,19 @@ public class SchemaNode extends AbstractSchemaNode {
 
 				setProperty(implementsInterfaces, addToList(interfaces, _extendsClass));
 				removeProperty(extendsClass);
+			}
+
+			// migrate LDAPUser
+			if ("LDAPUser".equals(getName())) {
+
+				// remove method printDebug()
+				for (final SchemaMethod m : getProperty(SchemaNode.schemaMethods)) {
+
+					if ("printDebug".equals(m.getName())) {
+
+						StructrApp.getInstance().delete(m);
+					}
+				}
 			}
 		}
 	}

@@ -20,10 +20,8 @@ package org.structr.core.function;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import org.structr.common.error.FrameworkException;
-import static org.structr.core.function.Functions.NULL_STRING;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -47,11 +45,12 @@ public class SizeFunction extends Function<Object, Object> {
 
 			if (source != null) {
 
-				if (source instanceof Collection) {
+				if (source instanceof Iterable) {
 
 					// filter null objects
-					for (Object obj : (Collection)source) {
-						if (obj != null && !NULL_STRING.equals(obj)) {
+					for (Object obj : (Iterable)source) {
+
+						if (obj != null) {
 
 							list.add(obj);
 						}
@@ -61,7 +60,7 @@ public class SizeFunction extends Function<Object, Object> {
 
 					list.addAll(Arrays.asList((Object[])source));
 
-				} else if (source != null && !NULL_STRING.equals(source)) {
+				} else if (source != null) {
 
 					list.add(source);
 				}

@@ -16,22 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.api.service;
 
-import java.util.Iterator;
-import java.util.Map;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- *
  */
-public interface NativeResult<T> extends AutoCloseable {
 
-	Iterator<T> columnAs(final String name);
-
-	boolean hasNext();
-
-	Map<String, Object> next();
-
-	@Override
-	void close();
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface ServiceDependency {
+	Class value();
 }

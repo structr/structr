@@ -18,7 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Set;
@@ -44,10 +43,10 @@ public class MergeUniqueFunction extends Function<Object, Object> {
 		final Set result = new LinkedHashSet<>();
 		for (final Object source : sources) {
 
-			if (source instanceof Collection) {
+			if (source instanceof Iterable) {
 
 				// filter null objects
-				for (Object obj : (Collection)source) {
+				for (Object obj : (Iterable)source) {
 
 					if (obj != null) {
 

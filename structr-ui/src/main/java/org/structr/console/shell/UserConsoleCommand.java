@@ -105,7 +105,7 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 
 			try (final Tx tx = app.tx()) {
 
-				final List<NodeInterface> users = app.nodeQuery(type).getAsList();
+				final List<NodeInterface> users = app.nodeQuery(type).sort(AbstractNode.name).getAsList();
 				for (final Iterator<NodeInterface> it = users.iterator(); it.hasNext();) {
 
 					final NodeInterface user = it.next();
@@ -194,7 +194,7 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 
 				if (user != null) {
 
-					if (user.getProperty(Principal.ownedNodes).isEmpty()) {
+					if (!user.getProperty(Principal.ownedNodes).iterator().hasNext()) {
 
 						app.delete(user);
 

@@ -195,8 +195,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 				conditionalIncludeFiles = false;
 
-				final List<GraphObject> result = StructrApp.getInstance().cypher(query, null);
-				for (final GraphObject obj : result) {
+				for (final GraphObject obj : StructrApp.getInstance().cypher(query, null)) {
 
 					if (obj.isNode()) {
 						nodes.add((AbstractNode)obj.getSyncNode());
@@ -209,8 +208,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			} else {
 
-				nodes.addAll(nodeFactory.bulkInstantiate(graphDb.getAllNodes()));
-				rels.addAll(relFactory.bulkInstantiate(graphDb.getAllRelationships()));
+				Iterables.addAll(nodes, nodeFactory.bulkInstantiate(graphDb.getAllNodes()));
+				Iterables.addAll(rels, relFactory.bulkInstantiate(graphDb.getAllRelationships()));
 			}
 
 			try (final FileOutputStream fos = new FileOutputStream(fileName)) {
@@ -749,33 +748,36 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 							} else {
 
 								final Object obj = deserialize(dis);
-								if (obj != null && currentObject != null) {
+								if (obj != null) {
 
-									if (uuidPropertyName.equals(currentKey) && currentObject instanceof Node) {
+									if (currentObject != null) {
 
-										final String uuid = (String)obj;
-										uuidMap.put(uuid, (Node)currentObject);
-									}
+										if (uuidPropertyName.equals(currentKey) && currentObject instanceof Node) {
 
-									if (currentKey.length() != 0) {
+											final String uuid = (String)obj;
+											uuidMap.put(uuid, (Node)currentObject);
+										}
 
-										// store object in DB
-										currentObject.setProperty(currentKey, obj);
+										if (currentKey.length() != 0) {
 
-										// set type label
-										if (currentObject instanceof Node && NodeInterface.type.dbName().equals(currentKey)) {
+											// store object in DB
+											currentObject.setProperty(currentKey, obj);
 
-											((Node) currentObject).addLabel(graphDb.forName(Label.class, (String) obj));
+											// set type label
+											if (currentObject instanceof Node && NodeInterface.type.dbName().equals(currentKey)) {
+
+												((Node) currentObject).addLabel(graphDb.forName(Label.class, (String) obj));
+											}
+
+										} else {
+
+											logger.error("Invalid property key for value {}, ignoring", obj);
 										}
 
 									} else {
 
-										logger.error("Invalid property key for value {}, ignoring", obj);
+										logger.warn("No current object to store property value for key {}, seed file corrupt?", currentKey);
 									}
-
-								} else {
-
-									logger.warn("No current object to store property in.");
 								}
 
 								currentKey = null;

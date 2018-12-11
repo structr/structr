@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -28,15 +27,13 @@ import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.NativeResult;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.GenericProperty;
-
-//~--- classes ----------------------------------------------------------------
 
 /**
  * Executes the given Cypher query and tries to convert the result in a List
@@ -48,90 +45,78 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(CypherQueryCommand.class.getName());
 
-	public List<GraphObject> execute(String query) throws FrameworkException {
+	public Iterable<GraphObject> execute(String query) throws FrameworkException {
 		return execute(query, null);
 	}
 
-	public List<GraphObject> execute(String query, Map<String, Object> parameters) throws FrameworkException {
+	public Iterable<GraphObject> execute(String query, Map<String, Object> parameters) throws FrameworkException {
 		return execute(query, parameters, true);
 	}
 
-	public List<GraphObject> execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted) throws FrameworkException {
+	public Iterable<GraphObject> execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted) throws FrameworkException {
 		return execute(query, parameters, includeHiddenAndDeleted, false);
 	}
 
-	public List<GraphObject> execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted, boolean publicOnly) throws FrameworkException {
+	public Iterable<GraphObject> execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted, boolean publicOnly) throws FrameworkException {
 
-		DatabaseService graphDb         = (DatabaseService) arguments.get("graphDb");
-		RelationshipFactory relFactory  = new RelationshipFactory(securityContext);
-		NodeFactory nodeFactory         = new NodeFactory(securityContext);
-		List<GraphObject> resultList    = new LinkedList<>();
-
-		// graphdb can be null..
+		DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
 		if (graphDb != null) {
 
-			try (final NativeResult result = graphDb.execute(query, parameters != null ? parameters : Collections.emptyMap())) {
+			final Iterable<Map<String, Object>> result = graphDb.execute(query, parameters != null ? parameters : Collections.emptyMap());
+			final Iterable<Iterable<GraphObject>> test = extractRows(result, includeHiddenAndDeleted, publicOnly);
 
-				final List<Map<String, Object>> rows = new ArrayList<>();
-
-				while (result.hasNext()) {
-
-					final Map<String, Object> row = result.next();
-					rows.add(row);
-				}
-
-				result.close();
-
-				for (final Map<String, Object> row : rows) {
-
-					for (Entry<String, Object> entry : row.entrySet()) {
-
-						String key   = entry.getKey();
-						Object value = entry.getValue();
-
-						final Object obj = handleObject(nodeFactory, relFactory, key, value, includeHiddenAndDeleted, publicOnly, 0);
-						if (obj != null) {
-
-							if (obj instanceof GraphObject) {
-
-								resultList.add((GraphObject)obj);
-
-							} else if (obj instanceof Collection) {
-
-								final List<Object> nonGraphObjectResult = new LinkedList<>();
-
-								for (final Object item : ((Collection)obj)) {
-
-									if (item instanceof GraphObject) {
-
-										resultList.add((GraphObject)item);
-
-									} else {
-
-										nonGraphObjectResult.add(item);
-									}
-								}
-
-								if (!nonGraphObjectResult.isEmpty()) {
-
-									// Wrap non-graph-objects in simple list
-									final GraphObjectMap graphObject = new GraphObjectMap();
-
-									graphObject.setProperty(new GenericProperty(key), nonGraphObjectResult);
-									resultList.add(graphObject);
-								}
-
-							} else {
-
-								logger.warn("Unable to handle Cypher query result object of type {}, ignoring.", obj.getClass().getName());
-							}
-						}
-					}
-				}
+			if (query.matches("(?i)(?s)(?m).*\\s+(delete|set|remove)\\s+.*")) {
+				logger.info("Clearing all caches due to DELETE, SET or REMOVE found in Cypher query: " + query);
+				FlushCachesCommand.flushAll();
 			}
+
+			return Iterables.flatten(test);
 		}
 
-		return resultList;
+		return Collections.emptyList();
+	}
+
+	private Iterable<Iterable<GraphObject>> extractRows(final Iterable<Map<String, Object>> result, final boolean includeHiddenAndDeleted, final boolean publicOnly) {
+		return Iterables.map(map -> { return extractColumns(map, includeHiddenAndDeleted, publicOnly); }, result);
+	}
+
+	private Iterable<GraphObject> extractColumns(final Map<String, Object> map, final boolean includeHiddenAndDeleted, final boolean publicOnly) {
+
+		final RelationshipFactory relFactory  = new RelationshipFactory(securityContext);
+		final NodeFactory nodeFactory         = new NodeFactory(securityContext);
+
+		return Iterables.map(entry -> {
+
+			final String key = entry.getKey();
+			final Object val = entry.getValue();
+
+			try {
+
+				final Object obj = handleObject(nodeFactory, relFactory, key, val, includeHiddenAndDeleted, publicOnly, 0);
+				if (obj != null) {
+
+					if (obj instanceof GraphObject) {
+
+						return (GraphObject)obj;
+
+					} else if (obj instanceof Collection) {
+
+						return (GraphObject)handleObject(nodeFactory, relFactory, key, obj, includeHiddenAndDeleted, publicOnly, 0);
+
+					} else {
+
+						logger.warn("Unable to handle Cypher query result object of type {}, ignoring.", obj.getClass().getName());
+					}
+				}
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+			}
+
+			return null;
+
+		}, map.entrySet());
 	}
 
 	final Object handleObject(final NodeFactory nodeFactory, final RelationshipFactory relFactory, final String key, final Object value, boolean includeHiddenAndDeleted, boolean publicOnly, int level) throws FrameworkException {

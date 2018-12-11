@@ -18,8 +18,8 @@
  */
 package org.structr.flow.impl;
 
-import com.sun.tools.javac.comp.Flow;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -28,7 +28,6 @@ import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
-import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Fork;
 import org.structr.flow.api.ThrowingElement;
@@ -40,18 +39,17 @@ import org.structr.flow.impl.rels.FlowForkBody;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class FlowFork extends FlowNode implements Fork, DataSource, DeployableEntity, ThrowingElement {
 
-	public static final Property<DataSource> dataSource 					= new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<List<FlowBaseNode>> dataTarget 			= new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<FlowNode> forkBody         				= new EndNode<>("loopBody", FlowForkBody.class);
-	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
+	public static final Property<DataSource> dataSource                 = new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<Iterable<FlowBaseNode>> dataTarget     = new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<FlowNode> forkBody                     = new EndNode<>("loopBody", FlowForkBody.class);
+	public static final Property<FlowExceptionHandler> exceptionHandler = new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
 
-	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, exceptionHandler, isStartNodeOfContainer, forkBody, dataSource, dataTarget);
-	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui, exceptionHandler, isStartNodeOfContainer, forkBody, dataSource, dataTarget);
+	public static final View defaultView = new View(FlowAction.class, PropertyView.Public, exceptionHandler, isStartNodeOfContainer, forkBody, dataSource, dataTarget);
+	public static final View uiView      = new View(FlowAction.class, PropertyView.Ui, exceptionHandler, isStartNodeOfContainer, forkBody, dataSource, dataTarget);
 
 	@Override
 	public FlowExceptionHandler getExceptionHandler(Context context) {
@@ -87,17 +85,6 @@ public class FlowFork extends FlowNode implements Fork, DataSource, DeployableEn
 	@Override
 	public FlowNode getForkBody() {
 		return getProperty(forkBody);
-	}
-
-	@Override
-	public Tx createTransaction() throws FlowException {
-
-		try {
-			return StructrApp.getInstance(securityContext).tx();
-		} catch (FrameworkException ex) {
-			throw new FlowException(ex);
-		}
-
 	}
 
 	@Override

@@ -19,6 +19,7 @@
 package org.structr.core.property;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -29,7 +30,6 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -175,9 +175,9 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 
 				if (exactMatch) {
 
-					Result<AbstractNode> result = app.nodeQuery(entityProperty.relatedType()).and(key, transformedValue).getResult();
+					final List<AbstractNode> result = app.nodeQuery(entityProperty.relatedType()).and(key, transformedValue).getAsList();
 
-					for (AbstractNode node : result.getResults()) {
+					for (AbstractNode node : result) {
 
 						switch (occur) {
 
@@ -209,10 +209,10 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 
 				} else {
 
-					Result<AbstractNode> result = app.nodeQuery(entityProperty.relatedType()).and(key, transformedValue, false).getResult();
+					final List<AbstractNode> result = app.nodeQuery(entityProperty.relatedType()).and(key, transformedValue, false).getAsList();
 
 					// loose search behaves differently, all results must be combined
-					for (AbstractNode node : result.getResults()) {
+					for (AbstractNode node : result) {
 
 						intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
 					}

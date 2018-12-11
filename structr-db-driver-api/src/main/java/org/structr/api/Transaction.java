@@ -25,6 +25,7 @@ public interface Transaction extends AutoCloseable {
 
 	void failure();
 	void success();
+	long getTransactionId();
 
 	@Override
 	void close();

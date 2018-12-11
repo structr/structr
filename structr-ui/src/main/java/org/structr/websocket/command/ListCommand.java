@@ -18,14 +18,15 @@
  */
 package org.structr.websocket.command;
 
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.File;
@@ -57,7 +58,7 @@ public class ListCommand extends AbstractCommand {
 		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		
+
 		final String rawType                  = webSocketData.getNodeDataStringValue("type");
 		final String properties               = webSocketData.getNodeDataStringValue("properties");
 		final boolean rootOnly                = webSocketData.getNodeDataBooleanValue("rootOnly");
@@ -100,14 +101,10 @@ public class ListCommand extends AbstractCommand {
 		try {
 
 			// do search
-			final Result result = query.getResult();
-
-			// save raw result count
-			int resultCountBeforePaging = result.getRawResultCount(); // filteredResults.size();
+			final List<AbstractNode> result = query.getAsList();
 
 			// set full result list
-			webSocketData.setResult(result.getResults());
-			webSocketData.setRawResultCount(resultCountBeforePaging);
+			webSocketData.setResult(result);
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);
@@ -118,15 +115,10 @@ public class ListCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 		}
-
 	}
 
-	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
-
 		return "LIST";
-
 	}
-
 }

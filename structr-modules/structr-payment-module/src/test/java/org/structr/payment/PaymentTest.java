@@ -107,6 +107,7 @@ public class PaymentTest extends StructrPaymentModuleTest {
 				.body()
 				.path("result.token");
 
+
 			// confirm checkout with wrong token (provoke error response)
 			RestAssured
 				.given()

@@ -42,6 +42,7 @@ import javax.tools.ToolProvider;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.common.error.DiagnosticErrorToken;
 import org.structr.common.error.ErrorBuffer;
@@ -158,7 +159,7 @@ public class NodeExtender {
 
 				final Map<String, Object> data = new LinkedHashMap();
 				data.put("success", true);
-				TransactionCommand.simpleBroadcast("SCHEMA_COMPILED", data, getInitiatedBySessionId());
+				TransactionCommand.simpleBroadcast("SCHEMA_COMPILED", data, Predicate.allExcept(getInitiatedBySessionId()));
 
 				Services.getInstance().setOverridingSchemaTypesAllowed(false);
 			}
@@ -197,16 +198,19 @@ public class NodeExtender {
 
 				errorBuffer.add(new DiagnosticErrorToken(name, diagnostic));
 
-				String src = ((CharSequenceJavaFileObject) diagnostic.getSource()).getCharContent(true).toString();
+				if (Settings.LogSchemaErrors.getValue()) {
 
-				// Add line numbers
-				final AtomicInteger index = new AtomicInteger();
-				src = Arrays.asList(src.split("\\R")).stream()
-					.map(line -> (index.getAndIncrement()+1) + ": " + line)
-					.collect(Collectors.joining("\n"));
+					String src = ((CharSequenceJavaFileObject) diagnostic.getSource()).getCharContent(true).toString();
 
-				// log also to log file
-				logger.error("Unable to compile dynamic entity {}:{}: {}\n{}", name, diagnostic.getLineNumber(), diagnostic.getMessage(Locale.ENGLISH), src);
+					// Add line numbers
+					final AtomicInteger index = new AtomicInteger();
+					src = Arrays.asList(src.split("\\R")).stream()
+						.map(line -> (index.getAndIncrement()+1) + ": " + line)
+						.collect(Collectors.joining("\n"));
+
+					// log also to log file
+					logger.error("Unable to compile dynamic entity {}:{}: {}\n{}", name, diagnostic.getLineNumber(), diagnostic.getMessage(Locale.ENGLISH), src);
+				}
 			}
 		}
 	}

@@ -19,12 +19,12 @@
 package org.structr.web.function;
 
 import java.io.StringWriter;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Map;
+import org.structr.api.util.PagingIterable;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.Result;
 import org.structr.core.StaticValue;
 import org.structr.core.Value;
 import org.structr.rest.serialization.StreamingJsonWriter;
@@ -51,6 +51,7 @@ public class ToJsonFunction extends UiFunction {
 			try {
 
 				final SecurityContext securityContext = ctx.getSecurityContext();
+				final StringWriter writer             = new StringWriter();
 
 				final Value<String> view = new StaticValue<>("public");
 				if (sources.length > 1) {
@@ -63,28 +64,27 @@ public class ToJsonFunction extends UiFunction {
 					outputDepth = ((Number)sources[2]).intValue();
 				}
 
-				final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth);
-				final StringWriter writer = new StringWriter();
-
-
 				if (sources[0] instanceof GraphObject) {
+
+					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, false);
 
 					jsonStreamer.streamSingle(securityContext, writer, (GraphObject)sources[0]);
 
-				} else if (sources[0] instanceof List) {
+				} else if (sources[0] instanceof Iterable) {
 
-					final List list = (List)sources[0];
+					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, true);
+					final Iterable list                    = (Iterable)sources[0];
 
-					jsonStreamer.stream(securityContext, writer, new Result(list, list.size(), true, false), null);
+					jsonStreamer.stream(securityContext, writer, new PagingIterable<>(list), null, false);
 
 				} else if (sources[0] instanceof Map) {
 
-					final GraphObjectMap map  = new GraphObjectMap();
+					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, false);
+					final GraphObjectMap map               = new GraphObjectMap();
 
-					this.recursivelyConvertMapToGraphObjectMap(map, (Map)sources[0], outputDepth);
+					UiFunction.recursivelyConvertMapToGraphObjectMap(map, (Map)sources[0], outputDepth);
 
-					jsonStreamer.stream(securityContext, writer, new Result(map, false), null);
-
+					jsonStreamer.stream(securityContext, writer, new PagingIterable<>(Arrays.asList(map)), null, false);
 				}
 
 				return writer.getBuffer().toString();

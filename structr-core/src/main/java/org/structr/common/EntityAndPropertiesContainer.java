@@ -25,7 +25,6 @@ import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
-import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.error.ErrorBuffer;
@@ -84,7 +83,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 
 	// dummy implementation of NodeInterface
 	@Override
-	public void init(SecurityContext securityContext, Node dbNode, Class type, boolean isCreation) {
+	public void init(SecurityContext securityContext, Node dbNode, Class type, boolean isCreation, final long transactionId) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
@@ -164,12 +163,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public void setRawPathSegment(Relationship pathSegment) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public Relationship getRawPathSegment() {
+	public void setRawPathSegmentId(final long pathSegmentId) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
@@ -245,16 +239,6 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 
 	@Override
 	public void removeProperty(PropertyKey key) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public PropertyKey getDefaultSortKey() {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public String getDefaultSortOrder() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
@@ -471,5 +455,10 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	@Override
 	public Map<String, Object> getTemporaryStorage() {
 		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public long getSourceTransactionId() {
+		return entity.getSourceTransactionId();
 	}
 }

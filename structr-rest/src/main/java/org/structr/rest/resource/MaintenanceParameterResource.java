@@ -23,13 +23,14 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.agent.Task;
 import org.structr.api.service.Command;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
 import org.structr.core.graph.BulkChangeNodePropertyKeyCommand;
 import org.structr.core.graph.BulkCopyRelationshipPropertyCommand;
 import org.structr.core.graph.BulkCreateLabelsCommand;
 import org.structr.core.graph.BulkFixNodePropertiesCommand;
+import org.structr.core.graph.BulkMigrateChangelogCommand;
 import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.BulkSetNodePropertiesCommand;
 import org.structr.core.graph.BulkSetRelationshipPropertiesCommand;
@@ -72,6 +73,7 @@ public class MaintenanceParameterResource extends Resource {
 		maintenanceCommandMap.put("snapshot", SnapshotCommand.class);
 		maintenanceCommandMap.put("flushCaches", FlushCachesCommand.class);
 		maintenanceCommandMap.put("analyzeSchema", SchemaAnalyzer.class);
+		maintenanceCommandMap.put("migrateChangelog", BulkMigrateChangelogCommand.class);
 
 	}
 
@@ -94,7 +96,7 @@ public class MaintenanceParameterResource extends Resource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 		throw new NotAllowedException("GET not allowed, use POST to run maintenance commands");
 	}
 

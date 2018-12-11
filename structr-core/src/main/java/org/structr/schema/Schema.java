@@ -18,7 +18,6 @@
  */
 package org.structr.schema;
 
-import java.util.List;
 import java.util.Map;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.core.entity.SchemaMethod;
@@ -38,7 +37,7 @@ public interface Schema {
 	public String getClassName();
 	public String getSuperclassName();
 
-	public List<SchemaProperty> getSchemaProperties();
-	public List<SchemaView> getSchemaViews();
-	public List<SchemaMethod> getSchemaMethods();
+	public Iterable<SchemaProperty> getSchemaProperties();
+	public Iterable<SchemaView> getSchemaViews();
+	public Iterable<SchemaMethod> getSchemaMethods();
 }

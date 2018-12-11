@@ -59,6 +59,7 @@ import org.eclipse.jetty.io.EofException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PathHelper;
@@ -66,7 +67,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
@@ -986,10 +986,10 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			}
 
 
-			final Result results = query.getResult();
+			final List<AbstractNode> results = Iterables.toList(query.getResultStream());
 
 			logger.debug("{} results", results.size());
-			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, results.getResults());
+			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, results);
 
 			return (results.size() > 0 ? (AbstractNode) results.get(0) : null);
 		}
@@ -1163,10 +1163,10 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			final App app = StructrApp.getInstance();
 
-			Result<Principal> results;
+			List<Principal> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery(Principal.class).and(confirmationKeyKey, key).getResult();
+				results = app.nodeQuery(Principal.class).and(confirmationKeyKey, key).getAsList();
 
 				tx.success();
 			}
@@ -1246,10 +1246,10 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			final App app = StructrApp.getInstance();
 
-			Result<Principal> results;
+			List<Principal> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery(Principal.class).and(confirmationKeyKey, key).getResult();
+				results = app.nodeQuery(Principal.class).and(confirmationKeyKey, key).getAsList();
 
 				tx.success();
 			}
@@ -1317,12 +1317,12 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			query.and().orType(Page.class).orTypes(File.class);
 
 			// Searching for pages needs super user context anyway
-			Result results = query.getResult();
+			List<Linkable> results = query.getAsList();
 
 			logger.debug("{} results", results.size());
-			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, results.getResults());
+			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, results);
 
-			return (List<Linkable>) results.getResults();
+			return (List<Linkable>) results;
 		}
 
 		return Collections.EMPTY_LIST;
@@ -1343,17 +1343,17 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			final Query pageQuery = StructrApp.getInstance(securityContext).nodeQuery();
 
 			pageQuery.and(StructrApp.key(Page.class, "path"), path).andType(Page.class);
-			final Result pages = pageQuery.getResult();
+			final List<Linkable> pages = pageQuery.getAsList();
 
 			final Query fileQuery = StructrApp.getInstance(securityContext).nodeQuery();
 			fileQuery.and(StructrApp.key(AbstractFile.class, "path"), path).andTypes(File.class);
 
-			final Result files = fileQuery.getResult();
+			final List<Linkable> files = fileQuery.getAsList();
 
 			logger.debug("Found {} pages and {} files/folders", new Object[] { pages.size(), files.size() });
 
-			final List<Linkable> linkables = (List<Linkable>) pages.getResults();
-			linkables.addAll(files.getResults());
+			final List<Linkable> linkables = (List<Linkable>) pages;
+			linkables.addAll(files);
 
 			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, linkables);
 

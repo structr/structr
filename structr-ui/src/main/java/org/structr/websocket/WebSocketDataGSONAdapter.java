@@ -40,6 +40,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -54,8 +55,6 @@ import static org.structr.core.rest.JsonInputGSONAdapter.fromPrimitive;
 import org.structr.rest.serialization.GraphQLWriter;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  *
  *
@@ -66,13 +65,9 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 	private final Value<String> propertyView             = new StaticValue<>(PropertyView.Public);
 	private GraphObjectGSONAdapter graphObjectSerializer = null;
 
-	//~--- constructors ---------------------------------------------------
-
 	public WebSocketDataGSONAdapter(final int outputNestingDepth) {
 		graphObjectSerializer = new GraphObjectGSONAdapter(propertyView, outputNestingDepth);
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public JsonElement serialize(WebSocketMessage src, Type typeOfSrc, JsonSerializationContext context) {
@@ -209,13 +204,12 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 				if (value != null) {
 
-					jsonNodeData.add(key, toJsonPrimitive(value));
+					jsonNodeData.add(key, serialize(value));
 				}
 
 			}
 
 			root.add("data", jsonNodeData);
-
 		}
 
 		// serialize relationship data
@@ -228,25 +222,26 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 				if (value != null) {
 
-					jsonRelData.add(key, toJsonPrimitive(value));
+					jsonRelData.add(key, serialize(value));
 				}
 
 			}
 
 			root.add("relData", jsonRelData);
-
 		}
 
 		// serialize result list
 		if (src.getResult() != null) {
 
+			final List<? extends GraphObject> list = Iterables.toList(src.getResult());
+
 			if ("GRAPHQL".equals(src.getCommand())) {
 
 				try {
 
-					if (src.getResult() != null && !src.getResult().isEmpty()) {
+					if (!list.isEmpty()) {
 
-						final GraphObject firstResultObject = src.getResult().get(0);
+						final GraphObject firstResultObject   = list.get(0);
 						final SecurityContext securityContext = firstResultObject.getSecurityContext();
 
 						final StringWriter output = new StringWriter();
@@ -296,7 +291,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 				JsonArray result = new JsonArray();
 
-				for (GraphObject obj : src.getResult()) {
+				for (GraphObject obj : list) {
 
 					result.add(graphObjectSerializer.serialize(obj, System.currentTimeMillis()));
 				}
@@ -311,6 +306,34 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		return root;
 
 	}
+	
+	private JsonElement serialize(final Object value) {
+
+			final JsonArray resultArray = new JsonArray();
+			
+			if (value.getClass().isArray()) {
+					
+					final Object[] array = (Object[]) value;
+					
+					for (final Object val : array) {
+						resultArray.add(toJsonPrimitive(val));
+					}
+					
+					return resultArray;
+					
+			} else if (value instanceof List) {
+
+					for (final Object val : (List) value) {
+						resultArray.add(toJsonPrimitive(val));
+					}
+
+					return resultArray;
+					
+			} else {
+					return toJsonPrimitive(value);
+			}
+			
+	}
 
 	private JsonPrimitive toJsonPrimitive(final Object value) {
 
@@ -319,18 +342,23 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		if (value instanceof PropertyKey) {
 
 			jp = new JsonPrimitive(((PropertyKey)value).jsonName());
+			
 		} else if (value instanceof String) {
 
 			jp = new JsonPrimitive((String) value);
+			
 		} else if (value instanceof Number) {
 
 			jp = new JsonPrimitive((Number) value);
+			
 		} else if (value instanceof Boolean) {
 
 			jp = new JsonPrimitive((Boolean) value);
+			
 		} else if (value instanceof Character) {
 
 			jp = new JsonPrimitive((Character) value);
+			
 		} else {
 
 			jp = new JsonPrimitive(value.toString());

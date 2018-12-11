@@ -19,8 +19,8 @@
 package org.structr.common;
 
 import java.util.Map;
+import org.structr.api.util.ResultStream;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
 
 /**
  *
@@ -29,7 +29,7 @@ public interface ResultTransformer {
 
 	String getSourceType();
 
-	Result transformOutput(final SecurityContext securityContext, final Class sourceType, final Result result) throws FrameworkException;
+	ResultStream transformOutput(final SecurityContext securityContext, final Class sourceType, final ResultStream result) throws FrameworkException;
 	void transformInput(final SecurityContext securityContext, final Class type, final Map<String, Object> propertySet) throws FrameworkException;
 
 	boolean isPrimitiveArray();

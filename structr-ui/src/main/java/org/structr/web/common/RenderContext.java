@@ -28,7 +28,6 @@ import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
@@ -62,7 +61,6 @@ public class RenderContext extends ActionContext {
 	private HttpServletRequest request                 = null;
 	private HttpServletResponse response               = null;
 	private ResourceProvider resourceProvider          = null;
-	private Result result                              = null;
 	private boolean anyChildNodeCreatesNewLine         = false;
 	private boolean indentHtml                         = true;
 
@@ -100,7 +98,6 @@ public class RenderContext extends ActionContext {
 		this.request = other.request;
 		this.response = other.response;
 		this.resourceProvider = other.resourceProvider;
-		this.result = other.result;
 		this.anyChildNodeCreatesNewLine = other.anyChildNodeCreatesNewLine;
 		this.locale = other.locale;
 		this.indentHtml = other.indentHtml;
@@ -159,10 +156,6 @@ public class RenderContext extends ActionContext {
 
 	public void setListSource(Iterable<GraphObject> listSource) {
 		this.listSource = listSource;
-	}
-
-	public void setResult(Result result) {
-		this.result = result;
 	}
 
 	public Iterable<GraphObject> getListSource() {
@@ -345,10 +338,6 @@ public class RenderContext extends ActionContext {
 		return (page != null ? page.getUuid() : null);
 	}
 
-	public Result getResult() {
-		return result;
-	}
-
 	public void setAnyChildNodeCreatesNewLine(final boolean anyChildNodeCreatesNewLine) {
 		this.anyChildNodeCreatesNewLine = anyChildNodeCreatesNewLine;
 	}
@@ -446,54 +435,6 @@ public class RenderContext extends ActionContext {
 							return linkSource.getLinkable();
 						}
 						break;
-
-					case "result_count":
-					case "result_size":
-
-						final Result sizeResult = this.getResult();
-						if (sizeResult != null) {
-
-							return sizeResult.getRawResultCount();
-						}
-						break;
-
-					case "page_size":
-
-						final Result pageSizeResult = this.getResult();
-						if (pageSizeResult != null) {
-
-							return pageSizeResult.getPageSize();
-
-						}
-						break;
-
-					case "page_count":
-
-						final Result pageCountResult = this.getResult();
-						if (pageCountResult != null) {
-
-							Integer pageCount = result.getPageCount();
-							if (pageCount != null) {
-
-								return pageCount;
-
-							} else {
-
-								return 1;
-							}
-						}
-						break;
-
-
-					case "page_no":
-
-						final Result pageNoResult = this.getResult();
-						if (pageNoResult != null) {
-
-							return pageNoResult.getPage();
-						}
-						break;
-
 				}
 			}
 

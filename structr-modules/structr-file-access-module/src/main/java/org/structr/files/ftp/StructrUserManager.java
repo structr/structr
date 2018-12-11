@@ -19,6 +19,7 @@
 package org.structr.files.ftp;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import org.apache.ftpserver.ftplet.Authentication;
 import org.apache.ftpserver.ftplet.AuthenticationFailedException;
@@ -28,11 +29,12 @@ import org.apache.ftpserver.ftplet.UserManager;
 import org.apache.ftpserver.usermanager.UsernamePasswordAuthentication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.rest.auth.AuthHelper;
@@ -68,13 +70,12 @@ public class StructrUserManager implements UserManager {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			List<String> userNames = new ArrayList();
-
-			Result<Principal> result = Result.EMPTY_RESULT;
+			final List<String> userNames = new ArrayList();
+			final List<Principal> result = new LinkedList<>();
 
 			try {
 
-				result = StructrApp.getInstance(securityContext).nodeQuery(Principal.class).getResult();
+				Iterables.addAll(result, StructrApp.getInstance(securityContext).nodeQuery(Principal.class).sort(AbstractNode.name).getResultStream());
 
 			} catch (FrameworkException ex) {
 
@@ -84,12 +85,10 @@ public class StructrUserManager implements UserManager {
 
 			if (!result.isEmpty()) {
 
-				for (Principal p : result.getResults()) {
+				for (Principal p : result) {
 
 					userNames.add(p.getProperty(Principal.name));
-
 				}
-
 			}
 
 			tx.success();

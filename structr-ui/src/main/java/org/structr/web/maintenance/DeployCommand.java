@@ -71,7 +71,6 @@ import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -102,9 +101,11 @@ import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.maintenance.deploy.ComponentImportVisitor;
 import org.structr.web.maintenance.deploy.FileImportVisitor;
+import org.structr.web.maintenance.deploy.ImportFailureException;
 import org.structr.web.maintenance.deploy.PageImportVisitor;
 import org.structr.web.maintenance.deploy.SchemaImportVisitor;
 import org.structr.web.maintenance.deploy.TemplateImportVisitor;
+import org.structr.websocket.command.CreateComponentCommand;
 
 /**
  *
@@ -117,13 +118,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private static final Map<String, String> deferredPageLinks = new LinkedHashMap<>();
 	private static final Set<String> missingPrincipals         = new HashSet<>();
 
-	private Integer stepCounter                            = 0;
 	private final static String DEPLOYMENT_IMPORT_STATUS   = "DEPLOYMENT_IMPORT_STATUS";
 	private final static String DEPLOYMENT_EXPORT_STATUS   = "DEPLOYMENT_EXPORT_STATUS";
-	private final static String DEPLOYMENT_STATUS_BEGIN    = "BEGIN";
-	private final static String DEPLOYMENT_STATUS_END      = "END";
-	private final static String DEPLOYMENT_STATUS_PROGRESS = "PROGRESS";
-	private final static String DEPLOYMENT_WARNING         = "WARNING";
 
 	static {
 
@@ -197,424 +193,418 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	// ----- private methods -----
 	private void doImport(final Map<String, Object> attributes) throws FrameworkException {
 
-		missingPrincipals.clear();
-
-		final long startTime = System.currentTimeMillis();
-		customHeaders.put("start", new Date(startTime).toString());
-
-		final String path         = (String) attributes.get("source");
-		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
-		final App app             = StructrApp.getInstance(ctx);
-
-		ctx.setDoTransactionNotifications(false);
-		ctx.disableEnsureCardinality();
-		ctx.disableModificationOfAccessTime();
-
-		final Map<String, Object> componentsConf = new HashMap<>();
-		final Map<String, Object> templatesConf  = new HashMap<>();
-		final Map<String, Object> pagesConf      = new HashMap<>();
-		final Map<String, Object> filesConf      = new HashMap<>();
-
-		if (StringUtils.isBlank(path)) {
-
-			throw new FrameworkException(422, "Please provide 'source' attribute for deployment source directory path.");
-		}
-
-		final Path source = Paths.get(path);
-		if (!Files.exists(source)) {
-
-			throw new FrameworkException(422, "Source path " + path + " does not exist.");
-		}
-
-		if (!Files.isDirectory(source)) {
-
-			throw new FrameworkException(422, "Source path " + path + " is not a directory.");
-		}
-
-		final Map<String, Object> broadcastData = new HashMap();
-		broadcastData.put("type",    DEPLOYMENT_IMPORT_STATUS);
-		broadcastData.put("subtype", DEPLOYMENT_STATUS_BEGIN);
-		broadcastData.put("start",   startTime);
-		broadcastData.put("source",  source);
-		TransactionCommand.simpleBroadcastGenericMessage(broadcastData);
-
-		// apply configuration
-		final Path preDeployConf = source.resolve("pre-deploy.conf");
-		if (Files.exists(preDeployConf)) {
-
-			try (final Tx tx = app.tx()) {
-
-				final String confSource = new String(Files.readAllBytes(preDeployConf), Charset.forName("utf-8")).trim();
-
-				if (confSource.length() > 0) {
-
-					info("Applying pre-deployment configuration from {}", preDeployConf);
-					publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Applying pre-deployment configuration");
-
-					Scripting.evaluate(new ActionContext(ctx), null, confSource, "pre-deploy.conf");
-				} else {
-
-					info("Ignoring empty pre-deployment configuration {}", preDeployConf);
-
-				}
-
-				tx.success();
-
-			} catch (Throwable t) {
-				logger.warn("", t);
-				publishDeploymentWarningMessage("Exception caught while importing pre-deploy.conf", t.toString());
-			}
-		}
-
-		// backup previous value of change log setting
-		// temporary disable creation of change log
+		// backup previous value of change log setting and disable during deployment
 		final boolean changeLogEnabled = Settings.ChangelogEnabled.getValue();
 		Settings.ChangelogEnabled.setValue(false);
 
-		// read grants.json
-		publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing resource access grants");
+		try {
 
-		final Path grantsConf = source.resolve("security/grants.json");
-		if (Files.exists(grantsConf)) {
+			missingPrincipals.clear();
 
-			info("Reading {}", grantsConf);
-			importListData(ResourceAccess.class, readConfigList(grantsConf));
-		}
+			final long startTime = System.currentTimeMillis();
+			customHeaders.put("start", new Date(startTime).toString());
 
-		// read schema-methods.json
-		final Path schemaMethodsConf = source.resolve("schema-methods.json");
-		if (Files.exists(schemaMethodsConf)) {
+			final String path         = (String) attributes.get("source");
+			final SecurityContext ctx = SecurityContext.getSuperUserInstance();
+			final App app             = StructrApp.getInstance(ctx);
 
-			info("Reading {}", schemaMethodsConf);
-			final String title = "Deprecation warning";
-			final String text = "Found file 'schema-methods.json'. Newer versions store global schema methods in the schema snapshot file. Recreate the export with the current version to avoid compatibility issues. Support for importing this file will be dropped in future versions.";
+			ctx.setDoTransactionNotifications(false);
+			ctx.disableEnsureCardinality();
+			ctx.disableModificationOfAccessTime();
 
-			info(title + ": " + text);
-			publishDeploymentWarningMessage(title, text);
+			final Map<String, Object> componentsConf = new HashMap<>();
+			final Map<String, Object> templatesConf  = new HashMap<>();
+			final Map<String, Object> pagesConf      = new HashMap<>();
+			final Map<String, Object> filesConf      = new HashMap<>();
 
-			importListData(SchemaMethod.class, readConfigList(schemaMethodsConf));
-		}
+			if (StringUtils.isBlank(path)) {
 
-		// read mail-templates.json
-		final Path mailTemplatesConf = source.resolve("mail-templates.json");
-		if (Files.exists(mailTemplatesConf)) {
-
-			info("Reading {}", mailTemplatesConf);
-			publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing mail templates");
-
-			importListData(MailTemplate.class, readConfigList(mailTemplatesConf));
-		}
-
-		// read widgets.json
-		final Path widgetsConf = source.resolve("widgets.json");
-		if (Files.exists(widgetsConf)) {
-
-			info("Reading {}", widgetsConf);
-			publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing widgets");
-
-			importListData(Widget.class, readConfigList(widgetsConf));
-		}
-
-		// read localizations.json
-		final Path localizationsConf = source.resolve("localizations.json");
-		if (Files.exists(localizationsConf)) {
-
-			final PropertyMap additionalData = new PropertyMap();
-
-			// Question: shouldn't this be true? No, 'imported' is a flag for legacy-localization which
-			// have been imported from a legacy-system which was replaced by structr.
-			// it is a way to differentiate between new and old localization strings
-			additionalData.put(StructrApp.key(Localization.class, "imported"), false);
-
-			info("Reading {}", localizationsConf);
-			publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing localizations");
-
-			importListData(Localization.class, readConfigList(localizationsConf), additionalData);
-		}
-
-		// read files.conf
-		final Path filesConfFile = source.resolve("files.json");
-		if (Files.exists(filesConfFile)) {
-
-			info("Reading {}", filesConfFile);
-			filesConf.putAll(readConfigMap(filesConfFile));
-		}
-
-		// read pages.conf
-		final Path pagesConfFile = source.resolve("pages.json");
-		if (Files.exists(pagesConfFile)) {
-
-			info("Reading {}", pagesConfFile);
-			pagesConf.putAll(readConfigMap(pagesConfFile));
-		}
-
-		// read components.conf
-		final Path componentsConfFile = source.resolve("components.json");
-		if (Files.exists(componentsConfFile)) {
-
-			info("Reading {}", componentsConfFile);
-			componentsConf.putAll(readConfigMap(componentsConfFile));
-		}
-
-		// read templates.conf
-		final Path templatesConfFile = source.resolve("templates.json");
-		if (Files.exists(templatesConfFile)) {
-
-			info("Reading {}", templatesConfFile);
-			templatesConf.putAll(readConfigMap(templatesConfFile));
-		}
-
-		// import schema
-		final Path schema = source.resolve("schema");
-		if (Files.exists(schema)) {
-
-			try {
-
-				info("Importing data from schema/ directory");
-				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing schema");
-
-				Files.walkFileTree(schema, new SchemaImportVisitor(schema));
-
-			} catch (IOException ioex) {
-				logger.warn("Exception while importing schema", ioex);
+				throw new FrameworkException(422, "Please provide 'source' attribute for deployment source directory path.");
 			}
-		}
 
-		// import files
-		final Path files = source.resolve("files");
-		if (Files.exists(files)) {
+			final Path source = Paths.get(path);
+			if (!Files.exists(source)) {
 
-			try {
-
-				info("Importing files (unchanged files will be skipped)");
-				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing files");
-
-				FileImportVisitor fiv = new FileImportVisitor(files, filesConf);
-				Files.walkFileTree(files, fiv);
-				fiv.handleDeferredFiles();
-
-			} catch (IOException ioex) {
-				logger.warn("Exception while importing files", ioex);
+				throw new FrameworkException(422, "Source path " + path + " does not exist.");
 			}
-		}
 
+			if (!Files.isDirectory(source)) {
 
-		for (StructrModule module : StructrApp.getConfiguration().getModules().values()) {
-
-			if (module.hasDeploymentData()) {
-
-				info("Importing deployment data for module {}", module.getName());
-				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing deployment data for module " + module.getName());
-
-				final Path moduleFolder = source.resolve("modules/" + module.getName() + "/");
-
-				module.importDeploymentData(moduleFolder, getGson());
+				throw new FrameworkException(422, "Source path " + path + " is not a directory.");
 			}
-		}
 
+			final Map<String, Object> broadcastData = new HashMap();
+			broadcastData.put("start",   startTime);
+			broadcastData.put("source",  source);
+			publishBeginMessage(DEPLOYMENT_IMPORT_STATUS, broadcastData);
 
-		// construct paths
-		final Path templates  = source.resolve("templates");
-		final Path components = source.resolve("components");
-		final Path pages      = source.resolve("pages");
-		final Path sitesConfFile = source.resolve("sites.json");
+			// apply configuration
+			final Path preDeployConf = source.resolve("pre-deploy.conf");
+			if (Files.exists(preDeployConf)) {
 
-		// remove all DOMNodes from the database (clean webapp for import, but only
-		// if the actual import directories exist, don't delete web components if
-		// an empty directory was specified accidentially).
-		if (Files.exists(templates) && Files.exists(components) && Files.exists(pages)) {
+				try (final Tx tx = app.tx()) {
 
-			try (final Tx tx = app.tx()) {
+					tx.disableChangelog();
 
-				final String tenantIdentifier    = app.getDatabaseService().getTenantIdentifier();
-				final String optionalTenantLabel = (tenantIdentifier != null) ? ":" + tenantIdentifier : "";
+					final String confSource = new String(Files.readAllBytes(preDeployConf), Charset.forName("utf-8")).trim();
 
-				info("Removing pages, templates and components");
-				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing pages, templates and components");
+					if (confSource.length() > 0) {
 
-				app.cypher("MATCH (n" + optionalTenantLabel + ":DOMNode) DETACH DELETE n", null);
+						info("Applying pre-deployment configuration from {}", preDeployConf);
+						publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Applying pre-deployment configuration");
 
-				if (Files.exists(sitesConfFile)) {
+						Scripting.evaluate(new ActionContext(ctx), null, confSource, "pre-deploy.conf");
 
-					info("Removing sites");
-					publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing sites");
+					} else {
 
-					app.cypher("MATCH (n" + optionalTenantLabel + ":Site) DETACH DELETE n", null);
+						info("Ignoring empty pre-deployment configuration {}", preDeployConf);
+					}
+
+					tx.success();
+
+				} catch (Throwable t) {
+
+					final String msg = "Exception caught while importing pre-deploy.conf";
+					logger.warn(msg, t);
+					publishWarningMessage(msg, t.toString());
 				}
-
-				FlushCachesCommand.flushAll();
-
-				tx.success();
 			}
 
-		} else {
+			// read grants.json
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing resource access grants");
 
-			logger.info("Import directory does not seem to contain pages, templates or components, NOT removing any data.");
-		}
+			final Path grantsConf = source.resolve("security/grants.json");
+			if (Files.exists(grantsConf)) {
 
-		// import templates, must be done before pages so the templates exist
-		if (Files.exists(templates)) {
-
-			try {
-
-				info("Importing templates");
-				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing templates");
-
-				Files.walkFileTree(templates, new TemplateImportVisitor(templatesConf));
-
-			} catch (IOException ioex) {
-				logger.warn("Exception while importing templates", ioex);
+				info("Reading {}", grantsConf);
+				importListData(ResourceAccess.class, readConfigList(grantsConf));
 			}
-		}
 
-		// import components, must be done before pages so the shared components exist
-		if (Files.exists(components)) {
+			// read schema-methods.json
+			final Path schemaMethodsConf = source.resolve("schema-methods.json");
+			if (Files.exists(schemaMethodsConf)) {
 
-			try {
+				info("Reading {}", schemaMethodsConf);
+				final String title = "Deprecation warning";
+				final String text = "Found file 'schema-methods.json'. Newer versions store global schema methods in the schema snapshot file. Recreate the export with the current version to avoid compatibility issues. Support for importing this file will be dropped in future versions.";
 
-				info("Importing shared components");
-				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing shared components");
+				info(title + ": " + text);
+				publishWarningMessage(title, text);
 
-				Files.walkFileTree(components, new ComponentImportVisitor(componentsConf));
-
-			} catch (IOException ioex) {
-				logger.warn("Exception while importing shared components", ioex);
+				importListData(SchemaMethod.class, readConfigList(schemaMethodsConf));
 			}
-		}
 
-		// import pages
-		if (Files.exists(pages)) {
+			// read mail-templates.json
+			final Path mailTemplatesConf = source.resolve("mail-templates.json");
+			if (Files.exists(mailTemplatesConf)) {
 
-			try {
+				info("Reading {}", mailTemplatesConf);
+				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing mail templates");
 
-				info("Importing pages");
-				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing pages");
-
-				Files.walkFileTree(pages, new PageImportVisitor(pages, pagesConf));
-
-			} catch (IOException ioex) {
-				logger.warn("Exception while importing pages", ioex);
+				importListData(MailTemplate.class, readConfigList(mailTemplatesConf));
 			}
-		}
 
-		// import sites
-		if (Files.exists(sitesConfFile)) {
+			// read widgets.json
+			final Path widgetsConf = source.resolve("widgets.json");
+			if (Files.exists(widgetsConf)) {
 
-			info("Importing sites");
-			publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing sites");
+				info("Reading {}", widgetsConf);
+				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing widgets");
 
-			importSites(readConfigList(sitesConfFile));
-		}
+				importListData(Widget.class, readConfigList(widgetsConf));
+			}
 
-		try (final Tx tx = app.tx()) {
+			// read localizations.json
+			final Path localizationsConf = source.resolve("localizations.json");
+			if (Files.exists(localizationsConf)) {
 
-			deferredPageLinks.forEach((String linkableUUID, String pagePath) -> {
+				final PropertyMap additionalData = new PropertyMap();
+
+				// Question: shouldn't this be true? No, 'imported' is a flag for legacy-localization which
+				// have been imported from a legacy-system which was replaced by structr.
+				// it is a way to differentiate between new and old localization strings
+				additionalData.put(StructrApp.key(Localization.class, "imported"), false);
+
+				info("Reading {}", localizationsConf);
+				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing localizations");
+
+				importListData(Localization.class, readConfigList(localizationsConf), additionalData);
+			}
+
+			// read files.conf
+			final Path filesConfFile = source.resolve("files.json");
+			if (Files.exists(filesConfFile)) {
+
+				info("Reading {}", filesConfFile);
+				filesConf.putAll(readConfigMap(filesConfFile));
+			}
+
+			// read pages.conf
+			final Path pagesConfFile = source.resolve("pages.json");
+			if (Files.exists(pagesConfFile)) {
+
+				info("Reading {}", pagesConfFile);
+				pagesConf.putAll(readConfigMap(pagesConfFile));
+			}
+
+			// read components.conf
+			final Path componentsConfFile = source.resolve("components.json");
+			if (Files.exists(componentsConfFile)) {
+
+				info("Reading {}", componentsConfFile);
+				componentsConf.putAll(readConfigMap(componentsConfFile));
+			}
+
+			// read templates.conf
+			final Path templatesConfFile = source.resolve("templates.json");
+			if (Files.exists(templatesConfFile)) {
+
+				info("Reading {}", templatesConfFile);
+				templatesConf.putAll(readConfigMap(templatesConfFile));
+			}
+
+			// import schema
+			final Path schema = source.resolve("schema");
+			if (Files.exists(schema)) {
 
 				try {
-					final DOMNode page        = StructrApp.getInstance().get(DOMNode.class, linkableUUID);
-					final Linkable linkedPage = StructrApp.getInstance().nodeQuery(Linkable.class).and(StructrApp.key(Page.class, "path"), pagePath).or(Page.name, pagePath).getFirst();
 
-					((LinkSource)page).setLinkable(linkedPage);
+					info("Importing data from schema/ directory");
+					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing schema");
 
-				} catch (FrameworkException ex) {
+					Files.walkFileTree(schema, new SchemaImportVisitor());
+
+				} catch (ImportFailureException fex) {
+
+					logger.warn("Unable to import schema: {}", fex.getMessage());
+					throw new FrameworkException(422, fex.getMessage(), fex.getErrorBuffer());
+
+				} catch (Throwable t) {
+					logger.warn("Unable to import schema: {}", t.getMessage());
+				}
+			}
+
+			// import files
+			final Path files = source.resolve("files");
+			if (Files.exists(files)) {
+
+				try {
+
+					info("Importing files (unchanged files will be skipped)");
+					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing files");
+
+					FileImportVisitor fiv = new FileImportVisitor(files, filesConf);
+					Files.walkFileTree(files, fiv);
+					fiv.handleDeferredFiles();
+
+				} catch (IOException ioex) {
+					logger.warn("Exception while importing files", ioex);
+				}
+			}
+
+
+			for (StructrModule module : StructrApp.getConfiguration().getModules().values()) {
+
+				if (module.hasDeploymentData()) {
+
+					info("Importing deployment data for module {}", module.getName());
+					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing deployment data for module " + module.getName());
+
+					final Path moduleFolder = source.resolve("modules/" + module.getName() + "/");
+
+					module.importDeploymentData(moduleFolder, getGson());
+				}
+			}
+
+
+			// construct paths
+			final Path templates  = source.resolve("templates");
+			final Path components = source.resolve("components");
+			final Path pages      = source.resolve("pages");
+			final Path sitesConfFile = source.resolve("sites.json");
+
+			// remove all DOMNodes from the database (clean webapp for import, but only
+			// if the actual import directories exist, don't delete web components if
+			// an empty directory was specified accidentially).
+			if (Files.exists(templates) && Files.exists(components) && Files.exists(pages)) {
+
+				try (final Tx tx = app.tx()) {
+
+					tx.disableChangelog();
+
+					final String tenantIdentifier    = app.getDatabaseService().getTenantIdentifier();
+					final String optionalTenantLabel = (tenantIdentifier != null) ? ":" + tenantIdentifier : "";
+
+					info("Removing pages, templates and components");
+					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing pages, templates and components");
+
+					app.cypher("MATCH (n" + optionalTenantLabel + ":DOMNode) DETACH DELETE n", null);
+
+					if (Files.exists(sitesConfFile)) {
+
+						info("Removing sites");
+						publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing sites");
+
+						app.cypher("MATCH (n" + optionalTenantLabel + ":Site) DETACH DELETE n", null);
+					}
+
+					FlushCachesCommand.flushAll();
+
+					tx.success();
 				}
 
-			});
+			} else {
 
-			deferredPageLinks.clear();
+				logger.info("Import directory does not seem to contain pages, templates or components, NOT removing any data.");
+			}
 
-			tx.success();
-		}
+			// import templates, must be done before pages so the templates exist
+			if (Files.exists(templates)) {
 
-		// apply configuration
-		final Path postDeployConf = source.resolve("post-deploy.conf");
-		if (Files.exists(postDeployConf)) {
+				try {
+
+					info("Importing templates");
+					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing templates");
+
+					Files.walkFileTree(templates, new TemplateImportVisitor(templatesConf));
+
+				} catch (IOException ioex) {
+					logger.warn("Exception while importing templates", ioex);
+				}
+			}
+
+			// make sure shadow document is created in any case
+			CreateComponentCommand.getOrCreateHiddenDocument();
+
+			// import components, must be done before pages so the shared components exist
+			if (Files.exists(components)) {
+
+				try {
+
+					info("Importing shared components");
+					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing shared components");
+
+					Files.walkFileTree(components, new ComponentImportVisitor(componentsConf));
+
+				} catch (IOException ioex) {
+					logger.warn("Exception while importing shared components", ioex);
+				}
+			}
+
+			// import pages
+			if (Files.exists(pages)) {
+
+				try {
+
+					info("Importing pages");
+					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing pages");
+
+					Files.walkFileTree(pages, new PageImportVisitor(pages, pagesConf));
+
+				} catch (IOException ioex) {
+					logger.warn("Exception while importing pages", ioex);
+				}
+			}
+
+			// import sites
+			if (Files.exists(sitesConfFile)) {
+
+				info("Importing sites");
+				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing sites");
+
+				importSites(readConfigList(sitesConfFile));
+			}
 
 			try (final Tx tx = app.tx()) {
 
-				final String confSource = new String(Files.readAllBytes(postDeployConf), Charset.forName("utf-8")).trim();
+				tx.disableChangelog();
 
-				if (confSource.length() > 0) {
+				deferredPageLinks.forEach((String linkableUUID, String pagePath) -> {
 
-					info("Applying post-deployment configuration from {}", postDeployConf);
-					publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Applying post-deployment configuration");
+					try {
+						final DOMNode page        = StructrApp.getInstance().get(DOMNode.class, linkableUUID);
+						final Linkable linkedPage = StructrApp.getInstance().nodeQuery(Linkable.class).and(StructrApp.key(Page.class, "path"), pagePath).or(Page.name, pagePath).getFirst();
 
-					Scripting.evaluate(new ActionContext(ctx), null, confSource, "post-deploy.conf");
+						((LinkSource)page).setLinkable(linkedPage);
 
-				} else {
+					} catch (FrameworkException ex) {
+					}
 
-					info("Ignoring empty post-deployment configuration {}", postDeployConf);
+				});
 
-				}
+				deferredPageLinks.clear();
 
 				tx.success();
-
-			} catch (Throwable t) {
-				logger.warn("", t);
-				publishDeploymentWarningMessage("Exception caught while importing post-deploy.conf", t.toString());
 			}
+
+			// apply configuration
+			final Path postDeployConf = source.resolve("post-deploy.conf");
+			if (Files.exists(postDeployConf)) {
+
+				try (final Tx tx = app.tx()) {
+
+					tx.disableChangelog();
+
+					final String confSource = new String(Files.readAllBytes(postDeployConf), Charset.forName("utf-8")).trim();
+
+					if (confSource.length() > 0) {
+
+						info("Applying post-deployment configuration from {}", postDeployConf);
+						publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Applying post-deployment configuration");
+
+						Scripting.evaluate(new ActionContext(ctx), null, confSource, "post-deploy.conf");
+
+					} else {
+
+						info("Ignoring empty post-deployment configuration {}", postDeployConf);
+
+					}
+
+					tx.success();
+
+				} catch (Throwable t) {
+					logger.warn("", t);
+					publishWarningMessage("Exception caught while importing post-deploy.conf", t.toString());
+				}
+			}
+
+			if (!missingPrincipals.isEmpty()) {
+
+				final String title = "Missing Principal(s)";
+				final String text = "The following user(s) and/or group(s) are missing for grants or node ownership during deployment.<br>"
+						+ "Because of these missing grants/ownerships, the functionality is not identical to the export you just imported!<br><br>"
+						+ String.join(", ",  missingPrincipals)
+						+ "<br><br>Consider adding these principals to your <a href=\"https://support.structr.com/article/428#pre-deployconf-javascript\">pre-deploy.conf</a> and re-importing.";
+
+				info("\n###############################################################################\n"
+						+ "\tWarning: " + title + "!\n"
+						+ "\tThe following user(s) and/or group(s) are missing for grants or node ownership during deployment.\n"
+						+ "\tBecause of these missing grants/ownerships, the functionality is not identical to the export you just imported!\n\n"
+						+ "\t" + String.join(", ",  missingPrincipals)
+						+ "\n\n\tConsider adding these principals to your 'pre-deploy.conf' (see https://support.structr.com/article/428#pre-deployconf-javascript) and re-importing.\n"
+						+ "###############################################################################"
+				);
+				publishWarningMessage(title, text);
+			}
+
+			final long endTime = System.currentTimeMillis();
+			DecimalFormat decimalFormat  = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+			final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
+
+			customHeaders.put("end", new Date(endTime).toString());
+			customHeaders.put("duration", duration);
+
+			info("Import from {} done. (Took {})", source.toString(), duration);
+
+			broadcastData.put("end", endTime);
+			broadcastData.put("duration", duration);
+			publishEndMessage(DEPLOYMENT_IMPORT_STATUS, broadcastData);
+
+		} finally {
+
+			// restore saved value
+			Settings.ChangelogEnabled.setValue(changeLogEnabled);
 		}
-
-		if (!missingPrincipals.isEmpty()) {
-
-			final String title = "Missing Principal(s)";
-			final String text = "The following user(s) and/or group(s) are missing for grants or node ownership during deployment.<br>"
-					+ "Because of these missing grants/ownerships, the functionality is not identical to the export you just imported!<br><br>"
-					+ String.join(", ",  missingPrincipals)
-					+ "<br><br>Consider adding these principals to your <a href=\"https://support.structr.com/article/428#pre-deployconf-javascript\">pre-deploy.conf</a> and re-importing.";
-
-			info("\n###############################################################################\n"
-					+ "\tWarning: " + title + "!\n"
-					+ "\tThe following user(s) and/or group(s) are missing for grants or node ownership during deployment.\n"
-					+ "\tBecause of these missing grants/ownerships, the functionality is not identical to the export you just imported!\n\n"
-					+ "\t" + String.join(", ",  missingPrincipals)
-					+ "\n\n\tConsider adding these principals to your 'pre-deploy.conf' (see https://support.structr.com/article/428#pre-deployconf-javascript) and re-importing.\n"
-					+ "###############################################################################"
-			);
-			publishDeploymentWarningMessage(title, text);
-		}
-
-
-		// restore saved value
-		Settings.ChangelogEnabled.setValue(changeLogEnabled);
-
-		final long endTime = System.currentTimeMillis();
-		DecimalFormat decimalFormat  = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-		final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
-
-		customHeaders.put("end", new Date(endTime).toString());
-		customHeaders.put("duration", duration);
-
-		info("Import from {} done. (Took {})", source.toString(), duration);
-
-		broadcastData.put("subtype", DEPLOYMENT_STATUS_END);
-		broadcastData.put("end", endTime);
-		broadcastData.put("duration", duration);
-		TransactionCommand.simpleBroadcastGenericMessage(broadcastData);
-
-	}
-
-	private void publishDeploymentProgressMessage (final String type, final String message) {
-
-		final Map<String, Object> msgData = new HashMap();
-		msgData.put("type", type);
-		msgData.put("subtype", DEPLOYMENT_STATUS_PROGRESS);
-		msgData.put("message", message);
-		msgData.put("step", ++stepCounter);
-
-		TransactionCommand.simpleBroadcastGenericMessage(msgData);
-
-	}
-
-	private void publishDeploymentWarningMessage (final String title, final String text) {
-
-		final Map<String, Object> warningMsgData = new HashMap();
-		warningMsgData.put("type", DEPLOYMENT_WARNING);
-		warningMsgData.put("title", title);
-		warningMsgData.put("text", text);
-
-		TransactionCommand.simpleBroadcastGenericMessage(warningMsgData);
-
 	}
 
 	private void doExport(final Map<String, Object> attributes) throws FrameworkException {
@@ -634,11 +624,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			customHeaders.put("start", new Date(startTime).toString());
 
 			final Map<String, Object> broadcastData = new HashMap();
-			broadcastData.put("type", DEPLOYMENT_EXPORT_STATUS);
-			broadcastData.put("subtype", DEPLOYMENT_STATUS_BEGIN);
-			broadcastData.put("start", startTime);
+			broadcastData.put("start",  startTime);
 			broadcastData.put("target", target);
-			TransactionCommand.simpleBroadcastGenericMessage(broadcastData);
+			publishBeginMessage(DEPLOYMENT_EXPORT_STATUS, broadcastData);
 
 			Files.createDirectories(target);
 
@@ -660,34 +648,34 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path localizations  = target.resolve("localizations.json");
 			final Path widgets	  = target.resolve("widgets.json");
 
-			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Files");
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Files");
 			exportFiles(files, filesConf);
 
-			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Sites");
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Sites");
 			exportSites(sitesConf);
 
-			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Pages");
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Pages");
 			exportPages(pages, pagesConf);
 
-			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Components");
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Components");
 			exportComponents(components, componentsConf);
 
-			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Templates");
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Templates");
 			exportTemplates(templates, templatesConf);
 
-			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Resource Access Grants");
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Resource Access Grants");
 			exportResourceAccessGrants(grants);
 
-			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Schema");
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Schema");
 			exportSchema(schemaJson);
 
-			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Mail Templates");
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Mail Templates");
 			exportMailTemplates(mailTemplates);
 
-			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Localizations");
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Localizations");
 			exportLocalizations(localizations);
 
-			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Widgets");
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Widgets");
 			exportWidgets(widgets);
 
 			for (StructrModule module : StructrApp.getConfiguration().getModules().values()) {
@@ -695,7 +683,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				if (module.hasDeploymentData()) {
 					logger.info("Exporting deployment data for module {}", module.getName());
 
-					publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting deployment data for module " + module.getName());
+					publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting deployment data for module " + module.getName());
 
 					final Path moduleFolder = Files.createDirectories(modules.resolve(module.getName()));
 					module.exportDeploymentData(moduleFolder, getGson());
@@ -717,10 +705,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			info("Export to {} done. (Took {})", target.toString(), duration);
 
-			broadcastData.put("subtype", DEPLOYMENT_STATUS_END);
 			broadcastData.put("end", endTime);
 			broadcastData.put("duration", duration);
-			TransactionCommand.simpleBroadcastGenericMessage(broadcastData);
+			publishEndMessage(DEPLOYMENT_EXPORT_STATUS, broadcastData);
+
 
 		} catch (IOException ex) {
 			logger.warn("", ex);
@@ -870,7 +858,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				entry.put("visibleToPublicUsers",        site.getProperty(Site.visibleToPublicUsers));
 
 				final List<String> pageNames = new LinkedList<>();
-				for (final Page page : (List<Page>)site.getProperty(StructrApp.key(Site.class, "pages"))) {
+				for (final Page page : (Iterable<Page>)site.getProperty(StructrApp.key(Site.class, "pages"))) {
 					pageNames.add(page.getName());
 				}
 				entry.put("pages", pageNames);
@@ -1145,7 +1133,23 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
 
-			getGson().toJson(grants, fos);
+			final Gson gson = new GsonBuilder().serializeNulls().create();
+
+			final StringBuilder sb = new StringBuilder("[");
+
+			List<String> jsonStrings = new LinkedList();
+
+			for (Map<String, Object> grant : grants) {
+				jsonStrings.add("\t" + gson.toJson(grant));
+			}
+
+			if (!jsonStrings.isEmpty()) {
+				sb.append("\n").append(String.join(",\n", jsonStrings)).append("\n");
+			}
+
+			sb.append("]");
+
+			fos.write(sb.toString());
 
 		} catch (IOException ioex) {
 			logger.warn("", ioex);
@@ -1343,11 +1347,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> entry = new TreeMap<>();
 				mailTemplates.add(entry);
 
-				entry.put("name",   mailTemplate.getProperty(MailTemplate.name));
-				entry.put("text",   mailTemplate.getProperty(textKey));
-				entry.put("locale", mailTemplate.getProperty(localeKey));
-				entry.put("visibleToAuthenticatedUsers", mailTemplate.getProperty(MailTemplate.visibleToAuthenticatedUsers));
-				entry.put("visibleToPublicUsers", mailTemplate.getProperty(MailTemplate.visibleToPublicUsers));
+				putIf(entry, "name",                        mailTemplate.getProperty(MailTemplate.name));
+				putIf(entry, "text",                        mailTemplate.getProperty(textKey));
+				putIf(entry, "locale",                      mailTemplate.getProperty(localeKey));
+				putIf(entry, "visibleToAuthenticatedUsers", mailTemplate.getProperty(MailTemplate.visibleToAuthenticatedUsers));
+				putIf(entry, "visibleToPublicUsers",        mailTemplate.getProperty(MailTemplate.visibleToPublicUsers));
 			}
 
 			tx.success();
@@ -1383,15 +1387,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> entry = new TreeMap<>();
 				widgets.add(entry);
 
-				entry.put("name",                        widget.getProperty(Widget.name));
-				entry.put("visibleToAuthenticatedUsers", widget.getProperty(Widget.visibleToAuthenticatedUsers));
-				entry.put("visibleToPublicUsers",        widget.getProperty(Widget.visibleToPublicUsers));
-				entry.put("source",                      widget.getProperty(StructrApp.key(Widget.class, "source")));
-				entry.put("description",                 widget.getProperty(StructrApp.key(Widget.class, "description")));
-				entry.put("isWidget",                    widget.getProperty(StructrApp.key(Widget.class, "isWidget")));
-				entry.put("treePath",                    widget.getProperty(StructrApp.key(Widget.class, "treePath")));
-				entry.put("pictures",                    widget.getProperty(StructrApp.key(Widget.class, "pictures")));
-				entry.put("configuration",               widget.getProperty(StructrApp.key(Widget.class, "configuration")));
+				putIf(entry, "name",                        widget.getProperty(Widget.name));
+				putIf(entry, "visibleToAuthenticatedUsers", widget.getProperty(Widget.visibleToAuthenticatedUsers));
+				putIf(entry, "visibleToPublicUsers",        widget.getProperty(Widget.visibleToPublicUsers));
+				putIf(entry, "source",                      widget.getProperty(StructrApp.key(Widget.class, "source")));
+				putIf(entry, "description",                 widget.getProperty(StructrApp.key(Widget.class, "description")));
+				putIf(entry, "isWidget",                    widget.getProperty(StructrApp.key(Widget.class, "isWidget")));
+				putIf(entry, "treePath",                    widget.getProperty(StructrApp.key(Widget.class, "treePath")));
+				putIf(entry, "pictures",                    widget.getProperty(StructrApp.key(Widget.class, "pictures")));
+				putIf(entry, "configuration",               widget.getProperty(StructrApp.key(Widget.class, "configuration")));
 			}
 
 			tx.success();
@@ -1424,13 +1428,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> entry = new TreeMap<>();
 				localizations.add(entry);
 
-				entry.put("name",                        localization.getProperty(Localization.name));
-				entry.put("localizedName",               localization.getProperty(localizedNameKey));
-				entry.put("domain",                      localization.getProperty(domainKey));
-				entry.put("locale",                      localization.getProperty(localeKey));
-				entry.put("imported",                    localization.getProperty(importedKey));
-				entry.put("visibleToAuthenticatedUsers", localization.getProperty(MailTemplate.visibleToAuthenticatedUsers));
-				entry.put("visibleToPublicUsers",        localization.getProperty(MailTemplate.visibleToPublicUsers));
+				putIf(entry, "name",                        localization.getProperty(Localization.name));
+				putIf(entry, "localizedName",               localization.getProperty(localizedNameKey));
+				putIf(entry, "domain",                      localization.getProperty(domainKey));
+				putIf(entry, "locale",                      localization.getProperty(localeKey));
+				putIf(entry, "imported",                    localization.getProperty(importedKey));
+				putIf(entry, "visibleToAuthenticatedUsers", localization.getProperty(MailTemplate.visibleToAuthenticatedUsers));
+				putIf(entry, "visibleToPublicUsers",        localization.getProperty(MailTemplate.visibleToPublicUsers));
 			}
 
 			tx.success();
@@ -1464,14 +1468,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			if (!jsonStrings.isEmpty()) {
 
 				sb.append("\n").append(String.join(",\n", jsonStrings)).append("\n");
-
 			}
 
 			sb.append("]");
 
 			fos.write(sb.toString());
-
-//			getGson().toJson(localizations, fos);
 
 		} catch (IOException ioex) {
 			logger.warn("", ioex);
@@ -1482,9 +1483,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (value != null) {
 
-			final boolean isList = value instanceof List;
+			if (value instanceof Iterable) {
 
-			if (!isList || (isList && !((List)value).isEmpty()) ) {
+				final List list = Iterables.toList((Iterable)value);
+				if (!list.isEmpty()) {
+
+					target.put(key, list);
+				}
+
+			} else {
+
 				target.put(key, value);
 			}
 		}
@@ -1510,6 +1518,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final App app                 = StructrApp.getInstance(context);
 
 		try (final Tx tx = app.tx()) {
+
+			tx.disableChangelog();
 
 			for (final T toDelete : app.nodeQuery(type).getAsList()) {
 				app.delete(toDelete);
@@ -1545,6 +1555,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final App app                 = StructrApp.getInstance(context);
 
 		try (final Tx tx = app.tx()) {
+
+			tx.disableChangelog();
 
 			for (Map<String, Object> entry : data) {
 

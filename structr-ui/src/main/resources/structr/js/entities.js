@@ -26,6 +26,7 @@ var _Entities = {
 	readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'createdBy', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
 	pencilEditBlacklist: ['html', 'body', 'head', 'title', 'script',  'input', 'label', 'button', 'textarea', 'link', 'meta', 'noscript', 'tbody', 'thead', 'tr', 'td', 'caption', 'colgroup', 'tfoot', 'col', 'style'],
 	null_prefix: 'null_attr_',
+	collectionPropertiesResultCount: {},
 	changeBooleanAttribute: function(attrElement, value, activeLabel, inactiveLabel) {
 
 		_Logger.log(_LogType.ENTITIES, 'Change boolean attribute ', attrElement, ' to ', value);
@@ -161,13 +162,13 @@ var _Entities = {
 	appendRowWithInputField: function(entity, el, key, label, typeInfo) {
 		el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + (entity[key] ? escapeForHtmlAttributes(entity[key]) : '') + '"></td><td><i id="null_' + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
 		var inp = $('[name="' + key + '"]', el);
-		_Entities.activateInput(inp, entity.id, entity.pageId);
+		_Entities.activateInput(inp, entity.id, entity.pageId, typeInfo);
 		var nullIcon = $('#null_' + key, el);
 		nullIcon.on('click', function() {
 			Command.setProperty(entity.id, key, null, false, function() {
 				inp.val(null);
 				blinkGreen(inp);
-				Structr.showAndHideInfoBoxMessage('Property "' + key + '" was set to null.', 'success', 2000, 1000);
+				Structr.showAndHideInfoBoxMessage('Property "' + key + '" has been set to null.', 'success', 2000, 1000);
 			});
 		});
 
@@ -192,17 +193,6 @@ var _Entities = {
 
 	},
 	queryDialog: function(entity, el) {
-
-//		el.append('<table class="props"></table>');
-//		var t = $('.props', el);
-
-//		t.append('<tr><td class="key">Query auto-limit</td><td class="value" id="queryAutoLimit"></td></tr>');
-//		t.append('<tr><td class="key">Hide in index mode</td><td  class="value" id="hideIndexMode"></td></tr>');
-//		t.append('<tr><td class="key">Hide in details mode</td><td  class="value" id="hideDetailsMode"></td></tr>');
-
-//		_Entities.appendBooleanSwitch($('#queryAutoLimit', t), entity, 'renderDetails', ['Query is limited', 'Query is not limited'], 'Limit result to the object with the ID the URL ends with.');
-//		_Entities.appendBooleanSwitch($('#hideIndexMode', t), entity, 'hideOnIndex', ['Hidden in index mode', 'Visible in index mode'], 'if URL does not end with an ID');
-//		_Entities.appendBooleanSwitch($('#hideDetailsMode', t), entity, 'hideOnDetail', ['Hidden in details mode', 'Visible in details mode'], 'if URL ends with an ID.');
 
 		_Entities.repeaterConfig(entity, el);
 
@@ -336,10 +326,10 @@ var _Entities = {
 
 			flowSelector.append('<option>--- Select Flow ---</option>');
 			// (type, pageSize, page, sort, order, properties, includeHidden, callback)
-			Command.getByType('FlowContainer', 1000, 1, 'name', 'asc', null, false, function(flows) {
+			Command.getByType('FlowContainer', 1000, 1, 'effectiveName', 'asc', null, false, function(flows) {
 
 				flows.forEach(function(flow) {
-					flowSelector.append('<option value="' + flow.id + '">' + flow.name + '</option>');
+					flowSelector.append('<option value="' + flow.id + '">' + flow.effectiveName + '</option>');
 				});
 
 				initRepeaterInputs();
@@ -518,6 +508,51 @@ var _Entities = {
 			editor.markText(sc.from(), sc.to(), {className: 'data-structr-hash', collapsed: true, inclusiveLeft: true});
 		}
 	},
+	getSchemaProperties: function(type, view, callback) {
+		let url = rootUrl + '_schema/' + type + '/' + view;
+		$.ajax({
+			url: url,
+			dataType: 'json',
+			contentType: 'application/json; charset=utf-8',
+			statusCode: {
+				200: function(data) {
+
+					let properties = {};
+					// no schema entry found?
+					if (!data || !data.result || data.result_count === 0) {
+
+					} else {
+
+						data.result.forEach(function(prop) {
+							properties[prop.jsonName] = prop;
+						});
+					}
+
+					if (callback) {
+						callback(properties);
+					}
+				},
+				400: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url);
+				},
+				401: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url);
+				},
+				403: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url);
+				},
+				404: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url);
+				},
+				422: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url);
+				}
+			},
+			error:function () {
+				console.log("ERROR: loading Schema " + type);
+			}
+		});
+	},
 	showProperties: function(obj, activeViewOverride) {
 
 		var handleGraphObject = function(entity) {
@@ -564,9 +599,12 @@ var _Entities = {
 				var mainTabs = tabsdiv.append('<ul></ul>');
 				var contentEl = dialog.append('<div></div>');
 
+				// custom dialog tab?
+				var hasCustomDialog = _Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
+
 				if (entity.isDOMNode) {
 
-					_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', true, function(c) {
+					_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', !hasCustomDialog, function(c) {
 						_Entities.queryDialog(entity, c, typeInfo);
 					});
 
@@ -599,7 +637,7 @@ var _Entities = {
 			Command.get(obj.id, null, function(entity) { handleGraphObject(entity); });
 		}
 	},
-	appendPropTab: function(entity, tabsEl, contentEl, name, label, active, callback, initCallback) {
+	appendPropTab: function(entity, tabsEl, contentEl, name, label, active, callback, initCallback, showCallback) {
 
 		var ul = tabsEl.children('ul');
 		ul.append('<li id="tab-' + name + '"><div class="fill-pixel"></div>' + label + '</li>');
@@ -620,6 +658,16 @@ var _Entities = {
 			if (typeof initCallback === "function") {
 				initCallback();
 			}
+
+			if (typeof showCallback === "function") {
+
+				// update entity for show callback
+				if (entity.relType) {
+					Command.getRelationship(entity.id, entity.target, null, function(e) { showCallback(e); });
+				} else {
+					Command.get(entity.id, null, function(e) { showCallback(e); });
+				}
+			}
 		});
 		contentEl.append('<div class="propTabContent" id="tabView-' + name + '"></div>');
 		var content = $('#tabView-' + name);
@@ -627,7 +675,7 @@ var _Entities = {
 			content.show();
 		}
 		if (callback) {
-			callback(content);
+			callback(content, entity);
 		}
 		if (active && typeof initCallback === "function") {
 			initCallback();
@@ -664,58 +712,188 @@ var _Entities = {
 		});
 
 	},
-	getNullIconForKey: function (key) {
+	getNullIconForKey: function(key) {
 		return '<i id="' + _Entities.null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />';
 	},
-	listProperties: function (entity, view, tabView, typeInfo) {
+	listProperties: function(entity, view, tabView, typeInfo) {
+
+		_Entities.getSchemaProperties(entity.type, view, function(properties) {
+			
+			let filteredProperties = Object.keys(properties).filter(function(key) {
+				return !(typeInfo[key].isCollection && typeInfo[key].relatedType);
+			});
+
+			let collectionProperties = Object.keys(properties).filter(function(key) {
+				return typeInfo[key].isCollection && typeInfo[key].relatedType;
+			});
+
+			$.ajax({
+				url: rootUrl + entity.type + '/' + entity.id + '/all',
+				dataType: 'json',
+				headers: {
+					Accept: 'application/json; charset=utf-8; properties=' + filteredProperties.join(',')
+				},
+				contentType: 'application/json; charset=utf-8',
+				success: function(data) {
+					// Default: Edit node id
+					var id = entity.id;
+
+					var tempNodeCache = new AsyncObjectCache(function(id) {
+						Command.getProperties(id, 'id,name,type,tag,isContent,content', function (node) {
+							tempNodeCache.addObject(node, node.id);
+						});
+					});
+
+					// ID of graph object to edit
+					$(data.result).each(function(i, res) {
+
+						// reset id for each object group
+						var keys = Object.keys(properties);
+
+						var noCategoryKeys = [];
+						var groupedKeys = {};
+
+						if (typeInfo) {
+							keys.forEach(function(key) {
+								
+								if (typeInfo[key] && typeInfo[key].category && typeInfo[key].category !== 'System') {
+
+									var category = typeInfo[key].category;
+									if (!groupedKeys[category]) {
+										groupedKeys[category] = [];
+									}
+									groupedKeys[category].push(key);
+								} else {
+									noCategoryKeys.push(key);
+								}
+							});
+						}
+						
+						if (view === '_html_') {
+							// add custom html attributes
+							Object.keys(res).forEach(function(key) {
+								if (key.startsWith('_custom_html_')) {
+									noCategoryKeys.push(key);
+								}
+							});
+						}
+
+						// reset result counts
+						_Entities.collectionPropertiesResultCount = {};
+
+						_Entities.createPropertyTable(null, noCategoryKeys, res, entity, view, tabView, typeInfo, tempNodeCache);
+						Object.keys(groupedKeys).sort().forEach(function(categoryName) {
+							_Entities.createPropertyTable(categoryName, groupedKeys[categoryName], res, entity, view, tabView, typeInfo, tempNodeCache);
+						});
+
+						// populate collection properties with first page
+						collectionProperties.forEach(function(key) {
+							_Entities.displayCollectionPager(tempNodeCache, entity, key, 1);
+						});
+
+					});
+				}
+			});
+
+		});
+	},
+	displayCollectionPager: function(tempNodeCache, entity, key, page) {
+
+		let pageSize = 10, resultCount;
+
+		let cell = $('.value.' + key + '_');
+		cell.css('height', '60px');
+
 		$.ajax({
-			url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=100', // TODO: Implement paging or scroll-into-view here
+			url: rootUrl + entity.type + '/' + entity.id + '/' + key + '?pageSize=' + pageSize + '&page=' + page,
 			dataType: 'json',
+			headers: {
+				Accept: 'application/json; charset=utf-8; properties=id,name'
+			},
 			contentType: 'application/json; charset=utf-8',
 			success: function(data) {
-				// Default: Edit node id
-				var id = entity.id;
 
-				var tempNodeCache = new AsyncObjectCache(function(id) {
-					Command.getProperties(id, 'id,name,type,tag,isContent,content', function (node) {
-						tempNodeCache.addObject(node, node.id);
+				resultCount = _Entities.collectionPropertiesResultCount[key] || data.result_count;
+
+				if (data.result.length < pageSize) {
+					_Entities.collectionPropertiesResultCount[key] = (page-1)*pageSize+data.result.length;
+					resultCount = _Entities.collectionPropertiesResultCount[key];
+				}
+
+				if (!cell.prev('td.key').find('.pager').length) {
+
+					// display arrow buttons
+					cell.prev('td.key').append('<div class="pager up disabled"><i title="Previous Page" class="fa fa-caret-up"></i></div><div class="pager range"></div><div class="pager down"><i title="Next Page" class="fa fa-caret-down"></i></div>');
+
+					// display result count
+					cell.prev('td.key').append(' <span></span>');
+
+				}
+
+				// update result count
+				cell.prev('td.key').find('span').text('(' + ((resultCount !== undefined) ? resultCount : '?') + ')');
+
+				let pageUpButton   = cell.prev('td.key').find('.pager.up');
+				let pageDownButton = cell.prev('td.key').find('.pager.down');
+
+				pageUpButton.off('click').addClass('disabled');
+				pageDownButton.off('click').addClass('disabled');
+
+				if (page > 1) {
+					pageUpButton.removeClass('disabled').on('click', function() {
+						_Entities.displayCollectionPager(tempNodeCache, entity, key, page-1);
+						return false;
 					});
-				});
+				}
 
-				// ID of graph object to edit
-				$(data.result).each(function(i, res) {
+				if ((!resultCount && data.result.length > 0) || page < Math.ceil(resultCount/pageSize)) {
+					pageDownButton.removeClass('disabled').on('click', function() {
+						_Entities.displayCollectionPager(tempNodeCache, entity, key, page+1);
+						return false;
+					});
+				}
 
-					// reset id for each object group
-					var keys = Object.keys(res);
+				// don't update cell and fix page no if we're already on the last page
+				if (page > 1 && data.result.length === 0) {
+					page--;
+				} else {
+					cell.children('.node').remove();
+				}
 
-					var noCategoryKeys = [];
-					var groupedKeys = {};
+				if (resultCount === undefined || resultCount > 0) {
+					// display current range
+					cell.prev('td.key').find('.pager.range').text((page-1)*pageSize+1 + '..' + (resultCount ? Math.min(resultCount, page*pageSize) : '?'));
+				}
 
-					if (typeInfo) {
-						keys.forEach(function(key) {
-							if (typeInfo[key] && typeInfo[key].category && typeInfo[key].category !== "System") {
+				if (data.result.length) {
 
-								var category = typeInfo[key].category;
-								if (!groupedKeys[category]) {
-									groupedKeys[category] = [];
-								}
-								groupedKeys[category].push(key);
-							} else {
-								noCategoryKeys.push(key);
-							}
+					(data.result[0][key] || data.result).forEach(function(obj) {
+
+						let nodeId = (typeof obj === 'string') ? obj : obj.id;
+
+						tempNodeCache.registerCallback(nodeId, nodeId, function(node) {
+							_Entities.appendRelatedNode(cell, node, function(nodeEl) {
+								$('.remove', nodeEl).on('click', function(e) {
+									e.preventDefault();
+									Command.removeFromCollection(entity.id, key, node.id, function() {
+										nodeEl.remove();
+										blinkGreen(cell);
+										Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" has been removed from property "' + key + '".', 'success', 2000, 1000);
+									});
+									return false;
+								});
+							});
 						});
-					}
 
-					_Entities.createPropertyTable(null, noCategoryKeys, res, entity, view, tabView, typeInfo, tempNodeCache);
-					Object.keys(groupedKeys).sort().forEach(function(categoryName) {
-						_Entities.createPropertyTable(categoryName, groupedKeys[categoryName], res, entity, view, tabView, typeInfo, tempNodeCache);
 					});
-				});
+				}
+
 			}
 		});
 
+
 	},
-	createPropertyTable: function (heading, keys, res, entity, view, tabView, typeInfo, tempNodeCache) {
+	createPropertyTable: function(heading, keys, res, entity, view, tabView, typeInfo, tempNodeCache) {
 
 		if (heading) {
 			tabView.append('<h2>' + heading + '</h2>');
@@ -842,7 +1020,7 @@ var _Entities = {
 													if (!newVal) {
 														nodeEl.remove();
 														blinkGreen(cell);
-														Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
+														Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" has been removed from property "' + key + '".', 'success', 2000, 1000);
 													} else {
 														blinkRed(cell);
 													}
@@ -853,27 +1031,7 @@ var _Entities = {
 									});
 
 								} else {
-
-									res[key].forEach(function(obj) {
-
-										var nodeId = obj.id || obj;
-
-										tempNodeCache.registerCallback(nodeId, nodeId, function(node) {
-
-											_Entities.appendRelatedNode(cell, node, function(nodeEl) {
-												$('.remove', nodeEl).on('click', function(e) {
-													e.preventDefault();
-													Command.removeFromCollection(id, key, node.id, function() {
-														nodeEl.remove();
-														blinkGreen(cell);
-														Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
-													});
-													return false;
-												});
-											});
-										});
-
-									});
+									// will be appended asynchronously
 								}
 							}
 
@@ -885,6 +1043,7 @@ var _Entities = {
 								});
 								_Entities.displaySearch(id, key, typeInfo[key].type, dialogText, isCollection);
 							});
+
 
 						} else {
 							cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly, isMultiline));
@@ -908,7 +1067,7 @@ var _Entities = {
 				_Entities.setProperty(id, key, null, false, function(newVal) {
 					if (!newVal) {
 						blinkGreen(cell);
-						Structr.showAndHideInfoBoxMessage('Property "' + key + '" was set to null.', 'success', 2000, 1000);
+						Structr.showAndHideInfoBoxMessage('Property "' + key + '" has been set to null.', 'success', 2000, 1000);
 
 						if (key === 'name') {
 							var entity = StructrModel.objects[id];
@@ -936,8 +1095,8 @@ var _Entities = {
 
 
 		propsTable.append('<tr class="hidden"><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
-		$('.props tr td.value input',    dialog).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId); });
-		$('.props tr td.value textarea', dialog).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId); });
+		$('.props tr td.value input',    dialog).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId, typeInfo); });
+		$('.props tr td.value textarea', dialog).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId, typeInfo); });
 
 		Structr.appendInfoTextToElement({
 			element: $('.newKey', propsTable),
@@ -1130,19 +1289,27 @@ var _Entities = {
 			return onDelete(nodeEl);
 		}
 	},
-	activateInput: function(el, id, pageId) {
+	activateInput: function(el, id, pageId, typeInfo, onUpdateCallback) {
 
 		var input = $(el);
 		var oldVal = input.val();
 		var relId = input.parent().attr('rel_id');
+		var objId = relId ? relId : id;
+		var key = input.prop('name');
 
 		if (!input.hasClass('readonly') && !input.hasClass('newKey')) {
 
-			input.on('focus', function() {
+			input.closest('.array-attr').find('i.remove').off('click').on('click', function(el) {
+				let cell = input.closest('.value');
+				input.parent().remove();
+				_Entities.saveArrayValue(cell, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback);
+			});
+
+			input.off('focus').on('focus', function() {
 				input.addClass('active');
 			});
 
-			input.on('change', function() {
+			input.off('change').on('change', function() {
 				input.data('changed', true);
 
 				if (pageId && pageId === activeTab) {
@@ -1151,9 +1318,8 @@ var _Entities = {
 				}
 			});
 
-			input.on('focusout', function() {
+			input.off('focusout').on('focusout', function() {
 				_Logger.log(_LogType.ENTITIES, 'relId', relId);
-				var objId = relId ? relId : id;
 				_Logger.log(_LogType.ENTITIES, 'set properties of obj', objId);
 
 				var keyInput = input.parent().parent().children('td').first().children('input');
@@ -1171,7 +1337,7 @@ var _Entities = {
 						_Logger.log(_LogType.ENTITIES, 'new key: Command.setProperty(', objId, newKey, val);
 						Command.setProperty(objId, newKey, val, false, function() {
 							blinkGreen(input);
-							Structr.showAndHideInfoBoxMessage('New property "' + newKey + '" was added and saved with value "' + val + '".', 'success', 2000, 1000);
+							Structr.showAndHideInfoBoxMessage('New property "' + newKey + '" has been added and saved with value "' + val + '".', 'success', 2000, 1000);
 						});
 					} else {
 						blinkRed(keyInput);
@@ -1179,24 +1345,7 @@ var _Entities = {
 					}
 
 				} else {
-					var key = input.prop('name');
-					var val = input.val();
-					var isPassword = input.prop('type') === 'password';
-					if (input.data('changed')) {
-						input.data('changed', false);
-						_Logger.log(_LogType.ENTITIES, 'existing key: Command.setProperty(', objId, key, val);
-						_Entities.setProperty(objId, key, val, false, function(newVal) {
-							if (isPassword || (newVal !== oldVal)) {
-								blinkGreen(input);
-								input.val(newVal);
-								let valueMsg = newVal ? 'value "' + newVal : 'empty value';
-								Structr.showAndHideInfoBoxMessage('Updated property "' + key + '"' + (!isPassword ? ' with ' + valueMsg + '".' : '.'), 'success', 2000, 200);
-							} else {
-								input.val(oldVal);
-							}
-							oldVal = newVal;
-						});
-					}
+					_Entities.saveValue(input, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback);
 				}
 				input.removeClass('active');
 				input.parent().children('.icon').each(function(i, icon) {
@@ -1204,6 +1353,84 @@ var _Entities = {
 				});
 			});
 		}
+	},
+	getArrayValue: function(key, cell) {
+		let values = [];
+		cell.find('[name="' + key + '"]').each(function(i, el) {
+			let value = $(el).val();
+			if (value && value.length) {
+				values.push(value);
+			}
+		});
+		return values;
+	},
+	saveValue: function(input, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback) {
+
+		let val;
+		let cell = input.closest('.value');
+
+		// Array?
+		if (typeInfo[key].isCollection && !typeInfo[key].relatedType) {
+			val = _Entities.getArrayValue(key, cell);
+		} else {
+			val = input.val();
+		}
+
+		var isPassword = input.prop('type') === 'password';
+		if (input.data('changed')) {
+			input.data('changed', false);
+			_Logger.log(_LogType.ENTITIES, 'existing key: Command.setProperty(', objId, key, val);
+			_Entities.setProperty(objId, key, val, false, function(newVal) {
+				if (isPassword || (newVal !== oldVal)) {
+					blinkGreen(input);
+					let valueMsg;
+					if (newVal.constructor === Array) {
+						cell.html(formatArrayValueField(key, newVal, typeInfo[key].format === 'multi-line', typeInfo[key].readOnly, isPassword));
+						cell.find('[name="' + key + '"]').each(function(i, el) {
+							_Entities.activateInput(el, id, pageId, typeInfo);
+						});
+						valueMsg = newVal ? 'value [' + newVal.join(',\n') + ']': 'empty value';
+					} else {
+						input.val(newVal);
+						valueMsg = newVal ? 'value "' + newVal + '"': 'empty value';
+					}
+					Structr.showAndHideInfoBoxMessage('Updated property "' + key + '"' + (!isPassword ? ' with ' + valueMsg + '' : ''), 'success', 2000, 200);
+
+					if (onUpdateCallback) {
+						onUpdateCallback();
+					}
+
+				} else {
+					input.val(oldVal);
+				}
+				oldVal = newVal;
+			});
+		}
+
+	},
+	saveArrayValue: function(cell, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback) {
+
+		var val = _Entities.getArrayValue(key, cell);
+
+		_Logger.log(_LogType.ENTITIES, 'existing key: Command.setProperty(', objId, key, val);
+		_Entities.setProperty(objId, key, val, false, function(newVal) {
+			if (newVal !== oldVal) {
+				blinkGreen(cell);
+				let valueMsg;
+				cell.html(formatArrayValueField(key, newVal, typeInfo[key].format === 'multi-line', typeInfo[key].readOnly, false));
+				cell.find('[name="' + key + '"]').each(function(i, el) {
+					_Entities.activateInput(el, id, pageId, typeInfo);
+				});
+				valueMsg = newVal ? 'value [' + newVal.join(',\n') + ']': 'empty value';
+				Structr.showAndHideInfoBoxMessage('Updated property "' + key + '" with ' + valueMsg + '.', 'success', 2000, 200);
+
+				if (onUpdateCallback) {
+					onUpdateCallback();
+				}
+			}
+			oldVal = newVal;
+		});
+
 	},
 	setProperty: function(id, key, val, recursive, callback) {
 		Command.setProperty(id, key, val, recursive, function() {
@@ -1857,6 +2084,8 @@ var _Entities = {
 				blinkGreen(element.find('.' + attributeName + '_').first());
 				if (Structr.isModuleActive(_Pages)) {
 					_Pages.reloadPreviews();
+				} else if (Structr.isModuleActive(_Contents)) {
+					_Contents.refreshTree();
 				} else if (Structr.isModuleActive(_Files) && attributeName === 'name') {
 					var a = element.closest('td').prev().children('a').first();
 					Command.getProperty(id, 'path', function(newPath) {
@@ -1983,12 +2212,29 @@ var _Entities = {
 	},
 	isContentElement: function (entity) {
 		return (entity.type === 'Template' || entity.type === 'Content');
+	},
+	setPropertyWithFeedback: function(entity, key, newVal, input) {
+		var oldVal = entity[key];
+		Command.setProperty(entity.id, key, newVal, false, function(result) {
+			var newVal= result[key];
+			if (newVal !== oldVal) {
+				blinkGreen(input);
+				if (newVal.constructor === Array) {
+					newVal = newVal.join(',');
+				}
+				input.val(newVal);
+				let valueMsg = newVal ? 'value "' + newVal : 'empty value';
+				Structr.showAndHideInfoBoxMessage('Updated property "' + key + '" with ' + valueMsg, 'success', 2000, 200);
+			} else {
+				input.val(oldVal);
+			}
+		});
 	}
 };
 
 function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 
-	if (obj === null) {
+	if (!obj) {
 
 		return formatRegularValueField(key, '', isMultiline, isReadOnly, isPassword);
 
@@ -1999,9 +2245,7 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 
 	} else if (obj.constructor === Array) {
 
-		return obj.reduce(function (acc, v) {
-			return acc + formatValueInputField(key, v, isPassword, isReadOnly, isMultiline) + '<br>';
-		}, '');
+		return formatArrayValueField(key, obj, isMultiline, isReadOnly, isPassword);
 
 	} else {
 
@@ -2009,10 +2253,43 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 	}
 };
 
-function formatRegularValueField(key, value, isMultiline, isReadOnly, isPassword) {
+function formatArrayValueField(key, values, isMultiline, isReadOnly, isPassword) {
+
+	let html = '';
+
+	values.forEach(function(value) {
+
+		if (isMultiline) {
+
+			html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + '>' + value + '</textarea> <i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i></div>';
+
+		} else {
+
+			html += '<div class="array-attr"><input name="' + key + '" type="' + (isPassword ? 'password" autocomplete="new-password' : 'text') + '" value="' + value + '"' + (isReadOnly ? 'readonly class="readonly"' : '') + '> <i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i></div>';
+		}
+	});
+
 	if (isMultiline) {
-		return '<textarea name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + '>' + value + '</textarea>';
+
+		html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + '></textarea></div>';
+
 	} else {
+
+		html += '<div class="array-attr"><input name="' + key + '" type="' + (isPassword ? 'password" autocomplete="new-password' : 'text') + '" value=""' + (isReadOnly ? 'readonly class="readonly"' : '') + '></div>';
+	}
+
+	return html;
+
+};
+
+function formatRegularValueField(key, value, isMultiline, isReadOnly, isPassword) {
+
+	if (isMultiline) {
+
+		return '<textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + '>' + value + '</textarea>';
+
+	} else {
+
 		return '<input name="' + key + '" type="' + (isPassword ? 'password" autocomplete="new-password' : 'text') + '" value="' + value + '"' + (isReadOnly ? 'readonly class="readonly"' : '') + '>';
 	}
 };

@@ -18,8 +18,10 @@
  */
 package org.structr.websocket.command;
 
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -29,11 +31,8 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Websocket command to retrieve type information from the schema.
- *
- *
  */
 public class GetSchemaInfoCommand extends AbstractCommand {
 
@@ -42,7 +41,6 @@ public class GetSchemaInfoCommand extends AbstractCommand {
 	static {
 
 		StructrWebSocket.addCommand(GetSchemaInfoCommand.class);
-
 	}
 
 	@Override
@@ -57,12 +55,14 @@ public class GetSchemaInfoCommand extends AbstractCommand {
 			if (type != null) {
 
 				final Class typeClass = StructrApp.getConfiguration().getNodeEntityClass(type);
+				final List results    = Iterables.toList(SchemaTypeResource.getSchemaTypeResult(getWebSocket().getSecurityContext(), typeClass, PropertyView.All));
 
-				webSocketData.setResult(SchemaTypeResource.getSchemaTypeResult(getWebSocket().getSecurityContext(), typeClass, PropertyView.All).getResults());
+				webSocketData.setResult(results);
 
 			} else {
 
-				webSocketData.setResult(SchemaResource.getSchemaOverviewResult().getResults());
+				final List results    = Iterables.toList(SchemaResource.getSchemaOverviewResult());
+				webSocketData.setResult(results);
 			}
 
 			// send only over local connection (no broadcast)
@@ -75,7 +75,6 @@ public class GetSchemaInfoCommand extends AbstractCommand {
 		}
 	}
 
-	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
 		return "GET_SCHEMA_INFO";

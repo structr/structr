@@ -42,7 +42,6 @@ import org.structr.api.graph.Node;
 import org.structr.api.util.Iterables;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.TestEleven;
 import org.structr.core.entity.TestOne;
@@ -123,7 +122,7 @@ public class MaintenanceTest extends StructrTest {
 			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME));
 
 			try (final Tx tx = app.tx()) {
-				assertEquals(100, app.nodeQuery(TestOne.class).getResult().size());
+				assertEquals(100, app.nodeQuery(TestOne.class).getAsList().size());
 			}
 
 			// clean-up after test
@@ -156,7 +155,7 @@ public class MaintenanceTest extends StructrTest {
 			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME, "batchSize", 20L));
 
 			try (final Tx tx = app.tx()) {
-				assertEquals(100, app.nodeQuery(TestOne.class).getResult().size());
+				assertEquals(100, app.nodeQuery(TestOne.class).getAsList().size());
 			}
 
 			// clean-up after test
@@ -234,10 +233,10 @@ public class MaintenanceTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final Result<TestEleven> result = app.nodeQuery(TestEleven.class).getResult();
+				final List<TestEleven> result = app.nodeQuery(TestEleven.class).getAsList();
 				assertEquals(10, result.size());
 
-				for (final TestEleven node : result.getResults()) {
+				for (final TestEleven node : result) {
 
 					Iterable<Label> labels = node.getNode().getLabels();
 					final Set<Label> set   = new HashSet<>(Iterables.toList(labels));
@@ -317,7 +316,7 @@ public class MaintenanceTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// check nodes, we should find no Groups here
-				assertEquals(0, app.nodeQuery(Group.class).getResult().size());
+				assertEquals(0, app.nodeQuery(Group.class).getAsList().size());
 			}
 			 */
 
@@ -329,7 +328,7 @@ public class MaintenanceTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// check nodes, we should find 100 Groups here
-				assertEquals(100, app.nodeQuery(Group.class).getResult().size());
+				assertEquals(100, app.nodeQuery(Group.class).getAsList().size());
 
 				// check nodes
 				for (final Group group : app.nodeQuery(Group.class)) {
@@ -370,7 +369,7 @@ public class MaintenanceTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// check nodes, we should find 100 TestOnes here, and none TestTwos
-				assertEquals(100, app.nodeQuery(TestOne.class).getResult().size());
+				assertEquals(100, app.nodeQuery(TestOne.class).getAsList().size());
 				tx.success();
 			}
 
@@ -423,8 +422,8 @@ public class MaintenanceTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// check nodes, we should find 100 TestOnes here, and none TestTwos
-				assertEquals(  0, app.nodeQuery(TestTwo.class).getResult().size());
-				assertEquals(100, app.nodeQuery(TestOne.class).getResult().size());
+				assertEquals(  0, app.nodeQuery(TestTwo.class).getAsList().size());
+				assertEquals(100, app.nodeQuery(TestOne.class).getAsList().size());
 
 				// check nodes
 				for (final TestOne test : app.nodeQuery(TestOne.class)) {
@@ -440,8 +439,8 @@ public class MaintenanceTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// check nodes, we should find 100 TestTwos here, and none TestOnes
-				assertEquals(  0, app.nodeQuery(TestOne.class).getResult().size());
-				assertEquals(100, app.nodeQuery(TestTwo.class).getResult().size());
+				assertEquals(  0, app.nodeQuery(TestOne.class).getAsList().size());
+				assertEquals(100, app.nodeQuery(TestTwo.class).getAsList().size());
 			}
 
 		} catch (FrameworkException fex) {
