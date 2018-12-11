@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var main, codeMain, codeTree, codeContents;
+var main, codeMain, codeTree, codeContents, codeContext;
 var drop;
 var selectedElements = [];
 var activeMethodId, methodContents = {};
@@ -55,6 +55,12 @@ var _Code = {
 
 		if (codeContents) {
 			codeContents.css({
+				height: windowHeight - headerOffsetHeight - 11 + 'px'
+			});
+		}
+
+		if (codeContext) {
+			codeContext.css({
 				height: windowHeight - headerOffsetHeight - 11 + 'px'
 			});
 		}
@@ -99,8 +105,11 @@ var _Code = {
 		left = left || LSWrapper.getItem(codeResizerLeftKey) || 300;
 		$('.column-resizer', codeMain).css({ left: left });
 
+		var width = $(window).width() - left - 280;
+
 		$('#code-tree').css({width: left - 14 + 'px'});
-		$('#code-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 47 + 'px'});
+		$('#code-contents').css({left: left + 8 + 'px', width: width + 'px'});
+		$('#code-context').css({left: left + width + 42 + 'px', width: '200px'});
 	},
 	onload: function() {
 
@@ -113,6 +122,7 @@ var _Code = {
 			codeMain     = $('#code-main');
 			codeTree     = $('#code-tree');
 			codeContents = $('#code-contents');
+			codeContext  = $('#code-context');
 
 			_Code.moveResizer();
 			Structr.initVerticalSlider($('.column-resizer', codeMain), codeResizerLeftKey, 204, _Code.moveResizer);
@@ -391,8 +401,14 @@ var _Code = {
 					lineWrapping: lineWrapping,
 					indentUnit: 4,
 					tabSize:4,
-					indentWithTabs: true
+					indentWithTabs: true,
+					extraKeys: {
+						"Ctrl-Space": "autocomplete"
+					}
 				});
+
+				// configure our own autocomplete hint
+				CodeMirror.hint.javascript = _Code.getAutocompleteHint;
 
 				var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
 				if (scrollInfo) {
@@ -402,6 +418,17 @@ var _Code = {
 				editor.on('scroll', function() {
 					var scrollInfo = editor.getScrollInfo();
 					LSWrapper.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
+				});
+
+				editor.on('keyup', function(e, f, g) {
+
+					var cursor = editor.getCursor();
+					var word   = editor.findWordAt(cursor);
+					var prev   = editor.findWordAt({ line: word.anchor.line, ch: word.anchor.ch - 2 });
+					var range1 = editor.getRange(prev.anchor, prev.head);
+					var range2 = editor.getRange(word.anchor, word.head);
+
+					console.log(range1 + '.' + range2);
 				});
 
 				editor.id = entity.id;
@@ -912,5 +939,10 @@ var _Code = {
 			});
 
 		});
+	},
+	getAutocompleteHint: function(cm) {
+		var inner = { from: cm.getCursor(), to: cm.getCursor(), list: [] };
+		inner.list.push("bozo");
+		return inner;
 	}
 };

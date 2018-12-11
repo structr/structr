@@ -3403,7 +3403,7 @@ td#cascading-options, td#propagation-options {
 	color: #000088;
 }
 
-#folder-contents-container, #code-contents-container, #contents-contents-container, #crawler-list-container, #flows-canvas-container {
+#folder-contents-container, #code-contents-container, #contents-contents-container, #crawler-list-container, #flows-canvas-container, #code-context-container {
 	display: table-cell;
 	vertical-align: top;
 	padding: 12px 12px 12px 8px;
@@ -3454,7 +3454,7 @@ td#cascading-options, td#propagation-options {
 	position: absolute;
 }
 
-#code-contents {
+#code-contents, #code-context {
 	vertical-align: top;
 	background-color: #fff;
 	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
@@ -3518,6 +3518,10 @@ td#cascading-options, td#propagation-options {
 	float: left;
 }
 
+#code-contents #default-buttons span {
+	cursor: pointer;
+}
+
 #code-contents #property-buttons {
 	clear: both;
 }
@@ -3527,7 +3531,7 @@ td#cascading-options, td#propagation-options {
 }
 
 .code-button-container {
-	float: right;
+	margin: 8px 8px;
 }
 
 #code-contents property-options {
