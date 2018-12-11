@@ -712,13 +712,13 @@ var _Entities = {
 		});
 
 	},
-	getNullIconForKey: function (key) {
+	getNullIconForKey: function(key) {
 		return '<i id="' + _Entities.null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />';
 	},
-	listProperties: function (entity, view, tabView, typeInfo) {
+	listProperties: function(entity, view, tabView, typeInfo) {
 
 		_Entities.getSchemaProperties(entity.type, view, function(properties) {
-
+			
 			let filteredProperties = Object.keys(properties).filter(function(key) {
 				return !(typeInfo[key].isCollection && typeInfo[key].relatedType);
 			});
@@ -755,7 +755,8 @@ var _Entities = {
 
 						if (typeInfo) {
 							keys.forEach(function(key) {
-								if (typeInfo[key] && typeInfo[key].category && typeInfo[key].category !== "System") {
+								
+								if (typeInfo[key] && typeInfo[key].category && typeInfo[key].category !== 'System') {
 
 									var category = typeInfo[key].category;
 									if (!groupedKeys[category]) {
@@ -763,6 +764,15 @@ var _Entities = {
 									}
 									groupedKeys[category].push(key);
 								} else {
+									noCategoryKeys.push(key);
+								}
+							});
+						}
+						
+						if (view === '_html_') {
+							// add custom html attributes
+							Object.keys(res).forEach(function(key) {
+								if (key.startsWith('_custom_html_')) {
 									noCategoryKeys.push(key);
 								}
 							});
@@ -1355,7 +1365,7 @@ var _Entities = {
 		return values;
 	},
 	saveValue: function(input, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback) {
-		
+
 		let val;
 		let cell = input.closest('.value');
 
@@ -1396,10 +1406,10 @@ var _Entities = {
 				oldVal = newVal;
 			});
 		}
-		
+
 	},
 	saveArrayValue: function(cell, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback) {
-		
+
 		var val = _Entities.getArrayValue(key, cell);
 
 		_Logger.log(_LogType.ENTITIES, 'existing key: Command.setProperty(', objId, key, val);
@@ -1413,15 +1423,15 @@ var _Entities = {
 				});
 				valueMsg = newVal ? 'value [' + newVal.join(',\n') + ']': 'empty value';
 				Structr.showAndHideInfoBoxMessage('Updated property "' + key + '" with ' + valueMsg + '.', 'success', 2000, 200);
-				
+
 				if (onUpdateCallback) {
 					onUpdateCallback();
 				}
 			}
 			oldVal = newVal;
 		});
-		
-	},	
+
+	},
 	setProperty: function(id, key, val, recursive, callback) {
 		Command.setProperty(id, key, val, recursive, function() {
 			Command.getProperty(id, key, callback);
@@ -2267,7 +2277,7 @@ function formatArrayValueField(key, values, isMultiline, isReadOnly, isPassword)
 
 		html += '<div class="array-attr"><input name="' + key + '" type="' + (isPassword ? 'password" autocomplete="new-password' : 'text') + '" value=""' + (isReadOnly ? 'readonly class="readonly"' : '') + '></div>';
 	}
-	
+
 	return html;
 
 };

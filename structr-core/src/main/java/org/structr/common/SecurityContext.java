@@ -51,13 +51,17 @@ import org.structr.schema.SchemaHelper;
  */
 public class SecurityContext {
 
-
 	public static final String JSON_PARALLELIZATION_REQUEST_PARAMETER_NAME = "parallelizeJsonOutput";
 	public static final String LOCALE_KEY                                  = "locale";
+
+	public enum MergeMode {
+		Add, Remove, Toggle, Replace
+	}
 
 	private static final Logger logger                   = LoggerFactory.getLogger(SecurityContext.class.getName());
 	private static final Map<String, Long> resourceFlags = new ConcurrentHashMap<>();
 	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,-]+)");
+	private MergeMode remoteCollectionMergeMode  = MergeMode.Replace;
 	private boolean uuidWasSetManually                   = false;
 	private boolean doTransactionNotifications           = false;
 	private boolean forceMergeOfNestedProperties         = false;
@@ -474,9 +478,7 @@ public class SecurityContext {
 
 			default:
 				return false;
-
 		}
-
 	}
 
 	public boolean isReadable(final NodeInterface node, final boolean includeHidden, final boolean publicOnly) {
@@ -512,6 +514,10 @@ public class SecurityContext {
 		}
 
 		return node.isGranted(Permission.read, this);
+	}
+
+	public MergeMode getRemoteCollectionMergeMode() {
+		return remoteCollectionMergeMode;
 	}
 
 	// ----- private methods -----

@@ -20,6 +20,7 @@ package org.structr.core;
 
 import java.util.Collection;
 import java.util.Map;
+import org.structr.api.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.ModificationEvent;
@@ -41,5 +42,5 @@ public interface StructrTransactionListener {
 		simpleBroadcast(messageName, data, null);
 	};
 
-	default public void simpleBroadcast(final String messageName, final Map<String, Object> data, final String exemptedSessionId) { };
+	void simpleBroadcast(final String messageName, final Map<String, Object> data, final Predicate<String> sessionIdPredicate);
 }

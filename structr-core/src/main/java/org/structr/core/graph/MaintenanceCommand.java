@@ -21,6 +21,7 @@ package org.structr.core.graph;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.structr.api.Predicate;
 import org.structr.common.error.FrameworkException;
 
 /**
@@ -62,7 +63,7 @@ public interface MaintenanceCommand {
 			msgData.putAll(additionalInfo);
 		}
 
-		TransactionCommand.simpleBroadcastGenericMessage(msgData);
+		TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
 	}
 
 	default void publishProgressMessage (final String type, final String message) {
@@ -72,7 +73,7 @@ public interface MaintenanceCommand {
 		msgData.put(COMMAND_SUBTYPE_KEY, COMMAND_SUBTYPE_PROGRESS);
 		msgData.put(COMMAND_MESSAGE_KEY, message);
 
-		TransactionCommand.simpleBroadcastGenericMessage(msgData);
+		TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
 	}
 
 	default void publishEndMessage (final String type, final Map additionalInfo) {
@@ -85,7 +86,7 @@ public interface MaintenanceCommand {
 			msgData.putAll(additionalInfo);
 		}
 
-		TransactionCommand.simpleBroadcastGenericMessage(msgData);
+		TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
 	}
 
 	default void publishWarningMessage (final String title, final String text) {
@@ -95,7 +96,7 @@ public interface MaintenanceCommand {
 		warningMsgData.put(COMMAND_TITLE_KEY,   title);
 		warningMsgData.put(COMMAND_MESSAGE_KEY, text);
 
-		TransactionCommand.simpleBroadcastGenericMessage(warningMsgData);
+		TransactionCommand.simpleBroadcastGenericMessage(warningMsgData, Predicate.all());
 	}
 
 }

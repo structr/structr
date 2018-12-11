@@ -20,6 +20,7 @@ package org.structr.ldap;
 
 import java.net.URI;
 import org.slf4j.LoggerFactory;
+import org.structr.api.Predicate;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -28,6 +29,7 @@ import static org.structr.core.GraphObject.logger;
 import org.structr.core.Services;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonMethod;
 import org.structr.schema.json.JsonObjectType;
@@ -51,7 +53,7 @@ public interface LDAPGroup extends Group {
 		type.addPropertySetter("distinguishedName", String.class);
 
 		final JsonMethod updateMethod = type.addMethod("update");
-		updateMethod.setSource(LDAPGroup.class.getName() + ".update(this);");
+		updateMethod.setSource(LDAPGroup.class.getName() + ".update(getSecurityContext(), this);");
 		updateMethod.setDoExport(true);
 
 		type.overrideMethod("onCreation",     true,  LDAPGroup.class.getName() + ".onCreation(this, arg0, arg1);");
@@ -63,14 +65,14 @@ public interface LDAPGroup extends Group {
 
 	// ----- static methods -----
 	static void onCreation(final LDAPGroup thisNode, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-		update(thisNode);
+		update(securityContext, thisNode);
 	}
 
 	static void onModification(final LDAPGroup thisNode, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-		update(thisNode);
+		update(securityContext, thisNode);
 	}
 
-	static void update(final LDAPGroup thisGroup) {
+	static void update(final SecurityContext securityContext, final LDAPGroup thisGroup) {
 
 		final LDAPService ldapService = Services.getInstance().getService(LDAPService.class);
 		if (ldapService != null) {
@@ -86,7 +88,12 @@ public interface LDAPGroup extends Group {
 
 		} else {
 
-			logger.warn("LDAPService not available, is it configured in structr.conf?");
+			final String message = "LDAPService not available, is it configured in structr.conf?<br /><a href=\"/structr/config\" target=\"_blank\">Open Structr Configuration</a>";
+
+			TransactionCommand.simpleBroadcastWarning("Service not configured", message, Predicate.only(securityContext.getSessionId()));
+
+
+			logger.warn(message);
 		}
 	}
 }

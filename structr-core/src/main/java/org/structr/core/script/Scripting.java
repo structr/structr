@@ -301,6 +301,16 @@ public class Scripting {
 			// if any other kind of Throwable is encountered throw a new FrameworkException and be done with it
 			throw new FrameworkException(422, w.getMessage());
 
+		} catch (final NullPointerException npe) {
+
+			if (!actionContext.getDisableVerboseExceptionLogging()) {
+				logger.warn("Exception in Scripting context", npe);
+			}
+
+			final String message = "NullPointerException in " + npe.getStackTrace()[0].toString();
+
+			throw new FrameworkException(422, message);
+
 		} catch (final Throwable t) {
 
 			if (!actionContext.getDisableVerboseExceptionLogging()) {

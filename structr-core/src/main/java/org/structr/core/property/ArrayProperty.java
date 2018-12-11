@@ -114,14 +114,14 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 	@Override
 	public PropertyConverter<T[], ?> databaseConverter(SecurityContext securityContext) {
-		return null;
+		return new ArrayDatabaseConverter(securityContext);
 	}
 
 	@Override
 	public PropertyConverter<T[], ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		this.securityContext = securityContext;
 		this.entity = entity;
-		return null;
+		return databaseConverter(securityContext);
 	}
 
 	@Override
@@ -173,6 +173,55 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 			}
 
 			return result;
+		}
+
+	}
+
+	private class ArrayDatabaseConverter extends PropertyConverter<T[], Object> {
+
+		public ArrayDatabaseConverter(SecurityContext securityContext) {
+			super(securityContext, null);
+		}
+
+		@Override
+		public T[] revert(Object source) throws FrameworkException {
+			
+			if (source == null) {
+				return null;
+			}
+
+			if (source instanceof List) {
+				return ArrayProperty.this.convert((List)source);
+			}
+
+			if (source.getClass().isArray()) {
+				return revert(Arrays.asList((T[])source));
+			}
+
+			if (source instanceof String) {
+
+				final String s = (String)source;
+				if (s.contains(",")) {
+
+					return ArrayProperty.this.convert(Arrays.asList(s.split(",")));
+				}
+			}
+
+			// create array of componentTypes
+			final T[] result = (T[])Array.newInstance(componentType, 1);
+			final T value    = ArrayProperty.this.fromString(source.toString());
+
+			if (value != null) {
+				result[0] = value;
+			}
+
+			return result;
+		
+		}
+
+		@Override
+		public Object[] convert(T[] source) throws FrameworkException {
+			return source;
 		}
 
 	}

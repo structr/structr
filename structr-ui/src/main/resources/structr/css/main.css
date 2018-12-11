@@ -1642,11 +1642,19 @@ button.action:hover {
 	font-size: 10pt;
 }
 
+.warning a {
+	color: #9f6000;
+}
+
 .error {
 	background: #ffbaba url('../icon/exclamation.png') 6px 6px no-repeat;
 	color: #d8000c;
 	border: 1px solid #d8000c;
 	font-size: 10pt;
+}
+
+.error a {
+	color: #d8000c;
 }
 
 .success {
@@ -1656,11 +1664,19 @@ button.action:hover {
 	font-size: 10pt;
 }
 
+.success a {
+	color: #4f8a10;
+}
+
 .info {
 	background: #bde5f8 url('../icon/information.png') 6px 6px no-repeat;
 	color: #00592b;
 	border: 1px solid #00592b;
 	font-size: 10pt;
+}
+
+.info a {
+	color: #00592b;
 }
 
 .nodeSelectBox {
