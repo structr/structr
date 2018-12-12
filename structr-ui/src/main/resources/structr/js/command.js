@@ -1205,7 +1205,7 @@ var Command = {
 				currentToken: currentToken,
 				previousToken: previousToken,
 				thirdToken: thirdToken,
-				contentType: contentType,
+				contentType: 'application/javascript',
 				line: line,
 				cursorPosition: cursorPosition
 			}

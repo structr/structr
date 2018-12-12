@@ -406,9 +406,12 @@ var _Code = {
 						"Ctrl-Space": "autocomplete"
 					}
 				});
-
-				// configure our own autocomplete hint
-				CodeMirror.hint.javascript = _Code.getAutocompleteHint;
+				
+				CodeMirror.registerHelper('hint', 'ajax', _Code.getAutocompleteHint);
+				CodeMirror.hint.ajax.async = true;
+				CodeMirror.commands.autocomplete = function(mirror) { 
+					mirror.showHint({ hint: CodeMirror.hint.ajax }); 
+				};
 
 				var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
 				if (scrollInfo) {
@@ -418,17 +421,6 @@ var _Code = {
 				editor.on('scroll', function() {
 					var scrollInfo = editor.getScrollInfo();
 					LSWrapper.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
-				});
-
-				editor.on('keyup', function(e, f, g) {
-
-					var cursor = editor.getCursor();
-					var word   = editor.findWordAt(cursor);
-					var prev   = editor.findWordAt({ line: word.anchor.line, ch: word.anchor.ch - 2 });
-					var range1 = editor.getRange(prev.anchor, prev.head);
-					var range2 = editor.getRange(word.anchor, word.head);
-
-					console.log(range1 + '.' + range2);
 				});
 
 				editor.id = entity.id;
@@ -940,9 +932,20 @@ var _Code = {
 
 		});
 	},
-	getAutocompleteHint: function(cm) {
-		var inner = { from: cm.getCursor(), to: cm.getCursor(), list: [] };
-		inner.list.push("bozo");
-		return inner;
+	getAutocompleteHint: function(editor, callback) {
+
+		var cursor = editor.getCursor();
+
+		var word   = editor.findWordAt(cursor);
+		var prev   = editor.findWordAt({ line: word.anchor.line, ch: word.anchor.ch - 2 });
+		var range1 = editor.getRange(prev.anchor, prev.head);
+		var range2 = editor.getRange(word.anchor, word.head);
+
+		// autocomplete: function(id, type, currentToken, previousToken, thirdToken, line, cursorPosition, callback) {
+		Command.autocomplete('', '', range2, range1, '', cursor.line, cursor.ch, function(result) {
+
+			var inner  = { from: cursor, to: cursor, list: result };
+			callback(inner);
+		});
 	}
 };
