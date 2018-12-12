@@ -67,7 +67,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean dynamic                              = false;
 	protected boolean isCMISProperty                       = false;
 	protected boolean isPartOfBuiltInSchema                = false;
-	protected boolean cachingEnabled					   = false;
+	protected boolean cachingEnabled                       = false;
 	protected String dbName                                = null;
 	protected String jsonName                              = null;
 	protected String format                                = null;
@@ -76,6 +76,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected String writeFunction                         = null;
 	protected String hint                                  = null;
 	protected String category                              = null;
+	protected String sourceUuid                            = null;
 
 	private boolean requiresSynchronization                = false;
 
@@ -230,6 +231,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public String category() {
 		return category;
+	}
+
+	public Property<T> setSourceUuid(final String sourceUuid) {
+		// This method intentionally does nothing, current implementation is only needed in function properties
+		return this;
 	}
 
 	@Override
