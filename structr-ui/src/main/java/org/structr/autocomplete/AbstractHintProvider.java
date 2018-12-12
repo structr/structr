@@ -60,10 +60,10 @@ public abstract class AbstractHintProvider {
 
 	static {
 
+		keywords.add("Structr");
 		keywords.add("current");
 		keywords.add("request");
 		keywords.add("this");
-		keywords.add("element");
 		keywords.add("page");
 		keywords.add("link");
 		keywords.add("template");
@@ -114,6 +114,11 @@ public abstract class AbstractHintProvider {
 
 				final GraphObjectMap item = new GraphObjectMap();
 				String functionName       = getFunctionName(hint.getReplacement());
+
+				// remove closing parenthesis
+				if (functionName.endsWith("()")) {
+					functionName = functionName.substring(0, functionName.length() - 1);
+				}
 
 				if (hint.mayModify()) {
 
@@ -307,7 +312,8 @@ public abstract class AbstractHintProvider {
 				break;
 		}
 
-		if (!keywords.contains(previousToken) && !isDotNotationRequest && !dataKeys.containsKey(previousToken)) {
+		//if (!keywords.contains(previousToken) && !isDotNotationRequest && !dataKeys.containsKey(previousToken)) {
+		if (!keywords.contains(previousToken) && !dataKeys.containsKey(previousToken)) {
 
 			if (!isAssignment) {
 
@@ -319,10 +325,10 @@ public abstract class AbstractHintProvider {
 			Collections.sort(hints, comparator);
 
 			// non-function hints
+			local.add(createHint("Structr",   "", "Structr context handle",    !isJavascript() ? null : "Structr."));
 			local.add(createHint("current",   "", "Current data object",       !isJavascript() ? null : "get('current')"));
 			local.add(createHint("request",   "", "Current request object",    !isJavascript() ? null : "get('request')"));
-			local.add(createHint("this",      "", "Current object",            !isJavascript() ? null : "get('this')"));
-			local.add(createHint("element",   "", "Current object",            !isJavascript() ? null : "get('element')"));
+			local.add(createHint("this",      "", "Current object",            !isJavascript() ? null : "this"));
 			local.add(createHint("page",      "", "Current page",              !isJavascript() ? null : "get('page')"));
 			local.add(createHint("link",      "", "Current link",              !isJavascript() ? null : "get('link')"));
 			local.add(createHint("template",  "", "Closest template node",     !isJavascript() ? null : "get('template')"));

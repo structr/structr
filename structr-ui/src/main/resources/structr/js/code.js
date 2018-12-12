@@ -935,14 +935,13 @@ var _Code = {
 	getAutocompleteHint: function(editor, callback) {
 
 		var cursor = editor.getCursor();
-
 		var word   = editor.findWordAt(cursor);
 		var prev   = editor.findWordAt({ line: word.anchor.line, ch: word.anchor.ch - 2 });
 		var range1 = editor.getRange(prev.anchor, prev.head);
 		var range2 = editor.getRange(word.anchor, word.head);
 
 		// autocomplete: function(id, type, currentToken, previousToken, thirdToken, line, cursorPosition, callback) {
-		Command.autocomplete('', '', range2, range1, '', cursor.line, cursor.ch, function(result) {
+		Command.autocomplete('', '', range2, range1, '', cursor.line, cursor.ch, 'javascript', function(result) {
 
 			var inner  = { from: cursor, to: cursor, list: result };
 			callback(inner);

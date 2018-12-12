@@ -34,12 +34,8 @@ import org.structr.core.property.Property;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * Websocket command to return the children of the given node
- *
- *
+ * Websocket command to support autocompletion in the backend ui.
  */
 public class AutocompleteCommand extends AbstractCommand {
 
@@ -51,9 +47,10 @@ public class AutocompleteCommand extends AbstractCommand {
 
 		StructrWebSocket.addCommand(AutocompleteCommand.class);
 
-		hintProviders.put("text/plain",             new PlaintextHintProvider());
-		hintProviders.put("text/javascript",        new JavascriptHintProvider());
-		hintProviders.put("application/javascript", new JavascriptHintProvider());
+		hintProviders.put("text",              new PlaintextHintProvider());
+		hintProviders.put("java",              new PlaintextHintProvider());
+		hintProviders.put("structrscript",     new PlaintextHintProvider());
+		hintProviders.put("javascript",        new JavascriptHintProvider());
 	}
 
 	@Override
@@ -105,9 +102,6 @@ public class AutocompleteCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
-
 		return "AUTOCOMPLETE";
 	}
-
-	// ----- private methods -----
 }

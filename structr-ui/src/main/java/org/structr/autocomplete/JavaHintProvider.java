@@ -24,7 +24,7 @@ import org.structr.common.CaseHelper;
  *
  *
  */
-public class JavascriptHintProvider extends AbstractHintProvider {
+public class JavaHintProvider extends AbstractHintProvider {
 
 	@Override
 	protected String getFunctionName(final String source) {
