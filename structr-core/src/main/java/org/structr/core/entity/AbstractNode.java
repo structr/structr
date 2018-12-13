@@ -2147,9 +2147,9 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	private static class PermissionResolutionResult {
 
-		Boolean read          = false;
-		Boolean write         = false;
-		Boolean delete        = false;
-		Boolean accessControl = false;
+		Boolean read          = null;
+		Boolean write         = null;
+		Boolean delete        = null;
+		Boolean accessControl = null;
 	}
 }
