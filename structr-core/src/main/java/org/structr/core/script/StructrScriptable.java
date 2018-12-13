@@ -742,6 +742,11 @@ public class StructrScriptable extends ScriptableObject {
 
 		@Override
 		public Object[] getIds() {
+
+			if (obj instanceof GraphObjectMap) {
+				return ((GraphObjectMap)obj).toMap().keySet().toArray();
+			}
+
 			return IDs;
 		}
 
