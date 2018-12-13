@@ -241,6 +241,7 @@ public abstract class AbstractHintProvider {
 
 	protected List<Hint> getAllHints(final GraphObject currentNode, final String currentToken, final String previousToken, final String thirdToken) {
 
+		final boolean isStructrHandle       = isJavascript() && "Structr".equals(previousToken);
 		final boolean isDeclaration         = isJavascript() && "var".equals(previousToken);
 		final boolean isAssignment          = isJavascript() && "=".equals(previousToken);
 		final boolean isDotNotationRequest  = ".".equals(currentToken);
@@ -312,20 +313,22 @@ public abstract class AbstractHintProvider {
 				break;
 		}
 
-		//if (!keywords.contains(previousToken) && !isDotNotationRequest && !dataKeys.containsKey(previousToken)) {
-		if (!keywords.contains(previousToken) && !dataKeys.containsKey(previousToken)) {
+		if (!isAssignment && isStructrHandle) {
 
-			if (!isAssignment) {
-
-				for (final Function<Object, Object> func : Functions.getFunctions()) {
-					hints.add(func);
-				}
+			for (final Function<Object, Object> func : Functions.getFunctions()) {
+				hints.add(func);
 			}
+		}
 
-			Collections.sort(hints, comparator);
+		Collections.sort(hints, comparator);
+
+		if (!isStructrHandle) {
+
+			local.add(createHint("Structr",   "", "Structr context handle",    !isJavascript() ? null : "Structr"));
+
+		} else {
 
 			// non-function hints
-			local.add(createHint("Structr",   "", "Structr context handle",    !isJavascript() ? null : "Structr."));
 			local.add(createHint("current",   "", "Current data object",       !isJavascript() ? null : "get('current')"));
 			local.add(createHint("request",   "", "Current request object",    !isJavascript() ? null : "get('request')"));
 			local.add(createHint("this",      "", "Current object",            !isJavascript() ? null : "this"));
@@ -347,7 +350,7 @@ public abstract class AbstractHintProvider {
 		hints.addAll(0, local);
 
 		// prepend data keys
-		if (currentObjectType == null && !dataKeys.containsKey(previousToken) && !isDotNotationRequest || isAssignment) {
+		if (!isStructrHandle && currentObjectType == null && !dataKeys.containsKey(previousToken) && !isDotNotationRequest || isAssignment) {
 
 			for (final DataKey dataKey : dataKeys.values()) {
 
@@ -361,9 +364,12 @@ public abstract class AbstractHintProvider {
 			}
 		}
 
-		// prepend property keys of current object type
-		collectHintsForType(hints, config, currentObjectType);
+		if (!isStructrHandle) {
 
+			// prepend property keys of current object type
+			collectHintsForType(hints, config, currentObjectType);
+
+		}
 
 		return hints;
 	}

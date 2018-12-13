@@ -222,7 +222,7 @@ var _Code = {
 			result.forEach(function(entity) {
 
 				var hasVisibleChildren = _Code.hasVisibleChildren(id, entity);
-				var icon               = _Code.getIconForPropertyType(entity);
+				var icon               = _Code.getIconForNodeType(entity);
 
 				if (entity.type === 'SchemaNode') {
 
@@ -393,12 +393,11 @@ var _Code = {
 					return;
 				}
 				var contentBox = $('.editor', element);
-				var lineWrapping = LSWrapper.getItem(lineWrappingKey);
 				var editor = CodeMirror(contentBox.get(0), {
 					value: text,
-					mode: 'javascript',
+					mode: 'text/javascript',
 					lineNumbers: true,
-					lineWrapping: lineWrapping,
+					lineWrapping: false,
 					indentUnit: 4,
 					tabSize:4,
 					indentWithTabs: true,
@@ -587,7 +586,7 @@ var _Code = {
 			_TreeHelper.refreshTree('#code-tree');
 		});
 	},
-	getIconForPropertyType: function(entity) {
+	getIconForNodeType: function(entity) {
 
 		// set global default
 		var icon = 'fa-file-code-o gray';
@@ -607,35 +606,38 @@ var _Code = {
 				break;
 
 			case 'SchemaProperty':
+				return 'fa fa-' + _Code.getIconForPropertyType(entity.propertyType);
+		}
 
-				// set default
-				icon = 'fa-exclamation-triangle';
+		return icon;
+	},
+	getIconForPropertyType: function(propertyType) {
 
-				switch (entity.propertyType) {
+		var icon = 'exclamation-triangle';
 
-					case "Custom":
-					case "IdNotion":
-					case "Notion":
-						icon = 'fa-magic';
-						break;
+		switch (propertyType) {
 
-					case "IntegerArray":
-					case "StringArray":
-						icon = 'fa-magic';
-						break;
-
-					case 'Boolean':      icon = 'fa-check'; break;
-					case "Cypher":       icon = 'fa-database'; break;
-					case 'Date':         icon = 'fa-calendar'; break;
-					case "Double":       icon = 'fa-superscript'; break;
-					case "Enum":         icon = 'fa-list'; break;
-					case "Function":     icon = 'fa-code-fork'; break;
-					case 'Integer':      icon = 'fa-calculator'; break;
-					case "Long":         icon = 'fa-calculator'; break;
-					case "Password":     icon = 'fa-key'; break;
-					case 'String':       icon = 'fa-pencil-square-o'; break;
-				}
+			case "Custom":
+			case "IdNotion":
+			case "Notion":
+				icon = 'magic';
 				break;
+
+			case "IntegerArray":
+			case "StringArray":
+				icon = 'magic';
+				break;
+
+			case 'Boolean':      icon = 'check'; break;
+			case "Cypher":       icon = 'database'; break;
+			case 'Date':         icon = 'calendar'; break;
+			case "Double":       icon = 'superscript'; break;
+			case "Enum":         icon = 'list'; break;
+			case "Function":     icon = 'code-fork'; break;
+			case 'Integer':      icon = 'calculator'; break;
+			case "Long":         icon = 'calculator'; break;
+			case "Password":     icon = 'key'; break;
+			case 'String':       icon = 'pencil-square-o'; break;
 		}
 
 		return icon;
@@ -715,13 +717,19 @@ var _Code = {
 				// global types that are not associated with an actual entity
 				case 'builtin':
 				case 'core':
-				case 'custom':
-				case 'globals':
 				case 'html':
 				case 'root':
 				case 'ui':
 				case 'web':
 					_Code.displayContent(identifier.type);
+					break;
+
+				case 'globals':
+					_Code.displayGlobalMethodsContent();
+					break;
+
+				case 'custom':
+					_Code.displayCustomTypesContent(identifier.type);
 					break;
 
 				// properties (with uuid)
@@ -783,8 +791,29 @@ var _Code = {
 				case 'SchemaNode':
 					Command.get(data.node.id, null, function(result) {
 						Structr.fetchHtmlTemplate('code/type', { type: result }, function(html) {
+							
 							codeContents.append(html);
 							_Code.displayCreateButtons(true, false, false, result.id);
+
+							$.ajax({
+								url: '/structr/rest/SchemaNode/' + result.id + '/getGeneratedSourceCode',
+								method: 'post',
+								statusCode: {
+									200: function(result) {
+
+										var container = $('.editor');
+										var editor    = CodeMirror(container[0], {
+											value: result.result,
+											mode: 'text/x-java',
+											lineNumbers: true
+										});
+
+										$('.CodeMirror').height('100%');
+										editor.refresh();
+										
+									}
+								}
+							});
 						});
 					});
 					break;
@@ -809,24 +838,49 @@ var _Code = {
 			codeContents.append(html);
 		});
 	},
+	displayCustomTypesContent: function() {
+		Structr.fetchHtmlTemplate('code/custom', { }, function(html) {
+			codeContents.empty();
+			codeContents.append(html);
+			//displayCreateButton: function(targetId, icon, suffix, name, presetValue, createData, callback) {
+			_Code.displayCreateButton('#create-type-container', 'magic', 'new', 'type', '', { type: 'SchemaNode' }, _Code.displayCustomTypesContent);
+		});
+	},
 	displayGlobalMethodsContent: function() {
 		Structr.fetchHtmlTemplate('code/globals', { }, function(html) {
+			codeContents.empty();
 			codeContents.append(html);
-			Command.query('SchemaMethod', 1000, 1, 'name', 'asc', {schemaNode: null}, function(method) {
-
-				$('#global-method-list').append('<div style="">' + method.name + '</div>');
-
-			}, true, 'ui');
+			_Code.displayCreateButton('#create-method-container', 'magic', 'new', 'global schema method', '', { type: 'SchemaMethod' }, _Code.displayGlobalMethodsContent);
 		});
 	},
 	displayPropertiesContent: function(identifier) {
 		Structr.fetchHtmlTemplate('code/properties', { identifier: identifier }, function(html) {
+			codeContents.empty();
 			codeContents.append(html);
+			var callback = function() { _Code.displayPropertiesContent(identifier); };
+			var data     = { type: 'SchemaProperty', schemaNode: identifier.id };
+			var id       = '#create-property-container';
+
+			_Code.displayCreatePropertyButton(id, 'String',   data, callback);
+			_Code.displayCreatePropertyButton(id, 'Boolean',  data, callback);
+			_Code.displayCreatePropertyButton(id, 'Integer',  data, callback);
+			_Code.displayCreatePropertyButton(id, 'Long',     data, callback);
+			_Code.displayCreatePropertyButton(id, 'Double',   data, callback);
+			_Code.displayCreatePropertyButton(id, 'Date',     data, callback);
+			_Code.displayCreatePropertyButton(id, 'Function', data, callback);
+			_Code.displayCreatePropertyButton(id, 'Cypher',   data, callback);
+			_Code.displayCreatePropertyButton(id, 'Password', data, callback);
 		});
 	},
 	displayMethodsContent: function(identifier) {
 		Structr.fetchHtmlTemplate('code/methods', { identifier: identifier }, function(html) {
+			codeContents.empty();
 			codeContents.append(html);
+			var callback = function() { _Code.displayMethodsContent(identifier); };
+			var data     = { type: 'SchemaMethod', schemaNode: identifier.id };
+			_Code.displayCreateButton('#create-method-container', 'magic', 'on-create', '<b>onCreate</b> method', 'onCreate', data, callback);
+			_Code.displayCreateButton('#create-method-container', 'magic', 'on-save',   '<b>onSave</b> method',     'onSave', data, callback);
+			_Code.displayCreateButton('#create-method-container', 'magic', 'new',       'schema method',                  '', data, callback);
 		});
 	},
 	displayOutgoingRelationshipsContent: function(identifier) {
@@ -940,11 +994,55 @@ var _Code = {
 		var range1 = editor.getRange(prev.anchor, prev.head);
 		var range2 = editor.getRange(word.anchor, word.head);
 
-		// autocomplete: function(id, type, currentToken, previousToken, thirdToken, line, cursorPosition, callback) {
 		Command.autocomplete('', '', range2, range1, '', cursor.line, cursor.ch, 'javascript', function(result) {
 
 			var inner  = { from: cursor, to: cursor, list: result };
 			callback(inner);
 		});
+	},
+	activateCreateDialog: function(suffix, presetValue, nodeData, cancelCallback) {
+		var button = $('div#create-object-button-' + suffix);
+		button.on('click.create-object-' + suffix, function() {
+
+			// hover / overlay effect
+			button.css({
+				'margin':    '17px 17px -54px 17px',
+				'z-index':   1000,
+				'border':    '4px solid #81ce25',
+				'box-shadow': '0px 0px 36px rgba(127,127,127,.2)'
+			});
+			
+			Structr.fetchHtmlTemplate('code/create-object-form', { value: presetValue, suffix: suffix }, function(html) {
+				button.append(html);
+				$('#new-object-name-' + suffix).focus();
+				$('#new-object-name-' + suffix).on('keyup', function(e) {
+					if (e.keyCode === 27) { cancelCallback(); }	
+					if (e.keyCode === 13) { $('#create-button-' + suffix).click(); }	
+				});
+				button.off('click.create-object-' + suffix);
+				$('#cancel-button-' + suffix).on('click', function() {
+					cancelCallback();
+				});
+				$('#create-button-' + suffix).on('click', function() {
+					var data = Object.assign({}, nodeData);
+					data['name'] = $('#new-object-name-' + suffix).val();
+					Command.create(data, function() {
+						_Code.refreshTree();
+						_Code.displayCustomTypesContent();
+					});
+				});
+			});
+		});
+	},
+	displayCreateButton: function(targetId, icon, suffix, name, presetValue, createData, callback) {
+		Structr.fetchHtmlTemplate('code/create-button', { icon: icon, suffix: suffix, name: name }, function(html) {
+			$(targetId).append(html);
+			_Code.activateCreateDialog(suffix, presetValue, createData , callback);
+		});
+	},
+	displayCreatePropertyButton: function(targetId, type, nodeData, callback) {
+		var data = Object.assign({}, nodeData);
+		data['propertyType'] = type;
+		_Code.displayCreateButton(targetId, _Code.getIconForPropertyType(type), type.toLowerCase(), '<b>' + type + '</b> property', '', data, callback);
 	}
 };
