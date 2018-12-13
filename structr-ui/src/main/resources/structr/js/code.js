@@ -422,6 +422,14 @@ var _Code = {
 					LSWrapper.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
 				});
 
+				editor.on('change', function() {
+					var type = _Code.getEditorModeForContent(editor.getValue());
+					var prev = editor.getOption('mode');
+					if (prev !== type) {
+						editor.setOption('mode', type);
+					}
+				});
+
 				editor.id = entity.id;
 
 				var buttonArea = $('.code-button-container', element);
@@ -485,13 +493,10 @@ var _Code = {
 
 				_Code.resize();
 
-				if (entity.isTemplate) {
-					_Code.updateTemplatePreview(element, url, dataType, contentType);
-				}
-
 				editor.refresh();
 
 				$(window).on('keydown', function(e) {
+
 					// This hack prevents FF from closing WS connections on ESC
 					if (e.keyCode === 27) {
 						e.preventDefault();
@@ -993,8 +998,11 @@ var _Code = {
 		var prev   = editor.findWordAt({ line: word.anchor.line, ch: word.anchor.ch - 2 });
 		var range1 = editor.getRange(prev.anchor, prev.head);
 		var range2 = editor.getRange(word.anchor, word.head);
+		var type   = _Code.getEditorModeForContent(editor.getValue());
 
-		Command.autocomplete('', '', range2, range1, '', cursor.line, cursor.ch, 'javascript', function(result) {
+		console.log(range1 + ', ' + range2);
+
+		Command.autocomplete('', '', range2, range1, '', cursor.line, cursor.ch, type, function(result) {
 
 			var inner  = { from: cursor, to: cursor, list: result };
 			callback(inner);
@@ -1044,5 +1052,11 @@ var _Code = {
 		var data = Object.assign({}, nodeData);
 		data['propertyType'] = type;
 		_Code.displayCreateButton(targetId, _Code.getIconForPropertyType(type), type.toLowerCase(), '<b>' + type + '</b> property', '', data, callback);
+	},
+	getEditorModeForContent: function(content) {
+		if (content.indexOf('{') === 0) {
+			return 'text/javascript';
+		}
+		return 'text';
 	}
 };

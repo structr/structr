@@ -18,13 +18,21 @@
  */
 package org.structr.autocomplete;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.structr.common.CaseHelper;
+import org.structr.core.GraphObject;
+import org.structr.schema.action.Hint;
 
 /**
  *
- *
  */
 public class JavaHintProvider extends AbstractHintProvider {
+
+	@Override
+	protected List<Hint> getAllHints(final GraphObject currentNode, final String currentToken, final String previousToken, final String thirdToken) {
+		return new LinkedList<>();
+	}
 
 	@Override
 	protected String getFunctionName(final String source) {
@@ -39,10 +47,5 @@ public class JavaHintProvider extends AbstractHintProvider {
 	@Override
 	protected String visitReplacement(final String replacement) {
 		return replacement;
-	}
-
-	@Override
-	protected boolean isJavascript() {
-		return true;
 	}
 }

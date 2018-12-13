@@ -22,6 +22,7 @@ import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.autocomplete.AbstractHintProvider;
+import org.structr.autocomplete.JavaHintProvider;
 import org.structr.autocomplete.JavascriptHintProvider;
 import org.structr.autocomplete.PlaintextHintProvider;
 import org.structr.common.error.FrameworkException;
@@ -47,10 +48,9 @@ public class AutocompleteCommand extends AbstractCommand {
 
 		StructrWebSocket.addCommand(AutocompleteCommand.class);
 
-		hintProviders.put("text",              new PlaintextHintProvider());
-		hintProviders.put("java",              new PlaintextHintProvider());
-		hintProviders.put("structrscript",     new PlaintextHintProvider());
-		hintProviders.put("javascript",        new JavascriptHintProvider());
+		hintProviders.put("text/javascript",  new JavascriptHintProvider());
+		hintProviders.put("text/x-java",      new JavaHintProvider());
+		hintProviders.put("text",             new PlaintextHintProvider());
 	}
 
 	@Override
