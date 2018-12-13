@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
 import org.structr.rest.entity.TestOne;
 import org.structr.rest.service.HttpServiceServlet;
@@ -368,7 +369,7 @@ public class CsvTest extends StructrCsvTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<TestOne> result = app.nodeQuery(TestOne.class).getAsList();
+			final List<TestOne> result = app.nodeQuery(TestOne.class).sort(AbstractNode.name).getAsList();
 
 			assertEquals(3, result.size());
 			assertEquals("0979aebeb9ae42a7b3594db3da12875e", result.get(0).getUuid());
