@@ -897,6 +897,21 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		return cascade;
 	}
 
+	@Override
+	public boolean reloadSchemaOnCreate() {
+		return true;
+	}
+
+	@Override
+	public boolean reloadSchemaOnModify(final ModificationQueue modificationQueue) {
+		return true;
+	}
+
+	@Override
+	public boolean reloadSchemaOnDelete() {
+		return true;
+	}
+
 	// ----- private methods -----
 	private void formatRelationshipFlags(final StringBuilder src) {
 

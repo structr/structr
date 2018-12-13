@@ -39,6 +39,7 @@ public class ActionEntry implements Comparable<ActionEntry> {
 	private boolean doExport                     = false;
 	private boolean overrides                    = false;
 	private boolean callSuper                    = false;
+	private String sourceUuid                    = null;
 	private String returnType                    = null;
 	private String call                          = null;
 	private String name                          = null;
@@ -130,6 +131,10 @@ public class ActionEntry implements Comparable<ActionEntry> {
 		this.call = value;
 	}
 
+	public void setSourceUuid(final String uuid) {
+		this.sourceUuid = uuid;
+	}
+
 	public void setReturnType(final String returnType) {
 		this.returnType = returnType;
 	}
@@ -197,26 +202,20 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 		} else {
 
+			final String methodName = this.type.equals(Actions.Type.Custom) ? this.name : this.type.getLogName();
+
 			buf.append(Actions.class.getSimpleName());
-			buf.append(".execute(").append(securityContextVariable).append(", ").append(objVariable).append(", \"${");
-			buf.append(StringEscapeUtils.escapeJava(call.trim()));
-			buf.append("}\"");
+			buf.append(".execute(").append(securityContextVariable).append(", ").append(objVariable).append(", ");
+			buf.append("SchemaMethod.getCachedSourceCode(\"");
+			buf.append(sourceUuid);
+			buf.append("\")");
 
 			if (includeParameters) {
 				buf.append(", parameters");
 			}
 
 			buf.append(", \"");
-
-			if (this.type.equals(Actions.Type.Custom)) {
-
-				buf.append(this.name);
-
-			} else {
-
-				buf.append(this.type.getLogName());
-			}
-
+			buf.append(methodName);
 			buf.append("\"");
 
 			if (includeModifications) {

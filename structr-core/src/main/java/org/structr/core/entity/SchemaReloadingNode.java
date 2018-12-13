@@ -32,13 +32,20 @@ import org.structr.schema.ReloadSchema;
  */
 public abstract class SchemaReloadingNode extends AbstractNode {
 
+	public abstract boolean reloadSchemaOnCreate();
+	public abstract boolean reloadSchemaOnModify(final ModificationQueue modificationQueue);
+	public abstract boolean reloadSchemaOnDelete();
+
 	@Override
 	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
 		super.onCreation(securityContext, errorBuffer);
 
-		// register transaction post processing that recreates the schema information
-		TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+		if (reloadSchemaOnCreate()) {
+
+			// register transaction post processing that recreates the schema information
+			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+		}
 	}
 
 	@Override
@@ -46,8 +53,11 @@ public abstract class SchemaReloadingNode extends AbstractNode {
 
 		super.onModification(securityContext, errorBuffer, modificationQueue);
 
-		// register transaction post processing that recreates the schema information
-		TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+		if (reloadSchemaOnModify(modificationQueue)) {
+
+			// register transaction post processing that recreates the schema information
+			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+		}
 	}
 
 	@Override
@@ -55,8 +65,11 @@ public abstract class SchemaReloadingNode extends AbstractNode {
 
 		super.onNodeDeletion();
 
-		// register transaction post processing that recreates the schema information
-		TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+		if (reloadSchemaOnDelete()) {
+
+			// register transaction post processing that recreates the schema information
+			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+		}
 	}
 
 	public String getResourceSignature() {

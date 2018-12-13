@@ -49,4 +49,5 @@ public interface PropertyDefinition {
 	String getWriteFunction();
 	String[] getTransformators();
 	String[] getValidators();
+	String getUuid();
 }
