@@ -232,7 +232,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public void init(SecurityContext securityContext, Node dbNode, final Class entityType, final boolean isCreation, final long transactionId) {
+	public void init(SecurityContext securityContext, Node dbNode, final Class entityType, final long transactionId) {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
