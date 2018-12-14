@@ -3175,7 +3175,7 @@ td#cascading-options, td#propagation-options {
 }
 
 .CodeMirror-hint {
-	max-width: 480px;
+	max-width: 600px;
 }
 
 #fruchterman-controlElement {
