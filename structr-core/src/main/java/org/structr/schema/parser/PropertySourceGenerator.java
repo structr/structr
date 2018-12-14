@@ -83,7 +83,6 @@ public abstract class PropertySourceGenerator {
 		}
 
 		parseFormatString(schemaNodes, entity, source.getFormat());
-
 		getPropertySource(buf);
 	}
 
@@ -169,6 +168,8 @@ public abstract class PropertySourceGenerator {
 	// ----- protected methods -----
 	protected void getPropertySource(final StringBuilder buf) {
 
+		final String sourceUuid = source.getUuid();
+
 		buf.append("\tpublic static final Property<").append(getValueType()).append("> ").append(SchemaHelper.cleanPropertyName(source.getPropertyName())).append("Property");
 		buf.append(" = new ").append(getPropertyType()).append("(\"").append(source.getPropertyName()).append("\"");
 
@@ -194,12 +195,19 @@ public abstract class PropertySourceGenerator {
 			buf.append(".format(\"").append(StringEscapeUtils.escapeJava(source.getFormat())).append("\")");
 		}
 
-		if (StringUtils.isNotBlank(source.getReadFunction())) {
-			buf.append(".readFunction(\"").append(StringEscapeUtils.escapeJava(source.getReadFunction())).append("\")");
-		}
+		if (StringUtils.isNotBlank(sourceUuid)) {
 
-		if (StringUtils.isNotBlank(source.getWriteFunction())) {
-			buf.append(".writeFunction(\"").append(StringEscapeUtils.escapeJava(source.getWriteFunction())).append("\")");
+			buf.append(".setSourceUuid(\"").append(sourceUuid).append("\")");
+
+		} else {
+
+			if (StringUtils.isNotBlank(source.getReadFunction())) {
+				buf.append(".readFunction(\"").append(StringEscapeUtils.escapeJava(source.getReadFunction())).append("\")");
+			}
+
+			if (StringUtils.isNotBlank(source.getWriteFunction())) {
+				buf.append(".writeFunction(\"").append(StringEscapeUtils.escapeJava(source.getWriteFunction())).append("\")");
+			}
 		}
 
 		if (StringUtils.isNotBlank(source.getTypeHint())) {

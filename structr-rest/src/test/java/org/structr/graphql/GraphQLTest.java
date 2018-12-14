@@ -1256,11 +1256,17 @@ public class GraphQLTest extends StructrGraphQLTest {
 			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task8"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "cancelled"))));
 			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task9"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "open"))));
 
-			projects.add(app.create(project, "project1"));
-			projects.add(app.create(project, "project2"));
-			projects.add(app.create(project, "project3"));
-			projects.add(app.create(project, "project4"));
-			projects.add(app.create(project, "project5"));
+			final NodeInterface project3 = app.create(project, "project3");
+			final NodeInterface project4 = app.create(project, "project4");
+			final NodeInterface project1 = app.create(project, "project1");
+			final NodeInterface project2 = app.create(project, "project2");
+			final NodeInterface project5 = app.create(project, "project5");
+
+			projects.add(project1);
+			projects.add(project2);
+			projects.add(project3);
+			projects.add(project4);
+			projects.add(project5);
 
 			projects.get(0).setProperty(tasksKey, tasks.subList(0,  2));
 			projects.get(1).setProperty(tasksKey, tasks.subList(2,  4));
@@ -1277,7 +1283,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		RestAssured.basePath = "/structr/graphql";
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Project { id, type, name, taskCount, tasks { id, type, name, projectId, status }}}");
+			final Map<String, Object> result = fetchGraphQL("{ Project(_sort: \"name\") { id, type, name, taskCount, tasks { id, type, name, projectId, status }}}");
 			assertMapPathValueIs(result, "Project.#",                   5);
 			assertMapPathValueIs(result, "Project.0.name",              "project1");
 			assertMapPathValueIs(result, "Project.0.taskCount",         2.0);
@@ -1567,7 +1573,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		RestAssured.basePath = "/structr/graphql";
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { testBoolean: { _equals: true }}) { name, tasks { testBoolean, testDouble, testLong, testInt } } }");
+			final Map<String, Object> result = fetchGraphQL("{ Project( _sort: \"name\", tasks: { testBoolean: { _equals: true }}) { name, tasks { testBoolean, testDouble, testLong, testInt } } }");
 			assertMapPathValueIs(result, "Project.#",                     2);
 			assertMapPathValueIs(result, "Project.0.name",                "Project1");
 			assertMapPathValueIs(result, "Project.0.tasks.0.testBoolean", true);
@@ -1582,7 +1588,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		}
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { testDouble: { _equals: 334.32}}) { name, tasks { testBoolean, testDouble, testLong, testInt } } }");
+			final Map<String, Object> result = fetchGraphQL("{ Project( _sort: \"name\", tasks: { testDouble: { _equals: 334.32}}) { name, tasks { testBoolean, testDouble, testLong, testInt } } }");
 			assertMapPathValueIs(result, "Project.#",           1);
 			assertMapPathValueIs(result, "Project.0.name",                "Project4");
 			assertMapPathValueIs(result, "Project.0.tasks.0.testBoolean", false);
@@ -1592,7 +1598,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		}
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { testLong: { _equals: 22}}) { name, tasks { testBoolean, testDouble, testLong, testInt } } }");
+			final Map<String, Object> result = fetchGraphQL("{ Project( _sort: \"name\", tasks: { testLong: { _equals: 22}}) { name, tasks { testBoolean, testDouble, testLong, testInt } } }");
 			assertMapPathValueIs(result, "Project.#",           1);
 			assertMapPathValueIs(result, "Project.0.name",                "Project3");
 			assertMapPathValueIs(result, "Project.0.tasks.0.testBoolean", true);
@@ -1602,7 +1608,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		}
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { testInt: { _equals: 2345}}) { name, tasks { testBoolean, testDouble, testLong, testInt } } }");
+			final Map<String, Object> result = fetchGraphQL("{ Project( _sort: \"name\", tasks: { testInt: { _equals: 2345}}) { name, tasks { testBoolean, testDouble, testLong, testInt } } }");
 			assertMapPathValueIs(result, "Project.#",                     1);
 			assertMapPathValueIs(result, "Project.0.name",                "Project2");
 			assertMapPathValueIs(result, "Project.0.tasks.0.testBoolean", false);
@@ -1673,7 +1679,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		RestAssured.basePath = "/structr/graphql";
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Project(task: { testBoolean: { _equals: true }}) { name, task { testBoolean } } }");
+			final Map<String, Object> result = fetchGraphQL("{ Project( _sort: \"name\", task: { testBoolean: { _equals: true }}) { name, task { testBoolean } } }");
 			assertMapPathValueIs(result, "Project.#",                     2);
 			assertMapPathValueIs(result, "Project.0.name",             "Project1");
 			assertMapPathValueIs(result, "Project.0.task.testBoolean", true);
@@ -2121,21 +2127,37 @@ public class GraphQLTest extends StructrGraphQLTest {
 			project1Id = project1.getUuid();
 			project2Id = project2.getUuid();
 
-			tasks1.add(app.create(task, "Task1.1"));
-			tasks1.add(app.create(task, "Task1.2"));
-			tasks1.add(app.create(task, "Task1.3"));
-			tasks1.add(app.create(task, "Task1.4"));
-			tasks1.add(app.create(task, "Task1.5"));
-			tasks1.add(app.create(task, "Task1.6"));
-			tasks1.add(app.create(task, "Task1.7"));
+			final NodeInterface task4 = app.create(task, "Task1.4");
+			final NodeInterface task6 = app.create(task, "Task1.6");
+			final NodeInterface task7 = app.create(task, "Task1.7");
+			final NodeInterface task2 = app.create(task, "Task1.2");
+			final NodeInterface task1 = app.create(task, "Task1.1");
+			final NodeInterface task3 = app.create(task, "Task1.3");
+			final NodeInterface task5 = app.create(task, "Task1.5");
 
-			tasks2.add(app.create(task, "Task2.1"));
-			tasks2.add(app.create(task, "Task2.2"));
-			tasks2.add(app.create(task, "Task2.3"));
-			tasks2.add(app.create(task, "Task2.4"));
-			tasks2.add(app.create(task, "Task2.5"));
-			tasks2.add(app.create(task, "Task2.6"));
-			tasks2.add(app.create(task, "Task2.7"));
+			tasks1.add(task1);
+			tasks1.add(task2);
+			tasks1.add(task3);
+			tasks1.add(task4);
+			tasks1.add(task5);
+			tasks1.add(task6);
+			tasks1.add(task7);
+
+			final NodeInterface task09 = app.create(task, "Task2.2");
+			final NodeInterface task13 = app.create(task, "Task2.6");
+			final NodeInterface task11 = app.create(task, "Task2.4");
+			final NodeInterface task12 = app.create(task, "Task2.5");
+			final NodeInterface task10 = app.create(task, "Task2.3");
+			final NodeInterface task08 = app.create(task, "Task2.1");
+			final NodeInterface task14 = app.create(task, "Task2.7");
+
+			tasks2.add(task08);
+			tasks2.add(task09);
+			tasks2.add(task10);
+			tasks2.add(task11);
+			tasks2.add(task12);
+			tasks2.add(task13);
+			tasks2.add(task14);
 
 			project1.setProperty(tasksKey, tasks1);
 			project2.setProperty(tasksKey, tasks2);
@@ -2153,7 +2175,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		// verify that all tasks with a given project ID are found
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Task( projectId: { _equals: \"" + project1Id + "\"}) { name }}");
+			final Map<String, Object> result = fetchGraphQL("{ Task( _sort: \"name\", projectId: { _equals: \"" + project1Id + "\"}) { name }}");
 			assertMapPathValueIs(result, "Task.#",                   7);
 			assertMapPathValueIs(result, "Task.0.name",             "Task1.1");
 			assertMapPathValueIs(result, "Task.1.name",             "Task1.2");
@@ -2166,7 +2188,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		// verify that all tasks with a given project ID are found
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Task( projectId: { _equals: \"" + project2Id + "\"}) { name }}");
+			final Map<String, Object> result = fetchGraphQL("{ Task( _sort: \"name\", projectId: { _equals: \"" + project2Id + "\"}) { name }}");
 			assertMapPathValueIs(result, "Task.#",                  7);
 			assertMapPathValueIs(result, "Task.0.name",             "Task2.1");
 			assertMapPathValueIs(result, "Task.1.name",             "Task2.2");
@@ -2200,7 +2222,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		// verify that only tasks with the given project ID are found
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Task( projectId: { _equals: \"" + project1Id + "\"}) { name }}");
+			final Map<String, Object> result = fetchGraphQL("{ Task( _sort: \"name\", projectId: { _equals: \"" + project1Id + "\"}) { name }}");
 			assertMapPathValueIs(result, "Task.#",                   4);
 			assertMapPathValueIs(result, "Task.0.name",             "Task1.1");
 			assertMapPathValueIs(result, "Task.1.name",             "Task1.2");
@@ -2210,7 +2232,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		// verify that only tasks with the given project ID are found
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Task( projectId: { _equals: \"" + project2Id + "\"}) { name }}");
+			final Map<String, Object> result = fetchGraphQL("{ Task( _sort: \"name\", projectId: { _equals: \"" + project2Id + "\"}) { name }}");
 			assertMapPathValueIs(result, "Task.#",                  3);
 			assertMapPathValueIs(result, "Task.0.name",             "Task2.4");
 			assertMapPathValueIs(result, "Task.1.name",             "Task2.5");
