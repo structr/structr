@@ -105,11 +105,12 @@ var _Code = {
 		left = left || LSWrapper.getItem(codeResizerLeftKey) || 300;
 		$('.column-resizer', codeMain).css({ left: left });
 
-		var width = $(window).width() - left - 280;
+		var contextWidth = 300;
+		var width        = $(window).width() - left - contextWidth - 80;
 
 		$('#code-tree').css({width: left - 14 + 'px'});
 		$('#code-contents').css({left: left + 8 + 'px', width: width + 'px'});
-		$('#code-context').css({left: left + width + 42 + 'px', width: '200px'});
+		$('#code-context').css({left: left + width + 42 + 'px', width: contextWidth + 'px'});
 	},
 	onload: function() {
 
@@ -405,11 +406,11 @@ var _Code = {
 						"Ctrl-Space": "autocomplete"
 					}
 				});
-				
+
 				CodeMirror.registerHelper('hint', 'ajax', _Code.getAutocompleteHint);
 				CodeMirror.hint.ajax.async = true;
-				CodeMirror.commands.autocomplete = function(mirror) { 
-					mirror.showHint({ hint: CodeMirror.hint.ajax }); 
+				CodeMirror.commands.autocomplete = function(mirror) {
+					mirror.showHint({ hint: CodeMirror.hint.ajax });
 				};
 
 				var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
@@ -643,6 +644,7 @@ var _Code = {
 			case "Long":         icon = 'calculator'; break;
 			case "Password":     icon = 'key'; break;
 			case 'String':       icon = 'pencil-square-o'; break;
+			default:             icon = 'sliders'; break;
 		}
 
 		return icon;
@@ -764,7 +766,7 @@ var _Code = {
 
 				// incoming relationship (with uuid)
 				case 'in':
-					_Code.displayInRelationshipContent(node.data.node);
+					_Code.displayInRelationshipContent(data.node.data);
 					break;
 
 				// other (click on an actual object)
@@ -778,6 +780,8 @@ var _Code = {
 
 		if (data.node && data.node.data && data.node.data.type) {
 
+			var recentlyUsedCallback = function() { _Code.handleNodeObjectClick(evt, data); };
+
 			switch (data.node.data.type) {
 
 				case 'SchemaProperty':
@@ -786,7 +790,9 @@ var _Code = {
 
 				case 'SchemaMethod':
 					Command.get(data.node.id, null, function(result) {
+						_Code.updateRecentlyUsed(result, recentlyUsedCallback);
 						Structr.fetchHtmlTemplate('code/method', { method: result }, function(html) {
+							codeContents.empty();
 							codeContents.append(html);
 							_Code.displayMethodContents(data.node.id);
 						});
@@ -795,8 +801,10 @@ var _Code = {
 
 				case 'SchemaNode':
 					Command.get(data.node.id, null, function(result) {
+						_Code.updateRecentlyUsed(result, recentlyUsedCallback);
 						Structr.fetchHtmlTemplate('code/type', { type: result }, function(html) {
-							
+
+							codeContents.empty();
 							codeContents.append(html);
 							_Code.displayCreateButtons(true, false, false, result.id);
 
@@ -815,7 +823,7 @@ var _Code = {
 
 										$('.CodeMirror').height('100%');
 										editor.refresh();
-										
+
 									}
 								}
 							});
@@ -858,12 +866,16 @@ var _Code = {
 			_Code.displayCreateButton('#create-method-container', 'magic', 'new', 'global schema method', '', { type: 'SchemaMethod' }, _Code.displayGlobalMethodsContent);
 		});
 	},
-	displayPropertiesContent: function(identifier) {
-		Structr.fetchHtmlTemplate('code/properties', { identifier: identifier }, function(html) {
+	displayPropertiesContent: function(nodeData) {
+
+		var recentlyUsedCallback = function() { _Code.displayPropertiesContent(nodeData); };
+		_Code.updateRecentlyUsed({ id: nodeData.id + '-properties', type: 'SchemaProperty', name: nodeData.type }, recentlyUsedCallback);
+
+		Structr.fetchHtmlTemplate('code/properties', { identifier: nodeData }, function(html) {
 			codeContents.empty();
 			codeContents.append(html);
-			var callback = function() { _Code.displayPropertiesContent(identifier); };
-			var data     = { type: 'SchemaProperty', schemaNode: identifier.id };
+			var callback = function() { _Code.displayPropertiesContent(nodeData); };
+			var data     = { type: 'SchemaProperty', schemaNode: nodeData.id };
 			var id       = '#create-property-container';
 
 			_Code.displayCreatePropertyButton(id, 'String',   data, callback);
@@ -910,7 +922,11 @@ var _Code = {
 	},
 	displayPropertyDetails: function(id) {
 
+		var recentlyUsedCallback = function() { _Code.displayPropertyDetails(id); };
+
 		Command.get(id, null, function(result) {
+
+			_Code.updateRecentlyUsed(result, recentlyUsedCallback);
 
 			switch (result.propertyType) {
 				case 'Cypher':
@@ -932,6 +948,7 @@ var _Code = {
 
 		Structr.fetchHtmlTemplate('code/function-property', { property: property }, function(html) {
 
+			codeContents.empty();
 			codeContents.append(html);
 			_Code.editPropertyContent(undefined, property.id, 'readFunction',  $('#read-code-container'),  false);
 			_Code.editPropertyContent(undefined, property.id, 'writeFunction', $('#write-code-container'), false);
@@ -941,6 +958,7 @@ var _Code = {
 	displayCypherPropertyDetails: function(property) {
 
 		Structr.fetchHtmlTemplate('code/cypher-property', { property: property }, function(html) {
+			codeContents.empty();
 			codeContents.append(html);
 			_Code.editPropertyContent(undefined, property.id, 'format', $('#cypher-code-container'));
 			_Code.displayDefaultPropertyButtons(property);
@@ -949,6 +967,7 @@ var _Code = {
 	displayStringPropertyDetails: function(property) {
 
 		Structr.fetchHtmlTemplate('code/string-property', { property: property }, function(html) {
+			codeContents.empty();
 			codeContents.append(html);
 			_Code.displayDefaultPropertyButtons(property);
 		});
@@ -956,6 +975,7 @@ var _Code = {
 	displayBooleanPropertyDetails: function(property) {
 
 		Structr.fetchHtmlTemplate('code/boolean-property', { property: property }, function(html) {
+			codeContents.empty();
 			codeContents.append(html);
 			_Code.displayDefaultPropertyButtons(property);
 		});
@@ -1019,13 +1039,13 @@ var _Code = {
 				'border':    '4px solid #81ce25',
 				'box-shadow': '0px 0px 36px rgba(127,127,127,.2)'
 			});
-			
+
 			Structr.fetchHtmlTemplate('code/create-object-form', { value: presetValue, suffix: suffix }, function(html) {
 				button.append(html);
 				$('#new-object-name-' + suffix).focus();
 				$('#new-object-name-' + suffix).on('keyup', function(e) {
-					if (e.keyCode === 27) { cancelCallback(); }	
-					if (e.keyCode === 13) { $('#create-button-' + suffix).click(); }	
+					if (e.keyCode === 27) { cancelCallback(); }
+					if (e.keyCode === 13) { $('#create-button-' + suffix).click(); }
 				});
 				button.off('click.create-object-' + suffix);
 				$('#cancel-button-' + suffix).on('click', function() {
@@ -1058,5 +1078,43 @@ var _Code = {
 			return 'text/javascript';
 		}
 		return 'text';
+	},
+	updateRecentlyUsed: function(entity, callback) {
+
+		var name = entity.name;
+		var id   = entity.id;
+
+		switch (entity.type) {
+			case 'SchemaNode':
+				name = 'Class ' + entity.name;
+				break;
+			case 'SchemaMethod':
+				if (entity.schemaNode && entity.schemaNode.name) {
+					name = entity.schemaNode.name + '.' + entity.name + '()';
+				} else {
+					name = 'Global method ' + entity.name + '()';
+				}
+				break;
+			case 'SchemaProperty':
+				if (entity.schemaNode && entity.schemaNode.name) {
+					name = entity.propertyType + 'Property ' + entity.schemaNode.name + '.' + entity.name;
+				} else {
+					name = 'Properties of class ' + entity.name;
+				}
+				break;
+		}
+		Structr.fetchHtmlTemplate('code/recently-used-button', { id: id, name: name, icon: _Code.getIconForNodeType(entity) }, function(html) {
+			var ctx  = $('#code-context');
+			var elem = $('#recently-used-' + id, ctx);
+			if (!elem.length) {
+				elem.off('click.recently-used');
+				elem.remove();
+				ctx.append(html);
+				$('#recently-used-' + id).on('click.recently-used', callback);
+				$('#remove-recently-used-' + id).on('click.recently-used', function() {
+					$('#recently-used-' + id).remove();
+				});
+			}
+		});
 	}
 };
