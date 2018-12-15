@@ -294,6 +294,13 @@ public class SchemaNode extends AbstractSchemaNode {
 				return;
 			}
 
+			// migrate RemoteDocument
+			if (_extendsClass.equals("org.structr.web.entity.RemoteDocument")) {
+
+				setProperty(extendsClass, "org.structr.feed.entity.RemoteDocument");
+				return;
+			}
+
 			// migrate Person
 			if (_extendsClass.equals("org.structr.core.entity.Person")) {
 
