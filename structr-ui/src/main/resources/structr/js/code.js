@@ -41,6 +41,7 @@ var _Code = {
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
 
+
 	},
 	resize: function() {
 
@@ -99,7 +100,6 @@ var _Code = {
 
 		var contentBox = $('.CodeMirror');
 		contentBox.height('100%');
-
 	},
 	moveResizer: function(left) {
 		left = left || LSWrapper.getItem(codeResizerLeftKey) || 300;
@@ -134,7 +134,10 @@ var _Code = {
 
 			codeTree.on('select_node.jstree', _Code.handleTreeClick);
 
-			_TreeHelper.initTree(codeTree, _Code.treeInitFunction, 'structr-ui-code');
+			_Code.loadFavorites(function() {
+
+				_TreeHelper.initTree(codeTree, _Code.treeInitFunction, 'structr-ui-code');
+			});
 
 			$(window).off('resize').resize(function() {
 				_Code.resize();
@@ -147,10 +150,49 @@ var _Code = {
 		});
 
 	},
-	deepOpen: function(d, dirs) {
+	loadFavorites: function(doneCallback) {
 
-		_TreeHelper.deepOpen(codeTree, d, dirs, 'parent', (currentWorkingDir ? currentWorkingDir.id : 'root'));
+		// load stored favorites
+		var favorites = [];
 
+		Command.appData('list', 'code-favorites', '', '', function(result) {
+
+			if (result && result.length && result[0].names && result[0].names.length) {
+
+				result[0].names.forEach(function(name) {
+
+					Command.appData('get', 'code-favorites', name, '', function(value) {
+
+						favorites.push(JSON.parse(value.value));
+
+						if (favorites.length === result[0].names.length) {
+
+							// sort by position
+							favorites.sort(function(a, b) {
+								if (a.position > b.position) { return 1; }
+								if (a.position < b.position) { return -1; }
+								return 0;
+							});
+
+							for (var f of favorites) {
+								console.log(f);
+								_Code.addRecentlyUsedElement(f.id, f.name, f.icon, f.path, true);
+							};
+
+							if (typeof doneCallback === 'function') {
+								doneCallback();
+							}
+						}
+					});
+				});
+
+			} else {
+
+				if (typeof doneCallback === 'function') {
+					doneCallback();
+				}
+			}
+		});
 	},
 	refreshTree: function() {
 
@@ -191,8 +233,7 @@ var _Code = {
 						icon: _Icons.structr_logo_small,
 						path: '/',
 						state: {
-							opened: true,
-							selected: true
+							opened: true
 						}
 					}
 				];
@@ -715,93 +756,103 @@ var _Code = {
 
 		if (data && data.node && data.node.id) {
 
-			// clear page
-			_Code.clearMainArea();
+			var selection = {
+				id: data.node.id
+			};
 
-			var identifier = _Code.splitIdentifier(data.node.id);
-			switch (identifier.type) {
-
-				// global types that are not associated with an actual entity
-				case 'builtin':
-				case 'core':
-				case 'html':
-				case 'root':
-				case 'ui':
-				case 'web':
-					_Code.displayContent(identifier.type);
-					break;
-
-				case 'globals':
-					_Code.displayGlobalMethodsContent();
-					break;
-
-				case 'custom':
-					_Code.displayCustomTypesContent(identifier.type);
-					break;
-
-				// properties (with uuid)
-				case 'properties':
-					_Code.displayPropertiesContent(data.node.data);
-					break;
-
-				// methods (with uuid)
-				case 'methods':
-					_Code.displayMethodsContent(data.node.data);
-					break;
-
-				// outgoing relationships (with uuid)
-				case 'outgoing':
-					_Code.displayOutgoingRelationshipsContent(data.node.data);
-					break;
-
-				// incoming relationships (with uuid)
-				case 'incoming':
-					_Code.displayIncomingRelationshipsContent(data.node.data);
-					break;
-
-				// outgoing relationship (with uuid)
-				case 'out':
-					_Code.displayOutRelationshipContent(data.node.data);
-					break;
-
-				// incoming relationship (with uuid)
-				case 'in':
-					_Code.displayInRelationshipContent(data.node.data);
-					break;
-
-				// other (click on an actual object)
-				default:
-					_Code.handleNodeObjectClick(evt, data);
-					break;
+			if (data.node.data) {
+				selection.type = data.node.data.type;
 			}
+
+			_Code.handleSelection(selection);
 		}
 	},
-	handleNodeObjectClick: function(evt, data) {
+	handleSelection: function(data) {
 
-		if (data.node && data.node.data && data.node.data.type) {
+		// clear page
+		_Code.clearMainArea();
 
-			var recentlyUsedCallback = function() { _Code.handleNodeObjectClick(evt, data); };
+		var identifier = _Code.splitIdentifier(data.id);
+		switch (identifier.type) {
 
-			switch (data.node.data.type) {
+			// global types that are not associated with an actual entity
+			case 'builtin':
+			case 'core':
+			case 'html':
+			case 'root':
+			case 'ui':
+			case 'web':
+				_Code.displayContent(identifier.type);
+				break;
+
+			case 'globals':
+				_Code.displayGlobalMethodsContent();
+				break;
+
+			case 'custom':
+				_Code.displayCustomTypesContent(identifier.type);
+				break;
+
+			// properties (with uuid)
+			case 'properties':
+				_Code.displayPropertiesContent(identifier);
+				break;
+
+			// methods (with uuid)
+			case 'methods':
+				_Code.displayMethodsContent(identifier);
+				break;
+
+			// outgoing relationships (with uuid)
+			case 'outgoing':
+				_Code.displayOutgoingRelationshipsContent(identifier);
+				break;
+
+			// incoming relationships (with uuid)
+			case 'incoming':
+				_Code.displayIncomingRelationshipsContent(identifier);
+				break;
+
+			// outgoing relationship (with uuid)
+			case 'out':
+				_Code.displayOutRelationshipContent(identifier);
+				break;
+
+			// incoming relationship (with uuid)
+			case 'in':
+				_Code.displayInRelationshipContent(identifier);
+				break;
+
+			// other (click on an actual object)
+			default:
+				_Code.handleNodeObjectClick(data);
+				break;
+		}
+	},
+	handleNodeObjectClick: function(data) {
+
+		if (data.type) {
+
+			switch (data.type) {
 
 				case 'SchemaProperty':
-					_Code.displayPropertyDetails(data.node.id);
+					_Code.displayPropertyDetails(data);
 					break;
 
 				case 'SchemaMethod':
-					Command.get(data.node.id, null, function(result) {
-						_Code.updateRecentlyUsed(result, recentlyUsedCallback);
+					Command.get(data.id, null, function(result) {
+						_Code.updateRecentlyUsed(data, result);
 						Structr.fetchHtmlTemplate('code/method', { method: result }, function(html) {
 							codeContents.empty();
 							codeContents.append(html);
-							_Code.displayMethodContents(data.node.id);
+							_Code.displayMethodContents(data.id);
 						});
 					});
 					break;
 
 				case 'SchemaNode':
-					Command.get(data.node.id, null, function(result) {
-						_Code.updateRecentlyUsed(result, recentlyUsedCallback);
+					Command.get(data.id, null, function(result) {
+						_Code.updateRecentlyUsed(data, result);
 						Structr.fetchHtmlTemplate('code/type', { type: result }, function(html) {
 
 							codeContents.empty();
@@ -834,7 +885,7 @@ var _Code = {
 
 		} else {
 
-			switch (data.node.id) {
+			switch (data.id) {
 
 				case 'globals':
 					_Code.displayCreateButtons(false, true, false, '');
@@ -855,7 +906,6 @@ var _Code = {
 		Structr.fetchHtmlTemplate('code/custom', { }, function(html) {
 			codeContents.empty();
 			codeContents.append(html);
-			//displayCreateButton: function(targetId, icon, suffix, name, presetValue, createData, callback) {
 			_Code.displayCreateButton('#create-type-container', 'magic', 'new', 'type', '', { type: 'SchemaNode' }, _Code.displayCustomTypesContent);
 		});
 	},
@@ -866,16 +916,12 @@ var _Code = {
 			_Code.displayCreateButton('#create-method-container', 'magic', 'new', 'global schema method', '', { type: 'SchemaMethod' }, _Code.displayGlobalMethodsContent);
 		});
 	},
-	displayPropertiesContent: function(nodeData) {
-
-		var recentlyUsedCallback = function() { _Code.displayPropertiesContent(nodeData); };
-		_Code.updateRecentlyUsed({ id: nodeData.id + '-properties', type: 'SchemaProperty', name: nodeData.type }, recentlyUsedCallback);
-
-		Structr.fetchHtmlTemplate('code/properties', { identifier: nodeData }, function(html) {
+	displayPropertiesContent: function(selection) {
+		Structr.fetchHtmlTemplate('code/properties', { identifier: selection }, function(html) {
 			codeContents.empty();
 			codeContents.append(html);
-			var callback = function() { _Code.displayPropertiesContent(nodeData); };
-			var data     = { type: 'SchemaProperty', schemaNode: nodeData.id };
+			var callback = function() { _Code.displayPropertiesContent(selection); };
+			var data     = { type: 'SchemaProperty', schemaNode: selection.id };
 			var id       = '#create-property-container';
 
 			_Code.displayCreatePropertyButton(id, 'String',   data, callback);
@@ -920,13 +966,11 @@ var _Code = {
 			codeContents.append(html);
 		});
 	},
-	displayPropertyDetails: function(id) {
+	displayPropertyDetails: function(selection) {
 
-		var recentlyUsedCallback = function() { _Code.displayPropertyDetails(id); };
+		Command.get(selection.id, null, function(result) {
 
-		Command.get(id, null, function(result) {
-
-			_Code.updateRecentlyUsed(result, recentlyUsedCallback);
+			_Code.updateRecentlyUsed(selection, result);
 
 			switch (result.propertyType) {
 				case 'Cypher':
@@ -1079,7 +1123,7 @@ var _Code = {
 		}
 		return 'text';
 	},
-	updateRecentlyUsed: function(entity, callback) {
+	updateRecentlyUsed: function(selection, entity) {
 
 		var name = entity.name;
 		var id   = entity.id;
@@ -1098,23 +1142,86 @@ var _Code = {
 			case 'SchemaProperty':
 				if (entity.schemaNode && entity.schemaNode.name) {
 					name = entity.propertyType + 'Property ' + entity.schemaNode.name + '.' + entity.name;
-				} else {
-					name = 'Properties of class ' + entity.name;
 				}
 				break;
 		}
-		Structr.fetchHtmlTemplate('code/recently-used-button', { id: id, name: name, icon: _Code.getIconForNodeType(entity) }, function(html) {
+		_Code.addRecentlyUsedElement(id, name, _Code.getIconForNodeType(entity), _Code.getTreePath(selection.id));
+	},
+	addRecentlyUsedElement: function(id, name, icon, path, fromStorage) {
+		Structr.fetchHtmlTemplate('code/recently-used-button', { id: id, name: name, icon: icon }, function(html) {
 			var ctx  = $('#code-context');
 			var elem = $('#recently-used-' + id, ctx);
 			if (!elem.length) {
+				if (!fromStorage) {
+					Command.appData('add', 'code-favorites', id, JSON.stringify({id: id, name: name, icon: icon, path: path, position: $('.code-favorite').length }));
+				}
 				elem.off('click.recently-used');
 				elem.remove();
 				ctx.append(html);
-				$('#recently-used-' + id).on('click.recently-used', callback);
-				$('#remove-recently-used-' + id).on('click.recently-used', function() {
-					$('#recently-used-' + id).remove();
+				$('#recently-used-' + id).on('click.recently-used', function() {
+					_Code.findAndOpenNode(path);
+				});
+				$('#remove-recently-used-' + id).on('click.recently-used', function(e) {
+					e.stopPropagation();
+					Command.appData('delete', 'code-favorites', id, '', function() {
+						$('#recently-used-' + id).remove();
+					});
 				});
 			}
 		});
+	},
+	getTreePath: function(id) {
+		var path    = [ id ];
+		var tree    = $('#code-tree').jstree(true);
+		var current = id;
+
+		while (current) {
+
+			var node = tree.get_node(current);
+			if (node) {
+				current = tree.get_parent(node);
+				if (current && current !== '#') {
+					path.unshift(current);
+				}
+			}
+		}
+
+		return path.join('/');
+	},
+	findAndOpenNode: function(path) {
+		var tree = $('#code-tree').jstree(true);
+		_Code.findAndOpenNodeRecursive(tree, path, 0);
+	},
+	findAndOpenNodeRecursive: function(tree, path, depth) {
+		var parts = path.split('/');
+		if (path.length === 0) { return; }
+		if (parts.length < 1) {	return; }
+		if (depth > 15) { return; }
+
+		var pos  = path.indexOf('/', 1);
+		var tail = pos >= 0 ? path.substring(pos + 1) : '';
+		var id   = parts[0];
+
+		if (id.length === 0) {
+			id  = parts[1];
+		}
+
+		if (tail.length === 0) {
+
+			// node found, activate
+			tree.activate_node(id);
+
+			// also scroll into view if node is in tree
+			var domNode = document.getElementById( id );
+			if (domNode) {
+				domNode.scrollIntoView();
+			}
+
+		} else {
+
+			tree.open_node(id, function() {
+				_Code.findAndOpenNodeRecursive(tree, tail, depth + 1);
+			});
+		}
 	}
 };
