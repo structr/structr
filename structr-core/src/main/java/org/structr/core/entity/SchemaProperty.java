@@ -23,6 +23,7 @@ import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLOutputType;
 import static graphql.schema.GraphQLTypeReference.typeRef;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -99,6 +100,12 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String>             writeFunction         = new StringProperty("writeFunction");
 	public static final Property<String[]>           validators            = new ArrayProperty("validators", String.class);
 	public static final Property<String[]>           transformers          = new ArrayProperty("transformers", String.class);
+
+	private static final Set<PropertyKey> schemaRebuildTriggerKeys = new LinkedHashSet<>(Arrays.asList(
+		declaringClass, defaultValue, propertyType, contentType, dbName, fqcn, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly,
+		isDynamic, isBuiltinProperty, isPartOfBuiltInSchema, isDefaultInUi, isDefaultInPublic, isCachingEnabled, contentHash, validators, transformers
+
+	));
 
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
 		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers, isCachingEnabled
@@ -656,6 +663,30 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		}
 
 		return doubleArrayPropertyParser;
+	}
+
+	@Override
+	public boolean reloadSchemaOnCreate() {
+		return true;
+	}
+
+	@Override
+	public boolean reloadSchemaOnModify(final ModificationQueue modificationQueue) {
+
+		final Set<PropertyKey> modifiedProperties = modificationQueue.getModifiedProperties();
+		for (final PropertyKey triggerKey : schemaRebuildTriggerKeys) {
+
+			if (modifiedProperties.contains(triggerKey)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean reloadSchemaOnDelete() {
+		return true;
 	}
 
 	// ----- public static methods -----

@@ -46,6 +46,7 @@ import org.structr.core.function.CreateFunction;
 import org.structr.core.function.CreateRelationshipFunction;
 import org.structr.core.function.CypherFunction;
 import org.structr.core.function.DateFormatFunction;
+import org.structr.core.function.DebugFunction;
 import org.structr.core.function.DeleteFunction;
 import org.structr.core.function.DisableCascadingDeleteFunction;
 import org.structr.core.function.DisableNotificationsFunction;
@@ -321,6 +322,7 @@ public class CoreModule implements StructrModule {
 		Functions.put(true, LicenseManager.Community, "store", new StoreFunction());
 		Functions.put(true, LicenseManager.Community, "print", new PrintFunction());
 		Functions.put(true, LicenseManager.Community, "log", new LogFunction());
+		Functions.put(true, LicenseManager.Community, "debug", new DebugFunction());
 		Functions.put(true, LicenseManager.Community, "find", new FindFunction());
 		Functions.put(true, LicenseManager.Community, "get_or_create", new GetOrCreateFunction());
 		Functions.put(true, LicenseManager.Community, "find_relationship", new FindRelationshipFunction());

@@ -917,8 +917,6 @@ public class SecurityContext {
 		public SuperUserSecurityContext() {
 		}
 
-		//~--- get methods --------------------------------------------
-
 		@Override
 		public Principal getUser(final boolean tryLogin) {
 
@@ -945,12 +943,10 @@ public class SecurityContext {
 		public AccessMode getAccessMode() {
 
 			return (AccessMode.Backend);
-
 		}
 
 		@Override
 		public boolean isReadable(final NodeInterface node, final boolean includeHidden, final boolean publicOnly) {
-
 			return true;
 		}
 
@@ -963,16 +959,12 @@ public class SecurityContext {
 
 		@Override
 		public boolean isSuperUser() {
-
 			return true;
-
 		}
 
 		@Override
 		public boolean isSuperUserSecurityContext () {
-
 			return true;
-
 		}
 	}
 }

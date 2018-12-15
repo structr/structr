@@ -439,6 +439,33 @@ public class SchemaNode extends AbstractSchemaNode {
 		graphQLTypes.put(className, GraphQLObjectType.newObject().name(className).fields(new LinkedList<>(fields.values())).build());
 	}
 
+	@Export
+	public String getGeneratedSourceCode() throws FrameworkException, UnlicensedTypeException {
+
+		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
+
+		// collect list of schema nodes
+		StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
+
+		// return generated source code for this class
+		return SchemaHelper.getSource(this, schemaNodes, SchemaService.getBlacklist(), new ErrorBuffer());
+	}
+
+	@Override
+	public boolean reloadSchemaOnCreate() {
+		return true;
+	}
+
+	@Override
+	public boolean reloadSchemaOnModify(final ModificationQueue modificationQueue) {
+		return true;
+	}
+
+	@Override
+	public boolean reloadSchemaOnDelete() {
+		return true;
+	}
+
 	// ----- private methods -----
 	private void registerParentType(final Map<String, SchemaNode> schemaNodes, final SchemaNode parentSchemaNode, final Map<String, GraphQLType> graphQLTypes, final Map<String, GraphQLFieldDefinition> fields, final Set<String> blacklist) throws FrameworkException {
 
@@ -562,19 +589,6 @@ public class SchemaNode extends AbstractSchemaNode {
 		return true;
 	}
 
-	@Export
-	public String getGeneratedSourceCode() throws FrameworkException, UnlicensedTypeException {
-
-		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
-
-		// collect list of schema nodes
-		StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
-
-		// return generated source code for this class
-		return SchemaHelper.getSource(this, schemaNodes, SchemaService.getBlacklist(), new ErrorBuffer());
-	}
-
-	// ----- private methods -----
 	private String addToList(final String source, final String value) {
 
 		final List<String> list = new LinkedList<>();

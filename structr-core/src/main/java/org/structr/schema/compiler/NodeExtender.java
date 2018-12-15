@@ -120,7 +120,7 @@ public class NodeExtender {
 
 			final long t0 = System.currentTimeMillis();
 
-			Boolean success = compiler.getTask(errorWriter, fileManager, new Listener(errorBuffer), null, null, jfiles).call();
+			Boolean success = compiler.getTask(errorWriter, fileManager, new Listener(errorBuffer), Arrays.asList("-g"), null, jfiles).call();
 
 			logger.info("Compiling done in {} ms", System.currentTimeMillis() - t0);
 
