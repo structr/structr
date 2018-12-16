@@ -1358,14 +1358,14 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			for (final String p : rawProps) {
 
-				String htmlName = "data-structr-meta-" + CaseHelper.toUnderscore(p, false).replaceAll("_", "-");
-				Object value = null;
-				try {
-					value    = thisNode.getProperty(p);
+				final String htmlName = "data-structr-meta-" + CaseHelper.toUnderscore(p, false).replaceAll("_", "-");
+				final PropertyKey key = StructrApp.key(DOMNode.class, p, false);
 
+				if (key != null) {
+
+					final Object value    = thisNode.getProperty(key);
 					if (value != null) {
 
-						final PropertyKey key    = StructrApp.key(DOMNode.class, p);
 						final boolean isBoolean  = key instanceof BooleanProperty;
 						final String stringValue = value.toString();
 
@@ -1373,8 +1373,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 							out.append(" ").append(htmlName).append("=\"").append(escapeForHtmlAttributes(stringValue)).append("\"");
 						}
 					}
-				} catch (IllegalArgumentException ex) {
-					logger.warn("Unable to find property for " + p, ex);
 				}
 			}
 		}
@@ -1388,7 +1386,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		for (final String key : props) {
 
-			PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(thisNode.getClass(), key, false);
+			PropertyKey propertyKey = StructrApp.key(thisNode.getClass(), key, false);
 			if (propertyKey == null) {
 
 				// support arbitrary data-* attributes
