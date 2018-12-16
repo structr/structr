@@ -36,20 +36,14 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.graph.Tx;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.Property;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- *
- *
+ * Websocket command for user configuration data storage and retrieval.
  */
 public class WebappDataCommand extends AbstractCommand {
 
@@ -79,7 +73,6 @@ public class WebappDataCommand extends AbstractCommand {
 				case "list":
 
 					final List<String> values = WebappDataCommand.listValues(category);
-
 					if (values != null) {
 
 						final GraphObjectMap container = new GraphObjectMap();
@@ -103,19 +96,18 @@ public class WebappDataCommand extends AbstractCommand {
 						getWebSocket().send(MessageBuilder.finished().callback(callback).data("value", content).build(), true);
 
 					} catch (IOException | FrameworkException ex) {
-
-						logger.error("", ex);
-
+						logger.warn("Unable to retrieve configuration data: {}", ex.getMessage());
+						getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
 					}
 
 					break;
 
 				case "add":
 
-					final String positions = webSocketData.getNodeDataStringValue("value");
 
 					try {
 
+						final String value    = webSocketData.getNodeDataStringValue("value");
 						final File layoutFile = locateFile(category, name);
 
 						if (layoutFile.exists()) {
@@ -124,16 +116,32 @@ public class WebappDataCommand extends AbstractCommand {
 
 						} else {
 
-							createValue(category, name, positions);
+							createValue(category, name, value);
 
 						}
 
 						getWebSocket().send(MessageBuilder.finished().callback(callback).build(), true);
 
-					} catch (FrameworkException ex) {
+					} catch (IOException | FrameworkException ex) {
+						logger.warn("Unable to retrieve configuration data: {}", ex.getMessage());
+					}
 
-						logger.error("", ex);
+					break;
 
+				case "replace":
+
+
+					try {
+
+						final String value = webSocketData.getNodeDataStringValue("value");
+
+						createValue(category, name, value);
+
+						getWebSocket().send(MessageBuilder.finished().callback(callback).build(), true);
+
+					} catch (IOException | FrameworkException ex) {
+						logger.warn("Unable to retrieve configuration data: {}", ex.getMessage());
+						getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
 					}
 
 					break;
@@ -147,9 +155,8 @@ public class WebappDataCommand extends AbstractCommand {
 						getWebSocket().send(MessageBuilder.finished().callback(callback).build(), true);
 
 					} catch (FrameworkException ex) {
-
-						logger.error("", ex);
-
+						logger.warn("Unable to retrieve configuration data: {}", ex.getMessage());
+						getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
 					}
 
 					break;
@@ -172,28 +179,16 @@ public class WebappDataCommand extends AbstractCommand {
 	}
 
 	// ----- private methods -----
-	private void createValue(final String category, final String name, final String value) throws FrameworkException {
+	private void createValue(final String category, final String name, final String value) throws FrameworkException, IOException {
 
-		// we want to create a sorted, human-readble, diffable representation of the schema
-		final App app = StructrApp.getInstance();
+		final File layoutFile = locateFile(category, name);
 
-		// isolate write output
-		try (final Tx tx = app.tx()) {
+		try (final Writer writer = new FileWriter(layoutFile)) {
 
-			final File layoutFile = locateFile(category, name);
+			writer.append(value);
+			writer.append("\n");
 
-			try (final Writer writer = new FileWriter(layoutFile)) {
-
-				writer.append(value);
-				writer.append("\n");
-
-				writer.flush();
-			}
-
-			tx.success();
-
-		} catch (IOException ioex) {
-			logger.warn("", ioex);
+			writer.flush();
 		}
 	}
 

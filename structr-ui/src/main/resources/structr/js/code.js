@@ -105,7 +105,7 @@ var _Code = {
 		left = left || LSWrapper.getItem(codeResizerLeftKey) || 300;
 		$('.column-resizer', codeMain).css({ left: left });
 
-		var contextWidth = 300;
+		var contextWidth = 240;
 		var width        = $(window).width() - left - contextWidth - 80;
 
 		$('#code-tree').css({width: left - 14 + 'px'});
@@ -175,7 +175,6 @@ var _Code = {
 							});
 
 							for (var f of favorites) {
-								console.log(f);
 								_Code.addRecentlyUsedElement(f.id, f.name, f.icon, f.path, true);
 							};
 
@@ -683,7 +682,6 @@ var _Code = {
 			case "Function":     icon = 'code-fork'; break;
 			case 'Integer':      icon = 'calculator'; break;
 			case "Long":         icon = 'calculator'; break;
-			case "Password":     icon = 'key'; break;
 			case 'String':       icon = 'pencil-square-o'; break;
 			default:             icon = 'sliders'; break;
 		}
@@ -852,7 +850,6 @@ var _Code = {
 
 				case 'SchemaNode':
 					Command.get(data.id, null, function(result) {
-						_Code.updateRecentlyUsed(data, result);
 						Structr.fetchHtmlTemplate('code/type', { type: result }, function(html) {
 
 							codeContents.empty();
@@ -932,7 +929,6 @@ var _Code = {
 			_Code.displayCreatePropertyButton(id, 'Date',     data, callback);
 			_Code.displayCreatePropertyButton(id, 'Function', data, callback);
 			_Code.displayCreatePropertyButton(id, 'Cypher',   data, callback);
-			_Code.displayCreatePropertyButton(id, 'Password', data, callback);
 		});
 	},
 	displayMethodsContent: function(identifier) {
@@ -996,7 +992,7 @@ var _Code = {
 			codeContents.append(html);
 			_Code.editPropertyContent(undefined, property.id, 'readFunction',  $('#read-code-container'),  false);
 			_Code.editPropertyContent(undefined, property.id, 'writeFunction', $('#write-code-container'), false);
-			_Code.displayDefaultPropertyButtons(property);
+			_Code.displayDefaultPropertyOptions(property);
 		});
 	},
 	displayCypherPropertyDetails: function(property) {
@@ -1005,7 +1001,7 @@ var _Code = {
 			codeContents.empty();
 			codeContents.append(html);
 			_Code.editPropertyContent(undefined, property.id, 'format', $('#cypher-code-container'));
-			_Code.displayDefaultPropertyButtons(property);
+			_Code.displayDefaultPropertyOptions(property);
 		});
 	},
 	displayStringPropertyDetails: function(property) {
@@ -1013,7 +1009,7 @@ var _Code = {
 		Structr.fetchHtmlTemplate('code/string-property', { property: property }, function(html) {
 			codeContents.empty();
 			codeContents.append(html);
-			_Code.displayDefaultPropertyButtons(property);
+			_Code.displayDefaultPropertyOptions(property);
 		});
 	},
 	displayBooleanPropertyDetails: function(property) {
@@ -1021,28 +1017,38 @@ var _Code = {
 		Structr.fetchHtmlTemplate('code/boolean-property', { property: property }, function(html) {
 			codeContents.empty();
 			codeContents.append(html);
-			_Code.displayDefaultPropertyButtons(property);
+			_Code.displayDefaultPropertyOptions(property);
 		});
 	},
-	displayDefaultPropertyButtons: function(property) {
+	displayDefaultPropertyOptions: function(property, callback) {
 
 		// default buttons
-		Structr.fetchHtmlTemplate('code/property-buttons', { property: property }, function(html) {
+		Structr.fetchHtmlTemplate('code/property-options', { property: property }, function(html) {
 
 			var buttons = $('#property-buttons');
-
-			buttons.append(html);
+			buttons.prepend(html);
 
 			$('.toggle-checkbox', buttons).on('click', function() {
 				var targetId = $(this).data('target');
 				if (targetId) {
 					var box = $(targetId);
-					box.prop("checked", !box.prop("checked"));
+					box.click();
 				}
 			});
 
-			$('input[type=checkbox]', buttons).on('click', function() {
+			_Code.activatePropertyValueInput('property-name-input', property.id, 'name');
 
+			$('input[type=checkbox]', buttons).on('click', function() {
+				var elem         = $(this);
+				var propertyName = elem.data('property');
+				var data         = {};
+				data[propertyName] = elem.prop('checked');
+				_Code.lockPropertyOptions();
+				Command.setProperties(property.id, data, function() {
+					_Code.unlockPropertyOptions();
+					blinkGreen(elem.parent());
+					_Code.refreshTree();
+				});
 			})
 
 			// set value from property
@@ -1053,7 +1059,29 @@ var _Code = {
 				}
 			});
 
+			if (typeof callback === 'function') {
+				callback();
+			}
 		});
+	},
+	lockPropertyOptions: function() {
+		$('#property-options').find('input').attr('disabled', true);
+	},
+	unlockPropertyOptions: function() {
+		$('#property-options').find('input').attr('disabled', false);
+	},
+	activatePropertyValueInput: function(inputId, id, name) {
+		$('input#' + inputId).on('blur', function() {
+			var elem         = $(this);
+			var data         = {};
+			data[name] = elem.val();
+			_Code.lockPropertyOptions();
+			Command.setProperties(id, data, function(data) {
+				_Code.unlockPropertyOptions();
+				blinkGreen(elem);
+				_Code.refreshTree();
+			});
+		})
 	},
 	getAutocompleteHint: function(editor, callback) {
 
@@ -1063,11 +1091,7 @@ var _Code = {
 		var range1 = editor.getRange(prev.anchor, prev.head);
 		var range2 = editor.getRange(word.anchor, word.head);
 		var type   = _Code.getEditorModeForContent(editor.getValue());
-
-		console.log(range1 + ', ' + range2);
-
 		Command.autocomplete('', '', range2, range1, '', cursor.line, cursor.ch, type, function(result) {
-
 			var inner  = { from: cursor, to: cursor, list: result };
 			callback(inner);
 		});
@@ -1167,6 +1191,15 @@ var _Code = {
 						$('#recently-used-' + id).remove();
 					});
 				});
+			} else {
+
+				Command.appData('replace', 'code-favorites', id, JSON.stringify({
+					id: id,
+					name: name,
+					icon: icon,
+					path: path,
+					position: $('.code-favorite').length
+				}));
 			}
 		});
 	},

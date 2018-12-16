@@ -74,7 +74,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<Boolean>            isPartOfBuiltInSchema   = new BooleanProperty("isPartOfBuiltInSchema").indexed();
 
 	private static final Set<PropertyKey> schemaRebuildTriggerKeys = new LinkedHashSet<>(Arrays.asList(
-		parameters, schemaNode, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema
+		name, parameters, schemaNode, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema
 	));
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,

@@ -3514,10 +3514,6 @@ td#cascading-options, td#propagation-options {
 	margin: 8px 0 8px 0;
 }
 
-#code-contents #default-buttons div {
-	float: left;
-}
-
 #code-contents #default-buttons span {
 	cursor: pointer;
 }
@@ -3531,11 +3527,28 @@ td#cascading-options, td#propagation-options {
 }
 
 .code-button-container {
-	margin: 8px 8px;
 }
 
 #code-contents property-options {
 	border: 1px solid #ddd;
+}
+
+#code-contents #property-options p {
+	margin: 2px 16px 2px 0;
+	padding: 2px 0 0 0;
+	float: left;
+	width: 310px;
+}
+
+#code-contents #property-options label {
+	width: 100%;
+	padding: 0 0 4px 0;
+	display: inline-block;
+	font-weight: 600;
+}
+
+#code-contents #property-options input[type="text"] {
+	width: 100%;
 }
 
 #folder-contents .tile {

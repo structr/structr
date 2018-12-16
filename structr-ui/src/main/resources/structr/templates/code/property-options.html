@@ -1,0 +1,16 @@
+<div id="property-options">
+	<div>
+		<p><label>Name</label><input type="text" id="property-name-input" size="30" value="${config.property.name}" /></p>
+		<p><label>Content type</label><input type="text" id="property-name-input" size="30" value="${config.property.contentType || ''}" /></p>
+		<p><label>Type hint</label><input type="text" id="property-name-input" size="30" value="${config.property.typeHint || ''}" /></p>
+		<div style="clear: both;"></div>
+	</div>
+	<div id="default-buttons">
+		<p><label>Options</label><input type="checkbox" id="property-unique" data-property="unique" /><span class="toggle-checkbox" data-target="#property-unique">Property value must be unique</span></p>
+		<p><input type="checkbox" id="property-composite" data-property="compound" /><span class="toggle-checkbox" data-target="#property-composite">Property key is part of composite uniqueness check</span></p>
+		<p><input type="checkbox" id="property-notnull" data-property="notNull" /><span class="toggle-checkbox" data-target="#property-notnull">Property value must not be null</span></p>
+		<p><input type="checkbox" id="property-indexed" data-property="indexed" /><span class="toggle-checkbox" data-target="#property-indexed">Property value is indexed</span></p>
+		<p><input type="checkbox" id="property-cached" data-property="isCachingEnabled" /><span class="toggle-checkbox" data-target="#property-cached">Property value can be cached</span></p>
+		<div style="clear: both;"></div>
+	</div>
+</div>
