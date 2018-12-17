@@ -59,8 +59,6 @@ import org.structr.web.basic.ResourceAccessTest;
 import static org.structr.web.basic.ResourceAccessTest.createResourceAccess;
 import org.structr.web.entity.User;
 
-
-
 public class AdvancedSchemaTest extends FrontendTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(AdvancedSchemaTest.class.getName());
@@ -376,6 +374,16 @@ public class AdvancedSchemaTest extends FrontendTest {
 			// create test type
 			test = app.create(SchemaNode.class, "Test");
 
+			app.create(SchemaView.class,
+				new NodeAttribute<>(SchemaView.name, "myView"),
+				new NodeAttribute<>(SchemaView.schemaNode, test)
+			);
+
+			app.create(SchemaView.class,
+				new NodeAttribute<>(SchemaView.name, "testView"),
+				new NodeAttribute<>(SchemaView.schemaNode, test)
+			);
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -428,8 +436,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		Assert.assertEquals("Invalid number of properties in sorted view", 7, list.size());
 		Assert.assertEquals("id",    list.get(0).dbName());
-		Assert.assertEquals("name",  list.get(1).dbName());
-		Assert.assertEquals("type",  list.get(2).dbName());
+		Assert.assertEquals("type",  list.get(1).dbName());
+		Assert.assertEquals("name",  list.get(2).dbName());
 		Assert.assertEquals("one",   list.get(3).dbName());
 		Assert.assertEquals("two",   list.get(4).dbName());
 		Assert.assertEquals("three", list.get(5).dbName());
@@ -459,8 +467,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		Assert.assertEquals("Invalid number of properties in sorted view", 7, list2.size());
 		Assert.assertEquals("id",    list2.get(0).dbName());
-		Assert.assertEquals("name",  list2.get(1).dbName());
-		Assert.assertEquals("type",  list2.get(2).dbName());
+		Assert.assertEquals("type",  list2.get(1).dbName());
+		Assert.assertEquals("name",  list2.get(2).dbName());
 		Assert.assertEquals("one",   list2.get(3).dbName());
 		Assert.assertEquals("two",   list2.get(4).dbName());
 		Assert.assertEquals("three", list2.get(5).dbName());
@@ -483,8 +491,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 				.body("result",	                  hasSize(7))
 				.body("result[0].jsonName",       equalTo("id"))
-				.body("result[1].jsonName",       equalTo("name"))
-				.body("result[2].jsonName",       equalTo("type"))
+				.body("result[1].jsonName",       equalTo("type"))
+				.body("result[2].jsonName",       equalTo("name"))
 				.body("result[3].jsonName",       equalTo("one"))
 				.body("result[4].jsonName",       equalTo("two"))
 				.body("result[5].jsonName",       equalTo("three"))
@@ -522,10 +530,10 @@ public class AdvancedSchemaTest extends FrontendTest {
 		assertEquals("Invalid JSON result for sorted property view", "result",             actual[1]);
 		assertEquals("Invalid JSON result for sorted property view", "id",                 actual[2]);
 		assertEquals("Invalid JSON result for sorted property view", id,                   actual[3]);
-		assertEquals("Invalid JSON result for sorted property view", "name",               actual[4]);
-		assertEquals("Invalid JSON result for sorted property view", "null",               actual[5]);
-		assertEquals("Invalid JSON result for sorted property view", "type",               actual[6]);
-		assertEquals("Invalid JSON result for sorted property view", "Test",               actual[7]);
+		assertEquals("Invalid JSON result for sorted property view", "type",               actual[4]);
+		assertEquals("Invalid JSON result for sorted property view", "Test",               actual[5]);
+		assertEquals("Invalid JSON result for sorted property view", "name",               actual[6]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[7]);
 		assertEquals("Invalid JSON result for sorted property view", "one",                actual[8]);
 		assertEquals("Invalid JSON result for sorted property view", "null",               actual[9]);
 		assertEquals("Invalid JSON result for sorted property view", "two",                actual[10]);
@@ -551,8 +559,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			Assert.assertEquals("Invalid number of properties in sorted view", 7, list3.size());
 			Assert.assertEquals("id",    list3.get(0).get(jsonName));
-			Assert.assertEquals("name",  list3.get(1).get(jsonName));
-			Assert.assertEquals("type",  list3.get(2).get(jsonName));
+			Assert.assertEquals("type",  list3.get(1).get(jsonName));
+			Assert.assertEquals("name",  list3.get(2).get(jsonName));
 			Assert.assertEquals("one",   list3.get(3).get(jsonName));
 			Assert.assertEquals("two",   list3.get(4).get(jsonName));
 			Assert.assertEquals("three", list3.get(5).get(jsonName));
@@ -569,8 +577,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			Assert.assertEquals("Invalid number of properties in sorted view", 7, list4.size());
 			Assert.assertEquals("id",    list4.get(0).get(jsonName));
-			Assert.assertEquals("name",  list4.get(1).get(jsonName));
-			Assert.assertEquals("type",  list4.get(2).get(jsonName));
+			Assert.assertEquals("type",  list4.get(1).get(jsonName));
+			Assert.assertEquals("name",  list4.get(2).get(jsonName));
 			Assert.assertEquals("one",   list4.get(3).get(jsonName));
 			Assert.assertEquals("two",   list4.get(4).get(jsonName));
 			Assert.assertEquals("three", list4.get(5).get(jsonName));
@@ -597,7 +605,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 		}
 
 		final GenericProperty jsonName = new GenericProperty("jsonName");
-		SchemaView testView            = null;
+		SchemaView testView1           = null;
+		SchemaView testView2           = null;
 		String id                      = null;
 
 		try (final Tx tx = app.tx()) {
@@ -606,15 +615,24 @@ public class AdvancedSchemaTest extends FrontendTest {
 			final SchemaNode test = app.create(SchemaNode.class, "Test");
 
 			// create view with sort order
-			testView = app.create(SchemaView.class,
+			testView1 = app.create(SchemaView.class,
 				new NodeAttribute<>(SchemaView.name, "test"),
 				new NodeAttribute<>(SchemaView.schemaNode, test),
 				new NodeAttribute<>(SchemaView.sortOrder, "one, two, three, four, id, type, name"),
 				new NodeAttribute<>(SchemaView.nonGraphProperties, "id, type, name")
 			);
 
+			// create view with sort order
+			testView2 = app.create(SchemaView.class,
+				new NodeAttribute<>(SchemaView.name, "other"),
+				new NodeAttribute<>(SchemaView.schemaNode, test),
+				new NodeAttribute<>(SchemaView.sortOrder, "four, id, type, name, one, three, two"),
+				new NodeAttribute<>(SchemaView.nonGraphProperties, "id, type, name")
+			);
+
 			final List<SchemaView> list = new LinkedList<>();
-			list.add(testView);
+			list.add(testView1);
+			list.add(testView2);
 
 			// create properties
 			app.create(SchemaProperty.class,
@@ -655,18 +673,18 @@ public class AdvancedSchemaTest extends FrontendTest {
 		final List<PropertyKey> list = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "test"));
 
 		Assert.assertEquals("Invalid number of properties in sorted view", 7, list.size());
-		Assert.assertEquals("one",   list.get(0).dbName());
-		Assert.assertEquals("two",   list.get(1).dbName());
-		Assert.assertEquals("three", list.get(2).dbName());
-		Assert.assertEquals("four",  list.get(3).dbName());
-		Assert.assertEquals("id",    list.get(4).dbName());
-		Assert.assertEquals("type",  list.get(5).dbName());
-		Assert.assertEquals("name",  list.get(6).dbName());
+		Assert.assertEquals("Invalid view order", "one",   list.get(0).dbName());
+		Assert.assertEquals("Invalid view order", "two",   list.get(1).dbName());
+		Assert.assertEquals("Invalid view order", "three", list.get(2).dbName());
+		Assert.assertEquals("Invalid view order", "four",  list.get(3).dbName());
+		Assert.assertEquals("Invalid view order", "id",    list.get(4).dbName());
+		Assert.assertEquals("Invalid view order", "type",  list.get(5).dbName());
+		Assert.assertEquals("Invalid view order", "name",  list.get(6).dbName());
 
 		try (final Tx tx = app.tx()) {
 
 			// modify sort order
-			testView.setProperty(SchemaView.sortOrder, "type, one, id, two, three, four, name");
+			testView1.setProperty(SchemaView.sortOrder, "type, one, id, two, three, four, name");
 
 			// create test entity
 			final NodeInterface node = app.create(StructrApp.getConfiguration().getNodeEntityClass("Test"));
@@ -681,13 +699,13 @@ public class AdvancedSchemaTest extends FrontendTest {
 		final List<PropertyKey> list2 = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "test"));
 
 		Assert.assertEquals("Invalid number of properties in sorted view", 7, list2.size());
-		Assert.assertEquals("type",  list2.get(0).dbName());
-		Assert.assertEquals("one",   list2.get(1).dbName());
-		Assert.assertEquals("id",    list2.get(2).dbName());
-		Assert.assertEquals("two",   list2.get(3).dbName());
-		Assert.assertEquals("three", list2.get(4).dbName());
-		Assert.assertEquals("four",  list2.get(5).dbName());
-		Assert.assertEquals("name",  list2.get(6).dbName());
+		Assert.assertEquals("Invalid view order", "type",  list2.get(0).dbName());
+		Assert.assertEquals("Invalid view order", "one",   list2.get(1).dbName());
+		Assert.assertEquals("Invalid view order", "id",    list2.get(2).dbName());
+		Assert.assertEquals("Invalid view order", "two",   list2.get(3).dbName());
+		Assert.assertEquals("Invalid view order", "three", list2.get(4).dbName());
+		Assert.assertEquals("Invalid view order", "four",  list2.get(5).dbName());
+		Assert.assertEquals("Invalid view order", "name",  list2.get(6).dbName());
 
 		// test schema resource
 		RestAssured
@@ -776,13 +794,13 @@ public class AdvancedSchemaTest extends FrontendTest {
 			final List<GraphObjectMap> list3 = (List)new TypeInfoFunction().apply(new ActionContext(securityContext), null, new Object[] { "Test", "test" });
 
 			Assert.assertEquals("Invalid number of properties in sorted view", 7, list2.size());
-			Assert.assertEquals("type",  list3.get(0).get(jsonName));
-			Assert.assertEquals("one",   list3.get(1).get(jsonName));
-			Assert.assertEquals("id",    list3.get(2).get(jsonName));
-			Assert.assertEquals("two",   list3.get(3).get(jsonName));
-			Assert.assertEquals("three", list3.get(4).get(jsonName));
-			Assert.assertEquals("four",  list3.get(5).get(jsonName));
-			Assert.assertEquals("name",  list3.get(6).get(jsonName));
+			Assert.assertEquals("Invalid view order", "type",  list3.get(0).get(jsonName));
+			Assert.assertEquals("Invalid view order", "one",   list3.get(1).get(jsonName));
+			Assert.assertEquals("Invalid view order", "id",    list3.get(2).get(jsonName));
+			Assert.assertEquals("Invalid view order", "two",   list3.get(3).get(jsonName));
+			Assert.assertEquals("Invalid view order", "three", list3.get(4).get(jsonName));
+			Assert.assertEquals("Invalid view order", "four",  list3.get(5).get(jsonName));
+			Assert.assertEquals("Invalid view order", "name",  list3.get(6).get(jsonName));
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
@@ -794,13 +812,13 @@ public class AdvancedSchemaTest extends FrontendTest {
 			final List<GraphObjectMap> list4 = (List)Scripting.evaluate(new ActionContext(securityContext), null, "${type_info('Test', 'test')}", "test");
 
 			Assert.assertEquals("Invalid number of properties in sorted view", 7, list2.size());
-			Assert.assertEquals("type",  list4.get(0).get(jsonName));
-			Assert.assertEquals("one",   list4.get(1).get(jsonName));
-			Assert.assertEquals("id",    list4.get(2).get(jsonName));
-			Assert.assertEquals("two",   list4.get(3).get(jsonName));
-			Assert.assertEquals("three", list4.get(4).get(jsonName));
-			Assert.assertEquals("four",  list4.get(5).get(jsonName));
-			Assert.assertEquals("name",  list4.get(6).get(jsonName));
+			Assert.assertEquals("Invalid view order", "type",  list4.get(0).get(jsonName));
+			Assert.assertEquals("Invalid view order", "one",   list4.get(1).get(jsonName));
+			Assert.assertEquals("Invalid view order", "id",    list4.get(2).get(jsonName));
+			Assert.assertEquals("Invalid view order", "two",   list4.get(3).get(jsonName));
+			Assert.assertEquals("Invalid view order", "three", list4.get(4).get(jsonName));
+			Assert.assertEquals("Invalid view order", "four",  list4.get(5).get(jsonName));
+			Assert.assertEquals("Invalid view order", "name",  list4.get(6).get(jsonName));
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();

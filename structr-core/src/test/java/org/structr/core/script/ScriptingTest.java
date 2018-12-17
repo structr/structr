@@ -33,7 +33,6 @@ import java.util.Random;
 import org.apache.commons.lang3.StringUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
@@ -1630,7 +1629,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid replace() result", "equal", Scripting.replaceVariables(ctx, testOne, "${if(equal(2, 2),\n    (\"equal\"),\n    (\"not equal\")\n)}"));
 			assertEquals("Invalid replace() result", "not equal", Scripting.replaceVariables(ctx, testOne, "${if(equal(2, 3),\n    (\"equal\"),\n    (\"not equal\")\n)}"));
 
-			assertEquals("Invalid keys() / join() result", "owner,createdBy,hidden,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,id,type,createdDate,name", Scripting.replaceVariables(ctx, testOne, "${join(keys(this, 'ui'), ',')}"));
+			assertEquals("Invalid keys() / join() result", "id,name,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers", Scripting.replaceVariables(ctx, testOne, "${join(keys(this, 'ui'), ',')}"));
 			assertEquals("Invalid values() / join() result", "A-nice-little-name-for-my-test-object,1,String", Scripting.replaceVariables(ctx, testOne, "${join(values(this, 'protected'), ',')}"));
 
 			// test default values
