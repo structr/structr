@@ -23,6 +23,7 @@ import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
@@ -1053,6 +1054,110 @@ public class AdvancedSchemaTest extends FrontendTest {
 		}
 	}
 
+	/**
+	 * This test makes sure that the type of an overloaded property is kept and identical in all views.
+	 */
+	@Test
+	public void test05PropertyTypeOfOverloadedProperty() {
+
+		cleanDatabaseAndSchema();
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+			createResourceAccess("_schema", UiAuthenticator.AUTH_USER_GET);
+			tx.success();
+
+		} catch (Exception ex) {
+			logger.error("", ex);
+		}
+
+		SchemaView testView            = null;
+
+		try (final Tx tx = app.tx()) {
+
+			// create test type
+			final SchemaNode test = app.create(SchemaNode.class, "Test");
+
+			// create view with sort order
+			testView = app.create(SchemaView.class,
+				new NodeAttribute<>(SchemaView.name, "testview"),
+				new NodeAttribute<>(SchemaView.sortOrder, "name"),
+				new NodeAttribute<>(SchemaView.schemaNode, test)
+			);
+
+			final List<SchemaView> list = new LinkedList<>();
+			list.add(testView);
+
+			// create a function property to overload the String property "name" defined in {@link NodeInterface}
+			app.create(SchemaProperty.class,
+				new NodeAttribute<>(SchemaProperty.schemaNode, test),
+				new NodeAttribute<>(SchemaProperty.schemaViews, list),
+				new NodeAttribute<>(SchemaProperty.propertyType, "Function"),
+				new NodeAttribute<>(SchemaProperty.name, "name")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final Class type            = StructrApp.getConfiguration().getNodeEntityClass("Test");
+		final List<PropertyKey> list = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "testview"));
+
+		Assert.assertEquals("Invalid number of properties in sorted view", 1, list.size());
+		Assert.assertEquals("name",  list.get(0).dbName());
+
+		// test custom view 'testview'
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+
+			.expect()
+				.statusCode(200)
+
+				.body("result",	                  hasSize(1))
+				.body("result[0].jsonName",       equalTo("name"))
+				.body("result[0].className",      equalTo("org.structr.core.property.FunctionProperty"))
+
+			.when()
+				.get("/_schema/Test/testview");
+
+		// test 'public' view
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+
+			.expect()
+				.statusCode(200)
+
+				.body("result",	                  hasSize(3))
+				.body("result[0].jsonName",       equalTo("id"))
+				.body("result[1].jsonName",       equalTo("type"))
+				.body("result[2].jsonName",       equalTo("name"))
+				.body("result[2].className",      equalTo("org.structr.core.property.FunctionProperty"))
+
+			.when()
+				.get("/_schema/Test/public");
+
+	}
+	
+	
 	@Test
 	public void testIsValidPasswordMethodOfUser() {
 
