@@ -370,7 +370,7 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					final PropertyKey propertyKey = StructrApp.key(entity, key, false);
+					final PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity, key);
 					if (propertyKey != null) {
 
 						final PropertyConverter converter = propertyKey.inputConverter(securityContext);
