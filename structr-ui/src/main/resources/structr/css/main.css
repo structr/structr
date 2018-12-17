@@ -3533,21 +3533,29 @@ td#cascading-options, td#propagation-options {
 	border: 1px solid #ddd;
 }
 
-#code-contents #property-options p {
-	margin: 2px 16px 2px 0;
+#code-contents p.checkbox {
+	margin: 0 8px 0 0;
 	padding: 2px 0 0 0;
 	float: left;
-	width: 310px;
+	width: 250px;
 }
 
-#code-contents #property-options label {
+#code-contents p.input {
+	margin: 0 32px 0 0;
+	padding: 2px 0 0 0;
+	float: left;
+	width: 20%;
+	min-width: 100px;
+}
+
+#code-contents label {
 	width: 100%;
-	padding: 0 0 4px 0;
+	padding: 0 0 4px 4px;
 	display: inline-block;
 	font-weight: 600;
 }
 
-#code-contents #property-options input[type="text"] {
+#code-contents input[type="text"] {
 	width: 100%;
 }
 

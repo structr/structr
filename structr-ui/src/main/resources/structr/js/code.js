@@ -1072,15 +1072,18 @@ var _Code = {
 	},
 	activatePropertyValueInput: function(inputId, id, name) {
 		$('input#' + inputId).on('blur', function() {
-			var elem         = $(this);
-			var data         = {};
-			data[name] = elem.val();
-			_Code.lockPropertyOptions();
-			Command.setProperties(id, data, function(data) {
-				_Code.unlockPropertyOptions();
-				blinkGreen(elem);
-				_Code.refreshTree();
-			});
+			var elem     = $(this);
+			var previous = elem.attr('value');
+			if (previous !== elem.val()) {
+				var data   = {};
+				data[name] = elem.val();
+				_Code.lockPropertyOptions();
+				Command.setProperties(id, data, function() {
+					_Code.unlockPropertyOptions();
+					blinkGreen(elem);
+					_Code.refreshTree();
+				});
+			}
 		})
 	},
 	getAutocompleteHint: function(editor, callback) {
