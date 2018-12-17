@@ -623,6 +623,7 @@ var _Code = {
 	},
 	createMethodAndRefreshTree: function(type, name, schemaNode) {
 
+		_Code.showSchemaRecompileMessage();
 		Command.create({
 			type: type,
 			name: name,
@@ -630,6 +631,7 @@ var _Code = {
 			source: ''
 		}, function() {
 			_TreeHelper.refreshTree('#code-tree');
+			_Code.hideSchemaRecompileMessage();
 		});
 	},
 	getIconForNodeType: function(entity) {
@@ -1044,10 +1046,12 @@ var _Code = {
 				var data         = {};
 				data[propertyName] = elem.prop('checked');
 				_Code.lockPropertyOptions();
+				_Code.showSchemaRecompileMessage();
 				Command.setProperties(property.id, data, function() {
 					_Code.unlockPropertyOptions();
 					blinkGreen(elem.parent());
 					_Code.refreshTree();
+					_Code.hideSchemaRecompileMessage();
 				});
 			})
 
@@ -1078,10 +1082,12 @@ var _Code = {
 				var data   = {};
 				data[name] = elem.val();
 				_Code.lockPropertyOptions();
+				_Code.showSchemaRecompileMessage();
 				Command.setProperties(id, data, function() {
 					_Code.unlockPropertyOptions();
 					blinkGreen(elem);
 					_Code.refreshTree();
+					_Code.hideSchemaRecompileMessage();
 				});
 			}
 		})
@@ -1125,9 +1131,11 @@ var _Code = {
 				$('#create-button-' + suffix).on('click', function() {
 					var data = Object.assign({}, nodeData);
 					data['name'] = $('#new-object-name-' + suffix).val();
+					_Code.showSchemaRecompileMessage();
 					Command.create(data, function() {
 						_Code.refreshTree();
 						_Code.displayCustomTypesContent();
+						_Code.hideSchemaRecompileMessage();
 					});
 				});
 			});
@@ -1259,5 +1267,11 @@ var _Code = {
 				_Code.findAndOpenNodeRecursive(tree, tail, depth + 1);
 			});
 		}
+	},
+	showSchemaRecompileMessage: function() {
+		Structr.showLoadingMessage('Please wait', 'schema recompile', 200);
+	},
+	hideSchemaRecompileMessage:  function() {
+		Structr.hideLoadingMessage();
 	}
 };
