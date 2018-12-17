@@ -3544,13 +3544,12 @@ td#cascading-options, td#propagation-options {
 	margin: 0 32px 0 0;
 	padding: 2px 0 0 0;
 	float: left;
-	width: 20%;
-	min-width: 100px;
+	width: 224px;
 }
 
 #code-contents label {
 	width: 100%;
-	padding: 0 0 4px 4px;
+	padding: 4px 0 4px 0;
 	display: inline-block;
 	font-weight: 600;
 }

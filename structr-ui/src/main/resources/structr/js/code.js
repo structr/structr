@@ -291,6 +291,14 @@ var _Code = {
 					}
 
 					children.push({
+						id: 'inherited-' + entity.id,
+						text: 'Inherited Properties',
+						children: true,
+						icon: 'fa fa-sliders gray',
+						data: data
+					});
+
+					children.push({
 						id: 'properties-' + entity.id,
 						text: 'Properties',
 						children: entity.schemaProperties.length > 0,
@@ -361,7 +369,23 @@ var _Code = {
 						Command.query('SchemaRelationshipNode', methodPageSize, methodPage, 'name', 'asc', {relatedTo: [identifier.id ]}, displayFunction, true, 'ui');
 						break;
 					case 'properties':
-						Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.id }, displayFunction, true, 'ui');
+						//Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.id }, displayFunction, true, 'ui');
+						Command.listSchemaProperties(identifier.id, 'custom', function(result) {
+							console.log(identifier);
+							console.log(result);
+							var filtered = result.filter(function(p) {
+								return p.declaringClass !== 'GraphObject' && p.declaringClass !== 'NodeInterface' && p.declaringClass !== 'AbstractNode';
+							});
+							displayFunction(filtered.map(function(s) {
+								return {
+									id: s.declaringUuid,
+									type: 'SchemaProperty',
+									name: s.name,
+									propertyType: s.propertyType,
+									inherited: s.declaringClass === identifier.type
+								};
+							}));
+						});
 						break;
 					case 'methods':
 						Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.id }, displayFunction, true, 'ui');
@@ -565,6 +589,8 @@ var _Code = {
 						}
 					}
 				});
+
+				_Code.displayDefaultMethodOptions(entity);
 
 			},
 			error: function(xhr, statusText, error) {
@@ -983,6 +1009,9 @@ var _Code = {
 				case 'Boolean':
 					_Code.displayBooleanPropertyDetails(result);
 					break;
+				default:
+					_Code.displayDefaultPropertyDetails(result);
+					break;
 			}
 		});
 	},
@@ -1022,6 +1051,14 @@ var _Code = {
 			_Code.displayDefaultPropertyOptions(property);
 		});
 	},
+	displayDefaultPropertyDetails: function(property) {
+
+		Structr.fetchHtmlTemplate('code/default-property', { property: property }, function(html) {
+			codeContents.empty();
+			codeContents.append(html);
+			_Code.displayDefaultPropertyOptions(property);
+		});
+	},
 	displayDefaultPropertyOptions: function(property, callback) {
 
 		// default buttons
@@ -1038,7 +1075,17 @@ var _Code = {
 				}
 			});
 
-			_Code.activatePropertyValueInput('property-name-input', property.id, 'name');
+			_Code.activatePropertyValueInput('property-name-input',         property.id, 'name');
+			_Code.activatePropertyValueInput('property-content-type-input', property.id, 'contentType');
+			_Code.activatePropertyValueInput('property-dbname-input',       property.id, 'dbname');
+			_Code.activatePropertyValueInput('property-format-input',       property.id, 'format');
+			_Code.activatePropertyValueInput('property-default-input',      property.id, 'defaultValue');
+
+			if (property.propertyType === 'Function') {
+				_Code.activatePropertyValueInput('property-type-hint-input',    property.id, 'typeHint');
+			} else {
+				$('#property-type-hint-input').parent().remove();
+			}
 
 			$('input[type=checkbox]', buttons).on('click', function() {
 				var elem         = $(this);
@@ -1060,6 +1107,52 @@ var _Code = {
 				var propertyName = $(this).data('property');
 				if (propertyName && propertyName.length) {
 					$(this).prop('checked', property[propertyName]);
+				}
+			});
+
+			if (typeof callback === 'function') {
+				callback();
+			}
+		});
+	},
+	displayDefaultMethodOptions: function(method, callback) {
+
+		// default buttons
+		Structr.fetchHtmlTemplate('code/method-options', { method: method }, function(html) {
+
+			var buttons = $('#method-buttons');
+			buttons.prepend(html);
+
+			$('.toggle-checkbox', buttons).on('click', function() {
+				var targetId = $(this).data('target');
+				if (targetId) {
+					var box = $(targetId);
+					box.click();
+				}
+			});
+
+			_Code.activatePropertyValueInput('method-name-input', method.id, 'name');
+
+			$('input[type=checkbox]', buttons).on('click', function() {
+				var elem         = $(this);
+				var propertyName = elem.data('property');
+				var data         = {};
+				data[propertyName] = elem.prop('checked');
+				_Code.lockPropertyOptions();
+				_Code.showSchemaRecompileMessage();
+				Command.setProperties(method.id, data, function() {
+					_Code.unlockPropertyOptions();
+					blinkGreen(elem.parent());
+					_Code.refreshTree();
+					_Code.hideSchemaRecompileMessage();
+				});
+			})
+
+			// set value from property
+			$('input[type=checkbox]', buttons).each(function(i) {
+				var propertyName = $(this).data('property');
+				if (propertyName && propertyName.length) {
+					$(this).prop('checked', method[propertyName]);
 				}
 			});
 
@@ -1269,7 +1362,7 @@ var _Code = {
 		}
 	},
 	showSchemaRecompileMessage: function() {
-		Structr.showLoadingMessage('Please wait', 'schema recompile', 200);
+		Structr.showLoadingMessage('Schema is compiling', 'Please wait', 200);
 	},
 	hideSchemaRecompileMessage:  function() {
 		Structr.hideLoadingMessage();

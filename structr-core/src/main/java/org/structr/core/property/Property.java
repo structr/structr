@@ -234,7 +234,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	public Property<T> setSourceUuid(final String sourceUuid) {
-		// This method intentionally does nothing, current implementation is only needed in function properties
+		this.sourceUuid = sourceUuid;
 		return this;
 	}
 
@@ -277,6 +277,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public Class getDeclaringClass() {
 		return declaringClass;
+	}
+
+	@Override
+	public String getSourceUuid() {
+		return sourceUuid;
 	}
 
 	@Override

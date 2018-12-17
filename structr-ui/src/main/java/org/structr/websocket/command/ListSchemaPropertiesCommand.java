@@ -35,12 +35,8 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * Websocket command to return the children of the given node
- *
- *
+ * Websocket command to return the properties of a given schema entity.
  */
 public class ListSchemaPropertiesCommand extends AbstractCommand {
 
@@ -91,6 +87,7 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 						for (final PropertyKey key : allProperties) {
 
 							final String declaringClass   = key.getDeclaringClass() != null ? key.getDeclaringClass().getSimpleName() : "GraphObject";
+							final String declaringUuid    = key.getSourceUuid();
 							final String propertyName     = key.jsonName();
 							final GraphObjectMap property = new GraphObjectMap();
 							final Class valueType         = key.valueType();
@@ -115,6 +112,7 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 							property.put(SchemaProperty.unique, key.isUnique());
 							property.put(SchemaProperty.isDynamic, key.isDynamic());
 							property.put(SchemaProperty.declaringClass, declaringClass);
+							property.put(SchemaProperty.declaringUuid, declaringUuid);
 
 							// store in result
 							result.add(property);
