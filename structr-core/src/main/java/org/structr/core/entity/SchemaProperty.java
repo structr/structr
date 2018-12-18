@@ -102,7 +102,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String[]>           transformers          = new ArrayProperty("transformers", String.class);
 
 	private static final Set<PropertyKey> schemaRebuildTriggerKeys = new LinkedHashSet<>(Arrays.asList(
-		declaringClass, defaultValue, propertyType, contentType, dbName, fqcn, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly,
+		name, declaringClass, defaultValue, propertyType, contentType, dbName, fqcn, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly,
 		isDynamic, isBuiltinProperty, isPartOfBuiltInSchema, isDefaultInUi, isDefaultInPublic, isCachingEnabled, contentHash, validators, transformers
 
 	));
