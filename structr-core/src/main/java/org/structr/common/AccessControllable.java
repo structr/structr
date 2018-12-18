@@ -50,19 +50,19 @@ public interface AccessControllable {
 
 	/**
 	 * Grant given permission to given principal.
-	 * 
+	 *
 	 * @param permission
 	 * @param principal
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	public void grant(final Permission permission, final Principal principal) throws FrameworkException;
 
 	/**
 	 * Revoke given permission from given principal.
-	 * 
+	 *
 	 * @param permission
 	 * @param principal
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	public void revoke(final Permission permission, final Principal principal) throws FrameworkException;
 

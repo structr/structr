@@ -145,7 +145,7 @@ public abstract class Resource {
 				logger.info("DeleteObjects: {} objects processed", count);
 
 			} catch (NotFoundException nfex) {
-				
+
 				// ignore NotFoundException
 
 			} catch (Throwable t) {
