@@ -18,6 +18,7 @@
  */
 package org.structr.websocket.command;
 
+import java.util.regex.Pattern;
 import org.eclipse.jetty.websocket.api.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,22 +38,19 @@ import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * Base class for all WebSocket commands in structr.
- *
- *
+ * Base class for all WebSocket commands in Structr.
  */
 public abstract class AbstractCommand {
 
-	public static final String COMMAND_KEY = "command";
-	public static final String ID_KEY      = "id";
-	private static final Logger logger     = LoggerFactory.getLogger(AbstractCommand.class.getName());
+	public static final Pattern UUID_PATTERN = Pattern.compile("[a-fA-F0-9]{32}");
+	public static final String COMMAND_KEY   = "command";
+	public static final String ID_KEY        = "id";
+	private static final Logger logger       = LoggerFactory.getLogger(AbstractCommand.class.getName());
 
-	protected Session session              = null;
-	protected StructrWebSocket webSocket   = null;
-	protected String callback              = null;
+	protected Session session                = null;
+	protected StructrWebSocket webSocket     = null;
+	protected String callback                = null;
 
 	public abstract void processMessage(final WebSocketMessage webSocketData) throws FrameworkException;
 
@@ -126,22 +124,29 @@ public abstract class AbstractCommand {
 	 */
 	public GraphObject getGraphObject(final String id, final String nodeId) {
 
-		final AbstractNode node = getNode(id);
-		if (node != null) {
+		if (isValidUuid(id)) {
 
-			return node;
+			final AbstractNode node = getNode(id);
+			if (node != null) {
 
+				return node;
+
+			} else {
+
+				if (nodeId == null) {
+					logger.warn("Relationship access by UUID is deprecated and not supported by Neo4j, this can take a very long time.");
+				}
+
+				final AbstractRelationship rel = getRelationship(id, nodeId);
+				if (rel != null) {
+
+					return rel;
+				}
+			}
+			
 		} else {
 
-			if (nodeId == null) {
-				logger.warn("Relationship access by UUID is deprecated and not supported by Neo4j, this can take a very long time.");
-			}
-
-			final AbstractRelationship rel = getRelationship(id, nodeId);
-			if (rel != null) {
-
-				return rel;
-			}
+			logger.warn("Invalid UUID used for getGraphObject: {} is not a valid UUID.", id);
 		}
 
 		return null;
@@ -309,7 +314,7 @@ public abstract class AbstractCommand {
 
 				doc = app.create(ShadowDocument.class, properties);
 			}
-			
+
 			tx.success();
 
 			return doc;
@@ -341,5 +346,15 @@ public abstract class AbstractCommand {
 			securityContext.setDoTransactionNotifications(notify);
 		}
 
+	}
+
+	// ----- private methods -----
+	private boolean isValidUuid(final String id) {
+
+		if (id.length() != 32) {
+			return false;
+		}
+
+		return UUID_PATTERN.matcher(id).matches();
 	}
 }
