@@ -26,10 +26,7 @@ import org.structr.core.notion.Notion;
 
 /**
  *
- *
  */
-
-
 public interface RelationProperty<T> {
 
 	public Notion getNotion();

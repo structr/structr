@@ -106,6 +106,8 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	private String cachedEndNodeId             = null;
 	private String cachedStartNodeId           = null;
+	private PropertyKey sourceProperty         = null;
+	private PropertyKey targetProperty         = null;
 
 	protected SecurityContext securityContext  = null;
 	protected Relationship dbRelationship      = null;
@@ -682,6 +684,22 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public Object invokeMethod(String methodName, Map<String, Object> parameters, final boolean throwException) throws FrameworkException {
 		throw new UnsupportedOperationException("Invoking a method on a relationship is not supported at the moment.");
+	}
+
+	public void setSourceProperty(final PropertyKey source) {
+		this.sourceProperty = source;
+	}
+
+	public void setTargetProperty(final PropertyKey target) {
+		this.targetProperty = target;
+	}
+
+	public PropertyKey getSourceProperty() {
+		return sourceProperty;
+	}
+
+	public PropertyKey getTargetProperty() {
+		return targetProperty;
 	}
 
 	// ----- protected methods -----

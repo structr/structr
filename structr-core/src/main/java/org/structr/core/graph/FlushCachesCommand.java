@@ -51,7 +51,6 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 		RelationshipWrapper.clearCache();
 		Actions.clearCache();
 		AdvancedCypherQuery.flushCaches();
-
 		AccessPathCache.invalidate();
 
 		StructrApp.getInstance().invalidateCache();

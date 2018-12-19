@@ -162,7 +162,8 @@ public interface Principal extends NodeInterface, AccessControllable {
 	public static final String ANONYMOUS                         = "anonymous";
 	public static final String ANYONE                            = "anyone";
 
-	public static final Property<Iterable<NodeInterface>> ownedNodes = new EndNodes<>("ownedNodes", PrincipalOwnsNode.class);
+	public static final Property<Iterable<NodeInterface>> ownedNodes   = new EndNodes<>("ownedNodes", PrincipalOwnsNode.class).partOfBuiltInSchema();
+	public static final Property<Iterable<NodeInterface>> grantedNodes = new EndNodes<>("grantedNodes", Security.class).partOfBuiltInSchema();
 
 	Iterable<Favoritable> getFavorites();
 	Iterable<Group> getGroups();

@@ -75,7 +75,7 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			// create an empty file to store the converted video
-			newFile = FileHelper.createFile(securityContext, new byte[0], null, Image.class, imageName);
+			newFile = FileHelper.createFile(securityContext, new byte[0], null, Image.class, imageName, false);
 
 			// obtain destination path of new file
 			outputFileName = newFile.getFileOnDisk().getAbsolutePath();

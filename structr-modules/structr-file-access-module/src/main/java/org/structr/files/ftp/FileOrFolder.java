@@ -142,7 +142,7 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 				final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(securityContext, StringUtils.substringBeforeLast(newPath, "/"));
 
 				try {
-					structrFile = FileHelper.createFile(securityContext, new byte[0], null, File.class, getName());
+					structrFile = FileHelper.createFile(securityContext, new byte[0], null, File.class, getName(), false);
 					structrFile.setProperty(AbstractNode.type, File.class.getSimpleName());
 					structrFile.setProperty(AbstractNode.owner, owner.getStructrUser());
 
