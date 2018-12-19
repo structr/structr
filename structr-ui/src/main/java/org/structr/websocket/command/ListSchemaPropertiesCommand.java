@@ -20,6 +20,7 @@ package org.structr.websocket.command;
 
 import java.util.*;
 import org.structr.common.PropertyView;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
@@ -28,6 +29,7 @@ import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
@@ -114,6 +116,19 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 							property.put(SchemaProperty.declaringClass, declaringClass);
 							property.put(SchemaProperty.declaringUuid, declaringUuid);
 
+							if (declaringUuid != null) {
+
+								try {
+
+									final SchemaProperty schemaProperty = StructrApp.getInstance().get(SchemaProperty.class, declaringUuid);
+									if (schemaProperty != null) {
+
+										property.put(new GenericProperty("declaringPropertyType"), schemaProperty.getPropertyType().name());
+									}
+
+								} catch (FrameworkException ignore) {}
+							}
+
 							// store in result
 							result.add(property);
 						}
@@ -146,8 +161,6 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 		getWebSocket().send(webSocketData, true);
 
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {

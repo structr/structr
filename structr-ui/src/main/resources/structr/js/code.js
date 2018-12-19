@@ -50,7 +50,7 @@ var _Code = {
 
 		if (codeTree) {
 			codeTree.css({
-				height: windowHeight - headerOffsetHeight + 5 + 'px'
+				height: windowHeight - headerOffsetHeight - 22 + 'px'
 			});
 		}
 
@@ -121,7 +121,7 @@ var _Code = {
 			_Code.init();
 
 			codeMain     = $('#code-main');
-			codeTree     = $('#code-tree');
+			codeTree     = $('#tree');
 			codeContents = $('#code-contents');
 			codeContext  = $('#code-context');
 
@@ -135,7 +135,6 @@ var _Code = {
 			codeTree.on('select_node.jstree', _Code.handleTreeClick);
 
 			_Code.loadFavorites(function() {
-
 				_TreeHelper.initTree(codeTree, _Code.treeInitFunction, 'structr-ui-code');
 			});
 
@@ -147,6 +146,11 @@ var _Code = {
 
 			_Code.resize();
 			Structr.adaptUiToAvailableFeatures();
+
+			$('#tree-search-input').on('keyup', function(e) {
+				var text = $(this).val();
+				// implement search
+			});
 		});
 
 	},
@@ -389,16 +393,16 @@ var _Code = {
 										id: s.declaringUuid,
 										type: 'SchemaProperty',
 										name: s.name,
-										propertyType: s.propertyType,
+										propertyType: s.declaringPropertyType,
 										inherited: false
 									};
 
 								} else {
 									return {
-										id: s.declaringUuid + '-inherited-by-' + obj.data.type,
+										id: 'inherited-' + s.declaringUuid + '-' + s.declaringClass + '-' + obj.data.type,
 										type: 'SchemaProperty',
 										name: s.declaringClass + '.' + s.name,
-										propertyType: s.propertyType,
+										propertyType: s.declaringPropertyType,
 										inherited: true
 									};
 								}
@@ -569,7 +573,7 @@ var _Code = {
 						e.preventDefault();
 						e.stopPropagation();
 						_Entities.deleteNode(codeDeleteButton, entity, false, function() {
-							_TreeHelper.refreshTree('#code-tree');
+							_TreeHelper.refreshTree('#tree');
 						});
 					});
 				}
@@ -674,7 +678,7 @@ var _Code = {
 			schemaNode: schemaNode,
 			source: ''
 		}, function() {
-			_TreeHelper.refreshTree('#code-tree');
+			_TreeHelper.refreshTree('#tree');
 			_Code.hideSchemaRecompileMessage();
 		});
 	},
@@ -737,12 +741,18 @@ var _Code = {
 	splitIdentifier: function(id) {
 
 		var parts = id.split('-');
-		if (parts.length == 2) {
+		if (parts.length >= 2) {
 
-			var subtype = parts[0].trim();
-			var entity  = parts[1].trim();
+			switch (parts.length) {
+				case 4:
+				case 3:
+					var extra   = parts[2].trim();
+				case 2:
+					var entity  = parts[1].trim();
+					var subtype = parts[0].trim();
+			}
 
-			return { id: entity, type: subtype };
+			return { id: entity, type: subtype, extra: extra };
 		}
 
 		return { id : id, type: id };
@@ -865,6 +875,11 @@ var _Code = {
 			// incoming relationship (with uuid)
 			case 'in':
 				_Code.displayInRelationshipContent(identifier);
+				break;
+
+			case 'inherited':
+				console.log(identifier);
+				_Code.findAndOpenNode('Types/Custom/' + identifier.extra + '/Properties/' + identifier.id);
 				break;
 
 			// other (click on an actual object)
@@ -1330,7 +1345,7 @@ var _Code = {
 	},
 	getTreePath: function(id, name) {
 		var path    = [ name ];
-		var tree    = $('#code-tree').jstree(true);
+		var tree    = $('#tree').jstree(true);
 		var current = id;
 
 		while (current) {
@@ -1352,7 +1367,8 @@ var _Code = {
 		return path.join('/');
 	},
 	findAndOpenNode: function(path) {
-		var tree = $('#code-tree').jstree(true);
+		console.log(path);
+		var tree = $('#tree').jstree(true);
 		_Code.findAndOpenNodeRecursive(tree, path, 0);
 	},
 	findAndOpenNodeRecursive: function(tree, path, depth, node) {
@@ -1378,7 +1394,7 @@ var _Code = {
 			tree.activate_node(searchId);
 
 			// also scroll into view if node is in tree
-			var domNode = document.getElementById( searchId );
+			var domNode = document.getElementById( tree.get_parent(tree.get_parent(searchId)) );
 			if (domNode) {
 				domNode.scrollIntoView();
 			}
