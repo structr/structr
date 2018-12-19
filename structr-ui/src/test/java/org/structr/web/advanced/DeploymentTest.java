@@ -582,7 +582,7 @@ public class DeploymentTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Folder folder     = FileHelper.createFolderPath(securityContext, folderPath);
-			final File file         = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName);
+			final File file         = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName, true);
 			final Folder rootFolder = getRootFolder(folder);
 
 			Assert.assertNotNull("Root folder should not be null", rootFolder);
@@ -641,7 +641,7 @@ public class DeploymentTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Folder folder     = FileHelper.createFolderPath(securityContext, folderPath);
-			final File file     = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName);
+			final File file     = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName, true);
 			final Folder rootFolder = getRootFolder(folder);
 
 			Assert.assertNotNull("Root folder should not be null", rootFolder);
@@ -1049,8 +1049,8 @@ public class DeploymentTest extends StructrUiTest {
 			final Folder folder1  = app.create(Folder.class, new NodeAttribute<>(Folder.name, "Folder1"), new NodeAttribute<>(StructrApp.key(Folder.class, "includeInFrontendExport"), true));
 			final Folder folder2  = app.create(Folder.class, new NodeAttribute<>(Folder.name, "Folder2"), new NodeAttribute<>(StructrApp.key(Folder.class, "parent"), folder1));
 
-			final File file1  = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", File.class, "test1.txt");
-			final File file2  = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", File.class, "test2.txt");
+			final File file1  = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", File.class, "test1.txt", true);
+			final File file2  = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", File.class, "test2.txt", true);
 
 			file1.setParent(folder2);
 			file2.setParent(folder2);
@@ -1229,8 +1229,8 @@ public class DeploymentTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final File file1 = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName1);
-			final File file2 = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName2);
+			final File file1 = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName1, true);
+			final File file2 = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName2, true);
 
 			file1.setProperty(StructrApp.key(File.class, "visibleToPublicUsers"), true);
 			file1.setProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers"), true);
@@ -1840,7 +1840,7 @@ public class DeploymentTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface node = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", type, "test.txt");
+			final NodeInterface node = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", type, "test.txt", true);
 
 			node.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), true);
 			node.setProperty(test, "test");

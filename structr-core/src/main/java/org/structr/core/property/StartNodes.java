@@ -80,19 +80,13 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 
 		super(name);
 
-		try {
-
-			this.relation = relationClass.newInstance();
-
-		} catch (Throwable t) {
-			logger.warn("", t);
-		}
-
+		this.relation = Relation.getInstance(relationClass);
 		this.notion   = notion;
 		this.destType = relation.getSourceType();
 
 		this.notion.setType(destType);
 		this.notion.setRelationProperty(this);
+		this.relation.setSourceProperty(this);
 
 		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}

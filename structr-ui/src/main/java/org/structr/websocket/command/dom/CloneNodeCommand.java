@@ -107,7 +107,7 @@ public class CloneNodeCommand extends AbstractCommand {
 					
 					parent.insertBefore(clonedNode, nextSibling);
 					
-				} else {
+				} else if (parent != null) {
 					
 					parent.appendChild(clonedNode);
 				}

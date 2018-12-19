@@ -101,8 +101,8 @@ public class BasicAuthTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final File file1 = FileHelper.createFile(securityContext, "test1".getBytes(), "text/plain", File.class, "test1.txt");
-			final File file2 = FileHelper.createFile(securityContext, "test2".getBytes(), "text/plain", File.class, "test2.txt");
+			final File file1 = FileHelper.createFile(securityContext, "test1".getBytes(), "text/plain", File.class, "test1.txt", true);
+			final File file2 = FileHelper.createFile(securityContext, "test2".getBytes(), "text/plain", File.class, "test2.txt", true);
 
 			file1.setProperty(StructrApp.key(Page.class, "visibleToAuthenticatedUsers"), true);
 			file1.setProperty(StructrApp.key(Page.class, "enableBasicAuth"), true);
@@ -234,8 +234,8 @@ public class BasicAuthTest extends StructrUiTest {
 			final Page error = makeVisible(Page.createSimplePage(securityContext, "error"));
 			error.setProperty(StructrApp.key(Page.class, "showOnErrorCodes"), "401");
 
-			final File file1 = FileHelper.createFile(securityContext, "test1".getBytes(), "text/plain", File.class, "test1.txt");
-			final File file2 = FileHelper.createFile(securityContext, "test2".getBytes(), "text/plain", File.class, "test2.txt");
+			final File file1 = FileHelper.createFile(securityContext, "test1".getBytes(), "text/plain", File.class, "test1.txt", true);
+			final File file2 = FileHelper.createFile(securityContext, "test2".getBytes(), "text/plain", File.class, "test2.txt", true);
 
 			file1.setProperty(StructrApp.key(Page.class, "visibleToAuthenticatedUsers"), true);
 			file1.setProperty(StructrApp.key(Page.class, "enableBasicAuth"), true);

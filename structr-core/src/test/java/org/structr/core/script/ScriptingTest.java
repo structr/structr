@@ -53,6 +53,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
@@ -81,6 +82,8 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
 
@@ -2722,6 +2725,95 @@ public class ScriptingTest extends StructrTest {
 
 			// just run without an error, that's enough for this test
 			Scripting.evaluate(ctx, null, script, "test");
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testModifications() {
+
+		Settings.LogSchemaOutput.setValue(true);
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType customer = schema.addType("Customer");
+			final JsonObjectType project  = schema.addType("Project");
+			final JsonObjectType task     = schema.addType("Task");
+
+			// create relation
+			final JsonReferenceType rel = project.relate(task, "has", Cardinality.OneToMany, "project", "tasks");
+			rel.setName("ProjectTasks");
+
+			customer.relate(project, "project", Cardinality.OneToOne, "customer", "project");
+
+			customer.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.log('Customer'); Structr.log(mods); }", "");
+			project.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.log('Project'); Structr.log(mods); }", "");
+			task.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.log('Task'); Structr.log(mods); }", "");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class customer          = StructrApp.getConfiguration().getNodeEntityClass("Customer");
+		final Class project           = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final Class task              = StructrApp.getConfiguration().getNodeEntityClass("Task");
+		final PropertyKey tasksKey    = StructrApp.getConfiguration().getPropertyKeyForJSONName(project, "tasks");
+		final PropertyKey customerKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(project, "customer");
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(customer, "Testcustomer");
+			app.create(project, "Testproject");
+			app.create(task, new NodeAttribute<>(AbstractNode.name, "task1"));
+			app.create(task, new NodeAttribute<>(AbstractNode.name, "task2"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject c       = app.nodeQuery(customer).getFirst();
+			final GraphObject p       = app.nodeQuery(project).getFirst();
+			final List<GraphObject> t = app.nodeQuery(task).getAsList();
+
+			p.setProperty(AbstractNode.name, "newName");
+			p.setProperty(tasksKey, t);
+			p.setProperty(customerKey, c);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject p = app.nodeQuery(project).getFirst();
+
+			p.setProperty(customerKey, null);
+			p.setProperty(tasksKey, Arrays.asList(app.nodeQuery(task).getFirst()));
+
 			tx.success();
 
 		} catch (FrameworkException fex) {

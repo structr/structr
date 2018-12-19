@@ -348,6 +348,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				synchronized (tx) {
 
 					FileHelper.updateMetadata(thisFile, true);
+					File.increaseVersion(thisFile);
 
 					tx.success();
 				}
