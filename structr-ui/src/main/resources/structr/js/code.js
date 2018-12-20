@@ -34,6 +34,10 @@ $(document).ready(function() {
 
 var _Code = {
 	_moduleName: 'code',
+	pathLocationStack: [],
+	pathLocationIndex: 0,
+	searchThreshold: 3,
+	searchTextLength: 0,
 	init: function() {
 
 		_Logger.log(_LogType.CODE, '_Code.init');
@@ -50,7 +54,7 @@ var _Code = {
 
 		if (codeTree) {
 			codeTree.css({
-				height: windowHeight - headerOffsetHeight - 22 + 'px'
+				height: windowHeight - headerOffsetHeight - 27 + 'px'
 			});
 		}
 
@@ -108,6 +112,7 @@ var _Code = {
 		var contextWidth = 240;
 		var width        = $(window).width() - left - contextWidth - 80;
 
+		$('#tree-search-container').css({width: left - 14 + 'px'});
 		$('#code-tree').css({width: left - 14 + 'px'});
 		$('#code-contents').css({left: left + 8 + 'px', width: width + 'px'});
 		$('#code-context').css({left: left + width + 42 + 'px', width: contextWidth + 'px'});
@@ -121,7 +126,7 @@ var _Code = {
 			_Code.init();
 
 			codeMain     = $('#code-main');
-			codeTree     = $('#tree');
+			codeTree     = $('#code-tree');
 			codeContents = $('#code-contents');
 			codeContext  = $('#code-context');
 
@@ -147,9 +152,17 @@ var _Code = {
 			_Code.resize();
 			Structr.adaptUiToAvailableFeatures();
 
-			$('#tree-search-input').on('keyup', function(e) {
-				var text = $(this).val();
-				// implement search
+			$('#tree-search-input').on('input', _Code.doSearch);
+			$('#tree-forward-button').on('click', _Code.pathLocationForward);
+			$('#tree-back-button').on('click', _Code.pathLocationBackward);
+			$('#cancel-search-button').on('click', _Code.cancelSearch);
+
+			$(window).on('keydown.search', function(e) {
+				if (_Code.searchIsActive()) {
+					if (e.key === 'Escape') {
+						_Code.cancelSearch();
+					}
+				};
 			});
 		});
 
@@ -212,9 +225,7 @@ var _Code = {
 		});
 	},
 	refreshTree: function() {
-
 		_TreeHelper.refreshTree(codeTree);
-
 	},
 	treeInitFunction: function(obj, callback) {
 
@@ -222,7 +233,7 @@ var _Code = {
 
 			case '#':
 
-				var defaultFilesystemEntries = [
+				var defaultEntries = [
 					{
 						id: 'globals',
 						text: 'Global Methods',
@@ -255,7 +266,22 @@ var _Code = {
 					}
 				];
 
-				callback(defaultFilesystemEntries);
+				if (_Code.searchIsActive()) {
+
+					callback({
+						id: 'search-results',
+						text: 'Search Results',
+						children: true,
+						icon: 'fa fa-search',
+						state: {
+							opened: true
+						}
+					});
+
+				} else {
+
+					callback(defaultEntries);
+				}
 				break;
 
 			case 'root':
@@ -287,10 +313,12 @@ var _Code = {
 				if (entity.type === 'SchemaNode') {
 
 					var data     = { id: entity.id, type: entity.name, name: entity.name };
+					var isSearch = _Code.searchIsActive();
 					var children = [];
 
 					// build list of children for this type
-					{
+					if (!isSearch) {
+
 						children.push({
 							id: 'properties-' + entity.id,
 							text: 'Properties',
@@ -319,7 +347,7 @@ var _Code = {
 					list.push({
 						id: entity.id,
 						text:  entity.name ? entity.name : '[unnamed]',
-						children: children,
+						children: isSearch ? false : children,
 						icon: 'fa ' + icon,
 						data: {
 							type: entity.type,
@@ -374,6 +402,20 @@ var _Code = {
 
 		switch (id) {
 
+			case 'search-results':
+				{
+					var text          = $('#tree-search-input').val();
+					var searchResults = [];
+					var count         = 0;
+					var collectFunction = function(result) { result.forEach(function(r) { searchResults.push(r); }); if (++count === 6) { displayFunction(searchResults); }}
+					Command.query('SchemaNode',     methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
+					Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
+					Command.query('SchemaMethod',   methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
+					Command.query('SchemaMethod',   methodPageSize, methodPage, 'name', 'asc', { source: text}, collectFunction, false);
+					Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', { writeFunction: text}, collectFunction, false);
+					Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', { readFunction: text}, collectFunction, false);
+				}
+				break;
 			case 'custom':
 				Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', { isBuiltinType: false}, displayFunction, true);
 				break;
@@ -598,7 +640,7 @@ var _Code = {
 						e.preventDefault();
 						e.stopPropagation();
 						_Entities.deleteNode(codeDeleteButton, entity, false, function() {
-							_TreeHelper.refreshTree('#tree');
+							_TreeHelper.refreshTree('#code-tree');
 						});
 					});
 				}
@@ -703,7 +745,7 @@ var _Code = {
 			schemaNode: schemaNode,
 			source: ''
 		}, function() {
-			_TreeHelper.refreshTree('#tree');
+			_TreeHelper.refreshTree('#code-tree');
 			_Code.hideSchemaRecompileMessage();
 		});
 	},
@@ -754,7 +796,7 @@ var _Code = {
 			case 'Date':         icon = 'calendar'; break;
 			case "Double":       icon = 'superscript'; break;
 			case "Enum":         icon = 'list'; break;
-			case "Function":     icon = 'code-fork'; break;
+			case "Function":     icon = 'coffee'; break;
 			case 'Integer':      icon = 'calculator'; break;
 			case "Long":         icon = 'calculator'; break;
 			case 'String':       icon = 'pencil-square-o'; break;
@@ -836,12 +878,18 @@ var _Code = {
 		if (data && data.node && data.node.id) {
 
 			var selection = {
-				id: data.node.id
+				id: data.node.id,
+				updateLocationStack: true
 			};
 
 			if (data.node.data) {
 				selection.type = data.node.data.type;
 			}
+
+			if (data && data.event && data.event.updateLocationStack === false) {
+				selection.updateLocationStack = false;
+			}
+
 
 			_Code.handleSelection(selection);
 		}
@@ -903,7 +951,7 @@ var _Code = {
 				break;
 
 			case 'inherited':
-				_Code.findAndOpenNode('Types/Custom/' + identifier.extra + '/Properties/' + identifier.id);
+				_Code.findAndOpenNode('Types/Custom/' + identifier.extra + '/Properties/' + identifier.id, true);
 				break;
 
 			// other (click on an actual object)
@@ -924,7 +972,7 @@ var _Code = {
 
 				case 'SchemaMethod':
 					Command.get(data.id, null, function(result) {
-						_Code.updateRecentlyUsed(data, result);
+						_Code.updateRecentlyUsed(data, result, data.updateLocationStack);
 						Structr.fetchHtmlTemplate('code/method', { method: result }, function(html) {
 							codeContents.empty();
 							codeContents.append(html);
@@ -1011,6 +1059,7 @@ var _Code = {
 			_Code.displayCreatePropertyButton(id, 'Integer',  data, callback);
 			_Code.displayCreatePropertyButton(id, 'Long',     data, callback);
 			_Code.displayCreatePropertyButton(id, 'Double',   data, callback);
+			_Code.displayCreatePropertyButton(id, 'Enum',     data, callback);
 			_Code.displayCreatePropertyButton(id, 'Date',     data, callback);
 			_Code.displayCreatePropertyButton(id, 'Function', data, callback);
 			_Code.displayCreatePropertyButton(id, 'Cypher',   data, callback);
@@ -1051,7 +1100,7 @@ var _Code = {
 
 		Command.get(selection.id, null, function(result) {
 
-			_Code.updateRecentlyUsed(selection, result);
+			_Code.updateRecentlyUsed(selection, result, selection.updateLocationStack);
 
 			switch (result.propertyType) {
 				case 'Cypher':
@@ -1300,6 +1349,9 @@ var _Code = {
 	displayCreatePropertyButton: function(targetId, type, nodeData, callback) {
 		var data = Object.assign({}, nodeData);
 		data['propertyType'] = type;
+		if (type === 'Enum') {
+			data.format = 'value1, value2, value3';
+		}
 		_Code.displayCreateButton(targetId, _Code.getIconForPropertyType(type), type.toLowerCase(), '<b>' + type + '</b> property', '', data, callback);
 	},
 	getEditorModeForContent: function(content) {
@@ -1308,10 +1360,11 @@ var _Code = {
 		}
 		return 'text';
 	},
-	updateRecentlyUsed: function(selection, entity) {
+	updateRecentlyUsed: function(selection, entity, updateLocationStack) {
 
-		var name     = entity.name;
-		var id       = entity.id;
+		var path = _Code.getTreePath(selection.id, entity.name);
+		var name = entity.name;
+		var id   = entity.id;
 
 		switch (entity.type) {
 			case 'SchemaNode':
@@ -1321,16 +1374,21 @@ var _Code = {
 				if (entity.schemaNode && entity.schemaNode.name) {
 					name = entity.schemaNode.name + '.' + entity.name + '()';
 				} else {
-					name = 'Global method ' + entity.name + '()';
+					name = entity.name + '()';
 				}
 				break;
 			case 'SchemaProperty':
 				if (entity.schemaNode && entity.schemaNode.name) {
-					name = entity.propertyType + 'Property ' + entity.schemaNode.name + '.' + entity.name;
+					name = entity.schemaNode.name + '.' + entity.name;
 				}
 				break;
 		}
-		_Code.addRecentlyUsedElement(id, name, _Code.getIconForNodeType(entity), _Code.getTreePath(selection.id, entity.name));
+
+		_Code.addRecentlyUsedElement(id, name, _Code.getIconForNodeType(entity), path);
+
+		if (updateLocationStack) {
+			_Code.updatePathLocationStack(path);
+		}
 	},
 	addRecentlyUsedElement: function(id, name, icon, path, fromStorage) {
 		Structr.fetchHtmlTemplate('code/recently-used-button', { id: id, name: name, icon: icon }, function(html) {
@@ -1344,7 +1402,7 @@ var _Code = {
 				elem.remove();
 				ctx.append(html);
 				$('#recently-used-' + id).on('click.recently-used', function() {
-					_Code.findAndOpenNode(path);
+					_Code.findAndOpenNode(path, true);
 				});
 				$('#remove-recently-used-' + id).on('click.recently-used', function(e) {
 					e.stopPropagation();
@@ -1369,7 +1427,7 @@ var _Code = {
 	},
 	getTreePath: function(id, name) {
 		var path    = [ name ];
-		var tree    = $('#tree').jstree(true);
+		var tree    = $('#code-tree').jstree(true);
 		var current = id;
 
 		while (current) {
@@ -1390,11 +1448,11 @@ var _Code = {
 
 		return path.join('/');
 	},
-	findAndOpenNode: function(path) {
-		var tree = $('#tree').jstree(true);
-		_Code.findAndOpenNodeRecursive(tree, path, 0);
+	findAndOpenNode: function(path, updateLocationStack) {
+		var tree = $('#code-tree').jstree(true);
+		_Code.findAndOpenNodeRecursive(tree, path, 0, undefined, updateLocationStack);
 	},
-	findAndOpenNodeRecursive: function(tree, path, depth, node) {
+	findAndOpenNodeRecursive: function(tree, path, depth, node, updateLocationStack) {
 		var parts = path.split('/');
 		if (path.length === 0) { return; }
 		if (parts.length < 1) {	return; }
@@ -1414,18 +1472,28 @@ var _Code = {
 		if (tail.length === 0) {
 
 			// node found, activate
-			tree.activate_node(searchId);
+			tree.activate_node(searchId, { updateLocationStack: updateLocationStack });
 
 			// also scroll into view if node is in tree
 			var domNode = document.getElementById( tree.get_parent(tree.get_parent(searchId)) );
 			if (domNode) {
-				domNode.scrollIntoView();
+
+				var rect = domNode.getBoundingClientRect();
+				if (rect.bottom > window.innerHeight) {
+
+					domNode.scrollIntoView(false);
+				}
+
+				if (rect.top < 0) {
+					domNode.scrollIntoView();
+				}
+
 			}
 
 		} else {
 
 			tree.open_node(searchId, function(n) {
-				_Code.findAndOpenNodeRecursive(tree, tail, depth + 1, n);
+				_Code.findAndOpenNodeRecursive(tree, tail, depth + 1, n, updateLocationStack);
 			});
 		}
 	},
@@ -1480,5 +1548,91 @@ var _Code = {
 	},
 	hideSchemaRecompileMessage:  function() {
 		Structr.hideLoadingMessage();
+	},
+	updatePathLocationStack: function(path) {
+
+		var pos = _Code.pathLocationStack.indexOf(path);
+		if (pos >= 0) {
+
+			// remove existing element
+			_Code.pathLocationStack.splice(pos, 1);
+		}
+
+		// add element to the end of the stack
+		_Code.pathLocationStack.push(path);
+		_Code.pathLocationIndex = _Code.pathLocationStack.length - 1;
+
+		_Code.updatePathLocationButtons();
+	},
+	pathLocationForward: function() {
+
+		_Code.pathLocationIndex += 1;
+		var pos = _Code.pathLocationIndex;
+
+		_Code.updatePathLocationButtons();
+
+		if (pos >= 0 && pos < _Code.pathLocationStack.length) {
+
+			var path = _Code.pathLocationStack[pos];
+			_Code.findAndOpenNode(path, false);
+
+		} else {
+			_Code.pathLocationIndex -= 1;
+		}
+
+		_Code.updatePathLocationButtons();
+	},
+	pathLocationBackward: function() {
+
+		_Code.pathLocationIndex -= 1;
+		var pos = _Code.pathLocationIndex;
+
+		if (pos >= 0 && pos < _Code.pathLocationStack.length) {
+
+			var path = _Code.pathLocationStack[pos];
+			_Code.findAndOpenNode(path, false);
+
+		} else {
+
+			_Code.pathLocationIndex += 1;
+		}
+
+		_Code.updatePathLocationButtons();
+	},
+	updatePathLocationButtons: function() {
+
+		var stackSize       = _Code.pathLocationStack.length;
+		var forwardDisabled = stackSize <= 1 || _Code.pathLocationIndex >= stackSize - 1;
+		var backDisabled    = stackSize <= 1 || _Code.pathLocationIndex <= 0;
+
+		$('#tree-forward-button').prop('disabled', forwardDisabled);
+		$('#tree-back-button').prop('disabled', backDisabled);
+	},
+	doSearch: function(e) {
+		var tree      = $('#code-tree').jstree(true);
+		var input     = $('#tree-search-input');
+		var text      = input.val();
+		var threshold = _Code.searchThreshold;
+
+		if (text.length > threshold) {
+			$('#cancel-search-button').show();
+		} else {
+			$('#cancel-search-button').hide();
+		}
+
+		if (text.length > threshold || (_Code.searchTextLength > threshold && text.length <= _Code.searchTextLength)) {
+
+			tree.refresh();
+		}
+
+		_Code.searchTextLength = text.length;
+	},
+	searchIsActive: function() {
+		var text = $('#tree-search-input').val();
+		return text.length > _Code.searchThreshold;
+	},
+	cancelSearch: function() {
+		$('#tree-search-input').val('');
+		$('#tree-search-input').trigger('input');
 	}
 };

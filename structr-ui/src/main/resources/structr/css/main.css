@@ -1524,7 +1524,6 @@ button.action:hover {
 	margin: 8px 0;
 	padding: 0;
 	height: 22px;
-
 }
 
 #code-main .selected, #code-main .selected:hover,
@@ -1532,10 +1531,6 @@ button.action:hover {
 	color: #333 ! important;
 	border: 1px solid transparent ! important;
 	background-color: #81ce25 ! important;
-}
-
-#code-button-container, #flows-button-container {
-	min-height: 27px;
 }
 
 .node-helper {
@@ -3392,14 +3387,37 @@ td#cascading-options, td#propagation-options {
 }
 
 #tree-search-container {
-	margin: 0;
-	padding: 0;
+	position: relative;
+	overflow: auto;
+	vertical-align: top;
+	padding: 0 0 4px 0;
+}
+
+button#tree-back-button, button#tree-forward-button {
+	font-size: 8pt;
+	width: 25px;
+	height: 25px;
+	box-sizing: border-box;
+	text-align: center;
+	color: #81ce25;
+	background-color: #fff;
+}
+
+button#tree-back-button:disabled, button#tree-forward-button:disabled {
+	color: #999;
+}
+
+button#tree-forward-button {
+	padding: 0 !important;
+	margin-right: 0;
 }
 
 input#tree-search-input {
-	margin: 2px 8px;
+	margin: 0 4px 0 0;
 	font-size: 8pt;
-	width: calc(100% - 26px);
+	width: calc(100% - 63px);
+	height: 25px;
+	box-sizing: border-box;
 }
 
 #code-tree i.jstree-icon.gray, #flows-tree i.jstree-icon.gray {
@@ -3434,6 +3452,23 @@ input#tree-search-input {
 
 #folder-contents-container select.select-create-type {
 	min-width: 100px;
+}
+
+#code-button-container, #flows-button-container {
+	min-height: 27px;
+}
+
+#code-button-container {
+	margin-bottom: 8px;
+}
+
+#cancel-search-button {
+	position: absolute;
+	right: 38px;
+	top: 4px;
+	cursor: pointer;
+	z-index: 1000;
+	color: #aaa;
 }
 
 #code-button-container select, #code-button-container input {
@@ -3535,9 +3570,6 @@ input#tree-search-input {
 
 #code-contents #property-buttons button {
 	border: 1px solid #ddd;
-}
-
-.code-button-container {
 }
 
 #code-contents property-options {
