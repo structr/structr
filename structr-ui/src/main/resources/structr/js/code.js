@@ -282,29 +282,39 @@ var _Code = {
 
 			result.forEach(function(entity) {
 
-				var hasVisibleChildren = _Code.hasVisibleChildren(id, entity);
-				var icon               = _Code.getIconForNodeType(entity);
+				var icon = _Code.getIconForNodeType(entity);
 
 				if (entity.type === 'SchemaNode') {
 
 					var data     = { id: entity.id, type: entity.name, name: entity.name };
 					var children = [];
 
-					children.push({
-						id: 'properties-' + entity.id,
-						text: 'Properties',
-						children: true, //entity.schemaProperties.length > 0,
-						icon: 'fa fa-sliders gray',
-						data: data
-					});
+					// build list of children for this type
+					{
+						children.push({
+							id: 'properties-' + entity.id,
+							text: 'Properties',
+							children: entity.schemaProperties.length > 0,
+							icon: 'fa fa-sliders gray',
+							data: data
+						});
 
-					children.push({
-						id: 'methods-' + entity.id,
-						text: 'Methods',
-						children: entity.schemaMethods.length > 0,
-						icon: 'fa fa-code gray',
-						data: data
-					});
+						children.push({
+							id: 'methods-' + entity.id,
+							text: 'Methods',
+							children: entity.schemaMethods.length > 0,
+							icon: 'fa fa-code gray',
+							data: data
+						});
+
+						children.push({
+							id: 'inherited-' + entity.id,
+							text: 'Inherited properties',
+							children: true,
+							icon: 'fa fa-sliders gray',
+							data: data
+						});
+					}
 
 					list.push({
 						id: entity.id,
@@ -337,6 +347,7 @@ var _Code = {
 
 					} else {
 
+						var hasVisibleChildren = _Code.hasVisibleChildren(id, entity);
 						list.push({
 							id: entity.id,
 							text:  (entity.name ? entity.name : '[unnamed]') + (' (' + (entity.propertyType || '') + ')'),
@@ -350,6 +361,12 @@ var _Code = {
 
 					}
 				}
+			});
+
+			list.sort(function(a, b) {
+				if (a.text > b.text) { return 1; }
+				if (a.text < b.text) { return -1; }
+				return 0;
 			});
 
 			callback(list);
@@ -382,30 +399,38 @@ var _Code = {
 					case 'incoming':
 						Command.query('SchemaRelationshipNode', methodPageSize, methodPage, 'name', 'asc', {relatedTo: [identifier.id ]}, displayFunction, true, 'ui');
 						break;
+					case 'inherited':
+						Command.listSchemaProperties(identifier.id, 'custom', function(result) {
+							var filtered = result.filter(function(p) {
+								return p.declaringClass !== obj.data.type;
+							});
+							displayFunction(filtered.map(function(s) {
+								return {
+									id: 'inherited-' + s.declaringUuid + '-' + s.declaringClass + '-' + obj.data.type + '-' + s.name,
+									type: 'SchemaProperty',
+									name: s.declaringClass + '.' + s.name,
+									propertyType: s.declaringPropertyType ? s.declaringPropertyType : s.propertyType,
+									inherited: true
+								};
+							}));
+						});
+						break;
 					case 'properties':
 						Command.listSchemaProperties(identifier.id, 'custom', function(result) {
 							var filtered = result.filter(function(p) {
-								return p.declaringUuid && p.declaringClass !== 'GraphObject' && p.declaringClass !== 'NodeInterface' && p.declaringClass !== 'AbstractNode';
+								return p.declaringClass === obj.data.type
+									&& p.declaringClass !== 'GraphObject'
+									&& p.declaringClass !== 'NodeInterface'
+									&& p.declaringClass !== 'AbstractNode';
 							});
 							displayFunction(filtered.map(function(s) {
-								if (s.declaringClass === obj.data.type) {
-									return {
-										id: s.declaringUuid,
-										type: 'SchemaProperty',
-										name: s.name,
-										propertyType: s.declaringPropertyType,
-										inherited: false
-									};
-
-								} else {
-									return {
-										id: 'inherited-' + s.declaringUuid + '-' + s.declaringClass + '-' + obj.data.type,
-										type: 'SchemaProperty',
-										name: s.declaringClass + '.' + s.name,
-										propertyType: s.declaringPropertyType,
-										inherited: true
-									};
-								}
+								return {
+									id: s.declaringUuid || s.name,
+									type: 'SchemaProperty',
+									name: s.name,
+									propertyType: s.declaringPropertyType ? s.declaringPropertyType : s.propertyType,
+									inherited: false
+								};
 							}));
 						});
 						break;
@@ -733,7 +758,7 @@ var _Code = {
 			case 'Integer':      icon = 'calculator'; break;
 			case "Long":         icon = 'calculator'; break;
 			case 'String':       icon = 'pencil-square-o'; break;
-			default:             icon = 'sliders'; break;
+			default:             icon = 'chain'; break;
 		}
 
 		return icon;
@@ -878,7 +903,6 @@ var _Code = {
 				break;
 
 			case 'inherited':
-				console.log(identifier);
 				_Code.findAndOpenNode('Types/Custom/' + identifier.extra + '/Properties/' + identifier.id);
 				break;
 
@@ -1367,7 +1391,6 @@ var _Code = {
 		return path.join('/');
 	},
 	findAndOpenNode: function(path) {
-		console.log(path);
 		var tree = $('#tree').jstree(true);
 		_Code.findAndOpenNodeRecursive(tree, path, 0);
 	},
