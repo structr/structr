@@ -38,6 +38,7 @@ var _Code = {
 	pathLocationIndex: 0,
 	searchThreshold: 3,
 	searchTextLength: 0,
+	lastClickedPath: '',
 	init: function() {
 
 		_Logger.log(_LogType.CODE, '_Code.init');
@@ -137,6 +138,7 @@ var _Code = {
 			$.jstree.defaults.dnd.large_drop_target = true;
 
 			codeTree.on('select_node.jstree', _Code.handleTreeClick);
+			codeTree.on('refresh.jstree', _Code.activateLastClicked);
 
 			_Code.loadFavorites(function() {
 				_TreeHelper.initTree(codeTree, _Code.treeInitFunction, 'structr-ui-code');
@@ -301,22 +303,32 @@ var _Code = {
 
 		var id = obj.id;
 
-		var displayFunction = function (result) {
+		var displayFunction = function (result, count, isSearch) {
 
 			var list = [];
 
 			result.forEach(function(entity) {
 
-				var icon = _Code.getIconForNodeType(entity);
+				var icon     = _Code.getIconForNodeType(entity);
+				var treeName = entity.name || '[unnamed]';
+				var treeId   = entity.id;
+
+				if (isSearch) {
+					treeName = (entity.schemaNode ? entity.schemaNode.name + '.' : '') + entity.name;
+					treeId = entity.id + '-' + entity.id + '-search';
+				}
 
 				if (entity.type === 'SchemaNode') {
 
-					var data     = { id: entity.id, type: entity.name, name: entity.name };
-					var isSearch = _Code.searchIsActive();
+					var data     = {
+						id: entity.id,
+						type: entity.name,
+						name: entity.name
+					};
 					var children = [];
 
 					// build list of children for this type
-					if (!isSearch) {
+					{
 
 						children.push({
 							id: 'properties-' + entity.id,
@@ -344,9 +356,9 @@ var _Code = {
 					}
 
 					list.push({
-						id: entity.id,
-						text:  entity.name ? entity.name : '[unnamed]',
-						children: isSearch ? false : children,
+						id: treeId,
+						text:  treeName,
+						children: children,
 						icon: 'fa ' + icon,
 						data: {
 							type: entity.type,
@@ -359,8 +371,8 @@ var _Code = {
 					if (entity.inherited) {
 
 						list.push({
-							id: entity.id,
-							text:  (entity.name ? entity.name : '[unnamed]') + (' (' + (entity.propertyType || '') + ')'),
+							id: treeId,
+							text:  treeName + (' (' + (entity.propertyType || '') + ')'),
 							children: false,
 							icon: 'fa ' + icon,
 							li_attr: {
@@ -376,8 +388,8 @@ var _Code = {
 
 						var hasVisibleChildren = _Code.hasVisibleChildren(id, entity);
 						list.push({
-							id: entity.id,
-							text:  (entity.name ? entity.name : '[unnamed]') + (' (' + (entity.propertyType || '') + ')'),
+							id: treeId,
+							text:  treeName + (' (' + (entity.propertyType || '') + ')'),
 							children: hasVisibleChildren,
 							icon: 'fa ' + icon,
 							data: {
@@ -406,7 +418,7 @@ var _Code = {
 					var text          = $('#tree-search-input').val();
 					var searchResults = [];
 					var count         = 0;
-					var collectFunction = function(result) { result.forEach(function(r) { searchResults.push(r); }); if (++count === 6) { displayFunction(searchResults); }}
+					var collectFunction = function(result) { result.forEach(function(r) { searchResults.push(r); }); if (++count === 6) { displayFunction(searchResults, 0, true); }}
 					Command.query('SchemaNode',     methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
 					Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
 					Command.query('SchemaMethod',   methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
@@ -489,7 +501,10 @@ var _Code = {
 		fastRemoveAllChildren(codeContents[0]);
 		$('#code-button-container').empty();
 	},
-	displayMethodContents: function(id) {
+	displayMethodContents: function(identifier) {
+
+		var split = _Code.splitIdentifier(identifier);
+		var id    = split.id;
 
 		if (id === '#' || id === 'root' || id === 'favorites' || id === 'globals') {
 			return;
@@ -810,8 +825,7 @@ var _Code = {
 		if (parts.length >= 2) {
 
 			switch (parts.length) {
-				case 4:
-				case 3:
+				default:
 					var extra   = parts[2].trim();
 				case 2:
 					var entity  = parts[1].trim();
@@ -889,7 +903,6 @@ var _Code = {
 				selection.updateLocationStack = false;
 			}
 
-
 			_Code.handleSelection(selection);
 		}
 	},
@@ -961,6 +974,8 @@ var _Code = {
 	},
 	handleNodeObjectClick: function(data) {
 
+		var identifier = _Code.splitIdentifier(data.id);
+
 		if (data.type) {
 
 			switch (data.type) {
@@ -970,7 +985,7 @@ var _Code = {
 					break;
 
 				case 'SchemaMethod':
-					Command.get(data.id, null, function(result) {
+					Command.get(identifier.id, null, function(result) {
 						_Code.updateRecentlyUsed(data, result, data.updateLocationStack);
 						Structr.fetchHtmlTemplate('code/method', { method: result }, function(html) {
 							codeContents.empty();
@@ -981,7 +996,7 @@ var _Code = {
 					break;
 
 				case 'SchemaNode':
-					Command.get(data.id, null, function(result) {
+					Command.get(identifier.id, null, function(result) {
 						Structr.fetchHtmlTemplate('code/type', { type: result }, function(html) {
 
 							codeContents.empty();
@@ -1014,7 +1029,7 @@ var _Code = {
 
 		} else {
 
-			switch (data.id) {
+			switch (identifier.id) {
 
 				case 'globals':
 					_Code.displayCreateButtons(false, true, false, '');
@@ -1097,7 +1112,9 @@ var _Code = {
 	},
 	displayPropertyDetails: function(selection) {
 
-		Command.get(selection.id, null, function(result) {
+		var id = _Code.splitIdentifier(selection.id);
+
+		Command.get(id.id, null, function(result) {
 
 			_Code.updateRecentlyUsed(selection, result, selection.updateLocationStack);
 
@@ -1361,7 +1378,7 @@ var _Code = {
 	},
 	updateRecentlyUsed: function(selection, entity, updateLocationStack) {
 
-		var path = _Code.getTreePath(selection.id, entity.name);
+		var path = _Code.getPathForEntity(entity);
 		var name = entity.name;
 		var id   = entity.id;
 
@@ -1387,6 +1404,7 @@ var _Code = {
 
 		if (updateLocationStack) {
 			_Code.updatePathLocationStack(path);
+			_Code.lastClickedPath = path;
 		}
 	},
 	addRecentlyUsedElement: function(id, name, icon, path, fromStorage) {
@@ -1496,13 +1514,13 @@ var _Code = {
 			});
 		}
 	},
-	findNodeIdByText: function(data, text) {
+	findNodeIdByText: function(data, text, path) {
 
 		if (data && data.length) {
 
 			for (var i=0; i<data.length; i++) {
 
-				var result = _Code.findNodeIdByTextRecursive(data[i], text);
+				var result = _Code.findNodeIdByTextRecursive(data[i], text, path);
 				if (result) {
 
 					return result;
@@ -1511,10 +1529,10 @@ var _Code = {
 
 		} else {
 
-			return _Code.findNodeIdByTextRecursive(data, text);
+			return _Code.findNodeIdByTextRecursive(data, text, path);
 		}
 	},
-	findNodeIdByTextRecursive: function(data, text) {
+	findNodeIdByTextRecursive: function(data, text, path) {
 
 		if (data.data && data.data.name && data.data.name === text) {
 			return data.id;
@@ -1534,8 +1552,12 @@ var _Code = {
 			var children = data.children;
 			for (var i=0; i<children.length; i++) {
 
-				var result = _Code.findNodeIdByTextRecursive(children[i], text);
+				var result = _Code.findNodeIdByTextRecursive(children[i], text, path);
 				if (result) {
+
+					if (path) {
+						path.unshift(data.text);
+					}
 
 					return result;
 				}
@@ -1613,14 +1635,13 @@ var _Code = {
 		var text      = input.val();
 		var threshold = _Code.searchThreshold;
 
-		if (text.length > threshold) {
+		if (text.length >= threshold) {
 			$('#cancel-search-button').show();
 		} else {
 			$('#cancel-search-button').hide();
 		}
 
-		if (text.length > threshold || (_Code.searchTextLength > threshold && text.length <= _Code.searchTextLength)) {
-
+		if (text.length >= threshold || (_Code.searchTextLength >= threshold && text.length <= _Code.searchTextLength)) {
 			tree.refresh();
 		}
 
@@ -1628,10 +1649,49 @@ var _Code = {
 	},
 	searchIsActive: function() {
 		var text = $('#tree-search-input').val();
-		return text.length > _Code.searchThreshold;
+		return text.length >= _Code.searchThreshold;
 	},
 	cancelSearch: function() {
 		$('#tree-search-input').val('');
 		$('#tree-search-input').trigger('input');
+	},
+	activateLastClicked: function() {
+		_Code.findAndOpenNode(_Code.lastClickedPath);
+	},
+	getPathForEntity: function(entity) {
+
+		var path = [];
+
+		switch (entity.type) {
+
+			case 'SchemaNode':
+				path.push('Types');
+				path.push('Custom');
+				path.push(entity.name);
+				break;
+
+			case 'SchemaProperty':
+				path.push('Types');
+				path.push('Custom');
+				path.push(entity.schemaNode.name);
+				path.push('Properties');
+				path.push(entity.name);
+				break;
+
+			case 'SchemaMethod':
+				if (entity.schemaNode) {
+					path.push('Types');
+					path.push('Custom');
+					path.push(entity.schemaNode.name);
+					path.push('Methods');
+					path.push(entity.name);
+				} else {
+					path.push('Global Methods');
+					path.push(entity.name);
+				}
+				break;
+		}
+
+		return path.join('/');
 	}
 };

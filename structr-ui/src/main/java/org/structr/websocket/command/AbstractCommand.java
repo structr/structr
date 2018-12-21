@@ -143,7 +143,7 @@ public abstract class AbstractCommand {
 					return rel;
 				}
 			}
-			
+
 		} else {
 
 			logger.warn("Invalid UUID used for getGraphObject: {} is not a valid UUID.", id);
@@ -351,10 +351,15 @@ public abstract class AbstractCommand {
 	// ----- private methods -----
 	private boolean isValidUuid(final String id) {
 
-		if (id.length() != 32) {
-			return false;
+		if (id != null) {
+
+			if (id.length() != 32) {
+				return false;
+			}
+
+			return UUID_PATTERN.matcher(id).matches();
 		}
 
-		return UUID_PATTERN.matcher(id).matches();
+		return false;
 	}
 }
