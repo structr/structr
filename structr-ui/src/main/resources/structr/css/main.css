@@ -3393,7 +3393,7 @@ td#cascading-options, td#propagation-options {
 	padding: 0 0 4px 0;
 }
 
-button#tree-back-button, button#tree-forward-button {
+#tree-search-container button {
 	font-size: 8pt;
 	width: 25px;
 	height: 25px;
@@ -3403,8 +3403,12 @@ button#tree-back-button, button#tree-forward-button {
 	background-color: #fff;
 }
 
-button#tree-back-button:disabled, button#tree-forward-button:disabled {
+#tree-search-container button:disabled {
 	color: #999;
+}
+
+#tree-search-container button:hover {
+	border: 1px solid #ccc;
 }
 
 button#tree-forward-button {
@@ -3422,6 +3426,10 @@ input#tree-search-input {
 	box-sizing: border-box;
 }
 
+input#tree-search-input:focus {
+	border: 1px solid #ccc;
+}
+	
 #code-tree i.jstree-icon.gray, #flows-tree i.jstree-icon.gray {
 	color: #666;
 }
