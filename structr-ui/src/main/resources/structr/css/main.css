@@ -3408,6 +3408,8 @@ button#tree-back-button:disabled, button#tree-forward-button:disabled {
 }
 
 button#tree-forward-button {
+	position: absolute;
+	right: 0;
 	padding: 0 !important;
 	margin-right: 0;
 }
