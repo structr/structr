@@ -33,6 +33,7 @@ import java.util.Random;
 import org.apache.commons.lang3.StringUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
@@ -2822,4 +2823,170 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 	}
+
+	@Test
+	public void testScriptCodeWithWhitespace() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			createTestType(schema, "Test1", " 	 set(this, 'c', 'passed')  ",   "    	set(this, 's', 'passed')	", "StructrScript with whitespace");
+			createTestType(schema, "Test2", "set(this, 'c', 'passed')",             "set(this, 's', 'passed')",                "StructrScript without whitespace");
+			createTestType(schema, "Test3", "   { Structr.this.c = 'passed'; }   ", "   { Structr.this.s = 'passed'; }   ",    "JavaScript with whitespace");
+			createTestType(schema, "Test4", "{ Structr.this.c = 'passed'; }",       "{ Structr.this.s = 'passed'; }",          "JavaScript without whitespace");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class type1 = StructrApp.getConfiguration().getNodeEntityClass("Test1");
+		final Class type2 = StructrApp.getConfiguration().getNodeEntityClass("Test2");
+		final Class type3 = StructrApp.getConfiguration().getNodeEntityClass("Test3");
+		final Class type4 = StructrApp.getConfiguration().getNodeEntityClass("Test4");
+
+		// test onCreate
+		try (final Tx tx = app.tx()) {
+
+			app.create(type1, "test1");
+			app.create(type2, "test2");
+			app.create(type3, "test3");
+			app.create(type4, "test4");
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test onCreate
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject test1 = app.nodeQuery(type1).getFirst();
+                        final GraphObject test2 = app.nodeQuery(type2).getFirst();
+			final GraphObject test3 = app.nodeQuery(type3).getFirst();
+                        final GraphObject test4 = app.nodeQuery(type4).getFirst();
+
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", (String)test1.getProperty("c"));
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", (String)test2.getProperty("c"));
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", (String)test3.getProperty("c"));
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", (String)test4.getProperty("c"));
+
+			assertNull("onSave method called for creation", test1.getProperty("s"));
+			assertNull("onSave method called for creation", test2.getProperty("s"));
+			assertNull("onSave method called for creation", test3.getProperty("s"));
+			assertNull("onSave method called for creation", test4.getProperty("s"));
+
+			test1.setProperty(AbstractNode.name, "modified");
+			test2.setProperty(AbstractNode.name, "modified");
+			test3.setProperty(AbstractNode.name, "modified");
+			test4.setProperty(AbstractNode.name, "modified");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test onSave
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject test1 = app.nodeQuery(type1).getFirst();
+                        final GraphObject test2 = app.nodeQuery(type2).getFirst();
+			final GraphObject test3 = app.nodeQuery(type3).getFirst();
+                        final GraphObject test4 = app.nodeQuery(type4).getFirst();
+
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", (String)test1.getProperty("s"));
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", (String)test2.getProperty("s"));
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", (String)test3.getProperty("s"));
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", (String)test4.getProperty("s"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test actions
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "	 ${ 'passed' }	 ",    "StructrScript with whitespace"));
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "${ 'passed' }",                "StructrScript without whitespace"));
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "  ${{ return 'passed'; }}   ", "JavaScript with whitespace"));
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "${{ return 'passed'; }}",      "JavaScript without whitespace"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	// ----- private methods ----
+	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource, final String comment) {
+
+		final JsonType test1    = schema.addType(name);
+
+		test1.addStringProperty("c");
+		test1.addStringProperty("s");
+
+		test1.addMethod("onCreation",     createSource, comment);
+		test1.addMethod("onModification", saveSource, comment);
+
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
