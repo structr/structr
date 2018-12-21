@@ -120,10 +120,14 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 
 								try {
 
-									final SchemaProperty schemaProperty = StructrApp.getInstance().get(SchemaProperty.class, declaringUuid);
-									if (schemaProperty != null) {
+									final GraphObject declaringEntity = StructrApp.getInstance().get(AbstractNode.class, declaringUuid);
+									if (declaringEntity != null) {
 
-										property.put(new GenericProperty("declaringPropertyType"), schemaProperty.getPropertyType().name());
+										if (declaringEntity instanceof SchemaProperty) {
+
+											final SchemaProperty schemaProperty = (SchemaProperty)declaringEntity;
+											property.put(new GenericProperty("declaringPropertyType"), schemaProperty.getPropertyType().name());
+										}
 									}
 
 								} catch (FrameworkException ignore) {}

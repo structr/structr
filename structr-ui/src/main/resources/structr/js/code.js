@@ -246,18 +246,7 @@ var _Code = {
 						text: 'Types',
 						children: [
 							{ id: 'custom', text: 'Custom', children: true, icon: _Icons.folder_icon },
-							{
-								id: 'builtin',
-								text: 'Built-In',
-								children: [
-									{ id: 'core', text: 'Core', children: true, icon: _Icons.folder_icon },
-									{ id: 'ui',  text: 'Ui',  children: [
-										{ id: 'web', text: 'Pages', children: true, icon: _Icons.folder_icon },
-										{ id: 'html', text: 'Html', children: true, icon: _Icons.folder_icon }
-									], icon: _Icons.folder_icon }
-								],
-								icon: _Icons.folder_icon
-							},
+							{ id: 'builtin', text: 'Built-In', children: true, icon: _Icons.folder_icon }
 						],
 						icon: _Icons.structr_logo_small,
 						path: '/',
@@ -308,6 +297,11 @@ var _Code = {
 			var list = [];
 
 			result.forEach(function(entity) {
+
+				// skip HTML entities
+				if (entity.category && entity.category === 'html') {
+					return;
+				}
 
 				var icon     = _Code.getIconForNodeType(entity);
 				var treeName = entity.name || '[unnamed]';
@@ -430,14 +424,8 @@ var _Code = {
 			case 'custom':
 				Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', { isBuiltinType: false}, displayFunction, true);
 				break;
-			case 'core':
-				Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', { isBuiltinType: true, isAbstract:false, category: 'core' }, displayFunction, false);
-				break;
-			case 'web':
-				Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', { isBuiltinType: true, isAbstract:false, category: 'ui' }, displayFunction, false);
-				break;
-			case 'html':
-				Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', { isBuiltinType: true, isAbstract:false, category: 'html' }, displayFunction, false);
+			case 'builtin':
+				Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', { isBuiltinType: true }, displayFunction, false);
 				break;
 			case 'globals':
 				Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: null}, displayFunction, true, 'ui');
@@ -986,7 +974,7 @@ var _Code = {
 
 				case 'SchemaMethod':
 					Command.get(identifier.id, null, function(result) {
-						_Code.updateRecentlyUsed(data, result, data.updateLocationStack);
+						_Code.updateRecentlyUsed(result, data.updateLocationStack);
 						Structr.fetchHtmlTemplate('code/method', { method: result }, function(html) {
 							codeContents.empty();
 							codeContents.append(html);
@@ -1116,7 +1104,7 @@ var _Code = {
 
 		Command.get(id.id, null, function(result) {
 
-			_Code.updateRecentlyUsed(selection, result, selection.updateLocationStack);
+			_Code.updateRecentlyUsed(result, selection.updateLocationStack);
 
 			switch (result.propertyType) {
 				case 'Cypher':
@@ -1132,7 +1120,9 @@ var _Code = {
 					_Code.displayBooleanPropertyDetails(result);
 					break;
 				default:
-					_Code.displayDefaultPropertyDetails(result);
+					if (result.propertyType) {
+						_Code.displayDefaultPropertyDetails(result);
+					}
 					break;
 			}
 		});
@@ -1376,7 +1366,7 @@ var _Code = {
 		}
 		return 'text';
 	},
-	updateRecentlyUsed: function(selection, entity, updateLocationStack) {
+	updateRecentlyUsed: function(entity, updateLocationStack) {
 
 		var path = _Code.getPathForEntity(entity);
 		var name = entity.name;
@@ -1660,19 +1650,30 @@ var _Code = {
 	},
 	getPathForEntity: function(entity) {
 
+		console.log(entity);
+
+		var getPathComponent = function(e) {
+
+			if (e && e.isBuiltinType) {
+				return 'Built-In';
+			};
+
+			return 'Custom';
+		}
+
 		var path = [];
 
 		switch (entity.type) {
 
 			case 'SchemaNode':
 				path.push('Types');
-				path.push('Custom');
+				path.push(getPathComponent(entity));
 				path.push(entity.name);
 				break;
 
 			case 'SchemaProperty':
 				path.push('Types');
-				path.push('Custom');
+				path.push(getPathComponent(entity.schemaNode));
 				path.push(entity.schemaNode.name);
 				path.push('Properties');
 				path.push(entity.name);
@@ -1681,7 +1682,7 @@ var _Code = {
 			case 'SchemaMethod':
 				if (entity.schemaNode) {
 					path.push('Types');
-					path.push('Custom');
+					path.push(getPathComponent(entity.schemaNode));
 					path.push(entity.schemaNode.name);
 					path.push('Methods');
 					path.push(entity.name);
@@ -1692,6 +1693,8 @@ var _Code = {
 				break;
 		}
 
-		return path.join('/');
+		var result = path.join('/');
+		console.log(result);
+		return result;
 	}
 };

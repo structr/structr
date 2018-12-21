@@ -60,7 +60,7 @@ import org.structr.schema.action.ActionEntry;
 public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	public static final Property<Iterable<SchemaMethodParameter>> parameters = new EndNodes<>("parameters", SchemaMethodParameters.class);
-	public static final Property<AbstractSchemaNode> schemaNode              = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<AbstractSchemaNode> schemaNode              = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType));
 	public static final Property<String>             signature               = new StringProperty("signature").indexed();
 	public static final Property<String>             virtualFileName         = new StringProperty("virtualFileName").indexed();
 	public static final Property<String>             returnType              = new StringProperty("returnType").indexed();
