@@ -112,7 +112,6 @@ var _Code = {
 		var contextWidth = 240;
 		var width        = $(window).width() - left - contextWidth - 80;
 
-		$('#tree-search-container').css({width: left - 14 + 'px'});
 		$('#code-tree').css({width: left - 14 + 'px'});
 		$('#code-contents').css({left: left + 8 + 'px', width: width + 'px'});
 		$('#code-context').css({left: left + width + 42 + 'px', width: contextWidth + 'px'});
