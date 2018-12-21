@@ -377,7 +377,11 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		final SchemaMethod method = StructrApp.getInstance().get(SchemaMethod.class, uuid);
 		if (method != null) {
 
-			return "${" + method.getProperty(SchemaMethod.source) + "}";
+			final String source = method.getProperty(SchemaMethod.source);
+			if (source != null) {
+
+				return "${" + source.trim() + "}";
+			}
 		}
 
 		return "";
