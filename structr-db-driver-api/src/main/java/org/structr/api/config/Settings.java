@@ -71,6 +71,7 @@ public class Settings {
 	public static final Setting<Boolean> LogSchemaOutput      = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log",           false);
 	public static final Setting<Boolean> LogSchemaErrors      = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log.errors",    false);
 	public static final Setting<Boolean> RequestLogging       = new BooleanSetting(generalGroup,            "Logging",     "log.requests",               false);
+	public static final Setting<Boolean> DebugLogging         = new BooleanSetting(generalGroup,            "Logging",     "log.debug",                  false, "Controls the behaviour of the debug() function. If disabled, the debug() function behaves like a NOP. If enabled, it behaves exactly like the log() function.");
 	public static final Setting<String> LogPrefix             = new StringSetting(generalGroup,             "Logging",     "log.prefix",                 "structr");
 	public static final Setting<String> LogName               = new StringSetting(generalGroup,             "Logging",     "log.name",                   "structr-yyyy_mm_dd.request.log");
 	public static final Setting<String> Configuration         = new StringSetting(generalGroup,             "hidden",      "configuration.provider",     "org.structr.module.JarConfigurationProvider");
@@ -137,8 +138,8 @@ public class Settings {
 	public static final Setting<Boolean> FilesystemEnabled        = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.enabled",              false);
 	public static final Setting<Boolean> UniquePaths              = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.unique.paths",         true);
 	public static final Setting<String> DefaultChecksums          = new StringSetting(applicationGroup,  "Filesystem",   "application.filesystem.checksums.default",    "", "List of checksums to be calculated on file creation by default.");
-	public static final Setting<Integer> IndexingMaxFileSize      = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.maxsize",     10);
-	public static final Setting<Integer> IndexingLimit            = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.limit",       50000);
+	public static final Setting<Integer> IndexingMaxFileSize      = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.maxsize",     10, "Maximum size (MB) of a file to be indexed");
+	public static final Setting<Integer> IndexingLimit            = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.limit",       50000, "Maximum number of words to be indexed");
 	public static final Setting<Integer> IndexingMinLength        = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.minlength",   3);
 	public static final Setting<Integer> IndexingMaxLength        = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.maxlength",   30);
 	public static final Setting<Boolean> FollowSymlinks           = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.mount.followSymlinks", true);

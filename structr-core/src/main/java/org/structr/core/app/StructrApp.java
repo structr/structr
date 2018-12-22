@@ -496,6 +496,10 @@ public class StructrApp implements App {
 	}
 
 	public static <T> PropertyKey<T> key(final Class type, final String name) {
+		return StructrApp.key(type, name, true);
+	}
+
+	public static <T> PropertyKey<T> key(final Class type, final String name, final boolean logMissing) {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		PropertyKey<T> key                 = config.getPropertyKeyForJSONName(type, name, false);
@@ -524,9 +528,9 @@ public class StructrApp implements App {
 			return key;
 		}
 
-		logger.warn("Unknown property key {}.{}!", type.getSimpleName(), name);
-
-		Thread.dumpStack();
+		if (logMissing) {
+			logger.warn("Unknown property key {}.{}!", type.getSimpleName(), name);
+		}
 
 		return null;
 	}

@@ -36,6 +36,7 @@ public interface Schema {
 	public PropertyContainer getPropertyContainer();
 	public String getClassName();
 	public String getSuperclassName();
+	public String getUuid();
 
 	public Iterable<SchemaProperty> getSchemaProperties();
 	public Iterable<SchemaView> getSchemaViews();

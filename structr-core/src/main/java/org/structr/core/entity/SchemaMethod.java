@@ -21,8 +21,8 @@ package org.structr.core.entity;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
-import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -41,11 +41,13 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaMethodParameters;
 import org.structr.core.entity.relationship.SchemaNodeMethod;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper;
@@ -58,7 +60,7 @@ import org.structr.schema.action.ActionEntry;
 public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	public static final Property<Iterable<SchemaMethodParameter>> parameters = new EndNodes<>("parameters", SchemaMethodParameters.class);
-	public static final Property<AbstractSchemaNode> schemaNode              = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<AbstractSchemaNode> schemaNode              = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType));
 	public static final Property<String>             signature               = new StringProperty("signature").indexed();
 	public static final Property<String>             virtualFileName         = new StringProperty("virtualFileName").indexed();
 	public static final Property<String>             returnType              = new StringProperty("returnType").indexed();
@@ -70,6 +72,10 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<Boolean>            doExport                = new BooleanProperty("doExport").indexed();
 	public static final Property<String>             codeType                = new StringProperty("codeType").indexed();
 	public static final Property<Boolean>            isPartOfBuiltInSchema   = new BooleanProperty("isPartOfBuiltInSchema").indexed();
+
+	private static final Set<PropertyKey> schemaRebuildTriggerKeys = new LinkedHashSet<>(Arrays.asList(
+		name, parameters, schemaNode, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema
+	));
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
 		name, schemaNode, source, comment, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema
@@ -88,6 +94,9 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 		final ActionEntry entry                  = new ActionEntry("___" + SchemaHelper.cleanPropertyName(getProperty(AbstractNode.name)), getProperty(SchemaMethod.source), getProperty(SchemaMethod.codeType));
 		final List<SchemaMethodParameter> params = Iterables.toList(getProperty(parameters));
+
+		// add UUID
+		entry.setSourceUuid(getUuid());
 
 		// Parameters must be sorted by index
 		Collections.sort(params, new GraphObjectComparator(SchemaMethodParameter.index, false));
@@ -123,6 +132,34 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	public boolean isJava() {
 		return "java".equals(getProperty(codeType));
+	}
+
+	@Override
+	public boolean reloadSchemaOnCreate() {
+		return true;
+	}
+
+	@Override
+	public boolean reloadSchemaOnModify(final ModificationQueue modificationQueue) {
+
+		if (isJava()) {
+			return true;
+		}
+
+		final Set<PropertyKey> modifiedProperties = modificationQueue.getModifiedProperties();
+		for (final PropertyKey triggerKey : schemaRebuildTriggerKeys) {
+
+			if (modifiedProperties.contains(triggerKey)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean reloadSchemaOnDelete() {
+		return true;
 	}
 
 	// ----- private methods -----
@@ -332,5 +369,21 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		}
 
 		return "<" + StringUtils.join(typeParameterNames, ", ") + "> ";
+	}
+
+	// ----- private static methods -----
+	public static String getCachedSourceCode(final String uuid) throws FrameworkException {
+
+		final SchemaMethod method = StructrApp.getInstance().get(SchemaMethod.class, uuid);
+		if (method != null) {
+
+			final String source = method.getProperty(SchemaMethod.source);
+			if (source != null) {
+
+				return "${" + source.trim() + "}";
+			}
+		}
+
+		return "";
 	}
 }

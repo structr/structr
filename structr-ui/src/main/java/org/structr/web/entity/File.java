@@ -348,6 +348,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				synchronized (tx) {
 
 					FileHelper.updateMetadata(thisFile, true);
+					File.increaseVersion(thisFile);
 
 					tx.success();
 				}
@@ -799,13 +800,14 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		if (newParent != null && !newParent.equals(previousParent)) {
 
-			newFile = newParent.getFileOnDisk(thisFile, "", true);
+			newFile = newParent.getFileOnDisk(thisFile, "", false);
 		}
 
-		if (previousFile != null && newFile != null && !previousFile.equals(newFile)) {
+		if (previousFile != null && previousFile.exists() && newFile != null && !newFile.exists() && !previousFile.equals(newFile)) {
 
 			try {
 
+				logger.info("Moving file {} from {} to {}..", previousFile, previousParent, newFile);
 				Files.move(previousFile, newFile);
 
 			} catch (IOException ioex) {

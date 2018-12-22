@@ -69,8 +69,9 @@ public class EnumPropertyParser extends PropertySourceGenerator {
 	@Override
 	public void parseFormatString(final Map<String, SchemaNode> schemaNodes, final Schema entity, String expression) throws FrameworkException {
 
-		final String[] enumTypes = expression.split("[, ]+");
-		if (StringUtils.isNotBlank(expression) && enumTypes.length > 0) {
+		if (StringUtils.isNotBlank(expression)) {
+
+			final String[] enumTypes = expression.split("[, ]+");
 
 			enumTypeName = StringUtils.capitalize(getSourcePropertyName());
 

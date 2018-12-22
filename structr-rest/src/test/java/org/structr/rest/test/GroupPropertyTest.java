@@ -195,9 +195,9 @@ public class GroupPropertyTest extends StructrRestTest {
 			.when()
 				.get(concat("/test_group_prop_four/?facebook.uid=11111"));
 
+		String test06 = createEntity("/test_group_prop_four","{facebook:{uid:33333},twitter:{uid:22222}}");
 		String test04 = createEntity("/test_group_prop_four","{facebook:{uid:11111},twitter:{uid:22222}}");
 		String test05 = createEntity("/test_group_prop_four","{facebook:{uid:22222},twitter:{uid:11111}}");
-		String test06 = createEntity("/test_group_prop_four","{facebook:{uid:33333},twitter:{uid:22222}}");
 		String test07 = createEntity("/test_group_prop_four","{facebook:{uid:33333},twitter:{uid:33333}}");
 
 		// find facebook AND Twitter with uid 11111
@@ -224,7 +224,7 @@ public class GroupPropertyTest extends StructrRestTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 
 			.expect()
 				.statusCode(200)

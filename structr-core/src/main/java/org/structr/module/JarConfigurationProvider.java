@@ -66,7 +66,6 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.GenericProperty;
-import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
@@ -593,21 +592,25 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			for (final Map.Entry<Field, View> entry : views.entrySet()) {
 
-				final Field field = entry.getKey();
-				final View view = entry.getValue();
+				final Field field        = entry.getKey();
+				final View view          = entry.getValue();
+				final PropertyKey[] keys = view.properties();
 
-				for (final PropertyKey propertyKey : view.properties()) {
+				// register field in view for entity class and declaring superclass
+				registerPropertySet(field.getDeclaringClass(), view.name(), keys);
+				registerPropertySet(type, view.name(), keys);
 
-					// register field in view for entity class and declaring superclass
-					registerPropertySet(field.getDeclaringClass(), view.name(), propertyKey);
-					registerPropertySet(type, view.name(), propertyKey);
+				for (final PropertyKey propertyKey : keys) {
 
 					// replace field in any other view of this type (not superclass!)
 					for (final Map.Entry<Field, View> other : views.entrySet()) {
-						for (final Property property : other.getValue().properties()) {
-							if (propertyKey.jsonName().equals(property.jsonName())) {
-								registerPropertySet(type, other.getValue().name(), propertyKey);
-							}
+
+						final View otherView = other.getValue();
+
+						final Set<PropertyKey> otherKeys = getPropertyViewMapForType(type).get(otherView.name());
+						if (otherKeys != null && otherKeys.contains(propertyKey)) {
+
+							replaceKeyInSet(otherKeys, propertyKey);
 						}
 					}
 				}
@@ -866,7 +869,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	public void registerPropertySet(final Class type, final String propertyView, final String propertyName) {
 
 		this.registerPropertySet(type, propertyView, this.getPropertyKeyForJSONName(type, propertyName));
-
 	}
 
 	@Override
@@ -1534,6 +1536,25 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		}
 
 		return transformations;
+	}
+
+	private void replaceKeyInSet(final Set<PropertyKey> set, final PropertyKey key) {
+
+		final List<PropertyKey> list = new LinkedList<>(set);
+
+		set.clear();
+
+		for (final PropertyKey existingKey : list) {
+
+			if (existingKey.equals(key)) {
+
+				set.add(key);
+
+			} else {
+
+				set.add(existingKey);
+			}
+		}
 	}
 
 	public void printCacheStats() {

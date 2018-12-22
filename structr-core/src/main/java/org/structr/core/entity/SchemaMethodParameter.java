@@ -19,6 +19,7 @@
 package org.structr.core.entity;
 
 import org.structr.core.entity.relationship.SchemaMethodParameters;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
@@ -37,4 +38,18 @@ public class SchemaMethodParameter extends SchemaReloadingNode {
 		return getProperty(parameterType);
 	}
 
+	@Override
+	public boolean reloadSchemaOnCreate() {
+		return true;
+	}
+
+	@Override
+	public boolean reloadSchemaOnModify(final ModificationQueue modificationQueue) {
+		return true;
+	}
+
+	@Override
+	public boolean reloadSchemaOnDelete() {
+		return true;
+	}
 }

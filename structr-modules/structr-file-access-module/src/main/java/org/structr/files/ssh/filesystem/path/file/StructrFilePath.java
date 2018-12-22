@@ -47,7 +47,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.files.ssh.filesystem.StructrFileAttributes;
-import org.structr.files.ssh.filesystem.StructrFileChannel;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
 import org.structr.web.common.FileHelper;
@@ -165,7 +164,8 @@ public class StructrFilePath extends StructrPath {
 
 					final File file = (File)actualFile;
 
-					channel = new StructrFileChannel(file.getOutputStream(true, !truncate || append));
+					//channel = new StructrFileChannel(file.getOutputStream(true, !truncate || append));
+					channel = file.getOutputStream(true, !truncate || append).getChannel();
 				}
 
 				tx.success();
@@ -376,7 +376,7 @@ public class StructrFilePath extends StructrPath {
 		final String name        = getFileName().toString();
 		final byte[] data        = new byte[0];
 		final String contentType = null;
-		final File file      = FileHelper.createFile(fs.getSecurityContext(), data, contentType, File.class, name);
+		final File file          = FileHelper.createFile(fs.getSecurityContext(), data, contentType, File.class, name, false);
 
 		// cache newly created file
 		this.cachedActualFile = file;

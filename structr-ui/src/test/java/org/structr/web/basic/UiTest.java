@@ -593,7 +593,7 @@ public class UiTest extends StructrUiTest {
 					final byte[] content  = fileEntry.getValue();
 
 					try {
-						final File file = FileHelper.createFile(securityContext, content, null, File.class, fileName);
+						final File file = FileHelper.createFile(securityContext, content, null, File.class, fileName, true);
 						assertEquals("MIME type detection failed", mimeType, file.getContentType());
 
 					} catch (IOException ioex) {
@@ -660,7 +660,7 @@ public class UiTest extends StructrUiTest {
 					final byte[] content  = fileEntry.getValue();
 
 					try {
-						final File file = FileHelper.createFile(securityContext, content, null, File.class, fileName);
+						final File file = FileHelper.createFile(securityContext, content, null, File.class, fileName, true);
 						assertEquals("MIME type detection failed for " + fileName, mimeType, file.getContentType());
 
 					} catch (IOException ioex) {

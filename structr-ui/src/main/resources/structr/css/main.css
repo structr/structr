@@ -1524,7 +1524,6 @@ button.action:hover {
 	margin: 8px 0;
 	padding: 0;
 	height: 22px;
-
 }
 
 #code-main .selected, #code-main .selected:hover,
@@ -1532,10 +1531,6 @@ button.action:hover {
 	color: #333 ! important;
 	border: 1px solid transparent ! important;
 	background-color: #81ce25 ! important;
-}
-
-#code-button-container, #flows-button-container {
-	min-height: 27px;
 }
 
 .node-helper {
@@ -3175,7 +3170,7 @@ td#cascading-options, td#propagation-options {
 }
 
 .CodeMirror-hint {
-	max-width: 480px;
+	max-width: 600px;
 }
 
 #fruchterman-controlElement {
@@ -3391,6 +3386,50 @@ td#cascading-options, td#propagation-options {
 	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
 }
 
+#tree-search-container {
+	position: relative;
+	overflow: auto;
+	vertical-align: top;
+	padding: 0 0 4px 0;
+}
+
+#tree-search-container button {
+	font-size: 8pt;
+	width: 25px;
+	height: 25px;
+	box-sizing: border-box;
+	text-align: center;
+	color: #81ce25;
+	background-color: #fff;
+}
+
+#tree-search-container button:disabled {
+	color: #999;
+}
+
+#tree-search-container button:hover {
+	border: 1px solid #ccc;
+}
+
+button#tree-forward-button {
+	position: absolute;
+	right: 0;
+	padding: 0 !important;
+	margin-right: 0;
+}
+
+input#tree-search-input {
+	margin: 0 4px 0 0;
+	font-size: 8pt;
+	width: calc(100% - 63px);
+	height: 25px;
+	box-sizing: border-box;
+}
+
+input#tree-search-input:focus {
+	border: 1px solid #ccc;
+}
+	
 #code-tree i.jstree-icon.gray, #flows-tree i.jstree-icon.gray {
 	color: #666;
 }
@@ -3403,7 +3442,7 @@ td#cascading-options, td#propagation-options {
 	color: #000088;
 }
 
-#folder-contents-container, #code-contents-container, #contents-contents-container, #crawler-list-container, #flows-canvas-container {
+#folder-contents-container, #code-contents-container, #contents-contents-container, #crawler-list-container, #flows-canvas-container, #code-context-container {
 	display: table-cell;
 	vertical-align: top;
 	padding: 12px 12px 12px 8px;
@@ -3425,6 +3464,23 @@ td#cascading-options, td#propagation-options {
 	min-width: 100px;
 }
 
+#code-button-container, #flows-button-container {
+	min-height: 27px;
+}
+
+#code-button-container {
+	margin-bottom: 8px;
+}
+
+#cancel-search-button {
+	position: absolute;
+	right: 38px;
+	top: 4px;
+	cursor: pointer;
+	z-index: 1000;
+	color: #aaa;
+}
+
 #code-button-container select, #code-button-container input {
 	min-width: 100px;
 }
@@ -3442,13 +3498,24 @@ td#cascading-options, td#propagation-options {
 	height: 22px;
 }
 
-#folder-contents, #code-contents, #contents-contents, #crawler-list, #flows-canvas {
+#folder-contents, #contents-contents, #crawler-list, #flows-canvas {
 	vertical-align: top;
 	background-color: #fff;
 	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
 	border: 1px solid rgba(0,0,0,.125);
 	padding: 12px;
 	margin-top: 8px;
+	overflow: auto;
+	font-size: 9pt;
+	position: absolute;
+}
+
+#code-contents, #code-context {
+	vertical-align: top;
+	background-color: #fff;
+	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
+	border: 1px solid rgba(0,0,0,.125);
+	padding: 12px;
 	overflow: auto;
 	font-size: 9pt;
 	position: absolute;
@@ -3491,6 +3558,57 @@ td#cascading-options, td#propagation-options {
 
 #folder-contents td.file-type, #code-contents td.code-type, #contents-contents td.file-type, #crawler-list td.file-type {
 	width: 24px;
+}
+
+#code-contents h2 {
+	margin: 0 0 12px 0;
+	border-bottom: 1px solid #ccc;
+}
+
+#code-contents h3 {
+	font-size: 12pt;
+	margin: 8px 0 8px 0;
+}
+
+#code-contents #default-buttons span {
+	cursor: pointer;
+}
+
+#code-contents #property-buttons {
+	clear: both;
+}
+
+#code-contents #property-buttons button {
+	border: 1px solid #ddd;
+}
+
+#code-contents property-options {
+	border: 1px solid #ddd;
+}
+
+#code-contents p.checkbox {
+	margin: 0 8px 0 0;
+	padding: 2px 0 0 0;
+	float: left;
+	width: 250px;
+}
+
+#code-contents p.input {
+	margin: 0 32px 0 0;
+	padding: 2px 0 0 0;
+	float: left;
+	width: 226px;
+}
+
+#code-contents label {
+	width: 100%;
+	padding: 4px 0 4px 0;
+	display: inline-block;
+	font-weight: 600;
+}
+
+#code-contents input[type="text"] {
+	width: 100%;
 }
 
 #folder-contents .tile {
@@ -4324,6 +4442,17 @@ input#element-class {
  * Column resizer
  */
 .column-resizer {
+	z-index: 2;
+	width: 6px;
+	height: calc(100vh - 90px);
+	background-color: transparent;
+	position: absolute;
+	top: 70px;
+	left: 222px;
+	cursor: ew-resize;
+	border: 1px solid transparent;
+}
+.column-resizer-right {
 	z-index: 2;
 	width: 6px;
 	height: calc(100vh - 90px);

@@ -26,6 +26,8 @@ import com.google.gson.JsonPrimitive;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.structr.api.config.Settings;
@@ -60,6 +62,8 @@ public class GraphObjectModificationState implements ModificationEvent {
 	public static final int STATE_PROPAGATED_MODIFICATION =  256;
 
 	private final long timestamp                      = System.nanoTime();
+	private final PropertyMap addedRemoteProperties   = new PropertyMap();
+	private final PropertyMap removedRemoteProperties = new PropertyMap();
 	private final PropertyMap modifiedProperties      = new PropertyMap();
 	private final PropertyMap removedProperties       = new PropertyMap();
 	private final PropertyMap newProperties           = new PropertyMap();
@@ -233,6 +237,14 @@ public class GraphObjectModificationState implements ModificationEvent {
 		}
 	}
 
+	public void add(final PropertyKey key, final Object value) {
+		addToCollection(addedRemoteProperties, key, value);
+	}
+
+	public void remove(final PropertyKey key, final Object value) {
+		addToCollection(removedRemoteProperties, key, value);
+	}
+
 	public void delete(boolean passive) {
 
 		int statusBefore = status;
@@ -254,17 +266,6 @@ public class GraphObjectModificationState implements ModificationEvent {
 		}
 
 		updateCache();
-	}
-
-	private void updateCache() {
-
-		if (uuid != null) {
-			AccessPathCache.invalidateForId(uuid);
-		}
-
-		if (relType != null) {
-			AccessPathCache.invalidateForRelType(relType.name());
-		}
 	}
 
 	public boolean isPassivelyDeleted() {
@@ -615,6 +616,11 @@ public class GraphObjectModificationState implements ModificationEvent {
 		}
 	}
 
+	public long getTimestamp() {
+		return timestamp;
+	}
+
+	// ----- private methods -----
 	private JsonElement toElement(final Object value) {
 
 		if (value != null) {
@@ -673,8 +679,34 @@ public class GraphObjectModificationState implements ModificationEvent {
 		}
 	}
 
-	public long getTimestamp() {
-		return timestamp;
+	private void updateCache() {
+
+		if (uuid != null) {
+			AccessPathCache.invalidateForId(uuid);
+		}
+
+		if (relType != null) {
+			AccessPathCache.invalidateForRelType(relType.name());
+		}
+	}
+
+	private void addToCollection(final PropertyMap properties, final PropertyKey key, final Object value) {
+
+		if (key.isCollection()) {
+
+			List list = (List)properties.get(key);
+			if (list == null) {
+
+				list = new LinkedList<>();
+				properties.put(key, list);
+			}
+
+			list.add(value);
+
+		} else {
+
+			properties.put(key, value);
+		}
 	}
 
 	// ----- interface ModificationEvent -----
@@ -722,6 +754,14 @@ public class GraphObjectModificationState implements ModificationEvent {
 	@Override
 	public PropertyMap getRemovedProperties() {
 		return removedProperties;
+	}
+
+	public PropertyMap getRemovedRemoteProperties() {
+		return removedRemoteProperties;
+	}
+
+	public PropertyMap getAddedRemoteProperties() {
+		return addedRemoteProperties;
 	}
 
 	@Override

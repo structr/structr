@@ -54,6 +54,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
@@ -82,6 +83,8 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
 
@@ -1630,7 +1633,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid replace() result", "equal", Scripting.replaceVariables(ctx, testOne, "${if(equal(2, 2),\n    (\"equal\"),\n    (\"not equal\")\n)}"));
 			assertEquals("Invalid replace() result", "not equal", Scripting.replaceVariables(ctx, testOne, "${if(equal(2, 3),\n    (\"equal\"),\n    (\"not equal\")\n)}"));
 
-			assertEquals("Invalid keys() / join() result", "owner,createdBy,hidden,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,id,type,createdDate,name", Scripting.replaceVariables(ctx, testOne, "${join(keys(this, 'ui'), ',')}"));
+			assertEquals("Invalid keys() / join() result", "id,name,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers", Scripting.replaceVariables(ctx, testOne, "${join(keys(this, 'ui'), ',')}"));
 			assertEquals("Invalid values() / join() result", "A-nice-little-name-for-my-test-object,1,String", Scripting.replaceVariables(ctx, testOne, "${join(values(this, 'protected'), ',')}"));
 
 			// test default values
@@ -2731,4 +2734,259 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 	}
+
+	@Test
+	public void testModifications() {
+
+		Settings.LogSchemaOutput.setValue(true);
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType customer = schema.addType("Customer");
+			final JsonObjectType project  = schema.addType("Project");
+			final JsonObjectType task     = schema.addType("Task");
+
+			// create relation
+			final JsonReferenceType rel = project.relate(task, "has", Cardinality.OneToMany, "project", "tasks");
+			rel.setName("ProjectTasks");
+
+			customer.relate(project, "project", Cardinality.OneToOne, "customer", "project");
+
+			customer.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.log('Customer'); Structr.log(mods); }", "");
+			project.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.log('Project'); Structr.log(mods); }", "");
+			task.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.log('Task'); Structr.log(mods); }", "");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class customer          = StructrApp.getConfiguration().getNodeEntityClass("Customer");
+		final Class project           = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final Class task              = StructrApp.getConfiguration().getNodeEntityClass("Task");
+		final PropertyKey tasksKey    = StructrApp.getConfiguration().getPropertyKeyForJSONName(project, "tasks");
+		final PropertyKey customerKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(project, "customer");
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(customer, "Testcustomer");
+			app.create(project, "Testproject");
+			app.create(task, new NodeAttribute<>(AbstractNode.name, "task1"));
+			app.create(task, new NodeAttribute<>(AbstractNode.name, "task2"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject c       = app.nodeQuery(customer).getFirst();
+			final GraphObject p       = app.nodeQuery(project).getFirst();
+			final List<GraphObject> t = app.nodeQuery(task).getAsList();
+
+			p.setProperty(AbstractNode.name, "newName");
+			p.setProperty(tasksKey, t);
+			p.setProperty(customerKey, c);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject p = app.nodeQuery(project).getFirst();
+
+			p.setProperty(customerKey, null);
+			p.setProperty(tasksKey, Arrays.asList(app.nodeQuery(task).getFirst()));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testScriptCodeWithWhitespace() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			createTestType(schema, "Test1", " 	 set(this, 'c', 'passed')  ",   "    	set(this, 's', 'passed')	", "StructrScript with whitespace");
+			createTestType(schema, "Test2", "set(this, 'c', 'passed')",             "set(this, 's', 'passed')",                "StructrScript without whitespace");
+			createTestType(schema, "Test3", "   { Structr.this.c = 'passed'; }   ", "   { Structr.this.s = 'passed'; }   ",    "JavaScript with whitespace");
+			createTestType(schema, "Test4", "{ Structr.this.c = 'passed'; }",       "{ Structr.this.s = 'passed'; }",          "JavaScript without whitespace");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class type1 = StructrApp.getConfiguration().getNodeEntityClass("Test1");
+		final Class type2 = StructrApp.getConfiguration().getNodeEntityClass("Test2");
+		final Class type3 = StructrApp.getConfiguration().getNodeEntityClass("Test3");
+		final Class type4 = StructrApp.getConfiguration().getNodeEntityClass("Test4");
+
+		// test onCreate
+		try (final Tx tx = app.tx()) {
+
+			app.create(type1, "test1");
+			app.create(type2, "test2");
+			app.create(type3, "test3");
+			app.create(type4, "test4");
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test onCreate
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject test1 = app.nodeQuery(type1).getFirst();
+                        final GraphObject test2 = app.nodeQuery(type2).getFirst();
+			final GraphObject test3 = app.nodeQuery(type3).getFirst();
+                        final GraphObject test4 = app.nodeQuery(type4).getFirst();
+
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", (String)test1.getProperty("c"));
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", (String)test2.getProperty("c"));
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", (String)test3.getProperty("c"));
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", (String)test4.getProperty("c"));
+
+			assertNull("onSave method called for creation", test1.getProperty("s"));
+			assertNull("onSave method called for creation", test2.getProperty("s"));
+			assertNull("onSave method called for creation", test3.getProperty("s"));
+			assertNull("onSave method called for creation", test4.getProperty("s"));
+
+			test1.setProperty(AbstractNode.name, "modified");
+			test2.setProperty(AbstractNode.name, "modified");
+			test3.setProperty(AbstractNode.name, "modified");
+			test4.setProperty(AbstractNode.name, "modified");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test onSave
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject test1 = app.nodeQuery(type1).getFirst();
+                        final GraphObject test2 = app.nodeQuery(type2).getFirst();
+			final GraphObject test3 = app.nodeQuery(type3).getFirst();
+                        final GraphObject test4 = app.nodeQuery(type4).getFirst();
+
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", (String)test1.getProperty("s"));
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", (String)test2.getProperty("s"));
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", (String)test3.getProperty("s"));
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", (String)test4.getProperty("s"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test actions
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "	 ${ 'passed' }	 ",    "StructrScript with whitespace"));
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "${ 'passed' }",                "StructrScript without whitespace"));
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "  ${{ return 'passed'; }}   ", "JavaScript with whitespace"));
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "${{ return 'passed'; }}",      "JavaScript without whitespace"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	// ----- private methods ----
+	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource, final String comment) {
+
+		final JsonType test1    = schema.addType(name);
+
+		test1.addStringProperty("c");
+		test1.addStringProperty("s");
+
+		test1.addMethod("onCreation",     createSource, comment);
+		test1.addMethod("onModification", saveSource, comment);
+
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
