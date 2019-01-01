@@ -526,6 +526,7 @@ public class ModificationQueue {
 			modify(user, endNode, source, null, null);
 
 			if (source != null && target != null) {
+
 				if (isDeletion) {
 
 					// update removed properties
@@ -542,7 +543,8 @@ public class ModificationQueue {
 
 			} else {
 
-				logger.warn("No properties registered for {}: source: {}, target: {}", rel.getClass(), source, target);
+				// dont log so much..
+				//logger.warn("No properties registered for {}: source: {}, target: {}", rel.getClass(), source, target);
 			}
 		}
 	}

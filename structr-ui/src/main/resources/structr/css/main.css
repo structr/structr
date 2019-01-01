@@ -3429,7 +3429,7 @@ input#tree-search-input {
 input#tree-search-input:focus {
 	border: 1px solid #ccc;
 }
-	
+
 #code-tree i.jstree-icon.gray, #flows-tree i.jstree-icon.gray {
 	color: #666;
 }
@@ -3584,6 +3584,10 @@ input#tree-search-input:focus {
 
 #code-contents property-options {
 	border: 1px solid #ddd;
+}
+
+#code-contents .property-options-group {
+	margin: 0 0 12px 0;
 }
 
 #code-contents p.checkbox {

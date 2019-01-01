@@ -446,8 +446,11 @@ var _Code = {
 								return p.declaringClass !== obj.data.type;
 							});
 							displayFunction(filtered.map(function(s) {
+
+								var builtIn = s.isPartOfBuiltInSchema;
+
 								return {
-									id: 'inherited-' + s.declaringUuid + '-' + s.declaringClass + '-' + obj.data.type + '-' + s.name,
+									id: 'inherited-' + s.declaringUuid + '-' + s.declaringClass + '-' + obj.data.type + '-' + s.name + (builtIn ? '-builtin' : ''),
 									type: 'SchemaProperty',
 									name: s.declaringClass + '.' + s.name,
 									propertyType: s.declaringPropertyType ? s.declaringPropertyType : s.propertyType,
@@ -813,14 +816,22 @@ var _Code = {
 		if (parts.length >= 2) {
 
 			switch (parts.length) {
-				default:
-					var extra   = parts[2].trim();
+				//inherited-8358fbdd264a42c79771c64f12b8878a-BaseEntity-Wette-labels
+
+				case 6:
+					var builtin  = "builtin" === parts[5].trim();
+				case 5:
+					var property = parts[4].trim();
+				case 4:
+					var extended = parts[3].trim();
+				case 3:
+					var base     = parts[2].trim();
 				case 2:
-					var entity  = parts[1].trim();
-					var subtype = parts[0].trim();
+					var entity   = parts[1].trim();
+					var subtype  = parts[0].trim();
 			}
 
-			return { id: entity, type: subtype, extra: extra };
+			return { id: entity, type: subtype, base: base, extended: extended, property: property, isBuiltinType: builtin };
 		}
 
 		return { id : id, type: id };
@@ -951,7 +962,11 @@ var _Code = {
 				break;
 
 			case 'inherited':
-				_Code.findAndOpenNode('Types/Custom/' + identifier.extra + '/Properties/' + identifier.id, true);
+				if (identifier.isBuiltinType) {
+					_Code.findAndOpenNode('Types/Built-In/' + identifier.base + '/Properties/' + identifier.property, true);
+				} else {
+					_Code.findAndOpenNode('Types/Custom/' + identifier.base + '/Properties/' + identifier.property, true);
+				}
 				break;
 
 			// other (click on an actual object)
@@ -1432,29 +1447,6 @@ var _Code = {
 			$('#recently-used-' + id).remove();
 		});
 	},
-	getTreePath: function(id, name) {
-		var path    = [ name ];
-		var tree    = $('#code-tree').jstree(true);
-		var current = id;
-
-		while (current) {
-
-			var node = tree.get_node(current);
-			if (node) {
-				current = tree.get_parent(node);
-				if (current && current !== '#') {
-					var parent = tree.get_node(current);
-					if (parent) {
-						path.unshift(parent.text);
-					} else {
-						path.unshift(current);
-					}
-				}
-			}
-		}
-
-		return path.join('/');
-	},
 	findAndOpenNode: function(path, updateLocationStack) {
 		var tree = $('#code-tree').jstree(true);
 		_Code.findAndOpenNodeRecursive(tree, path, 0, undefined, updateLocationStack);
@@ -1650,8 +1642,6 @@ var _Code = {
 	},
 	getPathForEntity: function(entity) {
 
-		console.log(entity);
-
 		var getPathComponent = function(e) {
 
 			if (e && e.isBuiltinType) {
@@ -1693,8 +1683,6 @@ var _Code = {
 				break;
 		}
 
-		var result = path.join('/');
-		console.log(result);
-		return result;
+		return path.join('/');
 	}
 };
