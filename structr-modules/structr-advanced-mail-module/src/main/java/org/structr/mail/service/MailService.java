@@ -18,6 +18,7 @@
  */
 package org.structr.mail.service;
 
+import com.google.gson.Gson;
 import com.sun.mail.util.BASE64DecoderStream;
 import io.netty.util.internal.ConcurrentSet;
 import org.apache.commons.lang.ArrayUtils;
@@ -47,7 +48,7 @@ import java.util.concurrent.Executors;
 @ServiceDependency(SchemaService.class)
 public class MailService extends Thread implements RunnableService {
 	private static final Logger logger                  = LoggerFactory.getLogger(MailService.class.getName());
-	private static final ExecutorService threadExecutor = Executors.newFixedThreadPool(10);
+	private static final ExecutorService threadExecutor = Executors.newCachedThreadPool();
 	private boolean run                                 = false;
 	private Set<Class> supportedCommands                = null;
 	private Set<Mailbox> processingMailboxes            = null;
@@ -71,8 +72,14 @@ public class MailService extends Thread implements RunnableService {
 
 		if (p.isMimeType("text/*")) {
 
-			return (String)p.getContent();
+			Object content = p.getContent();
+			if (!(content instanceof BASE64DecoderStream)) {
 
+				return (String)p.getContent();
+			} else {
+
+				return null;
+			}
 		} else if (p.isMimeType("multipart/alternative")) {
 			Multipart mp = (Multipart)p.getContent();
 			String text = null;
@@ -236,6 +243,7 @@ public class MailService extends Thread implements RunnableService {
 		public void run() {
 			try {
 
+				Gson gson = new Gson();
 				String host = mailbox.getHost();
 				String mailProtocol = mailbox.getMailProtocol().toString();
 				String user = mailbox.getUser();
@@ -250,7 +258,15 @@ public class MailService extends Thread implements RunnableService {
 				Properties properties = new Properties();
 
 				properties.put("mail." + mailProtocol + ".host", host);
-				properties.put("mail." + mailProtocol + ".starttls.enable", "true");
+
+				switch (mailProtocol) {
+					case "pop3":
+						properties.put("mail." + mailProtocol + ".starttls.enable", "true");
+						break;
+					case "imaps":
+						properties.put("mail." + mailProtocol + ".ssl.enable", "true");
+						break;
+				}
 
 				if (port != null) {
 					properties.put("mail." + mailProtocol + ".port", port);
@@ -281,8 +297,8 @@ public class MailService extends Thread implements RunnableService {
 
 					PropertyMap pm = new PropertyMap();
 
-					String from = Arrays.stream(message.getFrom()).map(Address::toString).reduce("", (a, b) -> a.equals("") ? b : a + "," + b);
-					String to = Arrays.stream(message.getAllRecipients()).map(Address::toString).reduce("", (a, b) -> a.equals("") ? b : a + "," + b);
+					String from = message.getFrom() != null ? Arrays.stream(message.getFrom()).map(Address::toString).reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
+					String to = message.getAllRecipients() != null ? Arrays.stream(message.getAllRecipients()).map( (a) -> a != null ? a.toString() : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
 
 					try (Tx tx = app.tx()) {
 
@@ -298,9 +314,24 @@ public class MailService extends Thread implements RunnableService {
 							pm.put(StructrApp.key(Mail.class, "sentDate"), message.getSentDate());
 							pm.put(StructrApp.key(Mail.class, "mailbox"), mailbox);
 
+							Enumeration en = message.getAllHeaders();
+							Map<String, String> headers = new HashMap<>();
+							while (en.hasMoreElements()) {
+								Header header = (Header)en.nextElement();
+								if (header.getName().equals("Message-ID") || header.getName().equals("Message-Id")) {
+									pm.put(StructrApp.key(Mail.class, "messageId"), header.getValue());
+								} else if (header.getName().equals("In-Reply-To") || header.getName().equals("References")) {
+									pm.put(StructrApp.key(Mail.class, "inReplyTo"), header.getValue());
+								}
+								headers.put(header.getName(), header.getValue());
+							}
+
+							pm.put(StructrApp.key(Mail.class, "header"), gson.toJson(headers));
+
 							// Handle content extraction
 							String content = null;
 							Object contentObj = message.getContent();
+
 							if (contentObj instanceof Part) {
 
 								content = getText((Part)contentObj);
@@ -333,11 +364,11 @@ public class MailService extends Thread implements RunnableService {
 				store.close();
 
 			} catch (MessagingException ex) {
-				logger.error("Error while updating Mails: " + ex.getLocalizedMessage());
+				logger.error("Error while updating Mails: ", ex);
 			} catch (FrameworkException | IOException ex) {
-				logger.error("Error while updating Mails: " + ex.getMessage());
+				logger.error("Error while updating Mails: ", ex);
 			} catch (Throwable ex) {
-				logger.error("Error while updating Mails: " + ex.getLocalizedMessage());
+				logger.error("Error while updating Mails: ", ex);
 			}
 
 			processingMailboxes.remove(mailbox);
