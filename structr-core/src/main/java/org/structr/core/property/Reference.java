@@ -216,6 +216,11 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public String getSourceUuid() {
+		return propertyKey.getSourceUuid();
+	}
+
+	@Override
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}

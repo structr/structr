@@ -258,6 +258,7 @@ var Structr = {
 	expanded: {},
 	msgCount: 0,
 	currentlyActiveSortable: undefined,
+	loadingSpinnerTimeout: undefined,
 	templateCache: new AsyncObjectCache(function(templateName) {
 
 		Promise.resolve($.ajax('templates/' + templateName + '.html')).then(function(templateHtml) {
@@ -304,7 +305,7 @@ var Structr = {
 		}
 	},
 	refreshUi: function() {
-		showLoadingSpinner();
+		Structr.showLoadingSpinner();
 
 		Structr.clearMain();
 		Structr.loadInitialModule(false, function() {
@@ -317,7 +318,7 @@ var Structr = {
 					Structr.restoreDialog(dialogData);
 				}
 			}
-			hideLoadingSpinner();
+			Structr.hideLoadingSpinner();
 			_Console.initConsole();
 			_Favorites.initFavorites();
 		});
@@ -1709,6 +1710,49 @@ var Structr = {
 			var parameterizedTemplate = convertTemplateToLiteral(templateConfig);
 			callback(parameterizedTemplate, cacheHit);
 		});
+	},
+	blockUiGeneric: function(html, timeout) {
+		Structr.loadingSpinnerTimeout = window.setTimeout(function() {
+			$.blockUI.defaults.overlayCSS.opacity = .2;
+			$.blockUI.defaults.applyPlatformOpacityRules = false;
+			$.blockUI({
+				fadeIn: 0,
+				fadeOut: 0,
+				message: html,
+				forceInput: true,
+				css: {
+					border: 'none',
+					backgroundColor: 'transparent'
+				}
+			});
+		}, timeout || 0);
+	},
+	unblockUiGeneric: function() {
+		window.clearTimeout(Structr.loadingSpinnerTimeout);
+		Structr.loadingSpinnerTimeout = undefined;
+
+		$.unblockUI({
+			fadeOut: 0
+		});
+	},
+	showLoadingSpinner: function() {
+		Structr.blockUiGeneric('<div id="structr-loading-spinner"><img src="' + _Icons.getSpinnerImageAsData() + '"></div>');
+	},
+	hideLoadingSpinner: function() {
+		Structr.unblockUiGeneric();
+	},
+	showLoadingMessage: function(title, text, timeout) {
+
+		var messageTitle = title || 'Executing Task';
+		var messageText  = text || 'Please wait until the operation has finished...';
+
+		$('#tempInfoBox .infoMsg').html('<img src="' + _Icons.getSpinnerImageAsData() + '"> <b>' + messageTitle + '</b><br><br>' + messageText);
+
+		$('#tempInfoBox .closeButton').hide();
+		Structr.blockUiGeneric($('#tempInfoBox'), timeout || 500);
+	},
+	hideLoadingMessage: function() {
+		Structr.unblockUiGeneric();
 	}
 };
 
@@ -2077,25 +2121,3 @@ $(window).on('beforeunload', function(event) {
 		Structr.saveLocalStorage();
 	}
 });
-
-function showLoadingSpinner() {
-	var msg = '<div id="structr-loading-spinner"><img src="' + _Icons.getSpinnerImageAsData() + '"></div>';
-	$.blockUI.defaults.overlayCSS.opacity = .2;
-	$.blockUI.defaults.applyPlatformOpacityRules = false;
-	$.blockUI({
-		fadeIn: 0,
-		fadeOut: 0,
-		message: msg,
-		forceInput: true,
-		css: {
-			border: 'none',
-			backgroundColor: 'transparent'
-		}
-	});
-}
-
-function hideLoadingSpinner() {
-	$.unblockUI({
-		fadeOut: 0
-	});
-}

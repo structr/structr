@@ -83,7 +83,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 
 	// dummy implementation of NodeInterface
 	@Override
-	public void init(SecurityContext securityContext, Node dbNode, Class type, boolean isCreation, final long transactionId) {
+	public void init(SecurityContext securityContext, Node dbNode, Class type, final long transactionId) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 

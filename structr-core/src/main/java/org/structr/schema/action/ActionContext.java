@@ -367,15 +367,23 @@ public class ActionContext {
 
 		final StringBuilder sb = new StringBuilder("http");
 
-		final Boolean httpsEnabled = Settings.HttpsEnabled.getValue();
-		final int port = securityContext.getRequest().getServerPort();
+		final Boolean httpsEnabled       = Settings.HttpsEnabled.getValue();
+		final HttpServletRequest request = securityContext.getRequest();
+		String name                      = Settings.ApplicationHost.getValue();
+		int port                         = Settings.HttpPort.getValue();
+
+		if (request != null) {
+
+			port = request.getServerPort();
+			name = request.getServerName();
+		}
 
 		if (httpsEnabled) {
 			sb.append("s");
 		}
 
 		sb.append("://");
-		sb.append(securityContext.getRequest().getServerName());
+		sb.append(name);
 
 		if ( !(httpsEnabled && port == 443) && !(!httpsEnabled && port == 80)) {
 			sb.append(":").append(port);

@@ -71,9 +71,10 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaProperty.class.getName());
 
-	public static final Property<AbstractSchemaNode> schemaNode            = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<AbstractSchemaNode> schemaNode            = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType));
 	public static final Property<Iterable<SchemaView>>   schemaViews       = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
 
+	public static final Property<String>             declaringUuid         = new StringProperty("declaringUuid");
 	public static final Property<String>             declaringClass        = new StringProperty("declaringClass");
 	public static final Property<String>             defaultValue          = new StringProperty("defaultValue");
 	public static final Property<String>             propertyType          = new StringProperty("propertyType").indexed();
@@ -102,7 +103,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String[]>           transformers          = new ArrayProperty("transformers", String.class);
 
 	private static final Set<PropertyKey> schemaRebuildTriggerKeys = new LinkedHashSet<>(Arrays.asList(
-		declaringClass, defaultValue, propertyType, contentType, dbName, fqcn, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly,
+		name, declaringUuid, declaringClass, defaultValue, propertyType, contentType, dbName, fqcn, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly,
 		isDynamic, isBuiltinProperty, isPartOfBuiltInSchema, isDefaultInUi, isDefaultInPublic, isCachingEnabled, contentHash, validators, transformers
 
 	));

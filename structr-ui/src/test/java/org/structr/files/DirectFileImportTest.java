@@ -251,7 +251,7 @@ public class DirectFileImportTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			FileHelper.createFile(securityContext, "initial content".getBytes("utf-8"), "text/plain", File.class, "test.txt");
+			FileHelper.createFile(securityContext, "initial content".getBytes("utf-8"), "text/plain", File.class, "test.txt", true);
 
 			tx.success();
 
@@ -376,7 +376,7 @@ public class DirectFileImportTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			FileHelper.createFile(securityContext, "initial content".getBytes("utf-8"), "text/plain", File.class, "test.txt");
+			FileHelper.createFile(securityContext, "initial content".getBytes("utf-8"), "text/plain", File.class, "test.txt", true);
 
 			tx.success();
 
@@ -506,7 +506,7 @@ public class DirectFileImportTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			FileHelper.createFile(securityContext, "initial content".getBytes("utf-8"), "text/plain", File.class, "test.txt");
+			FileHelper.createFile(securityContext, "initial content".getBytes("utf-8"), "text/plain", File.class, "test.txt", true);
 
 			tx.success();
 
@@ -637,7 +637,7 @@ public class DirectFileImportTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			FileHelper.createFile(securityContext, "initial content".getBytes("utf-8"), "text/plain", File.class, "test.txt");
+			FileHelper.createFile(securityContext, "initial content".getBytes("utf-8"), "text/plain", File.class, "test.txt", true);
 
 			tx.success();
 
@@ -762,7 +762,7 @@ public class DirectFileImportTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			FileHelper.createFile(securityContext, "initial content".getBytes("utf-8"), "text/plain", File.class, "test.txt");
+			FileHelper.createFile(securityContext, "initial content".getBytes("utf-8"), "text/plain", File.class, "test.txt", true);
 
 			tx.success();
 
@@ -892,7 +892,7 @@ public class DirectFileImportTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			FileHelper.createFile(securityContext, "initial content".getBytes("utf-8"), "text/plain", File.class, "test.txt");
+			FileHelper.createFile(securityContext, "initial content".getBytes("utf-8"), "text/plain", File.class, "test.txt", true);
 
 			tx.success();
 

@@ -76,8 +76,6 @@ public class GetCommand extends AbstractCommand {
 		}
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public String getCommand() {
 		return "GET";
