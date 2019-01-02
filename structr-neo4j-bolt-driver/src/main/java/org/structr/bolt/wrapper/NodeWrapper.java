@@ -115,7 +115,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		buf.append("]->(m)");
 		buf.append(" SET r += {relProperties} RETURN r");
 
-		final org.neo4j.driver.v1.types.Relationship rel = WrapperUtility.executeWithRetry(() -> tx.getRelationship(buf.toString(), map));
+		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship(buf.toString(), map);
 
 		setModified();
 		otherNode.setModified();
