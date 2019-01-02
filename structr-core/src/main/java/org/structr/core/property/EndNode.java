@@ -89,19 +89,13 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 
 		super(name);
 
-		try {
-
-			this.relation  = relationClass.newInstance();
-
-		} catch (Throwable t) {
-			logger.warn("", t);
-		}
-
+		this.relation  = Relation.getInstance(relationClass);
 		this.notion    = notion;
 		this.destType  = relation.getTargetType();
 
 		this.notion.setType(destType);
 		this.notion.setRelationProperty(this);
+		this.relation.setTargetProperty(this);
 
 		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
@@ -147,7 +141,7 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	@Override
 	public Object setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
 
-		final OneEndpoint<T> endpoint  = relation.getTarget();
+		final OneEndpoint<T> endpoint = relation.getTarget();
 
 		try {
 

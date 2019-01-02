@@ -322,6 +322,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				} else {
 
 					buf.append(").dynamic()");
+					buf.append(".setSourceUuid(\"").append(getUuid()).append("\")");
 					buf.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
 					buf.append(";\n");
 				}
@@ -343,6 +344,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				} else {
 
 					buf.append(").dynamic()");
+					buf.append(".setSourceUuid(\"").append(getUuid()).append("\")");
 					buf.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
 					buf.append(";\n");
 				}
@@ -367,6 +369,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				} else {
 
 					buf.append(").dynamic()");
+					buf.append(".setSourceUuid(\"").append(getUuid()).append("\")");
 					buf.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
 					buf.append(";\n");
 				}
@@ -388,6 +391,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				} else {
 
 					buf.append(").dynamic()");
+					buf.append(".setSourceUuid(\"").append(getUuid()).append("\")");
 					buf.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
 					buf.append(";\n");
 				}

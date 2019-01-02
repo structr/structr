@@ -2183,7 +2183,7 @@ var _Schema = {
 			}, 500);
 		});
 
-		editor.off('change').on('change', function(cm, change) {
+		editor.on('change', function(cm, change) {
 
 			if (text === editor.getValue()) {
 				dialogSaveButton.prop("disabled", true).addClass('disabled');
@@ -2202,7 +2202,7 @@ var _Schema = {
 			editor.scrollTo(scrollInfo.left, scrollInfo.top);
 		}
 
-		editor.off('scroll').on('scroll', function() {
+		editor.on('scroll', function() {
 			var scrollInfo = editor.getScrollInfo();
 			LSWrapper.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
 		});
@@ -3707,7 +3707,7 @@ var _Schema = {
 			$(cm.getWrapperElement()).addClass('cm-schema-methods');
 			cm.refresh();
 
-			cm.off('change').on('change', function(cm, changeset) {
+			cm.on('change', function(cm, changeset) {
 				cm.save();
 				cm.setOption('mode', _Schema.senseCodeMirrorMode(cm.getValue()));
 				$(cm.getTextArea()).trigger('change');
@@ -3728,7 +3728,7 @@ var _Schema = {
 			$(cm.getWrapperElement()).addClass('cm-schema-methods');
 			cm.refresh();
 
-			cm.off('change').on('change', function(cm, changeset) {
+			cm.on('change', function(cm, changeset) {
 				cm.save();
 				$(cm.getTextArea()).trigger('change');
 			});

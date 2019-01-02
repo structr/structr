@@ -105,7 +105,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 					final String mimeType = contentStream != null ? contentStream.getMimeType() : null;
 
 					// create file
-					newFile = FileHelper.createFile(securityContext, new byte[0], mimeType, type, fileName);
+					newFile = FileHelper.createFile(securityContext, new byte[0], mimeType, type, fileName, false);
 					if (newFile != null) {
 
 						// find and set parent if it exists

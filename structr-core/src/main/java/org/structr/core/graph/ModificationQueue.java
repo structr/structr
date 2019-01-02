@@ -47,6 +47,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.Relation;
 import org.structr.core.function.ChangelogFunction;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
@@ -261,7 +262,7 @@ public class ModificationQueue {
 
 		if (sourceNode != null && targetNode != null) {
 
-			modifyEndNodes(user, sourceNode, targetNode, relationship.getRelType());
+			modifyEndNodes(user, sourceNode, targetNode, relationship, false);
 
 			if (Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue()) {
 
@@ -336,7 +337,7 @@ public class ModificationQueue {
 		final NodeInterface sourceNode = relationship.getSourceNodeAsSuperUser();
 		final NodeInterface targetNode = relationship.getTargetNodeAsSuperUser();
 
-		modifyEndNodes(user, sourceNode, targetNode, relationship.getRelType());
+		modifyEndNodes(user, sourceNode, targetNode, relationship, true);
 
 		if (Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue()) {
 
@@ -476,8 +477,10 @@ public class ModificationQueue {
 		after.putAll(state.getModifiedProperties());
 		after.putAll(state.getNewProperties());
 
-		result.put(new GenericProperty("before"), before);
-		result.put(new GenericProperty("after"),  after);
+		result.put(new GenericProperty("before"),  before);
+		result.put(new GenericProperty("after"),   after);
+		result.put(new GenericProperty("added"),   state.getAddedRemoteProperties());
+		result.put(new GenericProperty("removed"), state.getRemovedRemoteProperties());
 
 		return result;
 	}
@@ -487,10 +490,12 @@ public class ModificationQueue {
 	}
 
 	// ----- private methods -----
-	private void modifyEndNodes(final Principal user, final NodeInterface startNode, final NodeInterface endNode, final RelationshipType relType) {
+	private void modifyEndNodes(final Principal user, final NodeInterface startNode, final NodeInterface endNode, final RelationshipInterface rel, final boolean isDeletion) {
 
 		// only modify if nodes are accessible
 		if (startNode != null && endNode != null) {
+
+			final RelationshipType relType = rel.getRelType();
 
 			if (RelType.OWNS.equals(relType)) {
 
@@ -513,8 +518,34 @@ public class ModificationQueue {
 				return;
 			}
 
-			modify(user, startNode, null, null, null);
-			modify(user, endNode, null, null, null);
+			final Relation relation  = Relation.getInstance((Class)rel.getClass());
+			final PropertyKey source = relation.getSourceProperty();
+			final PropertyKey target = relation.getTargetProperty();
+
+			modify(user, startNode, target, null, null);
+			modify(user, endNode, source, null, null);
+
+			if (source != null && target != null) {
+
+				if (isDeletion) {
+
+					// update removed properties
+					getState(startNode).remove(target, endNode);
+					getState(endNode).remove(source, startNode);
+
+				} else {
+
+
+					// update added properties
+					getState(startNode).add(target, endNode);
+					getState(endNode).add(source, startNode);
+				}
+
+			} else {
+
+				// dont log so much..
+				//logger.warn("No properties registered for {}: source: {}, target: {}", rel.getClass(), source, target);
+			}
 		}
 	}
 
@@ -585,5 +616,32 @@ public class ModificationQueue {
 		});
 
 		return state;
+	}
+
+	private Object extractUuid(final Object source) {
+
+		if (source != null) {
+
+			if (source instanceof GraphObject) {
+				return ((GraphObject)source).getUuid();
+			}
+
+			if (source instanceof Iterable) {
+
+				final List<String> uuids = new LinkedList<>();
+				for (final Object o : ((Iterable)source)) {
+
+					final Object extracted = extractUuid(o);
+					if (extracted != null) {
+
+						uuids.add((String)extracted);
+					}
+				}
+
+				return uuids;
+			}
+		}
+
+		return null;
 	}
 }

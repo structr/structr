@@ -23,11 +23,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import javax.activation.MimetypesFileTypeMap;
+import net.openhft.hashing.Access;
 import net.openhft.hashing.LongHashFunction;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
@@ -181,11 +183,12 @@ public class FileHelper {
 	 * @param contentType if null, try to auto-detect content type
 	 * @param t
 	 * @param name
+	 * @param updateMetadata
 	 * @return file
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends File> T createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<T> t, final String name)
+	public static <T extends File> T createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<T> t, final String name, final boolean updateMetadata)
 		throws FrameworkException, IOException {
 
 		PropertyMap props = new PropertyMap();
@@ -194,10 +197,11 @@ public class FileHelper {
 
 		T newFile = (T) StructrApp.getInstance(securityContext).create(t, props);
 
-		setFileData(newFile, fileData, contentType);
+		setFileData(newFile, fileData, contentType, updateMetadata);
 
-		// schedule indexing
-		newFile.notifyUploadCompletion();
+		if (updateMetadata) {
+			newFile.notifyUploadCompletion();
+		}
 
 		return newFile;
 	}
@@ -217,7 +221,7 @@ public class FileHelper {
 	public static <T extends File> T createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<T> t)
 		throws FrameworkException, IOException {
 
-		return createFile(securityContext, fileData, contentType, t, null);
+		return createFile(securityContext, fileData, contentType, t, null, true);
 
 	}
 
@@ -233,7 +237,7 @@ public class FileHelper {
 	public static void decodeAndSetFileData(final File file, final String rawData) throws FrameworkException, IOException {
 
 		Base64URIData uriData = new Base64URIData(rawData);
-		setFileData(file, uriData.getBinaryData(), uriData.getContentType());
+		setFileData(file, uriData.getBinaryData(), uriData.getContentType(), true);
 	}
 
 	/**
@@ -242,13 +246,21 @@ public class FileHelper {
 	 * @param file
 	 * @param fileData
 	 * @param contentType if null, try to auto-detect content type
+	 * @param updateMetadata
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
 	public static void setFileData(final File file, final byte[] fileData, final String contentType) throws FrameworkException, IOException {
+		FileHelper.setFileData(file, fileData, contentType, true);
+	}
+
+	public static void setFileData(final File file, final byte[] fileData, final String contentType, final boolean updateMetadata) throws FrameworkException, IOException {
 
 		FileHelper.writeToFile(file, fileData);
-		setFileProperties(file, contentType);
+
+		if (updateMetadata) {
+			setFileProperties(file, contentType);
+		}
 	}
 
 	/**
@@ -739,7 +751,33 @@ public class FileHelper {
 	}
 
 	public static Long getChecksum(final java.io.File fileOnDisk) throws IOException {
-		return LongHashFunction.xx().hashBytes(FileUtils.readFileToByteArray(fileOnDisk));
+
+		try (final BufferedInputStream is = new BufferedInputStream(new FileInputStream(fileOnDisk), 131072)) {
+
+			final long hash = LongHashFunction.xx().hash(is, new Access<BufferedInputStream>() {
+
+				@Override
+				public int getByte(BufferedInputStream input, long offset) {
+
+					try { return input.read(); } catch (IOException ex) {}
+
+					return -1;
+				}
+
+				@Override
+				public ByteOrder byteOrder(BufferedInputStream input) {
+					return ByteOrder.nativeOrder();
+				}
+
+			}, 0, fileOnDisk.length());
+
+			return hash;
+
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate checksum for {}: {}", fileOnDisk.getAbsolutePath(), ex.getMessage());
+		}
+
+		return null;
 	}
 
 	public static Long getCRC32Checksum(final java.io.File fileOnDisk) throws IOException {

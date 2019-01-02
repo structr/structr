@@ -1001,7 +1001,7 @@ public class SimpleTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			file = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, "test.txt");
+			file = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, "test.txt", true);
 
 			tx.success();
 
@@ -1009,7 +1009,7 @@ public class SimpleTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Page version is not increased on modification", Integer.valueOf(0), file.getVersion());
+			assertEquals("File version is not increased on modification", Integer.valueOf(0), file.getVersion());
 
 			try (final OutputStream os = file.getOutputStream(true, true)) {
 
@@ -1019,7 +1019,7 @@ public class SimpleTest extends StructrUiTest {
 			} catch (IOException ioex) {
 			}
 
-			assertEquals("Page version is not increased on modification", Integer.valueOf(1), file.getVersion());
+			assertEquals("File version is not increased on modification", Integer.valueOf(1), file.getVersion());
 
 			tx.success();
 

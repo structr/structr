@@ -60,7 +60,7 @@ import org.structr.schema.action.ActionEntry;
 public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	public static final Property<Iterable<SchemaMethodParameter>> parameters = new EndNodes<>("parameters", SchemaMethodParameters.class);
-	public static final Property<AbstractSchemaNode> schemaNode              = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<AbstractSchemaNode> schemaNode              = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType));
 	public static final Property<String>             signature               = new StringProperty("signature").indexed();
 	public static final Property<String>             virtualFileName         = new StringProperty("virtualFileName").indexed();
 	public static final Property<String>             returnType              = new StringProperty("returnType").indexed();
@@ -74,7 +74,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<Boolean>            isPartOfBuiltInSchema   = new BooleanProperty("isPartOfBuiltInSchema").indexed();
 
 	private static final Set<PropertyKey> schemaRebuildTriggerKeys = new LinkedHashSet<>(Arrays.asList(
-		parameters, schemaNode, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema
+		name, parameters, schemaNode, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema
 	));
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
@@ -377,7 +377,11 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		final SchemaMethod method = StructrApp.getInstance().get(SchemaMethod.class, uuid);
 		if (method != null) {
 
-			return "${" + method.getProperty(SchemaMethod.source) + "}";
+			final String source = method.getProperty(SchemaMethod.source);
+			if (source != null) {
+
+				return "${" + source.trim() + "}";
+			}
 		}
 
 		return "";

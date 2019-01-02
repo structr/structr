@@ -36,3 +36,4 @@ license.key
 # IntelliJ specific ignores
 .idea
 *.iml
+/structr-ui/nbproject/

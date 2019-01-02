@@ -64,7 +64,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		final PropertyMap properties         = new PropertyMap(attributes);
 		final PropertyMap toNotify           = new PropertyMap();
 		final CreationContainer tmp          = new CreationContainer(false);
-		final R template                     = instantiate(relType);
+		final R template                     = (R)Relation.getInstance(relType);
 		final Node startNode                 = fromNode.getNode();
 		final Node endNode                   = toNode.getNode();
 		final Date now                       = new Date();
@@ -150,18 +150,5 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		securityContext.enableModificationOfAccessTime();
 
 		return newRel;
-	}
-
-	private <T extends Relation> T instantiate(final Class<T> type) {
-
-		try {
-
-			return type.newInstance();
-
-		} catch(Throwable t) {
-			logger.warn("", t);
-		}
-
-		return null;
 	}
 }

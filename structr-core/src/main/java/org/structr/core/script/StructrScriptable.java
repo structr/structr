@@ -664,7 +664,7 @@ public class StructrScriptable extends ScriptableObject {
 
 						// call enclosing class's unwrap method instead of ours
 						Object value = StructrScriptable.this.unwrap(o);
-	//
+						
 						// use inputConverter of EnumProperty to convert to native enums
 						if (key instanceof EnumProperty) {
 

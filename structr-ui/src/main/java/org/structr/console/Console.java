@@ -271,7 +271,14 @@ public class Console {
 			final Object result = Functions.evaluate(actionContext, null, line);
 			if (result != null) {
 
-				writable.println(result.toString());
+				if (result instanceof Iterable) {
+
+					writable.println(Iterables.toList((Iterable)result).toString());
+
+				} else {
+
+					writable.println(result.toString());
+				}
 			}
 
 			tx.success();

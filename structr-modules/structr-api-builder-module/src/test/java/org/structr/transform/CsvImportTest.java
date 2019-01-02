@@ -62,7 +62,7 @@ public class CsvImportTest extends StructrApiModuleTest {
 				"2;Three;name: three;33;44";
 
 			final byte[] fileData = csvData.getBytes("utf-8");
-			final File file   = FileHelper.createFile(securityContext, fileData, "text/csv", File.class, "test.csv");
+			final File file   = FileHelper.createFile(securityContext, fileData, "text/csv", File.class, "test.csv", true);
 
 			// extract UUID for later use
 			newFileId = file.getUuid();
@@ -187,7 +187,7 @@ public class CsvImportTest extends StructrApiModuleTest {
 				"'2';'Three';'name: three';'33';'44'";
 
 			final byte[] fileData = csvData.getBytes("utf-8");
-			final File file       = FileHelper.createFile(securityContext, fileData, "text/csv", File.class, "test.csv");
+			final File file       = FileHelper.createFile(securityContext, fileData, "text/csv", File.class, "test.csv", true);
 
 			// extract UUID for later use
 			newFileId = file.getUuid();
@@ -312,7 +312,7 @@ public class CsvImportTest extends StructrApiModuleTest {
 				"\"2\";\"Three\";\"name: three\";\"33\";\"44\"";
 
 			final byte[] fileData = csvData.getBytes("utf-8");
-			final File file   = FileHelper.createFile(securityContext, fileData, "text/csv", File.class, "test.csv");
+			final File file   = FileHelper.createFile(securityContext, fileData, "text/csv", File.class, "test.csv", true);
 
 			// extract UUID for later use
 			newFileId = file.getUuid();
@@ -438,7 +438,7 @@ public class CsvImportTest extends StructrApiModuleTest {
 				"'2';'Three';'name: three';'33';'44'";
 
 			final byte[] fileData = csvData.getBytes("utf-8");
-			final File file   = FileHelper.createFile(securityContext, fileData, "text/csv", File.class, "test.csv");
+			final File file   = FileHelper.createFile(securityContext, fileData, "text/csv", File.class, "test.csv", true);
 
 			// extract UUID for later use
 			newFileId = file.getUuid();
