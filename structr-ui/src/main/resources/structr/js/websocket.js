@@ -414,6 +414,7 @@ function wsConnect() {
 			} else if (command === 'DELETE') {
 
 				StructrModel.del(data.id);
+				StructrModel.callCallback(data.callback, {});
 
 			} else if (command === 'INSERT_BEFORE' || command === 'APPEND_CHILD' || command === 'APPEND_MEMBER') {
 

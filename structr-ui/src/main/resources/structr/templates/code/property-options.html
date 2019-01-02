@@ -1,4 +1,8 @@
 <div id="property-options">
+	<div id="default-buttons" class="property-options-group">
+		<div><label>Actions</label></div>
+		<button id="delete-property-button" type="button" class="button"><i class="fa fa-remove" style="color: red"></i> Delete property ${config.property.name}</button>
+	</div>
 	<div class="property-options-group">
 		<p class="input"><label>Name</label><input type="text" id="property-name-input" size="30" value="${config.property.name}" /></p>
 		<p class="input"><label>Content type</label><input type="text" id="property-content-type-input" size="30" value="${config.property.contentType || ''}" /></p>

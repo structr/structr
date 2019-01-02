@@ -39,9 +39,7 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
 /**
- *
  *
  */
 public class UpdateCommand extends AbstractCommand {
@@ -50,7 +48,7 @@ public class UpdateCommand extends AbstractCommand {
 
 	private static final String NODE_ID_KEY   = "nodeId";
 	private static final String RECURSIVE_KEY = "recursive";
-	
+
 	static {
 
 		StructrWebSocket.addCommand(UpdateCommand.class);
@@ -59,16 +57,15 @@ public class UpdateCommand extends AbstractCommand {
 
 	private int count = 0;
 
-	//~--- methods --------------------------------------------------------
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
 		setDoTransactionNotifications(true);
 
 		try {
-			
+
 			final App app          = StructrApp.getInstance(getWebSocket().getSecurityContext());
-			
+
 			final String nodeId    = webSocketData.getNodeDataStringValue(NODE_ID_KEY);
 			final boolean rec      = webSocketData.getNodeDataBooleanValue(RECURSIVE_KEY);
 			final GraphObject obj  = getGraphObject(webSocketData.getId(), nodeId);
@@ -132,11 +129,11 @@ public class UpdateCommand extends AbstractCommand {
 				}
 
 			}
-		
+
 		} catch (FrameworkException ex) {
 			logger.warn("Exception occured", ex);
 			getWebSocket().send(MessageBuilder.status().code(ex.getStatus()).message(ex.getMessage()).build(), true);
-		}		
+		}
 
 	}
 
@@ -152,7 +149,6 @@ public class UpdateCommand extends AbstractCommand {
 
 	}
 
-	//~--- set methods ----------------------------------------------------
 	private void setProperties(final GraphObject obj, final PropertyMap properties, final boolean rec) throws FrameworkException {
 
 		obj.setProperties(obj.getSecurityContext(), properties);
