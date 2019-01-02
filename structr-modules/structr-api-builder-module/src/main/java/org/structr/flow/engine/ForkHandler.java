@@ -45,7 +45,7 @@ import java.util.concurrent.Future;
 public class ForkHandler implements FlowHandler<FlowFork> {
 
 	private static final Logger logger = LoggerFactory.getLogger(ForkHandler.class);
-	private static final ExecutorService threadExecutor = Executors.newFixedThreadPool(10);
+	private static final ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
 
 	@Override
 	public FlowElement handle(Context context, FlowFork flowElement) throws FlowException {
@@ -59,6 +59,7 @@ public class ForkHandler implements FlowHandler<FlowFork> {
 
 			// Could be written into context for future additions like a FlowJoin element
 			Future<Object> future = threadExecutor.submit(task);
+			
 			context.queueForkFuture(future);
 
 		}
@@ -84,6 +85,8 @@ public class ForkHandler implements FlowHandler<FlowFork> {
 
 					Principal principal = app.nodeQuery(Principal.class).uuid(secContextUserId).getFirst();
 					this.securityContext = SecurityContext.getInstance(principal, AccessMode.Frontend);
+
+					tx.success();
 
 				} catch (FrameworkException ex) {
 
