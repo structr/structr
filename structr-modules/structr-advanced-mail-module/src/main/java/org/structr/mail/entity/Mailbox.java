@@ -40,6 +40,7 @@ public interface Mailbox extends NodeInterface {
 		type.addStringProperty("host",                     PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(true);
 		type.addStringProperty("user",                     PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(true);
 		type.addStringProperty("password",                 PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(false);
+		type.addStringArrayProperty("folders",             PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(true);
 		type.addEnumProperty("mailProtocol",               PropertyView.Public, PropertyView.Ui).setEnums("pop3,imaps").setIndexed(true).setRequired(true);
 		type.addIntegerProperty("port",                    PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
@@ -47,18 +48,22 @@ public interface Mailbox extends NodeInterface {
 		type.addPropertyGetter("user",              String.class);
 		type.addPropertyGetter("password",          String.class);
 		type.addPropertyGetter("mailProtocol",      Object.class);
-		type.addPropertyGetter("port",      		Integer.class);
+		type.addPropertyGetter("port",      		 Integer.class);
+		type.addMethod("getFolders")
+				.setReturnType("String[]")
+				.setSource("return getProperty(foldersProperty);");
 
 		type.relate(mail, "CONTAINS_MAILS", Relation.Cardinality.OneToMany, "mailbox", "mails");
 
 		// view configuration
-		type.addViewProperty(PropertyView.Public, "host,user,password,mailProtocol,mails");
-		type.addViewProperty(PropertyView.Ui, "host,user,password,mailProtocol,mails");
+		type.addViewProperty(PropertyView.Public, "host,user,password,mailProtocol,mails,folders");
+		type.addViewProperty(PropertyView.Ui, "host,user,password,mailProtocol,mails,folders");
 	}}
 
 	String getHost();
 	String getUser();
 	String getPassword();
+	String[] getFolders();
 	Object getMailProtocol();
 	Integer getPort();
 

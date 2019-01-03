@@ -243,14 +243,14 @@ public class MailService extends Thread implements RunnableService {
 		public void run() {
 			try {
 
-				Gson gson = new Gson();
 				String host = mailbox.getHost();
 				String mailProtocol = mailbox.getMailProtocol().toString();
 				String user = mailbox.getUser();
 				String password = mailbox.getPassword();
 				Integer port = mailbox.getPort();
+				String[] folders = mailbox.getFolders();
 
-				if (host == null || mailProtocol == null || user == null || password == null) {
+				if (host == null || mailProtocol == null || user == null || password == null || folders == null) {
 					logger.warn("MailService::fetchMails: Could not retrieve mails from mailbox[" + mailbox.getUuid() + "], because not all required attributes were specified.");
 					return;
 				}
@@ -272,106 +272,131 @@ public class MailService extends Thread implements RunnableService {
 					properties.put("mail." + mailProtocol + ".port", port);
 				}
 
-				Session emailSession = Session.getDefaultInstance(properties);
+				if (folders.length > 0) {
+					Session emailSession = Session.getDefaultInstance(properties);
 
-				Store store = emailSession.getStore(mailProtocol);
+					Store store = emailSession.getStore(mailProtocol);
 
-				store.connect(host, user, password);
+					store.connect(host, user, password);
 
-				Folder emailFolder = store.getFolder("INBOX");
-				emailFolder.open(Folder.READ_ONLY);
+					for (final String folder : folders) {
 
-				Message[] messages = emailFolder.getMessages();
-
-				ArrayUtils.reverse(messages);
-
-				App app = StructrApp.getInstance();
-
-				for (int i = 0; i < messages.length; i ++) {
-					// Limit fetched emails
-					if (i >= maxEmails.getValue(25)) {
-						break;
+						fetchMessagesInFolder(store.getFolder(folder));
 					}
 
-					Message message = messages[i];
-
-					PropertyMap pm = new PropertyMap();
-
-					String from = message.getFrom() != null ? Arrays.stream(message.getFrom()).map(Address::toString).reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
-					String to = message.getAllRecipients() != null ? Arrays.stream(message.getAllRecipients()).map( (a) -> a != null ? a.toString() : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
-
-					try (Tx tx = app.tx()) {
-
-						Mail existingMail = app.nodeQuery(Mail.class).and(StructrApp.key(Mail.class, "subject"), message.getSubject()).and(StructrApp.key(Mail.class, "from"), from).and(StructrApp.key(Mail.class, "to"),to).and(StructrApp.key(Mail.class, "receivedDate"),message.getReceivedDate()).and(StructrApp.key(Mail.class, "sentDate"),message.getSentDate()).getFirst();
-
-						if (existingMail == null) {
-
-							pm.put(StructrApp.key(Mail.class, "subject"), message.getSubject());
-							pm.put(StructrApp.key(Mail.class, "from"), from);
-							pm.put(StructrApp.key(Mail.class, "to"), to);
-							pm.put(StructrApp.key(Mail.class, "folder"), message.getFolder().getFullName());
-							pm.put(StructrApp.key(Mail.class, "receivedDate"), message.getReceivedDate());
-							pm.put(StructrApp.key(Mail.class, "sentDate"), message.getSentDate());
-							pm.put(StructrApp.key(Mail.class, "mailbox"), mailbox);
-
-							Enumeration en = message.getAllHeaders();
-							Map<String, String> headers = new HashMap<>();
-							while (en.hasMoreElements()) {
-								Header header = (Header)en.nextElement();
-								if (header.getName().equals("Message-ID") || header.getName().equals("Message-Id")) {
-									pm.put(StructrApp.key(Mail.class, "messageId"), header.getValue());
-								} else if (header.getName().equals("In-Reply-To") || header.getName().equals("References")) {
-									pm.put(StructrApp.key(Mail.class, "inReplyTo"), header.getValue());
-								}
-								headers.put(header.getName(), header.getValue());
-							}
-
-							pm.put(StructrApp.key(Mail.class, "header"), gson.toJson(headers));
-
-							// Handle content extraction
-							String content = null;
-							Object contentObj = message.getContent();
-
-							if (contentObj instanceof Part) {
-
-								content = getText((Part)contentObj);
-							} else if (contentObj  instanceof Multipart) {
-
-								content = getText(((Multipart) contentObj).getParent());
-							} else if (contentObj instanceof InputStream) {
-
-								logger.info("MailService: Can't process streamed content. Not implemented yet!");
-							} else {
-
-								content = contentObj.toString();
-							}
-
-
-							pm.put(StructrApp.key(Mail.class, "content"), content);
-
-							app.create(Mail.class, pm);
-
-						}
-
-						tx.success();
-
-					}
+					store.close();
 
 				}
 
-				//close the store and folder objects
-				emailFolder.close(false);
-				store.close();
-
 			} catch (MessagingException ex) {
-				logger.error("Error while updating Mails: ", ex);
-			} catch (FrameworkException | IOException ex) {
 				logger.error("Error while updating Mails: ", ex);
 			} catch (Throwable ex) {
 				logger.error("Error while updating Mails: ", ex);
 			}
 
 			processingMailboxes.remove(mailbox);
+		}
+
+		private void fetchMessagesInFolder(final Folder folder) {
+
+			if (folder != null) {
+
+				try {
+
+					Gson gson = new Gson();
+
+					folder.open(Folder.READ_ONLY);
+
+					Message[] messages = folder.getMessages();
+
+					ArrayUtils.reverse(messages);
+
+					App app = StructrApp.getInstance();
+
+					for (int i = 0; i < messages.length; i++) {
+						// Limit fetched emails
+						if (i >= maxEmails.getValue(25)) {
+							break;
+						}
+
+						Message message = messages[i];
+
+						PropertyMap pm = new PropertyMap();
+
+						String from = message.getFrom() != null ? Arrays.stream(message.getFrom()).map(Address::toString).reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
+						String to = message.getAllRecipients() != null ? Arrays.stream(message.getAllRecipients()).map((a) -> a != null ? a.toString() : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
+
+						try (Tx tx = app.tx()) {
+
+							Mail existingMail = app.nodeQuery(Mail.class).and(StructrApp.key(Mail.class, "subject"), message.getSubject()).and(StructrApp.key(Mail.class, "from"), from).and(StructrApp.key(Mail.class, "to"), to).and(StructrApp.key(Mail.class, "receivedDate"), message.getReceivedDate()).and(StructrApp.key(Mail.class, "sentDate"), message.getSentDate()).getFirst();
+
+							if (existingMail == null) {
+
+								pm.put(StructrApp.key(Mail.class, "subject"), message.getSubject());
+								pm.put(StructrApp.key(Mail.class, "from"), from);
+								pm.put(StructrApp.key(Mail.class, "to"), to);
+								pm.put(StructrApp.key(Mail.class, "folder"), message.getFolder().getFullName());
+								pm.put(StructrApp.key(Mail.class, "receivedDate"), message.getReceivedDate());
+								pm.put(StructrApp.key(Mail.class, "sentDate"), message.getSentDate());
+								pm.put(StructrApp.key(Mail.class, "mailbox"), mailbox);
+
+								Enumeration en = message.getAllHeaders();
+								Map<String, String> headers = new HashMap<>();
+								while (en.hasMoreElements()) {
+									Header header = (Header) en.nextElement();
+									if (header.getName().equals("Message-ID") || header.getName().equals("Message-Id")) {
+										pm.put(StructrApp.key(Mail.class, "messageId"), header.getValue());
+									} else if (header.getName().equals("In-Reply-To") || header.getName().equals("References")) {
+										pm.put(StructrApp.key(Mail.class, "inReplyTo"), header.getValue());
+									}
+									headers.put(header.getName(), header.getValue());
+								}
+
+								pm.put(StructrApp.key(Mail.class, "header"), gson.toJson(headers));
+
+								// Handle content extraction
+								String content = null;
+								Object contentObj = message.getContent();
+
+								if (contentObj instanceof Part) {
+
+									content = getText((Part) contentObj);
+								} else if (contentObj instanceof Multipart) {
+
+									content = getText(((Multipart) contentObj).getParent());
+								} else if (contentObj instanceof InputStream) {
+
+									logger.info("MailService: Can't process streamed content. Not implemented yet!");
+								} else {
+
+									content = contentObj.toString();
+								}
+
+
+								pm.put(StructrApp.key(Mail.class, "content"), content);
+
+								app.create(Mail.class, pm);
+
+							}
+
+							tx.success();
+
+						}
+
+					}
+
+					//close the store and folder objects
+					folder.close(false);
+
+				} catch (MessagingException ex) {
+					logger.error("Error while updating Mails: ", ex);
+				} catch (FrameworkException | IOException ex) {
+					logger.error("Error while updating Mails: ", ex);
+				} catch (Throwable ex) {
+					logger.error("Error while updating Mails: ", ex);
+				}
+			}
+
 		}
 	}
 }
