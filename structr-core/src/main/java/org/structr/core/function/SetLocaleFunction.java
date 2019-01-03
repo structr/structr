@@ -48,7 +48,7 @@ public class SetLocaleFunction extends Function<Object, Object> {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			ctx.setLocale(Locale.forLanguageTag(sources[0].toString()));
+			ctx.setLocale(new Locale(sources[0].toString()));
 
 		} catch (ArgumentNullException pe) {
 

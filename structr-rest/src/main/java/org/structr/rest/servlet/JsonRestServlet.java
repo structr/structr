@@ -894,33 +894,8 @@ public class JsonRestServlet extends AbstractServletBase {
 
 			if (returnContent) {
 
-				/*
-				if (!(resource instanceof StaticRelationshipResource) && !result.isPrimitiveArray() && !result.isEmpty()) {
-
-					result.setIsCollection(resource.isCollectionResource());
-					result.setIsPrimitiveArray(resource.isPrimitiveArray());
-
-				}
-
-				PagingHelper.addPagingParameter(result, pageSize, page);
-
-				// store property view that will be used to render the results
-				result.setPropertyView(propertyView.get(securityContext));
-
-				// allow resource to modify result set
-				resource.postProcessResultSet(result);
-				*/
-
 				final DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 				result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
-
-				/*
-				if (outputDepth != null) {
-
-					result.setOutputNestingDepth(depth);
-
-				}
-				*/
 
 				processResult(securityContext, request, response, result, depth, resource.isCollectionResource());
 			}

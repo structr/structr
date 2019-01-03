@@ -325,7 +325,7 @@ var _Code = {
 					{
 
 						children.push({
-							id: 'properties-' + entity.id,
+							id: 'properties-' + entity.id + '-' + entity.name,
 							text: 'Properties',
 							children: entity.schemaProperties.length > 0,
 							icon: 'fa fa-sliders gray',
@@ -333,7 +333,7 @@ var _Code = {
 						});
 
 						children.push({
-							id: 'methods-' + entity.id,
+							id: 'methods-' + entity.id + '-' + entity.name,
 							text: 'Methods',
 							children: entity.schemaMethods.length > 0,
 							icon: 'fa fa-code gray',
@@ -446,8 +446,11 @@ var _Code = {
 								return p.declaringClass !== obj.data.type;
 							});
 							displayFunction(filtered.map(function(s) {
+
+								var builtIn = s.isPartOfBuiltInSchema;
+
 								return {
-									id: 'inherited-' + s.declaringUuid + '-' + s.declaringClass + '-' + obj.data.type + '-' + s.name,
+									id: 'inherited-' + s.declaringUuid + '-' + s.declaringClass + '-' + obj.data.type + '-' + s.name + (builtIn ? '-builtin' : ''),
 									type: 'SchemaProperty',
 									name: s.declaringClass + '.' + s.name,
 									propertyType: s.declaringPropertyType ? s.declaringPropertyType : s.propertyType,
@@ -813,14 +816,22 @@ var _Code = {
 		if (parts.length >= 2) {
 
 			switch (parts.length) {
-				default:
-					var extra   = parts[2].trim();
+				//inherited-8358fbdd264a42c79771c64f12b8878a-BaseEntity-Wette-labels
+
+				case 6:
+					var builtin  = "builtin" === parts[5].trim();
+				case 5:
+					var property = parts[4].trim();
+				case 4:
+					var extended = parts[3].trim();
+				case 3:
+					var base     = parts[2].trim();
 				case 2:
-					var entity  = parts[1].trim();
-					var subtype = parts[0].trim();
+					var entity   = parts[1].trim();
+					var subtype  = parts[0].trim();
 			}
 
-			return { id: entity, type: subtype, extra: extra };
+			return { id: entity, type: subtype, base: base, extended: extended, property: property, isBuiltinType: builtin };
 		}
 
 		return { id : id, type: id };
@@ -922,12 +933,12 @@ var _Code = {
 
 			// properties (with uuid)
 			case 'properties':
-				_Code.displayPropertiesContent(identifier);
+				_Code.displayPropertiesContent(identifier, data.updateLocationStack);
 				break;
 
 			// methods (with uuid)
 			case 'methods':
-				_Code.displayMethodsContent(identifier);
+				_Code.displayMethodsContent(identifier, data.updateLocationStack);
 				break;
 
 			// outgoing relationships (with uuid)
@@ -951,7 +962,11 @@ var _Code = {
 				break;
 
 			case 'inherited':
-				_Code.findAndOpenNode('Types/Custom/' + identifier.extra + '/Properties/' + identifier.id, true);
+				if (identifier.isBuiltinType) {
+					_Code.findAndOpenNode('Types/Built-In/' + identifier.base + '/Properties/' + identifier.property, true);
+				} else {
+					_Code.findAndOpenNode('Types/Custom/' + identifier.base + '/Properties/' + identifier.property, true);
+				}
 				break;
 
 			// other (click on an actual object)
@@ -985,19 +1000,42 @@ var _Code = {
 
 				case 'SchemaNode':
 					Command.get(identifier.id, null, function(result) {
+						_Code.updateRecentlyUsed(result, data.updateLocationStack);
 						Structr.fetchHtmlTemplate('code/type', { type: result }, function(html) {
 
 							codeContents.empty();
 							codeContents.append(html);
-							_Code.displayCreateButtons(true, false, false, result.id);
 
+							var entityPath          = _Code.getPathForEntity(result);
+							var propertiesContainer = $('#type-properties');
+							var methodsContainer    = $('#type-methods');
+
+							_Code.displayTypeContent(propertiesContainer, 'add-property', 'Add property..', 'plus', entityPath + '/Properties');
+							result.schemaProperties.forEach(function(p) {
+								_Code.displayTypeContent(propertiesContainer, p.id, p.name, _Code.getIconForPropertyType(p.propertyType), entityPath + '/Properties/' + p.name);
+							});
+
+							_Code.displayTypeContent(methodsContainer, 'add-method', 'Add method..', 'plus', entityPath + '/Methods');
+							result.schemaMethods.forEach(function(m) {
+								_Code.displayTypeContent(methodsContainer, m.id, m.name, _Code.getIconForNodeType(m), entityPath + '/Methods/' + m.name);
+							});
+
+							if (result.isBuiltinType) {
+								$('button#delete-type-button').parent().remove();
+							} else {
+								$('button#delete-type-button').on('click', function() {
+									_Code.deleteSchemaEntity(result, 'Delete type ' + result.name + '?', 'This will delete all incoming and outgoing schema relationships as well, but no data will be removed.');
+								});
+							}
+
+							/* disabled
 							$.ajax({
 								url: '/structr/rest/SchemaNode/' + result.id + '/getGeneratedSourceCode',
 								method: 'post',
 								statusCode: {
 									200: function(result) {
 
-										var container = $('.editor');
+										var container = $('#type-source-code');
 										var editor    = CodeMirror(container[0], {
 											value: result.result,
 											mode: 'text/x-java',
@@ -1010,8 +1048,19 @@ var _Code = {
 									}
 								}
 							});
+							*/
 						});
 					});
+					/*
+					Command.get(identifier.id, null, function(result) {
+						Structr.fetchHtmlTemplate('code/type', { type: result }, function(html) {
+
+							codeContents.empty();
+							codeContents.append(html);
+							_Code.displayCreateButtons(true, false, false, result.id);
+						});
+					});
+					*/
 					break;
 			}
 
@@ -1028,6 +1077,14 @@ var _Code = {
 					break;
 			}
 		}
+	},
+	displayTypeContent: function(parent, id, name, icon, path) {
+		Structr.fetchHtmlTemplate('code/type-child-button', { id: id, name: name, icon: icon }, function(html) {
+			parent.append(html);
+			$('#type-content-' + id).on('click.type-content', function() {
+				_Code.findAndOpenNode(path, true);
+			});
+	       });
 	},
 	displayContent: function(templateName) {
 		Structr.fetchHtmlTemplate('code/' + templateName, { }, function(html) {
@@ -1048,7 +1105,14 @@ var _Code = {
 			_Code.displayCreateButton('#create-method-container', 'magic', 'new', 'global schema method', '', { type: 'SchemaMethod' }, _Code.displayGlobalMethodsContent);
 		});
 	},
-	displayPropertiesContent: function(selection) {
+	displayPropertiesContent: function(selection, updateLocationStack) {
+
+		if (updateLocationStack === true) {
+			var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Properties';
+			_Code.updatePathLocationStack(path);
+			_Code.lastClickedPath = path;
+		}
+
 		Structr.fetchHtmlTemplate('code/properties', { identifier: selection }, function(html) {
 			codeContents.empty();
 			codeContents.append(html);
@@ -1067,7 +1131,14 @@ var _Code = {
 			_Code.displayCreatePropertyButton(id, 'Cypher',   data, callback);
 		});
 	},
-	displayMethodsContent: function(identifier) {
+	displayMethodsContent: function(identifier, updateLocationStack) {
+
+		if (updateLocationStack === true) {
+			var path = 'Types/' + _Code.getPathComponent(identifier) + '/' + identifier.base + '/Methods';
+			_Code.updatePathLocationStack(path);
+			_Code.lastClickedPath = path;
+		}
+
 		Structr.fetchHtmlTemplate('code/methods', { identifier: identifier }, function(html) {
 			codeContents.empty();
 			codeContents.append(html);
@@ -1128,7 +1199,6 @@ var _Code = {
 		});
 	},
 	displayFunctionPropertyDetails: function(property) {
-
 		Structr.fetchHtmlTemplate('code/function-property', { property: property }, function(html) {
 
 			codeContents.empty();
@@ -1222,6 +1292,10 @@ var _Code = {
 				}
 			});
 
+			$('button#delete-property-button').on('click', function() {
+				_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'Property values will not be removed from data nodes.');
+			});
+
 			if (typeof callback === 'function') {
 				callback();
 			}
@@ -1266,6 +1340,10 @@ var _Code = {
 				if (propertyName && propertyName.length) {
 					$(this).prop('checked', method[propertyName]);
 				}
+			});
+
+			$('button#delete-method-button').on('click', function() {
+				_Code.deleteSchemaEntity(method, 'Delete method ' + method.name + '?');
 			});
 
 			if (typeof callback === 'function') {
@@ -1432,29 +1510,6 @@ var _Code = {
 			$('#recently-used-' + id).remove();
 		});
 	},
-	getTreePath: function(id, name) {
-		var path    = [ name ];
-		var tree    = $('#code-tree').jstree(true);
-		var current = id;
-
-		while (current) {
-
-			var node = tree.get_node(current);
-			if (node) {
-				current = tree.get_parent(node);
-				if (current && current !== '#') {
-					var parent = tree.get_node(current);
-					if (parent) {
-						path.unshift(parent.text);
-					} else {
-						path.unshift(current);
-					}
-				}
-			}
-		}
-
-		return path.join('/');
-	},
 	findAndOpenNode: function(path, updateLocationStack) {
 		var tree = $('#code-tree').jstree(true);
 		_Code.findAndOpenNodeRecursive(tree, path, 0, undefined, updateLocationStack);
@@ -1565,8 +1620,13 @@ var _Code = {
 		var pos = _Code.pathLocationStack.indexOf(path);
 		if (pos >= 0) {
 
-			// remove existing element
 			_Code.pathLocationStack.splice(pos, 1);
+		}
+
+		// remove tail of stack when click history branches
+		if (_Code.pathLocationIndex !== _Code.pathLocationStack.length - 1) {
+
+			_Code.pathLocationStack.splice(_Code.pathLocationIndex + 1, _Code.pathLocationStack.length - _Code.pathLocationIndex);
 		}
 
 		// add element to the end of the stack
@@ -1639,7 +1699,7 @@ var _Code = {
 	},
 	searchIsActive: function() {
 		var text = $('#tree-search-input').val();
-		return text.length >= _Code.searchThreshold;
+		return text && text.length >= _Code.searchThreshold;
 	},
 	cancelSearch: function() {
 		$('#tree-search-input').val('');
@@ -1649,8 +1709,6 @@ var _Code = {
 		_Code.findAndOpenNode(_Code.lastClickedPath);
 	},
 	getPathForEntity: function(entity) {
-
-		console.log(entity);
 
 		var getPathComponent = function(e) {
 
@@ -1693,8 +1751,36 @@ var _Code = {
 				break;
 		}
 
-		var result = path.join('/');
-		console.log(result);
-		return result;
+		return path.join('/');
+	},
+	getPathComponent: function(selection) {
+		if (selection.isBuiltinType) {
+			return 'Built-In';
+		}
+		return 'Custom';
+	},
+	deleteSchemaEntity: function(entity, title, text) {
+
+		var parentPath = _Code.getPathForEntity(entity);
+		var components = parentPath.split('/');
+
+		// remove last component from path
+		components.pop();
+		parentPath = components.join('/');
+
+		Structr.confirmation('<h3>' + title + '</h3><p>' + (text || '') + '</p>',
+			function() {
+				$.unblockUI({
+					fadeOut: 25
+				});
+				_Code.lockPropertyOptions();
+				_Code.showSchemaRecompileMessage();
+				Command.deleteNode(entity.id, false, function() {
+					_Code.hideSchemaRecompileMessage();
+					_Code.findAndOpenNode(parentPath, false);
+					_Code.refreshTree();
+				});
+			}
+		);
 	}
 };

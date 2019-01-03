@@ -3429,7 +3429,7 @@ input#tree-search-input {
 input#tree-search-input:focus {
 	border: 1px solid #ccc;
 }
-	
+
 #code-tree i.jstree-icon.gray, #flows-tree i.jstree-icon.gray {
 	color: #666;
 }
@@ -3521,6 +3521,26 @@ input#tree-search-input:focus {
 	position: absolute;
 }
 
+#code-context .code-favorite {
+	margin: 4px;
+	padding: 4px;
+	border: 1px solid #eee;
+	cursor: pointer;
+	overflow: hidden;
+	box-shadow: 0px 0px 6px rgba(127,127,127,.1);
+}
+
+#code-contents .code-favorite {
+	margin: 4px 8px 4px 0;
+	padding: 4px;
+	border: 1px solid #eee;
+	cursor: pointer;
+	overflow: hidden;
+	box-shadow: 0px 0px 6px rgba(127,127,127,.1);
+	min-width: 150px;
+	float:left;
+}
+
  #flows-canvas {
 	 padding: 0;
  }
@@ -3584,6 +3604,10 @@ input#tree-search-input:focus {
 
 #code-contents property-options {
 	border: 1px solid #ddd;
+}
+
+#code-contents .property-options-group {
+	margin: 0 0 12px 0;
 }
 
 #code-contents p.checkbox {
