@@ -1,11 +1,17 @@
 <div id="method-options">
-	<div>
+	<div class="property-options-group">
+		<div><label>Actions</label></div>
+		<button id="delete-method-button" type="button" class="button"><i class="fa fa-remove" style="color: red"></i> Delete method ${config.method.name}</button>
+	</div>
+	<div class="property-options-group">
 		<p class="input"><label>Name</label><input type="text" id="method-name-input" size="30" value="${config.method.name}" /></p>
 		<div style="clear: both;"></div>
 	</div>
-	<div id="default-buttons">
-		<div style="margin: 12px 0 0 0;"><label>Options</label></div>
+	<!--
+	<div class="property-options-group">
+		<div><label>Options</label></div>
 		<p class="checkbox"><input type="checkbox" id="method-export" data-property="doExport" /><span class="toggle-checkbox" data-target="#method-export">Make method available via REST</span></p>
 		<div style="clear: both;"></div>
 	</div>
+	-->
 </div>
