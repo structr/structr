@@ -1956,6 +1956,8 @@ public class DeploymentTest extends StructrUiTest {
 
 			div1.setProperty(new StringProperty("_custom_html_aria-expanded"), "true");
 			div1.setProperty(new StringProperty("_custom_html_aria-controls"), "#test");
+			div1.setProperty(new StringProperty("_custom_html_data-target"),   "#target");
+			div1.setProperty(new StringProperty("_custom_html_data-node-id"),  "1233");
 
 			tx.success();
 
