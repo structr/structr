@@ -135,7 +135,7 @@ public class TransactionCommand {
 			try { semaphore.acquire(synchronizationKeys); } catch (InterruptedException iex) { return; }
 
 			// do validation under the protection of the semaphores for each type
-				if (doValidation && !modificationQueue.doValidation(securityContext, errorBuffer, doValidation)) {
+			if (!modificationQueue.doValidation(securityContext, errorBuffer, doValidation)) {
 
 				cmd.transaction.failure();
 
