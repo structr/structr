@@ -718,7 +718,7 @@ var _Entities = {
 	listProperties: function(entity, view, tabView, typeInfo) {
 
 		_Entities.getSchemaProperties(entity.type, view, function(properties) {
-			
+
 			let filteredProperties = Object.keys(properties).filter(function(key) {
 				return !(typeInfo[key].isCollection && typeInfo[key].relatedType);
 			});
@@ -755,7 +755,7 @@ var _Entities = {
 
 						if (typeInfo) {
 							keys.forEach(function(key) {
-								
+
 								if (typeInfo[key] && typeInfo[key].category && typeInfo[key].category !== 'System') {
 
 									var category = typeInfo[key].category;
@@ -768,7 +768,7 @@ var _Entities = {
 								}
 							});
 						}
-						
+
 						if (view === '_html_') {
 							// add custom html attributes
 							Object.keys(res).forEach(function(key) {
@@ -1100,7 +1100,7 @@ var _Entities = {
 
 		Structr.appendInfoTextToElement({
 			element: $('.newKey', propsTable),
-			text: "Any attribute name is allowed but 'data-' attributes are recommended.",
+			text: "Any attribute name is allowed but 'data-' attributes are recommended. (data-structr is reserved for internal use)",
 			insertAfter: true,
 			css: {
 				marginLeft: "3px",
@@ -1329,7 +1329,13 @@ var _Entities = {
 					var userInput = keyInput.val();
 					var regexAllowed = new RegExp("^[a-zA-Z0-9_\-]*$");
 
-					if (regexAllowed.test(userInput)) {
+					if (userInput.indexOf('data-structr') === 0) {
+						blinkRed(keyInput);
+						new MessageBuilder().error('Key can not start with "data-structr" as it is reserved for internal use.').show();
+					} else if (!regexAllowed.test(userInput)) {
+						blinkRed(keyInput);
+						new MessageBuilder().error('Key contains forbidden characters. Allowed: "a-z", "A-Z", "-" and "_".').show();
+					} else {
 						var newKey = '_custom_html_' + userInput;
 						var val = input.val();
 
@@ -1339,9 +1345,6 @@ var _Entities = {
 							blinkGreen(input);
 							Structr.showAndHideInfoBoxMessage('New property "' + newKey + '" has been added and saved with value "' + val + '".', 'success', 2000, 1000);
 						});
-					} else {
-						blinkRed(keyInput);
-						new MessageBuilder().error('Key contains forbidden characters. Allowed: "a-z", "A-Z", "-" and "_".').show();
 					}
 
 				} else {
