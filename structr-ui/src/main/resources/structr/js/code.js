@@ -1191,9 +1191,7 @@ var _Code = {
 
 		Structr.fetchHtmlTemplate('code/methods', { identifier: identifier }, function(html) {
 			codeContents.empty();
-
 			codeContents.append(html);
-
 			var callback = function() { _Code.displayMethodsContent(identifier); };
 			var data     = { type: 'SchemaMethod', schemaNode: identifier.id };
 			var containerId = '#method-actions';
@@ -1205,7 +1203,6 @@ var _Code = {
 			// list of existing properties
 			Command.query('SchemaMethod', 10000, 1, 'name', 'asc', { schemaNode: identifier.id }, function(result) {
 				result.forEach(function(t) {
-					//displayActionButton: function(targetId, icon, suffix, name, callback) {
 					_Code.displayActionButton('#existing-methods', _Code.getIconForNodeType(t), t.id, t.name, function() {
 						_Code.findAndOpenNode(path + '/' + t.name);
 					});
