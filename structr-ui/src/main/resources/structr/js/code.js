@@ -937,7 +937,7 @@ var _Code = {
 				break;
 
 			case 'custom':
-				_Code.displayCustomTypesContent(identifier.type);
+				_Code.displayCustomTypesContent(data);
 				break;
 
 			case 'builtin':
@@ -1094,28 +1094,28 @@ var _Code = {
 			});
 		});
 	},
-	displayTypeContent: function(parent, id, name, icon, path) {
-		Structr.fetchHtmlTemplate('code/type-child-button', { id: id, name: name, icon: icon }, function(html) {
-			parent.append(html);
-			$('#type-content-' + id).on('click.type-content', function() {
-				_Code.findAndOpenNode(path, true);
-			});
-	        });
-	},
 	displayContent: function(templateName) {
 		Structr.fetchHtmlTemplate('code/' + templateName, { }, function(html) {
 			codeContents.append(html);
 		});
 	},
-	displayCustomTypesContent: function() {
+	displayCustomTypesContent: function(data) {
 		Structr.fetchHtmlTemplate('code/custom', { }, function(html) {
 			codeContents.empty();
 			codeContents.append(html);
-			var container = $('#custom-types');
-			_Code.displayTypeContent(container, 'add-type', 'Add type..', 'plus', 'Types/Custom/');
-			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { isBuiltinType: false}, function(result) {
+
+			var cancelCallback = function() { _Code.handleSelection(data); };
+
+			// create button
+			_Code.displayCreateTypeButton("#type-actions", cancelCallback);
+
+			// list of existing custom types
+			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { isBuiltinType: false }, function(result) {
 				result.forEach(function(t) {
-					_Code.displayTypeContent(container, t.id, t.name, 'file-code-o', 'Types/Custom/' + t.name);
+					//displayActionButton: function(targetId, icon, suffix, name, callback) {
+					_Code.displayActionButton('#existing-types', 'file-code-o', t.id, t.name, function() {
+						_Code.findAndOpenNode('Types/Custom/' + t.name);
+					});
 				});
 			}, true);
 		});
@@ -1139,13 +1139,14 @@ var _Code = {
 		Structr.fetchHtmlTemplate('code/globals', { }, function(html) {
 			codeContents.empty();
 			codeContents.append(html);
-			_Code.displayCreateButton('#create-method-container', 'magic', 'new', 'global schema method', '', { type: 'SchemaMethod' }, _Code.displayGlobalMethodsContent);
+			_Code.displayCreateButton('#method-actions', 'magic', 'new', 'Add global schema method', '', { type: 'SchemaMethod' }, _Code.displayGlobalMethodsContent);
 		});
 	},
 	displayPropertiesContent: function(selection, updateLocationStack) {
 
+		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Properties';
+
 		if (updateLocationStack === true) {
-			var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Properties';
 			_Code.updatePathLocationStack(path);
 			_Code.lastClickedPath = path;
 		}
@@ -1155,8 +1156,9 @@ var _Code = {
 			codeContents.append(html);
 			var callback = function() { _Code.displayPropertiesContent(selection); };
 			var data     = { type: 'SchemaProperty', schemaNode: selection.id };
-			var id       = '#create-property-container';
+			var id       = '#property-actions';
 
+			// create buttons
 			_Code.displayCreatePropertyButton(id, 'String',   data, callback);
 			_Code.displayCreatePropertyButton(id, 'Boolean',  data, callback);
 			_Code.displayCreatePropertyButton(id, 'Integer',  data, callback);
@@ -1166,24 +1168,49 @@ var _Code = {
 			_Code.displayCreatePropertyButton(id, 'Date',     data, callback);
 			_Code.displayCreatePropertyButton(id, 'Function', data, callback);
 			_Code.displayCreatePropertyButton(id, 'Cypher',   data, callback);
+
+			// list of existing properties
+			Command.query('SchemaProperty', 10000, 1, 'name', 'asc', { schemaNode: selection.id }, function(result) {
+				result.forEach(function(t) {
+					//displayActionButton: function(targetId, icon, suffix, name, callback) {
+					_Code.displayActionButton('#existing-properties', _Code.getIconForPropertyType(t.propertyType), t.id, t.name, function() {
+						_Code.findAndOpenNode(path + '/' + t.name);
+					});
+				});
+			}, true);
 		});
 	},
 	displayMethodsContent: function(identifier, updateLocationStack) {
 
+		var path = 'Types/' + _Code.getPathComponent(identifier) + '/' + identifier.base + '/Methods';
+
 		if (updateLocationStack === true) {
-			var path = 'Types/' + _Code.getPathComponent(identifier) + '/' + identifier.base + '/Methods';
 			_Code.updatePathLocationStack(path);
 			_Code.lastClickedPath = path;
 		}
 
 		Structr.fetchHtmlTemplate('code/methods', { identifier: identifier }, function(html) {
 			codeContents.empty();
+
 			codeContents.append(html);
+
 			var callback = function() { _Code.displayMethodsContent(identifier); };
 			var data     = { type: 'SchemaMethod', schemaNode: identifier.id };
-			_Code.displayCreateButton('#create-method-container', 'magic', 'on-create', 'Add onCreate method', 'onCreate', data, callback);
-			_Code.displayCreateButton('#create-method-container', 'magic', 'on-save',   'Add onSave method',   'onSave',   data, callback);
-			_Code.displayCreateButton('#create-method-container', 'magic', 'new',       'Add schema method',   '',         data, callback);
+			var containerId = '#method-actions';
+
+			_Code.displayCreateButton(containerId, 'magic', 'on-create', 'Add onCreate method', 'onCreate', data, callback);
+			_Code.displayCreateButton(containerId, 'magic', 'on-save',   'Add onSave method',   'onSave',   data, callback);
+			_Code.displayCreateButton(containerId, 'magic', 'new',       'Add schema method',   '',         data, callback);
+
+			// list of existing properties
+			Command.query('SchemaMethod', 10000, 1, 'name', 'asc', { schemaNode: identifier.id }, function(result) {
+				result.forEach(function(t) {
+					//displayActionButton: function(targetId, icon, suffix, name, callback) {
+					_Code.displayActionButton('#existing-methods', _Code.getIconForNodeType(t), t.id, t.name, function() {
+						_Code.findAndOpenNode(path + '/' + t.name);
+					});
+				});
+			}, true);
 		});
 	},
 	displayOutgoingRelationshipsContent: function(identifier) {
@@ -1453,7 +1480,7 @@ var _Code = {
 
 			// hover / overlay effect
 			button.css({
-				'margin':    '0 9px -89px -3px',
+				'margin':    '0 9px -59px -3px',
 				'padding':   '13px 8px',
 				'z-index':   1000,
 				'border':    '4px solid #81ce25',
@@ -1510,7 +1537,10 @@ var _Code = {
 		_Code.displayCreateButton(targetId, _Code.getIconForPropertyType(type), type.toLowerCase(), 'Add ' + type + ' property', '', data, callback);
 	},
 	displayCreateMethodButton: function(targetId, type, data, presetValue, callback) {
-		_Code.displayCreateButton(targetId, _Code.getIconForNodeType(type), type.toLowerCase(), 'Add ' + type + ' method', presetValue, data, callback);
+		_Code.displayCreateButton(targetId, _Code.getIconForNodeType(data), type.toLowerCase(), 'Add ' + type + ' method', presetValue, data, callback);
+	},
+	displayCreateTypeButton: function(targetId, callback) {
+		_Code.displayCreateButton(targetId, 'magic', 'create-type', 'Create new type', '', { type: 'SchemaNode'}, callback);
 	},
 	getEditorModeForContent: function(content) {
 		if (content.indexOf('{') === 0) {
