@@ -233,7 +233,7 @@ public class WebsocketController implements StructrTransactionListener {
 				final WebSocketMessage message = createMessage("CREATE", callbackId);
 
 				message.setGraphObject(node);
-				message.setResult(Arrays.asList(new GraphObject[]{node}));
+				message.setResult(Arrays.asList(node));
 				message.setCode(201);
 
 				return message;
@@ -247,28 +247,36 @@ public class WebsocketController implements StructrTransactionListener {
 				if (securityContext != null) {
 
 					// only include changed properties (+ id and type)
-					LinkedHashSet<String> propertySet = new LinkedHashSet();
+					final LinkedHashSet<String> propertySet = new LinkedHashSet();
+
 					propertySet.add("id");
 					propertySet.add("type");
+
 					for (Iterator<PropertyKey> it = modificationEvent.getModifiedProperties().keySet().iterator(); it.hasNext(); ) {
+
 						final String jsonName = ((PropertyKey)it.next()).jsonName();
 						if (!propertySet.contains(jsonName)) {
+
 							propertySet.add(jsonName);
 						}
 					}
+
 					for (Iterator<PropertyKey> it = modificationEvent.getRemovedProperties().keySet().iterator(); it.hasNext(); ) {
+
 						final String jsonName = ((PropertyKey)it.next()).jsonName();
 						if (!propertySet.contains(jsonName)) {
+
 							propertySet.add(jsonName);
 						}
 					}
+
 					if (propertySet.size() > 2) {
 						securityContext.setCustomView(propertySet);
 					}
 				}
 
 				message.setGraphObject(node);
-				message.setResult(Arrays.asList(new GraphObject[]{node}));
+				message.setResult(Arrays.asList(node));
 				message.setId(node.getUuid());
 				message.getModifiedProperties().addAll(modificationEvent.getModifiedProperties().keySet());
 				message.getRemovedProperties().addAll(modificationEvent.getRemovedProperties().keySet());

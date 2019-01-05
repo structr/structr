@@ -521,9 +521,11 @@ public class ModificationQueue {
 			final Relation relation  = Relation.getInstance((Class)rel.getClass());
 			final PropertyKey source = relation.getSourceProperty();
 			final PropertyKey target = relation.getTargetProperty();
+			final Object sourceValue = source.isCollection() ? new LinkedList<>() : null;
+			final Object targetValue = target.isCollection() ? new LinkedList<>() : null;
 
-			modify(user, startNode, target, null, null);
-			modify(user, endNode, source, null, null);
+			modify(user, startNode, target, null, targetValue);
+			modify(user, endNode, source, null, sourceValue);
 
 			if (source != null && target != null) {
 

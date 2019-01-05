@@ -41,7 +41,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
+import org.structr.common.AccessControllable;
 import org.structr.common.AccessMode;
+import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
@@ -2792,6 +2794,7 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
+			final Principal tester    = app.create(Principal.class, "tester");
 			final GraphObject c       = app.nodeQuery(customer).getFirst();
 			final GraphObject p       = app.nodeQuery(project).getFirst();
 			final List<GraphObject> t = app.nodeQuery(task).getAsList();
@@ -2799,6 +2802,9 @@ public class ScriptingTest extends StructrTest {
 			p.setProperty(AbstractNode.name, "newName");
 			p.setProperty(tasksKey, t);
 			p.setProperty(customerKey, c);
+
+			((AccessControllable)c).grant(Permission.write, tester);
+			((AccessControllable)p).grant(Permission.write, tester);
 
 			tx.success();
 
