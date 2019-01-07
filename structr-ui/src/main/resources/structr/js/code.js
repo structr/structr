@@ -115,7 +115,7 @@ var _Code = {
 
 		$('#code-tree').css({width: left - 14 + 'px'});
 		$('#code-contents').css({left: left + 8 + 'px', width: width + 'px'});
-		$('#code-context').css({left: left + width + 42 + 'px', width: contextWidth + 'px'});
+		$('#code-context').css({left: left + width + 41 + 'px', width: contextWidth + 'px'});
 	},
 	onload: function() {
 

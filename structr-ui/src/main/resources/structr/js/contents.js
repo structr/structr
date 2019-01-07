@@ -74,7 +74,7 @@ var _Contents = {
 
 		if (contentsContents) {
 			contentsContents.css({
-				height: windowHeight - headerOffsetHeight - 44 + 'px'
+				height: windowHeight - headerOffsetHeight - 43 + 'px'
 			});
 		}
 
@@ -95,7 +95,7 @@ var _Contents = {
 
 		Structr.updateMainHelpLink('https://support.structr.com/knowledge-graph');
 
-		main.append('<div id="contents-main"><div class="column-resizer"></div><div class="fit-to-height" id="content-tree-container"><div id="contents-tree"></div></div><div class="fit-to-height" id="contents-contents-container"><div id="contents-contents"></div></div>');
+		main.append('<div class="tree-main" id="contents-main"><div class="column-resizer"></div><div class="fit-to-height tree-container" id="content-tree-container"><div class="tree" id="contents-tree"></div></div><div class="fit-to-height tree-contents-container" id="contents-contents-container"><div class="tree-contents" id="contents-contents"></div></div>');
 		contentsMain = $('#contents-main');
 
 		contentTree = $('#contents-tree');

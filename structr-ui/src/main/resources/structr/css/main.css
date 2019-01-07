@@ -1804,7 +1804,7 @@ button.disabled {
 	margin: 0;
 	height: 20px;
 	padding: 1px 4px;
-	font-size: 14px;
+	font-size: 9pt;
 }
 
 .input-and-button select {
@@ -1843,9 +1843,8 @@ button.disabled {
 .select-and-button button:active {
 	border-left: none;
 	margin: 0;
-	margin-top: -4px;
 	height: 24px;
-	vertical-align: middle;
+	vertical-align: top;
 	padding: 0 5px 0 4px;
 }
 
@@ -3352,32 +3351,20 @@ td#cascading-options, td#propagation-options {
 	font-weight: bold;
 }
 
-#files-main, #code-main, #contents-main, #crawler-main, #flows-main {
-	display: table-row;
+.tree-main {
+	display: table-row;  
 }
 
-#files-main b.name_, #code-main b.name_, #contents-main b.name_, #crawler-main b.name_, #flows-main b.name_ {
+.tree-main b.name_, .tree-main input.new-name {
 	font-weight: normal;
 }
 
-#files-main input.new-name, #code-main input.new-name, #contents-main input.new-name, #crawler-main input.new-name, #flows-main input.new-name {
-	font-weight: normal;
-}
-
-#file-tree .nodeHover, #code-tree .nodeHover, #content-tree .nodeHover, #crawler-tree .nodeHover, #flows-tree .nodeHover {
+.tree .nodeHover {
 	border: none;
 	background-color: #eff8e3 ! important;
 }
 
-#file-tree-container, #code-tree-container, #content-tree-container, #crawler-tree-container, #flows-tree-container {
-	display: table-cell;
-	vertical-align: top;
-	padding: 12px;
-	padding-right: 0px;
-	padding-top: 12px;
-}
-
-#file-tree, #code-tree, #contents-tree, #crawler-tree, #flows-tree {
+.tree {
 	padding-top: 8px;
 	overflow: auto;
 	vertical-align: top;
@@ -3386,14 +3373,20 @@ td#cascading-options, td#propagation-options {
 	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
 }
 
-#tree-search-container {
+.tree-container {
+	display: table-cell;
+	vertical-align: top;
+	padding: 12px 0 12px 12px;
+}
+
+.tree-search-container {
 	position: relative;
 	overflow: auto;
 	vertical-align: top;
 	padding: 0 0 4px 0;
 }
 
-#tree-search-container button {
+.tree-search-container button {
 	font-size: 8pt;
 	width: 25px;
 	height: 25px;
@@ -3403,22 +3396,22 @@ td#cascading-options, td#propagation-options {
 	background-color: #fff;
 }
 
-#tree-search-container button:disabled {
+.tree-search-container button:disabled {
 	color: #999;
 }
 
-#tree-search-container button:hover {
+.tree-search-container button:hover {
 	border: 1px solid #ccc;
 }
 
-button#tree-forward-button {
+button.tree-forward-button {
 	position: absolute;
 	right: 0;
 	padding: 0 !important;
 	margin-right: 0;
 }
 
-input#tree-search-input {
+input.tree-search-input {
 	margin: 0 4px 0 0;
 	font-size: 8pt;
 	width: calc(100% - 63px);
@@ -3426,29 +3419,29 @@ input#tree-search-input {
 	box-sizing: border-box;
 }
 
-input#tree-search-input:focus {
+input.tree-search-input:focus {
 	border: 1px solid #ccc;
 }
 
-#code-tree i.jstree-icon.gray, #flows-tree i.jstree-icon.gray {
+.tree i.jstree-icon.gray {
 	color: #666;
 }
 
-#code-tree i.jstree-icon.red, #flows-tree i.jstree-icon.red {
+.tree i.jstree-icon.red {
 	color: #880000;
 }
 
-#code-tree i.jstree-icon.blue, #flows-tree i.jstree-icon.blue {
+.tree i.jstree-icon.blue {
 	color: #000088;
 }
 
-#folder-contents-container, #code-contents-container, #contents-contents-container, #crawler-list-container, #flows-canvas-container, #code-context-container {
+.tree-contents-container, .tree-context-container {
 	display: table-cell;
 	vertical-align: top;
 	padding: 12px 12px 12px 8px;
 }
 
-#folder-contents-container select, #code-contents-container select, #contents-contents-container select, #crawler-list-container select, #schema-container select, #flows-canvas-container select {
+.tree-contents-container select, #crawler-list-container select, #schema-container select, #flows-canvas-container select {
 	padding: 2px 2px 3px 2px;
 	border: 1px solid rgba(0,0,0,.125);
 	/*margin-top: -1px;*/
@@ -3456,7 +3449,11 @@ input#tree-search-input:focus {
 	background-color: #f1f1f1;
 }
 
-#folder-contents-container select, #code-contents-container select, #contents-contents-container:first-child select, #crawler-list-container select, #flows-canvas-container select {
+.tree-contents-container select:hover {
+	background-color: #fff;
+}
+
+.tree-contents-container select, #contents-contents-container:first-child select, #crawler-list-container select, #flows-canvas-container select {
 	margin-left: 0;
 }
 
@@ -3464,7 +3461,12 @@ input#tree-search-input:focus {
 	min-width: 100px;
 }
 
-#code-button-container, #flows-button-container {
+.tree-contents-container > .button, .tree-context-container > .button {
+	margin-bottom: 0;
+	vertical-align: top;
+}
+
+.tree-button-container {
 	min-height: 27px;
 }
 
@@ -3485,17 +3487,8 @@ input#tree-search-input:focus {
 	min-width: 100px;
 }
 
-#folder-contents-container select:hover, #code-contents-container select:hover, #contents-contents-container select:hover, #crawler-list-container select:hover, #flows-canvas-container select:hover {
-	background-color: #fff;
-}
-
-#folder-contents-container button, #code-contents-container button, #contents-contents-container button, #crawler-list-container button, #flows-canvas-container button, #crud-buttons button {
-	margin-right: 8px;
-}
-
-#flows-canvas-container .input-and-button input {
-	margin-top: 0;
-	height: 22px;
+.tree-contents-container button, #crud-buttons button {
+	margin-right: 8px ! important;
 }
 
 #folder-contents, #contents-contents, #crawler-list, #flows-canvas {
