@@ -42,8 +42,8 @@ public interface Mail extends NodeInterface {
 		type.addStringProperty("content",          PropertyView.Public, PropertyView.Ui).setIndexed(false);
 		type.addStringProperty("folder",           PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("header",			  PropertyView.Public, PropertyView.Ui).setIndexed(false);
-		type.addStringProperty("messageId",		  PropertyView.Public, PropertyView.Ui).setIndexed(false);
-		type.addStringProperty("inReplyTo",		  PropertyView.Public, PropertyView.Ui).setIndexed(false);
+		type.addStringProperty("messageId",		  PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("inReplyTo",		  PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
 		type.addDateProperty("receivedDate",       PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addDateProperty("sentDate",           PropertyView.Public, PropertyView.Ui).setIndexed(true);
