@@ -160,7 +160,7 @@ public class FlowEngine {
 
 		// In case no handler is present at all, print the stack trace and return the intermediate result
 		final Logger logger = LoggerFactory.getLogger(FlowEngine.class);
-		logger.warn(exception.getMessage());
+		logger.warn("FlowEngine exception: ",exception);
 		context.error(new FlowError(exception.getMessage()));
 		return new FlowResult(context);
 	}

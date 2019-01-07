@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -58,6 +59,7 @@ import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 
 /**
  *
@@ -769,6 +771,117 @@ public class SystemTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testBaseUrlInOnSave() {
+
+		cleanDatabaseAndSchema();
+
+		/*
+		This test verifies that access to the baseUrl keyword in a
+		scripting context does not produce a NullPointerException.
+		*/
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+			final JsonType contact        = sourceSchema.addType("Contact");
+
+			contact.setExtends(sourceSchema.getType("Principal"));
+			contact.addMethod("onModification", "log(baseUrl)", "");
+
+			StructrSchema.extendDatabaseSchema(app, sourceSchema);
+
+			tx.success();
+
+		} catch (Exception t) {
+			fail("Unexpected exception.");
+		}
+
+		final Class type = StructrApp.getConfiguration().getNodeEntityClass("Contact");
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			app.create(type, "test");
+
+			tx.success();
+
+		} catch (Exception t) {
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			final GraphObject node = app.nodeQuery(type).getFirst();
+
+			node.setProperty(AbstractNode.name, "new name");
+
+			tx.success();
+
+		} catch (Exception t) {
+			fail("Unexpected exception.");
+		}
+
+	}
+
+	@Test
+	public void testCallPrivileged() {
+
+		cleanDatabaseAndSchema();
+
+		Principal tester = null;
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			tester = createTestNode(Principal.class, "tester");
+
+			// create global schema method that creates another object
+			app.create(SchemaMethod.class,
+				new NodeAttribute<>(AbstractNode.name,   "globalTestMethod"),
+				new NodeAttribute<>(SchemaMethod.source, "(log('Before create in globalTestMethod'),create('Test2', 'name', 'test2'),log('After create in globalTestMethod'))")
+			);
+
+			tx.success();
+
+		} catch (Exception t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+			final JsonType test1          = sourceSchema.addType("Test1");
+			final JsonType test2          = sourceSchema.addType("Test2");
+
+			test1.addMethod("onCreation", "call_privileged('globalTestMethod')", "");
+			test2.addMethod("onCreation", "(log('In Test2.onCreate()..'),log(me),grant(me, this, 'read,write,delete,accessControl'))", "");
+
+			StructrSchema.extendDatabaseSchema(app, sourceSchema);
+
+			tx.success();
+
+		} catch (Exception t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class type                  = StructrApp.getConfiguration().getNodeEntityClass("Test1");
+		final SecurityContext userContext = SecurityContext.getInstance(tester, AccessMode.Backend);
+
+		try (final Tx tx = StructrApp.getInstance(userContext).tx()) {
+
+			app.create(type, "test1");
+
+			tx.success();
+
+		} catch (Exception t) {
+			System.out.println(t.getMessage());
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	// ----- nested classes -----
 	private static class TestRunner implements Runnable {
 
 		private boolean success = true;

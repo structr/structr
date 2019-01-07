@@ -3610,6 +3610,60 @@ input#tree-search-input:focus {
 	margin: 0 0 12px 0;
 }
 
+#code-contents .property-options-group span,
+#code-contents .property-options-group i {
+	vertical-align: middle;
+}
+
+#type-content-add-property i,
+#type-content-add-method i {
+	color: #81ce25;
+}
+
+#list-object-button-delete i {
+	color: #880000;
+}
+
+i.fa.red {
+	color: #f00;
+}
+
+i.fa.green {
+	color: #81ce25;
+}
+
+i.fa.gray {
+	color: #666;
+}
+
+i.fa.blue {
+	color: #0000cc;
+}
+
+#duplicate-type-content-add-property,
+#duplicate-type-content-add-method {
+	display: none;
+}
+
+button.create-form-button {
+	margin: 0 !important;
+	padding: 0 8px;
+}
+
+button.create-form-button:hover {
+	margin: 0 !important;
+	padding: 0 8px;
+}
+
+button.create-form-button.cancel {
+	color: #ccc;
+}
+
+button.create-form-button.accept {
+	float: right;
+	color: #81ce25;
+}
+
 #code-contents p.checkbox {
 	margin: 0 8px 0 0;
 	padding: 2px 0 0 0;

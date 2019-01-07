@@ -40,7 +40,6 @@ import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.entity.SchemaMethod;
@@ -828,59 +827,7 @@ public class SchemaTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 	}
-
-	@Test
-	public void testBaseUrlInOnSave() {
-
-		cleanDatabaseAndSchema();
-
-		/*
-		This test verifies that access to the baseUrl keyword in a
-		scripting context does not produce a NullPointerException.
-		*/
-
-		try (final Tx tx = StructrApp.getInstance().tx()) {
-
-			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
-			final JsonType contact        = sourceSchema.addType("Contact");
-
-			contact.setExtends(sourceSchema.getType("Principal"));
-			contact.addMethod("onModification", "log(baseUrl)", "");
-
-			StructrSchema.extendDatabaseSchema(app, sourceSchema);
-
-			tx.success();
-
-		} catch (Exception t) {
-			fail("Unexpected exception.");
-		}
-
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("Contact");
-
-		try (final Tx tx = StructrApp.getInstance().tx()) {
-
-			app.create(type, "test");
-
-			tx.success();
-
-		} catch (Exception t) {
-			fail("Unexpected exception.");
-		}
-
-		try (final Tx tx = StructrApp.getInstance().tx()) {
-
-			final GraphObject node = app.nodeQuery(type).getFirst();
-
-			node.setProperty(AbstractNode.name, "new name");
-
-			tx.success();
-
-		} catch (Exception t) {
-			fail("Unexpected exception.");
-		}
-
-	}
-
+	
 	// ----- private methods -----
 	private void checkSchemaString(final String source) {
 
