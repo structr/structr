@@ -3530,6 +3530,14 @@ input#tree-search-input:focus {
 	box-shadow: 0px 0px 6px rgba(127,127,127,.1);
 }
 
+.sortable-list-item {
+	margin: 4px 8px 4px 0;
+	padding: 4px;
+	border: 1px solid #eee;
+	overflow: hidden;
+	box-shadow: 0px 0px 6px rgba(127,127,127,.1);
+}
+
 #code-contents .code-favorite {
 	margin: 4px 8px 4px 0;
 	padding: 4px;
