@@ -379,10 +379,13 @@ public class StructrGraphQLTest {
 		Settings.ApplicationHost.setValue(host);
 		Settings.HttpPort.setValue(httpPort);
 
-		Settings.Servlets.setValue("GraphQLServlet");
+		Settings.Servlets.setValue("GraphQLServlet JsonRestServlet");
 		Settings.GraphQLAuthenticator.setValue(SuperUserAuthenticator.class.getName());
 		Settings.GraphQLResourceProvider.setValue(DefaultResourceProvider.class.getName());
-		Settings.GraphQLServletPath.setValue(restUrl);
+		Settings.GraphQLServletPath.setValue("/structr/graphql");
+		Settings.RestAuthenticator.setValue(SuperUserAuthenticator.class.getName());
+		Settings.RestResourceProvider.setValue(DefaultResourceProvider.class.getName());
+		Settings.RestServletPath.setValue("/structr/rest");
 
 		//Settings.LogSchemaOutput.setValue(true);
 

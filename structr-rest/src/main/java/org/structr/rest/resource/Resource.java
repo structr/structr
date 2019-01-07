@@ -114,7 +114,7 @@ public abstract class Resource {
 			// will be set to true below if at least one result was processed
 			hasMore = false;
 
-			try (final Tx tx = app.tx(false, false, false)) {
+			try (final Tx tx = app.tx(true, true, false)) {
 
 				chunk++;
 

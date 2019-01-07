@@ -1845,7 +1845,7 @@ public class SchemaHelper {
 				if (property.isIndexed() || property.isCompound()) {
 
 					final String name          = property.getName();
-					final String selectionName = name + "Selection";
+					final String selectionName = type + name + "Selection";
 
 					GraphQLInputObjectType selectionType = selectionTypes.get(selectionName);
 					if (selectionType == null) {

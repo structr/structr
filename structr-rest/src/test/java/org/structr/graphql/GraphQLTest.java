@@ -19,6 +19,7 @@
 package org.structr.graphql;
 
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.filter.log.RequestLoggingFilter;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -53,6 +54,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.common.StructrGraphQLTest;
 import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonBooleanProperty;
 import org.structr.schema.json.JsonEnumProperty;
 import org.structr.schema.json.JsonFunctionProperty;
 import org.structr.schema.json.JsonObjectType;
@@ -2374,6 +2376,164 @@ public class GraphQLTest extends StructrGraphQLTest {
 			assertMapPathValueIs(result, "Task.#",                  3);
 		}
 	}
+
+	@Test
+	public void testBooleanFunctionPropertyFiltering() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType testType     = schema.addType("Test");
+			final JsonFunctionProperty filter = testType.addFunctionProperty("doFilter");
+			final JsonBooleanProperty test    = testType.addBooleanProperty("test");
+
+			filter.setIndexed(true);
+			filter.setReadFunction("this.test");
+			filter.setTypeHint("Boolean");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (URISyntaxException|FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final Class type      = StructrApp.getConfiguration().getNodeEntityClass("Test");
+		final PropertyKey key = StructrApp.key(type, "test");
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(type, "test1").setProperty(key, true);
+			app.create(type, "test2").setProperty(key, false);
+			app.create(type, "test3").setProperty(key, true);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+
+		RestAssured.basePath = "/structr/graphql";
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Test(doFilter: {_equals: true}) { id, type, name, test, doFilter }}");
+			assertMapPathValueIs(result, "Test.#",  2);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Test(doFilter: {_equals: false}) { id, type, name, test, doFilter }}");
+			assertMapPathValueIs(result, "Test.#",  1);
+		}
+	}
+
+	@Test
+	public void testFunctionPropertyIndexUpdate() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType project   = schema.addType("Project");
+			final JsonObjectType task      = schema.addType("Task");
+
+			project.relate(task,   "TASK",    Relation.Cardinality.OneToMany, "project",   "tasks");
+
+			// add function property that extracts the project ID
+			final JsonFunctionProperty hasProject = task.addFunctionProperty("hasProject");
+
+			hasProject.setIndexed(true);
+			hasProject.setReadFunction("not(empty(this.project))");
+			hasProject.setTypeHint("Boolean");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (URISyntaxException|FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final Class<NodeInterface> projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final Class<NodeInterface> taskType    = StructrApp.getConfiguration().getNodeEntityClass("Task");
+		final PropertyKey projectTasksKey      = StructrApp.getConfiguration().getPropertyKeyForJSONName(projectType, "tasks");
+
+		try (final Tx tx = app.tx()) {
+
+			final List<NodeInterface> tasks = new LinkedList<>();
+			final NodeInterface project     = app.create(projectType, "Project1");
+
+			tasks.add(app.create(taskType, "Task1.1"));
+			tasks.add(app.create(taskType, "Task1.3"));
+			tasks.add(app.create(taskType, "Task1.5"));
+			tasks.add(app.create(taskType, "Task1.6"));
+
+			app.create(taskType, "Task1.2");
+			app.create(taskType, "Task1.4");
+			app.create(taskType, "Task1.7");
+
+			project.setProperty(projectTasksKey, tasks);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(_sort: \"name\", hasProject: {_equals: true}) { id, type, name }}");
+			assertMapPathValueIs(result, "Task.#",                  4);
+			assertMapPathValueIs(result, "Task.0.name",            "Task1.1");
+			assertMapPathValueIs(result, "Task.1.name",            "Task1.3");
+			assertMapPathValueIs(result, "Task.2.name",            "Task1.5");
+			assertMapPathValueIs(result, "Task.3.name",            "Task1.6");
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(_sort: \"name\", hasProject: {_equals: false}) { id, type, name }}");
+			assertMapPathValueIs(result, "Task.#",                  3);
+			assertMapPathValueIs(result, "Task.0.name",            "Task1.2");
+			assertMapPathValueIs(result, "Task.1.name",            "Task1.4");
+			assertMapPathValueIs(result, "Task.2.name",            "Task1.7");
+		}
+
+		// delete project via REST
+		RestAssured.basePath = "/structr/rest";
+		RestAssured
+			.given().contentType("application/json; charset=UTF-8")
+			.filter(RequestLoggingFilter.logRequestTo(System.out))
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.expect().statusCode(200)
+			.when().delete("/Project");
+
+		// test index update
+		RestAssured.basePath = "/structr/graphql";
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(_sort: \"name\", hasProject: {_equals: true}) { id, type, name }}");
+			assertMapPathValueIs(result, "Task.#",                  0);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(_sort: \"name\", hasProject: {_equals: false}) { id, type, name }}");
+			assertMapPathValueIs(result, "Task.#",                  7);
+			assertMapPathValueIs(result, "Task.0.name",            "Task1.1");
+			assertMapPathValueIs(result, "Task.1.name",            "Task1.2");
+			assertMapPathValueIs(result, "Task.2.name",            "Task1.3");
+			assertMapPathValueIs(result, "Task.3.name",            "Task1.4");
+			assertMapPathValueIs(result, "Task.4.name",            "Task1.5");
+			assertMapPathValueIs(result, "Task.5.name",            "Task1.6");
+			assertMapPathValueIs(result, "Task.6.name",            "Task1.7");
+		}
+
+	}
+
 
 	// ----- private methods -----
 	private String eq(final String value) {

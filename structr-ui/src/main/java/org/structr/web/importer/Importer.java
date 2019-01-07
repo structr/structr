@@ -885,10 +885,9 @@ public class Importer {
 							} else {
 
 								// store data-* attributes in node
-								final PropertyKey propertyKey = new StringProperty(key);
 								if (value != null) {
 
-									newNodeProperties.put(propertyKey, value);
+									newNodeProperties.put(new StringProperty(CustomHtmlAttributeProperty.CUSTOM_HTML_ATTRIBUTE_PREFIX + key), value);
 								}
 							}
 
