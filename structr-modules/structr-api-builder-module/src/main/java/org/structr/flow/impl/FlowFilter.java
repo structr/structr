@@ -18,6 +18,7 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.property.EndNodes;
@@ -63,11 +64,11 @@ public class FlowFilter extends FlowNode implements DataSource, Filter, Deployab
 		if (ds != null) {
 			Object data = ds.get(context);
 
-			if (data instanceof Collection) {
+			if (data instanceof Iterable) {
 
 				if (condition != null) {
 
-					data = ((Collection) data).stream().filter( el -> {
+					data = Iterables.toList((Iterable) data).stream().filter(el -> {
 
 						try {
 							context.setData(getUuid(), el);
