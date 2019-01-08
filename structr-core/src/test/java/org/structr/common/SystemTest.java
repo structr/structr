@@ -41,14 +41,14 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.TestEight;
 import org.structr.core.entity.TestFive;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSix;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -854,7 +854,7 @@ public class SystemTest extends StructrTest {
 			final JsonType test2          = sourceSchema.addType("Test2");
 
 			test1.addMethod("onCreation", "call_privileged('globalTestMethod')", "");
-			test2.addMethod("onCreation", "(log('In Test2.onCreate()..'),log(me),grant(me, this, 'read,write,delete,accessControl'))", "");
+			test2.addMethod("onCreation", "(log('In Test2.onCreate()..'),log(me),do_privileged(grant(me, this, 'read,write,delete,accessControl')))", "");
 
 			StructrSchema.extendDatabaseSchema(app, sourceSchema);
 
