@@ -18,10 +18,13 @@
  */
 package org.structr.mail.service;
 
+import com.caucho.quercus.lib.curl.MultipartBody;
 import com.google.gson.Gson;
 import com.sun.mail.util.BASE64DecoderStream;
 import io.netty.util.internal.ConcurrentSet;
+import io.netty.util.internal.StringUtil;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.*;
@@ -29,6 +32,7 @@ import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.StructrServices;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -37,8 +41,13 @@ import org.structr.core.property.PropertyMap;
 import org.structr.mail.entity.Mail;
 import org.structr.mail.entity.Mailbox;
 import org.structr.schema.SchemaService;
+import org.structr.web.common.FileHelper;
+import org.structr.web.entity.File;
+import org.structr.web.entity.Image;
 
 import javax.mail.*;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMultipart;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -47,15 +56,16 @@ import java.util.concurrent.Executors;
 
 @ServiceDependency(SchemaService.class)
 public class MailService extends Thread implements RunnableService {
-	private static final Logger logger                  = LoggerFactory.getLogger(MailService.class.getName());
-	private static final ExecutorService threadExecutor = Executors.newCachedThreadPool();
-	private boolean run                                 = false;
-	private Set<Class> supportedCommands                = null;
-	private Set<Mailbox> processingMailboxes            = null;
+	private static final Logger logger                      = LoggerFactory.getLogger(MailService.class.getName());
+	private static final ExecutorService threadExecutor     = Executors.newCachedThreadPool();
+	private boolean run                                     = false;
+	private Set<Class> supportedCommands                    = null;
+	private Set<Mailbox> processingMailboxes                = null;
 
-	public static final SettingsGroup mailGroup         = new SettingsGroup("mail","Advanced Mail Configuration");
-	public static final Setting<Integer> maxEmails      = new IntegerSetting(mailGroup,"Mail", "mail.maxEmails",25);
-	public static final Setting<Integer> updateInterval = new IntegerSetting(mailGroup,"Mail", "mail.updateInterval",30000);
+	public static final SettingsGroup mailGroup             = new SettingsGroup("mail","Advanced Mail Configuration");
+	public static final Setting<Integer> maxEmails          = new IntegerSetting(mailGroup,"Mail", "mail.maxEmails",25);
+	public static final Setting<Integer> updateInterval     = new IntegerSetting(mailGroup,"Mail", "mail.updateInterval",30000);
+	public static final Setting<String> attachmentBasePath  = new StringSetting(mailGroup,"Mail", "mail.attachmentBasePath","/mail/attachments");
 
 	public MailService() {
 		super("MailService");
@@ -68,9 +78,94 @@ public class MailService extends Thread implements RunnableService {
 		super.setDaemon(true);
 	}
 
+	// Returns attachment UUID to append to the mail to be created
+	private File extractFileAttachment(final Part p) {
+		File file = null;
+
+		try {
+
+			Class fileClass = p.getContentType().startsWith("image/") ? Image.class : File.class;
+
+			final App app = StructrApp.getInstance();
+
+			try (final Tx tx = app.tx()) {
+
+				final Date date = new Date();
+				final Calendar cal = Calendar.getInstance();
+
+				cal.setTime(date);
+
+				final String path = (attachmentBasePath.getValue() + "/" + Integer.toString(cal.get(Calendar.YEAR)) + "/" + Integer.toString(cal.get(Calendar.MONTH)) + "/" + Integer.toString(cal.get(Calendar.DAY_OF_MONTH)));
+
+				org.structr.web.entity.Folder fileFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), path);
+				file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), p.getInputStream(), p.getContentType(), fileClass, p.getFileName(), fileFolder);
+
+				tx.success();
+
+			} catch (IOException | FrameworkException ex) {
+
+				logger.error("Exception while extracting file attachment: ", ex);
+			}
+
+
+		} catch (MessagingException ex) {
+
+			logger.error("Exception while extracting file attachment: ", ex);
+		}
+
+		return file;
+
+	}
+
+	private String handleMultipart(Multipart p, List<File> attachments) {
+
+		try {
+
+			String content = "";
+
+			for (int i = 0; i < p.getCount(); i++) {
+
+				BodyPart part = (BodyPart) p.getBodyPart(i);
+				if (part.getContentType().contains("multipart")) {
+
+					String result = handleMultipart((Multipart)part.getContent(), attachments);
+
+					if (result != null) {
+
+						content = content.concat(result);
+					}
+
+				} else if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
+
+					File file = extractFileAttachment(part);
+
+					if (file != null) {
+
+						attachments.add(file);
+					}
+				} else {
+
+					String result =  getText(part);
+
+					if (result != null) {
+
+						content = content.concat(result);
+					}
+				}
+			}
+
+			return content.length() > 0 ? content : null;
+		} catch (MessagingException | IOException ex) {
+			logger.error("Error while handling multipart message: ", ex);
+		}
+
+		return null;
+
+	}
+
 	private String getText(Part p) throws MessagingException, IOException {
 
-		if (p.isMimeType("text/*")) {
+		if (p.isMimeType("text/plain")) {
 
 			Object content = p.getContent();
 			if (!(content instanceof BASE64DecoderStream)) {
@@ -79,52 +174,6 @@ public class MailService extends Thread implements RunnableService {
 			} else {
 
 				return null;
-			}
-		} else if (p.isMimeType("multipart/alternative")) {
-			Multipart mp = (Multipart)p.getContent();
-			String text = null;
-
-			for (int i = 0; i < mp.getCount(); i++) {
-				Part bp = mp.getBodyPart(i);
-
-				if (bp.isMimeType("text/plain")) {
-
-					if (text == null) {
-
-						text = getText(bp);
-					}
-
-				} else if (bp.isMimeType("text/html")) {
-
-					String s = getText(bp);
-
-					if (s != null) {
-
-						return s;
-					}
-
-				} else {
-
-					return getText(bp);
-
-				}
-
-			}
-
-			return text;
-
-		} else if (p.isMimeType("multipart/*")) {
-
-			Multipart mp = (Multipart)p.getContent();
-
-			for (int i = 0; i < mp.getCount(); i++) {
-				String s = getText(mp.getBodyPart(i));
-
-				if (s != null) {
-
-					return s;
-				}
-
 			}
 		}
 
@@ -289,6 +338,8 @@ public class MailService extends Thread implements RunnableService {
 
 				}
 
+			} catch (AuthenticationFailedException ex) {
+				logger.warn("Authentication failed for Mailbox[" + mailbox.getUuid() + "].");
 			} catch (MessagingException ex) {
 				logger.error("Error while updating Mails: ", ex);
 			} catch (Throwable ex) {
@@ -359,22 +410,18 @@ public class MailService extends Thread implements RunnableService {
 								String content = null;
 								Object contentObj = message.getContent();
 
-								if (contentObj instanceof Part) {
+								List<File> attachments = new ArrayList<>();
 
-									content = getText((Part) contentObj);
-								} else if (contentObj instanceof Multipart) {
+								if (message.getContentType().contains("multipart")) {
 
-									content = getText(((Multipart) contentObj).getParent());
-								} else if (contentObj instanceof InputStream) {
-
-									logger.info("MailService: Can't process streamed content. Not implemented yet!");
-								} else {
+									content = handleMultipart((Multipart)contentObj, attachments);
+								} else if (message.getContentType().contains("text/")){
 
 									content = contentObj.toString();
 								}
 
-
 								pm.put(StructrApp.key(Mail.class, "content"), content);
+								pm.put(StructrApp.key(Mail.class, "attachedFiles"), attachments);
 
 								app.create(Mail.class, pm);
 

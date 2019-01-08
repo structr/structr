@@ -19,6 +19,7 @@
 package org.structr.mail.entity;
 
 import org.structr.common.PropertyView;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
@@ -33,6 +34,7 @@ public interface Mail extends NodeInterface {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Mail");
+		final JsonObjectType file = schema.addType("File");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Mail"));
 
@@ -59,9 +61,11 @@ public interface Mail extends NodeInterface {
 		type.addPropertyGetter("receivedDate",      Date.class);
 		type.addPropertyGetter("sentDate",          Date.class);
 
+		type.relate(file, "HAS_ATTACHMENT", Relation.Cardinality.OneToMany, "attachedMail", "attachedFiles");
+
 		// view configuration
-		type.addViewProperty(PropertyView.Public, "subject,from,to,content,folder,receivedDate,sentDate,mailbox,header,messageId,inReplyTo");
-		type.addViewProperty(PropertyView.Ui, "subject,from,to,content,folder,receivedDate,sentDate,mailbox,header,messageId,inReplyTo");
+		type.addViewProperty(PropertyView.Public, "subject,from,to,content,folder,receivedDate,sentDate,mailbox,header,messageId,inReplyTo, attachedFiles");
+		type.addViewProperty(PropertyView.Ui, "subject,from,to,content,folder,receivedDate,sentDate,mailbox,header,messageId,inReplyTo, attachedFiles");
 	}}
 
 }
