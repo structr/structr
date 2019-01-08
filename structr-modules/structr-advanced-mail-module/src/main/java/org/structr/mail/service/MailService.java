@@ -252,6 +252,7 @@ public class MailService extends Thread implements RunnableService {
 
 				if (host == null || mailProtocol == null || user == null || password == null || folders == null) {
 					logger.warn("MailService::fetchMails: Could not retrieve mails from mailbox[" + mailbox.getUuid() + "], because not all required attributes were specified.");
+					processingMailboxes.remove(mailbox);
 					return;
 				}
 
