@@ -422,7 +422,7 @@ var _Code = {
 					var text          = $('#tree-search-input').val();
 					var searchResults = [];
 					var count         = 0;
-					var collectFunction = function(result) { result.forEach(function(r) { searchResults.push(r); }); if (++count === 6) { displayFunction(searchResults, 0, true); }}
+					var collectFunction = function(result) { result.forEach(function(r) { searchResults.push(r); }); if (++count === 6) { displayFunction(searchResults, 0, true); }};
 					Command.query('SchemaNode',     methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
 					Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
 					Command.query('SchemaMethod',   methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
@@ -1042,7 +1042,6 @@ var _Code = {
 				codeContents.empty();
 				codeContents.append(html);
 
-				var cancelCallback = function() { _Code.handleNodeObjectClick(data); };
 				var propertyData   = { type: 'SchemaProperty', schemaNode: identifier.id };
 				var methodData     = { type: 'SchemaMethod', schemaNode: identifier.id };
 				var entityPath     = _Code.getPathForEntity(result);
@@ -1056,19 +1055,19 @@ var _Code = {
 					});
 				}
 
-				_Code.displayCreatePropertyButton(propertyParent, 'String',   propertyData, cancelCallback);
-				_Code.displayCreatePropertyButton(propertyParent, 'Boolean',  propertyData, cancelCallback);
-				_Code.displayCreatePropertyButton(propertyParent, 'Integer',  propertyData, cancelCallback);
-				_Code.displayCreatePropertyButton(propertyParent, 'Long',     propertyData, cancelCallback);
-				_Code.displayCreatePropertyButton(propertyParent, 'Double',   propertyData, cancelCallback);
-				_Code.displayCreatePropertyButton(propertyParent, 'Enum',     propertyData, cancelCallback);
-				_Code.displayCreatePropertyButton(propertyParent, 'Date',     propertyData, cancelCallback);
-				_Code.displayCreatePropertyButton(propertyParent, 'Function', propertyData, cancelCallback);
-				_Code.displayCreatePropertyButton(propertyParent, 'Cypher',   propertyData, cancelCallback);
+				_Code.displayCreatePropertyButton(propertyParent, 'String',   propertyData);
+				_Code.displayCreatePropertyButton(propertyParent, 'Boolean',  propertyData);
+				_Code.displayCreatePropertyButton(propertyParent, 'Integer',  propertyData);
+				_Code.displayCreatePropertyButton(propertyParent, 'Long',     propertyData);
+				_Code.displayCreatePropertyButton(propertyParent, 'Double',   propertyData);
+				_Code.displayCreatePropertyButton(propertyParent, 'Enum',     propertyData);
+				_Code.displayCreatePropertyButton(propertyParent, 'Date',     propertyData);
+				_Code.displayCreatePropertyButton(propertyParent, 'Function', propertyData);
+				_Code.displayCreatePropertyButton(propertyParent, 'Cypher',   propertyData);
 
-				_Code.displayCreateMethodButton(methodParent, 'onCreate', methodData, 'onCreate', cancelCallback);
-				_Code.displayCreateMethodButton(methodParent, 'onSave',   methodData, 'onSave',   cancelCallback);
-				_Code.displayCreateMethodButton(methodParent, 'schema',   methodData, '',         cancelCallback);
+				_Code.displayCreateMethodButton(methodParent, 'onCreate', methodData, 'onCreate');
+				_Code.displayCreateMethodButton(methodParent, 'onSave',   methodData, 'onSave');
+				_Code.displayCreateMethodButton(methodParent, 'schema',   methodData, '');
 
 				/* disabled
 				$.ajax({
@@ -1104,10 +1103,8 @@ var _Code = {
 			codeContents.empty();
 			codeContents.append(html);
 
-			var cancelCallback = function() { _Code.handleSelection(data); };
-
 			// create button
-			_Code.displayCreateTypeButton("#type-actions", cancelCallback);
+			_Code.displayCreateTypeButton("#type-actions");
 
 			// list of existing custom types
 			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { isBuiltinType: false }, function(result) {
@@ -1139,7 +1136,7 @@ var _Code = {
 		Structr.fetchHtmlTemplate('code/globals', { }, function(html) {
 			codeContents.empty();
 			codeContents.append(html);
-			_Code.displayCreateButton('#method-actions', 'magic', 'new', 'Add global schema method', '', { type: 'SchemaMethod' }, _Code.displayGlobalMethodsContent);
+			_Code.displayCreateButton('#method-actions', 'magic', 'new', 'Add global schema method', '', { type: 'SchemaMethod' });
 		});
 	},
 	displayPropertiesContent: function(selection, updateLocationStack) {
@@ -1192,13 +1189,13 @@ var _Code = {
 		Structr.fetchHtmlTemplate('code/methods', { identifier: identifier }, function(html) {
 			codeContents.empty();
 			codeContents.append(html);
-			var callback = function() { _Code.displayMethodsContent(identifier); };
 			var data     = { type: 'SchemaMethod', schemaNode: identifier.id };
 			var containerId = '#method-actions';
 
-			_Code.displayCreateButton(containerId, 'magic', 'on-create', 'Add onCreate method', 'onCreate', data, callback);
-			_Code.displayCreateButton(containerId, 'magic', 'on-save',   'Add onSave method',   'onSave',   data, callback);
-			_Code.displayCreateButton(containerId, 'magic', 'new',       'Add schema method',   '',         data, callback);
+			_Code.displayCreateButton(containerId, 'magic', 'on-create',    'Add onCreate method',    'onCreate',    data);
+			_Code.displayCreateButton(containerId, 'magic', 'after-create', 'Add afterCreate method', 'afterCreate', data);
+			_Code.displayCreateButton(containerId, 'magic', 'on-save',      'Add onSave method',      'onSave',      data);
+			_Code.displayCreateButton(containerId, 'magic', 'new',          'Add schema method',      '',            data);
 
 			// list of existing properties
 			Command.query('SchemaMethod', 10000, 1, 'name', 'asc', { schemaNode: identifier.id }, function(result) {
@@ -1471,8 +1468,15 @@ var _Code = {
 			callback(inner);
 		});
 	},
-	activateCreateDialog: function(suffix, presetValue, nodeData, cancelCallback) {
+	activateCreateDialog: function(suffix, presetValue, nodeData, elHtml) {
+
 		var button = $('div#action-button-' + suffix);
+
+		var revertFunction = function () {
+			button.replaceWith(elHtml);
+			_Code.activateCreateDialog(suffix, presetValue, nodeData, elHtml);
+		};
+
 		button.on('click.create-object-' + suffix, function() {
 
 			// hover / overlay effect
@@ -1488,12 +1492,12 @@ var _Code = {
 				button.append(html);
 				$('#new-object-name-' + suffix).focus();
 				$('#new-object-name-' + suffix).on('keyup', function(e) {
-					if (e.keyCode === 27) { cancelCallback(); }
+					if (e.keyCode === 27) { revertFunction(); }
 					if (e.keyCode === 13) { $('#action-button-' + suffix).click(); }
 				});
 				button.off('click.create-object-' + suffix);
 				$('#cancel-button-' + suffix).on('click', function() {
-					cancelCallback();
+					revertFunction();
 				});
 				$('#create-button-' + suffix).on('click', function() {
 					var data = Object.assign({}, nodeData);
@@ -1508,10 +1512,10 @@ var _Code = {
 			});
 		});
 	},
-	displayCreateButton: function(targetId, icon, suffix, name, presetValue, createData, callback) {
+	displayCreateButton: function(targetId, icon, suffix, name, presetValue, createData) {
 		Structr.fetchHtmlTemplate('code/action-button', { icon: icon, suffix: suffix, name: name }, function(html) {
 			$(targetId).append(html);
-			_Code.activateCreateDialog(suffix, presetValue, createData , callback);
+			_Code.activateCreateDialog(suffix, presetValue, createData, html);
 		});
 	},
 	displayListButton: function(targetId, icon, suffix, name, path) {
@@ -1525,19 +1529,19 @@ var _Code = {
 			$('#action-button-' + suffix).off('click.action').on('click.action', callback);
 		});
 	},
-	displayCreatePropertyButton: function(targetId, type, nodeData, callback) {
+	displayCreatePropertyButton: function(targetId, type, nodeData) {
 		var data = Object.assign({}, nodeData);
 		data['propertyType'] = type;
 		if (type === 'Enum') {
 			data.format = 'value1, value2, value3';
 		}
-		_Code.displayCreateButton(targetId, _Code.getIconForPropertyType(type), type.toLowerCase(), 'Add ' + type + ' property', '', data, callback);
+		_Code.displayCreateButton(targetId, _Code.getIconForPropertyType(type), type.toLowerCase(), 'Add ' + type + ' property', '', data);
 	},
-	displayCreateMethodButton: function(targetId, type, data, presetValue, callback) {
-		_Code.displayCreateButton(targetId, _Code.getIconForNodeType(data), type.toLowerCase(), 'Add ' + type + ' method', presetValue, data, callback);
+	displayCreateMethodButton: function(targetId, type, data, presetValue) {
+		_Code.displayCreateButton(targetId, _Code.getIconForNodeType(data), type.toLowerCase(), 'Add ' + type + ' method', presetValue, data);
 	},
-	displayCreateTypeButton: function(targetId, callback) {
-		_Code.displayCreateButton(targetId, 'magic', 'create-type', 'Create new type', '', { type: 'SchemaNode'}, callback);
+	displayCreateTypeButton: function(targetId) {
+		_Code.displayCreateButton(targetId, 'magic', 'create-type', 'Create new type', '', { type: 'SchemaNode'});
 	},
 	getEditorModeForContent: function(content) {
 		if (content.indexOf('{') === 0) {
