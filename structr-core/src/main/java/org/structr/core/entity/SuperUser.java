@@ -57,7 +57,13 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	public void grant(Permission permission, Principal obj) {}
 
 	@Override
+	public void grant(Permission permission, Principal obj, SecurityContext ctx) {}
+
+	@Override
 	public void revoke(Permission permission, Principal obj) {}
+
+	@Override
+	public void revoke(Permission permission, Principal obj, SecurityContext ctx) {}
 
 	@Override
 	public void unlockSystemPropertiesOnce() {}

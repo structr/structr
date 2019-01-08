@@ -64,7 +64,7 @@ public class RevokeFunction extends Function<Object, Object> {
 								final Permission permission = Permissions.valueOf(trimmedPart);
 								if (permission != null) {
 
-									node.revoke(permission, principal);
+									node.revoke(permission, principal, ctx.getSecurityContext());
 
 								} else {
 

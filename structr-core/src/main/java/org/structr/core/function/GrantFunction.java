@@ -64,7 +64,7 @@ public class GrantFunction extends Function<Object, Object> {
 								final Permission permission = Permissions.valueOf(trimmedPart);
 								if (permission != null) {
 
-									node.grant(permission, principal);
+									node.grant(permission, principal, ctx.getSecurityContext());
 
 								} else {
 
