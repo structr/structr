@@ -39,21 +39,7 @@ var _Security = {
 
 		Structr.updateMainHelpLink('https://support.structr.com/article/207');
 
-//		Structr.fetchHtmlTemplate('security/main', {}, function (html) {
-
-			var html = '<div id="securityTabs">' +
-				'	<ul id="securityTabsMenu" class="tabs-menu">' +
-				'		<li><a id="usersAndGroups_"><div class="fill-pixel"></div><span>Users and Groups</span></a></li>' +
-				'		<li><a id="resourceAccess_"><div class="fill-pixel"></div><span>Resource Access Grants</span></a></li>' +
-				'	</ul>' +
-				'	<div id="usersAndGroups" class="tab-content">' +
-				'		<div id="users"></div>' +
-				'		<div id="groups"></div>' +
-				'	</div>' +
-				'	<div id="resourceAccess" class="tab-content">' +
-				'		<div id="resourceAccesses"></div>' +
-				'	</div>' +
-				'</div>';
+		Structr.fetchHtmlTemplate('security/main', {}, function (html) {
 
 			main.append(html);
 
@@ -70,7 +56,7 @@ var _Security = {
 			});
 
 			Structr.unblockMenu(100);
-//		});
+		});
 	},
 	selectTab: function(tab) {
 

@@ -121,12 +121,14 @@ public class SetPermissionCommand extends AbstractCommand {
 					final Tx tx = value.get(null);
 					if (tx != null) {
 
-						tx.success();
-						tx.close();
+						try {
+							tx.success();
+						} finally {
+							tx.close();
+						}
 
 						value.set(null, null);
 					}
-
 					webSocketData.setResult(Arrays.asList(principal));
 
 					// send only over local connection (no broadcast)
@@ -135,7 +137,7 @@ public class SetPermissionCommand extends AbstractCommand {
 				} catch (FrameworkException ex) {
 
 					logger.error("Unable to set permissions: {}", ((FrameworkException) ex).toString());
-					getWebSocket().send(MessageBuilder.status().code(400).build(), true);
+					getWebSocket().send(MessageBuilder.status().code(ex.getStatus()).jsonErrorObject(ex.toJSON()).build(), true);
 				}
 
 			} else {
@@ -192,8 +194,11 @@ public class SetPermissionCommand extends AbstractCommand {
 			count = 0;
 
 			// commit and close old transaction
-			tx.success();
-			tx.close();
+			try {
+				tx.success();
+			} finally {
+				tx.close();
+			}
 
 			// create new transaction, do not notify Ui
 			tx = app.tx(true, true, false);
