@@ -1639,7 +1639,9 @@ var _Code = {
 		if (tail.length === 0) {
 
 			// node found, activate
-			tree.activate_node(searchId, { updateLocationStack: updateLocationStack });
+			if (tree.get_selected().indexOf(searchId) === -1) {
+				tree.activate_node(searchId, { updateLocationStack: updateLocationStack });
+			}
 
 			// also scroll into view if node is in tree
 			var domNode = document.getElementById( tree.get_parent(tree.get_parent(searchId)) );
@@ -1822,7 +1824,7 @@ var _Code = {
 			};
 
 			return 'Custom';
-		}
+		};
 
 		var path = [];
 
