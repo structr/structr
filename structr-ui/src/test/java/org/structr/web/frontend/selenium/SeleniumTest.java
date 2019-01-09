@@ -224,9 +224,17 @@ public class SeleniumTest extends FrontendTest {
 		try { Thread.sleep(milliseconds); } catch (InterruptedException iex) {}
 	}
 
-	protected void takeScreenshot(final String path) throws IOException {
-		final File scrFile = ((TakesScreenshot)webDriver).getScreenshotAs(OutputType.FILE);
-		FileUtils.copyFile(scrFile, new File(path));
+	protected void takeScreenshot(final String path) {
+
+		try {
+
+			final File scrFile = ((TakesScreenshot)webDriver).getScreenshotAs(OutputType.FILE);
+			FileUtils.copyFile(scrFile, new File(path));
+
+		} catch (IOException ioex) {
+
+			ioex.printStackTrace();
+		}
 	}
 
 	// interaction
@@ -237,17 +245,25 @@ public class SeleniumTest extends FrontendTest {
 
 	protected void dragAndDrop(final WebElement source, final int dx, final int dy) {
 
-		actions.moveToElement(source, 0, 0).build().perform();
+		actions.moveToElement(source, 0, -2).build().perform();
 		delay();
+
+		takeScreenshot("/tmp/screenshots/screen1.png");
 
 		actions.clickAndHold().build().perform();
 		delay();
 
+		takeScreenshot("/tmp/screenshots/screen2.png");
+
 		actions.moveByOffset(dx, dy).build().perform();
 		delay();
 
+		takeScreenshot("/tmp/screenshots/screen3.png");
+
 		actions.release().build().perform();
 		delay();
+
+		takeScreenshot("/tmp/screenshots/screen4.png");
 	}
 
 	protected void input(final WebElement element, final String text) {

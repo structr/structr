@@ -725,7 +725,7 @@ var _Elements = {
 	},
 	handleLinkableElement: function (div, entityToLinkTo, linkableObject) {
 
-		if (isIn(entityToLinkTo.id, linkableObject.linkingElementsIds)) { 
+		if (isIn(entityToLinkTo.id, linkableObject.linkingElementsIds)) {
 			div.addClass('nodeActive');
 		}
 
@@ -736,9 +736,12 @@ var _Elements = {
 			if (div.hasClass('nodeActive')) {
 				Command.setProperty(entityToLinkTo.id, 'linkableId', null);
 			} else {
-				Command.getProperty(entityToLinkTo.id, '_html_src', function(val) {
+
+				var attrName = (entityToLinkTo.type === 'Link') ? '_html_href' : '_html_src';
+
+				Command.getProperty(entityToLinkTo.id, attrName, function(val) {
 					if (!val || val === '') {
-						Command.setProperty(entityToLinkTo.id, '_html_src', '${link.path}', null);
+						Command.setProperty(entityToLinkTo.id, attrName, '${link.path}', null);
 					}
 				});
 
