@@ -1775,8 +1775,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	@Override
 	public final void grant(Permission permission, Principal principal) throws FrameworkException {
+		grant(permission, principal, securityContext);
+	}
 
-		if (!isGranted(Permission.accessControl, securityContext)) {
+	@Override
+	public final void grant(Permission permission, Principal principal, SecurityContext ctx) throws FrameworkException {
+
+		if (!isGranted(Permission.accessControl, ctx)) {
 			throw new FrameworkException(403, "Access control not permitted");
 		}
 
@@ -1814,10 +1819,17 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 	}
 
+
 	@Override
 	public final void revoke(Permission permission, Principal principal) throws FrameworkException {
 
-		if (!isGranted(Permission.accessControl, securityContext)) {
+		revoke(permission, principal, securityContext);
+	}
+
+	@Override
+	public final void revoke(Permission permission, Principal principal, SecurityContext ctx) throws FrameworkException {
+
+		if (!isGranted(Permission.accessControl, ctx)) {
 			throw new FrameworkException(403, "Access control not permitted");
 		}
 

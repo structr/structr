@@ -28,8 +28,8 @@ import org.junit.Test;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
-import org.structr.web.entity.User;
 import org.structr.feed.entity.DataFeed;
+import org.structr.web.entity.User;
 
 /**
  */
@@ -60,7 +60,7 @@ public class TestFeeds extends StructrDataFeedsModuleTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(type,
-				new NodeAttribute<>(StructrApp.key(DataFeed.class, "url"),            "https://structr.org/blog/rss"),
+				new NodeAttribute<>(StructrApp.key(DataFeed.class, "url"),            "https://structr.com/blog/rss"),
 				new NodeAttribute<>(StructrApp.key(DataFeed.class, "updateInterval"), 86400000),
 				new NodeAttribute<>(StructrApp.key(DataFeed.class, "maxItems"),       3)
 			);
@@ -85,7 +85,7 @@ public class TestFeeds extends StructrDataFeedsModuleTest {
 				.body("result[0].maxAge",         equalTo(null))
 				.body("result[0].maxItems",       equalTo(3))
 				.body("result[0].updateInterval", equalTo(86400000))
-				.body("result[0].url",            equalTo("https://structr.org/blog/rss"))
+				.body("result[0].url",            equalTo("https://structr.com/blog/rss"))
 				.body("result[0].items",          hasSize(3))
 				.body("result[0].items[0].type",  equalTo("FeedItem"))
 				.body("result[0].items[1].type",  equalTo("FeedItem"))
@@ -120,7 +120,7 @@ public class TestFeeds extends StructrDataFeedsModuleTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(type,
-				new NodeAttribute<>(StructrApp.key(type, "url"), "https://structr.org/blog")
+				new NodeAttribute<>(StructrApp.key(type, "url"), "https://structr.com/blog")
 			);
 
 			tx.success();

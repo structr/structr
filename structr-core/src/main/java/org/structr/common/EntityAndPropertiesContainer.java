@@ -383,7 +383,17 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
+	public void grant(Permission permission, Principal principal, SecurityContext ctx) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
 	public void revoke(Permission permission, Principal principal) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public void revoke(Permission permission, Principal principal, SecurityContext ctx) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 

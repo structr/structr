@@ -48,13 +48,13 @@ var _Crawler = {
 
 		if (crawlerTree) {
 			crawlerTree.css({
-				height: windowHeight - headerOffsetHeight + 7 + 'px'
+				height: windowHeight - headerOffsetHeight + 5 + 'px'
 			});
 		}
 
 		if (crawlerList) {
 			crawlerList.css({
-				height: windowHeight - headerOffsetHeight - 48 + 'px'
+				height: windowHeight - headerOffsetHeight - 43 + 'px'
 			});
 
 			var pagerHeight         = $('.pager').height();
@@ -73,7 +73,7 @@ var _Crawler = {
 		$('.column-resizer', crawlerMain).css({ left: left });
 
 		$('#crawler-tree').css({width: left - 14 + 'px'});
-		$('#crawler-list').css({left: left + 8 + 'px', width: $(window).width() - left - 58 + 'px'});
+		$('#crawler-list').css({left: left + 8 + 'px', width: $(window).width() - left - 47 + 'px'});
 	},
 	onload: function() {
 
@@ -84,7 +84,7 @@ var _Crawler = {
 
 		Structr.updateMainHelpLink('https://support.structr.com/knowledge-graph');
 
-		main.append(`<div id="crawler-main"><div class="column-resizer"></div><div class="fit-to-height" id="crawler-tree-container"><div id="crawler-tree"></div></div><div class="fit-to-height" id="crawler-list-container"><div id="crawler-list"></div></div>`);
+		main.append(`<div class="tree-main" id="crawler-main"><div class="column-resizer"></div><div class="fit-to-height tree-container" id="crawler-tree-container"><div class="tree" id="crawler-tree"></div></div><div class="fit-to-height tree-contents-container" id="crawler-list-container"><div class="tree-contents" id="crawler-list"></div></div>`);
 		crawlerMain = $('#crawler-main');
 
 		crawlerTree = $('#crawler-tree');
