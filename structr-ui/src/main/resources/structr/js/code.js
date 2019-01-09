@@ -1493,7 +1493,7 @@ var _Code = {
 				$('#new-object-name-' + suffix).focus();
 				$('#new-object-name-' + suffix).on('keyup', function(e) {
 					if (e.keyCode === 27) { revertFunction(); }
-					if (e.keyCode === 13) { $('#action-button-' + suffix).click(); }
+					if (e.keyCode === 13) { $('#create-button-' + suffix).click(); }
 				});
 				button.off('click.create-object-' + suffix);
 				$('#cancel-button-' + suffix).on('click', function() {
