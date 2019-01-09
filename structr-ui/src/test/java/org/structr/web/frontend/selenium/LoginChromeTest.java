@@ -41,10 +41,10 @@ public class LoginChromeTest extends SeleniumTest {
 	@Test
 	public void testUsernameAndPasswordFieldsExist() {
 		
-		driver.get("http://localhost:8875/structr/#");
+		webDriver.get("http://localhost:8875/structr/#");
 		
-		assertEquals("Username field not found", 1, driver.findElements(By.id("usernameField")).size());
-		assertEquals("Password field not found", 1, driver.findElements(By.id("passwordField")).size());
+		assertEquals("Username field not found", 1, webDriver.findElements(By.id("usernameField")).size());
+		assertEquals("Password field not found", 1, webDriver.findElements(By.id("passwordField")).size());
 	}
 	
 	@Test
@@ -52,13 +52,13 @@ public class LoginChromeTest extends SeleniumTest {
 		
 		createAdminUser();
 		
-		driver.get("http://localhost:8875/structr/#dashboard");
+		webDriver.get("http://localhost:8875/structr/#dashboard");
 		
-		assertEquals("Username field not found", 1, driver.findElements(By.id("usernameField")).size());
-		assertEquals("Password field not found", 1, driver.findElements(By.id("passwordField")).size());
-		assertEquals("Login button not found",   1, driver.findElements(By.id("loginButton")).size());
+		assertEquals("Username field not found", 1, webDriver.findElements(By.id("usernameField")).size());
+		assertEquals("Password field not found", 1, webDriver.findElements(By.id("passwordField")).size());
+		assertEquals("Login button not found",   1, webDriver.findElements(By.id("loginButton")).size());
 
-		final WebDriverWait wait = new WebDriverWait(driver, 2);
+		final WebDriverWait wait = new WebDriverWait(webDriver, 2);
 		
 		final WebElement usernameField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("usernameField")));
 		usernameField.sendKeys("admin");
@@ -70,7 +70,7 @@ public class LoginChromeTest extends SeleniumTest {
 		loginButton.click();
 		
 		wait.until(ExpectedConditions.titleIs("Structr Dashboard"));
-		assertEquals("Structr Dashboard", driver.getTitle());
+		assertEquals("Structr Dashboard", webDriver.getTitle());
 	}
 
 	@Test
@@ -78,13 +78,13 @@ public class LoginChromeTest extends SeleniumTest {
 		
 		createAdminUser();
 		
-		driver.get("http://localhost:8875/structr/#dashboard");
+		webDriver.get("http://localhost:8875/structr/#dashboard");
 		
-		assertEquals("Username field not found", 1, driver.findElements(By.id("usernameField")).size());
-		assertEquals("Password field not found", 1, driver.findElements(By.id("passwordField")).size());
-		assertEquals("Login button not found",   1, driver.findElements(By.id("loginButton")).size());
+		assertEquals("Username field not found", 1, webDriver.findElements(By.id("usernameField")).size());
+		assertEquals("Password field not found", 1, webDriver.findElements(By.id("passwordField")).size());
+		assertEquals("Login button not found",   1, webDriver.findElements(By.id("loginButton")).size());
 
-		final WebDriverWait wait = new WebDriverWait(driver, 2);
+		final WebDriverWait wait = new WebDriverWait(webDriver, 2);
 		
 		final WebElement usernameField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("usernameField")));
 		usernameField.sendKeys("admin");

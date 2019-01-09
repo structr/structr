@@ -25,6 +25,7 @@ import org.structr.core.graph.ModificationQueue;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.ReloadSchema;
+import org.structr.schema.action.Actions;
 
 /**
  *
@@ -39,6 +40,8 @@ public abstract class SchemaReloadingNode extends AbstractNode {
 	@Override
 	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
+		Actions.clearCache();
+
 		super.onCreation(securityContext, errorBuffer);
 
 		if (reloadSchemaOnCreate()) {
@@ -51,6 +54,8 @@ public abstract class SchemaReloadingNode extends AbstractNode {
 	@Override
 	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
+		Actions.clearCache();
+
 		super.onModification(securityContext, errorBuffer, modificationQueue);
 
 		if (reloadSchemaOnModify(modificationQueue)) {
@@ -62,6 +67,8 @@ public abstract class SchemaReloadingNode extends AbstractNode {
 
 	@Override
 	public void onNodeDeletion() {
+
+		Actions.clearCache();
 
 		super.onNodeDeletion();
 

@@ -18,14 +18,17 @@
  */
 package org.structr.web.frontend.selenium;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
@@ -33,11 +36,16 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.logging.LogEntries;
 import org.openqa.selenium.logging.LogEntry;
 import org.openqa.selenium.logging.LogType;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
 import org.structr.web.basic.FrontendTest;
 
 /**
@@ -46,10 +54,13 @@ import org.structr.web.basic.FrontendTest;
 
 public class SeleniumTest extends FrontendTest {
 
-	protected WebDriver driver;
 	protected enum SupportedBrowsers { FIREFOX, CHROME, NONE };
 
 	protected static SupportedBrowsers activeBrowser = SupportedBrowsers.FIREFOX;
+
+	protected WebDriver webDriver;
+	protected WebDriverWait driver;
+	protected Actions actions;
 
 	@Before
 	public void startDriver() {
@@ -63,7 +74,7 @@ public class SeleniumTest extends FrontendTest {
 				final FirefoxOptions firefoxOptions = new FirefoxOptions();
 				firefoxOptions.setHeadless(true);
 
-				driver = new FirefoxDriver(firefoxOptions);
+				webDriver = new FirefoxDriver(firefoxOptions);
 
 				break;
 
@@ -76,7 +87,7 @@ public class SeleniumTest extends FrontendTest {
 				final ChromeOptions chromeOptions = new ChromeOptions();
 				chromeOptions.setHeadless(true);
 
-				driver = new ChromeDriver(chromeOptions);
+				webDriver = new ChromeDriver(chromeOptions);
 
 				break;
 
@@ -85,18 +96,27 @@ public class SeleniumTest extends FrontendTest {
 				// Don't create a driver in main thread, useful for parallel testing
 				break;
 		}
+
+		webDriver.manage().window().setSize(new Dimension(1280, 1024));
+		webDriver.get("http://localhost:8875/structr/#");
+
+		driver  = new WebDriverWait(webDriver, 2);
+		actions = new Actions(webDriver);
+
+		createAdminUser();
+		delay(1000);
 	}
 
 	@After
 	public void stopDriver() {
 
-		if (driver != null) {
-			driver.quit();
+		if (webDriver != null) {
+			webDriver.quit();
 		}
 	}
 
 	protected void logBrowserLog() {
-		final LogEntries logEntries = driver.manage().logs().get(LogType.DRIVER);
+		final LogEntries logEntries = webDriver.manage().logs().get(LogType.DRIVER);
 		for (final LogEntry logEntry : logEntries) {
 		    System.out.println(new Date(logEntry.getTimestamp()) + " " + logEntry.getLevel() + " " + logEntry.getMessage());
 		}
@@ -133,16 +153,16 @@ public class SeleniumTest extends FrontendTest {
 			wait.until(ExpectedConditions.titleIs("Structr " + menuEntry));
 
 		} catch (WebDriverException wex) {
-			
+
 			try {
 				Runtime.getRuntime().exec("/usr/bin/jstack -l $(ps xa|grep structr|grep java|tail -n1|awk '{print $1}') > /tmp/jstack.out." + new Date().getTime());
-			
+
 			} catch (IOException ex1) {
 				throw new RuntimeException(ex1);
 			}
-			
+
 		} catch (RuntimeException ex) {
-			
+
 			throw ex;
 		}
 
@@ -156,7 +176,7 @@ public class SeleniumTest extends FrontendTest {
 	 */
 	protected void loginAsAdmin(final String menuEntry) {
 		createAdminUser();
-		loginAsAdmin(menuEntry, driver, 5);
+		loginAsAdmin(menuEntry, webDriver, 5);
 	}
 
 	public static String getBrowserDriverLocation (SupportedBrowsers BROWSER) {
@@ -174,5 +194,133 @@ public class SeleniumTest extends FrontendTest {
 		}
 
 		return null;
+	}
+
+	protected WebElement id(final String id) {
+		return driver.until(ExpectedConditions.visibilityOfElementLocated(By.id(id)));
+	}
+
+	protected WebElement xpath(final String path) {
+		return driver.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(path)));
+	}
+
+	protected WebElement tagName(final String name) {
+		return driver.until(ExpectedConditions.visibilityOfElementLocated(By.tagName(name)));
+	}
+
+	protected WebElement className(final String name) {
+		return driver.until(ExpectedConditions.visibilityOfElementLocated(By.className(name)));
+	}
+
+	protected WebElement selector(final String selector) {
+		return driver.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(selector)));
+	}
+
+	protected void delay() {
+		delay(100);
+	}
+
+	protected void delay(final long milliseconds) {
+		try { Thread.sleep(milliseconds); } catch (InterruptedException iex) {}
+	}
+
+	protected void takeScreenshot(final String path) throws IOException {
+		final File scrFile = ((TakesScreenshot)webDriver).getScreenshotAs(OutputType.FILE);
+		FileUtils.copyFile(scrFile, new File(path));
+	}
+
+	// interaction
+	protected void hover(final WebElement element) {
+		actions.moveToElement(element, 0, 0).build().perform();
+		delay();
+	}
+
+	protected void dragAndDrop(final WebElement source, final int dx, final int dy) {
+
+		actions.moveToElement(source, 0, 0).build().perform();
+		delay();
+
+		actions.clickAndHold().build().perform();
+		delay();
+
+		actions.moveByOffset(dx, dy).build().perform();
+		delay();
+
+		actions.release().build().perform();
+		delay();
+	}
+
+	protected void input(final WebElement element, final String text) {
+
+		element.click();
+		element.clear();;
+		element.sendKeys(text);
+	}
+
+	// more complex composite actions
+	protected void login(final String username, final String password) {
+
+		// login
+		input(id("usernameField"), username);
+		input(id("passwordField"), password);
+		id("loginButton").click();
+
+		delay();
+	}
+
+	protected void logout() {
+
+		// logout
+		hover(className("submenu-trigger"));
+		id("logout_").click();
+
+		delay(1000);
+	}
+
+	protected void area(final String which) {
+
+		id(which + "_").click();
+
+		delay();
+	}
+
+	protected String getUuidOfFirstElement(final String typeName) {
+
+		final Class type = StructrApp.getConfiguration().getNodeEntityClass(typeName);
+		String uuid      = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject node = app.nodeQuery(type).getFirst();
+			if (node != null) {
+
+				uuid = node.getUuid();
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		return uuid;
+	}
+
+	protected int getCountOfType(final String typeName) {
+
+		final Class type = StructrApp.getConfiguration().getNodeEntityClass(typeName);
+		int count        = 0;
+
+		try (final Tx tx = app.tx()) {
+
+			count = app.nodeQuery(type).getAsList().size();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		return count;
 	}
 }
