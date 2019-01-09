@@ -1076,9 +1076,9 @@ var _Code = {
 					});
 				}
 
-				_Code.displayCreatePropertyButtonList('#property-actions', propertyData, cancelCallback);
+				_Code.displayCreatePropertyButtonList('#property-actions', propertyData);
 
-				_Code.displayCreateButton('#view-actions', 'tv', 'new-view', 'Add view', '', { type: 'SchemaView', schemaNode: result.id }, cancelCallback);
+				_Code.displayCreateButton('#view-actions', 'tv', 'new-view', 'Add view', '', { type: 'SchemaView', schemaNode: result.id });
 
 				_Code.displayCreateMethodButton(methodParent, 'onCreate', methodData, 'onCreate');
 				_Code.displayCreateMethodButton(methodParent, 'onSave',   methodData, 'onSave');
@@ -1183,18 +1183,18 @@ var _Code = {
 			}, true);
 		});
 	},
-	displayCreatePropertyButtonList: function(id, data, callback) {
+	displayCreatePropertyButtonList: function(id, data) {
 
 		// create buttons
-		_Code.displayCreatePropertyButton(id, 'String',   data, callback);
-		_Code.displayCreatePropertyButton(id, 'Boolean',  data, callback);
-		_Code.displayCreatePropertyButton(id, 'Integer',  data, callback);
-		_Code.displayCreatePropertyButton(id, 'Long',     data, callback);
-		_Code.displayCreatePropertyButton(id, 'Double',   data, callback);
-		_Code.displayCreatePropertyButton(id, 'Enum',     data, callback);
-		_Code.displayCreatePropertyButton(id, 'Date',     data, callback);
-		_Code.displayCreatePropertyButton(id, 'Function', data, callback);
-		_Code.displayCreatePropertyButton(id, 'Cypher',   data, callback);
+		_Code.displayCreatePropertyButton(id, 'String',   data);
+		_Code.displayCreatePropertyButton(id, 'Boolean',  data);
+		_Code.displayCreatePropertyButton(id, 'Integer',  data);
+		_Code.displayCreatePropertyButton(id, 'Long',     data);
+		_Code.displayCreatePropertyButton(id, 'Double',   data);
+		_Code.displayCreatePropertyButton(id, 'Enum',     data);
+		_Code.displayCreatePropertyButton(id, 'Date',     data);
+		_Code.displayCreatePropertyButton(id, 'Function', data);
+		_Code.displayCreatePropertyButton(id, 'Cypher',   data);
 
 	},
 	displayViewsContent: function(selection, updateLocationStack) {
@@ -1662,7 +1662,7 @@ var _Code = {
 			$(targetId).append(html);
 		});
 	},
-	displayCreatePropertyButton: function(targetId, type, nodeData, callback) {
+	displayCreatePropertyButton: function(targetId, type, nodeData) {
 		var data = Object.assign({}, nodeData);
 		data['propertyType'] = type;
 		if (type === 'Enum') {
