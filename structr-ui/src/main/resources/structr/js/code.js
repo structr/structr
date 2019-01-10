@@ -1515,7 +1515,7 @@ var _Code = {
 			});
 
 			// delete button
-			if (!method.schemaNode.isBuiltinType) {
+			if (!method.schemaNode || !method.schemaNode.isBuiltinType) {
 				_Code.displayActionButton('#method-actions', 'remove red', 'delete', 'Delete method', function() {
 					_Code.deleteSchemaEntity(method, 'Delete method ' + method.name + '?');
 				});
