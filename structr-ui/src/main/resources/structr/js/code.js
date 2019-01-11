@@ -115,7 +115,7 @@ var _Code = {
 
 		$('#code-tree').css({width: left - 14 + 'px'});
 		$('#code-contents').css({left: left + 8 + 'px', width: width + 'px'});
-		$('#code-context').css({left: left + width + 42 + 'px', width: contextWidth + 'px'});
+		$('#code-context').css({left: left + width + 41 + 'px', width: contextWidth + 'px'});
 	},
 	onload: function() {
 
@@ -333,6 +333,14 @@ var _Code = {
 						});
 
 						children.push({
+							id: 'views-' + entity.id + '-' + entity.name,
+							text: 'Views',
+							children: entity.schemaViews.length > 0,
+							icon: 'fa fa-television gray',
+							data: data
+						});
+
+						children.push({
 							id: 'methods-' + entity.id + '-' + entity.name,
 							text: 'Methods',
 							children: entity.schemaMethods.length > 0,
@@ -487,6 +495,9 @@ var _Code = {
 								};
 							}));
 						});
+						break;
+					case 'views':
+						Command.query('SchemaView', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.id }, displayFunction, true, 'ui');
 						break;
 					case 'methods':
 						Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.id }, displayFunction, true, 'ui');
@@ -785,6 +796,9 @@ var _Code = {
 
 			case 'SchemaProperty':
 				return _Code.getIconForPropertyType(entity.propertyType);
+
+			case 'SchemaView':
+				return 'th-large';
 		}
 
 		return icon;
@@ -949,6 +963,11 @@ var _Code = {
 				_Code.displayPropertiesContent(identifier, data.updateLocationStack);
 				break;
 
+			// views (with uuid)
+			case 'views':
+				_Code.displayViewsContent(identifier, data.updateLocationStack);
+				break;
+
 			// methods (with uuid)
 			case 'methods':
 				_Code.displayMethodsContent(identifier, data.updateLocationStack);
@@ -995,6 +1014,10 @@ var _Code = {
 		if (data.type) {
 
 			switch (data.type) {
+
+				case 'SchemaView':
+					_Code.displayViewDetails(data);
+					break;
 
 				case 'SchemaProperty':
 					_Code.displayPropertyDetails(data);
@@ -1044,8 +1067,6 @@ var _Code = {
 
 				var propertyData   = { type: 'SchemaProperty', schemaNode: identifier.id };
 				var methodData     = { type: 'SchemaMethod', schemaNode: identifier.id };
-				var entityPath     = _Code.getPathForEntity(result);
-				var propertyParent = '#property-actions';
 				var methodParent   = '#method-actions';
 
 				// delete button
@@ -1055,15 +1076,9 @@ var _Code = {
 					});
 				}
 
-				_Code.displayCreatePropertyButton(propertyParent, 'String',   propertyData);
-				_Code.displayCreatePropertyButton(propertyParent, 'Boolean',  propertyData);
-				_Code.displayCreatePropertyButton(propertyParent, 'Integer',  propertyData);
-				_Code.displayCreatePropertyButton(propertyParent, 'Long',     propertyData);
-				_Code.displayCreatePropertyButton(propertyParent, 'Double',   propertyData);
-				_Code.displayCreatePropertyButton(propertyParent, 'Enum',     propertyData);
-				_Code.displayCreatePropertyButton(propertyParent, 'Date',     propertyData);
-				_Code.displayCreatePropertyButton(propertyParent, 'Function', propertyData);
-				_Code.displayCreatePropertyButton(propertyParent, 'Cypher',   propertyData);
+				_Code.displayCreatePropertyButtonList('#property-actions', propertyData);
+
+				_Code.displayCreateButton('#view-actions', 'tv', 'new-view', 'Add view', '', { type: 'SchemaView', schemaNode: result.id });
 
 				_Code.displayCreateMethodButton(methodParent, 'onCreate', methodData, 'onCreate');
 				_Code.displayCreateMethodButton(methodParent, 'onSave',   methodData, 'onSave');
@@ -1155,22 +1170,55 @@ var _Code = {
 			var data     = { type: 'SchemaProperty', schemaNode: selection.id };
 			var id       = '#property-actions';
 
-			// create buttons
-			_Code.displayCreatePropertyButton(id, 'String',   data, callback);
-			_Code.displayCreatePropertyButton(id, 'Boolean',  data, callback);
-			_Code.displayCreatePropertyButton(id, 'Integer',  data, callback);
-			_Code.displayCreatePropertyButton(id, 'Long',     data, callback);
-			_Code.displayCreatePropertyButton(id, 'Double',   data, callback);
-			_Code.displayCreatePropertyButton(id, 'Enum',     data, callback);
-			_Code.displayCreatePropertyButton(id, 'Date',     data, callback);
-			_Code.displayCreatePropertyButton(id, 'Function', data, callback);
-			_Code.displayCreatePropertyButton(id, 'Cypher',   data, callback);
+			_Code.displayCreatePropertyButtonList('#property-actions', data, callback);
 
 			// list of existing properties
 			Command.query('SchemaProperty', 10000, 1, 'name', 'asc', { schemaNode: selection.id }, function(result) {
 				result.forEach(function(t) {
 					//displayActionButton: function(targetId, icon, suffix, name, callback) {
 					_Code.displayActionButton('#existing-properties', _Code.getIconForPropertyType(t.propertyType), t.id, t.name, function() {
+						_Code.findAndOpenNode(path + '/' + t.name);
+					});
+				});
+			}, true);
+		});
+	},
+	displayCreatePropertyButtonList: function(id, data) {
+
+		// create buttons
+		_Code.displayCreatePropertyButton(id, 'String',   data);
+		_Code.displayCreatePropertyButton(id, 'Boolean',  data);
+		_Code.displayCreatePropertyButton(id, 'Integer',  data);
+		_Code.displayCreatePropertyButton(id, 'Long',     data);
+		_Code.displayCreatePropertyButton(id, 'Double',   data);
+		_Code.displayCreatePropertyButton(id, 'Enum',     data);
+		_Code.displayCreatePropertyButton(id, 'Date',     data);
+		_Code.displayCreatePropertyButton(id, 'Function', data);
+		_Code.displayCreatePropertyButton(id, 'Cypher',   data);
+
+	},
+	displayViewsContent: function(selection, updateLocationStack) {
+
+		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Views';
+
+		if (updateLocationStack === true) {
+			_Code.updatePathLocationStack(path);
+			_Code.lastClickedPath = path;
+		}
+
+		Structr.fetchHtmlTemplate('code/views', { identifier: selection }, function(html) {
+			codeContents.empty();
+			codeContents.append(html);
+			var callback = function() { _Code.displayViewsContent(selection); };
+			var data     = { type: 'SchemaViews', schemaNode: selection.id };
+
+			_Code.displayCreateButton('#view-actions', 'tv', 'new-view', 'Add view', '', data, callback);
+
+			// list of existing properties
+			Command.query('SchemaView', 10000, 1, 'name', 'asc', { schemaNode: selection.id }, function(result) {
+				result.forEach(function(t) {
+					//displayActionButton: function(targetId, icon, suffix, name, callback) {
+					_Code.displayActionButton('#existing-views', _Code.getIconForNodeType(t), t.id, t.name, function() {
 						_Code.findAndOpenNode(path + '/' + t.name);
 					});
 				});
@@ -1254,6 +1302,21 @@ var _Code = {
 					}
 					break;
 			}
+		});
+	},
+	displayViewDetails: function(selection) {
+
+		var id = _Code.splitIdentifier(selection.id);
+
+		Command.get(id.id, null, function(result) {
+
+			_Code.updateRecentlyUsed(result, selection.updateLocationStack);
+
+			Structr.fetchHtmlTemplate('code/default-view', { view: result }, function(html) {
+				codeContents.empty();
+				codeContents.append(html);
+				_Code.displayDefaultViewOptions(result);
+			});
 		});
 	},
 	displayFunctionPropertyDetails: function(property) {
@@ -1370,6 +1433,71 @@ var _Code = {
 			}
 		});
 	},
+	displayDefaultViewOptions: function(view, callback) {
+
+		// default buttons
+		Structr.fetchHtmlTemplate('code/view-options', { view: view }, function(html) {
+
+			var buttons = $('#view-buttons');
+			buttons.prepend(html);
+
+			// delete button
+			if (!view.schemaNode.isBuiltinType) {
+				_Code.displayActionButton('#view-actions', 'remove red', 'delete', 'Delete view', function() {
+					_Code.deleteSchemaEntity(view, 'Delete view ' + view.name + '?', 'No data will be removed.');
+				});
+			}
+
+			_Code.activatePropertyValueInput('view-name-input', view.id, 'name');
+
+			Command.listSchemaProperties(view.schemaNode.id, view.name, function(data) {
+
+				var properties = [];
+
+				if (view.sortOrder) {
+
+					view.sortOrder.split(',').forEach(function(name) {
+						data.forEach(function(p) {
+							if (p.name === name) {
+								properties.push(p);
+							}
+						});
+					});
+
+				} else {
+
+					properties = data;
+				}
+
+				properties.forEach(function(t) {
+					if (t.isSelected) {
+						Structr.fetchHtmlTemplate('code/sortable-list-item', { id: t.id, name: t.name, icon: '' }, function(html) {
+							$('#view-properties').append(html);
+						});
+					}
+				});
+
+				// make properties sortable
+				$('#view-properties').sortable({
+					handle: '.sortable-list-item-handle',
+					update: function() {
+						var names = [];
+						$('.sortable-list-item').each(function(i, item) {
+							names.push($(item).data('name'));
+						});
+						_Code.showSchemaRecompileMessage();
+						Command.setProperty(view.id, 'sortOrder', names.join(','), false, function() {
+							_Code.hideSchemaRecompileMessage();
+						});
+					}
+				});
+			});
+
+			if (typeof callback === 'function') {
+				callback();
+			}
+		});
+	},
 	displayDefaultMethodOptions: function(method, callback) {
 
 		// default buttons
@@ -1387,7 +1515,7 @@ var _Code = {
 			});
 
 			// delete button
-			if (!method.schemaNode.isBuiltinType) {
+			if (!method.schemaNode || !method.schemaNode.isBuiltinType) {
 				_Code.displayActionButton('#method-actions', 'remove red', 'delete', 'Delete method', function() {
 					_Code.deleteSchemaEntity(method, 'Delete method ' + method.name + '?');
 				});
@@ -1493,7 +1621,7 @@ var _Code = {
 				$('#new-object-name-' + suffix).focus();
 				$('#new-object-name-' + suffix).on('keyup', function(e) {
 					if (e.keyCode === 27) { revertFunction(); }
-					if (e.keyCode === 13) { $('#action-button-' + suffix).click(); }
+					if (e.keyCode === 13) { $('#create-button-' + suffix).click(); }
 				});
 				button.off('click.create-object-' + suffix);
 				$('#cancel-button-' + suffix).on('click', function() {
@@ -1527,6 +1655,11 @@ var _Code = {
 		Structr.fetchHtmlTemplate('code/action-button', { icon: icon, suffix: suffix, name: name }, function(html) {
 			$(targetId).append(html);
 			$('#action-button-' + suffix).off('click.action').on('click.action', callback);
+		});
+	},
+	displayButton: function(targetId, icon, suffix, name) {
+		Structr.fetchHtmlTemplate('code/action-button', { icon: icon, suffix: suffix, name: name }, function(html) {
+			$(targetId).append(html);
 		});
 	},
 	displayCreatePropertyButton: function(targetId, type, nodeData) {

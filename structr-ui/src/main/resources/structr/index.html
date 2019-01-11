@@ -3,25 +3,27 @@
 	<head>
 		<title id="title">Structr</title>
 		<!-- Structr is released under the <a href="agplv3.html">AGPLv3</a>-->
-		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
-		<meta name="viewport" content="width=1024, user-scalable=yes" />
-		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/jquery-ui-1.10.3.custom.min.css" >
-		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/jquery.terminal-0.11.11.min.css" >
-		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/chosen.min.css" >
-		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/select2.min.css" >
-		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/jstree-3.2.1.min.css" >
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+		<meta name="viewport" content="width=1024, user-scalable=yes"/>
+		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/jquery-ui-1.10.3.custom.min.css">
+		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/jquery.terminal-0.11.11.min.css">
+		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/chosen.min.css">
+		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/select2.min.css">
+		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/jstree-3.2.1.min.css">
 		<link rel="stylesheet" type="text/css" href="css/lib/font-awesome.min.css">
 		<link rel="stylesheet" href="codemirror/lib/codemirror.css">
 		<link rel="stylesheet" href="codemirror/addon/dialog/dialog.css">
 		<link rel="stylesheet" href="codemirror/addon/hint/show-hint.css">
 		<link rel="stylesheet" href="codemirror/addon/search/matchesonscrollbar.css">
 		<link rel="stylesheet" href="trumbowyg/ui/trumbowyg.min.css">
-		<link rel="stylesheet" type="text/css" media="screen" href="css/main.css" >
-		<link rel="stylesheet" type="text/css" media="screen" href="css/crud.css" >
-		<link rel="stylesheet" type="text/css" media="screen" href="css/dialogs.css" >
-		<link rel="stylesheet" type="text/css" media="screen" href="css/graph_editor.css" >
-		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/cropper.min.css" >
-		<link rel="stylesheet" type="text/css" media="screen" href="css/flow-editor.css" >
+		<link rel="stylesheet" type="text/css" media="screen" href="css/main.css">
+		<link rel="stylesheet" type="text/css" media="screen" href="css/sprites.css">
+		<link rel="stylesheet" type="text/css" media="screen" href="css/crud.css">
+		<link rel="stylesheet" type="text/css" media="screen" href="css/dialogs.css">
+		<link rel="stylesheet" type="text/css" media="screen" href="css/graph_editor.css">
+		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/cropper.min.css">
+		<link rel="stylesheet" type="text/css" media="screen" href="css/flow-editor.css">
+		<!--link rel="stylesheet" type="text/css" media="screen" href="css/simple-pages.css"-->
 		<link rel="icon" href="favicon.ico" type="image/x-icon">
 		<script src="js/lib/jquery-1.11.1.min.js"></script>
 		<script src="js/lib/jquery-ui-1.11.0.custom.min.js"></script>
@@ -53,6 +55,8 @@
 		<script src="codemirror/addon/search/matchesonscrollbar.js"></script>
 		<script src="codemirror/addon/dialog/dialog.js"></script>
 		<script src="codemirror/addon/hint/show-hint.js"></script>
+		<script src="codemirror/mode/xml/xml.js"></script>
+		<script src="codemirror/mode/htmlembedded/htmlembedded.js"></script>
 		<script src="codemirror/mode/clike/clike.js"></script>
 		<script src="codemirror/mode/javascript/javascript.js"></script>
 		<script src="trumbowyg/trumbowyg.min.js"></script>
@@ -89,6 +93,7 @@
 		<script src="js/virtual-types.js"></script>
 		<script src="js/mail-templates.js"></script>
 		<script src="js/refactoring-helper.js"></script>
+		<!--script src="js/simple-pages.js"></script-->
 		<script src="js/flows.js" type="module"></script>
 	</head>
 	<body>
@@ -103,6 +108,7 @@
 							<li data-name="Dashboard"><a id="dashboard_" href="#dashboard" data-activate-module="dashboard">Dashboard</a></li>
 							<li data-name="Graph"><a id="graph_" href="#graph" data-activate-module="graph">Graph</a></li>
 							<li data-name="Contents"><a id="contents_" href="#contents" data-activate-module="contents">Contents</a></li>
+							<!--li data-name="Simple Pages"><a id="simple-pages_" href="#simple-pages" data-activate-module="simple-pages">Simple Pages</a></li-->
 							<li data-name="Pages"><a id="pages_" href="#pages" data-activate-module="pages">Pages</a></li>
 							<li data-name="Files"><a id="files_" href="#files" data-activate-module="files">Files</a></li>
 							<li data-name="Security"><a id="security_" href="#security" data-activate-module="security">Security</a></li>

@@ -20,28 +20,44 @@ var pagesArea, widgetsArea, statusArea, paWidth, paHeight, currentPage, block = 
 var appBuilderActiveWidgetTabRightKey = 'structrAppBuilderActiveWidgetTabRightKey' + port;
 
 $(document).ready(function() {
-	Structr.registerModule(_AppBuilder);
-	Structr.classes.push('app');
+	Structr.registerModule(_Shapes);
+	Structr.classes.push('shapes');
 });
 
-var _AppBuilder = {
-	_moduleName: 'app-builder',
+var _Shapes = {
+	_moduleName: 'shapes',
 	autoRefresh: [],
+	onload: function() {
+		
+		Structr.fetchHtmlTemplate('shapes/main', {}, function(html) {
+		
+			main.append(html);
+
+			_Shapes.init();
+
+			$(window).off('resize').resize(function() {
+				_Shapes.resize();
+			});
+
+			Structr.unblockMenu(500);
+			
+		});
+		
+	},
 	init: function() {
 
-		main.append('<div id="app-builder"><div id="pages-area"></div><div id="widgets-area"></div></div>');
 		pagesArea = $('#pages-area');
 		widgetsArea = $('#widgets-area');
 		statusArea = $('#status-info');
 
-		_AppBuilder.refresh();
+		_Shapes.refresh();
 
 	},
 	refresh: function(page) {
 		_Pages.clearIframeDroppables();
 
 		if (!page) {
-			_AppBuilder.zoomOut();
+			_Shapes.zoomOut();
 
 		} else {
 			var iframe = $('.page-tn').find('#app-preview_' + page.id);
@@ -85,27 +101,27 @@ var _AppBuilder = {
 				var tn = $('#page-tn-' + page.id);
 				tn.find('.clone-page').on('click', function() {
 					Command.clonePage(page.id, function() {
-						_AppBuilder.refresh();
+						_Shapes.refresh();
 					});
 				});
 
 				tn.find('.delete-page').on('click', function() {
 					Command.deleteNode(page.id, true, function() {
-						_AppBuilder.refresh();
+						_Shapes.refresh();
 					});
 				});
 
 				tn.css({left: x * 300, top: y * 300});
 				x++;
 
-				_AppBuilder.activateAreas(page);
+				_Shapes.activateAreas(page);
 
 				$('.page-tn').not('.zoomed').find('#app-preview_' + page.id).load(function() {
 					var doc = $(this).contents();
 					doc.off('click');
 					doc.on('click', function() {
-						_AppBuilder.zoomIn(page);
-						_AppBuilder.loadWidgets();
+						_Shapes.zoomIn(page);
+						_Shapes.loadWidgets();
 					});
 					return false;
 				});
@@ -122,7 +138,7 @@ var _AppBuilder = {
 			pagesArea.append('<div id="add-page-area" class="page-tn"><i class="fa fa-plus"></i></div>');
 			$('#add-page-area').css({left: x * 300, top: y * 300}).on('click', function() {
 				Command.create({type: 'Page'}, function() {
-					_AppBuilder.refresh();
+					_Shapes.refresh();
 				});
 			});
 		}, false);
@@ -154,7 +170,7 @@ var _AppBuilder = {
 		if (!zoomOutButton.size()) {
 			pagePreview.append('<button title="Close Preview" id="zoom-out" class="remove">×</button><div id="status-info"></div>');
 			$('#zoom-out', pagePreview).on('click', function() {
-				_AppBuilder.zoomOut();
+				_Shapes.zoomOut();
 				return false;
 			});
 		}
@@ -199,10 +215,10 @@ var _AppBuilder = {
 			}
 
 			_Pages.activateComments(doc, function() {
-				_AppBuilder.refresh(currentPage);
+				_Shapes.refresh(currentPage);
 			});
 
-			_AppBuilder.activateDocShadows(doc);
+			_Shapes.activateDocShadows(doc);
 
 			doc.find('*').each(function(i, element) {
 
@@ -216,7 +232,7 @@ var _AppBuilder = {
 					} else {
 						children.each(function(i, child) {
 							var c = $(child);
-							_AppBuilder.bindActions(c, area);
+							_Shapes.bindActions(c, area);
 						});
 					}
 
@@ -249,7 +265,7 @@ var _AppBuilder = {
 
 								Command.get(targetId, "id,type,isContent", function(target) {
 									_Dragndrop.htmlElementFromPaletteDropped(tag, target, page.id, function() {
-										_AppBuilder.refresh(currentPage);
+										_Shapes.refresh(currentPage);
 									});
 								});
 
@@ -263,14 +279,14 @@ var _AppBuilder = {
 							if (!target && source) {
 								Command.get(targetId, "id", function(target) {
 									_Dragndrop.widgetDropped(source, target, page.id, function() {
-										_AppBuilder.refresh(currentPage);
+										_Shapes.refresh(currentPage);
 									});
 								});
 							} else if (source && target) {
 
 								// objects are already stored in model
 								_Dragndrop.widgetDropped(source, target, page.id, function() {
-									_AppBuilder.refresh(currentPage);
+									_Shapes.refresh(currentPage);
 								});
 
 							} else {
@@ -279,7 +295,7 @@ var _AppBuilder = {
 								Command.get(sourceId, "id,type,source,description,configuration", function(source) {
 									Command.get(targetId, "id", function(target) {
 										_Dragndrop.widgetDropped(source, target, page.id, function() {
-											_AppBuilder.refresh(currentPage);
+											_Shapes.refresh(currentPage);
 										});
 									});
 								});
@@ -343,7 +359,7 @@ var _AppBuilder = {
 				var parentId = area.attr('data-structr-id');
 				Command.removeSourceFromTarget(id, parentId, function(obj, size, command) {
 					if (command === 'REMOVE_CHILD') {
-						_AppBuilder.refresh(currentPage);
+						_Shapes.refresh(currentPage);
 					}
 				});
 				return false;
@@ -392,7 +408,7 @@ var _AppBuilder = {
 			_Widgets.getRemoteWidgets(_Widgets.url, function(widget) {
 				w.push(widget);
 			}, function() {
-				_AppBuilder.appendWidgets(w);
+				_Shapes.appendWidgets(w);
 			});
 		});
 	},
@@ -442,10 +458,10 @@ var _AppBuilder = {
 					});
 				});
 			});
-			_AppBuilder.resize();
+			_Shapes.resize();
 		}
 
-		_AppBuilder.appendWidgetLib(widgetGroups, function() {
+		_Shapes.appendWidgetLib(widgetGroups, function() {
 
 			Object.keys(widgetGroups).forEach(function(key) {
 				ul.append('<li><a href="#widget-tab-area-' + key + '">' + key + '</a></li>');
@@ -464,10 +480,10 @@ var _AppBuilder = {
 
 						widgetGroups[key].forEach(function(widget) {
 							StructrModel.create(widget, null, false);
-							_AppBuilder.appendWidget(widget, tabArea);
+							_Shapes.appendWidget(widget, tabArea);
 						});
 						if (widgetGroups[key]) {
-							_AppBuilder.activateWidgets(widgetGroups[key]);
+							_Shapes.activateWidgets(widgetGroups[key]);
 						}
 
 					}
@@ -526,7 +542,7 @@ var _AppBuilder = {
 			var previewBox = $('#widget-preview-' + widget.id);
 			var iframe = $('iframe', previewBox);
 			// Trigger reload
-			iframe.attr('src', '/structr/blank.html');
+			iframe.attr('src', 'about:blank');
 			console.log('activated widget', widget);
 		});
 	},
@@ -551,7 +567,7 @@ var _AppBuilder = {
 				$(ui.helper).css({
 					'z-index': 10000
 				});
-				_AppBuilder.activateDocShadows();
+				_Shapes.activateDocShadows();
 			}
 		});
 
@@ -599,7 +615,7 @@ var _AppBuilder = {
 				};
 				iframe.css(css);
 				previewBox.show();
-				_AppBuilder.resize();
+				_Shapes.resize();
 			}, 100);
 		});
 	},
@@ -644,15 +660,6 @@ var _AppBuilder = {
 			height: windowHeight - headerOffsetHeight - tabsHeight
 		});
 
-	},
-	onload: function() {
-		_AppBuilder.init();
-
-		$(window).off('resize').resize(function() {
-			_AppBuilder.resize();
-		});
-
-		Structr.unblockMenu(500);
 	}
 };
 

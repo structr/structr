@@ -227,6 +227,7 @@ public class Scripting {
 
 	public static Object evaluateJavascript(final ActionContext actionContext, final GraphObject entity, final Snippet snippet) throws FrameworkException {
 
+		final String entityType        = entity != null ? (entity.getClass().getSimpleName() + ".") : "";
 		final String entityName        = entity != null ? entity.getProperty(AbstractNode.name) : null;
 		final String entityDescription = entity != null ? ( StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + entity.getUuid() : "anonymous";
 		final Context scriptingContext = Scripting.setupJavascriptContext();
@@ -251,7 +252,7 @@ public class Scripting {
 			Script compiledScript = snippet.getCompiledScript();
 			if (compiledScript == null) {
 
-				final String sourceLocation     = snippet.getName() + " [" + entityDescription + "], line ";
+				final String sourceLocation     = entityType + snippet.getName() + " [" + entityDescription + "]";
 				final String embeddedSourceCode = embedInFunction(actionContext, snippet.getSource());
 
 				compiledScript = compileOrGetCached(scriptingContext, embeddedSourceCode, sourceLocation, 1);
