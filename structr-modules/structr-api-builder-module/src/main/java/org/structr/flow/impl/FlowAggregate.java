@@ -67,7 +67,7 @@ public class FlowAggregate extends FlowNode implements Aggregation, DataSource, 
 
 				Object result = Scripting.evaluate(context.getActionContext(securityContext, this), this, "${" + _script + "}", "FlowAggregate(" + getUuid() + ")");
 
-				context.setData(getUuid(), result);
+					context.setData(getUuid(), result);
 
 			}
 

@@ -79,7 +79,7 @@ public class FlowFilter extends FlowNode implements DataSource, Filter, Deployab
 						}
 
 						return false;
-					}).collect(Collectors.toList());
+					});
 
 					context.setData(getUuid(), data);
 				} else {
