@@ -214,7 +214,7 @@ public class HttpService implements RunnableService {
 
 		if (enableGzipCompression) {
 			gzipHandler = new GzipHandler();
-			gzipHandler.setIncludedMimeTypes("text/html", "text/plain", "text/css", "text/javascript", "application/json");
+			gzipHandler.setIncludedMimeTypes("text/html", "text/xml", "text/plain", "text/css", "text/javascript", "application/javascript", "application/json", "image/svg+xml");
 			gzipHandler.setInflateBufferSize(32768);
 			gzipHandler.setMinGzipSize(256);
 			gzipHandler.setCompressionLevel(9);
