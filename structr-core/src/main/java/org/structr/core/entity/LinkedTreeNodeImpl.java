@@ -21,7 +21,7 @@ package org.structr.core.entity;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.structr.api.util.Iterables;
@@ -30,15 +30,12 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
 /**
  * Abstract base class for a multi-dimensional ordered tree datastructure.
  */
 public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends LinkedListNodeImpl<T> implements LinkedTreeNode<T> {
-
-	private List<Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>>> childRels = null;
 
 	@Override
 	public T treeGetParent() {
@@ -60,19 +57,13 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 		PropertyMap properties = new PropertyMap();
 		properties.put(getPositionProperty(), treeGetChildCount());
 
-		childRels = null;
-
 		// create child relationship
 		linkNodes(getChildLinkType(), (T)this, childElement, properties);
-
-		childRels = null;
 
 		// add new node to linked list
 		if (lastChild != null) {
 			listInsertAfter(lastChild, childElement);
 		}
-
-		childRels = null;
 
 		ensureCorrectChildPositions();
 	}
@@ -93,9 +84,6 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 			}
 
 			treeAppendChild(newChild);
-
-			childRels = null;
-
 			return;
 		}
 
@@ -125,12 +113,8 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 			throw new FrameworkException(404, "Referenced child is not a child of parent node.");
 		}
 
-		childRels = null;
-
 		// insert new node in linked list
 		listInsertBefore(refChild, newChild);
-
-		childRels = null;
 
 		ensureCorrectChildPositions();
 	}
@@ -145,9 +129,6 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 		if (rels.isEmpty()) {
 
 			treeAppendChild(newChild);
-
-			childRels = null;
-
 			return;
 		}
 
@@ -170,12 +151,8 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 			}
 		}
 
-		childRels = null;
-
 		// insert new node in linked list
 		listInsertAfter(refChild, newChild);
-
-		childRels = null;
 
 		ensureCorrectChildPositions();
 
@@ -188,8 +165,6 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 		listRemove(childToRemove);
 
 		unlinkNodes(getChildLinkType(), (T)this, childToRemove);
-
-		childRels = null;
 
 		ensureCorrectChildPositions();
 
@@ -204,8 +179,6 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 		// remove old node
 		unlinkNodes(getChildLinkType(), (T)this, oldChild);
 
-		childRels = null;
-
 		// insert new node with position from old node
 		PropertyMap properties = new PropertyMap();
 
@@ -213,13 +186,9 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 
 		linkNodes(getChildLinkType(), (T)this, newChild, properties);
 
-		childRels = null;
-
 		// replace element in linked list as well
 		listInsertBefore(oldChild, newChild);
 		listRemove(oldChild);
-
-		childRels = null;
 
 		ensureCorrectChildPositions();
 	}
@@ -244,15 +213,17 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 	@Override
 	public T treeGetChild(final int position) {
 
-		final List<Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>>> rels = treeGetChildRelationships();
-		if (rels.isEmpty()) {
+		for (Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>> rel : getOutgoingRelationships(getChildLinkType())) {
 
-			return null;
+			Integer pos = rel.getProperty(getPositionProperty());
+
+			if (pos != null && pos == position) {
+
+				return (T) rel.getTargetNode();
+			}
 		}
 
-		final Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>> rel = treeGetChildRelationships().get(position);
-
-		return (T)rel.getTargetNode();
+		return null;
 	}
 
 	@Override
@@ -286,38 +257,33 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 
 	@Override
 	public int treeGetChildCount() {
-		return (int)Iterables.count(treeGetChildRelationships());
+		return (int)Iterables.count(getOutgoingRelationships(getChildLinkType()));
 	}
 
 	@Override
-	public List<Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>>> treeGetChildRelationships() {
+	public <R extends Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>>> List<R> treeGetChildRelationships() {
 
-		if (childRels == null) {
+		// fetch all relationships
+		List<R> childRels = Iterables.toList(getOutgoingRelationships(getChildLinkType()));
 
-			final PropertyKey<Integer> positionProperty = getPositionProperty();
+		// sort relationships by position
+		Collections.sort(childRels, new Comparator<R>() {
 
-			// fetch all relationships
-			childRels = Iterables.toList(getOutgoingRelationships(getChildLinkType()));
+			@Override
+			public int compare(R o1, R o2) {
 
-			// sort relationships by position
-			Collections.sort(childRels, new Comparator<Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>>>() {
+				Integer pos1 = o1.getProperty(getPositionProperty());
+				Integer pos2 = o2.getProperty(getPositionProperty());
 
-				@Override
-				public int compare(Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>> o1, Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>> o2) {
+				if (pos1 != null && pos2 != null) {
 
-					Integer pos1 = o1.getProperty(positionProperty);
-					Integer pos2 = o2.getProperty(positionProperty);
-
-					if (pos1 != null && pos2 != null) {
-
-						return pos1.compareTo(pos2);
-					}
-
-					return 0;
+					return pos1.compareTo(pos2);
 				}
 
-			});
-		}
+				return 0;
+			}
+
+		});
 
 		return childRels;
 	}
@@ -351,8 +317,6 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 				app.delete(rel);
 			}
 		}
-
-		childRels = null;
 	}
 
 	/**
@@ -366,9 +330,11 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 	@Override
 	public Set<T> getAllChildNodes() {
 
-		final Set<T> allChildNodes = new LinkedHashSet();
+		Set<T> allChildNodes = new HashSet();
 
-		for (final T child : treeGetChildren()) {
+		List<T> childNodes = treeGetChildren();
+
+		for (final T child : childNodes) {
 
 			allChildNodes.add(child);
 
