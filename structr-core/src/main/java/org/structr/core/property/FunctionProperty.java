@@ -174,19 +174,20 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public Object setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
+	public Object setProperty(final SecurityContext securityContext, final GraphObject target, final T value) throws FrameworkException {
 
-		final ActionContext ctx    = new ActionContext(securityContext);
-		final String writeFunction = getWriteFunction();
-		T result                   = null;
+		final ActionContext ctx = new ActionContext(securityContext);
+		final GraphObject obj   = PropertyMap.unwrap(target);
+		final String func       = getWriteFunction();
+		T result                = null;
 
-		if (writeFunction != null) {
+		if (func != null) {
 
 			try {
 
 				ctx.setConstant("value", value);
 
-				result = (T)Scripting.evaluate(ctx, obj, "${".concat(writeFunction).concat("}"), "setProperty(" + jsonName + ")");
+				result = (T)Scripting.evaluate(ctx, obj, "${".concat(func).concat("}"), "setProperty(" + jsonName + ")");
 
 			} catch (Throwable t) {
 
