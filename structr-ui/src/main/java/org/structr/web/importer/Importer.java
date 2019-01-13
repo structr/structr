@@ -1037,6 +1037,8 @@ public class Importer {
 
 					} else {
 
+						// don't do same page check or hierarchy check
+						parent.getTemporaryStorage().put("import", true);
 						parent.appendChild(newNode);
 					}
 				}

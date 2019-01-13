@@ -381,6 +381,8 @@ public class ImporterTest extends StructrUiTest {
 	@Test
 	public void testScriptAttributes() {
 
+		Settings.CypherDebugLogging.setValue(true);
+
 		try (final Tx tx = app.tx()) {
 
 			Settings.JsonIndentation.setValue(true);

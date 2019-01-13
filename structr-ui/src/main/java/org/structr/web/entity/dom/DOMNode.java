@@ -22,7 +22,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -439,7 +438,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	public static Set<DOMNode> getAllChildNodes(final DOMNode node) {
 
-		Set<DOMNode> allChildNodes = new HashSet<>();
+		final Set<DOMNode> allChildNodes = new LinkedHashSet<>();
 
 		getAllChildNodes(node, allChildNodes);
 
@@ -1422,17 +1421,21 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	static void handleNewChild(final DOMNode thisNode, Node newChild) {
 
-		final Page page = (Page)thisNode.getOwnerDocument();
 
-		for (final DOMNode child : DOMNode.getAllChildNodes(thisNode)) {
+		try {
 
-			try {
+			final Page page            = (Page)thisNode.getOwnerDocument();
+			final DOMNode newChildNode = (DOMNode)newChild;
 
-				child.setOwnerDocument(page);
+			newChildNode.setOwnerDocument(page);
 
-			} catch (FrameworkException ex) {
-				logger.warn("", ex);
+			for (final DOMNode child : DOMNode.getAllChildNodes(newChildNode)) {
+
+					child.setOwnerDocument(page);
 			}
+
+		} catch (FrameworkException ex) {
+			logger.warn("", ex);
 		}
 	}
 
