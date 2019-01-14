@@ -104,6 +104,10 @@ public class DeploymentCommentHandler implements CommentHandler {
 			node.setProperty(StructrApp.key(Content.class, "contentType"), parameters);
 		});
 
+		handlers.put("name", (Page page, DOMNode node, final String parameters) -> {
+			node.setProperty(StructrApp.key(DOMNode.class, "name"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
+		});
+
 		handlers.put("show", (Page page, DOMNode node, final String parameters) -> {
 			node.setProperty(StructrApp.key(DOMNode.class, "showConditions"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});

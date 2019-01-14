@@ -22,7 +22,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -49,6 +48,7 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.DataSources;
+import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
@@ -58,6 +58,7 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.EndNode;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -68,8 +69,6 @@ import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.AsyncBuffer;
-import org.structr.core.datasources.GraphDataSource;
-import org.structr.core.property.EndNode;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
@@ -439,7 +438,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	public static Set<DOMNode> getAllChildNodes(final DOMNode node) {
 
-		Set<DOMNode> allChildNodes = new HashSet<>();
+		final Set<DOMNode> allChildNodes = new LinkedHashSet<>();
 
 		getAllChildNodes(node, allChildNodes);
 
@@ -1130,6 +1129,12 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			instructions.add("@structr:content(" + escapeForHtmlAttributes(_contentType) + ")");
 		}
 
+		final String _name = thisNode.getProperty(AbstractNode.name);
+		if (StringUtils.isNotEmpty(_name)) {
+
+			instructions.add("@structr:name(" + escapeForHtmlAttributes(_name) + ")");
+		}
+
 		final String _showConditions = thisNode.getShowConditions();
 		if (StringUtils.isNotEmpty(_showConditions)) {
 
@@ -1422,17 +1427,21 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	static void handleNewChild(final DOMNode thisNode, Node newChild) {
 
-		final Page page = (Page)thisNode.getOwnerDocument();
 
-		for (final DOMNode child : DOMNode.getAllChildNodes(thisNode)) {
+		try {
 
-			try {
+			final Page page            = (Page)thisNode.getOwnerDocument();
+			final DOMNode newChildNode = (DOMNode)newChild;
 
-				child.setOwnerDocument(page);
+			newChildNode.setOwnerDocument(page);
 
-			} catch (FrameworkException ex) {
-				logger.warn("", ex);
+			for (final DOMNode child : DOMNode.getAllChildNodes(newChildNode)) {
+
+					child.setOwnerDocument(page);
 			}
+
+		} catch (FrameworkException ex) {
+			logger.warn("", ex);
 		}
 	}
 
