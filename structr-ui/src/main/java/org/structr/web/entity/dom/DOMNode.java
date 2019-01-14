@@ -48,6 +48,7 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.DataSources;
+import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
@@ -57,6 +58,7 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.EndNode;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -67,8 +69,6 @@ import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.AsyncBuffer;
-import org.structr.core.datasources.GraphDataSource;
-import org.structr.core.property.EndNode;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
@@ -1127,6 +1127,12 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		if (_contentType != null) {
 
 			instructions.add("@structr:content(" + escapeForHtmlAttributes(_contentType) + ")");
+		}
+
+		final String _name = thisNode.getProperty(AbstractNode.name);
+		if (StringUtils.isNotEmpty(_name)) {
+
+			instructions.add("@structr:name(" + escapeForHtmlAttributes(_name) + ")");
 		}
 
 		final String _showConditions = thisNode.getShowConditions();
