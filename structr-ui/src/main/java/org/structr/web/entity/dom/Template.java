@@ -134,30 +134,27 @@ public interface Template extends Content {
 			out.append("<structr:template data-structr-id=\"");
 			out.append(thisTemplate.getUuid());
 			out.append("\">\n");
-			
-			// Icons: .edit_icon, .add_icon, .delete_icon
-			out.append("<i title=\"Edit Shape\" class=\"edit_icon button sprite sprite-pencil\" style=\"display: none;\"></i>");
-			out.append("<i title=\"Add Child Shape\" class=\"add_icon button sprite sprite-add\" style=\"display: none;\"></i>");
-			out.append("<i title=\"Remove Shape\" class=\"delete_icon button sprite sprite-page_white_delete\" style=\"display: none;\"></i>");
-			
+
 			// render content
 			Content.renderContent(thisTemplate, renderContext, depth);
 			
-//			// fetch children
-//			final List<RelationshipInterface> rels = thisTemplate.getChildRelationships();
-//			if (rels.isEmpty()) {
-//
-//				// No child relationships, maybe this node is in sync with another node
-//				if (_syncedNode != null) {
-//					rels.addAll(_syncedNode.getChildRelationships());
-//				}
-//			}
-//
-//			for (final RelationshipInterface rel : rels) {
-//
-//				final DOMNode subNode = (DOMNode) rel.getTargetNode();
-//				subNode.render(renderContext, depth + 1);
-//			}
+			out.append("\n</structr:template>\n");
+			
+		} else if (EditMode.SHAPES_MINIATURES.equals(editMode)) {
+			
+			final AsyncBuffer out = renderContext.getBuffer();
+			
+			out.append("<structr:template data-structr-id=\"");
+			out.append(thisTemplate.getUuid());
+			out.append("\">\n");
+
+			// Append preview CSS
+			out.append("<style type=\"text/css\">");
+			out.append(thisTemplate.getProperty("previewCss"));
+			out.append("</style>\n");
+			
+			// render content
+			Content.renderContent(thisTemplate, renderContext, depth);
 			
 			out.append("\n</structr:template>\n");
 			

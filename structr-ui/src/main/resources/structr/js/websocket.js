@@ -411,14 +411,23 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, result, data.rawResultCount);
 
+			} else if (command.startsWith('CLONE') || command === 'REPLACE_TEMPLATE') { console.log(command, data.callback)
+
+				_Logger.log(_LogType.WS[command], result, data);
+
+				StructrModel.callCallback(data.callback, result, data.rawResultCount);
+
 			} else if (command === 'DELETE') {
 
 				StructrModel.del(data.id);
+				
 				StructrModel.callCallback(data.callback, [], 0);
 
 			} else if (command === 'INSERT_BEFORE' || command === 'APPEND_CHILD' || command === 'APPEND_MEMBER') {
 
 				StructrModel.create(result[0], data.data.refId);
+				
+				StructrModel.callCallback(data.callback, result[0]);
 
 			} else if (command.startsWith('APPEND_FILE')) {
 
@@ -431,6 +440,8 @@ function wsConnect() {
 					_Logger.log(_LogType.WS[command], 'Remove object from model', obj);
 					obj.remove();
 				}
+				
+				StructrModel.callCallback(data.callback);
 
 			} else if (command === 'REMOVE_CHILD') {
 
@@ -439,6 +450,8 @@ function wsConnect() {
 					_Logger.log(_LogType.WS[command], 'Remove object from parent', data, obj);
 					obj.remove(data.data.parentId);
 				}
+				
+				StructrModel.callCallback(data.callback);
 
 			} else if (command === 'CREATE' || command === 'ADD' || command === 'IMPORT') {
 

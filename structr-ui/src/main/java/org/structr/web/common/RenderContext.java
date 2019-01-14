@@ -66,7 +66,7 @@ public class RenderContext extends ActionContext {
 
 	public enum EditMode {
 
-		NONE, WIDGET, CONTENT, RAW, DEPLOYMENT, SHAPES;
+		NONE, WIDGET, CONTENT, RAW, DEPLOYMENT, SHAPES, SHAPES_MINIATURES;
 
 	}
 
@@ -236,6 +236,11 @@ public class RenderContext extends ActionContext {
 			case "5":
 
 				edit = EditMode.SHAPES;
+				break;
+
+			case "6":
+
+				edit = EditMode.SHAPES_MINIATURES;
 				break;
 
 			default:

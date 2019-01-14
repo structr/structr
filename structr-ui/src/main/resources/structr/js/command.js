@@ -410,14 +410,14 @@ var Command = {
 	 * The server will remove the node from the
 	 * tree and broadcast a removal notification.
 	 */
-	removeChild: function(id) {
+	removeChild: function(id, callback) {
 		var obj = {
 			command: 'REMOVE',
 			id: id,
 			data: {}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'removeChild()', obj);
-		return sendObj(obj);
+		_Logger.log(_LogType.WS[obj.command], 'removeChild()', obj, callback);
+		return sendObj(obj, callback);
 	},
 	/**
 	 * Send a REMOVE_FROM_COLLECTION command to the server.
@@ -575,7 +575,7 @@ var Command = {
 	 * to the new one.
 	 *
 	 */
-	appendChild: function(id, parentId, key) {
+	appendChild: function(id, parentId, key, callback) {
 		var obj = {
 			command: 'APPEND_CHILD',
 			id: id,
@@ -585,7 +585,7 @@ var Command = {
 			}
 		};
 		_Logger.log(_LogType.WS[obj.command], 'appendChild()', obj, key);
-		return sendObj(obj);
+		return sendObj(obj, callback);
 	},
 	/**
 	 * Send an APPEND_WIDGET command to the server.
@@ -761,7 +761,7 @@ var Command = {
 	 * and append it to a the parent with given parentId.
 	 *
 	 */
-	cloneComponent: function(id, parentId) {
+	cloneComponent: function(id, parentId, callback) {
 		var obj = {
 			command: 'CLONE_COMPONENT',
 			id: id,
@@ -770,7 +770,25 @@ var Command = {
 			}
 		};
 		_Logger.log(_LogType.WS[obj.command], 'cloneComponent()', obj);
-		return sendObj(obj);
+		return sendObj(obj, callback);
+	},
+	/**
+	 * Send a REPLACE_TEMPLATE command to the server.
+	 *
+	 * The server will replace the template node with the given id
+	 * with the template node with given newTemplateId.
+	 *
+	 */
+	replaceTemplate: function(id, newTemplateId, callback) {
+		var obj = {
+			command: 'REPLACE_TEMPLATE',
+			id: id,
+			data: {
+				newTemplateId: newTemplateId
+			}
+		};
+		_Logger.log(_LogType.WS[obj.command], 'replaceTemplate()', obj);
+		return sendObj(obj, callback);
 	},
 	/**
 	 * Send a CREATE_LOCAL_WIDGET command to the server.

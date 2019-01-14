@@ -19,6 +19,7 @@
 package org.structr.websocket.command;
 
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -92,6 +93,8 @@ public class AppendChildCommand extends AbstractCommand {
 				parentDOMNode.appendChild(node);
 			}
 
+			TransactionCommand.registerNodeCallback(node, callback);
+			
 		} else {
 
 			// send exception

@@ -1405,7 +1405,7 @@ button.action:hover {
 }
 
 .dialogHeaderWrapper, .dialogText, .dialogMeta {
-	text-align: left;
+	text-align: initial;
 	font-size: 9.5pt;
 }
 

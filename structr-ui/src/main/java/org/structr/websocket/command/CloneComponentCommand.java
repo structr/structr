@@ -21,6 +21,7 @@ package org.structr.websocket.command;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -87,6 +88,8 @@ public class CloneComponentCommand extends AbstractCommand {
 		try {
 
 			cloneComponent(node, parentNode);
+			
+			TransactionCommand.registerNodeCallback(node, callback);
 
 		} catch (DOMException | FrameworkException ex) {
 
@@ -105,7 +108,7 @@ public class CloneComponentCommand extends AbstractCommand {
 
 	}
 
-	public DOMNode cloneComponent(final DOMNode node, final DOMNode parentNode) throws FrameworkException {
+	public static DOMNode cloneComponent(final DOMNode node, final DOMNode parentNode) throws FrameworkException {
 
 		final DOMNode clonedNode = (DOMNode) node.cloneNode(false);
 
