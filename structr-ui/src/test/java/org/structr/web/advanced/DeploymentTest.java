@@ -1969,6 +1969,33 @@ public class DeploymentTest extends StructrUiTest {
 		compare(calculateHash(), true);
 	}
 
+	@Test
+	public void test42NamedContentElement() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext,   "test42");
+			final Html html = createElement(page, page, "html");
+			final Head head = createElement(page, html, "head");
+			createElement(page, head, "title", "test42");
+
+			final Body body       = createElement(page, html, "body");
+			final Div div1        = createElement(page, body, "div");
+
+			final Content content = createContent(page, div1, "my content text");
+			content.setProperty(AbstractNode.name, "myNamedConentElement");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+	}
+
 	// ----- private methods -----
 	private void compare(final String sourceHash, final boolean deleteTestDirectory) {
 		compare(sourceHash, deleteTestDirectory, true);
