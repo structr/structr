@@ -62,8 +62,8 @@ public class GraphObjectModificationState implements ModificationEvent {
 	public static final int STATE_PROPAGATED_MODIFICATION =  256;
 
 	private final long timestamp                      = System.nanoTime();
-	private final PropertyMap addedRemoteProperties   = new PropertyMap();
-	private final PropertyMap removedRemoteProperties = new PropertyMap();
+	private final Map<String, Object> addedRemoteProperties   = new HashMap<>();
+	private final Map<String, Object> removedRemoteProperties = new HashMap<>();
 	private final PropertyMap modifiedProperties      = new PropertyMap();
 	private final PropertyMap removedProperties       = new PropertyMap();
 	private final PropertyMap newProperties           = new PropertyMap();
@@ -690,7 +690,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 		}
 	}
 
-	private void addToCollection(final PropertyMap properties, final PropertyKey key, final Object value) {
+	private void addToCollection(final Map<String, Object> properties, final PropertyKey key, final Object value) {
 
 		if (key.isCollection()) {
 
@@ -698,15 +698,24 @@ public class GraphObjectModificationState implements ModificationEvent {
 			if (list == null) {
 
 				list = new LinkedList<>();
-				properties.put(key, list);
+				properties.put(key.jsonName(), list);
 			}
 
-			list.add(value);
+			list.add(unwrap(value));
 
 		} else {
 
-			properties.put(key, value);
+			properties.put(key.jsonName(), unwrap(value));
 		}
+	}
+
+	private Object unwrap(final Object src) {
+
+		if (src instanceof GraphObject) {
+			return ((GraphObject)src).getUuid();
+		}
+
+		return src;
 	}
 
 	// ----- interface ModificationEvent -----
@@ -756,11 +765,11 @@ public class GraphObjectModificationState implements ModificationEvent {
 		return removedProperties;
 	}
 
-	public PropertyMap getRemovedRemoteProperties() {
+	public Map<String, Object> getRemovedRemoteProperties() {
 		return removedRemoteProperties;
 	}
 
-	public PropertyMap getAddedRemoteProperties() {
+	public Map<String, Object> getAddedRemoteProperties() {
 		return addedRemoteProperties;
 	}
 

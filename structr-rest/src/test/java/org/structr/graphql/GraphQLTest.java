@@ -2583,7 +2583,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			.as(Map.class);
 	}
 
-	private void assertMapPathValueIs(final Map<String, Object> map, final String mapPath, final Object value) {
+	public static void assertMapPathValueIs(final Map<String, Object> map, final String mapPath, final Object value) {
 
 		final String[] parts = mapPath.split("[\\.]+");
 		Object current       = map;

@@ -18,6 +18,7 @@
  */
 package org.structr.core.script;
 
+import com.google.gson.GsonBuilder;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -25,6 +26,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -2751,15 +2753,19 @@ public class ScriptingTest extends StructrTest {
 			final JsonObjectType project  = schema.addType("Project");
 			final JsonObjectType task     = schema.addType("Task");
 
+			customer.addStringProperty("log");
+			project.addStringProperty("log");
+			task.addStringProperty("log");
+
 			// create relation
 			final JsonReferenceType rel = project.relate(task, "has", Cardinality.OneToMany, "project", "tasks");
 			rel.setName("ProjectTasks");
 
 			customer.relate(project, "project", Cardinality.OneToOne, "customer", "project");
 
-			customer.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.log('Customer'); Structr.log(mods); }", "");
-			project.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.log('Project'); Structr.log(mods); }", "");
-			task.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.log('Task'); Structr.log(mods); }", "");
+			customer.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.this.log = JSON.stringify(mods); }", "");
+			project.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.this.log = JSON.stringify(mods); }", "");
+			task.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.this.log = JSON.stringify(mods); }", "");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -2814,12 +2820,90 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
+		// test modifications
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject c = app.nodeQuery(customer).getFirst();
+			final GraphObject p = app.nodeQuery(project).getFirst();
+			final GraphObject t = app.nodeQuery(task).getFirst();
+
+			final Map<String, Object> customerModifications = getLoggedModifications(c);
+			final Map<String, Object> projectModifications  = getLoggedModifications(p);
+			final Map<String, Object> taskModifications     = getLoggedModifications(t);
+
+			assertMapPathValueIs(customerModifications, "before.project",  null);
+			assertMapPathValueIs(customerModifications, "before.grantees", null);
+			assertMapPathValueIs(customerModifications, "after.project",   null);
+			assertMapPathValueIs(customerModifications, "after.grantees",  new LinkedList<>());
+			assertMapPathValueIs(customerModifications, "added.project",   p.getUuid());
+			assertMapPathValueIs(customerModifications, "removed",         new LinkedHashMap<>());
+
+			assertMapPathValueIs(projectModifications, "before.name",     "Testproject");
+			assertMapPathValueIs(projectModifications, "before.tasks",    null);
+			assertMapPathValueIs(projectModifications, "before.customer", null);
+			assertMapPathValueIs(projectModifications, "before.grantees", null);
+			assertMapPathValueIs(projectModifications, "after.name",     "newName");
+			assertMapPathValueIs(projectModifications, "after.tasks",    new LinkedList<>());
+			assertMapPathValueIs(projectModifications, "after.customer", null);
+			assertMapPathValueIs(projectModifications, "after.grantees", new LinkedList<>());
+			assertMapPathValueIs(projectModifications, "added.customer", c.getUuid());
+			assertMapPathValueIs(projectModifications, "removed",        new LinkedHashMap<>());
+
+			assertMapPathValueIs(taskModifications, "before.project",  null);
+			assertMapPathValueIs(taskModifications, "after.project",   null);
+			assertMapPathValueIs(taskModifications, "added.project",   p.getUuid());
+			assertMapPathValueIs(taskModifications, "removed",         new LinkedHashMap<>());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
 		try (final Tx tx = app.tx()) {
 
 			final GraphObject p = app.nodeQuery(project).getFirst();
 
 			p.setProperty(customerKey, null);
 			p.setProperty(tasksKey, Arrays.asList(app.nodeQuery(task).getFirst()));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test modifications
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject c = app.nodeQuery(customer).getFirst();
+			final GraphObject p = app.nodeQuery(project).getFirst();
+			final GraphObject t = app.nodeQuery(task).getFirst();
+
+			final Map<String, Object> customerModifications = getLoggedModifications(c);
+			final Map<String, Object> projectModifications  = getLoggedModifications(p);
+			final Map<String, Object> taskModifications     = getLoggedModifications(t);
+
+			assertMapPathValueIs(customerModifications, "before.project",  null);
+			assertMapPathValueIs(customerModifications, "after.project",   null);
+			assertMapPathValueIs(customerModifications, "added",           new LinkedHashMap<>());
+			assertMapPathValueIs(customerModifications, "removed.project", p.getUuid());
+
+			assertMapPathValueIs(projectModifications, "before.tasks",     null);
+			assertMapPathValueIs(projectModifications, "before.customer",  null);
+			assertMapPathValueIs(projectModifications, "after.tasks",      new LinkedList<>());
+			assertMapPathValueIs(projectModifications, "after.customer",   null);
+			assertMapPathValueIs(projectModifications, "removed.customer", c.getUuid());
+			assertMapPathValueIs(projectModifications, "added",            new LinkedHashMap<>());
+
+			assertMapPathValueIs(taskModifications, "before.project",  null);
+			assertMapPathValueIs(taskModifications, "after.project",   null);
+			assertMapPathValueIs(taskModifications, "added.project",   p.getUuid());
+			assertMapPathValueIs(taskModifications, "removed",         new LinkedHashMap<>());
 
 			tx.success();
 
@@ -2955,44 +3039,66 @@ public class ScriptingTest extends StructrTest {
 		test1.addMethod("onModification", saveSource, comment);
 
 	}
+
+	private Map<String, Object> getLoggedModifications(final GraphObject obj) {
+
+		final String log = (String)obj.getProperty("log");
+
+		return new GsonBuilder().create().fromJson(log, Map.class);
+	}
+
+	private void assertMapPathValueIs(final Map<String, Object> map, final String mapPath, final Object value) {
+
+		final String[] parts = mapPath.split("[\\.]+");
+		Object current       = map;
+
+		for (int i=0; i<parts.length; i++) {
+
+			final String part = parts[i];
+			if (StringUtils.isNumeric(part)) {
+
+				int index = Integer.valueOf(part);
+				if (current instanceof List) {
+
+					final List list = (List)current;
+					if (index >= list.size()) {
+
+						// value for nonexisting fields must be null
+						assertEquals("Invalid map path result for " + mapPath, value, null);
+
+						// nothing more to check here
+						return;
+
+					} else {
+
+						current = list.get(index);
+					}
+				}
+
+			} else if ("#".equals(part) && current instanceof List) {
+
+				assertEquals("Invalid collection size for " + mapPath, value, ((List)current).size());
+
+				// nothing more to check here
+				return;
+
+			} else {
+
+				if (current instanceof Map) {
+
+					current = ((Map)current).get(part);
+				}
+			}
+		}
+
+		// ignore type of value if numerical (GSON defaults to double...)
+		if (value instanceof Number && current instanceof Number) {
+
+			assertEquals("Invalid map path result for " + mapPath, ((Number)value).doubleValue(), ((Number)current).doubleValue(), 0.0);
+
+		} else {
+
+			assertEquals("Invalid map path result for " + mapPath, value, current);
+		}
+	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
