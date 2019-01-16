@@ -1129,10 +1129,14 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			instructions.add("@structr:content(" + escapeForHtmlAttributes(_contentType) + ")");
 		}
 
-		final String _name = thisNode.getProperty(AbstractNode.name);
-		if (StringUtils.isNotEmpty(_name)) {
+		if (thisNode.getType().equals("Content")) {
 
-			instructions.add("@structr:name(" + escapeForHtmlAttributes(_name) + ")");
+			final String _name = thisNode.getProperty(AbstractNode.name);
+			if (StringUtils.isNotEmpty(_name)) {
+
+				instructions.add("@structr:name(" + escapeForHtmlAttributes(_name) + ")");
+			}
+
 		}
 
 		final String _showConditions = thisNode.getShowConditions();
