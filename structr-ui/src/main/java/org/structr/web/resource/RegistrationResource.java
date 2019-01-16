@@ -416,7 +416,7 @@ public class RegistrationResource extends Resource {
 				propertySet.remove(credentialKey.jsonName());
 				propertySet.remove("confirmationKey");
 
-				PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, Principal.class, propertySet);
+				PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, StructrApp.getConfiguration().getNodeEntityClass("Principal"), propertySet);
 
 				// Remove any property which is not included in configuration
 				// eMail is mandatory and necessary
