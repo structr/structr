@@ -23,17 +23,16 @@ import com.github.jhonnymertz.wkhtmltopdf.wrapper.Pdf;
 import com.github.jhonnymertz.wkhtmltopdf.wrapper.configurations.WrapperConfig;
 import com.github.jhonnymertz.wkhtmltopdf.wrapper.configurations.XvfbConfig;
 import com.github.jhonnymertz.wkhtmltopdf.wrapper.params.Param;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class PDFFunction extends Function<Object, Object> {
 
@@ -76,7 +75,7 @@ public class PDFFunction extends Function<Object, Object> {
 
 		if (baseUrl == null || baseUrl.length() == 0) {
 
-			baseUrl = ctx.getBaseUrl() + "/";
+			baseUrl = ActionContext.getBaseUrl(ctx.getSecurityContext().getRequest()) + "/";
 		}
 
 		Principal currentUser = ctx.getSecurityContext().getUser(false);

@@ -322,7 +322,7 @@ public class ActionContext {
 						case "baseUrl":
 						case "base_url": {
 
-							return getBaseUrl();
+							return getBaseUrl(securityContext.getRequest());
 						}
 					}
 
@@ -357,7 +357,11 @@ public class ActionContext {
 		return value;
 	}
 
-	public String getBaseUrl () {
+	public static String getBaseUrl () {
+		return getBaseUrl(null);
+	}
+
+	public static String getBaseUrl (final HttpServletRequest request) {
 
 		final String baseUrlOverride = Settings.BaseUrlOverride.getValue();
 
@@ -368,15 +372,8 @@ public class ActionContext {
 		final StringBuilder sb = new StringBuilder("http");
 
 		final Boolean httpsEnabled       = Settings.HttpsEnabled.getValue();
-		final HttpServletRequest request = securityContext.getRequest();
-		String name                      = Settings.ApplicationHost.getValue();
-		int port                         = Settings.HttpPort.getValue();
-
-		if (request != null) {
-
-			port = request.getServerPort();
-			name = request.getServerName();
-		}
+		final String name                = (request != null) ? request.getServerName() : Settings.ApplicationHost.getValue();
+		final int port                   = (request != null) ? request.getServerPort() : Settings.HttpPort.getValue();
 
 		if (httpsEnabled) {
 			sb.append("s");
