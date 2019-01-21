@@ -235,7 +235,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final Map<String, Object> broadcastData = new HashMap();
 			broadcastData.put("start",   startTime);
-			broadcastData.put("source",  source);
+			broadcastData.put("source",  source.toString());
 			publishBeginMessage(DEPLOYMENT_IMPORT_STATUS, broadcastData);
 
 			// apply configuration
@@ -625,7 +625,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final Map<String, Object> broadcastData = new HashMap();
 			broadcastData.put("start",  startTime);
-			broadcastData.put("target", target);
+			broadcastData.put("target", target.toString());
 			publishBeginMessage(DEPLOYMENT_EXPORT_STATUS, broadcastData);
 
 			Files.createDirectories(target);
