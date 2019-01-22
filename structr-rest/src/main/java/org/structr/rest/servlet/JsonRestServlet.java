@@ -493,7 +493,7 @@ public class JsonRestServlet extends AbstractServletBase {
 
 		} catch (UnsupportedOperationException uoe) {
 
-			logger.warn("POST not supported");
+			logger.warn("POST not supported", uoe.getMessage());
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -737,12 +737,12 @@ public class JsonRestServlet extends AbstractServletBase {
 
 		} catch (JsonSyntaxException jsex) {
 
-			logger.warn("POST: Invalid JSON syntax", jsex.getMessage());
+			logger.warn("PATCH: Invalid JSON syntax", jsex.getMessage());
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in POST: " + jsex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in PATCH: " + jsex.getMessage()));
 
 		} catch (JsonParseException jpex) {
 
@@ -751,25 +751,25 @@ public class JsonRestServlet extends AbstractServletBase {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonParseException in POST: " + jpex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonParseException in PATCH: " + jpex.getMessage()));
 
 		} catch (UnsupportedOperationException uoe) {
 
-			logger.warn("POST not supported");
+			logger.warn("PATCH not supported", uoe.getMessage());
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "POST not supported: " + uoe.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "PATCH not supported: " + uoe.getMessage()));
 
 		} catch (Throwable t) {
 
-			logger.warn("Exception in POST", t);
+			logger.warn("Exception in PATCH", t);
 
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in POST: " + t.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in PATCH: " + t.getMessage()));
 
 		} finally {
 
