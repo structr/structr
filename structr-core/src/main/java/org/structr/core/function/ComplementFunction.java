@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.error.FrameworkException;
@@ -43,32 +44,37 @@ public class ComplementFunction extends Function<Object, Object> {
 		// it should be a list so we can use it in a repeater!
 		final LinkedList resultingList = new LinkedList();
 
-		if (sources[0] instanceof List) {
+		if (sources[0] instanceof Iterable) {
 
-			resultingList.addAll((List)sources[0]);
+			for (Object o : ((Iterable) sources[0])) {
 
-			for (int cnt = 1; cnt < sources.length; cnt++) {
-
-				final Object source = sources[cnt];
-
-				if (source instanceof List) {
-
-					resultingList.removeAll((List)source);
-
-				} else if (source != null) {
-
-					final List mockList = new ArrayList();
-					mockList.add(source);
-					resultingList.removeAll(mockList);
-
-				}
-
+				resultingList.add(o);
 			}
 
 		} else {
 
 			logger.warn("Argument 1 for must be a Collection. Parameters: {}", new Object[] { getName(), getParametersAsString(sources) });
 			return "Argument 1 for complement must be a Collection";
+
+		}
+
+		for (int cnt = 1; cnt < sources.length; cnt++) {
+
+			final Object source = sources[cnt];
+
+			if (source instanceof Iterable) {
+
+				for (Object o : ((Iterable) source)) {
+					resultingList.remove(o);
+				}
+
+			} else if (source != null) {
+
+				final List mockList = new ArrayList();
+				mockList.add(source);
+				resultingList.removeAll(mockList);
+
+			}
 
 		}
 
