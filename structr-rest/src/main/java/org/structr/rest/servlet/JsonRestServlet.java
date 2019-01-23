@@ -493,12 +493,13 @@ public class JsonRestServlet extends AbstractServletBase {
 
 		} catch (UnsupportedOperationException uoe) {
 
-			logger.warn("POST not supported", uoe.getMessage());
+			logger.warn("Unsupported operation in POST", uoe.getMessage());
+			uoe.printStackTrace();
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "POST not supported: " + uoe.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "Unsupported operation in POST: " + uoe.getMessage()));
 
 		} catch (Throwable t) {
 
@@ -755,12 +756,13 @@ public class JsonRestServlet extends AbstractServletBase {
 
 		} catch (UnsupportedOperationException uoe) {
 
-			logger.warn("PATCH not supported", uoe.getMessage());
+			logger.warn("Unsupported operation in PATCH", uoe.getMessage());
+			uoe.printStackTrace();
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "PATCH not supported: " + uoe.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "Unsupported operation in PATCH: " + uoe.getMessage()));
 
 		} catch (Throwable t) {
 
