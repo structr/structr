@@ -193,8 +193,11 @@ var _Pages = {
 			css: {
 				right: "2px",
 				top: "2px",
-				position: "absolute"
-			}
+			},
+			helpElementCss: {
+				width: "200px",
+			},
+			offsetX: -50
 		});
 
 		$('#widgetsTab').on('click', function() {
@@ -1101,7 +1104,7 @@ var _Pages = {
 								Command.create({
 									type: 'Localization',
 									name: res.key,
-									domain: res.domain,
+									domain: res.domain || null,
 									locale: res.locale,
 									localizedName: value
 								},
@@ -1140,9 +1143,21 @@ var _Pages = {
 		var displayName = getElementDisplayName(entity);
 		var iconClass = _Icons.getFullSpriteClass(_Elements.getElementIcon(entity));
 
-		div.append('<i class="typeIcon ' + iconClass + '" />'
-			+ (!_Entities.isContentElement(entity) ? ('<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b>') : ('<div class="content_">' + escapeTags(entity.content) + '</div>'))
-			+ _Elements.classIdString(entity._html_id, entity._html_class));
+		var detailHtml = '';
+
+		if (entity.type === 'Content') {
+			detailHtml = '<div class="content_">' + escapeTags(entity.content) + '</div>';
+		} else if (entity.type === 'Template') {
+			if (entity.name) {
+				detailHtml = '<div class="content_">' + displayName + '</div>';
+			} else {
+				detailHtml = '<div class="content_">' + escapeTags(entity.content) + '</div>';
+			}
+		} else {
+			detailHtml = '<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b>';
+		}
+
+		div.append('<i class="typeIcon ' + iconClass + '" />' + detailHtml + _Elements.classIdString(entity._html_id, entity._html_class));
 
 		if (_Entities.isContentElement(entity)) {
 
