@@ -1251,7 +1251,8 @@ var Structr = {
 		$('.structr-version').html('');
 	},
 	getId: function(element) {
-		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'id_') || undefined;
+		var id = Structr.getIdFromPrefixIdString($(element).prop('id'), 'id_') || $(element).data('nodeId');
+		return id || undefined;
 	},
 	getIdFromPrefixIdString: function(idString, prefix) {
 		if (!idString || !idString.startsWith(prefix)) {

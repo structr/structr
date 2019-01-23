@@ -1069,6 +1069,8 @@ var _Pages = {
 
 			Command.listLocalizations(id, locale, function(result) {
 
+				$('#localizations .page').prop('id', 'id_' + id);
+
 				var localizationsContainer = $('#localizations div.inner div.results');
 				localizationsContainer.empty().attr('id', 'id_' + id);
 
@@ -1140,6 +1142,10 @@ var _Pages = {
 		}
 
 		var div = $('<div id="' + idString + '" class="node localization-element ' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
+
+		// add node id to enable hover effect
+		div.data('nodeId', (_Entities.isContentElement(entity) ? entity.parent.id : entity.id ));
+
 		var displayName = getElementDisplayName(entity);
 		var iconClass = _Icons.getFullSpriteClass(_Elements.getElementIcon(entity));
 
@@ -1171,7 +1177,7 @@ var _Pages = {
 
 		container.append(div);
 
-		_Entities.setMouseOver(div);
+		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds&&entity.syncedNodesIds.length)?entity.syncedNodesIds:[entity.sharedComponentId]));
 
 		return div;
 	},
