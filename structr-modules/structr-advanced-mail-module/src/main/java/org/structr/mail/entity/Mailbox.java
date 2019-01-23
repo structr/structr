@@ -33,7 +33,7 @@ public interface Mailbox extends NodeInterface {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Mailbox");
-		final JsonObjectType mail = schema.addType("Mail");
+		final JsonObjectType mail = schema.addType("EMailMessage");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Mailbox"));
 
@@ -53,11 +53,11 @@ public interface Mailbox extends NodeInterface {
 				.setReturnType("String[]")
 				.setSource("return getProperty(foldersProperty);");
 
-		type.relate(mail, "CONTAINS_MAILS", Relation.Cardinality.OneToMany, "mailbox", "mails");
+		type.relate(mail, "CONTAINS_EMAILMESSAGES", Relation.Cardinality.OneToMany, "mailbox", "emails");
 
 		// view configuration
-		type.addViewProperty(PropertyView.Public, "host,user,password,mailProtocol,mails,folders");
-		type.addViewProperty(PropertyView.Ui, "host,user,password,mailProtocol,mails,folders");
+		type.addViewProperty(PropertyView.Public, "host,user,password,mailProtocol,emails,folders");
+		type.addViewProperty(PropertyView.Ui, "host,user,password,mailProtocol,emails,folders");
 	}}
 
 	String getHost();

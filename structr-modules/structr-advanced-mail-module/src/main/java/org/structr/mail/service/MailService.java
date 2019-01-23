@@ -18,13 +18,10 @@
  */
 package org.structr.mail.service;
 
-import com.caucho.quercus.lib.curl.MultipartBody;
 import com.google.gson.Gson;
 import com.sun.mail.util.BASE64DecoderStream;
 import io.netty.util.internal.ConcurrentSet;
-import io.netty.util.internal.StringUtil;
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.*;
@@ -38,7 +35,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.mail.entity.Mail;
+import org.structr.mail.entity.EMailMessage;
 import org.structr.mail.entity.Mailbox;
 import org.structr.schema.SchemaService;
 import org.structr.web.common.FileHelper;
@@ -46,10 +43,7 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 
 import javax.mail.*;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMultipart;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -62,10 +56,10 @@ public class MailService extends Thread implements RunnableService {
 	private Set<Class> supportedCommands                    = null;
 	private Set<Mailbox> processingMailboxes                = null;
 
-	public static final SettingsGroup mailGroup             = new SettingsGroup("mail","Advanced Mail Configuration");
-	public static final Setting<Integer> maxEmails          = new IntegerSetting(mailGroup,"Mail", "mail.maxEmails",25);
-	public static final Setting<Integer> updateInterval     = new IntegerSetting(mailGroup,"Mail", "mail.updateInterval",30000);
-	public static final Setting<String> attachmentBasePath  = new StringSetting(mailGroup,"Mail", "mail.attachmentBasePath","/mail/attachments");
+	public static final SettingsGroup mailGroup             = new SettingsGroup("mail","Advanced EMailMessage Configuration");
+	public static final Setting<Integer> maxEmails          = new IntegerSetting(mailGroup,"EMailMessage", "mail.maxEmails",25);
+	public static final Setting<Integer> updateInterval     = new IntegerSetting(mailGroup,"EMailMessage", "mail.updateInterval",30000);
+	public static final Setting<String> attachmentBasePath  = new StringSetting(mailGroup,"EMailMessage", "mail.attachmentBasePath","/mail/attachments");
 
 	public MailService() {
 		super("MailService");
@@ -380,31 +374,31 @@ public class MailService extends Thread implements RunnableService {
 
 						try (Tx tx = app.tx()) {
 
-							Mail existingMail = app.nodeQuery(Mail.class).and(StructrApp.key(Mail.class, "subject"), message.getSubject()).and(StructrApp.key(Mail.class, "from"), from).and(StructrApp.key(Mail.class, "to"), to).and(StructrApp.key(Mail.class, "receivedDate"), message.getReceivedDate()).and(StructrApp.key(Mail.class, "sentDate"), message.getSentDate()).getFirst();
+							EMailMessage existingEMailMessage = app.nodeQuery(EMailMessage.class).and(StructrApp.key(EMailMessage.class, "subject"), message.getSubject()).and(StructrApp.key(EMailMessage.class, "from"), from).and(StructrApp.key(EMailMessage.class, "to"), to).and(StructrApp.key(EMailMessage.class, "receivedDate"), message.getReceivedDate()).and(StructrApp.key(EMailMessage.class, "sentDate"), message.getSentDate()).getFirst();
 
-							if (existingMail == null) {
+							if (existingEMailMessage == null) {
 
-								pm.put(StructrApp.key(Mail.class, "subject"), message.getSubject());
-								pm.put(StructrApp.key(Mail.class, "from"), from);
-								pm.put(StructrApp.key(Mail.class, "to"), to);
-								pm.put(StructrApp.key(Mail.class, "folder"), message.getFolder().getFullName());
-								pm.put(StructrApp.key(Mail.class, "receivedDate"), message.getReceivedDate());
-								pm.put(StructrApp.key(Mail.class, "sentDate"), message.getSentDate());
-								pm.put(StructrApp.key(Mail.class, "mailbox"), mailbox);
+								pm.put(StructrApp.key(EMailMessage.class, "subject"), message.getSubject());
+								pm.put(StructrApp.key(EMailMessage.class, "from"), from);
+								pm.put(StructrApp.key(EMailMessage.class, "to"), to);
+								pm.put(StructrApp.key(EMailMessage.class, "folder"), message.getFolder().getFullName());
+								pm.put(StructrApp.key(EMailMessage.class, "receivedDate"), message.getReceivedDate());
+								pm.put(StructrApp.key(EMailMessage.class, "sentDate"), message.getSentDate());
+								pm.put(StructrApp.key(EMailMessage.class, "mailbox"), mailbox);
 
 								Enumeration en = message.getAllHeaders();
 								Map<String, String> headers = new HashMap<>();
 								while (en.hasMoreElements()) {
 									Header header = (Header) en.nextElement();
 									if (header.getName().equals("Message-ID") || header.getName().equals("Message-Id")) {
-										pm.put(StructrApp.key(Mail.class, "messageId"), header.getValue());
+										pm.put(StructrApp.key(EMailMessage.class, "messageId"), header.getValue());
 									} else if (header.getName().equals("In-Reply-To") || header.getName().equals("References")) {
-										pm.put(StructrApp.key(Mail.class, "inReplyTo"), header.getValue());
+										pm.put(StructrApp.key(EMailMessage.class, "inReplyTo"), header.getValue());
 									}
 									headers.put(header.getName(), header.getValue());
 								}
 
-								pm.put(StructrApp.key(Mail.class, "header"), gson.toJson(headers));
+								pm.put(StructrApp.key(EMailMessage.class, "header"), gson.toJson(headers));
 
 								// Handle content extraction
 								String content = null;
@@ -420,10 +414,10 @@ public class MailService extends Thread implements RunnableService {
 									content = contentObj.toString();
 								}
 
-								pm.put(StructrApp.key(Mail.class, "content"), content);
-								pm.put(StructrApp.key(Mail.class, "attachedFiles"), attachments);
+								pm.put(StructrApp.key(EMailMessage.class, "content"), content);
+								pm.put(StructrApp.key(EMailMessage.class, "attachedFiles"), attachments);
 
-								app.create(Mail.class, pm);
+								app.create(EMailMessage.class, pm);
 
 							}
 

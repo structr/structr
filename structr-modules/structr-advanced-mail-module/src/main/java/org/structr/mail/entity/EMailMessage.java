@@ -28,15 +28,15 @@ import org.structr.schema.json.JsonSchema;
 import java.net.URI;
 import java.util.Date;
 
-public interface Mail extends NodeInterface {
+public interface EMailMessage extends NodeInterface {
 
 	class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Mail");
+		final JsonObjectType type = schema.addType("EMailMessage");
 		final JsonObjectType file = schema.addType("File");
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Mail"));
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/EMailMessage"));
 
 		type.addStringProperty("subject",          PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("from",             PropertyView.Public, PropertyView.Ui).setIndexed(true);
