@@ -24,7 +24,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
-import scala.sys.Prop;
 
 import java.net.URI;
 
