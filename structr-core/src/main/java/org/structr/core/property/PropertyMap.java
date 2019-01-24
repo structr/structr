@@ -331,38 +331,39 @@ public class PropertyMap {
 
 	public static PropertyMap inputTypeToJavaType(final SecurityContext securityContext, Class<? extends GraphObject> entity, final Map<String, Object> source) throws FrameworkException {
 
-		final String batchType = securityContext.getAttribute("batchType", "__");
-		if (batchType.equals(source.get("type"))) {
+		final PropertyMap resultMap = new PropertyMap();
 
-			// only to batching if a type is set for which batch is enable
-			final Integer count   = securityContext.getAttribute("objectCount", 0);
-			final Integer overall = securityContext.getAttribute("overallCount", 0);
+		// caution, source can be null when an empty nested property group is encountered!
+		if (source != null) {
+		
+			final String batchType = securityContext.getAttribute("batchType", "__");
+			if (batchType.equals(source.get("type"))) {
 
-			securityContext.setAttribute("objectCount",  count   + 1);
-			securityContext.setAttribute("overallCount", overall + 1);
+				// only to batching if a type is set for which batch is enable
+				final Integer count   = securityContext.getAttribute("objectCount", 0);
+				final Integer overall = securityContext.getAttribute("overallCount", 0);
 
-			if (count == 100) {
+				securityContext.setAttribute("objectCount",  count   + 1);
+				securityContext.setAttribute("overallCount", overall + 1);
 
-				final Tx tx = (Tx)securityContext.getAttribute("currentTransaction");
-				if (tx != null) {
+				if (count == 100) {
 
-					logger.info("Committing batch transaction after {} objects of type {}.", overall, batchType);
+					final Tx tx = (Tx)securityContext.getAttribute("currentTransaction");
+					if (tx != null) {
 
-					// try to commit this batch
-					tx.success();
-					tx.close();
+						logger.info("Committing batch transaction after {} objects of type {}.", overall, batchType);
 
-					// open new transaction and store it in context
-					securityContext.setAttribute("currentTransaction", StructrApp.getInstance(securityContext).tx());
-					securityContext.setAttribute("objectCount",        0);
+						// try to commit this batch
+						tx.success();
+						tx.close();
+
+						// open new transaction and store it in context
+						securityContext.setAttribute("currentTransaction", StructrApp.getInstance(securityContext).tx());
+						securityContext.setAttribute("objectCount",        0);
+					}
 				}
 			}
-		}
 
-		PropertyMap resultMap = new PropertyMap();
-		if (source != null) {
-
-			// caution, source can be null when an empty nested property group is encountered!
 			for (final Entry<String, Object> entry : source.entrySet()) {
 
 				String key   = entry.getKey();
@@ -370,7 +371,11 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					final PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity, key);
+					PropertyKey propertyKey = StructrApp.key(entity, key);
+					if (propertyKey == null) {
+						propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity, key);
+					}
+					
 					if (propertyKey != null) {
 
 						final PropertyConverter converter = propertyKey.inputConverter(securityContext);
@@ -408,7 +413,7 @@ public class PropertyMap {
 
 		Map<String, Object> databaseTypedProperties = new LinkedHashMap<>();
 
-		for(Entry<PropertyKey, Object> entry : properties.entrySet()) {
+		for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
 
 			PropertyKey propertyKey     = entry.getKey();
 			PropertyConverter converter = propertyKey.databaseConverter(securityContext);
@@ -437,7 +442,7 @@ public class PropertyMap {
 
 		Map<String, Object> inputTypedProperties = new LinkedHashMap<>();
 
-		for(Entry<PropertyKey, Object> entry : properties.entrySet()) {
+		for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
 
 			PropertyKey propertyKey     = entry.getKey();
 			PropertyConverter converter = propertyKey.inputConverter(securityContext);

@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -262,8 +263,24 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 					try (final FileInputStream fis = new FileInputStream(path.toFile())) {
 
+						final PropertyMap props = new PropertyMap();
+
+						props.put(StructrApp.key(AbstractFile.class, "name"), fileName);
+						
+						if (parent != null) {
+							
+							props.put(StructrApp.key(File.class, "hasParent"), true);
+							props.put(StructrApp.key(File.class, "parent"), parent);
+						}
+						
+						newFileUuid = fileProperties.get(GraphObject.id);
+						
+						if (newFileUuid != null) {
+							props.put(StructrApp.key(GraphObject.class, "id"), newFileUuid);
+						}
+						
 						// create file in folder structure
-						file                     = FileHelper.createFile(securityContext, fis, null, File.class, fileName, parent);
+						file                     = FileHelper.createFile(securityContext, fis, File.class, props);
 						final String contentType = file.getContentType();
 
 						// modify file type according to content
