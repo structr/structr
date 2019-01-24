@@ -189,6 +189,11 @@ public class FunctionProperty<T> extends Property<T> {
 
 				result = (T)Scripting.evaluate(ctx, obj, "${".concat(func).concat("}"), "setProperty(" + jsonName + ")");
 
+			} catch (FrameworkException fex) {
+
+				// catch and re-throw FrameworkExceptions
+				throw fex;
+
 			} catch (Throwable t) {
 
 				logger.warn("Exception while evaluating write function in Function property \"{}\": {}", jsonName(), t.getMessage());
