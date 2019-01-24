@@ -152,9 +152,10 @@ public class FileHelper {
 	public static <T extends File> T createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final Class<T> fileType, final String name, final Folder parentFolder)
 		throws FrameworkException, IOException {
 
-		PropertyMap props = new PropertyMap();
+		final PropertyMap props = new PropertyMap();
 
-		props.put(AbstractNode.name, name);
+		props.put(StructrApp.key(AbstractFile.class, "name"), name);
+		props.put(StructrApp.key(File.class, "contentType"), contentType);
 
 		if (parentFolder != null) {
 
@@ -163,17 +164,34 @@ public class FileHelper {
 
 		}
 
+		return createFile(securityContext, fileStream, fileType, props);
+	}
+	
+	/**
+	 * Create a new file node from the given input stream and sets the parentFolder
+	 *
+	 * @param <T>
+	 * @param securityContext
+	 * @param fileStream
+	 * @param fileType defaults to File.class if null
+	 * @param props
+	 * @return file
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static <T extends File> T createFile(final SecurityContext securityContext, final InputStream fileStream, final Class<T> fileType, final PropertyMap props)
+		throws FrameworkException, IOException {
+
 		T newFile = (T) StructrApp.getInstance(securityContext).create(fileType, props);
 
-		setFileData(newFile, fileStream, contentType);
+		setFileData(newFile, fileStream, props.get(StructrApp.key(File.class, "contentType")));
 
 		// schedule indexing
 		newFile.notifyUploadCompletion();
 
 		return newFile;
-
 	}
-
+	
 	/**
 	 * Create a new file node from the given byte array
 	 *
@@ -191,7 +209,7 @@ public class FileHelper {
 	public static <T extends File> T createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<T> t, final String name, final boolean updateMetadata)
 		throws FrameworkException, IOException {
 
-		PropertyMap props = new PropertyMap();
+		final PropertyMap props = new PropertyMap();
 
 		props.put(AbstractNode.name, name);
 
