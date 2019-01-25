@@ -29,6 +29,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.UnknownClientException;
+import org.structr.api.UnknownDatabaseException;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.PropertyView;
@@ -163,6 +165,10 @@ public interface GraphObject {
 
 	/**
 	 * Sets the given properties.
+	 *
+	 * @param securityContext
+	 * @param properties
+	 * @param isCreation
 	 */
 	default void setPropertiesInternal(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 
@@ -234,8 +240,16 @@ public interface GraphObject {
 
 		if (atLeastOnePropertyChanged) {
 
-			// set primitive values directly for better performance
-			getPropertyContainer().setProperties(container.getData());
+			try {
+
+				// set primitive values directly for better performance
+				getPropertyContainer().setProperties(container.getData());
+
+			} catch (UnknownClientException | UnknownDatabaseException e) {
+
+				logger.warn("Unable to set properties of {} with UUID {}: {}", getType(), getUuid(), e.getMessage());
+				logger.warn("Properties: {}", container.getData());
+			}
 		}
 	}
 
@@ -303,8 +317,16 @@ public interface GraphObject {
 			}
 		}
 
-		// use "internal" setProperty for "indexing"
-		getPropertyContainer().setProperties(values);
+		try {
+
+			// use "internal" setProperty for "indexing"
+			getPropertyContainer().setProperties(values);
+
+		} catch (UnknownClientException | UnknownDatabaseException e) {
+
+			logger.warn("Unable to index passive properties of {} with UUID {}: {}", getType(), getUuid(), e.getMessage());
+			logger.warn("Properties: {}", values);
+		}
 	}
 
 	default void filterIndexableForCreation(final SecurityContext securityContext, final PropertyMap src, final CreationContainer indexable, final PropertyMap filtered) throws FrameworkException {

@@ -44,6 +44,8 @@ import org.structr.api.DataFormatException;
 import org.structr.api.NetworkException;
 import org.structr.api.NotFoundException;
 import org.structr.api.RetryException;
+import org.structr.api.UnknownClientException;
+import org.structr.api.UnknownDatabaseException;
 import org.structr.api.util.Iterables;
 import org.structr.bolt.mapper.RecordNodeMapper;
 import org.structr.bolt.mapper.RecordNodeIdMapper;
@@ -503,6 +505,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		this.isPing = isPing;
 	}
 
+	@Override
 	public long getTransactionId() {
 		return this.transactionId;
 	}
@@ -518,8 +521,8 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			// add handlers / translated exceptions for ClientExceptions here..
 		}
 
-		// re-throw existing exception if no other cause could be found
-		throw cex;
+		// wrap exception if no other cause could be found
+		throw new UnknownClientException(cex, cex.code(), cex.getMessage());
 	}
 
 	public static RuntimeException translateDatabaseException(final DatabaseException dex) {
@@ -532,8 +535,8 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			// add handlers / translated exceptions for DatabaseExceptions here..
 		}
 
-		// re-throw existing exception if no other cause could be found
-		throw dex;
+		// wrap exception if no other cause could be found
+		throw new UnknownDatabaseException(dex, dex.code(), dex.getMessage());
 	}
 
 	// ----- nested classes -----
