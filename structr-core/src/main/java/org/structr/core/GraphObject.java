@@ -324,7 +324,7 @@ public interface GraphObject {
 
 		} catch (UnknownClientException | UnknownDatabaseException e) {
 
-			logger.warn("Unable to index passive properties of {} with UUID {}: {}", getType(), getUuid(), e.getMessage());
+			logger.warn("Unable to index properties of {} with UUID {}: {}", getType(), getUuid(), e.getMessage());
 			logger.warn("Properties: {}", values);
 		}
 	}
