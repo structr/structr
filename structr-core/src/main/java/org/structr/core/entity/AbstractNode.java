@@ -998,14 +998,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		for (final Class<Relation> propagatingType : SchemaRelationshipNode.getPropagatingRelationshipTypes()) {
 
-			final Relation template           = getRelationshipForType(propagatingType);
-			final Direction direction         = template.getDirectionForType(entityType);
-
-			// skip relationship type if it is not applicable for the current node type
-			if (Direction.BOTH.equals(direction)) {
-				continue;
-			}
-
 			// iterate over list of relationships
 			final Iterable<Relation> iterable = getRelationshipsAsSuperUser(propagatingType);
 			for (final Relation source : iterable) {
