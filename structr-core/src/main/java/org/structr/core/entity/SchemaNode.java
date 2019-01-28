@@ -355,6 +355,21 @@ public class SchemaNode extends AbstractSchemaNode {
 				removeProperty(extendsClass);
 			}
 
+			// migrate Mail
+			if ("Mail".equals(getName())) {
+
+				setProperty(name, "EMailMessage");
+
+				String[] interfaceStrings = getProperty(implementsInterfaces).split(",");
+				for (int i = 0; i < interfaceStrings.length; i++) {
+					if (interfaceStrings[i].equals("https://structr.org/v1.1/definitions/Mail")) {
+						interfaceStrings[i] = "https://structr.org/v1.1/definitions/EMailMessage";
+					}
+				}
+				setProperty(implementsInterfaces, String.join(",", interfaceStrings));
+
+			}
+
 			// migrate LDAPUser
 			if ("LDAPUser".equals(getName())) {
 
