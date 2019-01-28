@@ -20,6 +20,7 @@ package org.structr.mail.service;
 
 import com.google.gson.Gson;
 import com.sun.mail.util.BASE64DecoderStream;
+import com.sun.mail.util.MailConnectException;
 import io.netty.util.internal.ConcurrentSet;
 import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
@@ -55,6 +56,7 @@ public class MailService extends Thread implements RunnableService {
 	private boolean run                                     = false;
 	private Set<Class> supportedCommands                    = null;
 	private Set<Mailbox> processingMailboxes                = null;
+	private int maxConnectionRetries                        = 5;
 
 	public static final SettingsGroup mailGroup             = new SettingsGroup("mail","Advanced EMailMessage Configuration");
 	public static final Setting<Integer> maxEmails          = new IntegerSetting(mailGroup,"EMailMessage", "mail.maxEmails",25);
@@ -321,19 +323,40 @@ public class MailService extends Thread implements RunnableService {
 
 					Store store = emailSession.getStore(mailProtocol);
 
-					store.connect(host, user, password);
 
-					for (final String folder : folders) {
+					int retries = 0;
+					while (retries < maxConnectionRetries && !store.isConnected()) {
+						try {
 
-						fetchMessagesInFolder(store.getFolder(folder));
+							store.connect(host, user, password);
+
+						} catch (MailConnectException ex) {
+							// silently catch connection exception
+							retries++;
+							Thread.sleep(100);
+							if (retries >= maxConnectionRetries) {
+								throw ex;
+							}
+						}
 					}
 
-					store.close();
+					if (store.isConnected()) {
+
+						for (final String folder : folders) {
+
+							fetchMessagesInFolder(store.getFolder(folder));
+						}
+
+						store.close();
+
+					}
 
 				}
 
 			} catch (AuthenticationFailedException ex) {
 				logger.warn("Authentication failed for Mailbox[" + mailbox.getUuid() + "].");
+			} catch (MailConnectException ex) {
+				logger.error("Could not connect to mailbox [" + mailbox.getUuid() + "]: " + ex.getMessage());
 			} catch (MessagingException ex) {
 				logger.error("Error while updating Mails: ", ex);
 			} catch (Throwable ex) {
