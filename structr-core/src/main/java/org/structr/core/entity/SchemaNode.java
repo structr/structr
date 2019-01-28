@@ -356,19 +356,23 @@ public class SchemaNode extends AbstractSchemaNode {
 			}
 
 			// migrate Mail
-			if ("Mail".equals(getName())) {
+			// change name and implemented class
+			String[] interfaceStrings = getProperty(implementsInterfaces).split(",");
+
+			if ("Mail".equals(getName()) && Arrays.stream(interfaceStrings).anyMatch("org.structr.mail.entity.Mail"::equals)) {
 
 				setProperty(name, "EMailMessage");
 
-				String[] interfaceStrings = getProperty(implementsInterfaces).split(",");
 				for (int i = 0; i < interfaceStrings.length; i++) {
-					if (interfaceStrings[i].equals("https://structr.org/v1.1/definitions/Mail")) {
-						interfaceStrings[i] = "https://structr.org/v1.1/definitions/EMailMessage";
+					if (interfaceStrings[i].equals("org.structr.mail.entity.Mail")) {
+						interfaceStrings[i] = "org.structr.mail.entity.EMailMessage";
 					}
 				}
-				setProperty(implementsInterfaces, String.join(",", interfaceStrings));
 
+				setProperty(implementsInterfaces, String.join(",", interfaceStrings));
 			}
+
+
 
 			// migrate LDAPUser
 			if ("LDAPUser".equals(getName())) {
