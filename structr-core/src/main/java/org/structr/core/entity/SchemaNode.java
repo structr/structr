@@ -357,19 +357,24 @@ public class SchemaNode extends AbstractSchemaNode {
 
 			// migrate Mail
 			// change name and implemented class
-			String[] interfaceStrings = getProperty(implementsInterfaces).split(",");
+			if ("Mail".equals(getName())) {
 
-			if ("Mail".equals(getName()) && Arrays.stream(interfaceStrings).anyMatch("org.structr.mail.entity.Mail"::equals)) {
+				String interfaceStrings = getProperty(implementsInterfaces);
 
-				setProperty(name, "EMailMessage");
+				if (interfaceStrings != null && Arrays.stream(interfaceStrings.split(",")).anyMatch("org.structr.mail.entity.Mail"::equals)) {
 
-				for (int i = 0; i < interfaceStrings.length; i++) {
-					if (interfaceStrings[i].equals("org.structr.mail.entity.Mail")) {
-						interfaceStrings[i] = "org.structr.mail.entity.EMailMessage";
+					String[] splitInterfaces = interfaceStrings.split(",");
+
+					setProperty(name, "EMailMessage");
+
+					for (int i = 0; i < splitInterfaces.length; i++) {
+						if (splitInterfaces[i].equals("org.structr.mail.entity.Mail")) {
+							splitInterfaces[i] = "org.structr.mail.entity.EMailMessage";
+						}
 					}
-				}
 
-				setProperty(implementsInterfaces, String.join(",", interfaceStrings));
+					setProperty(implementsInterfaces, String.join(",", interfaceStrings));
+				}
 			}
 
 
