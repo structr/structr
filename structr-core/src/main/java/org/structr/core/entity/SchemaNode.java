@@ -27,6 +27,8 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLType;
 import static graphql.schema.GraphQLTypeReference.typeRef;
+
+import java.sql.Struct;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -355,30 +357,6 @@ public class SchemaNode extends AbstractSchemaNode {
 				removeProperty(extendsClass);
 			}
 
-			// migrate Mail
-			// change name and implemented class
-			if ("Mail".equals(getName())) {
-
-				String interfaceStrings = getProperty(implementsInterfaces);
-
-				if (interfaceStrings != null && Arrays.stream(interfaceStrings.split(",")).anyMatch("org.structr.mail.entity.Mail"::equals)) {
-
-					String[] splitInterfaces = interfaceStrings.split(",");
-
-					setProperty(name, "EMailMessage");
-
-					for (int i = 0; i < splitInterfaces.length; i++) {
-						if (splitInterfaces[i].equals("org.structr.mail.entity.Mail")) {
-							splitInterfaces[i] = "org.structr.mail.entity.EMailMessage";
-						}
-					}
-
-					setProperty(implementsInterfaces, String.join(",", interfaceStrings));
-				}
-			}
-
-
-
 			// migrate LDAPUser
 			if ("LDAPUser".equals(getName())) {
 
@@ -392,6 +370,45 @@ public class SchemaNode extends AbstractSchemaNode {
 				}
 			}
 		}
+
+		// migrate Mail and Mailbox
+		// change name and implemented class
+		if ("Mail".equals(getName())) {
+
+			String interfaceStrings = getProperty(implementsInterfaces);
+
+			if (interfaceStrings != null && Arrays.stream(interfaceStrings.split(",")).anyMatch("org.structr.mail.entity.Mail"::equals)) {
+
+				String[] splitInterfaces = interfaceStrings.split(",");
+
+				setProperty(name, "EMailMessage");
+
+				for (int i = 0; i < splitInterfaces.length; i++) {
+					if (splitInterfaces[i].equals("org.structr.mail.entity.Mail")) {
+						splitInterfaces[i] = "org.structr.mail.entity.EMailMessage";
+					}
+				}
+
+				setProperty(implementsInterfaces, String.join(",", interfaceStrings));
+			}
+		}
+
+		if("Mailbox".equals(getName())) {
+
+			String interfaceStrings = getProperty(implementsInterfaces);
+
+			if (interfaceStrings != null && Arrays.stream(interfaceStrings.split(",")).anyMatch("org.structr.mail.entity.Mailbox"::equals)) {
+
+				for (final SchemaProperty p : getProperty(SchemaNode.schemaProperties)) {
+
+					if ("mails".equals(p.getName())) {
+
+						StructrApp.getInstance().delete(p);
+					}
+				}
+			}
+		}
+
 	}
 
 	public void initializeGraphQL(final Map<String, SchemaNode> schemaNodes, final Map<String, GraphQLType> graphQLTypes, final Set<String> blacklist) throws FrameworkException {
