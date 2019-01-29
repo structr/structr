@@ -718,12 +718,22 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			return Direction.INCOMING;
 		}
 
+		/* one of these blocks is wrong...*/
+		if (sourceType.isAssignableFrom(type) && targetType.isAssignableFrom(type)) {
+			return Direction.BOTH;
+		}
+
 		if (sourceType.isAssignableFrom(type)) {
 			return Direction.OUTGOING;
 		}
 
 		if (targetType.isAssignableFrom(type)) {
 			return Direction.INCOMING;
+		}
+
+		/* one of these blocks is wrong...*/
+		if (type.isAssignableFrom(sourceType) && type.isAssignableFrom(targetType)) {
+			return Direction.BOTH;
 		}
 
 		if (type.isAssignableFrom(sourceType)) {
