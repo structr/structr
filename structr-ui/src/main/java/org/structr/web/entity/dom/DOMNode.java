@@ -209,6 +209,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		type.overrideMethod("displayForLocale",                    false, "return " + DOMNode.class.getName() + ".displayForLocale(this, arg0);");
 		type.overrideMethod("displayForConditions",                false, "return " + DOMNode.class.getName() + ".displayForConditions(this, arg0);");
+		type.overrideMethod("shouldBeRendered",                    false, "return " + DOMNode.class.getName() + ".shouldBeRendered(this, arg0);");
 
 		// Renderable
 		type.overrideMethod("render",                              false, DOMNode.class.getName() + ".render(this, arg0, arg1);");
@@ -316,6 +317,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	boolean renderDetails();
 	boolean displayForLocale(final RenderContext renderContext);
 	boolean displayForConditions(final RenderContext renderContext);
+	boolean shouldBeRendered(final RenderContext renderContext);
 
 	int getChildPosition(final DOMNode otherNode);
 
@@ -998,12 +1000,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	static boolean displayForLocale(final DOMNode thisNode, final RenderContext renderContext) {
 
-		// In raw or widget mode, render everything
-		EditMode editMode = renderContext.getEditMode(thisNode.getSecurityContext().getUser(false));
-		if (EditMode.DEPLOYMENT.equals(editMode) || EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
-			return true;
-		}
-
 		String localeString = renderContext.getLocale().toString();
 
 		String show = thisNode.getProperty(StructrApp.key(DOMNode.class, "showForLocales"));
@@ -1029,12 +1025,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	}
 
 	static boolean displayForConditions(final DOMNode thisNode, final RenderContext renderContext) {
-
-		// In raw or widget mode, render everything
-		EditMode editMode = renderContext.getEditMode(renderContext.getSecurityContext().getUser(false));
-		if (EditMode.DEPLOYMENT.equals(editMode) || EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
-			return true;
-		}
 
 		String _showConditions = thisNode.getProperty(StructrApp.key(DOMNode.class, "showConditions"));
 		String _hideConditions = thisNode.getProperty(StructrApp.key(DOMNode.class, "hideConditions"));
@@ -1066,6 +1056,21 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	}
 
+	static boolean shouldBeRendered(final DOMNode thisNode, final RenderContext renderContext) {
+
+		// In raw, widget or deployment mode, render everything
+		EditMode editMode = renderContext.getEditMode(renderContext.getSecurityContext().getUser(false));
+		if (EditMode.DEPLOYMENT.equals(editMode) || EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
+			return true;
+		}
+
+		if (thisNode.isHidden() || !thisNode.displayForLocale(renderContext) || !thisNode.displayForConditions(renderContext)) {
+			return false;
+		}
+
+		return true;
+	}
+
 	static boolean renderDeploymentExportComments(final DOMNode thisNode, final AsyncBuffer out, final boolean isContentNode) {
 
 		final Set<String> instructions = new LinkedHashSet<>();
@@ -1073,6 +1078,10 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		thisNode.getVisibilityInstructions(instructions);
 		thisNode.getLinkableInstructions(instructions);
 		thisNode.getSecurityInstructions(instructions);
+
+		if (thisNode.isHidden()) {
+			instructions.add("@structr:hidden");
+		}
 
 		if (isContentNode) {
 
@@ -1452,7 +1461,12 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	static void render(final DOMNode thisNode, final RenderContext renderContext, final int depth) throws FrameworkException {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
-		if (!securityContext.isVisible(thisNode)) {
+		final EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
+
+		// admin-only edit modes ==> visibility check not necessary
+		final boolean isAdminOnlyEditMode = (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode) || EditMode.DEPLOYMENT.equals(editMode));
+
+		if (!isAdminOnlyEditMode && !securityContext.isVisible(thisNode)) {
 			return;
 		}
 
@@ -1467,9 +1481,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			return;
 		}
 
-		final EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
-
-		if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode) || EditMode.DEPLOYMENT.equals(editMode)) {
+		if (isAdminOnlyEditMode) {
 
 			thisNode.renderContent(renderContext, depth);
 

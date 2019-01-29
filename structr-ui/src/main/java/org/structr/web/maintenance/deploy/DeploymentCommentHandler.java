@@ -79,6 +79,12 @@ public class DeploymentCommentHandler implements CommentHandler {
 			node.setProperties(node.getSecurityContext(), changedProperties);
 		});
 
+		handlers.put("hidden", (Page page, DOMNode node, final String parameters) -> {
+			final PropertyMap changedProperties = new PropertyMap();
+			changedProperties.put(AbstractNode.hidden, true);
+			node.setProperties(node.getSecurityContext(), changedProperties);
+		});
+
 		handlers.put("link", (Page page, DOMNode node, final String parameters) -> {
 
 			if (node instanceof LinkSource) {

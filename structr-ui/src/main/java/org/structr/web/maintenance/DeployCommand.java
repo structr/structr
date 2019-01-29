@@ -59,7 +59,6 @@ import org.structr.core.StaticValue;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Localization;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
@@ -67,7 +66,6 @@ import org.structr.core.entity.Relation;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.Security;
-import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeInterface;
@@ -172,7 +170,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	public static StreamingJsonWriter getJsonWriter() {
 		return new StreamingJsonWriter(new StaticValue<String>(PropertyView.All), true, 1, false);
 	}
-	
+
 	public static Gson getGson() {
 		return new GsonBuilder().setPrettyPrinting().create();
 	}
@@ -1196,6 +1194,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		if (node instanceof Page) {
+
 			putIfNotNull(config, "path",                    node.getProperty(StructrApp.key(Page.class, "path")));
 			putIfNotNull(config, "position",                node.getProperty(StructrApp.key(Page.class, "position")));
 			putIfNotNull(config, "category",                node.getProperty(StructrApp.key(Page.class, "category")));
@@ -1207,6 +1206,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putIfNotNull(config, "pageCreatesRawData",      node.getProperty(StructrApp.key(Page.class, "pageCreatesRawData")));
 			putIfNotNull(config, "basicAuthRealm",          node.getProperty(StructrApp.key(Page.class, "basicAuthRealm")));
 			putIfNotNull(config, "enableBasicAuth",         node.getProperty(StructrApp.key(Page.class, "enableBasicAuth")));
+			putIfTrue   (config, "hidden",                  node.getProperty(StructrApp.key(Page.class, "hidden")));
+
 		}
 
 		// export all dynamic properties
@@ -1219,12 +1220,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					final Map<String, Object> relatedObjectProperties = new HashMap<>();
 					final NodeInterface relatedObject = (NodeInterface) node.getProperty(key);
-					
+
 					if (relatedObject != null) {
 						relatedObjectProperties.put("id", relatedObject.getUuid());
 						putIfNotNull(config, key.jsonName(), relatedObjectProperties);
 					}
-					
+
 				} else {
 
 					putIfNotNull(config, key.jsonName(), node.getProperty(key));
@@ -1512,6 +1513,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				target.put(key, value);
 			}
+		}
+	}
+
+	private static void putIfTrue(final Map<String, Object> target, final String key, final Object value) {
+
+		if (Boolean.TRUE.equals(value)) {
+
+			target.put(key, value);
 		}
 	}
 
