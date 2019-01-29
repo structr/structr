@@ -570,7 +570,7 @@ var _Pages = {
 						_Entities.handleActiveElement(activeElement);
 					});
 				} else {
-					activeElementsContainer.append("<br><center>Page does not contain any active elements.</center>");
+					activeElementsContainer.append('<br><center>Page does not contain any active elements.</center>');
 				}
 			});
 
@@ -587,7 +587,7 @@ var _Pages = {
 		}
 		_Pages.unloadIframes();
 		var iframe = $('#preview_' + id);
-		Command.get(id, "id,name", function(obj) {
+		Command.get(id, 'id,name', function(obj) {
 			var url = viewRootUrl + obj.name + (LSWrapper.getItem(detailsObjectId + id) ? '/' + LSWrapper.getItem(detailsObjectId + id) : '') + '?edit=2';
 			iframe.prop('src', url);
 			_Logger.log(_LogType.PAGES, 'iframe', id, 'activated');
@@ -1185,7 +1185,7 @@ var _Pages = {
 		if (!id) {
 			return;
 		}
-		Command.get(id, "id,name", function(sourceSchemaNode) {
+		Command.get(id, 'id,name', function(sourceSchemaNode) {
 
 			var typeKey = sourceSchemaNode.name.toLowerCase();
 			LSWrapper.setItem(_Pages.selectedTypeKey, id);
@@ -1229,7 +1229,7 @@ var _Pages = {
 		lastId = lastId || id;
 		stack = stack || [];
 		stack.push(id);
-		Command.get(id, "id,parent", function(obj) {
+		Command.get(id, 'id,parent', function(obj) {
 			if (obj.parent) {
 				_Pages.expandTreeNode(obj.parent.id, stack, lastId);
 			} else {

@@ -263,7 +263,7 @@ var _Shapes = {
 									related.isCollection = (d.attr('collection') === 'true');
 								}
 
-								Command.get(targetId, "id,type,isContent", function(target) {
+								Command.get(targetId, 'id,type,isContent', function(target) {
 									_Dragndrop.htmlElementFromPaletteDropped(tag, target, page.id, function() {
 										_Shapes.refresh(currentPage);
 									});
@@ -277,7 +277,7 @@ var _Shapes = {
 							//console.log(source, target);
 
 							if (!target && source) {
-								Command.get(targetId, "id", function(target) {
+								Command.get(targetId, 'id', function(target) {
 									_Dragndrop.widgetDropped(source, target, page.id, function() {
 										_Shapes.refresh(currentPage);
 									});
@@ -292,8 +292,8 @@ var _Shapes = {
 							} else {
 
 								// try to get objects from server
-								Command.get(sourceId, "id,type,source,description,configuration", function(source) {
-									Command.get(targetId, "id", function(target) {
+								Command.get(sourceId, 'id,type,source,description,configuration', function(source) {
+									Command.get(targetId, 'id', function(target) {
 										_Dragndrop.widgetDropped(source, target, page.id, function() {
 											_Shapes.refresh(currentPage);
 										});

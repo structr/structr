@@ -489,7 +489,7 @@ var _Elements = {
 						if (el && el.children && el.children.length) {
 							var newSpriteClass = _Icons.getSpriteClassOnly(_Icons.brick_icon);
 							el.children('i.typeIcon').each(function (i, el) {
-								_Icons.updateSpritasdeClassTo(el, newSpriteClass);
+								_Icons.updateSpriteClassTo(el, newSpriteClass);
 							});
 						}
 					});
@@ -691,7 +691,7 @@ var _Elements = {
 			subDiv.on('click', function(e) {
 				if (!subDiv.children('.node').length) {
 					e.stopPropagation();
-					Command.get(subFolder.id, "id,name,files,folders", function(node) {
+					Command.get(subFolder.id, 'id,name,files,folders', function(node) {
 						_Elements.expandFolder(e, entity, node, callback);
 					});
 				} else {
@@ -710,7 +710,7 @@ var _Elements = {
 
 		$.each(folder.files, function(i, f) {
 
-			Command.get(f.id, "id,name,contentType,linkingElements", function(file) {
+			Command.get(f.id, 'id,name,contentType,linkingElements', function(file) {
 
 				$('.' + folder.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><i class="fa ' + _Icons.getFileIconClass(file) + '"></i> '
 						+ '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
@@ -1617,8 +1617,8 @@ var _Elements = {
 			Command.patch(entity.id, text1, text2, function() {
 				Structr.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
 				_Pages.reloadPreviews();
-				dialogSaveButton.prop("disabled", true).addClass('disabled');
-				saveAndClose.prop("disabled", true).addClass('disabled');
+				dialogSaveButton.prop('disabled', true).addClass('disabled');
+				saveAndClose.prop('disabled', true).addClass('disabled');
 				Command.getProperty(entity.id, 'content', function(newText) {
 					text = newText;
 				});

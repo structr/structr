@@ -739,7 +739,7 @@ var _Entities = {
 					var id = entity.id;
 
 					var tempNodeCache = new AsyncObjectCache(function(id) {
-						Command.getProperties(id, 'id,name,type,tag,isContent,content', function (node) {
+						Command.get(id, 'id,name,type,tag,isContent,content', function (node) {
 							tempNodeCache.addObject(node, node.id);
 						});
 					});
@@ -1544,7 +1544,7 @@ var _Entities = {
 
 						var principalId = result.principalId;
 						if (principalId) {
-							Command.get(principalId, "id,name,isGroup", function(p) {
+							Command.get(principalId, 'id,name,isGroup', function(p) {
 								_Entities.addPrincipal(entity, p, permissions);
 							});
 						}
@@ -1587,16 +1587,16 @@ var _Entities = {
 				var rec = $('#recursive', el).is(':checked');
 				Command.setPermission(entity.id, pId, 'grant', 'read', rec);
 
-				Command.get(pId, "id,name,isGroup", function(p) {
+				Command.get(pId, 'id,name,isGroup', function(p) {
 					_Entities.addPrincipal(entity, p, {'read': true});
 				});
 			});
 		};
 
 		if (entity.targetId) {
-			Command.getRelationship(id, entity.targetId, "id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) { handleGraphObject(entity); });
+			Command.getRelationship(id, entity.targetId, 'id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', function(entity) { handleGraphObject(entity); });
 		} else {
-			Command.get(id, "id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) { handleGraphObject(entity); });
+			Command.get(id, 'id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', function(entity) { handleGraphObject(entity); });
 		}
 	},
 	showAccessControlDialog: function(entity) {
@@ -1618,14 +1618,14 @@ var _Entities = {
 						_Crud.refreshCell(id, "owner", entity.owner, entity.type, initialObj.ownerId);
 					}
 
-					_Crud.refreshCell(id, "visibleToPublicUsers",        entity.visibleToPublicUsers,        entity.type, initialObj.visibleToPublicUsers);
-					_Crud.refreshCell(id, "visibleToAuthenticatedUsers", entity.visibleToAuthenticatedUsers, entity.type, initialObj.visibleToAuthenticatedUsers);
+					_Crud.refreshCell(id, 'visibleToPublicUsers',        entity.visibleToPublicUsers,        entity.type, initialObj.visibleToPublicUsers);
+					_Crud.refreshCell(id, 'visibleToAuthenticatedUsers', entity.visibleToAuthenticatedUsers, entity.type, initialObj.visibleToAuthenticatedUsers);
 				};
 
 				if (entity.targetId) {
-					Command.getRelationship(id, entity.targetId, "id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", handleGraphObject);
+					Command.getRelationship(id, entity.targetId, 'id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', handleGraphObject);
 				} else {
-					Command.get(id, "id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", handleGraphObject);
+					Command.get(id, 'id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', handleGraphObject);
 				}
 			}
 		});

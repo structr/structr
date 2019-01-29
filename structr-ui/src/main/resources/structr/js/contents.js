@@ -666,7 +666,7 @@ var _Contents = {
 
 									var nodeId = entity[key].id || entity[key];
 
-									Command.get(nodeId, "id,type,tag,isContent,content,name", function(node) {
+									Command.get(nodeId, 'id,type,tag,isContent,content,name', function(node) {
 
 										_Entities.appendRelatedNode(relatedNodes, node, function(nodeEl) {
 
@@ -694,7 +694,7 @@ var _Contents = {
 
 										var nodeId = obj.id || obj;
 
-										Command.get(nodeId, "id,type,tag,isContent,content,name", function(node) {
+										Command.get(nodeId, 'id,type,tag,isContent,content,name', function(node) {
 
 											_Entities.appendRelatedNode(relatedNodes, node, function(nodeEl) {
 												$('.remove', nodeEl).on('click', function(e) {
