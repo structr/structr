@@ -116,9 +116,7 @@ var Command = {
 			}
 		};
 		if (properties !== null) {
-			obj.data = {
-				properties: properties
-			};
+			obj.data.properties = properties
 		}
 		_Logger.log(_LogType.WS[obj.command], 'getRelationship()', obj, callback);
 		return sendObj(obj, callback);
@@ -265,22 +263,6 @@ var Command = {
 			}
 		};
 		_Logger.log(_LogType.WS[obj.command], 'getProperty()', obj, callback);
-		return sendObj(obj, callback);
-	},
-	/**
-	 * Send a GET_PROPERTIES command to the server.
-	 *
-	 * The server will return the properties for the node with the given id.
-	 */
-	getProperties: function(id, properties, callback) {
-		var obj = {
-			command: 'GET_PROPERTIES',
-			id: id,
-			data: {
-				properties: properties
-			}
-		};
-		_Logger.log(_LogType.WS[obj.command], 'getProperties()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
