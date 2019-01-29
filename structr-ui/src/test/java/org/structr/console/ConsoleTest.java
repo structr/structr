@@ -151,8 +151,8 @@ public class ConsoleTest extends StructrUiTest {
 		Settings.CypherDebugLogging.setValue(true);
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
-		final int nodeCount   = 2110;
-		final int relCount    = 1918;
+		final int nodeCount   = 2111;
+		final int relCount    = 1919;
 
 		final String fullIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +

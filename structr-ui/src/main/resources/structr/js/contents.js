@@ -107,48 +107,69 @@ var _Contents = {
 
 		Structr.fetchHtmlTemplate('contents/buttons.new', {}, function(html) {
 
-            $('#contents-contents-container').prepend(html);
+			$('#contents-contents-container').prepend(html);
 
-            $('.add_item_icon', main).on('click', function(e) {
+			$('.add_item_icon', main).on('click', function(e) {
 				var containers = (currentContentContainer ? [ { id : currentContentContainer.id } ] : null);
 				Command.create({ type: $('select#content-item-type').val(), size: 0, containers: containers }, function(f) {
 					_Contents.appendItemOrContainerRow(f);
 					_Contents.refreshTree();
 				});
-            });
+			});
 
 
-            $('.add_container_icon', main).on('click', function(e) {
+			$('.add_container_icon', main).on('click', function(e) {
 				Command.create({ type: $('select#content-container-type').val(), parent: currentContentContainer ? currentContentContainer.id : null }, function(f) {
 					_Contents.appendItemOrContainerRow(f);
 					_Contents.refreshTree();
 				});
-            });
+			});
 
-            $('select#content-item-type').on('change', function() {
-                    $('#add-item-button', main).find('span').text('Add ' + $(this).val());
-            });
+			$('select#content-item-type').on('change', function() {
+				$('#add-item-button', main).find('span').text('Add ' + $(this).val());
+			});
 
-            $('select#content-container-type').on('change', function() {
-                    $('#add-container-button', main).find('span').text('Add ' + $(this).val());
-            });
+			$('select#content-container-type').on('change', function() {
+				$('#add-container-button', main).find('span').text('Add ' + $(this).val());
+			});
 
-            // list types that extend ContentItem
-            _Schema.getDerivedTypes('org.structr.dynamic.ContentItem', [], function(types) {
-                    var elem = $('select#content-item-type');
-                    types.forEach(function(type) {
-                            elem.append('<option value="' + type + '">' + type + '</option>');
-                    });
-            });
+			// list types that extend ContentItem
+			_Schema.getDerivedTypes('org.structr.dynamic.ContentItem', [], function(types) {
+				var elem = $('select#content-item-type');
+				types.forEach(function(type) {
+					elem.append('<option value="' + type + '">' + type + '</option>');
+				});
 
-            // list types that extend ContentContainer
-            _Schema.getDerivedTypes('org.structr.dynamic.ContentContainer', [], function(types) {
-                    var elem = $('select#content-container-type');
-                    types.forEach(function(type) {
-                            elem.append('<option value="' + type + '">' + type + '</option>');
-                    });
-            });
+				if (types.length === 0) {
+					Structr.appendInfoTextToElement({
+						text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentItem</u></b> to add ContentItems",
+						element: elem.parent(),
+						after: true,
+						css: {
+							marginLeft: '-4px',
+							marginRight: '4px'
+						}
+					});
+				}
+			});
 
+			// list types that extend ContentContainer
+			_Schema.getDerivedTypes('org.structr.dynamic.ContentContainer', [], function(types) {
+				var elem = $('select#content-container-type');
+				types.forEach(function(type) {
+					elem.append('<option value="' + type + '">' + type + '</option>');
+				});
+
+				Structr.appendInfoTextToElement({
+					text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentContainer</u></b> to add ContentContainers",
+					element: elem.parent(),
+					after: true,
+					css: {
+						marginLeft: '-4px',
+						marginRight: '4px'
+					}
+				});
+			});
 		});
 
 		$.jstree.defaults.core.themes.dots      = false;
@@ -591,7 +612,7 @@ var _Contents = {
 
 						let isRelated    = 'targetJsonName' in prop;
 						let key = isRelated ? prop.targetJsonName : prop.name;
-						
+
 						let isCollection = false;
 						let isReadOnly   = false;
 						let isSystem     = false;
@@ -648,7 +669,7 @@ var _Contents = {
 							});
 
 						} else if (isRelated) {
-							
+
 							div.append('<div id="relatedNodesList" class="value-container related-nodes"> <i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> </div>');
 							$('#relatedNodesList').children('.add').on('click', function() {
 								Structr.dialog('Add ' + typeInfo[key].type, function() {
@@ -715,7 +736,7 @@ var _Contents = {
 								}
 
 							}
-							
+
 						} else {
 
 							if (prop.contentType && prop.contentType === 'text/html') {
@@ -738,7 +759,7 @@ var _Contents = {
 								div.append('<div class="value-container"></div>');
 								let valueContainer = $('.value-container', div);
 								let valueInput;
-								
+
 								valueContainer.append(formatValueInputField(prop.name, oldVal, false, typeInfo[key].readOnly, typeInfo[key].format === 'multi-line'));
 								valueInput = valueContainer.find('[name=' + prop.name + ']');
 
@@ -805,11 +826,11 @@ var _Contents = {
 						}
 
 					});
-					
+
 					setTimeout(function() {
 						refreshBtn.click();
 					}, 500);
-					
+
 
 				}, true);
 
@@ -836,7 +857,7 @@ var _Contents = {
 
 	},
 	sortBySchemaOrder: function(type, view, properties, callback) {
-		
+
 		let url = rootUrl + '_schema/' + type + '/' + view;
 		$.ajax({
 			url: url,
@@ -890,7 +911,7 @@ var _Contents = {
 			error:function () {
 				console.log("ERROR: loading Schema " + type);
 			}
-		});		
+		});
 	},
 	appendEditFileIcon: function(parent, item) {
 
