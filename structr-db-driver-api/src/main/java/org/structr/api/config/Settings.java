@@ -48,6 +48,7 @@ public class Settings {
 	public static final SettingsGroup smtpGroup               = new SettingsGroup("smtp",        "Mail Configuration");
 	public static final SettingsGroup advancedGroup           = new SettingsGroup("advanced",    "Advanced Settings");
 	public static final SettingsGroup servletsGroup           = new SettingsGroup("servlets",    "Servlets");
+	public static final SettingsGroup deploymentGroup         = new SettingsGroup("deployment",  "Deployment");
 	public static final SettingsGroup cronGroup               = new SettingsGroup("cron",        "Cron Jobs");
 	public static final SettingsGroup securityGroup           = new SettingsGroup("security",    "Security Settings");
 	public static final SettingsGroup oauthGroup              = new SettingsGroup("oauth",       "OAuth Settings");
@@ -285,6 +286,9 @@ public class Settings {
 	public static final Setting<Integer> ProxyMaxFileSize      = new IntegerSetting(servletsGroup, "ProxyServlet", "ProxyServlet.maxFileSize",           1000);
 	public static final Setting<Integer> ProxyMaxRequestSize   = new IntegerSetting(servletsGroup, "ProxyServlet", "ProxyServlet.maxRequestSize",        1200);
 
+	// deployment export/import settings
+	public static final Setting<Boolean> ExportFileUuids       = new BooleanSetting(deploymentGroup, "Deployment Settings", "deployment.export.exportFileUuids", true, "Export UUIDs of File nodes and all inherting classes. Default is true");
+	
 	// cron settings
 	public static final Setting<String> CronTasks              = new StringSetting(cronGroup,  "CronService.tasks", "");
 
