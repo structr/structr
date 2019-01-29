@@ -27,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.Page;
@@ -56,6 +57,7 @@ public class ListLocalizationsCommand extends AbstractCommand {
 		final App app                         = StructrApp.getInstance(securityContext);
 		final String id                       = webSocketData.getId();
 		final String locale                   = webSocketData.getNodeDataStringValue("locale");
+		final String detailsObjectId          = webSocketData.getNodeDataStringValue("detailObjectId");
 
 		try (final Tx tx = app.tx(true, true, false)) {
 
@@ -70,6 +72,22 @@ public class ListLocalizationsCommand extends AbstractCommand {
 				securityContext.setRequest(getWebSocket().getRequest());
 				getWebSocket().getRequest().getParameterMap().put("locale", new String[]{ locale });
 				rCtx.setLocale(securityContext.getEffectiveLocale());
+
+				if (detailsObjectId != null) {
+
+					final NodeInterface node = app.getNodeById(detailsObjectId);
+
+					if (node != null) {
+
+						rCtx.setDetailsDataObject(node);
+
+					} else {
+
+						logger.warn("Could not find details object for id '{}' during localization usage lookup in page '{}'", detailsObjectId, page.getName());
+						getWebSocket().send(MessageBuilder.status().code(404).message("Node with ID " + detailsObjectId + " not found.").build(), true);
+
+					}
+				}
 
 				Page.render(page, rCtx, 0);
 

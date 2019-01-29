@@ -261,7 +261,11 @@ function wsConnect() {
 					} else {
 
 						if (codeStr === "404") {
-							new MessageBuilder().className(msgClass).text('Object not found.').show();
+							if (data.message) {
+								new MessageBuilder().className(msgClass).title('Object not found.').text(data.message).show();
+							} else {
+								new MessageBuilder().className(msgClass).text('Object not found.').show();
+							}
 						} else if (data.error && data.error.errors) {
 							Structr.errorFromResponse(data.error);
 						} else {
@@ -420,13 +424,13 @@ function wsConnect() {
 			} else if (command === 'DELETE') {
 
 				StructrModel.del(data.id);
-				
+
 				StructrModel.callCallback(data.callback, [], 0);
 
 			} else if (command === 'INSERT_BEFORE' || command === 'APPEND_CHILD' || command === 'APPEND_MEMBER') {
 
 				StructrModel.create(result[0], data.data.refId);
-				
+
 				StructrModel.callCallback(data.callback, result[0]);
 
 			} else if (command.startsWith('APPEND_FILE')) {
@@ -440,7 +444,7 @@ function wsConnect() {
 					_Logger.log(_LogType.WS[command], 'Remove object from model', obj);
 					obj.remove();
 				}
-				
+
 				StructrModel.callCallback(data.callback);
 
 			} else if (command === 'REMOVE_CHILD') {
@@ -450,7 +454,7 @@ function wsConnect() {
 					_Logger.log(_LogType.WS[command], 'Remove object from parent', data, obj);
 					obj.remove(data.data.parentId);
 				}
-				
+
 				StructrModel.callCallback(data.callback);
 
 			} else if (command === 'CREATE' || command === 'ADD' || command === 'IMPORT') {
