@@ -237,12 +237,24 @@ var StructrModel = {
 
 		if (obj && data.modifiedProperties && data.modifiedProperties.length) {
 
-			$.each(data.modifiedProperties, function(i, key) {
-				_Logger.log(_LogType.MODEL, 'update model', key, data.data[key]);
-				obj[key] = data.data[key];
-			});
+			let refreshObj = function(obj, newProperties) {
+				Object.keys(obj).forEach(k => {
+					obj[k] = newProperties[k];
+				});
+				StructrModel.refresh(obj.id);
+			}
 
-			StructrModel.refresh(obj.id);
+			if (data.relData && data.relData.sourceId) {
+				Command.getRelationship(data.id, data.relData.sourceId, Object.keys(obj).join(','), function(newProperties) {
+					refreshObj(obj, newProperties);
+				});
+				
+			} else {
+				Command.get(data.id, Object.keys(obj).join(','), function(newProperties) {
+					refreshObj(obj, newProperties);
+				});
+			}
+
 		}
 
 		return obj;
@@ -415,7 +427,7 @@ var StructrModel = {
 
 			var iconEl = element.children('.typeIcon');
 			if (icon && iconEl.length) {
-				_Icons.updateSpritasdeClassTo(iconEl[0], _Icons.getSpriteClassOnly(icon));
+				_Icons.updateSpriteClassTo(iconEl[0], _Icons.getSpriteClassOnly(icon));
 			}
 
 			// check if key icon needs to be displayed (in case of nodes not visible to public/auth users)
