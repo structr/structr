@@ -1131,7 +1131,7 @@ var _Files = {
 
 				if (!_Files.isMinificationTarget(StructrModel.obj(Structr.getId(el)))) {
 
-					Command.get(Structr.getId(el), "id,name,contentType,isTemplate", function(entity) {
+					Command.get(Structr.getId(el), 'id,name,contentType,isTemplate', function(entity) {
 						$('#files-tabs ul').append('<li id="tab-' + entity.id + '">' + entity.name + '</li>');
 						$('#files-tabs').append('<div id="content-tab-' + entity.id + '"></div>');
 

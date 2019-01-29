@@ -513,7 +513,7 @@ var _ResourceAccessGrants = {
 	updateResourceAccessFlags: function (id, newFlags) {
 
 		Command.setProperty(id, 'flags', newFlags, false, function() {
-			Command.get(id, "id,flags,name,signature", function(obj) {
+			Command.get(id, 'id,flags,name,signature', function(obj) {
 				_ResourceAccessGrants.appendResourceAccessElement(obj);
 			});
 		});

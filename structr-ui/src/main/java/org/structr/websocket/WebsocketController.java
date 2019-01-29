@@ -119,24 +119,6 @@ public class WebsocketController implements StructrTransactionListener {
 					continue;
 				}
 
-				// if the object IS NOT of type AbstractNode AND the client is NOT priviledged OR
-				// if the object IS of type AbstractNode AND the client has no access to the node
-				// THEN skip sending a message
-				if (obj instanceof AbstractNode) {
-
-					final AbstractNode node = (AbstractNode)obj;
-
-					if (node.isHidden() || !securityContext.isVisible(node)) {
-						continue;
-					}
-
-				} else {
-
-					if (!socket.isPrivilegedUser(socket.getCurrentUser())) {
-						continue;
-					}
-				}
-
 				if (result != null && BroadcastCommands.contains(command)) {
 
 					final WebSocketMessage clientData = webSocketData.copy();

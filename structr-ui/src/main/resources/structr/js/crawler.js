@@ -276,7 +276,7 @@ var _Crawler = {
 
 		fastRemoveAllChildren(crawlerList[0]);
 
-		Command.get(id, "id,type,name", function(site) {
+		Command.get(id, 'id,type,name', function(site) {
 
 			var name = (site.name || '[unnamed]');
 			crawlerList.append(`

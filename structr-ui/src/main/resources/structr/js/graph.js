@@ -378,7 +378,7 @@ var _Graph = {
 		$(document).on('click', '#tooltipBtnDel', function() {
 			var self = $(this);
 			var id = self.attr("value");
-			Command.get(id, "id,type,name,sourceId,targetId", function (entity) {
+			Command.get(id, 'id,type,name,sourceId,targetId', function (entity) {
 				if (graphBrowser.getNode(entity.id)) {
 					_Entities.deleteNode(self, entity, false, function (entity) {
 						graphBrowser.dropNode(entity);
@@ -408,7 +408,7 @@ var _Graph = {
 					type: nodeType
 				}, function(obj) {
                                     if(obj != null) {
-					Command.get(obj.id, "id,type,name,color,tag", function(node) {
+					Command.get(obj.id, 'id,type,name,color,tag', function(node) {
 						_Graph.drawNode(node);
 					});
                                     }

@@ -226,6 +226,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		final SecurityContext securityContext = thisNode.getSecurityContext();
 
 		try {
+
 			final EditMode edit = renderContext.getEditMode(securityContext.getUser(false));
 			if (EditMode.DEPLOYMENT.equals(edit)) {
 
@@ -240,7 +241,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 				return;
 			}
 
-			if (thisNode.isHidden() || !thisNode.displayForLocale(renderContext) || !thisNode.displayForConditions(renderContext)) {
+			if (!thisNode.shouldBeRendered(renderContext)) {
 				return;
 			}
 

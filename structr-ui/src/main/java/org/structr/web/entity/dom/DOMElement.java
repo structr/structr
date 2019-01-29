@@ -352,7 +352,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	static void renderContent(final DOMElement thisElement, final RenderContext renderContext, final int depth) throws FrameworkException {
 
-		if (thisElement.isHidden() || !thisElement.displayForLocale(renderContext) || !thisElement.displayForConditions(renderContext)) {
+		if (!thisElement.shouldBeRendered(renderContext)) {
 			return;
 		}
 
@@ -502,6 +502,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	static void openingTag(final DOMElement thisElement, final AsyncBuffer out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
 
 		final DOMElement _syncedNode = (DOMElement) thisElement.getSharedComponent();
+
 		if (_syncedNode != null && EditMode.DEPLOYMENT.equals(editMode)) {
 
 			out.append("<structr:component src=\"");
