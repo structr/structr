@@ -540,7 +540,6 @@ public class Importer {
 			String comment                   = null;
 			String content                   = null;
 			String id                        = null;
-			boolean isNewTemplateOrComponent = false;
 
 			if (ignoreElementNames.contains(type)) {
 
@@ -684,7 +683,7 @@ public class Importer {
 
 						}
 
-					} else if ( DeployCommand.endsWithUuid(src) ) {
+					} else if (DeployCommand.endsWithUuid(src)) {
 						final String uuid = src.substring(src.length() - 32);
 						template = (DOMNode)StructrApp.getInstance().nodeQuery(NodeInterface.class).and(GraphObject.id, uuid).getFirst();
 
@@ -701,12 +700,11 @@ public class Importer {
 
 							template = Importer.findTemplateByName(src);
 
-								if(template == null){
+							if (template == null) {
 
-									template = createNewTemplateNode(parent, node.childNodes());
-									isNewTemplateOrComponent = true;
+								template = createNewTemplateNode(parent, node.childNodes());
 
-								}
+							}
 						}
 					}
 
@@ -756,12 +754,10 @@ public class Importer {
 						component = Importer.findSharedComponentByName(src);
 					}
 
-					if(component == null){
+					if (component == null) {
 
 						component = createSharedComponent(node);
 					}
-
-					isNewTemplateOrComponent = true;
 
 					if (component != null) {
 
@@ -1046,11 +1042,7 @@ public class Importer {
 				// Link new node to its parent node
 				// linkNodes(parent, newNode, page, localIndex);
 				// Step down and process child nodes except for newly created templates
-				if (!isNewTemplateOrComponent){
-
-					createChildNodes(node, newNode, page, removeHashAttribute, depth + 1);
-
-				}
+				createChildNodes(node, newNode, page, removeHashAttribute, depth + 1);
 
 			}
 		}
