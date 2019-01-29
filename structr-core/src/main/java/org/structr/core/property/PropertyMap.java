@@ -371,7 +371,7 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					PropertyKey propertyKey = StructrApp.key(entity, key);
+					PropertyKey propertyKey = StructrApp.key(entity, key, false);
 					if (propertyKey == null) {
 						propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity, key);
 					}
