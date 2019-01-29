@@ -1251,7 +1251,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 		}
 
-		putIfNotNull(config, "id",                          abstractFile.getProperty(File.id));
+		if (Settings.getBooleanSetting(Settings.ExportFileUuids.getKey()).getValue()) {
+			putIfNotNull(config, "id",                          abstractFile.getProperty(File.id));
+		}
 		putIfNotNull(config, "type",                        abstractFile.getProperty(File.type));
 		putIfNotNull(config, "contentType",                 abstractFile.getProperty(StructrApp.key(File.class, "contentType")));
 		putIfNotNull(config, "cacheForSeconds",             abstractFile.getProperty(StructrApp.key(File.class, "cacheForSeconds")));
