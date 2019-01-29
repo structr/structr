@@ -1229,7 +1229,8 @@ public class Importer {
 
 			final String fullPath = path + "/" + fileName;
 
-			File fileNode = fileExists(fullPath, checksum);
+
+			File fileNode = fileExists(PathHelper.removeRelativeParts(fullPath), checksum);
 			if (fileNode == null) {
 
 				if (ImageHelper.isImageType(fileName)) {
