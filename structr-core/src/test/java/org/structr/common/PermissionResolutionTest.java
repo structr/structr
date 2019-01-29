@@ -18,7 +18,9 @@
  */
 package org.structr.common;
 
+import java.util.List;
 import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -26,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
@@ -234,6 +237,90 @@ public class PermissionResolutionTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testPermissionResolutionWithSelfRelationship() {
+
+		final App app = StructrApp.getInstance();
+		String uuid   = null;
+
+		try (final Tx tx = app.tx()) {
+
+			// create schema setup with permission propagation
+			final SchemaNode type = app.create(SchemaNode.class, "Project");
+
+			uuid = app.create(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, type),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, type),
+				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "NEXT"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "prev"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "next")
+			).getUuid();
+
+			app.create(Principal.class, "tester");
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final PropertyKey key   = StructrApp.getConfiguration().getPropertyKeyForJSONName(projectType, "prev");
+
+		try (final Tx tx = app.tx()) {
+
+			final Principal tester = app.nodeQuery(Principal.class).getFirst();
+
+			final NodeInterface p1 = app.create(projectType,
+				new NodeAttribute<>(AbstractNode.name, "Project1"),
+				new NodeAttribute<>(AbstractNode.owner, tester)
+			);
+			
+			final NodeInterface p2 = app.create(projectType,
+				new NodeAttribute<>(AbstractNode.name, "Project2"),
+				new NodeAttribute<>(key, p1)
+			);
+			
+			final NodeInterface p3 = app.create(projectType,
+				new NodeAttribute<>(AbstractNode.name, "Project3"),
+				new NodeAttribute<>(key, p2)
+			);
+			
+			final NodeInterface p4 = app.create(projectType,
+				new NodeAttribute<>(AbstractNode.name, "Project4"),
+				new NodeAttribute<>(key, p3)
+			);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		testGranted(projectType, new boolean[] { false, false, false, false });
+		setPermissionResolution(uuid, SchemaRelationshipNode.readPropagation,          Propagation.Add);
+		testGranted(projectType, new boolean[] { true, false, false, false });
+		setPermissionResolution(uuid, SchemaRelationshipNode.writePropagation,         Propagation.Add);
+		testGranted(projectType, new boolean[] { true, true, false, false });
+		setPermissionResolution(uuid, SchemaRelationshipNode.deletePropagation,        Propagation.Add);
+		testGranted(projectType, new boolean[] { true, true, true, false });
+		setPermissionResolution(uuid, SchemaRelationshipNode.accessControlPropagation, Propagation.Add);
+		testGranted(projectType, new boolean[] { true, true, true, true });
+
+		setPermissionResolution(uuid, SchemaRelationshipNode.readPropagation,          Propagation.Remove);
+		testGranted(projectType, new boolean[] { false, true, true, true });
+		setPermissionResolution(uuid, SchemaRelationshipNode.writePropagation,         Propagation.Remove);
+		testGranted(projectType, new boolean[] { false, false, true, true });
+		setPermissionResolution(uuid, SchemaRelationshipNode.deletePropagation,        Propagation.Remove);
+		testGranted(projectType, new boolean[] { false, false, false, true });
+		setPermissionResolution(uuid, SchemaRelationshipNode.accessControlPropagation, Propagation.Remove);
+		testGranted(projectType, new boolean[] { false, false, false, false });
+	}
+
 	// ----- private methods -----
 	public static void clearResourceAccess() {
 
@@ -250,6 +337,152 @@ public class PermissionResolutionTest extends StructrTest {
 		} catch (Throwable t) {
 
 			logger.warn("Unable to clear resource access grants", t);
+		}
+	}
+
+	@Test
+	public void testPermissionResolutionWithSelfRelationshipAndInheritance() {
+
+		final App app = StructrApp.getInstance();
+		String uuid   = null;
+
+		try (final Tx tx = app.tx()) {
+
+			// create schema setup with permission propagation
+			final SchemaNode type = app.create(SchemaNode.class, "Project");
+
+			uuid = app.create(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, type),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, type),
+				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "NEXT"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "prev"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "next")
+			).getUuid();
+			
+			final SchemaNode moo  = app.create(SchemaNode.class, "Moo");
+			final SchemaNode test = app.create(SchemaNode.class, "Test");
+
+			moo.setProperty(SchemaNode.extendsClass, "org.structr.dynamic.Project");
+			test.setProperty(SchemaNode.extendsClass, "org.structr.dynamic.Project");
+
+			app.create(Principal.class, "tester");
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final Class mooType     = StructrApp.getConfiguration().getNodeEntityClass("Moo");
+		final Class testType    = StructrApp.getConfiguration().getNodeEntityClass("Test");
+		final PropertyKey key   = StructrApp.getConfiguration().getPropertyKeyForJSONName(mooType, "prev");
+
+		try (final Tx tx = app.tx()) {
+
+			final Principal tester = app.nodeQuery(Principal.class).getFirst();
+
+			final NodeInterface p1 = app.create(mooType,
+				new NodeAttribute<>(AbstractNode.name, "Project1"),
+				new NodeAttribute<>(AbstractNode.owner, tester)
+			);
+			
+			final NodeInterface p2 = app.create(testType,
+				new NodeAttribute<>(AbstractNode.name, "Project2"),
+				new NodeAttribute<>(key, p1)
+			);
+			
+			final NodeInterface p3 = app.create(mooType,
+				new NodeAttribute<>(AbstractNode.name, "Project3"),
+				new NodeAttribute<>(key, p2)
+			);
+			
+			final NodeInterface p4 = app.create(testType,
+				new NodeAttribute<>(AbstractNode.name, "Project4"),
+				new NodeAttribute<>(key, p3)
+			);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		testGranted(projectType, new boolean[] { false, false, false, false });
+		setPermissionResolution(uuid, SchemaRelationshipNode.readPropagation,          Propagation.Add);
+		testGranted(projectType, new boolean[] { true, false, false, false });
+		setPermissionResolution(uuid, SchemaRelationshipNode.writePropagation,         Propagation.Add);
+		testGranted(projectType, new boolean[] { true, true, false, false });
+		setPermissionResolution(uuid, SchemaRelationshipNode.deletePropagation,        Propagation.Add);
+		testGranted(projectType, new boolean[] { true, true, true, false });
+		setPermissionResolution(uuid, SchemaRelationshipNode.accessControlPropagation, Propagation.Add);
+		testGranted(projectType, new boolean[] { true, true, true, true });
+
+		setPermissionResolution(uuid, SchemaRelationshipNode.readPropagation,          Propagation.Remove);
+		testGranted(projectType, new boolean[] { false, true, true, true });
+		setPermissionResolution(uuid, SchemaRelationshipNode.writePropagation,         Propagation.Remove);
+		testGranted(projectType, new boolean[] { false, false, true, true });
+		setPermissionResolution(uuid, SchemaRelationshipNode.deletePropagation,        Propagation.Remove);
+		testGranted(projectType, new boolean[] { false, false, false, true });
+		setPermissionResolution(uuid, SchemaRelationshipNode.accessControlPropagation, Propagation.Remove);
+		testGranted(projectType, new boolean[] { false, false, false, false });
+	}
+
+	private void setPermissionResolution(final String uuid, final PropertyKey key, final Object value) {
+
+		// enable permission resolution
+		try (final Tx tx = app.tx()) {
+
+			final SchemaRelationshipNode rel = app.get(SchemaRelationshipNode.class, uuid);
+
+			rel.setProperty(SchemaRelationshipNode.permissionPropagation, Direction.Both);
+			rel.setProperty(key, value);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	private void testGranted(final Class projectType, final boolean[] expected) {
+
+		try (final Tx tx = app.tx()) {
+
+			final Principal tester            = app.nodeQuery(Principal.class).getFirst();
+			final SecurityContext userContext = SecurityContext.getInstance(tester, AccessMode.Backend);
+			final List<NodeInterface> result  = app.nodeQuery(projectType).getAsList();
+
+			assertEquals("Invalid permission resolution precondition",  true, result.get(0).isGranted(Permission.read,          userContext));
+			assertEquals("Invalid permission resolution precondition",  true, result.get(0).isGranted(Permission.write,         userContext));
+			assertEquals("Invalid permission resolution precondition",  true, result.get(0).isGranted(Permission.delete,        userContext));
+			assertEquals("Invalid permission resolution precondition",  true, result.get(0).isGranted(Permission.accessControl, userContext));
+
+			assertEquals("Invalid permission resolution precondition",  expected[0], result.get(1).isGranted(Permission.read,          userContext));
+			assertEquals("Invalid permission resolution precondition",  expected[1], result.get(1).isGranted(Permission.write,         userContext));
+			assertEquals("Invalid permission resolution precondition",  expected[2], result.get(1).isGranted(Permission.delete,        userContext));
+			assertEquals("Invalid permission resolution precondition",  expected[3], result.get(1).isGranted(Permission.accessControl, userContext));
+
+			assertEquals("Invalid permission resolution precondition",  expected[0], result.get(2).isGranted(Permission.read,          userContext));
+			assertEquals("Invalid permission resolution precondition",  expected[1], result.get(2).isGranted(Permission.write,         userContext));
+			assertEquals("Invalid permission resolution precondition",  expected[2], result.get(2).isGranted(Permission.delete,        userContext));
+			assertEquals("Invalid permission resolution precondition",  expected[3], result.get(2).isGranted(Permission.accessControl, userContext));
+
+			assertEquals("Invalid permission resolution precondition",  expected[0], result.get(3).isGranted(Permission.read,          userContext));
+			assertEquals("Invalid permission resolution precondition",  expected[1], result.get(3).isGranted(Permission.write,         userContext));
+			assertEquals("Invalid permission resolution precondition",  expected[2], result.get(3).isGranted(Permission.delete,        userContext));
+			assertEquals("Invalid permission resolution precondition",  expected[3], result.get(3).isGranted(Permission.accessControl, userContext));
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
 		}
 	}
 }
