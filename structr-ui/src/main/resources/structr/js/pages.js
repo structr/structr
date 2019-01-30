@@ -588,7 +588,7 @@ var _Pages = {
 		_Pages.unloadIframes();
 		var iframe = $('#preview_' + id);
 		Command.get(id, 'id,name', function(obj) {
-			var url = viewRootUrl + obj.name + (LSWrapper.getItem(detailsObjectIdKey + id) ? '/' + LSWrapper.getItem(detailsObjectId + id) : '') + '?edit=2';
+			var url = viewRootUrl + obj.name + (LSWrapper.getItem(detailsObjectIdKey + id) ? '/' + LSWrapper.getItem(detailsObjectIdKey + id) : '') + '?edit=2';
 			iframe.prop('src', url);
 			_Logger.log(_LogType.PAGES, 'iframe', id, 'activated');
 			_Pages.hideAllPreviews();
