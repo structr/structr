@@ -50,6 +50,8 @@ public class PermissionResolutionTest extends StructrTest {
 	@Test
 	public void test01SimplePermissionResolution() {
 
+		cleanDatabaseAndSchema();
+
 		SchemaRelationshipNode rel = null;
 		PropertyKey key            = null;
 		Principal user1            = null;
@@ -240,6 +242,8 @@ public class PermissionResolutionTest extends StructrTest {
 	@Test
 	public void testPermissionResolutionWithSelfRelationship() {
 
+		cleanDatabaseAndSchema();
+
 		final App app = StructrApp.getInstance();
 		String uuid   = null;
 
@@ -278,17 +282,17 @@ public class PermissionResolutionTest extends StructrTest {
 				new NodeAttribute<>(AbstractNode.name, "Project1"),
 				new NodeAttribute<>(AbstractNode.owner, tester)
 			);
-			
+
 			final NodeInterface p2 = app.create(projectType,
 				new NodeAttribute<>(AbstractNode.name, "Project2"),
 				new NodeAttribute<>(key, p1)
 			);
-			
+
 			final NodeInterface p3 = app.create(projectType,
 				new NodeAttribute<>(AbstractNode.name, "Project3"),
 				new NodeAttribute<>(key, p2)
 			);
-			
+
 			final NodeInterface p4 = app.create(projectType,
 				new NodeAttribute<>(AbstractNode.name, "Project4"),
 				new NodeAttribute<>(key, p3)
@@ -321,27 +325,10 @@ public class PermissionResolutionTest extends StructrTest {
 		testGranted(projectType, new boolean[] { false, false, false, false });
 	}
 
-	// ----- private methods -----
-	public static void clearResourceAccess() {
-
-		final App app = StructrApp.getInstance();
-
-		try (final Tx tx = app.tx()) {
-
-			for (final ResourceAccess access : app.nodeQuery(ResourceAccess.class).getAsList()) {
-				app.delete(access);
-			}
-
-			tx.success();
-
-		} catch (Throwable t) {
-
-			logger.warn("Unable to clear resource access grants", t);
-		}
-	}
-
 	@Test
 	public void testPermissionResolutionWithSelfRelationshipAndInheritance() {
+
+		cleanDatabaseAndSchema();
 
 		final App app = StructrApp.getInstance();
 		String uuid   = null;
@@ -360,7 +347,7 @@ public class PermissionResolutionTest extends StructrTest {
 				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "prev"),
 				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "next")
 			).getUuid();
-			
+
 			final SchemaNode moo  = app.create(SchemaNode.class, "Moo");
 			final SchemaNode test = app.create(SchemaNode.class, "Test");
 
@@ -389,17 +376,17 @@ public class PermissionResolutionTest extends StructrTest {
 				new NodeAttribute<>(AbstractNode.name, "Project1"),
 				new NodeAttribute<>(AbstractNode.owner, tester)
 			);
-			
+
 			final NodeInterface p2 = app.create(testType,
 				new NodeAttribute<>(AbstractNode.name, "Project2"),
 				new NodeAttribute<>(key, p1)
 			);
-			
+
 			final NodeInterface p3 = app.create(mooType,
 				new NodeAttribute<>(AbstractNode.name, "Project3"),
 				new NodeAttribute<>(key, p2)
 			);
-			
+
 			final NodeInterface p4 = app.create(testType,
 				new NodeAttribute<>(AbstractNode.name, "Project4"),
 				new NodeAttribute<>(key, p3)
@@ -432,6 +419,25 @@ public class PermissionResolutionTest extends StructrTest {
 		testGranted(projectType, new boolean[] { false, false, false, false });
 	}
 
+	public static void clearResourceAccess() {
+
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final ResourceAccess access : app.nodeQuery(ResourceAccess.class).getAsList()) {
+				app.delete(access);
+			}
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			logger.warn("Unable to clear resource access grants", t);
+		}
+	}
+
+	// ----- private methods -----
 	private void setPermissionResolution(final String uuid, final PropertyKey key, final Object value) {
 
 		// enable permission resolution
