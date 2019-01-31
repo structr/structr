@@ -399,34 +399,39 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					renderContext.setInBody(true);
 				}
 
-				// fetch children
-				final List<RelationshipInterface> rels = thisElement.getChildRelationships();
-				if (rels.isEmpty()) {
+				// only render children if we are not in a shared component scenario and not in deployment mode
+				if (thisElement.getSharedComponent() == null || !EditMode.DEPLOYMENT.equals(editMode)) {
 
-					// No child relationships, maybe this node is in sync with another node
-					final DOMElement _syncedNode = (DOMElement) thisElement.getSharedComponent();
-					if (_syncedNode != null) {
+					// fetch children
+					final List<RelationshipInterface> rels = thisElement.getChildRelationships();
+					if (rels.isEmpty()) {
 
-						rels.addAll(_syncedNode.getChildRelationships());
-					}
-				}
+						// No child relationships, maybe this node is in sync with another node
+						final DOMElement _syncedNode = (DOMElement) thisElement.getSharedComponent();
+						if (_syncedNode != null) {
 
-				// apply configuration for shared component if present
-				final String _sharedComponentConfiguration = thisElement.getProperty(StructrApp.key(DOMElement.class, "sharedComponentConfiguration"));
-				if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
-
-					Scripting.evaluate(renderContext, thisElement, "${" + _sharedComponentConfiguration + "}", "shared component configuration");
-				}
-
-				for (final RelationshipInterface rel : rels) {
-
-					final DOMNode subNode = (DOMNode) rel.getTargetNode();
-
-					if (subNode instanceof DOMElement) {
-						anyChildNodeCreatesNewLine = (anyChildNodeCreatesNewLine || !(subNode.avoidWhitespace()));
+							rels.addAll(_syncedNode.getChildRelationships());
+						}
 					}
 
-					subNode.render(renderContext, depth + 1);
+					// apply configuration for shared component if present
+					final String _sharedComponentConfiguration = thisElement.getProperty(StructrApp.key(DOMElement.class, "sharedComponentConfiguration"));
+					if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
+
+						Scripting.evaluate(renderContext, thisElement, "${" + _sharedComponentConfiguration + "}", "shared component configuration");
+					}
+
+					for (final RelationshipInterface rel : rels) {
+
+						final DOMNode subNode = (DOMNode) rel.getTargetNode();
+
+						if (subNode instanceof DOMElement) {
+							anyChildNodeCreatesNewLine = (anyChildNodeCreatesNewLine || !(subNode.avoidWhitespace()));
+						}
+
+						subNode.render(renderContext, depth + 1);
+
+					}
 
 				}
 
