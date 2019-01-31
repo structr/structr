@@ -540,6 +540,7 @@ public class Importer {
 			String comment                   = null;
 			String content                   = null;
 			String id                        = null;
+			boolean isNewTemplateOrComponent = false;
 
 			if (ignoreElementNames.contains(type)) {
 
@@ -684,13 +685,13 @@ public class Importer {
 						}
 
 					} else if (DeployCommand.endsWithUuid(src)) {
+
 						final String uuid = src.substring(src.length() - 32);
 						template = (DOMNode)StructrApp.getInstance().nodeQuery(NodeInterface.class).and(GraphObject.id, uuid).getFirst();
 
 						if (template == null) {
 
 							System.out.println("##################################### template with UUID " + uuid + " not found, this is a known bug");
-
 						}
 
 					} else {
@@ -703,7 +704,7 @@ public class Importer {
 							if (template == null) {
 
 								template = createNewTemplateNode(parent, node.childNodes());
-
+								isNewTemplateOrComponent = true;
 							}
 						}
 					}
@@ -758,6 +759,8 @@ public class Importer {
 
 						component = createSharedComponent(node);
 					}
+
+					isNewTemplateOrComponent = true;
 
 					if (component != null) {
 
@@ -1042,7 +1045,11 @@ public class Importer {
 				// Link new node to its parent node
 				// linkNodes(parent, newNode, page, localIndex);
 				// Step down and process child nodes except for newly created templates
-				createChildNodes(node, newNode, page, removeHashAttribute, depth + 1);
+				if (!isNewTemplateOrComponent){
+
+					createChildNodes(node, newNode, page, removeHashAttribute, depth + 1);
+
+				}
 
 			}
 		}
@@ -1416,7 +1423,7 @@ public class Importer {
 
 		contentNode.setVisibility(publicVisible, authVisible);
 
-		if(parent != null){
+		if (parent != null) {
 
 			parent.appendChild(contentNode);
 		}
