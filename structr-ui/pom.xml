@@ -162,18 +162,6 @@
 			<artifactId>sshd-core</artifactId>
 			<version>1.2.0</version>
 		</dependency>
-		<!--		<dependency>
-			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>selenium-server</artifactId>
-			<version>3.8.1</version>
-			<scope>test</scope>
-		</dependency>-->
-		<dependency>
-			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>selenium-java</artifactId>
-			<version>3.8.1</version>
-			<scope>test</scope>
-		</dependency>
 		<dependency>
 			<groupId>com.google.javascript</groupId>
 			<artifactId>closure-compiler</artifactId>
@@ -215,6 +203,28 @@
 					<argLine>-Xms1g -Xmx4g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
 					<reuseForks>false</reuseForks>
 					<forkCount>1</forkCount>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.4.0</version>
+				<executions>
+					<execution>
+						<id>run-test-script</id>
+						<phase>test</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<executable>${seleniumTestDir}/test.sh</executable>
+					<arguments>
+						<argument>-t</argument>
+						<argument>${basedir}/src/test/selenium</argument>
+					</arguments>
+					<workingDirectory>${seleniumTestDir}</workingDirectory>
 				</configuration>
 			</plugin>
 			<plugin>
