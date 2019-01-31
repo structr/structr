@@ -208,14 +208,14 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.4.0</version>
+				<version>1.6.0</version>
 				<executions>
 					<execution>
-						<id>run-test-script</id>
-						<phase>test</phase>
+						<id>selenium-docker-tests</id>
 						<goals>
 							<goal>exec</goal>
 						</goals>
+						<phase>integration-test</phase>
 					</execution>
 				</executions>
 				<configuration>
@@ -225,6 +225,7 @@
 						<argument>${basedir}/src/test/selenium</argument>
 					</arguments>
 					<workingDirectory>${seleniumTestDir}</workingDirectory>
+					<skip>${skipTests}</skip>
 				</configuration>
 			</plugin>
 			<plugin>
