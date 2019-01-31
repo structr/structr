@@ -510,24 +510,26 @@ var _Elements = {
 			div.append('<i title="Edit Link" class="link_icon button ' + _Icons.getFullSpriteClass(_Icons.link_icon) + '" />');
 			if (entity.linkableId) {
 
-				if (entity.linkable.isFile) {
+				Command.get(entity.linkableId, 'id,type,name,isFile,isPage', function(linkedEntity) {
 
-					div.append('<span class="linkable">' + entity.linkable.name + '</span>');
+					div.append('<span class="linkable">' + linkedEntity.name + '</span>');
 
-					$('.linkable', div).on('click', function(e) {
-						e.stopPropagation();
+					if (linkedEntity.isFile) {
 
-						var file = {'name': entity.linkable.name, 'id': entity.linkableId};
+						$('.linkable', div).on('click', function(e) {
+							e.stopPropagation();
 
-						Structr.dialog('Edit ' + file.name, function() {
-							_Logger.log(_LogType.ELEMENTS, 'content saved');
-						}, function() {
-							_Logger.log(_LogType.ELEMENTS, 'cancelled');
+							var file = {'name': linkedEntity.name, 'id': linkedEntity.id};
+
+							Structr.dialog('Edit ' + file.name, function() {
+								_Logger.log(_LogType.ELEMENTS, 'content saved');
+							}, function() {
+								_Logger.log(_LogType.ELEMENTS, 'cancelled');
+							});
+							_Files.editContent(this, file, $('#dialogBox .dialogText'));
 						});
-						_Files.editContent(this, file, $('#dialogBox .dialogText'));
-
-					});
-				}
+					}
+				});
 			}
 
 			$('.link_icon', div).on('click', function(e) {
