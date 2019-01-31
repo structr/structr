@@ -16,24 +16,31 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.knowledge;
+package org.structr.knowledge.iso25964;
 
 import java.net.URI;
+import java.util.Locale;
+import org.structr.common.PropertyView;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 
 /**
- * Base class of a concept group as defined in ISO 25964
+ * Class as defined in ISO 25964 data model
  */
-public interface ConceptGroup extends NodeInterface {
+public interface Note extends NodeInterface {
 
 	static class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("ConceptGroup");
+		final JsonObjectType type = schema.addType("Note");
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ConceptGroup"));
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Note"));
+		
+		type.addStringProperty("lexicalValue", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
+		type.addDateProperty("created", PropertyView.All, PropertyView.Ui).setIndexed(true);
+		type.addDateProperty("modified", PropertyView.All, PropertyView.Ui).setIndexed(true);
+		type.addEnumProperty("lang", PropertyView.All, PropertyView.Ui).setEnums(Locale.getISOLanguages());
 	}}
 }

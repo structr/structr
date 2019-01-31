@@ -16,25 +16,28 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.knowledge;
+package org.structr.knowledge.iso25964;
 
 import java.net.URI;
+import org.structr.common.PropertyView;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 
 /**
- * Base class of a preferred term as defined in ISO 25964
+ * Class as defined in ISO 25964 data model
  */
-
-public interface Language extends ThesaurusTerm {
+public interface AssociativeRelationship extends RelationshipInterface {
 
 	static class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Language");
+		final JsonObjectType type = schema.addType("AssociateRelationship");
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Language"));
-		type.setExtends(URI.create("#/definitions/ThesaurusTerm"));
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/AssociativeRelationship"));
+		
+		type.addStringProperty("role",PropertyView.All, PropertyView.Ui).setIndexed(true);
+
 	}}
 }

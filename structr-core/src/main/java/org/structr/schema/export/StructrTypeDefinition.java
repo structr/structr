@@ -49,6 +49,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonBooleanArrayProperty;
 import org.structr.schema.json.JsonBooleanProperty;
+import org.structr.schema.json.JsonDateArrayProperty;
 import org.structr.schema.json.JsonDateProperty;
 import org.structr.schema.json.JsonDynamicProperty;
 import org.structr.schema.json.JsonEnumProperty;
@@ -364,13 +365,25 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	@Override
 	public JsonStringArrayProperty addStringArrayProperty(final String name, final String... views) {
 
-		final StructrStringArrayProperty stringProperty = new StructrStringArrayProperty(this, name);
+		final StructrStringArrayProperty stringArrayProperty = new StructrStringArrayProperty(this, name);
 
 		addPropertyNameToViews(name, views);
 
-		properties.add(stringProperty);
+		properties.add(stringArrayProperty);
 
-		return stringProperty;
+		return stringArrayProperty;
+	}
+
+	@Override
+	public JsonDateArrayProperty addDateArrayProperty(final String name, final String... views) {
+
+		final StructrDateArrayProperty dateArrayProperty = new StructrDateArrayProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(dateArrayProperty);
+
+		return dateArrayProperty;
 	}
 
 	@Override

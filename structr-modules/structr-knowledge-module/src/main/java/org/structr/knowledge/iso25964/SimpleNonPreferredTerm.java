@@ -16,41 +16,28 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.knowledge;
+package org.structr.knowledge.iso25964;
 
 import java.net.URI;
-import org.structr.core.entity.Relation.Cardinality;
+import org.structr.common.PropertyView;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 
 /**
- * Base class of a preferred term as defined in ISO 25964
+ * Class as defined in ISO 25964 data model
  */
-
-public interface PreferredTerm extends ThesaurusTerm {
+public interface SimpleNonPreferredTerm extends NodeInterface {
 
 	static class Impl { static {
 
-		final JsonSchema schema      = SchemaService.getDynamicSchema();
-		final JsonObjectType type    = schema.addType("PreferredTerm");
-		final JsonObjectType concept = schema.addType("ThesaurusConcept");
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("SimpleNonPreferredTerm");
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/PreferredTerm"));
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/SimpleNonPreferredTerm"));
 		type.setExtends(URI.create("#/definitions/ThesaurusTerm"));
-
-		type.relate(concept, "HAS_LABEL", Cardinality.ManyToOne, null, "preferredLabels");
+		
+		type.addBooleanProperty("hidden", PropertyView.All, PropertyView.Ui).setIndexed(true);
 	}}
-
-	/*
-
-	private static final Logger logger = LoggerFactory.getLogger(PreferredTerm.class.getName());
-
-	public static final Property<ThesaurusConcept> preferredLabels = new EndNode<>("preferredLabels", TermHasLabel.class);
-
-	static {
-
-		SchemaService.registerBuiltinTypeOverride("PreferredTerm", PreferredTerm.class.getName());
-	}
-	*/
 }

@@ -101,6 +101,7 @@ import org.structr.schema.parser.BooleanPropertyParser;
 import org.structr.schema.parser.CountPropertyParser;
 import org.structr.schema.parser.CustomPropertyParser;
 import org.structr.schema.parser.CypherPropertyParser;
+import org.structr.schema.parser.DateArrayPropertyParser;
 import org.structr.schema.parser.DatePropertyParser;
 import org.structr.schema.parser.DoubleArrayPropertyParser;
 import org.structr.schema.parser.DoublePropertyParser;
@@ -132,7 +133,7 @@ public class SchemaHelper {
 
 	public enum Type {
 
-		String, StringArray, LongArray, DoubleArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, IdNotion, Cypher, Join, Thumbnail, Password, Custom;
+		String, StringArray, DateArray, LongArray, DoubleArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, IdNotion, Cypher, Join, Thumbnail, Password, Custom;
 	}
 
 	public static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new TreeMap<>(new ReverseTypeComparator());
@@ -153,6 +154,7 @@ public class SchemaHelper {
 		parserMap.put(Type.IntegerArray, IntegerArrayPropertyParser.class);
 		parserMap.put(Type.DoubleArray, DoubleArrayPropertyParser.class);
 		parserMap.put(Type.StringArray, StringArrayPropertyParser.class);
+		parserMap.put(Type.DateArray, DateArrayPropertyParser.class);
 		parserMap.put(Type.LongArray, LongArrayPropertyParser.class);
 		parserMap.put(Type.Function, FunctionPropertyParser.class);
 		parserMap.put(Type.Password, PasswordPropertySourceGenerator.class);
