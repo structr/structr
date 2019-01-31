@@ -212,14 +212,17 @@ function wsConnect() {
 					}
 
 					var msgClass;
+					var confirmationRequired = false;
 					if (codeStr.startsWith('2')) {
 						msgClass = 'success';
 					} else if (codeStr.startsWith('3')) {
 						msgClass = 'info';
 					} else if (codeStr.startsWith('4')) {
 						msgClass = 'warning';
+						confirmationRequired = true;
 					} else {
 						msgClass = 'error';
+						confirmationRequired = true;
 					}
 
 					if (msg && msg.startsWith('{')) {
@@ -261,19 +264,36 @@ function wsConnect() {
 					} else {
 
 						if (codeStr === "404") {
-							if (data.message) {
-								new MessageBuilder().className(msgClass).title('Object not found.').text(data.message).show();
-							} else {
-								new MessageBuilder().className(msgClass).text('Object not found.').show();
+
+							var msgBuilder = new MessageBuilder().className(msgClass);
+
+							if (confirmationRequired) {
+								msgBuilder.requiresConfirmation();
 							}
+
+							if (data.message) {
+								msgBuilder.title('Object not found.').text(data.message);
+							} else {
+								msgBuilder.text('Object not found.');
+							}
+
+							msgBuilder.show();
+
 						} else if (data.error && data.error.errors) {
-							Structr.errorFromResponse(data.error);
+
+							Structr.errorFromResponse(data.error, null, { requiresConfirmation: true });
+
 						} else {
-							new MessageBuilder().className(msgClass).text(msg).show();
+
+							var msgBuilder = new MessageBuilder().className(msgClass).text(msg);
+
+							if (confirmationRequired) {
+								msgBuilder.requiresConfirmation();
+							}
+
+							msgBuilder.show();
 						}
-
 					}
-
 				}
 
 			} else if (command === 'GET_PROPERTY') {
