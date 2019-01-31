@@ -960,6 +960,9 @@ var Structr = {
 	getActiveModuleName: function () {
 		return LSWrapper.getItem(lastMenuEntryKey);
 	},
+	getActiveModule: function() {
+		return Structr.modules[Structr.getActiveModuleName()];
+	},
 	isModuleActive: function (module) {
 		return (module._moduleName === Structr.getActiveModuleName());
 	},

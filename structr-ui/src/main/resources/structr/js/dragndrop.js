@@ -72,7 +72,11 @@ var _Dragndrop = {
 
 						Command.setProperty(sourceId, 'parent', null, false, function() {
 							$(ui.draggable).remove();
-							_Files.refreshTree();
+
+							var activeModule = Structr.getActiveModule();
+							if (typeof activeModule.refreshTree === 'function') {
+								activeModule.refreshTree();
+							}
 							return true;
 						});
 						return;
