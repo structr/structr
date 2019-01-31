@@ -1324,6 +1324,12 @@ button.action:hover {
 	background-color: #b5e27f;
 }
 
+button.action.disabled:hover {
+	color: #fff;
+	background-color: #81ce25;
+	cursor: not-allowed;
+}
+
 .dialog {
 	display: none;
 	font-size: 11pt;
@@ -3352,7 +3358,7 @@ td#cascading-options, td#propagation-options {
 }
 
 .tree-main {
-	display: table-row;  
+	display: table-row;
 }
 
 .tree-main b.name_, .tree-main input.new-name {
