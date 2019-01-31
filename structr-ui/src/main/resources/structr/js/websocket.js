@@ -212,17 +212,21 @@ function wsConnect() {
 					}
 
 					var msgClass;
-					var confirmationRequired = false;
+					var requiresConfirmation = false;
 					if (codeStr.startsWith('2')) {
 						msgClass = 'success';
 					} else if (codeStr.startsWith('3')) {
 						msgClass = 'info';
 					} else if (codeStr.startsWith('4')) {
 						msgClass = 'warning';
-						confirmationRequired = true;
+						requiresConfirmation = true;
 					} else {
 						msgClass = 'error';
-						confirmationRequired = true;
+						requiresConfirmation = true;
+					}
+
+					if (data.data.requiresConfirmation) {
+						requiresConfirmation = data.data.requiresConfirmation;
 					}
 
 					if (msg && msg.startsWith('{')) {
@@ -267,7 +271,7 @@ function wsConnect() {
 
 							var msgBuilder = new MessageBuilder().className(msgClass);
 
-							if (confirmationRequired) {
+							if (requiresConfirmation) {
 								msgBuilder.requiresConfirmation();
 							}
 
@@ -287,7 +291,7 @@ function wsConnect() {
 
 							var msgBuilder = new MessageBuilder().className(msgClass).text(msg);
 
-							if (confirmationRequired) {
+							if (requiresConfirmation) {
 								msgBuilder.requiresConfirmation();
 							}
 
