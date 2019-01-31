@@ -336,6 +336,21 @@ var _Dragndrop = {
 
 	},
 	htmlElementFromPaletteDropped: function(tag, target, pageId) {
+		var nodeData = _Dragndrop.getAdditionalDataForElementCreation(tag);
+
+		if (target.type !== 'Template' && (target.isContent || target.type === 'Comment')) {
+			if (tag === 'content' || tag === 'comment') {
+				_Logger.log(_LogType.DND, 'content element dropped on content or comment, doing nothing');
+			} else {
+				_Logger.log(_LogType.DND, 'wrap content', pageId, target.id, tag);
+				Command.wrapContent(pageId, target.id, tag);
+			}
+		} else {
+			Command.createAndAppendDOMNode(pageId, target.id, tag !== 'content' ? tag : '', nodeData);
+		}
+		return false;
+	},
+	getAdditionalDataForElementCreation:function(tag) {
 		var nodeData = {};
 		if (tag === 'a' || tag === 'p'
 				|| tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4' || tag === 'h5' || tag === 'h5' || tag === 'pre' || tag === 'label' || tag === 'option'
@@ -349,17 +364,7 @@ var _Dragndrop = {
 				nodeData.childContent = 'Initial text for ' + tag;
 			}
 		}
-		if (target.type !== 'Template' && (target.isContent || target.type === 'Comment')) {
-			if (tag === 'content' || tag === 'comment') {
-				_Logger.log(_LogType.DND, 'content element dropped on content or comment, doing nothing');
-			} else {
-				_Logger.log(_LogType.DND, 'wrap content', pageId, target.id, tag);
-				Command.wrapContent(pageId, target.id, tag);
-			}
-		} else {
-			Command.createAndAppendDOMNode(pageId, target.id, tag !== 'content' ? tag : '', nodeData);
-		}
-		return false;
+		return nodeData;
 	},
 	widgetDropped: function(source, target, pageId) {
 

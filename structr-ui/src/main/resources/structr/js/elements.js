@@ -303,7 +303,6 @@ var _Elements = {
 					});
 				});
 			});
-
 		}
 	},
 	reloadComponents: function() {
@@ -342,7 +341,6 @@ var _Elements = {
 
 			_Elements.appendEntitiesToDOMElement(result, components);
 			Structr.refreshPositionsForCurrentlyActiveSortable();
-
 		});
 	},
 	createComponent: function(el) {
@@ -861,7 +859,7 @@ var _Elements = {
 					var pageId = (entity.type === 'Page') ? entity.id : entity.pageId;
 					var tagName = (itemText === 'content') ? null : itemText;
 
-					Command.createAndAppendDOMNode(pageId, entity.id, tagName, {}, _Elements.isInheritVisibililtyFlagsChecked());
+					Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName), _Elements.isInheritVisibililtyFlagsChecked());
 				}
 
 				_Elements.removeContextMenu();
@@ -956,7 +954,7 @@ var _Elements = {
 			var pageId = isPage ? entity.id : entity.pageId;
 			var tagName = (itemText === 'content') ? null : itemText;
 
-			Command.createAndAppendDOMNode(pageId, entity.id, tagName, {}, _Elements.isInheritVisibililtyFlagsChecked());
+			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName), _Elements.isInheritVisibililtyFlagsChecked());
 		};
 
 		var handleWrapInHTMLAction = function (itemText) {
@@ -997,7 +995,7 @@ var _Elements = {
 			elements.push({
 				name: 'Insert div element',
 				clickHandler: function() {
-					Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', {}, _Elements.isInheritVisibililtyFlagsChecked());
+					Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', _Dragndrop.getAdditionalDataForElementCreation('div'), _Elements.isInheritVisibililtyFlagsChecked());
 					return false;
 				}
 			});
