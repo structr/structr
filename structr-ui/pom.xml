@@ -162,18 +162,6 @@
 			<artifactId>sshd-core</artifactId>
 			<version>1.2.0</version>
 		</dependency>
-		<!--		<dependency>
-			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>selenium-server</artifactId>
-			<version>3.8.1</version>
-			<scope>test</scope>
-		</dependency>-->
-		<dependency>
-			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>selenium-java</artifactId>
-			<version>3.8.1</version>
-			<scope>test</scope>
-		</dependency>
 		<dependency>
 			<groupId>com.google.javascript</groupId>
 			<artifactId>closure-compiler</artifactId>
@@ -208,14 +196,6 @@
 		</testResources>
 		<plugins>
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.4.0</version>
-				<configuration>
-					<executable>${basedir}/run_debug.sh</executable>
-				</configuration>
-			</plugin>
-			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.20.1</version>
@@ -223,6 +203,32 @@
 					<argLine>-Xms1g -Xmx4g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
 					<reuseForks>false</reuseForks>
 					<forkCount>1</forkCount>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.6.0</version>
+				<executions>
+					<execution>
+						<id>selenium-docker-tests</id>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<phase>integration-test</phase>
+					</execution>
+				</executions>
+				<configuration>
+					<executable>${seleniumTestDir}/test.sh</executable>
+					<arguments>
+						<argument>-t</argument>
+						<argument>${basedir}/src/test/selenium</argument>
+						<argument>-u</argument>
+						<argument>-v</argument>
+						<argument>${project.version}</argument>
+					</arguments>
+					<workingDirectory>${seleniumTestDir}</workingDirectory>
+					<skip>${skipTests}</skip>
 				</configuration>
 			</plugin>
 			<plugin>
