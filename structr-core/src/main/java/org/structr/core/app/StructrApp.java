@@ -61,6 +61,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.module.StructrModule;
@@ -523,16 +524,34 @@ public class StructrApp implements App {
 			}
 		}
 
-		if (key != null) {
+		if (key == null) {
 
-			return key;
+			key = new GenericProperty(name);
+
+			if (logMissing) {
+
+				logger.warn("Unknown property key {}.{}! Using generic property key. This may lead to conversion problems. If you encounter problems please report the following source of the call.", type.getSimpleName(), name);
+
+				try {
+
+					// output for first stack trace element "above" this class
+					for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+
+						if (ste.getClassName().equals(Thread.class.getCanonicalName()) || ste.getClassName().equals(StructrApp.class.getCanonicalName())) {
+							continue;
+						}
+
+						logger.warn("Source of this call: {}", ste.toString());
+						break;
+					}
+
+				} catch (SecurityException se) {
+					logger.warn("Unable to determine the stack source because the checkPermission flag is set.");
+				}
+			}
 		}
 
-		if (logMissing) {
-			logger.warn("Unknown property key {}.{}!", type.getSimpleName(), name);
-		}
-
-		return null;
+		return key;
 	}
 
 	@Override

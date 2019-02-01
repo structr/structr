@@ -33,6 +33,7 @@ import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.DateProperty;
@@ -242,24 +243,33 @@ public class ToCsvFunction extends UiFunction {
 
 			} else if (properties != null) {
 
-				if (obj instanceof GraphObject) {
+				if (obj instanceof GraphObjectMap) {
 
-					final GraphObject castedObj = (GraphObject)obj;
+					final Map convertedMap = ((GraphObjectMap)obj).toMap();
+
+					for (final String colName : properties) {
+						final Object value = convertedMap.get(colName);
+						isFirstCol = appendColumnString(row, value, isFirstCol, quoteChar, delimiterChar);
+					}
+
+				} else if (obj instanceof GraphObject) {
+
+					final GraphObject graphObj = (GraphObject)obj;
 
 					for (final String colName : properties) {
 						final PropertyKey key = StructrApp.key(obj.getClass(), colName);
-						final Object value = castedObj.getProperty(key);
+						final Object value = graphObj.getProperty(key);
 						isFirstCol = appendColumnString(row, value, isFirstCol, quoteChar, delimiterChar);
 					}
+
 				} else if (obj instanceof Map) {
 
-					final Map castedObj = (Map)obj;
+					final Map map = (Map)obj;
 
 					for (final String colName : properties) {
-						final Object value = castedObj.get(colName);
+						final Object value = map.get(colName);
 						isFirstCol = appendColumnString(row, value, isFirstCol, quoteChar, delimiterChar);
 					}
-
 				}
 			}
 
