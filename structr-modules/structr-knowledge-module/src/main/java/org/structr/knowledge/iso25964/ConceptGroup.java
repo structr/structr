@@ -20,7 +20,7 @@ package org.structr.knowledge.iso25964;
 
 import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.core.entity.Relation;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
@@ -44,7 +44,6 @@ public interface ConceptGroup extends NodeInterface {
 		type.addStringArrayProperty("conceptGroupType", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
 		type.addStringArrayProperty("notation", PropertyView.All, PropertyView.Ui).setIndexed(true);
 		
-		type.relate(concept, "hasAsMember", Relation.Cardinality.ManyToMany, "thesaurusConcepts", "conceptGroups");
-		
+		type.relate(concept, "hasAsMember", Cardinality.ManyToMany, "thesaurusConcepts", "conceptGroups");
 	}}
 }

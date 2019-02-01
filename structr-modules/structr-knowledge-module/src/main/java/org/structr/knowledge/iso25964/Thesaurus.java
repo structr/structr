@@ -21,6 +21,7 @@ package org.structr.knowledge.iso25964;
 import java.net.URI;
 import java.util.Locale;
 import org.structr.common.PropertyView;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
@@ -36,6 +37,7 @@ public interface Thesaurus extends NodeInterface {
 
 		final JsonSchema schema      = SchemaService.getDynamicSchema();
 		final JsonObjectType type    = schema.addType("Thesaurus");
+		final JsonObjectType group   = schema.addType("ConceptGroup");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Thesaurus"));
 
@@ -56,5 +58,7 @@ public interface Thesaurus extends NodeInterface {
 		type.addStringArrayProperty("subject", PropertyView.All, PropertyView.Ui).setIndexed(true);
 		type.addStringArrayProperty("title", PropertyView.All, PropertyView.Ui).setIndexed(true);
 		type.addStringArrayProperty("type", PropertyView.All, PropertyView.Ui).setIndexed(true);
+		
+		type.relate(group, "contains", Relation.Cardinality.ManyToMany, "conceptGroups", "thesaurus");
 	}}
 }
