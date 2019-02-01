@@ -1,0 +1,12 @@
+# test snippet for initialization and login
+
+open baseUrl "/structr"
+
+	setWindowSize "1900x1080"
+
+	# username and password must be defined
+	type id "usernameField" username
+	type id "passwordField" password
+	
+	click id "loginButton"
+
