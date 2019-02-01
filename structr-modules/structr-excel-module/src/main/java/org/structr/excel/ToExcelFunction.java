@@ -37,6 +37,7 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.DateProperty;
@@ -230,13 +231,24 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 			} else if (properties != null) {
 
-				if (obj instanceof GraphObject) {
+				if (obj instanceof GraphObjectMap) {
 
-					final GraphObject castedObj = (GraphObject)obj;
+					final Map convertedMap = ((GraphObjectMap)obj).toMap();
+
+					for (final String colName : properties) {
+						final Object value = convertedMap.get(colName);
+						cell = (XSSFCell)currentRow.createCell(cellCount++);
+
+						writeToCell(factory, drawing, cell, value, maxCellLength, overflowMode);
+					}
+
+				} else if (obj instanceof GraphObject) {
+
+					final GraphObject graphObj = (GraphObject)obj;
 
 					for (final String colName : properties) {
 						final PropertyKey key = StructrApp.key(obj.getClass(), colName);
-						final Object value = castedObj.getProperty(key);
+						final Object value = graphObj.getProperty(key);
 						cell = (XSSFCell)currentRow.createCell(cellCount++);
 
 						writeToCell(factory, drawing, cell, value, maxCellLength, overflowMode);
@@ -244,10 +256,10 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 				} else if (obj instanceof Map) {
 
-					final Map castedObj = (Map)obj;
+					final Map map = (Map)obj;
 
 					for (final String colName : properties) {
-						final Object value = castedObj.get(colName);
+						final Object value = map.get(colName);
 						cell = (XSSFCell)currentRow.createCell(cellCount++);
 
 						writeToCell(factory, drawing, cell, value, maxCellLength, overflowMode);
