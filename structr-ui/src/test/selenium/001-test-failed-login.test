@@ -50,4 +50,3 @@ define password "sehrgeheim"
 
 # reset password attempt count
 put get "/User" "result[0].id" "{ passwordAttempts: 0 }"
-

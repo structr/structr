@@ -1,0 +1,5 @@
+
+pause 100
+mouseOver class "submenu-trigger"
+pause 100
+click id "logout_"
