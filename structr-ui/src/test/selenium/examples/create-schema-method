@@ -1,5 +1,5 @@
 
-run "snippets/code.test"
+run "snippets/code"
 
 click text "Global Methods"
 click # 1 text "Add global schema method"
