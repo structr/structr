@@ -12,3 +12,6 @@ open baseUrl "/structr"
 	type id "passwordField" password
 	
 	click id "loginButton"
+
+	# wait for Ui to initialize..
+	pause 1000
