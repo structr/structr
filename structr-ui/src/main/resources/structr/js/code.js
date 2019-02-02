@@ -428,9 +428,9 @@ var _Code = {
 			case 'search-results':
 				{
 					var text          = $('#tree-search-input').val();
-					var searchResults = [];
+					var searchResults = {};
 					var count         = 0;
-					var collectFunction = function(result) { result.forEach(function(r) { searchResults.push(r); }); if (++count === 6) { displayFunction(searchResults, 0, true); }};
+					var collectFunction = function(result) { result.forEach(function(r) { searchResults[r.id] = r; }); if (++count === 6) { displayFunction(Object.values(searchResults), 0, true); }};
 					Command.query('SchemaNode',     methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
 					Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
 					Command.query('SchemaMethod',   methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
