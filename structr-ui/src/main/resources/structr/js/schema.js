@@ -124,6 +124,7 @@ var _Schema = {
 		+ '<option value="BooleanArray">Boolean[]</option>'
 		+ '<option value="Enum">Enum</option>'
 		+ '<option value="Date">Date</option>'
+		+ '<option value="DateArray">Date[]</option>'
 		+ '<option value="Count">Count</option>'
 		+ '<option value="Function" data-indexed="false">Function</option>'
 		+ '<option value="Notion">Notion</option>'
