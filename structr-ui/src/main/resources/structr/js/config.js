@@ -288,7 +288,6 @@ let initSearch = () => {
 			searchTimeout = window.setTimeout(() => {
 				let q = searchBox.value;
 				if (q && q.length >= 2) {
-					console.log('Searching for: ', searchBox.value);
 					doSearch(searchBox.value);
 				}
 			}, 250);
