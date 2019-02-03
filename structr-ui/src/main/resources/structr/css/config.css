@@ -197,35 +197,35 @@ button.active {
 }
 
 li.search-matches, li.search-matches.active {
-	background: #faa;
+	background: #81ce25;
 }
 
 label.search-matches {
-    color: #f77;
+    color: #81ce25;
 }
 
 label span.search-matches {
-    background: #f77;
+    background: #81ce25;
     border-radius: 12px;
     padding-right: 3px;
     padding-bottom: 1px;
 }
 
 input.search-matches {
-    border: 2px solid #f77;
+    border: 2px solid #81ce25;
 }
 
 button.search-matches {
-    border: 1px solid #f77 !important;
-    color: #f77;
+    border: 1px solid #81ce25 !important;
+    color: #81ce25;
 }
 
 select.search-matches {
-    border: 2px solid #f77;
+    border: 2px solid #81ce25;
 }
 
 select option.search-matches {
-	color: #f77;
+	color: #81ce25;
 }
 
 .no-search-match, li.no-search-match {
