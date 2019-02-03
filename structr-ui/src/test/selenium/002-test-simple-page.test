@@ -16,8 +16,8 @@ click id "saveAndClose"
 
 pause 2000
 
-# delete page
-mouseOver css "div.page.node > b"
-mouseOver css "div.page.node > i.delete_icon"
-click css "div.page.node > i.delete_icon"
-click class "yesButton"
+# clean up
+run "snippets/delete-first-page"
+
+# logout
+run "snippets/logout"

@@ -4,9 +4,14 @@ open baseUrl "/structr"
 
 	setWindowSize "1900x1080"
 
+	# make blur event work..
+	runScript "window.focus();"
+
 	# username and password must be defined
 	type id "usernameField" username
 	type id "passwordField" password
 	
 	click id "loginButton"
 
+	# wait for Ui to initialize..
+	pause 1000
