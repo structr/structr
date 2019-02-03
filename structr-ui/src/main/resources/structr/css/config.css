@@ -184,3 +184,50 @@ button.toggle-option {
 button.active {
 	background-color: #ccc !important;
 }
+
+
+#search-container {
+    position: absolute;
+    top: 16px;
+    left: 180px;
+}
+
+#search-box {
+    border-radius: 4px;
+}
+
+li.search-matches, li.search-matches.active {
+	background: #faa;
+}
+
+label.search-matches {
+    color: #f77;
+}
+
+label span.search-matches {
+    background: #f77;
+    border-radius: 12px;
+    padding-right: 3px;
+    padding-bottom: 1px;
+}
+
+input.search-matches {
+    border: 2px solid #f77;
+}
+
+button.search-matches {
+    border: 1px solid #f77 !important;
+    color: #f77;
+}
+
+select.search-matches {
+    border: 2px solid #f77;
+}
+
+select option.search-matches {
+	color: #f77;
+}
+
+.no-search-match, li.no-search-match {
+	display: none;
+}
