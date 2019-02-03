@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -178,22 +179,23 @@ public class SchemaHelper {
 		sortIndexMap.put(Type.IntegerArray, 1);
 		sortIndexMap.put(Type.DoubleArray,  2);
 		sortIndexMap.put(Type.StringArray,  3);
-		sortIndexMap.put(Type.LongArray,    4);
-		sortIndexMap.put(Type.Password,     5);
-		sortIndexMap.put(Type.Boolean,      6);
-		sortIndexMap.put(Type.Integer,      7);
-		sortIndexMap.put(Type.String,       8);
-		sortIndexMap.put(Type.Double,       9);
-		sortIndexMap.put(Type.Long,        10);
-		sortIndexMap.put(Type.Enum,        11);
-		sortIndexMap.put(Type.Date,        12);
-		sortIndexMap.put(Type.Function,    13);
-		sortIndexMap.put(Type.Cypher,      14);
-		sortIndexMap.put(Type.Count,       15);
-		sortIndexMap.put(Type.Custom,      16);
-		sortIndexMap.put(Type.Join,        17);
-		sortIndexMap.put(Type.IdNotion,    18);
-		sortIndexMap.put(Type.Notion,      19);
+		sortIndexMap.put(Type.DateArray,    4);
+		sortIndexMap.put(Type.LongArray,    5);
+		sortIndexMap.put(Type.Password,     6);
+		sortIndexMap.put(Type.Boolean,      7);
+		sortIndexMap.put(Type.Integer,      8);
+		sortIndexMap.put(Type.String,       9);
+		sortIndexMap.put(Type.Double,      10);
+		sortIndexMap.put(Type.Long,        11);
+		sortIndexMap.put(Type.Enum,        12);
+		sortIndexMap.put(Type.Date,        13);
+		sortIndexMap.put(Type.Function,    14);
+		sortIndexMap.put(Type.Cypher,      15);
+		sortIndexMap.put(Type.Count,       16);
+		sortIndexMap.put(Type.Custom,      17);
+		sortIndexMap.put(Type.Join,        18);
+		sortIndexMap.put(Type.IdNotion,    19);
+		sortIndexMap.put(Type.Notion,      20);
 
 		graphQLTypeMap.put(Type.Password, Scalars.GraphQLString);
 		graphQLTypeMap.put(Type.Boolean, Scalars.GraphQLBoolean);
@@ -1120,6 +1122,7 @@ public class SchemaHelper {
 		src.append("import ").append(PermissionPropagation.class.getName()).append(";\n");
 		src.append("import ").append(FrameworkException.class.getName()).append(";\n");
 		src.append("import ").append(DatePropertyParser.class.getName()).append(";\n");
+		src.append("import ").append(DateArrayPropertyParser.class.getName()).append(";\n");
 		src.append("import ").append(ModificationQueue.class.getName()).append(";\n");
 		src.append("import ").append(PropertyConverter.class.getName()).append(";\n");
 		src.append("import ").append(ValidationHelper.class.getName()).append(";\n");
@@ -1141,6 +1144,7 @@ public class SchemaHelper {
 		src.append("import ").append(View.class.getName()).append(";\n");
 		src.append("import ").append(List.class.getName()).append(";\n");
 		src.append("import ").append(Set.class.getName()).append(";\n");
+                src.append("import ").append(Date.class.getName()).append(";\n");
 
 		if (hasRestClasses()) {
 			src.append("import org.structr.rest.RestMethodResult;\n");
