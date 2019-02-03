@@ -19,20 +19,15 @@
 package org.structr.schema.parser;
 
 import java.util.Date;
-import java.util.Map;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.property.ArrayProperty;
-import org.structr.schema.Schema;
+import org.structr.core.property.DateArrayProperty;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
  *
  *
  */
-public class DateArrayPropertyParser extends PropertySourceGenerator {
+public class DateArrayPropertyParser extends IntPropertyParser {
 
 	public DateArrayPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
@@ -40,7 +35,7 @@ public class DateArrayPropertyParser extends PropertySourceGenerator {
 
 	@Override
 	public String getPropertyType() {
-		return ArrayProperty.class.getSimpleName().concat("<Date>");
+		return DateArrayProperty.class.getSimpleName();
 	}
 
 	@Override
@@ -50,26 +45,17 @@ public class DateArrayPropertyParser extends PropertySourceGenerator {
 
 	@Override
 	public String getUnqualifiedValueType() {
-		return "Date[]";
+		return "DateArray";
 	}
 
 	@Override
 	public String getPropertyParameters() {
-		return ", Date.class";
+		return "";
 	}
 
 	@Override
 	public Type getKey() {
 		return Type.DateArray;
-	}
-
-	@Override
-	public void parseFormatString(final Map<String, SchemaNode> schemaNodes, final Schema entity, final String expression) throws FrameworkException {
-
-		if ("[]".equals(expression)) {
-			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), source.getPropertyName(), expression, "invalid_validation_expression", "Empty validation expression."));
-			return;
-		}
 	}
 
 	@Override
