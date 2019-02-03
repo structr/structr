@@ -41,6 +41,6 @@ public interface VersionHistory extends NodeInterface {
 		type.addDateProperty("date", PropertyView.All, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("versionNote", PropertyView.All, PropertyView.Ui).setIndexed(true);
 		type.addBooleanProperty("currentVersion", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addBooleanProperty("thisVersion", PropertyView.All, PropertyView.Ui).setIndexed(true);
+		type.addBooleanProperty("thisVersion", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
 	}}
 }

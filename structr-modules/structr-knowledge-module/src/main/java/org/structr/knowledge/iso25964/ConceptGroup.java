@@ -37,6 +37,7 @@ public interface ConceptGroup extends NodeInterface {
 		
 		final JsonObjectType type    = schema.addType("ConceptGroup");
 		final JsonObjectType concept = schema.addType("ThesaurusConcept");
+		final JsonObjectType label   = schema.addType("ConceptGroupLabel");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ConceptGroup"));
 		
@@ -44,6 +45,8 @@ public interface ConceptGroup extends NodeInterface {
 		type.addStringArrayProperty("conceptGroupType", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
 		type.addStringArrayProperty("notation", PropertyView.All, PropertyView.Ui).setIndexed(true);
 		
+		type.relate(type, "hasSubGroup", Cardinality.ManyToMany, "subGroups", "superGroups");
 		type.relate(concept, "hasAsMember", Cardinality.ManyToMany, "thesaurusConcepts", "conceptGroups");
+		type.relate(label, "hasConceptGroupLabel", Cardinality.OneToMany, "conceptGroupLabels", "conceptGroup");
 	}}
 }

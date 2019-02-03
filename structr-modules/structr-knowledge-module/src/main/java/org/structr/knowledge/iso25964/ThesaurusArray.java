@@ -20,6 +20,7 @@ package org.structr.knowledge.iso25964;
 
 import java.net.URI;
 import org.structr.common.PropertyView;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
@@ -33,12 +34,19 @@ public interface ThesaurusArray extends NodeInterface {
 	static class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("ThesaurusArray");
-
+		
+		final JsonObjectType type    = schema.addType("ThesaurusArray");
+		final JsonObjectType label   = schema.addType("NodeLabel");
+		final JsonObjectType concept = schema.addType("ThesaurusConcept");
+		
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ThesaurusArray"));
 		
 		type.addStringProperty("identifier", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
 		type.addBooleanProperty("ordered", PropertyView.All, PropertyView.Ui).setDefaultValue("false").setRequired(true);
 		type.addStringArrayProperty("notation", PropertyView.All, PropertyView.Ui);
+		
+		type.relate(label,   "hasNodeLabel",     Cardinality.OneToMany, "nodeLabels", "thesaurusArray");
+		type.relate(type,    "hasMemberArray",   Cardinality.OneToMany, "memberArrays", "superOrdinateArray");
+		type.relate(concept, "hasMemberConcept", Cardinality.ManyToMany, "memberConcepts", "thesaurusArrays");
 	}}
 }

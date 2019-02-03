@@ -21,6 +21,7 @@ package org.structr.knowledge.iso25964;
 import java.net.URI;
 import java.util.Locale;
 import org.structr.common.PropertyView;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
@@ -35,7 +36,12 @@ public interface ThesaurusTerm extends NodeInterface {
 	static class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("ThesaurusTerm");
+		
+		final JsonObjectType type                = schema.addType("ThesaurusTerm");
+		final JsonObjectType customTermAttribute = schema.addType("CustomTermAttribute");
+		final JsonObjectType historyNote         = schema.addType("HistoryNote");
+		final JsonObjectType definition          = schema.addType("Definition");
+		final JsonObjectType editorialNote       = schema.addType("EditorialNote");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ThesaurusTerm"));
 
@@ -46,5 +52,10 @@ public interface ThesaurusTerm extends NodeInterface {
 		type.addStringProperty("source", PropertyView.All, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("status", PropertyView.All, PropertyView.Ui).setIndexed(true);
 		type.addEnumProperty("lang", PropertyView.All, PropertyView.Ui).setEnums(Locale.getISOLanguages());
+		
+		type.relate(customTermAttribute, "hasCustomTermAttribute", Cardinality.OneToMany, "customTermAttributes", "term");
+		type.relate(historyNote,         "hasHistoryNote",         Cardinality.OneToMany, "historyNotes",         "term");
+		type.relate(definition,          "hasDefiniton",           Cardinality.OneToMany, "definitions",          "term");
+		type.relate(editorialNote,       "hasEditorialNote",       Cardinality.OneToMany, "editorialNotes",       "term");
 	}}
 }

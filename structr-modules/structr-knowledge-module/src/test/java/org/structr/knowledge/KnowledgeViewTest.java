@@ -18,6 +18,10 @@
  */
 package org.structr.knowledge;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 import org.structr.web.common.TestHelper;
 
@@ -28,6 +32,28 @@ public class KnowledgeViewTest extends StructrKnowledgeModuleTest {
 	@Test
 	public void testViews() {
 
-		TestHelper.testViews(app, KnowledgeViewTest.class.getResourceAsStream("/views.properties"), null);
+		final Map<String, List<String>> additionalRequiredAttributes = new HashMap<>();
+		
+		additionalRequiredAttributes.put("ConceptGroup", Arrays.asList("identifier", "conceptGroupType"));
+		additionalRequiredAttributes.put("ConceptGroupLabel", Arrays.asList("lexicalValue"));
+		additionalRequiredAttributes.put("CustomConceptAttribute", Arrays.asList("lexicalValue", "customAttributeType"));
+		additionalRequiredAttributes.put("CustomNote", Arrays.asList("lexicalValue"));
+		additionalRequiredAttributes.put("CustomTermAttribute", Arrays.asList("lexicalValue", "customAttributeType"));
+		additionalRequiredAttributes.put("Definition", Arrays.asList("lexicalValue"));
+		additionalRequiredAttributes.put("EditorialNote", Arrays.asList("lexicalValue"));
+		additionalRequiredAttributes.put("NodeLabel", Arrays.asList("lexicalValue"));
+		additionalRequiredAttributes.put("Note", Arrays.asList("lexicalValue"));
+		additionalRequiredAttributes.put("PreferredTerm", Arrays.asList("lexicalValue", "identifier"));
+		additionalRequiredAttributes.put("ScopeNote", Arrays.asList("lexicalValue"));
+		additionalRequiredAttributes.put("SimpleNonPreferredTerm", Arrays.asList("lexicalValue", "identifier"));
+		additionalRequiredAttributes.put("SplitNonPreferredTerm", Arrays.asList("lexicalValue", "identifier"));
+		additionalRequiredAttributes.put("Thesaurus", Arrays.asList("identifier", "lang:lang"));
+		additionalRequiredAttributes.put("ThesaurusArray", Arrays.asList("identifier", "ordered"));
+		additionalRequiredAttributes.put("ThesaurusConcept", Arrays.asList("identifier"));
+		additionalRequiredAttributes.put("ThesaurusTerm", Arrays.asList("lexicalValue", "identifier"));
+		additionalRequiredAttributes.put("VersionHistory", Arrays.asList("thisVersion"));
+		
+		
+		TestHelper.testViews(app, KnowledgeViewTest.class.getResourceAsStream("/views.properties"), additionalRequiredAttributes);
 	}
 }

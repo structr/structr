@@ -20,9 +20,11 @@ package org.structr.knowledge.iso25964;
 
 import java.net.URI;
 import org.structr.common.PropertyView;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
 
 /**
@@ -32,12 +34,18 @@ public interface SimpleNonPreferredTerm extends NodeInterface {
 
 	static class Impl { static {
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("SimpleNonPreferredTerm");
+		final JsonSchema schema = SchemaService.getDynamicSchema();
 
+		final JsonObjectType type     = schema.addType("SimpleNonPreferredTerm");
+		final JsonObjectType prefTerm = schema.addType("PreferredTerm");
+		
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/SimpleNonPreferredTerm"));
 		type.setExtends(URI.create("#/definitions/ThesaurusTerm"));
 		
 		type.addBooleanProperty("hidden", PropertyView.All, PropertyView.Ui).setIndexed(true);
+		
+		final JsonReferenceType equivalence = type.relate(prefTerm, "USE", Cardinality.ManyToOne, "simpleNonPreferredTerms", "preferredTerm");
+		equivalence.addStringProperty("role", PropertyView.All, PropertyView.Ui).setIndexed(true);
+		
 	}}
 }

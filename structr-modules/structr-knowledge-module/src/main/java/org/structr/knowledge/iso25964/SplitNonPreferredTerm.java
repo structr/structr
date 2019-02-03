@@ -19,9 +19,11 @@
 package org.structr.knowledge.iso25964;
 
 import java.net.URI;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
 
 /**
@@ -32,9 +34,13 @@ public interface SplitNonPreferredTerm extends NodeInterface {
 	static class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("SplitNonPreferredTerm");
-
+		
+		final JsonObjectType type     = schema.addType("SplitNonPreferredTerm");
+		final JsonObjectType prefTerm = schema.addType("PreferredTerm");
+		
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/SplitNonPreferredTerm"));
 		type.setExtends(URI.create("#/definitions/ThesaurusTerm"));
+
+		final JsonReferenceType compoundEquivalence = type.relate(prefTerm, "USE", Relation.Cardinality.ManyToMany, "spiltNonPreferredTerms", "preferredTerms");
 	}}
 }

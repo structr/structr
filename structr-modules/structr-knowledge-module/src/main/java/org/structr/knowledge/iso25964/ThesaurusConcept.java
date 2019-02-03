@@ -20,10 +20,11 @@ package org.structr.knowledge.iso25964;
 
 import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.core.entity.Relation;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
 
 /**
@@ -35,19 +36,35 @@ public interface ThesaurusConcept extends NodeInterface {
 	static class Impl { static {
 
 		final JsonSchema schema            = SchemaService.getDynamicSchema();
-		final JsonObjectType type          = schema.addType("ThesaurusConcept");
-		final JsonObjectType group         = schema.addType("ConceptGroup");
-
+		
+		final JsonObjectType type                   = schema.addType("ThesaurusConcept");
+		final JsonObjectType simpleTerm             = schema.addType("SimpleNonPreferredTerm");
+		final JsonObjectType prefTerm               = schema.addType("PreferredTerm");
+		final JsonObjectType thesArray              = schema.addType("ThesaurusArray");
+		final JsonObjectType customConceptAttribute = schema.addType("CustomConceptAttribute");
+		final JsonObjectType customNote             = schema.addType("CustomNote");
+		final JsonObjectType scopeNote              = schema.addType("ScopeNote");
+		final JsonObjectType historyNote            = schema.addType("HistoryNote");
+		
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ThesaurusConcept"));
 		
-		type.addStringProperty("identifier", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addDateProperty("created", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addDateProperty("modified", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("status", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("notation", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addBooleanProperty("topConcept", PropertyView.All, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty(     "identifier", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
+		type.addDateProperty(       "created",    PropertyView.All, PropertyView.Ui).setIndexed(true);
+		type.addDateProperty(       "modified",   PropertyView.All, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty(     "status",     PropertyView.All, PropertyView.Ui).setIndexed(true);
+		type.addStringArrayProperty("notation",   PropertyView.All, PropertyView.Ui).setIndexed(true);
+		type.addBooleanProperty(    "topConcept", PropertyView.All, PropertyView.Ui).setIndexed(true);
 		
-		type.relate(group, "isMemberOfGroup", Relation.Cardinality.ManyToMany);
+		type.relate(type,                   "hasTopConcept",             Cardinality.ManyToMany, "topmostConcept",              "childConcepts");
+		type.relate(type,                   "hasRelatedConcept",         Cardinality.ManyToMany, "relatedConcepts",         "relatedConcepts");
+		type.relate(simpleTerm,             "hasNonPreferredLabel",      Cardinality.OneToMany,  "simpleNonPreferredTerms", "concepts");
+		type.relate(prefTerm,               "hasPreferredLabel",         Cardinality.OneToMany,  "preferredTerm",           "concepts");
+		type.relate(thesArray,              "hasSubordinateArray",       Cardinality.OneToMany,  "subordindateArrays",      "superordinatConcept");
+		final JsonReferenceType hierarchichalRelationship = type.relate(type, "hasHierRelConcept", Cardinality.ManyToMany, "childConcepts", "parentConcepts");
+		hierarchichalRelationship.addStringProperty("role", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
+		type.relate(customConceptAttribute, "hasCustomConceptAttribute", Cardinality.OneToMany,  "customConceptAttributes", "concept");
+		type.relate(customNote,             "hasCustomNote",             Cardinality.OneToMany,  "customNotes",             "concept");
+		type.relate(scopeNote,              "hasScopeNote",              Cardinality.OneToMany,  "scopeNotes",              "concept");
+		type.relate(historyNote,            "hasHistoryNote",            Cardinality.OneToMany,  "historyNotes",            "concept");
 	}}
-
 }
