@@ -245,7 +245,6 @@ let doSearch = (q) => {
 	// if any tabs are left, activate the first (if the currently active one is hidden)
 	let activeTabs = document.querySelectorAll('.tabs-menu li.active');
 	if (activeTabs.length > 0 && activeTabs[0].classList.contains(noHitClass)) {
-		console.log('change tab!');
 		let visibleTabLinks = document.querySelectorAll('.tabs-menu li.' + hitClass + ' a');
 		if (visibleTabLinks.length > 0) {
 			visibleTabLinks[0].click();
@@ -296,6 +295,14 @@ let initSearch = () => {
 			}, 250);
 		}
 	});
+
+	window.addEventListener("keydown",function (e) {
+		// capture ctrl-f or meta-f (mac) to activate search
+		if ((e.ctrlKey && e.keyCode === 70) || (e.metaKey && e.keyCode === 70)) {
+			e.preventDefault();
+			searchBox.focus();
+		}
+	})
 };
 
 document.addEventListener('DOMContentLoaded', initSearch);
