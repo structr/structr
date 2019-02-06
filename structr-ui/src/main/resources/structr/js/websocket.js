@@ -317,9 +317,7 @@ function wsConnect() {
 					obj = StructrModel.create(data.data, null, false);
 				}
 
-				obj = StructrModel.update(data);
-
-				StructrModel.callCallback(data.callback, obj);
+				StructrModel.update(data);
 
 			} else if (command === 'GET' || command === 'GET_RELATIONSHIP' || command === 'GET_PROPERTIES') {
 
