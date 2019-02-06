@@ -238,7 +238,7 @@ var StructrModel = {
 		if (obj && data.modifiedProperties && data.modifiedProperties.length) {
 
 			let refreshObj = function(obj, newProperties) {
-				Object.keys(obj).forEach(k => {
+				Object.keys(newProperties).forEach(k => {
 					obj[k] = newProperties[k];
 				});
 				StructrModel.refresh(obj.id);
@@ -249,10 +249,17 @@ var StructrModel = {
 				StructrModel.callCallback(data.callback, obj);
 			};
 
+			let refreshKeys = Object.keys(obj);
+			data.modifiedProperties.forEach((p) => {
+				if (!refreshKeys.includes(p)) {
+					refreshKeys.push(p);
+				}
+			});
+
 			if (data.relData && data.relData.sourceId) {
-				Command.getRelationship(data.id, data.relData.sourceId, Object.keys(obj).join(','), callback);
+				Command.getRelationship(data.id, data.relData.sourceId, refreshKeys.join(','), callback);
 			} else {
-				Command.get(data.id, Object.keys(obj).join(','), callback);
+				Command.get(data.id, refreshKeys.join(','), callback);
 			}
 		}
 
