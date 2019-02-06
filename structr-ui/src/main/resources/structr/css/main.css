@@ -350,7 +350,7 @@ img.disabled {
 	margin: 4px 25px 0 25px;
 }
 
-#previews::before {
+#previews.no-preview::before {
 	content: "- no preview selected -";
 	font-style: italic;
 	position: absolute;
