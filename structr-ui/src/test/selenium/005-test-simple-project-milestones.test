@@ -78,6 +78,7 @@ pause 500
 sendKeys "Project"
 pause 500
 click text "Project"
+pause 500
 click id "createProject"
 pause 100
 click id "createProject"
