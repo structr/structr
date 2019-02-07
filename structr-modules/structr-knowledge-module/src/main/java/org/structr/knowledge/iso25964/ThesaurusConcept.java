@@ -59,7 +59,7 @@ public interface ThesaurusConcept extends NodeInterface {
 		type.relate(type,                   "hasRelatedConcept",         Cardinality.ManyToMany, "relatedConcepts",         "relatedConcepts");
 		type.relate(simpleTerm,             "hasNonPreferredLabel",      Cardinality.OneToMany,  "simpleNonPreferredTerms", "concepts");
 		type.relate(prefTerm,               "hasPreferredLabel",         Cardinality.OneToMany,  "preferredTerm",           "concepts");
-		type.relate(thesArray,              "hasSubordinateArray",       Cardinality.OneToMany,  "subordindateArrays",      "superordinatConcept");
+		type.relate(thesArray,              "hasSubordinateArray",       Cardinality.OneToMany,  "subordinateArrays",      "superordinateConcept");
 		final JsonReferenceType hierarchichalRelationship = type.relate(type, "hasHierRelConcept", Cardinality.ManyToMany, "childConcepts", "parentConcepts");
 		hierarchichalRelationship.addStringProperty("role", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
 		type.relate(customConceptAttribute, "hasCustomConceptAttribute", Cardinality.OneToMany,  "customConceptAttributes", "concept");

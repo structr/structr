@@ -37,6 +37,7 @@ public interface Thesaurus extends NodeInterface {
 
 		final JsonSchema schema      = SchemaService.getDynamicSchema();
 		final JsonObjectType type    = schema.addType("Thesaurus");
+		final JsonObjectType concept = schema.addType("ThesaurusConcept");
 		final JsonObjectType array   = schema.addType("ThesaurusArray");
 		final JsonObjectType group   = schema.addType("ConceptGroup");
 		final JsonObjectType version = schema.addType("VersionHistory");
@@ -64,5 +65,6 @@ public interface Thesaurus extends NodeInterface {
 		type.relate(group,   "contains",   Cardinality.ManyToMany, "conceptGroups",   "thesaurus");
 		type.relate(version, "hasVersion", Cardinality.OneToMany,  "versions",        "thesaurus");
 		type.relate(array,   "contains",   Cardinality.OneToMany,  "thesaurusArrays", "thesaurus");
+		type.relate(concept, "contains",   Cardinality.OneToMany,  "concepts",        "thesaurus");
 	}}
 }
