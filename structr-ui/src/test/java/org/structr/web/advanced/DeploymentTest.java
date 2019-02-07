@@ -2066,6 +2066,25 @@ public class DeploymentTest extends StructrUiTest {
 		}
 	}
 
+	@Test
+	public void test45Schema() {
+
+		final String testName = "test45";
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+
+	}
+	
 	// ----- private methods -----
 	private void compare(final String sourceHash, final boolean deleteTestDirectory) {
 		compare(sourceHash, deleteTestDirectory, true);

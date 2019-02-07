@@ -65,7 +65,7 @@ public class SchemaSnapshotTest extends StructrUiTest {
 			customer.addEnumProperty("status", "public", "ui").setEnums("active", "retired", "none").setDefaultValue("active");
 			customer.addIntegerProperty("count", "public", "ui").setMinimum(1).setMaximum(10, true).setDefaultValue("5");
 			customer.addNumberProperty("number", "public", "ui").setMinimum(2.0, true).setMaximum(5.0, true).setDefaultValue("3.0");
-			customer.addLongProperty("loong", "public", "ui").setMinimum(20, true).setMaximum(50);
+			customer.addLongProperty("long", "public", "ui").setMinimum(20, true).setMaximum(50);
 			customer.addBooleanProperty("isCustomer", "public", "ui");
 			customer.addFunctionProperty("displayName", "public", "ui").setReadFunction("concat(this.name, '.', this.id)");
 			customer.addStringProperty("description", "public", "ui").setContentType("text/plain").setFormat("multi-line");
@@ -74,6 +74,7 @@ public class SchemaSnapshotTest extends StructrUiTest {
 			customer.addLongArrayProperty("longArray", "public", "ui").setMinimum(1, true).setMaximum(101, true);
 			customer.addDoubleArrayProperty("doubleArray", "public", "ui").setMinimum(2.0, true).setMaximum(102.0, true);
 			customer.addBooleanArrayProperty("booleanArray", "public", "ui");
+			customer.addDateArrayProperty("birthdayArray", "public", "ui");
 
 			// a project
 			final JsonObjectType project  = sourceSchema.addType("Project");
