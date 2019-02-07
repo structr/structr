@@ -31,8 +31,8 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
 
 /**
- * A migration handler that removes duplicate schema methods that remain when
- * the signature of a method changes in Structr code.
+ * A migration handler that removes old methods which signature is already
+ * defined in a another class.
  */
 public class RemoveMethodsWithUnusedSignature implements MigrationHandler {
 
