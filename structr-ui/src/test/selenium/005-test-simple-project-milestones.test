@@ -74,9 +74,9 @@ pause 500
 click text "Data"
 pause 2000
 click id "crudTypesSearch"
-pause 500
+pause 2000
 sendKeys "Project"
-pause 500
+pause 5000
 click text "Project"
 pause 5000
 click id "createProject"
