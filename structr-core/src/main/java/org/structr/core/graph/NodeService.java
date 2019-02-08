@@ -42,9 +42,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class NodeService implements SingletonService {
 
-	private static final Logger logger            = LoggerFactory.getLogger(NodeService.class.getName());
-	private static final String INITIAL_SEED_FILE = "seed.zip";
-
+	private static final Logger logger   = LoggerFactory.getLogger(NodeService.class.getName());
 	private DatabaseService graphDb      = null;
 	private Index<Node> nodeIndex        = null;
 	private Index<Relationship> relIndex = null;
@@ -117,7 +115,10 @@ public class NodeService implements SingletonService {
 			basePath = ".";
 		}
 
-		checkCacheSizes();
+		// don't check cache sizes when testing..
+		if (!Services.isTesting()) {
+			checkCacheSizes();
+		}
 	}
 
 	@Override
@@ -199,36 +200,39 @@ public class NodeService implements SingletonService {
 
 	public void createAdminUser() {
 
-		// do two very quick count queries to determine the number of Structr nodes in the database
-		final CountResult count           = getInitialCounts();
-		final long abstractNodeCount      = count.getAbstractNodeCount();
-		final long nodeInterfaceCount     = count.getNodeInterfaceCount();
-		final boolean hasApplicationNodes = abstractNodeCount == nodeInterfaceCount && abstractNodeCount > 0;
+		if (!Services.isTesting()) {
 
-		if (!hasApplicationNodes && !Services.isTesting()) {
+			// do two very quick count queries to determine the number of Structr nodes in the database
+			final CountResult count           = getInitialCounts();
+			final long abstractNodeCount      = count.getAbstractNodeCount();
+			final long nodeInterfaceCount     = count.getNodeInterfaceCount();
+			final boolean hasApplicationNodes = abstractNodeCount == nodeInterfaceCount && abstractNodeCount > 0;
 
-			logger.info("Creating initial user..");
+			if (!hasApplicationNodes) {
 
-			final Class userType = StructrApp.getConfiguration().getNodeEntityClass("User");
-			if (userType != null) {
+				logger.info("Creating initial user..");
 
-				final PropertyKey<Boolean> isAdminKey = StructrApp.key(userType, "isAdmin");
-				final PropertyKey<String> passwordKey = StructrApp.key(userType, "password");
-				final PropertyKey<String> nameKey     = StructrApp.key(userType, "name");
-				final App app                         = StructrApp.getInstance();
+				final Class userType = StructrApp.getConfiguration().getNodeEntityClass("User");
+				if (userType != null) {
 
-				try (final Tx tx = app.tx()) {
+					final PropertyKey<Boolean> isAdminKey = StructrApp.key(userType, "isAdmin");
+					final PropertyKey<String> passwordKey = StructrApp.key(userType, "password");
+					final PropertyKey<String> nameKey     = StructrApp.key(userType, "name");
+					final App app                         = StructrApp.getInstance();
 
-					app.create(userType,
-						new NodeAttribute<>(nameKey,     "admin"),
-						new NodeAttribute<>(passwordKey, "admin"),
-						new NodeAttribute<>(isAdminKey,  true)
-					);
+					try (final Tx tx = app.tx()) {
 
-					tx.success();
+						app.create(userType,
+							new NodeAttribute<>(nameKey,     "admin"),
+							new NodeAttribute<>(passwordKey, "admin"),
+							new NodeAttribute<>(isAdminKey,  true)
+						);
 
-				} catch (Throwable t) {
-					logger.warn("Unable to count number of nodes and relationships: {}", t.getMessage());
+						tx.success();
+
+					} catch (Throwable t) {
+						logger.warn("Unable to count number of nodes and relationships: {}", t.getMessage());
+					}
 				}
 			}
 		}
@@ -252,49 +256,6 @@ public class NodeService implements SingletonService {
 		}
 
 	}
-
-	/* disabled
-	private void importSeedFile(final String basePath) {
-
-		final File seedFile = new File(Settings.trim(basePath) + "/" + INITIAL_SEED_FILE);
-		if (seedFile.exists()) {
-
-			boolean hasApplicationNodes = false;
-
-			logger.info("Checking if seed file should be imported..");
-
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				final CountResult count = getInitialCounts();
-
-				// do two very quick count queries to determine the number of Structr nodes in the database
-				final long abstractNodeCount  = count.abstractNodeCount;
-				final long nodeInterfaceCount = count.nodeInterfaceCount;
-
-				hasApplicationNodes = abstractNodeCount == nodeInterfaceCount && abstractNodeCount > 0;
-
-				tx.success();
-
-			} catch (FrameworkException fex) { }
-
-			if (!hasApplicationNodes) {
-
-				logger.info("Found initial seed file and no application nodes, applying initial seed..");
-
-				try {
-
-					SyncCommand.importFromFile(graphDb, SecurityContext.getSuperUserInstance(), seedFile.getAbsoluteFile().getAbsolutePath(), false);
-
-				} catch (FrameworkException fex) {
-
-					logger.warn("Unable to import initial seed file.", fex);
-				}
-			}
-
-			logger.info("Done.");
-		}
-	}
-	*/
 
 	private int getCount(final String query, final String resultKey) {
 

@@ -24,7 +24,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-import org.apache.commons.lang.StringUtils;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
@@ -163,10 +162,9 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 	public boolean getBoolean(final String statement) {
 
-		final long t0 = System.currentTimeMillis();
-
 		try {
 
+			logQuery(statement);
 			return getBoolean(statement, Collections.EMPTY_MAP);
 
 		} catch (TransientException tex) {
@@ -176,8 +174,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
-		} finally {
-			logQuery(statement, t0);
 		}
 	}
 
@@ -187,6 +183,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
+			logQuery(statement, map);
 			return tx.run(statement, map).next().get(0).asBoolean();
 
 		} catch (TransientException tex) {
@@ -196,8 +193,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
-		} finally {
-			logQuery(statement, map, t0);
 		}
 	}
 
@@ -207,6 +202,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
+			logQuery(statement);
 			return getLong(statement, Collections.EMPTY_MAP);
 
 		} catch (TransientException tex) {
@@ -216,8 +212,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
-		} finally {
-			logQuery(statement, t0);
 		}
 	}
 
@@ -227,6 +221,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
+			logQuery(statement, map);
 			return tx.run(statement, map).next().get(0).asLong();
 
 		} catch (TransientException tex) {
@@ -236,8 +231,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
-		} finally {
-			logQuery(statement, map, t0);
 		}
 	}
 
@@ -247,6 +240,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
+			logQuery(statement, map);
 			final StatementResult result = tx.run(statement, map);
 			if (result.hasNext()) {
 
@@ -260,8 +254,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
-		} finally {
-			logQuery(statement, map, t0);
 		}
 
 		return null;
@@ -273,6 +265,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
+			logQuery(statement, map);
 			return tx.run(statement, map).next().get(0).asEntity();
 
 		} catch (TransientException tex) {
@@ -282,8 +275,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
-		} finally {
-			logQuery(statement, map, t0);
 		}
 	}
 
@@ -293,6 +284,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
+			logQuery(statement, map);
 			return tx.run(statement, map).next().get(0).asNode();
 
 		} catch (TransientException tex) {
@@ -302,8 +294,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
-		} finally {
-			logQuery(statement, map, t0);
 		}
 	}
 
@@ -313,6 +303,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
+			logQuery(statement, map);
 			return tx.run(statement, map).next().get(0).asRelationship();
 
 		} catch (TransientException tex) {
@@ -322,8 +313,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
-		} finally {
-			logQuery(statement, map, t0);
 		}
 	}
 
@@ -333,6 +322,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
+			logQuery(statement, map);
 			return Iterables.map(new RecordNodeMapper(), new IteratorWrapper<>(tx.run(statement, map)));
 
 		} catch (TransientException tex) {
@@ -342,8 +332,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
-		} finally {
-			logQuery(statement, map, t0);
 		}
 	}
 
@@ -353,6 +341,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
+			logQuery(statement, map);
 			return Iterables.map(new RecordRelationshipMapper(db), new IteratorWrapper<>(tx.run(statement, map)));
 
 		} catch (TransientException tex) {
@@ -362,8 +351,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
-		} finally {
-			logQuery(statement, map, t0);
 		}
 	}
 
@@ -373,6 +360,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
+			logQuery(statement, map);
 			return Iterables.map(new RecordNodeIdMapper(), new IteratorWrapper<>(tx.run(statement, map)));
 
 		} catch (TransientException tex) {
@@ -382,8 +370,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
-		} finally {
-			logQuery(statement, map, t0);
 		}
 	}
 
@@ -393,6 +379,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
+			logQuery(statement, map);
 			final StatementResult result = tx.run(statement, map);
 			final Record record          = result.next();
 			final Value value            = record.get(0);
@@ -406,8 +393,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
-		} finally {
-			logQuery(statement, map, t0);
 		}
 	}
 
@@ -417,6 +402,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
+			logQuery(statement, map);
 			return Iterables.map(new RecordMapMapper(db), new IteratorWrapper<>(tx.run(statement, map)));
 
 		} catch (TransientException tex) {
@@ -430,8 +416,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw SessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
 			throw SessionTransaction.translateClientException(cex);
-		} finally {
-			logQuery(statement, map, t0);
 		}
 	}
 
@@ -441,6 +425,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
+			logQuery(statement, map);
 			tx.run(statement, map).consume();
 
 		} catch (TransientException tex) {
@@ -454,35 +439,29 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw SessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
 			throw SessionTransaction.translateClientException(cex);
-		} finally {
-			logQuery(statement, map, t0);
 		}
 	}
 
-	public void logQuery(final String statement, final long t0) {
-		logQuery(statement, null, t0);
+	public void logQuery(final String statement) {
+		logQuery(statement, null);
 	}
 
-	public void logQuery(final String statement, final Map<String, Object> map, final long t0) {
+	public void logQuery(final String statement, final Map<String, Object> map) {
 
 		if (db.logQueries()) {
 
 			if (!isPing || db.logPingQueries()) {
 
-				final long time  = System.currentTimeMillis() - t0;
-				final String log = time + "ms";
-
 				if (map != null && map.size() > 0) {
 
-					System.out.print(StringUtils.leftPad(log, 5) + " ");
 					if (statement.contains("extractedContent")) {
 						System.out.println(statement + "\t\t SET on extractedContent - value suppressed");
 					} else {
 						System.out.println(statement + "\t\t Parameters: " + map.toString());
 					}
+
 				} else {
 
-					System.out.print(StringUtils.leftPad(log, 5) + " ");
 					System.out.println(statement);
 				}
 			}

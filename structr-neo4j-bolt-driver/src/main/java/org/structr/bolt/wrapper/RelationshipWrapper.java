@@ -67,29 +67,6 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 
 	@Override
 	public void onRemoveFromCache() {
-
-		/*
-		 * The below code causes nodes to be invalidated when the relationship
-		 * cache is undersized, which is an undesired side effect that
-		 * prevents the cache from working correctly.
-
-		try {
-
-			final NodeWrapper startNode = (NodeWrapper)getStartNode();
-			if (startNode != null) {
-
-				startNode.onRemoveFromCache();
-			}
-
-			final NodeWrapper endNode = (NodeWrapper)getEndNode();
-			if (endNode != null) {
-
-				endNode.onRemoveFromCache();
-			}
-
-		} catch (Throwable t) {}
-		*/
-
 		stale = true;
 	}
 

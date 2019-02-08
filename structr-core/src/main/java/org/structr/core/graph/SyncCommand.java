@@ -44,7 +44,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -52,7 +51,6 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.graph.Direction;
 import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
@@ -645,12 +643,20 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		final String uuidPropertyName   = GraphObject.id.dbName();
 		final Map<String, Node> uuidMap = new LinkedHashMap<>();
 		final Set<Long> deletedNodes    = new HashSet<>();
+		final Set<String> labels        = new LinkedHashSet<>();
 		double t0                       = System.nanoTime();
 		PropertyContainer currentObject = null;
 		String currentKey               = null;
 		boolean finished                = false;
 		long totalNodeCount             = 0;
 		long totalRelCount              = 0;
+
+		labels.add(NodeInterface.class.getSimpleName());
+
+		// add tenant identifier to all nodes
+		if (graphDb.getTenantIdentifier() != null) {
+			labels.add(graphDb.getTenantIdentifier());
+		}
 
 		do {
 
@@ -684,7 +690,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 								break;
 							}
 
-							currentObject = graphDb.createNode(Collections.EMPTY_SET, Collections.EMPTY_MAP);
+							currentObject = graphDb.createNode(labels, Collections.EMPTY_MAP);
 							nodeCount++;
 
 							// store for later use
@@ -921,147 +927,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			case 17:
 				outputStream.writeBoolean((boolean)value);
 				break;
-		}
-	}
-
-	private static boolean checkAndMerge(final NodeInterface node, final Set<Long> deletedNodes, final Set<Long> deletedRels) throws FrameworkException {
-
-		final Class type                        = node.getClass();
-		final String name                       = node.getName();
-		final List<NodeInterface> existingNodes = StructrApp.getInstance().nodeQuery(type).andName(name).getAsList();
-
-		for (NodeInterface existingNode : existingNodes) {
-
-			final Node sourceNode = node.getNode();
-			final Node targetNode = existingNode.getNode();
-
-			// skip newly created node
-			if (sourceNode.getId() == targetNode.getId()) {
-
-				continue;
-			}
-
-			logger.info("Found existing schema node {}, merging!", name);
-
-			copyProperties(sourceNode, targetNode);
-
-			// handle outgoing rels
-			for (final Relationship outRel : sourceNode.getRelationships(Direction.OUTGOING)) {
-
-				final Node otherNode      = outRel.getEndNode();
-				final Relationship newRel = targetNode.createRelationshipTo(otherNode, outRel.getType());
-
-				copyProperties(outRel, newRel);
-
-				// report deletion
-				deletedRels.add(outRel.getId());
-
-				// remove previous relationship
-				outRel.delete(true);
-
-				System.out.println("############################################ Deleting relationship " + outRel.getId());
-			}
-
-			// handle incoming rels
-			for (final Relationship inRel : sourceNode.getRelationships(Direction.INCOMING)) {
-
-				final Node otherNode      = inRel.getStartNode();
-				final Relationship newRel = otherNode.createRelationshipTo(targetNode, inRel.getType());
-
-				copyProperties(inRel, newRel);
-
-				// report deletion
-				deletedRels.add(inRel.getId());
-
-				// remove previous relationship
-				inRel.delete(true);
-
-				System.out.println("############################################ Deleting relationship " + inRel.getId());
-			}
-
-			// merge properties, views and methods
-			final Map<String, List<Node>> groupedNodes = groupByTypeAndName(Iterables.toList(Iterables.map(new EndNodes(), targetNode.getRelationships(Direction.OUTGOING))));
-			for (final List<Node> nodes : groupedNodes.values()) {
-
-				final int size = nodes.size();
-				if (size > 1) {
-
-					final Node groupTargetNode = nodes.get(0);
-
-					for (final Node groupSourceNode : nodes.subList(1, size)) {
-
-						copyProperties(groupSourceNode, groupTargetNode);
-
-						// delete relationships of merged node
-						for (final Relationship groupRel : groupSourceNode.getRelationships()) {
-							deletedRels.add(groupRel.getId());
-							groupRel.delete(true);
-						}
-
-						// delete merged node
-						deletedNodes.add(groupSourceNode.getId());
-						groupSourceNode.delete(true);
-
-						System.out.println("############################################ Deleting node " + groupSourceNode.getId());
-					}
-				}
-			}
-
-			// report deletion
-			deletedNodes.add(sourceNode.getId());
-
-			// delete
-			sourceNode.delete(true);
-
-			System.out.println("############################################ Deleting node " + sourceNode.getId());
-
-			return true;
-		}
-
-		return false;
-	}
-
-	private static void copyProperties(final PropertyContainer source, final PropertyContainer target) {
-
-		for (final String key : source.getPropertyKeys()) {
-
-			// skip id
-			if (!"id".equals(key)) {
-
-				target.setProperty(key, source.getProperty(key));
-			}
-		}
-	}
-
-	private static Map<String, List<Node>> groupByTypeAndName(final Iterable<Node> nodes) {
-
-		final Map<String, List<Node>> groupedNodes = new LinkedHashMap<>();
-
-		for (final Node node : nodes) {
-
-			if (node.hasProperty("name") && node.hasProperty("type")) {
-
-				final String typeAndName = node.getProperty("type") + "." + node.getProperty("name");
-				List<Node> nodeList      = groupedNodes.get(typeAndName);
-
-				if (nodeList == null) {
-
-					nodeList = new LinkedList<>();
-					groupedNodes.put(typeAndName, nodeList);
-				}
-
-				nodeList.add(node);
-			}
-		}
-
-		return groupedNodes;
-	}
-
-	private static class EndNodes implements Function<Relationship, Node> {
-
-		@Override
-		public Node apply(Relationship from) throws RuntimeException {
-			return from.getEndNode();
 		}
 	}
 }

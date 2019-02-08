@@ -18,7 +18,9 @@
  */
 package org.structr.api.util;
 
-import org.junit.Assert;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
+import org.testng.annotations.Test;
 
 /**
  *
@@ -28,7 +30,7 @@ public class FixedSizeCacheTest {
 	public FixedSizeCacheTest() {
 	}
 
-	@org.junit.Test
+	@Test
 	public void testFixedSizeCache() {
 
 		final FixedSizeCache<Long, Long> test = new FixedSizeCache<>(10);
@@ -39,20 +41,20 @@ public class FixedSizeCacheTest {
 			test.put(value, value);
 		}
 
-		Assert.assertEquals("Invalid FixedSizeCache size", 10, test.size());
+		assertEquals("Invalid FixedSizeCache size", 10, test.size());
 
 		// check that only the eldest entries are kept
 		for (int i=0; i<90; i++) {
 
 			final Long value = Long.valueOf(i);
-			Assert.assertNull("Invalid FixedSizeCache contents", test.get(value));
+			assertNull("Invalid FixedSizeCache contents", test.get(value));
 		}
 
 		// check that only the eldest entries are kept
 		for (int i=90; i<100; i++) {
 
 			final Long value = Long.valueOf(i);
-			Assert.assertEquals("Invalid FixedSizeCache contents", test.get(value), value);
+			assertEquals("Invalid FixedSizeCache contents", test.get(value), value);
 		}
 
 	}

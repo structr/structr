@@ -21,9 +21,9 @@ package org.structr.api.util;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import org.junit.Test;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
 public class RangesTest {
 

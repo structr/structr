@@ -22,9 +22,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Assert;
-import static org.junit.Assert.fail;
-import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Transaction;
@@ -33,6 +30,11 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.Iterables;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
 public class NodeWrapperTest {
 
@@ -105,7 +107,7 @@ public class NodeWrapperTest {
 		try (final Transaction tx = s.beginTx()) {
 
 			final Node node = s.getNodeById(id);
-			Assert.assertNotNull(node);
+			assertNotNull(node);
 
 			node.setProperty("name", "Test");
 
@@ -116,7 +118,7 @@ public class NodeWrapperTest {
 		try (final Transaction tx = s.beginTx()) {
 
 			final Node node = s.getNodeById(id);
-			Assert.assertNotNull(node);
+			assertNotNull(node);
 
 			node.setProperty("name", "Fail");
 		}
@@ -126,8 +128,8 @@ public class NodeWrapperTest {
 
 			final Node node = s.getNodeById(id);
 
-			Assert.assertNotNull(node);
-			Assert.assertEquals("Invalid setProperty result", "Test", node.getProperty("name"));
+			assertNotNull(node);
+			assertEquals("Invalid setProperty result", "Test", node.getProperty("name"));
 
 			tx.success();
 		}
@@ -137,7 +139,7 @@ public class NodeWrapperTest {
 
 			final Node node = s.getNodeById(id);
 
-			Assert.assertNotNull(node);
+			assertNotNull(node);
 
 			node.removeProperty("name");
 
@@ -149,8 +151,8 @@ public class NodeWrapperTest {
 
 			final Node node = s.getNodeById(id);
 
-			Assert.assertNotNull(node);
-			Assert.assertNull("Invalid removeProperty result", node.getProperty("name"));
+			assertNotNull(node);
+			assertNull("Invalid removeProperty result", node.getProperty("name"));
 
 			node.setProperty("key1", "value1");
 			node.setProperty("key2", 2);
@@ -158,9 +160,9 @@ public class NodeWrapperTest {
 			final Iterable<String> keys = node.getPropertyKeys();
 			final List<String> list     = Iterables.toList(keys);
 
-			Assert.assertEquals("Invalid getPropertyKeys result", 2, list.size());
-			Assert.assertEquals("Invalid getPropertyKeys result", "key1", list.get(0));
-			Assert.assertEquals("Invalid getPropertyKeys result", "key2", list.get(1));
+			assertEquals("Invalid getPropertyKeys result", 2, list.size());
+			assertEquals("Invalid getPropertyKeys result", "key1", list.get(0));
+			assertEquals("Invalid getPropertyKeys result", "key2", list.get(1));
 
 			tx.success();
 		}

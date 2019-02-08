@@ -18,12 +18,13 @@
  */
 package org.structr.odf;
 
-import org.junit.Test;
+import org.structr.test.web.StructrUiTest;
+import org.testng.annotations.Test;
 import org.structr.web.common.TestHelper;
 
 /**
  */
-public class ODFViewTest extends StructrODFModuleTest {
+public class ODFViewTest extends StructrUiTest {
 
 	@Test
 	public void testViews() {

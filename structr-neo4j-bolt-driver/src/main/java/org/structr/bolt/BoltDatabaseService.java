@@ -180,7 +180,10 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		NodeWrapper.clearCache();
 
 		driver.close();
-		graphDb.shutdown();
+		
+		if (graphDb != null) {
+			graphDb.shutdown();
+		}
 	}
 
 	@Override

@@ -18,8 +18,8 @@
  */
 package org.structr.api.config;
 
-import static org.junit.Assert.assertEquals;
-import org.junit.Test;
+import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.Test;
 
 public class BooleanSettingTest {
 
@@ -31,12 +31,12 @@ public class BooleanSettingTest {
 
 		// test invalid values that must not throw an exception
 		setting.fromString(null);
-		assertEquals("Setting should retain default value when given a null value", true, setting.getValue());
+		assertEquals("Setting should retain default value when given a null value", Boolean.TRUE, setting.getValue());
 
 		setting.fromString("");
-		assertEquals("Setting should contain empty value when given an empty value", false, setting.getValue());
+		assertEquals("Setting should contain empty value when given an empty value", Boolean.FALSE, setting.getValue());
 
 		setting.fromString("true");
-		assertEquals("Setting should contain new value when given a null value", true, setting.getValue());
+		assertEquals("Setting should contain new value when given a null value", Boolean.TRUE, setting.getValue());
 	}
 }

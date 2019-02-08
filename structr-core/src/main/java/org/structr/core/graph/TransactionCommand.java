@@ -523,7 +523,7 @@ public class TransactionCommand {
 	private static void assertSameTransaction(final GraphObject obj, final long currentTransactionId) {
 
 		final long nodeTransactionId = obj.getSourceTransactionId();
-		if (currentTransactionId != nodeTransactionId) {
+		if (!Services.isTesting() && currentTransactionId != nodeTransactionId) {
 
 			logger.warn("Possible leaking {} instance detected: created in transaction {}, modified in {}", obj.getClass().getSimpleName(), nodeTransactionId, currentTransactionId);
 			Thread.dumpStack();

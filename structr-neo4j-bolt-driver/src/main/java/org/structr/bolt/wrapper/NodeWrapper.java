@@ -351,10 +351,11 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 				final SessionTransaction tx   = db.getCurrentTransaction();
 				final Map<String, Object> map = new HashMap<>();
+				final String tenantIdentifier = getTenantIdentifer(db);
 
 				map.put("id", id);
 
-				final Iterable<org.neo4j.driver.v1.types.Node> result   = tx.getNodes("MATCH (n) WHERE ID(n) = {id} RETURN DISTINCT n", map);
+				final Iterable<org.neo4j.driver.v1.types.Node> result   = tx.getNodes(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = {id} RETURN DISTINCT n"), map);
 				final Iterator<org.neo4j.driver.v1.types.Node> iterator = result.iterator();
 
 				if (iterator.hasNext()) {
@@ -410,7 +411,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		return count;
 	}
 
-	private String concat(final String... parts) {
+	private static String concat(final String... parts) {
 
 		final StringBuilder buf = new StringBuilder();
 
@@ -426,7 +427,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		return buf.toString();
 	}
 
-	private String getTenantIdentifer(final BoltDatabaseService db) {
+	private static String getTenantIdentifer(final BoltDatabaseService db) {
 
 		final String identifier = db.getTenantIdentifier();
 

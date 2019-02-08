@@ -18,8 +18,8 @@
  */
 package org.structr.api.config;
 
-import static org.junit.Assert.assertEquals;
-import org.junit.Test;
+import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.Test;
 
 public class IntegerSettingTest {
 

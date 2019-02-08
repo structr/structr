@@ -18,49 +18,15 @@
  */
 package org.structr.geo;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
-import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.Services;
 import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.GenericNode;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.Relation;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyMap;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
 /**
  *
@@ -81,19 +47,19 @@ public class GeoTest {
 		try {
 
 			final Object result1 = func.apply(null, null, new Object[] { 53.85499997165232, 8.081674915658844 });
-			Assert.assertEquals("Invalid UTM conversion result", "32U 439596 5967780" , result1);
+			assertEquals("Invalid UTM conversion result", "32U 439596 5967780" , result1);
 
 			final Object result2 = func.apply(null, null, new Object[] { 51.319997116243364, 7.49998773689121 });
-			Assert.assertEquals("Invalid UTM conversion result", "32U 395473 5686479", result2);
+			assertEquals("Invalid UTM conversion result", "32U 395473 5686479", result2);
 
 			final Object result3 = func.apply(null, null, new Object[] { -38.96442577579118, 7.793498600057568 });
-			Assert.assertEquals("Invalid UTM conversion result", "32H 395473 5686479", result3);
+			assertEquals("Invalid UTM conversion result", "32H 395473 5686479", result3);
 
 			final Object result4 = func.apply(null, null, new Object[] { 51.319997116243364, -166.5000122631088});
-			Assert.assertEquals("Invalid UTM conversion result", "3U 395473 5686479", result4);
+			assertEquals("Invalid UTM conversion result", "3U 395473 5686479", result4);
 
 			final Object result5 = func.apply(null, null, new Object[] { -36.59789213337618, -164.5312529421211 });
-			Assert.assertEquals("Invalid UTM conversion result", "3H 541926 5949631", result5);
+			assertEquals("Invalid UTM conversion result", "3H 541926 5949631", result5);
 
 		} catch (FrameworkException fex) {
 			logger.warn("", fex);
@@ -206,7 +172,7 @@ public class GeoTest {
 			final GraphObjectMap result1 = (GraphObjectMap)utmLatLon.apply(null, null, new Object[] { sourceUTM });
 			final String result2         = (String)latLonUtm.apply(null, null, new Object[] { result1.getProperty(UTMToLatLonFunction.latitudeProperty), result1.getProperty(UTMToLatLonFunction.longitudeProperty) } );
 
-			Assert.assertEquals("Invalid UTM to lat/lon roundtrip result", sourceUTM, result2);
+			assertEquals("Invalid UTM to lat/lon roundtrip result", sourceUTM, result2);
 
 		} catch (FrameworkException fex) {
 			logger.warn("", fex);
@@ -226,8 +192,8 @@ public class GeoTest {
 			final String result1         = (String)latLonUtm.apply(null, null, new Object[] { latitude, longitude } );
 			final GraphObjectMap result2 = (GraphObjectMap)utmLatLon.apply(null, null, new Object[] { result1 } );
 
-			Assert.assertEquals("Invalid UTM to lat/lon roundtrip result", (Double)latitude,  result2.getProperty(UTMToLatLonFunction.latitudeProperty));
-			Assert.assertEquals("Invalid UTM to lat/lon roundtrip result", (Double)longitude, result2.getProperty(UTMToLatLonFunction.longitudeProperty));
+			assertEquals("Invalid UTM to lat/lon roundtrip result", (Double)latitude,  result2.getProperty(UTMToLatLonFunction.latitudeProperty));
+			assertEquals("Invalid UTM to lat/lon roundtrip result", (Double)longitude, result2.getProperty(UTMToLatLonFunction.longitudeProperty));
 
 		} catch (FrameworkException fex) {
 			logger.warn("", fex);
@@ -243,32 +209,32 @@ public class GeoTest {
 		try {
 
 			final Object result6 = func.apply(null, null, new Object[] { "32 N 439596 5967780" });
-			Assert.assertEquals("Invalid UTM conversion result", 53.85499997165232, get(result6, 0));
-			Assert.assertEquals("Invalid UTM conversion result", 8.081674915658844, get(result6, 1));
+			assertEquals("Invalid UTM conversion result", 53.85499997165232, get(result6, 0));
+			assertEquals("Invalid UTM conversion result", 8.081674915658844, get(result6, 1));
 
 			final Object result7 = func.apply(null, null, new Object[] { "32U 395473 5686479" });
-			Assert.assertEquals("Invalid UTM conversion result", 51.319997116243364, get(result7, 0));
-			Assert.assertEquals("Invalid UTM conversion result", 7.49998773689121, get(result7, 1));
+			assertEquals("Invalid UTM conversion result", 51.319997116243364, get(result7, 0));
+			assertEquals("Invalid UTM conversion result", 7.49998773689121, get(result7, 1));
 
 			final Object result8 = func.apply(null, null, new Object[] { "32 395473 5686479" });
-			Assert.assertEquals("Invalid UTM conversion result", 51.319997116243364, get(result8, 0));
-			Assert.assertEquals("Invalid UTM conversion result", 7.49998773689121, get(result8, 1));
+			assertEquals("Invalid UTM conversion result", 51.319997116243364, get(result8, 0));
+			assertEquals("Invalid UTM conversion result", 7.49998773689121, get(result8, 1));
 
 			final Object result9 = func.apply(null, null, new Object[] { "32H 395473 5686479" });
-			Assert.assertEquals("Invalid UTM conversion result", -38.96442577579118, get(result9, 0));
-			Assert.assertEquals("Invalid UTM conversion result", 7.793498600057568, get(result9, 1));
+			assertEquals("Invalid UTM conversion result", -38.96442577579118, get(result9, 0));
+			assertEquals("Invalid UTM conversion result", 7.793498600057568, get(result9, 1));
 
 			final Object result10 = func.apply(null, null, new Object[] { "3U 395473 5686479" });
-			Assert.assertEquals("Invalid UTM conversion result", 51.319997116243364, get(result10, 0));
-			Assert.assertEquals("Invalid UTM conversion result", -166.5000122631088, get(result10, 1));
+			assertEquals("Invalid UTM conversion result", 51.319997116243364, get(result10, 0));
+			assertEquals("Invalid UTM conversion result", -166.5000122631088, get(result10, 1));
 
 			final Object result11 = func.apply(null, null, new Object[] { "3 395473 5686479" });
-			Assert.assertEquals("Invalid UTM conversion result", 51.319997116243364, get(result11, 0));
-			Assert.assertEquals("Invalid UTM conversion result", -166.5000122631088, get(result11, 1));
+			assertEquals("Invalid UTM conversion result", 51.319997116243364, get(result11, 0));
+			assertEquals("Invalid UTM conversion result", -166.5000122631088, get(result11, 1));
 
 			final Object result12 = func.apply(null, null, new Object[] { "3H 541926 5949631" });
-			Assert.assertEquals("Invalid UTM conversion result", -36.59789213337618, get(result12, 0));
-			Assert.assertEquals("Invalid UTM conversion result", -164.5312529421211, get(result12, 1));
+			assertEquals("Invalid UTM conversion result", -36.59789213337618, get(result12, 0));
+			assertEquals("Invalid UTM conversion result", -164.5312529421211, get(result12, 1));
 
 
 
@@ -294,352 +260,5 @@ public class GeoTest {
 		}
 
 		return null;
-	}
-
-	@Rule
-	public TestRule watcher = new TestWatcher() {
-
-		@Override
-		protected void starting(Description description) {
-
-			System.out.println("######################################################################################");
-			System.out.println("# Starting " + getClass().getSimpleName() + "#" + description.getMethodName());
-			System.out.println("######################################################################################");
-		}
-
-		@Override
-		protected void finished(Description description) {
-
-			System.out.println("######################################################################################");
-			System.out.println("# Finished " + getClass().getSimpleName() + "#" + description.getMethodName());
-			System.out.println("######################################################################################");
-		}
-	};
-
-	/**
-	 * Recursive method used to find all classes in a given directory and
-	 * subdirs.
-	 *
-	 * @param directory The base directory
-	 * @param packageName The package name for classes found inside the base
-	 * directory
-	 * @return The classes
-	 * @throws ClassNotFoundException
-	 */
-	private static List<Class> findClasses(File directory, String packageName) throws ClassNotFoundException {
-
-		List<Class> classes = new ArrayList<>();
-
-		if (!directory.exists()) {
-
-			return classes;
-		}
-
-		File[] files = directory.listFiles();
-
-		for (File file : files) {
-
-			if (file.isDirectory()) {
-
-				assert !file.getName().contains(".");
-
-				classes.addAll(findClasses(file, packageName + "." + file.getName()));
-
-			} else if (file.getName().endsWith(".class")) {
-
-				classes.add(Class.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6)));
-			}
-
-		}
-
-		return classes;
-
-	}
-
-	protected <T extends AbstractNode> List<T> createTestNodes(final Class<T> type, final int number, final long delay) throws FrameworkException {
-
-		try (final Tx tx = app.tx()) {
-
-			List<T> nodes = new LinkedList<>();
-
-			for (int i = 0; i < number; i++) {
-
-				nodes.add(app.create(type));
-
-				try {
-					Thread.sleep(delay);
-				} catch (InterruptedException ex) {
-				}
-			}
-
-			tx.success();
-
-			return nodes;
-
-		} catch (Throwable t) {
-
-			logger.warn("", t);
-		}
-
-		return null;
-	}
-
-	protected <T extends AbstractNode> List<T> createTestNodes(final Class<T> type, final int number) throws FrameworkException {
-
-		return createTestNodes(type, number, 0);
-
-	}
-
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type) throws FrameworkException {
-		return (T) createTestNode(type, new PropertyMap());
-	}
-
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final String name) throws FrameworkException {
-
-		final PropertyMap map = new PropertyMap();
-
-		map.put(AbstractNode.name, name);
-
-		return (T) createTestNode(type, map);
-	}
-
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PropertyMap props) throws FrameworkException {
-
-		props.put(AbstractNode.type, type.getSimpleName());
-
-		try (final Tx tx = app.tx()) {
-
-			final T newNode = app.create(type, props);
-
-			tx.success();
-
-			return newNode;
-		}
-
-	}
-
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final NodeAttribute... attributes) throws FrameworkException {
-
-		try (final Tx tx = app.tx()) {
-
-			final T newNode = app.create(type, attributes);
-
-			tx.success();
-
-			return newNode;
-		}
-
-	}
-
-	protected <T extends Relation> List<T> createTestRelationships(final Class<T> relType, final int number) throws FrameworkException {
-
-		List<GenericNode> nodes = createTestNodes(GenericNode.class, 2);
-		final NodeInterface startNode = nodes.get(0);
-		final NodeInterface endNode = nodes.get(1);
-
-		try (final Tx tx = app.tx()) {
-
-			List<T> rels = new LinkedList<>();
-
-			for (int i = 0; i < number; i++) {
-
-				rels.add((T) app.create(startNode, endNode, relType));
-			}
-
-			tx.success();
-
-			return rels;
-		}
-
-	}
-
-	protected <T extends Relation> T createTestRelationship(final AbstractNode startNode, final AbstractNode endNode, final Class<T> relType) throws FrameworkException {
-
-		try (final Tx tx = app.tx()) {
-
-			final T rel = (T) app.create(startNode, endNode, relType);
-
-			tx.success();
-
-			return rel;
-		}
-	}
-
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final Principal owner) throws FrameworkException {
-		return (T)createTestNode(type, new PropertyMap(), owner);
-	}
-
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PropertyMap props, final Principal owner) throws FrameworkException {
-
-		final App backendApp = StructrApp.getInstance(SecurityContext.getInstance(owner, AccessMode.Backend));
-
-		try (final Tx tx = backendApp.tx()) {
-
-			final T result = backendApp.create(type, props);
-			tx.success();
-
-			return result;
-		}
-	}
-
-	protected void assertNodeExists(final String nodeId) throws FrameworkException {
-		assertNotNull(app.getNodeById(nodeId));
-
-	}
-
-	protected void assertNodeNotFound(final String nodeId) throws FrameworkException {
-		assertNull(app.getNodeById(nodeId));
-	}
-
-	protected <T> List<T> toList(T... elements) {
-		return Arrays.asList(elements);
-	}
-
-	protected Map<String, Object> toMap(final String key1, final Object value1) {
-		return toMap(key1, value1, null, null);
-	}
-
-	protected Map<String, Object> toMap(final String key1, final Object value1, final String key2, final Object value2) {
-		return toMap(key1, value1, key2, value2, null, null);
-	}
-
-	protected Map<String, Object> toMap(final String key1, final Object value1, final String key2, final Object value2, final String key3, final Object value3) {
-
-		final Map<String, Object> map = new LinkedHashMap<>();
-
-		if (key1 != null && value1 != null) {
-			map.put(key1, value1);
-		}
-
-		if (key2 != null && value2 != null) {
-			map.put(key2, value2);
-		}
-
-		if (key3 != null && value3 != null) {
-			map.put(key3, value3);
-		}
-
-		return map;
-	}
-
-	/**
-	 * Get classes in given package and subpackages, accessible from the
-	 * context class loader
-	 *
-	 * @param packageName The base package
-	 * @return The classes
-	 * @throws ClassNotFoundException
-	 * @throws IOException
-	 */
-	protected static List<Class> getClasses(String packageName) throws ClassNotFoundException, IOException {
-
-		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-
-		assert classLoader != null;
-
-		String path = packageName.replace('.', '/');
-		Enumeration<URL> resources = classLoader.getResources(path);
-		List<File> dirs = new ArrayList<>();
-
-		while (resources.hasMoreElements()) {
-
-			URL resource = resources.nextElement();
-
-			dirs.add(new File(resource.getFile()));
-
-		}
-
-		List<Class> classList = new ArrayList<>();
-
-		for (File directory : dirs) {
-
-			classList.addAll(findClasses(directory, packageName));
-		}
-
-		return classList;
-
-	}
-
-	@After
-	public void cleanDatabase() {
-
-		try (final Tx tx = app.tx()) {
-
-			for (final NodeInterface node : app.nodeQuery().getAsList()) {
-				app.delete(node);
-			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			 logger.error("Exception while trying to clean database: {}", fex);
-		}
-	}
-
-	@BeforeClass
-	public static void startSystem() {
-		startSystem(Collections.emptyMap());
-	}
-
-	public static void startSystem(final Map<String, Object> additionalConfig) {
-
-		final Date now          = new Date();
-		final long timestamp    = now.getTime();
-
-		basePath = "/tmp/structr-test-" + timestamp;
-
-		Settings.Services.setValue("NodeService SchemaService HttpService");
-		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
-
-		// example for new configuration setup
-		Settings.BasePath.setValue(basePath);
-		Settings.DatabasePath.setValue(basePath + "/db");
-		Settings.FilesPath.setValue(basePath + "/files");
-
-		Settings.RelationshipCacheSize.setValue(1000);
-		Settings.NodeCacheSize.setValue(1000);
-
-		Settings.SuperUserName.setValue("superadmin");
-		Settings.SuperUserPassword.setValue("sehrgeheim");
-
-		Settings.ApplicationTitle.setValue("structr unit test app" + timestamp);
-
-		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet");
-
-		final Services services = Services.getInstance();
-
-		// wait for service layer to be initialized
-		do {
-			try {
-				Thread.sleep(100);
-			} catch (Throwable t) {
-			}
-
-		} while (!services.isInitialized());
-
-		securityContext = SecurityContext.getSuperUserInstance();
-		app = StructrApp.getInstance(securityContext);
-	}
-
-	@AfterClass
-	public static void stopSystem() {
-
-		Services.getInstance().shutdown();
-
-		try {
-			File testDir = new File(basePath);
-			if (testDir.isDirectory()) {
-
-				FileUtils.deleteDirectory(testDir);
-
-			} else {
-
-				testDir.delete();
-			}
-
-		} catch (Throwable t) {
-			logger.warn("", t);
-		}
 	}
 }

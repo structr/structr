@@ -288,7 +288,7 @@ public class Settings {
 
 	// deployment export/import settings
 	public static final Setting<Boolean> ExportFileUuids       = new BooleanSetting(deploymentGroup, "Deployment Settings", "deployment.export.exportFileUuids", true, "Export UUIDs of File nodes and all inherting classes. Default is true");
-	
+
 	// cron settings
 	public static final Setting<String> CronTasks              = new StringSetting(cronGroup,  "CronService.tasks", "");
 

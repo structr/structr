@@ -167,7 +167,7 @@ public class Iterables {
 		return addAll(new LinkedHashSet<>(), iterable);
 	}
 
-	private static class MapIterable<S, T> implements Iterable<T> {
+	private static class MapIterable<S, T> implements Iterable<T>, AutoCloseable {
 
 		private final Iterable<S> from;
 		private final Function<? super S, ? extends T> function;
@@ -188,7 +188,22 @@ public class Iterables {
 			return iterator;
 		}
 
-		static class MapIterator<S, T> implements Iterator<T> {
+		@Override
+		public void close() {
+
+			if (iterator instanceof AutoCloseable) {
+
+				try {
+					((AutoCloseable)iterator).close();
+
+				} catch (Throwable t) {
+
+					t.printStackTrace();
+				}
+			}
+		}
+
+		static class MapIterator<S, T> implements Iterator<T>, AutoCloseable {
 
 			private final Function<? super S, ? extends T> function;
 			private final Iterator<S> fromIterator;
@@ -215,10 +230,25 @@ public class Iterables {
 			public void remove() {
 				fromIterator.remove();
 			}
+
+			@Override
+			public void close() {
+
+				if (fromIterator instanceof AutoCloseable) {
+
+					try {
+						((AutoCloseable)fromIterator).close();
+
+					} catch (Throwable t) {
+
+						t.printStackTrace();
+					}
+				}
+			}
 		}
 	}
 
-	private static class FilterIterable<T> implements Iterable<T> {
+	private static class FilterIterable<T> implements Iterable<T>, AutoCloseable {
 
 		private final Predicate<? super T> specification;
 		private final Iterable<T> iterable;
@@ -240,7 +270,22 @@ public class Iterables {
 			return iterator;
 		}
 
-		static class FilterIterator<T> implements Iterator<T> {
+		@Override
+		public void close() {
+
+			if (iterator instanceof AutoCloseable) {
+
+				try {
+					((AutoCloseable)iterator).close();
+
+				} catch (Throwable t) {
+
+					t.printStackTrace();
+				}
+			}
+		}
+
+		static class FilterIterator<T> implements Iterator<T>, AutoCloseable {
 
 			private final Predicate<? super T> specification;
 			private final Iterator<T> iterator;
@@ -309,10 +354,25 @@ public class Iterables {
 			public void remove() {
 				throw new UnsupportedOperationException("This iterator does not support removal of elements");
 			}
+
+			@Override
+			public void close() {
+
+				if (iterator instanceof AutoCloseable) {
+
+					try {
+						((AutoCloseable)iterator).close();
+
+					} catch (Throwable t) {
+
+						t.printStackTrace();
+					}
+				}
+			}
 		}
 	}
 
-	private static class FlatteningIterable<T> implements Iterable<T> {
+	private static class FlatteningIterable<T> implements Iterable<T>, AutoCloseable {
 
 		private Iterator<Iterable<T>> source = null;
 		private Iterator<T> current          = null;
@@ -358,6 +418,21 @@ public class Iterables {
 			}
 
 			return iterator;
+		}
+
+		@Override
+		public void close() {
+
+			if (source instanceof AutoCloseable) {
+
+				try {
+					((AutoCloseable)source).close();
+
+				} catch (Throwable t) {
+
+					t.printStackTrace();
+				}
+			}
 		}
 	}
 }

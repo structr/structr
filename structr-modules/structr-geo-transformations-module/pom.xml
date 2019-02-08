@@ -48,11 +48,9 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<type>jar</type>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
 			<scope>test</scope>
-			<optional>false</optional>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
