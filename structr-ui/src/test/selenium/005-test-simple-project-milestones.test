@@ -52,6 +52,7 @@ click text "Initial body text"
 pause 500
 runScript "window.editor.setValue('${project.name}');"
 click id "saveAndClose"
+pause 1000
 
 # configure repeater
 mouseOver text "div"
