@@ -224,6 +224,16 @@ let doSearch = (q) => {
 			hitInTab = hitInTab || hitInFormGroup;
 		});
 
+		let servicesTable = tab.querySelector('#services-table');
+		if (servicesTable) {
+			servicesTable.querySelectorAll('td:first-of-type').forEach((td) => {
+				if (containsIgnoreCase(td.textContent, q)) {
+					hitInTab = true;
+					td.classList.add(hitClass);
+				}
+			});
+		}
+
 		let liElement = tabLink.parentNode;
 
 		if (hitInTab) {
@@ -259,50 +269,56 @@ let containsIgnoreCase = (haystack, needle) => {
 };
 
 let initSearch = () => {
-	let header = document.getElementById('header');
 
-	let searchContainer = document.createElement('div');
-	searchContainer.id = 'search-container';
+	let isLogin = document.getElementById('login');
 
-	let searchBox = document.createElement('input');
-	searchBox.id = 'search-box';
-	searchBox.placeholder = 'Search config...';
+	if (!isLogin) {
 
-	searchContainer.appendChild(searchBox);
-	header.appendChild(searchContainer);
+		let header = document.getElementById('header');
 
-	let searchTimeout;
+		let searchContainer = document.createElement('div');
+		searchContainer.id = 'search-container';
 
-	searchBox.addEventListener('keyup', (x) => {
+		let searchBox = document.createElement('input');
+		searchBox.id = 'search-box';
+		searchBox.placeholder = 'Search config...';
 
-		if (x.keyCode === 27) {
+		searchContainer.appendChild(searchBox);
+		header.appendChild(searchContainer);
 
-			clearSearch();
-			searchBox.value = '';
+		let searchTimeout;
 
-		} else {
+		searchBox.addEventListener('keyup', (x) => {
 
-			window.clearTimeout(searchTimeout);
+			if (x.keyCode === 27) {
 
-			searchTimeout = window.setTimeout(() => {
-				let q = searchBox.value;
+				clearSearch();
+				searchBox.value = '';
 
-				if (q.length == 0) {
-					clearSearch();
-				} else if (q.length >= 2) {
-					doSearch(searchBox.value);
-				}
-			}, 250);
-		}
-	});
+			} else {
 
-	window.addEventListener("keydown",function (e) {
-		// capture ctrl-f or meta-f (mac) to activate search
-		if ((e.ctrlKey && e.keyCode === 70) || (e.metaKey && e.keyCode === 70)) {
-			e.preventDefault();
-			searchBox.focus();
-		}
-	})
+				window.clearTimeout(searchTimeout);
+
+				searchTimeout = window.setTimeout(() => {
+					let q = searchBox.value;
+
+					if (q.length == 0) {
+						clearSearch();
+					} else if (q.length >= 2) {
+						doSearch(searchBox.value);
+					}
+				}, 250);
+			}
+		});
+
+		window.addEventListener("keydown",function (e) {
+			// capture ctrl-f or meta-f (mac) to activate search
+			if ((e.ctrlKey && e.keyCode === 70) || (e.metaKey && e.keyCode === 70)) {
+				e.preventDefault();
+				searchBox.focus();
+			}
+		});
+	}
 };
 
 document.addEventListener('DOMContentLoaded', initSearch);

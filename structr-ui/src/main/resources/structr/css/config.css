@@ -196,8 +196,12 @@ button.active {
     border-radius: 4px;
 }
 
-li.search-matches, li.search-matches.active {
+li.search-matches.active {
 	background: #81ce25;
+}
+
+li.search-matches {
+	background: #b5e27f;
 }
 
 label.search-matches {
@@ -226,6 +230,11 @@ select.search-matches {
 
 select option.search-matches {
 	color: #81ce25;
+}
+
+td.search-matches {
+	color: #81ce25;
+	font-weight: bold;
 }
 
 .no-search-match, li.no-search-match {
