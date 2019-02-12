@@ -147,6 +147,15 @@ public class DeployDataCommand extends NodeServiceCommand implements Maintenance
 			propertyNames.add(propertyName.trim());
 		}
 
+		if (!propertyNames.contains("id")) {
+			propertyNames.add("id");
+			info("id attribute is required - adding it");
+		}
+
+		if (!propertyNames.contains("type")) {
+			propertyNames.add("type");
+			info("type attribute is required - adding it");
+		}
 
 		final Path target  = Paths.get(path);
 
