@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -62,12 +63,12 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.Security;
 import org.structr.core.entity.SixOneManyToMany;
 import org.structr.core.entity.SixOneOneToOne;
 import org.structr.core.entity.SixThreeOneToMany;
-import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestNine;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSeven;
@@ -247,320 +248,654 @@ public class BasicTest extends StructrTest {
 	}
 
 	/**
-	 * DELETE_NONE should not trigger any delete cascade
+	 * Relation.NONE should not trigger any delete cascade
 	 */
 	@Test
 	public void test03CascadeDeleteNone() {
 
-		/* this test is flawed in that it expects the cascading
-		 * not to take place but expects to run without an
-		 * exception, but deleting one node of the two will leave
-		 * the other (TestTwo) in an invalid state according
-		 * to its isValid() method!
-		try {
+		cleanDatabaseAndSchema();
 
-			// Create a relationship with DELETE_NONE
-			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, Relation.DELETE_NONE);
-			AbstractNode startNode   = rel.getStartNode();
-			AbstractNode endNode     = rel.getEndNode();
-			final String startNodeId = startNode.getUuid();
-			final String endNodeId   = endNode.getUuid();
-			boolean exception        = false;
+		// setup
+		try (final Tx tx = app.tx()) {
 
-			deleteCascade(startNode);
-			assertNodeNotFound(startNodeId);
-			assertNodeExists(endNodeId);
+			final SchemaNode t1 = app.create(SchemaNode.class, "Type1");
+			final SchemaNode t2 = app.create(SchemaNode.class, "Type2");
 
-			// Create another relationship with DELETE_NONE
-			rel = cascadeRel(TestOne.class, TestTwo.class, Relation.DELETE_NONE);
+			app.create(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, t1),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, t2),
+				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "REL"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "source"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "target"),
+				new NodeAttribute<>(SchemaRelationshipNode.cascadingDeleteFlag, Long.valueOf(Relation.NONE))
+			);
 
-			try {
-				deleteCascade(rel.getEndNode());
+			tx.success();
 
-			} catch (FrameworkException fex) {
+		} catch (FrameworkException fex) {
 
-				assertEquals(422, fex.getStatus());
-				exception = true;
-			}
-
-			assertTrue("Exception should be raised", exception);
-
-		} catch (FrameworkException ex) {
-
-			logger.warn("", ex);
-
-			logger.error(ex.toString());
-			fail("Unexpected exception");
-
+			logger.warn("Unexpected exception {}", fex.getMessage());
+			fail("Unexpected exception.");
 		}
-		 */
+
+		PropertyKey key            = null;
+		Class type1                = null;
+		Class type2                = null;
+
+		// create and link objects
+		try (final Tx tx = app.tx()) {
+
+			type1 = StructrApp.getConfiguration().getNodeEntityClass("Type1");
+			type2 = StructrApp.getConfiguration().getNodeEntityClass("Type2");
+			key   = StructrApp.key(type1, "target");
+
+			Assert.assertNotNull("Node type Type1 should exist.", type1);
+			Assert.assertNotNull("Node type Type2 should exist.", type2);
+			Assert.assertNotNull("Property key \"target\" should exist.", key);
+
+			final NodeInterface instance1 = app.create(type1, "instance1OfType1");
+			final NodeInterface instance2 = app.create(type2, "instance1OfType2");
+
+			Assert.assertNotNull("Instance of type Type1 should exist", instance1);
+			Assert.assertNotNull("Instance of type Type2 should exist", instance2);
+
+			instance1.setProperty(key, instance2);
+
+			Assert.assertEquals(instance2, instance1.getProperty(key));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// delete source node, expect target node to still be present
+		try (final Tx tx = app.tx()) {
+
+			Assert.assertEquals(1, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(1, app.nodeQuery(type2).getAsList().size());
+
+			app.delete((NodeInterface) app.nodeQuery(type1).getFirst());
+
+			Assert.assertEquals(0, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(1, app.nodeQuery(type2).getAsList().size());
+
+			app.delete((NodeInterface) app.nodeQuery(type2).getFirst());
+
+			Assert.assertEquals(0, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(0, app.nodeQuery(type2).getAsList().size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// clean slate - run test again but deleting from the other side of the relationship
+
+		// create and link objects
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface instance1 = app.create(type1, "instance2OfType1");
+			final NodeInterface instance2 = app.create(type2, "instance2OfType2");
+
+			Assert.assertNotNull("Instance of type Type1 should exist", instance1);
+			Assert.assertNotNull("Instance of type Type2 should exist", instance2);
+
+			instance1.setProperty(key, instance2);
+
+			Assert.assertEquals(instance2, instance1.getProperty(key));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// delete target node, expect source node to still be present
+		try (final Tx tx = app.tx()) {
+
+			Assert.assertEquals(1, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(1, app.nodeQuery(type2).getAsList().size());
+
+			app.delete((NodeInterface) app.nodeQuery(type2).getFirst());
+
+			Assert.assertEquals(1, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(0, app.nodeQuery(type2).getAsList().size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
 	}
 
 	/**
-	 * DELETE_INCOMING should not trigger delete cascade from start to end node,
-	 * but from end to start node
+	 * Relation.SOURCE_TO_TARGET should trigger delete cascade from start to end node,
+	 * but not from end to start node
 	 */
 	@Test
-	public void test04CascadeDeleteIncoming() {
+	public void test04CascadeDeleteSourceToTarget() {
 
-		/* this test is flawed in that it expects the cascading
-		 * not to take place but expectes to run without an
-		 * exception, but deleting one node of the two will leave
-		 * the other (TestTwo) in an invalid state according
-		 * to its isValid() method!
-		try {
+		cleanDatabaseAndSchema();
 
-			// Create a relationship with DELETE_INCOMING
-			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, Relation.DELETE_INCOMING);
-			final String startNodeId = rel.getStartNode().getUuid();
-			final String endNodeId   = rel.getEndNode().getUuid();
-			boolean exception        = false;
+		// setup
+		try (final Tx tx = app.tx()) {
 
-			deleteCascade(rel.getStartNode());
+			final SchemaNode t1 = app.create(SchemaNode.class, "Type1");
+			final SchemaNode t2 = app.create(SchemaNode.class, "Type2");
 
-			// Start node should not be found after deletion
-			assertNodeNotFound(startNodeId);
+			app.create(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, t1),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, t2),
+				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "REL"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "source"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "target"),
+				new NodeAttribute<>(SchemaRelationshipNode.cascadingDeleteFlag, Long.valueOf(Relation.SOURCE_TO_TARGET))
+			);
 
-			// End node should be found after deletion of start node
-			assertNodeExists(endNodeId);
+			tx.success();
 
-			// Create another relationship with DELETE_INCOMING
-			rel = cascadeRel(TestOne.class, TestTwo.class, Relation.DELETE_INCOMING);
+		} catch (FrameworkException fex) {
 
-			try {
-				deleteCascade(rel.getEndNode());
-
-			} catch (FrameworkException fex) {
-
-				assertEquals(422, fex.getStatus());
-				exception = true;
-			}
-
-			assertTrue("Exception should be raised", exception);
-
-		} catch (FrameworkException ex) {
-
-			logger.warn("", ex);
-
-			logger.error(ex.toString());
-			fail("Unexpected exception");
-
+			logger.warn("Unexpected exception {}", fex.getMessage());
+			fail("Unexpected exception.");
 		}
-		*/
+
+		PropertyKey key            = null;
+		Class type1                = null;
+		Class type2                = null;
+
+		// create and link objects
+		try (final Tx tx = app.tx()) {
+
+			type1 = StructrApp.getConfiguration().getNodeEntityClass("Type1");
+			type2 = StructrApp.getConfiguration().getNodeEntityClass("Type2");
+			key   = StructrApp.key(type1, "target");
+
+			Assert.assertNotNull("Node type Type1 should exist.", type1);
+			Assert.assertNotNull("Node type Type2 should exist.", type2);
+			Assert.assertNotNull("Property key \"target\" should exist.", key);
+
+			final NodeInterface instance1 = app.create(type1, "instance1OfType1");
+			final NodeInterface instance2 = app.create(type2, "instance1OfType2");
+
+			Assert.assertNotNull("Instance of type Type1 should exist", instance1);
+			Assert.assertNotNull("Instance of type Type2 should exist", instance2);
+
+			instance1.setProperty(key, instance2);
+
+			Assert.assertEquals(instance2, instance1.getProperty(key));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// delete source node, expect target node to be deleted
+		try (final Tx tx = app.tx()) {
+
+			Assert.assertEquals(1, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(1, app.nodeQuery(type2).getAsList().size());
+
+			app.delete((NodeInterface) app.nodeQuery(type1).getFirst());
+
+			Assert.assertEquals(0, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(0, app.nodeQuery(type2).getAsList().size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// clean slate - run test again but deleting from the other side of the relationship
+
+		// create and link objects
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface instance1 = app.create(type1, "instance2OfType1");
+			final NodeInterface instance2 = app.create(type2, "instance2OfType2");
+
+			Assert.assertNotNull("Instance of type Type1 should exist", instance1);
+			Assert.assertNotNull("Instance of type Type2 should exist", instance2);
+
+			instance1.setProperty(key, instance2);
+
+			Assert.assertEquals(instance2, instance1.getProperty(key));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// delete target node, expect source node to still be present
+		try (final Tx tx = app.tx()) {
+
+			Assert.assertEquals(1, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(1, app.nodeQuery(type2).getAsList().size());
+
+			app.delete((NodeInterface) app.nodeQuery(type2).getFirst());
+
+			Assert.assertEquals(1, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(0, app.nodeQuery(type2).getAsList().size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
 	}
 
 	/**
-	 * DELETE_OUTGOING should trigger delete cascade from start to end node,
-	 * but not from end to start node.
+	 * Relation.TARGET_TO_SOURCE should trigger delete cascade from end to start node,
+	 * but not from start to end node.
 	 */
 	@Test
-	public void test05CascadeDeleteOutgoing() {
+	public void test05CascadeDeleteTargetToSource() {
 
-		try {
+		cleanDatabaseAndSchema();
 
-			// Create a relationship with DELETE_OUTGOING
-			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, Relation.SOURCE_TO_TARGET);
-			NodeInterface sourceNode;
-			NodeInterface targetNode;
-			String startNodeId;
-			String endNodeId;
+		// setup
+		try (final Tx tx = app.tx()) {
 
-			try (final Tx tx = app.tx()) {
+			final SchemaNode t1 = app.create(SchemaNode.class, "Type1");
+			final SchemaNode t2 = app.create(SchemaNode.class, "Type2");
 
-				startNodeId = rel.getSourceNode().getUuid();
-				endNodeId   = rel.getTargetNode().getUuid();
-				sourceNode  = rel.getSourceNode();
-			}
+			app.create(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, t1),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, t2),
+				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "REL"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "source"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "target"),
+				new NodeAttribute<>(SchemaRelationshipNode.cascadingDeleteFlag, Long.valueOf(Relation.TARGET_TO_SOURCE))
+			);
 
-			deleteCascade(sourceNode);
+			tx.success();
 
-			try (final Tx tx = app.tx()) {
+		} catch (FrameworkException fex) {
 
-				// Start node should not be found after deletion
-				assertNodeNotFound(startNodeId);
+			logger.warn("Unexpected exception {}", fex.getMessage());
+			fail("Unexpected exception.");
+		}
 
-				// End node should not be found after deletion
-				assertNodeNotFound(endNodeId);
-			}
+		PropertyKey key            = null;
+		Class type1                = null;
+		Class type2                = null;
 
-			// Create another relationship with DELETE_OUTGOING
-			rel = cascadeRel(TestOne.class, TestTwo.class, Relation.SOURCE_TO_TARGET);
+		// create and link objects
+		try (final Tx tx = app.tx()) {
 
-			try (final Tx tx = app.tx()) {
+			type1 = StructrApp.getConfiguration().getNodeEntityClass("Type1");
+			type2 = StructrApp.getConfiguration().getNodeEntityClass("Type2");
+			key   = StructrApp.key(type1, "target");
 
-				startNodeId = rel.getSourceNode().getUuid();
-				endNodeId   = rel.getTargetNode().getUuid();
-				targetNode  = rel.getTargetNode();
-			}
+			Assert.assertNotNull("Node type Type1 should exist.", type1);
+			Assert.assertNotNull("Node type Type2 should exist.", type2);
+			Assert.assertNotNull("Property key \"target\" should exist.", key);
 
-			deleteCascade(targetNode);
+			final NodeInterface instance1 = app.create(type1, "instance1OfType1");
+			final NodeInterface instance2 = app.create(type2, "instance1OfType2");
 
-			try (final Tx tx = app.tx()) {
+			Assert.assertNotNull("Instance of type Type1 should exist", instance1);
+			Assert.assertNotNull("Instance of type Type2 should exist", instance2);
 
-				// End node should not be found after deletion
-				assertNodeNotFound(endNodeId);
+			instance1.setProperty(key, instance2);
 
-				// Start node should still exist deletion of end node
-				assertNodeExists(startNodeId);
-			}
+			Assert.assertEquals(instance2, instance1.getProperty(key));
 
-		} catch (FrameworkException ex) {
+			tx.success();
 
-			logger.warn("", ex);
-
-			logger.error(ex.toString());
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception");
+		}
 
+		// delete target node, expect source node to be deleted
+		try (final Tx tx = app.tx()) {
+
+			Assert.assertEquals(1, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(1, app.nodeQuery(type2).getAsList().size());
+
+			app.delete((NodeInterface) app.nodeQuery(type2).getFirst());
+
+			Assert.assertEquals(0, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(0, app.nodeQuery(type2).getAsList().size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// clean slate - run test again but deleting from the other side of the relationship
+
+		// create and link objects
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface instance1 = app.create(type1, "instance2OfType1");
+			final NodeInterface instance2 = app.create(type2, "instance2OfType2");
+
+			Assert.assertNotNull("Instance of type Type1 should exist", instance1);
+			Assert.assertNotNull("Instance of type Type2 should exist", instance2);
+
+			instance1.setProperty(key, instance2);
+
+			Assert.assertEquals(instance2, instance1.getProperty(key));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// delete source node, expect target node to still be present
+		try (final Tx tx = app.tx()) {
+
+			Assert.assertEquals(1, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(1, app.nodeQuery(type2).getAsList().size());
+
+			app.delete((NodeInterface) app.nodeQuery(type1).getFirst());
+
+			Assert.assertEquals(0, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(1, app.nodeQuery(type2).getAsList().size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
 		}
 
 	}
 
 	/**
-	 * DELETE_INCOMING + DELETE_OUTGOING should trigger delete cascade from start to end node
-	 * and from end node to start node
+	 * Relation.ALWAYS should trigger delete cascade from start to end node
+	 * and from end to start node
 	 */
 	@Test
 	public void test06CascadeDeleteBidirectional() {
 
-		try {
+		cleanDatabaseAndSchema();
 
-			// Create a relationship with DELETE_INCOMING
-			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, Relation.TARGET_TO_SOURCE | Relation.SOURCE_TO_TARGET);
-			NodeInterface sourceNode;
-			NodeInterface targetNode;
-			String startNodeId;
-			String endNodeId;
+		// setup
+		try (final Tx tx = app.tx()) {
 
-			try (final Tx tx = app.tx()) {
+			final SchemaNode t1 = app.create(SchemaNode.class, "Type1");
+			final SchemaNode t2 = app.create(SchemaNode.class, "Type2");
 
-				startNodeId = rel.getSourceNode().getUuid();
-				endNodeId   = rel.getTargetNode().getUuid();
-				sourceNode  = rel.getSourceNode();
-			}
+			app.create(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, t1),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, t2),
+				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "REL"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "source"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "target"),
+				new NodeAttribute<>(SchemaRelationshipNode.cascadingDeleteFlag, Long.valueOf(Relation.ALWAYS))
+			);
 
-			deleteCascade(sourceNode);
+			tx.success();
 
-			try (final Tx tx = app.tx()) {
+		} catch (FrameworkException fex) {
 
-				// Start node should not be found after deletion
-				assertNodeNotFound(startNodeId);
+			logger.warn("Unexpected exception {}", fex.getMessage());
+			fail("Unexpected exception.");
+		}
 
-				// End node should not be found after deletion of start node
-				assertNodeNotFound(endNodeId);
-			}
+		PropertyKey key            = null;
+		Class type1                = null;
+		Class type2                = null;
 
-			// Create a relationship with DELETE_INCOMING
-			rel = cascadeRel(TestOne.class, TestTwo.class, Relation.TARGET_TO_SOURCE | Relation.SOURCE_TO_TARGET);
+		// create and link objects
+		try (final Tx tx = app.tx()) {
 
-			try (final Tx tx = app.tx()) {
+			type1 = StructrApp.getConfiguration().getNodeEntityClass("Type1");
+			type2 = StructrApp.getConfiguration().getNodeEntityClass("Type2");
+			key   = StructrApp.key(type1, "target");
 
-				startNodeId = rel.getSourceNode().getUuid();
-				endNodeId   = rel.getTargetNode().getUuid();
-				targetNode  = rel.getTargetNode();
-			}
+			Assert.assertNotNull("Node type Type1 should exist.", type1);
+			Assert.assertNotNull("Node type Type2 should exist.", type2);
+			Assert.assertNotNull("Property key \"target\" should exist.", key);
 
-			deleteCascade(targetNode);
+			final NodeInterface instance1 = app.create(type1, "instance1OfType1");
+			final NodeInterface instance2 = app.create(type2, "instance1OfType2");
 
-			try (final Tx tx = app.tx()) {
+			Assert.assertNotNull("Instance of type Type1 should exist", instance1);
+			Assert.assertNotNull("Instance of type Type2 should exist", instance2);
 
-				// End node should not be found after deletion
-				assertNodeNotFound(endNodeId);
+			instance1.setProperty(key, instance2);
 
-				// Start node should not be found after deletion of end node
-				assertNodeNotFound(startNodeId);
-			}
+			Assert.assertEquals(instance2, instance1.getProperty(key));
 
-		} catch (FrameworkException ex) {
+			tx.success();
 
-			logger.warn("", ex);
-
-			logger.error(ex.toString());
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception");
+		}
 
+		// delete source node, expect target node to be deleted
+		try (final Tx tx = app.tx()) {
+
+			Assert.assertEquals(1, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(1, app.nodeQuery(type2).getAsList().size());
+
+			app.delete((NodeInterface) app.nodeQuery(type1).getFirst());
+
+			Assert.assertEquals(0, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(0, app.nodeQuery(type2).getAsList().size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// clean slate - run test again but deleting from the other side of the relationship
+
+		// create and link objects
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface instance1 = app.create(type1, "instance2OfType1");
+			final NodeInterface instance2 = app.create(type2, "instance2OfType2");
+
+			Assert.assertNotNull("Instance of type Type1 should exist", instance1);
+			Assert.assertNotNull("Instance of type Type2 should exist", instance2);
+
+			instance1.setProperty(key, instance2);
+
+			Assert.assertEquals(instance2, instance1.getProperty(key));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// delete target node, expect source node to be deleted
+		try (final Tx tx = app.tx()) {
+
+			Assert.assertEquals(1, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(1, app.nodeQuery(type2).getAsList().size());
+
+			app.delete((NodeInterface) app.nodeQuery(type2).getFirst());
+
+			Assert.assertEquals(0, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(0, app.nodeQuery(type2).getAsList().size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
 		}
 
 	}
 
 	/**
-	 * DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED should
-	 * trigger delete cascade from start to end node only
-	 * if the remote node would not be valid afterwards
+	 * Relation.CONSTRAINT_BASED (DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED) should
+	 * trigger delete cascade if the remote node would not be valid afterwards
 	 */
 	@Test
 	public void test07CascadeDeleteConditional() {
 
-		try {
+		cleanDatabaseAndSchema();
 
-			AbstractRelationship rel = cascadeRel(TestOne.class, TestTwo.class, Relation.CONSTRAINT_BASED);
-			NodeInterface sourceNode;
-			String startNodeId;
-			String endNodeId;
+		// setup
+		try (final Tx tx = app.tx()) {
 
-			try (final Tx tx = app.tx()) {
+			final SchemaNode t1 = app.create(SchemaNode.class, "Type1");
+			final SchemaNode t2 = app.create(SchemaNode.class, "Type2");
 
-				startNodeId = rel.getSourceNode().getUuid();
-				endNodeId   = rel.getTargetNode().getUuid();
-				sourceNode  = rel.getSourceNode();
-			}
+			// this acts as the constraint that is violated after the remote node is deleted
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.propertyType, "Function"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, t1),
+					new NodeAttribute<>(SchemaProperty.name, "foo"),
+					new NodeAttribute<>(SchemaProperty.readFunction, "this.target.name"),
+					new NodeAttribute<>(SchemaProperty.notNull, true)
+			);
 
-			deleteCascade(sourceNode);
+			app.create(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, t1),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, t2),
+				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "REL"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "source"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "target"),
+				new NodeAttribute<>(SchemaRelationshipNode.cascadingDeleteFlag, Long.valueOf(Relation.CONSTRAINT_BASED))
+			);
 
-			try (final Tx tx = app.tx()) {
+			tx.success();
 
-				// Start node should be deleted
-				assertNodeNotFound(startNodeId);
+		} catch (FrameworkException fex) {
 
-				// End node should be deleted
-				assertNodeNotFound(endNodeId);
-			}
+			logger.warn("Unexpected exception {}", fex.getMessage());
+			fail("Unexpected exception.");
+		}
 
-			rel = cascadeRel(TestOne.class, TestThree.class, Relation.CONSTRAINT_BASED);
+		PropertyKey key            = null;
+		Class type1                = null;
+		Class type2                = null;
 
-			try (final Tx tx = app.tx()) {
+		// create and link objects
+		try (final Tx tx = app.tx()) {
 
-				startNodeId = rel.getSourceNode().getUuid();
-				endNodeId   = rel.getTargetNode().getUuid();
-				sourceNode   = rel.getSourceNode();
-			}
+			type1 = StructrApp.getConfiguration().getNodeEntityClass("Type1");
+			type2 = StructrApp.getConfiguration().getNodeEntityClass("Type2");
+			key   = StructrApp.key(type1, "target");
 
-			deleteCascade(sourceNode);
+			Assert.assertNotNull("Node type Type1 should exist.", type1);
+			Assert.assertNotNull("Node type Type2 should exist.", type2);
+			Assert.assertNotNull("Property key \"target\" should exist.", key);
 
-			try (final Tx tx = app.tx()) {
+			final NodeInterface instance2 = app.create(type2, "instance1OfType2");
 
-				// Start node should be deleted
-				assertNodeNotFound(startNodeId);
+			final NodeInterface instance1 = app.create(type1,
+				new NodeAttribute<>(AbstractNode.name, "instance1OfType1"),
+				new NodeAttribute<>(key, instance2)
+			);
 
-				// End node should still be there
-				assertNodeExists(endNodeId);
-			}
+			Assert.assertNotNull("Instance of type Type1 should exist", instance1);
+			Assert.assertNotNull("Instance of type Type2 should exist", instance2);
 
-			rel = cascadeRel(TestOne.class, TestFour.class, Relation.CONSTRAINT_BASED);
+			Assert.assertEquals("instance1OfType2", instance1.getProperty(StructrApp.key(type1, "foo")));
 
-			try (final Tx tx = app.tx()) {
+			tx.success();
 
-				startNodeId = rel.getSourceNode().getUuid();
-				endNodeId   = rel.getTargetNode().getUuid();
-				sourceNode   = rel.getSourceNode();
-			}
-
-			deleteCascade(sourceNode);
-
-			try (final Tx tx = app.tx()) {
-
-				// Start node should be deleted
-				assertNodeNotFound(startNodeId);
-
-				// End node should still be there
-				assertNodeExists(endNodeId);
-			}
-
-		} catch (FrameworkException ex) {
-
-			logger.warn("", ex);
-
-			logger.error(ex.toString());
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception");
+		}
 
+		// delete source node, expect target node to still exist because it has no constraints
+		try (final Tx tx = app.tx()) {
+
+			Assert.assertEquals(1, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(1, app.nodeQuery(type2).getAsList().size());
+
+			app.delete((NodeInterface) app.nodeQuery(type1).getFirst());
+
+			Assert.assertEquals(0, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(1, app.nodeQuery(type2).getAsList().size());
+
+			// test success -> remove other node and try again
+			app.delete((NodeInterface) app.nodeQuery(type2).getFirst());
+
+			Assert.assertEquals(0, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(0, app.nodeQuery(type2).getAsList().size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// clean slate - run test again but deleting from the other side of the relationship
+
+		// create and link objects
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface instance2 = app.create(type2, "instance2OfType2");
+
+			final NodeInterface instance1 = app.create(type1,
+				new NodeAttribute<>(AbstractNode.name, "instance2OfType1"),
+				new NodeAttribute<>(key, instance2)
+			);
+
+			Assert.assertNotNull("Instance of type Type1 should exist", instance1);
+			Assert.assertNotNull("Instance of type Type2 should exist", instance2);
+
+			Assert.assertEquals("instance2OfType2", instance1.getProperty(StructrApp.key(type1, "foo")));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// delete target node, expect source node to be deleted (because source.foo will be null and has notNull flag)
+		try (final Tx tx = app.tx()) {
+
+			Assert.assertEquals(1, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(1, app.nodeQuery(type2).getAsList().size());
+
+			app.delete((NodeInterface) app.nodeQuery(type2).getFirst());
+
+			Assert.assertEquals(0, app.nodeQuery(type1).getAsList().size());
+			Assert.assertEquals(0, app.nodeQuery(type2).getAsList().size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
 		}
 
 	}
@@ -2318,31 +2653,6 @@ public class BasicTest extends StructrTest {
 	}
 
 	// ----- private methods -----
-	private AbstractRelationship cascadeRel(final Class type1, final Class type2, final int cascadeDeleteFlag) throws FrameworkException {
-
-		try (final Tx tx = app.tx()) {
-
-			NodeInterface start      = createTestNode(type1);
-			NodeInterface end        = createTestNode(type2);
-			AbstractRelationship rel = createTestRelationship(start, end, NodeHasLocation.class);
-
-			rel.setProperty(AbstractRelationship.cascadeDelete, cascadeDeleteFlag);
-
-			tx.success();
-
-			return rel;
-		}
-	}
-
-	private void deleteCascade(final NodeInterface node) throws FrameworkException {
-
-		try (final Tx tx = app.tx()) {
-
-			app.delete(node);
-			tx.success();
-		}
-	}
-
 	private void setPropertyTx(final GraphObject obj, final PropertyKey key, final Object value) {
 
 		try (final Tx tx = app.tx()) {

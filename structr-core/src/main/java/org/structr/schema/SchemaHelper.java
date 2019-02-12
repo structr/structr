@@ -143,7 +143,7 @@ public class SchemaHelper {
 	private static final Map<String, String> normalizedEntityNameCache                = new LinkedHashMap<>();
 	private static final Set<String> basePropertyNames                                = new LinkedHashSet<>(Arrays.asList(
 		"base", "type", "id", "createdDate", "createdBy", "lastModifiedDate", "lastModifiedBy", "visibleToPublicUsers", "visibleToAuthenticatedUsers",		// from GraphObject
-		"cascadeDelete", "relType", "sourceNode", "targetNode", "sourceId", "targetId", "sourceNodeProperty", "targetNodeProperty",				// from AbstractRelationship
+		"relType", "sourceNode", "targetNode", "sourceId", "targetId", "sourceNodeProperty", "targetNodeProperty",				// from AbstractRelationship
 		"name", "hidden", "owner", "ownerId", "grantees"													// from NodeInterface
 	));
 

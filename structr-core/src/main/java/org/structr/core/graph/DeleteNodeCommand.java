@@ -98,7 +98,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 				// deleted rels can be null..
 				if (rel != null) {
 
-					int cascadeDelete = rel.cascadeDelete();
+					int cascadeDelete = rel.getCascadingDeleteFlag();
 					NodeInterface endNode = rel.getTargetNode();
 
 					if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
@@ -121,7 +121,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 				// deleted rels can be null
 				if (rel != null) {
 
-					final int cascadeDelete       = rel.cascadeDelete();
+					final int cascadeDelete       = rel.getCascadingDeleteFlag();
 					final NodeInterface startNode = rel.getSourceNode();
 
 					if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {

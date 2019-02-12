@@ -85,7 +85,6 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		tmp.getData().put(AbstractRelationship.targetId.jsonName(), toNode.getUuid());
 		tmp.getData().put(AbstractRelationship.visibleToPublicUsers.jsonName(), false);
 		tmp.getData().put(AbstractRelationship.visibleToAuthenticatedUsers.jsonName(), false);
-		tmp.getData().put(AbstractRelationship.cascadeDelete.jsonName(), template.getCascadingDeleteFlag());
 
 		if (user != null) {
 			tmp.getData().put(AbstractRelationship.createdBy.jsonName(), user.getUuid());

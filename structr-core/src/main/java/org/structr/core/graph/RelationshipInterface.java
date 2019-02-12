@@ -55,7 +55,7 @@ public interface RelationshipInterface extends GraphObject, NonIndexed {
 	public String getTargetNodeId();
 	public void setTargetNodeId(final String targetIdNode) throws FrameworkException;
 
-	public int cascadeDelete();
+	public int getCascadingDeleteFlag();
 
 	public boolean isInternal();
 }

@@ -53,7 +53,6 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -80,7 +79,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	private static final Logger logger = LoggerFactory.getLogger(AbstractRelationship.class.getName());
 
 	public static final Property<String>        internalTimestamp  = new StringProperty("internalTimestamp").systemInternal().indexed().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
-	public static final Property<Integer>       cascadeDelete      = new IntProperty("cascadeDelete");
 	public static final Property<String>        relType            = new RelationshipTypeProperty();
 	public static final SourceId                sourceId           = new SourceId("sourceId");
 	public static final TargetId                targetId           = new TargetId("targetId");
@@ -238,14 +236,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		}
 
 		return ((Long) this.getId()).compareTo((Long) rel.getId());
-	}
-
-	@Override
-	public int cascadeDelete() {
-
-		final Integer value = getProperty(AbstractRelationship.cascadeDelete);
-
-		return value != null ? value : 0;
 	}
 
 	/**
