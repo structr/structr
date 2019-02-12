@@ -1614,51 +1614,70 @@ var Structr = {
 				}
 				break;
 
-			case "DEPLOYMENT_IMPORT_STATUS":
+			case 'DEPLOYMENT_IMPORT_STATUS':
+			case 'DEPLOYMENT_DATA_IMPORT_STATUS':
+
+				var type            = 'Deployment Import';
+				var messageCssClass = 'deployment-import';
+
+				if (data.type === 'DEPLOYMENT_DATA_IMPORT_STATUS') {
+					type            = 'Data Deployment Import';
+					messageCssClass = 'data-deployment-import';
+				}
+
 
 				if (data.subtype === 'BEGIN') {
 
-					var text = "Deployment Import started: " + new Date(data.start) + "<br>"
-							+ "Importing from: " + data.source + "<br><br>"
-							+ "Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class='message-steps'></ol>";
+					var text = type + ' started: ' + new Date(data.start) + '<br>'
+							+ 'Importing from: ' + data.source + '<br><br>'
+							+ 'Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>';
 
-					new MessageBuilder().title("Deployment Import Progress").uniqueClass('deployment-import').info(text).requiresConfirmation().updatesText().show();
+					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info(text).requiresConfirmation().updatesText().show();
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					new MessageBuilder().title("Deployment Import Progress").uniqueClass('deployment-import').info('<li>' + data.message + '</li>').requiresConfirmation().appendsText('.message-steps').show();
+					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info('<li>' + data.message + '</li>').requiresConfirmation().appendsText('.message-steps').show();
 
 				} else if (data.subtype === 'END') {
 
-					var text = "<br>Deployment Import finished: " + new Date(data.end)
+					var text = "<br>" + type + " finished: " + new Date(data.end)
 							+ "<br>Total duration: " + data.duration
 							+ "<br><br>Reload the page to see the new data.";
 
-					new MessageBuilder().title("Deployment Import finished").uniqueClass('deployment-import').info(text).specialInteractionButton("Reload Page", function () { location.reload(); }, "Ignore").appendsText().updatesButtons().show();
+					new MessageBuilder().title(type + " finished").uniqueClass(messageCssClass).info(text).specialInteractionButton('Reload Page', function () { location.reload(); }, 'Ignore').appendsText().updatesButtons().show();
 
 				}
 				break;
 
-			case "DEPLOYMENT_EXPORT_STATUS":
+			case 'DEPLOYMENT_EXPORT_STATUS':
+			case 'DEPLOYMENT_DATA_EXPORT_STATUS':
+
+				var type            = 'Deployment Export';
+				var messageCssClass = 'deployment-export';
+
+				if (data.type === 'DEPLOYMENT_DATA_EXPORT_STATUS') {
+					type            = 'Data Deployment Export';
+					messageCssClass = 'data-deployment-export';
+				}
 
 				if (data.subtype === 'BEGIN') {
 
-					var text = "Deployment Export started: " + new Date(data.start) + "<br>"
-							+ "Exporting to: " + data.target + "<br><br>"
-							+ "System performance may be affected during Export.<br><ol class='message-steps'></ol>";
+					var text = type + ' started: ' + new Date(data.start) + '<br>'
+							+ 'Exporting to: ' + data.target + '<br><br>'
+							+ 'System performance may be affected during Export.<br><ol class="message-steps"></ol>';
 
-					new MessageBuilder().title("Deployment Export Progress").uniqueClass('deployment-export').info(text).requiresConfirmation().updatesText().show();
+					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info(text).requiresConfirmation().updatesText().show();
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					new MessageBuilder().title("Deployment Export Progress").uniqueClass('deployment-export').info('<li>' + data.message + '</li>').requiresConfirmation().appendsText('.message-steps').show();
+					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info('<li>' + data.message + '</li>').requiresConfirmation().appendsText('.message-steps').show();
 
 				} else if (data.subtype === 'END') {
 
-					var text = "<br>Deployment Export finished: " + new Date(data.end)
-							+ "<br>Total duration: " + data.duration;
+					var text = '<br>'+ type + ' finished: ' + new Date(data.end)
+							+ '<br>Total duration: ' + data.duration;
 
-					new MessageBuilder().title("Deployment Export finished").uniqueClass('deployment-export').info(text).appendsText().requiresConfirmation().show();
+					new MessageBuilder().title(type + ' finished').uniqueClass(messageCssClass).info(text).appendsText().requiresConfirmation().show();
 
 				}
 				break;
