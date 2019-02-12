@@ -88,8 +88,6 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.AbstractMinifiedFile;
-import org.structr.web.entity.ContentContainer;
-import org.structr.web.entity.ContentItem;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
@@ -429,10 +427,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path pages      = source.resolve("pages");
 			final Path sitesConfFile = source.resolve("sites.json");
 
-			final Path contentsDir               = source.resolve("contents");
-			final Path contentContainersConfFile = contentsDir.resolve("containers.json");
-			final Path contentItemsConfFile      = contentsDir.resolve("items.json");
-
 			// remove all DOMNodes from the database (clean webapp for import, but only
 			// if the actual import directories exist, don't delete web components if
 			// an empty directory was specified accidentially).
@@ -524,25 +518,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				importSites(readConfigList(sitesConfFile));
 			}
-
-			// import content containers
-			if (Files.exists(contentContainersConfFile)) {
-
-				info("Importing content containers");
-				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing content containers");
-
-				importExtensibleListData(ContentContainer.class, readConfigList(contentContainersConfFile));
-			}
-
-			// import content items
-			if (Files.exists(contentItemsConfFile)) {
-
-				info("Importing content items");
-				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing content items");
-
-				importExtensibleListData(ContentItem.class, readConfigList(contentItemsConfFile));
-			}
-
 
 			// link pages
 			try (final Tx tx = app.tx()) {
@@ -712,14 +687,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Widgets");
 			exportWidgets(widgets);
-
-			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Content Containers");
-			exportContentContainers(contentContainersConf);
-
-			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Content Items");
-			exportContentItems(contentItemsConf);
-
-
 
 			for (StructrModule module : StructrApp.getConfiguration().getModules().values()) {
 
@@ -1466,105 +1433,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
 
 			getGson().toJson(widgets, fos);
-
-		} catch (IOException ioex) {
-			logger.warn("", ioex);
-		}
-	}
-
-	private static void exportContentContainers(final Path contentContainersConf) throws FrameworkException {
-
-		logger.info("Exporting content containers");
-
-		final List<Map<String, Object>> containers = new LinkedList<>();
-		final App app                           = StructrApp.getInstance();
-
-		final PropertyKey<ContentContainer> parentKey = StructrApp.key(ContentContainer.class, "parent");
-
-		try (final Tx tx = app.tx()) {
-
-			for (final ContentContainer container : app.nodeQuery(ContentContainer.class).sort(parentKey).getAsList()) {
-
-				final Map<String, Object> entry = new TreeMap<>();
-				containers.add(entry);
-
-				exportOwnershipAndSecurity(container, entry);
-
-				putIfNotNull(entry, "id",                          container.getProperty(ContentContainer.id));
-				putIfNotNull(entry, "type",                        container.getProperty(ContentContainer.type));
-				putIfNotNull(entry, "name",                        container.getProperty(ContentContainer.name));
-				putIfNotNull(entry, "visibleToAuthenticatedUsers", container.getProperty(ContentContainer.visibleToAuthenticatedUsers));
-				putIfNotNull(entry, "visibleToPublicUsers",        container.getProperty(ContentContainer.visibleToPublicUsers));
-				putIfNotNull(entry, "createdDate",                 container.getProperty(ContentItem.createdDate));
-				putIfNotNull(entry, "lastModifiedDate",            container.getProperty(ContentItem.lastModifiedDate));
-
-
-				final ContentContainer parentContainer = container.getProperty(parentKey);
-				if (parentContainer != null) {
-					putIfNotNull(entry, "parent", parentContainer.getUuid());
-				}
-
-				exportCustomPropertiesForNode(container, entry);
-			}
-
-			tx.success();
-		}
-
-		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(contentContainersConf.toFile()))) {
-
-			getGson().toJson(containers, fos);
-
-		} catch (IOException ioex) {
-			logger.warn("", ioex);
-		}
-	}
-
-	private static void exportContentItems(final Path contentItemsConf) throws FrameworkException {
-
-		logger.info("Exporting content items");
-
-		final List<Map<String, Object>> items = new LinkedList<>();
-		final App app                         = StructrApp.getInstance();
-
-		final PropertyKey<List<ContentContainer>> parentContainersKey = StructrApp.key(ContentItem.class, "containers");
-
-		try (final Tx tx = app.tx()) {
-
-			for (final ContentItem item : app.nodeQuery(ContentItem.class).getAsList()) {
-
-				final Map<String, Object> entry = new TreeMap<>();
-				items.add(entry);
-
-				exportOwnershipAndSecurity(item, entry);
-
-				putIfNotNull(entry, "id",                          item.getProperty(ContentItem.id));
-				putIfNotNull(entry, "type",                        item.getProperty(ContentItem.type));
-				putIfNotNull(entry, "name",                        item.getProperty(ContentItem.name));
-				putIfNotNull(entry, "visibleToAuthenticatedUsers", item.getProperty(ContentItem.visibleToAuthenticatedUsers));
-				putIfNotNull(entry, "visibleToPublicUsers",        item.getProperty(ContentItem.visibleToPublicUsers));
-				putIfNotNull(entry, "createdDate",                 item.getProperty(ContentItem.createdDate));
-				putIfNotNull(entry, "lastModifiedDate",            item.getProperty(ContentItem.lastModifiedDate));
-
-				final Iterable<ContentContainer> parentContainers = item.getProperty(parentContainersKey);
-				if (parentContainers != null) {
-
-					final List<String> parentIds = new LinkedList();
-
-					parentContainers.forEach((parent) -> {
-						parentIds.add(parent.getUuid());
-					});
-					putIfNotNull(entry, "containers", parentIds);
-				}
-
-				exportCustomPropertiesForNode(item, entry);
-			}
-
-			tx.success();
-		}
-
-		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(contentItemsConf.toFile()))) {
-
-			getGson().toJson(items, fos);
 
 		} catch (IOException ioex) {
 			logger.warn("", ioex);
