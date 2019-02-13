@@ -207,7 +207,7 @@ var Command = {
 	 *
 	 * The optional callback function will be executed with the result set as parameter.
 	 */
-	query: function(type, pageSize, page, sort, order, properties, callback, exact, view) {
+	query: function(type, pageSize, page, sort, order, properties, callback, exact, view, customView) {
 		var obj = {
 			command: 'QUERY',
 			pageSize: pageSize,
@@ -221,6 +221,7 @@ var Command = {
 		if (properties) obj.data.properties = JSON.stringify(properties);
 		if (exact !== null) obj.data.exact = exact;
 		if (view) obj.view = view;
+		if (customView) obj.data.customView = customView;
 		_Logger.log(_LogType.WS[obj.command], 'query()', obj, callback);
 		return sendObj(obj, callback);
 	},
@@ -1313,5 +1314,23 @@ var Command = {
 			}
 		};
 		return sendObj(obj, callback);
+	},
+	/**
+	 * Shortcut to get all ApplicationConfigurationDataNodes for a specific configType
+	 */
+	getApplicationConfigurationDataNodes: function(configType, customView, callback, filterProperties) {
+		var filter = {
+			configType: configType
+		};
+		if (filterProperties) {
+			Object.assign(filter, filterProperties);
+		}
+		return Command.query('ApplicationConfigurationDataNode', 1000, 1, 'name', true, filter, callback, true, null, customView);
+	},
+	/**
+	 * Shortcut to get a single ApplicationConfigurationDataNode
+	 */
+	getApplicationConfigurationDataNode: function(id, callback) {
+		return Command.get(id, 'content', callback);
 	}
 };
