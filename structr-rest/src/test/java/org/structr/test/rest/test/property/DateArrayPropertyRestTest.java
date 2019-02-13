@@ -16,19 +16,19 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.test.property;
+package org.structr.test.rest.test.property;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.*;
-import org.junit.Test;
-import org.structr.rest.common.StructrRestTest;
+import org.structr.test.rest.common.StructrRestTestBase;
+import org.testng.annotations.Test;
 
 /**
  *
  *
  */
-public class DateArrayPropertyRestTest extends StructrRestTest {
+public class DateArrayPropertyRestTest extends StructrRestTestBase {
 
 	@Test
 	public void testDateArrayViaRest() {
