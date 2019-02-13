@@ -25,6 +25,7 @@ import com.google.gson.reflect.TypeToken;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.ResultStream;
@@ -66,11 +67,16 @@ public class QueryCommand extends AbstractCommand {
 		final String rawType                  = webSocketData.getNodeDataStringValue("type");
 		final String properties               = webSocketData.getNodeDataStringValue("properties");
 		final Boolean exact                   = webSocketData.getNodeDataBooleanValue("exact");
+		final String customView               = webSocketData.getNodeDataStringValue("customView");
 		final Class type                      = SchemaHelper.getEntityClassForRawType(rawType);
 
 		if (type == null) {
 			getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
 			return;
+		}
+
+		if (customView != null) {
+			securityContext.setCustomView(StringUtils.split(customView, ","));
 		}
 
 		final String sortKey           = webSocketData.getSortKey();
