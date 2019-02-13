@@ -1471,6 +1471,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				entry.put("name",       acdn.getProperty(ApplicationConfigurationDataNode.name));
 				entry.put("configType", acdn.getProperty(configTypeKey));
 				entry.put("content",    acdn.getProperty(contentKey));
+
+				exportOwnershipAndSecurity(acdn, entry);
 			}
 
 			tx.success();
