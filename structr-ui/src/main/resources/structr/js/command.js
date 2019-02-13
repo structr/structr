@@ -1235,24 +1235,6 @@ var Command = {
 		return sendObj(obj, callback);
 	},
 	/**
-	 * Send a LAYOUTS command to the server.
-	 *
-	 * The server will return the stored layout filenames
-	 */
-	layouts: function(mode, name, schemaLayout, callback) {
-		var obj  = {
-			command: 'LAYOUTS',
-			data: {
-				mode: mode,
-				name: name
-			}
-		};
-		if (schemaLayout && schemaLayout.length) {
-			obj.data.schemaLayout = schemaLayout;
-		}
-		return sendObj(obj, callback);
-	},
-	/**
 	 * Send a FIND_DUPLICATES command to the server.
 	 *
 	 * The server will return a list of all files with identical paths

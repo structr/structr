@@ -419,12 +419,6 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, result);
 
-			} else if (command.startsWith('LAYOUTS')) {
-
-				_Logger.log(_LogType.WS[command], result, data);
-
-				StructrModel.callCallback(data.callback, data.data);
-
 			} else if (command.startsWith('LIST')) {
 
 				_Logger.log(_LogType.WS[command], result, data);

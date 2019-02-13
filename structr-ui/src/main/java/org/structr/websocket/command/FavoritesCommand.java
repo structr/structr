@@ -38,7 +38,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class FavoritesCommand extends AbstractCommand {
 
-	private static final Logger logger                          = LoggerFactory.getLogger(LayoutsCommand.class.getName());
+	private static final Logger logger                          = LoggerFactory.getLogger(FavoritesCommand.class.getName());
 
 	static {
 
