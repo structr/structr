@@ -37,6 +37,7 @@ public interface ContentItem extends NodeInterface {
 		final JsonObjectType type = schema.addType("ContentItem");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ContentItem"));
+		type.setCategory("ui");
 
 		type.addBooleanProperty("isContentItem", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 

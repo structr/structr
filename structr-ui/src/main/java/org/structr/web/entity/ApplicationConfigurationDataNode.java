@@ -19,24 +19,28 @@
 package org.structr.web.entity;
 
 import java.net.URI;
+import org.structr.common.PropertyView;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
 
 /**
- *
- *
- *
+ * Storage object for configuration data.
  */
-public interface CsvFile extends File {
+
+public interface ApplicationConfigurationDataNode extends NodeInterface {
 
 	static class Impl { static {
 
-		final JsonSchema schema = SchemaService.getDynamicSchema();
-		final JsonType type     = schema.addType("CsvFile");
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("ApplicationConfigurationDataNode");
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/CsvFile"));
-		type.setExtends(URI.create("#/definitions/File"));
-		type.setCategory("ui");
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ApplicationConfigurationDataNode"));
+		type.setExtends(URI.create("#/definitions/AbstractNode"));
+		type.setCategory("core");
+
+		type.addStringProperty("configType", PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("content",    PropertyView.Ui);
 	}}
 }

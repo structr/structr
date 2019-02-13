@@ -88,6 +88,7 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.AbstractMinifiedFile;
+import org.structr.web.entity.ApplicationConfigurationDataNode;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
@@ -333,6 +334,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing localizations");
 
 				importListData(Localization.class, readConfigList(localizationsConf), additionalData);
+			}
+
+			// read widgets.json
+			final Path applicationConfigurationDataConf = source.resolve("application-configuration-data.json");
+			if (Files.exists(applicationConfigurationDataConf)) {
+
+				info("Reading {}", applicationConfigurationDataConf);
+				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing application configuration data");
+
+				importListData(ApplicationConfigurationDataNode.class, readConfigList(applicationConfigurationDataConf));
 			}
 
 			// read files.conf
@@ -653,10 +664,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path localizations  = target.resolve("localizations.json");
 			final Path widgets        = target.resolve("widgets.json");
 
-			final Path contentsDir             = Files.createDirectories(target.resolve("contents"));
-			final Path contentContainersConf   = contentsDir.resolve("containers.json");
-			final Path contentItemsConf        = contentsDir.resolve("items.json");
-
+			final Path applicationConfigurationData = target.resolve("application-configuration-data.json");
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Files");
 			exportFiles(files, filesConf);
@@ -687,6 +695,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Widgets");
 			exportWidgets(widgets);
+
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Application Configuration Data");
+			exportApplicationConfigurationData(applicationConfigurationData);
 
 			for (StructrModule module : StructrApp.getConfiguration().getModules().values()) {
 
@@ -1433,6 +1444,41 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
 
 			getGson().toJson(widgets, fos);
+
+		} catch (IOException ioex) {
+			logger.warn("", ioex);
+		}
+	}
+
+	private static void exportApplicationConfigurationData(final Path target) throws FrameworkException {
+
+		logger.info("Exporting application configuration data");
+
+		final List<Map<String, Object>> applicationConfigurationDataNodes = new LinkedList<>();
+		final App app                                                     = StructrApp.getInstance();
+
+		final PropertyKey<String> configTypeKey = StructrApp.key(ApplicationConfigurationDataNode.class, "configType");
+		final PropertyKey<String> contentKey    = StructrApp.key(ApplicationConfigurationDataNode.class, "content");
+
+		try (final Tx tx = app.tx()) {
+
+			for (final ApplicationConfigurationDataNode acdn : app.nodeQuery(ApplicationConfigurationDataNode.class).sort(configTypeKey).getAsList()) {
+
+				final Map<String, Object> entry = new TreeMap<>();
+				applicationConfigurationDataNodes.add(entry);
+
+				entry.put("id",         acdn.getProperty(ApplicationConfigurationDataNode.id));
+				entry.put("name",       acdn.getProperty(ApplicationConfigurationDataNode.name));
+				entry.put("configType", acdn.getProperty(configTypeKey));
+				entry.put("content",    acdn.getProperty(contentKey));
+			}
+
+			tx.success();
+		}
+
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
+
+			getGson().toJson(applicationConfigurationDataNodes, fos);
 
 		} catch (IOException ioex) {
 			logger.warn("", ioex);

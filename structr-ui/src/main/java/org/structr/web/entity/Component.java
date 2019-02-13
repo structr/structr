@@ -37,6 +37,7 @@ public interface Component extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Component"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 
 		type.addIntegerProperty("position");
 		type.addStringProperty("kind", PropertyView.Public, PropertyView.Ui);

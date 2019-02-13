@@ -63,7 +63,7 @@ public interface Image extends File {
 
 		image.setImplements(URI.create("https://structr.org/v1.1/definitions/Image"));
 		image.setExtends(URI.create("#/definitions/File"));
-		image.setCategory("core");
+		image.setCategory("ui");
 
 		image.addIntegerProperty("width",           PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		image.addIntegerProperty("height",          PropertyView.Public, PropertyView.Ui).setIndexed(true);

@@ -41,7 +41,7 @@ public interface LinkSource extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/LinkSource"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("core");
+		type.setCategory("ui");
 
 		type.overrideMethod("getLinkable", false, "return getProperty(linkableProperty);");
 
@@ -54,7 +54,7 @@ public interface LinkSource extends DOMElement {
 
 		type.addIdReferenceProperty("linkableId", rel.getTargetProperty());
 		linkable.addIdReferenceProperty("linkingElementsIds", rel.getSourceProperty());
-		
+
 		// view configuration
 		type.addViewProperty(PropertyView.Ui, "children");
 		type.addViewProperty(PropertyView.Ui, "linkable");
