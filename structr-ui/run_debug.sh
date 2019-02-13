@@ -3,7 +3,9 @@
 # determine latest Structr version
 LATEST=`ls target/structr-ui-*.jar | grep -v 'sources.jar' | grep -v 'javadoc.jar' | sort | tail -1`
 
-SUSPEND=n
+if [ -z "$SUSPEND" ]; then
+	SUSPEND=n
+fi
 
 BASE_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 LOGS_DIR=$BASE_DIR/logs

@@ -350,7 +350,7 @@ img.disabled {
 	margin: 4px 25px 0 25px;
 }
 
-#previews::before {
+#previews.no-preview::before {
 	content: "- no preview selected -";
 	font-style: italic;
 	position: absolute;
@@ -3119,6 +3119,10 @@ table#relationship-options {
 	table-layout: fixed;
 }
 
+#relationship-options [disabled] {
+    color: rgb(126,126,126);
+}
+
 #relationship-options #basic-options {
 	text-align: center;
 	padding: 10px 0px 20px 0px;
@@ -5004,4 +5008,12 @@ table.refactoring-helper td input {
 
 .select2-container--default .select2-search--dropdown .select2-search__field {
 	background-color: #fff;
+}
+
+dl.help-definitions dt {
+	font-weight: bold;
+}
+
+dl.help-definitions dd {
+	margin-bottom: 6px;
 }

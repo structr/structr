@@ -55,6 +55,7 @@ import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.StaticValue;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -73,10 +74,12 @@ import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.module.StructrModule;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.rest.serialization.StreamingJsonWriter;
+import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.JsonSchema;
@@ -172,7 +175,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	public static Gson getGson() {
-		return new GsonBuilder().setPrettyPrinting().create();
+		return new GsonBuilder().setPrettyPrinting().setDateFormat(Settings.DefaultDateFormat.getValue()).create();
 	}
 
 	public static boolean isUuid(final String name) {
@@ -516,6 +519,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				importSites(readConfigList(sitesConfFile));
 			}
 
+			// link pages
 			try (final Tx tx = app.tx()) {
 
 				tx.disableChangelog();
@@ -647,7 +651,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path templatesConf  = target.resolve("templates.json");
 			final Path mailTemplates  = target.resolve("mail-templates.json");
 			final Path localizations  = target.resolve("localizations.json");
-			final Path widgets	  = target.resolve("widgets.json");
+			final Path widgets        = target.resolve("widgets.json");
+
+			final Path contentsDir             = Files.createDirectories(target.resolve("contents"));
+			final Path contentContainersConf   = contentsDir.resolve("containers.json");
+			final Path contentItemsConf        = contentsDir.resolve("items.json");
+
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Files");
 			exportFiles(files, filesConf);
@@ -1430,6 +1439,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+	private static void exportCustomPropertiesForNode(final NodeInterface node, final Map<String, Object> map) throws FrameworkException {
+
+		final SecurityContext context = SecurityContext.getSuperUserInstance();
+
+		final List<GraphObjectMap> customProperties = SchemaHelper.getSchemaTypeInfo(context, node.getType(), node.getClass(), "custom");
+
+		customProperties.stream().forEach((final GraphObjectMap propertyInfo) -> {
+
+			final String propertyName = propertyInfo.getProperty(new StringProperty("jsonName"));
+
+			map.put(propertyName, node.getProperty(StructrApp.key(node.getClass(), propertyName)));
+
+		});
+
+	}
+
 	private static void exportLocalizations(final Path target) throws FrameworkException {
 
 		logger.info("Exporting localizations");
@@ -1570,6 +1595,53 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		} catch (FrameworkException fex) {
 
 			logger.error("Unable to import {}, aborting with {}", type.getSimpleName(), fex.getMessage());
+			fex.printStackTrace();
+
+			throw fex;
+		}
+	}
+
+	private <T extends NodeInterface> void importExtensibleListData(final Class defaultType, final List<Map<String, Object>> data, final PropertyMap... additionalData) throws FrameworkException {
+
+		final SecurityContext context = SecurityContext.getSuperUserInstance();
+		context.setDoTransactionNotifications(false);
+		final App app                 = StructrApp.getInstance(context);
+
+		try (final Tx tx = app.tx()) {
+
+			tx.disableChangelog();
+
+			for (final Map<String, Object> entry : data) {
+
+				final String id = (String)entry.get("id");
+				if (id != null) {
+
+					final NodeInterface existingNode = app.getNodeById(id);
+
+					if (existingNode != null) {
+
+						app.delete(existingNode);
+					}
+				}
+
+				final String typeName = (String)entry.get("type");
+
+				final Class type      = (defaultType.getSimpleName().equals(typeName) ? defaultType : SchemaHelper.getEntityClassForRawType(typeName));
+				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, type, entry);
+
+				// allow caller to insert additional data for better creation performance
+				for (final PropertyMap add : additionalData) {
+					map.putAll(add);
+				}
+
+				app.create(type, map);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.error("Unable to import {}, aborting with {}", defaultType.getSimpleName(), fex.getMessage());
 			fex.printStackTrace();
 
 			throw fex;

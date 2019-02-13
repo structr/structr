@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -101,6 +102,7 @@ import org.structr.schema.parser.BooleanPropertyParser;
 import org.structr.schema.parser.CountPropertyParser;
 import org.structr.schema.parser.CustomPropertyParser;
 import org.structr.schema.parser.CypherPropertyParser;
+import org.structr.schema.parser.DateArrayPropertyParser;
 import org.structr.schema.parser.DatePropertyParser;
 import org.structr.schema.parser.DoubleArrayPropertyParser;
 import org.structr.schema.parser.DoublePropertyParser;
@@ -132,7 +134,7 @@ public class SchemaHelper {
 
 	public enum Type {
 
-		String, StringArray, LongArray, DoubleArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, IdNotion, Cypher, Join, Thumbnail, Password, Custom;
+		String, StringArray, DateArray, LongArray, DoubleArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, IdNotion, Cypher, Join, Thumbnail, Password, Custom;
 	}
 
 	public static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new TreeMap<>(new ReverseTypeComparator());
@@ -141,7 +143,7 @@ public class SchemaHelper {
 	private static final Map<String, String> normalizedEntityNameCache                = new LinkedHashMap<>();
 	private static final Set<String> basePropertyNames                                = new LinkedHashSet<>(Arrays.asList(
 		"base", "type", "id", "createdDate", "createdBy", "lastModifiedDate", "lastModifiedBy", "visibleToPublicUsers", "visibleToAuthenticatedUsers",		// from GraphObject
-		"cascadeDelete", "relType", "sourceNode", "targetNode", "sourceId", "targetId", "sourceNodeProperty", "targetNodeProperty",				// from AbstractRelationship
+		"relType", "sourceNode", "targetNode", "sourceId", "targetId", "sourceNodeProperty", "targetNodeProperty",				// from AbstractRelationship
 		"name", "hidden", "owner", "ownerId", "grantees"													// from NodeInterface
 	));
 
@@ -153,6 +155,7 @@ public class SchemaHelper {
 		parserMap.put(Type.IntegerArray, IntegerArrayPropertyParser.class);
 		parserMap.put(Type.DoubleArray, DoubleArrayPropertyParser.class);
 		parserMap.put(Type.StringArray, StringArrayPropertyParser.class);
+		parserMap.put(Type.DateArray, DateArrayPropertyParser.class);
 		parserMap.put(Type.LongArray, LongArrayPropertyParser.class);
 		parserMap.put(Type.Function, FunctionPropertyParser.class);
 		parserMap.put(Type.Password, PasswordPropertySourceGenerator.class);
@@ -176,22 +179,23 @@ public class SchemaHelper {
 		sortIndexMap.put(Type.IntegerArray, 1);
 		sortIndexMap.put(Type.DoubleArray,  2);
 		sortIndexMap.put(Type.StringArray,  3);
-		sortIndexMap.put(Type.LongArray,    4);
-		sortIndexMap.put(Type.Password,     5);
-		sortIndexMap.put(Type.Boolean,      6);
-		sortIndexMap.put(Type.Integer,      7);
-		sortIndexMap.put(Type.String,       8);
-		sortIndexMap.put(Type.Double,       9);
-		sortIndexMap.put(Type.Long,        10);
-		sortIndexMap.put(Type.Enum,        11);
-		sortIndexMap.put(Type.Date,        12);
-		sortIndexMap.put(Type.Function,    13);
-		sortIndexMap.put(Type.Cypher,      14);
-		sortIndexMap.put(Type.Count,       15);
-		sortIndexMap.put(Type.Custom,      16);
-		sortIndexMap.put(Type.Join,        17);
-		sortIndexMap.put(Type.IdNotion,    18);
-		sortIndexMap.put(Type.Notion,      19);
+		sortIndexMap.put(Type.DateArray,    4);
+		sortIndexMap.put(Type.LongArray,    5);
+		sortIndexMap.put(Type.Password,     6);
+		sortIndexMap.put(Type.Boolean,      7);
+		sortIndexMap.put(Type.Integer,      8);
+		sortIndexMap.put(Type.String,       9);
+		sortIndexMap.put(Type.Double,      10);
+		sortIndexMap.put(Type.Long,        11);
+		sortIndexMap.put(Type.Enum,        12);
+		sortIndexMap.put(Type.Date,        13);
+		sortIndexMap.put(Type.Function,    14);
+		sortIndexMap.put(Type.Cypher,      15);
+		sortIndexMap.put(Type.Count,       16);
+		sortIndexMap.put(Type.Custom,      17);
+		sortIndexMap.put(Type.Join,        18);
+		sortIndexMap.put(Type.IdNotion,    19);
+		sortIndexMap.put(Type.Notion,      20);
 
 		graphQLTypeMap.put(Type.Password, Scalars.GraphQLString);
 		graphQLTypeMap.put(Type.Boolean, Scalars.GraphQLBoolean);
@@ -1118,6 +1122,7 @@ public class SchemaHelper {
 		src.append("import ").append(PermissionPropagation.class.getName()).append(";\n");
 		src.append("import ").append(FrameworkException.class.getName()).append(";\n");
 		src.append("import ").append(DatePropertyParser.class.getName()).append(";\n");
+		src.append("import ").append(DateArrayPropertyParser.class.getName()).append(";\n");
 		src.append("import ").append(ModificationQueue.class.getName()).append(";\n");
 		src.append("import ").append(PropertyConverter.class.getName()).append(";\n");
 		src.append("import ").append(ValidationHelper.class.getName()).append(";\n");
@@ -1139,6 +1144,7 @@ public class SchemaHelper {
 		src.append("import ").append(View.class.getName()).append(";\n");
 		src.append("import ").append(List.class.getName()).append(";\n");
 		src.append("import ").append(Set.class.getName()).append(";\n");
+                src.append("import ").append(Date.class.getName()).append(";\n");
 
 		if (hasRestClasses()) {
 			src.append("import org.structr.rest.RestMethodResult;\n");

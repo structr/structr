@@ -193,10 +193,10 @@ public class AdvancedMailContainer {
 
 	public void send() throws EmailException, FrameworkException {
 
-		boolean mandatoryFieldsPresent = (this.fromAddress != null && this.subject != null && this.htmlContent != null);
+		boolean mandatoryFieldsPresent = (this.fromAddress != null && this.subject != null && (this.htmlContent != null || this.textContent != null));
 
 		if (!mandatoryFieldsPresent) {
-			throw new FrameworkException(422, "Unable to send e-mail. Not all mandatory fields are set (fromAddress, subject, hmtlContent)'");
+			throw new FrameworkException(422, "Unable to send e-mail. Not all mandatory fields are set (fromAddress, subject and either hmtlContent or textContent)'");
 		}
 
 		if (getTo().isEmpty() && getCc().isEmpty() && getBcc().isEmpty()) {

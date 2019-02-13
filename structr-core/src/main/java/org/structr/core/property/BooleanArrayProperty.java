@@ -36,7 +36,7 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
 
 /**
- * A property that stores and retrieves an array of the given type.
+ * A property that stores and retrieves an array of Booleans.
  *
  *
  */

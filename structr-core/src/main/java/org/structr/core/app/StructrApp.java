@@ -42,6 +42,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.DummyFulltextIndexer;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
@@ -528,7 +529,7 @@ public class StructrApp implements App {
 
 			key = new GenericProperty(name);
 
-			if (logMissing) {
+			if (logMissing && !type.equals(GraphObjectMap.class)) {
 
 				logger.warn("Unknown property key {}.{}! Using generic property key. This may lead to conversion problems. If you encounter problems please report the following source of the call.", type.getSimpleName(), name);
 

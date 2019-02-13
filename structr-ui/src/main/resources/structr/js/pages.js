@@ -132,7 +132,7 @@ var _Pages = {
 				+ '<div id="activeElements" class="slideOut slideOutLeft"><div class="compTab" id="activeElementsTab">Active Elements</div><div class="page inner"></div></div>'
 				+ '<div id="dataBinding" class="slideOut slideOutLeft"><div class="compTab" id="dataBindingTab">Data Binding</div></div>'
 				+ '<div id="localizations" class="slideOut slideOutLeft"><div class="compTab" id="localizationsTab">Localizations</div><div class="page inner"><input class="locale" placeholder="Locale"><button class="refresh action button">' + _Icons.getHtmlForIcon(_Icons.refresh_icon) + ' Refresh</button><div class="results ver-scrollable"></div></div></div>'
-				+ '<div id="previews"></div>'
+				+ '<div id="previews" class="no-preview"></div>'
 				+ '<div id="widgetsSlideout" class="slideOut slideOutRight"><div class="compTab" id="widgetsTab">Widgets</div></div>'
 				+ '<div id="palette" class="slideOut slideOutRight"><div class="compTab" id="paletteTab">HTML Palette</div></div>'
 				+ '<div id="components" class="slideOut slideOutRight"><div class="compTab" id="componentsTab">Shared Components</div></div>'
@@ -538,6 +538,7 @@ var _Pages = {
 		_Pages.loadIframe(id);
 
 		element.addClass('active');
+		previews.removeClass('no-preview');
 
 		_Logger.log(_LogType.PAGES, 'store active tab', activeTab);
 		LSWrapper.setItem(_Pages.activeTabKey, activeTab);
@@ -601,6 +602,12 @@ var _Pages = {
 	 */
 	reloadIframe: function(id) {
 		if (!id || id !== activeTab || !_Pages.isPageTabPresent(id)) {
+
+			if ($('.previewBox iframe').length === 0) {
+				previews.addClass('no-preview');
+				_Pages.hideAllPreviews();
+			}
+
 			return false;
 		}
 		var autoRefreshDisabled = LSWrapper.getItem(autoRefreshDisabledKey + id);
@@ -618,7 +625,7 @@ var _Pages = {
 	unloadIframes: function() {
 		_Logger.log(_LogType.PAGES, 'unloading all preview iframes');
 		_Pages.clearIframeDroppables();
-		$('iframe', $('#previews')).each(function() {
+		$('iframe', previews).each(function() {
 			var pageId = $(this).prop('id').substring('preview_'.length);
 			var iframe = $('#preview_' + pageId);
 			try {

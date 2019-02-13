@@ -16,37 +16,25 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.knowledge;
+package org.structr.knowledge.iso25964;
 
 import java.net.URI;
-import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 
 /**
- * Base class of a custom term attribute as defined in ISO 25964
+ * Class as defined in ISO 25964 data model
  */
 
-public interface CustomTermAttribute extends NodeInterface {
+public interface PreferredTerm extends ThesaurusTerm {
 
 	static class Impl { static {
 
-		final JsonSchema schema            = SchemaService.getDynamicSchema();
-		final JsonObjectType type          = schema.addType("CustomTermAttribute");
+		final JsonSchema schema      = SchemaService.getDynamicSchema();
+		final JsonObjectType type    = schema.addType("PreferredTerm");
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/CustomTermAttribute"));
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/PreferredTerm"));
+		type.setExtends(URI.create("#/definitions/ThesaurusTerm"));
 	}}
-
-	/*
-
-	private static final Logger logger = LoggerFactory.getLogger(CustomTermAttribute.class.getName());
-
-	public static final Property<ThesaurusTerm> term = new StartNode<>("term", TermHasCustomAttributes.class);
-
-	static {
-
-		SchemaService.registerBuiltinTypeOverride("CustomTermAttribute", CustomTermAttribute.class.getName());
-	}
-	*/
 }

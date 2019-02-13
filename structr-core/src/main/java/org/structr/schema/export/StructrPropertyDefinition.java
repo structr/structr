@@ -576,6 +576,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 										case "boolean":
 											newProperty = new StructrBooleanArrayProperty(parent, name);
 											break;
+
+										case "date":
+											newProperty = new StructrDateArrayProperty(parent, name);
+											break;
 									}
 								}
 							}
@@ -738,6 +742,12 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 				date.setFormat(JsonSchema.FORMAT_DATE_TIME);
 				date.setDefaultValue(property.getDefaultValue());
 				return date;
+
+			case DateArray:
+				final StructrDateArrayProperty dateArrayProperty = new StructrDateArrayProperty(parent, name);
+				dateArrayProperty.deserialize(schemaNodes, property);
+				dateArrayProperty.setDefaultValue(property.getDefaultValue());
+				return dateArrayProperty;
 
 			case Enum:
 				final StructrEnumProperty enumProperty = new StructrEnumProperty(parent, name);

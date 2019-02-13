@@ -492,6 +492,38 @@ public class PropertyTest extends StructrTest {
 			fail("Unable to store array");
 		}
 	}
+	
+	@Test
+	public void testDateArrayProperty() {
+
+		try {
+
+			final Property<Date[]> instance = TestFour.dateArrayProperty;
+			final TestFour testEntity         = createTestNode(TestFour.class);
+
+			assertNotNull(testEntity);
+
+			// store a date array in the test entitiy
+			final Date[] arr = new Date[] { new Date(123456789L), new Date(234567891L), new Date(345678912L) };
+
+			try (final Tx tx = app.tx()) {
+
+				instance.setProperty(securityContext, testEntity, arr);
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				Date[] newArr = instance.getProperty(securityContext, testEntity, true);
+
+				assertTrue(Objects.deepEquals(arr, newArr));
+			}
+
+		} catch (FrameworkException fex) {
+
+			fail("Unable to store date array");
+		}
+	}
 
 	@Test
 	public void testSimpleDatePropertySearchOnNode() {

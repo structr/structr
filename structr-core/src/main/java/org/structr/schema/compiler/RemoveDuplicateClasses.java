@@ -26,7 +26,7 @@ import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.entity.SchemaReloadingNode;
 import org.structr.core.graph.Tx;
 
 /**
@@ -57,7 +57,7 @@ public class RemoveDuplicateClasses implements MigrationHandler {
 
 					try (final Tx tx = app.tx()) {
 
-						final AbstractSchemaNode schemaNode = app.nodeQuery(AbstractSchemaNode.class).andName(type).getFirst();
+						final SchemaReloadingNode schemaNode = app.nodeQuery(SchemaReloadingNode.class).andName(type).getFirst();
 						if (schemaNode != null) {
 
 							app.delete(schemaNode);

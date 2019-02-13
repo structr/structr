@@ -1576,6 +1576,20 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return result;
 	}
 
+	public final Object getPath(final SecurityContext currentSecurityContext) {
+
+		if (rawPathSegmentId != -1) {
+
+			final DatabaseService databaseService        = StructrApp.getInstance(currentSecurityContext).getDatabaseService();
+			final Relationship rawPathSegment            = databaseService.getRelationshipById(rawPathSegmentId);
+
+			return new RelationshipFactory<>(currentSecurityContext).adapt(rawPathSegment);
+		}
+
+		return null;
+	}
+
+
 	@Override
 	public final Object evaluate(final ActionContext actionContext, final String key, final String defaultValue) throws FrameworkException {
 
@@ -1585,18 +1599,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				return getOwnerNode();
 
 			case "_path":
-				if (rawPathSegmentId != -1) {
-
-					final SecurityContext currentSecurityContext = actionContext.getSecurityContext();
-					final DatabaseService databaseService        = StructrApp.getInstance(currentSecurityContext).getDatabaseService();
-					final Relationship rawPathSegment            = databaseService.getRelationshipById(rawPathSegmentId);
-
-					return new RelationshipFactory<>(currentSecurityContext).adapt(rawPathSegment);
-
-				} else {
-
-					return null;
-				}
+				return getPath(actionContext.getSecurityContext());
 
 			default:
 

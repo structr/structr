@@ -16,29 +16,31 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.knowledge;
+package org.structr.knowledge.iso25964;
 
 import java.net.URI;
-import org.structr.core.entity.Relation.Cardinality;
+import java.util.Locale;
+import org.structr.common.PropertyView;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 
 /**
- * Base class of a Thesaurus as defined in ISO 25964
+ * Class as defined in ISO 25964 data model
  */
-
-public interface Thesaurus extends NodeInterface {
+public interface NodeLabel extends NodeInterface {
 
 	static class Impl { static {
 
-		final JsonSchema schema      = SchemaService.getDynamicSchema();
-		final JsonObjectType type    = schema.addType("Thesaurus");
-		final JsonObjectType concept = schema.addType("ThesaurusConcept");
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("NodeLabel");
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Thesaurus"));
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/NodeLabel"));
 
-		type.relate(concept, "CONTAINS", Cardinality.OneToMany, "thesaurus", "concepts");
+		type.addStringProperty("lexicalValue", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
+		type.addDateProperty("created", PropertyView.All, PropertyView.Ui).setIndexed(true);
+		type.addDateProperty("modified", PropertyView.All, PropertyView.Ui).setIndexed(true);
+		type.addEnumProperty("lang", PropertyView.All, PropertyView.Ui).setEnums(Locale.getISOLanguages());
 	}}
 }

@@ -26,19 +26,17 @@ import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaReloadingNode;
 import org.structr.core.graph.Tx;
 
 /**
- * A migration handler that removes old methods which signature is already
- * defined in a another class.
+ * A migration handler that removes schema nodes for classes that have
+ * a symbol defined that is unknown in the new schema definition.
  */
-public class RemoveMethodsWithUnusedSignature implements MigrationHandler {
+public class RemoveClassesWithUnknownSymbols implements MigrationHandler {
 
-	//                                                                 name              signature                                          type
-	private static final Pattern PATTERN = Pattern.compile("method ([a-zA-Z0-9_]+)\\(([a-zA-Z0-9_ \\.]*)\\) is already defined in class ([a-zA-Z0-9\\.]+)");
-	private static final Logger logger   = LoggerFactory.getLogger(RemoveMethodsWithUnusedSignature.class);
+	private static final Pattern PATTERN = Pattern.compile("cannot find symbol.*", Pattern.DOTALL);
+	private static final Logger logger   = LoggerFactory.getLogger(RemoveClassesWithUnknownSymbols.class);
 
 	@Override
 	public void handleMigration(final ErrorToken errorToken) throws FrameworkException {
@@ -57,23 +55,12 @@ public class RemoveMethodsWithUnusedSignature implements MigrationHandler {
 
 					final App app = StructrApp.getInstance();
 
-					// extract info
-					final String methodName = matcher.group(1);
-					final String signature  = matcher.group(2);
-					final String fqcn       = matcher.group(3);
-
 					try (final Tx tx = app.tx()) {
 
-						final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
+						final SchemaReloadingNode schemaNode = app.nodeQuery(SchemaReloadingNode.class).andName(type).getFirst();
 						if (schemaNode != null) {
 
-							for (final SchemaMethod method : app.nodeQuery(SchemaMethod.class)
-								.and(SchemaMethod.schemaNode, schemaNode)
-								.and(SchemaMethod.name,       methodName)
-								.getAsList()) {
-
-								app.delete(method);
-							}
+							app.delete(schemaNode);
 						}
 
 						tx.success();
