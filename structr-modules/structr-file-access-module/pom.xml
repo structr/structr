@@ -132,7 +132,7 @@
 						<configuration>
 							<images>
 								<image>
-									<name>neo4j:3.4.12-enterprise</name>
+									<name>${test.neo4j.version}</name>
 									<alias>database</alias>
 									<run>
 										<ports>
