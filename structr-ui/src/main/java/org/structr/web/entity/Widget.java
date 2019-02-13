@@ -53,7 +53,7 @@ public interface Widget extends NodeInterface {
 		final JsonObjectType image = schema.addType("Image");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Widget"));
-		type.setCategory("core");
+		type.setCategory("ui");
 
 		type.addStringProperty("source",        PropertyView.Ui, PropertyView.Public);
 		type.addStringProperty("description",   PropertyView.Ui, PropertyView.Public);

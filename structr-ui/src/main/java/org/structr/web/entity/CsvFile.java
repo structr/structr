@@ -37,6 +37,6 @@ public interface CsvFile extends File {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/CsvFile"));
 		type.setExtends(URI.create("#/definitions/File"));
-		type.setCategory("core");
+		type.setCategory("ui");
 	}}
 }
