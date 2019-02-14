@@ -51,6 +51,9 @@ public interface Mailbox extends NodeInterface {
 		type.addMethod("getFolders")
 				.setReturnType("String[]")
 				.setSource("return getProperty(foldersProperty);");
+		type.addMethod("getAvailableFoldersOnServer")
+				.setReturnType("String[]")
+				.setSource("return com.google.common.collect.Iterators.toArray(StructrApp.getInstance(securityContext).command(org.structr.mail.service.FetchFoldersCommand.class).execute(this).iterator(), String.class);");
 
 		type.relate(mail, "CONTAINS_EMAILMESSAGES", Relation.Cardinality.OneToMany, "mailbox", "emails");
 
