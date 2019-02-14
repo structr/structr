@@ -1298,16 +1298,21 @@ var Command = {
 		return sendObj(obj, callback);
 	},
 	/**
+	 * Shortcut to create an ApplicationConfigurationDataNode
+	 */
+	createApplicationConfigurationDataNode: function(configType, name, content, callback) {
+		Command.create({
+			type: 'ApplicationConfigurationDataNode',
+			name: name,
+			configType: configType,
+			content: content
+		}, callback);
+	},
+	/**
 	 * Shortcut to get all ApplicationConfigurationDataNodes for a specific configType
 	 */
-	getApplicationConfigurationDataNodes: function(configType, customView, callback, filterProperties) {
-		var filter = {
-			configType: configType
-		};
-		if (filterProperties) {
-			Object.assign(filter, filterProperties);
-		}
-		return Command.query('ApplicationConfigurationDataNode', 1000, 1, 'name', true, filter, callback, true, null, customView);
+	getApplicationConfigurationDataNodes: function(configType, customView, callback) {
+		return Command.query('ApplicationConfigurationDataNode', 1000, 1, 'name', true, { configType: configType }, callback, true, null, customView);
 	},
 	/**
 	 * Shortcut to get a single ApplicationConfigurationDataNode

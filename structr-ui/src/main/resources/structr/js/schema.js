@@ -3044,14 +3044,7 @@ var _Schema = {
 
 				if (layoutName && layoutName.length) {
 
-					var newLayout = {
-						type: 'ApplicationConfigurationDataNode',
-						name: layoutName,
-						configType: 'layout',
-						content: JSON.stringify(_Schema.getSchemaLayoutConfiguration())
-					};
-
-					Command.create(newLayout, function(data) {
+					Command.createApplicationConfigurationDataNode('layout', layoutName, JSON.stringify(_Schema.getSchemaLayoutConfiguration()), function(data) {
 
 						if (!data.error) {
 

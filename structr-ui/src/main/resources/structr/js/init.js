@@ -1723,7 +1723,6 @@ var Structr = {
 					new MessageBuilder().title("GENERIC_MESSAGE").warning(text).requiresConfirmation().show();
 
 			}
-
 		}
 	},
 	fetchHtmlTemplate: function(templateName, templateConfig, callback) {

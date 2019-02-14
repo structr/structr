@@ -203,14 +203,7 @@ var Importer = {
 
 		if (name && name.length) {
 
-			var newImportConfig = {
-				type: 'ApplicationConfigurationDataNode',
-				name: name,
-				configType: configType,
-				content: JSON.stringify(configuration)
-			};
-
-			Command.create(newImportConfig, function(data) {
+			Command.createApplicationConfigurationDataNode(configType, name, JSON.stringify(configuration), function(data) {
 
 				if (!data.error) {
 
