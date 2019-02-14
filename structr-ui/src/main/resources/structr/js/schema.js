@@ -3217,13 +3217,20 @@ var _Schema = {
 
 			var updateLayoutSelector = function() {
 
-				Command.getApplicationConfigurationDataNodes('layout', 'id,name', function(layouts) {
+				Command.getApplicationConfigurationDataNodesGroupedByUser('layout', function(grouped) {
 
 					layoutSelector.empty();
 					layoutSelector.append('<option selected value="" disabled>-- Select Layout --</option>');
 
-					layouts.forEach(function(layout) {
-						layoutSelector.append('<option value="' + layout.id + '">' + layout.name + '</option>');
+					grouped.forEach(function(group) {
+
+						var optGroup = $('<optgroup label="' + group.ownerName + '"></optgroup>');
+						layoutSelector.append(optGroup);
+
+						group.configs.forEach(function(layout) {
+
+							optGroup.append('<option value="' + layout.id + '">' + layout.name + '</option>');
+						});
 					});
 				});
 			};
