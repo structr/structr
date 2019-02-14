@@ -209,7 +209,7 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 					buf.append(tenantIdentifier);
 				}
 
-				buf.append(") WHERE ID(n) = {id} RETURN n");
+				buf.append(") WHERE ID(n) = $id RETURN n");
 
 				wrapper = new RelationshipWrapper(db, tx.getRelationship(buf.toString(), map));
 					relationshipCache.put(id, wrapper);

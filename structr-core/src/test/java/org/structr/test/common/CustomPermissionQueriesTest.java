@@ -104,7 +104,7 @@ public class CustomPermissionQueriesTest extends StructrTest {
 		try (final Tx tx = userApp.tx()) {
 
 			// query returns always true if user exists
-			user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryRead"), "MATCH (p:Principal:" + randomTenantId + "{id: {principalUuid}}) RETURN p IS NOT NULL");
+			user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryRead"), "MATCH (p:Principal:" + randomTenantId + "{id: $principalUuid}) RETURN p IS NOT NULL");
 
 			tx.success();
 
@@ -129,7 +129,7 @@ public class CustomPermissionQueriesTest extends StructrTest {
 		try (final Tx tx = userApp.tx()) {
 
 			// query returns always false if user exists
-			user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryRead"), "MATCH (p:Principal:" + randomTenantId + "{id: {principalUuid}}) RETURN p IS NULL");
+			user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryRead"), "MATCH (p:Principal:" + randomTenantId + "{id: $principalUuid}) RETURN p IS NULL");
 
 			tx.success();
 
@@ -210,7 +210,7 @@ public class CustomPermissionQueriesTest extends StructrTest {
 		try (final Tx tx = userApp.tx()) {
 
 			// query returns always true if user exists
-			user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryWrite"), "MATCH (p:Principal:" + randomTenantId + "{id: {principalUuid}}) RETURN p IS NOT NULL");
+			user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryWrite"), "MATCH (p:Principal:" + randomTenantId + "{id: $principalUuid}) RETURN p IS NOT NULL");
 
 			tx.success();
 
@@ -235,7 +235,7 @@ public class CustomPermissionQueriesTest extends StructrTest {
 		try (final Tx tx = userApp.tx()) {
 
 			// query returns always false if user exists
-			user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryRead"), "MATCH (p:Principal:" + randomTenantId + "{id: {principalUuid}}) RETURN p IS NULL");
+			user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryRead"), "MATCH (p:Principal:" + randomTenantId + "{id: $principalUuid}) RETURN p IS NULL");
 
 			tx.success();
 

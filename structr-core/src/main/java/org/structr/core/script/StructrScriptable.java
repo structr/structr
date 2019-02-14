@@ -27,18 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import jdk.nashorn.api.scripting.ScriptUtils;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.IdFunctionCall;
-import org.mozilla.javascript.IdFunctionObject;
-import org.mozilla.javascript.NativeArray;
-import org.mozilla.javascript.NativeJavaMethod;
-import org.mozilla.javascript.NativeObject;
-import org.mozilla.javascript.Script;
-import org.mozilla.javascript.ScriptRuntime;
-import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.ScriptableObject;
-import org.mozilla.javascript.TopLevel;
-import org.mozilla.javascript.Wrapper;
+import org.mozilla.javascript.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
@@ -369,6 +358,11 @@ public class StructrScriptable extends ScriptableObject {
 			return context.newObject(scope, "Date", new Object[] {((Date)value).getTime()});
 		}
 
+		if (value instanceof NativeJavaObject) {
+
+			return wrap(context, scope, key, ((NativeJavaObject)value).unwrap());
+		}
+
 		return value;
 	}
 
@@ -591,30 +585,26 @@ public class StructrScriptable extends ScriptableObject {
 			final Method method = StructrApp.getConfiguration().getAnnotatedMethods(obj.getClass(), Export.class).get(name);
 			if (method != null) {
 
-				if (method.getParameterCount() == 0) {
+				return new NativeJavaMethod(method, name) {
 
-					return new NativeJavaMethod(method, name);
+					@Override
+					public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
 
-				} else {
+						if (method.getParameterCount() == 0) {
 
-					return new NativeJavaMethod(method, name) {
+							return wrap(context, this, null, super.call(cx, scope, thisObj, new Object[]{}));
+						} else if (args.length == 0) {
 
-						@Override
-						public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
+							return wrap(context, this, null, super.call(cx, scope, thisObj, new Object[]{ new NativeObject() }));
+						} else {
 
-							if (args.length == 0) {
-
-								return super.call(cx, scope, thisObj, new Object[]{ new NativeObject() });
-
-							} else {
-
-								return super.call(cx, scope, thisObj, args);
-							}
-
+							return wrap(context, this, null, super.call(cx, scope, thisObj, args));
 						}
-					};
-				}
+
+					}
+				};
 			}
+
 
 			// default: direct evaluation of object
 			try {
