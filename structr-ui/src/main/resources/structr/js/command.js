@@ -1296,6 +1296,51 @@ var Command = {
 		return Command.query('ApplicationConfigurationDataNode', 1000, 1, 'name', true, { configType: configType }, callback, true, null, customView);
 	},
 	/**
+	 * Shortcut to get all ApplicationConfigurationDataNodes for a specific configType grouped by user
+	 */
+	getApplicationConfigurationDataNodesGroupedByUser: function(configType, callback) {
+		return Command.query('ApplicationConfigurationDataNode', 1000, 1, 'name', true, { configType: configType }, function(data) {
+
+			var grouped = {};
+
+			data.forEach(function(n) {
+				var ownerName = (n.owner) ? n.owner.name : '### no owner';
+				if (!grouped[ownerName]) {
+					grouped[ownerName] = [];
+				}
+				grouped[ownerName].push(n);
+			});
+
+			var ownerNames = Object.keys(grouped);
+
+			// sort by name (nulls first)
+			ownerNames.sort(function (a, b) {
+				if (a > b) { return 1; }
+				if (a < b) { return -1; }
+				return 0;
+			});
+
+			// sort current user first (if in list)
+			var myIndex = ownerNames.indexOf(me.username);
+			if (myIndex !== -1) {
+				ownerNames.splice(myIndex,1);
+				ownerNames.unshift(me.username);
+			}
+
+			var sortedGrouped = [];
+
+			ownerNames.forEach(function (on) {
+				sortedGrouped.push({
+					ownerName: on,
+					configs: grouped[on]
+				});
+			});
+
+			callback(sortedGrouped);
+
+		}, true, null, 'id,name,owner');
+	},
+	/**
 	 * Shortcut to get a single ApplicationConfigurationDataNode
 	 */
 	getApplicationConfigurationDataNode: function(id, callback) {

@@ -188,13 +188,20 @@ var Importer = {
 	},
 	updateConfigSelector: function(elem, configType) {
 
-		Command.getApplicationConfigurationDataNodes(configType, 'id,name', function(configs) {
+		Command.getApplicationConfigurationDataNodesGroupedByUser(configType, function(grouped) {
 
 			elem.empty();
 			elem.append('<option selected value="" disabled>--- Select configuration to load ---</option>');
 
-			configs.forEach(function(cfg) {
-				elem.append('<option value="' + cfg.id + '">' + cfg.name + '</option>');
+			grouped.forEach(function(group) {
+
+				var optGroup = $('<optgroup label="' + group.ownerName + '"></optgroup>');
+				elem.append(optGroup);
+
+				group.configs.forEach(function(cfg) {
+
+					optGroup.append('<option value="' + cfg.id + '">' + cfg.name + '</option>');
+				});
 			});
 		});
 
