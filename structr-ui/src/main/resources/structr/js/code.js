@@ -39,6 +39,7 @@ var _Code = {
 	searchThreshold: 3,
 	searchTextLength: 0,
 	lastClickedPath: '',
+	codeRecentElementsKey: 'structrCodeRecentElements_' + port,
 	init: function() {
 
 		_Logger.log(_LogType.CODE, '_Code.init');
@@ -140,7 +141,7 @@ var _Code = {
 			codeTree.on('select_node.jstree', _Code.handleTreeClick);
 			codeTree.on('refresh.jstree', _Code.activateLastClicked);
 
-			_Code.loadFavorites(function() {
+			_Code.loadRecentlyUsedElements(function() {
 				_TreeHelper.initTree(codeTree, _Code.treeInitFunction, 'structr-ui-code');
 			});
 
@@ -168,62 +169,86 @@ var _Code = {
 		});
 
 	},
-	loadFavorites: function(doneCallback) {
+	loadRecentlyUsedElements: function(doneCallback) {
 
-		// load stored favorites
-		var favorites = [];
-		var count     = 0;
+		var recentElements = LSWrapper.getItem(_Code.codeRecentElementsKey) || [];
 
-		Command.appData('list', 'code-favorites', '', '', function(result) {
-
-			if (result && result.length && result[0].names && result[0].names.length) {
-
-				result[0].names.forEach(function(name) {
-
-					Command.appData('get', 'code-favorites', name, '', function(value) {
-
-						Command.query('AbstractNode', 1, 1, 'name', true, { id: name }, function(existing) {
-
-							if (existing.length) {
-
-								// make existing entry available to display later
-								favorites.push(JSON.parse(value.value));
-
-							} else {
-
-								// delete nonexisting favorite entry from disk
-								_Code.deleteRecentlyUsedElement(name);
-							}
-
-							// iteration finished?
-							if (++count === result[0].names.length) {
-
-								// sort by position
-								favorites.sort(function(a, b) {
-									if (a.position > b.position) { return 1; }
-									if (a.position < b.position) { return -1; }
-									return 0;
-								});
-
-								for (var f of favorites) {
-									_Code.addRecentlyUsedElement(f.id, f.name, f.icon, f.path, true);
-								};
-
-								if (typeof doneCallback === 'function') {
-									doneCallback();
-								}
-							}
-						}, true);
-					});
+		var promises = recentElements.map(function(recentElement) {
+			return new Promise(function(resolve, reject) {
+				Command.query('AbstractNode', 1, 1, 'name', true, { id: recentElement.id }, function(res) {
+					resolve(res[0]);
 				});
-
-			} else {
-
-				if (typeof doneCallback === 'function') {
-					doneCallback();
-				}
-			}
+			});
 		});
+
+		Promise.all(promises).then(foundElements => {
+
+			var updatedRecentElements = [];
+
+			foundElements.forEach(function(entity) {
+				if (entity) {
+					_Code.addRecentlyUsedElement(entity, true);
+
+					updatedRecentElements.push({id: entity.id});
+				}
+			});
+
+			LSWrapper.setItem(_Code.codeRecentElementsKey, updatedRecentElements);
+
+		}).then(doneCallback);
+
+	},
+	addRecentlyUsedElement: function(entity, fromStorage) {
+
+		var id   = entity.id;
+		var name = _Code.getDisplayNameInRecentsForType(entity);
+		var icon = _Code.getIconForNodeType(entity);
+		var path = _Code.getPathForEntity(entity);
+
+		if (!fromStorage) {
+
+			var recentElements = LSWrapper.getItem(_Code.codeRecentElementsKey) || [];
+
+			var updatedList = recentElements.filter(function(recentElement) {
+				return (recentElement.id !== entity.id);
+			});
+			updatedList.unshift({id: entity.id});
+
+			$('#recently-used-' + entity.id).remove();
+
+			LSWrapper.setItem(_Code.codeRecentElementsKey, updatedList);
+		}
+
+		Structr.fetchHtmlTemplate('code/recently-used-button', { id: id, name: name, icon: icon }, function(html) {
+			var ctx  = $('#code-context');
+
+			if (fromStorage) {
+				ctx.append(html);
+			} else {
+				ctx.prepend(html);
+			}
+
+			$('#recently-used-' + id).on('click.recently-used', function() {
+				_Code.findAndOpenNode(path, true);
+			});
+			$('#remove-recently-used-' + id).on('click.recently-used', function(e) {
+				e.stopPropagation();
+				_Code.deleteRecentlyUsedElement(id);
+			});
+
+		});
+	},
+	deleteRecentlyUsedElement: function(recentlyUsedElementId) {
+
+		var recentElements = LSWrapper.getItem(_Code.codeRecentElementsKey) || [];
+
+		var filteredRecentElements = recentElements.filter(function(recentElement) {
+			return (recentElement.id !== recentlyUsedElementId);
+		});
+		$('#recently-used-' + recentlyUsedElementId).remove();
+
+		LSWrapper.setItem(_Code.codeRecentElementsKey, filteredRecentElements);
+
 	},
 	refreshTree: function() {
 		_TreeHelper.refreshTree(codeTree);
@@ -774,6 +799,30 @@ var _Code = {
 			_TreeHelper.refreshTree('#code-tree');
 			_Code.hideSchemaRecompileMessage();
 		});
+	},
+	getDisplayNameInRecentsForType: function (entity) {
+
+		var name = entity.name;
+
+		switch (entity.type) {
+			case 'SchemaNode':
+				name = 'Class ' + entity.name;
+				break;
+			case 'SchemaMethod':
+				if (entity.schemaNode && entity.schemaNode.name) {
+					name = entity.schemaNode.name + '.' + entity.name + '()';
+				} else {
+					name = entity.name + '()';
+				}
+				break;
+			case 'SchemaProperty':
+				if (entity.schemaNode && entity.schemaNode.name) {
+					name = entity.schemaNode.name + '.' + entity.name;
+				}
+				break;
+		}
+
+		return name;
 	},
 	getIconForNodeType: function(entity) {
 
@@ -1684,69 +1733,12 @@ var _Code = {
 	},
 	updateRecentlyUsed: function(entity, updateLocationStack) {
 
-		var path = _Code.getPathForEntity(entity);
-		var name = entity.name;
-		var id   = entity.id;
-
-		switch (entity.type) {
-			case 'SchemaNode':
-				name = 'Class ' + entity.name;
-				break;
-			case 'SchemaMethod':
-				if (entity.schemaNode && entity.schemaNode.name) {
-					name = entity.schemaNode.name + '.' + entity.name + '()';
-				} else {
-					name = entity.name + '()';
-				}
-				break;
-			case 'SchemaProperty':
-				if (entity.schemaNode && entity.schemaNode.name) {
-					name = entity.schemaNode.name + '.' + entity.name;
-				}
-				break;
-		}
-
-		_Code.addRecentlyUsedElement(id, name, _Code.getIconForNodeType(entity), path);
+		_Code.addRecentlyUsedElement(entity);
 
 		if (updateLocationStack) {
 			_Code.updatePathLocationStack(path);
 			_Code.lastClickedPath = path;
 		}
-	},
-	addRecentlyUsedElement: function(id, name, icon, path, fromStorage) {
-		Structr.fetchHtmlTemplate('code/recently-used-button', { id: id, name: name, icon: icon }, function(html) {
-			var ctx  = $('#code-context');
-			var elem = $('#recently-used-' + id, ctx);
-			if (!elem.length) {
-				if (!fromStorage) {
-					Command.appData('add', 'code-favorites', id, JSON.stringify({id: id, name: name, icon: icon, path: path, position: $('.code-favorite').length }));
-				}
-				elem.off('click.recently-used');
-				elem.remove();
-				ctx.append(html);
-				$('#recently-used-' + id).on('click.recently-used', function() {
-					_Code.findAndOpenNode(path, true);
-				});
-				$('#remove-recently-used-' + id).on('click.recently-used', function(e) {
-					e.stopPropagation();
-					_Code.deleteRecentlyUsedElement(id);
-				});
-			} else {
-
-				Command.appData('replace', 'code-favorites', id, JSON.stringify({
-					id: id,
-					name: name,
-					icon: icon,
-					path: path,
-					position: $('.code-favorite').length
-				}));
-			}
-		});
-	},
-	deleteRecentlyUsedElement: function(id) {
-		Command.appData('delete', 'code-favorites', id, '', function() {
-			$('#recently-used-' + id).remove();
-		});
 	},
 	findAndOpenNode: function(path, updateLocationStack) {
 		var tree = $('#code-tree').jstree(true);
