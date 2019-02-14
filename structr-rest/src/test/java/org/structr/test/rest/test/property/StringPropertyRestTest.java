@@ -19,6 +19,7 @@
 package org.structr.test.rest.test.property;
 
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.filter.log.RequestLoggingFilter;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.*;
 import org.testng.annotations.Test;
@@ -175,6 +176,7 @@ public class StringPropertyRestTest extends IndexingTest {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
+			.filter(RequestLoggingFilter.logRequestTo(System.out))
 			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.body(" { 'name': '" + length + "', 'stringProperty' : '" + largeString + "' } ")
 		.expect()
