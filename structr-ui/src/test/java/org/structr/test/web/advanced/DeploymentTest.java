@@ -30,7 +30,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import org.apache.commons.lang3.StringUtils;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
@@ -96,6 +95,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 import org.w3c.dom.Node;
 
 public class DeploymentTest extends StructrUiTest {
@@ -2082,7 +2082,7 @@ public class DeploymentTest extends StructrUiTest {
 		compare(calculateHash(), true);
 
 	}
-	
+
 	// ----- private methods -----
 	private void compare(final String sourceHash, final boolean deleteTestDirectory) {
 		compare(sourceHash, deleteTestDirectory, true);
@@ -2141,6 +2141,7 @@ public class DeploymentTest extends StructrUiTest {
 
 				// import from exported source
 				final Map<String, Object> firstImportParams = new HashMap<>();
+				firstImportParams.put("mode", "import");
 				firstImportParams.put("source", tmp.toString());
 
 				// execute deploy command
