@@ -18,20 +18,15 @@
  */
 package org.structr.web.maintenance;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.Reader;
 import java.io.Writer;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,27 +37,19 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.Security;
-import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.SchemaHelper;
@@ -70,12 +57,10 @@ import org.structr.schema.SchemaHelper;
 /**
  *
  */
-public class DeployDataCommand extends NodeServiceCommand implements MaintenanceCommand {
+public class DeployDataCommand extends DeployCommand {
 
 	private static final Logger logger                     = LoggerFactory.getLogger(DeployDataCommand.class.getName());
-	private static final Pattern pattern                   = Pattern.compile("[a-f0-9]{32}");
 
-	private Set<String> missingPrincipals;
 	private Map<String, List<Map<String, Object>>> relationshipMap;		// {relType: [{id:"", type:"", ...}], ..}
 	private Set<String> alreadyExportedRelationships;
 
@@ -87,42 +72,11 @@ public class DeployDataCommand extends NodeServiceCommand implements Maintenance
 		MaintenanceParameterResource.registerMaintenanceCommand("deployData", DeployDataCommand.class);
 	}
 
-
 	@Override
-	public void execute(final Map<String, Object> parameters) throws FrameworkException {
-
-		final String mode = (String) parameters.get("mode");
-
-		if ("export".equals(mode)) {
-
-			doExport(parameters);
-
-		} else if ("import".equals(mode)) {
-
-			doImport(parameters);
-
-		} else {
-
-			warn("Unsupported mode '{}'", mode);
-		}
-
-	}
-
-	@Override
-	public boolean requiresEnclosingTransaction() {
-		return false;
-	}
-
-	@Override
-	public boolean requiresFlushingOfCaches() {
-		return false;
-	}
-
 	public void doExport(final Map<String, Object> parameters) throws FrameworkException {
 
 		final String path       = (String) parameters.get("target");
 		final String types      = (String) parameters.get("types");
-		String basicAttrs       = (String) parameters.get("attributes");
 
 		if (StringUtils.isBlank(path)) {
 
@@ -134,27 +88,6 @@ public class DeployDataCommand extends NodeServiceCommand implements Maintenance
 
 			warn("Please provide a comma-separated list of type(s) to export. (e.g. 'ContentContainer,ContentItem')");
 			throw new FrameworkException(422, "Please provide a comma-separated list of type(s) to export. (e.g. 'ContentContainer,ContentItem')");
-		}
-
-		if (StringUtils.isBlank(basicAttrs)) {
-
-			basicAttrs = "id,type";
-			info("No attributes given - defaulting to '{}'", basicAttrs);
-		}
-
-		final List<String> propertyNames = new LinkedList();
-		for (final String propertyName : basicAttrs.split(",")) {
-			propertyNames.add(propertyName.trim());
-		}
-
-		if (!propertyNames.contains("id")) {
-			propertyNames.add("id");
-			info("id attribute is required - adding it");
-		}
-
-		if (!propertyNames.contains("type")) {
-			propertyNames.add("type");
-			info("type attribute is required - adding it");
 		}
 
 		final Path target  = Paths.get(path);
@@ -193,7 +126,7 @@ public class DeployDataCommand extends NodeServiceCommand implements Maintenance
 
 					final Path typeConf = nodesDir.resolve(typeName + ".json");
 
-					exportDataForType(type, typeConf, propertyNames);
+					exportDataForType(type, typeConf);
 				}
 			}
 
@@ -237,6 +170,7 @@ public class DeployDataCommand extends NodeServiceCommand implements Maintenance
 
 	}
 
+	@Override
 	public void doImport(final Map<String, Object> parameters) throws FrameworkException {
 
 		// backup previous value of change log setting and disable during deployment
@@ -245,7 +179,7 @@ public class DeployDataCommand extends NodeServiceCommand implements Maintenance
 
 		try {
 
-			missingPrincipals = new HashSet<>();
+			missingPrincipals.clear();
 
 			final long startTime = System.currentTimeMillis();
 			customHeaders.put("start", new Date(startTime).toString());
@@ -363,15 +297,13 @@ public class DeployDataCommand extends NodeServiceCommand implements Maintenance
 				final String title = "Missing Principal(s)";
 				final String text = "The following user(s) and/or group(s) are missing for grants or node ownership during deployment.<br>"
 						+ "Because of these missing grants/ownerships, the functionality is not identical to the export you just imported!<br><br>"
-						+ String.join(", ",  missingPrincipals)
-						+ "<br><br>Consider adding these principals to your <a href=\"https://support.structr.com/article/428#pre-deployconf-javascript\">pre-deploy.conf</a> and re-importing.";
+						+ String.join(", ",  missingPrincipals);
 
 				info("\n###############################################################################\n"
 						+ "\tWarning: " + title + "!\n"
 						+ "\tThe following user(s) and/or group(s) are missing for grants or node ownership during deployment.\n"
 						+ "\tBecause of these missing grants/ownerships, the functionality is not identical to the export you just imported!\n\n"
 						+ "\t" + String.join(", ",  missingPrincipals)
-						+ "\n\n\tConsider adding these principals to your 'pre-deploy.conf' (see https://support.structr.com/article/428#pre-deployconf-javascript) and re-importing.\n"
 						+ "###############################################################################"
 				);
 				publishWarningMessage(title, text);
@@ -397,22 +329,10 @@ public class DeployDataCommand extends NodeServiceCommand implements Maintenance
 		}
 	}
 
-	private <T extends AbstractNode> void exportDataForType(final Class<T> nodeType, final Path targetConfFile, final List<String> basicProperties) throws FrameworkException {
+	private <T extends AbstractNode> void exportDataForType(final Class<T> nodeType, final Path targetConfFile) throws FrameworkException {
 
 		final List<Map<String, Object>> nodes  = new LinkedList<>();
 		final App app                          = StructrApp.getInstance();
-
-		final List<PropertyKey> propertyList = new LinkedList<>();
-		basicProperties.forEach((propertyName) -> {
-
-			final PropertyKey key = StructrApp.key(nodeType, propertyName);
-
-			if (key instanceof GenericProperty) {
-				warn("Unable to find property '{}' for type '{}'", propertyName, nodeType.getSimpleName());
-			}
-
-			propertyList.add(key);
-		});
 
 		try (final Tx tx = app.tx()) {
 
@@ -421,12 +341,14 @@ public class DeployDataCommand extends NodeServiceCommand implements Maintenance
 				final Map<String, Object> entry = new TreeMap<>();
 				nodes.add(entry);
 
+				putIfNotNull(entry, "id",                          node.getProperty(AbstractNode.id));
+				putIfNotNull(entry, "name",                        node.getProperty(AbstractNode.name));
+				putIfNotNull(entry, "type",                        node.getProperty(AbstractNode.type));
+				putIfNotNull(entry, "hidden",                      node.getProperty(AbstractNode.hidden));
+				putIfNotNull(entry, "visibleToPublicUsers",        node.getProperty(AbstractNode.visibleToPublicUsers));
+				putIfNotNull(entry, "visibleToAuthenticatedUsers", node.getProperty(AbstractNode.visibleToAuthenticatedUsers));
+
 				exportOwnershipAndSecurity(node, entry);
-
-				propertyList.forEach((key) -> {
-					putIfNotNull(entry, key.jsonName(), node.getProperty(key));
-				});
-
 				exportCustomPropertiesForNode(node, entry);
 			}
 
@@ -439,42 +361,6 @@ public class DeployDataCommand extends NodeServiceCommand implements Maintenance
 
 		} catch (IOException ioex) {
 			logger.warn("", ioex);
-		}
-	}
-
-	private void exportOwnershipAndSecurity(final NodeInterface node, final Map<String, Object> config) {
-
-		// export owner
-		final Principal owner = node.getOwnerNode();
-		if (owner != null) {
-
-			final Map<String, Object> map = new HashMap<>();
-			map.put("name", owner.getName());
-
-			config.put("owner", map);
-		}
-
-		// export security grants
-		final List<Map<String, Object>> grantees = new LinkedList<>();
-		for (final Security security : node.getSecurityRelationships()) {
-
-			if (security != null) {
-
-				final Map<String, Object> grant = new TreeMap<>();
-
-				grant.put("name", security.getSourceNode().getProperty(AbstractNode.name));
-				final String allowedActions = StringUtils.join(security.getPermissions(), ",");
-				grant.put("allowed", allowedActions);
-
-				if (allowedActions.length() > 0) {
-					grantees.add(grant);
-				}
-			}
-		}
-
-		// export non-empty collection only
-		if (!grantees.isEmpty()) {
-			config.put("grantees", grantees);
 		}
 	}
 
@@ -574,77 +460,6 @@ public class DeployDataCommand extends NodeServiceCommand implements Maintenance
 		});
 	}
 
-	private void putIfNotNull(final Map<String, Object> target, final String key, final Object value) {
-
-		if (value != null) {
-
-			if (value instanceof Iterable) {
-
-				final List list = Iterables.toList((Iterable)value);
-				if (!list.isEmpty()) {
-
-					target.put(key, list);
-				}
-
-			} else {
-
-				target.put(key, value);
-			}
-		}
-	}
-
-	private <T extends NodeInterface> void importExtensibleNodeListData(final String defaultTypeName, final List<Map<String, Object>> data, final PropertyMap... additionalData) throws FrameworkException {
-
-		final Class defaultType = SchemaHelper.getEntityClassForRawType(defaultTypeName);
-
-		if (defaultType == null) {
-			throw new FrameworkException(422, "Type cannot be found: " + defaultTypeName);
-		}
-
-		final SecurityContext context = SecurityContext.getSuperUserInstance();
-		context.setDoTransactionNotifications(false);
-		final App app                 = StructrApp.getInstance(context);
-
-		try (final Tx tx = app.tx()) {
-
-			tx.disableChangelog();
-
-			for (final Map<String, Object> entry : data) {
-
-				final String id = (String)entry.get("id");
-				if (id != null) {
-
-					final NodeInterface existingNode = app.getNodeById(id);
-
-					if (existingNode != null) {
-
-						app.delete(existingNode);
-					}
-				}
-
-				final String typeName = (String) entry.get("type");
-				final Class type      = ((typeName == null || defaultTypeName.equals(typeName)) ? defaultType : SchemaHelper.getEntityClassForRawType(typeName));
-				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, type, entry);
-
-				// allow caller to insert additional data for better creation performance
-				for (final PropertyMap add : additionalData) {
-					map.putAll(add);
-				}
-
-				app.create(type, map);
-			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			logger.error("Unable to import {}, aborting with {}", defaultType.getSimpleName(), fex.getMessage());
-			fex.printStackTrace();
-
-			throw fex;
-		}
-	}
-
 	private <T extends NodeInterface> void importRelationshipListData(final Class type, final List<Map<String, Object>> data, final PropertyMap... additionalData) throws FrameworkException {
 
 		final SecurityContext context = SecurityContext.getSuperUserInstance();
@@ -694,27 +509,5 @@ public class DeployDataCommand extends NodeServiceCommand implements Maintenance
 
 			throw fex;
 		}
-	}
-
-	public void addMissingPrincipal (final String principalName) {
-		missingPrincipals.add(principalName);
-	}
-
-	public Gson getGson() {
-		return new GsonBuilder().setPrettyPrinting().setDateFormat(Settings.DefaultDateFormat.getValue()).create();
-	}
-
-	private List<Map<String, Object>> readConfigList(final Path conf) {
-
-		try (final Reader reader = Files.newBufferedReader(conf, Charset.forName("utf-8"))) {
-
-			return getGson().fromJson(reader, List.class);
-
-		} catch (IOException ioex) {
-			logger.warn("Unable to read file '{}'", conf);
-			logger.warn("", ioex);
-		}
-
-		return Collections.emptyList();
 	}
 }
