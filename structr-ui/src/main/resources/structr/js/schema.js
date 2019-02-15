@@ -3245,6 +3245,8 @@ var _Schema = {
 							optGroup.append('<option value="' + layout.id + '">' + layout.name + '</option>');
 						});
 					});
+
+					layoutSelectorChangeHandler();
 				});
 			};
 			refreshLayoutSelector();
