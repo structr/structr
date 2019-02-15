@@ -1302,41 +1302,58 @@ var Command = {
 		return Command.query('ApplicationConfigurationDataNode', 1000, 1, 'name', true, { configType: configType }, function(data) {
 
 			var grouped = {};
+			var ownerlessConfigs = [];
 
 			data.forEach(function(n) {
-				var ownerName = (n.owner) ? n.owner.name : '### no owner';
-				if (!grouped[ownerName]) {
-					grouped[ownerName] = [];
+				if (n.owner) {
+					if (!grouped[n.owner.name]) {
+						grouped[n.owner.name] = [];
+					}
+					grouped[n.owner.name].push(n);
+				} else {
+					ownerlessConfigs.push(n);
 				}
-				grouped[ownerName].push(n);
 			});
 
 			var ownerNames = Object.keys(grouped);
 
-			// sort by name (nulls first)
+			// sort by name
 			ownerNames.sort(function (a, b) {
 				if (a > b) { return 1; }
 				if (a < b) { return -1; }
 				return 0;
 			});
 
-			// sort current user first (if in list)
+			var sortedAndGrouped = [];
+
+			// add current users config first
 			var myIndex = ownerNames.indexOf(me.username);
 			if (myIndex !== -1) {
 				ownerNames.splice(myIndex,1);
-				ownerNames.unshift(me.username);
+
+				sortedAndGrouped.push({
+					ownerName: me.username,
+					configs: grouped[me.username]
+				});
 			}
 
-			var sortedGrouped = [];
+			// add ownerless configs
+			if (ownerlessConfigs.length > 0) {
+				sortedAndGrouped.push({
+					ownerName: null,
+					configs: ownerlessConfigs
+				});
+			}
 
+			// add the other configs grouped by owner and sorted by ownername
 			ownerNames.forEach(function (on) {
-				sortedGrouped.push({
+				sortedAndGrouped.push({
 					ownerName: on,
 					configs: grouped[on]
 				});
 			});
 
-			callback(sortedGrouped);
+			callback(sortedAndGrouped);
 
 		}, true, null, 'id,name,owner');
 	},
