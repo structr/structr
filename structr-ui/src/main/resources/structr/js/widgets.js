@@ -233,26 +233,14 @@ var _Widgets = {
 		var icon = _Icons.widget_icon;
 		var parent = _Widgets.getTreeParent(el ? el : (remote ? _Widgets.remoteWidgetsEl : _Widgets.localWidgetsEl), widget.treePath, remote ? '_remote' : '_local');
 		var div = Structr.node(widget.id);
-		if (div && div.length) {
 
-			var formerParent = div.parent();
-
-			if (!Structr.containsNodes(formerParent)) {
-				_Entities.removeExpandIcon(formerParent);
-				Structr.enableButton($('.delete_icon', formerParent)[0]);
-			}
-
-		} else {
+		if (!div) {
 
 			parent.append('<div id="id_' + widget.id + '" class="node widget">'
 				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
 				+ '<b title="' + widget.name + '" class="name_">' + fitStringToWidth(widget.name, 200) + '</b> <span class="id">' + widget.id + '</span>'
 				+ '</div>');
 			div = Structr.node(widget.id);
-		}
-
-		if (!div) {
-			return;
 		}
 
 		div.draggable({

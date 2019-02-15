@@ -56,7 +56,7 @@ public abstract class AbstractTabCompletionProvider implements TabCompletionProv
 					buf.append(tenantIdentifier);
 				}
 
-				buf.append(") WHERE n.id STARTS WITH {part} RETURN n");
+				buf.append(") WHERE n.id STARTS WITH $part RETURN n");
 
 				for (final GraphObject obj : app.cypher(buf.toString(), toMap("part", token))) {
 

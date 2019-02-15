@@ -160,15 +160,17 @@ var _Contents = {
 					elem.append('<option value="' + type + '">' + type + '</option>');
 				});
 
-				Structr.appendInfoTextToElement({
-					text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentContainer</u></b> to add ContentContainers",
-					element: elem.parent(),
-					after: true,
-					css: {
-						marginLeft: '-4px',
-						marginRight: '4px'
-					}
-				});
+				if (types.length === 0) {
+					Structr.appendInfoTextToElement({
+						text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentContainer</u></b> to add ContentContainers",
+						element: elem.parent(),
+						after: true,
+						css: {
+							marginLeft: '-4px',
+							marginRight: '4px'
+						}
+					});
+				}
 			});
 		});
 

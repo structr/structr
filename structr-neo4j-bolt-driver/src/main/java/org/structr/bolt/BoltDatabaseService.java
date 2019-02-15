@@ -241,7 +241,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 			buf.append(label);
 		}
 
-		buf.append(" {properties}) RETURN n");
+		buf.append(" $properties) RETURN n");
 
 		// make properties available to Cypher statement
 		map.put("properties", properties);
@@ -315,7 +315,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 			buf.append(tenantId);
 		}
 
-		buf.append(") WHERE n.type = {type} RETURN n");
+		buf.append(") WHERE n.type = $type RETURN n");
 
 		final SimpleCypherQuery query = new SimpleCypherQuery(buf.toString());
 

@@ -23,6 +23,7 @@ import com.sun.mail.util.BASE64DecoderStream;
 import com.sun.mail.util.MailConnectException;
 import io.netty.util.internal.ConcurrentSet;
 import org.apache.commons.lang.ArrayUtils;
+import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.*;
@@ -63,16 +64,138 @@ public class MailService extends Thread implements RunnableService {
 	public static final Setting<Integer> updateInterval     = new IntegerSetting(mailGroup,"EMailMessage", "mail.updateInterval",30000);
 	public static final Setting<String> attachmentBasePath  = new StringSetting(mailGroup,"EMailMessage", "mail.attachmentBasePath","/mail/attachments");
 
+	//////////////////////////////////////////////////////////////// Public Methods
+
 	public MailService() {
 		super("MailService");
 
 		supportedCommands = new LinkedHashSet<>();
 		supportedCommands.add(FetchMailsCommand.class);
+		supportedCommands.add(FetchFoldersCommand.class);
 
 		processingMailboxes = new ConcurrentSet<>();
 
 		super.setDaemon(true);
 	}
+
+	public void fetchMails(final Mailbox mb) {
+
+		if (processingMailboxes.contains(mb)) {
+
+			return;
+		} else {
+
+			processingMailboxes.add(mb);
+		}
+
+		MailFetchTask task = new MailFetchTask(mb);
+		threadExecutor.submit(task);
+	}
+
+	public Iterable<String> fetchFolders(final Mailbox mb) {
+
+		final Store store = connectToStore(mb);
+
+		List<String> folders = new ArrayList<>();
+
+		try {
+			final Folder defaultFolder = store.getDefaultFolder();
+			if (defaultFolder != null) {
+
+				final Folder[] folderList = defaultFolder.list("*");
+
+				for (final Folder folder : folderList) {
+
+					if ((folder.getType() & javax.mail.Folder.HOLDS_MESSAGES) != 0) {
+
+						folders.add(folder.getFullName());
+					}
+				}
+			}
+
+		} catch (MessagingException ex) {
+
+			logger.error("Exception while trying to fetch mailbox folders.", ex);
+		}
+
+		return folders;
+
+	}
+
+	@Override
+	public void run() {
+		logger.info("MailService started");
+
+		Date lastUpdate = new Date();
+
+		while (run) {
+
+			if ( (new Date().getTime() - lastUpdate.getTime()) > updateInterval.getValue(30000) ) {
+
+				fetchMailsForAllMailboxes();
+				lastUpdate = new Date();
+			}
+
+			// let others act
+			try { Thread.sleep(10); }
+			catch (InterruptedException ex) { run = false; }
+			catch(Throwable ignore) {}
+		}
+	}
+
+	@Override
+	public void startService() throws Exception {
+		this.run = true;
+		this.start();
+	}
+
+	@Override
+	public void stopService() {
+		this.run = false;
+	}
+
+	@Override
+	public boolean runOnStartup() {
+		return true;
+	}
+
+	@Override
+	public void injectArguments(Command command) {
+		command.setArgument("mailService", this);
+	}
+
+	@Override
+	public boolean initialize(StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+		return true;
+	}
+
+	@Override
+	public void shutdown() {}
+
+	@Override
+	public void initialized() {}
+
+	@Override
+	public boolean isRunning() {
+		return this.run;
+	}
+
+	@Override
+	public boolean isVital() {
+		return false;
+	}
+
+	@Override
+	public boolean waitAndRetry() {
+		return false;
+	}
+
+	@Override
+	public String getModuleName() {
+		return "advanced-mail";
+	}
+
+	//////////////////////////////////////////////////////////////// Private Methods
 
 	// Returns attachment UUID to append to the mail to be created
 	private File extractFileAttachment(final Part p) {
@@ -176,20 +299,6 @@ public class MailService extends Thread implements RunnableService {
 		return null;
 	}
 
-	public void fetchMails(final Mailbox mb) {
-
-		if (processingMailboxes.contains(mb)) {
-
-			return;
-		} else {
-
-			processingMailboxes.add(mb);
-		}
-
-		MailFetchTask task = new MailFetchTask(mb);
-		threadExecutor.submit(task);
-	}
-
 	private void fetchMailsForAllMailboxes() {
 		App app = StructrApp.getInstance();
 		try (Tx tx = app.tx()) {
@@ -204,79 +313,80 @@ public class MailService extends Thread implements RunnableService {
 
 	}
 
-	@Override
-	public void run() {
-		logger.info("MailService started");
+	private Store connectToStore(final Mailbox mailbox) {
+		String host = mailbox.getHost();
+		String mailProtocol = mailbox.getMailProtocol().toString();
+		String user = mailbox.getUser();
+		String password = mailbox.getPassword();
+		Integer port = mailbox.getPort();
+		String[] folders = mailbox.getFolders();
 
-		Date lastUpdate = new Date();
+		try {
 
-		while (run) {
-
-			if ( (new Date().getTime() - lastUpdate.getTime()) > updateInterval.getValue(30000) ) {
-
-				fetchMailsForAllMailboxes();
-				lastUpdate = new Date();
+			if (host == null || mailProtocol == null || user == null || password == null || folders == null) {
+				logger.warn("MailService::fetchMails: Could not retrieve mails from mailbox[" + mailbox.getUuid() + "], because not all required attributes were specified.");
+				processingMailboxes.remove(mailbox);
+				return null;
 			}
 
-			// let others act
-			try { Thread.sleep(10); }
-			catch (InterruptedException ex) { run = false; }
-			catch(Throwable ignore) {}
+			Properties properties = new Properties();
+
+			properties.put("mail." + mailProtocol + ".host", host);
+
+			switch (mailProtocol) {
+				case "pop3":
+					properties.put("mail." + mailProtocol + ".starttls.enable", "true");
+					break;
+				case "imaps":
+					properties.put("mail." + mailProtocol + ".ssl.enable", "true");
+					break;
+			}
+
+			if (port != null) {
+				properties.put("mail." + mailProtocol + ".port", port);
+			}
+
+
+			Session emailSession = Session.getDefaultInstance(properties);
+
+			Store store = emailSession.getStore(mailProtocol);
+
+			int retries = 0;
+			while (retries < maxConnectionRetries && !store.isConnected()) {
+				try {
+
+					store.connect(host, user, password);
+
+				} catch (AuthenticationFailedException ex) {
+
+					logger.warn("Could not authenticate mailbox[" + mailbox.getUuid() + "]: " + ex.getMessage());
+					break;
+				} catch (MailConnectException ex) {
+					// silently catch connection exception
+					retries++;
+					Thread.sleep(100);
+					if (retries >= maxConnectionRetries) {
+						throw ex;
+					}
+				}
+			}
+
+			return store;
+
+		} catch (AuthenticationFailedException ex) {
+			logger.warn("Authentication failed for Mailbox[" + mailbox.getUuid() + "].");
+		} catch (MailConnectException ex) {
+			logger.error("Could not connect to mailbox [" + mailbox.getUuid() + "]: " + ex.getMessage());
+		} catch (MessagingException ex) {
+			logger.error("Error while updating Mails: ", ex);
+		} catch (InterruptedException ex) {
+			logger.error("Interrupted while trying to connect to email store.", ex);
 		}
+
+		return null;
 	}
 
-	@Override
-	public void startService() throws Exception {
-		this.run = true;
-		this.start();
-	}
-
-	@Override
-	public void stopService() {
-		this.run = false;
-	}
-
-	@Override
-	public boolean runOnStartup() {
-		return true;
-	}
-
-	@Override
-	public void injectArguments(Command command) {
-		command.setArgument("mailService", this);
-	}
-
-	@Override
-	public boolean initialize(StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-		return true;
-	}
-
-	@Override
-	public void shutdown() {}
-
-	@Override
-	public void initialized() {}
-
-	@Override
-	public boolean isRunning() {
-		return this.run;
-	}
-
-	@Override
-	public boolean isVital() {
-		return false;
-	}
-
-	@Override
-	public boolean waitAndRetry() {
-		return false;
-	}
-
-	@Override
-	public String getModuleName() {
-		return "advanced-mail";
-	}
-
+	//////////////////////////////////////////////////////////////// Nested classes
 	private class MailFetchTask implements Runnable {
 		private final Mailbox mailbox;
 
@@ -288,75 +398,21 @@ public class MailService extends Thread implements RunnableService {
 		public void run() {
 			try {
 
-				String host = mailbox.getHost();
-				String mailProtocol = mailbox.getMailProtocol().toString();
-				String user = mailbox.getUser();
-				String password = mailbox.getPassword();
-				Integer port = mailbox.getPort();
 				String[] folders = mailbox.getFolders();
 
-				if (host == null || mailProtocol == null || user == null || password == null || folders == null) {
-					logger.warn("MailService::fetchMails: Could not retrieve mails from mailbox[" + mailbox.getUuid() + "], because not all required attributes were specified.");
-					processingMailboxes.remove(mailbox);
-					return;
-				}
+				final Store store = connectToStore(mailbox);
 
-				Properties properties = new Properties();
+				if (store.isConnected()) {
 
-				properties.put("mail." + mailProtocol + ".host", host);
+					for (final String folder : folders) {
 
-				switch (mailProtocol) {
-					case "pop3":
-						properties.put("mail." + mailProtocol + ".starttls.enable", "true");
-						break;
-					case "imaps":
-						properties.put("mail." + mailProtocol + ".ssl.enable", "true");
-						break;
-				}
-
-				if (port != null) {
-					properties.put("mail." + mailProtocol + ".port", port);
-				}
-
-				if (folders.length > 0) {
-					Session emailSession = Session.getDefaultInstance(properties);
-
-					Store store = emailSession.getStore(mailProtocol);
-
-
-					int retries = 0;
-					while (retries < maxConnectionRetries && !store.isConnected()) {
-						try {
-
-							store.connect(host, user, password);
-
-						} catch (MailConnectException ex) {
-							// silently catch connection exception
-							retries++;
-							Thread.sleep(100);
-							if (retries >= maxConnectionRetries) {
-								throw ex;
-							}
-						}
+						fetchMessagesInFolder(store.getFolder(folder));
 					}
 
-					if (store.isConnected()) {
-
-						for (final String folder : folders) {
-
-							fetchMessagesInFolder(store.getFolder(folder));
-						}
-
-						store.close();
-
-					}
+					store.close();
 
 				}
 
-			} catch (AuthenticationFailedException ex) {
-				logger.warn("Authentication failed for Mailbox[" + mailbox.getUuid() + "].");
-			} catch (MailConnectException ex) {
-				logger.error("Could not connect to mailbox [" + mailbox.getUuid() + "]: " + ex.getMessage());
 			} catch (MessagingException ex) {
 				logger.error("Error while updating Mails: ", ex);
 			} catch (Throwable ex) {

@@ -75,7 +75,7 @@ var Importer = {
 
 		window.setTimeout(function () {
 
-			Command.fileImport("list", null, function (jobs) {
+			Command.fileImport('list', null, function (jobs) {
 
 				var table = $('#importer-jobs-table');
 				var tbody = $('tbody', table);
@@ -186,9 +186,9 @@ var Importer = {
 		$('#csv-configurations').remove();
 		$('#xml-configurations').remove();
 	},
-	updateConfigSelector: function(elem, configType) {
+	updateConfigSelector: function(elem, importType) {
 
-		Command.getApplicationConfigurationDataNodesGroupedByUser(configType, function(grouped) {
+		Command.getApplicationConfigurationDataNodesGroupedByUser(importType + '-import', function(grouped) {
 
 			elem.empty();
 			elem.append('<option selected value="" disabled>--- Select configuration to load ---</option>');
@@ -203,20 +203,26 @@ var Importer = {
 					optGroup.append('<option value="' + cfg.id + '">' + cfg.name + '</option>');
 				});
 			});
+
+			Importer.configSelectorChangeHandler(elem, importType);
 		});
 
 	},
-	saveImportConfiguration: function (elem, configType, name, configuration) {
+	saveImportConfiguration: function (elem, importType, configuration) {
+
+		var inputElem = $('#' + importType + '-config-name-input');
+		var name = inputElem.val();
 
 		if (name && name.length) {
 
-			Command.createApplicationConfigurationDataNode(configType, name, JSON.stringify(configuration), function(data) {
+			Command.createApplicationConfigurationDataNode(importType + '-import', name, JSON.stringify(configuration), function(data) {
 
 				if (!data.error) {
 
 					new MessageBuilder().success("Import Configuration saved").show();
 
-					Importer.updateConfigSelector(elem, configType);
+					Importer.updateConfigSelector(elem, importType);
+					inputElem.val('');
 
 					blinkGreen(elem);
 
@@ -229,33 +235,68 @@ var Importer = {
 			Structr.error('Import configuration layout name is required.');
 		}
 	},
+	updateImportConfiguration: function (elem, configuration) {
+
+		var selectedConfig = elem.val();
+
+		Command.setProperty(selectedConfig, 'content', JSON.stringify(configuration), false, function(data) {
+
+			if (!data.error) {
+
+				new MessageBuilder().success("Import Configuration saved").show();
+
+				blinkGreen(elem);
+
+			} else {
+
+				new MessageBuilder().error().title(data.error).text(data.message).show();
+			}
+		});
+	},
 	loadImportConfiguration: function(elem, callback) {
 
-		var configId = elem.val();
-		if (configId && configId.length) {
-			try {
-				Command.getApplicationConfigurationDataNode(configId, callback);
-			} catch (e) {
-				Structr.error('Error parsing configuration, please see browser log');
-				console.log(e);
-			}
-		} else {
-			Structr.error('Please select a configuration to load.');
+		try {
+			Command.getApplicationConfigurationDataNode(elem.val(), callback);
+		} catch (e) {
+			Structr.error('Error parsing configuration, please see browser log');
+			console.log(e);
 		}
 	},
-	deleteImportConfiguration: function(elem, configType) {
+	configSelectorChangeHandler: function(elem, importType) {
 
-		var configId = elem.val();
+		var updateImportConfigButton = $('#update-' + importType + '-config-button');
+		var loadImportConfigButton   = $('#load-' + importType + '-config-button');
+		var deleteImportConfigButton = $('#delete-' + importType + '-config-button');
 
-		if (configId && configId.length) {
+		var selectedOption = $(':selected:not(:disabled)', elem);
 
-			Command.deleteNode(configId, false, function() {
-				Importer.updateConfigSelector(elem, configType);
-				blinkGreen(elem);
-			});
+		if (selectedOption.length === 0) {
+
+			Structr.disableButton(updateImportConfigButton);
+			Structr.disableButton(loadImportConfigButton);
+			Structr.disableButton(deleteImportConfigButton);
+
 		} else {
-			Structr.error('Please select a configuration to delete.');
+
+			Structr.enableButton(loadImportConfigButton);
+
+			var username = selectedOption.closest('optgroup').prop('label');
+
+			if (username !== 'null' && username !== me.username) {
+				Structr.disableButton(updateImportConfigButton);
+				Structr.disableButton(deleteImportConfigButton);
+			} else {
+				Structr.enableButton(updateImportConfigButton);
+				Structr.enableButton(deleteImportConfigButton);
+			}
 		}
+	},
+	deleteImportConfiguration: function(elem, importType) {
+
+		Command.deleteNode(elem.val(), false, function() {
+			Importer.updateConfigSelector(elem, importType);
+			blinkGreen(elem);
+		});
 	},
 	importCSVDialog: function(file) {
 
@@ -268,8 +309,12 @@ var Importer = {
 			dialogBox.append(html);
 
 			var importConfigSelector = $('#load-csv-config-selector');
-			Importer.updateConfigSelector(importConfigSelector, 'csv-import');
+			importConfigSelector.on('change', function () {
+				Importer.configSelectorChangeHandler(importConfigSelector, 'csv');
+			});
+			Importer.configSelectorChangeHandler(importConfigSelector, 'csv');
 
+			Importer.updateConfigSelector(importConfigSelector, 'csv');
 
 			$('#load-csv-config-button').on('click', function() {
 
@@ -317,6 +362,22 @@ var Importer = {
 				});
 			});
 
+			$('#update-csv-config-button').on('click', function() {
+
+				var configInfo = Importer.collectCSVImportConfigurationInfo();
+
+				if (configInfo.errors.length > 0) {
+
+					configInfo.errors.forEach(function(e) {
+						new MessageBuilder().title(e.title).error(e.message).show();
+					});
+
+				} else {
+
+					Importer.updateImportConfiguration(importConfigSelector, configInfo);
+				}
+			});
+
 			$('#save-csv-config-button').on('click', function() {
 
 				var configInfo = Importer.collectCSVImportConfigurationInfo();
@@ -329,12 +390,12 @@ var Importer = {
 
 				} else {
 
-					Importer.saveImportConfiguration(importConfigSelector, 'csv-import', $('#csv-config-name-input').val(), configInfo);
+					Importer.saveImportConfiguration(importConfigSelector, 'csv', configInfo);
 				}
 			});
 
 			$('#delete-csv-config-button').on('click', function() {
-				Importer.deleteImportConfiguration(importConfigSelector, 'csv-import');
+				Importer.deleteImportConfiguration(importConfigSelector, 'csv');
 			});
 
 			// load first lines to display a sample of the data
@@ -377,9 +438,7 @@ var Importer = {
 					});
 				}
 			});
-
 		});
-
 	},
 	updateSchemaTypeSelector: function(typeSelect) {
 
@@ -629,7 +688,12 @@ var Importer = {
 			dialogBox.append(html);
 
 			var importConfigSelector = $('#load-xml-config-selector');
-			Importer.updateConfigSelector(importConfigSelector, 'xml-import');
+			importConfigSelector.on('change', function () {
+				Importer.configSelectorChangeHandler(importConfigSelector, 'xml');
+			});
+			Importer.configSelectorChangeHandler(importConfigSelector, 'xml');
+
+			Importer.updateConfigSelector(importConfigSelector, 'xml');
 
 			$('#load-xml-config-button').on('click', function() {
 
@@ -691,11 +755,15 @@ var Importer = {
 			});
 
 			$('#save-xml-config-button').on('click', function() {
-				Importer.saveImportConfiguration(importConfigSelector, 'xml-import', $('#xml-config-name-input').val(), configuration);
+				Importer.saveImportConfiguration(importConfigSelector, 'xml', configuration);
+			});
+
+			$('#update-xml-config-button').on('click', function() {
+				Importer.updateImportConfiguration(importConfigSelector, configuration);
 			});
 
 			$('#delete-xml-config-button').on('click', function() {
-				Importer.deleteImportConfiguration(importConfigSelector, 'csv-import');
+				Importer.deleteImportConfiguration(importConfigSelector, 'xml');
 			});
 
 			var container = $('#xml-import');
