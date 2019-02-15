@@ -3035,10 +3035,46 @@ var _Schema = {
 			container.append(html);
 
 			$('#reset-schema-positions', container).off('click').on('click', _Schema.clearPositions);
-			var layoutSelector  = $('#saved-layout-selector', container);
-			var layoutNameInput = $('#layout-name', container);
+			var layoutSelector        = $('#saved-layout-selector', container);
+			var layoutNameInput       = $('#layout-name', container);
+			var createNewLayoutButton = $('#create-new-layout', container);
+			var updateLayoutButton    = $('#update-layout', container);
+			var restoreLayoutButton   = $('#restore-layout', container);
+			var downloadLayoutButton  = $('#download-layout', container);
+			var deleteLayoutButton    = $('#delete-layout', container);
 
-			$('#create-new-layout', container).click(function() {
+			var layoutSelectorChangeHandler = function () {
+
+				var selectedOption = $('#saved-layout-selector :selected:not(:disabled)');
+
+				if (selectedOption.length === 0) {
+
+					Structr.disableButton(updateLayoutButton);
+					Structr.disableButton(restoreLayoutButton);
+					Structr.disableButton(downloadLayoutButton);
+					Structr.disableButton(deleteLayoutButton);
+
+				} else {
+
+					Structr.enableButton(restoreLayoutButton);
+					Structr.enableButton(downloadLayoutButton);
+
+					var username = selectedOption.closest('optgroup').prop('label');
+
+					if (username !== 'null' && username !== me.username) {
+						Structr.disableButton(updateLayoutButton);
+						Structr.disableButton(deleteLayoutButton);
+					} else {
+						Structr.enableButton(updateLayoutButton);
+						Structr.enableButton(deleteLayoutButton);
+					}
+				}
+			};
+			layoutSelectorChangeHandler();
+
+			layoutSelector.on('change', layoutSelectorChangeHandler);
+
+			createNewLayoutButton.click(function() {
 
 				var layoutName = layoutNameInput.val();
 
@@ -3050,7 +3086,7 @@ var _Schema = {
 
 							new MessageBuilder().success("Layout saved").show();
 
-							updateLayoutSelector();
+							refreshLayoutSelector();
 							layoutNameInput.val('');
 
 							blinkGreen(layoutSelector);
@@ -3066,156 +3102,136 @@ var _Schema = {
 				}
 			});
 
-			$('#update-layout', container).click(function() {
+			updateLayoutButton.click(function() {
 
 				var selectedLayout = layoutSelector.val();
 
-				if (selectedLayout && selectedLayout.length) {
+				Command.setProperty(selectedLayout, 'content', JSON.stringify(_Schema.getSchemaLayoutConfiguration()), false, function(data) {
 
-					Command.setProperty(selectedLayout, 'content', JSON.stringify(_Schema.getSchemaLayoutConfiguration()), false, function(data) {
+					if (!data.error) {
 
-						if (!data.error) {
+						new MessageBuilder().success("Layout saved").show();
 
-							new MessageBuilder().success("Layout saved").show();
+						refreshLayoutSelector();
+						layoutNameInput.val('');
 
-							updateLayoutSelector();
-							layoutNameInput.val('');
+						blinkGreen(layoutSelector);
 
-							blinkGreen(layoutSelector);
+					} else {
+
+						new MessageBuilder().error().title(data.error).text(data.message).show();
+					}
+				});
+			});
+
+			restoreLayoutButton.click(function() {
+
+				var selectedLayout = layoutSelector.val();
+
+				Command.getApplicationConfigurationDataNode(selectedLayout, function(data) {
+
+					try {
+
+						var loadedConfig = JSON.parse(data.content);
+
+						if (loadedConfig._version) {
+
+							switch (loadedConfig._version) {
+								case 2: {
+
+									_Schema.zoomLevel = loadedConfig.zoom;
+									LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.zoomLevel);
+									_Schema.setZoom(_Schema.zoomLevel, instance, [0,0], $('#schema-graph')[0]);
+									$( "#zoom-slider" ).slider('value', _Schema.zoomLevel);
+
+									_Schema.updateOverlayVisibility(loadedConfig.showRelLabels);
+
+									var hiddenTypes = loadedConfig.hiddenTypes;
+									hiddenTypes = hiddenTypes.filter(function(typeName) {
+										// Filter out types that do not exist in the schema
+										return (_Schema.availableTypeNames.indexOf(typeName) !== -1);
+									});
+									_Schema.hiddenSchemaNodes = hiddenTypes;
+									LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
+
+									// update the list in the visibility table
+									$('#schema-options-table input.toggle-type').prop('checked', true);
+									_Schema.hiddenSchemaNodes.forEach(function(hiddenType) {
+										$('#schema-options-table input.toggle-type[data-structr-type="' + hiddenType + '"]').prop('checked', false);
+									});
+
+									var connectorStyle = loadedConfig.connectorStyle;
+									$('#connector-style').val(connectorStyle);
+									_Schema.connectorStyle = connectorStyle;
+									LSWrapper.setItem(_Schema.schemaConnectorStyleKey, connectorStyle);
+
+									var positions = loadedConfig.positions;
+									LSWrapper.setItem(_Schema.schemaPositionsKey, positions);
+									_Schema.applyNodePositions(positions);
+								}
+									break;
+
+								default:
+									Structr.error('Cannot restore layout: Unknown layout version - was this layout created with a newer version of structr than the one currently running?');
+							}
 
 						} else {
 
-							new MessageBuilder().error().title(data.error).text(data.message).show();
-						}
-					});
-				} else {
-					Structr.error('Please select a layout to update.');
-				}
-			});
-
-			$('#restore-layout').click(function() {
-
-				var selectedLayout = layoutSelector.val();
-
-				if (selectedLayout && selectedLayout.length) {
-
-					Command.getApplicationConfigurationDataNode(selectedLayout, function(data) {
-
-						try {
-
-							var loadedConfig = JSON.parse(data.content);
-
-							if (loadedConfig._version) {
-
-								switch (loadedConfig._version) {
-									case 2: {
-
-										_Schema.zoomLevel = loadedConfig.zoom;
-										LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.zoomLevel);
-										_Schema.setZoom(_Schema.zoomLevel, instance, [0,0], $('#schema-graph')[0]);
-										$( "#zoom-slider" ).slider('value', _Schema.zoomLevel);
-
-										_Schema.updateOverlayVisibility(loadedConfig.showRelLabels);
-
-										var hiddenTypes = loadedConfig.hiddenTypes;
-										hiddenTypes = hiddenTypes.filter(function(typeName) {
-											// Filter out types that do not exist in the schema
-											return (_Schema.availableTypeNames.indexOf(typeName) !== -1);
-										});
-										_Schema.hiddenSchemaNodes = hiddenTypes;
-										LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
-
-										// update the list in the visibility table
-										$('#schema-options-table input.toggle-type').prop('checked', true);
-										_Schema.hiddenSchemaNodes.forEach(function(hiddenType) {
-											$('#schema-options-table input.toggle-type[data-structr-type="' + hiddenType + '"]').prop('checked', false);
-										});
-
-										var connectorStyle = loadedConfig.connectorStyle;
-										$('#connector-style').val(connectorStyle);
-										_Schema.connectorStyle = connectorStyle;
-										LSWrapper.setItem(_Schema.schemaConnectorStyleKey, connectorStyle);
-
-										var positions = loadedConfig.positions;
-										LSWrapper.setItem(_Schema.schemaPositionsKey, positions);
-										_Schema.applyNodePositions(positions);
-									}
-										break;
-
-									default:
-										Structr.error('Cannot restore layout: Unknown layout version - was this layout created with a newer version of structr than the one currently running?');
-								}
-
-							} else {
-
-								if (loadedConfig[Object.keys(loadedConfig)[0]].position) {
-									// convert old file type
-									var schemaPositions = {};
-									Object.keys(loadedConfig).forEach(function(type) {
-										schemaPositions[type] = loadedConfig[type].position;
-									});
-									loadedConfig = schemaPositions;
-								}
-
-								LSWrapper.setItem(_Schema.schemaPositionsKey, loadedConfig);
-								_Schema.applyNodePositions(loadedConfig);
-
-								new MessageBuilder().info("This layout was created using an older version of Structr. To make use of newer features you should delete and re-create it with the current version.").show();
+							if (loadedConfig[Object.keys(loadedConfig)[0]].position) {
+								// convert old file type
+								var schemaPositions = {};
+								Object.keys(loadedConfig).forEach(function(type) {
+									schemaPositions[type] = loadedConfig[type].position;
+								});
+								loadedConfig = schemaPositions;
 							}
 
-							Structr.saveLocalStorage();
+							LSWrapper.setItem(_Schema.schemaPositionsKey, loadedConfig);
+							_Schema.applyNodePositions(loadedConfig);
 
-							_Schema.reload();
-
-						} catch (e) {
-							console.warn(e);
-							Structr.error('Unreadable JSON - please make sure you are using JSON exported from this dialog!', true);
+							new MessageBuilder().info("This layout was created using an older version of Structr. To make use of newer features you should delete and re-create it with the current version.").show();
 						}
-					});
-				} else {
-					Structr.error('Please select a layout to load.');
-				}
+
+						Structr.saveLocalStorage();
+
+						_Schema.reload();
+
+					} catch (e) {
+						console.warn(e);
+						Structr.error('Unreadable JSON - please make sure you are using JSON exported from this dialog!', true);
+					}
+				});
 			});
 
-			$('#download-layout').click(function() {
+			downloadLayoutButton.click(function() {
 
 				var selectedLayout = layoutSelector.val();
 
-				if (selectedLayout && selectedLayout.length) {
+				Command.getApplicationConfigurationDataNode(selectedLayout, function(data) {
 
-					Command.getApplicationConfigurationDataNode(selectedLayout, function(data) {
+					var element = document.createElement('a');
+					element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data.content));
+					element.setAttribute('download', selectedLayout + '.json');
 
-						var element = document.createElement('a');
-						element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data.content));
-						element.setAttribute('download', selectedLayout + '.json');
+					element.style.display = 'none';
+					document.body.appendChild(element);
 
-						element.style.display = 'none';
-						document.body.appendChild(element);
-
-						element.click();
-						document.body.removeChild(element);
-					});
-				} else {
-					Structr.error('Please select a layout to download.');
-				}
+					element.click();
+					document.body.removeChild(element);
+				});
 			});
 
-			$('#delete-layout', container).click(function() {
+			deleteLayoutButton.click(function() {
 
 				var selectedLayout = layoutSelector.val();
 
-				if (selectedLayout && selectedLayout.length) {
-
-					Command.deleteNode(selectedLayout, false, function() {
-						updateLayoutSelector();
-						blinkGreen(layoutSelector);
-					});
-				} else {
-					Structr.error('Please select a layout to delete.');
-				}
+				Command.deleteNode(selectedLayout, false, function() {
+					refreshLayoutSelector();
+					blinkGreen(layoutSelector);
+				});
 			});
 
-			var updateLayoutSelector = function() {
+			var refreshLayoutSelector = function() {
 
 				Command.getApplicationConfigurationDataNodesGroupedByUser('layout', function(grouped) {
 
@@ -3234,7 +3250,7 @@ var _Schema = {
 					});
 				});
 			};
-			updateLayoutSelector();
+			refreshLayoutSelector();
 		});
 	},
 	applyNodePositions:function(positions) {

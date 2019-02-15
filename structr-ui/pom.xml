@@ -220,7 +220,7 @@
 						<include>**/*.java</include>
 					</includes>
 					<argLine>-Xms2g -Xmx3g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
-					<reuseForks>true</reuseForks>
+					<reuseForks>false</reuseForks>
 					<forkCount>2</forkCount>
 					<skipTests>${skipTests}</skipTests>
 				</configuration>

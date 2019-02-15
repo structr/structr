@@ -55,7 +55,6 @@ import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObjectMap;
 import org.structr.core.StaticValue;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -74,7 +73,6 @@ import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.module.StructrModule;
 import org.structr.rest.resource.MaintenanceParameterResource;
@@ -120,7 +118,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private static final Pattern pattern                   = Pattern.compile("[a-f0-9]{32}");
 
 	private static final Map<String, String> deferredPageLinks = new LinkedHashMap<>();
-	private static final Set<String> missingPrincipals         = new HashSet<>();
+	protected static final Set<String> missingPrincipals       = new HashSet<>();
 
 	private final static String DEPLOYMENT_IMPORT_STATUS   = "DEPLOYMENT_IMPORT_STATUS";
 	private final static String DEPLOYMENT_EXPORT_STATUS   = "DEPLOYMENT_EXPORT_STATUS";
@@ -131,17 +129,21 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	@Override
-	public void execute(final Map<String, Object> attributes) throws FrameworkException {
+	public void execute(final Map<String, Object> parameters) throws FrameworkException {
 
-		final String mode = (String) attributes.get("mode");
-		if (mode != null && "export".equals(mode)) {
+		final String mode = (String) parameters.get("mode");
 
-			doExport(attributes);
+		if ("export".equals(mode)) {
+
+			doExport(parameters);
+
+		} else if ("import".equals(mode)) {
+
+			doImport(parameters);
 
 		} else {
 
-			// default is "import"
-			doImport(attributes);
+			warn("Unsupported mode '{}'", mode);
 		}
 	}
 
@@ -196,7 +198,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void doImport(final Map<String, Object> attributes) throws FrameworkException {
+	protected void doImport(final Map<String, Object> attributes) throws FrameworkException {
 
 		// backup previous value of change log setting and disable during deployment
 		final boolean changeLogEnabled = Settings.ChangelogEnabled.getValue();
@@ -623,7 +625,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void doExport(final Map<String, Object> attributes) throws FrameworkException {
+	protected void doExport(final Map<String, Object> attributes) throws FrameworkException {
 
 		final String path  = (String) attributes.get("target");
 
@@ -1335,9 +1337,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		exportOwnershipAndSecurity(abstractFile, config);
 	}
 
-	private static void exportOwnershipAndSecurity(final NodeInterface node, final Map<String, Object> config) {
+	protected static void exportOwnershipAndSecurity(final NodeInterface node, final Map<String, Object> config) {
 
-		// export unique name of owner node to pages.json
+		// export owner
 		final Principal owner = node.getOwnerNode();
 		if (owner != null) {
 
@@ -1368,6 +1370,45 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		// export non-empty collection only
 		if (!grantees.isEmpty()) {
 			config.put("grantees", grantees);
+		}
+	}
+
+	private static void checkOwnerAndSecurity(final Map<String, Object> entry) throws FrameworkException {
+
+		if (entry.containsKey("owner")) {
+
+			final String ownerName = (String) ((Map)entry.get("owner")).get("name");
+			final Principal owner = StructrApp.getInstance().nodeQuery(Principal.class).andName(ownerName).getFirst();
+
+			if (owner == null) {
+				logger.warn("Unknown owner {}, ignoring.", ownerName);
+				DeployCommand.addMissingPrincipal(ownerName);
+
+				entry.remove("owner");
+			}
+		}
+
+		if (entry.containsKey("grantees")) {
+
+			final List<Map<String, Object>> grantees = (List) entry.get("grantees");
+
+			final List<Map<String, Object>> cleanedGrantees = new LinkedList();
+
+			for (final Map<String, Object> grantee : grantees) {
+
+				final String granteeName = (String) grantee.get("name");
+				final Principal owner = StructrApp.getInstance().nodeQuery(Principal.class).andName(granteeName).getFirst();
+
+				if (owner == null) {
+					logger.warn("Unknown grantee {}, ignoring.", granteeName);
+					DeployCommand.addMissingPrincipal(granteeName);
+
+				} else {
+					cleanedGrantees.add(grantee);
+				}
+			}
+
+			entry.put("grantees", cleanedGrantees);
 		}
 	}
 
@@ -1487,22 +1528,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static void exportCustomPropertiesForNode(final NodeInterface node, final Map<String, Object> map) throws FrameworkException {
-
-		final SecurityContext context = SecurityContext.getSuperUserInstance();
-
-		final List<GraphObjectMap> customProperties = SchemaHelper.getSchemaTypeInfo(context, node.getType(), node.getClass(), "custom");
-
-		customProperties.stream().forEach((final GraphObjectMap propertyInfo) -> {
-
-			final String propertyName = propertyInfo.getProperty(new StringProperty("jsonName"));
-
-			map.put(propertyName, node.getProperty(StructrApp.key(node.getClass(), propertyName)));
-
-		});
-
-	}
-
 	private static void exportLocalizations(final Path target) throws FrameworkException {
 
 		logger.info("Exporting localizations");
@@ -1572,7 +1597,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static void putIfNotNull(final Map<String, Object> target, final String key, final Object value) {
+	protected static void putIfNotNull(final Map<String, Object> target, final String key, final Object value) {
 
 		if (value != null) {
 
@@ -1599,7 +1624,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private List<Map<String, Object>> readConfigList(final Path conf) {
+	protected List<Map<String, Object>> readConfigList(final Path conf) {
 
 		try (final Reader reader = Files.newBufferedReader(conf, Charset.forName("utf-8"))) {
 
@@ -1628,6 +1653,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			for (final Map<String, Object> entry : data) {
 
+				checkOwnerAndSecurity(entry);
+
 				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, type, entry);
 
 				// allow caller to insert additional data for better creation performance
@@ -1649,7 +1676,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private <T extends NodeInterface> void importExtensibleListData(final Class defaultType, final List<Map<String, Object>> data, final PropertyMap... additionalData) throws FrameworkException {
+	protected <T extends NodeInterface> void importExtensibleNodeListData(final String defaultTypeName, final List<Map<String, Object>> data, final PropertyMap... additionalData) throws FrameworkException {
+
+		final Class defaultType = SchemaHelper.getEntityClassForRawType(defaultTypeName);
+
+		if (defaultType == null) {
+			throw new FrameworkException(422, "Type cannot be found: " + defaultTypeName);
+		}
 
 		final SecurityContext context = SecurityContext.getSuperUserInstance();
 		context.setDoTransactionNotifications(false);
@@ -1672,9 +1705,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					}
 				}
 
-				final String typeName = (String)entry.get("type");
+				checkOwnerAndSecurity(entry);
 
-				final Class type      = (defaultType.getSimpleName().equals(typeName) ? defaultType : SchemaHelper.getEntityClassForRawType(typeName));
+				final String typeName = (String) entry.get("type");
+				final Class type      = ((typeName == null || defaultTypeName.equals(typeName)) ? defaultType : SchemaHelper.getEntityClassForRawType(typeName));
 				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, type, entry);
 
 				// allow caller to insert additional data for better creation performance
@@ -1715,6 +1749,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				}
 
 				entry.remove("pages");
+
+				checkOwnerAndSecurity(entry);
 
 				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, Site.class, entry);
 
