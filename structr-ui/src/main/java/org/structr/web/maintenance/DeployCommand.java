@@ -33,8 +33,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -874,6 +874,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> entry = new TreeMap<>();
 				sites.add(entry);
 
+				entry.put("id",       site.getProperty(Site.id));
 				entry.put("name",     site.getName());
 				entry.put("hostname", site.getHostname());
 				entry.put("port",     site.getPort());
@@ -1147,6 +1148,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> grant = new TreeMap<>();
 				grants.add(grant);
 
+				grant.put("id",        res.getProperty(ResourceAccess.id));
 				grant.put("signature", res.getProperty(ResourceAccess.signature));
 				grant.put("flags",     res.getProperty(ResourceAccess.flags));
 			}
@@ -1204,6 +1206,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private static void exportConfiguration(final DOMNode node, final Map<String, Object> config) throws FrameworkException {
 
+		putIfNotNull(config, "id", node.getProperty(DOMNode.id));
+
 		if (node.isVisibleToPublicUsers())        { putIfNotNull(config, "visibleToPublicUsers", true); }
 		if (node.isVisibleToAuthenticatedUsers()) { putIfNotNull(config, "visibleToAuthenticatedUsers", true); }
 
@@ -1231,32 +1235,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putIfTrue   (config, "hidden",                  node.getProperty(StructrApp.key(Page.class, "hidden")));
 
 		}
-
-		// export all dynamic properties
-		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(node.getClass(), PropertyView.All)) {
-
-			// only export dynamic (=> additional) keys
-			if (!key.isPartOfBuiltInSchema()) {
-
-				if (key.relatedType() != null) {
-
-					final Map<String, Object> relatedObjectProperties = new HashMap<>();
-					final NodeInterface relatedObject = (NodeInterface) node.getProperty(key);
-
-					if (relatedObject != null) {
-						relatedObjectProperties.put("id", relatedObject.getUuid());
-						putIfNotNull(config, key.jsonName(), relatedObjectProperties);
-					}
-
-				} else {
-
-					putIfNotNull(config, key.jsonName(), node.getProperty(key));
-				}
-			}
-		}
 	}
 
 	private static void exportFileConfiguration(final AbstractFile abstractFile, final Map<String, Object> config) {
+
+		putIfNotNull(config, "id", abstractFile.getProperty(AbstractFile.id));
 
 		if (abstractFile.isVisibleToPublicUsers())         { putIfNotNull(config, "visibleToPublicUsers", true); }
 		if (abstractFile.isVisibleToAuthenticatedUsers())  { putIfNotNull(config, "visibleToAuthenticatedUsers", true); }
@@ -1273,9 +1256,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 		}
 
-		if (Settings.getBooleanSetting(Settings.ExportFileUuids.getKey()).getValue()) {
-			putIfNotNull(config, "id",                          abstractFile.getProperty(File.id));
-		}
 		putIfNotNull(config, "type",                        abstractFile.getProperty(File.type));
 		putIfNotNull(config, "contentType",                 abstractFile.getProperty(StructrApp.key(File.class, "contentType")));
 		putIfNotNull(config, "cacheForSeconds",             abstractFile.getProperty(StructrApp.key(File.class, "cacheForSeconds")));
@@ -1428,6 +1408,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> entry = new TreeMap<>();
 				mailTemplates.add(entry);
 
+				putIfNotNull(entry, "id",                          mailTemplate.getProperty(MailTemplate.id));
 				putIfNotNull(entry, "name",                        mailTemplate.getProperty(MailTemplate.name));
 				putIfNotNull(entry, "text",                        mailTemplate.getProperty(textKey));
 				putIfNotNull(entry, "locale",                      mailTemplate.getProperty(localeKey));
@@ -1468,6 +1449,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> entry = new TreeMap<>();
 				widgets.add(entry);
 
+				putIfNotNull(entry, "id",                          widget.getProperty(Widget.id));
 				putIfNotNull(entry, "name",                        widget.getProperty(Widget.name));
 				putIfNotNull(entry, "visibleToAuthenticatedUsers", widget.getProperty(Widget.visibleToAuthenticatedUsers));
 				putIfNotNull(entry, "visibleToPublicUsers",        widget.getProperty(Widget.visibleToPublicUsers));
@@ -1543,16 +1525,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			for (final Localization localization : app.nodeQuery(Localization.class).sort(Localization.name).getAsList()) {
 
-				final Map<String, Object> entry = new TreeMap<>();
+				final Map<String, Object> entry = new TreeMap<>(new IdFirstComparator());
+
 				localizations.add(entry);
 
-				putIfNotNull(entry, "name",                        localization.getProperty(Localization.name));
-				putIfNotNull(entry, "localizedName",               localization.getProperty(localizedNameKey));
-				putIfNotNull(entry, "domain",                      localization.getProperty(domainKey));
-				putIfNotNull(entry, "locale",                      localization.getProperty(localeKey));
-				putIfNotNull(entry, "imported",                    localization.getProperty(importedKey));
-				putIfNotNull(entry, "visibleToAuthenticatedUsers", localization.getProperty(MailTemplate.visibleToAuthenticatedUsers));
-				putIfNotNull(entry, "visibleToPublicUsers",        localization.getProperty(MailTemplate.visibleToPublicUsers));
+				entry.put("id",                          localization.getProperty(Localization.id));
+				entry.put("name",                        localization.getProperty(Localization.name));
+				entry.put("localizedName",               localization.getProperty(localizedNameKey));
+				entry.put("domain",                      localization.getProperty(domainKey));
+				entry.put("locale",                      localization.getProperty(localeKey));
+				entry.put("imported",                    localization.getProperty(importedKey));
+				entry.put("visibleToAuthenticatedUsers", localization.getProperty(MailTemplate.visibleToAuthenticatedUsers));
+				entry.put("visibleToPublicUsers",        localization.getProperty(MailTemplate.visibleToPublicUsers));
 			}
 
 			tx.success();
@@ -1770,17 +1754,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static final Set<String> relationshipTypesOkToExport = new HashSet<>(Arrays.asList(
-		"CONTAINS",
-		"CONTAINS_NEXT_SIBLING",
-		"LINK",
-		"MINIFICATION",
-		"FAVORITE",
-		"WORKING_DIR",
-		"HOME_DIR",
-		"THUMBNAIL",
-		"INDEXED_WORD"
-	));
+//	private static final Set<String> relationshipTypesOkToExport = new HashSet<>(Arrays.asList(
+//		"CONTAINS",
+//		"CONTAINS_NEXT_SIBLING",
+//		"LINK",
+//		"MINIFICATION",
+//		"FAVORITE",
+//		"WORKING_DIR",
+//		"HOME_DIR",
+//		"THUMBNAIL",
+//		"INDEXED_WORD"
+//	));
 
 	// ----- public static methods -----
 	public static boolean okToExport(final AbstractFile file) {
@@ -1815,4 +1799,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	public static void addMissingPrincipal (final String principalName) {
 		missingPrincipals.add(principalName);
 	}
+
+	protected static class IdFirstComparator implements Comparator<String> {
+
+		@Override
+		public int compare(String o1, String o2) {
+			if ("id".equals(o1)) {
+				return -1;
+			}
+			if ("id".equals(o2)) {
+				return 1;
+			}
+			return o1.compareTo(o2);
+		}
+	}
+
 }
