@@ -238,8 +238,8 @@
 						</goals>
 						<configuration>
 							<summaryFiles>
-								<summaryFile>target/failsafe-reports/failsafe-summary.xml</summaryFile>
-								<summaryFile>target/failsafe-reports/selenium-summary.xml</summaryFile>
+								<summaryFile>${project.build.directory}/failsafe-reports/failsafe-summary.xml</summaryFile>
+								<summaryFile>${project.build.directory}/failsafe-reports/selenium-summary.xml</summaryFile>
 							</summaryFiles>
 						</configuration>
 					</execution>
