@@ -113,7 +113,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		buf.append("MERGE (n)-[r:");
 		buf.append(relationshipType.name());
 		buf.append("]->(m)");
-		buf.append(" SET r += {relProperties} RETURN r");
+		buf.append(" SET r += $relProperties RETURN r");
 
 		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship(buf.toString(), map);
 
@@ -142,7 +142,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		map.put("id", id);
 
-		tx.set(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = {id} SET n :", label.name()), map);
+		tx.set(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id SET n :", label.name()), map);
 
 		setModified();
 	}
@@ -158,7 +158,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		map.put("id", id);
 
-		tx.set(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = {id} REMOVE n:", label.name()), map);
+		tx.set(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id REMOVE n:", label.name()), map);
 		setModified();
 	}
 
@@ -175,7 +175,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		map.put("id", id);
 
 		// execute query
-		for (final String label : tx.getStrings(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = {id} RETURN LABELS(n)"), map)) {
+		for (final String label : tx.getStrings(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id RETURN LABELS(n)"), map)) {
 			result.add(db.forName(Label.class, label));
 		}
 
@@ -198,7 +198,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 			// try to fetch existing relationship by node ID(s)
 			// FIXME: this call can be very slow when lots of relationships exist
-			tx.getLong(concat("MATCH (n", tenantIdentifier, ")-[r:", type.name(), "]->(m", tenantIdentifier, ") WHERE id(n) = {id1} AND id(m) = {id2} RETURN id(r)"), params);
+			tx.getLong(concat("MATCH (n", tenantIdentifier, ")-[r:", type.name(), "]->(m", tenantIdentifier, ") WHERE id(n) = $id1 AND id(m) = $id2 RETURN id(r)"), params);
 
 			// success
 			return true;
@@ -355,7 +355,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 				map.put("id", id);
 
-				final Iterable<org.neo4j.driver.v1.types.Node> result   = tx.getNodes(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = {id} RETURN DISTINCT n"), map);
+				final Iterable<org.neo4j.driver.v1.types.Node> result   = tx.getNodes(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id RETURN DISTINCT n"), map);
 				final Iterator<org.neo4j.driver.v1.types.Node> iterator = result.iterator();
 
 				if (iterator.hasNext()) {
@@ -457,7 +457,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 			final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
 			final Map<String, Object> map               = new HashMap<>();
 			final SessionTransaction tx                 = db.getCurrentTransaction();
-			final String whereStatement                 = " WHERE ID(n) = {id} ";
+			final String whereStatement                 = " WHERE ID(n) = $id ";
 
 			map.put("id", id);
 

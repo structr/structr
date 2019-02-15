@@ -227,8 +227,8 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 				buf.append(tenantId);
 			}
 
-			buf.append(") WHERE id(u) = {userId}");
-			buf.append(" CREATE (u)-[o:OWNS {ownsProperties}]->(n");
+			buf.append(") WHERE id(u) = $userId");
+			buf.append(" CREATE (u)-[o:OWNS $ownsProperties]->(n");
 
 			if (tenantId != null) {
 
@@ -242,7 +242,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 				buf.append(label);
 			}
 
-			buf.append(" {nodeProperties})<-[s:SECURITY {securityProperties}]-(u)");
+			buf.append(" $nodeProperties)<-[s:SECURITY $securityProperties]-(u)");
 			buf.append(" RETURN n, s, o");
 
 			// configure OWNS relationship creation statement for maximum performance
@@ -317,7 +317,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 				buf.append(label);
 			}
 
-			buf.append(" {nodeProperties})");
+			buf.append(" $nodeProperties)");
 			buf.append(" RETURN n");
 
 			// make properties available to Cypher statement

@@ -19,6 +19,8 @@
 package org.structr.mail.entity;
 
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
@@ -26,6 +28,9 @@ import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 
 import java.net.URI;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public interface Mailbox extends NodeInterface {
 	class Impl { static {
@@ -51,6 +56,11 @@ public interface Mailbox extends NodeInterface {
 		type.addMethod("getFolders")
 				.setReturnType("String[]")
 				.setSource("return getProperty(foldersProperty);");
+		type.addMethod("getAvailableFoldersOnServer")
+				.setReturnType("List<String>")
+				.setSource("return org.structr.mail.entity.Mailbox.getAvailableFoldersOnServerImpl(this, securityContext);")
+				.setDoExport(true);
+
 
 		type.relate(mail, "CONTAINS_EMAILMESSAGES", Relation.Cardinality.OneToMany, "mailbox", "emails");
 
@@ -65,5 +75,10 @@ public interface Mailbox extends NodeInterface {
 	String[] getFolders();
 	Object getMailProtocol();
 	Integer getPort();
+
+	static List<String> getAvailableFoldersOnServerImpl(final Mailbox mailbox, final SecurityContext securityContext) {
+		Iterable<String> result = StructrApp.getInstance(securityContext).command(org.structr.mail.service.FetchFoldersCommand.class).execute(mailbox);
+		return StreamSupport.stream(result.spliterator(), false).collect(Collectors.toList());
+	}
 
 }
