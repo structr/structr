@@ -173,11 +173,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		return new HashMap<>();
 	}
 
-	public static StreamingJsonWriter getJsonWriter() {
+	public StreamingJsonWriter getJsonWriter() {
 		return new StreamingJsonWriter(new StaticValue<String>(PropertyView.All), true, 1, false);
 	}
 
-	public static Gson getGson() {
+	public Gson getGson() {
 		return new GsonBuilder().setPrettyPrinting().setDateFormat(Settings.DefaultDateFormat.getValue()).create();
 	}
 
@@ -738,7 +738,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static void exportFiles(final Path target, final Path configTarget) throws FrameworkException {
+	private void exportFiles(final Path target, final Path configTarget) throws FrameworkException {
 
 		logger.info("Exporting files (unchanged files will be skipped)");
 
@@ -782,7 +782,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static void exportFilesAndFolders(final Path target, final Folder folder, final Map<String, Object> config) throws IOException {
+	private void exportFilesAndFolders(final Path target, final Folder folder, final Map<String, Object> config) throws IOException {
 
 		// ignore folders with mounted content
 		if (folder.isMounted()) {
@@ -792,19 +792,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final String name                    = folder.getName();
 		final Path path                      = target.resolve(name);
 
-		// make sure that only frontend data is exported, ignore extended
-		// types and those with relationships to user data.
-		if (DeployCommand.okToExport(folder)) {
+		final Map<String, Object> properties = new TreeMap<>();
 
-			final Map<String, Object> properties = new TreeMap<>();
+		Files.createDirectories(path);
 
-			Files.createDirectories(path);
+		exportFileConfiguration(folder, properties);
 
-			exportFileConfiguration(folder, properties);
-
-			if (!properties.isEmpty()) {
-				config.put(folder.getPath(), properties);
-			}
+		if (!properties.isEmpty()) {
+			config.put(folder.getPath(), properties);
 		}
 
 		final List<Folder> folders = Iterables.toList(folder.getFolders());
@@ -822,11 +817,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static void exportFile(final Path target, final File file, final Map<String, Object> config) throws IOException {
-
-		if (!DeployCommand.okToExport(file)) {
-			return;
-		}
+	private void exportFile(final Path target, final File file, final Map<String, Object> config) throws IOException {
 
 		final Map<String, Object> properties = new TreeMap<>();
 		final String name                    = file.getName();
@@ -860,7 +851,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static void exportSites(final Path target) throws FrameworkException {
+	private void exportSites(final Path target) throws FrameworkException {
 
 		logger.info("Exporting sites");
 
@@ -902,7 +893,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static void exportPages(final Path target, final Path configTarget) throws FrameworkException {
+	private void exportPages(final Path target, final Path configTarget) throws FrameworkException {
 
 		logger.info("Exporting pages (unchanged pages will be skipped)");
 
@@ -967,7 +958,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static void exportComponents(final Path target, final Path configTarget) throws FrameworkException {
+	private void exportComponents(final Path target, final Path configTarget) throws FrameworkException {
 
 		logger.info("Exporting components (unchanged components will be skipped)");
 
@@ -1050,7 +1041,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static void exportTemplates(final Path target, final Path configTarget) throws FrameworkException {
+	private void exportTemplates(final Path target, final Path configTarget) throws FrameworkException {
 
 		logger.info("Exporting templates (unchanged templates will be skipped)");
 
@@ -1084,7 +1075,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static void exportTemplateSource(final Path target, final DOMNode template, final Map<String, Object> configuration) throws FrameworkException {
+	private void exportTemplateSource(final Path target, final DOMNode template, final Map<String, Object> configuration) throws FrameworkException {
 
 		final Map<String, Object> properties = new TreeMap<>();
 		boolean doExport                     = true;
@@ -1134,7 +1125,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static void exportResourceAccessGrants(final Path target) throws FrameworkException {
+	private void exportResourceAccessGrants(final Path target) throws FrameworkException {
 
 		logger.info("Exporting resource access grants");
 
@@ -1181,7 +1172,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static void exportSchema(final Path target) throws FrameworkException {
+	private void exportSchema(final Path target) throws FrameworkException {
 
 		logger.info("Exporting schema");
 
@@ -1204,7 +1195,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static void exportConfiguration(final DOMNode node, final Map<String, Object> config) throws FrameworkException {
+	private void exportConfiguration(final DOMNode node, final Map<String, Object> config) throws FrameworkException {
 
 		putIfNotNull(config, "id", node.getProperty(DOMNode.id));
 
@@ -1247,7 +1238,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static void exportFileConfiguration(final AbstractFile abstractFile, final Map<String, Object> config) {
+	private void exportFileConfiguration(final AbstractFile abstractFile, final Map<String, Object> config) {
 
 		putIfNotNull(config, "id", abstractFile.getProperty(AbstractFile.id));
 
@@ -1327,7 +1318,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		exportOwnershipAndSecurity(abstractFile, config);
 	}
 
-	protected static void exportOwnershipAndSecurity(final NodeInterface node, final Map<String, Object> config) {
+	protected void exportOwnershipAndSecurity(final NodeInterface node, final Map<String, Object> config) {
 
 		// export owner
 		final Principal owner = node.getOwnerNode();
@@ -1363,7 +1354,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static void checkOwnerAndSecurity(final Map<String, Object> entry) throws FrameworkException {
+	private void checkOwnerAndSecurity(final Map<String, Object> entry) throws FrameworkException {
 
 		if (entry.containsKey("owner")) {
 
@@ -1402,7 +1393,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static void exportMailTemplates(final Path target) throws FrameworkException {
+	private void exportMailTemplates(final Path target) throws FrameworkException {
 
 		logger.info("Exporting mail templates");
 
@@ -1445,7 +1436,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static void exportWidgets(final Path target) throws FrameworkException {
+	private void exportWidgets(final Path target) throws FrameworkException {
 
 		logger.info("Exporting widgets");
 
@@ -1483,7 +1474,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static void exportApplicationConfigurationData(final Path target) throws FrameworkException {
+	private void exportApplicationConfigurationData(final Path target) throws FrameworkException {
 
 		logger.info("Exporting application configuration data");
 
@@ -1520,7 +1511,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static void exportLocalizations(final Path target) throws FrameworkException {
+	private void exportLocalizations(final Path target) throws FrameworkException {
 
 		logger.info("Exporting localizations");
 
@@ -1591,7 +1582,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	protected static void putIfNotNull(final Map<String, Object> target, final String key, final Object value) {
+	protected void putIfNotNull(final Map<String, Object> target, final String key, final Object value) {
 
 		if (value != null) {
 
@@ -1610,7 +1601,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private static void putIfTrue(final Map<String, Object> target, final String key, final Object value) {
+	private void putIfTrue(final Map<String, Object> target, final String key, final Object value) {
 
 		if (Boolean.TRUE.equals(value)) {
 
@@ -1764,44 +1755,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-//	private static final Set<String> relationshipTypesOkToExport = new HashSet<>(Arrays.asList(
-//		"CONTAINS",
-//		"CONTAINS_NEXT_SIBLING",
-//		"LINK",
-//		"MINIFICATION",
-//		"FAVORITE",
-//		"WORKING_DIR",
-//		"HOME_DIR",
-//		"THUMBNAIL",
-//		"INDEXED_WORD"
-//	));
-
 	// ----- public static methods -----
-	public static boolean okToExport(final AbstractFile file) {
-
-//		for (final AbstractRelationship rel : file.getRelationships()) {
-//
-//			final String name = rel.getRelType().name();
-//
-//			if (relationshipTypesOkToExport.contains(name)) {
-//				continue;
-//			}
-//
-//			if (rel instanceof Security) {
-//				continue;
-//			}
-//
-//			if (rel instanceof PrincipalOwnsNode) {
-//				continue;
-//			}
-//
-//			// if none of the above matched, the file should not be exported
-//			return false;
-//		}
-
-		return true;
-	}
-
 	public static void addDeferredPagelink (String linkableUUID, String pagePath) {
 		deferredPageLinks.put(linkableUUID, pagePath);
 	}
@@ -1810,6 +1764,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		missingPrincipals.add(principalName);
 	}
 
+	// ----- nested helper classes -----
 	protected static class IdFirstComparator implements Comparator<String> {
 
 		@Override

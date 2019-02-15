@@ -2189,7 +2189,7 @@ public class DeploymentTest extends StructrUiTest {
 
 			for (final Folder folder : app.nodeQuery(Folder.class).sort(AbstractNode.name).getAsList()) {
 
-				if (DeployCommand.okToExport(folder) && folder.includeInFrontendExport()) {
+				if (folder.includeInFrontendExport()) {
 
 					System.out.print("############################# ");
 					calculateHash(folder, buf, 0);
@@ -2198,7 +2198,7 @@ public class DeploymentTest extends StructrUiTest {
 
 			for (final File file : app.nodeQuery(File.class).sort(AbstractNode.name).getAsList()) {
 
-				if (DeployCommand.okToExport(file) && file.includeInFrontendExport()) {
+				if (file.includeInFrontendExport()) {
 
 					System.out.print("############################# ");
 					calculateHash(file, buf, 0);
