@@ -230,6 +230,12 @@
 							<goal>integration-test</goal>
 							<goal>verify</goal>
 						</goals>
+						<configuration>
+							<summaryFiles>
+								<summaryFile>target/failsafe-reports/failsafe-summary.xml</summaryFile>
+								<summaryFile>target/failsafe-reports/selenium-summary.xml</summaryFile>
+							</summaryFiles>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -295,6 +301,8 @@
 				<configuration>
 					<executable>${seleniumTestDir}/test.sh</executable>
 					<arguments>
+						<argument>-s</argument>
+						<argument>${project.build.directory}/failsafe-reports/selenium-summary.xml</argument>
 						<argument>-t</argument>
 						<argument>${basedir}/src/test/selenium</argument>
 						<argument>-u</argument>
