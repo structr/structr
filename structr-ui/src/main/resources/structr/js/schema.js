@@ -3045,7 +3045,7 @@ var _Schema = {
 
 			var layoutSelectorChangeHandler = function () {
 
-				var selectedOption = $('#saved-layout-selector :selected:not(:disabled)');
+				var selectedOption = $(':selected:not(:disabled)', layoutSelector);
 
 				if (selectedOption.length === 0) {
 
@@ -3111,9 +3111,6 @@ var _Schema = {
 					if (!data.error) {
 
 						new MessageBuilder().success("Layout saved").show();
-
-						refreshLayoutSelector();
-						layoutNameInput.val('');
 
 						blinkGreen(layoutSelector);
 
