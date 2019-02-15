@@ -3043,37 +3043,30 @@ var _Schema = {
 			var downloadLayoutButton  = $('#download-layout', container);
 			var deleteLayoutButton    = $('#delete-layout', container);
 
-			var enableButton = function (btn) {
-				btn.removeClass('disabled').removeAttr('disabled');
-			};
-			var disableButton = function (btn) {
-				btn.addClass('disabled').attr('disabled', 'disabled');
-			};
-
 			var layoutSelectorChangeHandler = function () {
 
 				var selectedOption = $('#saved-layout-selector :selected:not(:disabled)');
 
 				if (selectedOption.length === 0) {
 
-					disableButton(updateLayoutButton);
-					disableButton(restoreLayoutButton);
-					disableButton(downloadLayoutButton);
-					disableButton(deleteLayoutButton);
+					Structr.disableButton(updateLayoutButton);
+					Structr.disableButton(restoreLayoutButton);
+					Structr.disableButton(downloadLayoutButton);
+					Structr.disableButton(deleteLayoutButton);
 
 				} else {
 
-					enableButton(restoreLayoutButton);
-					enableButton(downloadLayoutButton);
+					Structr.enableButton(restoreLayoutButton);
+					Structr.enableButton(downloadLayoutButton);
 
 					var username = selectedOption.closest('optgroup').prop('label');
 
 					if (username !== 'null' && username !== me.username) {
-						disableButton(updateLayoutButton);
-						disableButton(deleteLayoutButton);
+						Structr.disableButton(updateLayoutButton);
+						Structr.disableButton(deleteLayoutButton);
 					} else {
-						enableButton(updateLayoutButton);
-						enableButton(deleteLayoutButton);
+						Structr.enableButton(updateLayoutButton);
+						Structr.enableButton(deleteLayoutButton);
 					}
 				}
 			};

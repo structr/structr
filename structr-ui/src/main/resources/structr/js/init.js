@@ -1322,26 +1322,11 @@ var Structr = {
 	isButtonDisabled: function (button) {
 		return $(button).data('disabled');
 	},
-	disableButton: function (button, newClickHandler) {
-		var b = $(button);
-		b.data('disabled', true);
-		b.addClass('disabled');
-
-		if (newClickHandler) {
-			b.off('click');
-			b.on('click', newClickHandler);
-			b.data('disabled', false);
-		}
+	disableButton: function (btn) {
+		$(btn).addClass('disabled').attr('disabled', 'disabled');
 	},
-	enableButton: function (button, newClickHandler) {
-		var b = $(button);
-		b.data('disabled', false);
-		b.removeClass('disabled');
-
-		if (newClickHandler) {
-			b.off('click');
-			b.on('click', newClickHandler);
-		}
+	enableButton: function (btn) {
+		$(btn).removeClass('disabled').removeAttr('disabled');
 	},
 	addExpandedNode: function (id) {
 		_Logger.log(_LogType.INIT, 'addExpandedNode', id);
