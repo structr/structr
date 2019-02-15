@@ -237,7 +237,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		{
 			final Map<String, Object> result = fetchGraphQL("{ Principal(_sort: \"name\") { id, type, name } }");
-			assertMapPathValueIs(result, "Principal.#",      9);
+			assertMapPathValueIs(result, "Principal.#",      11);
 		}
 
 		{
