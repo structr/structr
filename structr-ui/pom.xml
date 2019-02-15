@@ -219,9 +219,9 @@
 					<includes>
 						<include>**/*.java</include>
 					</includes>
-					<argLine>-Xms2g -Xmx3g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
+					<argLine>-Xms1g -Xmx2g -server -d64 -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
 					<reuseForks>false</reuseForks>
-					<forkCount>2</forkCount>
+					<forkCount>1</forkCount>
 					<skipTests>${skipTests}</skipTests>
 				</configuration>
 				<executions>
@@ -274,6 +274,7 @@
 										<env>
 											<NEO4J_AUTH>neo4j/admin</NEO4J_AUTH>
 											<NEO4J_ACCEPT_LICENSE_AGREEMENT>yes</NEO4J_ACCEPT_LICENSE_AGREEMENT>
+											<NEO4J_dbms_memory_heap_max__size>4G</NEO4J_dbms_memory_heap_max__size>
 										</env>
 									</run>
 								</image>
