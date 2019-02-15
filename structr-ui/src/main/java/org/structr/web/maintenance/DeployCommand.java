@@ -1235,6 +1235,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putIfTrue   (config, "hidden",                  node.getProperty(StructrApp.key(Page.class, "hidden")));
 
 		}
+
+		// export all dynamic properties
+		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(node.getClass(), PropertyView.All)) {
+
+			// only export dynamic (=> additional) keys that are *not* remote properties
+			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null) {
+
+				putIfNotNull(config, key.jsonName(), node.getProperty(key));
+			}
+		}
 	}
 
 	private static void exportFileConfiguration(final AbstractFile abstractFile, final Map<String, Object> config) {
