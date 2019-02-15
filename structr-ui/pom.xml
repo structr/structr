@@ -228,6 +228,10 @@
 					<execution>
 						<goals>
 							<goal>integration-test</goal>
+						</goals>
+					</execution>
+					<execution>
+						<goals>
 							<goal>verify</goal>
 						</goals>
 						<configuration>
