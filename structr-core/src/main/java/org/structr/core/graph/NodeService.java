@@ -19,7 +19,6 @@
 package org.structr.core.graph;
 
 import java.io.File;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +31,7 @@ import org.structr.api.index.Index;
 import org.structr.api.service.Command;
 import org.structr.api.service.SingletonService;
 import org.structr.api.service.StructrServices;
+import org.structr.api.util.CountResult;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -183,7 +183,7 @@ public class NodeService implements SingletonService {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				initialCount = new CountResult();
+				initialCount = graphDb.getNodeAndRelationshipCount();
 				tx.success();
 
 			} catch (Throwable t) {
@@ -195,7 +195,7 @@ public class NodeService implements SingletonService {
 	}
 
 	public CountResult getCurrentCounts() {
-		return new CountResult();
+		return graphDb.getNodeAndRelationshipCount();
 	}
 
 	public void createAdminUser() {
@@ -204,9 +204,8 @@ public class NodeService implements SingletonService {
 
 			// do two very quick count queries to determine the number of Structr nodes in the database
 			final CountResult count           = getInitialCounts();
-			final long abstractNodeCount      = count.getAbstractNodeCount();
-			final long nodeInterfaceCount     = count.getNodeInterfaceCount();
-			final boolean hasApplicationNodes = abstractNodeCount == nodeInterfaceCount && abstractNodeCount > 0;
+			final long nodeCount              = count.getNodeCount();
+			final boolean hasApplicationNodes = nodeCount > 0;
 
 			if (!hasApplicationNodes) {
 
@@ -244,71 +243,23 @@ public class NodeService implements SingletonService {
 		final CountResult counts = getInitialCounts();
 		final long nodeCacheSize = Settings.NodeCacheSize.getValue();
 		final long relCacheSize  = Settings.RelationshipCacheSize.getValue();
+		final long nodeCount     = counts.getNodeCount();
+		final long relCount      = counts.getRelationshipCount();
 
-		logger.info("Database contains {} nodes, {} relationships.", counts.getAbstractNodeCount(), counts.getRelationshipCount());
+		logger.info("Database contains {} nodes, {} relationships.", nodeCount, relCount);
 
-		if (nodeCacheSize < counts.getAbstractNodeCount()) {
-			logger.warn("Insufficient node cache size detected, please set application.cache.node.size to at least {} for best performance.", counts.getAbstractNodeCount());
+		if (nodeCacheSize < nodeCount) {
+			logger.warn("Insufficient node cache size detected, please set application.cache.node.size to at least {} for best performance.", nodeCount);
 		}
 
-		if (relCacheSize < counts.getRelationshipCount()) {
-			logger.warn("Insufficient relationship cache size detected, please set application.cache.relationship.size to at least {} for best performance.", counts.getRelationshipCount());
+		if (relCacheSize < relCount) {
+			logger.warn("Insufficient relationship cache size detected, please set application.cache.relationship.size to at least {} for best performance.", relCount);
 		}
 
 	}
-
-	private int getCount(final String query, final String resultKey) {
-
-		for (final Map<String, Object> row : graphDb.execute(query)) {
-
-			if (row.containsKey(resultKey)) {
-
-				final Object value = row.get(resultKey);
-				if (value != null && value instanceof Number) {
-
-					final Number number = (Number)value;
-					return number.intValue();
-				}
-			}
-		}
-
-		return 0;
-	}
-
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
 		return "core";
-	}
-
-	// ----- nested classes -----
-	public class CountResult {
-
-		private long abstractNodeCount  = 0L;
-		private long relationshipCount  = 0L;
-		private long nodeInterfaceCount = 0L;
-
-		public CountResult() {
-
-			final String tenantIdentifier = graphDb.getTenantIdentifier();
-			final String part             = tenantIdentifier != null ? ":" + tenantIdentifier : "";
-
-			// do some very quick count queries to determine the number of Structr nodes and rels in the database
-			this.abstractNodeCount  = getCount("MATCH (n" + part + ":AbstractNode) RETURN COUNT(n) AS count", "count");
-			this.nodeInterfaceCount = getCount("MATCH (n" + part + ":NodeInterface) RETURN COUNT(n) AS count", "count");
-			this.relationshipCount  = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN count(r) AS count", "count");
-		}
-
-		public long getAbstractNodeCount() {
-			return abstractNodeCount;
-		}
-
-		public long getRelationshipCount() {
-			return relationshipCount;
-		}
-
-		public long getNodeInterfaceCount() {
-			return nodeInterfaceCount;
-		}
 	}
 }

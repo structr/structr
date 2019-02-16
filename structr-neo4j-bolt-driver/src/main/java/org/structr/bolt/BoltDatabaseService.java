@@ -40,6 +40,7 @@ import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.exceptions.ClientException;
+import org.neo4j.driver.v1.exceptions.DatabaseException;
 import org.neo4j.driver.v1.exceptions.ServiceUnavailableException;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
@@ -59,7 +60,9 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.index.Index;
+import org.structr.api.util.CountResult;
 import org.structr.api.util.Iterables;
+import org.structr.api.util.NodeWithOwnerResult;
 import org.structr.bolt.index.CypherNodeIndex;
 import org.structr.bolt.index.CypherRelationshipIndex;
 import org.structr.bolt.index.NodeResultStream;
@@ -84,7 +87,6 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	private CypherRelationshipIndex relationshipIndex                 = null;
 	private CypherNodeIndex nodeIndex                                 = null;
 	private GraphDatabaseService graphDb                              = null;
-	private boolean needsIndexRebuild                                 = false;
 	private String databaseUrl                                        = null;
 	private String databasePath                                       = null;
 	private Driver driver                                             = null;
@@ -180,7 +182,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		NodeWrapper.clearCache();
 
 		driver.close();
-		
+
 		if (graphDb != null) {
 			graphDb.shutdown();
 		}
@@ -247,6 +249,69 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		map.put("properties", properties);
 
 		return NodeWrapper.newInstance(this, getCurrentTransaction().getNode(buf.toString(), map));
+	}
+
+	@Override
+	public NodeWithOwnerResult createNodeWithOwner(final long ownerId, final Set<String> labels, final Map<String, Object> nodeProperties, final Map<String, Object> ownsProperties, final Map<String, Object> securityProperties) {
+
+		final Map<String, Object> parameters = new HashMap<>();
+		final StringBuilder buf              = new StringBuilder();
+
+		buf.append("MATCH (u:Principal");
+
+		if (tenantId != null) {
+
+			buf.append(":");
+			buf.append(tenantId);
+		}
+
+		buf.append(") WHERE id(u) = $userId");
+		buf.append(" CREATE (u)-[o:OWNS $ownsProperties]->(n");
+
+		if (tenantId != null) {
+
+			buf.append(":");
+			buf.append(tenantId);
+		}
+
+		for (final String label : labels) {
+
+			buf.append(":");
+			buf.append(label);
+		}
+
+		buf.append(" $nodeProperties)<-[s:SECURITY $securityProperties]-(u)");
+		buf.append(" RETURN n, s, o");
+
+		// store properties in statement
+		parameters.put("userId",             ownerId);
+		parameters.put("ownsProperties",     ownsProperties);
+		parameters.put("securityProperties", securityProperties);
+		parameters.put("nodeProperties",     nodeProperties);
+
+		try {
+
+			for (final Map<String, Object> data : execute(buf.toString(), parameters)) {
+
+				final NodeWrapper newNode             = (NodeWrapper)         data.get("n");
+				final RelationshipWrapper securityRel = (RelationshipWrapper) data.get("s");
+				final RelationshipWrapper ownsRel     = (RelationshipWrapper) data.get("o");
+
+				newNode.setModified();
+				securityRel.setModified();
+				ownsRel.setModified();
+				((NodeWrapper)ownsRel.getStartNode()).setModified();
+
+				return new NodeWithOwnerResult(newNode, securityRel, ownsRel);
+			}
+
+		} catch (ClientException dex) {
+			throw SessionTransaction.translateClientException(dex);
+		} catch (DatabaseException dex) {
+			throw SessionTransaction.translateDatabaseException(dex);
+		}
+
+		return null;
 	}
 
 	@Override
@@ -502,8 +567,14 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 					tx.success();
 
+				} catch (IllegalStateException i) {
+
+					// if the driver instance is already closed, there is nothing we can do => exit
+					return;
+
 				} catch (Throwable t) {
-					logger.warn("", t);
+
+					logger.warn("Unable to update index configuration: {}", t.getMessage());
 				}
 			}
 		}
@@ -553,15 +624,14 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		}
 	}
 
+	@Override
+	public Iterable<Map<String, Object>> execute(final String nativeQuery) {
+		return execute(nativeQuery, Collections.EMPTY_MAP);
+	}
 
 	@Override
 	public Iterable<Map<String, Object>> execute(final String nativeQuery, final Map<String, Object> parameters) {
 		return getCurrentTransaction().run(nativeQuery, parameters);
-	}
-
-	@Override
-	public Iterable<Map<String, Object>> execute(final String nativeQuery) {
-		return execute(nativeQuery, Collections.EMPTY_MAP);
 	}
 
 	public SessionTransaction getCurrentTransaction() {
@@ -638,6 +708,16 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		return millis + "." + nanos;
 	}
 
+	@Override
+	public CountResult getNodeAndRelationshipCount() {
+
+		final String part    = tenantId != null ? ":" + tenantId : "";
+		final long nodeCount = getCount("MATCH (n" + part + ":NodeInterface) RETURN COUNT(n) AS count", "count");
+		final long relCount  = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN count(r) AS count", "count");
+
+		return new CountResult(nodeCount, relCount);	}
+
+
 	public Label getOrCreateLabel(final String name) {
 
 		Label label = labelCache.get(name);
@@ -700,6 +780,24 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		}
 
 		return globalGraphProperties;
+	}
+
+	private long getCount(final String query, final String resultKey) {
+
+		for (final Map<String, Object> row : execute(query)) {
+
+			if (row.containsKey(resultKey)) {
+
+				final Object value = row.get(resultKey);
+				if (value != null && value instanceof Number) {
+
+					final Number number = (Number)value;
+					return number.intValue();
+				}
+			}
+		}
+
+		return 0;
 	}
 
 	// ----- nested classes -----

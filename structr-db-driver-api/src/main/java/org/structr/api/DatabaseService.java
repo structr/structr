@@ -24,6 +24,8 @@ import org.structr.api.graph.GraphProperties;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
+import org.structr.api.util.CountResult;
+import org.structr.api.util.NodeWithOwnerResult;
 
 /**
  *
@@ -45,6 +47,7 @@ public interface DatabaseService {
 	Transaction beginTx();
 
 	Node createNode(final Set<String> labels, final Map<String, Object> properties);
+	NodeWithOwnerResult createNodeWithOwner(final long ownerId, final Set<String> labels, final Map<String, Object> nodeProperties, final Map<String, Object> ownsProperties, final Map<String, Object> securityProperties);
 
 	Node getNodeById(final long id);
 	Relationship getRelationshipById(final long id);
@@ -66,6 +69,10 @@ public interface DatabaseService {
 	Index<Relationship> relationshipIndex();
 	void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfig, final Map<String, Map<String, Boolean>> removedClasses);
 
+	// utils
+	CountResult getNodeAndRelationshipCount();
+
+	// native
 	Iterable<Map<String, Object>> execute(final String nativeQuery, final Map<String, Object> parameters);
 	Iterable<Map<String, Object>> execute(final String nativeQuery);
 }
