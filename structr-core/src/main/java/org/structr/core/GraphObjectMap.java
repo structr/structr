@@ -49,11 +49,6 @@ import org.structr.schema.action.ActionContext;
 public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
-	public long getId() {
-		return -1;
-	}
-
-	@Override
 	public String getUuid() {
 		return getProperty(GraphObject.id);
 	}

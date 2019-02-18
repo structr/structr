@@ -21,11 +21,10 @@ package org.structr.core.graph;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.bolt.index.AdvancedCypherQuery;
-import org.structr.bolt.wrapper.NodeWrapper;
-import org.structr.bolt.wrapper.RelationshipWrapper;
+import org.structr.api.DatabaseService;
 import org.structr.common.AccessPathCache;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.schema.action.Actions;
@@ -46,11 +45,15 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 
 	public static void flushAll() {
 
+		final NodeService nodeService = Services.getInstance().getService(NodeService.class);
+		if (nodeService != null) {
+
+			final DatabaseService db = nodeService.getDatabaseService();
+			db.clearCaches();
+		}
+
 		ResourceAccess.clearCache();
-		NodeWrapper.clearCache();
-		RelationshipWrapper.clearCache();
 		Actions.clearCache();
-		AdvancedCypherQuery.flushCaches();
 		AccessPathCache.invalidate();
 
 		StructrApp.getInstance().invalidateCache();

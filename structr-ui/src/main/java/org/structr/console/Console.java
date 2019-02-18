@@ -240,7 +240,7 @@ public class Console {
 		try (final Tx tx = app.tx()) {
 
 			final long t0                  = System.currentTimeMillis();
-			final List<GraphObject> result = Iterables.toList(app.cypher(line, Collections.emptyMap()));
+			final List<GraphObject> result = Iterables.toList(app.query(line, Collections.emptyMap()));
 			final long t1                  = System.currentTimeMillis();
 			final int size                 = result.size();
 

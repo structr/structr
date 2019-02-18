@@ -38,7 +38,7 @@ import org.structr.test.core.entity.SixOneManyToMany;
 import org.structr.test.core.entity.SixOneOneToOne;
 import org.structr.test.core.entity.TestOne;
 import org.structr.test.core.entity.TestSix;
-import org.structr.core.graph.CypherQueryCommand;
+import org.structr.core.graph.NativeQueryCommand;
 import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.StringProperty;
@@ -278,7 +278,7 @@ public class CypherTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<GraphObject> result = Iterables.toList(app.command(CypherQueryCommand.class).execute("MATCH (n:TestOne:" + randomTenantId + ") RETURN DISTINCT n"));
+			final List<GraphObject> result = Iterables.toList(app.command(NativeQueryCommand.class).execute("MATCH (n:TestOne:" + randomTenantId + ") RETURN DISTINCT n"));
 
 			assertEquals("Invalid wrapped cypher query result", 10, result.size());
 
@@ -297,7 +297,7 @@ public class CypherTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<GraphObject> result = Iterables.toList(app.command(CypherQueryCommand.class).execute("MATCH (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN DISTINCT  n, r, m "));
+			final List<GraphObject> result = Iterables.toList(app.command(NativeQueryCommand.class).execute("MATCH (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN DISTINCT  n, r, m "));
 			final Iterator<GraphObject> it = result.iterator();
 
 			assertEquals("Invalid wrapped cypher query result", 300, result.size());
@@ -318,7 +318,7 @@ public class CypherTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<GraphObject> result = Iterables.toList(app.command(CypherQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN p "));
+			final List<GraphObject> result = Iterables.toList(app.command(NativeQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN p "));
 
 			assertEquals("Invalid wrapped cypher query result", 100, result.size());
 
@@ -336,7 +336,7 @@ public class CypherTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<GraphObject> result = Iterables.toList(app.command(CypherQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN { nodes: nodes(p), rels: relationships(p) } "));
+			final List<GraphObject> result = Iterables.toList(app.command(NativeQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN { nodes: nodes(p), rels: relationships(p) } "));
 
 			assertEquals("Invalid wrapped cypher query result", 100, result.size());
 
@@ -372,7 +372,7 @@ public class CypherTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<GraphObject> result = Iterables.toList(app.command(CypherQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN DISTINCT { path: p, value: 12 } "));
+			final List<GraphObject> result = Iterables.toList(app.command(NativeQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN DISTINCT { path: p, value: 12 } "));
 
 			assertEquals("Invalid wrapped cypher query result", 100, result.size());
 
@@ -396,7 +396,7 @@ public class CypherTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<GraphObject> result = Iterables.toList(app.command(CypherQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN { nodes: { x : { y : { z : nodes(p) } } } } "));
+			final List<GraphObject> result = Iterables.toList(app.command(NativeQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN { nodes: { x : { y : { z : nodes(p) } } } } "));
 
 			assertEquals("Invalid wrapped cypher query result", 100, result.size());
 
@@ -482,7 +482,7 @@ public class CypherTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<GraphObject> result = Iterables.toList(app.command(CypherQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN p LIMIT 1"));
+			final List<GraphObject> result = Iterables.toList(app.command(NativeQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN p LIMIT 1"));
 			final GraphObjectMap map       = (GraphObjectMap)result.get(0);
 			final PathWrapper path         = (PathWrapper)map.toMap().get("p");
 

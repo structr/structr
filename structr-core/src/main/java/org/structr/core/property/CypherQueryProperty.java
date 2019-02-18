@@ -28,7 +28,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CypherQueryCommand;
+import org.structr.core.graph.NativeQueryCommand;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 
@@ -75,7 +75,7 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<Iterable<Graph
 				parameters.put("type", obj.getType());
 
 
-				return StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(query, parameters);
+				return StructrApp.getInstance(securityContext).command(NativeQueryCommand.class).execute(query, parameters);
 
 			} catch (Throwable t) {
 				logger.warn("", t);

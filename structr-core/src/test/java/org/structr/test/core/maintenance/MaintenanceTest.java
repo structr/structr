@@ -294,7 +294,7 @@ public class MaintenanceTest extends StructrTest {
 
 				for (int i=0; i<100; i++) {
 
-					final Node test = graphDb.createNode(Collections.EMPTY_SET, Collections.EMPTY_MAP);
+					final Node test = graphDb.createNode("Group", Collections.EMPTY_SET, Collections.EMPTY_MAP);
 
 					// set ID and type so that the rebuild index command identifies it as a Structr node.
 					test.setProperty("type", "Group");

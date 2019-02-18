@@ -16,26 +16,10 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt.index.factory;
-
-import org.structr.api.search.QueryPredicate;
-import org.structr.bolt.index.AdvancedCypherQuery;
+package org.structr.api.graph;
 
 /**
- *
  */
-public interface QueryFactory {
+public interface Identity extends Comparable {
 
-	/**
-	 * Modifies the query according to the given predicate, returns a boolean that
-	 * indicates whether the query was modified or not.
-	 *
-	 * @param parent the query factory
-	 * @param predicate the predicate
-	 * @param query the query
-	 * @param isFirst the isFirst
-	 *
-	 * @return a boolean that indicates whether the query was modified or not
-	 */
-	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst);
 }

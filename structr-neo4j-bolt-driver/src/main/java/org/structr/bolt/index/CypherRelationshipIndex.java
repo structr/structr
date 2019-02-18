@@ -76,7 +76,7 @@ public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 	}
 
 	@Override
-	public String getQuerySuffix(final PageableQuery query) {
+	public String getQuerySuffix(final AdvancedCypherQuery query) {
 
 		final StringBuilder buf = new StringBuilder();
 		final String sortKey    = query.getSortKey();
@@ -94,7 +94,7 @@ public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 	}
 
 	@Override
-	public Iterable<Relationship> getResult(final PageableQuery query) {
+	public Iterable<Relationship> getResult(final AdvancedCypherQuery query) {
 
 		final SessionTransaction tx = db.getCurrentTransaction();
 

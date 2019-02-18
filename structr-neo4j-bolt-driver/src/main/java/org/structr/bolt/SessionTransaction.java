@@ -517,11 +517,11 @@ public class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	public void deleted(final NodeWrapper wrapper) {
-		deletedNodes.add(wrapper.getId());
+		deletedNodes.add(wrapper.getDatabaseId());
 	}
 
 	public void deleted(final RelationshipWrapper wrapper) {
-		deletedRels.add(wrapper.getId());
+		deletedRels.add(wrapper.getDatabaseId());
 	}
 
 	public void modified(final EntityWrapper wrapper) {

@@ -41,9 +41,9 @@ import org.structr.core.property.GenericProperty;
  *
  *
  */
-public class CypherQueryCommand extends NodeServiceCommand {
+public class NativeQueryCommand extends NodeServiceCommand {
 
-	private static final Logger logger = LoggerFactory.getLogger(CypherQueryCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(NativeQueryCommand.class.getName());
 
 	public Iterable<GraphObject> execute(String query) throws FrameworkException {
 		return execute(query, null);

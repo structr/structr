@@ -590,11 +590,11 @@ public class ModificationQueue {
 	}
 
 	private String hash(final NodeInterface node) {
-		return "N" + node.getId();
+		return "N" + node.getUuid();
 	}
 
 	private String hash(final RelationshipInterface rel) {
-		return "R" + rel.getId();
+		return "R" + rel.getUuid();
 	}
 
 	private Iterable<GraphObjectModificationState> getSortedModifications() {

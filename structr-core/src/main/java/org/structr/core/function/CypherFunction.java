@@ -52,7 +52,7 @@ public class CypherFunction extends Function<Object, Object> {
 				params.putAll((Map)sources[1]);
 			}
 
-			return StructrApp.getInstance(ctx.getSecurityContext()).cypher(query, params);
+			return StructrApp.getInstance(ctx.getSecurityContext()).query(query, params);
 
 		} catch (ArgumentNullException pe) {
 

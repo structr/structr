@@ -94,7 +94,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(final Class<R> type);
 	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(final Class<R> type);
 
-	void setRawPathSegmentId(final long pathSegmentId);
+	void setRawPathSegmentId(final String pathSegmentId);
 
 	List<Security> getSecurityRelationships();
 

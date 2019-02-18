@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.NotFoundException;
 import org.structr.api.NotInTransactionException;
+import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Cachable;
 import org.structr.bolt.BoltDatabaseService;
@@ -44,8 +45,13 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 	protected final Map<String, Object> data = new ConcurrentHashMap<>();
 	protected BoltDatabaseService db         = null;
+	protected boolean deleted                = false;
 	protected boolean stale                  = false;
 	protected long id                        = -1L;
+
+	protected EntityWrapper() {
+		// nop constructor for cache access
+	}
 
 	public EntityWrapper(final BoltDatabaseService db, final T entity) {
 
@@ -65,7 +71,11 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 	}
 
 	@Override
-	public long getId() {
+	public Identity getId() {
+		return new BoltIdentity(id);
+	}
+
+	public long getDatabaseId() {
 		return id;
 	}
 
@@ -230,12 +240,18 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		tx.set(buf.toString(), map);
 		setModified();
 
-		stale = true;
+		stale   = true;
+		deleted = true;
 	}
 
 	@Override
 	public boolean isSpatialEntity() {
 		return false;
+	}
+
+	@Override
+	public boolean isDeleted() {
+		return deleted;
 	}
 
 	public boolean isStale() {

@@ -18,7 +18,6 @@
  */
 package org.structr.test.common;
 
-import java.net.URISyntaxException;
 import java.util.List;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
@@ -1541,7 +1540,7 @@ public class AccessControlTest extends StructrTest {
 
 			tx.success();
 
-		} catch (URISyntaxException | FrameworkException t) {
+		} catch (Throwable t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception.");

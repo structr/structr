@@ -83,7 +83,7 @@ public abstract class LinkedListNodeImpl<T extends NodeInterface> extends Valida
 	@Override
 	public void listInsertBefore(final T currentElement, final T newElement) throws FrameworkException {
 
-		if (currentElement.getId() == newElement.getId()) {
+		if (currentElement.getUuid().equals(newElement.getUuid())) {
 			throw new IllegalStateException("Cannot link a node to itself!");
 		}
 
@@ -97,12 +97,12 @@ public abstract class LinkedListNodeImpl<T extends NodeInterface> extends Valida
 			unlinkNodes(getSiblingLinkType(), previousElement, currentElement);
 
 			// dont create self link
-			if (previousElement.getId() != newElement.getId()) {
+			if (!previousElement.getUuid().equals(newElement.getUuid())) {
 				linkNodes(getSiblingLinkType(), previousElement, newElement);
 			}
 
 			// dont create self link
-			if (newElement.getId() != currentElement.getId()) {
+			if (!newElement.getUuid().equals(currentElement.getUuid())) {
 				linkNodes(getSiblingLinkType(), newElement, currentElement);
 			}
 		}
@@ -117,7 +117,7 @@ public abstract class LinkedListNodeImpl<T extends NodeInterface> extends Valida
 	 */
 	@Override
 	public void listInsertAfter(final T currentElement, final T newElement) throws FrameworkException {
-		if (currentElement.getId() == newElement.getId()) {
+		if (currentElement.getUuid().equals(newElement.getUuid())) {
 			throw new IllegalStateException("Cannot link a node to itself!");
 		}
 
@@ -135,7 +135,7 @@ public abstract class LinkedListNodeImpl<T extends NodeInterface> extends Valida
 			linkNodes(getSiblingLinkType(), currentElement, newElement);
 
 			// dont create self link
-			if (newElement.getId() != next.getId()) {
+			if (!newElement.getUuid().equals(next.getUuid())) {
 
 				// link new element to successor
 				linkNodes(getSiblingLinkType(), newElement, next);

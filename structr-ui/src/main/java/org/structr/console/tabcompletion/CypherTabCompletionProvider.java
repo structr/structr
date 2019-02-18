@@ -85,7 +85,6 @@ public class CypherTabCompletionProvider extends AbstractTabCompletionProvider {
 		final String token                      = getToken(line, " ");
 
 		results.addAll(getCaseInsensitiveResultsForCollection(words, token, " "));
-		results.addAll(getTabCompletionForUUIDs(securityContext, token, ""));
 
 		// node type results
 		final Matcher nodeMatcher = nodePattern.matcher(token);
