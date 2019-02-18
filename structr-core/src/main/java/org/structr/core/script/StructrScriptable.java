@@ -266,10 +266,14 @@ public class StructrScriptable extends ScriptableObject {
 					// backup security context
 					final SecurityContext securityContext = StructrScriptable.this.actionContext.getSecurityContext();
 
+					// copy context store from outer context
+					final SecurityContext superUserSecurityContext = SecurityContext.getSuperUserInstance(securityContext.getRequest());
+					superUserSecurityContext.setContextStore(securityContext.getContextStore());
+
 					try {
 
 						// replace security context with super user context
-						actionContext.setSecurityContext(SecurityContext.getSuperUserInstance(securityContext.getRequest()));
+						actionContext.setSecurityContext(superUserSecurityContext);
 
 						if (parameters != null && parameters.length == 1) {
 
@@ -292,6 +296,9 @@ public class StructrScriptable extends ScriptableObject {
 						return null;
 
 					} finally {
+
+						// overwrite context store with possibly changed context store
+						securityContext.setContextStore(superUserSecurityContext.getContextStore());
 
 						// restore saved security context
 						StructrScriptable.this.actionContext.setSecurityContext(securityContext);
@@ -654,7 +661,7 @@ public class StructrScriptable extends ScriptableObject {
 
 						// call enclosing class's unwrap method instead of ours
 						Object value = StructrScriptable.this.unwrap(o);
-						
+
 						// use inputConverter of EnumProperty to convert to native enums
 						if (key instanceof EnumProperty) {
 
