@@ -41,12 +41,13 @@ public interface Mailbox extends NodeInterface {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Mailbox"));
 
-		type.addStringProperty("host",                     PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addStringProperty("user",                     PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addStringProperty("password",                 PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(false);
-		type.addStringArrayProperty("folders",             PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addEnumProperty("mailProtocol",               PropertyView.Public, PropertyView.Ui).setEnums("pop3,imaps").setIndexed(true).setRequired(true);
-		type.addIntegerProperty("port",                    PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("host",                           PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(true);
+		type.addStringProperty("user",                           PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(true);
+		type.addStringProperty("password",                       PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(false);
+		type.addStringArrayProperty("folders",                   PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addEnumProperty("mailProtocol",                     PropertyView.Public, PropertyView.Ui).setEnums("pop3,imaps").setIndexed(true).setRequired(true);
+		type.addIntegerProperty("port",                          PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addFunctionProperty("availableFoldersOnServer",     PropertyView.Public, PropertyView.Ui).setReadFunction("{return Structr.this.getAvailableFoldersOnServer()}").setIndexed(false);
 
 		type.addPropertyGetter("host",              String.class);
 		type.addPropertyGetter("user",              String.class);

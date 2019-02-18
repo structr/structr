@@ -94,31 +94,39 @@ public class MailService extends Thread implements RunnableService {
 
 	public Iterable<String> fetchFolders(final Mailbox mb) {
 
-		final Store store = connectToStore(mb);
+		if (mb.getHost() != null && mb.getMailProtocol() != null && mb.getUser() != null && mb.getPassword() != null && mb.getFolders() != null) {
 
-		List<String> folders = new ArrayList<>();
+			final Store store = connectToStore(mb);
 
-		try {
-			final Folder defaultFolder = store.getDefaultFolder();
-			if (defaultFolder != null) {
+			List<String> folders = new ArrayList<>();
 
-				final Folder[] folderList = defaultFolder.list("*");
+			try {
+				final Folder defaultFolder = store.getDefaultFolder();
+				if (defaultFolder != null) {
 
-				for (final Folder folder : folderList) {
+					final Folder[] folderList = defaultFolder.list("*");
 
-					if ((folder.getType() & javax.mail.Folder.HOLDS_MESSAGES) != 0) {
+					for (final Folder folder : folderList) {
 
-						folders.add(folder.getFullName());
+						if ((folder.getType() & javax.mail.Folder.HOLDS_MESSAGES) != 0) {
+
+							folders.add(folder.getFullName());
+						}
 					}
 				}
+
+			} catch (MessagingException ex) {
+
+				logger.error("Exception while trying to fetch mailbox folders.", ex);
 			}
 
-		} catch (MessagingException ex) {
+			return folders;
 
-			logger.error("Exception while trying to fetch mailbox folders.", ex);
+		} else {
+
+			logger.warn("Could not retrieve folders for mailbox[" + mb.getUuid() + "] since not all required attributes were specified.");
+			return new ArrayList<>();
 		}
-
-		return folders;
 
 	}
 
@@ -399,6 +407,10 @@ public class MailService extends Thread implements RunnableService {
 			try {
 
 				String[] folders = mailbox.getFolders();
+
+				if (folders == null) {
+					folders = new String[]{};
+				}
 
 				final Store store = connectToStore(mailbox);
 
