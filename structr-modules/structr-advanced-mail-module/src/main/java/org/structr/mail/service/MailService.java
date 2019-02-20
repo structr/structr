@@ -258,11 +258,11 @@ public class MailService extends Thread implements RunnableService {
 					Map<String,String> subResult = handleMultipart((Multipart)part.getContent(), attachments);
 
 					if (subResult.get("content") != null) {
-						result.put("content", result.get("content").concat(subResult.get("content")));
+						result.put("content", subResult.get("content"));
 					}
 
 					if (subResult.get("htmlContent") != null) {
-						result.put("htmlContent", result.get("htmlContent").concat(subResult.get("htmlContent")));
+						result.put("htmlContent", subResult.get("htmlContent"));
 					}
 
 
@@ -279,7 +279,7 @@ public class MailService extends Thread implements RunnableService {
 					if (part.isMimeType("text/html")) {
 
 						result.put("htmlContent", getText(part));
-					} else {
+					} else if(part.isMimeType("text/plain")) {
 
 						result.put("content", getText(part));
 					}
@@ -297,7 +297,7 @@ public class MailService extends Thread implements RunnableService {
 
 	private String getText(Part p) throws MessagingException, IOException {
 
-		if (p.isMimeType("text/")) {
+		if (p.isMimeType("text/plain") || p.isMimeType("text/html")) {
 
 			Object content = p.getContent();
 
