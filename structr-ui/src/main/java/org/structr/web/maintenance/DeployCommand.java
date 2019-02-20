@@ -449,20 +449,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					tx.disableChangelog();
 
-					final String tenantIdentifier    = app.getDatabaseService().getTenantIdentifier();
-					final String optionalTenantLabel = (tenantIdentifier != null) ? ":" + tenantIdentifier : "";
-
 					info("Removing pages, templates and components");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing pages, templates and components");
 
-					app.cypher("MATCH (n" + optionalTenantLabel + ":DOMNode) DETACH DELETE n", null);
+					app.delete(DOMNode.class);
 
 					if (Files.exists(sitesConfFile)) {
 
 						info("Removing sites");
 						publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing sites");
 
-						app.cypher("MATCH (n" + optionalTenantLabel + ":Site) DETACH DELETE n", null);
+						app.delete(Site.class);
 					}
 
 					FlushCachesCommand.flushAll();

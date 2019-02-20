@@ -27,7 +27,7 @@ import org.structr.bolt.SessionTransaction;
  */
 public class RelationshipResultStream extends AbstractResultStream<Relationship> {
 
-	public RelationshipResultStream(final BoltDatabaseService db, final PageableQuery query) {
+	public RelationshipResultStream(final BoltDatabaseService db, final CypherQuery query) {
 		super(db, query);
 	}
 

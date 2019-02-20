@@ -38,7 +38,6 @@ public class RestTabCompletionProvider extends AbstractTabCompletionProvider {
 		final String token                      = getToken(line, " /.");
 
 		results.addAll(getExactResultsForCollection(RestCommand.commandNames(), token, " "));
-		results.addAll(getTabCompletionForUUIDs(securityContext, token, ""));
 
 		Collections.sort(results);
 

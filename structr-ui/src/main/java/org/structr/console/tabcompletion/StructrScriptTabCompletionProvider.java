@@ -49,7 +49,6 @@ public class StructrScriptTabCompletionProvider extends AbstractTabCompletionPro
 		final String token                      = getToken(line, " ()[]{}=+-,.*#/&$!");
 
 		results.addAll(getExactResultsForCollection(Functions.getNames(), token, "("));
-		results.addAll(getTabCompletionForUUIDs(securityContext, token, ""));
 		results.addAll(getExactResultsForCollection(words, token, ""));
 
 		Collections.sort(results);

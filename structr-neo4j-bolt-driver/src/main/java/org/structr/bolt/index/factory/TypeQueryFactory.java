@@ -18,14 +18,20 @@
  */
 package org.structr.bolt.index.factory;
 
+import org.structr.api.index.AbstractIndex;
+import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.TypeQuery;
 import org.structr.bolt.index.AdvancedCypherQuery;
 
-public class TypeQueryFactory extends AbstractQueryFactory {
+public class TypeQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
+
+	public TypeQueryFactory(final AbstractIndex index) {
+		super(index);
+	}
 
 	@Override
-	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
+	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
 
 		final TypeQuery typeQuery = (TypeQuery)predicate;
 		final Class sourceType    = typeQuery.getSourceType();

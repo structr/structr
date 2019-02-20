@@ -16,14 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.index;
+package org.structr.bolt;
 
-import org.structr.api.graph.PropertyContainer;
+import org.structr.bolt.wrapper.NodeWrapper;
 
+/**
+ * Abstract accessor class to be able to call packacke-private static method
+ * on NodeWrapper.
+ */
+class NodeCacheAccess extends NodeWrapper {
 
-public interface IndexManager<T extends PropertyContainer> {
-
-	Index<T> fulltext();
-	Index<T> exact();
-	Index<T> spatial();
+	static void clearAllCaches() {
+		NodeCacheAccess.clearCache();
+	}
 }

@@ -43,7 +43,7 @@ import org.structr.core.property.PropertyKey;
 public class NodeService implements SingletonService {
 
 	private static final Logger logger   = LoggerFactory.getLogger(NodeService.class.getName());
-	private DatabaseService graphDb      = null;
+	private DatabaseService databaseService      = null;
 	private Index<Node> nodeIndex        = null;
 	private Index<Relationship> relIndex = null;
 	private String filesPath             = null;
@@ -55,7 +55,7 @@ public class NodeService implements SingletonService {
 
 		if (command != null) {
 
-			command.setArgument("graphDb",           graphDb);
+			command.setArgument("graphDb",           databaseService);
 			command.setArgument("nodeIndex",         nodeIndex);
 			command.setArgument("relationshipIndex", relIndex);
 			command.setArgument("filesPath",         filesPath);
@@ -66,10 +66,10 @@ public class NodeService implements SingletonService {
 	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final String databaseDriver = Settings.DatabaseDriver.getValue();
-		graphDb = (DatabaseService)Class.forName(databaseDriver).newInstance();
-		if (graphDb != null) {
+		databaseService = (DatabaseService)Class.forName(databaseDriver).newInstance();
+		if (databaseService != null) {
 
-			if (graphDb.initialize()) {
+			if (databaseService.initialize()) {
 
 				filesPath = Settings.FilesPath.getValue();
 
@@ -83,10 +83,10 @@ public class NodeService implements SingletonService {
 				logger.info("Database driver loaded, initializing indexes..");
 
 				// index creation transaction
-				try ( final Transaction tx = graphDb.beginTx() ) {
+				try ( final Transaction tx = databaseService.beginTx() ) {
 
-					nodeIndex = graphDb.nodeIndex();
-					relIndex  = graphDb.relationshipIndex();
+					nodeIndex = databaseService.nodeIndex();
+					relIndex  = databaseService.relationshipIndex();
 
 					tx.success();
 
@@ -126,10 +126,10 @@ public class NodeService implements SingletonService {
 
 		if (isRunning()) {
 
-			logger.info("Shutting down graph database service");
-			graphDb.shutdown();
+			logger.info("Shutting down database service");
+			databaseService.shutdown();
 
-			graphDb       = null;
+			databaseService       = null;
 			isInitialized = false;
 		}
 	}
@@ -139,14 +139,14 @@ public class NodeService implements SingletonService {
 		return NodeService.class.getSimpleName();
 	}
 
-	public DatabaseService getGraphDb() {
-		return graphDb;
+	public DatabaseService getDatabaseService() {
+		return databaseService;
 	}
 
 	@Override
 	public boolean isRunning() {
 
-		return ((graphDb != null) && isInitialized);
+		return ((databaseService != null) && isInitialized);
 	}
 
 	@Override
@@ -183,7 +183,7 @@ public class NodeService implements SingletonService {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				initialCount = graphDb.getNodeAndRelationshipCount();
+				initialCount = databaseService.getNodeAndRelationshipCount();
 				tx.success();
 
 			} catch (Throwable t) {
@@ -195,7 +195,7 @@ public class NodeService implements SingletonService {
 	}
 
 	public CountResult getCurrentCounts() {
-		return graphDb.getNodeAndRelationshipCount();
+		return databaseService.getNodeAndRelationshipCount();
 	}
 
 	public void createAdminUser() {

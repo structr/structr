@@ -216,13 +216,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	@Override
 	public int hashCode() {
-
-		if (this.dbRelationship == null) {
-
-			return (super.hashCode());
-		}
-
-		return Long.valueOf(dbRelationship.getId()).hashCode();
+		return getUuid().hashCode();
 
 	}
 
@@ -235,7 +229,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			return -1;
 		}
 
-		return ((Long) this.getId()).compareTo((Long) rel.getId());
+		return getUuid().compareTo(rel.getUuid());
 	}
 
 	/**
@@ -252,27 +246,8 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public final long getId() {
-
-		return getInternalId();
-
-	}
-
-	@Override
 	public final String getUuid() {
 		return getProperty(AbstractRelationship.id);
-	}
-
-	public final long getRelationshipId() {
-
-		return getInternalId();
-
-	}
-
-	public final long getInternalId() {
-
-		return dbRelationship.getId();
-
 	}
 
 	@Override

@@ -84,23 +84,6 @@ public interface GraphObject {
 
 	// ----- methods common to both types -----
 	/**
-	 * Returns the database ID of this graph object.
-	 *
-	 * @return the database ID
-	 */
-	public long getId();
-
-	/**
-	 * Returns the database ID of this graph object as a string.
-	 *
-	 * @return the database ID as a string
-	 */
-
-	default String getIdString() {
-		return Long.toString(getId());
-	}
-
-	/**
 	 * Returns the UUID of this graph object.
 	 *
 	 * @return the UUID

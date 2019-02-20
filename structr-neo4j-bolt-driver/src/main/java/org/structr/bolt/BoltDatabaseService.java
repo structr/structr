@@ -49,12 +49,13 @@ import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.kernel.configuration.BoltConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
+import org.structr.api.AbstractDatabaseService;
 import org.structr.api.NetworkException;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.Transaction;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.GraphProperties;
+import org.structr.api.graph.Identity;
 import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
@@ -70,13 +71,14 @@ import org.structr.bolt.index.RelationshipResultStream;
 import org.structr.bolt.index.SimpleCypherQuery;
 import org.structr.bolt.mapper.NodeNodeMapper;
 import org.structr.bolt.mapper.RelationshipRelationshipMapper;
+import org.structr.bolt.wrapper.BoltIdentity;
 import org.structr.bolt.wrapper.NodeWrapper;
 import org.structr.bolt.wrapper.RelationshipWrapper;
 
 /**
  *
  */
-public class BoltDatabaseService implements DatabaseService, GraphProperties {
+public class BoltDatabaseService extends AbstractDatabaseService implements GraphProperties {
 
 	private static final Logger logger                                = LoggerFactory.getLogger(BoltDatabaseService.class.getName());
 	private static final Map<String, RelationshipType> relTypeCache   = new ConcurrentHashMap<>();
@@ -90,7 +92,6 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	private String databaseUrl                                        = null;
 	private String databasePath                                       = null;
 	private Driver driver                                             = null;
-	private String tenantId                                           = null;
 
 	@Override
 	public boolean initialize() {
@@ -178,32 +179,13 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	@Override
 	public void shutdown() {
 
-		RelationshipWrapper.clearCache();
-		NodeWrapper.clearCache();
-
+		clearCaches();
 		driver.close();
 
 		if (graphDb != null) {
 			graphDb.shutdown();
 		}
 	}
-
-	@Override
-	public <T> T forName(final Class<T> type, final String name) {
-
-		if (Label.class.equals(type)) {
-
-			return (T)getOrCreateLabel(name);
-		}
-
-		if (RelationshipType.class.equals(type)) {
-
-			return (T)getOrCreateRelationshipType(name);
-		}
-
-		throw new RuntimeException("Cannot create object of type " + type);
-	}
-
 
 	@Override
 	public Transaction beginTx() {
@@ -226,7 +208,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	}
 
 	@Override
-	public Node createNode(final Set<String> labels, final Map<String, Object> properties) {
+	public Node createNode(final String type, final Set<String> labels, final Map<String, Object> properties) {
 
 		final StringBuilder buf       = new StringBuilder("CREATE (n");
 		final Map<String, Object> map = new HashMap<>();
@@ -248,16 +230,20 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		// make properties available to Cypher statement
 		map.put("properties", properties);
 
-		return NodeWrapper.newInstance(this, getCurrentTransaction().getNode(buf.toString(), map));
+		final NodeWrapper newNode = NodeWrapper.newInstance(this, getCurrentTransaction().getNode(buf.toString(), map));
+
+		newNode.setModified();
+
+		return newNode;
 	}
 
 	@Override
-	public NodeWithOwnerResult createNodeWithOwner(final long ownerId, final Set<String> labels, final Map<String, Object> nodeProperties, final Map<String, Object> ownsProperties, final Map<String, Object> securityProperties) {
+	public NodeWithOwnerResult createNodeWithOwner(final Identity userId, final String type, final Set<String> labels, final Map<String, Object> nodeProperties, final Map<String, Object> ownsProperties, final Map<String, Object> securityProperties) {
 
 		final Map<String, Object> parameters = new HashMap<>();
 		final StringBuilder buf              = new StringBuilder();
 
-		buf.append("MATCH (u:Principal");
+		buf.append("MATCH (u:NodeInterface:Principal");
 
 		if (tenantId != null) {
 
@@ -265,7 +251,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 			buf.append(tenantId);
 		}
 
-		buf.append(") WHERE id(u) = $userId");
+		buf.append(") WHERE ID(u) = $userId");
 		buf.append(" CREATE (u)-[o:OWNS $ownsProperties]->(n");
 
 		if (tenantId != null) {
@@ -284,7 +270,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		buf.append(" RETURN n, s, o");
 
 		// store properties in statement
-		parameters.put("userId",             ownerId);
+		parameters.put("userId",             unwrap(userId));
 		parameters.put("ownsProperties",     ownsProperties);
 		parameters.put("securityProperties", securityProperties);
 		parameters.put("nodeProperties",     nodeProperties);
@@ -298,8 +284,13 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 				final RelationshipWrapper ownsRel     = (RelationshipWrapper) data.get("o");
 
 				newNode.setModified();
+
 				securityRel.setModified();
+				securityRel.stale();
+
 				ownsRel.setModified();
+				ownsRel.stale();
+
 				((NodeWrapper)ownsRel.getStartNode()).setModified();
 
 				return new NodeWithOwnerResult(newNode, securityRel, ownsRel);
@@ -315,13 +306,13 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	}
 
 	@Override
-	public Node getNodeById(final long id) {
-		return NodeWrapper.newInstance(this, id);
+	public Node getNodeById(final Identity id) {
+		return getNodeById(unwrap(id));
 	}
 
 	@Override
-	public Relationship getRelationshipById(final long id) {
-		return RelationshipWrapper.newInstance(this, id);
+	public Relationship getRelationshipById(final Identity id) {
+		return getRelationshipById(unwrap(id));
 	}
 
 	@Override
@@ -387,6 +378,25 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		query.getParameters().put("type", type);
 
 		return Iterables.map(new NodeNodeMapper(this), new NodeResultStream(this, query));
+	}
+
+	@Override
+	public void deleteNodesByLabel(final String label) {
+
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append("MATCH (n");
+
+		if (tenantId != null) {
+			buf.append(":");
+			buf.append(tenantId);
+		}
+
+		buf.append(":");
+		buf.append(label);
+		buf.append(") DETACH DELETE n");
+
+		execute(buf.toString());
 	}
 
 	@Override
@@ -634,6 +644,18 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		return getCurrentTransaction().run(nativeQuery, parameters);
 	}
 
+	@Override
+	public void clearCaches() {
+
+		NodeCacheAccess.clearAllCaches();
+		RelationshipCacheAccess.clearAllCaches();
+	}
+
+	@Override
+	public void cleanDatabase() {
+		execute("MATCH (n:" + tenantId + ") DETACH DELETE n", Collections.emptyMap());
+	}
+
 	public SessionTransaction getCurrentTransaction() {
 
 		final SessionTransaction tx = sessions.get();
@@ -651,6 +673,24 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 	public boolean logPingQueries() {
 		return Settings.CypherDebugLoggingPing.getValue();
+	}
+
+	public long unwrap(final Identity identity) {
+
+		if (identity instanceof BoltIdentity) {
+
+			return ((BoltIdentity)identity).getId();
+		}
+
+		throw new IllegalArgumentException("This implementation cannot handle Identity objects of type " + identity.getClass().getName() + ".");
+	}
+
+	public Node getNodeById(final long id) {
+		return NodeWrapper.newInstance(this, id);
+	}
+
+	public Relationship getRelationshipById(final long id) {
+		return RelationshipWrapper.newInstance(this, id);
 	}
 
 	// ----- interface GraphProperties -----
@@ -695,51 +735,13 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	}
 
 	@Override
-	public String getTenantIdentifier() {
-		return tenantId;
-	}
-
-	@Override
-	public String getInternalTimestamp() {
-
-		final String millis = StringUtils.leftPad(Long.toString(System.currentTimeMillis()), 18, "0");
-		final String nanos  = StringUtils.leftPad(Long.toString(System.nanoTime() - nanoEpoch), 18, "0");
-
-		return millis + "." + nanos;
-	}
-
-	@Override
 	public CountResult getNodeAndRelationshipCount() {
 
 		final String part    = tenantId != null ? ":" + tenantId : "";
 		final long nodeCount = getCount("MATCH (n" + part + ":NodeInterface) RETURN COUNT(n) AS count", "count");
 		final long relCount  = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN count(r) AS count", "count");
 
-		return new CountResult(nodeCount, relCount);	}
-
-
-	public Label getOrCreateLabel(final String name) {
-
-		Label label = labelCache.get(name);
-		if (label == null) {
-
-			label = new LabelImpl(name);
-			labelCache.put(name, label);
-		}
-
-		return label;
-	}
-
-	public RelationshipType getOrCreateRelationshipType(final String name) {
-
-		RelationshipType relType = relTypeCache.get(name);
-		if (relType == null) {
-
-			relType = new RelationshipTypeImpl(name);
-			relTypeCache.put(name, relType);
-		}
-
-		return relType;
+		return new CountResult(nodeCount, relCount);
 	}
 
 	// ----- private methods -----
@@ -798,64 +800,5 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		}
 
 		return 0;
-	}
-
-	// ----- nested classes -----
-	private static class LabelImpl implements Label {
-
-		private String name = null;
-
-		private LabelImpl(final String name) {
-			this.name = name;
-		}
-
-		@Override
-		public String name() {
-			return name;
-		}
-
-		@Override
-		public int hashCode() {
-			return name.hashCode();
-		}
-
-		@Override
-		public boolean equals(final Object other) {
-
-			if (other instanceof Label) {
-				return other.hashCode() == hashCode();
-			}
-
-			return false;
-		}
-	}
-
-	private static class RelationshipTypeImpl implements RelationshipType {
-
-		private String name = null;
-
-		private RelationshipTypeImpl(final String name) {
-			this.name = name;
-		}
-
-		@Override
-		public String name() {
-			return name;
-		}
-
-		@Override
-		public int hashCode() {
-			return name.hashCode();
-		}
-
-		@Override
-		public boolean equals(final Object other) {
-
-			if (other instanceof RelationshipType) {
-				return other.hashCode() == hashCode();
-			}
-
-			return false;
-		}
 	}
 }

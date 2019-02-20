@@ -16,20 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt.index;
+package org.structr.api.index;
 
-import java.util.Map;
-import org.structr.api.search.QueryContext;
+import org.structr.api.search.QueryPredicate;
 
-public interface PageableQuery {
+/**
+ *
+ */
+public interface QueryFactory<T extends DatabaseQuery> {
 
-	void nextPage();
-	int pageSize();
-	String getSortKey();
-	String getStatement();
-	Map<String, Object> getParameters();
-
-	QueryContext getQueryContext();
-
-	boolean idsOnly();
+	/**
+	 * Modifies the query according to the given predicate, returns a boolean that
+	 * indicates whether the query was modified or not.
+	 *
+	 * @param predicate the predicate
+	 * @param query the query
+	 * @param isFirst the isFirst
+	 *
+	 * @return a boolean that indicates whether the query was modified or not
+	 */
+	boolean createQuery(final QueryPredicate predicate, final T query, final boolean isFirst);
 }

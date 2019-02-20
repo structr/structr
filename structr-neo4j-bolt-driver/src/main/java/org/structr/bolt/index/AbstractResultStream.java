@@ -26,14 +26,14 @@ import org.structr.bolt.BoltDatabaseService;
  */
 public abstract class AbstractResultStream<T> implements Iterable<T> {
 
-	private Iterable<T> result   = null;
-	private PageableQuery query     = null;
-	private Iterator<T> current     = null;
-	private BoltDatabaseService db  = null;
+	private Iterable<T> result     = null;
+	private CypherQuery query      = null;
+	private Iterator<T> current    = null;
+	private BoltDatabaseService db = null;
 
 	protected abstract Iterable<T> fetchData(final BoltDatabaseService db, final String statement, final Map<String, Object> data);
 
-	public AbstractResultStream(final BoltDatabaseService db, final PageableQuery query) {
+	public AbstractResultStream(final BoltDatabaseService db, final CypherQuery query) {
 
 		this.query  = query;
 		this.db     = db;
@@ -89,7 +89,7 @@ public abstract class AbstractResultStream<T> implements Iterable<T> {
 		};
 	}
 
-	public PageableQuery getQuery() {
+	public CypherQuery getQuery() {
 		return query;
 	}
 }

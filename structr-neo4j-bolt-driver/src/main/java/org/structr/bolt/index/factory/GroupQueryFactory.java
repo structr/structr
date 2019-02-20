@@ -21,19 +21,25 @@ package org.structr.bolt.index.factory;
 import org.structr.api.search.GroupQuery;
 import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.TypeQuery;
-import org.structr.bolt.index.AdvancedCypherQuery;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.structr.api.index.AbstractIndex;
+import org.structr.api.index.AbstractQueryFactory;
+import org.structr.bolt.index.AdvancedCypherQuery;
 
 /**
  *
  */
-public class GroupQueryFactory extends AbstractQueryFactory {
+public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
+
+	public GroupQueryFactory(final AbstractIndex index) {
+		super(index);
+	}
 
 	@Override
-	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
+	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
 
 		if (predicate instanceof GroupQuery) {
 
@@ -47,7 +53,7 @@ public class GroupQueryFactory extends AbstractQueryFactory {
 			// Apply all type queries first as they affect as different part of the query expression
 			for (final QueryPredicate p : typePredicates) {
 
-				parent.createQuery(parent, p, query, isFirst);
+				index.createQuery(p, query, isFirst);
 			}
 
 			// Apply any group and attribute predicates, if existent
@@ -85,7 +91,7 @@ public class GroupQueryFactory extends AbstractQueryFactory {
 
 				while (it.hasNext()) {
 
-					if (parent.createQuery(parent, it.next(), query, firstWithinGroup)) {
+					if (index.createQuery(it.next(), query, firstWithinGroup)) {
 
 						firstWithinGroup = false;
 					}

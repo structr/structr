@@ -19,16 +19,22 @@
 package org.structr.bolt.index.factory;
 
 import org.apache.commons.lang.StringUtils;
+import org.structr.api.index.AbstractIndex;
+import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.UuidQuery;
 import org.structr.bolt.index.AdvancedCypherQuery;
 
 /**
  */
-public class UuidQueryFactory extends AbstractQueryFactory {
+public class UuidQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
+
+	public UuidQueryFactory(final AbstractIndex index) {
+		super(index);
+	}
 
 	@Override
-	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
+	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
 
 		checkOccur(query, predicate.getOccurrence(), isFirst);
 

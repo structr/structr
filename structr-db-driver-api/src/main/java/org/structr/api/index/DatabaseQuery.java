@@ -18,8 +18,14 @@
  */
 package org.structr.api.index;
 
+import org.structr.api.search.SortType;
 
-public enum IndexType {
+public interface DatabaseQuery {
 
-	Exact, Fulltext, Spatial
+	public void and();
+	public void or();
+	public void not();
+	public void andNot();
+
+	void sort(final SortType sortType, final String sortKey, final boolean sortDescending);
 }

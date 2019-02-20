@@ -56,11 +56,11 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 
 	@Override
 	public T instantiate(final Node node) {
-		return instantiate(node, -1);
+		return instantiate(node, null);
 	}
 
 	@Override
-	public T instantiate(final Node node, final long pathSegmentId) {
+	public T instantiate(final Node node, final String pathSegmentId) {
 
 		if (node == null) {
 			return null;
@@ -74,7 +74,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 	}
 
 	@Override
-	public T instantiateWithType(final Node node, final Class<T> nodeClass, final long pathSegmentId, boolean isCreation) {
+	public T instantiateWithType(final Node node, final Class<T> nodeClass, final String pathSegmentId, boolean isCreation) {
 
 		// cannot instantiate node without type
 		if (nodeClass == null) {

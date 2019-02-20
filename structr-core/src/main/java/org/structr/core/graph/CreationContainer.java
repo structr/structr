@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.Predicate;
+import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.SecurityContext;
@@ -38,7 +39,7 @@ import org.structr.schema.action.Function;
 /**
  *
  */
-public class CreationContainer implements GraphObject, PropertyContainer {
+public class CreationContainer<T extends Comparable> implements GraphObject, PropertyContainer {
 
 	private final Map<String, Object> data = new LinkedHashMap<>();
 	private GraphObject         wrappedObj = null;
@@ -63,7 +64,7 @@ public class CreationContainer implements GraphObject, PropertyContainer {
 
 	// ----- interface GraphObject -----
 	@Override
-	public long getId() {
+	public Identity getId() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -321,6 +322,11 @@ public class CreationContainer implements GraphObject, PropertyContainer {
 
 	@Override
 	public boolean isSpatialEntity() {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public boolean isDeleted() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 

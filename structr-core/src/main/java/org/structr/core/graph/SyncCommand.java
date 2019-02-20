@@ -33,7 +33,6 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -51,9 +50,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
-import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.Iterables;
@@ -112,7 +109,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
-		DatabaseService graphDb = Services.getInstance().getService(NodeService.class).getGraphDb();
+		DatabaseService graphDb = Services.getInstance().getService(NodeService.class).getDatabaseService();
 		String mode             = (String)attributes.get("mode");
 		String fileName         = (String)attributes.get("file");
 		String validate         = (String)attributes.get("validate");
@@ -193,7 +190,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 				conditionalIncludeFiles = false;
 
-				for (final GraphObject obj : StructrApp.getInstance().cypher(query, null)) {
+				for (final GraphObject obj : StructrApp.getInstance().query(query, null)) {
 
 					if (obj.isNode()) {
 						nodes.add((AbstractNode)obj.getSyncNode());
@@ -637,19 +634,17 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 	private static void importDatabase(final DatabaseService graphDb, final SecurityContext securityContext, final ZipInputStream zis, boolean doValidation, final Long batchSize) throws FrameworkException, IOException {
 
-		final App app                   = StructrApp.getInstance();
-		final DataInputStream dis       = new DataInputStream(new BufferedInputStream(zis));
-		final long internalBatchSize    = batchSize != null ? batchSize : 200;
-		final String uuidPropertyName   = GraphObject.id.dbName();
-		final Map<String, Node> uuidMap = new LinkedHashMap<>();
-		final Set<Long> deletedNodes    = new HashSet<>();
-		final Set<String> labels        = new LinkedHashSet<>();
-		double t0                       = System.nanoTime();
-		PropertyContainer currentObject = null;
-		String currentKey               = null;
-		boolean finished                = false;
-		long totalNodeCount             = 0;
-		long totalRelCount              = 0;
+		final App app                             = StructrApp.getInstance();
+		final Set<String> labels                  = new LinkedHashSet<>();
+		final DataInputStream dis                 = new DataInputStream(new BufferedInputStream(zis));
+		final long internalBatchSize              = batchSize != null ? batchSize : 200;
+		final String uuidPropertyName             = GraphObject.id.dbName();
+		double t0                                 = System.nanoTime();
+		EntityCreation currentObject              = null;
+		String currentKey                         = null;
+		boolean finished                          = false;
+		long totalNodeCount                       = 0;
+		long totalRelCount                        = 0;
 
 		labels.add(NodeInterface.class.getSimpleName());
 
@@ -662,10 +657,10 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			try (final Tx tx = app.tx(doValidation)) {
 
-				final List<Relationship> rels = new LinkedList<>();
-				final List<Node> nodes        = new LinkedList<>();
-				long nodeCount                = 0;
-				long relCount                 = 0;
+				final List<RelationshipCreation> rels = new LinkedList<>();
+				final List<NodeCreation> nodes        = new LinkedList<>();
+				long nodeCount                        = 0;
+				long relCount                         = 0;
 
 				do {
 
@@ -690,11 +685,13 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 								break;
 							}
 
-							currentObject = graphDb.createNode(labels, Collections.EMPTY_MAP);
+							final NodeCreation newNode = new NodeCreation(labels);
 							nodeCount++;
 
 							// store for later use
-							nodes.add((Node)currentObject);
+							nodes.add(newNode);
+
+							currentObject = newNode;
 
 						} else if (objectType == 'R') {
 
@@ -704,38 +701,18 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 								break;
 							}
 
-							String startId     = (String)deserialize(dis);
-							String endId       = (String)deserialize(dis);
-							String relTypeName = (String)deserialize(dis);
+							final String startId              = (String)deserialize(dis);
+							final String endId                = (String)deserialize(dis);
+							final String relTypeName          = (String)deserialize(dis);
+							final RelationshipType relType    = RelationshipType.forName(relTypeName);
+							final RelationshipCreation newRel = new RelationshipCreation(startId, endId, relType);
 
-							Node endNode   = uuidMap.get(endId);
-							Node startNode = uuidMap.get(startId);
+							// store for later use
+							rels.add(newRel);
 
-							if (startNode != null && endNode != null) {
+							currentObject = newRel;
 
-								if (deletedNodes.contains(startNode.getId()) || deletedNodes.contains(endNode.getId())) {
-
-									System.out.println("NOT creating relationship between deleted nodes..");
-									currentObject = null;
-									currentKey    = null;
-
-								} else {
-
-									RelationshipType relType = RelationshipType.forName(relTypeName);
-									currentObject = startNode.createRelationshipTo(endNode, relType);
-
-									// store for later use
-									rels.add((Relationship)currentObject);
-
-									relCount++;
-								}
-
-							} else {
-
-								System.out.println("NOT creating relationship of type " + relTypeName + ", start: " + startId + ", end: " + endId);
-								currentObject = null;
-								currentKey    = null;
-							}
+							relCount++;
 
 						} else {
 
@@ -761,28 +738,24 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 										if (uuidPropertyName.equals(currentKey) && currentObject instanceof Node) {
 
 											final String uuid = (String)obj;
-											uuidMap.put(uuid, (Node)currentObject);
+											currentObject.setId(uuid);
 										}
 
 										if (currentKey.length() != 0) {
 
 											// store object in DB
-											currentObject.setProperty(currentKey, obj);
+											currentObject.put(currentKey, obj);
 
 											// set type label
-											if (currentObject instanceof Node && NodeInterface.type.dbName().equals(currentKey)) {
+											if (currentObject instanceof NodeCreation && NodeInterface.type.dbName().equals(currentKey)) {
 
-												((Node) currentObject).addLabel(graphDb.forName(Label.class, (String) obj));
+												((NodeCreation)currentObject).addLabel((String) obj);
 											}
 
 										} else {
 
 											logger.error("Invalid property key for value {}, ignoring", obj);
 										}
-
-									} else {
-
-										logger.warn("No current object to store property value for key {}, seed file corrupt?", currentKey);
 									}
 								}
 
@@ -795,6 +768,12 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 					}
 
 				} while (!finished);
+
+				final Map<String, Node> nodeMap = new LinkedHashMap<>();
+
+				// create nodes and rels
+				nodes.stream().forEach(e -> e.create(graphDb, nodeMap));
+				rels.stream().forEach(e -> e.create(graphDb, nodeMap));
 
 				totalNodeCount += nodeCount;
 				totalRelCount  += relCount;
@@ -929,15 +908,69 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				break;
 		}
 	}
+
+	static class NodeCreation extends EntityCreation {
+
+		private final Set<String> labels = new LinkedHashSet<>();
+
+		public NodeCreation(final Set<String> labels) {
+			this.labels.addAll(labels);
+		}
+
+		@Override
+		public void create(final DatabaseService db, final Map<String, Node> nodeMap) {
+
+			final String type = (String)get("type");
+			if (type != null) {
+
+				final Node node = db.createNode(type, labels, this);
+				nodeMap.put(getId(), node);
+			}
+		}
+
+		void addLabel(final String label) {
+			this.labels.add(label);
+		}
+	}
+
+	static class RelationshipCreation extends EntityCreation {
+
+		private RelationshipType relType = null;
+		private String sourceId          = null;
+		private String targetId          = null;
+
+		public RelationshipCreation(final String sourceId, final String targetId, final RelationshipType relType) {
+
+			this.sourceId = sourceId;
+			this.targetId = targetId;
+			this.relType  = relType;
+		}
+
+		@Override
+		void create(final DatabaseService db, final Map<String, Node> nodeMap) {
+
+			final Node sourceNode = nodeMap.get(sourceId);
+			final Node targetNode = nodeMap.get(targetId);
+
+			if (sourceNode != null && targetNode != null) {
+
+				sourceNode.createRelationshipTo(targetNode, relType, this);
+			}
+		}
+	}
+
+	static abstract class EntityCreation extends LinkedHashMap<String, Object> {
+
+		private String id = null;
+
+		abstract void create(final DatabaseService db, final Map<String, Node> nodeMap);
+
+		public void setId(final String id) {
+			this.id = id;
+		}
+
+		public String getId() {
+			return id;
+		}
+	}
 }
-
-
-
-
-
-
-
-
-
-
-

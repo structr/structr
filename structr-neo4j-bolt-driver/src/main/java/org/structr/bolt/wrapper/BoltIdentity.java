@@ -16,27 +16,53 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt.index.factory;
+package org.structr.bolt.wrapper;
 
-import org.structr.api.index.AbstractIndex;
-import org.structr.api.index.AbstractQueryFactory;
-import org.structr.api.search.QueryPredicate;
-import org.structr.bolt.index.AdvancedCypherQuery;
+import org.structr.api.graph.Identity;
 
-public class EmptyQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
+/**
+ */
+public class BoltIdentity implements Identity {
 
-	public EmptyQueryFactory(final AbstractIndex index) {
-		super(index);
+	private long id = -1L;
+
+	public BoltIdentity(final long id) {
+		this.id = id;
+	}
+
+	public long getId() {
+		return id;
 	}
 
 	@Override
-	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
+	public String toString() {
+		return Long.toString(id);
+	}
 
-		checkOccur(query, predicate.getOccurrence(), isFirst);
+	@Override
+	public boolean equals(final Object other) {
+		return ((BoltIdentity)other).getId() == id;
+	}
 
-		// not empty query is simple
-		query.addSimpleParameter(predicate.getName(), "is", null);
+	@Override
+	public int hashCode() {
+		return Long.valueOf(id).hashCode();
+	}
 
-		return true;
+	// ----- interface Identity -----
+	@Override
+	public int compareTo(final Object o) {
+
+		final long otherId = ((BoltIdentity)o).getId();
+
+		if (id > otherId) {
+			return 1;
+		}
+
+		if (id < otherId) {
+			return -1;
+		}
+
+		return 0;
 	}
 }

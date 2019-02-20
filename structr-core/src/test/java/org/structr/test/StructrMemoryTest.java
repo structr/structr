@@ -19,13 +19,10 @@
 package org.structr.test.common;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Method;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -48,8 +45,8 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -62,9 +59,9 @@ import org.testng.annotations.BeforeMethod;
 /**
  *
  */
-public class LicensingTest {
+public class StructrTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(LicensingTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrTest.class.getName());
 
 	protected static SecurityContext securityContext = null;
 	protected static String basePath                 = null;
@@ -72,18 +69,18 @@ public class LicensingTest {
 	protected static String randomTenantId           = RandomStringUtils.randomAlphabetic(10).toUpperCase();
 
 	@BeforeMethod
-	protected void starting(final Method method) {
+	protected void starting(Method method) {
 
 		System.out.println("######################################################################################");
-		System.out.println("# Starting " + getClass().getName() + "#" + method.getName());
+		System.out.println("# Starting " + this.getClass().getName() + "#" + method.getName() + " with tenant identifier " + randomTenantId);
 		System.out.println("######################################################################################");
 	}
 
 	@AfterMethod
-	protected void finished(final Method method) {
+	protected void finished(Method method) {
 
 		System.out.println("######################################################################################");
-		System.out.println("# Finished " + getClass().getName() + "#" + method.getName());
+		System.out.println("# Finished " + getClass().getName() + "#" + method.getName() + " with tenant identifier " + randomTenantId);
 		System.out.println("######################################################################################");
 	}
 
@@ -93,7 +90,7 @@ public class LicensingTest {
 		try (final Tx tx = app.tx()) {
 
 			// delete everything
-			Services.getInstance().getService(NodeService.class).getDatabaseService().cleanDatabase();
+			app.cypher("MATCH (n:" + randomTenantId + ") DETACH DELETE n", Collections.emptyMap());
 
 			FlushCachesCommand.flushAll();
 
@@ -117,17 +114,15 @@ public class LicensingTest {
 		}
 	}
 
-	@BeforeClass
+	@BeforeClass(alwaysRun = true)
 	public static void startSystem() {
-
-		Services.disableTestingMode();
 
 		final Date now          = new Date();
 		final long timestamp    = now.getTime();
 
 		basePath = "/tmp/structr-test-" + timestamp;
 
-		Settings.Services.setValue("NodeService LogService SchemaService");
+		Settings.Services.setValue("NodeService SchemaService");
 		Settings.DatabaseDriverMode.setValue("remote");
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");
@@ -139,8 +134,8 @@ public class LicensingTest {
 		Settings.DatabasePath.setValue(basePath + "/db");
 		Settings.FilesPath.setValue(basePath + "/files");
 
-		Settings.RelationshipCacheSize.setValue(1000);
-		Settings.NodeCacheSize.setValue(1000);
+		Settings.RelationshipCacheSize.setValue(10000);
+		Settings.NodeCacheSize.setValue(10000);
 
 		Settings.SuperUserName.setValue("superadmin");
 		Settings.SuperUserPassword.setValue("sehrgeheim");
@@ -149,10 +144,7 @@ public class LicensingTest {
 
 		// wait for service layer to be initialized
 		do {
-			try {
-				Thread.sleep(100);
-			} catch (Throwable t) {
-			}
+			try { Thread.sleep(100); } catch (Throwable t) {}
 
 		} while (!services.isInitialized());
 
@@ -160,21 +152,10 @@ public class LicensingTest {
 		app = StructrApp.getInstance(securityContext);
 	}
 
-	@AfterClass
+	@AfterClass(alwaysRun = true)
 	public static void stopSystem() {
 
 		Services.getInstance().shutdown();
-
-		try {
-			File testConf = new File("structr.conf");
-			if (testConf.isFile()) {
-				testConf.delete();
-			}
-
-		} catch (Throwable t) {
-			logger.warn("", t);
-		}
-
 
 		try {
 			File testDir = new File(basePath);
@@ -192,55 +173,20 @@ public class LicensingTest {
 		}
 	}
 
-	/**
-	 * Recursive method used to find all classes in a given directory and
-	 * subdirs.
-	 *
-	 * @param directory The base directory
-	 * @param packageName The package name for classes found inside the base
-	 * directory
-	 * @return The classes
-	 * @throws ClassNotFoundException
-	 */
-	private static List<Class> findClasses(File directory, String packageName) throws ClassNotFoundException {
-
-		List<Class> classes = new ArrayList<>();
-
-		if (!directory.exists()) {
-
-			return classes;
-		}
-
-		File[] files = directory.listFiles();
-
-		for (File file : files) {
-
-			if (file.isDirectory()) {
-
-				assert !file.getName().contains(".");
-
-				classes.addAll(findClasses(file, packageName + "." + file.getName()));
-
-			} else if (file.getName().endsWith(".class")) {
-
-				classes.add(Class.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6)));
-			}
-
-		}
-
-		return classes;
-
-	}
-
-	protected <T extends AbstractNode> List<T> createTestNodes(final Class<T> type, final int number, final long delay) throws FrameworkException {
+	protected <T extends NodeInterface> List<T> createTestNodes(final Class<T> type, final int number, final long delay) throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {
 
-			List<T> nodes = new LinkedList<>();
+			final PropertyMap properties = new PropertyMap();
+			final List<T> nodes          = new LinkedList<>();
+
+			properties.put(NodeInterface.visibleToAuthenticatedUsers, false);
+			properties.put(NodeInterface.visibleToPublicUsers, false);
+			properties.put(NodeInterface.hidden, false);
 
 			for (int i = 0; i < number; i++) {
 
-				nodes.add(app.create(type));
+				nodes.add(app.create(type, properties));
 
 				try {
 					Thread.sleep(delay);
@@ -254,23 +200,23 @@ public class LicensingTest {
 
 		} catch (Throwable t) {
 
-			logger.warn("", t);
+			logger.warn("Unable to create test nodes of type {}: {}", type, t.getMessage());
 		}
 
 		return null;
 	}
 
-	protected <T extends AbstractNode> List<T> createTestNodes(final Class<T> type, final int number) throws FrameworkException {
+	protected <T extends NodeInterface> List<T> createTestNodes(final Class<T> type, final int number) throws FrameworkException {
 
 		return createTestNodes(type, number, 0);
 
 	}
 
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type) throws FrameworkException {
+	protected <T extends NodeInterface> T createTestNode(final Class<T> type) throws FrameworkException {
 		return (T) createTestNode(type, new PropertyMap());
 	}
 
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final String name) throws FrameworkException {
+	protected <T extends NodeInterface> T createTestNode(final Class<T> type, final String name) throws FrameworkException {
 
 		final PropertyMap map = new PropertyMap();
 
@@ -279,7 +225,7 @@ public class LicensingTest {
 		return (T) createTestNode(type, map);
 	}
 
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PropertyMap props) throws FrameworkException {
+	protected <T extends NodeInterface> T createTestNode(final Class<T> type, final PropertyMap props) throws FrameworkException {
 
 		props.put(AbstractNode.type, type.getSimpleName());
 
@@ -294,7 +240,7 @@ public class LicensingTest {
 
 	}
 
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final NodeAttribute... attributes) throws FrameworkException {
+	protected <T extends NodeInterface> T createTestNode(final Class<T> type, final NodeAttribute... attributes) throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {
 
@@ -329,7 +275,7 @@ public class LicensingTest {
 
 	}
 
-	protected <T extends Relation> T createTestRelationship(final AbstractNode startNode, final AbstractNode endNode, final Class<T> relType) throws FrameworkException {
+	protected <T extends Relation> T createTestRelationship(final NodeInterface startNode, final NodeInterface endNode, final Class<T> relType) throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {
 
@@ -398,41 +344,22 @@ public class LicensingTest {
 		return map;
 	}
 
-	/**
-	 * Get classes in given package and subpackages, accessible from the
-	 * context class loader
-	 *
-	 * @param packageName The base package
-	 * @return The classes
-	 * @throws ClassNotFoundException
-	 * @throws IOException
-	 */
-	protected static List<Class> getClasses(String packageName) throws ClassNotFoundException, IOException {
+	protected Class getType(final String typeName) {
+		return StructrApp.getConfiguration().getNodeEntityClass(typeName);
+	}
 
-		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+	protected PropertyKey<String> getKey(final String typeName, final String keyName) {
+		return getKey(typeName, keyName, String.class);
+	}
 
-		assert classLoader != null;
+	protected <T> PropertyKey<T> getKey(final String typeName, final String keyName, final Class<T> desiredType) {
 
-		String path = packageName.replace('.', '/');
-		Enumeration<URL> resources = classLoader.getResources(path);
-		List<File> dirs = new ArrayList<>();
+		final Class type = getType(typeName);
+		if (type != null) {
 
-		while (resources.hasMoreElements()) {
-
-			URL resource = resources.nextElement();
-
-			dirs.add(new File(resource.getFile()));
-
+			return StructrApp.key(type, keyName);
 		}
 
-		List<Class> classList = new ArrayList<>();
-
-		for (File directory : dirs) {
-
-			classList.addAll(findClasses(directory, packageName));
-		}
-
-		return classList;
-
+		return null;
 	}
 }
