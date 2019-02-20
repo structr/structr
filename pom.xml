@@ -45,6 +45,7 @@
 		<module>structr-net</module>
 		<module>structr-modules</module>
 		<module>structr-binaries</module>
+		<module>structr-memory-driver</module>
 	</modules>
 
 	<dependencyManagement>

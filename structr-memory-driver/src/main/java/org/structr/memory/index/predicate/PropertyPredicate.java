@@ -16,25 +16,29 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test;
+package org.structr.memory.index.predicate;
 
-import org.structr.api.config.Settings;
-import org.structr.memory.MemoryDatabaseService;
-import org.structr.test.common.BasicTest;
-import org.testng.annotations.BeforeClass;
+import org.structr.api.Predicate;
+import org.structr.api.graph.PropertyContainer;
 
 /**
- *
  */
-public class StructrMemoryTest extends BasicTest {
+public class PropertyPredicate<T extends PropertyContainer, V> implements Predicate<T> {
 
-	@BeforeClass(alwaysRun = true)
+	private String key     = null;
+	private V desiredValue = null;
+
+	public PropertyPredicate(final String key, final V desiredValue) {
+
+		this.key          = key;
+		this.desiredValue = desiredValue;
+	}
+
 	@Override
-	public void startSystem() {
+	public boolean accept(final T entity) {
 
-		Settings.DatabaseDriver.setValue(MemoryDatabaseService.class.getName());
+		final Object value = entity.getProperty(key);
 
-		super.startSystem();
-
+		return value != null && desiredValue.equals(value);
 	}
 }

@@ -16,25 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test;
-
-import org.structr.api.config.Settings;
-import org.structr.memory.MemoryDatabaseService;
-import org.structr.test.common.BasicTest;
-import org.testng.annotations.BeforeClass;
+package org.structr.memory.index.predicate;
 
 /**
- *
  */
-public class StructrMemoryTest extends BasicTest {
+public enum Conjunction {
 
-	@BeforeClass(alwaysRun = true)
-	@Override
-	public void startSystem() {
-
-		Settings.DatabaseDriver.setValue(MemoryDatabaseService.class.getName());
-
-		super.startSystem();
-
-	}
+	And, Or, Not
 }

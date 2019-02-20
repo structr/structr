@@ -16,25 +16,23 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test;
+package org.structr.memory.index;
 
-import org.structr.api.config.Settings;
+import org.structr.api.graph.Relationship;
+import org.structr.api.util.Iterables;
 import org.structr.memory.MemoryDatabaseService;
-import org.structr.test.common.BasicTest;
-import org.testng.annotations.BeforeClass;
 
 /**
  *
  */
-public class StructrMemoryTest extends BasicTest {
+public class MemoryRelationshipIndex extends AbstractMemoryIndex<Relationship> {
 
-	@BeforeClass(alwaysRun = true)
+	public MemoryRelationshipIndex(final MemoryDatabaseService db) {
+		super(db);
+	}
+
 	@Override
-	public void startSystem() {
-
-		Settings.DatabaseDriver.setValue(MemoryDatabaseService.class.getName());
-
-		super.startSystem();
-
+	public Iterable<Relationship> getResult(final MemoryQuery query) {
+		return Iterables.filter(query, db.getAllRelationships());
 	}
 }

@@ -16,25 +16,28 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test;
+package org.structr.memory.index.factory;
 
-import org.structr.api.config.Settings;
-import org.structr.memory.MemoryDatabaseService;
-import org.structr.test.common.BasicTest;
-import org.testng.annotations.BeforeClass;
+import org.structr.api.index.AbstractIndex;
+import org.structr.api.index.AbstractQueryFactory;
+import org.structr.api.search.QueryPredicate;
+import org.structr.memory.index.MemoryQuery;
+import org.structr.memory.index.predicate.NotEmptyPredicate;
 
-/**
- *
- */
-public class StructrMemoryTest extends BasicTest {
+public class NotEmptyQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
-	@BeforeClass(alwaysRun = true)
+	public NotEmptyQueryFactory(final AbstractIndex index) {
+		super(index);
+	}
+
 	@Override
-	public void startSystem() {
+	public boolean createQuery(final QueryPredicate predicate, final MemoryQuery query, final boolean isFirst) {
 
-		Settings.DatabaseDriver.setValue(MemoryDatabaseService.class.getName());
+		checkOccur(query, predicate.getOccurrence(), isFirst);
 
-		super.startSystem();
+		// not empty query is simple
+		query.addPredicate(new NotEmptyPredicate(predicate.getName()));
 
+		return true;
 	}
 }

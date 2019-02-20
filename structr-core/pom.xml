@@ -44,6 +44,11 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-memory-driver</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<optional>true</optional>

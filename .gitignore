@@ -37,3 +37,4 @@ license.key
 .idea
 *.iml
 /structr-ui/nbproject/
+/structr-neo4j-bolt-driver/nbproject/

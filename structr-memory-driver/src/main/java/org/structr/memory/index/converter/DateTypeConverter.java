@@ -16,25 +16,36 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test;
+package org.structr.memory.index.converter;
 
-import org.structr.api.config.Settings;
-import org.structr.memory.MemoryDatabaseService;
-import org.structr.test.common.BasicTest;
-import org.testng.annotations.BeforeClass;
+import java.util.Date;
 
 /**
  *
  */
-public class StructrMemoryTest extends BasicTest {
+public class DateTypeConverter extends LongTypeConverter {
 
-	@BeforeClass(alwaysRun = true)
 	@Override
-	public void startSystem() {
+	public Object getReadValue(final Object value) {
 
-		Settings.DatabaseDriver.setValue(MemoryDatabaseService.class.getName());
+		if (value instanceof Date) {
 
-		super.startSystem();
+			final long time = ((Date)value).getTime();
+			return super.getReadValue(time);
+		}
 
+		return super.getReadValue(value);
+	}
+
+	@Override
+	public Object getWriteValue(final Object value) {
+
+		if (value instanceof Date) {
+
+			final long time = ((Date)value).getTime();
+			return super.getWriteValue(time);
+		}
+
+		return super.getWriteValue(value);
 	}
 }

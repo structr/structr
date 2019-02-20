@@ -16,25 +16,27 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test;
+package org.structr.memory.index.converter;
 
-import org.structr.api.config.Settings;
-import org.structr.memory.MemoryDatabaseService;
-import org.structr.test.common.BasicTest;
-import org.testng.annotations.BeforeClass;
+import org.structr.api.search.TypeConverter;
 
 /**
  *
  */
-public class StructrMemoryTest extends BasicTest {
+public class BooleanTypeConverter implements TypeConverter {
 
-	@BeforeClass(alwaysRun = true)
 	@Override
-	public void startSystem() {
+	public Object getReadValue(final Object value) {
+		return value;
+	}
 
-		Settings.DatabaseDriver.setValue(MemoryDatabaseService.class.getName());
+	@Override
+	public Object getWriteValue(final Object value) {
+		return getReadValue(value);
+	}
 
-		super.startSystem();
-
+	@Override
+	public Object getInexactValue(final Object value) {
+		return getReadValue(value);
 	}
 }
