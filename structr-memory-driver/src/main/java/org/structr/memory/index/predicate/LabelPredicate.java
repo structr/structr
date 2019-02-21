@@ -19,7 +19,6 @@
 package org.structr.memory.index.predicate;
 
 import org.structr.api.Predicate;
-import org.structr.api.graph.Label;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.memory.MemoryNode;
 import org.structr.memory.MemoryRelationship;
@@ -28,19 +27,19 @@ import org.structr.memory.MemoryRelationship;
  */
 public class LabelPredicate<T extends PropertyContainer> implements Predicate<T> {
 
-	private Label label       = null;
-	private String sourceType = null;
-	private String targetType = null;
+	private String label       = null;
+	private String sourceLabel = null;
+	private String targetLabel = null;
 
-	public LabelPredicate(final Label label) {
+	public LabelPredicate(final String label) {
 		this(label, null, null);
 	}
 
-	public LabelPredicate(final Label label, final String sourceType, final String targetType) {
+	public LabelPredicate(final String label, final String sourceLabel, final String targetLabel) {
 
-		this.sourceType = sourceType;
-		this.targetType = targetType;
-		this.label      = label;
+		this.sourceLabel = sourceLabel;
+		this.targetLabel = targetLabel;
+		this.label       = label;
 	}
 
 	@Override
@@ -56,21 +55,19 @@ public class LabelPredicate<T extends PropertyContainer> implements Predicate<T>
 		if (entity instanceof MemoryRelationship) {
 
 			final MemoryRelationship relationship = (MemoryRelationship)entity;
+			final MemoryNode sourceNode           = (MemoryNode)relationship.getStartNode();
+			final MemoryNode targetNode           = (MemoryNode)relationship.getEndNode();
+			final String relType                  = relationship.getType().name();
 
-			final String relSourceType = relationship.getSourceNodeIdentity().getType();
-			final String relTargetType = relationship.getTargetNodeIdentity().getType();
-			final String relType       = relationship.getType().name();
-
-			// step by step
-			if (!label.name().equals(relType)) {
+			if (!label.equals(relType)) {
 				return false;
 			}
 
-			if (sourceType != null && !sourceType.equals(relSourceType)) {
+			if (sourceLabel != null && !sourceNode.hasLabel(sourceLabel)) {
 				return false;
 			}
 
-			if (targetType != null && !targetType.equals(relTargetType)) {
+			if (targetLabel != null && !targetNode.hasLabel(targetLabel)) {
 				return false;
 			}
 

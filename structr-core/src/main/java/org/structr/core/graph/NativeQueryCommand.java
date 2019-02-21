@@ -27,6 +27,7 @@ import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
+import org.structr.api.NativeQuery;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
@@ -59,10 +60,16 @@ public class NativeQueryCommand extends NodeServiceCommand {
 
 	public Iterable<GraphObject> execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted, boolean publicOnly) throws FrameworkException {
 
-		DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
+		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
 		if (graphDb != null) {
 
-			final Iterable<Map<String, Object>> result = graphDb.execute(query, parameters != null ? parameters : Collections.emptyMap());
+			final NativeQuery<Iterable> nativeQuery = graphDb.query(query, Iterable.class);
+
+			if (parameters != null) {
+				nativeQuery.configure(parameters);
+			}
+
+			final Iterable<Map<String, Object>> result = graphDb.execute(nativeQuery);
 			final Iterable<Iterable<GraphObject>> test = extractRows(result, includeHiddenAndDeleted, publicOnly);
 
 			if (query.matches("(?i)(?s)(?m).*\\s+(delete|set|remove)\\s+.*")) {

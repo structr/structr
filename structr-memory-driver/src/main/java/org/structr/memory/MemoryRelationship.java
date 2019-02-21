@@ -18,6 +18,7 @@
  */
 package org.structr.memory;
 
+import java.util.Arrays;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
@@ -83,5 +84,10 @@ public class MemoryRelationship extends MemoryEntity implements Relationship {
 
 	public boolean isEqualTo(final MemoryRelationship rel) {
 		return rel.getSourceNodeIdentity().equals(sourceNode) && rel.getTargetNodeIdentity().equals(targetNode) && rel.getType().name().equals(relType.name());
+	}
+
+	@Override
+	public Iterable<String> getLabels() {
+		return Arrays.asList(relType.name());
 	}
 }

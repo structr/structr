@@ -29,6 +29,7 @@ import java.util.Locale;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -292,10 +293,13 @@ public class PerformanceTest extends StructrUiTest {
 
 						t.getName();
 
-						for (final TestFive f : t.getProperty(TestTwo.testFives)) {
+						final List<TestFive> list = Iterables.toList(t.getProperty(TestTwo.testFives));
+						for (final TestFive f : list) {
 
 							f.getName();
 						}
+
+						assertEquals("Invalid collection size", 1, list.size());
 					}
 
 					tx.success();

@@ -50,13 +50,13 @@ import org.neo4j.kernel.configuration.BoltConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.AbstractDatabaseService;
+import org.structr.api.NativeQuery;
 import org.structr.api.NetworkException;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.Transaction;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.GraphProperties;
 import org.structr.api.graph.Identity;
-import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
@@ -64,16 +64,6 @@ import org.structr.api.index.Index;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
-import org.structr.bolt.index.CypherNodeIndex;
-import org.structr.bolt.index.CypherRelationshipIndex;
-import org.structr.bolt.index.NodeResultStream;
-import org.structr.bolt.index.RelationshipResultStream;
-import org.structr.bolt.index.SimpleCypherQuery;
-import org.structr.bolt.mapper.NodeNodeMapper;
-import org.structr.bolt.mapper.RelationshipRelationshipMapper;
-import org.structr.bolt.wrapper.BoltIdentity;
-import org.structr.bolt.wrapper.NodeWrapper;
-import org.structr.bolt.wrapper.RelationshipWrapper;
 
 /**
  *
@@ -82,7 +72,6 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 	private static final Logger logger                                = LoggerFactory.getLogger(BoltDatabaseService.class.getName());
 	private static final Map<String, RelationshipType> relTypeCache   = new ConcurrentHashMap<>();
-	private static final Map<String, Label> labelCache                = new ConcurrentHashMap<>();
 	private static final ThreadLocal<SessionTransaction> sessions     = new ThreadLocal<>();
 	private static final long nanoEpoch                               = System.nanoTime();
 	private Properties globalGraphProperties                          = null;
@@ -635,20 +624,31 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	}
 
 	@Override
-	public Iterable<Map<String, Object>> execute(final String nativeQuery) {
-		return execute(nativeQuery, Collections.EMPTY_MAP);
+	public <T> T execute(final NativeQuery<T> nativeQuery) {
+
+		if (nativeQuery instanceof AbstractNativeQuery) {
+
+			return (T)((AbstractNativeQuery)nativeQuery).execute(getCurrentTransaction());
+		}
+
+		throw new IllegalArgumentException("Unsupported query type " + nativeQuery.getClass().getName() + ".");
 	}
 
 	@Override
-	public Iterable<Map<String, Object>> execute(final String nativeQuery, final Map<String, Object> parameters) {
-		return getCurrentTransaction().run(nativeQuery, parameters);
+	public <T> NativeQuery<T> query(final Object query, final Class<T> resultType) {
+
+		if (!(query instanceof String)) {
+			throw new IllegalArgumentException("Unsupported query type " + query.getClass().getName() + ", expected String.");
+		}
+
+		return createQuery((String)query, resultType);
 	}
 
 	@Override
 	public void clearCaches() {
 
-		NodeCacheAccess.clearAllCaches();
-		RelationshipCacheAccess.clearAllCaches();
+		NodeWrapper.clearCache();
+		RelationshipWrapper.clearCache();
 	}
 
 	@Override
@@ -656,7 +656,8 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		execute("MATCH (n:" + tenantId + ") DETACH DELETE n", Collections.emptyMap());
 	}
 
-	public SessionTransaction getCurrentTransaction() {
+	// ----- package-private methods
+	SessionTransaction getCurrentTransaction() {
 
 		final SessionTransaction tx = sessions.get();
 		if (tx == null || tx.isClosed()) {
@@ -667,15 +668,15 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		return tx;
 	}
 
-	public boolean logQueries() {
+	boolean logQueries() {
 		return Settings.CypherDebugLogging.getValue();
 	}
 
-	public boolean logPingQueries() {
+	boolean logPingQueries() {
 		return Settings.CypherDebugLoggingPing.getValue();
 	}
 
-	public long unwrap(final Identity identity) {
+	long unwrap(final Identity identity) {
 
 		if (identity instanceof BoltIdentity) {
 
@@ -685,12 +686,20 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		throw new IllegalArgumentException("This implementation cannot handle Identity objects of type " + identity.getClass().getName() + ".");
 	}
 
-	public Node getNodeById(final long id) {
+	Node getNodeById(final long id) {
 		return NodeWrapper.newInstance(this, id);
 	}
 
-	public Relationship getRelationshipById(final long id) {
+	Relationship getRelationshipById(final long id) {
 		return RelationshipWrapper.newInstance(this, id);
+	}
+
+	Iterable<Map<String, Object>> execute(final String nativeQuery) {
+		return execute(nativeQuery, Collections.EMPTY_MAP);
+	}
+
+	Iterable<Map<String, Object>> execute(final String nativeQuery, final Map<String, Object> parameters) {
+		return getCurrentTransaction().run(nativeQuery, parameters);
 	}
 
 	// ----- interface GraphProperties -----
@@ -800,5 +809,22 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		return 0;
+	}
+
+	private <T> NativeQuery<T> createQuery(final String query, final Class<T> type) {
+
+		if (Iterable.class.equals(type)) {
+			return (NativeQuery<T>)new IterableQuery(query);
+		}
+
+		if (Boolean.class.equals(type)) {
+			return (NativeQuery<T>)new BooleanQuery(query);
+		}
+
+		if (Long.class.equals(type)) {
+			return (NativeQuery<T>)new LongQuery(query);
+		}
+
+		return null;
 	}
 }

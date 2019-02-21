@@ -244,11 +244,15 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "sessionIds");
 			final String[] ids              = principal.getProperty(key);
-			Set<String> sessionIds          = new HashSet<>(Arrays.asList(ids));
 
-			sessionIds.remove(sessionId);
+			if (ids != null) {
 
-			principal.setProperty(key, (String[]) sessionIds.toArray(new String[0]));
+				final Set<String> sessionIds = new HashSet<>(Arrays.asList(ids));
+
+				sessionIds.remove(sessionId);
+
+				principal.setProperty(key, (String[]) sessionIds.toArray(new String[0]));
+			}
 
 		} catch (FrameworkException ex) {
 			logger.error("Could not remove sessionId " + sessionId + " from array of sessionIds", ex);

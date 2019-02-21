@@ -99,6 +99,11 @@ public abstract class AbstractMemoryIndex<T extends PropertyContainer> extends A
 		return db;
 	}
 
+	@Override
+	public boolean supports(final Class type) {
+		return converters.containsKey(type);
+	}
+
 	// ----- private methods -----
 	private void init() {
 

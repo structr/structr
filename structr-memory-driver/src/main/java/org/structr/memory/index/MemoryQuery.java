@@ -40,9 +40,18 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 	private GroupPredicate<T> rootPredicate    = new GroupPredicate<>(null);
 	private GroupPredicate<T> currentPredicate = rootPredicate;
 	private String sortKey                     = null;
+	private String mainType                    = null;
 	private boolean sortDescending             = false;
 
 	public MemoryQuery() {
+	}
+
+	public void setMainType(final String mainType) {
+		this.mainType = mainType;
+	}
+
+	public String getMainType() {
+		return mainType;
 	}
 
 	public void addPredicate(final Predicate<T> predicate) {

@@ -77,6 +77,6 @@ public interface DatabaseService {
 	CountResult getNodeAndRelationshipCount();
 
 	// native
-	Iterable<Map<String, Object>> execute(final String nativeQuery, final Map<String, Object> parameters);
-	Iterable<Map<String, Object>> execute(final String nativeQuery);
+	<T> T execute(final NativeQuery<T> nativeQuery);
+	<T> NativeQuery<T> query(final Object query, final Class<T> resultType);
 }

@@ -21,6 +21,7 @@ package org.structr.memory.index;
 import org.structr.api.graph.Node;
 import org.structr.api.util.Iterables;
 import org.structr.memory.MemoryDatabaseService;
+import org.structr.memory.index.filter.MemoryLabelFilter;
 
 /**
  *
@@ -34,6 +35,14 @@ public class MemoryNodeIndex extends AbstractMemoryIndex<Node> {
 
 	@Override
 	public Iterable<Node> getResult(final MemoryQuery query) {
+
+		final String mainType = query.getMainType();
+		if (mainType != null) {
+
+			return Iterables.filter(query, query.sort(db.getFilteredNodes(new MemoryLabelFilter<>(mainType))));
+		}
+
+		// fallback: unfiltered
 		return Iterables.filter(query, query.sort(db.getAllNodes()));
 	}
 }

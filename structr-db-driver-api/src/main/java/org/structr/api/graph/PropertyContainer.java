@@ -39,6 +39,7 @@ public interface PropertyContainer {
 
 	void delete(final boolean deleteRelationships) throws NotInTransactionException;
 
+	boolean isStale();
 	boolean isDeleted();
 	boolean isSpatialEntity();
 

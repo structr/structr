@@ -19,7 +19,9 @@
 package org.structr.memory;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import org.structr.api.NotFoundException;
 import org.structr.api.graph.Identity;
@@ -31,6 +33,7 @@ public abstract class MemoryEntity implements PropertyContainer {
 
 	private final Map<Long, Map<String, Object>> txData = new LinkedHashMap<>();
 	private final Map<String, Object> data              = new LinkedHashMap<>();
+	private final Set<String> labels                    = new LinkedHashSet<>();
 	private ReentrantLock lock                          = new ReentrantLock();
 	protected MemoryDatabaseService db                  = null;
 	private MemoryIdentity id                           = null;
@@ -89,7 +92,7 @@ public abstract class MemoryEntity implements PropertyContainer {
 	@Override
 	public void removeProperty(final String name) {
 		lock();
-		getData(false).remove(name);
+		getData(false).put(name, null);
 	}
 
 	@Override
@@ -103,17 +106,43 @@ public abstract class MemoryEntity implements PropertyContainer {
 	}
 
 	@Override
+	public boolean isStale() {
+		return false;
+	}
+
+	@Override
 	public boolean isDeleted() {
 		return false;
+	}
+
+	public void addLabel(final String label) {
+		lock();
+		labels.add(label);
+	}
+
+	public void removeLabel(final String label) {
+		lock();
+		labels.remove(label);
+	}
+
+	public boolean hasLabel(final String label) {
+		return labels.contains(label);
+	}
+
+	public Iterable<String> getLabels() {
+		return labels;
 	}
 
 	// ----- package-private methods -----
 	void commit(final long transactionId) {
 
-		data.clear();
-		data.putAll(txData.get(transactionId));
+		final Map<String, Object> changes = txData.get(transactionId);
+		if (changes != null) {
 
-		txData.remove(transactionId);
+			data.putAll(changes);
+			txData.remove(transactionId);
+		}
+
 		unlock();
 	}
 
@@ -164,4 +193,5 @@ public abstract class MemoryEntity implements PropertyContainer {
 			return data;
 		}
 	}
+
 }

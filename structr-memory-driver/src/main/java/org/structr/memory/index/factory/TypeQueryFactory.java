@@ -18,7 +18,7 @@
  */
 package org.structr.memory.index.factory;
 
-import org.structr.api.graph.Label;
+import org.structr.api.DatabaseService;
 import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.QueryPredicate;
@@ -35,21 +35,28 @@ public class TypeQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 	@Override
 	public boolean createQuery(final QueryPredicate predicate, final MemoryQuery query, final boolean isFirst) {
 
+		final DatabaseService db  = index.getDatabaseService();
 		final TypeQuery typeQuery = (TypeQuery)predicate;
 		final Class sourceType    = typeQuery.getSourceType();
 		final Class targetType    = typeQuery.getTargetType();
 		final Object mainType     = typeQuery.getValue();
-		final Label label         = index.getDatabaseService().forName(Label.class, mainType.toString());
+		final String label        = mainType.toString();
 
 		if (sourceType != null && targetType != null) {
 
+			final String sourceLabel   = sourceType.getSimpleName();
+			final String targetLabel   = targetType.getSimpleName();
+
 			// relationship type, include source and target type labels
-			query.addPredicate(new LabelPredicate(label, sourceType.getSimpleName(), targetType.getSimpleName()));
+			query.addPredicate(new LabelPredicate(label, sourceLabel, targetLabel));
 
 		} else {
 
 			query.addPredicate(new LabelPredicate(label));
 		}
+
+		// allow caching
+		query.setMainType(mainType.toString());
 
 		return true;
 

@@ -26,11 +26,12 @@ import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
+import org.structr.api.NativeQuery;
 import org.structr.api.NotFoundException;
+import org.structr.api.graph.Path;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
-import org.structr.bolt.wrapper.PathWrapper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -78,9 +79,10 @@ public class CypherTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				Iterable<Map<String, Object>> result  = graphDb.execute("MATCH (n:" + randomTenantId + ")<-[r:ONE_TO_ONE]-() RETURN r");
-				final Iterable<Relationship> iterable = Iterables.map(row -> { return (Relationship)row.get("r"); }, result);
-				final Iterator<Relationship> rels     = iterable.iterator();
+				final NativeQuery<Iterable> nativeQuery     = graphDb.query("MATCH (n:" + randomTenantId + ")<-[r:ONE_TO_ONE]-() RETURN r", Iterable.class);
+				final Iterable<Map<String, Object>> result  = graphDb.execute(nativeQuery);
+				final Iterable<Relationship> iterable       = Iterables.map(row -> { return (Relationship)row.get("r"); }, result);
+				final Iterator<Relationship> rels           = iterable.iterator();
 
 				assertTrue(rels.hasNext());
 
@@ -484,7 +486,7 @@ public class CypherTest extends StructrTest {
 
 			final List<GraphObject> result = Iterables.toList(app.command(NativeQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN p LIMIT 1"));
 			final GraphObjectMap map       = (GraphObjectMap)result.get(0);
-			final PathWrapper path         = (PathWrapper)map.toMap().get("p");
+			final Path path                = (Path)map.toMap().get("p");
 
 			for (final PropertyContainer p : path) {
 

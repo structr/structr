@@ -28,10 +28,10 @@ public interface Node extends PropertyContainer {
 	Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType);
 	Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties);
 
-	void addLabel(final Label label);
-	void removeLabel(final Label label);
+	void addLabel(final String label);
+	void removeLabel(final String label);
 
-	Iterable<Label> getLabels();
+	Iterable<String> getLabels();
 
 	boolean hasRelationshipTo(final RelationshipType relationshipType, final Node targetNode);
 

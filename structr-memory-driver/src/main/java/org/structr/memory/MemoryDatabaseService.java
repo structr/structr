@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.structr.api.AbstractDatabaseService;
+import org.structr.api.NativeQuery;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.Transaction;
 import org.structr.api.graph.Direction;
@@ -35,21 +36,22 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
 import org.structr.api.util.CountResult;
-import org.structr.api.graph.Label;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
+import org.structr.memory.index.filter.Filter;
+import org.structr.memory.index.filter.SourceNodeFilter;
+import org.structr.memory.index.filter.TargetNodeFilter;
 
 /**
  */
 public class MemoryDatabaseService extends AbstractDatabaseService implements GraphProperties {
 
 	private static final Map<String, RelationshipType> relTypeCache     = new ConcurrentHashMap<>();
-	private static final Map<String, Label> labelCache                  = new ConcurrentHashMap<>();
 	private static final Map<String, Object> graphProperties            = new HashMap<>();
 	private static final ThreadLocal<MemoryTransaction> transactions    = new ThreadLocal<>();
-	private final Map<MemoryIdentity, MemoryRelationship> relationships = new ConcurrentHashMap<>();
-	private final Map<MemoryIdentity, MemoryNode> nodes                 = new ConcurrentHashMap<>();
+	private final MemoryRelationshipRepository relationships            = new MemoryRelationshipRepository();
+	private final MemoryNodeRepository nodes                            = new MemoryNodeRepository();
 	private MemoryRelationshipIndex relIndex                            = null;
 	private MemoryNodeIndex nodeIndex                                   = null;
 
@@ -93,11 +95,14 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 		final MemoryIdentity id   = new MemoryIdentity(type);
 		final MemoryNode newNode  = new MemoryNode(this, id);
 
+		// base type is always a label
+		newNode.addLabel(type);
+
 		// add labels
 		if (labels != null) {
 
 			for (final String label : labels) {
-				newNode.addLabel(forName(Label.class, label));
+				newNode.addLabel(label);
 			}
 		}
 
@@ -143,16 +148,15 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 	public Iterable<Node> getAllNodes() {
 
 		final MemoryTransaction tx = getCurrentTransaction();
-		return Iterables.map(n -> n, tx.getNodes());
+		return Iterables.map(n -> n, tx.getNodes(null));
 	}
 
 	@Override
 	public Iterable<Node> getNodesByLabel(final String label) {
 
 		final MemoryTransaction tx = getCurrentTransaction();
-		final Label labelObject    = forName(Label.class, label);
 
-		return Iterables.map(n -> n, Iterables.filter(n -> n.hasLabel(labelObject), tx.getNodes()));
+		return Iterables.map(n -> n, Iterables.filter(n -> n.hasLabel(label), tx.getNodes(null)));
 	}
 
 	@Override
@@ -174,7 +178,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 	public Iterable<Relationship> getAllRelationships() {
 
 		final MemoryTransaction tx = getCurrentTransaction();
-		return Iterables.map(r -> r, tx.getRelationships());
+		return Iterables.map(r -> r, tx.getRelationships(null));
 	}
 
 	@Override
@@ -216,17 +220,17 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 	@Override
 	public CountResult getNodeAndRelationshipCount() {
 		final MemoryTransaction tx = getCurrentTransaction();
-		return new CountResult(Iterables.count(tx.getNodes()), Iterables.count(tx.getRelationships()));
+		return new CountResult(Iterables.count(tx.getNodes(null)), Iterables.count(tx.getRelationships(null)));
 	}
 
 	@Override
-	public Iterable<Map<String, Object>> execute(final String nativeQuery, final Map<String, Object> parameters) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	public <T> T execute(final NativeQuery<T> nativeQuery) {
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
-	public Iterable<Map<String, Object>> execute(final String nativeQuery) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	public <T> NativeQuery<T> query(final Object query, final Class<T> resultType) {
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
@@ -239,12 +243,30 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 		return graphProperties.get(name);
 	}
 
+	public Iterable<MemoryNode> getFilteredNodes(final Filter<MemoryNode> filter) {
+
+		final MemoryTransaction tx = getCurrentTransaction();
+		return Iterables.map(n -> n, tx.getNodes(filter));
+	}
+
+	public Iterable<MemoryRelationship> getFilteredRelationships(final Filter<MemoryRelationship> filter) {
+
+		final MemoryTransaction tx = getCurrentTransaction();
+		return Iterables.map(n -> n, tx.getRelationships(filter));
+	}
+
 	// ----- graph repository methods -----
 	public Relationship createRelationship(final MemoryNode sourceNode, final MemoryNode targetNode, final RelationshipType relType) {
+
+		sourceNode.lock();
+		targetNode.lock();
 
 		final MemoryTransaction tx               = getCurrentTransaction();
 		final MemoryIdentity id                  = new MemoryIdentity(relType.name());
 		final MemoryRelationship newRelationship = new MemoryRelationship(this, id, relType, (MemoryIdentity)sourceNode.getId(), (MemoryIdentity)targetNode.getId());
+
+		// base type is always a label
+		newRelationship.addLabel(relType.name());
 
 		tx.create(newRelationship);
 
@@ -256,7 +278,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 		final MemoryTransaction tx = getCurrentTransaction();
 		final MemoryIdentity id = node.getIdentity();
 
-		return Iterables.map(n -> n, Iterables.filter(r -> (id.equals(r.getTargetNodeIdentity()) || id.equals(r.getTargetNodeIdentity())), tx.getRelationships()));
+		return Iterables.map(n -> n, Iterables.filter(r -> (id.equals(r.getSourceNodeIdentity()) || id.equals(r.getTargetNodeIdentity())), tx.getRelationships(null)));
 	}
 
 	public Iterable<Relationship> getRelationships(final MemoryNode node, final Direction direction) {
@@ -270,10 +292,10 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 				return getRelationships(node);
 
 			case INCOMING:
-				return Iterables.map(n -> n, Iterables.filter(r -> (id.equals(r.getTargetNodeIdentity())), tx.getRelationships()));
+				return Iterables.map(n -> n, Iterables.filter(r -> (id.equals(r.getTargetNodeIdentity())), tx.getRelationships(null)));
 
 			case OUTGOING:
-				return Iterables.map(n -> n, Iterables.filter(r -> (id.equals(r.getSourceNodeIdentity())), tx.getRelationships()));
+				return Iterables.map(n -> n, Iterables.filter(r -> (id.equals(r.getSourceNodeIdentity())), tx.getRelationships(null)));
 		}
 
 		return null;
@@ -281,9 +303,9 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 
 	public Iterable<Relationship> getRelationships(final MemoryNode node, final Direction direction, final RelationshipType relationshipType) {
 
-		final MemoryTransaction tx = getCurrentTransaction();
-		final MemoryIdentity id = node.getIdentity();
-		final String relType    = relationshipType.name();
+		final MemoryTransaction tx              = getCurrentTransaction();
+		final MemoryIdentity id                 = node.getIdentity();
+		final String relType                    = relationshipType.name();
 
 		switch (direction) {
 
@@ -291,10 +313,10 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 				return getRelationships(node);
 
 			case INCOMING:
-				return Iterables.map(n -> n, Iterables.filter(r -> (r.getType().name().equals(relType) && id.equals(r.getTargetNodeIdentity())), tx.getRelationships()));
+				return Iterables.map(n -> n, Iterables.filter(r -> (r.getType().name().equals(relType) && id.equals(r.getTargetNodeIdentity())), tx.getRelationships(new TargetNodeFilter<>(id))));
 
 			case OUTGOING:
-				return Iterables.map(n -> n, Iterables.filter(r -> (r.getType().name().equals(relType) && id.equals(r.getSourceNodeIdentity())), tx.getRelationships()));
+				return Iterables.map(n -> n, Iterables.filter(r -> (r.getType().name().equals(relType) && id.equals(r.getSourceNodeIdentity())), tx.getRelationships(new SourceNodeFilter<>(id))));
 		}
 
 		return null;
@@ -308,7 +330,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 		tx.delete(node);
 
 		// remove relationships as well
-		for (final Iterator<MemoryRelationship> it = tx.getRelationships().iterator(); it.hasNext();) {
+		for (final Iterator<MemoryRelationship> it = tx.getRelationships(null).iterator(); it.hasNext();) {
 
 			final MemoryRelationship rel = it.next();
 
@@ -342,11 +364,11 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 
 	void commitTransaction(final Map<MemoryIdentity, MemoryNode> newNodes, final Map<MemoryIdentity, MemoryRelationship> newRelationships, Set<MemoryIdentity> deletedNodes, Set<MemoryIdentity> deletedRelationships) {
 
-		nodes.putAll(newNodes);
-		relationships.putAll(newRelationships);
+		nodes.add(newNodes);
+		relationships.add(newRelationships);
 
-		nodes.keySet().removeAll(deletedNodes);
-		relationships.keySet().removeAll(deletedRelationships);
+		nodes.remove(deletedNodes);
+		relationships.remove(deletedRelationships);
 
 		transactions.remove();
 	}
@@ -355,12 +377,12 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 		transactions.remove();
 	}
 
-	Iterable<MemoryNode> getNodes() {
-		return nodes.values();
+	Iterable<MemoryNode> getNodes(final Filter<MemoryNode> filter) {
+		return nodes.values(filter);
 	}
 
-	Iterable<MemoryRelationship> getRelationships() {
-		return relationships.values();
+	Iterable<MemoryRelationship> getRelationships(final Filter<MemoryRelationship> filter) {
+		return relationships.values(filter);
 	}
 
 	MemoryNode getNodeFromRepository(final MemoryIdentity id) {
@@ -372,6 +394,6 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 	}
 
 	boolean exists(final MemoryIdentity id) {
-		return nodes.containsKey(id) || relationships.containsKey(id);
+		return nodes.contains(id) || relationships.contains(id);
 	}
 }

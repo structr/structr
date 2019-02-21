@@ -27,4 +27,5 @@ import org.structr.api.search.QueryPredicate;
 public interface Index<T> {
 
 	Iterable<T> query(final QueryContext context, final QueryPredicate predicate);
+	boolean supports(final Class type);
 }

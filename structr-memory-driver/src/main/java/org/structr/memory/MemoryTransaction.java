@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import org.structr.api.Transaction;
 import org.structr.api.util.Iterables;
+import org.structr.memory.index.filter.Filter;
 
 /**
  *
@@ -96,7 +97,7 @@ public class MemoryTransaction implements Transaction {
 	public void create(final MemoryRelationship newRelationship) {
 
 		// check for duplicate relationships
-		if (Iterables.first(Iterables.filter(r -> r.isEqualTo(newRelationship), getRelationships())) != null) {
+		if (Iterables.first(Iterables.filter(r -> r.isEqualTo(newRelationship), getRelationships(null))) != null) {
 			throw new RuntimeException("Relationship already exists.");
 		}
 
@@ -116,23 +117,23 @@ public class MemoryTransaction implements Transaction {
 	}
 
 	// ----- package-private methods -----
-	Iterable<MemoryNode> getNodes() {
+	Iterable<MemoryNode> getNodes(final Filter<MemoryNode> filter) {
 
 		final List<Iterable<MemoryNode>> sources = new LinkedList<>();
 
 		sources.add(createdNodes.values());
-		sources.add(db.getNodes());
+		sources.add(db.getNodes(filter));
 
 		// return union of new and existing nodes, filtered for deleted nodes
 		return Iterables.filter(n -> !deletedNodes.contains(n.getIdentity()), Iterables.flatten(sources));
 	}
 
-	Iterable<MemoryRelationship> getRelationships() {
+	Iterable<MemoryRelationship> getRelationships(final Filter<MemoryRelationship> filter) {
 
 		final List<Iterable<MemoryRelationship>> sources = new LinkedList<>();
 
 		sources.add(createdRelationships.values());
-		sources.add(db.getRelationships());
+		sources.add(db.getRelationships(filter));
 
 		// return union of new and existing nodes
 		return Iterables.filter(r -> !deletedRelationships.contains(r.getIdentity()), Iterables.flatten(sources));

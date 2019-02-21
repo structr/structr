@@ -46,19 +46,11 @@ import org.structr.api.RetryException;
 import org.structr.api.UnknownClientException;
 import org.structr.api.UnknownDatabaseException;
 import org.structr.api.util.Iterables;
-import org.structr.bolt.mapper.RecordNodeMapper;
-import org.structr.bolt.mapper.RecordNodeIdMapper;
-import org.structr.bolt.mapper.RecordRelationshipMapper;
-import org.structr.bolt.mapper.NodeId;
-import org.structr.bolt.mapper.RecordMapMapper;
-import org.structr.bolt.wrapper.EntityWrapper;
-import org.structr.bolt.wrapper.NodeWrapper;
-import org.structr.bolt.wrapper.RelationshipWrapper;
 
 /**
  *
  */
-public class SessionTransaction implements org.structr.api.Transaction {
+class SessionTransaction implements org.structr.api.Transaction {
 
 	private static final AtomicLong idSource          = new AtomicLong();
 	private final Set<EntityWrapper> modifiedEntities = new HashSet<>();

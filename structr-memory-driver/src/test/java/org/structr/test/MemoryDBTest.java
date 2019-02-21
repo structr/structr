@@ -23,8 +23,8 @@ import java.util.Map;
 import org.structr.api.Transaction;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
-import org.structr.api.graph.RelationshipType;
 import org.structr.memory.MemoryDatabaseService;
+import org.structr.memory.index.filter.MemoryLabelFilter;
 import org.testng.annotations.Test;
 
 /**
@@ -59,11 +59,10 @@ public class MemoryDBTest {
 
 		try (final Transaction tx = service.beginTx()) {
 
-			final Node node1 = service.getNodeById(id1);
-			final Node node2 = service.getNodeById(id2);
+			for (final Node node : service.getFilteredNodes(new MemoryLabelFilter<>("Test"))) {
 
-			node1.createRelationshipTo(node2, service.forName(RelationshipType.class, "HALLO"));
-			//node1.createRelationshipTo(node2, service.forName(RelationshipType.class, "HALLO"));
+				System.out.println(node);
+			}
 
 			tx.success();
 		}

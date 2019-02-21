@@ -28,7 +28,6 @@ import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.graph.Label;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
 import org.structr.test.common.StructrTest;
@@ -492,7 +491,7 @@ public class PropertyTest extends StructrTest {
 			fail("Unable to store array");
 		}
 	}
-	
+
 	@Test
 	public void testDateArrayProperty() {
 
@@ -1837,15 +1836,15 @@ public class PropertyTest extends StructrTest {
 	public void testModifyType() {
 
 		final DatabaseService db      = StructrApp.getInstance().getDatabaseService();
-		final Set<Label> labelsBefore = new LinkedHashSet<>();
-		final Set<Label> labelsAfter  = new LinkedHashSet<>();
+		final Set<String> labelsBefore = new LinkedHashSet<>();
+		final Set<String> labelsAfter  = new LinkedHashSet<>();
 		String id                     = null;
 
-		labelsBefore.add(db.forName(Label.class, AccessControllable.class.getSimpleName()));
-		labelsBefore.add(db.forName(Label.class, TestFour.class.getSimpleName()));
+		labelsBefore.add(AccessControllable.class.getSimpleName());
+		labelsBefore.add(TestFour.class.getSimpleName());
 
-		labelsAfter.add(db.forName(Label.class, AccessControllable.class.getSimpleName()));
-		labelsAfter.add(db.forName(Label.class, TestFive.class.getSimpleName()));
+		labelsAfter.add(AccessControllable.class.getSimpleName());
+		labelsAfter.add(TestFive.class.getSimpleName());
 
 		// create a new node, check labels, modify typeProperty, check labels again
 

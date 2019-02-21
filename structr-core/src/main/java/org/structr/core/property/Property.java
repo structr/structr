@@ -33,10 +33,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
-import org.structr.bolt.index.AbstractCypherIndex;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
@@ -494,9 +494,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		final Class valueType = valueType();
 		if (valueType != null) {
 
-			// indexable indicated by value type
-			if (AbstractCypherIndex.INDEXABLE.contains(valueType)) {
-
+			if (Services.getInstance().getDatabaseService().nodeIndex().supports(valueType)) {
 				return true;
 			}
 
@@ -525,8 +523,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 			if (valueType != null) {
 
 				// indexable indicated by value type
-				if (AbstractCypherIndex.INDEXABLE.contains(valueType)) {
-
+				if (Services.getInstance().getDatabaseService().nodeIndex().supports(valueType)) {
 					return true;
 				}
 

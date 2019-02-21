@@ -21,7 +21,6 @@ package org.structr.core.property;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.structr.api.DatabaseService;
-import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -81,20 +80,20 @@ public class TypeProperty extends StringProperty {
 
 	public static void updateLabels(final DatabaseService graphDb, final NodeInterface node, final Class newType, final boolean removeUnused) {
 
-		final Set<Label> intersection = new LinkedHashSet<>();
-		final Set<Label> toRemove     = new LinkedHashSet<>();
-		final Set<Label> toAdd        = new LinkedHashSet<>();
+		final Set<String> intersection = new LinkedHashSet<>();
+		final Set<String> toRemove     = new LinkedHashSet<>();
+		final Set<String> toAdd        = new LinkedHashSet<>();
 		final Node dbNode             = node.getNode();
 
 		// include optional tenant identifier when modifying labels
 		final String tenantIdentifier = graphDb.getTenantIdentifier();
 		if (tenantIdentifier != null) {
 
-			toAdd.add(graphDb.forName(Label.class, tenantIdentifier));
+			toAdd.add(tenantIdentifier);
 		}
 
 		// collect labels that are already present on a node
-		for (final Label label : dbNode.getLabels()) {
+		for (final String label : dbNode.getLabels()) {
 			toRemove.add(label);
 		}
 
@@ -104,7 +103,7 @@ public class TypeProperty extends StringProperty {
 			final String supertypeName = supertype.getName();
 
 			if (supertypeName.startsWith("org.structr.") || supertypeName.startsWith("com.structr.")) {
-				toAdd.add(graphDb.forName(Label.class, supertype.getSimpleName()));
+				toAdd.add(supertype.getSimpleName());
 			}
 		}
 
@@ -119,13 +118,13 @@ public class TypeProperty extends StringProperty {
 		if (removeUnused) {
 
 			// remove difference
-			for (final Label remove : toRemove) {
+			for (final String remove : toRemove) {
 				dbNode.removeLabel(remove);
 			}
 		}
 
 		// add difference
-		for (final Label add : toAdd) {
+		for (final String add : toAdd) {
 			dbNode.addLabel(add);
 		}
 	}

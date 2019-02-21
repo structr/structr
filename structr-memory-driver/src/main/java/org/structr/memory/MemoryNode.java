@@ -18,16 +18,14 @@
  */
 package org.structr.memory;
 
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.Direction;
-import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.Iterables;
+import org.structr.memory.index.filter.SourceNodeFilter;
 
 /**
  *
@@ -35,49 +33,35 @@ import org.structr.api.util.Iterables;
  */
 public class MemoryNode extends MemoryEntity implements Node {
 
-	private Set<Label> labels = new LinkedHashSet<>();
-
 	public MemoryNode(final MemoryDatabaseService db, final MemoryIdentity identity) {
 		super(db, identity);
 	}
 
 	@Override
 	public Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType) {
-		lock();
+
+		if (getId().compareTo(endNode.getId()) == -1) {
+
+			((MemoryNode)endNode).lock();
+			lock();
+
+		} else {
+
+			lock();
+			((MemoryNode)endNode).lock();
+		}
+
 		return db.createRelationship(this, (MemoryNode)endNode, relationshipType);
 	}
 
 	@Override
 	public Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties) {
 
-		lock();
-
 		final Relationship rel = createRelationshipTo(endNode, relationshipType);
 
 		rel.setProperties(properties);
 
 		return rel;
-	}
-
-	@Override
-	public void addLabel(final Label label) {
-		lock();
-		labels.add(label);
-	}
-
-	@Override
-	public void removeLabel(final Label label) {
-		lock();
-		labels.remove(label);
-	}
-
-	public boolean hasLabel(final Label label) {
-		return labels.contains(label);
-	}
-
-	@Override
-	public Iterable<Label> getLabels() {
-		return labels;
 	}
 
 	@Override
@@ -95,7 +79,7 @@ public class MemoryNode extends MemoryEntity implements Node {
 				&& targetId.equals(r.getTargetNodeIdentity())
 				&& name.equals(r.getType().name());
 
-		}, tx.getRelationships())) != null;
+		}, tx.getRelationships(new SourceNodeFilter<>(getIdentity())))) != null;
 	}
 
 	@Override
