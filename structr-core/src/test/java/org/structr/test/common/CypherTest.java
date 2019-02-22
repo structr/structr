@@ -29,9 +29,15 @@ import org.structr.api.DatabaseService;
 import org.structr.api.NotFoundException;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
+import org.structr.common.AccessMode;
+import org.structr.common.Permission;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
 import org.structr.test.core.entity.SixOneManyToMany;
 import org.structr.test.core.entity.SixOneOneToOne;
 import org.structr.test.core.entity.TestOne;
@@ -456,16 +462,29 @@ public class CypherTest extends StructrTest {
 	}
 
 	@Test
-	public void testCypherPathWrapping() {
+	public void testCypherPathWrappingWithPermissions() {
+
+		Principal tester = null;
 
 		try (final Tx tx = app.tx()) {
 
-			List<TestOne> testOnes = createTestNodes(TestOne.class, 10);
-			List<TestSix> testSixs = createTestNodes(TestSix.class, 10);
+			final List<TestOne> testOnes = createTestNodes(TestOne.class, 10);
+			final List<TestSix> testSixs = createTestNodes(TestSix.class, 10);
+			int count                    = 0;
+
+			tester = app.create(Principal.class, "tester");
+
+			for (final TestSix testSix : testSixs) {
+				testSix.grant(Permission.read, tester);
+			}
 
 			for (final TestOne testOne : testOnes) {
 
 				testOne.setProperty(TestOne.manyToManyTestSixs, testSixs);
+
+				if (count++ < 3) {
+					testOne.grant(Permission.read, tester);
+				}
 			}
 
 			tx.success();
@@ -479,6 +498,8 @@ public class CypherTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final List<GraphObject> result = Iterables.toList(app.command(NativeQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN p"));
+
+			assertEquals("Invalid path query result", 100, result.size());
 
 			for (final GraphObject p : result) {
 
@@ -495,5 +516,31 @@ public class CypherTest extends StructrTest {
 		} catch (FrameworkException ex) {
 			logger.error("", ex);
 		}
+
+		// test visibility of path elements as well
+		final App testerApp = StructrApp.getInstance(SecurityContext.getInstance(tester, AccessMode.Backend));
+
+		try (final Tx tx = testerApp.tx()) {
+
+			final List<GraphObject> result = Iterables.toList(testerApp.command(NativeQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN p"));
+
+			assertEquals("Invalid path permission resolution result for non-admin user", 30, result.size());
+
+			for (final GraphObject p : result) {
+
+				final Object nodes = p.getProperty(new GenericProperty("nodes"));
+				assertTrue("Invalid wrapped cypher query result", nodes instanceof Iterable);
+
+				final Object relationships = p.getProperty(new GenericProperty("relationships"));
+				assertTrue("Invalid wrapped cypher query result", relationships instanceof Iterable);
+			}
+
+			tx.success();
+
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
 	}
 }
