@@ -28,8 +28,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeQuery;
 import org.structr.api.NotFoundException;
-import org.structr.api.graph.Path;
-import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
@@ -465,46 +463,85 @@ public class CypherTest extends StructrTest {
 	}
 
 	@Test
-	public void testCypherPathWrapping() {
+	public void testCypherPathWrappingWithPermissions() {
 
-		if (Services.getInstance().getDatabaseService().supportsQueryLanguage("application/x-cypher-query")) {
+		Principal tester = null;
 
-			try (final Tx tx = app.tx()) {
+		try (final Tx tx = app.tx()) {
 
-				List<TestOne> testOnes = createTestNodes(TestOne.class, 10);
-				List<TestSix> testSixs = createTestNodes(TestSix.class, 10);
+			final List<TestOne> testOnes = createTestNodes(TestOne.class, 10);
+			final List<TestSix> testSixs = createTestNodes(TestSix.class, 10);
+			int count                    = 0;
 
-				for (final TestOne testOne : testOnes) {
+			tester = app.create(Principal.class, "tester");
 
-					testOne.setProperty(TestOne.manyToManyTestSixs, testSixs);
-				}
-
-				tx.success();
-
-			} catch (FrameworkException ex) {
-
-				logger.warn("", ex);
-				fail("Unexpected exception");
+			for (final TestSix testSix : testSixs) {
+				testSix.grant(Permission.read, tester);
 			}
 
+			for (final TestOne testOne : testOnes) {
 
-			try (final Tx tx = app.tx()) {
+				testOne.setProperty(TestOne.manyToManyTestSixs, testSixs);
 
-				final List<GraphObject> result = Iterables.toList(app.command(NativeQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN p LIMIT 1"));
-				final GraphObjectMap map       = (GraphObjectMap)result.get(0);
-				final Path path                = (Path)map.toMap().get("p");
-
-				for (final PropertyContainer p : path) {
-
-					System.out.println(p);
+				if (count++ < 3) {
+					testOne.grant(Permission.read, tester);
 				}
-
-				tx.success();
-
-
-			} catch (FrameworkException ex) {
-				logger.error("", ex);
 			}
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			logger.warn("", ex);
+			fail("Unexpected exception");
 		}
+
+		try (final Tx tx = app.tx()) {
+
+			final List<GraphObject> result = Iterables.toList(app.command(NativeQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN p"));
+
+			assertEquals("Invalid path query result", 100, result.size());
+
+			for (final GraphObject p : result) {
+
+				final Object nodes = p.getProperty(new GenericProperty("nodes"));
+				assertTrue("Invalid wrapped cypher query result", nodes instanceof Iterable);
+
+				final Object relationships = p.getProperty(new GenericProperty("relationships"));
+				assertTrue("Invalid wrapped cypher query result", relationships instanceof Iterable);
+			}
+
+			tx.success();
+
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
+		// test visibility of path elements as well
+		final App testerApp = StructrApp.getInstance(SecurityContext.getInstance(tester, AccessMode.Backend));
+
+		try (final Tx tx = testerApp.tx()) {
+
+			final List<GraphObject> result = Iterables.toList(testerApp.command(NativeQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN p"));
+
+			assertEquals("Invalid path permission resolution result for non-admin user", 30, result.size());
+
+			for (final GraphObject p : result) {
+
+				final Object nodes = p.getProperty(new GenericProperty("nodes"));
+				assertTrue("Invalid wrapped cypher query result", nodes instanceof Iterable);
+
+				final Object relationships = p.getProperty(new GenericProperty("relationships"));
+				assertTrue("Invalid wrapped cypher query result", relationships instanceof Iterable);
+			}
+
+			tx.success();
+
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
 	}
 }
