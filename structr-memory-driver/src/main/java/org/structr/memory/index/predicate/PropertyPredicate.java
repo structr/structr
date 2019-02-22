@@ -39,6 +39,11 @@ public class PropertyPredicate<T extends PropertyContainer, V> implements Predic
 
 		final Object value = entity.getProperty(key);
 
+		// support for null valuesa
+		if (desiredValue == null && value == null) {
+			return true;
+		}
+
 		return value != null && desiredValue.equals(value);
 	}
 }

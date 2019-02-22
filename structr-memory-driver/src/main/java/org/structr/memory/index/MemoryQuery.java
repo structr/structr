@@ -29,6 +29,7 @@ import org.structr.api.index.DatabaseQuery;
 import org.structr.api.util.Iterables;
 import org.structr.memory.index.predicate.Conjunction;
 import org.structr.memory.index.predicate.GroupPredicate;
+import org.structr.memory.index.predicate.NotPredicate;
 
 /**
  *
@@ -42,6 +43,7 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 	private String sortKey                     = null;
 	private String mainType                    = null;
 	private boolean sortDescending             = false;
+	private boolean negateNextPredicate        = false;
 
 	public MemoryQuery() {
 	}
@@ -55,7 +57,16 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 	}
 
 	public void addPredicate(final Predicate<T> predicate) {
-		currentPredicate.add(predicate);
+
+		if (negateNextPredicate) {
+
+			negateNextPredicate = false;
+			currentPredicate.add(new NotPredicate<>(predicate));
+
+		} else {
+
+			currentPredicate.add(predicate);
+		}
 	}
 
 	@Override
@@ -70,12 +81,13 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 
 	@Override
 	public void not() {
-		currentPredicate.setConjunction(Conjunction.Not);
+		negateNextPredicate = true;
 	}
 
 	@Override
 	public void andNot() {
-		throw new UnsupportedOperationException("AND NOT is not supported yet.");
+		currentPredicate.setConjunction(Conjunction.And);
+		not();
 	}
 
 	@Override

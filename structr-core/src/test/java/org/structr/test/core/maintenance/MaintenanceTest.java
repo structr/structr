@@ -301,22 +301,7 @@ public class MaintenanceTest extends StructrTest {
 				tx.success();
 			}
 
-			/*
-			 * This test will fail with the new Neo4j 3.0 Bolt interface, because
-			 * there is no separation between a (Lucene-based) index and the
-			 * database values any more. Nodes are selected by their 'type'
-			 * property and will always be found even if NOT created using Structr
-			 * methods.
-			// nodes should not be found yet..
-			try (final Tx tx = app.tx()) {
-
-				// check nodes, we should find no Groups here
-				assertEquals(0, app.nodeQuery(Group.class).getAsList().size());
-			}
-			 */
-
 			// test rebuild index and create labels
-			//app.command(BulkRebuildIndexCommand.class).execute(new LinkedHashMap<>());
 			app.command(BulkCreateLabelsCommand.class).execute(new LinkedHashMap<>());
 
 			// nodes should now be visible to Structr
@@ -337,9 +322,9 @@ public class MaintenanceTest extends StructrTest {
 				tx.success();
 			}
 
-		} catch (FrameworkException fex) {
+		} catch (Throwable fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 

@@ -30,6 +30,7 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -1884,39 +1885,43 @@ public class SearchAndSortingTest extends StructrTest {
 	@Test
 	public void testSortFunctionForGraphObjectMaps() {
 
-		final Class<Group> groupType      = StructrApp.getConfiguration().getNodeEntityClass("Group");
-		final PropertyKey<String> nameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");
+		// don't run tests that depend on Cypher being available in the backend
+		if (Services.getInstance().getDatabaseService().supportsQueryLanguage("application/x-cypher-query")) {
 
-		try (final Tx tx = app.tx()) {
+			final Class<Group> groupType      = StructrApp.getConfiguration().getNodeEntityClass("Group");
+			final PropertyKey<String> nameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");
 
-			createTestNode(groupType, "zzz");
-			createTestNode(groupType, "aaa");
-			createTestNode(groupType, "ttt");
-			createTestNode(groupType, "xxx");
-			createTestNode(groupType, "bbb");
+			try (final Tx tx = app.tx()) {
 
-			tx.success();
+				createTestNode(groupType, "zzz");
+				createTestNode(groupType, "aaa");
+				createTestNode(groupType, "ttt");
+				createTestNode(groupType, "xxx");
+				createTestNode(groupType, "bbb");
 
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
+				tx.success();
 
-		try (final Tx tx = app.tx()) {
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
 
-			final List<GraphObject> list = (List<GraphObject>)Scripting.evaluate(new ActionContext(securityContext), null, "${sort(cypher('MATCH (n:Group:" + randomTenantId + ") RETURN { id: n.id, type: n.type, name: n.name }'), 'name')}", "test");
+			try (final Tx tx = app.tx()) {
 
-			assertEquals("Invalid sort() result", "aaa", list.get(0).getProperty(nameKey));
-			assertEquals("Invalid sort() result", "bbb", list.get(1).getProperty(nameKey));
-			assertEquals("Invalid sort() result", "ttt", list.get(2).getProperty(nameKey));
-			assertEquals("Invalid sort() result", "xxx", list.get(3).getProperty(nameKey));
-			assertEquals("Invalid sort() result", "zzz", list.get(4).getProperty(nameKey));
+				final List<GraphObject> list = (List<GraphObject>)Scripting.evaluate(new ActionContext(securityContext), null, "${sort(cypher('MATCH (n:Group:" + randomTenantId + ") RETURN { id: n.id, type: n.type, name: n.name }'), 'name')}", "test");
 
-			tx.success();
+				assertEquals("Invalid sort() result", "aaa", list.get(0).getProperty(nameKey));
+				assertEquals("Invalid sort() result", "bbb", list.get(1).getProperty(nameKey));
+				assertEquals("Invalid sort() result", "ttt", list.get(2).getProperty(nameKey));
+				assertEquals("Invalid sort() result", "xxx", list.get(3).getProperty(nameKey));
+				assertEquals("Invalid sort() result", "zzz", list.get(4).getProperty(nameKey));
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			System.out.println(fex.getMessage());
-			fail("Unexpected exception.");
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				System.out.println(fex.getMessage());
+				fail("Unexpected exception.");
+			}
 		}
 	}
 

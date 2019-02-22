@@ -69,6 +69,12 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 	}
 
 	@Override
+	public boolean supportsQueryLanguage(String mimeType) {
+		// no support for query languages at all..
+		return false;
+	}
+
+	@Override
 	public void cleanDatabase() {
 
 		nodes.clear();

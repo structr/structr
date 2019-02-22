@@ -123,6 +123,7 @@ public class StructrTest {
 		basePath = "/tmp/structr-test-" + timestamp;
 
 		Settings.Services.setValue("NodeService SchemaService");
+		//Settings.DatabaseDriver.setValue(MemoryDatabaseService.class.getName());
 		Settings.DatabaseDriverMode.setValue("remote");
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");

@@ -79,4 +79,5 @@ public interface DatabaseService {
 	// native
 	<T> T execute(final NativeQuery<T> nativeQuery);
 	<T> NativeQuery<T> query(final Object query, final Class<T> resultType);
+	boolean supportsQueryLanguage(final String mimeType);
 }

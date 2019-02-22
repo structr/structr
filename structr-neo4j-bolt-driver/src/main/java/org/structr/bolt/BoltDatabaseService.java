@@ -27,6 +27,7 @@ import java.io.Writer;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +75,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	private static final Map<String, RelationshipType> relTypeCache   = new ConcurrentHashMap<>();
 	private static final ThreadLocal<SessionTransaction> sessions     = new ThreadLocal<>();
 	private static final long nanoEpoch                               = System.nanoTime();
+	private final Set<String> supportedQueryLanguages                 = new LinkedHashSet<>();
 	private Properties globalGraphProperties                          = null;
 	private CypherRelationshipIndex relationshipIndex                 = null;
 	private CypherNodeIndex nodeIndex                                 = null;
@@ -99,6 +101,11 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		final String driverMode  = Settings.DatabaseDriverMode.getValue();
 		final String confPath    = databasePath + "/neo4j.conf";
 		final File confFile      = new File(confPath);
+
+		// build list of supported query languages
+		supportedQueryLanguages.add("application/x-cypher-query");
+		supportedQueryLanguages.add("application/cypher");
+		supportedQueryLanguages.add("text/cypher");
 
 		// see https://github.com/neo4j/neo4j-java-driver/issues/364 for an explanation
 		final String databaseServerUrl;
@@ -826,5 +833,10 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		return null;
+	}
+
+	@Override
+	public boolean supportsQueryLanguage(String mimeType) {
+		return supportedQueryLanguages.contains(mimeType.toLowerCase());
 	}
 }

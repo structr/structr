@@ -16,31 +16,23 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.index;
+package org.structr.memory.index.predicate;
 
-import org.structr.api.search.SortType;
+import org.structr.api.Predicate;
+import org.structr.api.graph.PropertyContainer;
 
-public interface DatabaseQuery {
+/**
+ */
+public class NotPredicate<T extends PropertyContainer, V> implements Predicate<T> {
 
-	/**
-	 * Indicates AND conjunction with the next predicate.
-	 */
-	public void and();
+	private Predicate<T> predicate = null;
 
-	/**
-	 * Indicates OR conjunction with the next predicate.
-	 */
-	public void or();
+	public NotPredicate(final Predicate<T> predicate) {
+		this.predicate = predicate;
+	}
 
-	/**
-	 * Indicates negation of the next predicate.
-	 */
-	public void not();
-
-	/**
-	 * Indicates AND conjunction and negation of the next predicate.
-	 */
-	public void andNot();
-
-	void sort(final SortType sortType, final String sortKey, final boolean sortDescending);
+	@Override
+	public boolean accept(final T entity) {
+		return !predicate.accept(entity);
+	}
 }
