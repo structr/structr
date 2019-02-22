@@ -700,34 +700,38 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testConcurrentIdenticalRelationshipCreation() {
 
-		try {
-			final ExecutorService service = Executors.newCachedThreadPool();
-			final TestSix source          = createTestNode(TestSix.class);
-			final TestOne target          = createTestNode(TestOne.class);
+		final ExecutorService service = Executors.newCachedThreadPool();
 
-			final Future one = service.submit(new RelationshipCreator(source, target));
-			final Future two = service.submit(new RelationshipCreator(source, target));
+		for (int i=0; i<1000; i++) {
 
-			// wait for completion
-			one.get();
-			two.get();
+			try {
+				final TestSix source          = createTestNode(TestSix.class);
+				final TestOne target          = createTestNode(TestOne.class);
 
-			try (final Tx tx = app.tx()) {
+				final Future one = service.submit(new RelationshipCreator(source, target));
+				final Future two = service.submit(new RelationshipCreator(source, target));
 
-				// check for a single relationship since all three parts of
-				// both relationships are equal => only one should be created
-				final List<TestOne> list = Iterables.toList(source.getProperty(TestSix.oneToManyTestOnes));
+				// wait for completion
+				one.get();
+				two.get();
 
-				assertEquals("Invalid concurrent identical relationship creation result", 1, list.size());
+				try (final Tx tx = app.tx()) {
 
-				tx.success();
+					// check for a single relationship since all three parts of
+					// both relationships are equal => only one should be created
+					final List<TestOne> list = Iterables.toList(source.getProperty(TestSix.oneToManyTestOnes));
+
+					assertEquals("Invalid concurrent identical relationship creation result", 1, list.size());
+
+					tx.success();
+				}
+
+			} catch (ExecutionException | InterruptedException | FrameworkException fex) {
+				// success
 			}
-
-			service.shutdownNow();
-
-		} catch (ExecutionException | InterruptedException | FrameworkException fex) {
-			logger.warn("", fex);
 		}
+
+		service.shutdownNow();
 	}
 
 	@Test

@@ -95,12 +95,6 @@ public class MemoryTransaction implements Transaction {
 	}
 
 	public void create(final MemoryRelationship newRelationship) {
-
-		// check for duplicate relationships
-		if (Iterables.first(Iterables.filter(r -> r.isEqualTo(newRelationship), getRelationships(null))) != null) {
-			throw new RuntimeException("Relationship already exists.");
-		}
-
 		createdRelationships.put(newRelationship.getIdentity(), newRelationship);
 	}
 

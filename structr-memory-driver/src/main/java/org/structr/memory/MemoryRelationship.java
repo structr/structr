@@ -90,4 +90,8 @@ public class MemoryRelationship extends MemoryEntity implements Relationship {
 	public Iterable<String> getLabels() {
 		return Arrays.asList(relType.name());
 	}
+
+	public String getUniquenessKey() {
+		return sourceNode.getId() + relType.name() + targetNode.getId();
+	}
 }

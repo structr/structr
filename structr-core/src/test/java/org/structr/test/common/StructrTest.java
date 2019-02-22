@@ -48,6 +48,7 @@ import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.memory.MemoryDatabaseService;
 import org.structr.schema.SchemaService;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -123,7 +124,7 @@ public class StructrTest {
 		basePath = "/tmp/structr-test-" + timestamp;
 
 		Settings.Services.setValue("NodeService SchemaService");
-		//Settings.DatabaseDriver.setValue(MemoryDatabaseService.class.getName());
+		Settings.DatabaseDriver.setValue(MemoryDatabaseService.class.getName());
 		Settings.DatabaseDriverMode.setValue("remote");
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");

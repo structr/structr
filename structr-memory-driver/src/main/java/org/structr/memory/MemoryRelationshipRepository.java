@@ -18,11 +18,12 @@
  */
 package org.structr.memory;
 
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.structr.api.util.Iterables;
 import org.structr.memory.index.filter.Filter;
@@ -34,10 +35,11 @@ import org.structr.memory.index.filter.TargetNodeFilter;
  */
 public class MemoryRelationshipRepository {
 
-	final Map<MemoryIdentity, MemoryRelationship> masterData    = new ConcurrentHashMap<>();
-	final Map<String, List<MemoryIdentity>> typeCache           = new ConcurrentHashMap<>();
-	final Map<MemoryIdentity, List<MemoryIdentity>> sourceCache = new ConcurrentHashMap<>();
-	final Map<MemoryIdentity, List<MemoryIdentity>> targetCache = new ConcurrentHashMap<>();
+	final Map<MemoryIdentity, MemoryRelationship> masterData    = new LinkedHashMap<>();
+	final Map<String, List<MemoryIdentity>> typeCache           = new LinkedHashMap<>();
+	final Map<MemoryIdentity, List<MemoryIdentity>> sourceCache = new LinkedHashMap<>();
+	final Map<MemoryIdentity, List<MemoryIdentity>> targetCache = new LinkedHashMap<>();
+	final Set<String> duplicatesCheckCache                      = new LinkedHashSet<>();
 
 	MemoryRelationship get(final MemoryIdentity id) {
 		return masterData.get(id);
@@ -90,8 +92,18 @@ public class MemoryRelationshipRepository {
 
 		for (final Entry<MemoryIdentity, MemoryRelationship> entry : newData.entrySet()) {
 
-			final MemoryIdentity id  = entry.getKey();
-			final MemoryRelationship value            = entry.getValue();
+			final MemoryIdentity id        = entry.getKey();
+			final MemoryRelationship value = entry.getValue();
+			final String key               = value.getUniquenessKey();
+
+			synchronized (duplicatesCheckCache) {
+
+				if (duplicatesCheckCache.contains(key)) {
+					throw new IllegalStateException("Duplicate relationship: " + key);
+				}
+
+				duplicatesCheckCache.add(key);
+			}
 
 			for (final String label : value.getLabels()) {
 
