@@ -429,36 +429,6 @@ public class CypherTest extends StructrTest {
 		} catch (FrameworkException ex) {
 			logger.error("", ex);
 		}
-
-		try (final Tx tx = app.tx()) {
-
-			final List<GraphObject> result = Iterables.toList(app.command(NativeQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + "-[r]-(m:TestSix:" + randomTenantId + " RETURN p"));
-
-			assertEquals("Invalid wrapped cypher query result", 100, result.size());
-
-			for (final GraphObject obj : result) {
-
-				assertEquals("Invalid wrapped cypher query result", GraphObjectMap.class, obj.getClass());
-
-				final Object paths = obj.getProperty(new StringProperty("p"));
-
-				assertTrue("Invalid wrapped cypher query result", paths instanceof Iterable);
-
-				final Iterator it = ((Iterable)paths).iterator();
-				while (it.hasNext()) {
-
-					assertEquals("Invalid wrapped cypher query result", TestOne.class, it.next().getClass());		// n
-					assertEquals("Invalid wrapped cypher query result", SixOneManyToMany.class, it.next().getClass());	// r
-					assertEquals("Invalid wrapped cypher query result", TestSix.class, it.next().getClass());		// m
-				}
-			}
-
-			tx.success();
-
-
-		} catch (FrameworkException ex) {
-			logger.error("", ex);
-		}
 	}
 
 	@Test
