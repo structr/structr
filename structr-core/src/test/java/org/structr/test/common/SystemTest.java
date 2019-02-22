@@ -37,8 +37,10 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
@@ -48,6 +50,8 @@ import org.structr.test.core.entity.TestOne;
 import org.structr.test.core.entity.TestSix;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.PropertyKey;
@@ -55,6 +59,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
 import static org.testng.AssertJUnit.assertEquals;
@@ -872,6 +877,69 @@ public class SystemTest extends StructrTest {
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
+	}
+
+	@Test
+	public void testIsDeletedFlag() {
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType test1 = sourceSchema.addType("Test1");
+			final JsonObjectType test2 = sourceSchema.addType("Test2");
+
+			test1.relate(test2, "TEST", Relation.Cardinality.OneToOne, "source", "target");
+
+			StructrSchema.extendDatabaseSchema(app, sourceSchema);
+
+			tx.success();
+
+		} catch (Exception t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class<NodeInterface> type1 = StructrApp.getConfiguration().getNodeEntityClass("Test1");
+		final Class<NodeInterface> type2 = StructrApp.getConfiguration().getNodeEntityClass("Test2");
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface test1 = app.create(type1, "test1");
+			app.create(type2,
+				new NodeAttribute<>(AbstractNode.name, "test2"),
+				new NodeAttribute<>(StructrApp.key(type2, "source"), test1)
+			);
+
+			tx.success();
+
+		} catch (Exception t) {
+			System.out.println(t.getMessage());
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node              = app.nodeQuery(type1).getFirst();
+			final List<AbstractRelationship> rels = Iterables.toList(node.getRelationships());
+
+			app.delete(node);
+
+			assertTrue("TransactionCommand.isDeleted() does not work properly", TransactionCommand.isDeleted(node.getNode()));
+
+			for (final RelationshipInterface rel : rels) {
+				assertTrue("TransactionCommand.isDeleted() does not work properly", TransactionCommand.isDeleted(rel.getRelationship()));
+			}
+
+			tx.success();
+
+		} catch (Exception t) {
+			System.out.println(t.getMessage());
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
 	}
 
 	// ----- nested classes -----
