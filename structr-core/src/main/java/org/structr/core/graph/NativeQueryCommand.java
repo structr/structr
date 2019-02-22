@@ -29,6 +29,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeQuery;
 import org.structr.api.graph.Node;
+import org.structr.api.graph.Path;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
@@ -138,6 +140,48 @@ public class NativeQueryCommand extends NodeServiceCommand {
 
 			graphObject = relFactory.instantiate((Relationship) value);
 
+		} else if (value instanceof Path) {
+
+			final List<Object> relationships = new LinkedList<>();
+			final List<Object> nodes         = new LinkedList<>();
+			final Path path                  = (Path)value;
+
+			graphObject = new GraphObjectMap();
+
+			graphObject.setProperty(new GenericProperty("nodes"), nodes);
+			graphObject.setProperty(new GenericProperty("relationships"), relationships);
+
+			for (final PropertyContainer container : path) {
+
+				if (container instanceof Node) {
+
+					final Object node = handleObject(nodeFactory, relFactory, null, container, includeHiddenAndDeleted, publicOnly, level + 1);
+					if (node != null) {
+
+						nodes.add(node);
+
+					} else {
+
+						// unable to instantiate node, this is most likely due to permission restrictions
+						return null;
+					}
+				}
+
+				if (container instanceof Relationship) {
+
+					final Object relationship = handleObject(nodeFactory, relFactory, null, container, includeHiddenAndDeleted, publicOnly, level + 1);
+					if (relationship != null) {
+
+						relationships.add(relationship);
+
+					} else {
+
+						// unable to instantiate relationship, this is most likely due to permission restrictions
+						return null;
+					}
+				}
+			}
+
 		} else if (value instanceof Map) {
 
 			final Map<String, Object> valueMap = (Map<String, Object>)value;
@@ -147,8 +191,12 @@ public class NativeQueryCommand extends NodeServiceCommand {
 
 				final String valueKey   = valueEntry.getKey();
 				final Object valueValue = valueEntry.getValue();
+				final Object result     = handleObject(nodeFactory, relFactory, valueKey, valueValue, includeHiddenAndDeleted, publicOnly, level + 1);
 
-				graphObject.setProperty(new GenericProperty(valueKey), handleObject(nodeFactory, relFactory, valueKey, valueValue, includeHiddenAndDeleted, publicOnly, level + 1));
+				if (result != null) {
+
+					graphObject.setProperty(new GenericProperty(valueKey), result);
+				}
 			}
 
 		} else if (value instanceof Collection) {
@@ -158,7 +206,11 @@ public class NativeQueryCommand extends NodeServiceCommand {
 
 			for (final Object valueEntry : valueCollection) {
 
-				collection.add(handleObject(nodeFactory, relFactory, null, valueEntry, includeHiddenAndDeleted, publicOnly, level + 1));
+				final Object result = handleObject(nodeFactory, relFactory, null, valueEntry, includeHiddenAndDeleted, publicOnly, level + 1);
+				if (result != null) {
+
+					collection.add(result);
+				}
 			}
 
 			return collection;
