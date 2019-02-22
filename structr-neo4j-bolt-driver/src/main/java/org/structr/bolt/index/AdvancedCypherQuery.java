@@ -19,21 +19,18 @@
 package org.structr.bolt.index;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortType;
 
 /**
  *
  */
-public class AdvancedCypherQuery implements PageableQuery {
+public class AdvancedCypherQuery implements CypherQuery {
 
-	private static final Set<Integer> alreadyLoaded = new HashSet<>();
 	private final Map<String, Object> parameters    = new HashMap<>();
 	private final List<String> typeLabels           = new LinkedList<>();
 	private final StringBuilder buffer              = new StringBuilder();
@@ -49,7 +46,7 @@ public class AdvancedCypherQuery implements PageableQuery {
 	private QueryContext queryContext               = null;
 
 	public AdvancedCypherQuery(final QueryContext queryContext, final AbstractCypherIndex<?> index) {
-		
+
 		this.queryContext = queryContext;
 		this.pageSize = 1000000;
 		this.index    = index;
@@ -62,10 +59,6 @@ public class AdvancedCypherQuery implements PageableQuery {
 
 	@Override
 	public void nextPage() {
-
-		// store hash BEFORE incrementing the page..
-		alreadyLoaded.add(semanticHashCode(true));
-
 		page++;
 	}
 
@@ -74,7 +67,6 @@ public class AdvancedCypherQuery implements PageableQuery {
 		return this.pageSize;
 	}
 
-	@Override
 	public String getSortKey() {
 		return sortKey;
 	}
@@ -184,24 +176,24 @@ public class AdvancedCypherQuery implements PageableQuery {
 		buffer.append(")");
 	}
 
+	@Override
 	public void and() {
 		buffer.append(" AND ");
 	}
 
+	@Override
 	public void not() {
 		buffer.append(" NOT ");
 	}
 
+	@Override
 	public void andNot() {
 		buffer.append(" AND NOT ");
 	}
 
+	@Override
 	public void or() {
 		buffer.append(" OR ");
-	}
-
-	public void noop() {
-		buffer.append(" True ");
 	}
 
 	public void typeLabel(final String typeLabel) {
@@ -321,6 +313,7 @@ public class AdvancedCypherQuery implements PageableQuery {
 		parameters.put(paramKey2, value2);
 	}
 
+	@Override
 	public void sort(final SortType sortType, final String sortKey, final boolean sortDescending) {
 
 		this.sortDescending = sortDescending;
@@ -339,48 +332,5 @@ public class AdvancedCypherQuery implements PageableQuery {
 	@Override
 	public QueryContext getQueryContext() {
 		return queryContext;
-	}
-
-	@Override
-	public boolean idsOnly() {
-
-		if (!parameters.isEmpty()) {
-
-			// if this query contains parameters, but we can see that there was already
-			// a query without parameters for the same type, we can assume that the
-			// previous query returned all the existing results and we can query for
-			// IDs only..
-			if (alreadyLoaded.contains(semanticHashCode(false))) {
-
-				return true;
-			}
-		}
-
-		return alreadyLoaded.contains(semanticHashCode(true));
-	}
-
-	// ----- private methods -----
-	private int semanticHashCode(final boolean includeParameters) {
-
-		int hashCode = 3427;
-
-		hashCode += 271 * typeLabels.hashCode();
-		hashCode += 634 * pageSize;
-		hashCode += 975 * page;
-
-		if (includeParameters) {
-			hashCode += 2536 * parameters.hashCode();
-		}
-
-		return hashCode;
-
-	}
-
-	// ----- public static methods -----
-	public static void flushCaches() {
-
-		synchronized (alreadyLoaded) {
-			alreadyLoaded.clear();
-		}
 	}
 }

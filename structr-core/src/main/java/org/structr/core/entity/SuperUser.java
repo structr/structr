@@ -109,11 +109,6 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 		return true;
 	}
 
-	@Override
-	public long getId() {
-		return -1L;
-	}
-
 	public String getRealName() {
 
 		return "Super User";
@@ -433,7 +428,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public void setRawPathSegmentId(final long rawSegmentID) {
+	public void setRawPathSegmentId(final String rawSegmentID) {
 	}
 
 	@Override

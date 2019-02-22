@@ -27,7 +27,7 @@ import org.structr.bolt.SessionTransaction;
  */
 public class NodeResultStream extends AbstractResultStream<Node> {
 
-	public NodeResultStream(final BoltDatabaseService db, final PageableQuery query) {
+	public NodeResultStream(final BoltDatabaseService db, final CypherQuery query) {
 		super(db, query);
 	}
 

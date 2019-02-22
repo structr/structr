@@ -16,25 +16,29 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt.index.factory;
+package org.structr.api.index;
 
 import org.structr.api.search.Occurrence;
 import static org.structr.api.search.Occurrence.FORBIDDEN;
 import static org.structr.api.search.Occurrence.OPTIONAL;
 import org.structr.api.search.TypeConverter;
-import org.structr.bolt.index.AbstractCypherIndex;
-import org.structr.bolt.index.AdvancedCypherQuery;
 
 /**
  *
  */
-public abstract class AbstractQueryFactory implements QueryFactory {
+public abstract class AbstractQueryFactory<T extends DatabaseQuery> implements QueryFactory<T> {
+
+	protected AbstractIndex index = null;
+
+	public AbstractQueryFactory(final AbstractIndex index) {
+		this.index = index;
+	}
 
 	protected Object getReadValue(final Object value) {
 
 		if (value != null) {
 
-			final TypeConverter converter = AbstractCypherIndex.CONVERTERS.get(value.getClass());
+			final TypeConverter converter = index.getConverterForType(value.getClass());
 			if (converter != null) {
 
 				return converter.getReadValue(value);
@@ -53,7 +57,7 @@ public abstract class AbstractQueryFactory implements QueryFactory {
 
 		if (value != null) {
 
-			final TypeConverter converter = AbstractCypherIndex.CONVERTERS.get(value.getClass());
+			final TypeConverter converter = index.getConverterForType(value.getClass());
 			if (converter != null) {
 
 				return converter.getWriteValue(value);
@@ -64,7 +68,7 @@ public abstract class AbstractQueryFactory implements QueryFactory {
 	}
 
 	// ----- protected methods -----
-	protected void checkOccur(final AdvancedCypherQuery query, final Occurrence occ, final boolean first) {
+	protected void checkOccur(final T query, final Occurrence occ, final boolean first) {
 
 		if (!first || occ.equals(Occurrence.FORBIDDEN)) {
 			addOccur(query, occ, first);
@@ -72,7 +76,7 @@ public abstract class AbstractQueryFactory implements QueryFactory {
 	}
 
 
-	protected void addOccur(final AdvancedCypherQuery query, final Occurrence occ, final boolean first) {
+	protected void addOccur(final T query, final Occurrence occ, final boolean first) {
 
 		switch (occ) {
 

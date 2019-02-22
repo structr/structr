@@ -163,12 +163,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public void setRawPathSegmentId(final long pathSegmentId) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public long getId() {
+	public void setRawPathSegmentId(final String pathSegmentId) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 

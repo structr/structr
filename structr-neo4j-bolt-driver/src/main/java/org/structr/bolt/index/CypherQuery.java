@@ -16,27 +16,21 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt.index.factory;
+package org.structr.bolt.index;
 
-import org.structr.api.index.AbstractIndex;
-import org.structr.api.index.AbstractQueryFactory;
-import org.structr.api.search.QueryPredicate;
-import org.structr.bolt.index.AdvancedCypherQuery;
+import java.util.Map;
+import org.structr.api.index.DatabaseQuery;
+import org.structr.api.search.QueryContext;
 
-public class EmptyQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
+/**
+ */
+public interface CypherQuery extends DatabaseQuery {
 
-	public EmptyQueryFactory(final AbstractIndex index) {
-		super(index);
-	}
+	int pageSize();
+	void nextPage();
 
-	@Override
-	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
+	String getStatement();
+	Map<String, Object> getParameters();
 
-		checkOccur(query, predicate.getOccurrence(), isFirst);
-
-		// not empty query is simple
-		query.addSimpleParameter(predicate.getName(), "is", null);
-
-		return true;
-	}
+	QueryContext getQueryContext();
 }

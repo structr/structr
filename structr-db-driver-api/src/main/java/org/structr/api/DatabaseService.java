@@ -21,6 +21,7 @@ package org.structr.api;
 import java.util.Map;
 import java.util.Set;
 import org.structr.api.graph.GraphProperties;
+import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
@@ -41,16 +42,19 @@ public interface DatabaseService {
 	 */
 	boolean initialize();
 	void shutdown();
+	void clearCaches();
+	void cleanDatabase();
+	void deleteNodesByLabel(final String label);
 
-	<T> T forName(final Class<T> type, final String name);
+	<X> X forName(final Class<X> type, final String name);
 
 	Transaction beginTx();
 
-	Node createNode(final Set<String> labels, final Map<String, Object> properties);
-	NodeWithOwnerResult createNodeWithOwner(final long ownerId, final Set<String> labels, final Map<String, Object> nodeProperties, final Map<String, Object> ownsProperties, final Map<String, Object> securityProperties);
+	Node createNode(final String type, final Set<String> labels, final Map<String, Object> properties);
+	NodeWithOwnerResult createNodeWithOwner(final Identity ownerId, final String type, final Set<String> labels, final Map<String, Object> nodeProperties, final Map<String, Object> ownsProperties, final Map<String, Object> securityProperties);
 
-	Node getNodeById(final long id);
-	Relationship getRelationshipById(final long id);
+	Node getNodeById(final Identity id);
+	Relationship getRelationshipById(final Identity id);
 
 	Iterable<Node> getAllNodes();
 	Iterable<Node> getNodesByLabel(final String label);

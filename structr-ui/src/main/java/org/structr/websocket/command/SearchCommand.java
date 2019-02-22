@@ -103,7 +103,7 @@ public class SearchCommand extends AbstractCommand {
 
 						}
 
-						final List<GraphObject> result = Iterables.toList(StructrApp.getInstance(securityContext).cypher(cypherQuery, obj));
+						final List<GraphObject> result = Iterables.toList(StructrApp.getInstance(securityContext).query(cypherQuery, obj));
 
 						int resultCountBeforePaging = result.size();
 						webSocketData.setRawResultCount(resultCountBeforePaging);

@@ -16,27 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt.index.factory;
+package org.structr.bolt;
 
-import org.structr.api.index.AbstractIndex;
-import org.structr.api.index.AbstractQueryFactory;
-import org.structr.api.search.QueryPredicate;
-import org.structr.bolt.index.AdvancedCypherQuery;
+import org.structr.bolt.wrapper.RelationshipWrapper;
 
-public class EmptyQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
+/**
+ * Abstract accessor class to be able to call packacke-private static method
+ * on RelationshipWrapper.
+ */
+class RelationshipCacheAccess extends RelationshipWrapper {
 
-	public EmptyQueryFactory(final AbstractIndex index) {
-		super(index);
-	}
-
-	@Override
-	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
-
-		checkOccur(query, predicate.getOccurrence(), isFirst);
-
-		// not empty query is simple
-		query.addSimpleParameter(predicate.getName(), "is", null);
-
-		return true;
+	static void clearAllCaches() {
+		RelationshipCacheAccess.clearCache();
 	}
 }

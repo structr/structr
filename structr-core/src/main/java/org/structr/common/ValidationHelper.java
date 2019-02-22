@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Identity;
 import org.structr.common.error.CompoundToken;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
@@ -577,9 +578,11 @@ public class ValidationHelper {
 
 				if (result != null) {
 
+					final Identity identity = object.getPropertyContainer().getId();
+
 					for (final GraphObject foundNode : result) {
 
-						if (foundNode.getId() != object.getId()) {
+						if (!identity.equals(foundNode.getPropertyContainer().getId())) {
 
 							// validation is aborted when the first validation failure occurs, so
 							// we can assume that the object currently examined is the first
@@ -661,9 +664,11 @@ public class ValidationHelper {
 
 			if (result != null) {
 
+				final Identity identity = object.getPropertyContainer().getId();
+
 				for (final GraphObject foundNode : result) {
 
-					if (foundNode.getId() != object.getId()) {
+					if (!identity.equals(foundNode.getPropertyContainer().getId())) {
 
 						// validation is aborted when the first validation failure occurs, so
 						// we can assume that the object currently exmained is the first
@@ -722,9 +727,11 @@ public class ValidationHelper {
 
 			if (result != null) {
 
+				final Identity identity = object.getPropertyContainer().getId();
+
 				for (final GraphObject foundNode : result) {
 
-					if (foundNode.getId() != object.getId()) {
+					if (!identity.equals(foundNode.getPropertyContainer().getId())) {
 
 						// validation is aborted when the first validation failure occurs, so
 						// we can assume that the object currently exmained is the first

@@ -24,7 +24,6 @@ import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URI;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -45,6 +44,7 @@ import org.structr.core.auth.SuperUserAuthenticator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 import org.structr.rest.DefaultResourceProvider;
 import org.structr.schema.SchemaService;
@@ -156,7 +156,7 @@ public abstract class StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			// delete everything
-			app.cypher("MATCH (n:" + randomTenantId + ") DETACH DELETE n", Collections.emptyMap());
+			Services.getInstance().getService(NodeService.class).getDatabaseService().cleanDatabase();
 
 			FlushCachesCommand.flushAll();
 

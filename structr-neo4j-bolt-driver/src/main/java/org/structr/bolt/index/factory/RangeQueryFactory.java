@@ -18,6 +18,8 @@
  */
 package org.structr.bolt.index.factory;
 
+import org.structr.api.index.AbstractIndex;
+import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.RangeQuery;
 import org.structr.bolt.index.AdvancedCypherQuery;
@@ -25,10 +27,14 @@ import org.structr.bolt.index.AdvancedCypherQuery;
 /**
  *
  */
-public class RangeQueryFactory extends AbstractQueryFactory {
+public class RangeQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
+
+	public RangeQueryFactory(final AbstractIndex index) {
+		super(index);
+	}
 
 	@Override
-	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
+	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
 
 		if (predicate instanceof RangeQuery) {
 

@@ -49,7 +49,7 @@ public class ClonePageCommand extends AbstractCommand {
 		setDoTransactionNotifications(true);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		
+
 		final String nodeId            = webSocketData.getId();
 		final AbstractNode nodeToClone = getNode(nodeId);
 
@@ -60,7 +60,7 @@ public class ClonePageCommand extends AbstractCommand {
 				if (pageToClone != null) {
 
 					final Page newPage = (Page) pageToClone.cloneNode(false);
-					newPage.setProperties(securityContext, new PropertyMap(Page.name, pageToClone.getProperty(Page.name) + "-" + newPage.getIdString()));
+					newPage.setProperties(securityContext, new PropertyMap(Page.name, pageToClone.getProperty(Page.name) + "-" + newPage.getPropertyContainer().getId().toString()));
 
 					DOMNode firstChild = (DOMNode) pageToClone.getFirstChild().getNextSibling();
 

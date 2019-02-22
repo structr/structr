@@ -55,11 +55,11 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 
 	@Override
 	public T instantiate(final Relationship relationship) {
-		return instantiate(relationship, -1);
+		return instantiate(relationship, null);
 	}
 
 	@Override
-	public T instantiate(final Relationship relationship, final long pathSegmentId) {
+	public T instantiate(final Relationship relationship, final String pathSegmentId) {
 
 		if (relationship == null || TransactionCommand.isDeleted(relationship)) {
 			return null;
@@ -70,11 +70,11 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 			return null;
 		}
 
-		return (T) instantiateWithType(relationship, relationshipType, -1, false);
+		return (T) instantiateWithType(relationship, relationshipType, pathSegmentId, false);
 	}
 
 	@Override
-	public T instantiateWithType(final Relationship relationship, final Class<T> relClass, final long pathSegmentId, final boolean isCreation) {
+	public T instantiateWithType(final Relationship relationship, final Class<T> relClass, final String pathSegmentId, final boolean isCreation) {
 
 		// cannot instantiate relationship without type
 		if (relClass == null) {

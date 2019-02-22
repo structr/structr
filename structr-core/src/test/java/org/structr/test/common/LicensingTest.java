@@ -24,7 +24,6 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
@@ -49,6 +48,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
@@ -93,7 +93,7 @@ public class LicensingTest {
 		try (final Tx tx = app.tx()) {
 
 			// delete everything
-			app.cypher("MATCH (n:" + randomTenantId + ") DETACH DELETE n", Collections.emptyMap());
+			Services.getInstance().getService(NodeService.class).getDatabaseService().cleanDatabase();
 
 			FlushCachesCommand.flushAll();
 

@@ -52,7 +52,7 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 
 
-		final DatabaseService graphDb = StructrApp.getInstance().getService(NodeService.class).getGraphDb();
+		final DatabaseService graphDb = StructrApp.getInstance().getService(NodeService.class).getDatabaseService();
 		final List<Node> toDelete          = new LinkedList<>();
 
 		for (final Node node: graphDb.getAllNodes()) {

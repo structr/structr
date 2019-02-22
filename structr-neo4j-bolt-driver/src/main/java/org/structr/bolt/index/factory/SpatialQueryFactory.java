@@ -18,6 +18,8 @@
  */
 package org.structr.bolt.index.factory;
 
+import org.structr.api.index.AbstractIndex;
+import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.SpatialQuery;
 import org.structr.bolt.index.AdvancedCypherQuery;
@@ -25,10 +27,14 @@ import org.structr.bolt.index.AdvancedCypherQuery;
 /**
  *
  */
-public class SpatialQueryFactory extends AbstractQueryFactory {
+public class SpatialQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
+
+	public SpatialQueryFactory(final AbstractIndex index) {
+		super(index);
+	}
 
 	@Override
-	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
+	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
 
 		if (predicate instanceof SpatialQuery) {
 

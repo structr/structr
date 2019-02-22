@@ -18,22 +18,29 @@
  */
 package org.structr.bolt.index.factory;
 
+import org.structr.api.index.AbstractIndex;
+import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.QueryPredicate;
 import org.structr.bolt.index.AdvancedCypherQuery;
 
-public class ComparisonQueryFactory extends AbstractQueryFactory {
+public class ComparisonQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
+
+	public ComparisonQueryFactory(final AbstractIndex index) {
+		super(index);
+	}
+
 	@Override
-	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
+	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
 
 		if (predicate instanceof ComparisonQuery) {
 
 			checkOccur(query, predicate.getOccurrence(), isFirst);
 
-			final ComparisonQuery comparisonQuery			= (ComparisonQuery)predicate;
-			final Object value     							= getReadValue(comparisonQuery.getSearchValue());
-			final ComparisonQuery.Operation operation       = comparisonQuery.getOperation();
-			final String name           					= predicate.getName();
+			final ComparisonQuery comparisonQuery     = (ComparisonQuery)predicate;
+			final Object value                        = getReadValue(comparisonQuery.getSearchValue());
+			final ComparisonQuery.Operation operation = comparisonQuery.getOperation();
+			final String name                         = predicate.getName();
 
 			if (value == null && operation == null) {
 				return false;

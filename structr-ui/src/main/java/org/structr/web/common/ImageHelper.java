@@ -375,7 +375,7 @@ public abstract class ImageHelper extends FileHelper {
 
 			if (in == null || in.available() <= 0) {
 
-				logger.debug("InputStream of original image {} ({}) is null or not available ({} bytes)", new Object[] { originalImage.getName(), originalImage.getId(), in != null ? in.available() : -1 });
+				logger.debug("InputStream of original image {} ({}) is null or not available ({} bytes)", new Object[] { originalImage.getName(), originalImage.getUuid(), in != null ? in.available() : -1 });
 				return null;
 			}
 
@@ -756,7 +756,7 @@ public abstract class ImageHelper extends FileHelper {
 			}
 
 		} catch (MetadataException | JSONException | FrameworkException ex) {
-			logger.warn("Unable to store orientation information on image {} ({})", new Object[] { originalImage.getName(), originalImage.getId() });
+			logger.warn("Unable to store orientation information on image {} ({})", new Object[] { originalImage.getName(), originalImage.getUuid() });
 		}
 
 		return 1;
