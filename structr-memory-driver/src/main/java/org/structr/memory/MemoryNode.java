@@ -25,7 +25,7 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.Iterables;
-import org.structr.memory.index.filter.SourceNodeFilter;
+import org.structr.memory.index.filter.MemoryLabelFilter;
 
 /**
  *
@@ -79,7 +79,7 @@ public class MemoryNode extends MemoryEntity implements Node {
 				&& targetId.equals(r.getTargetNodeIdentity())
 				&& name.equals(r.getType().name());
 
-		}, tx.getRelationships(new SourceNodeFilter<>(getIdentity())))) != null;
+		}, tx.getRelationships(new MemoryLabelFilter<>(name)))) != null;
 	}
 
 	@Override
@@ -101,5 +101,10 @@ public class MemoryNode extends MemoryEntity implements Node {
 	public void delete(boolean deleteRelationships) throws NotInTransactionException {
 		lock();
 		db.delete(this);
+	}
+
+	@Override
+	protected void updateCache() {
+		db.updateCache(this);
 	}
 }

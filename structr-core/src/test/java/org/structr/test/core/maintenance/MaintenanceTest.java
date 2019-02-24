@@ -223,9 +223,6 @@ public class MaintenanceTest extends StructrTest {
 			// test import
 			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME));
 
-			final DatabaseService db = app.getDatabaseService();
-
-
 			try (final Tx tx = app.tx()) {
 
 				final List<TestEleven> result = app.nodeQuery(TestEleven.class).getAsList();
@@ -259,8 +256,8 @@ public class MaintenanceTest extends StructrTest {
 			Files.delete(exportFile);
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
-			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
 	}

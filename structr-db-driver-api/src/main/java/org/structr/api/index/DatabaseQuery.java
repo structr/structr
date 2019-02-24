@@ -18,6 +18,7 @@
  */
 package org.structr.api.index;
 
+import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortType;
 
 public interface DatabaseQuery {
@@ -43,4 +44,5 @@ public interface DatabaseQuery {
 	public void andNot();
 
 	void sort(final SortType sortType, final String sortKey, final boolean sortDescending);
+	QueryContext getQueryContext();
 }

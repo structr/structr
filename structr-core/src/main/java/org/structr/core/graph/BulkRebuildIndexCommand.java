@@ -19,7 +19,6 @@
 package org.structr.core.graph;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,11 +85,11 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 	// ----- private methods -----
 	private void rebuildNodeIndex(final String entityType) {
 
-		final NodeFactory nodeFactory       = new NodeFactory(SecurityContext.getSuperUserInstance());
-		final DatabaseService graphDb       = (DatabaseService) arguments.get("graphDb");
-		Iterator<AbstractNode> nodeIterator = null;
+		final NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
+		Iterable<AbstractNode> nodes  = null;
 
-		nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getNodesByTypeProperty(entityType))).iterator();
+		nodes = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getNodesByTypeProperty(entityType)));
 
 		if (entityType == null) {
 
@@ -101,7 +100,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 			info("Starting (re-)indexing all nodes of type {}", entityType);
 		}
 
-		long count = bulkGraphOperation(securityContext, nodeIterator, 1000, "RebuildNodeIndex", new BulkGraphOperation<AbstractNode>() {
+		long count = bulkGraphOperation(securityContext, nodes, 1000, "RebuildNodeIndex", new BulkGraphOperation<AbstractNode>() {
 
 			@Override
 			public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
@@ -127,9 +126,9 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 	private void rebuildRelationshipIndex(final String relType) {
 
-		final RelationshipFactory relFactory             = new RelationshipFactory(SecurityContext.getSuperUserInstance());
-		final DatabaseService graphDb                    = (DatabaseService) arguments.get("graphDb");
-		final Iterator<AbstractRelationship> relIterator = Iterables.map(relFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getRelationshipsByType(relType))).iterator();
+		final RelationshipFactory relFactory               = new RelationshipFactory(SecurityContext.getSuperUserInstance());
+		final DatabaseService graphDb                      = (DatabaseService) arguments.get("graphDb");
+		final Iterable<AbstractRelationship> relationships = Iterables.map(relFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getRelationshipsByType(relType)));
 
 		if (relType == null) {
 
@@ -141,7 +140,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 		}
 
-		long count = bulkGraphOperation(securityContext, relIterator, 1000, "RebuildRelIndex", new BulkGraphOperation<AbstractRelationship>() {
+		long count = bulkGraphOperation(securityContext, relationships, 1000, "RebuildRelIndex", new BulkGraphOperation<AbstractRelationship>() {
 
 			@Override
 			public boolean handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
@@ -167,11 +166,11 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 	private void rebuildFulltextIndex() {
 
-		final NodeFactory nodeFactory  = new NodeFactory(SecurityContext.getSuperUserInstance());
-		final DatabaseService graphDb  = (DatabaseService) arguments.get("graphDb");
-		final Iterator<Indexable> iter = Iterables.map(nodeFactory, graphDb.getNodesByLabel("Indexable")).iterator();
+		final NodeFactory nodeFactory   = new NodeFactory(SecurityContext.getSuperUserInstance());
+		final DatabaseService graphDb   = (DatabaseService) arguments.get("graphDb");
+		final Iterable<Indexable> nodes = Iterables.map(nodeFactory, graphDb.getNodesByLabel("Indexable"));
 
-		bulkGraphOperation(securityContext, iter, 1000, "RebuildFulltextIndex", new BulkGraphOperation<Indexable>() {
+		bulkGraphOperation(securityContext, nodes, 1000, "RebuildFulltextIndex", new BulkGraphOperation<Indexable>() {
 
 			@Override
 			public boolean handleGraphObject(SecurityContext securityContext, Indexable indexable) throws FrameworkException {

@@ -46,6 +46,7 @@ import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
+import org.structr.memory.MemoryDatabaseService;
 import org.structr.rest.DefaultResourceProvider;
 import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
@@ -205,10 +206,14 @@ public abstract class StructrRestTestBase {
 
 	protected void setupNeo4jConnection() {
 
+		Settings.DatabaseDriver.setValue(MemoryDatabaseService.class.getName());
+
+		/*
 		Settings.DatabaseDriverMode.setValue("remote");
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+		*/
 		Settings.TenantIdentifier.setValue(randomTenantId);
 	}
 

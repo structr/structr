@@ -81,7 +81,7 @@ public abstract class AbstractMemoryIndex<T extends PropertyContainer> extends A
 
 	@Override
 	public MemoryQuery createQuery(final QueryContext context) {
-		return new MemoryQuery();
+		return new MemoryQuery(context);
 	}
 
 	@Override

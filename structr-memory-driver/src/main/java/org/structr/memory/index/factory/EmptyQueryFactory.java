@@ -22,7 +22,7 @@ import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.QueryPredicate;
 import org.structr.memory.index.MemoryQuery;
-import org.structr.memory.index.predicate.EmptyPredicate;
+import org.structr.memory.index.predicate.NullPredicate;
 
 public class EmptyQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
@@ -36,7 +36,7 @@ public class EmptyQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 		checkOccur(query, predicate.getOccurrence(), isFirst);
 
 		// not empty query is simple
-		query.addPredicate(new EmptyPredicate<>(predicate.getName()));
+		query.addPredicate(new NullPredicate<>(predicate.getName()));
 
 		return true;
 	}

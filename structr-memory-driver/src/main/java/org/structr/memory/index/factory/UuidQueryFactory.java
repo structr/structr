@@ -24,7 +24,7 @@ import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.UuidQuery;
 import org.structr.memory.index.MemoryQuery;
-import org.structr.memory.index.predicate.PropertyPredicate;
+import org.structr.memory.index.predicate.ValuePredicate;
 
 /**
  */
@@ -40,11 +40,11 @@ public class UuidQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 		final String uuid = ((UuidQuery)predicate).getUuid();
 		if (StringUtils.isNotBlank(uuid) && uuid.length() == 32) {
 
-			query.addPredicate(new PropertyPredicate("id", uuid));
+			query.addPredicate(new ValuePredicate("id", uuid));
 
 		} else {
 
-			query.addPredicate(new PropertyPredicate("id", "__invalid__uuid__string__"));
+			query.addPredicate(new ValuePredicate("id", "__invalid__uuid__string__"));
 		}
 
 		return true;

@@ -20,11 +20,10 @@ package org.structr.memory;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 import org.structr.api.util.Iterables;
 import org.structr.memory.index.filter.Filter;
 import org.structr.memory.index.filter.MemoryLabelFilter;
@@ -36,9 +35,9 @@ import org.structr.memory.index.filter.TargetNodeFilter;
 public class MemoryRelationshipRepository {
 
 	final Map<MemoryIdentity, MemoryRelationship> masterData    = new LinkedHashMap<>();
-	final Map<String, List<MemoryIdentity>> typeCache           = new LinkedHashMap<>();
-	final Map<MemoryIdentity, List<MemoryIdentity>> sourceCache = new LinkedHashMap<>();
-	final Map<MemoryIdentity, List<MemoryIdentity>> targetCache = new LinkedHashMap<>();
+	final Map<String, Set<MemoryIdentity>> typeCache           = new LinkedHashMap<>();
+	final Map<MemoryIdentity, Set<MemoryIdentity>> sourceCache = new LinkedHashMap<>();
+	final Map<MemoryIdentity, Set<MemoryIdentity>> targetCache = new LinkedHashMap<>();
 	final Set<String> duplicatesCheckCache                      = new LinkedHashSet<>();
 
 	MemoryRelationship get(final MemoryIdentity id) {
@@ -88,7 +87,7 @@ public class MemoryRelationshipRepository {
 		return masterData.containsKey(id);
 	}
 
-	void add(final Map<MemoryIdentity, MemoryRelationship> newData) {
+	synchronized void add(final Map<MemoryIdentity, MemoryRelationship> newData) {
 
 		for (final Entry<MemoryIdentity, MemoryRelationship> entry : newData.entrySet()) {
 
@@ -96,14 +95,11 @@ public class MemoryRelationshipRepository {
 			final MemoryRelationship value = entry.getValue();
 			final String key               = value.getUniquenessKey();
 
-			synchronized (duplicatesCheckCache) {
-
-				if (duplicatesCheckCache.contains(key)) {
-					throw new IllegalStateException("Duplicate relationship: " + key);
-				}
-
-				duplicatesCheckCache.add(key);
+			if (duplicatesCheckCache.contains(key)) {
+				throw new IllegalStateException("Duplicate relationship: " + key);
 			}
+
+			duplicatesCheckCache.add(key);
 
 			for (final String label : value.getLabels()) {
 
@@ -119,39 +115,55 @@ public class MemoryRelationshipRepository {
 
 	void remove(final Set<MemoryIdentity> ids) {
 		masterData.keySet().removeAll(ids);
+
+		for (final Set<MemoryIdentity> cache : typeCache.values()) {
+			cache.removeAll(ids);
+		}
+
+		for (final Set<MemoryIdentity> cache : sourceCache.values()) {
+			cache.removeAll(ids);
+		}
+
+		for (final Set<MemoryIdentity> cache : targetCache.values()) {
+			cache.removeAll(ids);
+		}
+	}
+
+	synchronized void updateCache(final MemoryRelationship relationship) {
+		// relationship type cannot be changed => no-op
 	}
 
 	// ----- private methods -----
-	private synchronized List<MemoryIdentity> getCacheForLabel(final String type) {
+	private synchronized Set<MemoryIdentity> getCacheForLabel(final String type) {
 
-		List<MemoryIdentity> cache = typeCache.get(type);
+		Set<MemoryIdentity> cache = typeCache.get(type);
 		if (cache == null) {
 
-			cache = new CopyOnWriteArrayList<>();
+			cache = new CopyOnWriteArraySet<>();
 			typeCache.put(type, cache);
 		}
 
 		return cache;
 	}
 
-	private synchronized List<MemoryIdentity> getCacheForSource(final MemoryIdentity source) {
+	private synchronized Set<MemoryIdentity> getCacheForSource(final MemoryIdentity source) {
 
-		List<MemoryIdentity> cache = sourceCache.get(source);
+		Set<MemoryIdentity> cache = sourceCache.get(source);
 		if (cache == null) {
 
-			cache = new CopyOnWriteArrayList<>();
+			cache = new CopyOnWriteArraySet<>();
 			sourceCache.put(source, cache);
 		}
 
 		return cache;
 	}
 
-	private synchronized List<MemoryIdentity> getCacheForTarget(final MemoryIdentity target) {
+	private synchronized Set<MemoryIdentity> getCacheForTarget(final MemoryIdentity target) {
 
-		List<MemoryIdentity> cache = targetCache.get(target);
+		Set<MemoryIdentity> cache = targetCache.get(target);
 		if (cache == null) {
 
-			cache = new CopyOnWriteArrayList<>();
+			cache = new CopyOnWriteArraySet<>();
 			targetCache.put(target, cache);
 		}
 

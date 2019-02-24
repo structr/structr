@@ -40,6 +40,7 @@ import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
 import org.structr.memory.index.filter.Filter;
+import org.structr.memory.index.filter.MemoryLabelFilter;
 import org.structr.memory.index.filter.SourceNodeFilter;
 import org.structr.memory.index.filter.TargetNodeFilter;
 
@@ -102,13 +103,13 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 		final MemoryNode newNode  = new MemoryNode(this, id);
 
 		// base type is always a label
-		newNode.addLabel(type);
+		newNode.addLabel(type, false);
 
 		// add labels
 		if (labels != null) {
 
 			for (final String label : labels) {
-				newNode.addLabel(label);
+				newNode.addLabel(label, false);
 			}
 		}
 
@@ -152,22 +153,22 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 
 	@Override
 	public Iterable<Node> getAllNodes() {
-
-		final MemoryTransaction tx = getCurrentTransaction();
-		return Iterables.map(n -> n, tx.getNodes(null));
+		return Iterables.map(n -> n, getFilteredNodes(null));
 	}
 
 	@Override
 	public Iterable<Node> getNodesByLabel(final String label) {
 
-		final MemoryTransaction tx = getCurrentTransaction();
+		if (label == null) {
+			return getAllNodes();
+		}
 
-		return Iterables.map(n -> n, Iterables.filter(n -> n.hasLabel(label), tx.getNodes(null)));
+		return Iterables.map(n -> n, getFilteredNodes(new MemoryLabelFilter<>(label)));
 	}
 
 	@Override
 	public Iterable<Node> getNodesByTypeProperty(final String type) {
-		return Iterables.filter(n -> type.equals(n.getProperty("type")), getAllNodes());
+		return getNodesByLabel(type);
 	}
 
 	@Override
@@ -182,14 +183,17 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 
 	@Override
 	public Iterable<Relationship> getAllRelationships() {
-
-		final MemoryTransaction tx = getCurrentTransaction();
-		return Iterables.map(r -> r, tx.getRelationships(null));
+		return Iterables.map(r -> r, getFilteredRelationships(null));
 	}
 
 	@Override
 	public Iterable<Relationship> getRelationshipsByType(final String type) {
-		return Iterables.filter(n -> forName(RelationshipType.class, type).equals(n.getType()), getAllRelationships());
+
+		if (type == null) {
+			return getAllRelationships();
+		}
+
+		return Iterables.map(r -> r, Iterables.filter(n -> type.equals(n.getType().name()), getFilteredRelationships(new MemoryLabelFilter<>(type))));
 	}
 
 	@Override
@@ -251,14 +255,21 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 
 	public Iterable<MemoryNode> getFilteredNodes(final Filter<MemoryNode> filter) {
 
-		final MemoryTransaction tx = getCurrentTransaction();
-		return Iterables.map(n -> n, tx.getNodes(filter));
+		return new LazyAccessor<>(() -> {
+
+			final MemoryTransaction tx = getCurrentTransaction();
+			return Iterables.map(n -> n, tx.getNodes(filter));
+		});
 	}
 
 	public Iterable<MemoryRelationship> getFilteredRelationships(final Filter<MemoryRelationship> filter) {
 
-		final MemoryTransaction tx = getCurrentTransaction();
-		return Iterables.map(n -> n, tx.getRelationships(filter));
+		return new LazyAccessor<>(() -> {
+
+			final MemoryTransaction tx = getCurrentTransaction();
+			return Iterables.map(n -> n, tx.getRelationships(filter));
+
+		});
 	}
 
 	// ----- graph repository methods -----
@@ -331,7 +342,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 	public void delete(final MemoryNode node) {
 
 		final MemoryTransaction tx = getCurrentTransaction();
-		final MemoryIdentity id = node.getIdentity();
+		final MemoryIdentity id    = node.getIdentity();
 
 		tx.delete(node);
 
@@ -370,11 +381,11 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 
 	synchronized void commitTransaction(final Map<MemoryIdentity, MemoryNode> newNodes, final Map<MemoryIdentity, MemoryRelationship> newRelationships, Set<MemoryIdentity> deletedNodes, Set<MemoryIdentity> deletedRelationships) {
 
-		nodes.add(newNodes);
-		relationships.add(newRelationships);
-
 		nodes.remove(deletedNodes);
+		nodes.add(newNodes);
+
 		relationships.remove(deletedRelationships);
+		relationships.add(newRelationships);
 
 		transactions.remove();
 	}
@@ -401,5 +412,33 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 
 	boolean exists(final MemoryIdentity id) {
 		return nodes.contains(id) || relationships.contains(id);
+	}
+
+	void updateCache(final MemoryNode node) {
+		nodes.updateCache(node);
+	}
+
+	void updateCache(final MemoryRelationship relationship) {
+		relationships.updateCache(relationship);
+	}
+
+	// ----- nested classes -----
+	private class LazyAccessor<T> implements Iterable<T> {
+
+		private Accessor<Iterable<T>> accessor = null;
+
+		public LazyAccessor(final Accessor<Iterable<T>> source) {
+			this.accessor = source;
+		}
+
+		@Override
+		public Iterator<T> iterator() {
+			return accessor.get().iterator();
+		}
+	}
+
+	@FunctionalInterface
+	private interface Accessor<T> {
+		T get();
 	}
 }

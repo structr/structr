@@ -19,7 +19,9 @@
 package org.structr.memory.index;
 
 import org.structr.api.graph.Node;
+import org.structr.api.search.QueryContext;
 import org.structr.api.util.Iterables;
+import org.structr.api.util.PagingIterable;
 import org.structr.memory.MemoryDatabaseService;
 import org.structr.memory.index.filter.MemoryLabelFilter;
 
@@ -36,13 +38,28 @@ public class MemoryNodeIndex extends AbstractMemoryIndex<Node> {
 	@Override
 	public Iterable<Node> getResult(final MemoryQuery query) {
 
-		final String mainType = query.getMainType();
+		final QueryContext queryContext = query.getQueryContext();
+		final String mainType           = query.getMainType();
+		Iterable<Node> result           = null;
+
 		if (mainType != null) {
 
-			return Iterables.filter(query, query.sort(db.getFilteredNodes(new MemoryLabelFilter<>(mainType))));
+			result = Iterables.filter(query, query.sort(db.getFilteredNodes(new MemoryLabelFilter<>(mainType))));
+
+		} else {
+
+			// fallback: unfiltered
+			result =  Iterables.filter(query, query.sort(db.getAllNodes()));
 		}
 
-		// fallback: unfiltered
-		return Iterables.filter(query, query.sort(db.getAllNodes()));
+		if (queryContext.isSliced()) {
+
+			final int pageSize = queryContext.getPageSize();
+			final int page     = queryContext.getPage();
+
+			result = new PagingIterable<>(result, pageSize, page);
+		}
+
+		return result;
 	}
 }

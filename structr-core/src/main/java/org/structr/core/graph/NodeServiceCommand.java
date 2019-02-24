@@ -63,28 +63,28 @@ public abstract class NodeServiceCommand extends Command {
 	 *
 	 * @param <T>
 	 * @param securityContext
-	 * @param iterator the iterator that provides the nodes to operate on
+	 * @param iterable the iterable that provides the nodes to operate on
 	 * @param commitCount
 	 * @param description
 	 * @param operation the operation to execute
 	 * @return the number of nodes processed
 	 */
-	public <T> long bulkGraphOperation(final SecurityContext securityContext, final Iterator<T> iterator, final long commitCount, String description, final BulkGraphOperation<T> operation) {
-		return bulkGraphOperation(securityContext, iterator, commitCount, description, operation, true);
+	public <T> long bulkGraphOperation(final SecurityContext securityContext, final Iterable<T> iterable, final long commitCount, String description, final BulkGraphOperation<T> operation) {
+		return bulkGraphOperation(securityContext, iterable, commitCount, description, operation, true);
 	}
 	/**
 	 * Executes the given operation on all nodes in the given list.
 	 *
 	 * @param <T>
 	 * @param securityContext
-	 * @param iterator the iterator that provides the nodes to operate on
+	 * @param iterable the iterator that provides the nodes to operate on
 	 * @param commitCount
 	 * @param description
 	 * @param operation the operation to execute
 	 * @param validation
 	 * @return the number of nodes processed
 	 */
-	public <T> long bulkGraphOperation(final SecurityContext securityContext, final Iterator<T> iterator, final long commitCount, String description, final BulkGraphOperation<T> operation, boolean validation) {
+	public <T> long bulkGraphOperation(final SecurityContext securityContext, final Iterable<T> iterable, final long commitCount, String description, final BulkGraphOperation<T> operation, boolean validation) {
 
 		final Predicate<Long> condition = operation.getCondition();
 		final App app                   = StructrApp.getInstance(securityContext);
@@ -99,6 +99,8 @@ public abstract class NodeServiceCommand extends Command {
 			active = false;
 
 			try (final Tx tx = app.tx(doValidation, doCallbacks, doNotifications)) {
+
+				final Iterator<T> iterator = iterable.iterator();
 
 				while (iterator.hasNext() && (condition == null || condition.accept(objectCount))) {
 

@@ -23,11 +23,11 @@ import org.structr.api.graph.PropertyContainer;
 
 /**
  */
-public class EmptyPredicate<T extends PropertyContainer, V> implements Predicate<T> {
+public class NullPredicate<T extends PropertyContainer, V> implements Predicate<T> {
 
 	private String key = null;
 
-	public EmptyPredicate(final String key) {
+	public NullPredicate(final String key) {
 		this.key = key;
 	}
 

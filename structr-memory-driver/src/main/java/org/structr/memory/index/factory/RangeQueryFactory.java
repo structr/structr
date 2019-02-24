@@ -21,7 +21,9 @@ package org.structr.memory.index.factory;
 import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.QueryPredicate;
+import org.structr.api.search.RangeQuery;
 import org.structr.memory.index.MemoryQuery;
+import org.structr.memory.index.predicate.RangePredicate;
 
 /**
  *
@@ -35,26 +37,23 @@ public class RangeQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 	@Override
 	public boolean createQuery(final QueryPredicate predicate, final MemoryQuery query, final boolean isFirst) {
 
-		/*
-
 		if (predicate instanceof RangeQuery) {
 
 			checkOccur(query, predicate.getOccurrence(), isFirst);
 
 			final RangeQuery rangeQuery = (RangeQuery)predicate;
-			final Object rangeStart     = getReadValue(rangeQuery.getRangeStart());
-			final Object rangeEnd       = getReadValue(rangeQuery.getRangeEnd());
+			final Comparable rangeStart = (Comparable)getReadValue(rangeQuery.getRangeStart());
+			final Comparable rangeEnd   = (Comparable)getReadValue(rangeQuery.getRangeEnd());
 			final String name           = predicate.getName();
 
 			if (rangeStart == null && rangeEnd == null) {
 				return false;
 			}
 
-			query.addParameters(name, ">=", rangeStart, "<=", rangeEnd);
+			query.addPredicate(new RangePredicate<>(name, rangeStart, rangeEnd));
 
 			return true;
 		}
-		*/
 
 		return false;
 	}

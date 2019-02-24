@@ -46,6 +46,8 @@ public abstract class MemoryEntity implements PropertyContainer {
 		lock();
 	}
 
+	protected abstract void updateCache();
+
 	@Override
 	public Identity getId() {
 		return id;
@@ -116,13 +118,31 @@ public abstract class MemoryEntity implements PropertyContainer {
 	}
 
 	public void addLabel(final String label) {
+		addLabel(label, true);
+	}
+
+	void addLabel(final String label, final boolean updateCache) {
+
 		lock();
 		labels.add(label);
+
+		if (updateCache) {
+			updateCache();
+		}
 	}
 
 	public void removeLabel(final String label) {
+		removeLabel(label, true);
+	}
+
+	public void removeLabel(final String label, final boolean updateCache) {
+
 		lock();
 		labels.remove(label);
+
+		if (updateCache) {
+			updateCache();
+		}
 	}
 
 	public boolean hasLabel(final String label) {

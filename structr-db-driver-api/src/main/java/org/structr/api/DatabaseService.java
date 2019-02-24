@@ -57,6 +57,15 @@ public interface DatabaseService {
 	Relationship getRelationshipById(final Identity id);
 
 	Iterable<Node> getAllNodes();
+
+	/**
+	 * Returns an Iterable that iterates over all nodes in the database,
+	 * optionally filtered by the given label.
+	 *
+	 * @param label the label or null
+	 *
+	 * @return an Iterable of Nodes
+	 */
 	Iterable<Node> getNodesByLabel(final String label);
 	Iterable<Node> getNodesByTypeProperty(final String type);
 

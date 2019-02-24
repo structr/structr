@@ -24,8 +24,8 @@ package org.structr.api.search;
 public class QueryContext {
 
 	private boolean sliced = false;
-	private int skip = -1;
-	private int limit = -1;
+	private int skip       = -1;
+	private int limit      = -1;
 
 	private boolean isPing = false;
 
@@ -35,8 +35,8 @@ public class QueryContext {
 	public QueryContext slice(final int from, final int to) {
 
 		sliced = true;
-		skip = from;
-		limit = to - from;
+		skip   = from;
+		limit  = to - from;
 
 		return this;
 	}
@@ -50,6 +50,14 @@ public class QueryContext {
 	}
 
 	public int getLimit() {
+		return limit;
+	}
+
+	public int getPage() {
+		return (skip / Math.max(1, limit)) + 1;
+	}
+
+	public int getPageSize() {
 		return limit;
 	}
 

@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.util.Iterator;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +57,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 				final DatabaseService db                  = StructrApp.getInstance(securityContext).getDatabaseService();
 				final NodeFactory factory                 = new NodeFactory(securityContext);
-				final Iterator<AbstractNode> nodeIterator = Iterables.map(factory, db.getNodesByLabel(entityTypeName)).iterator();
+				final Iterable<AbstractNode> nodeIterator = Iterables.map(factory, db.getNodesByLabel(entityTypeName));
 
 				logger.info("Trying to fix properties of all {} nodes", type.getSimpleName() );
 

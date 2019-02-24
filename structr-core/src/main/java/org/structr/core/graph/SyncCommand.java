@@ -312,9 +312,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			importFromStream(graphDb, securityContext, fis, doValidation, batchSize);
 
 		} catch (Throwable t) {
-
-			logger.warn("", t);
-
+			t.printStackTrace();
 			throw new FrameworkException(500, t.getMessage());
 		}
 	}

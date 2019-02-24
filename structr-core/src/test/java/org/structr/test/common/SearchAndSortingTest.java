@@ -1981,17 +1981,17 @@ public class SearchAndSortingTest extends StructrTest {
 	@Test
 	public void testComparisonSearchAttributes() {
 
-		final Class<Group> groupType      = StructrApp.getConfiguration().getNodeEntityClass("Group");
-		final PropertyKey<String> nameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");
+		final Class<Group> groupType          = StructrApp.getConfiguration().getNodeEntityClass("Group");
+		final PropertyKey<String> nameKey     = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");
 		final PropertyKey<Principal> ownerKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "owner");
 
 		try (final Tx tx = app.tx()) {
 
-			Group a = createTestNode(groupType, "a");
-			Group b = createTestNode(groupType, "b");
-			Group c = createTestNode(groupType, "c");
-			Group d = createTestNode(groupType, "d");
-			Group e = createTestNode(groupType, "e");
+			createTestNode(groupType, "a");
+			createTestNode(groupType, "b");
+			createTestNode(groupType, "c");
+			createTestNode(groupType, "d");
+			createTestNode(groupType, "e");
 
 			tx.success();
 
@@ -2001,21 +2001,20 @@ public class SearchAndSortingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			List<SearchAttribute> attributes = new ArrayList<>();
-
-			SearchAttributeGroup rootGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
-
-			SearchAttributeGroup mainMatchingGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
+			final List<SearchAttribute> attributes       = new ArrayList<>();
+			final SearchAttributeGroup rootGroup         = new SearchAttributeGroup(Occurrence.REQUIRED);
+			final SearchAttributeGroup mainMatchingGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
 
 			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "a", Occurrence.OPTIONAL));
 			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "b", Occurrence.OPTIONAL));
 			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "c", Occurrence.OPTIONAL));
 			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "d", Occurrence.OPTIONAL));
 
-			SearchAttributeGroup secondaryMatchingGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
+			final SearchAttributeGroup secondaryMatchingGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
 
 			secondaryMatchingGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Operation.isNull, null, Occurrence.REQUIRED));
 			secondaryMatchingGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Operation.isNotNull, null, Occurrence.FORBIDDEN));
+
 			// Test Greater/Less with ASCII chars
 			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.greater, "_", Occurrence.REQUIRED));
 			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.greaterOrEqual, "a", Occurrence.REQUIRED));
@@ -2027,7 +2026,7 @@ public class SearchAndSortingTest extends StructrTest {
 			rootGroup.add(secondaryMatchingGroup);
 			attributes.add(rootGroup);
 
-			List<Group> list = app.nodeQuery(Group.class)
+			final List<Group> list = app.nodeQuery(Group.class)
 					.attributes(attributes)
 					.sort(AbstractNode.name)
 					.order(false)

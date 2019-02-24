@@ -103,11 +103,19 @@ public class MemoryTransaction implements Transaction {
 	}
 
 	public void delete(final MemoryNode toDelete) {
-		deletedNodes.add(toDelete.getIdentity());
+
+		final MemoryIdentity id = toDelete.getIdentity();
+
+		createdNodes.remove(id);
+		deletedNodes.add(id);
 	}
 
 	public void delete(final MemoryRelationship toDelete) {
-		deletedRelationships.add(toDelete.getIdentity());
+
+		final MemoryIdentity id = toDelete.getIdentity();
+
+		createdRelationships.remove(id);
+		deletedRelationships.add(id);
 	}
 
 	// ----- package-private methods -----

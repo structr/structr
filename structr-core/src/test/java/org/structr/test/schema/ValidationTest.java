@@ -28,6 +28,7 @@ import java.util.concurrent.Future;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.test.common.StructrTest;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
@@ -1830,15 +1831,15 @@ public class ValidationTest extends StructrTest {
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Long([1,5])");
 		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
-		checkRangeSuccess(testType, range1, 1);
-		checkRangeSuccess(testType, range1, 2);
-		checkRangeSuccess(testType, range1, 3);
-		checkRangeSuccess(testType, range1, 4);
-		checkRangeSuccess(testType, range1, 5);
+		checkRangeSuccess(testType, range1, 1L);
+		checkRangeSuccess(testType, range1, 2L);
+		checkRangeSuccess(testType, range1, 3L);
+		checkRangeSuccess(testType, range1, 4L);
+		checkRangeSuccess(testType, range1, 5L);
 
-		try { checkRangeError(testType, range1, -0); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
-		try { checkRangeError(testType, range1,  0); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
-		try { checkRangeError(testType, range1,  6); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
+		try { checkRangeError(testType, range1, -0L); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
+		try { checkRangeError(testType, range1,  0L); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
+		try { checkRangeError(testType, range1,  6L); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
 
 	}
 
@@ -1850,15 +1851,15 @@ public class ValidationTest extends StructrTest {
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Long([0,5[)");
 		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
-		checkRangeSuccess(testType, range1, -0);
-		checkRangeSuccess(testType, range1, 0);
-		checkRangeSuccess(testType, range1, 1);
-		checkRangeSuccess(testType, range1, 2);
-		checkRangeSuccess(testType, range1, 3);
-		checkRangeSuccess(testType, range1, 4);
+		checkRangeSuccess(testType, range1, -0L);
+		checkRangeSuccess(testType, range1,  0L);
+		checkRangeSuccess(testType, range1,  1L);
+		checkRangeSuccess(testType, range1,  2L);
+		checkRangeSuccess(testType, range1,  3L);
+		checkRangeSuccess(testType, range1,  4L);
 
-		try { checkRangeError(testType, range1, 5); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
-		try { checkRangeError(testType, range1, 6); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
+		try { checkRangeError(testType, range1, 5L); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
+		try { checkRangeError(testType, range1, 6L); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
 
 	}
 
@@ -1870,14 +1871,14 @@ public class ValidationTest extends StructrTest {
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Long(]0,5])");
 		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
-		checkRangeSuccess(testType, range1, 1);
-		checkRangeSuccess(testType, range1, 2);
-		checkRangeSuccess(testType, range1, 3);
-		checkRangeSuccess(testType, range1, 4);
-		checkRangeSuccess(testType, range1, 5);
+		checkRangeSuccess(testType, range1, 1L);
+		checkRangeSuccess(testType, range1, 2L);
+		checkRangeSuccess(testType, range1, 3L);
+		checkRangeSuccess(testType, range1, 4L);
+		checkRangeSuccess(testType, range1, 5L);
 
-		try { checkRangeError(testType, range1, 0); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
-		try { checkRangeError(testType, range1, 6); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
+		try { checkRangeError(testType, range1, 0L); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
+		try { checkRangeError(testType, range1, 6L); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
 	}
 
 	@Test
@@ -1888,14 +1889,14 @@ public class ValidationTest extends StructrTest {
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Long(]0,5[)");
 		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
-		checkRangeSuccess(testType, range1, 1);
-		checkRangeSuccess(testType, range1, 2);
-		checkRangeSuccess(testType, range1, 3);
-		checkRangeSuccess(testType, range1, 4);
+		checkRangeSuccess(testType, range1, 1L);
+		checkRangeSuccess(testType, range1, 2L);
+		checkRangeSuccess(testType, range1, 3L);
+		checkRangeSuccess(testType, range1, 4L);
 
-		try { checkRangeError(testType, range1, 0); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
-		try { checkRangeError(testType, range1, 5); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
-		try { checkRangeError(testType, range1, 6); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
+		try { checkRangeError(testType, range1, 0L); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
+		try { checkRangeError(testType, range1, 5L); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
+		try { checkRangeError(testType, range1, 6L); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
 	}
 
 	// schema relationship node validation
@@ -2184,6 +2185,8 @@ public class ValidationTest extends StructrTest {
 
 	private Class createTypeWithProperty(final String typeName, final String keyName, final String keyType) {
 
+		Settings.LogSchemaOutput.setValue(true);
+
 		try (final Tx tx = app.tx()) {
 
 			app.create(SchemaNode.class,
@@ -2197,6 +2200,8 @@ public class ValidationTest extends StructrTest {
 			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
+
+		Settings.LogSchemaOutput.setValue(false);
 
 		return StructrApp.getConfiguration().getNodeEntityClass(typeName);
 	}

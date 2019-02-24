@@ -18,12 +18,11 @@
  */
 package org.structr.memory;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 import org.structr.api.util.Iterables;
 import org.structr.memory.index.filter.Filter;
 import org.structr.memory.index.filter.MemoryLabelFilter;
@@ -32,8 +31,8 @@ import org.structr.memory.index.filter.MemoryLabelFilter;
  */
 public class MemoryNodeRepository {
 
-	final Map<MemoryIdentity, MemoryNode> masterData  = new ConcurrentHashMap<>();
-	final Map<String, List<MemoryIdentity>> typeCache = new ConcurrentHashMap<>();
+	final Map<MemoryIdentity, MemoryNode> masterData = new ConcurrentHashMap<>();
+	final Map<String, Set<MemoryIdentity>> typeCache = new ConcurrentHashMap<>();
 
 	MemoryNode get(final MemoryIdentity id) {
 		return masterData.get(id);
@@ -81,16 +80,35 @@ public class MemoryNodeRepository {
 	}
 
 	void remove(final Set<MemoryIdentity> ids) {
+
 		masterData.keySet().removeAll(ids);
+
+		for (final Set<MemoryIdentity> cache : typeCache.values()) {
+			cache.removeAll(ids);
+		}
+	}
+
+	synchronized void updateCache(final MemoryNode node) {
+
+		final MemoryIdentity id = node.getIdentity();
+		final String type       = (String)node.getProperty("type");
+
+		// remove identity from all caches
+		for (final Set<MemoryIdentity> cache : typeCache.values()) {
+			cache.remove(id);
+		}
+
+		// add identity to type cache again
+		getCacheForLabel(type).add(id);
 	}
 
 	// ----- private methods -----
-	private synchronized List<MemoryIdentity> getCacheForLabel(final String type) {
+	private synchronized Set<MemoryIdentity> getCacheForLabel(final String type) {
 
-		List<MemoryIdentity> cache = typeCache.get(type);
+		Set<MemoryIdentity> cache = typeCache.get(type);
 		if (cache == null) {
 
-			cache = new CopyOnWriteArrayList<>();
+			cache = new CopyOnWriteArraySet<>();
 			typeCache.put(type, cache);
 		}
 

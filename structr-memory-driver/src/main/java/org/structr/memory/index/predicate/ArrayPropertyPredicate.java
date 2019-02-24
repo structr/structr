@@ -18,20 +18,25 @@
  */
 package org.structr.memory.index.predicate;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
 
 /**
+ * A predicate that accepts entities whose array property value
+ * contains all of the given values.
  */
-public class PropertyPredicate<T extends PropertyContainer, V> implements Predicate<T> {
+public class ArrayPropertyPredicate<T extends PropertyContainer, V> implements Predicate<T> {
 
 	private String key     = null;
-	private V desiredValue = null;
+	private V expectedValue = null;
 
-	public PropertyPredicate(final String key, final V desiredValue) {
+	public ArrayPropertyPredicate(final String key, final V expectedValue) {
 
 		this.key          = key;
-		this.desiredValue = desiredValue;
+		this.expectedValue = expectedValue;
 	}
 
 	@Override
@@ -39,11 +44,29 @@ public class PropertyPredicate<T extends PropertyContainer, V> implements Predic
 
 		final Object value = entity.getProperty(key);
 
-		// support for null valuesa
-		if (desiredValue == null && value == null) {
-			return true;
+		// support for null values
+		if (expectedValue == null) {
+			return value == null;
 		}
 
-		return value != null && desiredValue.equals(value);
+		if (value != null) {
+
+			Set expected = new HashSet<>();
+			Set actual   = new HashSet<>(Arrays.asList((Object[])value));
+
+			if (expectedValue.getClass().isArray()) {
+
+				expected.addAll(Arrays.asList((Object[])expectedValue));
+
+			} else {
+
+				// single, non-array value
+				expected.add(expectedValue);
+			}
+
+			return actual.containsAll(expected);
+		}
+
+		return false;
 	}
 }

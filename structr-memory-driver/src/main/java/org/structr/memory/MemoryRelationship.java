@@ -94,4 +94,9 @@ public class MemoryRelationship extends MemoryEntity implements Relationship {
 	public String getUniquenessKey() {
 		return sourceNode.getId() + relType.name() + targetNode.getId();
 	}
+
+	@Override
+	protected void updateCache() {
+		db.updateCache(this);
+	}
 }

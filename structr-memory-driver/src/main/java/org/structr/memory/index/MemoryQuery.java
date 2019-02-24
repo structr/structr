@@ -45,7 +45,8 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 	private boolean sortDescending             = false;
 	private boolean negateNextPredicate        = false;
 
-	public MemoryQuery() {
+	public MemoryQuery(final QueryContext queryContext) {
+		this.queryContext = queryContext;
 	}
 
 	public void setMainType(final String mainType) {
@@ -135,6 +136,11 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 	@Override
 	public boolean accept(final T value) {
 		return rootPredicate.accept(value);
+	}
+
+	@Override
+	public QueryContext getQueryContext() {
+		return queryContext;
 	}
 
 	// ----- nested classes -----

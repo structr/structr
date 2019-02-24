@@ -22,7 +22,6 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -327,9 +326,9 @@ public class PerformanceTest extends StructrUiTest {
 	@Test
 	public void testPerformanceOfNodeDeletion() {
 
-		final App app             = StructrApp.getInstance(setupSecurityContext());
-		final List<TestOne> nodes = new LinkedList<>();
-		final int number          = 1000;
+		final App app                 = StructrApp.getInstance(setupSecurityContext());
+		final List<GraphObject> nodes = new LinkedList<>();
+		final int number              = 1000;
 
 		try {
 
@@ -355,9 +354,7 @@ public class PerformanceTest extends StructrUiTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final Iterator<GraphObject> iterator = (Iterator)nodes.iterator();
-
-				cmd.bulkDelete(iterator);
+				cmd.bulkDelete(nodes);
 
 				tx.success();
 			}

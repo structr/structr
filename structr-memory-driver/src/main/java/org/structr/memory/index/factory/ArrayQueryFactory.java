@@ -21,6 +21,7 @@ package org.structr.memory.index.factory;
 import org.structr.api.index.AbstractIndex;
 import org.structr.api.search.QueryPredicate;
 import org.structr.memory.index.MemoryQuery;
+import org.structr.memory.index.predicate.ArrayPropertyPredicate;
 
 public class ArrayQueryFactory extends KeywordQueryFactory {
 
@@ -31,33 +32,16 @@ public class ArrayQueryFactory extends KeywordQueryFactory {
 	@Override
 	public boolean createQuery(final QueryPredicate predicate, final MemoryQuery query, final boolean isFirst) {
 
-		/*
-
 		final Object value = getReadValue(predicate.getValue());
 		final String name  = predicate.getName();
 
 		checkOccur(query, predicate.getOccurrence(), isFirst);
 
-		if (value == null) {
-
-			query.addSimpleParameter(name, "is", null);
-
-		} else {
-
-			if (predicate.isExactMatch()) {
-
-				query.addListParameter(name, "=", value);
-
-			} else {
-
-				query.addListParameter(name, "=~", "(?i).*" + escape(value) + ".*");
-			}
-		}
+		// interesting fact: the query engine separates array values and calls createQuery for
+		// each of the components separately, so the value here is never an array.
+		
+		query.addPredicate(new ArrayPropertyPredicate(name, value));
 
 		return true;
-
-		*/
-
-		return false;
 	}
 }

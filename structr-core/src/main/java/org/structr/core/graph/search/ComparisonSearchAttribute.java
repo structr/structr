@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph.search;
 
-import org.renjin.sexp.Null;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Occurrence;
