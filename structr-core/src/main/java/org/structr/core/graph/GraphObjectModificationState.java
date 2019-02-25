@@ -694,7 +694,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 		if (key.isCollection()) {
 
-			List list = (List)properties.get(key);
+			List list = (List)properties.get(key.jsonName());
 			if (list == null) {
 
 				list = new LinkedList<>();
