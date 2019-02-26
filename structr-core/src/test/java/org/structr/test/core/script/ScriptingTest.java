@@ -2796,7 +2796,7 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal tester    = app.create(Principal.class, "tester");
+			final Principal tester    = app.create(Principal.class, "modifications-tester");
 			final GraphObject c       = app.nodeQuery(customer).getFirst();
 			final GraphObject p       = app.nodeQuery(project).getFirst();
 			final List<GraphObject> t = app.nodeQuery(task).getAsList();
@@ -2819,6 +2819,7 @@ public class ScriptingTest extends StructrTest {
 		// test modifications
 		try (final Tx tx = app.tx()) {
 
+			final Principal tester = app.nodeQuery(Principal.class).andName("modifications-tester").getFirst();
 			final GraphObject c = app.nodeQuery(customer).getFirst();
 			final GraphObject p = app.nodeQuery(project).getFirst();
 			final GraphObject t = app.nodeQuery(task).getFirst();
@@ -2833,6 +2834,7 @@ public class ScriptingTest extends StructrTest {
 			assertMapPathValueIs(customerModifications, "after.grantees",  new LinkedList<>());
 			assertMapPathValueIs(customerModifications, "added.project",   p.getUuid());
 			assertMapPathValueIs(customerModifications, "removed",         new LinkedHashMap<>());
+			assertMapPathValueIs(customerModifications, "added.grantees",  Arrays.asList(tester.getUuid()));
 
 			assertMapPathValueIs(projectModifications, "before.name",     "Testproject");
 			assertMapPathValueIs(projectModifications, "before.tasks",    null);
@@ -2845,10 +2847,20 @@ public class ScriptingTest extends StructrTest {
 			assertMapPathValueIs(projectModifications, "added.customer", c.getUuid());
 			assertMapPathValueIs(projectModifications, "removed",        new LinkedHashMap<>());
 
+			final List<GraphObject> tasks = app.nodeQuery(task).getAsList();
+			final List<String> taskIds = new LinkedList();
+			for (GraphObject oneTask : tasks) {
+				taskIds.add(oneTask.getUuid());
+			}
+			assertMapPathValueIs(projectModifications, "added.tasks",    taskIds);
+			assertMapPathValueIs(projectModifications, "added.grantees",    Arrays.asList(tester.getUuid()));
+
+
 			assertMapPathValueIs(taskModifications, "before.project",  null);
 			assertMapPathValueIs(taskModifications, "after.project",   null);
 			assertMapPathValueIs(taskModifications, "added.project",   p.getUuid());
 			assertMapPathValueIs(taskModifications, "removed",         new LinkedHashMap<>());
+
 
 			tx.success();
 
