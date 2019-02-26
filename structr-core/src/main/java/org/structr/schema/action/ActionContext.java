@@ -254,76 +254,79 @@ public class ActionContext {
 			} else {
 
 				// keywords that need an existing security context
-				if (securityContext != null) {
+				if (securityContext != null && securityContext != SecurityContext.getSuperUserInstance()) {
 
 					// "data-less" keywords to start the evaluation chain
-					switch (key) {
+					if (securityContext.getRequest() != null) {
+						switch (key) {
+							case "request":
+								return securityContext.getRequest();
 
-						case "request":
-							return securityContext.getRequest();
+							case "host":
+								return securityContext.getRequest().getServerName();
 
-						case "host":
-							return securityContext.getRequest().getServerName();
+							case "port":
+								return securityContext.getRequest().getServerPort();
 
-						case "port":
-							return securityContext.getRequest().getServerPort();
+							case "pathInfo":
+							case "path_info":
+								return securityContext.getRequest().getPathInfo();
 
-						case "pathInfo":
-						case "path_info":
-							return securityContext.getRequest().getPathInfo();
+							case "queryString":
+							case "query_string":
+								return securityContext.getRequest().getQueryString();
 
-						case "queryString":
-						case "query_string":
-							return securityContext.getRequest().getQueryString();
+							case "parameterMap":
+							case "parameter_map":
+								return securityContext.getRequest().getParameterMap();
 
-						case "parameterMap":
-						case "parameter_map":
-							return securityContext.getRequest().getParameterMap();
-
-						case "remoteAddress":
-						case "remote_address":
-							final String remoteAddress = securityContext.getRequest().getHeader("X-FORWARDED-FOR");
-							if (remoteAddress == null) {
-								return securityContext.getRequest().getRemoteAddr();
-							}
-							return remoteAddress;
-
-						case "response": {
-							final HttpServletResponse response = securityContext.getResponse();
-							if (response != null) {
-
-								try {
-									// return output stream of HTTP response for streaming
-									return response.getOutputStream();
-
-								} catch (IOException ioex) {
-									logger.warn("", ioex);
+							case "remoteAddress":
+							case "remote_address":
+								final String remoteAddress = securityContext.getRequest().getHeader("X-FORWARDED-FOR");
+								if (remoteAddress == null) {
+									return securityContext.getRequest().getRemoteAddr();
 								}
-							}
-							return null;
-						}
+								return remoteAddress;
 
-						case "statusCode":
-						case "status_code": {
-							final HttpServletResponse response = securityContext.getResponse();
-							if (response != null) {
-								return response.getStatus();
-							}
-							return null;
-						}
+							case "response": {
+								final HttpServletResponse response = securityContext.getResponse();
+								if (response != null) {
 
+									try {
+										// return output stream of HTTP response for streaming
+										return response.getOutputStream();
+
+									} catch (IOException ioex) {
+										logger.warn("", ioex);
+									}
+								}
+								return null;
+							}
+
+							case "statusCode":
+							case "status_code": {
+								final HttpServletResponse response = securityContext.getResponse();
+								if (response != null) {
+									return response.getStatus();
+								}
+								return null;
+							}
+							case "depth":
+								return securityContext.getSerializationDepth() - 1;
+
+
+							case "baseUrl":
+							case "base_url": {
+
+								return getBaseUrl(securityContext.getRequest());
+							}
+						}
+						
+					}
+
+					switch (key) {
 						case "me":
 							return securityContext.getUser(false);
-
-						case "depth":
-							return securityContext.getSerializationDepth() - 1;
-
-
-						case "baseUrl":
-						case "base_url": {
-
-							return getBaseUrl(securityContext.getRequest());
-						}
 					}
 
 				}
