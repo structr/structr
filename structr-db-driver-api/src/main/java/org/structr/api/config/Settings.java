@@ -381,7 +381,8 @@ public class Settings {
 	public static final Setting<String> LDAPSecret          = new StringSetting(ldapGroup, "General",  "ldap.secret", "");
 	public static final Setting<Boolean> LDAPUseSSL         = new BooleanSetting(ldapGroup, "General", "ldap.useSsl", false);
 	public static final Setting<String> LDAPScope           = new StringSetting(ldapGroup, "General",  "ldap.scope", "SUBTREE");
-	public static final Setting<String> LDAPPropertyMapping = new StringSetting(ldapGroup, "General",  "ldap.propertyMapping", "{ sn: name, email: eMail } ", "Mapping from LDAP properties to Structr properties");
+	public static final Setting<String> LDAPPropertyMapping = new StringSetting(ldapGroup, "General",  "ldap.propertyMapping", "{ sn: name, email: eMail }", "Mapping from LDAP properties to Structr properties");
+	public static final Setting<String> LDAPGroupNames      = new StringSetting(ldapGroup, "General",  "ldap.groupNames", "{ group: member, groupOfNames: member, groupOfUniqueNames: uniqueMember }", "LDAP objectclass tuples for group and member identification.");
 	public static final Setting<Integer> LDAPUpdateInterval = new IntegerSetting(ldapGroup, "General", "ldap.updateInterval", 600, "Update interval for group synchronization in seconds");
 
 	// miscellaneous settings
