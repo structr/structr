@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -163,12 +163,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public void setRawPathSegmentId(final long pathSegmentId) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public long getId() {
+	public void setRawPathSegmentId(final String pathSegmentId) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 

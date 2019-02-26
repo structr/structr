@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,7 +27,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.CypherQueryCommand;
+import org.structr.core.graph.NativeQueryCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
@@ -66,7 +66,7 @@ public class CypherQueryResource extends Resource {
 			if (queryObject != null) {
 
 				String query                     = queryObject.toString();
-				Iterable<GraphObject> resultList = StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(query, Collections.EMPTY_MAP);
+				Iterable<GraphObject> resultList = StructrApp.getInstance(securityContext).command(NativeQueryCommand.class).execute(query, Collections.EMPTY_MAP);
 
 				return new PagingIterable<>(resultList);
 				//return new ResultStream(resultList, true, false);
@@ -98,7 +98,7 @@ public class CypherQueryResource extends Resource {
 			if (queryObject != null) {
 
 				String query                     = queryObject.toString();
-				Iterable<GraphObject> resultList = StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(query, propertySet);
+				Iterable<GraphObject> resultList = StructrApp.getInstance(securityContext).command(NativeQueryCommand.class).execute(query, propertySet);
 
 				for (GraphObject obj : resultList) {
 

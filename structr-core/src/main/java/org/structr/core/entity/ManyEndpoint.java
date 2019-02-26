@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -64,7 +64,7 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 
 			if (predicate != null && predicate.comparator() != null) {
 
-				final List<T> result = Iterables.toList(Iterables.map(from -> nodeFactory.instantiate(from.getEndNode(), from.getId()), rels));
+				final List<T> result = Iterables.toList(Iterables.map(from -> nodeFactory.instantiate(from.getEndNode(), getUuid(from)), rels));
 
 				Collections.sort(result, predicate.comparator());
 
@@ -73,7 +73,7 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 			} else {
 
 				// sort relationships by id
-				return Iterables.map(from -> nodeFactory.instantiate(from.getEndNode(), from.getId()), rels);
+				return Iterables.map(from -> nodeFactory.instantiate(from.getEndNode(), getUuid(from)), rels);
 			}
 		}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -94,31 +94,39 @@ public class MailService extends Thread implements RunnableService {
 
 	public Iterable<String> fetchFolders(final Mailbox mb) {
 
-		final Store store = connectToStore(mb);
+		if (mb.getHost() != null && mb.getMailProtocol() != null && mb.getUser() != null && mb.getPassword() != null && mb.getFolders() != null) {
 
-		List<String> folders = new ArrayList<>();
+			final Store store = connectToStore(mb);
 
-		try {
-			final Folder defaultFolder = store.getDefaultFolder();
-			if (defaultFolder != null) {
+			List<String> folders = new ArrayList<>();
 
-				final Folder[] folderList = defaultFolder.list("*");
+			try {
+				final Folder defaultFolder = store.getDefaultFolder();
+				if (defaultFolder != null) {
 
-				for (final Folder folder : folderList) {
+					final Folder[] folderList = defaultFolder.list("*");
 
-					if ((folder.getType() & javax.mail.Folder.HOLDS_MESSAGES) != 0) {
+					for (final Folder folder : folderList) {
 
-						folders.add(folder.getFullName());
+						if ((folder.getType() & javax.mail.Folder.HOLDS_MESSAGES) != 0) {
+
+							folders.add(folder.getFullName());
+						}
 					}
 				}
+
+			} catch (MessagingException ex) {
+
+				logger.error("Exception while trying to fetch mailbox folders.", ex);
 			}
 
-		} catch (MessagingException ex) {
+			return folders;
 
-			logger.error("Exception while trying to fetch mailbox folders.", ex);
+		} else {
+
+			logger.warn("Could not retrieve folders for mailbox[" + mb.getUuid() + "] since not all required attributes were specified.");
+			return new ArrayList<>();
 		}
-
-		return folders;
 
 	}
 
@@ -236,23 +244,27 @@ public class MailService extends Thread implements RunnableService {
 
 	}
 
-	private String handleMultipart(Multipart p, List<File> attachments) {
+	private Map<String,String> handleMultipart(Multipart p, List<File> attachments) {
+
+		Map<String,String> result = new HashMap<>();
 
 		try {
-
-			String content = "";
 
 			for (int i = 0; i < p.getCount(); i++) {
 
 				BodyPart part = (BodyPart) p.getBodyPart(i);
 				if (part.getContentType().contains("multipart")) {
 
-					String result = handleMultipart((Multipart)part.getContent(), attachments);
+					Map<String,String> subResult = handleMultipart((Multipart)part.getContent(), attachments);
 
-					if (result != null) {
-
-						content = content.concat(result);
+					if (subResult.get("content") != null) {
+						result.put("content", result.get("content").concat(subResult.get("content")));
 					}
+
+					if (subResult.get("htmlContent") != null) {
+						result.put("htmlContent", result.get("htmlContent").concat(subResult.get("htmlContent")));
+					}
+
 
 				} else if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
 
@@ -264,16 +276,17 @@ public class MailService extends Thread implements RunnableService {
 					}
 				} else {
 
-					String result =  getText(part);
+					if (part.isMimeType("text/html")) {
 
-					if (result != null) {
+						result.put("htmlContent", getText(part));
+					} else {
 
-						content = content.concat(result);
+						result.put("content", getText(part));
 					}
 				}
 			}
 
-			return content.length() > 0 ? content : null;
+			return result;
 		} catch (MessagingException | IOException ex) {
 			logger.error("Error while handling multipart message: ", ex);
 		}
@@ -284,12 +297,18 @@ public class MailService extends Thread implements RunnableService {
 
 	private String getText(Part p) throws MessagingException, IOException {
 
-		if (p.isMimeType("text/plain")) {
+		if (p.isMimeType("text/")) {
 
 			Object content = p.getContent();
+
 			if (!(content instanceof BASE64DecoderStream)) {
 
 				return (String)p.getContent();
+			} else if(p.getContentType().equals("base64")) {
+
+				BASE64DecoderStream contentStream = (BASE64DecoderStream)content;
+
+				return contentStream.toString();
 			} else {
 
 				return null;
@@ -400,6 +419,10 @@ public class MailService extends Thread implements RunnableService {
 
 				String[] folders = mailbox.getFolders();
 
+				if (folders == null) {
+					folders = new String[]{};
+				}
+
 				final Store store = connectToStore(mailbox);
 
 				if (store.isConnected()) {
@@ -481,19 +504,26 @@ public class MailService extends Thread implements RunnableService {
 
 								// Handle content extraction
 								String content = null;
+								String htmlContent = null;
 								Object contentObj = message.getContent();
 
 								List<File> attachments = new ArrayList<>();
 
 								if (message.getContentType().contains("multipart")) {
 
-									content = handleMultipart((Multipart)contentObj, attachments);
-								} else if (message.getContentType().contains("text/")){
+									Map<String, String> result = handleMultipart((Multipart)contentObj, attachments);
+									content = result.get("content");
+									htmlContent = result.get("htmlContent");
+								} else if (message.getContentType().contains("text/plain")){
 
 									content = contentObj.toString();
+								} else if (message.getContentType().contains("text/html")) {
+
+									htmlContent = contentObj.toString();
 								}
 
 								pm.put(StructrApp.key(EMailMessage.class, "content"), content);
+								pm.put(StructrApp.key(EMailMessage.class, "htmlContent"), htmlContent);
 								pm.put(StructrApp.key(EMailMessage.class, "attachedFiles"), attachments);
 
 								app.create(EMailMessage.class, pm);

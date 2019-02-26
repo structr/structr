@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,8 +26,10 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseService;
 import org.structr.api.graph.PropertyContainer;
-import org.structr.api.index.Index;
+import org.structr.api.index.AbstractIndex;
+import org.structr.api.index.QueryFactory;
 import org.structr.api.search.*;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.index.converter.BooleanTypeConverter;
@@ -44,88 +46,73 @@ import org.structr.bolt.index.factory.*;
 /**
  *
  */
-public abstract class AbstractCypherIndex<T extends PropertyContainer> implements Index<T>, QueryFactory {
+public abstract class AbstractCypherIndex<T extends PropertyContainer> extends AbstractIndex<AdvancedCypherQuery, T> {
 
-	private static final Logger logger                       = LoggerFactory.getLogger(AbstractCypherIndex.class.getName());
-	public static final TypeConverter DEFAULT_CONVERTER      = new StringTypeConverter();
-	public static final Map<Class, TypeConverter> CONVERTERS = new HashMap<>();
-	public static final Map<Class, QueryFactory> FACTORIES   = new HashMap<>();
+	private static final Logger logger = LoggerFactory.getLogger(AbstractCypherIndex.class.getName());
 
 	public static final Set<Class> INDEXABLE = new HashSet<>(Arrays.asList(new Class[] {
 		String.class,   Boolean.class,   Short.class,   Integer.class,   Long.class,   Character.class,   Float.class,   Double.class,   byte.class,
 		String[].class, Boolean[].class, Short[].class, Integer[].class, Long[].class, Character[].class, Float[].class, Double[].class, byte[].class
 	}));
 
-	static {
+	private final Map<Class, TypeConverter> converters = new HashMap<>();
+	private final Map<Class, QueryFactory> factories   = new HashMap<>();
+	protected BoltDatabaseService db                   = null;
 
-		FACTORIES.put(NotEmptyQuery.class,     new NotEmptyQueryFactory());
-		FACTORIES.put(FulltextQuery.class,     new KeywordQueryFactory());
-		FACTORIES.put(SpatialQuery.class,      new SpatialQueryFactory());
-		FACTORIES.put(GroupQuery.class,        new GroupQueryFactory());
-		FACTORIES.put(RangeQuery.class,        new RangeQueryFactory());
-		FACTORIES.put(ExactQuery.class,        new KeywordQueryFactory());
-		FACTORIES.put(ArrayQuery.class,        new ArrayQueryFactory());
-		FACTORIES.put(EmptyQuery.class,        new EmptyQueryFactory());
-		FACTORIES.put(TypeQuery.class,         new TypeQueryFactory());
-		FACTORIES.put(UuidQuery.class,         new UuidQueryFactory());
-		FACTORIES.put(RelationshipQuery.class, new RelationshipQueryFactory());
-		FACTORIES.put(ComparisonQuery.class,   new ComparisonQueryFactory());
-
-		CONVERTERS.put(Boolean.class, new BooleanTypeConverter());
-		CONVERTERS.put(String.class,  new StringTypeConverter());
-		CONVERTERS.put(Date.class,    new DateTypeConverter());
-		CONVERTERS.put(Long.class,    new LongTypeConverter());
-		CONVERTERS.put(Short.class,   new ShortTypeConverter());
-		CONVERTERS.put(Integer.class, new IntTypeConverter());
-		CONVERTERS.put(Float.class,   new FloatTypeConverter());
-		CONVERTERS.put(Double.class,  new DoubleTypeConverter());
-		CONVERTERS.put(byte.class,    new ByteTypeConverter());
-	}
-
-	protected final BoltDatabaseService db;
+	public abstract String getQueryPrefix(final String mainType, final String sourceTypeLabel, final String targetTypeLabel);
+	public abstract String getQuerySuffix(final AdvancedCypherQuery query);
 
 	public AbstractCypherIndex(final BoltDatabaseService db) {
+
 		this.db = db;
+
+		init();
 	}
 
-	public abstract Iterable<T> getResult(final PageableQuery query);
-	public abstract String getQueryPrefix(final String mainType, final String sourceTypeLabel, final String targetTypeLabel);
-	public abstract String getQuerySuffix(final PageableQuery query);
-
 	@Override
-	public Iterable<T> query(final QueryContext context, final QueryPredicate predicate) {
-
-		final AdvancedCypherQuery query = new AdvancedCypherQuery(context, this);
-
-		createQuery(this, predicate, query, true);
-
-		final String sortKey = predicate.getSortKey();
-		if (sortKey != null) {
-
-			query.sort(predicate.getSortType(), sortKey, predicate.sortDescending());
-		}
-
-		return getResult(query);
+	public AdvancedCypherQuery createQuery(final QueryContext context) {
+		return new AdvancedCypherQuery(context, this);
 	}
 
-	// ----- interface QueryFactory -----
 	@Override
-	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
+	public QueryFactory getFactoryForType(final Class type) {
+		return factories.get(type);
+	}
 
-		final Class type = predicate.getQueryType();
-		if (type != null) {
+	@Override
+	public TypeConverter getConverterForType(final Class type) {
+		return converters.get(type);
+	}
 
-			final QueryFactory factory = FACTORIES.get(type);
-			if (factory != null) {
+	@Override
+	public DatabaseService getDatabaseService() {
+		return db;
+	}
 
-				return factory.createQuery(this, predicate, query, isFirst);
+	// ----- private methods -----
+	private void init() {
 
-			} else {
+		factories.put(NotEmptyQuery.class,     new NotEmptyQueryFactory(this));
+		factories.put(FulltextQuery.class,     new KeywordQueryFactory(this));
+		factories.put(SpatialQuery.class,      new SpatialQueryFactory(this));
+		factories.put(GroupQuery.class,        new GroupQueryFactory(this));
+		factories.put(RangeQuery.class,        new RangeQueryFactory(this));
+		factories.put(ExactQuery.class,        new KeywordQueryFactory(this));
+		factories.put(ArrayQuery.class,        new ArrayQueryFactory(this));
+		factories.put(EmptyQuery.class,        new EmptyQueryFactory(this));
+		factories.put(TypeQuery.class,         new TypeQueryFactory(this));
+		factories.put(UuidQuery.class,         new UuidQueryFactory(this));
+		factories.put(RelationshipQuery.class, new RelationshipQueryFactory(this));
+		factories.put(ComparisonQuery.class,   new ComparisonQueryFactory(this));
 
-				logger.warn("No query factory registered for type {}", type);
-			}
-		}
-
-		return false;
+		converters.put(Boolean.class, new BooleanTypeConverter());
+		converters.put(String.class,  new StringTypeConverter());
+		converters.put(Date.class,    new DateTypeConverter());
+		converters.put(Long.class,    new LongTypeConverter());
+		converters.put(Short.class,   new ShortTypeConverter());
+		converters.put(Integer.class, new IntTypeConverter());
+		converters.put(Float.class,   new FloatTypeConverter());
+		converters.put(Double.class,  new DoubleTypeConverter());
+		converters.put(byte.class,    new ByteTypeConverter());
 	}
 }

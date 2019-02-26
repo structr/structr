@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,20 +16,16 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt.index;
+package org.structr.api.index;
 
-import java.util.Map;
-import org.structr.api.search.QueryContext;
+import org.structr.api.search.SortType;
 
-public interface PageableQuery {
+public interface DatabaseQuery {
 
-	void nextPage();
-	int pageSize();
-	String getSortKey();
-	String getStatement();
-	Map<String, Object> getParameters();
+	public void and();
+	public void or();
+	public void not();
+	public void andNot();
 
-	QueryContext getQueryContext();
-
-	boolean idsOnly();
+	void sort(final SortType sortType, final String sortKey, final boolean sortDescending);
 }

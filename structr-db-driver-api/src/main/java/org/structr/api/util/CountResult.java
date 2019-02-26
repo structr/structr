@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,14 +16,26 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.index;
+package org.structr.api.util;
 
-import org.structr.api.graph.PropertyContainer;
+/**
+ *
+ */
+public class CountResult {
 
+	private long nodeCount = 0;
+	private long relCount  = 0;
 
-public interface IndexManager<T extends PropertyContainer> {
+	public CountResult(final long nodeCount, final long relCount) {
+		this.nodeCount = nodeCount;
+		this.relCount  = relCount;
+	}
 
-	Index<T> fulltext();
-	Index<T> exact();
-	Index<T> spatial();
+	public long getNodeCount() {
+		return nodeCount;
+	}
+
+	public long getRelationshipCount() {
+		return relCount;
+	}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.CypherQueryCommand;
+import org.structr.core.graph.NativeQueryCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.graph.NodeInterface;
@@ -46,6 +46,6 @@ public class CypherGraphDataSource implements GraphDataSource<Iterable<GraphObje
 			return null;
 		}
 
-		return StructrApp.getInstance(actionContext.getSecurityContext()).command(CypherQueryCommand.class).execute(cypherQuery);
+		return StructrApp.getInstance(actionContext.getSecurityContext()).command(NativeQueryCommand.class).execute(cypherQuery);
 	}
 }

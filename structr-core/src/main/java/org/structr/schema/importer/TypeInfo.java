@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,12 +18,12 @@
  */
 package org.structr.schema.importer;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import org.structr.api.graph.Identity;
 
 /**
  *
@@ -35,13 +35,12 @@ public class TypeInfo {
 
 	private final Map<String, Class> propertySet = new LinkedHashMap<>();
 	private final Set<String> otherTypes         = new LinkedHashSet<>();
-	private Collection<Long> nodeIds             = null;
+	private final Set<Identity> nodeIds          = new LinkedHashSet<>();
 	private String primaryType                   = null;
 	private int hierarchyLevel                   = 0;
 
-	public TypeInfo(final String primaryType, final Set<String> otherTypes, final Collection<Long> nodeIds) {
+	public TypeInfo(final String primaryType, final Set<String> otherTypes, final Collection<Identity> nodeIds) {
 
-		this.nodeIds     = new LazyFileBasedLongCollection(userHome + File.separator + ".structrSchemaAnalyzer" + File.separator + primaryType + ".lfc", false);
 		this.primaryType = primaryType;
 
 		this.otherTypes.addAll(otherTypes);
@@ -122,7 +121,7 @@ public class TypeInfo {
 		return otherTypes;
 	}
 
-	public Collection<Long> getNodeIds() {
+	public Collection<Identity> getNodeIds() {
 		return nodeIds;
 	}
 

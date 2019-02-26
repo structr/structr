@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -108,7 +108,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 		// create relationship including initial properties
 		final Relationship rel = startNode.createRelationshipTo(endNode, template, tmp.getData());
-		final R newRel         = factory.instantiateWithType(rel, relType, -1, true);
+		final R newRel         = factory.instantiateWithType(rel, relType, null, true);
 
 		if (newRel != null) {
 

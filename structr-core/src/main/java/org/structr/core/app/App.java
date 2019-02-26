@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -41,51 +41,52 @@ import org.structr.core.property.PropertyMap;
  */
 public interface App extends Closeable {
 
-	public Tx tx() throws FrameworkException;
-	public Tx tx(final boolean doValidation) throws FrameworkException;
-	public Tx tx(final boolean doValidation, final boolean doCallbacks) throws FrameworkException;
-	public Tx tx(final boolean doValidation, final boolean doCallbacks, final boolean doNotifications) throws FrameworkException;
+	Tx tx() throws FrameworkException;
+	Tx tx(final boolean doValidation) throws FrameworkException;
+	Tx tx(final boolean doValidation, final boolean doCallbacks) throws FrameworkException;
+	Tx tx(final boolean doValidation, final boolean doCallbacks, final boolean doNotifications) throws FrameworkException;
 
-	public <T extends NodeInterface> T create(final Class<T> type, final String name) throws FrameworkException;
-	public <T extends NodeInterface> T create(final Class<T> type, final PropertyMap properties) throws FrameworkException;
-	public <T extends NodeInterface> T create(final Class<T> type, final NodeAttribute<?>... attributes) throws FrameworkException;
+	<T extends NodeInterface> T create(final Class<T> type, final String name) throws FrameworkException;
+	<T extends NodeInterface> T create(final Class<T> type, final PropertyMap properties) throws FrameworkException;
+	<T extends NodeInterface> T create(final Class<T> type, final NodeAttribute<?>... attributes) throws FrameworkException;
+	<T extends NodeInterface> void delete(final Class<T> type) throws FrameworkException;
 
-	public void delete(final NodeInterface node) throws FrameworkException;
+	void delete(final NodeInterface node) throws FrameworkException;
 
-	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R create(final A fromNode, final B toNode, final Class<R> relType) throws FrameworkException;
-	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R create(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap properties) throws FrameworkException;
+	<A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R create(final A fromNode, final B toNode, final Class<R> relType) throws FrameworkException;
+	<A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R create(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap properties) throws FrameworkException;
 
-	public void delete(final RelationshipInterface relationship);
+	void delete(final RelationshipInterface relationship);
 
-	public NodeInterface getNodeById(final Class type, final String uuid) throws FrameworkException;
-	public NodeInterface getNodeById(final String uuid) throws FrameworkException;
-	public RelationshipInterface getRelationshipById(final Class type, final String uuid) throws FrameworkException;
-	public RelationshipInterface getRelationshipById(final String uuid) throws FrameworkException;
-	public <T extends GraphObject> Iterable<T> get(final Class<T> type) throws FrameworkException;
-	public <T extends GraphObject> T get(final Class<T> type, final String uuid) throws FrameworkException;
+	NodeInterface getNodeById(final Class type, final String uuid) throws FrameworkException;
+	NodeInterface getNodeById(final String uuid) throws FrameworkException;
+	RelationshipInterface getRelationshipById(final Class type, final String uuid) throws FrameworkException;
+	RelationshipInterface getRelationshipById(final String uuid) throws FrameworkException;
+	<T extends GraphObject> Iterable<T> get(final Class<T> type) throws FrameworkException;
+	<T extends GraphObject> T get(final Class<T> type, final String uuid) throws FrameworkException;
 
-	public Query<? extends NodeInterface> nodeQuery();
-	public <T extends NodeInterface> Query<T> nodeQuery(final Class<T> type);
+	Query<? extends NodeInterface> nodeQuery();
+	<T extends NodeInterface> Query<T> nodeQuery(final Class<T> type);
 
-	public Query<? extends RelationshipInterface> relationshipQuery();
-	public <T extends RelationshipInterface> Query<T> relationshipQuery(final Class<T> type);
+	Query<? extends RelationshipInterface> relationshipQuery();
+	<T extends RelationshipInterface> Query<T> relationshipQuery(final Class<T> type);
 
-	public void shutdown();
+	void shutdown();
 
-	public <T extends Command> T command(final Class<T> commandType);
+	<T extends Command> T command(final Class<T> commandType);
 
-	public void processTasks(final Task... tasks);
-	public <T extends Command & MaintenanceCommand> void maintenance(final Class<T> commandClass, final Map<String, Object> propertySet) throws FrameworkException;
+	void processTasks(final Task... tasks);
+	<T extends Command & MaintenanceCommand> void maintenance(final Class<T> commandClass, final Map<String, Object> propertySet) throws FrameworkException;
 
-	public FulltextIndexer getFulltextIndexer(final Object... params);
+	FulltextIndexer getFulltextIndexer(final Object... params);
 
-	public Iterable<GraphObject> cypher(final String cypherQuery, final Map<String, Object> parameters) throws FrameworkException;
+	Iterable<GraphObject> query(final String nativeQuery, final Map<String, Object> parameters) throws FrameworkException;
 
-	public <T extends Service> T getService(final Class<T> serviceClass);
-	public DatabaseService getDatabaseService();
+	<T extends Service> T getService(final Class<T> serviceClass);
+	DatabaseService getDatabaseService();
 
-	public <T> T getGlobalSetting(final String key, final T defaultValue) throws FrameworkException;
-	public void setGlobalSetting(final String key, final Object value) throws FrameworkException;
+	<T> T getGlobalSetting(final String key, final T defaultValue) throws FrameworkException;
+	void setGlobalSetting(final String key, final Object value) throws FrameworkException;
 
 	/**
 	 * Returns the unique instance ID of this Structr database instance. Please
@@ -95,9 +96,9 @@ public interface App extends Closeable {
 	 * @return a 32 character UUID
 	 * @throws org.structr.common.error.FrameworkException
 	 */
-	public String getInstanceId() throws FrameworkException;
+	String getInstanceId() throws FrameworkException;
 
-	public void invalidateCache();
+	void invalidateCache();
 
 	Map<String, Object> getAppContextStore();
 }

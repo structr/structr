@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -52,6 +52,11 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	private static FixedSizeCache<Long, NodeWrapper> nodeCache                   = null;
 	private boolean dontUseCache                                                 = false;
 
+	protected NodeWrapper() {
+		// nop constructor for cache access
+		super();
+	}
+
 	private NodeWrapper(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Node node) {
 		super(db, node);
 	}
@@ -102,7 +107,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		final StringBuilder buf       = new StringBuilder();
 
 		map.put("id1", id);
-		map.put("id2", endNode.getId());
+		map.put("id2", db.unwrap(endNode.getId()));
 		map.put("relProperties", properties);
 
 		buf.append("MATCH (n");
@@ -191,8 +196,8 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		final Map<String, Object> params = new LinkedHashMap<>();
 		final String tenantIdentifier = getTenantIdentifer(db);
 
-		params.put("id1", getId());
-		params.put("id2", targetNode.getId());
+		params.put("id1", id);
+		params.put("id2", db.unwrap(targetNode.getId()));
 
 		try {
 
@@ -306,27 +311,44 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		list.add(rel);
 	}
 
+	// ----- protected methods -----
+	@Override
+	protected boolean isNode() {
+		return true;
+	}
+
+	// ----- private methods -----
+	private Map<String, RelationshipResult> getCache(final Direction direction) {
+
+		final String directionKey             = direction != null ? direction.name() : "*";
+		Map<String, RelationshipResult> cache = relationshipCache.get(directionKey);
+
+		if (cache == null) {
+
+			cache = new HashMap<>();
+			relationshipCache.put(directionKey, cache);
+		}
+
+		return cache;
+	}
+
+	private RelationshipResult getRelationshipCache(final Direction direction, final RelationshipType relType) {
+
+		final String relTypeKey                     = relType != null ? relType.name() : "*";
+		final Map<String, RelationshipResult> cache = getCache(direction);
+
+		RelationshipResult count = cache.get(relTypeKey);
+		if (count == null) {
+
+			count = new RelationshipResult();
+			cache.put(relTypeKey, count);
+		}
+
+		// never return null
+		return count;
+	}
+
 	// ----- public static methods -----
-	public static FixedSizeCache<Long, NodeWrapper> getCache() {
-		return nodeCache;
-	}
-
-	public static void expunge(final Set<Long> toRemove) {
-
-		synchronized (nodeCache) {
-
-			nodeCache.removeAll(toRemove);
-		}
-	}
-
-	public static void clearCache() {
-
-		synchronized (nodeCache) {
-
-			nodeCache.clear();
-		}
-	}
-
 	public static NodeWrapper newInstance(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Node node) {
 
 		synchronized (nodeCache) {
@@ -374,43 +396,29 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		}
 	}
 
-	// ----- protected methods -----
-	@Override
-	protected boolean isNode() {
-		return true;
+	// ----- package-private static methods
+	static FixedSizeCache<Long, NodeWrapper> getCache() {
+		return nodeCache;
 	}
 
-	// ----- private methods -----
-	private Map<String, RelationshipResult> getCache(final Direction direction) {
+	public static void expunge(final Set<Long> toRemove) {
 
-		final String directionKey             = direction != null ? direction.name() : "*";
-		Map<String, RelationshipResult> cache = relationshipCache.get(directionKey);
+		synchronized (nodeCache) {
 
-		if (cache == null) {
-
-			cache = new HashMap<>();
-			relationshipCache.put(directionKey, cache);
+			nodeCache.removeAll(toRemove);
 		}
-
-		return cache;
 	}
 
-	private RelationshipResult getRelationshipCache(final Direction direction, final RelationshipType relType) {
+	// ----- protected static methods -----
+	protected static void clearCache() {
 
-		final String relTypeKey                     = relType != null ? relType.name() : "*";
-		final Map<String, RelationshipResult> cache = getCache(direction);
+		synchronized (nodeCache) {
 
-		RelationshipResult count = cache.get(relTypeKey);
-		if (count == null) {
-
-			count = new RelationshipResult();
-			cache.put(relTypeKey, count);
+			nodeCache.clear();
 		}
-
-		// never return null
-		return count;
 	}
 
+	// ----- private static methods -----
 	private static String concat(final String... parts) {
 
 		final StringBuilder buf = new StringBuilder();

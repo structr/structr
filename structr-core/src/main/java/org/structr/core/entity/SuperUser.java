@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -107,11 +107,6 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	@Override
 	public boolean isAdmin() {
 		return true;
-	}
-
-	@Override
-	public long getId() {
-		return -1L;
 	}
 
 	public String getRealName() {
@@ -433,7 +428,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public void setRawPathSegmentId(final long rawSegmentID) {
+	public void setRawPathSegmentId(final String rawSegmentID) {
 	}
 
 	@Override

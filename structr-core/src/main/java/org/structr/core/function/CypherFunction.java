@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -52,7 +52,7 @@ public class CypherFunction extends Function<Object, Object> {
 				params.putAll((Map)sources[1]);
 			}
 
-			return StructrApp.getInstance(ctx.getSecurityContext()).cypher(query, params);
+			return StructrApp.getInstance(ctx.getSecurityContext()).query(query, params);
 
 		} catch (ArgumentNullException pe) {
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -1132,8 +1132,8 @@ public class SearchAndSortingTest extends StructrTest {
 
 				result = app.relationshipQuery(type).and(key1, val1).getAsList();
 
-				assertTrue(result.size() == 1);
-				assertTrue(result.get(0).equals(rel));
+				assertEquals(1, result.size());
+				assertEquals(rel, result.get(0));
 			}
 
 			final String val2 = "ölllldjöoa8w4rasf";
@@ -1144,8 +1144,8 @@ public class SearchAndSortingTest extends StructrTest {
 				tx.success();
 			}
 
-			assertTrue(result.size() == 1);
-			assertTrue(result.get(0).equals(rel));
+			assertEquals(1, result.size());
+			assertEquals(rel, result.get(0));
 
 		} catch (FrameworkException ex) {
 

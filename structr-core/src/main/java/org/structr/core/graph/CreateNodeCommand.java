@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,8 +30,8 @@ import org.structr.api.ConstraintViolationException;
 import org.structr.api.DataFormatException;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Node;
-import org.structr.bolt.wrapper.NodeWrapper;
-import org.structr.bolt.wrapper.RelationshipWrapper;
+import org.structr.api.graph.Relationship;
+import org.structr.api.util.NodeWithOwnerResult;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
@@ -92,6 +92,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			final PropertyMap toNotify       = new PropertyMap();
 			final Object typeObject          = properties.get(AbstractNode.type);
 			final Class nodeType             = getTypeOrGeneric(typeObject);
+			final String typeName            = nodeType.getSimpleName();
 			final Set<String> labels         = TypeProperty.getLabelsForType(nodeType);
 			final CreationContainer tmp      = new CreationContainer(true);
 			final Date now                   = new Date();
@@ -115,7 +116,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			// use property keys to set property values on creation dummy
 			// set default values for common properties in creation query
 			GraphObject.id.setProperty(securityContext, tmp, uuid);
-			GraphObject.type.setProperty(securityContext, tmp, nodeType.getSimpleName());
+			GraphObject.type.setProperty(securityContext, tmp, typeName);
 			AbstractNode.createdDate.setProperty(securityContext, tmp, now);
 			AbstractNode.lastModifiedDate.setProperty(securityContext, tmp, now);
 
@@ -159,7 +160,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 				}
 			}
 
-			node = (T) nodeFactory.instantiateWithType(createNode(graphDb, user, labels, tmp.getData()), nodeType, -1, isCreation);
+			node = (T) nodeFactory.instantiateWithType(createNode(graphDb, user, typeName, labels, tmp.getData()), nodeType, null, isCreation);
 			if (node != null) {
 
 				TransactionCommand.nodeCreated(user, node);
@@ -206,44 +207,15 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 	}
 
 	// ----- private methods -----
-	private Node createNode(final DatabaseService graphDb, final Principal user, final Set<String> labels, final Map<String, Object> properties) throws FrameworkException {
+	private Node createNode(final DatabaseService graphDb, final Principal user, final String type, final Set<String> labels, final Map<String, Object> properties) throws FrameworkException {
 
-		final Map<String, Object> parameters         = new HashMap<>();
 		final Map<String, Object> ownsProperties     = new HashMap<>();
 		final Map<String, Object> securityProperties = new HashMap<>();
-		final StringBuilder buf                      = new StringBuilder();
 		final String newUuid                         = (String)properties.get("id");
-		final String tenantId                        = graphDb.getTenantIdentifier();
 
 		if (user != null && user.shouldSkipSecurityRelationships() == false) {
 
 			final String userId = user.getUuid();
-
-			buf.append("MATCH (u:Principal");
-
-			if (tenantId != null) {
-
-				buf.append(":");
-				buf.append(tenantId);
-			}
-
-			buf.append(") WHERE id(u) = $userId");
-			buf.append(" CREATE (u)-[o:OWNS $ownsProperties]->(n");
-
-			if (tenantId != null) {
-
-				buf.append(":");
-				buf.append(tenantId);
-			}
-
-			for (final String label : labels) {
-
-				buf.append(":");
-				buf.append(label);
-			}
-
-			buf.append(" $nodeProperties)<-[s:SECURITY $securityProperties]-(u)");
-			buf.append(" RETURN n, s, o");
 
 			// configure OWNS relationship creation statement for maximum performance
 			ownsProperties.put(GraphObject.id.dbName(),                          getNextUuid());
@@ -268,31 +240,17 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			securityProperties.put(Security.principalId.dbName(),                    userId);
 			securityProperties.put(Security.accessControllableId.dbName(),           newUuid);
 
-			// store properties in statement
-			parameters.put("userId",             user.getId());
-			parameters.put("ownsProperties",     ownsProperties);
-			parameters.put("securityProperties", securityProperties);
-			parameters.put("nodeProperties",     properties);
-
-			final Iterable<Map<String, Object>> result = graphDb.execute(buf.toString(), parameters);
 			try {
 
-				for (final Map<String, Object> data : result) {
+				final NodeWithOwnerResult result = graphDb.createNodeWithOwner(user.getNode().getId(), type, labels, properties, ownsProperties, securityProperties);
+				final Relationship securityRel   = result.getSecurityRelationship();
+				final Relationship ownsRel       = result.getOwnsRelationship();
+				final Node newNode               = result.getNewNode();
 
-					final NodeWrapper newNode             = (NodeWrapper)         data.get("n");
-					final RelationshipWrapper securityRel = (RelationshipWrapper) data.get("s");
-					final RelationshipWrapper ownsRel     = (RelationshipWrapper) data.get("o");
+				notifySecurityRelCreation(user, securityRel);
+				notifyOwnsRelCreation(user, ownsRel);
 
-					newNode.setModified();
-					securityRel.setModified();
-					ownsRel.setModified();
-					((NodeWrapper)ownsRel.getStartNode()).setModified();
-
-					notifySecurityRelCreation(user, securityRel);
-					notifyOwnsRelCreation(user, ownsRel);
-
-					return newNode;
-				}
+				return newNode;
 
 			} catch (DataFormatException dex) {
 				throw new FrameworkException(422, dex.getMessage());
@@ -303,37 +261,9 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 		} else {
 
-			buf.append("CREATE (n");
-
-			if (tenantId != null) {
-
-				buf.append(":");
-				buf.append(tenantId);
-			}
-
-			for (final String label : labels) {
-
-				buf.append(":");
-				buf.append(label);
-			}
-
-			buf.append(" $nodeProperties)");
-			buf.append(" RETURN n");
-
-			// make properties available to Cypher statement
-			parameters.put("nodeProperties", properties);
-
-			final Iterable<Map<String, Object>> result = graphDb.execute(buf.toString(), parameters);
 			try {
 
-				for (final Map<String, Object> data : result) {
-
-					final NodeWrapper newNode = (NodeWrapper) data.get("n");
-
-					newNode.setModified();
-
-					return newNode;
-				}
+				return graphDb.createNode(type, labels, properties);
 
 			} catch (DataFormatException dex) {
 				throw new FrameworkException(422, dex.getMessage());
@@ -341,8 +271,6 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 				throw new FrameworkException(422, qex.getMessage());
 			}
 		}
-
-		throw new RuntimeException("Unable to create new node.");
 	}
 
 	private Class getTypeOrGeneric(final Object typeObject) {
@@ -365,7 +293,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		return defaultValue;
 	}
 
-	private void notifySecurityRelCreation(final Principal user, final RelationshipWrapper rel) {
+	private void notifySecurityRelCreation(final Principal user, final Relationship rel) {
 
 		final RelationshipFactory<Security> factory = new RelationshipFactory<>(securityContext);
 
@@ -386,10 +314,8 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 				rel.getEndNode()   != null ? rel.getEndNode().getId()   : "null"
 			);
 
-			// try to refresh relationship
-			rel.stale();
-
 			try {
+
 				// try again
 				final Security securityRelationship = factory.instantiate(rel);
 				if (securityRelationship != null) {
@@ -404,7 +330,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		}
 	}
 
-	private void notifyOwnsRelCreation(final Principal user, final RelationshipWrapper rel) {
+	private void notifyOwnsRelCreation(final Principal user, final Relationship rel) {
 
 		final RelationshipFactory<PrincipalOwnsNode> factory = new RelationshipFactory<>(securityContext);
 
@@ -424,9 +350,6 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 				rel.getStartNode() != null ? rel.getStartNode().getId() : "null",
 				rel.getEndNode()   != null ? rel.getEndNode().getId()   : "null"
 			);
-
-			// try to refresh relationship
-			rel.stale();
 
 			try {
 				// try again

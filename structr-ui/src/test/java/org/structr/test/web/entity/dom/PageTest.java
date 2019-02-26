@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -379,7 +379,7 @@ public class PageTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			newPage = (Page) pageToClone.cloneNode(false);
-			newPage.setProperties(securityContext, new PropertyMap(Page.name, pageToClone.getProperty(Page.name) + "-" + newPage.getIdString()));
+			newPage.setProperties(securityContext, new PropertyMap(Page.name, pageToClone.getProperty(Page.name) + "-" + newPage.getPropertyContainer().getId().toString()));
 
 			DOMNode firstChild = (DOMNode) pageToClone.getFirstChild().getNextSibling();
 

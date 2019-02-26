@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -621,7 +621,7 @@ public class Services implements StructrServices {
 		final NodeService nodeService = getService(NodeService.class);
 		if (nodeService != null) {
 
-			return nodeService.getGraphDb();
+			return nodeService.getDatabaseService();
 		}
 
 		return null;

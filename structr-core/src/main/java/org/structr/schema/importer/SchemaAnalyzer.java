@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,7 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -38,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
+import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
@@ -125,7 +127,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 		}
 
 		final App app                                       = StructrApp.getInstance();
-		final FileBasedHashLongMap<NodeInfo> nodeIdMap      = new FileBasedHashLongMap<>(schemaAnalyzerTmpPath);
+		final Map<NodeInfo, Collection<Identity>> nodeIdMap = new LinkedHashMap<>();
 		final DatabaseService graphDb                       = app.getDatabaseService();
 		final ConfigurationProvider configuration           = Services.getInstance().getConfigurationProvider();
 		final Set<NodeInfo> nodeTypes                       = new LinkedHashSet<>();
@@ -162,8 +164,16 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 				// hashcode of nodeInfo is derived from its property and type signature!
 				nodeTypes.add(nodeInfo);
 
-				// add node ID to our new test datastructure
-				nodeIdMap.add(nodeInfo, node.getId());
+				Collection<Identity> collection = nodeIdMap.get(nodeInfo);
+				if (collection == null) {
+
+					collection = new LinkedHashSet<>();
+					nodeIdMap.put(nodeInfo, collection);
+
+				}
+
+				// add node ID to collection
+				collection.add(node.getId());
 
 				return true;
 			}
@@ -253,10 +263,10 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 			info("Starting with setting of type and ID for type {}", type);
 
-			bulkGraphOperation(SecurityContext.getSuperUserInstance(), info.getNodeIds().iterator(), 10000, "Setting type and ID", new BulkGraphOperation<Long>() {
+			bulkGraphOperation(SecurityContext.getSuperUserInstance(), info.getNodeIds().iterator(), 10000, "Setting type and ID", new BulkGraphOperation<Identity>() {
 
 				@Override
-				public boolean handleGraphObject(SecurityContext securityContext, Long nodeId) throws FrameworkException {
+				public boolean handleGraphObject(SecurityContext securityContext, Identity nodeId) throws FrameworkException {
 
 					final Node node = graphDb.getNodeById(nodeId);
 
@@ -492,7 +502,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 			for (final String source : sources) {
 
 				// be very tolerant here, just execute everything
-				app.cypher(source, Collections.emptyMap());
+				app.query(source, Collections.emptyMap());
 			}
 
 			tx.success();
@@ -507,7 +517,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 	}
 
-	private static void identifyCommonBaseClasses(final App app, final Set<NodeInfo> nodeTypes, final FileBasedHashLongMap<NodeInfo> nodeIds, final List<TypeInfo> typeInfos) {
+	private static void identifyCommonBaseClasses(final App app, final Set<NodeInfo> nodeTypes, final Map<NodeInfo, Collection<Identity>> nodeIds, final List<TypeInfo> typeInfos) {
 
 		// next we need to identify common base classes, which can be found by
 		// finding all NodeInfo entries that share at least one type

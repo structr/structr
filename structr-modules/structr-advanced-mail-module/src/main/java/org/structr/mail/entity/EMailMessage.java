@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -42,10 +42,11 @@ public interface EMailMessage extends NodeInterface {
 		type.addStringProperty("from",             PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("to",               PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("content",          PropertyView.Public, PropertyView.Ui).setIndexed(false);
+		type.addStringProperty("htmlContent",      PropertyView.Public, PropertyView.Ui).setIndexed(false);
 		type.addStringProperty("folder",           PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("header",			  PropertyView.Public, PropertyView.Ui).setIndexed(false);
-		type.addStringProperty("messageId",		  PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("inReplyTo",		  PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("header",		     PropertyView.Public, PropertyView.Ui).setIndexed(false);
+		type.addStringProperty("messageId",		 PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("inReplyTo",		 PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
 		type.addDateProperty("receivedDate",       PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addDateProperty("sentDate",           PropertyView.Public, PropertyView.Ui).setIndexed(true);
@@ -64,8 +65,8 @@ public interface EMailMessage extends NodeInterface {
 		type.relate(file, "HAS_ATTACHMENT", Relation.Cardinality.OneToMany, "attachedMail", "attachedFiles");
 
 		// view configuration
-		type.addViewProperty(PropertyView.Public, "subject,from,to,content,folder,receivedDate,sentDate,mailbox,header,messageId,inReplyTo, attachedFiles");
-		type.addViewProperty(PropertyView.Ui, "subject,from,to,content,folder,receivedDate,sentDate,mailbox,header,messageId,inReplyTo, attachedFiles");
+		type.addViewProperty(PropertyView.Public, "subject,from,to,content,htmlContent,folder,receivedDate,sentDate,mailbox,header,messageId,inReplyTo, attachedFiles");
+		type.addViewProperty(PropertyView.Ui, "subject,from,to,content,htmlContent,folder,receivedDate,sentDate,mailbox,header,messageId,inReplyTo, attachedFiles");
 	}}
 
 }

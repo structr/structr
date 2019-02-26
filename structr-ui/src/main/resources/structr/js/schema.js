@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -3045,7 +3045,7 @@ var _Schema = {
 
 			var layoutSelectorChangeHandler = function () {
 
-				var selectedOption = $('#saved-layout-selector :selected:not(:disabled)');
+				var selectedOption = $(':selected:not(:disabled)', layoutSelector);
 
 				if (selectedOption.length === 0) {
 
@@ -3111,9 +3111,6 @@ var _Schema = {
 					if (!data.error) {
 
 						new MessageBuilder().success("Layout saved").show();
-
-						refreshLayoutSelector();
-						layoutNameInput.val('');
 
 						blinkGreen(layoutSelector);
 
@@ -3248,6 +3245,8 @@ var _Schema = {
 							optGroup.append('<option value="' + layout.id + '">' + layout.name + '</option>');
 						});
 					});
+
+					layoutSelectorChangeHandler();
 				});
 			};
 			refreshLayoutSelector();

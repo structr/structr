@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,7 +26,6 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -49,6 +48,7 @@ import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
@@ -146,7 +146,7 @@ public abstract class StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// delete everything
-			app.cypher("MATCH (n:" + randomTenantId + ") DETACH DELETE n", Collections.emptyMap());
+			Services.getInstance().getService(NodeService.class).getDatabaseService().cleanDatabase();
 
 			FlushCachesCommand.flushAll();
 

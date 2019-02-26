@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -174,6 +174,10 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
+		} catch (DatabaseException dex) {
+			throw SessionTransaction.translateDatabaseException(dex);
+		} catch (ClientException cex) {
+			throw SessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -193,6 +197,10 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
+		} catch (DatabaseException dex) {
+			throw SessionTransaction.translateDatabaseException(dex);
+		} catch (ClientException cex) {
+			throw SessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -212,6 +220,10 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
+		} catch (DatabaseException dex) {
+			throw SessionTransaction.translateDatabaseException(dex);
+		} catch (ClientException cex) {
+			throw SessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -231,6 +243,10 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
+		} catch (DatabaseException dex) {
+			throw SessionTransaction.translateDatabaseException(dex);
+		} catch (ClientException cex) {
+			throw SessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -254,6 +270,10 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
+		} catch (DatabaseException dex) {
+			throw SessionTransaction.translateDatabaseException(dex);
+		} catch (ClientException cex) {
+			throw SessionTransaction.translateClientException(cex);
 		}
 
 		return null;
@@ -275,6 +295,10 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
+		} catch (DatabaseException dex) {
+			throw SessionTransaction.translateDatabaseException(dex);
+		} catch (ClientException cex) {
+			throw SessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -294,6 +318,10 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
+		} catch (DatabaseException dex) {
+			throw SessionTransaction.translateDatabaseException(dex);
+		} catch (ClientException cex) {
+			throw SessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -313,6 +341,10 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
+		} catch (DatabaseException dex) {
+			throw SessionTransaction.translateDatabaseException(dex);
+		} catch (ClientException cex) {
+			throw SessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -332,6 +364,10 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
+		} catch (DatabaseException dex) {
+			throw SessionTransaction.translateDatabaseException(dex);
+		} catch (ClientException cex) {
+			throw SessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -351,6 +387,10 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
+		} catch (DatabaseException dex) {
+			throw SessionTransaction.translateDatabaseException(dex);
+		} catch (ClientException cex) {
+			throw SessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -370,6 +410,10 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
+		} catch (DatabaseException dex) {
+			throw SessionTransaction.translateDatabaseException(dex);
+		} catch (ClientException cex) {
+			throw SessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -393,6 +437,10 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
+		} catch (DatabaseException dex) {
+			throw SessionTransaction.translateDatabaseException(dex);
+		} catch (ClientException cex) {
+			throw SessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -469,11 +517,11 @@ public class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	public void deleted(final NodeWrapper wrapper) {
-		deletedNodes.add(wrapper.getId());
+		deletedNodes.add(wrapper.getDatabaseId());
 	}
 
 	public void deleted(final RelationshipWrapper wrapper) {
-		deletedRels.add(wrapper.getId());
+		deletedRels.add(wrapper.getDatabaseId());
 	}
 
 	public void modified(final EntityWrapper wrapper) {

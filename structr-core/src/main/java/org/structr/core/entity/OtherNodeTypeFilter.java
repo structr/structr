@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -54,7 +54,7 @@ public class OtherNodeTypeFilter implements Predicate<Relationship> {
 	@Override
 	public boolean accept(final Relationship item) {
 
-		final NodeInterface otherNode = nodeFactory.instantiate(item.getOtherNode(thisNode), item.getId());
+		final NodeInterface otherNode = nodeFactory.instantiate(item.getOtherNode(thisNode), null);
 
 		// check predicate if exists
 		if (otherNode != null && (nodePredicate == null || nodePredicate.accept(otherNode))) {

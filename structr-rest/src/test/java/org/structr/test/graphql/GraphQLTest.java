@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -164,15 +164,25 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			final PropertyKey<List> membersKey = StructrApp.key(Group.class, "members");
 
-			team.add(app.create(Principal.class, new NodeAttribute<>(Principal.name, "Axel")));
-			team.add(app.create(Principal.class, new NodeAttribute<>(Principal.name, "Christian")));
-			team.add(app.create(Principal.class, new NodeAttribute<>(Principal.name, "Christian")));
-			team.add(app.create(Principal.class, new NodeAttribute<>(Principal.name, "Inès")));
-			team.add(app.create(Principal.class, new NodeAttribute<>(Principal.name, "Kai")));
-			team.add(app.create(Principal.class, new NodeAttribute<>(Principal.name, "Lukas")));
-			team.add(app.create(Principal.class, new NodeAttribute<>(Principal.name, "Michael")));
-			team.add(app.create(Principal.class, new NodeAttribute<>(Principal.name, "Susanne")));
-			team.add(app.create(Principal.class, new NodeAttribute<>(Principal.name, "Tobias")));
+			final Principal christian2 = app.create(Principal.class, new NodeAttribute<>(Principal.name, "Christian"));
+			final Principal susanne    = app.create(Principal.class, new NodeAttribute<>(Principal.name, "Susanne"));
+			final Principal lukas      = app.create(Principal.class, new NodeAttribute<>(Principal.name, "Lukas"));
+			final Principal kai        = app.create(Principal.class, new NodeAttribute<>(Principal.name, "Kai"));
+			final Principal michael    = app.create(Principal.class, new NodeAttribute<>(Principal.name, "Michael"));
+			final Principal ines       = app.create(Principal.class, new NodeAttribute<>(Principal.name, "Inès"));
+			final Principal axel       = app.create(Principal.class, new NodeAttribute<>(Principal.name, "Axel"));
+			final Principal christian1 = app.create(Principal.class, new NodeAttribute<>(Principal.name, "Christian"));
+			final Principal tobias     = app.create(Principal.class, new NodeAttribute<>(Principal.name, "Tobias"));
+
+			team.add(axel);
+			team.add(christian1);
+			team.add(christian2);
+			team.add(ines);
+			team.add(kai);
+			team.add(lukas);
+			team.add(michael);
+			team.add(susanne);
+			team.add(tobias);
 
 			group  = app.create(Group.class,
 				new NodeAttribute<>(Group.name, "Structr Team"),
@@ -236,6 +246,11 @@ public class GraphQLTest extends StructrGraphQLTest {
 		RestAssured.basePath = "/structr/graphql";
 
 		{
+			final Map<String, Object> result = fetchGraphQL("{ Principal(_sort: \"name\") { id, type, name } }");
+			assertMapPathValueIs(result, "Principal.#",      11);
+		}
+
+		{
 			final Map<String, Object> result = fetchGraphQL("{ Principal(id: \"" + team.get(0).getUuid() + "\") { id, type, name } }");
 			assertMapPathValueIs(result, "Principal.#",      1);
 			assertMapPathValueIs(result, "Principal.0.id",   team.get(0).getUuid());
@@ -269,7 +284,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		}
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Group(_pageSize: 1, _sort: \"name\") { name }, Principal(_pageSize: 2, _page: 2) { name(_contains: \"i\") } }");
+			final Map<String, Object> result = fetchGraphQL("{ Group(_pageSize: 1, _sort: \"name\") { name }, Principal(_pageSize: 2, _page: 2, _sort: \"name\") { name(_contains: \"i\") } }");
 			assertMapPathValueIs(result, "Group.#",          1);
 			assertMapPathValueIs(result, "Group.0.name",     "All teams");
 			assertMapPathValueIs(result, "Principal.#",      2);

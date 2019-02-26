@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,7 +21,6 @@ package org.structr.test.common;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -45,6 +44,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -90,7 +90,7 @@ public class StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// delete everything
-			app.cypher("MATCH (n:" + randomTenantId + ") DETACH DELETE n", Collections.emptyMap());
+			Services.getInstance().getService(NodeService.class).getDatabaseService().cleanDatabase();
 
 			FlushCachesCommand.flushAll();
 
@@ -115,7 +115,7 @@ public class StructrTest {
 	}
 
 	@BeforeClass(alwaysRun = true)
-	public static void startSystem() {
+	public void startSystem() {
 
 		final Date now          = new Date();
 		final long timestamp    = now.getTime();
@@ -153,7 +153,7 @@ public class StructrTest {
 	}
 
 	@AfterClass(alwaysRun = true)
-	public static void stopSystem() {
+	public void stopSystem() {
 
 		Services.getInstance().shutdown();
 

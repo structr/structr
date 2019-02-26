@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -83,23 +83,6 @@ public interface GraphObject {
 	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema().category(SYSTEM_CATEGORY);
 
 	// ----- methods common to both types -----
-	/**
-	 * Returns the database ID of this graph object.
-	 *
-	 * @return the database ID
-	 */
-	public long getId();
-
-	/**
-	 * Returns the database ID of this graph object as a string.
-	 *
-	 * @return the database ID as a string
-	 */
-
-	default String getIdString() {
-		return Long.toString(getId());
-	}
-
 	/**
 	 * Returns the UUID of this graph object.
 	 *

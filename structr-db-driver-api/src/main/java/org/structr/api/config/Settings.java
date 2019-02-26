@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -48,7 +48,6 @@ public class Settings {
 	public static final SettingsGroup smtpGroup               = new SettingsGroup("smtp",        "Mail Configuration");
 	public static final SettingsGroup advancedGroup           = new SettingsGroup("advanced",    "Advanced Settings");
 	public static final SettingsGroup servletsGroup           = new SettingsGroup("servlets",    "Servlets");
-	public static final SettingsGroup deploymentGroup         = new SettingsGroup("deployment",  "Deployment");
 	public static final SettingsGroup cronGroup               = new SettingsGroup("cron",        "Cron Jobs");
 	public static final SettingsGroup securityGroup           = new SettingsGroup("security",    "Security Settings");
 	public static final SettingsGroup oauthGroup              = new SettingsGroup("oauth",       "OAuth Settings");
@@ -286,9 +285,6 @@ public class Settings {
 	public static final Setting<Integer> ProxyMaxFileSize      = new IntegerSetting(servletsGroup, "ProxyServlet", "ProxyServlet.maxFileSize",           1000);
 	public static final Setting<Integer> ProxyMaxRequestSize   = new IntegerSetting(servletsGroup, "ProxyServlet", "ProxyServlet.maxRequestSize",        1200);
 
-	// deployment export/import settings
-	public static final Setting<Boolean> ExportFileUuids       = new BooleanSetting(deploymentGroup, "Deployment Settings", "deployment.export.exportFileUuids", true, "Export UUIDs of File nodes and all inherting classes. Default is true");
-
 	// cron settings
 	public static final Setting<String> CronTasks              = new StringSetting(cronGroup,  "CronService.tasks", "");
 
@@ -385,7 +381,8 @@ public class Settings {
 	public static final Setting<String> LDAPSecret          = new StringSetting(ldapGroup, "General",  "ldap.secret", "");
 	public static final Setting<Boolean> LDAPUseSSL         = new BooleanSetting(ldapGroup, "General", "ldap.useSsl", false);
 	public static final Setting<String> LDAPScope           = new StringSetting(ldapGroup, "General",  "ldap.scope", "SUBTREE");
-	public static final Setting<String> LDAPPropertyMapping = new StringSetting(ldapGroup, "General",  "ldap.propertyMapping", "{ sn: name, email: eMail } ", "Mapping from LDAP properties to Structr properties");
+	public static final Setting<String> LDAPPropertyMapping = new StringSetting(ldapGroup, "General",  "ldap.propertyMapping", "{ sn: name, email: eMail }", "Mapping from LDAP properties to Structr properties");
+	public static final Setting<String> LDAPGroupNames      = new StringSetting(ldapGroup, "General",  "ldap.groupNames", "{ group: member, groupOfNames: member, groupOfUniqueNames: uniqueMember }", "LDAP objectclass tuples for group and member identification.");
 	public static final Setting<Integer> LDAPUpdateInterval = new IntegerSetting(ldapGroup, "General", "ldap.updateInterval", 600, "Update interval for group synchronization in seconds");
 
 	// miscellaneous settings

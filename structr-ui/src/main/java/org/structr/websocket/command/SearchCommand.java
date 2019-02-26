@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -103,7 +103,7 @@ public class SearchCommand extends AbstractCommand {
 
 						}
 
-						final List<GraphObject> result = Iterables.toList(StructrApp.getInstance(securityContext).cypher(cypherQuery, obj));
+						final List<GraphObject> result = Iterables.toList(StructrApp.getInstance(securityContext).query(cypherQuery, obj));
 
 						int resultCountBeforePaging = result.size();
 						webSocketData.setRawResultCount(resultCountBeforePaging);

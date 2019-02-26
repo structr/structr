@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,27 +25,26 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SessionDataNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.PropertyMap;
 
 import java.util.*;
-import org.structr.api.util.Iterables;
+import org.structr.core.entity.Principal;
+import org.structr.core.property.PropertyKey;
 
 /**
  */
 public class StructrSessionDataStore extends AbstractSessionDataStore {
 
-	private static final Logger logger = LoggerFactory.getLogger(StructrSessionDataStore.class.getName());
+	private static final Logger logger       = LoggerFactory.getLogger(StructrSessionDataStore.class.getName());
 	private static final SecurityContext ctx = SecurityContext.getSuperUserInstance();
-	private static final App app = StructrApp.getInstance(ctx);
-	private static final Services services = Services.getInstance();
+	private static final App app             = StructrApp.getInstance(ctx);
+	private static final Services services   = Services.getInstance();
 
 	private static final Map<String, SessionData> anonymousSessionCache = new HashMap<>();
 
@@ -56,12 +55,11 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
-			Map<String, Object> params = new HashMap<>();
-			params.put("id", id);
-			List<GraphObject> results = Iterables.toList(app.cypher("MATCH (n:User) WHERE $id IN n.sessionIds RETURN count(n) > 0 as result", params));
-			boolean isAuthenticated = results.get(0).getProperty(new BooleanProperty("result"));
+			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "sessionIds");
+			final String[] value            = new String[] { id };
+			final Principal user            = StructrApp.getInstance().nodeQuery(Principal.class).and(key, value).disableSorting().getFirst();
 
-			if (isAuthenticated) {
+			if (user != null) {
 
 				final SessionDataNode node = getOrCreateSessionDataNode(app, id);
 				if (node != null) {

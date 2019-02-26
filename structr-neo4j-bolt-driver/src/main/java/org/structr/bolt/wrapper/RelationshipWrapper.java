@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,6 +39,11 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 	private long sourceNodeId = -1L;
 	private long targetNodeId = -1L;
 	private String type       = null;
+
+	protected RelationshipWrapper() {
+		// nop constructor for cache access
+		super();
+	}
 
 	private RelationshipWrapper(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Relationship relationship) {
 
@@ -109,7 +114,7 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 	@Override
 	public Node getOtherNode(final Node node) {
 
-		if (node.getId() == sourceNodeId) {
+		if (db.unwrap(node.getId()) == sourceNodeId) {
 			return getEndNode();
 		}
 
@@ -144,7 +149,7 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 
 	public Direction getDirectionForNode(final NodeWrapper node) {
 
-		if (node.getId() == sourceNodeId) {
+		if (db.unwrap(node.getId()) == sourceNodeId) {
 			return Direction.OUTGOING;
 		}
 
@@ -158,11 +163,7 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 	}
 
 	// ----- public static methods -----
-	public static FixedSizeCache<Long, RelationshipWrapper> getCache() {
-		return relationshipCache;
-	}
-
-	public static void clearCache() {
+	protected static void clearCache() {
 		relationshipCache.clear();
 	}
 

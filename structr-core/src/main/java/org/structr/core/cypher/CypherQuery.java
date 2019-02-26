@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,7 +24,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.CypherQueryCommand;
+import org.structr.core.graph.NativeQueryCommand;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -36,7 +36,7 @@ public class CypherQuery {
 
 	private Map<String, Object> parameters        = new LinkedHashMap<>();
 	private boolean includeHiddenAndDeleted       = false;
-	private CypherQueryCommand cypherQueryCommand = null;
+	private NativeQueryCommand cypherQueryCommand = null;
 	private boolean descending                    = false;
 	private boolean publicOnly                    = false;
 	private String indexQuery                     = null;
@@ -49,7 +49,7 @@ public class CypherQuery {
 
 	private CypherQuery(SecurityContext securityContext, String indexName) {
 
-		this.cypherQueryCommand = StructrApp.getInstance(securityContext).command(CypherQueryCommand.class);
+		this.cypherQueryCommand = StructrApp.getInstance(securityContext).command(NativeQueryCommand.class);
 		this.indexName = indexName;
 	}
 

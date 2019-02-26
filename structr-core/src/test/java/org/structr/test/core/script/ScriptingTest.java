@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,7 +33,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import org.apache.commons.lang3.StringUtils;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -41,7 +40,6 @@ import org.structr.common.AccessControllable;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
-import org.structr.test.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.geo.GeoCodingResult;
@@ -58,12 +56,6 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SuperUser;
-import org.structr.test.core.entity.TestFour;
-import org.structr.test.core.entity.TestOne;
-import org.structr.test.core.entity.TestOne.Status;
-import org.structr.test.core.entity.TestSix;
-import org.structr.test.core.entity.TestThree;
-import org.structr.test.core.entity.TestTwo;
 import org.structr.core.function.DateFormatFunction;
 import org.structr.core.function.FindFunction;
 import org.structr.core.function.NumberFormatFunction;
@@ -86,11 +78,19 @@ import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
+import org.structr.test.common.StructrTest;
+import org.structr.test.core.entity.TestFour;
+import org.structr.test.core.entity.TestOne;
+import org.structr.test.core.entity.TestOne.Status;
+import org.structr.test.core.entity.TestSix;
+import org.structr.test.core.entity.TestThree;
+import org.structr.test.core.entity.TestTwo;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
 
 /**
@@ -3021,6 +3021,58 @@ public class ScriptingTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
+	}
+
+	@Test
+	public void testContextStoreTransferToAndFromDoPrivileged() {
+
+		final String storeKey        = "my-store-key";
+		final String userValue       = "USER-value";
+		final String privilegedValue = "PRVILIGED-value";
+
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx  = new ActionContext(securityContext, null);
+			final StringBuilder func = new StringBuilder();
+
+			func.append("${{\n");
+			func.append("	Structr.store('").append(storeKey).append("', '").append(userValue).append("');\n");
+			func.append("\n");
+			func.append("	Structr.doPrivileged(function () {\n");
+			func.append("		Structr.print(Structr.retrieve('").append(storeKey).append("'));\n");
+			func.append("	});\n");
+			func.append("}}");
+
+			final String retrievedValue = Scripting.replaceVariables(ctx, null, func.toString());
+
+			assertEquals("A value (that was stored outside doPrivilged) should be available in the privileged context", userValue, retrievedValue);
+
+
+			final StringBuilder func2 = new StringBuilder();
+
+			func2.append("${{\n");
+			func2.append("	Structr.store('").append(storeKey).append("', '").append(userValue).append("');\n");
+			func2.append("\n");
+			func2.append("	Structr.doPrivileged(function () {\n");
+			func2.append("		Structr.store('").append(storeKey).append("', '").append(privilegedValue).append("');\n");
+			func2.append("	});\n");
+			func2.append("\n");
+			func2.append("	Structr.print(Structr.retrieve('").append(storeKey).append("'));\n");
+			func2.append("}}");
+
+			final String retrievedValue2 = Scripting.replaceVariables(ctx, null, func2.toString());
+
+			assertEquals("A value (that was stored in doPrivilged) should be available in the surrounding context", privilegedValue, retrievedValue2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
 	}
 
 	// ----- private methods ----

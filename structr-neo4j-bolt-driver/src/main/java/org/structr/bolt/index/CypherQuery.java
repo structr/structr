@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,10 +16,21 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.index;
+package org.structr.bolt.index;
 
+import java.util.Map;
+import org.structr.api.index.DatabaseQuery;
+import org.structr.api.search.QueryContext;
 
-public enum IndexType {
+/**
+ */
+public interface CypherQuery extends DatabaseQuery {
 
-	Exact, Fulltext, Spatial
+	int pageSize();
+	void nextPage();
+
+	String getStatement();
+	Map<String, Object> getParameters();
+
+	QueryContext getQueryContext();
 }

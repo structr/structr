@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -49,7 +49,7 @@ public class OneStartpoint<S extends NodeInterface> extends AbstractEndpoint imp
 		final Relationship rel           = getRawSource(securityContext, node.getNode(), predicate);
 
 		if (rel != null) {
-			return nodeFactory.instantiate(rel.getStartNode(), rel.getId());
+			return nodeFactory.instantiate(rel.getStartNode(), getUuid(rel));
 		}
 
 		return null;

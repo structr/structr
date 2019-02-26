@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -315,7 +315,7 @@ public class ModificationQueue {
 				state.propagatedModification();
 
 				// save hash to avoid repeated propagation
-				alreadyPropagated.add(hash(node));
+				alreadyPropagated.add(hash(node.getNode()));
 			}
 		}
 	}
@@ -363,7 +363,7 @@ public class ModificationQueue {
 
 	public boolean isDeleted(final Node node) {
 
-		final GraphObjectModificationState state = modifications.get("N" + node.getId());
+		final GraphObjectModificationState state = modifications.get(hash(node));
 		if (state != null) {
 
 			return state.isDeleted() || state.isPassivelyDeleted();
@@ -374,7 +374,7 @@ public class ModificationQueue {
 
 	public boolean isDeleted(final Relationship rel) {
 
-		final GraphObjectModificationState state = modifications.get("R" + rel.getId());
+		final GraphObjectModificationState state = modifications.get(hash(rel));
 		if (state != null) {
 
 			return state.isDeleted() || state.isPassivelyDeleted();
@@ -557,7 +557,7 @@ public class ModificationQueue {
 
 	private GraphObjectModificationState getState(final NodeInterface node, final boolean checkPropagation) {
 
-		String hash = hash(node);
+		String hash = hash(node.getNode());
 		GraphObjectModificationState state = modifications.get(hash);
 
 		if (state == null && !(checkPropagation && alreadyPropagated.contains(hash))) {
@@ -576,7 +576,7 @@ public class ModificationQueue {
 
 	private GraphObjectModificationState getState(final RelationshipInterface rel, final boolean create) {
 
-		String hash = hash(rel);
+		String hash = hash(rel.getRelationship());
 		GraphObjectModificationState state = modifications.get(hash);
 
 		if (state == null && create) {
@@ -589,11 +589,11 @@ public class ModificationQueue {
 		return state;
 	}
 
-	private String hash(final NodeInterface node) {
+	private String hash(final Node node) {
 		return "N" + node.getId();
 	}
 
-	private String hash(final RelationshipInterface rel) {
+	private String hash(final Relationship rel) {
 		return "R" + rel.getId();
 	}
 
@@ -618,32 +618,5 @@ public class ModificationQueue {
 		});
 
 		return state;
-	}
-
-	private Object extractUuid(final Object source) {
-
-		if (source != null) {
-
-			if (source instanceof GraphObject) {
-				return ((GraphObject)source).getUuid();
-			}
-
-			if (source instanceof Iterable) {
-
-				final List<String> uuids = new LinkedList<>();
-				for (final Object o : ((Iterable)source)) {
-
-					final Object extracted = extractUuid(o);
-					if (extracted != null) {
-
-						uuids.add((String)extracted);
-					}
-				}
-
-				return uuids;
-			}
-		}
-
-		return null;
 	}
 }

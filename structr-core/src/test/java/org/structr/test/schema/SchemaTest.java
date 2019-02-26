@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.test.common.StructrTest;
 import org.structr.common.error.FrameworkException;
@@ -438,6 +439,8 @@ public class SchemaTest extends StructrTest {
 
 		cleanDatabaseAndSchema();
 
+		Settings.CypherDebugLogging.setValue(true);
+
 		SchemaRelationshipNode rel = null;
 
 		try (final Tx tx = app.tx()) {
@@ -475,8 +478,7 @@ public class SchemaTest extends StructrTest {
 		} catch (Throwable t) {
 
 			// deletion of relationship should not fail
-
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}
