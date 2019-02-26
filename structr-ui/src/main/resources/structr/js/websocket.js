@@ -509,7 +509,7 @@ function wsConnect() {
 						}
 					}
 
-					if (command === 'CREATE' && entity.isPage) {
+					if (command === 'CREATE' && entity.isPage && lastMenuEntry === _Pages._moduleName) {
 						if (entity.createdBy === userId) {
 							setTimeout(function () {
 								var tab = $('#show_' + entity.id);

@@ -601,7 +601,7 @@ var _Pages = {
 	 * Reload preview iframe with given id
 	 */
 	reloadIframe: function(id) {
-		if (!id || id !== activeTab || !_Pages.isPageTabPresent(id)) {
+		if (lastMenuEntry === _Pages._moduleName && (!id || id !== activeTab || !_Pages.isPageTabPresent(id))) {
 
 			if ($('.previewBox iframe').length === 0) {
 				previews.addClass('no-preview');
