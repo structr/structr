@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -46,6 +46,6 @@ public interface Note extends NodeInterface {
 		type.addDateProperty("modified", PropertyView.All, PropertyView.Ui).setIndexed(true);
 		type.addEnumProperty("lang", PropertyView.All, PropertyView.Ui).setEnums(Locale.getISOLanguages());
 		
-		type.relate(concept, "refersTo", Cardinality.ManyToMany, "concepts", "customConceptAttributes");
+		type.relate(concept, "refersTo", Cardinality.ManyToMany, "customConceptAttributes", "concepts");
 	}}
 }

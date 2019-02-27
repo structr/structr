@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -53,9 +53,9 @@ public interface ThesaurusTerm extends NodeInterface {
 		type.addStringProperty("status", PropertyView.All, PropertyView.Ui).setIndexed(true);
 		type.addEnumProperty("lang", PropertyView.All, PropertyView.Ui).setEnums(Locale.getISOLanguages());
 		
-		type.relate(customTermAttribute, "hasCustomTermAttribute", Cardinality.OneToMany, "customTermAttributes", "term");
-		type.relate(historyNote,         "hasHistoryNote",         Cardinality.OneToMany, "historyNotes",         "term");
-		type.relate(definition,          "hasDefiniton",           Cardinality.OneToMany, "definitions",          "term");
-		type.relate(editorialNote,       "hasEditorialNote",       Cardinality.OneToMany, "editorialNotes",       "term");
+		type.relate(customTermAttribute, "hasCustomTermAttribute", Cardinality.OneToMany, "term", "customTermAttributes");
+		type.relate(historyNote,         "hasHistoryNote",         Cardinality.OneToMany, "term", "historyNotes");
+		type.relate(definition,          "hasDefiniton",           Cardinality.OneToMany, "term", "definitions");
+		type.relate(editorialNote,       "hasEditorialNote",       Cardinality.OneToMany, "term", "editorialNotes");
 	}}
 }

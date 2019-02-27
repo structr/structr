@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -45,8 +45,8 @@ public interface ConceptGroup extends NodeInterface {
 		type.addStringArrayProperty("conceptGroupType", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
 		type.addStringArrayProperty("notation", PropertyView.All, PropertyView.Ui).setIndexed(true);
 		
-		type.relate(type, "hasSubGroup", Cardinality.ManyToMany, "subGroups", "superGroups");
-		type.relate(concept, "hasAsMember", Cardinality.ManyToMany, "thesaurusConcepts", "conceptGroups");
-		type.relate(label, "hasConceptGroupLabel", Cardinality.OneToMany, "conceptGroupLabels", "conceptGroup");
+		type.relate(type, "hasSubGroup", Cardinality.ManyToMany, "superGroups", "subGroups");
+		type.relate(concept, "hasAsMember", Cardinality.ManyToMany, "conceptGroups", "thesaurusConcepts");
+		type.relate(label, "hasConceptGroupLabel", Cardinality.OneToMany, "conceptGroup", "conceptGroupLabels");
 	}}
 }

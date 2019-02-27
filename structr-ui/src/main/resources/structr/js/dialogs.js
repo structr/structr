@@ -1,6 +1,5 @@
-
 /*
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -17,7 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var _Dialogs = {
 
 	findAndAppendCustomTypeDialog: function(entity, mainTabs, contentEl) {

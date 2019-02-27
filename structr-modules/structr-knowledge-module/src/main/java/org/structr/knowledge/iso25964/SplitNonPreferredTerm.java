@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -41,6 +41,6 @@ public interface SplitNonPreferredTerm extends NodeInterface {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/SplitNonPreferredTerm"));
 		type.setExtends(URI.create("#/definitions/ThesaurusTerm"));
 
-		final JsonReferenceType compoundEquivalence = type.relate(prefTerm, "USE", Relation.Cardinality.ManyToMany, "spiltNonPreferredTerms", "preferredTerms");
+		final JsonReferenceType compoundEquivalence = type.relate(prefTerm, "USE", Relation.Cardinality.ManyToMany, "preferredTerms", "spiltNonPreferredTerms");
 	}}
 }

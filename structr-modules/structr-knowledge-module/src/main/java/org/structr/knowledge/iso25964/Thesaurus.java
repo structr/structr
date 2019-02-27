@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -62,9 +62,9 @@ public interface Thesaurus extends NodeInterface {
 		type.addStringArrayProperty("title", PropertyView.All, PropertyView.Ui).setIndexed(true);
 		type.addStringArrayProperty("thesaurusType", PropertyView.All, PropertyView.Ui).setIndexed(true);
 		
-		type.relate(group,   "contains",   Cardinality.ManyToMany, "conceptGroups",   "thesaurus");
-		type.relate(version, "hasVersion", Cardinality.OneToMany,  "versions",        "thesaurus");
-		type.relate(array,   "contains",   Cardinality.OneToMany,  "thesaurusArrays", "thesaurus");
-		type.relate(concept, "contains",   Cardinality.OneToMany,  "concepts",        "thesaurus");
+		type.relate(group,   "contains",   Cardinality.ManyToMany, "thesaurus", "conceptGroups");
+		type.relate(version, "hasVersion", Cardinality.OneToMany,  "thesaurus", "versions");
+		type.relate(array,   "contains",   Cardinality.OneToMany,  "thesaurus", "thesaurusArrays");
+		type.relate(concept, "contains",   Cardinality.OneToMany,  "thesaurus", "concepts");
 	}}
 }

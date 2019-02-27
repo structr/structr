@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,7 @@ package org.structr.web.function;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Map;
+import org.mozilla.javascript.Wrapper;
 import org.structr.api.util.PagingIterable;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -64,25 +65,27 @@ public class ToJsonFunction extends UiFunction {
 					outputDepth = ((Number)sources[2]).intValue();
 				}
 
-				if (sources[0] instanceof GraphObject) {
+				final Object obj = (sources[0] instanceof Wrapper) ? ((Wrapper)sources[0]).unwrap() : sources[0];
+
+				if (obj instanceof GraphObject) {
 
 					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, false);
 
-					jsonStreamer.streamSingle(securityContext, writer, (GraphObject)sources[0]);
+					jsonStreamer.streamSingle(securityContext, writer, (GraphObject)obj);
 
-				} else if (sources[0] instanceof Iterable) {
+				} else if (obj instanceof Iterable) {
 
 					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, true);
-					final Iterable list                    = (Iterable)sources[0];
+					final Iterable list                    = (Iterable)obj;
 
 					jsonStreamer.stream(securityContext, writer, new PagingIterable<>(list), null, false);
 
-				} else if (sources[0] instanceof Map) {
+				} else if (obj instanceof Map) {
 
 					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, false);
 					final GraphObjectMap map               = new GraphObjectMap();
 
-					UiFunction.recursivelyConvertMapToGraphObjectMap(map, (Map)sources[0], outputDepth);
+					UiFunction.recursivelyConvertMapToGraphObjectMap(map, (Map)obj, outputDepth);
 
 					jsonStreamer.stream(securityContext, writer, new PagingIterable<>(Arrays.asList(map)), null, false);
 				}

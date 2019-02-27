@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -42,6 +42,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.function.BarcodeFunction;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -84,7 +85,7 @@ public class LoginCommand extends AbstractCommand {
 
 					user = AuthHelper.getUserForTwoFactorToken(twoFactorToken);
 
-				} else  if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {
+				} else if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {
 
 					user = auth.doLogin(getWebSocket().getRequest(), username, password);
 
@@ -93,7 +94,7 @@ public class LoginCommand extends AbstractCommand {
 
 				if (user != null) {
 
-					final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, getWebSocket().getRequest().getRemoteAddr());
+					final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(getWebSocket().getRequest()));
 
 					if (twoFactorAuthenticationSuccessOrNotNecessary) {
 

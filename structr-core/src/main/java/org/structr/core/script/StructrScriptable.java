@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -342,6 +342,10 @@ public class StructrScriptable extends ScriptableObject {
 			return new StructrArray(scope, key, (Object[])value);
 		}
 
+		if (value instanceof GraphObjectMap) {
+			return new GraphObjectMapWrapper(context, scope, (GraphObjectMap)value);
+		}
+
 		if (value instanceof GraphObject) {
 			return new GraphObjectWrapper(context, scope, (GraphObject)value);
 		}
@@ -357,7 +361,7 @@ public class StructrScriptable extends ScriptableObject {
 
 		if (value instanceof Map && !(value instanceof PropertyMap)) {
 
-			return new MapWrapper((Map)value);
+			return new MapWrapper(context, scope, (Map)value);
 		}
 
 		if (value instanceof Date) {
@@ -739,11 +743,6 @@ public class StructrScriptable extends ScriptableObject {
 
 		@Override
 		public Object[] getIds() {
-
-			if (obj instanceof GraphObjectMap) {
-				return ((GraphObjectMap)obj).toMap().keySet().toArray();
-			}
-
 			return IDs;
 		}
 
@@ -859,12 +858,81 @@ public class StructrScriptable extends ScriptableObject {
 
 	}
 
+	public class GraphObjectMapWrapper extends ScriptableObject implements Wrapper {
+
+		private Context context      = null;
+		private Scriptable prototype = null;
+		private Scriptable scope     = null;
+		private GraphObjectMap obj   = null;
+
+		public GraphObjectMapWrapper(final Context context, final Scriptable scope, final GraphObjectMap obj) {
+
+			this.context = context;
+			this.scope = scope;
+			this.obj = obj;
+		}
+
+		@Override
+		public String toString() {
+			return obj.toString();
+		}
+
+		@Override
+		public String getClassName() {
+			return "Map";
+		}
+
+		@Override
+		public Object get(String name, Scriptable start) {
+			return wrap(context, scope, name, obj.toMap().get(name));
+		}
+
+		@Override
+		public Object[] getIds() {
+			return obj.toMap().keySet().toArray();
+		}
+
+		@Override
+		public Object getDefaultValue(Class<?> hint) {
+			return obj.toMap().toString();
+		}
+
+		@Override
+		public int size() {
+			return obj.size();
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return obj.isEmpty();
+		}
+
+		@Override
+		public Scriptable getPrototype() {
+			return prototype;
+		}
+
+		@Override
+		public void setPrototype(Scriptable s) {
+			this.prototype = s;
+		}
+
+		@Override
+		public Object unwrap() {
+			return obj;
+		}
+	}
+
 	public class MapWrapper extends ScriptableObject implements Map<String, Object> {
 
 		private Map<String, Object> map = null;
+		private Context context      = null;
+		private Scriptable scope     = null;
 
-		public MapWrapper(final Map<String, Object> map) {
-			this.map = map;
+		public MapWrapper(final Context context, final Scriptable scope, final Map<String, Object> obj) {
+			this.context = context;
+			this.scope = scope;
+			this.map = obj;
 		}
 
 		@Override
@@ -879,7 +947,7 @@ public class StructrScriptable extends ScriptableObject {
 
 		@Override
 		public Object get(String name, Scriptable start) {
-			return map.get(name);
+			return wrap(context, scope, name, map.get(name));
 		}
 
 		@Override

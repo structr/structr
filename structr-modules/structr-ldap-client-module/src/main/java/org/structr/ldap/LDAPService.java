@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,7 @@ import ch.qos.logback.classic.Level;
 import com.google.gson.GsonBuilder;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -77,17 +78,18 @@ public class LDAPService extends Thread implements SingletonService {
 	// ----- public methods -----
 	public void synchronizeGroup(final LDAPGroup group)  throws IOException, LdapException, CursorException, FrameworkException {
 
-		final String scope              = getScope();
-		final String secret             = getSecret();
-		final String bindDn             = getBindDN();
-		final String host               = getHost();
-		final int port                  = getPort();
-		final boolean useSsl            = getUseSSL();
-		final LdapConnection connection = new LdapNetworkConnection(host, port, useSsl);
-		final List<LDAPUser> members    = new LinkedList<>();
-		final Set<String> memberDNs     = new LinkedHashSet<>();
-		final String groupName          = group.getName();
-		final String groupDn            = group.getDistinguishedName();
+		final String scope                           = getScope();
+		final String secret                          = getSecret();
+		final String bindDn                          = getBindDN();
+		final String host                            = getHost();
+		final int port                               = getPort();
+		final boolean useSsl                         = getUseSSL();
+		final Map<String, String> possibleGroupNames = new LinkedHashMap<>();
+		final LdapConnection connection              = new LdapNetworkConnection(host, port, useSsl);
+		final List<LDAPUser> members                 = new LinkedList<>();
+		final Set<String> memberDNs                  = new LinkedHashSet<>();
+		final String groupName                       = group.getName();
+		final String groupDn                         = group.getDistinguishedName();
 
 		if (StringUtils.isEmpty(groupDn)) {
 
@@ -120,28 +122,21 @@ public class LDAPService extends Thread implements SingletonService {
 						final Entry entry           = cursor.get();
 						final Attribute objectClass = entry.get("objectclass");
 
-						if (objectClass.contains("groupOfNames")) {
+						for (final java.util.Map.Entry<String, String> groupEntry : possibleGroupNames.entrySet()) {
 
-							// add group members
-							final Attribute uniqueMembers = entry.get("member");
-							if (uniqueMembers != null) {
+							final String possibleGroupName  = groupEntry.getKey();
+							final String possibleMemberName = groupEntry.getValue();
 
-								for (final Value value : uniqueMembers) {
+							if (objectClass.contains(possibleGroupName)) {
 
-									memberDNs.add(value.getString());
-								}
-							}
-						}
+								// add group members
+								final Attribute groupMembers = entry.get(possibleMemberName);
+								if (groupMembers != null) {
 
-						if (objectClass.contains("groupOfUniqueNames")) {
+									for (final Value value : groupMembers) {
 
-							// add group members
-							final Attribute uniqueMembers = entry.get("uniqueMember");
-							if (uniqueMembers != null) {
-
-								for (final Value value : uniqueMembers) {
-
-									memberDNs.add(value.getString());
+										memberDNs.add(value.getString());
+									}
 								}
 							}
 						}
@@ -199,6 +194,10 @@ public class LDAPService extends Thread implements SingletonService {
 
 	public Map<String, String> getPropertyMapping() {
 		return new GsonBuilder().create().fromJson(Settings.LDAPPropertyMapping.getValue("{ sn: name, email: eMail }"), Map.class);
+	}
+
+	public Map<String, String> getGroupMapping() {
+		return new GsonBuilder().create().fromJson(Settings.LDAPGroupNames.getValue("{ group: member, groupOfNames: member, groupOfUniqueNames: uniqueMember }"), Map.class);
 	}
 
 	public String getHost() {
@@ -270,6 +269,7 @@ public class LDAPService extends Thread implements SingletonService {
 		logger.info("bind DN: {}", Settings.LDAPBindDN.getValue(""));
 		logger.info("scope:   {}", Settings.LDAPScope.getValue("SUBTREE"));
 		logger.info("mapping: {}", Settings.LDAPPropertyMapping.getValue("{ sn: name, email: eMail }"));
+		logger.info("groups:  {}", Settings.LDAPGroupNames.getValue("{ group: member, groupOfNames: member, groupOfUniqueNames: uniqueMember }"));
 
 		return true;
 	}

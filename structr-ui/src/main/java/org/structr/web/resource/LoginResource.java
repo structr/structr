@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -45,6 +45,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.FilterableResource;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.function.BarcodeFunction;
 
 /**
@@ -98,7 +99,7 @@ public class LoginResource extends FilterableResource {
 
 				if (user != null) {
 
-					final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, securityContext.getRequest().getRemoteAddr());
+					final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(securityContext.getRequest()));
 
 					if (twoFactorAuthenticationSuccessOrNotNecessary) {
 
