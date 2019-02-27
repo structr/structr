@@ -46,6 +46,6 @@ public interface Note extends NodeInterface {
 		type.addDateProperty("modified", PropertyView.All, PropertyView.Ui).setIndexed(true);
 		type.addEnumProperty("lang", PropertyView.All, PropertyView.Ui).setEnums(Locale.getISOLanguages());
 		
-		type.relate(concept, "refersTo", Cardinality.ManyToMany, "concepts", "customConceptAttributes");
+		type.relate(concept, "refersTo", Cardinality.ManyToMany, "customConceptAttributes", "concepts");
 	}}
 }

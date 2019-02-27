@@ -55,16 +55,16 @@ public interface ThesaurusConcept extends NodeInterface {
 		type.addStringArrayProperty("notation",   PropertyView.All, PropertyView.Ui).setIndexed(true);
 		type.addBooleanProperty(    "topConcept", PropertyView.All, PropertyView.Ui).setIndexed(true);
 		
-		type.relate(type,                   "hasTopConcept",             Cardinality.ManyToMany, "topmostConcept",              "childConcepts");
-		type.relate(type,                   "hasRelatedConcept",         Cardinality.ManyToMany, "relatedConcepts",         "relatedConcepts");
-		type.relate(simpleTerm,             "hasNonPreferredLabel",      Cardinality.OneToMany,  "simpleNonPreferredTerms", "concepts");
-		type.relate(prefTerm,               "hasPreferredLabel",         Cardinality.OneToMany,  "preferredTerm",           "concepts");
-		type.relate(thesArray,              "hasSubordinateArray",       Cardinality.OneToMany,  "subordinateArrays",      "superordinateConcept");
-		final JsonReferenceType hierarchichalRelationship = type.relate(type, "hasHierRelConcept", Cardinality.ManyToMany, "childConcepts", "parentConcepts");
+		type.relate(type,                   "hasTopConcept",             Cardinality.ManyToMany, "childConcepts",        "topmostConcept");
+		type.relate(type,                   "hasRelatedConcept",         Cardinality.ManyToMany, "relatedConcepts",      "relatedConcepts");
+		type.relate(simpleTerm,             "hasNonPreferredLabel",      Cardinality.OneToMany,  "concepts",             "simpleNonPreferredTerms");
+		type.relate(prefTerm,               "hasPreferredLabel",         Cardinality.OneToMany,  "concepts",             "preferredTerm");
+		type.relate(thesArray,              "hasSubordinateArray",       Cardinality.OneToMany,  "superordinateConcept", "subordinateArrays");
+		final JsonReferenceType hierarchichalRelationship = type.relate(type, "hasHierRelConcept", Cardinality.ManyToMany, "parentConcepts", "childConcepts");
 		hierarchichalRelationship.addStringProperty("role", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.relate(customConceptAttribute, "hasCustomConceptAttribute", Cardinality.OneToMany,  "customConceptAttributes", "concept");
-		type.relate(customNote,             "hasCustomNote",             Cardinality.OneToMany,  "customNotes",             "concept");
-		type.relate(scopeNote,              "hasScopeNote",              Cardinality.OneToMany,  "scopeNotes",              "concept");
-		type.relate(historyNote,            "hasHistoryNote",            Cardinality.OneToMany,  "historyNotes",            "concept");
+		type.relate(customConceptAttribute, "hasCustomConceptAttribute", Cardinality.OneToMany, "concept", "customConceptAttributes");
+		type.relate(customNote,             "hasCustomNote",             Cardinality.OneToMany, "concept", "customNotes");
+		type.relate(scopeNote,              "hasScopeNote",              Cardinality.OneToMany, "concept", "scopeNotes");
+		type.relate(historyNote,            "hasHistoryNote",            Cardinality.OneToMany, "concept", "historyNotes");
 	}}
 }
