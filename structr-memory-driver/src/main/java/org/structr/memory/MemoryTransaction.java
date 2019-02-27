@@ -38,9 +38,9 @@ public class MemoryTransaction implements Transaction {
 	private static final AtomicLong idCounter = new AtomicLong();
 
 	private final Map<MemoryIdentity, MemoryRelationship> createdRelationships = new LinkedHashMap<>();
+	private final Map<MemoryIdentity, MemoryRelationship> deletedRelationships = new LinkedHashMap<>();
 	private final Map<MemoryIdentity, MemoryNode> createdNodes                 = new LinkedHashMap<>();
 	private final Set<MemoryEntity> modifiedEntities                           = new LinkedHashSet<>();
-	private final Set<MemoryIdentity> deletedRelationships                     = new LinkedHashSet<>();
 	private final Set<MemoryIdentity> deletedNodes                             = new LinkedHashSet<>();
 	private final long transactionId                                           = idCounter.incrementAndGet();
 	private MemoryDatabaseService db                                           = null;
@@ -115,7 +115,7 @@ public class MemoryTransaction implements Transaction {
 		final MemoryIdentity id = toDelete.getIdentity();
 
 		createdRelationships.remove(id);
-		deletedRelationships.add(id);
+		deletedRelationships.put(id, toDelete);
 	}
 
 	// ----- package-private methods -----
@@ -138,7 +138,7 @@ public class MemoryTransaction implements Transaction {
 		sources.add(db.getRelationships(filter));
 
 		// return union of new and existing nodes
-		return Iterables.filter(r -> !deletedRelationships.contains(r.getIdentity()), Iterables.flatten(sources));
+		return Iterables.filter(r -> !deletedRelationships.containsKey(r.getIdentity()), Iterables.flatten(sources));
 	}
 
 	MemoryNode getNodeById(final MemoryIdentity id) {
@@ -166,7 +166,7 @@ public class MemoryTransaction implements Transaction {
 	MemoryRelationship getRelationshipById(final MemoryIdentity id) {
 
 		// deleted, dont return value
-		if (deletedRelationships.contains(id)) {
+		if (deletedRelationships.containsKey(id)) {
 			return null;
 		}
 
@@ -186,7 +186,7 @@ public class MemoryTransaction implements Transaction {
 	}
 
 	boolean isDeleted(final MemoryIdentity id) {
-		return deletedNodes.contains(id) || deletedRelationships.contains(id);
+		return deletedNodes.contains(id) || deletedRelationships.containsKey(id);
 	}
 
 	boolean exists(final MemoryIdentity id) {

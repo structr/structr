@@ -160,12 +160,27 @@ public class FunctionProperty<T> extends Property<T> {
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
-		return null;
+		return databaseConverter(securityContext, null);
 	}
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-		return null;
+
+		PropertyConverter converter = null;
+
+		if (typeHint != null) {
+
+			switch (typeHint.toLowerCase()) {
+
+				case "boolean": converter = pBoolean.inputConverter(securityContext); break;
+				case "int":     converter = pInt.inputConverter(securityContext); break;
+				case "long":    converter = pLong.inputConverter(securityContext); break;
+				case "double":  converter = pDouble.inputConverter(securityContext); break;
+				case "date":    converter = pDate.inputConverter(securityContext); break;
+			}
+		}
+
+		return converter;
 	}
 
 	@Override

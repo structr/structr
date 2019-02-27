@@ -22,6 +22,7 @@ import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseFeature;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Occurrence;
 import org.structr.api.util.Iterables;
@@ -1886,7 +1887,7 @@ public class SearchAndSortingTest extends StructrTest {
 	public void testSortFunctionForGraphObjectMaps() {
 
 		// don't run tests that depend on Cypher being available in the backend
-		if (Services.getInstance().getDatabaseService().supportsQueryLanguage("application/x-cypher-query")) {
+		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
 			final Class<Group> groupType      = StructrApp.getConfiguration().getNodeEntityClass("Group");
 			final PropertyKey<String> nameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");

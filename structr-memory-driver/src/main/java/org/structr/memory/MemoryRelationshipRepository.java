@@ -113,8 +113,17 @@ public class MemoryRelationshipRepository {
 		}
 	}
 
-	void remove(final Set<MemoryIdentity> ids) {
+	void remove(final Map<MemoryIdentity, MemoryRelationship> relationships) {
+
+		final Set<MemoryIdentity> ids = relationships.keySet();
+
 		masterData.keySet().removeAll(ids);
+
+		// clear uniqueness check cache as well
+		for (final MemoryRelationship rel : relationships.values()) {
+
+			duplicatesCheckCache.remove(rel.getUniquenessKey());
+		}
 
 		for (final Set<MemoryIdentity> cache : typeCache.values()) {
 			cache.removeAll(ids);

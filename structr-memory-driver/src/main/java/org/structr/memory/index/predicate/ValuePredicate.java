@@ -41,20 +41,27 @@ public class ValuePredicate<T extends PropertyContainer, V> implements Predicate
 		final Object value = entity.getProperty(key);
 
 		// support for null values
-		if (desiredValue == null && value == null) {
-			return true;
+		if (desiredValue == null) {
+			return value == null;
 		}
 
 		if (value != null) {
+
+			if (desiredValue instanceof Number) {
+
+				final Double expected = ((Number)desiredValue).doubleValue();
+				final Double actual   = ((Number)value).doubleValue();
+
+				return expected.compareTo(actual) == 0;
+			}
 
 			if (value.getClass().isArray()) {
 
 				return Arrays.deepEquals((Object[])desiredValue, (Object[])value);
 
-			} else {
-
-				return desiredValue.equals(value);
 			}
+
+			return desiredValue.equals(value);
 		}
 
 		return false;

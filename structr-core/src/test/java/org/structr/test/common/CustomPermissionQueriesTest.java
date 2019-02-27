@@ -21,6 +21,7 @@ package org.structr.test.common;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseFeature;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
@@ -49,7 +50,8 @@ public class CustomPermissionQueriesTest extends StructrTest {
 	@Test
 	public void test01SimplePermissionResolutionRead() {
 
-		if (Services.getInstance().getDatabaseService().supportsQueryLanguage("application/x-cypher-query")) {
+		// don't run tests that depend on Cypher being available in the backend
+		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
 			this.cleanDatabaseAndSchema();
 
@@ -158,7 +160,8 @@ public class CustomPermissionQueriesTest extends StructrTest {
 	@Test
 	public void test02SimplePermissionResolutionWrite() {
 
-		if (Services.getInstance().getDatabaseService().supportsQueryLanguage("application/x-cypher-query")) {
+		// don't run tests that depend on Cypher being available in the backend
+		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
 			final Class<Principal> principalType = StructrApp.getConfiguration().getNodeEntityClass("Principal");
 			Principal user1                      = null;

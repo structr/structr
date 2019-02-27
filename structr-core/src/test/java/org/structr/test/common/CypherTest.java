@@ -25,6 +25,7 @@ import java.util.Map;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseFeature;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeQuery;
 import org.structr.api.NotFoundException;
@@ -66,7 +67,7 @@ public class CypherTest extends StructrTest {
 	public void test01DeleteAfterLookupWithCypherInTransaction() {
 
 		// don't run tests that depend on Cypher being available in the backend
-		if (Services.getInstance().getDatabaseService().supportsQueryLanguage("application/x-cypher-query")) {
+		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
 			try {
 
@@ -271,7 +272,7 @@ public class CypherTest extends StructrTest {
 	public void testCypherResultWrapping() {
 
 		// don't run tests that depend on Cypher being available in the backend
-		if (Services.getInstance().getDatabaseService().supportsQueryLanguage("application/x-cypher-query")) {
+		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
 			try (final Tx tx = app.tx()) {
 
@@ -446,7 +447,7 @@ public class CypherTest extends StructrTest {
 	public void testCypherPathWrappingWithPermissions() {
 
 		// don't run tests that depend on Cypher being available in the backend
-		if (Services.getInstance().getDatabaseService().supportsQueryLanguage("application/x-cypher-query")) {
+		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
 			Principal tester = null;
 

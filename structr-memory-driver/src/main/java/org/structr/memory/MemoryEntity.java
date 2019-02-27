@@ -21,6 +21,7 @@ package org.structr.memory;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import org.structr.api.NotFoundException;
@@ -159,7 +160,21 @@ public abstract class MemoryEntity implements PropertyContainer {
 		final Map<String, Object> changes = txData.get(transactionId);
 		if (changes != null) {
 
-			data.putAll(changes);
+			for (final Entry<String, Object> entry : changes.entrySet()) {
+
+				final String key   = entry.getKey();
+				final Object value = entry.getValue();
+
+				if (value != null) {
+
+					data.put(key, value);
+
+				} else {
+
+					data.remove(key);
+				}
+			}
+
 			txData.remove(transactionId);
 		}
 

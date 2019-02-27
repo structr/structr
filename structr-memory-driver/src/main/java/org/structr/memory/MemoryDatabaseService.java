@@ -26,6 +26,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.structr.api.AbstractDatabaseService;
+import org.structr.api.DatabaseFeature;
+import static org.structr.api.DatabaseFeature.LargeStringIndexing;
+import static org.structr.api.DatabaseFeature.QueryLanguage;
 import org.structr.api.NativeQuery;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.Transaction;
@@ -67,12 +70,6 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 
 	@Override
 	public void clearCaches() {
-	}
-
-	@Override
-	public boolean supportsQueryLanguage(String mimeType) {
-		// no support for query languages at all..
-		return false;
 	}
 
 	@Override
@@ -272,6 +269,21 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 		});
 	}
 
+	@Override
+	public boolean supportsFeature(final DatabaseFeature feature, final Object... parameters) {
+
+		switch (feature) {
+
+			case LargeStringIndexing:
+				return true;
+
+			case QueryLanguage:
+				return false;
+		}
+
+		return false;
+	}
+
 	// ----- graph repository methods -----
 	public Relationship createRelationship(final MemoryNode sourceNode, final MemoryNode targetNode, final RelationshipType relType) {
 
@@ -379,7 +391,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 		return tx;
 	}
 
-	synchronized void commitTransaction(final Map<MemoryIdentity, MemoryNode> newNodes, final Map<MemoryIdentity, MemoryRelationship> newRelationships, Set<MemoryIdentity> deletedNodes, Set<MemoryIdentity> deletedRelationships) {
+	synchronized void commitTransaction(final Map<MemoryIdentity, MemoryNode> newNodes, final Map<MemoryIdentity, MemoryRelationship> newRelationships, Set<MemoryIdentity> deletedNodes, Map<MemoryIdentity, MemoryRelationship> deletedRelationships) {
 
 		nodes.remove(deletedNodes);
 		nodes.add(newNodes);

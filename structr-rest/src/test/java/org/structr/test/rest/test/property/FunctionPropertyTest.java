@@ -111,7 +111,6 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 		} catch (FrameworkException ex) {
 			fail("Exception during test: " + ex.getMessage());
 		}
-
 	}
 
 	@Test

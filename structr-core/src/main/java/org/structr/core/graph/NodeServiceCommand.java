@@ -91,8 +91,10 @@ public abstract class NodeServiceCommand extends Command {
 		final boolean doValidation      = operation.doValidation();
 		final boolean doCallbacks       = operation.doCallbacks();
 		final boolean doNotifications   = operation.doNotifications();
+		Iterator<T> iterator            = null;
 		long objectCount                = 0L;
 		boolean active                  = true;
+
 
 		while (active) {
 
@@ -100,7 +102,10 @@ public abstract class NodeServiceCommand extends Command {
 
 			try (final Tx tx = app.tx(doValidation, doCallbacks, doNotifications)) {
 
-				final Iterator<T> iterator = iterable.iterator();
+				// fetch iterator only once
+				if (iterator == null) {
+					iterator = iterable.iterator();
+				}
 
 				while (iterator.hasNext() && (condition == null || condition.accept(objectCount))) {
 

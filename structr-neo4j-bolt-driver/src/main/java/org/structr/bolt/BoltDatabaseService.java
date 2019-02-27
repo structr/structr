@@ -51,6 +51,7 @@ import org.neo4j.kernel.configuration.BoltConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.AbstractDatabaseService;
+import org.structr.api.DatabaseFeature;
 import org.structr.api.NativeQuery;
 import org.structr.api.NetworkException;
 import org.structr.api.NotInTransactionException;
@@ -760,6 +761,26 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		return new CountResult(nodeCount, relCount);
 	}
 
+	@Override
+	public boolean supportsFeature(final DatabaseFeature feature, final Object... parameters) {
+
+		switch (feature) {
+
+			case LargeStringIndexing:
+				return false;
+
+			case QueryLanguage:
+
+				final String param = getStringParameter(parameters);
+				if (param != null) {
+
+					return supportedQueryLanguages.contains(param.toLowerCase());
+				}
+		}
+
+		return false;
+	}
+
 	// ----- private methods -----
 	private void createUUIDConstraint() {
 
@@ -835,8 +856,17 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		return null;
 	}
 
-	@Override
-	public boolean supportsQueryLanguage(String mimeType) {
-		return supportedQueryLanguages.contains(mimeType.toLowerCase());
+	private String getStringParameter(final Object[] parameters) {
+
+		if (parameters != null && parameters.length > 0) {
+
+			final Object param = parameters[0];
+			if (param instanceof String) {
+
+				return (String)param;
+			}
+		}
+
+		return null;
 	}
 }
