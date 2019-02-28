@@ -2316,6 +2316,8 @@ input.property-name:disabled {
 
 .schema-visibility-table .toggle-column-header {
    width: 80px;
+   text-align: left;
+   padding-left: 8px;
 }
 
 .schema-visibility-table th .invert-icon {
@@ -2326,8 +2328,8 @@ input.property-name:disabled {
 	margin-left: 40px;
 }
 
-.schema-visibility-table td .toggle-type {
-	float: right;
+.schema-visibility-table td:first-child {
+	text-align: center;
 }
 
 .schema-visibility-table th .toggle-all-types{
