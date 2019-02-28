@@ -3327,17 +3327,17 @@ var _Schema = {
 			},
 			{
 				caption: "Core Types",
-				filter: { isBuiltinType: true, isAbstract:false, category: 'core' },
+				filter: { isBuiltinType: true, category: 'core' },
 				exact: false
 			},
 			{
 				caption: "Html Types",
-				filter: { isBuiltinType: true, isAbstract:false, category: 'ui' },
+				filter: { isBuiltinType: true, category: 'ui' },
 				exact: false
 			},
 			{
 				caption: "Page Types",
-				filter: { isBuiltinType: true, isAbstract:false, category: 'html' },
+				filter: { isBuiltinType: true, category: 'html' },
 				exact: false
 			},
 			{
@@ -3369,7 +3369,7 @@ var _Schema = {
 
 			var schemaVisibilityTable = $('<table class="props schema-visibility-table"></table>');
 			schemaVisibilityTable.append('<tr><th class="" colspan=2>' + visType.caption + '</th></tr>');
-			schemaVisibilityTable.append('<tr><th class="toggle-column-header"><input type="checkbox" class="toggle-all-types"><i class="invert-all-types invert-icon ' + _Icons.getFullSpriteClass(_Icons.toggle_icon) + '" /> Visible</th><th>Type</th></tr>');
+			schemaVisibilityTable.append('<tr><th class="toggle-column-header"><input type="checkbox" title="Toggle all" class="toggle-all-types"><i class="invert-all-types invert-icon ' + _Icons.getFullSpriteClass(_Icons.toggle_icon) + '" title="Invert all"></i> Visible</th><th>Type</th></tr>');
 			tab.append(schemaVisibilityTable);
 
 			Command.query('SchemaNode', 1000, 1, 'name', 'asc', visType.filter, function(schemaNodes) {
