@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -88,10 +88,20 @@
 	-webkit-transform: scale(0.75);
 }
 
+.page-root {
+	position: relative;
+}
+
+.add-page-template {
+	position: absolute;
+	left: 4px;
+	top: 8px;
+}
+
+
 /**
  * Styles for content of preview iframe
  */
-
 
 [data-structr-id] {
 	position: relative;
@@ -109,6 +119,7 @@
 	background-color: rgba(204,204,204,.25);
 	font-size: 9pt;
 	position: absolute;
+	z-index: 1;
 	top: 0;
 	left: 0px;
 	width: 100%;

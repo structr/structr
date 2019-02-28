@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -282,12 +282,7 @@ public class ActionContext {
 
 						case "remoteAddress":
 						case "remote_address":
-							final String remoteAddress = securityContext.getRequest().getHeader("X-FORWARDED-FOR");
-							if (remoteAddress == null) {
-								return securityContext.getRequest().getRemoteAddr();
-							}
-							return remoteAddress;
-
+							return getRemoteAddr(securityContext.getRequest());
 						case "response": {
 							final HttpServletResponse response = securityContext.getResponse();
 							if (response != null) {
@@ -387,6 +382,14 @@ public class ActionContext {
 		}
 
 		return sb.toString();
+	}
+
+	public static String getRemoteAddr(HttpServletRequest request) {
+		final String remoteAddress = request.getHeader("X-FORWARDED-FOR");
+		if (remoteAddress == null) {
+			return request.getRemoteAddr();
+		}
+		return remoteAddress;
 	}
 
 	public void print(final Object... objects) {
