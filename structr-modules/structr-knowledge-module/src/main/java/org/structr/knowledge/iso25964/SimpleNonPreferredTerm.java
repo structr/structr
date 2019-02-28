@@ -44,7 +44,7 @@ public interface SimpleNonPreferredTerm extends NodeInterface {
 		
 		type.addBooleanProperty("hidden", PropertyView.All, PropertyView.Ui).setIndexed(true);
 		
-		final JsonReferenceType equivalence = type.relate(prefTerm, "USE", Cardinality.ManyToOne, "simpleNonPreferredTerms", "preferredTerm");
+		final JsonReferenceType equivalence = type.relate(prefTerm, "USE", Cardinality.ManyToOne, "preferredTerm", "simpleNonPreferredTerms");
 		equivalence.addStringProperty("role", PropertyView.All, PropertyView.Ui).setIndexed(true);
 		
 	}}

@@ -296,12 +296,21 @@ public class ActionContext {
 										// return output stream of HTTP response for streaming
 										return response.getOutputStream();
 
+<<<<<<< HEAD
 									} catch (IOException ioex) {
 										logger.warn("", ioex);
 									}
 								}
 								return null;
 							}
+=======
+						case "remoteAddress":
+						case "remote_address":
+							return getRemoteAddr(securityContext.getRequest());
+						case "response": {
+							final HttpServletResponse response = securityContext.getResponse();
+							if (response != null) {
+>>>>>>> upstream/master
 
 							case "statusCode":
 							case "status_code": {
@@ -390,6 +399,14 @@ public class ActionContext {
 		}
 
 		return sb.toString();
+	}
+
+	public static String getRemoteAddr(HttpServletRequest request) {
+		final String remoteAddress = request.getHeader("X-FORWARDED-FOR");
+		if (remoteAddress == null) {
+			return request.getRemoteAddr();
+		}
+		return remoteAddress;
 	}
 
 	public void print(final Object... objects) {

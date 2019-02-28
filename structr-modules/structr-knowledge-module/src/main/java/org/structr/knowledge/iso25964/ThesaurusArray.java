@@ -45,8 +45,8 @@ public interface ThesaurusArray extends NodeInterface {
 		type.addBooleanProperty("ordered", PropertyView.All, PropertyView.Ui).setDefaultValue("false").setRequired(true);
 		type.addStringArrayProperty("notation", PropertyView.All, PropertyView.Ui);
 		
-		type.relate(label,   "hasNodeLabel",     Cardinality.OneToMany, "nodeLabels", "thesaurusArray");
-		type.relate(type,    "hasMemberArray",   Cardinality.OneToMany, "memberArrays", "superOrdinateArray");
-		type.relate(concept, "hasMemberConcept", Cardinality.ManyToMany, "memberConcepts", "thesaurusArrays");
+		type.relate(label,   "hasNodeLabel",     Cardinality.OneToMany, "thesaurusArray", "nodeLabels");
+		type.relate(type,    "hasMemberArray",   Cardinality.OneToMany, "superOrdinateArray", "memberArrays");
+		type.relate(concept, "hasMemberConcept", Cardinality.ManyToMany, "thesaurusArrays", "memberConcepts");
 	}}
 }

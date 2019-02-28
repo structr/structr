@@ -167,7 +167,7 @@
 			<plugin>
 				<groupId>com.spotify</groupId>
 				<artifactId>dockerfile-maven-plugin</artifactId>
-				<version>1.3.7</version>
+				<version>1.4.10</version>
 				<executions>
 					<execution>
 						<id>package</id>
@@ -177,6 +177,18 @@
 							<goal>push</goal>
 						</goals>
 					</execution>
+					<execution>
+						<id>tag-latest</id>
+						<phase>install</phase>
+						<goals>
+							<goal>build</goal>
+							<goal>tag</goal>
+							<goal>push</goal>
+						</goals>
+						<configuration>
+							<tag>latest</tag>
+						</configuration>
+					</execution>					
 				</executions>
 				<configuration>
 					<repository>structr/structr</repository>
@@ -317,7 +329,7 @@
 		<developerConnection>scm:git:git@github.com:structr/structr.git</developerConnection>
 	</scm>
 
-<!--	<distributionManagement>
+	<!--	<distributionManagement>
 		<repository>
 			<id>sonatype-nexus-staging</id>
 			<name>Maven Central Staging</name>
