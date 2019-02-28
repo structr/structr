@@ -254,88 +254,71 @@ public class ActionContext {
 			} else {
 
 				// keywords that need an existing security context
-				if (securityContext != null && securityContext != SecurityContext.getSuperUserInstance()) {
+				if (securityContext != null) {
 
 					// "data-less" keywords to start the evaluation chain
-					if (securityContext.getRequest() != null) {
-						switch (key) {
-							case "request":
-								return securityContext.getRequest();
+					switch (key) {
 
-							case "host":
-								return securityContext.getRequest().getServerName();
+						case "request":
+							return securityContext.getRequest();
 
-							case "port":
-								return securityContext.getRequest().getServerPort();
+						case "host":
+							return securityContext.getRequest().getServerName();
 
-							case "pathInfo":
-							case "path_info":
-								return securityContext.getRequest().getPathInfo();
+						case "port":
+							return securityContext.getRequest().getServerPort();
 
-							case "queryString":
-							case "query_string":
-								return securityContext.getRequest().getQueryString();
+						case "pathInfo":
+						case "path_info":
+							return securityContext.getRequest().getPathInfo();
 
-							case "parameterMap":
-							case "parameter_map":
-								return securityContext.getRequest().getParameterMap();
+						case "queryString":
+						case "query_string":
+							return securityContext.getRequest().getQueryString();
 
-							case "remoteAddress":
-							case "remote_address":
-								final String remoteAddress = securityContext.getRequest().getHeader("X-FORWARDED-FOR");
-								if (remoteAddress == null) {
-									return securityContext.getRequest().getRemoteAddr();
-								}
-								return remoteAddress;
+						case "parameterMap":
+						case "parameter_map":
+							return securityContext.getRequest().getParameterMap();
 
-							case "response": {
-								final HttpServletResponse response = securityContext.getResponse();
-								if (response != null) {
-
-									try {
-										// return output stream of HTTP response for streaming
-										return response.getOutputStream();
-
-<<<<<<< HEAD
-									} catch (IOException ioex) {
-										logger.warn("", ioex);
-									}
-								}
-								return null;
-							}
-=======
 						case "remoteAddress":
 						case "remote_address":
 							return getRemoteAddr(securityContext.getRequest());
 						case "response": {
 							final HttpServletResponse response = securityContext.getResponse();
 							if (response != null) {
->>>>>>> upstream/master
 
-							case "statusCode":
-							case "status_code": {
-								final HttpServletResponse response = securityContext.getResponse();
-								if (response != null) {
-									return response.getStatus();
+								try {
+									// return output stream of HTTP response for streaming
+									return response.getOutputStream();
+
+								} catch (IOException ioex) {
+									logger.warn("", ioex);
 								}
-								return null;
 							}
-							case "depth":
-								return securityContext.getSerializationDepth() - 1;
-
-
-							case "baseUrl":
-							case "base_url": {
-
-								return getBaseUrl(securityContext.getRequest());
-							}
+							return null;
 						}
-						
-					}
 
-					switch (key) {
+						case "statusCode":
+						case "status_code": {
+							final HttpServletResponse response = securityContext.getResponse();
+							if (response != null) {
+								return response.getStatus();
+							}
+							return null;
+						}
+
 						case "me":
 							return securityContext.getUser(false);
+
+						case "depth":
+							return securityContext.getSerializationDepth() - 1;
+
+
+						case "baseUrl":
+						case "base_url": {
+
+							return getBaseUrl(securityContext.getRequest());
+						}
 					}
 
 				}
@@ -466,9 +449,9 @@ public class ActionContext {
 				try (final Tx tx = app.tx()) {
 
 					final List<JavaScriptSource> jsFiles = app.nodeQuery(JavaScriptSource.class)
-						.and(JavaScriptSource.name, fileName)
-						.and(StructrApp.key(JavaScriptSource.class, "useAsJavascriptLibrary"), true)
-						.getAsList();
+							.and(JavaScriptSource.name, fileName)
+							.and(StructrApp.key(JavaScriptSource.class, "useAsJavascriptLibrary"), true)
+							.getAsList();
 
 					if (jsFiles.isEmpty()) {
 						logger.warn("No JavaScript library file found with fileName: {}", fileName );
