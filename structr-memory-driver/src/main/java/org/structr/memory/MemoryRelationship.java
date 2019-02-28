@@ -25,8 +25,6 @@ import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 
 /**
- *
- * @author Christian Morgner
  */
 public class MemoryRelationship extends MemoryEntity implements Relationship {
 

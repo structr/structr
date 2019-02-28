@@ -32,8 +32,6 @@ import org.structr.memory.index.predicate.GroupPredicate;
 import org.structr.memory.index.predicate.NotPredicate;
 
 /**
- *
- * @author Christian Morgner
  */
 public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, Predicate<T> {
 

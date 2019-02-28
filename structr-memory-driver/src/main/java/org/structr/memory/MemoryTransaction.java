@@ -30,8 +30,6 @@ import org.structr.api.util.Iterables;
 import org.structr.memory.index.filter.Filter;
 
 /**
- *
- * @author Christian Morgner
  */
 public class MemoryTransaction implements Transaction {
 

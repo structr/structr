@@ -22,8 +22,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.structr.api.graph.Identity;
 
 /**
- *
- * @author Christian Morgner
  */
 public class MemoryIdentity implements Identity {
 

@@ -776,6 +776,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 					return supportedQueryLanguages.contains(param.toLowerCase());
 				}
+
+			case SpatialQueries:
+				return true;
 		}
 
 		return false;

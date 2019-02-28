@@ -279,6 +279,9 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 
 			case QueryLanguage:
 				return false;
+
+			case SpatialQueries:
+				return false;
 		}
 
 		return false;

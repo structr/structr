@@ -28,8 +28,6 @@ import org.structr.memory.index.filter.MemoryLabelFilter;
 import org.testng.annotations.Test;
 
 /**
- *
- * @author Christian Morgner
  */
 public class MemoryDBTest {
 

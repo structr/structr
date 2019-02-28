@@ -27,7 +27,9 @@ import static org.hamcrest.Matchers.*;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseFeature;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
@@ -1351,32 +1353,35 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 	@Test
 	public void testSpatialSearchWithoutGeocoding() {
 
-		// center of Germany is 51.163375; 10.447683
-		// test: 2.38km north: 51.183727, 10.460942
+		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.SpatialQueries)) {
 
-		createEntity("/TestNine", "{ name: 'Mittelpunktstein', latitude: 51.163375, longitude: 10.447683 }");
+			// center of Germany is 51.163375; 10.447683
+			// test: 2.38km north: 51.183727, 10.460942
 
-		// test distance of 1km => no result
-		RestAssured.given().contentType("application/json; charset=UTF-8").expect()
-			.statusCode(200)
-			.body("result",	              hasSize(0))
-			.body("result_count",         equalTo(0))
-			.when().get(concat("/TestNine?distance=1&latlon=51.183727,10.460942"));
+			createEntity("/TestNine", "{ name: 'Mittelpunktstein', latitude: 51.163375, longitude: 10.447683 }");
 
-		// test distance of 2km => no result
-		RestAssured.given().contentType("application/json; charset=UTF-8").expect()
-			.statusCode(200)
-			.body("result",	              hasSize(0))
-			.body("result_count",         equalTo(0))
-			.when().get(concat("/TestNine?distance=2&latlon=51.183727,10.460942"));
+			// test distance of 1km => no result
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect()
+				.statusCode(200)
+				.body("result",	              hasSize(0))
+				.body("result_count",         equalTo(0))
+				.when().get(concat("/TestNine?distance=1&latlon=51.183727,10.460942"));
 
-		// test distance of 3km => 1 result
-		RestAssured.given().contentType("application/json; charset=UTF-8").expect()
-			.statusCode(200)
-			.body("result",	              hasSize(1))
-			.body("result_count",         equalTo(1))
-			.when().get(concat("/TestNine?distance=3&latlon=51.183727,10.460942"));
+			// test distance of 2km => no result
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect()
+				.statusCode(200)
+				.body("result",	              hasSize(0))
+				.body("result_count",         equalTo(0))
+				.when().get(concat("/TestNine?distance=2&latlon=51.183727,10.460942"));
 
+			// test distance of 3km => 1 result
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect()
+				.statusCode(200)
+				.body("result",	              hasSize(1))
+				.body("result_count",         equalTo(1))
+				.when().get(concat("/TestNine?distance=3&latlon=51.183727,10.460942"));
+
+		}
 
 	}
 }

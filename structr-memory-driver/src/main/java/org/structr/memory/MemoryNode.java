@@ -28,8 +28,6 @@ import org.structr.api.util.Iterables;
 import org.structr.memory.index.filter.MemoryLabelFilter;
 
 /**
- *
- * @author Christian Morgner
  */
 public class MemoryNode extends MemoryEntity implements Node {
 
