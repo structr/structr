@@ -1718,6 +1718,20 @@ var Structr = {
 			callback(parameterizedTemplate, cacheHit);
 		});
 	},
+	activateCommentsInElement: function(elem) {
+
+		$('[data-comment]', elem).each(function(idx, el) {
+			Structr.appendInfoTextToElement({
+				text: $(el).data("comment"),
+				element: $(el),
+				css: {
+					"margin": "0 4px",
+					"vertical-align": "top"
+				}
+			});
+		});
+
+	},
 	blockUiGeneric: function(html, timeout) {
 		Structr.loadingSpinnerTimeout = window.setTimeout(function() {
 			$.blockUI.defaults.overlayCSS.opacity = .2;
