@@ -1373,6 +1373,9 @@ var _Code = {
 
 			codeContents.empty();
 			codeContents.append(html);
+
+			Structr.activateCommentsInElement(codeContents);
+
 			_Code.editPropertyContent(undefined, property.id, 'readFunction',  $('#read-code-container'),  false);
 			_Code.editPropertyContent(undefined, property.id, 'writeFunction', $('#write-code-container'), false);
 			_Code.displayDefaultPropertyOptions(property);
