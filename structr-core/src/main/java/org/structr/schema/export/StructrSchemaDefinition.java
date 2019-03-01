@@ -70,6 +70,10 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 		return typeDefinitions.getTypes();
 	}
 
+	public List<Map<String, Object>> getGlobalMethods() {
+		return globalMethods.serialize();
+	}
+
 	@Override
 	public JsonType getType(final String name) {
 		return typeDefinitions.getType(name, true);
