@@ -80,7 +80,7 @@ var _Flows = {
 
 		main = document.querySelector('#main');
 
-		main.innerHTML = '<div class="tree-main" id="flows-main"><div class="column-resizer"></div><div class="fit-to-height tree-container" id="flows-tree-container"><div class="tree" id="flows-tree"></div></div><div class="fit-to-height tree-contents-container" id="flows-canvas-container"><div class="tree-contents" id="flows-canvas"></div></div>';
+		main.innerHTML = '<div class="tree-main" id="flows-main"><div class="column-resizer"></div><div class="fit-to-height tree-container" id="flows-tree-container"><div class="tree" id="flows-tree"></div></div><div class="fit-to-height tree-contents-container" id="flows-canvas-container"><div class="tree-contents tree-contents-with-top-buttons" id="flows-canvas"></div></div>';
 		flowsMain = document.querySelector('#flows-main');
 
 		let markup = `

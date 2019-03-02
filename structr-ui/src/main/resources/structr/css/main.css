@@ -3503,20 +3503,24 @@ input.tree-search-input:focus {
 	margin-right: 8px ! important;
 }
 
-.tree-contents, .tree-context, #crawler-list, #flows-canvas {
+.tree-contents, .tree-context {
 	vertical-align: top;
 	background-color: #fff;
 	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
 	border: 1px solid rgba(0,0,0,.125);
 	padding: 12px;
-	margin-top: 8px;
+	margin-top: 0;
 	overflow: auto;
 	font-size: 9pt;
 	position: absolute;
 }
 
-#code-contents, #code-context, #simple-pages-contents, #simple-pages-context {
-	margin-top: 0;
+.tree-contents {
+	overflow: hidden;
+}
+
+.tree-contents-with-top-buttons {
+	margin-top: 8px;
 }
 
 #code-context .code-favorite {
@@ -4532,7 +4536,7 @@ input#element-class {
 	background-color: transparent;
 	position: absolute;
 	top: 70px;
-	left: 222px;
+	left: 300px;
 	cursor: ew-resize;
 	border: 1px solid transparent;
 }
