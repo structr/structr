@@ -41,6 +41,6 @@ public interface SplitNonPreferredTerm extends NodeInterface {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/SplitNonPreferredTerm"));
 		type.setExtends(URI.create("#/definitions/ThesaurusTerm"));
 
-		final JsonReferenceType compoundEquivalence = type.relate(prefTerm, "USE", Relation.Cardinality.ManyToMany, "preferredTerms", "spiltNonPreferredTerms");
+		final JsonReferenceType compoundEquivalence = type.relate(prefTerm, "USE", Relation.Cardinality.ManyToMany, "preferredTerms", "splitNonPreferredTerms");
 	}}
 }
