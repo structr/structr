@@ -21,13 +21,16 @@ package org.structr.web.maintenance;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -79,8 +82,11 @@ import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.export.StructrFunctionProperty;
+import org.structr.schema.export.StructrMethodDefinition;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonSchema;
+import org.structr.schema.export.StructrSchemaDefinition;
+import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.web.common.AbstractMapComparator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
@@ -105,7 +111,6 @@ import org.structr.web.maintenance.deploy.ComponentImportVisitor;
 import org.structr.web.maintenance.deploy.FileImportVisitor;
 import org.structr.web.maintenance.deploy.ImportFailureException;
 import org.structr.web.maintenance.deploy.PageImportVisitor;
-import org.structr.web.maintenance.deploy.SchemaImportVisitor;
 import org.structr.web.maintenance.deploy.TemplateImportVisitor;
 import org.structr.websocket.command.CreateComponentCommand;
 
@@ -381,15 +386,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 			// import schema
-			final Path schema = source.resolve("schema");
-			if (Files.exists(schema)) {
+			final Path schemaFolder = source.resolve("schema");
+			if (Files.exists(schemaFolder)) {
 
 				try {
 
 					info("Importing data from schema/ directory");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing schema");
 
-					Files.walkFileTree(schema, new SchemaImportVisitor());
+					importSchema(schemaFolder);
 
 				} catch (ImportFailureException fex) {
 
@@ -648,11 +653,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path components     = Files.createDirectories(target.resolve("components"));
 			final Path files          = Files.createDirectories(target.resolve("files"));
 			final Path pages          = Files.createDirectories(target.resolve("pages"));
-			final Path schema         = Files.createDirectories(target.resolve("schema"));
+			final Path schemaFolder   = Files.createDirectories(target.resolve("schema"));
 			final Path security       = Files.createDirectories(target.resolve("security"));
 			final Path templates      = Files.createDirectories(target.resolve("templates"));
 			final Path modules        = Files.createDirectories(target.resolve("modules"));
-			final Path schemaJson     = schema.resolve("schema.json");
 			final Path grants         = security.resolve("grants.json");
 			final Path filesConf      = target.resolve("files.json");
 			final Path sitesConf      = target.resolve("sites.json");
@@ -684,7 +688,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			exportResourceAccessGrants(grants);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Schema");
-			exportSchema(schemaJson);
+			exportSchema(schemaFolder);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Mail Templates");
 			exportMailTemplates(mailTemplates);
@@ -1169,23 +1173,107 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void exportSchema(final Path target) throws FrameworkException {
+	private void exportSchema(final Path targetFolder) throws FrameworkException {
 
 		logger.info("Exporting schema");
 
 		try {
 
-			final JsonSchema schema = StructrSchema.createFromDatabase(StructrApp.getInstance());
+			// first delete all contents of the schema directory
+			deleteDirectoryContentsRecursively(targetFolder);
 
-			try (final Writer writer = new FileWriter(target.toFile())) {
+			final StructrSchemaDefinition schema = (StructrSchemaDefinition)StructrSchema.createFromDatabase(StructrApp.getInstance());
 
-				writer.append(schema.toString());
-				writer.append("\n");
-				writer.flush();
 
-			} catch (IOException ioex) {
-				logger.warn("", ioex);
+			if (Settings.SchemaDeploymentFormat.getValue().equals("tree")) {
+
+				// move global schema methods to files
+				final List<Map<String, Object>> globalSchemaMethods = schema.getGlobalMethods();
+
+				if (globalSchemaMethods.size() > 0) {
+
+					final Path globalMethodsFolder = Files.createDirectories(targetFolder.resolve("_globalMethods"));
+
+					for (Map<String, Object> schemaMethod : globalSchemaMethods) {
+
+						final String methodSource   = (String) schemaMethod.get("source");
+						final Path globalMethodFile = globalMethodsFolder.resolve((String) schemaMethod.get("name"));
+
+						schemaMethod.put("source", "./" + targetFolder.relativize(globalMethodFile).toString());
+
+						if (methodSource != null) {
+							writeStringToFile(globalMethodFile, methodSource);
+						}
+					}
+				}
+
+				// move all methods/function properties to files
+				for (final StructrTypeDefinition typeDef : schema.getTypes()) {
+
+					final String typeName = typeDef.getName();
+
+					final List<StructrFunctionProperty> functionProperties = new LinkedList();
+					for (final Object propDef : typeDef.getProperties()) {
+
+						if (propDef instanceof StructrFunctionProperty) {
+							functionProperties.add((StructrFunctionProperty)propDef);
+						}
+					}
+
+					final boolean hasFunctionProperties = (functionProperties.size() > 0);
+					final boolean hasMethods = (typeDef.getMethods().size() > 0);
+
+					if (hasFunctionProperties || hasMethods) {
+
+						final Path typeFolder = Files.createDirectories(targetFolder.resolve(typeName));
+
+						if (hasFunctionProperties) {
+
+							final Path functionsFolder = Files.createDirectories(typeFolder.resolve("functions"));
+
+							for (final StructrFunctionProperty fp : functionProperties) {
+
+								final Path readFunctionFile  = functionsFolder.resolve(fp.getName() + ".readFunction");
+								final String readFunction    = fp.getReadFunction();
+								fp.setReadFunction("./" + targetFolder.relativize(readFunctionFile).toString());
+								if (readFunction != null) {
+									writeStringToFile(readFunctionFile, readFunction);
+								}
+
+								final Path writeFunctionFile = functionsFolder.resolve(fp.getName() + ".writeFunction");
+								final String writeFunction   = fp.getWriteFunction();
+								fp.setWriteFunction("./" + targetFolder.relativize(writeFunctionFile).toString());
+								if (writeFunction != null) {
+									writeStringToFile(writeFunctionFile, writeFunction);
+								}
+							}
+						}
+
+						if (hasMethods) {
+
+							final Path methodsFolder = Files.createDirectories(typeFolder.resolve("methods"));
+
+							for (final Object m : typeDef.getMethods()) {
+
+								final StructrMethodDefinition method = (StructrMethodDefinition)m;
+								final String methodSource = method.getSource();
+
+								final Path methodFile = methodsFolder.resolve(method.getName());
+								method.setSource("./" + targetFolder.relativize(methodFile).toString());
+
+								if (methodSource != null) {
+									writeStringToFile(methodFile, methodSource);
+								}
+							}
+						}
+					}
+				}
+
 			}
+
+			final Path schemaJson = targetFolder.resolve("schema.json");
+
+			writeStringToFile(schemaJson, schema.toString());
 
 		} catch (Throwable t) {
 			t.printStackTrace();
@@ -1749,6 +1837,138 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			fex.printStackTrace();
 
 			throw fex;
+		}
+	}
+
+	private void importSchema(final Path schemaFolder) {
+
+		final Path schemaJsonFile = schemaFolder.resolve("schema.json");
+
+		if (!Files.exists(schemaJsonFile)) {
+
+			info("Deployment does not contain schema/schema.json - continuing without schema import");
+
+		} else {
+
+			final SecurityContext ctx = SecurityContext.getSuperUserInstance();
+			ctx.setDoTransactionNotifications(false);
+
+			final App app = StructrApp.getInstance(ctx);
+
+			try (final FileReader reader = new FileReader(schemaJsonFile.toFile())) {
+
+				final StructrSchemaDefinition schema = (StructrSchemaDefinition)StructrSchema.createFromSource(reader);
+
+
+				if (Settings.SchemaDeploymentFormat.getValue().equals("tree")) {
+
+					final Path globalMethodsFolder = schemaFolder.resolve("_globalMethods");
+
+					if (Files.exists(globalMethodsFolder)) {
+
+						for (Map<String, Object> schemaMethod : schema.getGlobalMethods()) {
+
+							final Path globalMethodFile = globalMethodsFolder.resolve((String) schemaMethod.get("name"));
+
+							schemaMethod.put("source", (Files.exists(globalMethodFile)) ? new String(Files.readAllBytes(globalMethodFile)) : null);
+						}
+
+					} else {
+						// looks like an old export - dont touch
+					}
+
+					for (final StructrTypeDefinition typeDef : schema.getTypes()) {
+
+						final Path typeFolder = schemaFolder.resolve(typeDef.getName());
+
+						if (Files.exists(typeFolder)) {
+
+							final Path functionsFolder = typeFolder.resolve("functions");
+
+							if (Files.exists(functionsFolder)) {
+
+								for (final Object propDef : typeDef.getProperties()) {
+
+									if (propDef instanceof StructrFunctionProperty) {
+
+										final StructrFunctionProperty fp = (StructrFunctionProperty)propDef;
+
+										final Path readFunctionFile    = functionsFolder.resolve(fp.getName() + ".readFunction");
+										final Path writeFunctionFile   = functionsFolder.resolve(fp.getName() + ".writeFunction");
+
+										fp.setReadFunction ((Files.exists(readFunctionFile))  ? new String(Files.readAllBytes(readFunctionFile))  : null);
+										fp.setWriteFunction((Files.exists(writeFunctionFile)) ? new String(Files.readAllBytes(writeFunctionFile)) : null);
+									}
+								}
+							}
+
+							final Path methodsFolder = typeFolder.resolve("methods");
+
+							if (Files.exists(methodsFolder)) {
+
+								for (final Object m : typeDef.getMethods()) {
+
+									final StructrMethodDefinition method = (StructrMethodDefinition)m;
+									final Path methodFile = methodsFolder.resolve(method.getName());
+
+									method.setSource((Files.exists(methodFile)) ? new String(Files.readAllBytes(methodFile)) : null);
+								}
+							}
+
+						} else {
+							// looks like an old export - dont touch
+						}
+					}
+				}
+
+				StructrSchema.replaceDatabaseSchema(app, schema);
+
+			} catch (Throwable t) {
+
+				throw new ImportFailureException(t.getMessage(), t);
+			}
+		}
+	}
+
+	void deleteDirectoryContentsRecursively (final Path path) throws IOException {
+
+		if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
+
+			try (DirectoryStream<Path> entries = Files.newDirectoryStream(path)) {
+
+				for (Path entry : entries) {
+					deleteRecursively(entry);
+				}
+			}
+		}
+	}
+
+	void deleteRecursively(final Path path) throws IOException {
+
+		if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
+
+			try (DirectoryStream<Path> entries = Files.newDirectoryStream(path)) {
+
+				for (Path entry : entries) {
+					deleteRecursively(entry);
+				}
+			}
+		}
+
+		Files.delete(path);
+	}
+
+	private void writeStringToFile(final Path path, final String string) {
+
+		try (final Writer writer = new FileWriter(path.toFile())) {
+
+			if (string != null) {
+				writer.append(string);
+			}
+			writer.flush();
+
+		} catch (IOException ioex) {
+			logger.warn("", ioex);
 		}
 	}
 
