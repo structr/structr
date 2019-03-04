@@ -33,7 +33,7 @@ public class MailSendFunction extends Function<Object, Object> {
 
 		try {
 
-			ctx.getAdvancedMailContainer().send();
+			return ctx.getAdvancedMailContainer().send();
 
 		} catch (FrameworkException ex) {
 
