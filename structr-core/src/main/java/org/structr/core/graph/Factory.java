@@ -24,6 +24,7 @@ import java.util.function.Function;
 import org.neo4j.helpers.collection.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Identity;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -67,8 +68,8 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	}
 
 	public abstract T instantiate(final S obj);
-	public abstract T instantiate(final S obj, final String pathSegmentId);
-	public abstract T instantiateWithType(final S obj, final Class<T> type, final String pathSegmentId, boolean isCreation) throws FrameworkException;
+	public abstract T instantiate(final S obj, final Identity pathSegmentId);
+	public abstract T instantiateWithType(final S obj, final Class<T> type, final Identity pathSegmentId, boolean isCreation) throws FrameworkException;
 	public abstract T instantiate(final S obj, final boolean includeHidden, final boolean publicOnly) throws FrameworkException;
 
 	/**

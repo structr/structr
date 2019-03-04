@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
@@ -60,7 +61,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 	}
 
 	@Override
-	public T instantiate(final Node node, final String pathSegmentId) {
+	public T instantiate(final Node node, final Identity pathSegmentId) {
 
 		if (node == null) {
 			return null;
@@ -74,7 +75,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 	}
 
 	@Override
-	public T instantiateWithType(final Node node, final Class<T> nodeClass, final String pathSegmentId, boolean isCreation) {
+	public T instantiateWithType(final Node node, final Class<T> nodeClass, final Identity pathSegmentId, boolean isCreation) {
 
 		// cannot instantiate node without type
 		if (nodeClass == null) {

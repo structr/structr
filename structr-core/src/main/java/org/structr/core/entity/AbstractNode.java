@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
+import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
@@ -113,7 +114,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	private Map<String, Object> tmpStorageContainer = null;
 	public boolean internalSystemPropertiesUnlocked = false;
-	private String rawPathSegmentId                 = null;
+	private Identity rawPathSegmentId               = null;
 	private long sourceTransactionId                = -1;
 	private boolean readOnlyPropertiesUnlocked      = false;
 	protected String cachedUuid                     = null;
@@ -1552,17 +1553,16 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		if (rawPathSegmentId != null) {
 
-			try {
-				return StructrApp.getInstance(currentSecurityContext).getRelationshipById(rawPathSegmentId);
+			final Relationship rel = StructrApp.getInstance(currentSecurityContext).getDatabaseService().getRelationshipById(rawPathSegmentId);
+			if (rel != null) {
 
-			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				final RelationshipFactory factory = new RelationshipFactory(currentSecurityContext);
+				return factory.instantiate(rel);
 			}
 		}
 
 		return null;
 	}
-
 
 	@Override
 	public final Object evaluate(final ActionContext actionContext, final String key, final String defaultValue) throws FrameworkException {
@@ -1812,7 +1812,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public final void setRawPathSegmentId(final String rawPathSegmentId) {
+	public final void setRawPathSegmentId(final Identity rawPathSegmentId) {
 		this.rawPathSegmentId = rawPathSegmentId;
 	}
 

@@ -64,7 +64,7 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 
 			if (predicate != null && predicate.comparator() != null) {
 
-				final List<S> result = Iterables.toList(Iterables.map(from -> nodeFactory.instantiate(from.getStartNode(), getUuid(from)), rels));
+				final List<S> result = Iterables.toList(Iterables.map(from -> nodeFactory.instantiate(from.getStartNode(), from.getId()), rels));
 
 				Collections.sort(result, predicate.comparator());
 
@@ -73,7 +73,7 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 			} else {
 
 				// sort relationships by id
-				return Iterables.map(from -> nodeFactory.instantiate(from.getStartNode(), getUuid(from)), rels);
+				return Iterables.map(from -> nodeFactory.instantiate(from.getStartNode(), from.getId()), rels);
 			}
 		}
 
