@@ -44,6 +44,7 @@ import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
 import org.structr.memory.index.filter.Filter;
 import org.structr.memory.index.filter.MemoryLabelFilter;
+import org.structr.memory.index.filter.MemoryTypeFilter;
 import org.structr.memory.index.filter.SourceNodeFilter;
 import org.structr.memory.index.filter.TargetNodeFilter;
 
@@ -52,8 +53,8 @@ import org.structr.memory.index.filter.TargetNodeFilter;
 public class MemoryDatabaseService extends AbstractDatabaseService implements GraphProperties {
 
 	private static final Map<String, RelationshipType> relTypeCache     = new ConcurrentHashMap<>();
-	private static final Map<String, Object> graphProperties            = new HashMap<>();
 	private static final ThreadLocal<MemoryTransaction> transactions    = new ThreadLocal<>();
+	private static final Map<String, Object> graphProperties            = new HashMap<>();
 	private final MemoryRelationshipRepository relationships            = new MemoryRelationshipRepository();
 	private final MemoryNodeRepository nodes                            = new MemoryNodeRepository();
 	private MemoryRelationshipIndex relIndex                            = null;
@@ -165,7 +166,12 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 
 	@Override
 	public Iterable<Node> getNodesByTypeProperty(final String type) {
-		return getNodesByLabel(type);
+
+		if (type == null) {
+			return getAllNodes();
+		}
+
+		return Iterables.map(n -> n, getFilteredNodes(new MemoryTypeFilter<>(type)));
 	}
 
 	@Override

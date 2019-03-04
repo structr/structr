@@ -18,6 +18,7 @@
  */
 package org.structr.memory;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -26,13 +27,15 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import org.structr.api.util.Iterables;
 import org.structr.memory.index.filter.Filter;
 import org.structr.memory.index.filter.MemoryLabelFilter;
+import org.structr.memory.index.filter.MemoryTypeFilter;
 
 /**
  */
 public class MemoryNodeRepository {
 
-	final Map<MemoryIdentity, MemoryNode> masterData = new ConcurrentHashMap<>();
-	final Map<String, Set<MemoryIdentity>> typeCache = new ConcurrentHashMap<>();
+	final Map<MemoryIdentity, MemoryNode> masterData  = new ConcurrentHashMap<>();
+	final Map<String, Set<MemoryIdentity>> labelCache = new ConcurrentHashMap<>();
+	final Map<String, Set<MemoryIdentity>> typeCache  = new ConcurrentHashMap<>();
 
 	MemoryNode get(final MemoryIdentity id) {
 		return masterData.get(id);
@@ -40,6 +43,7 @@ public class MemoryNodeRepository {
 
 	public void clear() {
 		masterData.clear();
+		labelCache.clear();
 		typeCache.clear();
 	}
 
@@ -52,7 +56,15 @@ public class MemoryNodeRepository {
 				final MemoryLabelFilter<MemoryNode> mt = (MemoryLabelFilter<MemoryNode>)filter;
 				final String label                     = mt.getLabel();
 
-				return Iterables.map(i -> masterData.get(i), getCacheForLabel(label));
+				return Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(getCacheForLabel(label)));
+			}
+
+			if (filter instanceof MemoryTypeFilter) {
+
+				final MemoryTypeFilter<MemoryNode> mt = (MemoryTypeFilter<MemoryNode>)filter;
+				final String type                     = mt.getType();
+
+				return Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(getCacheForType(type)));
 			}
 		}
 
@@ -63,25 +75,32 @@ public class MemoryNodeRepository {
 		return masterData.containsKey(id);
 	}
 
-	void add(final Map<MemoryIdentity, MemoryNode> newData) {
+	synchronized void add(final Map<MemoryIdentity, MemoryNode> newData) {
 
 		for (final Entry<MemoryIdentity, MemoryNode> entry : newData.entrySet()) {
 
 			final MemoryIdentity id = entry.getKey();
 			final MemoryNode value  = entry.getValue();
+			final String type       = id.getType();
 
 			for (final String label : value.getLabels()) {
 
 				getCacheForLabel(label).add(id);
 			}
 
+			getCacheForType(type).add(id);
+
 			masterData.put(id, entry.getValue());
 		}
 	}
 
-	void remove(final Set<MemoryIdentity> ids) {
+	synchronized void remove(final Set<MemoryIdentity> ids) {
 
 		masterData.keySet().removeAll(ids);
+
+		for (final Set<MemoryIdentity> cache : labelCache.values()) {
+			cache.removeAll(ids);
+		}
 
 		for (final Set<MemoryIdentity> cache : typeCache.values()) {
 			cache.removeAll(ids);
@@ -93,17 +112,35 @@ public class MemoryNodeRepository {
 		final MemoryIdentity id = node.getIdentity();
 		final String type       = (String)node.getProperty("type");
 
+
 		// remove identity from all caches
+		for (final Set<MemoryIdentity> cache : labelCache.values()) {
+			cache.remove(id);
+		}
+
 		for (final Set<MemoryIdentity> cache : typeCache.values()) {
 			cache.remove(id);
 		}
 
 		// add identity to type cache again
 		getCacheForLabel(type).add(id);
+		getCacheForType(type).add(id);
 	}
 
 	// ----- private methods -----
 	private synchronized Set<MemoryIdentity> getCacheForLabel(final String type) {
+
+		Set<MemoryIdentity> cache = labelCache.get(type);
+		if (cache == null) {
+
+			cache = new CopyOnWriteArraySet<>();
+			labelCache.put(type, cache);
+		}
+
+		return cache;
+	}
+
+	private synchronized Set<MemoryIdentity> getCacheForType(final String type) {
 
 		Set<MemoryIdentity> cache = typeCache.get(type);
 		if (cache == null) {

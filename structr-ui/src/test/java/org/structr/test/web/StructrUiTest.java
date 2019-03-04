@@ -621,6 +621,7 @@ public abstract class StructrUiTest {
 	protected void setupNeo4jConnection() {
 
 		Settings.DatabaseDriver.setValue(MemoryDatabaseService.class.getName());
+
 		/*
 		Settings.DatabaseDriverMode.setValue("remote");
 		Settings.ConnectionUser.setValue("neo4j");

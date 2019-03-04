@@ -18,11 +18,11 @@
  */
 package org.structr.memory;
 
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import org.structr.api.util.Iterables;
 import org.structr.memory.index.filter.Filter;
@@ -34,11 +34,11 @@ import org.structr.memory.index.filter.TargetNodeFilter;
  */
 public class MemoryRelationshipRepository {
 
-	final Map<MemoryIdentity, MemoryRelationship> masterData    = new LinkedHashMap<>();
-	final Map<String, Set<MemoryIdentity>> typeCache           = new LinkedHashMap<>();
-	final Map<MemoryIdentity, Set<MemoryIdentity>> sourceCache = new LinkedHashMap<>();
-	final Map<MemoryIdentity, Set<MemoryIdentity>> targetCache = new LinkedHashMap<>();
-	final Set<String> duplicatesCheckCache                      = new LinkedHashSet<>();
+	final Map<MemoryIdentity, MemoryRelationship> masterData   = new ConcurrentHashMap<>();
+	final Map<String, Set<MemoryIdentity>> typeCache           = new ConcurrentHashMap<>();
+	final Map<MemoryIdentity, Set<MemoryIdentity>> sourceCache = new ConcurrentHashMap<>();
+	final Map<MemoryIdentity, Set<MemoryIdentity>> targetCache = new ConcurrentHashMap<>();
+	final Set<String> duplicatesCheckCache                     = new LinkedHashSet<>();
 
 	MemoryRelationship get(final MemoryIdentity id) {
 		return masterData.get(id);
@@ -60,7 +60,7 @@ public class MemoryRelationshipRepository {
 				final MemoryLabelFilter<MemoryRelationship> mt = (MemoryLabelFilter<MemoryRelationship>)filter;
 				final String label            = mt.getLabel();
 
-				return Iterables.map(i -> masterData.get(i), getCacheForLabel(label));
+				return Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(getCacheForLabel(label)));
 			}
 
 			if (filter instanceof SourceNodeFilter) {
@@ -68,7 +68,7 @@ public class MemoryRelationshipRepository {
 				final SourceNodeFilter<MemoryRelationship> s = (SourceNodeFilter<MemoryRelationship>)filter;
 				final MemoryIdentity id     = s.getIdentity();
 
-				return Iterables.map(i -> masterData.get(i), getCacheForSource(id));
+				return Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(getCacheForSource(id)));
 			}
 
 			if (filter instanceof TargetNodeFilter) {
@@ -76,7 +76,7 @@ public class MemoryRelationshipRepository {
 				final TargetNodeFilter<MemoryRelationship> s = (TargetNodeFilter<MemoryRelationship>)filter;
 				final MemoryIdentity id     = s.getIdentity();
 
-				return Iterables.map(i -> masterData.get(i), getCacheForTarget(id));
+				return Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(getCacheForTarget(id)));
 			}
 		}
 
@@ -113,7 +113,7 @@ public class MemoryRelationshipRepository {
 		}
 	}
 
-	void remove(final Map<MemoryIdentity, MemoryRelationship> relationships) {
+	synchronized void remove(final Map<MemoryIdentity, MemoryRelationship> relationships) {
 
 		final Set<MemoryIdentity> ids = relationships.keySet();
 

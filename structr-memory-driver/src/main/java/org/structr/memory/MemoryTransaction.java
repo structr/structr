@@ -121,6 +121,7 @@ public class MemoryTransaction implements Transaction {
 
 		final List<Iterable<MemoryNode>> sources = new LinkedList<>();
 
+		// FIXME: this might return wrong data when newly created nodes match the filter but are not filtered
 		sources.add(createdNodes.values());
 		sources.add(db.getNodes(filter));
 
