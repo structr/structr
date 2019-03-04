@@ -18,11 +18,11 @@
  */
 package org.structr.test.common;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
@@ -41,20 +41,20 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.GraphDatabaseCommand;
+import org.structr.core.graph.NativeQueryCommand;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.GenericProperty;
+import org.structr.core.property.StringProperty;
 import org.structr.test.core.entity.SixOneManyToMany;
 import org.structr.test.core.entity.SixOneOneToOne;
 import org.structr.test.core.entity.TestOne;
 import org.structr.test.core.entity.TestSix;
-import org.structr.core.graph.NativeQueryCommand;
-import org.structr.core.graph.GraphDatabaseCommand;
-import org.structr.core.graph.Tx;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.StringProperty;
-import static org.structr.test.common.StructrTest.app;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
 /**
  *
@@ -440,6 +440,97 @@ public class CypherTest extends StructrTest {
 			} catch (FrameworkException ex) {
 				logger.error("", ex);
 			}
+
+			String testOneId = null;
+			String testSixId = null;
+
+			try (final Tx tx = app.tx()) {
+
+				final TestOne t1 = createTestNode(TestOne.class, "singleTestOne");
+				final TestSix t6 = createTestNode(TestSix.class, "singleTestSix");
+
+				t1.setProperty(TestOne.manyToManyTestSixs, Arrays.asList(t6));
+
+				testOneId = t1.getUuid();
+				testSixId = t6.getUuid();
+
+				tx.success();
+
+			} catch (FrameworkException ex) {
+
+				logger.warn("", ex);
+				fail("Unexpected exception");
+			}
+
+			final App anonymousApp = StructrApp.getInstance(SecurityContext.getInstance(null, org.structr.common.AccessMode.Frontend));
+
+			// test that relationships are not returned if the user is not allowed to see SOURCE AND TARGET node of relationship
+			try (final Tx tx = anonymousApp.tx()) {
+
+				final List<GraphObject> result = Iterables.toList(anonymousApp.command(NativeQueryCommand.class).execute("MATCH (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") WHERE n.id = \"" + testOneId + "\" AND m.id = \"" + testSixId + "\" RETURN r LIMIT 1"));
+
+				assertEquals("Invalid wrapped cypher query result - both end nodes of relationship are not visible, relationship should also not be visible", 0, result.size());
+
+				final GraphObject t1 = app.getNodeById(testOneId);
+				t1.setProperty(GraphObject.visibleToPublicUsers, true);
+
+				tx.success();
+
+			} catch (FrameworkException ex) {
+				logger.error("", ex);
+			}
+
+			// test that relationships are not returned if the user is not allowed to see SOURCE node of relationship
+			try (final Tx tx = anonymousApp.tx()) {
+
+				final List<GraphObject> result = Iterables.toList(anonymousApp.command(NativeQueryCommand.class).execute("MATCH (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") WHERE n.id = \"" + testOneId + "\" AND m.id = \"" + testSixId + "\" RETURN r LIMIT 1"));
+
+				assertEquals("Invalid wrapped cypher query result - source node of relationship is not visible, relationship should also not be visible", 0, result.size());
+
+				final GraphObject t1 = app.getNodeById(testOneId);
+				t1.setProperty(GraphObject.visibleToPublicUsers, false);
+
+				final GraphObject t6 = app.getNodeById(testSixId);
+				t6.setProperty(GraphObject.visibleToPublicUsers, true);
+
+				tx.success();
+
+			} catch (FrameworkException ex) {
+				logger.error("", ex);
+			}
+
+			// test that relationships are not returned if the user is not allowed to see TARGET node of relationship
+			try (final Tx tx = anonymousApp.tx()) {
+
+				final List<GraphObject> result = Iterables.toList(anonymousApp.command(NativeQueryCommand.class).execute("MATCH (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") WHERE n.id = \"" + testOneId + "\" AND m.id = \"" + testSixId + "\" RETURN r LIMIT 1"));
+
+				assertEquals("Invalid wrapped cypher query result - target node of relationship is not visible, relationship should also not be visible", 0, result.size());
+
+				final GraphObject t1 = app.getNodeById(testOneId);
+				t1.setProperty(GraphObject.visibleToPublicUsers, true);
+
+				final GraphObject t6 = app.getNodeById(testSixId);
+				t6.setProperty(GraphObject.visibleToPublicUsers, true);
+
+				tx.success();
+
+			} catch (FrameworkException ex) {
+				logger.error("", ex);
+			}
+
+			// test that relationships ARE returned if the user is allowed to see SOURCE AND TARGET node of relationship
+			try (final Tx tx = anonymousApp.tx()) {
+
+				final List<GraphObject> result = Iterables.toList(anonymousApp.command(NativeQueryCommand.class).execute("MATCH (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") WHERE n.id = \"" + testOneId + "\" AND m.id = \"" + testSixId + "\" RETURN r LIMIT 1"));
+
+				assertEquals("Invalid wrapped cypher query result - relationship should be visible", 1, result.size());
+
+				tx.success();
+
+			} catch (FrameworkException ex) {
+				logger.error("", ex);
+			}
+
 		}
 	}
 

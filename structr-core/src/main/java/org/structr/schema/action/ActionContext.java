@@ -449,9 +449,9 @@ public class ActionContext {
 				try (final Tx tx = app.tx()) {
 
 					final List<JavaScriptSource> jsFiles = app.nodeQuery(JavaScriptSource.class)
-						.and(JavaScriptSource.name, fileName)
-						.and(StructrApp.key(JavaScriptSource.class, "useAsJavascriptLibrary"), true)
-						.getAsList();
+							.and(JavaScriptSource.name, fileName)
+							.and(StructrApp.key(JavaScriptSource.class, "useAsJavascriptLibrary"), true)
+							.getAsList();
 
 					if (jsFiles.isEmpty()) {
 						logger.warn("No JavaScript library file found with fileName: {}", fileName );

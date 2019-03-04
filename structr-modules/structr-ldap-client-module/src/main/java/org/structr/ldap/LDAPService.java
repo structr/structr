@@ -22,7 +22,6 @@ import ch.qos.logback.classic.Level;
 import com.google.gson.GsonBuilder;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -84,7 +83,7 @@ public class LDAPService extends Thread implements SingletonService {
 		final String host                            = getHost();
 		final int port                               = getPort();
 		final boolean useSsl                         = getUseSSL();
-		final Map<String, String> possibleGroupNames = new LinkedHashMap<>();
+		final Map<String, String> possibleGroupNames = getGroupMapping();
 		final LdapConnection connection              = new LdapNetworkConnection(host, port, useSsl);
 		final List<LDAPUser> members                 = new LinkedList<>();
 		final Set<String> memberDNs                  = new LinkedHashSet<>();

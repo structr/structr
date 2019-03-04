@@ -138,7 +138,14 @@ public class NativeQueryCommand extends NodeServiceCommand {
 
 		} else if (value instanceof Relationship) {
 
-			graphObject = relFactory.instantiate((Relationship) value);
+			final Relationship relationship = (Relationship)value;
+			final GraphObject sourceNode    = nodeFactory.instantiate(relationship.getStartNode(), includeHiddenAndDeleted, publicOnly);
+			final GraphObject targetNode    = nodeFactory.instantiate(relationship.getEndNode(), includeHiddenAndDeleted, publicOnly);
+
+			if (sourceNode != null && targetNode != null) {
+
+				graphObject = relFactory.instantiate((Relationship) value);
+			}
 
 		} else if (value instanceof Path) {
 

@@ -53,6 +53,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.memory.MemoryDatabaseService;
+import org.structr.schema.SchemaService;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -149,6 +150,8 @@ public abstract class StructrUiTest {
 			Services.getInstance().getService(NodeService.class).getDatabaseService().cleanDatabase();
 
 			FlushCachesCommand.flushAll();
+
+			SchemaService.ensureBuiltinTypesExist(app);
 
 			tx.success();
 
