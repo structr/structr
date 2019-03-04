@@ -116,14 +116,4 @@ public abstract class AbstractEndpoint {
 
 		return node;
 	}
-
-	protected String getUuid(final Relationship rel) {
-
-		// do not fetch the UUID of deleted entities
-		if (rel.isDeleted()) {
-			return null;
-		}
-
-		return (String)rel.getProperty("id");
-	}
 }

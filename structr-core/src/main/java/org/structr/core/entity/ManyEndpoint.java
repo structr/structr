@@ -64,7 +64,7 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 
 			if (predicate != null && predicate.comparator() != null) {
 
-				final List<T> result = Iterables.toList(Iterables.map(from -> nodeFactory.instantiate(from.getEndNode(), getUuid(from)), rels));
+				final List<T> result = Iterables.toList(Iterables.map(from -> nodeFactory.instantiate(from.getEndNode(), from.getId()), rels));
 
 				Collections.sort(result, predicate.comparator());
 
@@ -73,7 +73,7 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 			} else {
 
 				// sort relationships by id
-				return Iterables.map(from -> nodeFactory.instantiate(from.getEndNode(), getUuid(from)), rels);
+				return Iterables.map(from -> nodeFactory.instantiate(from.getEndNode(), from.getId()), rels);
 			}
 		}
 

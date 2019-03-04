@@ -49,7 +49,7 @@ public class OneStartpoint<S extends NodeInterface> extends AbstractEndpoint imp
 		final Relationship rel           = getRawSource(securityContext, node.getNode(), predicate);
 
 		if (rel != null) {
-			return nodeFactory.instantiate(rel.getStartNode(), getUuid(rel));
+			return nodeFactory.instantiate(rel.getStartNode(), rel.getId());
 		}
 
 		return null;
