@@ -191,7 +191,7 @@ public class AdvancedMailContainer {
 	}
 
 
-	public void send() throws EmailException, FrameworkException {
+	public String send() throws EmailException, FrameworkException {
 
 		boolean mandatoryFieldsPresent = (this.fromAddress != null && this.subject != null && (this.htmlContent != null || this.textContent != null));
 
@@ -203,6 +203,6 @@ public class AdvancedMailContainer {
 			throw new FrameworkException(422, "Unable to send e-mail: There aren't any recipients (empty to:, cc: and bcc: fields)");
 		}
 
-		MailHelper.sendAdvancedMail(this);
+		return MailHelper.sendAdvancedMail(this);
 	}
 }
