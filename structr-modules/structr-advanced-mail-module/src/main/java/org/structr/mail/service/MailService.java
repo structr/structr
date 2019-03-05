@@ -50,6 +50,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @ServiceDependency(SchemaService.class)
 public class MailService extends Thread implements RunnableService {
@@ -223,7 +225,7 @@ public class MailService extends Thread implements RunnableService {
 
 				cal.setTime(date);
 
-				final String path = (attachmentBasePath.getValue() + "/" + Integer.toString(cal.get(Calendar.YEAR)) + "/" + Integer.toString(cal.get(Calendar.MONTH)) + "/" + Integer.toString(cal.get(Calendar.DAY_OF_MONTH)) + "/" + String.join("/", Arrays.toString(mb.getUuid().toCharArray())));
+				final String path = (attachmentBasePath.getValue() + "/" + Integer.toString(cal.get(Calendar.YEAR)) + "/" + Integer.toString(cal.get(Calendar.MONTH)) + "/" + Integer.toString(cal.get(Calendar.DAY_OF_MONTH)) + "/" + mb.getUuid());
 
 				org.structr.web.entity.Folder fileFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), path);
 				file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), p.getInputStream(), p.getContentType(), fileClass, p.getFileName(), fileFolder);
@@ -287,7 +289,7 @@ public class MailService extends Thread implements RunnableService {
 						result.put("content", content.concat(getText(part)));
 					} else {
 
-						logger.warn("Unknown mime type in MailService handleMultipart. Missing implementation. Type: {}, Mailbox: {}, Content: {}", part.getContentType(), mb.getUuid(), part.getContent().toString());
+						logger.warn("Cannot handle content type given by email part. Given metadata is either faulty or specific implementation is missing. Type: {}, Mailbox: {}, Content: {}", part.getContentType(), mb.getUuid(), part.getContent().toString());
 					}
 				}
 			}
@@ -528,6 +530,16 @@ public class MailService extends Thread implements RunnableService {
 
 								pm.put(StructrApp.key(EMailMessage.class, "subject"), message.getSubject());
 								pm.put(StructrApp.key(EMailMessage.class, "from"), from);
+
+
+								Pattern pattern = Pattern.compile(".* <(.*)>");
+								Matcher matcher = pattern.matcher(from);
+								if (matcher.matches()) {
+
+									pm.put(StructrApp.key(EMailMessage.class, "fromMail"), matcher.group(1));
+								} else {
+									pm.put(StructrApp.key(EMailMessage.class, "fromMail"), from);
+								}
 								pm.put(StructrApp.key(EMailMessage.class, "to"), to);
 								pm.put(StructrApp.key(EMailMessage.class, "folder"), message.getFolder().getFullName());
 								pm.put(StructrApp.key(EMailMessage.class, "receivedDate"), message.getReceivedDate());
