@@ -43,11 +43,6 @@ import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.exceptions.ClientException;
 import org.neo4j.driver.v1.exceptions.DatabaseException;
 import org.neo4j.driver.v1.exceptions.ServiceUnavailableException;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
-import org.neo4j.graphdb.factory.GraphDatabaseFactory;
-import org.neo4j.graphdb.factory.GraphDatabaseSettings;
-import org.neo4j.kernel.configuration.BoltConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.AbstractDatabaseService;
@@ -80,7 +75,6 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	private Properties globalGraphProperties                          = null;
 	private CypherRelationshipIndex relationshipIndex                 = null;
 	private CypherNodeIndex nodeIndex                                 = null;
-	private GraphDatabaseService graphDb                              = null;
 	private String databaseUrl                                        = null;
 	private String databasePath                                       = null;
 	private Driver driver                                             = null;
@@ -95,32 +89,24 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			this.tenantId = null;
 		}
 
-		final BoltConnector bolt = new BoltConnector("0");
 		databaseUrl              = Settings.ConnectionUrl.getValue();
 		final String username    = Settings.ConnectionUser.getValue();
 		final String password    = Settings.ConnectionPassword.getValue();
 		final String driverMode  = Settings.DatabaseDriverMode.getValue();
-		final String confPath    = databasePath + "/neo4j.conf";
-		final File confFile      = new File(confPath);
+		String databaseDriverUrl = "bolt://" + databaseUrl;
 
 		// build list of supported query languages
 		supportedQueryLanguages.add("application/x-cypher-query");
 		supportedQueryLanguages.add("application/cypher");
 		supportedQueryLanguages.add("text/cypher");
 
-		// see https://github.com/neo4j/neo4j-java-driver/issues/364 for an explanation
-		final String databaseServerUrl;
-		final String databaseDriverUrl;
-
 		if (databaseUrl.length() >= 7 && databaseUrl.substring(0, 7).equalsIgnoreCase("bolt://")) {
-			databaseServerUrl = databaseUrl.substring(7);
+
 			databaseDriverUrl = databaseUrl;
+
 		} else if (databaseUrl.length() >= 15 && databaseUrl.substring(0, 15).equalsIgnoreCase("bolt+routing://")) {
-			databaseServerUrl = databaseUrl.substring(15);
+
 			databaseDriverUrl = databaseUrl;
-		} else {
-			databaseServerUrl = databaseUrl;
-			databaseDriverUrl = "bolt://" + databaseUrl;
 		}
 
 		// create db directory if it does not exist
@@ -128,18 +114,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 		if (!"remote".equals(driverMode)) {
 
-			final GraphDatabaseBuilder builder = new GraphDatabaseFactory()
-				.newEmbeddedDatabaseBuilder(new File(databasePath))
-				.setConfig( GraphDatabaseSettings.allow_upgrade, "true")
-				.setConfig( bolt.type, "BOLT" )
-				.setConfig( bolt.enabled, "true" )
-				.setConfig( bolt.listen_address, databaseServerUrl);
-
-			if (confFile.exists()) {
-				builder.loadPropertiesFromFile(confPath);
-			}
-
-			graphDb  = builder.newGraphDatabase();
+			throw new IllegalStateException("This driver supports remote Neo4j databases via the Bolt protocol only.");
 		}
 
 		try {
@@ -178,10 +153,6 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 		clearCaches();
 		driver.close();
-
-		if (graphDb != null) {
-			graphDb.shutdown();
-		}
 	}
 
 	@Override
