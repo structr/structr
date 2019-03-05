@@ -1196,10 +1196,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					for (Map<String, Object> schemaMethod : globalSchemaMethods) {
 
-						final String methodSource   = (String) schemaMethod.get("source");
-						final Path globalMethodFile = globalMethodsFolder.resolve((String) schemaMethod.get("name"));
+						final String methodSource     = (String) schemaMethod.get("source");
+						final Path globalMethodFile   = globalMethodsFolder.resolve((String) schemaMethod.get("name"));
+						final String relativeFilePath = "./" + targetFolder.relativize(globalMethodFile).toString();
 
-						schemaMethod.put("source", "./" + targetFolder.relativize(globalMethodFile).toString());
+						schemaMethod.put("source", relativeFilePath);
+
+						if (Files.exists(globalMethodFile)) {
+							logger.warn("File '{}' already exists - this can happen if there is a non-unique global method definition. This is not supported in tree-based schema export and will causes errors!", relativeFilePath);
+						}
 
 						if (methodSource != null) {
 							writeStringToFile(globalMethodFile, methodSource);

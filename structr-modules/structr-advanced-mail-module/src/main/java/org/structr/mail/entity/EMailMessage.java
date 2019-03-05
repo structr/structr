@@ -40,6 +40,7 @@ public interface EMailMessage extends NodeInterface {
 
 		type.addStringProperty("subject",          PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("from",             PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("fromMail",         PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("to",               PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("content",          PropertyView.Public, PropertyView.Ui).setIndexed(false);
 		type.addStringProperty("htmlContent",      PropertyView.Public, PropertyView.Ui).setIndexed(false);
@@ -53,6 +54,7 @@ public interface EMailMessage extends NodeInterface {
 
 		type.addPropertyGetter("subject",           String.class);
 		type.addPropertyGetter("from",              String.class);
+		type.addPropertyGetter("fromMail",          String.class);
 		type.addPropertyGetter("to",                String.class);
 		type.addPropertyGetter("content",           String.class);
 		type.addPropertyGetter("folder",            String.class);
@@ -62,11 +64,11 @@ public interface EMailMessage extends NodeInterface {
 		type.addPropertyGetter("receivedDate",      Date.class);
 		type.addPropertyGetter("sentDate",          Date.class);
 
-		type.relate(file, "HAS_ATTACHMENT", Relation.Cardinality.OneToMany, "attachedMail", "attachedFiles");
+		type.relate(file, "HAS_ATTACHMENT", Relation.Cardinality.OneToMany, "attachedMail", "attachedFiles").setCascadingDelete(JsonSchema.Cascade.sourceToTarget);
 
 		// view configuration
-		type.addViewProperty(PropertyView.Public, "subject,from,to,content,htmlContent,folder,receivedDate,sentDate,mailbox,header,messageId,inReplyTo, attachedFiles");
-		type.addViewProperty(PropertyView.Ui, "subject,from,to,content,htmlContent,folder,receivedDate,sentDate,mailbox,header,messageId,inReplyTo, attachedFiles");
+		type.addViewProperty(PropertyView.Public, "subject,from,fromMail,to,content,htmlContent,folder,receivedDate,sentDate,mailbox,header,messageId,inReplyTo, attachedFiles");
+		type.addViewProperty(PropertyView.Ui, "subject,from,fromMail,to,content,htmlContent,folder,receivedDate,sentDate,mailbox,header,messageId,inReplyTo, attachedFiles");
 	}}
 
 }
