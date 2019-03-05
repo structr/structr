@@ -44,16 +44,18 @@ public interface Mailbox extends NodeInterface {
 		type.addStringProperty("host",                           PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(true);
 		type.addStringProperty("user",                           PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(true);
 		type.addStringProperty("password",                       PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(false);
+		type.addStringProperty("overrideMailEntityType",         PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addStringArrayProperty("folders",                   PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addEnumProperty("mailProtocol",                     PropertyView.Public, PropertyView.Ui).setEnums("pop3,imaps").setIndexed(true).setRequired(true);
 		type.addIntegerProperty("port",                          PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addFunctionProperty("availableFoldersOnServer",     PropertyView.Public, PropertyView.Ui).setReadFunction("{return Structr.this.getAvailableFoldersOnServer()}").setIndexed(false);
 
-		type.addPropertyGetter("host",              String.class);
-		type.addPropertyGetter("user",              String.class);
-		type.addPropertyGetter("password",          String.class);
-		type.addPropertyGetter("mailProtocol",      Object.class);
-		type.addPropertyGetter("port",      		 Integer.class);
+		type.addPropertyGetter("host",                    String.class);
+		type.addPropertyGetter("user",                    String.class);
+		type.addPropertyGetter("password",                String.class);
+		type.addPropertyGetter("overrideMailEntityType",  String.class);
+		type.addPropertyGetter("mailProtocol",            Object.class);
+		type.addPropertyGetter("port",      		      Integer.class);
 		type.addMethod("getFolders")
 				.setReturnType("String[]")
 				.setSource("return getProperty(foldersProperty);");
@@ -63,16 +65,17 @@ public interface Mailbox extends NodeInterface {
 				.setDoExport(true);
 
 
-		type.relate(mail, "CONTAINS_EMAILMESSAGES", Relation.Cardinality.OneToMany, "mailbox", "emails");
+		type.relate(mail, "CONTAINS_EMAILMESSAGES", Relation.Cardinality.OneToMany, "mailbox", "emails").setCascadingDelete(JsonSchema.Cascade.sourceToTarget);
 
 		// view configuration
-		type.addViewProperty(PropertyView.Public, "host,user,password,mailProtocol,emails,folders");
-		type.addViewProperty(PropertyView.Ui, "host,user,password,mailProtocol,emails,folders");
+		type.addViewProperty(PropertyView.Public, "host,user,password,mailProtocol,emails,folders,overrideMailEntityType");
+		type.addViewProperty(PropertyView.Ui, "host,user,password,mailProtocol,emails,folders,overrideMailEntityType");
 	}}
 
 	String getHost();
 	String getUser();
 	String getPassword();
+	String getOverrideMailEntityType();
 	String[] getFolders();
 	Object getMailProtocol();
 	Integer getPort();

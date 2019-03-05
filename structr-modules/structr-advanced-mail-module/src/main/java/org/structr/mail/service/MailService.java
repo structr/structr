@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.sun.mail.util.BASE64DecoderStream;
 import com.sun.mail.util.MailConnectException;
 import io.netty.util.internal.ConcurrentSet;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
 import org.slf4j.Logger;
@@ -211,7 +212,7 @@ public class MailService extends Thread implements RunnableService {
 
 		try {
 
-			Class fileClass = p.getContentType().startsWith("image/") ? Image.class : File.class;
+			Class fileClass = p.getContentType().toLowerCase().startsWith("image/") ? Image.class : File.class;
 
 			final App app = StructrApp.getInstance();
 
@@ -251,6 +252,8 @@ public class MailService extends Thread implements RunnableService {
 		try {
 
 			for (int i = 0; i < p.getCount(); i++) {
+				final String htmlContent = result.get("htmlContent") != null ? result.get("htmlContent") : "";
+				final String content = result.get("content") != null ? result.get("content") : "";
 
 				BodyPart part = (BodyPart) p.getBodyPart(i);
 				if (part.getContentType().contains("multipart")) {
@@ -258,15 +261,15 @@ public class MailService extends Thread implements RunnableService {
 					Map<String,String> subResult = handleMultipart((Multipart)part.getContent(), attachments);
 
 					if (subResult.get("content") != null) {
-						result.put("content", subResult.get("content"));
+						result.put("content", content.concat(subResult.get("content")));
 					}
 
 					if (subResult.get("htmlContent") != null) {
-						result.put("htmlContent", subResult.get("htmlContent"));
+						result.put("htmlContent", htmlContent.concat(subResult.get("htmlContent")));
 					}
 
 
-				} else if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
+				} else if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()) || (part.getContentType().toLowerCase().contains("image/") && Part.INLINE.equalsIgnoreCase(part.getDisposition()))) {
 
 					File file = extractFileAttachment(part);
 
@@ -278,10 +281,13 @@ public class MailService extends Thread implements RunnableService {
 
 					if (part.isMimeType("text/html")) {
 
-						result.put("htmlContent", getText(part));
-					} else if(part.isMimeType("text/plain")) {
+						result.put("htmlContent", htmlContent.concat(getText(part)));
+					} else if (part.isMimeType("text/plain")) {
 
-						result.put("content", getText(part));
+						result.put("content", content.concat(getText(part)));
+					} else {
+
+						logger.warn("Unknown mime type in MailService handleMultipart. Missing implementation. Type: {}, Content: {}", part.getContentType(), getText(part));
 					}
 				}
 			}
@@ -526,7 +532,23 @@ public class MailService extends Thread implements RunnableService {
 								pm.put(StructrApp.key(EMailMessage.class, "htmlContent"), htmlContent);
 								pm.put(StructrApp.key(EMailMessage.class, "attachedFiles"), attachments);
 
-								app.create(EMailMessage.class, pm);
+
+								// Allow mail instance class to be overriden by custom types to enable special mail handling
+								Class entityClass = EMailMessage.class;
+
+								final String entityType = mailbox.getOverrideMailEntityType();
+								if (entityType != null && entityType.length() > 0) {
+									Class overrideClass = StructrApp.getConfiguration().getNodeEntityClass(entityType);
+									if (overrideClass != null && EMailMessage.class.isAssignableFrom(overrideClass)) {
+
+										entityClass = overrideClass;
+									} else {
+
+										logger.warn("Mailbox[" + mailbox.getUuid() + "] has invalid overrideMailEntityType set. Given type is not found or does not extend EMailMessage.");
+									}
+								}
+
+								app.create(entityClass, pm);
 
 							}
 
