@@ -62,7 +62,7 @@ public interface EMailMessage extends NodeInterface {
 		type.addPropertyGetter("receivedDate",      Date.class);
 		type.addPropertyGetter("sentDate",          Date.class);
 
-		type.relate(file, "HAS_ATTACHMENT", Relation.Cardinality.OneToMany, "attachedMail", "attachedFiles");
+		type.relate(file, "HAS_ATTACHMENT", Relation.Cardinality.OneToMany, "attachedMail", "attachedFiles").setCascadingDelete(JsonSchema.Cascade.sourceToTarget);
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "subject,from,to,content,htmlContent,folder,receivedDate,sentDate,mailbox,header,messageId,inReplyTo, attachedFiles");

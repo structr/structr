@@ -207,7 +207,7 @@ public class MailService extends Thread implements RunnableService {
 	//////////////////////////////////////////////////////////////// Private Methods
 
 	// Returns attachment UUID to append to the mail to be created
-	private File extractFileAttachment(final Part p) {
+	private File extractFileAttachment(final Mailbox mb, final Part p) {
 		File file = null;
 
 		try {
@@ -223,7 +223,7 @@ public class MailService extends Thread implements RunnableService {
 
 				cal.setTime(date);
 
-				final String path = (attachmentBasePath.getValue() + "/" + Integer.toString(cal.get(Calendar.YEAR)) + "/" + Integer.toString(cal.get(Calendar.MONTH)) + "/" + Integer.toString(cal.get(Calendar.DAY_OF_MONTH)));
+				final String path = (attachmentBasePath.getValue() + "/" + Integer.toString(cal.get(Calendar.YEAR)) + "/" + Integer.toString(cal.get(Calendar.MONTH)) + "/" + Integer.toString(cal.get(Calendar.DAY_OF_MONTH)) + "/" + String.join("/", Arrays.toString(mb.getUuid().toCharArray())));
 
 				org.structr.web.entity.Folder fileFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), path);
 				file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), p.getInputStream(), p.getContentType(), fileClass, p.getFileName(), fileFolder);
@@ -245,7 +245,7 @@ public class MailService extends Thread implements RunnableService {
 
 	}
 
-	private Map<String,String> handleMultipart(Multipart p, List<File> attachments) {
+	private Map<String,String> handleMultipart(final Mailbox mb, Multipart p, List<File> attachments) {
 
 		Map<String,String> result = new HashMap<>();
 
@@ -258,7 +258,7 @@ public class MailService extends Thread implements RunnableService {
 				BodyPart part = (BodyPart) p.getBodyPart(i);
 				if (part.getContentType().contains("multipart")) {
 
-					Map<String,String> subResult = handleMultipart((Multipart)part.getContent(), attachments);
+					Map<String,String> subResult = handleMultipart(mb, (Multipart)part.getContent(), attachments);
 
 					if (subResult.get("content") != null) {
 						result.put("content", content.concat(subResult.get("content")));
@@ -271,7 +271,7 @@ public class MailService extends Thread implements RunnableService {
 
 				} else if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()) || (part.getContentType().toLowerCase().contains("image/") && Part.INLINE.equalsIgnoreCase(part.getDisposition()))) {
 
-					File file = extractFileAttachment(part);
+					File file = extractFileAttachment(mb, part);
 
 					if (file != null) {
 
@@ -287,7 +287,7 @@ public class MailService extends Thread implements RunnableService {
 						result.put("content", content.concat(getText(part)));
 					} else {
 
-						logger.warn("Unknown mime type in MailService handleMultipart. Missing implementation. Type: {}, Content: {}", part.getContentType(), getText(part));
+						logger.warn("Unknown mime type in MailService handleMultipart. Missing implementation. Type: {}, Mailbox: {}, Content: {}", part.getContentType(), mb.getUuid(), part.getContent().toString());
 					}
 				}
 			}
@@ -482,7 +482,47 @@ public class MailService extends Thread implements RunnableService {
 
 						try (Tx tx = app.tx()) {
 
-							EMailMessage existingEMailMessage = app.nodeQuery(EMailMessage.class).and(StructrApp.key(EMailMessage.class, "subject"), message.getSubject()).and(StructrApp.key(EMailMessage.class, "from"), from).and(StructrApp.key(EMailMessage.class, "to"), to).and(StructrApp.key(EMailMessage.class, "receivedDate"), message.getReceivedDate()).and(StructrApp.key(EMailMessage.class, "sentDate"), message.getSentDate()).getFirst();
+							// Allow mail instance class to be overriden by custom types to enable special mail handling
+							Class<? extends EMailMessage> entityClass = EMailMessage.class;
+
+							final String entityType = mailbox.getOverrideMailEntityType();
+							if (entityType != null && entityType.length() > 0) {
+								Class overrideClass = StructrApp.getConfiguration().getNodeEntityClass(entityType);
+								if (overrideClass != null && EMailMessage.class.isAssignableFrom(overrideClass)) {
+
+									entityClass = overrideClass;
+								} else {
+
+									logger.warn("Mailbox[" + mailbox.getUuid() + "] has invalid overrideMailEntityType set. Given type is not found or does not extend EMailMessage.");
+								}
+							}
+
+
+							String messageId = null;
+							String inReplyTo = null;
+
+							Enumeration en = message.getAllHeaders();
+							Map<String, String> headers = new HashMap<>();
+							while (en.hasMoreElements()) {
+								Header header = (Header) en.nextElement();
+								if (header.getName().equals("Message-ID") || header.getName().equals("Message-Id")) {
+									messageId = header.getValue();
+								} else if (header.getName().equals("In-Reply-To") || header.getName().equals("References")) {
+									inReplyTo = header.getValue();
+								}
+								headers.put(header.getName(), header.getValue());
+							}
+
+							EMailMessage existingEMailMessage = null;
+
+							// Try to match via messageId first
+							if (messageId != null) {
+								existingEMailMessage = app.nodeQuery(entityClass).and(StructrApp.key(EMailMessage.class, "messageId"), messageId).getFirst();
+							}
+							// If messageId can't be matched, use fallback
+							if (existingEMailMessage == null) {
+								existingEMailMessage = app.nodeQuery(entityClass).and(StructrApp.key(EMailMessage.class, "subject"), message.getSubject()).and(StructrApp.key(EMailMessage.class, "from"), from).and(StructrApp.key(EMailMessage.class, "to"), to).and(StructrApp.key(EMailMessage.class, "receivedDate"), message.getReceivedDate()).and(StructrApp.key(EMailMessage.class, "sentDate"), message.getSentDate()).getFirst();
+							}
 
 							if (existingEMailMessage == null) {
 
@@ -493,20 +533,13 @@ public class MailService extends Thread implements RunnableService {
 								pm.put(StructrApp.key(EMailMessage.class, "receivedDate"), message.getReceivedDate());
 								pm.put(StructrApp.key(EMailMessage.class, "sentDate"), message.getSentDate());
 								pm.put(StructrApp.key(EMailMessage.class, "mailbox"), mailbox);
-
-								Enumeration en = message.getAllHeaders();
-								Map<String, String> headers = new HashMap<>();
-								while (en.hasMoreElements()) {
-									Header header = (Header) en.nextElement();
-									if (header.getName().equals("Message-ID") || header.getName().equals("Message-Id")) {
-										pm.put(StructrApp.key(EMailMessage.class, "messageId"), header.getValue());
-									} else if (header.getName().equals("In-Reply-To") || header.getName().equals("References")) {
-										pm.put(StructrApp.key(EMailMessage.class, "inReplyTo"), header.getValue());
-									}
-									headers.put(header.getName(), header.getValue());
-								}
-
 								pm.put(StructrApp.key(EMailMessage.class, "header"), gson.toJson(headers));
+
+								if (messageId != null) {
+									pm.put(StructrApp.key(EMailMessage.class, "messageId"), messageId);
+								} else if (inReplyTo != null) {
+									pm.put(StructrApp.key(EMailMessage.class, "inReplyTo"), inReplyTo);
+								}
 
 								// Handle content extraction
 								String content = null;
@@ -517,7 +550,7 @@ public class MailService extends Thread implements RunnableService {
 
 								if (message.getContentType().contains("multipart")) {
 
-									Map<String, String> result = handleMultipart((Multipart)contentObj, attachments);
+									Map<String, String> result = handleMultipart(mailbox, (Multipart)contentObj, attachments);
 									content = result.get("content");
 									htmlContent = result.get("htmlContent");
 								} else if (message.getContentType().contains("text/plain")){
@@ -531,22 +564,6 @@ public class MailService extends Thread implements RunnableService {
 								pm.put(StructrApp.key(EMailMessage.class, "content"), content);
 								pm.put(StructrApp.key(EMailMessage.class, "htmlContent"), htmlContent);
 								pm.put(StructrApp.key(EMailMessage.class, "attachedFiles"), attachments);
-
-
-								// Allow mail instance class to be overriden by custom types to enable special mail handling
-								Class entityClass = EMailMessage.class;
-
-								final String entityType = mailbox.getOverrideMailEntityType();
-								if (entityType != null && entityType.length() > 0) {
-									Class overrideClass = StructrApp.getConfiguration().getNodeEntityClass(entityType);
-									if (overrideClass != null && EMailMessage.class.isAssignableFrom(overrideClass)) {
-
-										entityClass = overrideClass;
-									} else {
-
-										logger.warn("Mailbox[" + mailbox.getUuid() + "] has invalid overrideMailEntityType set. Given type is not found or does not extend EMailMessage.");
-									}
-								}
 
 								app.create(entityClass, pm);
 

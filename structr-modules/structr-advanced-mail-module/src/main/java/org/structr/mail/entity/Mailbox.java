@@ -28,6 +28,7 @@ import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -82,7 +83,13 @@ public interface Mailbox extends NodeInterface {
 
 	static List<String> getAvailableFoldersOnServerImpl(final Mailbox mailbox, final SecurityContext securityContext) {
 		Iterable<String> result = StructrApp.getInstance(securityContext).command(org.structr.mail.service.FetchFoldersCommand.class).execute(mailbox);
-		return StreamSupport.stream(result.spliterator(), false).collect(Collectors.toList());
+		if (result != null) {
+
+			return StreamSupport.stream(result.spliterator(), false).collect(Collectors.toList());
+		} else {
+
+			return new ArrayList<>();
+		}
 	}
 
 }
