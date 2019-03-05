@@ -3373,7 +3373,7 @@ var _Schema = {
 			tab.append(schemaVisibilityTable);
 
 			Command.query('SchemaNode', 1000, 1, 'name', 'asc', visType.filter, function(schemaNodes) {
-				schemaNodes.forEach(function(schemaNode) { console.log(schemaNode.name)
+				schemaNodes.forEach(function(schemaNode) {
 					schemaVisibilityTable.append('<tr><td><input class="toggle-type" data-structr-type="' + schemaNode.name + '" type="checkbox" ' + (_Schema.hiddenSchemaNodes.indexOf(schemaNode.name) > -1 ? '' : 'checked') + '></td><td>' + schemaNode.name + '</td></tr>');
 				});
 			}, visType.exact);
