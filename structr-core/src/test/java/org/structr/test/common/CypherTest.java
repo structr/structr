@@ -607,4 +607,31 @@ public class CypherTest extends StructrTest {
 		}
 
 	}
+
+	@Test
+	public void testPathWrapper() {
+
+		// MATCH path = (x) WHERE x.name = "admin" RETURN path
+		try {
+
+			final TestSix testSix = this.createTestNode(TestSix.class, "testnode");
+
+			assertNotNull(testSix);
+
+			try (final Tx tx = app.tx()) {
+
+				final Iterable<GraphObject> result = app.command(NativeQueryCommand.class).execute("MATCH path = (x:" + randomTenantId + ") WHERE x.name = 'testnode' RETURN path");
+				final List<GraphObject> list       = Iterables.toList(result);
+
+				System.out.println(list);
+
+				tx.success();
+			}
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
 }
