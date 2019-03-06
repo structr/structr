@@ -283,12 +283,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 			// read grants.json
-			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing resource access grants");
-
 			final Path grantsConf = source.resolve("security/grants.json");
 			if (Files.exists(grantsConf)) {
 
 				info("Reading {}", grantsConf);
+				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing resource access grants");
+
 				importListData(ResourceAccess.class, readConfigList(grantsConf));
 			}
 
@@ -429,12 +429,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				if (module.hasDeploymentData()) {
 
-					info("Importing deployment data for module {}", module.getName());
-					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing deployment data for module " + module.getName());
-
 					final Path moduleFolder = source.resolve("modules/" + module.getName() + "/");
 
-					module.importDeploymentData(moduleFolder, getGson());
+					if (Files.exists(moduleFolder)) {
+
+						info("Importing deployment data for module {}", module.getName());
+						publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing deployment data for module " + module.getName());
+
+						module.importDeploymentData(moduleFolder, getGson());
+					}
 				}
 			}
 
