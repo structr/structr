@@ -611,10 +611,10 @@ public class CypherTest extends StructrTest {
 	@Test
 	public void testPathWrapper() {
 
-		// MATCH path = (x) WHERE x.name = "admin" RETURN path
 		try {
 
 			final TestSix testSix = this.createTestNode(TestSix.class, "testnode");
+			final String uuid     = testSix.getUuid();
 
 			assertNotNull(testSix);
 
@@ -623,7 +623,20 @@ public class CypherTest extends StructrTest {
 				final Iterable<GraphObject> result = app.command(NativeQueryCommand.class).execute("MATCH path = (x:" + randomTenantId + ") WHERE x.name = 'testnode' RETURN path");
 				final List<GraphObject> list       = Iterables.toList(result);
 
-				System.out.println(list);
+				for (final GraphObject element : list) {
+
+					assertTrue("Invalid path wrapping result, expected object of type GraphObjectMap", element instanceof GraphObjectMap);
+
+					final GraphObjectMap map       = (GraphObjectMap)element;
+					final Map<String, Object> data = map.toMap();
+					final List<GraphObject> nodes  = (List<GraphObject>)data.get("nodes");
+					final List<GraphObject> rels   = (List<GraphObject>)data.get("relationships");
+
+					assertEquals("Invalid number of nodes in wrapped path result",         1, nodes.size());
+					assertEquals("Invalid number of relationships in wrapped path result", 0,  rels.size());
+
+					assertEquals("Invalid wrapped path result", uuid, nodes.get(0).toString());
+				}
 
 				tx.success();
 			}
