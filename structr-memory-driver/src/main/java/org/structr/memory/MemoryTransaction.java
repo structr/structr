@@ -104,7 +104,6 @@ public class MemoryTransaction implements Transaction {
 
 		final MemoryIdentity id = toDelete.getIdentity();
 
-		createdNodes.remove(id);
 		deletedNodes.add(id);
 	}
 
@@ -112,7 +111,6 @@ public class MemoryTransaction implements Transaction {
 
 		final MemoryIdentity id = toDelete.getIdentity();
 
-		createdRelationships.remove(id);
 		deletedRelationships.put(id, toDelete);
 	}
 

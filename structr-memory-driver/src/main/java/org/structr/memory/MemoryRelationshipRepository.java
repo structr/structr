@@ -60,7 +60,7 @@ public class MemoryRelationshipRepository {
 				final MemoryLabelFilter<MemoryRelationship> mt = (MemoryLabelFilter<MemoryRelationship>)filter;
 				final String label            = mt.getLabel();
 
-				return Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(getCacheForLabel(label)));
+				return Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(getCacheForType(label)));
 			}
 
 			if (filter instanceof SourceNodeFilter) {
@@ -87,7 +87,7 @@ public class MemoryRelationshipRepository {
 		return masterData.containsKey(id);
 	}
 
-	synchronized void add(final Map<MemoryIdentity, MemoryRelationship> newData) {
+	void add(final Map<MemoryIdentity, MemoryRelationship> newData) {
 
 		for (final Entry<MemoryIdentity, MemoryRelationship> entry : newData.entrySet()) {
 
@@ -103,7 +103,7 @@ public class MemoryRelationshipRepository {
 
 			for (final String label : value.getLabels()) {
 
-				getCacheForLabel(label).add(id);
+				getCacheForType(label).add(id);
 			}
 
 			getCacheForSource(value.getSourceNodeIdentity()).add(id);
@@ -113,37 +113,41 @@ public class MemoryRelationshipRepository {
 		}
 	}
 
-	synchronized void remove(final Map<MemoryIdentity, MemoryRelationship> relationships) {
+	void remove(final Map<MemoryIdentity, MemoryRelationship> relationships) {
 
-		final Set<MemoryIdentity> ids = relationships.keySet();
+		// avoid iteration of caches when there are no IDs to remove..
+		if (!relationships.isEmpty()) {
 
-		masterData.keySet().removeAll(ids);
+			final Set<MemoryIdentity> ids = relationships.keySet();
 
-		// clear uniqueness check cache as well
-		for (final MemoryRelationship rel : relationships.values()) {
+			masterData.keySet().removeAll(ids);
 
-			duplicatesCheckCache.remove(rel.getUniquenessKey());
-		}
+			// clear uniqueness check cache as well
+			for (final MemoryRelationship rel : relationships.values()) {
 
-		for (final Set<MemoryIdentity> cache : typeCache.values()) {
-			cache.removeAll(ids);
-		}
+				duplicatesCheckCache.remove(rel.getUniquenessKey());
+			}
 
-		for (final Set<MemoryIdentity> cache : sourceCache.values()) {
-			cache.removeAll(ids);
-		}
+			for (final Set<MemoryIdentity> cache : typeCache.values()) {
+				cache.removeAll(ids);
+			}
 
-		for (final Set<MemoryIdentity> cache : targetCache.values()) {
-			cache.removeAll(ids);
+			for (final Set<MemoryIdentity> cache : sourceCache.values()) {
+				cache.removeAll(ids);
+			}
+
+			for (final Set<MemoryIdentity> cache : targetCache.values()) {
+				cache.removeAll(ids);
+			}
 		}
 	}
 
-	synchronized void updateCache(final MemoryRelationship relationship) {
+	void updateCache(final MemoryRelationship relationship) {
 		// relationship type cannot be changed => no-op
 	}
 
 	// ----- private methods -----
-	private synchronized Set<MemoryIdentity> getCacheForLabel(final String type) {
+	private synchronized Set<MemoryIdentity> getCacheForType(final String type) {
 
 		Set<MemoryIdentity> cache = typeCache.get(type);
 		if (cache == null) {

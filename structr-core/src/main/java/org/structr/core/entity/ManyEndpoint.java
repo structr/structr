@@ -118,6 +118,7 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 						// skip self relationships
 						continue;
 					}
+
 					if (rel.getTargetNode().equals(targetNode)) {
 						app.delete(rel);
 					}

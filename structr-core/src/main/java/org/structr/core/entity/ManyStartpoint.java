@@ -118,6 +118,7 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 						// skip self relationships
 						continue;
 					}
+
 					if (rel.getSourceNode().equals(sourceNode)) {
 						app.delete(rel);
 					}

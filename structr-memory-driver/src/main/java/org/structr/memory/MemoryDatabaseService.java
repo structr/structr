@@ -400,11 +400,13 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 		return tx;
 	}
 
-	synchronized void commitTransaction(final Map<MemoryIdentity, MemoryNode> newNodes, final Map<MemoryIdentity, MemoryRelationship> newRelationships, Set<MemoryIdentity> deletedNodes, Map<MemoryIdentity, MemoryRelationship> deletedRelationships) {
+	void commitTransaction(final Map<MemoryIdentity, MemoryNode> newNodes, final Map<MemoryIdentity, MemoryRelationship> newRelationships, Set<MemoryIdentity> deletedNodes, Map<MemoryIdentity, MemoryRelationship> deletedRelationships) {
 
+		newNodes.keySet().removeAll(deletedNodes);
 		nodes.remove(deletedNodes);
 		nodes.add(newNodes);
 
+		newRelationships.keySet().removeAll(deletedRelationships.keySet());
 		relationships.remove(deletedRelationships);
 		relationships.add(newRelationships);
 

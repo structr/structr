@@ -75,7 +75,7 @@ public class MemoryNodeRepository {
 		return masterData.containsKey(id);
 	}
 
-	synchronized void add(final Map<MemoryIdentity, MemoryNode> newData) {
+	void add(final Map<MemoryIdentity, MemoryNode> newData) {
 
 		for (final Entry<MemoryIdentity, MemoryNode> entry : newData.entrySet()) {
 
@@ -94,20 +94,24 @@ public class MemoryNodeRepository {
 		}
 	}
 
-	synchronized void remove(final Set<MemoryIdentity> ids) {
+	void remove(final Set<MemoryIdentity> ids) {
 
-		masterData.keySet().removeAll(ids);
+		// avoid iteration of caches when there are no IDs to remove..
+		if (!ids.isEmpty()) {
 
-		for (final Set<MemoryIdentity> cache : labelCache.values()) {
-			cache.removeAll(ids);
-		}
+			masterData.keySet().removeAll(ids);
 
-		for (final Set<MemoryIdentity> cache : typeCache.values()) {
-			cache.removeAll(ids);
+			for (final Set<MemoryIdentity> cache : labelCache.values()) {
+				cache.removeAll(ids);
+			}
+
+			for (final Set<MemoryIdentity> cache : typeCache.values()) {
+				cache.removeAll(ids);
+			}
 		}
 	}
 
-	synchronized void updateCache(final MemoryNode node) {
+	void updateCache(final MemoryNode node) {
 
 		final MemoryIdentity id = node.getIdentity();
 		final String type       = (String)node.getProperty("type");

@@ -248,7 +248,7 @@
 					<includes>
 						<include>**/*.java</include>
 					</includes>
-					<argLine>-Xms1g -Xmx2g -server -d64 -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
+					<argLine>-Xms1g -Xmx1g -server -d64 -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
 					<reuseForks>false</reuseForks>
 					<forkCount>6</forkCount>
 					<skipTests>${skipTests}</skipTests>
