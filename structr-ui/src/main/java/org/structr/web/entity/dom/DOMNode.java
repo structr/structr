@@ -65,6 +65,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.SchemaService;
+import org.structr.schema.action.Function;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
@@ -478,12 +479,19 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		final Iterable<GraphObject> listSource = renderContext.getListSource();
 		if (listSource != null) {
 
-			for (final GraphObject dataObject : listSource) {
+			for (final Object dataObject : listSource) {
 
 				// make current data object available in renderContext
-				renderContext.putDataObject(dataKey, dataObject);
-				node.renderContent(renderContext, depth + 1);
+				if (dataObject instanceof GraphObject) {
 
+					renderContext.putDataObject(dataKey, (GraphObject)dataObject);
+
+				} else if (dataObject instanceof Iterable) {
+
+					renderContext.putDataObject(dataKey, Function.recursivelyWrapIterableInMap((Iterable)dataObject, 0));
+				}
+
+				node.renderContent(renderContext, depth + 1);
 			}
 
 			renderContext.clearDataObject(dataKey);
