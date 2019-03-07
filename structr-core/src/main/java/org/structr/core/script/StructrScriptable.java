@@ -359,6 +359,11 @@ public class StructrScriptable extends ScriptableObject {
 			return ((Enum)value).name();
 		}
 
+		if (value instanceof NativeObject) {
+
+			return (NativeObject)value;
+		}
+
 		if (value instanceof Map && !(value instanceof PropertyMap)) {
 
 			return new MapWrapper(context, scope, (Map)value);
