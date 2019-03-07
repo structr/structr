@@ -76,6 +76,9 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 	public FulltextIndexingAgent() {
 
+		setName(TASK_NAME);
+		setDaemon(true);
+
 		detector = new DefaultDetector(MimeTypes.getDefaultMimeTypes());
 	}
 
