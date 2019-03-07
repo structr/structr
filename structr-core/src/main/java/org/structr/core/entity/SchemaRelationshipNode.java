@@ -309,7 +309,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 				if (!newStatementOnly) {
 
-					buf.append("\tpublic static final Property<").append(_targetType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
+					buf.append("\tpublic static final Property<").append("org.structr.dynamic.".concat(_targetType)).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 					buf.append(" = ");
 				}
 				buf.append("new EndNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
@@ -331,7 +331,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 				if (!newStatementOnly) {
 
-					buf.append("\tpublic static final Property<java.lang.Iterable<").append(_targetType).append(">> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
+					buf.append("\tpublic static final Property<java.lang.Iterable<").append("org.structr.dynamic.".concat(_targetType)).append(">> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 					buf.append(" = ");
 				}
 				buf.append("new EndNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
@@ -356,7 +356,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 				if (!newStatementOnly) {
 
-					buf.append("\tpublic static final Property<").append(_sourceType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
+					buf.append("\tpublic static final Property<").append("org.structr.dynamic.".concat(_sourceType)).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 					buf.append(" = ");
 				}
 				buf.append("new StartNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
@@ -378,7 +378,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 				if (!newStatementOnly) {
 
-					buf.append("\tpublic static final Property<java.lang.Iterable<").append(_sourceType).append(">> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
+					buf.append("\tpublic static final Property<java.lang.Iterable<").append("org.structr.dynamic.".concat(_sourceType)).append(">> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 					buf.append(" = ");
 				}
 				buf.append("new StartNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
