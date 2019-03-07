@@ -512,7 +512,7 @@ public abstract class Function<S, T> extends Hint {
 		}
 	}
 
-	public static GraphObjectMap recursivelyWrapListInMap (final List list, final Integer outputDepth) {
+	public static GraphObjectMap recursivelyWrapIterableInMap (final Iterable list, final Integer outputDepth) {
 
 		final GraphObjectMap listWrapperObject = new GraphObjectMap();
 
@@ -539,12 +539,11 @@ public abstract class Function<S, T> extends Hint {
 
 			return sourceObject;
 
-		} else if (sourceObject instanceof List) {
+		} else if (sourceObject instanceof Iterable) {
 
-			final List list = (List)sourceObject;
 			final List<GraphObject> res = new ArrayList<>();
 
-			for(final Object o : list){
+			for(final Object o : (Iterable)sourceObject) {
 
 				if (o instanceof Map) {
 
@@ -566,9 +565,9 @@ public abstract class Function<S, T> extends Hint {
 
 					res.add(Function.wrapNumberInGraphObjectMap((Number)o));
 
-				} else if (o instanceof List) {
+				} else if (o instanceof Iterable) {
 
-					res.add(Function.recursivelyWrapListInMap((List)o, outputDepth));
+					res.add(Function.recursivelyWrapIterableInMap((Iterable)o, outputDepth));
 
 				}
 			}

@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,87 +46,88 @@ public class NativeQueryCommand extends NodeServiceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(NativeQueryCommand.class.getName());
 
-	public Iterable<GraphObject> execute(String query) throws FrameworkException {
+	public Iterable execute(String query) throws FrameworkException {
 		return execute(query, null);
 	}
 
-	public Iterable<GraphObject> execute(String query, Map<String, Object> parameters) throws FrameworkException {
+	public Iterable execute(String query, Map<String, Object> parameters) throws FrameworkException {
 		return execute(query, parameters, true);
 	}
 
-	public Iterable<GraphObject> execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted) throws FrameworkException {
+	public Iterable execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted) throws FrameworkException {
 		return execute(query, parameters, includeHiddenAndDeleted, false);
 	}
 
-	public Iterable<GraphObject> execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted, boolean publicOnly) throws FrameworkException {
+	public Iterable execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted, boolean publicOnly) throws FrameworkException {
 
 		DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
 		if (graphDb != null) {
 
-			final Iterable<Map<String, Object>> result = graphDb.execute(query, parameters != null ? parameters : Collections.emptyMap());
-			final Iterable<Iterable<GraphObject>> test = extractRows(result, includeHiddenAndDeleted, publicOnly);
+			final Iterable result    = graphDb.execute(query, parameters != null ? parameters : Collections.emptyMap());
+			final Iterable extracted = extractRows(result, includeHiddenAndDeleted, publicOnly);
 
 			if (query.matches("(?i)(?s)(?m).*\\s+(delete|set|remove)\\s+.*")) {
 				logger.info("Clearing all caches due to DELETE, SET or REMOVE found in Cypher query: " + query);
 				FlushCachesCommand.flushAll();
 			}
 
-			return Iterables.flatten(test);
+			return extracted;
 		}
 
 		return Collections.emptyList();
 	}
 
-	private Iterable<Iterable<GraphObject>> extractRows(final Iterable<Map<String, Object>> result, final boolean includeHiddenAndDeleted, final boolean publicOnly) {
+	private Iterable extractRows(final Iterable<Map<String, Object>> result, final boolean includeHiddenAndDeleted, final boolean publicOnly) {
 		return Iterables.map(map -> { return extractColumns(map, includeHiddenAndDeleted, publicOnly); }, result);
 	}
 
-	private Iterable<GraphObject> extractColumns(final Map<String, Object> map, final boolean includeHiddenAndDeleted, final boolean publicOnly) {
+	private Object extractColumns(final Map<String, Object> map, final boolean includeHiddenAndDeleted, final boolean publicOnly) {
 
 		final RelationshipFactory relFactory  = new RelationshipFactory(securityContext);
 		final NodeFactory nodeFactory         = new NodeFactory(securityContext);
 
-		return Iterables.map(entry -> {
+		if (map.size() == 1) {
 
-			final String key = entry.getKey();
-			final Object val = entry.getValue();
+			final Entry<String, Object> entry = map.entrySet().iterator().next();
+			final String key                  = entry.getKey();
+			final Object value                = entry.getValue();
 
 			try {
 
-				final Object obj = handleObject(nodeFactory, relFactory, key, val, includeHiddenAndDeleted, publicOnly, 0);
-				if (obj != null) {
-
-					if (obj instanceof GraphObject) {
-
-						return (GraphObject)obj;
-
-					} else if (obj instanceof Collection) {
-
-						return (GraphObject)handleObject(nodeFactory, relFactory, key, obj, includeHiddenAndDeleted, publicOnly, 0);
-
-					} else {
-
-						logger.warn("Unable to handle Cypher query result object of type {}, ignoring.", obj.getClass().getName());
-					}
-				}
+				return handleObject(nodeFactory, relFactory, key, value, includeHiddenAndDeleted, publicOnly, 0);
 
 			} catch (FrameworkException fex) {
-
 				fex.printStackTrace();
 			}
 
-			return null;
+		} else {
 
-		}, map.entrySet());
+			return Iterables.map(entry -> {
+
+				final String key = entry.getKey();
+				final Object val = entry.getValue();
+
+				try {
+
+					return handleObject(nodeFactory, relFactory, key, val, includeHiddenAndDeleted, publicOnly, 0);
+
+				} catch (FrameworkException fex) {
+					fex.printStackTrace();
+				}
+
+				return null;
+
+			}, map.entrySet());
+		}
+
+		return null;
 	}
 
 	final Object handleObject(final NodeFactory nodeFactory, final RelationshipFactory relFactory, final String key, final Object value, boolean includeHiddenAndDeleted, boolean publicOnly, int level) throws FrameworkException {
 
-		GraphObject graphObject = null;
-
 		if (value instanceof Node) {
 
-			graphObject = nodeFactory.instantiate((Node) value, includeHiddenAndDeleted, publicOnly);
+			return nodeFactory.instantiate((Node) value, includeHiddenAndDeleted, publicOnly);
 
 		} else if (value instanceof Relationship) {
 
@@ -137,55 +137,36 @@ public class NativeQueryCommand extends NodeServiceCommand {
 
 			if (sourceNode != null && targetNode != null) {
 
-				graphObject = relFactory.instantiate((Relationship) value);
+				return relFactory.instantiate((Relationship) value);
 			}
+
+			return null;
 
 		} else if (value instanceof Path) {
 
-			final List<Object> relationships = new LinkedList<>();
-			final List<Object> nodes         = new LinkedList<>();
-			final Path path                  = (Path)value;
-
-			graphObject = new GraphObjectMap();
-
-			graphObject.setProperty(new GenericProperty("nodes"), nodes);
-			graphObject.setProperty(new GenericProperty("relationships"), relationships);
+			final List list = new LinkedList<>();
+			final Path path = (Path)value;
 
 			for (final PropertyContainer container : path) {
 
-				if (container instanceof Node) {
+				final Object child = handleObject(nodeFactory, relFactory, null, container, includeHiddenAndDeleted, publicOnly, level + 1);
+				if (child != null) {
 
-					final Object node = handleObject(nodeFactory, relFactory, null, container, includeHiddenAndDeleted, publicOnly, level + 1);
-					if (node != null) {
+					list.add(child);
 
-						nodes.add(node);
+				} else {
 
-					} else {
-
-						// unable to instantiate node, this is most likely due to permission restrictions
-						return null;
-					}
-				}
-
-				if (container instanceof Relationship) {
-
-					final Object relationship = handleObject(nodeFactory, relFactory, null, container, includeHiddenAndDeleted, publicOnly, level + 1);
-					if (relationship != null) {
-
-						relationships.add(relationship);
-
-					} else {
-
-						// unable to instantiate relationship, this is most likely due to permission restrictions
-						return null;
-					}
+					// remove path from list if one of the children is null (=> permission)
+					return null;
 				}
 			}
+
+			return list;
 
 		} else if (value instanceof Map) {
 
 			final Map<String, Object> valueMap = (Map<String, Object>)value;
-			graphObject = new GraphObjectMap();
+			final GraphObjectMap graphObject   = new GraphObjectMap();
 
 			for (final Entry<String, Object> valueEntry : valueMap.entrySet()) {
 
@@ -199,10 +180,12 @@ public class NativeQueryCommand extends NodeServiceCommand {
 				}
 			}
 
-		} else if (value instanceof Collection) {
+			return graphObject;
 
-			final Collection<Object> valueCollection = (Collection<Object>)value;
-			final List<Object> collection            = new LinkedList<>();
+		} else if (value instanceof Iterable) {
+
+			final Iterable<Object> valueCollection = (Iterable<Object>)value;
+			final List<Object> collection          = new LinkedList<>();
 
 			for (final Object valueEntry : valueCollection) {
 
@@ -210,6 +193,11 @@ public class NativeQueryCommand extends NodeServiceCommand {
 				if (result != null) {
 
 					collection.add(result);
+
+				} else {
+
+					// remove tuple from list if one of the children is null (=> permission)
+					return null;
 				}
 			}
 
@@ -217,15 +205,13 @@ public class NativeQueryCommand extends NodeServiceCommand {
 
 		} else if (level == 0) {
 
-			graphObject = new GraphObjectMap();
+			final GraphObjectMap graphObject = new GraphObjectMap();
 			graphObject.setProperty(new GenericProperty(key), value);
 
-		} else {
-
-			return value;
+			return graphObject;
 		}
 
-		return graphObject;
+		return value;
 	}
 
 }
