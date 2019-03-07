@@ -42,6 +42,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
 import org.structr.core.property.DoubleProperty;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.StringProperty;
@@ -511,6 +512,18 @@ public abstract class Function<S, T> extends Hint {
 		}
 	}
 
+	public static GraphObjectMap recursivelyWrapListInMap (final List list, final Integer outputDepth) {
+
+		final GraphObjectMap listWrapperObject = new GraphObjectMap();
+
+		if (outputDepth <= 20) {
+			listWrapperObject.put(new GenericProperty("values"), Function.toGraphObject(list, outputDepth + 1));
+		}
+
+		return listWrapperObject;
+
+	}
+
 	public static GraphObjectMap toGraphObjectMap(final Map<String, Object> src) {
 
 		final GraphObjectMap dest = new GraphObjectMap();
@@ -550,7 +563,13 @@ public abstract class Function<S, T> extends Hint {
 					res.add(Function.wrapStringInGraphObjectMap((String)o));
 
 				} else if (o instanceof Number) {
+
 					res.add(Function.wrapNumberInGraphObjectMap((Number)o));
+
+				} else if (o instanceof List) {
+
+					res.add(Function.recursivelyWrapListInMap((List)o, outputDepth));
+
 				}
 			}
 
@@ -580,7 +599,7 @@ public abstract class Function<S, T> extends Hint {
 			return Function.wrapStringInGraphObjectMap((String)sourceObject);
 
 		} else if (sourceObject instanceof Number) {
-			
+
 			return Function.wrapNumberInGraphObjectMap((Number)sourceObject);
 		}
 
