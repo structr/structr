@@ -4,8 +4,9 @@
 
 	<parent>
 		<groupId>org.structr</groupId>
-		<artifactId>structr</artifactId>
+		<artifactId>structr-test-configuration</artifactId>
 		<version>3.2-SNAPSHOT</version>
+		<relativePath>../structr-test-configuration</relativePath>
 	</parent>
 
 	<groupId>org.structr</groupId>
@@ -192,30 +193,30 @@
 			<artifactId>javase</artifactId>
 			<version>3.3.3</version>
 		</dependency>
-	 <dependency>
-	  <groupId>org.seleniumhq.selenium</groupId>
-	  <artifactId>selenium-java</artifactId>
-	  <scope>test</scope>
-	  <version>2.44.0</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>com.opera</groupId>
-	  <artifactId>operadriver</artifactId>
-	  <scope>test</scope>
-	  <version>1.5</version>
-	  <exclusions>
-	   <exclusion>
-	    <groupId>org.seleniumhq.selenium</groupId>
-	    <artifactId>selenium-remote-driver</artifactId>
-	   </exclusion>
-	  </exclusions>
-	 </dependency>
-	 <dependency>
-	  <groupId>junit</groupId>
-	  <artifactId>junit</artifactId>
-	  <scope>test</scope>
-	  <version>4.11</version>
-	 </dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<scope>test</scope>
+			<version>2.44.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.opera</groupId>
+			<artifactId>operadriver</artifactId>
+			<scope>test</scope>
+			<version>1.5</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.seleniumhq.selenium</groupId>
+					<artifactId>selenium-remote-driver</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+			<version>4.11</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<resources>
@@ -230,99 +231,6 @@
 		</testResources>
 		<plugins>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.22.1</version>
-				<configuration>
-					<excludes>
-						<exclude>**/*.java</exclude>
-					</excludes>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-failsafe-plugin</artifactId>
-				<version>3.0.0-M3</version>
-				<configuration>
-					<includes>
-						<include>**/*.java</include>
-					</includes>
-					<argLine>-Xms1g -Xmx1g -server -d64 -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
-					<reuseForks>false</reuseForks>
-					<forkCount>6</forkCount>
-					<skipTests>${skipTests}</skipTests>
-				</configuration>
-				<executions>
-					<execution>
-						<id>integration-test</id>
-						<phase>integration-test</phase>
-						<goals>
-							<goal>integration-test</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>verify</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>verify</goal>
-						</goals>
-						<configuration>
-							<summaryFiles>
-								<summaryFile>${project.build.directory}/failsafe-reports/failsafe-summary.xml</summaryFile>
-								<summaryFile>${project.build.directory}/failsafe-reports/selenium-summary.xml</summaryFile>
-							</summaryFiles>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>io.fabric8</groupId>
-				<artifactId>docker-maven-plugin</artifactId>
-				<version>0.28.0</version>
-				<executions>
-					<execution>
-						<id>prepare-database</id>
-						<phase>pre-integration-test</phase>
-						<goals>
-							<goal>start</goal>
-						</goals>
-						<configuration>
-							<images>
-								<image>
-									<name>${test.neo4j.version}</name>
-									<alias>database</alias>
-									<run>
-										<ports>
-											<port>7689:7687</port>
-										</ports>
-										<wait>
-											<log>(.?)Bolt enabled on 0.0.0.0:7687.</log>
-											<time>20000</time>
-										</wait>
-										<env>
-											<NEO4J_AUTH>neo4j/admin</NEO4J_AUTH>
-											<NEO4J_ACCEPT_LICENSE_AGREEMENT>yes</NEO4J_ACCEPT_LICENSE_AGREEMENT>
-											<NEO4J_dbms_memory_heap_max__size>4G</NEO4J_dbms_memory_heap_max__size>
-										</env>
-									</run>
-								</image>
-							</images>
-							<skip>${skipTests}</skip>
-						</configuration>
-					</execution>
-					<execution>
-						<id>remove-database</id>
-						<phase>post-integration-test</phase>
-						<goals>
-							<goal>stop</goal>
-						</goals>
-						<configuration>
-							<skip>${skipTests}</skip>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>

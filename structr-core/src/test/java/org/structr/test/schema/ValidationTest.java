@@ -28,7 +28,6 @@ import java.util.concurrent.Future;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.test.common.StructrTest;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
@@ -2185,8 +2184,6 @@ public class ValidationTest extends StructrTest {
 
 	private Class createTypeWithProperty(final String typeName, final String keyName, final String keyType) {
 
-		Settings.LogSchemaOutput.setValue(true);
-
 		try (final Tx tx = app.tx()) {
 
 			app.create(SchemaNode.class,
@@ -2200,8 +2197,6 @@ public class ValidationTest extends StructrTest {
 			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
-
-		Settings.LogSchemaOutput.setValue(false);
 
 		return StructrApp.getConfiguration().getNodeEntityClass(typeName);
 	}

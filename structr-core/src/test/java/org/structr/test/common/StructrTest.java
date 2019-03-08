@@ -124,12 +124,8 @@ public class StructrTest {
 		basePath = "/tmp/structr-test-" + timestamp;
 
 		Settings.Services.setValue("NodeService SchemaService");
-		Settings.DatabaseDriver.setValue(MemoryDatabaseService.class.getName());
-		Settings.DatabaseDriverMode.setValue("remote");
-		Settings.ConnectionUser.setValue("neo4j");
-		Settings.ConnectionPassword.setValue("admin");
-		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
-		Settings.TenantIdentifier.setValue(randomTenantId);
+
+		setupDatabaseConnection();
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
@@ -363,5 +359,16 @@ public class StructrTest {
 		}
 
 		return null;
+	}
+
+	protected void setupDatabaseConnection() {
+
+		// use database driver from system property, default to MemoryDatabaseService
+		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", MemoryDatabaseService.class.getName()));
+		Settings.DatabaseDriverMode.setValue("remote");
+		Settings.ConnectionUser.setValue("neo4j");
+		Settings.ConnectionPassword.setValue("admin");
+		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+		Settings.TenantIdentifier.setValue(randomTenantId);
 	}
 }

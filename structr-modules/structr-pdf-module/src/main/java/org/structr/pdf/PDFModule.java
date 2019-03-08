@@ -28,12 +28,11 @@ import org.structr.schema.action.Actions;
 import java.util.Set;
 
 public class PDFModule implements StructrModule {
+
 	@Override
 	public void onLoad(LicenseManager licenseManager) {
 
-		// final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
-		// final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
-		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
+		final boolean enterpriseEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
 
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "pdf", new PDFFunction());
 

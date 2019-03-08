@@ -18,6 +18,7 @@
  */
 package org.structr.test.web.files;
 
+import java.util.Random;
 import org.structr.api.config.Settings;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.BeforeClass;
@@ -29,8 +30,8 @@ import org.testng.annotations.BeforeClass;
  */
 public abstract class StructrFileTestBase extends StructrUiTest {
 
-	protected int ftpPort = 8876;
-	protected int sshPort = 8877;
+	protected int ftpPort = 8876 + new Random().nextInt(1000);
+	protected int sshPort = 8877 + new Random().nextInt(1000);;
 
 	@BeforeClass(alwaysRun = true)
 	@Override

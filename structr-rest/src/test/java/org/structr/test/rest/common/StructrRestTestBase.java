@@ -83,7 +83,7 @@ public abstract class StructrRestTestBase {
 		basePath = "/tmp/structr-test-" + timestamp;
 
 		Settings.Services.setValue("NodeService SchemaService HttpService");
-		setupNeo4jConnection();
+		setupDatabaseConnection();
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
@@ -204,16 +204,14 @@ public abstract class StructrRestTestBase {
 		return RandomStringUtils.randomAlphabetic(10).toUpperCase();
 	}
 
-	protected void setupNeo4jConnection() {
+	protected void setupDatabaseConnection() {
 
-		Settings.DatabaseDriver.setValue(MemoryDatabaseService.class.getName());
-
-		/*
+		// use database driver from system property, default to MemoryDatabaseService
+		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", MemoryDatabaseService.class.getName()));
 		Settings.DatabaseDriverMode.setValue("remote");
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
-		*/
 		Settings.TenantIdentifier.setValue(randomTenantId);
 	}
 

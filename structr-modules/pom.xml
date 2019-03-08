@@ -8,8 +8,9 @@
 
 	<parent>
 		<groupId>org.structr</groupId>
-		<artifactId>structr</artifactId>
+		<artifactId>structr-test-configuration</artifactId>
 		<version>3.2-SNAPSHOT</version>
+		<relativePath>../structr-test-configuration</relativePath>
 	</parent>
 
 	<packaging>pom</packaging>

@@ -46,6 +46,7 @@
 		<module>structr-modules</module>
 		<module>structr-binaries</module>
 		<module>structr-memory-driver</module>
+		<module>structr-test-configuration</module>
 	</modules>
 
 	<dependencyManagement>
