@@ -399,9 +399,9 @@ public class AuthHelper {
 
 		final String whitelistedIPs = Settings.TwoFactorWhitelistedIPs.getValue();
 
-		if (!StringUtils.isEmpty(whitelistedIPs)) {
+		if (!StringUtils.isEmpty(whitelistedIPs) && !StringUtils.isEmpty(requestIP)) {
 			for (final String whitelistedIP : whitelistedIPs.split(",")) {
-				if (whitelistedIP.trim().equals(requestIP)) {
+				if (whitelistedIP.trim().equals(requestIP.split(":")[0])) {
 					return true;
 				}
 			}
