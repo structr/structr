@@ -54,6 +54,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
+
+import org.structr.schema.action.Actions;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -949,6 +951,44 @@ public class UiScriptingTest extends StructrUiTest {
 			fex.printStackTrace();
 		}
 	}
+
+
+	@Test
+	private void testSchemaMethodsWithNullSource() {
+		// Tests a scenario that can occur when creating methods through the code area in which the created SchemaMethod has a null source value
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Test");
+
+			type.addMethod("test", null, "");
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			Class clazz = StructrApp.getConfiguration().getNodeEntityClass("Test");
+
+			NodeInterface testNode = StructrApp.getInstance().create(clazz);
+
+			Actions.execute(securityContext, null, SchemaMethod.getCachedSourceCode(testNode.getUuid()), "test");
+
+		} catch (Throwable ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+
+		}
+	}
+
 
 
 	// ----- private methods -----

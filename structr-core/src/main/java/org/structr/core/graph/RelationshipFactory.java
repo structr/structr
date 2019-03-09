@@ -21,6 +21,7 @@ package org.structr.core.graph;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Identity;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -59,7 +60,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 	}
 
 	@Override
-	public T instantiate(final Relationship relationship, final String pathSegmentId) {
+	public T instantiate(final Relationship relationship, final Identity pathSegmentId) {
 
 		if (relationship == null || TransactionCommand.isDeleted(relationship)) {
 			return null;
@@ -74,7 +75,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 	}
 
 	@Override
-	public T instantiateWithType(final Relationship relationship, final Class<T> relClass, final String pathSegmentId, final boolean isCreation) {
+	public T instantiateWithType(final Relationship relationship, final Class<T> relClass, final Identity pathSegmentId, final boolean isCreation) {
 
 		// cannot instantiate relationship without type
 		if (relClass == null) {

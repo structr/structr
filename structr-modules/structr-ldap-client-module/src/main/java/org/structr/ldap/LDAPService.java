@@ -22,7 +22,6 @@ import ch.qos.logback.classic.Level;
 import com.google.gson.GsonBuilder;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -84,16 +83,19 @@ public class LDAPService extends Thread implements SingletonService {
 		final String host                            = getHost();
 		final int port                               = getPort();
 		final boolean useSsl                         = getUseSSL();
-		final Map<String, String> possibleGroupNames = new LinkedHashMap<>();
 		final LdapConnection connection              = new LdapNetworkConnection(host, port, useSsl);
-		final List<LDAPUser> members                 = new LinkedList<>();
-		final Set<String> memberDNs                  = new LinkedHashSet<>();
-		final String groupName                       = group.getName();
 		final String groupDn                         = group.getDistinguishedName();
+		final String groupFilter                     = group.getFilter();
+		final String groupScope                      = group.getScope();
+		final String groupPath                       = group.getPath();
+		final String groupName                       = group.getName();
+		final boolean useDistinguishedName           = StringUtils.isNotBlank(groupDn);
+		final boolean useFilterAndScope              = StringUtils.isNotBlank(groupPath) && StringUtils.isNotBlank(groupFilter) && StringUtils.isNotBlank(groupScope);
 
-		if (StringUtils.isEmpty(groupDn)) {
+		if (!useDistinguishedName && !useFilterAndScope) {
 
-			logger.warn("Unable to update group {}: distinguishedName property not set", groupName);
+			logger.warn("Unable to update LDAP group {}: set distinguishedName or [path, filter and scope] to sync this group.", groupName);
+
 			return;
 		}
 
@@ -102,8 +104,6 @@ public class LDAPService extends Thread implements SingletonService {
 			connection.setTimeOut(connectionTimeout);
 
 			if (connection.connect()) {
-
-				logger.info("Updating LDAPGroup {} ({}) with {} on LDAP server {}:{}..", groupName, group.getUuid(), groupDn, host, port);
 
 				if (StringUtils.isNotBlank(bindDn) && StringUtils.isNotBlank(secret)) {
 
@@ -114,51 +114,21 @@ public class LDAPService extends Thread implements SingletonService {
 					connection.bind(bindDn);
 				}
 
-				// fetch DNs of all group members
-				try (final EntryCursor cursor = connection.search(groupDn, "(objectclass=*)", SearchScope.valueOf(scope))) {
+				// decide which method to use for synchronization
+				if (useDistinguishedName) {
 
-					while (cursor.next()) {
+					logger.info("Updating LDAPGroup {} ({}) with DN {} on LDAP server {}:{}..", groupName, group.getUuid(), groupDn, host, port);
 
-						final Entry entry           = cursor.get();
-						final Attribute objectClass = entry.get("objectclass");
+					// use filter + scope
+					updateWithGroupDn(group, connection, groupDn, scope);
 
-						for (final java.util.Map.Entry<String, String> groupEntry : possibleGroupNames.entrySet()) {
+				} else if (useFilterAndScope) {
 
-							final String possibleGroupName  = groupEntry.getKey();
-							final String possibleMemberName = groupEntry.getValue();
+					// use dn
+					logger.info("Updating LDAPGroup {} ({}) with path {}, filter {} and scope {} on LDAP server {}:{}..", groupName, group.getUuid(), groupPath, groupFilter, groupScope, host, port);
 
-							if (objectClass.contains(possibleGroupName)) {
-
-								// add group members
-								final Attribute groupMembers = entry.get(possibleMemberName);
-								if (groupMembers != null) {
-
-									for (final Value value : groupMembers) {
-
-										memberDNs.add(value.getString());
-									}
-								}
-							}
-						}
-					}
+					updateWithFilterAndScope(group, connection, groupPath, groupFilter, groupScope);
 				}
-
-				// resolve users
-				for (final String memberDN : memberDNs) {
-
-					try (final EntryCursor cursor = connection.search(memberDN, "(objectclass=*)", SearchScope.valueOf(scope))) {
-
-						while (cursor.next()) {
-
-							members.add(getOrCreateUser(cursor.get()));
-						}
-					}
-				}
-
-				logger.info("{} users updated", members.size());
-
-				// update members of group to new state (will remove all members that are not part of the group, as expected)
-				group.setProperty(StructrApp.key(Group.class, "members"), members);
 			}
 		}
 	}
@@ -248,6 +218,113 @@ public class LDAPService extends Thread implements SingletonService {
 		}
 
 		return user;
+	}
+
+	// ----- private methods -----
+	private void updateWithGroupDn(final LDAPGroup group, final LdapConnection connection, final String groupDn, final String scope) throws IOException, LdapException, CursorException, FrameworkException {
+
+		final Map<String, String> possibleGroupNames = getGroupMapping();
+		final List<LDAPUser> members                 = new LinkedList<>();
+		final Set<String> memberDNs                  = new LinkedHashSet<>();
+
+		// fetch DNs of all group members
+		try (final EntryCursor cursor = connection.search(groupDn, "(objectclass=*)", SearchScope.valueOf(scope))) {
+
+			while (cursor.next()) {
+
+				final Entry entry           = cursor.get();
+				final Attribute objectClass = entry.get("objectclass");
+
+				for (final java.util.Map.Entry<String, String> groupEntry : possibleGroupNames.entrySet()) {
+
+					final String possibleGroupName  = groupEntry.getKey();
+					final String possibleMemberName = groupEntry.getValue();
+
+					if (objectClass.contains(possibleGroupName)) {
+
+						// add group members
+						final Attribute groupMembers = entry.get(possibleMemberName);
+						if (groupMembers != null) {
+
+							for (final Value value : groupMembers) {
+
+								memberDNs.add(value.getString());
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// resolve users
+		for (final String memberDN : memberDNs) {
+
+			try (final EntryCursor cursor = connection.search(memberDN, "(objectclass=*)", SearchScope.valueOf(scope))) {
+
+				while (cursor.next()) {
+
+					members.add(getOrCreateUser(cursor.get()));
+				}
+			}
+		}
+
+		logger.info("{} users updated", members.size());
+
+		// update members of group to new state (will remove all members that are not part of the group, as expected)
+		group.setProperty(StructrApp.key(Group.class, "members"), members);
+	}
+
+	private void updateWithFilterAndScope(final LDAPGroup group, final LdapConnection connection, final String path, final String groupFilter, final String groupScope) throws IOException, LdapException, CursorException, FrameworkException {
+
+		final Map<String, String> possibleGroupNames = getGroupMapping();
+		final List<LDAPUser> members                 = new LinkedList<>();
+		final Set<String> memberDNs                  = new LinkedHashSet<>();
+
+		// fetch DNs of all group members
+		try (final EntryCursor cursor = connection.search(path, groupFilter, SearchScope.valueOf(groupScope))) {
+
+			while (cursor.next()) {
+
+				final Entry entry           = cursor.get();
+				final Attribute objectClass = entry.get("objectclass");
+
+				for (final java.util.Map.Entry<String, String> groupEntry : possibleGroupNames.entrySet()) {
+
+					final String possibleGroupName  = groupEntry.getKey();
+					final String possibleMemberName = groupEntry.getValue();
+
+					if (objectClass.contains(possibleGroupName)) {
+
+						// add group members
+						final Attribute groupMembers = entry.get(possibleMemberName);
+						if (groupMembers != null) {
+
+							for (final Value value : groupMembers) {
+
+								memberDNs.add(value.getString());
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// resolve users
+		for (final String memberDN : memberDNs) {
+
+			try (final EntryCursor cursor = connection.search(memberDN, "(objectclass=*)", SearchScope.OBJECT)) {
+
+				while (cursor.next()) {
+
+					members.add(getOrCreateUser(cursor.get()));
+				}
+			}
+		}
+
+		logger.info("{} users updated", members.size());
+
+		// update members of group to new state (will remove all members that are not part of the group, as expected)
+		group.setProperty(StructrApp.key(Group.class, "members"), members);
 	}
 
 	// ----- interface SingletonService -----

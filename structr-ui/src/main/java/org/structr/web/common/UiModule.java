@@ -60,6 +60,7 @@ import org.structr.web.function.SendHtmlMailFunction;
 import org.structr.web.function.SendPlaintextMailFunction;
 import org.structr.web.function.SetContentFunction;
 import org.structr.web.function.SetDetailsObjectFunction;
+import org.structr.web.function.SetResponseCodeFunction;
 import org.structr.web.function.SetResponseHeaderFunction;
 import org.structr.web.function.SetSessionAttributeFunction;
 import org.structr.web.function.StripHtmlFunction;
@@ -96,7 +97,7 @@ public class UiModule implements StructrModule {
 		DataSources.put(true, LicenseManager.Community, "cypherDataSource",             new CypherGraphDataSource());
 		DataSources.put(true, LicenseManager.Community, "functionDataSource",           new FunctionDataSource());
 		DataSources.put(true, LicenseManager.Community, "xpathDataSource",              new XPathGraphDataSource());
-		
+
 
 		// Basic Edition and up
 		Functions.put(basicEdition, LicenseManager.Basic, "send_html_mail",           new SendHtmlMailFunction());
@@ -111,7 +112,7 @@ public class UiModule implements StructrModule {
 		Functions.put(basicEdition, LicenseManager.Basic, "is_locale",                new IsLocaleFunction());
 
 		// Small Business and up
-		Functions.put(smallBusinessEdition, LicenseManager.SmallBusiness, "log_event",                new LogEventFunction());
+		Functions.put(smallBusinessEdition, LicenseManager.SmallBusiness, "log_event",          new LogEventFunction());
 
 		// Enterprise only
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "GET",                      new HttpGetFunction());
@@ -121,6 +122,7 @@ public class UiModule implements StructrModule {
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "DELETE",                   new HttpDeleteFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "add_header",               new AddHeaderFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "set_response_header",      new SetResponseHeaderFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "set_response_code",        new SetResponseCodeFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "get_request_header",       new GetRequestHeaderFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "from_xml",                 new FromXmlFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "parse",                    new ParseFunction());
@@ -128,7 +130,7 @@ public class UiModule implements StructrModule {
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "schedule",                 new ScheduleFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "maintenance",              new MaintenanceFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "barcode",                  new BarcodeFunction());
-		
+
 	}
 
 	@Override

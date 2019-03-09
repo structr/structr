@@ -283,12 +283,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 			// read grants.json
-			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing resource access grants");
-
 			final Path grantsConf = source.resolve("security/grants.json");
 			if (Files.exists(grantsConf)) {
 
 				info("Reading {}", grantsConf);
+				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing resource access grants");
+
 				importListData(ResourceAccess.class, readConfigList(grantsConf));
 			}
 
@@ -429,12 +429,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				if (module.hasDeploymentData()) {
 
-					info("Importing deployment data for module {}", module.getName());
-					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing deployment data for module " + module.getName());
-
 					final Path moduleFolder = source.resolve("modules/" + module.getName() + "/");
 
-					module.importDeploymentData(moduleFolder, getGson());
+					if (Files.exists(moduleFolder)) {
+
+						info("Importing deployment data for module {}", module.getName());
+						publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing deployment data for module " + module.getName());
+
+						module.importDeploymentData(moduleFolder, getGson());
+					}
 				}
 			}
 
@@ -1196,10 +1199,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					for (Map<String, Object> schemaMethod : globalSchemaMethods) {
 
-						final String methodSource   = (String) schemaMethod.get("source");
-						final Path globalMethodFile = globalMethodsFolder.resolve((String) schemaMethod.get("name"));
+						final String methodSource     = (String) schemaMethod.get("source");
+						final Path globalMethodFile   = globalMethodsFolder.resolve((String) schemaMethod.get("name"));
+						final String relativeFilePath = "./" + targetFolder.relativize(globalMethodFile).toString();
 
-						schemaMethod.put("source", "./" + targetFolder.relativize(globalMethodFile).toString());
+						schemaMethod.put("source", relativeFilePath);
+
+						if (Files.exists(globalMethodFile)) {
+							logger.warn("File '{}' already exists - this can happen if there is a non-unique global method definition. This is not supported in tree-based schema export and will causes errors!", relativeFilePath);
+						}
 
 						if (methodSource != null) {
 							writeStringToFile(globalMethodFile, methodSource);

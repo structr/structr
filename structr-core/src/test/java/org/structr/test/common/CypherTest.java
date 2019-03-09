@@ -18,11 +18,16 @@
  */
 package org.structr.test.common;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -37,12 +42,21 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NativeQueryCommand;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.GenericProperty;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonReferenceType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.test.core.entity.SixOneManyToMany;
 import org.structr.test.core.entity.SixOneOneToOne;
 import org.structr.test.core.entity.TestOne;
@@ -303,12 +317,15 @@ public class CypherTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<GraphObject> result = Iterables.toList(app.command(NativeQueryCommand.class).execute("MATCH (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN DISTINCT  n, r, m "));
-			final Iterator<GraphObject> it = result.iterator();
+			final List<GraphObject> result  = Iterables.toList(app.command(NativeQueryCommand.class).execute("MATCH (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN DISTINCT  n, r, m "));
+			final Iterator<GraphObject> rit = result.iterator();
 
-			assertEquals("Invalid wrapped cypher query result", 300, result.size());
+			assertEquals("Invalid wrapped cypher query result", 100, result.size());
 
-			while (it.hasNext()) {
+			while (rit.hasNext()) {
+
+				final Iterable tuple = (Iterable)rit.next();
+				final Iterator it    = tuple.iterator();
 
 				assertEquals("Invalid wrapped cypher query result", TestOne.class, it.next().getClass());		// n
 				assertEquals("Invalid wrapped cypher query result", SixOneManyToMany.class, it.next().getClass());	// r
@@ -324,14 +341,23 @@ public class CypherTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<GraphObject> result = Iterables.toList(app.command(NativeQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN p "));
+			final Iterable result = app.command(NativeQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN p ");
+			final Iterator rit    = result.iterator();
+			int resultCount       = 0;
 
-			assertEquals("Invalid wrapped cypher query result", 100, result.size());
+			while (rit.hasNext()) {
 
-			for (final GraphObject obj : result) {
+				final Iterable tuple = (Iterable)rit.next();
+				final Iterator it    = tuple.iterator();
 
-				assertEquals("Invalid wrapped cypher query result", GraphObjectMap.class, obj.getClass());
+				assertEquals("Invalid wrapped cypher query result", TestOne.class, it.next().getClass());		// n
+				assertEquals("Invalid wrapped cypher query result", SixOneManyToMany.class, it.next().getClass());	// r
+				assertEquals("Invalid wrapped cypher query result", TestSix.class, it.next().getClass());		// m
+
+				resultCount++;
 			}
+
+			assertEquals("Invalid wrapped cypher query result", 100, resultCount);
 
 			tx.success();
 
@@ -561,18 +587,23 @@ public class CypherTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<GraphObject> result = Iterables.toList(app.command(NativeQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN p"));
+			final Iterable result = app.command(NativeQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN p");
+			final Iterator rit    = result.iterator();
+			int resultCount       = 0;
 
-			assertEquals("Invalid path query result", 100, result.size());
+			while (rit.hasNext()) {
 
-			for (final GraphObject p : result) {
+				final Iterable tuple = (Iterable)rit.next();
+				final Iterator it    = tuple.iterator();
 
-				final Object nodes = p.getProperty(new GenericProperty("nodes"));
-				assertTrue("Invalid wrapped cypher query result", nodes instanceof Iterable);
+				assertEquals("Invalid wrapped cypher query result", TestOne.class, it.next().getClass());		// n
+				assertEquals("Invalid wrapped cypher query result", SixOneManyToMany.class, it.next().getClass());	// r
+				assertEquals("Invalid wrapped cypher query result", TestSix.class, it.next().getClass());		// m
 
-				final Object relationships = p.getProperty(new GenericProperty("relationships"));
-				assertTrue("Invalid wrapped cypher query result", relationships instanceof Iterable);
+				resultCount++;
 			}
+
+			assertEquals("Invalid path query result", 100, resultCount);
 
 			tx.success();
 
@@ -587,17 +618,22 @@ public class CypherTest extends StructrTest {
 		try (final Tx tx = testerApp.tx()) {
 
 			final List<GraphObject> result = Iterables.toList(testerApp.command(NativeQueryCommand.class).execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN p"));
+			final Iterator rit    = result.iterator();
+			int resultCount       = 0;
 
-			assertEquals("Invalid path permission resolution result for non-admin user", 30, result.size());
+			while (rit.hasNext()) {
 
-			for (final GraphObject p : result) {
+				final Iterable tuple = (Iterable)rit.next();
+				final Iterator it    = tuple.iterator();
 
-				final Object nodes = p.getProperty(new GenericProperty("nodes"));
-				assertTrue("Invalid wrapped cypher query result", nodes instanceof Iterable);
+				assertEquals("Invalid wrapped cypher query result", TestOne.class, it.next().getClass());		// n
+				assertEquals("Invalid wrapped cypher query result", SixOneManyToMany.class, it.next().getClass());	// r
+				assertEquals("Invalid wrapped cypher query result", TestSix.class, it.next().getClass());		// m
 
-				final Object relationships = p.getProperty(new GenericProperty("relationships"));
-				assertTrue("Invalid wrapped cypher query result", relationships instanceof Iterable);
+				resultCount++;
 			}
+
+			assertEquals("Invalid path permission resolution result for non-admin user", 30, resultCount);
 
 			tx.success();
 
@@ -607,4 +643,175 @@ public class CypherTest extends StructrTest {
 		}
 
 	}
+
+	@Test
+	public void testPathWrapper() {
+
+		try {
+
+			final TestSix testSix = this.createTestNode(TestSix.class, "testnode");
+			final String uuid     = testSix.getUuid();
+
+			assertNotNull(testSix);
+
+			try (final Tx tx = app.tx()) {
+
+				final Iterable result = app.command(NativeQueryCommand.class).execute("MATCH path = (x:" + randomTenantId + ") WHERE x.name = 'testnode' RETURN path");
+				final Iterator rit    = result.iterator();
+
+				while (rit.hasNext()) {
+
+					final Iterable tuple = (Iterable)rit.next();
+					final Iterator it    = tuple.iterator();
+					final TestSix test   = (TestSix)it.next();
+
+					assertEquals("Invalid wrapped cypher query result", TestSix.class, test.getClass());
+					assertEquals("Invalid wrapped cypher query result", uuid,          test.getUuid());
+				}
+
+				tx.success();
+			}
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testNativeCypherMapping() {
+
+		cleanDatabaseAndSchema();
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema      = StructrSchema.createFromDatabase(app);
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			// create relation
+			final JsonReferenceType rel = project.relate(task, "has", Cardinality.OneToMany, "project", "tasks");
+			rel.setName("ProjectTasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try {
+
+			final Class projectType      = StructrApp.getConfiguration().getNodeEntityClass("Project");
+			final Class taskType         = StructrApp.getConfiguration().getNodeEntityClass("Task");
+			final PropertyKey projectKey = StructrApp.key(taskType, "project");
+
+			createTestNode(taskType,
+				new NodeAttribute<>(AbstractNode.name, "Task1"),
+				new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(AbstractNode.name, "Project1")))
+			);
+
+			createTestNode(taskType,
+				new NodeAttribute<>(AbstractNode.name, "Task2"),
+				new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(AbstractNode.name, "Project2")))
+			);
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+
+		final Map<String, String> tests = new LinkedHashMap<>();
+		final Gson gson                 = new GsonBuilder().create();
+
+		tests.put("MATCH (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN n",                                       "[\"Project\",\"Project\"]");
+		tests.put("MATCH (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN r",                                       "[\"has\",\"has\"]");
+		tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN path",                             "[[\"Project\",\"has\",\"Task\"],[\"Project\",\"has\",\"Task\"]]");
+		tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN nodes(path)",                      "[[\"Project\",\"Task\"],[\"Project\",\"Task\"]]");
+		tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN nodes(path), relationships(path)", "[[[\"Project\",\"Task\"],[\"has\"]],[[\"Project\",\"Task\"],[\"has\"]]]");
+		tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN n, r, m",                          "[[\"Project\",\"has\",\"Task\"],[\"Project\",\"has\",\"Task\"]]");
+		tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN n, m",                             "[[\"Project\",\"Task\"],[\"Project\",\"Task\"]]");
+		tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN { n: n, r: r }",                   "[{\"r\":\"has\",\"n\":\"Project\"},{\"r\":\"has\",\"n\":\"Project\"}]");
+		tests.put("MATCH (true) RETURN { a: 1, b: 2, c: 3 } LIMIT 1",                                                                             "[{\"a\":1,\"b\":2,\"c\":3}]");
+
+		try (final Tx tx = app.tx()) {
+
+			for (final Entry<String, String> test : tests.entrySet()) {
+
+				final String query = test.getKey();
+				final String check = test.getValue();
+
+				final Object result    = app.command(NativeQueryCommand.class).execute(query);
+				final List list        = Iterables.toList((Iterable)result);
+				final String structure = gson.toJson(resolve(list));
+
+				if (!check.equals(structure)) {
+					System.out.println("################# " + query);
+					System.out.println(structure);
+				}
+
+				assertEquals("Invalid native query result structure", check, structure);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+	}
+
+	// ----- private methods -----
+	private Object resolve(final Object src) {
+
+		if (src instanceof Iterable) {
+
+			final List list   = new LinkedList<>();
+			final Iterable i  = (Iterable)src;
+			final Iterator it = i.iterator();
+
+			while (it.hasNext()) {
+
+				list.add(resolve(it.next()));
+			}
+
+			return list;
+		}
+
+		if (src instanceof Map) {
+
+			final Map map = new LinkedHashMap<>();
+
+			for (final Entry<String, Object> entry : ((Map<String, Object>)src).entrySet()) {
+
+				map.put(entry.getKey(), resolve(entry.getValue()));
+			}
+
+			return map;
+		}
+
+		if (src instanceof GraphObjectMap) {
+
+			return resolve(((GraphObjectMap)src).toMap());
+		}
+
+		if (src instanceof NodeInterface) {
+			return ((NodeInterface)src).getType();
+		}
+
+		if (src instanceof RelationshipInterface) {
+			return ((RelationshipInterface)src).getRelType().name();
+		}
+
+		return src;
+	}
 }
+
+

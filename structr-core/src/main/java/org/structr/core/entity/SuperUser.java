@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.structr.api.Predicate;
+import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.RelationshipType;
@@ -428,7 +429,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public void setRawPathSegmentId(final String rawSegmentID) {
+	public void setRawPathSegmentId(final Identity rawSegmentId) {
 	}
 
 	@Override

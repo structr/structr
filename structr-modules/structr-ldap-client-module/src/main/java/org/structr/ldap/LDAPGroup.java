@@ -48,9 +48,18 @@ public interface LDAPGroup extends Group {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/LDAPGroup"));
 
 		type.addStringProperty("distinguishedName", PropertyView.Public, PropertyView.Ui).setUnique(true).setIndexed(true);
+		type.addStringProperty("path",              PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("filter",            PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("scope",             PropertyView.Public, PropertyView.Ui);
 
 		type.addPropertyGetter("distinguishedName", String.class);
 		type.addPropertySetter("distinguishedName", String.class);
+		type.addPropertyGetter("path",              String.class);
+		type.addPropertySetter("path",              String.class);
+		type.addPropertyGetter("filter",            String.class);
+		type.addPropertySetter("filter",            String.class);
+		type.addPropertyGetter("scope",             String.class);
+		type.addPropertySetter("scope",             String.class);
 
 		final JsonMethod updateMethod = type.addMethod("update");
 		updateMethod.setSource(LDAPGroup.class.getName() + ".update(getSecurityContext(), this);");
@@ -60,8 +69,11 @@ public interface LDAPGroup extends Group {
 		type.overrideMethod("onModification", true,  LDAPGroup.class.getName() + ".onModification(this, arg0, arg1, arg2);");
 	}}
 
-	String getDistinguishedName();
 	void setDistinguishedName(final String distinguishedName) throws FrameworkException;
+	String getDistinguishedName();
+	String getPath();
+	String getFilter();
+	String getScope();
 
 	// ----- static methods -----
 	static void onCreation(final LDAPGroup thisNode, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {

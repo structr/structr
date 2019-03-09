@@ -49,7 +49,7 @@ public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint imple
 		final Relationship rel           = getRawSource(securityContext, node.getNode(), predicate);
 
 		if (rel != null) {
-			return nodeFactory.instantiate(rel.getEndNode(), getUuid(rel));
+			return nodeFactory.instantiate(rel.getEndNode(), rel.getId());
 		}
 
 		return null;

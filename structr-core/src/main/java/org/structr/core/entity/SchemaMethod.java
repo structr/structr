@@ -384,6 +384,6 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 			}
 		}
 
-		return "";
+		return "${}";
 	}
 }
