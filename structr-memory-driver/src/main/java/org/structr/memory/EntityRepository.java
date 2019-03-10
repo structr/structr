@@ -47,6 +47,7 @@ public abstract class EntityRepository {
 
 		final ZipInputStream zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(dbFile)));
 
+		// there should be only one entry named "data"..
 		zis.getNextEntry();
 
 		return zis;

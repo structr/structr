@@ -231,6 +231,7 @@
 		</testResources>
 		<plugins>
 
+			<!-- disabled for now...
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
@@ -269,6 +270,8 @@
 					<debug>true</debug>
 				</configuration>
 			</plugin>
+			-->
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
