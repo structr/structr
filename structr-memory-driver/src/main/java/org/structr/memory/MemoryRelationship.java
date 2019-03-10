@@ -18,6 +18,9 @@
  */
 package org.structr.memory;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.Node;
@@ -31,6 +34,10 @@ public class MemoryRelationship extends MemoryEntity implements Relationship {
 	private RelationshipType relType  = null;
 	private MemoryIdentity sourceNode = null;
 	private MemoryIdentity targetNode = null;
+
+	private MemoryRelationship(final MemoryDatabaseService db) {
+		super(db);
+	}
 
 	public MemoryRelationship(final MemoryDatabaseService db, final MemoryIdentity identity, final RelationshipType relType, final MemoryIdentity sourceNode, final MemoryIdentity targetNode) {
 
@@ -97,4 +104,40 @@ public class MemoryRelationship extends MemoryEntity implements Relationship {
 	protected void updateCache() {
 		db.updateCache(this);
 	}
+
+	// ----- package-private methods -----
+	static MemoryRelationship createFromStorage(final MemoryDatabaseService db, final ObjectInputStream is) throws IOException, ClassNotFoundException {
+
+		// use empty constructor
+		final MemoryRelationship relationship = new MemoryRelationship(db);
+
+		relationship.loadFromStorage(is);
+
+		return relationship;
+	}
+
+	@Override
+	void loadFromStorage(final ObjectInputStream in) throws IOException, ClassNotFoundException {
+
+		// let MemoryEntity handle the data
+		super.loadFromStorage(in);
+
+		sourceNode = MemoryIdentity.loadFromStorage(in);
+		targetNode = MemoryIdentity.loadFromStorage(in);
+
+		relType = db.forName(RelationshipType.class, in.readUTF());
+	}
+
+	@Override
+	void writeToStorage(final ObjectOutputStream out) throws IOException {
+
+		// let MemoryEntity handle the data
+		super.writeToStorage(out);
+
+		sourceNode.writeToStorage(out);
+		targetNode.writeToStorage(out);
+
+		out.writeUTF(relType.name());
+	}
+
 }

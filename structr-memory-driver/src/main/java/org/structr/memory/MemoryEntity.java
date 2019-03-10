@@ -18,6 +18,9 @@
  */
 package org.structr.memory;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -38,6 +41,10 @@ public abstract class MemoryEntity implements PropertyContainer {
 	private ReentrantLock lock                          = new ReentrantLock();
 	protected MemoryDatabaseService db                  = null;
 	private MemoryIdentity id                           = null;
+
+	protected MemoryEntity(final MemoryDatabaseService db) {
+		this.db = db;
+	}
 
 	public MemoryEntity(final MemoryDatabaseService db, final MemoryIdentity identity) {
 
@@ -199,6 +206,61 @@ public abstract class MemoryEntity implements PropertyContainer {
 			lock.unlock();
 		}
 	}
+
+	// ----- package-private methods -----
+	void loadFromStorage(final ObjectInputStream in) throws IOException, ClassNotFoundException {
+
+		// read identity first
+		id = MemoryIdentity.loadFromStorage(in);
+
+		// read label count
+		final int labelCount = in.readInt();
+
+		// read labels
+		for (int i=0; i<labelCount; i++) {
+
+			labels.add(in.readUTF());
+		}
+
+		// read properties
+		final int propertyCount = in.readInt();
+
+		for (int i=0; i<propertyCount; i++) {
+
+			final String key   = in.readUTF();
+			final Object value = in.readObject();
+
+			if (key != null && value != null) {
+
+				data.put(key, value);
+			}
+		}
+	}
+
+	void writeToStorage(final ObjectOutputStream out) throws IOException {
+
+		// write identity first
+		id.writeToStorage(out);
+
+		// then label count
+		out.writeInt(labels.size());
+
+		// and labels
+		for (final String label : labels) {
+
+			out.writeUTF(label);
+		}
+
+		// then properties
+		out.writeInt(data.size());
+
+		for (final Entry<String, Object> entry : data.entrySet()) {
+
+			out.writeUTF(entry.getKey());
+			out.writeObject(entry.getValue());
+		}
+	}
+
 
 	// ----- private methods -----
 	private Map<String, Object> getData(final boolean read) {

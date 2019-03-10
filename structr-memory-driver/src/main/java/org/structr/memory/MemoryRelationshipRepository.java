@@ -18,9 +18,12 @@
  */
 package org.structr.memory;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -32,7 +35,7 @@ import org.structr.memory.index.filter.TargetNodeFilter;
 
 /**
  */
-public class MemoryRelationshipRepository {
+public class MemoryRelationshipRepository extends EntityRepository {
 
 	final Map<MemoryIdentity, MemoryRelationship> masterData   = new ConcurrentHashMap<>();
 	final Map<String, Set<MemoryIdentity>> typeCache           = new ConcurrentHashMap<>();
@@ -87,30 +90,33 @@ public class MemoryRelationshipRepository {
 		return masterData.containsKey(id);
 	}
 
-	void add(final Map<MemoryIdentity, MemoryRelationship> newData) {
+	void add(final Iterable<MemoryRelationship> newData) {
 
-		for (final Entry<MemoryIdentity, MemoryRelationship> entry : newData.entrySet()) {
-
-			final MemoryIdentity id        = entry.getKey();
-			final MemoryRelationship value = entry.getValue();
-			final String key               = value.getUniquenessKey();
-
-			if (duplicatesCheckCache.contains(key)) {
-				throw new IllegalStateException("Duplicate relationship: " + key);
-			}
-
-			duplicatesCheckCache.add(key);
-
-			for (final String label : value.getLabels()) {
-
-				getCacheForType(label).add(id);
-			}
-
-			getCacheForSource(value.getSourceNodeIdentity()).add(id);
-			getCacheForTarget(value.getTargetNodeIdentity()).add(id);
-
-			masterData.put(id, entry.getValue());
+		for (final MemoryRelationship relationship : newData) {
+			add(relationship);
 		}
+	}
+
+	void add(final MemoryRelationship relationship) {
+
+		final MemoryIdentity id        = relationship.getIdentity();
+		final String key               = relationship.getUniquenessKey();
+
+		if (duplicatesCheckCache.contains(key)) {
+			throw new IllegalStateException("Duplicate relationship: " + key);
+		}
+
+		duplicatesCheckCache.add(key);
+
+		for (final String label : relationship.getLabels()) {
+
+			getCacheForType(label).add(id);
+		}
+
+		getCacheForSource(relationship.getSourceNodeIdentity()).add(id);
+		getCacheForTarget(relationship.getTargetNodeIdentity()).add(id);
+
+		masterData.put(id, relationship);
 	}
 
 	void remove(final Map<MemoryIdentity, MemoryRelationship> relationships) {
@@ -144,6 +150,66 @@ public class MemoryRelationshipRepository {
 
 	void updateCache(final MemoryRelationship relationship) {
 		// relationship type cannot be changed => no-op
+	}
+
+	void loadFromStorage(final MemoryDatabaseService db, final File storageDirectory) {
+
+		final File dbFile = getRelationshipStorageFile(storageDirectory);
+		if (dbFile.exists()) {
+
+			try (final ObjectInputStream in = new ObjectInputStream(getZipInputStream(dbFile))) {
+
+				final int formatVersion = in.readInt();
+
+				if (STORAGE_FORMAT_VERSION == formatVersion) {
+
+					final int relationshipCount = in.readInt();
+
+					for (int i=0; i<relationshipCount; i++) {
+
+						final MemoryRelationship relationship = MemoryRelationship.createFromStorage(db, in);
+						if (relationship != null) {
+
+							add(relationship);
+						}
+					}
+
+				} else {
+
+					throw new IllegalStateException("Storage format " + formatVersion + " of " + dbFile.getAbsolutePath() + " does not match current format " + STORAGE_FORMAT_VERSION);
+				}
+
+			} catch (final Throwable t) {
+				t.printStackTrace();
+			}
+		}
+	}
+
+	void writeToStorage(final File storageDirectory) {
+
+		final File relationshipsFile = getRelationshipStorageFile(storageDirectory);
+
+		try (final ObjectOutputStream out = new ObjectOutputStream(getZipOutputStream(relationshipsFile))) {
+
+			final int relationshipCount = masterData.size();
+
+			// first value: data format version
+			out.writeInt(STORAGE_FORMAT_VERSION);
+
+			// second value: node count
+			out.writeInt(relationshipCount);
+
+			for (final MemoryRelationship relationship : masterData.values()) {
+
+				relationship.writeToStorage(out);
+			}
+
+			// flush
+			out.flush();
+
+		} catch (final IOException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	// ----- private methods -----
@@ -181,5 +247,9 @@ public class MemoryRelationshipRepository {
 		}
 
 		return cache;
+	}
+
+	private File getRelationshipStorageFile(final File storageDirectory) {
+		return storageDirectory.toPath().resolve("relationships.bin.zip").toFile();
 	}
 }

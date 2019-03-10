@@ -18,6 +18,9 @@
  */
 package org.structr.memory;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.concurrent.atomic.AtomicLong;
 import org.structr.api.graph.Identity;
 
@@ -28,6 +31,9 @@ public class MemoryIdentity implements Identity {
 	private static final AtomicLong idCounter = new AtomicLong();
 	private String type                       = null;
 	private long id                           = -1L;
+
+	private MemoryIdentity() throws IOException {
+	}
 
 	public MemoryIdentity(final String type) {
 
@@ -72,5 +78,22 @@ public class MemoryIdentity implements Identity {
 
 	public String getType() {
 		return type;
+	}
+
+	// ----- package-private methods -----
+	static MemoryIdentity loadFromStorage(final ObjectInputStream in) throws IOException {
+
+		final MemoryIdentity identity = new MemoryIdentity();
+
+		identity.type = in.readUTF();
+		identity.id   = in.readLong();
+
+		return identity;
+	}
+
+	void writeToStorage(final ObjectOutputStream out) throws IOException {
+
+		out.writeUTF(type);
+		out.writeLong(id);
 	}
 }

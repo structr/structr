@@ -34,6 +34,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
 		<test.neo4j.version>neo4j:3.4.12-enterprise</test.neo4j.version>
+		<structr.lib.directory>${structr.root.directory}/structr-ui/target/lib</structr.lib.directory>
 	</properties>
 
 	<modules>
@@ -322,6 +323,27 @@
 						<goals>
 							<goal>check</goal>
 						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.commonjava.maven.plugins</groupId>
+				<artifactId>directory-maven-plugin</artifactId>
+				<version>0.1</version>
+				<executions>
+					<execution>
+						<id>directories</id>
+						<goals>
+							<goal>directory-of</goal>
+						</goals>
+						<phase>initialize</phase>
+						<configuration>
+							<property>structr.root.directory</property>
+							<project>
+								<groupId>org.structr</groupId>
+								<artifactId>structr</artifactId>
+							</project>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>

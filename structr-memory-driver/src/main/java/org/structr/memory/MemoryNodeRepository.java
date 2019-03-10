@@ -18,20 +18,24 @@
  */
 package org.structr.memory;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import org.structr.api.util.Iterables;
+import static org.structr.memory.EntityRepository.STORAGE_FORMAT_VERSION;
 import org.structr.memory.index.filter.Filter;
 import org.structr.memory.index.filter.MemoryLabelFilter;
 import org.structr.memory.index.filter.MemoryTypeFilter;
 
 /**
  */
-public class MemoryNodeRepository {
+public class MemoryNodeRepository extends EntityRepository {
 
 	final Map<MemoryIdentity, MemoryNode> masterData  = new ConcurrentHashMap<>();
 	final Map<String, Set<MemoryIdentity>> labelCache = new ConcurrentHashMap<>();
@@ -75,23 +79,26 @@ public class MemoryNodeRepository {
 		return masterData.containsKey(id);
 	}
 
-	void add(final Map<MemoryIdentity, MemoryNode> newData) {
+	void add(final Iterable<MemoryNode> newData) {
 
-		for (final Entry<MemoryIdentity, MemoryNode> entry : newData.entrySet()) {
-
-			final MemoryIdentity id = entry.getKey();
-			final MemoryNode value  = entry.getValue();
-			final String type       = id.getType();
-
-			for (final String label : value.getLabels()) {
-
-				getCacheForLabel(label).add(id);
-			}
-
-			getCacheForType(type).add(id);
-
-			masterData.put(id, entry.getValue());
+		for (final MemoryNode node : newData) {
+			add(node);
 		}
+	}
+
+	void add(final MemoryNode node) {
+
+		final MemoryIdentity id = node.getIdentity();
+		final String type       = id.getType();
+
+		for (final String label : node.getLabels()) {
+
+			getCacheForLabel(label).add(id);
+		}
+
+		getCacheForType(type).add(id);
+
+		masterData.put(id, node);
 	}
 
 	void remove(final Set<MemoryIdentity> ids) {
@@ -131,6 +138,67 @@ public class MemoryNodeRepository {
 		getCacheForType(type).add(id);
 	}
 
+	void loadFromStorage(final MemoryDatabaseService db, final File storageDirectory) {
+
+		final File nodesFile = getNodeStorageFile(storageDirectory);
+
+		if (nodesFile.exists()) {
+
+			try (final ObjectInputStream in = new ObjectInputStream(getZipInputStream(nodesFile))) {
+
+				final int formatVersion = in.readInt();
+
+				if (STORAGE_FORMAT_VERSION == formatVersion) {
+
+					final int nodeCount = in.readInt();
+
+					for (int i=0; i<nodeCount; i++) {
+
+						final MemoryNode node = MemoryNode.createFromStorage(db, in);
+						if (node != null) {
+
+							add(node);
+						}
+					}
+
+				} else {
+
+					throw new IllegalStateException("Storage format " + formatVersion + " of " + nodesFile.getAbsolutePath() + " does not match current format " + STORAGE_FORMAT_VERSION);
+				}
+
+			} catch (final Throwable t) {
+				t.printStackTrace();
+			}
+		}
+	}
+
+	void writeToStorage(final File storageDirectory) {
+
+		final File nodesFile = getNodeStorageFile(storageDirectory);
+
+		try (final ObjectOutputStream out = new ObjectOutputStream(getZipOutputStream(nodesFile))) {
+
+			final int nodeCount = masterData.size();
+
+			// first value: data format version
+			out.writeInt(STORAGE_FORMAT_VERSION);
+
+			// second value: node count
+			out.writeInt(nodeCount);
+
+			for (final MemoryNode node : masterData.values()) {
+
+				node.writeToStorage(out);
+			}
+
+			// flush
+			out.flush();
+
+		} catch (final IOException ex) {
+			ex.printStackTrace();
+		}
+	}
+
 	// ----- private methods -----
 	private synchronized Set<MemoryIdentity> getCacheForLabel(final String type) {
 
@@ -154,5 +222,9 @@ public class MemoryNodeRepository {
 		}
 
 		return cache;
+	}
+
+	private File getNodeStorageFile(final File storageDirectory) {
+		return storageDirectory.toPath().resolve("nodes.bin.zip").toFile();
 	}
 }

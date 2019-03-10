@@ -293,6 +293,7 @@
 				<executions>
 					<execution>
 						<goals>
+							<goal>jar</goal>
 							<goal>test-jar</goal>
 						</goals>
 					</execution>

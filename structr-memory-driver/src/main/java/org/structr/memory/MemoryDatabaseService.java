@@ -18,6 +18,7 @@
  */
 package org.structr.memory;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
 import org.structr.memory.index.MemoryRelationshipIndex;
@@ -32,6 +33,7 @@ import static org.structr.api.DatabaseFeature.QueryLanguage;
 import org.structr.api.NativeQuery;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.Transaction;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.GraphProperties;
 import org.structr.api.graph.Identity;
@@ -59,14 +61,20 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 	private final MemoryNodeRepository nodes                            = new MemoryNodeRepository();
 	private MemoryRelationshipIndex relIndex                            = null;
 	private MemoryNodeIndex nodeIndex                                   = null;
+	private File storageDirectory                                       = null;
 
 	@Override
 	public boolean initialize() {
+
+		storageDirectory = new File(Settings.DatabasePath.getValue());
+
+		loadFromStorage();
 		return true;
 	}
 
 	@Override
 	public void shutdown() {
+		writeToStorage();
 	}
 
 	@Override
@@ -404,11 +412,11 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 
 		newNodes.keySet().removeAll(deletedNodes);
 		nodes.remove(deletedNodes);
-		nodes.add(newNodes);
+		nodes.add(newNodes.values());
 
 		newRelationships.keySet().removeAll(deletedRelationships.keySet());
 		relationships.remove(deletedRelationships);
-		relationships.add(newRelationships);
+		relationships.add(newRelationships.values());
 
 		transactions.remove();
 	}
@@ -443,6 +451,33 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 
 	void updateCache(final MemoryRelationship relationship) {
 		relationships.updateCache(relationship);
+	}
+
+	// ----- private methods -----
+	private void loadFromStorage() {
+
+		if (storageDirectory.exists()) {
+
+			final File dbFile = getStorageFile(storageDirectory);
+
+			nodes.loadFromStorage(this, storageDirectory);
+			relationships.loadFromStorage(this, storageDirectory);
+		}
+	}
+
+	private void writeToStorage() {
+
+		if (!storageDirectory.exists()) {
+
+			storageDirectory.mkdirs();
+		}
+
+		nodes.writeToStorage(storageDirectory);
+		relationships.writeToStorage(storageDirectory);
+	}
+
+	private File getStorageFile(final File storageDirectory) {
+		return storageDirectory.toPath().resolve("structr-inmemory-db.bin.zip").toFile();
 	}
 
 	// ----- nested classes -----

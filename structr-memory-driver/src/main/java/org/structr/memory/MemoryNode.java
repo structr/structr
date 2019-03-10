@@ -18,6 +18,8 @@
  */
 package org.structr.memory;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.Map;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.Direction;
@@ -30,6 +32,10 @@ import org.structr.memory.index.filter.MemoryLabelFilter;
 /**
  */
 public class MemoryNode extends MemoryEntity implements Node {
+
+	private MemoryNode(final MemoryDatabaseService db) {
+		super(db);
+	}
 
 	public MemoryNode(final MemoryDatabaseService db, final MemoryIdentity identity) {
 		super(db, identity);
@@ -104,5 +110,17 @@ public class MemoryNode extends MemoryEntity implements Node {
 	@Override
 	protected void updateCache() {
 		db.updateCache(this);
+	}
+
+	// ----- package-private methods -----
+	static MemoryNode createFromStorage(final MemoryDatabaseService db, final ObjectInputStream is) throws IOException, ClassNotFoundException {
+
+		// use empty constructor
+		final MemoryNode node = new MemoryNode(db);
+
+		// everything is handled by MemoryEntity
+		node.loadFromStorage(is);
+
+		return node;
 	}
 }

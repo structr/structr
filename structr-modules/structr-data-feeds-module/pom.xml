@@ -74,7 +74,7 @@
 							</manifestEntries>
 						</manifestSection>
 					</archive>
-					<outputDirectory>${project.parent.parent.basedir}/structr-ui/target/lib</outputDirectory>
+					<outputDirectory>${structr.lib.directory}</outputDirectory>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -89,7 +89,7 @@
 							<goal>copy-dependencies</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${project.parent.parent.basedir}/structr-ui/target/lib</outputDirectory>
+							<outputDirectory>${structr.lib.directory}</outputDirectory>
 						</configuration>
 					</execution>
 				</executions>
