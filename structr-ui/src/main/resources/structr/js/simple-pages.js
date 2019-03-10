@@ -439,7 +439,7 @@ var _SimplePages = {
 		}
 
 		if (_SimplePages.components.contents) {
-			_SimplePages.components.contents.style.height = windowHeight - headerOffsetHeight + 13 + 'px';
+			_SimplePages.components.contents.style.height = windowHeight - headerOffsetHeight - 11 + 'px';
 		}
 
 		if (_SimplePages.components.context) {
@@ -448,7 +448,7 @@ var _SimplePages = {
 		
 		let iframes = document.querySelector('.page-root iframe.preview');
 		if (iframes) {
-			iframes.style.height = windowHeight - headerOffsetHeight + 13 + 'px';
+			iframes.style.height = windowHeight - headerOffsetHeight - 13 + 'px';
 		}
 
 		_SimplePages.moveResizer();
@@ -457,14 +457,14 @@ var _SimplePages = {
 	},
 	moveResizer: function(left) {
 		left = left || LSWrapper.getItem(_SimplePages.resizerLeftKey) || 300;
-		_SimplePages.components.main.querySelector('.column-resizer').style.left = left;
+		_SimplePages.components.main.querySelector('.column-resizer').style.left = left + 'px';
 
 		var contextWidth = 240;
 		var width        = window.innerWidth - left - contextWidth - 81;
 
 		_SimplePages.components.tree.style.width = left - 14 + 'px';
 		_SimplePages.components.contents.style.left = left + 8 + 'px';
-		_SimplePages.components.contents.style.width = width + 'px';
+		_SimplePages.components.contents.style.width = width - 24 + 'px';
 		_SimplePages.components.context.style.left = left + width + 18 + 'px';
 		_SimplePages.components.context.style.width = contextWidth + 'px';
 	},

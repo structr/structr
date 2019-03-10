@@ -48,11 +48,6 @@
 	border: none;
 }
 
-#simple-pages-contents {
-	padding: 0;
-	overflow: hidden;
-}
-
 .dialogText .template-preview {
 	border: 1px solid transparent;
 	display: inline-block;

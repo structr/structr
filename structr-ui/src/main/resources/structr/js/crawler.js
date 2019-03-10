@@ -84,7 +84,7 @@ var _Crawler = {
 
 		Structr.updateMainHelpLink('https://support.structr.com/knowledge-graph');
 
-		main.append(`<div class="tree-main" id="crawler-main"><div class="column-resizer"></div><div class="fit-to-height tree-container" id="crawler-tree-container"><div class="tree" id="crawler-tree"></div></div><div class="fit-to-height tree-contents-container" id="crawler-list-container"><div class="tree-contents" id="crawler-list"></div></div>`);
+		main.append(`<div class="tree-main" id="crawler-main"><div class="column-resizer"></div><div class="fit-to-height tree-container" id="crawler-tree-container"><div class="tree" id="crawler-tree"></div></div><div class="fit-to-height tree-contents-container" id="crawler-list-container"><div class="tree-contents tree-contents-with-top-buttons" id="crawler-list"></div></div>`);
 		crawlerMain = $('#crawler-main');
 
 		crawlerTree = $('#crawler-tree');

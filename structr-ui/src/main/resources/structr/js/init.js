@@ -84,12 +84,12 @@ $(function() {
 		Structr.requestActivateModule(e, anchor);
 	});
 
-	$(document).on('mouseenter', '[data-toggle="popup"]', function () {
+	$(document).on('mouseenter', '[data-toggle="popup"]', function() {
 		var target = $(this).data("target");
 		$(target).addClass('visible');
 	});
 
-	$(document).on('mouseleave', '[data-toggle="popup"]', function () {
+	$(document).on('mouseleave', '[data-toggle="popup"]', function() {
 		var target = $(this).data("target");
 		$(target).removeClass('visible');
 	});
@@ -387,7 +387,7 @@ var Structr = {
 
 		//Structr.activateMenuEntry('logout');
 	},
-	clearLoginForm: function () {
+	clearLoginForm: function() {
 		loginBox.find('#usernameField').val('');
 		loginBox.find('#passwordField').val('');
 		loginBox.find('#errorText').empty();
@@ -400,7 +400,7 @@ var Structr = {
 		loginBox.find('#twoFactorTokenField').val('');
 		loginBox.find('#twoFactorCodeField').val('');
 	},
-	toggle2FALoginBox: function (data) {
+	toggle2FALoginBox: function(data) {
 
 		$('#errorText').html('');
 		$('#errorText-two-factor').html('');
@@ -417,7 +417,7 @@ var Structr = {
 		$('#twoFactorCodeField').val('').focus();
 	},
 	doLogin: function(username, password) {
-		Structr.renewSessionId(function () {
+		Structr.renewSessionId(function() {
 			Command.login({
 				username: username,
 				password: password
@@ -425,7 +425,7 @@ var Structr = {
 		});
 	},
 	doTFALogin: function(twoFactorCode, twoFacorToken) {
-		Structr.renewSessionId(function () {
+		Structr.renewSessionId(function() {
 			Command.login({
 				twoFactorCode: twoFactorCode,
 				twoFactorToken: twoFacorToken
@@ -449,7 +449,7 @@ var Structr = {
 		ws.close();
 		return false;
 	},
-	renewSessionId: function (callback) {
+	renewSessionId: function(callback) {
 		$.get('/').always(function() {
 			sessionId = Structr.getSessionId();
 			if (typeof callback === "function") {
@@ -611,7 +611,7 @@ var Structr = {
 
 		}
 	},
-	getDialogDimensions: function (marginLeft, marginTop) {
+	getDialogDimensions: function(marginLeft, marginTop) {
 
 		var winW = $(window).width();
 		var winH = $(window).height();
@@ -627,7 +627,7 @@ var Structr = {
 		};
 
 	},
-	blockUI: function (dimensions) {
+	blockUI: function(dimensions) {
 
 		$.blockUI({
 			fadeIn: 25,
@@ -823,7 +823,7 @@ var Structr = {
 
 		message.show();
 	},
-	getErrorTextForStatusCode: function (statusCode) {
+	getErrorTextForStatusCode: function(statusCode) {
 		switch (statusCode) {
 			case 400: return 'Bad request';
 			case 401: return 'Authentication required';
@@ -844,7 +844,7 @@ var Structr = {
 	updateButtonWithAjaxLoaderAndText: function(btn, html) {
 		btn.attr('disabled', 'disabled').addClass('disabled').html(html + ' <img src="' + _Icons.ajax_loader_2 + '">');
 	},
-	updateButtonWithSuccessIcon: function (btn, html) {
+	updateButtonWithSuccessIcon: function(btn, html) {
 		btn.attr('disabled', null).removeClass('disabled').html(html + ' <i class="tick ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />');
 		window.setTimeout(function() {
 			$('.tick', btn).fadeOut();
@@ -957,13 +957,13 @@ var Structr = {
 			new MessageBuilder().error("Cannot register module '" + name + "' a second time - ignoring attempt.").show();
 		}
 	},
-	getActiveModuleName: function () {
+	getActiveModuleName: function() {
 		return LSWrapper.getItem(lastMenuEntryKey);
 	},
 	getActiveModule: function() {
 		return Structr.modules[Structr.getActiveModuleName()];
 	},
-	isModuleActive: function (module) {
+	isModuleActive: function(module) {
 		return (module._moduleName === Structr.getActiveModuleName());
 	},
 	containsNodes: function(element) {
@@ -1132,7 +1132,7 @@ var Structr = {
 		var slideoutWidth = psw + 12;
 		LSWrapper.setItem(activeTabKey, t.prop('id'));
 		slideoutElement.width(psw);
-		slideoutElement.animate({left: 0 + 'px'}, 100, function () {
+		slideoutElement.animate({left: 0 + 'px'}, 100, function() {
 			if (typeof callback === 'function') {
 				callback({sw: slideoutWidth});
 			}
@@ -1179,7 +1179,7 @@ var Structr = {
 			if (Math.abs(l) <= 3) {
 				wasOpen = true;
 				osw = sw;
-				s.animate({left: - sw -1 + 'px'}, 100, function () {
+				s.animate({left: - sw -1 + 'px'}, 100, function() {
 					if (typeof callback === 'function') {
 						callback(wasOpen, -osw, 0);
 					}
@@ -1241,7 +1241,7 @@ var Structr = {
 
 				var hamburger = $('#menu li.submenu-trigger');
 				var subMenu = $('#submenu');
-				envInfo.mainMenu.forEach(function (entry) {
+				envInfo.mainMenu.forEach(function(entry) {
 					$('li[data-name="' + entry + '"]', subMenu).insertBefore(hamburger);
 				});
 
@@ -1266,10 +1266,10 @@ var Structr = {
 	getComponentId: function(element) {
 		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'componentId_') || undefined;
 	},
-	getUserId: function (element) {
+	getUserId: function(element) {
 		return element.data('userId');
 	},
-	getGroupId: function (element) {
+	getGroupId: function(element) {
 		return element.data('groupId');
 	},
 	getActiveElementId: function(element) {
@@ -1304,7 +1304,7 @@ var Structr = {
 			}
 		});
 	},
-	isAvailableInEdition: function (requiredEdition) {
+	isAvailableInEdition: function(requiredEdition) {
 		switch(Structr.edition) {
 			case 'Enterprise':
 				return true;
@@ -1316,19 +1316,19 @@ var Structr = {
 				return ['Community'].indexOf(requiredEdition) !== -1;
 		};
 	},
-	updateMainHelpLink: function (newUrl) {
+	updateMainHelpLink: function(newUrl) {
 		$('#main-help a').attr('href', newUrl);
 	},
-	isButtonDisabled: function (button) {
+	isButtonDisabled: function(button) {
 		return $(button).data('disabled');
 	},
-	disableButton: function (btn) {
+	disableButton: function(btn) {
 		$(btn).addClass('disabled').attr('disabled', 'disabled');
 	},
-	enableButton: function (btn) {
+	enableButton: function(btn) {
 		$(btn).removeClass('disabled').removeAttr('disabled');
 	},
-	addExpandedNode: function (id) {
+	addExpandedNode: function(id) {
 		_Logger.log(_LogType.INIT, 'addExpandedNode', id);
 
 		if (id) {
@@ -1341,7 +1341,7 @@ var Structr = {
 			}
 		}
 	},
-	removeExpandedNode: function (id) {
+	removeExpandedNode: function(id) {
 		_Logger.log(_LogType.INIT, 'removeExpandedNode', id);
 
 		if (id) {
@@ -1349,7 +1349,7 @@ var Structr = {
 			LSWrapper.setItem(expandedIdsKey, JSON.stringify(Structr.expanded));
 		}
 	},
-	isExpanded: function (id) {
+	isExpanded: function(id) {
 		_Logger.log(_LogType.INIT, 'id, Structr.getExpanded()[id]', id, Structr.getExpanded()[id]);
 
 		if (id) {
@@ -1362,7 +1362,7 @@ var Structr = {
 
 		return false;
 	},
-	getExpanded: function () {
+	getExpanded: function() {
 		if (!Structr.expanded) {
 			Structr.expanded = JSON.parse(LSWrapper.getItem(expandedIdsKey));
 		}
@@ -1372,13 +1372,13 @@ var Structr = {
 		}
 		return Structr.expanded;
 	},
-	showAndHideInfoBoxMessage: function (msg, msgClass, delayTime, fadeTime) {
+	showAndHideInfoBoxMessage: function(msg, msgClass, delayTime, fadeTime) {
 		var newDiv = $('<div class="infoBox ' + msgClass + '"></div>');
 		newDiv.text(msg);
 		dialogMsg.html(newDiv);
 		$('.infoBox', dialogMsg).delay(delayTime).fadeOut(fadeTime);
 	},
-	initVerticalSlider: function (sliderEl, localstorageKey, minWidth, dragCallback) {
+	initVerticalSlider: function(sliderEl, localstorageKey, minWidth, dragCallback) {
 
 		if (typeof dragCallback !== "function") {
 			console.error('dragCallback is not a function!');
@@ -1399,7 +1399,7 @@ var Structr = {
 		});
 
 	},
-	appendInfoTextToElement: function (config) {
+	appendInfoTextToElement: function(config) {
 
 		var element            = config.element;
 		var appendToElement    = config.appendToElement || element;
@@ -1453,18 +1453,18 @@ var Structr = {
 
 		helpElement.css(helpElementCss);
 	},
-	refreshPositionsForCurrentlyActiveSortable: function () {
+	refreshPositionsForCurrentlyActiveSortable: function() {
 
 		if (Structr.currentlyActiveSortable) {
 
 			Structr.currentlyActiveSortable.sortable({ refreshPositions: true });
 
-			window.setTimeout(function () {
+			window.setTimeout(function() {
 				Structr.currentlyActiveSortable.sortable({ refreshPositions: false });
 			}, 500);
 		}
 	},
-	handleGenericMessage: function (data) {
+	handleGenericMessage: function(data) {
 
 		switch (data.type) {
 
@@ -1629,7 +1629,7 @@ var Structr = {
 							+ "<br>Total duration: " + data.duration
 							+ "<br><br>Reload the page to see the new data.";
 
-					new MessageBuilder().title(type + " finished").uniqueClass(messageCssClass).info(text).specialInteractionButton('Reload Page', function () { location.reload(); }, 'Ignore').appendsText().updatesButtons().show();
+					new MessageBuilder().title(type + " finished").uniqueClass(messageCssClass).info(text).specialInteractionButton('Reload Page', function() { location.reload(); }, 'Ignore').appendsText().updatesButtons().show();
 
 				}
 				break;
@@ -1701,7 +1701,7 @@ var Structr = {
 			default: {
 
 					var text = "<p>No handler for generic message of type <b>" + data.type + "</b> defined - printing complete message data.</p>";
-					Object.keys(data).forEach(function (key) {
+					Object.keys(data).forEach(function(key) {
 						text += "<b>" + key + "</b>: " + data[key] + "<br>";
 					});
 
@@ -1713,7 +1713,7 @@ var Structr = {
 	fetchHtmlTemplate: function(templateName, templateConfig, callback) {
 
 		Structr.templateCache.registerCallback(templateName, templateName, function(templateHtml, cacheHit) {
-			var convertTemplateToLiteral = new Function("config", "return `" + templateHtml + "`;");
+			var convertTemplateToLiteral = new Function('config', 'return `' + templateHtml + '`;');
 			var parameterizedTemplate = convertTemplateToLiteral(templateConfig);
 			callback(parameterizedTemplate, cacheHit);
 		});
@@ -1778,7 +1778,7 @@ var Structr = {
 };
 
 var _TreeHelper = {
-	initTree: function (tree, initFunction, stateKey) {
+	initTree: function(tree, initFunction, stateKey) {
 		$(tree).jstree({
 			plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
 			core: {
@@ -1824,7 +1824,7 @@ var _TreeHelper = {
 			}, 500);
 		}
 	},
-	makeDroppable: function (tree, list) {
+	makeDroppable: function(tree, list) {
 		window.setTimeout(function() {
 			list.forEach(function(obj) {
 				StructrModel.create({id: obj.id}, null, false);
@@ -1832,7 +1832,7 @@ var _TreeHelper = {
 			});
 		}, 500);
 	},
-	makeTreeElementDroppable: function (tree, id) {
+	makeTreeElementDroppable: function(tree, id) {
 		var el = $('#' + id + ' > .jstree-wholerow', tree);
 		_Dragndrop.makeDroppable(el);
 	}
@@ -1858,7 +1858,7 @@ function MessageBuilder () {
 		incrementsUniqueCount: false
 	};
 
-	this.requiresConfirmation = function (confirmButtonText) {
+	this.requiresConfirmation = function(confirmButtonText) {
 		this.params.requiresConfirmation = true;
 
 		if (confirmButtonText) {
@@ -1868,7 +1868,7 @@ function MessageBuilder () {
 		return this;
 	};
 
-	this.allowConfirmAll = function (confirmAllButtonText) {
+	this.allowConfirmAll = function(confirmAllButtonText) {
 		this.params.allowConfirmAll = true;
 
 		if (confirmAllButtonText) {
@@ -1878,79 +1878,79 @@ function MessageBuilder () {
 		return this;
 	};
 
-	this.title = function (title) {
+	this.title = function(title) {
 		this.params.title = title;
 		return this;
 	};
 
-	this.text = function (text) {
+	this.text = function(text) {
 		this.params.text = text;
 		return this;
 	};
 
-	this.furtherText = function (furtherText) {
+	this.furtherText = function(furtherText) {
 		this.params.furtherText = furtherText;
 		return this;
 	};
 
-	this.error = function (text) {
+	this.error = function(text) {
 		this.params.text = text;
 		return this.className('error');
 	};
 
-	this.warning = function (text) {
+	this.warning = function(text) {
 		this.params.text = text;
 		return this.className('warning');
 	};
 
-	this.info = function (text) {
+	this.info = function(text) {
 		this.params.text = text;
 		return this.className('info');
 	};
 
-	this.success = function (text) {
+	this.success = function(text) {
 		this.params.text = text;
 		return this.className('success');
 	};
 
-	this.delayDuration = function (delayDuration) {
+	this.delayDuration = function(delayDuration) {
 		this.params.delayDuration = delayDuration;
 		return this;
 	};
 
-	this.fadeDuration = function (fadeDuration) {
+	this.fadeDuration = function(fadeDuration) {
 		this.params.fadeDuration = fadeDuration;
 		return this;
 	};
 
-	this.className = function (className) {
+	this.className = function(className) {
 		this.params.classNames.push(className);
 		return this;
 	};
 
-	this.delayDuration = function (delayDuration) {
+	this.delayDuration = function(delayDuration) {
 		this.params.delayDuration = delayDuration;
 		return this;
 	};
 
-	this.getButtonHtml = function () {
+	this.getButtonHtml = function() {
 		return (this.params.requiresConfirmation ? '<button class="confirm">' + this.params.confirmButtonText + '</button>' : '') +
 			   (this.params.requiresConfirmation && this.params.allowConfirmAll ? '<button class="confirmAll">' + this.params.confirmAllButtonText + '</button>' : '') +
 			   (this.params.specialInteractionButton ? '<button class="special">' + this.params.specialInteractionButton.text + '</button>' : '');
 	};
 
-	this.activateButtons = function (originalMsgBuilder, newMsgBuilder) {
+	this.activateButtons = function(originalMsgBuilder, newMsgBuilder) {
 
 		if (newMsgBuilder.params.requiresConfirmation === true) {
 
-			$('#' + originalMsgBuilder.params.msgId).find('button.confirm').click(function () {
+			$('#' + originalMsgBuilder.params.msgId).find('button.confirm').click(function() {
 				$(this).remove();
 				originalMsgBuilder.hide();
 			});
 
 			if (newMsgBuilder.params.allowConfirmAll === true) {
 
-				$('#info-area button.confirmAll').click(function () {
+				$('#info-area button.confirmAll').click(function() {
 					$('#info-area button.confirm').click();
 				});
 
@@ -1958,11 +1958,11 @@ function MessageBuilder () {
 
 		} else {
 
-			window.setTimeout(function () {
+			window.setTimeout(function() {
 				originalMsgBuilder.hide();
 			}, this.params.delayDuration);
 
-			$('#' + newMsgBuilder.params.msgId).click(function () {
+			$('#' + newMsgBuilder.params.msgId).click(function() {
 				originalMsgBuilder.hide();
 			});
 
@@ -1970,7 +1970,7 @@ function MessageBuilder () {
 
 		if (newMsgBuilder.params.specialInteractionButton) {
 
-			$('#' + originalMsgBuilder.params.msgId).find('button.special').click(function () {
+			$('#' + originalMsgBuilder.params.msgId).find('button.special').click(function() {
 				if (newMsgBuilder.params.specialInteractionButton) {
 					newMsgBuilder.params.specialInteractionButton.action();
 
@@ -1981,7 +1981,7 @@ function MessageBuilder () {
 		}
 	};
 
-	this.show = function () {
+	this.show = function() {
 
 		var uniqueMessageAlreadyPresented = false;
 
@@ -2037,19 +2037,19 @@ function MessageBuilder () {
 		}
 	};
 
-	this.hide = function () {
+	this.hide = function() {
 		$('#' + this.params.msgId).animate({
 			opacity: 0,
 			height: 0
 		}, {
 			duration: this.params.fadeDuration,
-			complete: function () {
+			complete: function() {
 				$(this).remove();
 			}
 		});
 	};
 
-	this.specialInteractionButton = function (buttonText, callback, confirmButtonText) {
+	this.specialInteractionButton = function(buttonText, callback, confirmButtonText) {
 
 		this.params.specialInteractionButton = {
 			text: buttonText,
@@ -2064,7 +2064,7 @@ function MessageBuilder () {
 		}
 	};
 
-	this.uniqueClass = function (className) {
+	this.uniqueClass = function(className) {
 		if (className) {
 			className = className.replace(/[\/\. ]/g, "_");
 			this.params.uniqueClass = className;
@@ -2073,32 +2073,32 @@ function MessageBuilder () {
 		return this;
 	};
 
-	this.incrementsUniqueCount = function () {
+	this.incrementsUniqueCount = function() {
 		this.params.incrementsUniqueCount = true;
 		return this;
 	};
 
-	this.updatesText = function () {
+	this.updatesText = function() {
 		this.params.updatesText = true;
 		return this;
 	};
 
-	this.updatesButtons = function () {
+	this.updatesButtons = function() {
 		this.params.updatesButtons = true;
 		return this;
 	};
 
-	this.appendsText = function (selector) {
+	this.appendsText = function(selector) {
 		this.params.appendsText    = true;
 		this.params.appendSelector = selector || '';
 		return this;
 	};
 
-	this.getUniqueCountElement = function () {
+	this.getUniqueCountElement = function() {
 		return ' <b class="uniqueCount">' + ((this.params.uniqueCount > 1) ? '(' + this.params.uniqueCount + ') ' : '') + '</b> ';
 	};
 
-	this.incrementUniqueCount = function () {
+	this.incrementUniqueCount = function() {
 		this.params.uniqueCount++;
 		$('#' + this.params.msgId).find('b.uniqueCount').replaceWith(this.getUniqueCountElement());
 	};
