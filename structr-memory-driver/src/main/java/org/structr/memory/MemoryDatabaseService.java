@@ -458,8 +458,6 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 
 		if (storageDirectory.exists()) {
 
-			final File dbFile = getStorageFile(storageDirectory);
-
 			nodes.loadFromStorage(this, storageDirectory);
 			relationships.loadFromStorage(this, storageDirectory);
 		}
