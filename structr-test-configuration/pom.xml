@@ -35,7 +35,7 @@
 							</includes>
 							<argLine>-Xms1g -Xmx1g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
 							<reuseForks>false</reuseForks>
-							<forkCount>4</forkCount>
+							<forkCount>${test.forkCount}</forkCount>
 							<skipTests>${skipTests}</skipTests>
 							<systemPropertyVariables>
 								<testDatabaseDriver>org.structr.memory.MemoryDatabaseService</testDatabaseDriver>

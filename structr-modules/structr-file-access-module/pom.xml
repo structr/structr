@@ -13,6 +13,7 @@
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
+		<test.forkCount>1</test.forkCount>
 	</properties>
 
 	<dependencies>
