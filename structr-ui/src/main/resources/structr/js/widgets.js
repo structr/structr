@@ -17,7 +17,9 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var _Widgets = {
+	widgetServerKey: 'structrWidgetServerKey_' + port,
 	url: 'https://widgets.structr.org/structr/rest/widgets',
+	defaultWidgetServerUrl: 'https://widgets.structr.org/structr/rest/widgets',
 	remoteWidgetData: [],
 	remoteWidgetFilterEl: undefined,
 	remoteWidgetFilter: undefined,
@@ -27,11 +29,19 @@ var _Widgets = {
 	remoteWidgetsCollapsed: false,
 
 	reloadWidgets: function() {
+
 		widgetsSlideout.find(':not(.compTab)').remove();
+
+		var widgetUrl = LSWrapper.getItem(_Widgets.widgetServerKey);
+
+		if (widgetUrl === null) {
+			widgetUrl = _Widgets.defaultWidgetServerUrl;
+		}
 
 		let templateConfig = {
 			localCollapsed: _Widgets.localWidgetsCollapsed === true,
-			remoteCollapsed: _Widgets.remoteWidgetsCollapsed === true
+			remoteCollapsed: _Widgets.remoteWidgetsCollapsed === true,
+			remoteWidgetsUrl: widgetUrl
 		};
 
 		Structr.fetchHtmlTemplate('widgets/slideout', templateConfig, function(html) {
@@ -109,25 +119,42 @@ var _Widgets = {
 				_Widgets.repaintRemoteWidgets($(this).val());
 			});
 
+			document.querySelector('button#applyRemoteWidgetsUrl').addEventListener('click', _Widgets.refreshRemoteWidgets);
+			document.querySelector('button#resetRemoteWidgetsUrl').addEventListener('click', _Widgets.resetWidgetServerUrl);
+
 			_Widgets.refreshRemoteWidgets();
 		});
 	},
-	toggleTabGroup: function() {
-
-
-
+	getWidgetServerUrl: function() {
+		return document.querySelector('#remoteWidgetsUrl').value;
+	},
+	resetWidgetServerUrl: function() {
+		LSWrapper.setItem(_Widgets.widgetServerKey, _Widgets.defaultWidgetServerUrl);
+		document.querySelector('#remoteWidgetsUrl').value = _Widgets.defaultWidgetServerUrl;
+		_Widgets.refreshRemoteWidgets();
 	},
 	refreshRemoteWidgets: function() {
 
-		if (!_Widgets.url.startsWith(document.location.origin)) {
+		let url = _Widgets.getWidgetServerUrl();
 
-			_Widgets.getRemoteWidgets(_Widgets.url, function(entity) {
+		LSWrapper.setItem(_Widgets.widgetServerKey, url);
+
+		if (url === _Widgets.defaultWidgetServerUrl) {
+			document.querySelector('button#resetRemoteWidgetsUrl').classList.add('hidden');
+		} else {
+			document.querySelector('button#resetRemoteWidgetsUrl').classList.remove('hidden');
+		}
+
+		if (!url.startsWith(document.location.origin)) {
+			_Widgets.getRemoteWidgets(url, function(entity) {
 				var obj = StructrModel.create(entity, null, false);
-				obj.srcUrl = _Widgets.url + '/' + entity.id;
+				obj.srcUrl = url + '/' + entity.id;
 				_Widgets.remoteWidgetData.push(obj);
 			}, function () {
 				_Widgets.repaintRemoteWidgets(_Widgets.remoteWidgetFilter);
 			});
+		} else {
+			new MessageBuilder().warning().text('Can not display local widgets as remote widgets. Please select another widget server!').show();
 		}
 	},
 	repaintRemoteWidgets: function (search) {
@@ -187,6 +214,11 @@ var _Widgets = {
 				500: function(data, status, xhr) {
 					console.log(data, status, xhr);
 				}
+			}
+		}).fail(function(data, status, xhr) {
+			console.log(data, status, xhr);
+			if (data.status === 0) {
+				new MessageBuilder().error().text('Could not fetch data from server. Make sure that the resource loads correctly and check CORS settings.').requiresConfirmation().show();
 			}
 		});
 	},
@@ -479,6 +511,7 @@ var _Widgets = {
 	},
 	insertWidgetIntoPage: function(widget, target, pageId) {
 
+		let url = _Widgets.getWidgetServerUrl();
 		var widgetSource = widget.source;
 		var widgetDescription = widget.description;
 		var widgetConfig = widget.configuration;
@@ -603,14 +636,14 @@ var _Widgets = {
 					});
 
 					e.stopPropagation();
-					Command.appendWidget(widgetSource, target.id, pageId, _Widgets.url, attrs, widgetConfig.processDeploymentInfo);
+					Command.appendWidget(widgetSource, target.id, pageId, url, attrs, widgetConfig.processDeploymentInfo);
 
 					dialogCancelButton.click();
 					return false;
 				});
 
 			} else {
-				Command.appendWidget(widgetSource, target.id, pageId, _Widgets.url, {}, (widgetConfig ? widgetConfig.processDeploymentInfo : false));
+				Command.appendWidget(widgetSource, target.id, pageId, url, {}, (widgetConfig ? widgetConfig.processDeploymentInfo : false));
 			}
 		} else {
 			new MessageBuilder().warning("Ignoring empty Widget").show();

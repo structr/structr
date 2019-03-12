@@ -323,8 +323,12 @@ img.disabled {
 	width: 385px;
 }
 
-#remoteWidgetsFilter  {
-	margin: -6px 0 6px 0;
+#remoteWidgets input:first-of-type  {
+	margin-top: -6px;
+}
+
+#widgetsSlideout input#remoteWidgetsUrl {
+	width: calc(100% - 100px);
 }
 
 #widgetsSlideout button.add_widgets_icon {
