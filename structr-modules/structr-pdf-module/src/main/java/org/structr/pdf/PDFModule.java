@@ -18,14 +18,13 @@
  */
 package org.structr.pdf;
 
+import java.util.Set;
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.module.StructrModule;
 import org.structr.pdf.function.PDFFunction;
 import org.structr.schema.action.Actions;
-
-import java.util.Set;
 
 public class PDFModule implements StructrModule {
 	@Override
@@ -35,7 +34,7 @@ public class PDFModule implements StructrModule {
 		// final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
 		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
 
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "pdf", new PDFFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new PDFFunction());
 
 	}
 

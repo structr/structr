@@ -43,6 +43,11 @@ public class UTMToLatLonFunction extends Function<Object, Object> {
 	public static final DoubleProperty longitudeProperty = new DoubleProperty("longitude");
 
 	@Override
+	public String getName() {
+		return "utm_to_lat_lon";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -110,11 +115,6 @@ public class UTMToLatLonFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Converts the given UTM string to latitude/longitude coordinates.";
-	}
-
-	@Override
-	public String getName() {
-		return "utm_to_lat_lon";
 	}
 
 	// ----- private methods -----

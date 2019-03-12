@@ -37,7 +37,7 @@ public class ExcelModule implements StructrModule {
 //		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
 		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
 
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "to_excel",        new ToExcelFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new ToExcelFunction());
 	}
 
 	@Override

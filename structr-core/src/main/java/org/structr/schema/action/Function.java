@@ -26,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -59,6 +60,10 @@ public abstract class Function<S, T> extends Hint {
 
 	public abstract T apply(ActionContext ctx, Object caller, S[] sources) throws FrameworkException;
 	public abstract String usage(boolean inJavaScriptContext);
+
+	public List<String> aliases() {
+		return Collections.EMPTY_LIST;
+	}
 
 	/**
 	 * Basic logging for functions called with wrong parameter count

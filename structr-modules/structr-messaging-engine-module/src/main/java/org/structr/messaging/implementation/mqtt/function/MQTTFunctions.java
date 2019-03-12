@@ -24,9 +24,8 @@ public abstract class MQTTFunctions {
 
 	static {
 		//Licensed for Enterprise
-		Functions.put(true, 0x08, "mqtt_publish", new MQTTPublishFunction());
-		Functions.put(true, 0x08, "mqtt_subscribe", new MQTTSubscribeTopicFunction());
-		Functions.put(true, 0x08, "mqtt_unsubscribe", new MQTTUnsubscribeTopicFunction());
+		Functions.put(true, 0x08, new MQTTPublishFunction());
+		Functions.put(true, 0x08, new MQTTSubscribeTopicFunction());
+		Functions.put(true, 0x08, new MQTTUnsubscribeTopicFunction());
 	}
-
 }

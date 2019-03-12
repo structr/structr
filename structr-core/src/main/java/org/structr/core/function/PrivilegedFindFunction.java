@@ -37,6 +37,11 @@ public class PrivilegedFindFunction extends Function<Object, Object> {
     public static final String ERROR_MESSAGE_PRIVILEGEDFIND = "Usage: ${find_privileged(type, key, value)}. Example: ${find_privileged(\"User\", \"email\", \"tester@test.com\"}";
 
     @Override
+    public String getName() {
+        return("find_privileged()");
+    }
+
+    @Override
     public Object apply(final ActionContext ctx, final Object caller, Object[] sources) throws FrameworkException {
 
 		if (sources != null) {
@@ -147,10 +152,4 @@ public class PrivilegedFindFunction extends Function<Object, Object> {
     public String shortDescription() {
         return "Returns a collection of entities of the given type from the database, takes optional key/value pairs. Executed in a super user context.";
     }
-
-    @Override
-    public String getName() {
-        return("find_privileged()");
-    }
-
 }

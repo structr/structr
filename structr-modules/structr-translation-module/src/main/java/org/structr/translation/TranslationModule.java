@@ -42,7 +42,7 @@ public class TranslationModule implements StructrModule {
 		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
 //		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
 
-		Functions.put(smallBusinessEdition, LicenseManager.Basic, "translate",        new TranslateFunction());
+		Functions.put(smallBusinessEdition, LicenseManager.Basic, new TranslateFunction());
 
 	}
 
