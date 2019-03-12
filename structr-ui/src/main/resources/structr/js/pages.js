@@ -788,102 +788,99 @@ var _Pages = {
 							+ '.navbar-fixed-top { -webkit-transform: none ! important; }'
 							+ '</style>');
 				}
-				_Pages.findDroppablesInIframe(doc, entity.id).each(function(i, element) {
-					var el = $(element);
-
-					_Dragndrop.makeDroppable(el, entity.id);
-
-					var structrId = el.attr('data-structr-id');
-					if (structrId) {
-
-						$('.move_icon', el).on('mousedown', function(e) {
-							e.stopPropagation();
-							var self = $(this);
-							var element = self.closest('[data-structr-id]');
-							_Logger.log(_LogType.PAGES, element);
-							var entity = Structr.entity(structrId, element.prop('data-structr-id'));
-							entity.type = element.prop('data-structr_type');
-							entity.name = element.prop('data-structr_name');
-							_Logger.log(_LogType.PAGES, 'move', entity);
-							self.parent().children('.structr-node').show();
-						});
-
-						$('.delete_icon', el).on('click', function(e) {
-							e.stopPropagation();
-							var self = $(this);
-							var element = self.closest('[data-structr-id]');
-							var entity = Structr.entity(structrId, element.prop('data-structr-id'));
-							entity.type = element.prop('data-structr_type');
-							entity.name = element.prop('data-structr_name');
-							_Logger.log(_LogType.PAGES, 'delete', entity);
-							var parentId = element.prop('data-structr-id');
-
-							Command.removeSourceFromTarget(entity.id, parentId);
-							_Entities.deleteNode(this, entity);
-						});
-						var offsetTop = -30;
-						var offsetLeft = 0;
-						el.on({
-							click: function(e) {
-								e.stopPropagation();
-								var self = $(this);
-								var selected = self.hasClass('structr-element-container-selected');
-								self.closest('body').find('.structr-element-container-selected').removeClass('structr-element-container-selected');
-								if (!selected) {
-									self.toggleClass('structr-element-container-selected');
-								}
-								_Entities.deselectAllElements();
-								_Pages.displayDataBinding(structrId);
-								if (!Structr.node(structrId)) {
-									_Pages.expandTreeNode(structrId);
-								} else {
-									var treeEl = Structr.node(structrId);
-									if (treeEl && !selected) {
-										_Entities.highlightElement(treeEl);
-									}
-								}
-								return false;
-							},
-							mouseover: function(e) {
-								e.stopPropagation();
-								var self = $(this);
-								self.addClass('structr-element-container-active');
-								_Pages.highlight(structrId);
-								var pos = self.position();
-								var header = self.children('.structr-element-container-header');
-								header.css({
-									position: "absolute",
-									top: pos.top + offsetTop + 'px',
-									left: pos.left + offsetLeft + 'px',
-									cursor: 'pointer'
-								}).show();
-								_Logger.log(_LogType.PAGES, header);
-							},
-							mouseout: function(e) {
-								e.stopPropagation();
-								var self = $(this);
-								self.removeClass('.structr-element-container');
-								var header = self.children('.structr-element-container-header');
-								header.remove();
-								_Pages.unhighlight(structrId);
-							}
-						});
-
-					}
-				});
+//				_Pages.findDroppablesInIframe(doc, entity.id).each(function(i, element) {
+//					var el = $(element);
+//
+//					_Dragndrop.makeDroppable(el, entity.id);
+//
+//					var structrId = el.attr('data-structr-id');
+//					if (structrId) {
+//
+//						$('.move_icon', el).on('mousedown', function(e) {
+//							e.stopPropagation();
+//							var self = $(this);
+//							var element = self.closest('[data-structr-id]');
+//							_Logger.log(_LogType.PAGES, element);
+//							var entity = Structr.entity(structrId, element.prop('data-structr-id'));
+//							entity.type = element.prop('data-structr_type');
+//							entity.name = element.prop('data-structr_name');
+//							_Logger.log(_LogType.PAGES, 'move', entity);
+//							self.parent().children('.structr-node').show();
+//						});
+//
+//						$('.delete_icon', el).on('click', function(e) {
+//							e.stopPropagation();
+//							var self = $(this);
+//							var element = self.closest('[data-structr-id]');
+//							var entity = Structr.entity(structrId, element.prop('data-structr-id'));
+//							entity.type = element.prop('data-structr_type');
+//							entity.name = element.prop('data-structr_name');
+//							_Logger.log(_LogType.PAGES, 'delete', entity);
+//							var parentId = element.prop('data-structr-id');
+//
+//							Command.removeSourceFromTarget(entity.id, parentId);
+//							_Entities.deleteNode(this, entity);
+//						});
+//						var offsetTop = -30;
+//						var offsetLeft = 0;
+//						el.on({
+//							click: function(e) {
+//								e.stopPropagation();
+//								var self = $(this);
+//								var selected = self.hasClass('structr-element-container-selected');
+//								self.closest('body').find('.structr-element-container-selected').removeClass('structr-element-container-selected');
+//								if (!selected) {
+//									self.toggleClass('structr-element-container-selected');
+//								}
+//								_Entities.deselectAllElements();
+//								_Pages.displayDataBinding(structrId);
+//								if (!Structr.node(structrId)) {
+//									_Pages.expandTreeNode(structrId);
+//								} else {
+//									var treeEl = Structr.node(structrId);
+//									if (treeEl && !selected) {
+//										_Entities.highlightElement(treeEl);
+//									}
+//								}
+//								return false;
+//							},
+//							mouseover: function(e) {
+//								e.stopPropagation();
+//								var self = $(this);
+//								self.addClass('structr-element-container-active');
+//								_Pages.highlight(structrId);
+//								var pos = self.position();
+//								var header = self.children('.structr-element-container-header');
+//								header.css({
+//									position: "absolute",
+//									top: pos.top + offsetTop + 'px',
+//									left: pos.left + offsetLeft + 'px',
+//									cursor: 'pointer'
+//								}).show();
+//								_Logger.log(_LogType.PAGES, header);
+//							},
+//							mouseout: function(e) {
+//								e.stopPropagation();
+//								var self = $(this);
+//								self.removeClass('.structr-element-container');
+//								var header = self.children('.structr-element-container-header');
+//								header.remove();
+//								_Pages.unhighlight(structrId);
+//							}
+//						});
+//
+//					}
+//				});
 
 			} catch (e) {}
 
 			_Pages.activateComments(doc);
-
 		});
 
 		_Dragndrop.makeDroppable(div);
-
 		_Pages.pagesTabResizeContent();
 
 		return div;
-
 	},
 	activateComments: function(doc, callback) {
 
@@ -945,11 +942,8 @@ var _Pages = {
 						_Pages.saveInlineElement(this, callback);
 					}
 				});
-
 			});
-
 		});
-
 	},
 	saveInlineElement: function(el, callback) {
 		var self = $(el);
@@ -1003,41 +997,41 @@ var _Pages = {
 
 		return div;
 	},
-	zoomPreviews: function(value) {
-		$('.previewBox', previews).each(function() {
-			var val = value / 100;
-			var box = $(this);
-
-			box.css('-moz-transform', 'scale(' + val + ')');
-			box.css('-o-transform', 'scale(' + val + ')');
-			box.css('-webkit-transform', 'scale(' + val + ')');
-
-			var w = origWidth * val;
-			var h = origHeight * val;
-
-			box.width(w);
-			box.height(h);
-
-			$('iframe', box).width(w);
-			$('iframe', box).height(h);
-
-			_Logger.log(_LogType.PAGES, "box,w,h", box, w, h);
-
-		});
-
-	},
-	displayDataBinding: function(id) {
-		dataBindingSlideout.children('#data-binding-inputs').remove();
-		dataBindingSlideout.append('<div class="inner" id="data-binding-inputs"></div>');
-
-		var el = $('#data-binding-inputs');
-		var entity = StructrModel.obj(id);
-
-		if (entity) {
-			_Entities.repeaterConfig(entity, el);
-		}
-
-	},
+//	zoomPreviews: function(value) {
+//		$('.previewBox', previews).each(function() {
+//			var val = value / 100;
+//			var box = $(this);
+//
+//			box.css('-moz-transform', 'scale(' + val + ')');
+//			box.css('-o-transform', 'scale(' + val + ')');
+//			box.css('-webkit-transform', 'scale(' + val + ')');
+//
+//			var w = origWidth * val;
+//			var h = origHeight * val;
+//
+//			box.width(w);
+//			box.height(h);
+//
+//			$('iframe', box).width(w);
+//			$('iframe', box).height(h);
+//
+//			_Logger.log(_LogType.PAGES, "box,w,h", box, w, h);
+//
+//		});
+//
+//	},
+//	displayDataBinding: function(id) {
+//		dataBindingSlideout.children('#data-binding-inputs').remove();
+//		dataBindingSlideout.append('<div class="inner" id="data-binding-inputs"></div>');
+//
+//		var el = $('#data-binding-inputs');
+//		var entity = StructrModel.obj(id);
+//
+//		if (entity) {
+//			_Entities.repeaterConfig(entity, el);
+//		}
+//
+//	},
 	reloadDataBindingWizard: function() {
 		dataBindingSlideout.children('#wizard').remove();
 		dataBindingSlideout.prepend('<div class="inner" id="wizard"><select id="type-selector"><option>--- Select type ---</option></select><div id="data-wizard-attributes"></div></div>');
@@ -1060,135 +1054,6 @@ var _Pages = {
 			_Pages.showTypeData(id);
 		});
 
-	},
-	refreshLocalizations: function() {
-		var id = activeTab;
-
-		if (_Pages.isPageTabPresent(id)) {
-
-			var localeInput = $('#localizations input.locale');
-			var locale = localeInput.val();
-
-			if (!locale) {
-				blinkRed(localeInput);
-				return;
-			}
-
-			var detailObjectId = LSWrapper.getItem(detailsObjectIdKey + id);
-
-			Command.listLocalizations(id, locale, detailObjectId, function(result) {
-
-				$('#localizations .page').prop('id', 'id_' + id);
-
-				var localizationsContainer = $('#localizations div.inner div.results');
-				localizationsContainer.empty().attr('id', 'id_' + id);
-
-				if (result.length > 0) {
-
-					result.forEach(function(res) {
-
-						var div = _Pages.getNodeForLocalization(localizationsContainer, res.node);
-
-						var tbody = $('tbody', div);
-
-						var row = $('<tr><td>' + res.key + '</td><td>' + res.domain + '</td><td>' + ((res.localization !== null) ? res.localization.locale : res.locale) + '</td><td class="input"><input class="localized-value" placeholder="..."></td></tr>');
-
-						var input = $('input.localized-value', row);
-
-						if (res.localization !== null) {
-							input.val(res.localization.localizedName).data('localizationId', res.localization.id);
-						}
-
-						input.on('blur', function() {
-							var el = $(this);
-
-							var value = el.val();
-							var localizationId = el.data('localizationId');
-							if (localizationId) {
-								Command.setProperties(localizationId, {
-									localizedName: value
-								}, function() {
-									blinkGreen(el);
-								});
-
-							} else {
-								Command.create({
-									type: 'Localization',
-									name: res.key,
-									domain: res.domain || null,
-									locale: res.locale,
-									localizedName: value
-								},
-								function(createdLocalization) {
-									el.data('localizationId', createdLocalization.id);
-									blinkGreen(el);
-								});
-							}
-						});
-
-						tbody.append(row);
-					});
-
-				} else {
-
-					localizationsContainer.append("<br><center>No localizations found in page</center>");
-
-				}
-			});
-
-		} else {
-			localizationsContainer.append('<br><center>Cannot show localizations - no preview loaded<br><br></center>');
-		}
-	},
-	getNodeForLocalization: function (container, entity) {
-
-		var idString = 'locNode_' + entity.id;
-
-		var existing = $('#' + idString, container);
-
-		if (existing.length) {
-			return existing;
-		}
-
-		var div = $('<div id="' + idString + '" class="node localization-element ' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
-
-		// add node id to enable hover effect
-		div.data('nodeId', (_Entities.isContentElement(entity) ? entity.parent.id : entity.id ));
-
-		var displayName = getElementDisplayName(entity);
-		var iconClass = _Icons.getFullSpriteClass(_Elements.getElementIcon(entity));
-
-		var detailHtml = '';
-
-		if (entity.type === 'Content') {
-			detailHtml = '<div class="content_">' + fitStringToWidth(escapeTags(entity.content), 200) + '</div>';
-		} else if (entity.type === 'Template') {
-			if (entity.name) {
-				detailHtml = '<div class="content_">' + displayName + '</div>';
-			} else {
-				detailHtml = '<div class="content_">' + escapeTags(entity.content) + '</div>';
-			}
-		} else {
-			detailHtml = '<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b>';
-		}
-
-		div.append('<i class="typeIcon ' + iconClass + '" />' + detailHtml + _Elements.classIdString(entity._html_id, entity._html_class));
-
-		if (_Entities.isContentElement(entity)) {
-
-			_Elements.appendEditContentIcon(div, entity);
-
-		}
-
-		_Entities.appendEditPropertiesIcon(div, entity, false);
-
-		div.append('<table><thead><tr><th>Key</th><th>Domain</th><th>Locale</th><th>Localization</th></tr></thead><tbody></tbody></table>');
-
-		container.append(div);
-
-		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds&&entity.syncedNodesIds.length)?entity.syncedNodesIds:[entity.sharedComponentId]));
-
-		return div;
 	},
 	showTypeData: function(id) {
 		if (!id) {
@@ -1297,5 +1162,133 @@ var _Pages = {
 		if (wasOpen) {
 			_Pages.resize(offsetLeft, offsetRight);
 		}
+	},
+	refreshLocalizations: function() {
+		var id = activeTab;
+
+		if (_Pages.isPageTabPresent(id)) {
+
+			var localeInput = $('#localizations input.locale');
+			var locale = localeInput.val();
+
+			if (!locale) {
+				blinkRed(localeInput);
+				return;
+			}
+
+			var detailObjectId = LSWrapper.getItem(detailsObjectIdKey + id);
+
+			Command.listLocalizations(id, locale, detailObjectId, function(result) {
+
+				$('#localizations .page').prop('id', 'id_' + id);
+
+				var localizationsContainer = $('#localizations div.inner div.results');
+				localizationsContainer.empty().attr('id', 'id_' + id);
+
+				if (result.length > 0) {
+
+					result.forEach(function(res) {
+
+						var div = _Pages.getNodeForLocalization(localizationsContainer, res.node);
+
+						var tbody = $('tbody', div);
+
+						var row = $('<tr><td>' + res.key + '</td><td>' + res.domain + '</td><td>' + ((res.localization !== null) ? res.localization.locale : res.locale) + '</td><td class="input"><input class="localized-value" placeholder="..."></td></tr>');
+
+						var input = $('input.localized-value', row);
+
+						if (res.localization !== null) {
+							input.val(res.localization.localizedName).data('localizationId', res.localization.id);
+						}
+
+						input.on('blur', function() {
+							var el = $(this);
+
+							var value = el.val();
+							var localizationId = el.data('localizationId');
+							if (localizationId) {
+								Command.setProperties(localizationId, {
+									localizedName: value
+								}, function() {
+									blinkGreen(el);
+								});
+
+							} else {
+								Command.create({
+									type: 'Localization',
+									name: res.key,
+									domain: res.domain || null,
+									locale: res.locale,
+									localizedName: value
+								},
+								function(createdLocalization) {
+									el.data('localizationId', createdLocalization.id);
+									blinkGreen(el);
+								});
+							}
+						});
+
+						tbody.append(row);
+					});
+
+				} else {
+
+					localizationsContainer.append("<br><center>No localizations found in page</center>");
+				}
+			});
+
+		} else {
+			localizationsContainer.append('<br><center>Cannot show localizations - no preview loaded<br><br></center>');
+		}
+	},
+	getNodeForLocalization: function (container, entity) {
+
+		var idString = 'locNode_' + entity.id;
+
+		var existing = $('#' + idString, container);
+
+		if (existing.length) {
+			return existing;
+		}
+
+		var div = $('<div id="' + idString + '" class="node localization-element ' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
+
+		// add node id to enable hover effect
+		div.data('nodeId', (_Entities.isContentElement(entity) ? entity.parent.id : entity.id ));
+
+		var displayName = getElementDisplayName(entity);
+		var iconClass = _Icons.getFullSpriteClass(_Elements.getElementIcon(entity));
+
+		var detailHtml = '';
+
+		if (entity.type === 'Content') {
+			detailHtml = '<div class="content_">' + fitStringToWidth(escapeTags(entity.content), 200) + '</div>';
+		} else if (entity.type === 'Template') {
+			if (entity.name) {
+				detailHtml = '<div class="content_">' + displayName + '</div>';
+			} else {
+				detailHtml = '<div class="content_">' + escapeTags(entity.content) + '</div>';
+			}
+		} else {
+			detailHtml = '<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b>';
+		}
+
+		div.append('<i class="typeIcon ' + iconClass + '" />' + detailHtml + _Elements.classIdString(entity._html_id, entity._html_class));
+
+		if (_Entities.isContentElement(entity)) {
+
+			_Elements.appendEditContentIcon(div, entity);
+
+		}
+
+		_Entities.appendEditPropertiesIcon(div, entity, false);
+
+		div.append('<table><thead><tr><th>Key</th><th>Domain</th><th>Locale</th><th>Localization</th></tr></thead><tbody></tbody></table>');
+
+		container.append(div);
+
+		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds&&entity.syncedNodesIds.length)?entity.syncedNodesIds:[entity.sharedComponentId]));
+
+		return div;
 	}
 };
