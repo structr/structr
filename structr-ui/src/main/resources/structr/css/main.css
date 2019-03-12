@@ -5038,3 +5038,28 @@ dl.help-definitions dd {
 #structr-console .terminal h6 {
 	user-select: text;
 }
+
+.tab-group a.tab-group-toggle {
+	text-decoration: none;
+}
+
+.tab-group .tab-group-content {
+	display: intial;
+}
+.tab-group.collapsed .tab-group-content {
+	display: none;
+}
+
+.tab-group i.collapsed {
+	display: none;
+}
+.tab-group i.expanded {
+	display: inline-block;
+}
+
+.tab-group.collapsed i.collapsed {
+	display: inline-block;
+}
+.tab-group.collapsed i.expanded {
+	display: none;
+}

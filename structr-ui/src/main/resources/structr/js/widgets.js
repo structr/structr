@@ -19,82 +19,105 @@
 var _Widgets = {
 	url: 'https://widgets.structr.org/structr/rest/widgets',
 	remoteWidgetData: [],
+	remoteWidgetFilterEl: undefined,
 	remoteWidgetFilter: undefined,
 	remoteWidgetsEl: undefined,
 	localWidgetsEl: undefined,
+	localWidgetsCollapsed: false,
+	remoteWidgetsCollapsed: false,
 
 	reloadWidgets: function() {
 		widgetsSlideout.find(':not(.compTab)').remove();
-		widgetsSlideout.append(
-			'<div class="ver-scrollable"><h2>Local Widgets</h2><button class="action add_widgets_icon button"><i title="Add Widget" class="' + _Icons.getFullSpriteClass(_Icons.add_widget_icon) + '" /> Add Widget</button>' +
-			'<div id="widgets"></div><h2>Remote Widgets</h2><input placeholder="Filter..." id="remoteWidgetsFilter"><div id="remoteWidgets"></div></div>');
-		_Widgets.localWidgetsEl = $('#widgets', widgetsSlideout);
 
-		$('.add_widgets_icon', widgetsSlideout).on('click', function(e) {
-			e.stopPropagation();
-			Command.create({type: 'Widget'});
-		});
+		let templateConfig = {
+			localCollapsed: _Widgets.localWidgetsCollapsed === true,
+			remoteCollapsed: _Widgets.remoteWidgetsCollapsed === true
+		};
 
-		_Widgets.localWidgetsEl.droppable({
-			drop: function(e, ui) {
-				e.preventDefault();
+		Structr.fetchHtmlTemplate('widgets/slideout', templateConfig, function(html) {
+
+			widgetsSlideout.append(html);
+
+			widgetsSlideout[0].querySelectorAll('a.tab-group-toggle').forEach(function(toggleLink) {
+
+				toggleLink.addEventListener('click', function(event) {
+					event.target.closest('.tab-group').classList.toggle('collapsed');
+				});
+			});
+
+			_Widgets.localWidgetsEl = $('#widgets', widgetsSlideout);
+
+			$('.add_widgets_icon', widgetsSlideout).on('click', function(e) {
 				e.stopPropagation();
-				dropBlocked = true;
-				var sourceId = Structr.getId($(ui.draggable));
-				var sourceWidget = StructrModel.obj(sourceId);
+				Command.create({type: 'Widget'});
+			});
 
-				if (sourceWidget && sourceWidget.isWidget) {
-					if (sourceWidget.treePath) {
-						_Logger.log(_LogType.WIDGETS, 'Copying remote widget', sourceWidget);
+			_Widgets.localWidgetsEl.droppable({
+				drop: function(e, ui) {
+					e.preventDefault();
+					e.stopPropagation();
+					dropBlocked = true;
+					var sourceId = Structr.getId($(ui.draggable));
+					var sourceWidget = StructrModel.obj(sourceId);
 
-						Command.create({ type: 'Widget', name: sourceWidget.name + ' (copied)', source: sourceWidget.source, description: sourceWidget.description, configuration: sourceWidget.configuration }, function(entity) {
-							_Logger.log(_LogType.WIDGETS, 'Copied remote widget successfully', entity);
-							dropBlocked = false;
+					if (sourceWidget && sourceWidget.isWidget) {
+						if (sourceWidget.treePath) {
+							_Logger.log(_LogType.WIDGETS, 'Copying remote widget', sourceWidget);
+
+							Command.create({ type: 'Widget', name: sourceWidget.name + ' (copied)', source: sourceWidget.source, description: sourceWidget.description, configuration: sourceWidget.configuration }, function(entity) {
+								_Logger.log(_LogType.WIDGETS, 'Copied remote widget successfully', entity);
+								dropBlocked = false;
+							});
+						}
+					} else {
+						$.ajax({
+							url: viewRootUrl + sourceId + '?edit=1',
+							contentType: 'text/html',
+							statusCode: {
+								200: function(data) {
+									Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, function(entity) {
+										_Logger.log(_LogType.WIDGETS, 'Created widget successfully', entity);
+										dropBlocked = false;
+									});
+								}
+							}
 						});
 					}
-				} else {
-					$.ajax({
-						url: viewRootUrl + sourceId + '?edit=1',
-						contentType: 'text/html',
-						statusCode: {
-							200: function(data) {
-								Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, function(entity) {
-									_Logger.log(_LogType.WIDGETS, 'Created widget successfully', entity);
-									dropBlocked = false;
-								});
-							}
-						}
-					});
 				}
-			}
-		});
-
-		_Pager.initPager('local-widgets', 'Widget', 1, 25);
-		var _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl, true, 'Widget', 'public', function(entities) {
-			entities.forEach(function (entity) {
-				StructrModel.create(entity, null, false);
-				_Widgets.appendWidgetElement(entity, false, _Widgets.localWidgetsEl);
 			});
+
+			_Pager.initPager('local-widgets', 'Widget', 1, 25);
+			var _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl, true, 'Widget', 'public', function(entities) {
+				entities.forEach(function (entity) {
+					StructrModel.create(entity, null, false);
+					_Widgets.appendWidgetElement(entity, false, _Widgets.localWidgetsEl);
+				});
+			});
+
+			_wPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name" />');
+			_wPager.activateFilterElements();
+
+			_Widgets.remoteWidgetsEl = $('#remoteWidgets', widgetsSlideout);
+
+			_Widgets.remoteWidgetFilterEl = $('#remoteWidgetsFilter');
+			_Widgets.remoteWidgetFilterEl.val(_Widgets.remoteWidgetFilter);
+			_Widgets.remoteWidgetFilterEl.keyup(function (e) {
+				if (e.keyCode === 27) {
+					$(this).val('');
+				}
+
+				_Widgets.repaintRemoteWidgets($(this).val());
+			});
+
+			_Widgets.refreshRemoteWidgets();
 		});
+	},
+	toggleTabGroup: function() {
 
-		_wPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name" />');
-		_wPager.activateFilterElements();
 
-		_Widgets.remoteWidgetsEl = $('#remoteWidgets', widgetsSlideout);
-
-		$('#remoteWidgetsFilter').keyup(function (e) {
-			if (e.keyCode === 27) {
-				$(this).val('');
-			}
-
-			_Widgets.repaintRemoteWidgets($(this).val());
-		});
-
-		_Widgets.refreshRemoteWidgets();
 
 	},
 	refreshRemoteWidgets: function() {
-		_Widgets.remoteWidgetFilter = undefined;
 
 		if (!_Widgets.url.startsWith(document.location.origin)) {
 
@@ -103,33 +126,30 @@ var _Widgets = {
 				obj.srcUrl = _Widgets.url + '/' + entity.id;
 				_Widgets.remoteWidgetData.push(obj);
 			}, function () {
-				_Widgets.repaintRemoteWidgets('');
+				_Widgets.repaintRemoteWidgets(_Widgets.remoteWidgetFilter);
 			});
-
 		}
 	},
 	repaintRemoteWidgets: function (search) {
-		if (search !== _Widgets.remoteWidgetFilter) {
 
-			_Widgets.remoteWidgetFilter = search;
-			_Widgets.remoteWidgetsEl.empty();
+		_Widgets.remoteWidgetFilter = search;
+		_Widgets.remoteWidgetsEl.empty();
 
-			if (search && search.length > 0) {
+		if (search && search.length > 0) {
 
-				search = search.toLowerCase();
+			search = search.toLowerCase();
 
-				_Widgets.remoteWidgetData.forEach(function (obj) {
-					if (obj.name.toLowerCase().indexOf(search) !== -1) {
-						_Widgets.appendWidgetElement(obj, true, _Widgets.remoteWidgetsEl);
-					}
-				});
-
-			} else {
-
-				_Widgets.remoteWidgetData.forEach(function (obj) {
+			_Widgets.remoteWidgetData.forEach(function (obj) {
+				if (obj.name.toLowerCase().indexOf(search) !== -1) {
 					_Widgets.appendWidgetElement(obj, true, _Widgets.remoteWidgetsEl);
-				});
-			}
+				}
+			});
+
+		} else {
+
+			_Widgets.remoteWidgetData.forEach(function (obj) {
+				_Widgets.appendWidgetElement(obj, true, _Widgets.remoteWidgetsEl);
+			});
 		}
 	},
 	getRemoteWidgets: function(baseUrl, callback, finishCallback) {
