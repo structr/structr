@@ -77,6 +77,7 @@ import org.structr.core.function.GetIncomingRelationshipsFunction;
 import org.structr.core.function.GetOrCreateFunction;
 import org.structr.core.function.GetOrNullFunction;
 import org.structr.core.function.GetOutgoingRelationshipsFunction;
+import org.structr.core.function.GetRelationshipTypesFunction;
 import org.structr.core.function.GetRelationshipsFunction;
 import org.structr.core.function.GrantFunction;
 import org.structr.core.function.GtFunction;
@@ -227,6 +228,8 @@ public class CoreModule implements StructrModule {
 
 		Functions.put(licensed, LicenseManager.Basic, "template", new TemplateFunction());
 		Functions.put(licensed, LicenseManager.Basic, "jdbc", new JdbcFunction());
+
+		Functions.put(licensed, LicenseManager.Enterprise, "get_relationship_types", new GetRelationshipTypesFunction());
 
 		// Community Edition
 		Functions.put(true, LicenseManager.Community, "cypher", new CypherFunction());
