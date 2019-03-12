@@ -27,6 +27,9 @@ var _Widgets = {
 	localWidgetsEl: undefined,
 	localWidgetsCollapsed: false,
 	remoteWidgetsCollapsed: false,
+	remoteWidgetsUrlInputEl: undefined,
+	remoteWidgetsUrlResetButton: undefined,
+	remoteWidgetsUrlApplyButton: undefined,
 
 	reloadWidgets: function() {
 
@@ -119,18 +122,27 @@ var _Widgets = {
 				_Widgets.repaintRemoteWidgets($(this).val());
 			});
 
-			document.querySelector('button#applyRemoteWidgetsUrl').addEventListener('click', _Widgets.refreshRemoteWidgets);
-			document.querySelector('button#resetRemoteWidgetsUrl').addEventListener('click', _Widgets.resetWidgetServerUrl);
+			_Widgets.remoteWidgetsUrlInputEl = document.querySelector('#remoteWidgetsUrl');
+			_Widgets.remoteWidgetsUrlResetButton = document.querySelector('button#resetRemoteWidgetsUrl');
+			_Widgets.remoteWidgetsUrlApplyButton = document.querySelector('button#applyRemoteWidgetsUrl');
+
+			_Widgets.remoteWidgetsUrlInputEl.addEventListener('keyup', function(e) {
+				if (e.which === 13) {
+					_Widgets.refreshRemoteWidgets();
+				}
+			});
+			_Widgets.remoteWidgetsUrlApplyButton.addEventListener('click', _Widgets.refreshRemoteWidgets);
+			_Widgets.remoteWidgetsUrlResetButton.addEventListener('click', _Widgets.resetWidgetServerUrl);
 
 			_Widgets.refreshRemoteWidgets();
 		});
 	},
 	getWidgetServerUrl: function() {
-		return document.querySelector('#remoteWidgetsUrl').value;
+		return _Widgets.remoteWidgetsUrlInputEl.value;
 	},
 	resetWidgetServerUrl: function() {
 		LSWrapper.setItem(_Widgets.widgetServerKey, _Widgets.defaultWidgetServerUrl);
-		document.querySelector('#remoteWidgetsUrl').value = _Widgets.defaultWidgetServerUrl;
+		_Widgets.remoteWidgetsUrlInputEl.value = _Widgets.defaultWidgetServerUrl;
 		_Widgets.refreshRemoteWidgets();
 	},
 	refreshRemoteWidgets: function() {
@@ -140,12 +152,15 @@ var _Widgets = {
 		LSWrapper.setItem(_Widgets.widgetServerKey, url);
 
 		if (url === _Widgets.defaultWidgetServerUrl) {
-			document.querySelector('button#resetRemoteWidgetsUrl').classList.add('hidden');
+			_Widgets.remoteWidgetsUrlResetButton.classList.add('hidden');
 		} else {
-			document.querySelector('button#resetRemoteWidgetsUrl').classList.remove('hidden');
+			_Widgets.remoteWidgetsUrlResetButton.classList.remove('hidden');
 		}
 
 		if (!url.startsWith(document.location.origin)) {
+
+			_Widgets.remoteWidgetsEl.empty();
+
 			_Widgets.getRemoteWidgets(url, function(entity) {
 				var obj = StructrModel.create(entity, null, false);
 				obj.srcUrl = url + '/' + entity.id;
@@ -160,7 +175,6 @@ var _Widgets = {
 	repaintRemoteWidgets: function (search) {
 
 		_Widgets.remoteWidgetFilter = search;
-		_Widgets.remoteWidgetsEl.empty();
 
 		if (search && search.length > 0) {
 
