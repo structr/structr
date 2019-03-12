@@ -5023,3 +5023,18 @@ dl.help-definitions dt {
 dl.help-definitions dd {
 	margin-bottom: 6px;
 }
+
+#structr-console .terminal-output span,
+#structr-console .terminal-output a,
+#structr-console .cmd div,
+#structr-console .cmd span,
+#structr-console .terminal td,
+#structr-console .terminal pre,
+#structr-console .terminal h1,
+#structr-console .terminal h2,
+#structr-console .terminal h3,
+#structr-console .terminal h4,
+#structr-console .terminal h5,
+#structr-console .terminal h6 {
+	user-select: text;
+}
