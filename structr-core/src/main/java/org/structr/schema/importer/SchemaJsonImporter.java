@@ -32,6 +32,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.MaintenanceCommand;
+import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.InvalidSchemaException;
@@ -40,10 +41,9 @@ import org.structr.schema.json.JsonSchema;
 /**
  * This class can handle Schema JSON documents
  */
-public class SchemaJsonImporter implements MaintenanceCommand {
+public class SchemaJsonImporter extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaJsonImporter.class.getName());
-
 
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {

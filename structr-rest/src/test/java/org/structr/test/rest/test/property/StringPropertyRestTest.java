@@ -151,7 +151,7 @@ public class StringPropertyRestTest extends IndexingTest {
 	@Test
 	public void testLargeStrings() {
 
-		final boolean supportsLargeStrings = Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.LargeStringIndexing);
+		final boolean supportsLargeStrings = Services.getInstance().getDatabaseService("default").supportsFeature(DatabaseFeature.LargeStringIndexing);
 
 		testLargeString(4000, 201);
 		testLargeString(4039, 201);

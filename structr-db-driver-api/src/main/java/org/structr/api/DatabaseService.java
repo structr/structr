@@ -38,9 +38,11 @@ public interface DatabaseService {
 	 * Initializes the service, returns true if the
 	 * service was initialized successfully.
 	 *
+	 * @param serviceName the name of the service
+	 *
 	 * @return whether the service was initialized successfully
 	 */
-	boolean initialize();
+	boolean initialize(final String serviceName);
 	void shutdown();
 	void clearCaches();
 	void cleanDatabase();

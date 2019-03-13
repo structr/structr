@@ -92,4 +92,9 @@ public class PasswordSetting extends Setting<String> {
 
 		return getValue();
 	}
+
+	@Override
+	protected Setting<String> copy(final String key) {
+		return new PasswordSetting(group, category, key, value);
+	}
 }

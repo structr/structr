@@ -30,10 +30,12 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -77,17 +79,18 @@ public class Services implements StructrServices {
 	private static Boolean cachedTestingFlag           = null;
 
 	// non-static members
-	private final List<InitializationCallback> callbacks       = new LinkedList<>();
-	private final Set<Permission> permissionsForOwnerlessNodes = new LinkedHashSet<>();
-	private final Map<String, Object> attributes               = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private final Map<Class, Service> serviceCache             = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private final Map<String, Class> registeredServiceClasses  = new LinkedHashMap<>();
-	private LicenseManager licenseManager                      = null;
-	private ConfigurationProvider configuration                = null;
-	private boolean initializationDone                         = false;
-	private boolean overridingSchemaTypesAllowed               = true;
-	private boolean shuttingDown                               = false;
-	private boolean shutdownDone                               = false;
+	private final Map<Class, Map<String, Service>> serviceCache = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private final Set<Permission> permissionsForOwnerlessNodes  = new LinkedHashSet<>();
+	private final Map<String, Class> registeredServiceClasses   = new LinkedHashMap<>();
+	private final List<InitializationCallback> callbacks        = new LinkedList<>();
+	private final Map<String, Object> attributes                = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private final ReentrantReadWriteLock reloading              = new ReentrantReadWriteLock(true);
+	private LicenseManager licenseManager                       = null;
+	private ConfigurationProvider configuration                 = null;
+	private boolean initializationDone                          = false;
+	private boolean overridingSchemaTypesAllowed                = true;
+	private boolean shuttingDown                                = false;
+	private boolean shutdownDone                                = false;
 
 	private Services() { }
 
@@ -117,6 +120,7 @@ public class Services implements StructrServices {
 
 			final T command          = commandType.newInstance();
 			final Class serviceClass = command.getServiceClass();
+			final String serviceName = "default";
 
 			// inject security context first
 			command.setArgument("securityContext", securityContext);
@@ -124,16 +128,17 @@ public class Services implements StructrServices {
 			if (serviceClass != null) {
 
 				// search for already running service..
-				Service service = serviceCache.get(serviceClass);
+				Service service = getService(serviceClass, serviceName);
 				if (service == null) {
 
 					// start service
-					startService(serviceClass);
+					startService(serviceClass, serviceName);
 
 					// reload service
-					service = serviceCache.get(serviceClass);
+					service = getService(serviceClass, serviceName);
 
 					if (serviceClass.equals(NodeService.class)) {
+
 						logger.debug("(Re-)Started NodeService, (re-)compiling dynamic schema");
 						SchemaService.reloadSchema(new ErrorBuffer(), null);
 					}
@@ -223,7 +228,7 @@ public class Services implements StructrServices {
 		// initialize other services
 		for (final Class serviceClass : configuredServiceClasses) {
 
-			startService(serviceClass);
+			startService(serviceClass, "default");
 		}
 
 		logger.info("{} service(s) processed", serviceCache.size());
@@ -239,8 +244,8 @@ public class Services implements StructrServices {
 			}
 		});
 
-		final NodeService nodeService = getService(NodeService.class);
-		if (nodeService != null) {
+		// create admin users in all services that are active
+		for (final NodeService nodeService : getServices(NodeService.class).values()) {
 
 			nodeService.createAdminUser();
 		}
@@ -359,10 +364,14 @@ public class Services implements StructrServices {
 			Collections.reverse(reverseServiceClassNames);
 
 			for (final Class serviceClass : reverseServiceClassNames) {
-				shutdownService(serviceClass);
+				shutdownServices(serviceClass);
 			}
 
-			serviceCache.clear();
+			if (!serviceCache.isEmpty()) {
+
+				System.out.println("Not all services were removed: " + serviceCache);
+				serviceCache.clear();
+			}
 
 			// shut down configuration provider
 			configuration.shutdown();
@@ -384,7 +393,7 @@ public class Services implements StructrServices {
 	 *
 	 * @param serviceClass the service class to register
 	 */
-	public void registerServiceClass(Class serviceClass) {
+	public void registerServiceClass(final Class serviceClass) {
 
 		registeredServiceClasses.put(serviceClass.getSimpleName(), serviceClass);
 
@@ -452,19 +461,8 @@ public class Services implements StructrServices {
 		attributes.remove(name);
 	}
 
-	public void startService(final String serviceName) {
+	public void startService(final Class serviceClass, final String serviceName) {
 
-		final Class serviceClass = getServiceClassForName(serviceName);
-		if (serviceClass != null) {
-
-			startService(serviceClass);
-		}
-	}
-
-	public void startService(final Class serviceClass) {
-
-		int retryCount       = Settings.ServicesStartRetries.getValue(10);
-		int retryDelay       = Settings.ServicesStartTimeout.getValue(30);
 		boolean waitAndRetry = true;
 		boolean isVital      = false;
 
@@ -486,9 +484,9 @@ public class Services implements StructrServices {
 				return;
 			}
 
-			isVital    = service.isVital();
-			retryCount = service.getRetryCount();
-			retryDelay = service.getRetryDelay();
+			final int retryDelay = service.getRetryDelay();
+			int retryCount       = service.getRetryCount();
+			isVital              = service.isVital();
 
 			while (waitAndRetry && retryCount-- > 0) {
 
@@ -496,7 +494,7 @@ public class Services implements StructrServices {
 
 				try {
 
-					if (service.initialize(this)) {
+					if (service.initialize(this, serviceName)) {
 
 						if (service instanceof RunnableService) {
 
@@ -512,7 +510,7 @@ public class Services implements StructrServices {
 						if (service.isRunning()) {
 
 							// cache service instance
-							serviceCache.put(serviceClass, service);
+							addService(serviceClass, serviceName, service);
 						}
 
 						// initialization callback
@@ -559,6 +557,7 @@ public class Services implements StructrServices {
 		}
 	}
 
+	/*
 	public void shutdownService(final String serviceName) {
 
 		final Class serviceClass = getServiceClassForName(serviceName);
@@ -568,16 +567,28 @@ public class Services implements StructrServices {
 		}
 	}
 
-	public void shutdownService(final Class serviceClass) {
+	public void shutdownService(final Class serviceClass, final String serviceName) {
 
-		final Service service = serviceCache.get(serviceClass);
-		if (service != null) {
+		final Map<String, Service> serviceMap = serviceCacheByName.get(serviceClass);
+		if (serviceMap != null) {
 
-			shutdownService(service);
+			for (final Service service : serviceMap.values()) {
+
+				shutdownService(service);
+			}
+		}
+	}
+	*/
+
+	private <T extends Service> void shutdownServices(final Class<T> serviceClass) {
+
+		for (final Entry<String, T> entry : getServices(serviceClass).entrySet()) {
+
+			shutdownService(entry.getValue(), entry.getKey());
 		}
 	}
 
-	private void shutdownService(final Service service) {
+	private void shutdownService(final Service service, final String name) {
 
 		try {
 
@@ -598,7 +609,7 @@ public class Services implements StructrServices {
 		}
 
 		// remove from service cache
-		serviceCache.remove(service.getClass());
+		removeService(service.getClass(), name);
 	}
 
 	/**
@@ -606,22 +617,52 @@ public class Services implements StructrServices {
 	 *
 	 * @return list of services
 	 */
-	public List<Class> getServices() {
+	public List<Class> getRegisteredServiceClasses() {
 		return new LinkedList<>(registeredServiceClasses.values());
 	}
 
 	@Override
-	public <T extends Service> T getService(final Class<T> type) {
-		return (T) serviceCache.get(type);
+	public <T extends Service> T getService(final Class<T> type, final String name) {
+
+		final T service = getServices(type).get(name);
+		if (service == null) {
+
+			// try to start service
+			startService(type, name);
+		}
+
+		return service;
 	}
 
 	@Override
-	public DatabaseService getDatabaseService() {
+	public <T extends Service> Map<String, T> getServices(final Class<T> type) {
 
-		final NodeService nodeService = getService(NodeService.class);
-		if (nodeService != null) {
+		Map<String, Service> serviceMap = serviceCache.get(type);
+		if (serviceMap == null) {
 
-			return nodeService.getDatabaseService();
+			serviceMap = new ConcurrentHashMap<>();
+			serviceCache.put(type, serviceMap);
+		}
+
+		return (Map)serviceMap;
+	}
+
+	@Override
+	public DatabaseService getDatabaseService(final String name) {
+
+		try {
+
+			reloading.readLock().lock();
+
+			final NodeService nodeService = getService(NodeService.class, name);
+			if (nodeService != null) {
+
+				return nodeService.getDatabaseService();
+			}
+
+		} finally {
+
+			reloading.readLock().unlock();
 		}
 
 		return null;
@@ -632,12 +673,13 @@ public class Services implements StructrServices {
          * means initialized and running.
 	 *
 	 * @param serviceClass
+	 * @param name
 	 * @return isReady
 	 */
-	public boolean isReady(final Class serviceClass) {
+	public boolean isReady(final Class serviceClass, final String name) {
 
-                Service service = serviceCache.get(serviceClass);
-                return (service != null && service.isRunning());
+		final Service service = getService(serviceClass, name);
+		return (service != null && service.isRunning());
 	}
 
 	public Set<String> getResources() {
@@ -873,4 +915,38 @@ public class Services implements StructrServices {
 			return recursiveGetHierarchyLevel(dependencyMap, alreadyCalculated, dependency, depth + 1) + 1;
 		}
 	}
+
+	private void removeService(final Class type, final String name) {
+		getServices(type).remove(name);
+	}
+
+	private void addService(final Class type, final String name, final Service service) {
+		getServices(type).put(name, service);
+	}
+
+	/*
+	public void setActiveService(final Class type, final String name) {
+
+		try {
+
+			reloading.writeLock().lock();
+
+			shutdownService(type);
+
+			activeServiceNames.put(type, name);
+
+			startService(type, name);
+
+			// check if admin user has to be created..
+			getService(NodeService.class).createAdminUser();
+
+			// reload schema..
+			SchemaService.reloadSchema(new ErrorBuffer(), null);
+
+		} finally {
+
+			reloading.writeLock().unlock();
+		}
+	}
+	*/
 }

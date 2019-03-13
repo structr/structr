@@ -78,7 +78,7 @@ public class SessionHelper {
 
 		try {
 
-			return Services.getInstance().getService(HttpService.class).getSessionCache().get(sessionId);
+			return Services.getInstance().getService(HttpService.class, "default").getSessionCache().get(sessionId);
 
 		} catch (final Exception ex) {
 			logger.debug("Unable to retrieve session " + sessionId + " from session cache:", ex);
@@ -150,7 +150,7 @@ public class SessionHelper {
 
 		if (sessionIds != null && sessionIds.length > 0) {
 
-			final SessionCache sessionCache = Services.getInstance().getService(HttpService.class).getSessionCache();
+			final SessionCache sessionCache = Services.getInstance().getService(HttpService.class, "default").getSessionCache();
 
 			for (final String sessionId : sessionIds) {
 
@@ -174,7 +174,7 @@ public class SessionHelper {
 		if (sessionId != null) {
 
 			try {
-				Services.getInstance().getService(HttpService.class).getSessionCache().delete(sessionId);
+				Services.getInstance().getService(HttpService.class, "default").getSessionCache().delete(sessionId);
 
 			} catch (final Exception ex) {
 

@@ -53,10 +53,7 @@ import org.structr.websocket.command.PingCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
 /**
- *
- *
  *
  */
 public class StructrWebSocket implements WebSocketListener {
@@ -64,7 +61,6 @@ public class StructrWebSocket implements WebSocketListener {
 	private static final Logger logger = LoggerFactory.getLogger(StructrWebSocket.class.getName());
 	private static final Map<String, Class> commandSet = new LinkedHashMap<>();
 
-	//~--- fields ---------------------------------------------------------
 	private Session session = null;
 	private Gson gson = null;
 	private HttpServletRequest request = null;
@@ -76,7 +72,6 @@ public class StructrWebSocket implements WebSocketListener {
 	private Console console = null;
 	private Boolean timedOut = false;
 
-	//~--- constructors ---------------------------------------------------
 	public StructrWebSocket() {}
 
 	public StructrWebSocket(final WebsocketController syncController, final Gson gson, final Authenticator authenticator) {
@@ -88,7 +83,6 @@ public class StructrWebSocket implements WebSocketListener {
 
 	}
 
-	//~--- methods --------------------------------------------------------
 	public void setRequest(final HttpServletRequest request) {
 		this.request = request;
 	}

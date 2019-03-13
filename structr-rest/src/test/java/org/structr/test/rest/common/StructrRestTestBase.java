@@ -44,7 +44,6 @@ import org.structr.core.auth.SuperUserAuthenticator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 import org.structr.memory.MemoryDatabaseService;
 import org.structr.rest.DefaultResourceProvider;
@@ -157,7 +156,7 @@ public abstract class StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			// delete everything
-			Services.getInstance().getService(NodeService.class).getDatabaseService().cleanDatabase();
+			Services.getInstance().getDatabaseService("default").cleanDatabase();
 
 			FlushCachesCommand.flushAll();
 

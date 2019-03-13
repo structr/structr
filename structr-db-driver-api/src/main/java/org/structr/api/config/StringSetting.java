@@ -115,4 +115,9 @@ public class StringSetting extends Setting<String> {
 
 		return getValue();
 	}
+
+	@Override
+	protected Setting<String> copy(final String key) {
+		return new StringSetting(group, category, key, value);
+	}
 }

@@ -143,4 +143,15 @@ public class StringMultiChoiceSetting extends Setting<String> {
 	public void addAvailableOption(final String option) {
 		this.AvailableOptions.add(option);
 	}
+
+	@Override
+	protected Setting<String> copy(final String key) {
+
+		final StringMultiChoiceSetting setting = new StringMultiChoiceSetting(group, category, key, value);
+
+		// copy available options
+		this.AvailableOptions.forEach(setting::addAvailableOption);
+
+		return setting;
+	}
 }

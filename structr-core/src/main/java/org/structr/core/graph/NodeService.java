@@ -42,13 +42,14 @@ import org.structr.core.property.PropertyKey;
  */
 public class NodeService implements SingletonService {
 
-	private static final Logger logger   = LoggerFactory.getLogger(NodeService.class.getName());
-	private DatabaseService databaseService      = null;
-	private Index<Node> nodeIndex        = null;
-	private Index<Relationship> relIndex = null;
-	private String filesPath             = null;
-	private boolean isInitialized        = false;
-	private CountResult initialCount     = null;
+	private static final Logger logger      = LoggerFactory.getLogger(NodeService.class.getName());
+	private DatabaseService databaseService = null;
+	private Index<Node> nodeIndex           = null;
+	private Index<Relationship> relIndex    = null;
+	private String filesPath                = null;
+	private boolean isInitialized           = false;
+	private CountResult initialCount        = null;
+	private String name                     = null;
 
 	@Override
 	public void injectArguments(Command command) {
@@ -63,13 +64,20 @@ public class NodeService implements SingletonService {
 	}
 
 	@Override
-	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(final StructrServices services, final String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		final String databaseDriver = Settings.DatabaseDriver.getValue();
+		// default is fallback and doesn't need to be stored
+		if (!"default".equals(serviceName)) {
+
+			this.name = serviceName;
+		}
+
+		final String databaseDriver = Settings.DatabaseDriver.getPrefixedValue(this.name);
+
 		databaseService = (DatabaseService)Class.forName(databaseDriver).newInstance();
 		if (databaseService != null) {
 
-			if (databaseService.initialize()) {
+			if (databaseService.initialize(this.name)) {
 
 				filesPath = Settings.FilesPath.getValue();
 
@@ -119,6 +127,8 @@ public class NodeService implements SingletonService {
 		if (!Services.isTesting()) {
 			checkCacheSizes();
 		}
+
+		createAdminUser();
 	}
 
 	@Override
@@ -240,11 +250,11 @@ public class NodeService implements SingletonService {
 	// ----- private methods -----
 	private void checkCacheSizes() {
 
-		final CountResult counts = getInitialCounts();
-		final long nodeCacheSize = Settings.NodeCacheSize.getValue();
-		final long relCacheSize  = Settings.RelationshipCacheSize.getValue();
-		final long nodeCount     = counts.getNodeCount();
-		final long relCount      = counts.getRelationshipCount();
+		final CountResult counts      = getInitialCounts();
+		final long nodeCacheSize      = Settings.NodeCacheSize.getPrefixedValue(name);
+		final long relCacheSize       = Settings.RelationshipCacheSize.getPrefixedValue(name);
+		final long nodeCount          = counts.getNodeCount();
+		final long relCount           = counts.getRelationshipCount();
 
 		logger.info("Database contains {} nodes, {} relationships.", nodeCount, relCount);
 

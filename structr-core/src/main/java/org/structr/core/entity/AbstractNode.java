@@ -871,12 +871,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				boolean result = false;
 				try {
 
-					final DatabaseService db       = Services.getInstance().getDatabaseService();
+					final DatabaseService db       = Services.getInstance().getDatabaseService("default");
 					final NativeQuery<Boolean> cpq = db.query(customPermissionQuery, Boolean.class);
 
 					cpq.configure(params);
 
-					result = Services.getInstance().getDatabaseService().execute(cpq);
+					result = db.execute(cpq);
 
 				} catch (final Exception ex) {
 					logger.error("Error in custom permission resolution", ex);

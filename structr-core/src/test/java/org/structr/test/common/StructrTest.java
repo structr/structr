@@ -44,7 +44,6 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -91,7 +90,7 @@ public class StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// delete everything
-			Services.getInstance().getService(NodeService.class).getDatabaseService().cleanDatabase();
+			Services.getInstance().getDatabaseService("default").cleanDatabase();
 
 			FlushCachesCommand.flushAll();
 

@@ -20,6 +20,10 @@ package org.structr.core.graph;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
@@ -37,16 +41,24 @@ import org.structr.util.Writable;
 
 /**
  * Abstract base class for all graph service commands.
- *
- *
  */
 public abstract class NodeServiceCommand extends Command {
 
 	private static final Logger logger                        = LoggerFactory.getLogger(NodeServiceCommand.class.getName());
 	private static final ArrayBlockingQueue<String> uuidQueue = new ArrayBlockingQueue<>(100000);
 
-	protected SecurityContext securityContext = null;
-	private Writable logWritable              = null;
+	protected final Map<String, String> customHeaders = new LinkedHashMap();
+	protected final List<Object> customPayload        = new LinkedList<>();
+	protected SecurityContext securityContext         = null;
+	private Writable logWritable                      = null;
+
+	public Map<String, String> getCustomHeaders () {
+		return customHeaders;
+	}
+
+	public List<Object> getPayload () {
+		return customPayload;
+	}
 
 	@Override
 	public Class getServiceClass()	{

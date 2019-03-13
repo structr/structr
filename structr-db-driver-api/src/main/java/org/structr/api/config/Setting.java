@@ -18,6 +18,9 @@
  */
 package org.structr.api.config;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
 
@@ -26,16 +29,19 @@ import org.structr.api.util.html.Tag;
  */
 public abstract class Setting<T> {
 
-	private SettingsGroup group                 = null;
-	private boolean isDynamic                   = false;
-	private T defaultValue                      = null;
-	private String category                     = null;
-	private String key                          = null;
-	private T value                             = null;
-	private String comment                      = null;
+	private static final Logger logger = LoggerFactory.getLogger(Setting.class);
+
+	protected SettingsGroup group = null;
+	protected boolean isDynamic   = false;
+	protected T defaultValue      = null;
+	protected String category     = null;
+	protected String key          = null;
+	protected T value             = null;
+	protected String comment      = null;
 
 	public abstract void render(final Tag parent);
 	public abstract void fromString(final String source);
+	protected abstract Setting<T> copy(final String key);
 
 	public Setting(final SettingsGroup group, final String categoryName, final String key, final T value) {
 
@@ -71,6 +77,17 @@ public abstract class Setting<T> {
 		return value;
 	}
 
+	public T getPrefixedValue(final String prefix) {
+
+		if (StringUtils.isBlank(prefix)) {
+			return getValue();
+		}
+
+		final Setting<T> prefixedSetting = getPrefixedSetting(prefix);
+
+		return prefixedSetting.getValue();
+	}
+
 	public T getDefaultValue() {
 		return defaultValue;
 	}
@@ -83,6 +100,31 @@ public abstract class Setting<T> {
 		}
 
 		return value;
+	}
+
+	public Setting<T> getPrefixedSetting(final String prefix) {
+
+		Setting<T> prefixedSetting = Settings.getSetting(prefix, key);
+		if (prefixedSetting == null) {
+
+			// value is not set => display copy notice
+			prefixedSetting = copy(prefix + "." + key);
+
+			logger.warn("Configuration value {} is not set, using value {} from non-prefixed key {}", prefixedSetting.key, prefixedSetting.value, key);
+		}
+
+		return prefixedSetting;
+	}
+
+	public T getPrefixedValue(final String prefix, final T defaultValue) {
+
+		if (StringUtils.isBlank(prefix)) {
+			return getValue(defaultValue);
+		}
+
+		final Setting<T> prefixedSetting = getPrefixedSetting(prefix);
+
+		return prefixedSetting.getValue(defaultValue);
 	}
 
 	public void setValue(final T value) {

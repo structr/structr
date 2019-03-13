@@ -489,12 +489,12 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public boolean isPropertyTypeIndexable() {
+	public boolean isPropertyTypeIndexable(final SecurityContext securityContext) {
 
 		final Class valueType = valueType();
 		if (valueType != null) {
 
-			if (Services.getInstance().getDatabaseService().nodeIndex().supports(valueType)) {
+			if (Services.getInstance().getDatabaseService("default").nodeIndex().supports(valueType)) {
 				return true;
 			}
 
@@ -515,7 +515,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public boolean isPropertyValueIndexable(final Object value) {
+	public boolean isPropertyValueIndexable(final SecurityContext securityContext, final Object value) {
 
 		if (value != null) {
 
@@ -523,7 +523,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 			if (valueType != null) {
 
 				// indexable indicated by value type
-				if (Services.getInstance().getDatabaseService().nodeIndex().supports(valueType)) {
+				if (Services.getInstance().getDatabaseService("default").nodeIndex().supports(valueType)) {
 					return true;
 				}
 

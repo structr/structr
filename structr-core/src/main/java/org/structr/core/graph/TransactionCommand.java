@@ -74,7 +74,8 @@ public class TransactionCommand {
 	public static TransactionCommand beginTx(final SecurityContext securityContext) throws FrameworkException {
 
 		final TransactionCommand cmd  = TransactionCommand.getInstance();
-		final DatabaseService graphDb = Services.getInstance().getDatabaseService();
+		final String nodeServiceName  = "default";
+		final DatabaseService graphDb = Services.getInstance().getDatabaseService(nodeServiceName);
 
 		if (graphDb != null) {
 

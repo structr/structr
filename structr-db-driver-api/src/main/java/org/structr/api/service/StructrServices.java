@@ -18,6 +18,7 @@
  */
 package org.structr.api.service;
 
+import java.util.Map;
 import org.structr.api.DatabaseService;
 
 /**
@@ -26,7 +27,8 @@ import org.structr.api.DatabaseService;
 public interface StructrServices {
 
 	void registerInitializationCallback(final InitializationCallback callback);
-	<T extends Service> T getService(final Class<T> serviceClass);
-	DatabaseService getDatabaseService();
+	<T extends Service> T getService(final Class<T> serviceClass, final String name);
+	<T extends Service> Map<String, T> getServices(final Class<T> serviceClass);
+	DatabaseService getDatabaseService(String name);
 	LicenseManager getLicenseManager();
 }

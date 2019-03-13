@@ -31,7 +31,6 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.FlushCachesCommand;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 import org.structr.memory.MemoryDatabaseService;
 import org.structr.schema.SchemaService;
@@ -74,7 +73,7 @@ public class LicensingTest {
 		try (final Tx tx = app.tx()) {
 
 			// delete everything
-			Services.getInstance().getService(NodeService.class).getDatabaseService().cleanDatabase();
+			Services.getInstance().getDatabaseService("default").cleanDatabase();
 
 			FlushCachesCommand.flushAll();
 

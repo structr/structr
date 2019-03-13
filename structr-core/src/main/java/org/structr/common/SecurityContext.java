@@ -61,7 +61,7 @@ public class SecurityContext {
 	private static final Logger logger                   = LoggerFactory.getLogger(SecurityContext.class.getName());
 	private static final Map<String, Long> resourceFlags = new ConcurrentHashMap<>();
 	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,-]+)");
-	private MergeMode remoteCollectionMergeMode  = MergeMode.Replace;
+	private MergeMode remoteCollectionMergeMode          = MergeMode.Replace;
 	private boolean uuidWasSetManually                   = false;
 	private boolean doTransactionNotifications           = false;
 	private boolean forceMergeOfNestedProperties         = false;
@@ -256,6 +256,22 @@ public class SecurityContext {
 
 	}
 
+	public static SecurityContext getSuperUserInstance(HttpServletRequest request) {
+		return new SuperUserSecurityContext(request);
+	}
+
+	public static SecurityContext getSuperUserInstance() {
+		return new SuperUserSecurityContext();
+	}
+
+	public static SecurityContext getInstance(Principal user, AccessMode accessMode) {
+		return new SecurityContext(user, accessMode);
+	}
+
+	public static SecurityContext getInstance(Principal user, HttpServletRequest request, AccessMode accessMode) {
+		return new SecurityContext(user, request, accessMode);
+	}
+
 	public void removeForbiddenNodes(List<? extends GraphObject> nodes, final boolean includeHidden, final boolean publicOnly) {
 
 		boolean readableByUser = false;
@@ -278,25 +294,6 @@ public class SecurityContext {
 			}
 
 		}
-
-	}
-
-	public static SecurityContext getSuperUserInstance(HttpServletRequest request) {
-		return new SuperUserSecurityContext(request);
-	}
-
-	public static SecurityContext getSuperUserInstance() {
-		return new SuperUserSecurityContext();
-
-	}
-
-	public static SecurityContext getInstance(Principal user, AccessMode accessMode) {
-		return new SecurityContext(user, accessMode);
-
-	}
-
-	public static SecurityContext getInstance(Principal user, HttpServletRequest request, AccessMode accessMode) {
-		return new SecurityContext(user, request, accessMode);
 
 	}
 

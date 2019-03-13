@@ -26,7 +26,9 @@ var _Dashboard = {
 	aboutMe: undefined,
 	meObj: undefined,
 
-	init: function() {},
+	init: function() {
+		$('#dashboard').remove();
+	},
 	unload: function() {},
 	onload: function() {
 		_Dashboard.init();
@@ -34,6 +36,8 @@ var _Dashboard = {
 
 		main.append('<div id="dashboard"></div>');
 		_Dashboard.dashboard = $('#dashboard', main);
+
+		_Dashboard.appendDatabaseSelectionBox();
 
 		_Dashboard.aboutMe = _Dashboard.appendBox('About Me', 'about-me');
 		_Dashboard.aboutMe.append('<div class="dashboard-info">You are currently logged in as <b>' + me.username + '<b>.</div>');
@@ -62,51 +66,6 @@ var _Dashboard = {
 		});
 
 		_Dashboard.appendAboutBox();
-
-		/*
-		var myPages = _Dashboard.appendBox('My Pages', 'my-pages');
-		myPages.append('<div class="dashboard-info">You own the following <a class="internal-link" href="javascript:void(0)">pages</a>:</div>');
-		Command.getByType('Page', 5, 1, 'version', 'desc', null, false, function(pages) {
-			pages.forEach(function(p) {
-				myPages.append('<div class="dashboard-info"><a href="/' + p.name + '" target="_blank"><i class="icon sprite sprite-page" /></a> <a href="/' + p.name + '" target="_blank">' + _Dashboard.displayName(p) + '</a>' + _Dashboard.displayVersion(p) + '</div>');
-			});
-		});
-
-		var myContents = _Dashboard.appendBox('My Contents', 'my-content');
-		myContents.append('<div class="dashboard-info">Your most edited <a class="internal-link" href="javascript:void(0)">contents</a> are:</div>');
-		Command.getByType('ContentItem', 5, 1, 'version', 'desc', null, false, function(items) {
-			items.forEach(function(i) {
-				myContents.append('<div class="dashboard-info"><a href="/' + i.name + '" target="_blank"><i class="fa ' + _Contents.getIcon(i) + '" /></a> <a class="contents-link" id="open-' + i.id + '" href="javascript:void(0)">' + _Dashboard.displayName(i) + '</a>' + _Dashboard.displayVersion(i) + '</div>');
-			});
-
-			$('.contents-link', myContents).on('click', function(e) {
-				e.preventDefault();
-				var id = $(this).prop('id').slice(5);
-				window.setTimeout(function() {
-					Command.get(id, "id,name", function(entity) {
-						_Contents.editItem(entity);
-					});
-				}, 250);
-				$('#contents_').click();
-			});
-		});
-
-		var myFiles = _Dashboard.appendBox('My Files', 'my-files');
-		myFiles.append('<div class="dashboard-info">Your most edited <a class="internal-link" href="javascript:void(0)">files</a> are:</div>');
-		Command.getByType('File', 5, 1, 'version', 'desc', null, false, function(files) {
-			files.forEach(function(f) {
-				myFiles.append('<div class="dashboard-info"><a href="/' + f.name + '" target="_blank"><i class="fa ' + _Icons.getFileIconClass(f) + '" /></a> <a href="/' + f.id + '" target="_blank">' + _Dashboard.displayName(f) + '</a>' + _Dashboard.displayVersion(f) + '</div>');
-			});
-		});
-
-		var myImages = _Dashboard.appendBox('My Images', 'my-images');
-		myImages.append('<div class="dashboard-info">Your most edited <a class="internal-link" href="javascript:void(0)">images</a> are:</div>');
-		Command.getByType('Image', 5, 1, 'version', 'desc', null, false, function(images) {
-			images.forEach(function(i) {
-				myImages.append('<div class="dashboard-info"><a href="/' + i.name + '" target="_blank">' + _Icons.getImageOrIcon(i) + '</a> <a href="/' + i.id + '" target="_blank">' + _Dashboard.displayName(i) + '</a>' + _Dashboard.displayVersion(i) + '</div>');
-			});
-		});
-		*/
 
 		$('.dashboard-info a.internal-link').on('click', function() {
 			$('#' + $(this).text() + '_').click();
@@ -151,6 +110,60 @@ var _Dashboard = {
 		} else {
 			clear(_Dashboard.meObj.id);
 		}
+	},
+	appendDatabaseSelectionBox: function() {
+
+		_Dashboard.appendBox('Database Connections', 'database-connections');
+
+		Structr.fetchHtmlTemplate('dashboard/database.connections', { }, function (html) {
+
+			var parent = $('#database-connections');
+
+			parent.append(html);
+
+			_Dashboard.loadDatabaseSelectionBox();
+		});
+	},
+	loadDatabaseSelectionBox: function() {
+
+		$.post(
+			rootUrl + '/maintenance/manageDatabases',
+			JSON.stringify({ command: "list" }),
+			function(data) {
+
+				var body = $('#database-connection-table-body');
+				body.empty();
+
+				data.result.forEach(function(result) {
+
+					Structr.fetchHtmlTemplate('dashboard/connection.row', _Dashboard.mapConnectionResult(result), function (html) {
+
+						body.append(html);
+
+						$('button#button_' + result.name).on('click', function(btn) {
+
+							Structr.showLoadingMessage(
+								'Changing database connection to ' + result.name,
+								'Please wait until the change has been applied. If you don\'t have a valid session ID in the other database, you will need to re-login after the change.',
+								200
+							);
+
+							$.post(
+								rootUrl + '/maintenance/manageDatabases',
+								JSON.stringify({
+									command: 'activate',
+									name: result.name
+								}),
+								function() {
+									Structr.hideLoadingMessage();
+									_Dashboard.onload();
+								}
+							);
+						});
+					});
+				});
+			}
+		);
 	},
 	appendAboutBox: function () {
 
@@ -362,5 +375,55 @@ var _Dashboard = {
 			method: 'POST'
 		});
 
+	},
+	mapConnectionResult: function(result) {
+
+		var activeString = result.active ? '<b>active</b>' : '-';
+		var button       = result.active ? '' : '<button class="action" id="button_' + result.name + '">Connect</button>';
+
+		if (result.driver === 'org.structr.memory.MemoryDatabaseService') {
+
+			return {
+
+				name:     result.name,
+				type:     'in-memory',
+				url:      '-',
+				username: '-',
+				active:   activeString,
+				button:   button
+
+			};
+
+		} else {
+
+			return {
+
+				name:     result.name,
+				type:     'neo4j',
+				url:      result.url,
+				username: result.username,
+				active:   activeString,
+				button:   button
+			};
+		}
 	}
 };
+
+/*
+		<td style="text-align: left;">${config.name}</td>
+		<td style="text-align: left;">${config.type}</td>
+		<td style="text-align: left;">${config.url}</td>
+		<td style="text-align: left;">${config.username}</td>
+		<td style="text-align: right;">${config.active}</td>
+		settings.put("name",                  name);
+		settings.put("driver",                Settings.DatabaseDriver.getPrefixedValue(prefix));
+		settings.put("mode",                  Settings.DatabaseDriverMode.getPrefixedValue(prefix));
+		settings.put("url",                   Settings.ConnectionUrl.getPrefixedValue(prefix));
+		settings.put("username",              Settings.ConnectionUser.getPrefixedValue(prefix));
+		settings.put("password",              Settings.ConnectionPassword.getPrefixedValue(prefix));
+		settings.put("tenantIdentifier",      Settings.TenantIdentifier.getPrefixedValue(prefix));
+		settings.put("relationshipCacheSize", Settings.RelationshipCacheSize.getPrefixedValue(prefix));
+		settings.put("nodeCacheSize",         Settings.NodeCacheSize.getPrefixedValue(prefix));
+		settings.put("uuidCachesize",         Settings.UuidCacheSize.getPrefixedValue(prefix));
+		settings.put("forceStreaming",        Settings.ForceResultStreaming.getPrefixedValue(prefix));
+ */

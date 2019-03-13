@@ -2937,7 +2937,8 @@ input.bitmask {
 	top: -1px;
 }
 
-#about-structr .props {
+#about-structr .props,
+#database-connections .props {
 	margin-top: 10px;
 }
 

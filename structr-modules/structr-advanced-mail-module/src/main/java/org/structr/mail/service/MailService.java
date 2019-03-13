@@ -174,7 +174,7 @@ public class MailService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public boolean initialize(StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 		return true;
 	}
 

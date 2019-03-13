@@ -121,4 +121,9 @@ public class IntegerSetting extends Setting<Integer> {
 			setValue(-1);
 		}
 	}
+
+	@Override
+	protected Setting<Integer> copy(final String key) {
+		return new IntegerSetting(group, category, key, value);
+	}
 }

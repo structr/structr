@@ -69,7 +69,7 @@ public interface LDAPUser extends User {
 
 	static void initializeFrom(final LDAPUser thisUser, final Entry entry) throws FrameworkException {
 
-		final LDAPService ldapService      = Services.getInstance().getService(LDAPService.class);
+		final LDAPService ldapService      = Services.getInstance().getService(LDAPService.class, "default");
 		final Map<String, String> mappings = new LinkedHashMap<>();
 
 		if (ldapService != null) {
@@ -99,7 +99,7 @@ public interface LDAPUser extends User {
 
 	static boolean isValidPassword(final LDAPUser thisUser, final String password) {
 
-		final LDAPService ldapService = Services.getInstance().getService(LDAPService.class);
+		final LDAPService ldapService = Services.getInstance().getService(LDAPService.class, "default");
 		final String dn               = thisUser.getDistinguishedName();
 
 		if (ldapService != null) {
@@ -126,7 +126,7 @@ public interface LDAPUser extends User {
 				// update all LDAP groups..
 				logger.info("Updating LDAP information for {} ({})", thisUser.getName(), thisUser.getProperty(StructrApp.key(LDAPUser.class, "distinguishedName")));
 
-				final LDAPService service = Services.getInstance().getService(LDAPService.class);
+				final LDAPService service = Services.getInstance().getService(LDAPService.class, "default");
 				if (service != null) {
 
 						for (final LDAPGroup group : StructrApp.getInstance().nodeQuery(LDAPGroup.class).getAsList()) {

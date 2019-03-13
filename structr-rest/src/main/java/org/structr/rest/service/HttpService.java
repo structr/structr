@@ -154,7 +154,7 @@ public class HttpService implements RunnableService {
 	}
 
 	@Override
-	public boolean initialize(final StructrServices services) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
 		final LicenseManager licenseManager = services.getLicenseManager();
 		final boolean isTest                = Services.isTesting();

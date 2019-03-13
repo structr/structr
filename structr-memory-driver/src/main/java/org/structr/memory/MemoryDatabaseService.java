@@ -64,9 +64,9 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 	private File storageDirectory                                       = null;
 
 	@Override
-	public boolean initialize() {
+	public boolean initialize(final String serviceName) {
 
-		storageDirectory = new File(Settings.DatabasePath.getValue());
+		storageDirectory = new File(Settings.DatabasePath.getPrefixedValue(serviceName));
 
 		loadFromStorage();
 		return true;

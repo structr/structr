@@ -23,6 +23,7 @@ import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeSet;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -111,7 +112,7 @@ public class ConfigServlet extends HttpServlet {
 				final String serviceName = request.getParameter("start");
 				if (serviceName != null && isAuthenticated(request)) {
 
-					Services.getInstance().startService(serviceName);
+					//Services.getInstance().startService(serviceName);
 				}
 
 				// redirect
@@ -122,7 +123,7 @@ public class ConfigServlet extends HttpServlet {
 				final String serviceName = request.getParameter("stop");
 				if (serviceName != null && isAuthenticated(request)) {
 
-					Services.getInstance().shutdownService(serviceName);
+					//Services.getInstance().shutdownService(serviceName, "default");
 				}
 
 				// redirect
@@ -140,8 +141,8 @@ public class ConfigServlet extends HttpServlet {
 
 							try { Thread.sleep(1000); } catch (Throwable t) {}
 
-							Services.getInstance().shutdownService(serviceName);
-							Services.getInstance().startService(serviceName);
+							//Services.getInstance().shutdownService(serviceName, "default");
+							//Services.getInstance().startService(serviceName);
 						}
 
 					}).start();
@@ -287,36 +288,43 @@ public class ConfigServlet extends HttpServlet {
 		header.block("th").text("Service Name");
 		header.block("th").attr(new Attr("colspan", "2"));
 
+		for (final Class serviceClass : services.getRegisteredServiceClasses()) {
 
-		for (final Class serviceClass : services.getServices()) {
+			final Set<String> serviceNames = new TreeSet<>();
 
-			final boolean running         = serviceClass != null ? services.isReady(serviceClass) : false;
-			final String serviceClassName = serviceClass.getSimpleName();
+			serviceNames.addAll(services.getServices(serviceClass).keySet());
+			serviceNames.add("default");
 
-			final Tag row  = table.block("tr");
+			for (final String name : serviceNames) {
 
-			row.block("td").text(serviceClassName);
+				final boolean running         = serviceClass != null ? services.isReady(serviceClass, name) : false;
+				final String serviceClassName = serviceClass.getSimpleName() + "." + name;
 
-			if (running) {
+				final Tag row  = table.block("tr");
 
-				row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?restart=" + serviceClassName + "';")).text("Restart");
+				row.block("td").text(serviceClassName);
 
-				if ("HttpService".equals(serviceClassName)) {
+				if (running) {
+
+					row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?restart=" + serviceClassName + "';")).text("Restart");
+
+					if ("HttpService".equals(serviceClassName)) {
+
+						row.block("td");
+
+					} else {
+
+						row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?stop=" + serviceClassName + "';")).text("Stop");
+					}
 
 					row.block("td");
 
 				} else {
 
-					row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?stop=" + serviceClassName + "';")).text("Stop");
+					row.block("td");
+					row.block("td");
+					row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?start=" + serviceClassName + "';")).text("Start");
 				}
-
-				row.block("td");
-
-			} else {
-
-				row.block("td");
-				row.block("td");
-				row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?start=" + serviceClassName + "';")).text("Start");
 			}
 		}
 

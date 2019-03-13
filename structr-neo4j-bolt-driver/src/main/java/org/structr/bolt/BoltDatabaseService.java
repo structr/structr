@@ -75,24 +75,30 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	private Properties globalGraphProperties                          = null;
 	private CypherRelationshipIndex relationshipIndex                 = null;
 	private CypherNodeIndex nodeIndex                                 = null;
+	private String serviceName                                        = null;
 	private String databaseUrl                                        = null;
 	private String databasePath                                       = null;
 	private Driver driver                                             = null;
 
 	@Override
-	public boolean initialize() {
+	public boolean initialize(final String name) {
 
-		this.databasePath = Settings.DatabasePath.getValue();
-		this.tenantId     = Settings.TenantIdentifier.getValue();
+		if (!"default".equals(name)) {
+
+			serviceName = name;
+		}
+
+		this.databasePath             = Settings.DatabasePath.getPrefixedValue(serviceName);
+		this.tenantId                 = Settings.TenantIdentifier.getPrefixedValue(serviceName);
 
 		if (StringUtils.isBlank(this.tenantId)) {
 			this.tenantId = null;
 		}
 
-		databaseUrl              = Settings.ConnectionUrl.getValue();
-		final String username    = Settings.ConnectionUser.getValue();
-		final String password    = Settings.ConnectionPassword.getValue();
-		final String driverMode  = Settings.DatabaseDriverMode.getValue();
+		databaseUrl              = Settings.ConnectionUrl.getPrefixedValue(serviceName);
+		final String username    = Settings.ConnectionUser.getPrefixedValue(serviceName);
+		final String password    = Settings.ConnectionPassword.getPrefixedValue(serviceName);
+		final String driverMode  = Settings.DatabaseDriverMode.getPrefixedValue(serviceName);
 		String databaseDriverUrl = "bolt://" + databaseUrl;
 
 		// build list of supported query languages
@@ -124,8 +130,8 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 				Config.build().withEncryption().toConfig()
 			);
 
-			final int relCacheSize  = Settings.RelationshipCacheSize.getValue();
-			final int nodeCacheSize = Settings.NodeCacheSize.getValue();
+			final int relCacheSize  = Settings.RelationshipCacheSize.getPrefixedValue(serviceName);
+			final int nodeCacheSize = Settings.NodeCacheSize.getPrefixedValue(serviceName);
 
 			NodeWrapper.initialize(nodeCacheSize);
 			logger.info("Node cache size set to {}", nodeCacheSize);
@@ -141,6 +147,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			return true;
 
 		} catch (ServiceUnavailableException ex) {
+			ex.printStackTrace();
 			logger.error("Neo4j service is not available.");
 		}
 

@@ -86,7 +86,7 @@ public interface LDAPGroup extends Group {
 
 	static void update(final SecurityContext securityContext, final LDAPGroup thisGroup) {
 
-		final LDAPService ldapService = Services.getInstance().getService(LDAPService.class);
+		final LDAPService ldapService = Services.getInstance().getService(LDAPService.class, "default");
 		if (ldapService != null) {
 
 			try {

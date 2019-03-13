@@ -109,13 +109,13 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
-		DatabaseService graphDb = Services.getInstance().getService(NodeService.class).getDatabaseService();
-		String mode             = (String)attributes.get("mode");
-		String fileName         = (String)attributes.get("file");
-		String validate         = (String)attributes.get("validate");
-		String query            = (String)attributes.get("query");
-		Long batchSize          = (Long)attributes.get("batchSize");
-		boolean doValidation    = true;
+		final DatabaseService graphDb = Services.getInstance().getDatabaseService("default");
+		final String mode             = (String)attributes.get("mode");
+		final String fileName         = (String)attributes.get("file");
+		final String validate         = (String)attributes.get("validate");
+		final String query            = (String)attributes.get("query");
+		final Long batchSize          = (Long)attributes.get("batchSize");
+		boolean doValidation          = true;
 
 		// should we validate imported nodes?
 		if (validate != null) {

@@ -93,7 +93,6 @@ public class CypherQueryConverter extends PropertyConverter {
 
 				return nodes;
 
-
 			} catch(FrameworkException fex) {
 
 				logger.warn("Exception while executing cypher query {}: {}", new Object[] { query, fex.getMessage() } );

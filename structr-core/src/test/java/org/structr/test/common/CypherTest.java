@@ -80,7 +80,7 @@ public class CypherTest extends StructrTest {
 	@Test
 	public void test01DeleteAfterLookupWithCypherInTransaction() {
 
-		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+		if (Services.getInstance().getDatabaseService("default").supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
 			try {
 
@@ -182,7 +182,7 @@ public class CypherTest extends StructrTest {
 	@Test
 	public void test04DeleteAfterIndexLookup() {
 
-		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+		if (Services.getInstance().getDatabaseService("default").supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
 			try {
 
@@ -239,7 +239,7 @@ public class CypherTest extends StructrTest {
 	@Test
 	public void test05RollbackDelete() {
 
-		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+		if (Services.getInstance().getDatabaseService("default").supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
 			try {
 
@@ -287,7 +287,7 @@ public class CypherTest extends StructrTest {
 	@Test
 	public void testCypherResultWrapping() {
 
-		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+		if (Services.getInstance().getDatabaseService("default").supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
 			try (final Tx tx = app.tx()) {
 
@@ -565,7 +565,7 @@ public class CypherTest extends StructrTest {
 	@Test
 	public void testCypherPathWrappingWithPermissions() {
 
-		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+		if (Services.getInstance().getDatabaseService("default").supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
 			Principal tester = null;
 
@@ -660,7 +660,7 @@ public class CypherTest extends StructrTest {
 	@Test
 	public void testPathWrapper() {
 
-		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+		if (Services.getInstance().getDatabaseService("default").supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
 			try {
 
@@ -698,7 +698,7 @@ public class CypherTest extends StructrTest {
 	@Test
 	public void testNativeCypherMapping() {
 
-		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+		if (Services.getInstance().getDatabaseService("default").supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
 			cleanDatabaseAndSchema();
 

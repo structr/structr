@@ -45,11 +45,14 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 
 	public static void flushAll() {
 
-		final NodeService nodeService = Services.getInstance().getService(NodeService.class);
-		if (nodeService != null) {
+		final Map<String, NodeService> services = Services.getInstance().getServices(NodeService.class);
+		if (services != null) {
 
-			final DatabaseService db = nodeService.getDatabaseService();
-			db.clearCaches();
+			for (final NodeService service : services.values()) {
+
+				final DatabaseService db = service.getDatabaseService();
+				db.clearCaches();
+			}
 		}
 
 		ResourceAccess.clearCache();
