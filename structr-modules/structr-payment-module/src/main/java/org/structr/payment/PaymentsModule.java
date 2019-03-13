@@ -29,9 +29,9 @@ import org.structr.module.StructrModule;
 import org.structr.schema.action.Actions;
 
 
-public class StructrPaymentsModule implements StructrModule {
+public class PaymentsModule implements StructrModule {
 
-	private static final Logger logger = LoggerFactory.getLogger(StructrPaymentsModule.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(PaymentsModule.class.getName());
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
