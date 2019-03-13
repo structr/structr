@@ -28,103 +28,101 @@ var _Widgets = {
 	localWidgetsEl: undefined,
 	widgetServerSelector: undefined,
 
-	localWidgetsCollapsed: false,
-	remoteWidgetsCollapsed: false,
+	localWidgetsCollapsedKey: 'structrWidgetLocalCollapsedKey_' + port,
+	remoteWidgetsCollapsedKey: 'structrWidgetRemoteCollapsedKey_' + port,
 
 	reloadWidgets: function() {
 
 		widgetsSlideout.find(':not(.compTab)').remove();
 
-		_Widgets.getConfiguredWidgetServers(function(serverConfigs) {
+		let templateConfig = {
+			localCollapsed: LSWrapper.getItem(_Widgets.localWidgetsCollapsedKey, false),
+			remoteCollapsed: LSWrapper.getItem(_Widgets.remoteWidgetsCollapsedKey, false)
+		};
 
-			let templateConfig = {
-				localCollapsed: _Widgets.localWidgetsCollapsed === true,
-				remoteCollapsed: _Widgets.remoteWidgetsCollapsed === true
-			};
+		Structr.fetchHtmlTemplate('widgets/slideout', templateConfig, function(html) {
 
-			Structr.fetchHtmlTemplate('widgets/slideout', templateConfig, function(html) {
+			widgetsSlideout.append(html);
 
-				widgetsSlideout.append(html);
+			widgetsSlideout[0].querySelectorAll('a.tab-group-toggle').forEach(function(toggleLink) {
 
-				widgetsSlideout[0].querySelectorAll('a.tab-group-toggle').forEach(function(toggleLink) {
-
-					toggleLink.addEventListener('click', function(event) {
-						event.target.closest('.tab-group').classList.toggle('collapsed');
-					});
-				});
-
-				_Widgets.localWidgetsEl = $('#widgets', widgetsSlideout);
-
-				$('.add_widgets_icon', widgetsSlideout).on('click', function(e) {
-					e.stopPropagation();
-					Command.create({type: 'Widget'});
-				});
-
-				_Widgets.localWidgetsEl.droppable({
-					drop: function(e, ui) {
-						e.preventDefault();
-						e.stopPropagation();
-						dropBlocked = true;
-						var sourceId = Structr.getId($(ui.draggable));
-						var sourceWidget = StructrModel.obj(sourceId);
-
-						if (sourceWidget && sourceWidget.isWidget) {
-							if (sourceWidget.treePath) {
-								_Logger.log(_LogType.WIDGETS, 'Copying remote widget', sourceWidget);
-
-								Command.create({ type: 'Widget', name: sourceWidget.name + ' (copied)', source: sourceWidget.source, description: sourceWidget.description, configuration: sourceWidget.configuration }, function(entity) {
-									_Logger.log(_LogType.WIDGETS, 'Copied remote widget successfully', entity);
-									dropBlocked = false;
-								});
-							}
-						} else {
-							$.ajax({
-								url: viewRootUrl + sourceId + '?edit=1',
-								contentType: 'text/html',
-								statusCode: {
-									200: function(data) {
-										Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, function(entity) {
-											_Logger.log(_LogType.WIDGETS, 'Created widget successfully', entity);
-											dropBlocked = false;
-										});
-									}
-								}
-							});
-						}
-					}
-				});
-
-				_Pager.initPager('local-widgets', 'Widget', 1, 25);
-				var _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl, true, 'Widget', 'public', function(entities) {
-					entities.forEach(function (entity) {
-						StructrModel.create(entity, null, false);
-						_Widgets.appendWidgetElement(entity, false, _Widgets.localWidgetsEl);
-					});
-				});
-
-				_wPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name" />');
-				_wPager.activateFilterElements();
-
-				_Widgets.remoteWidgetsEl = $('#remoteWidgets', widgetsSlideout);
-
-				_Widgets.remoteWidgetFilterEl = $('#remoteWidgetsFilter');
-				_Widgets.remoteWidgetFilterEl.val(_Widgets.remoteWidgetFilter);
-				_Widgets.remoteWidgetFilterEl.keyup(function (e) {
-					if (e.keyCode === 27) {
-						$(this).val('');
-					}
-
-					_Widgets.repaintRemoteWidgets($(this).val());
-				});
-
-				document.querySelector('button#edit-widget-servers').addEventListener('click', _Widgets.showWidgetServersDialog);
-
-				_Widgets.updateWidgetServerSelector(function() {
-					_Widgets.refreshRemoteWidgets();
+				toggleLink.addEventListener('click', function(event) {
+					let tabGroup = event.target.closest('.tab-group');
+					tabGroup.classList.toggle('collapsed');
+					LSWrapper.setItem(tabGroup.dataset.key, tabGroup.classList.contains('collapsed'));
 				});
 			});
-		});
 
+			_Widgets.localWidgetsEl = $('#widgets', widgetsSlideout);
+
+			$('.add_widgets_icon', widgetsSlideout).on('click', function(e) {
+				e.stopPropagation();
+				Command.create({type: 'Widget'});
+			});
+
+			_Widgets.localWidgetsEl.droppable({
+				drop: function(e, ui) {
+					e.preventDefault();
+					e.stopPropagation();
+					dropBlocked = true;
+					var sourceId = Structr.getId($(ui.draggable));
+					var sourceWidget = StructrModel.obj(sourceId);
+
+					if (sourceWidget && sourceWidget.isWidget) {
+						if (sourceWidget.treePath) {
+							_Logger.log(_LogType.WIDGETS, 'Copying remote widget', sourceWidget);
+
+							Command.create({ type: 'Widget', name: sourceWidget.name + ' (copied)', source: sourceWidget.source, description: sourceWidget.description, configuration: sourceWidget.configuration }, function(entity) {
+								_Logger.log(_LogType.WIDGETS, 'Copied remote widget successfully', entity);
+								dropBlocked = false;
+							});
+						}
+					} else {
+						$.ajax({
+							url: viewRootUrl + sourceId + '?edit=1',
+							contentType: 'text/html',
+							statusCode: {
+								200: function(data) {
+									Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, function(entity) {
+										_Logger.log(_LogType.WIDGETS, 'Created widget successfully', entity);
+										dropBlocked = false;
+									});
+								}
+							}
+						});
+					}
+				}
+			});
+
+			_Pager.initPager('local-widgets', 'Widget', 1, 25);
+			var _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl, true, 'Widget', 'public', function(entities) {
+				entities.forEach(function (entity) {
+					StructrModel.create(entity, null, false);
+					_Widgets.appendWidgetElement(entity, false, _Widgets.localWidgetsEl);
+				});
+			});
+
+			_wPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name" />');
+			_wPager.activateFilterElements();
+
+			_Widgets.remoteWidgetsEl = $('#remoteWidgets', widgetsSlideout);
+
+			_Widgets.remoteWidgetFilterEl = $('#remoteWidgetsFilter');
+			_Widgets.remoteWidgetFilterEl.val(_Widgets.remoteWidgetFilter);
+			_Widgets.remoteWidgetFilterEl.keyup(function (e) {
+				if (e.keyCode === 27) {
+					$(this).val('');
+				}
+
+				_Widgets.repaintRemoteWidgets($(this).val());
+			});
+
+			document.querySelector('button#edit-widget-servers').addEventListener('click', _Widgets.showWidgetServersDialog);
+
+			_Widgets.updateWidgetServerSelector(function() {
+				_Widgets.refreshRemoteWidgets();
+			});
+		});
 	},
 	getWidgetServerUrl: function() {
 		return _Widgets.widgetServerSelector.value;
