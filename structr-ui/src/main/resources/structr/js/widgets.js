@@ -152,6 +152,7 @@ var _Widgets = {
 
 				Command.createApplicationConfigurationDataNode(_Widgets.applicationConfigurationDataNodeKey, name, url, function(e) {
 					_Widgets.updateWidgetServersTable();
+					_Widgets.updateWidgetServerSelector();
 				});
 			});
 		});
@@ -177,7 +178,17 @@ var _Widgets = {
 							Command.deleteNode(acdnID, false, function() {
 								tr.remove();
 
-								_Widgets.updateWidgetServerSelector();
+								let currentServer = LSWrapper.getItem(_Widgets.widgetServerKey);
+								let needsRefresh = (_Widgets.widgetServerSelector.value === currentServer);
+								if (needsRefresh) {
+									LSWrapper.removeItem(_Widgets.widgetServerKey);
+								}
+
+								_Widgets.updateWidgetServerSelector(function() {
+									if (needsRefresh) {
+										_Widgets.refreshRemoteWidgets();
+									}
+								});
 
 								$.unblockUI({
 									fadeOut: 25

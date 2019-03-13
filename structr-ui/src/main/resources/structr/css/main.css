@@ -329,6 +329,7 @@ img.disabled {
 
 #widgetsSlideout select#widget-server-selector {
 	width: calc(100% - 65px);
+	margin-left: 1px;
 }
 
 #widgetsSlideout button.add_widgets_icon {
