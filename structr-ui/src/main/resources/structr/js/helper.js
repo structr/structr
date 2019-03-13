@@ -412,8 +412,8 @@ var LSWrapper = new (function() {
 		_localStorageObject[key] = value;
 	};
 
-	this.getItem = function (key) {
-		return (_localStorageObject[key] === undefined) ? null : _localStorageObject[key];
+	this.getItem = function (key, defaultValue = null) {
+		return (_localStorageObject[key] === undefined) ? defaultValue : _localStorageObject[key];
 	};
 
 	this.removeItem = function (key) {
