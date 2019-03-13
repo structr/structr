@@ -327,8 +327,8 @@ img.disabled {
 	margin-top: -6px;
 }
 
-#widgetsSlideout input#remoteWidgetsUrl {
-	width: calc(100% - 100px);
+#widgetsSlideout select#widget-server-selector {
+	width: calc(100% - 65px);
 }
 
 #widgetsSlideout button.add_widgets_icon {
@@ -5066,4 +5066,24 @@ dl.help-definitions dd {
 }
 .tab-group.collapsed i.expanded {
 	display: none;
+}
+
+.dialogText .dialog-padding {
+	padding: 10px;
+}
+
+.dialogText table.full-width {
+	width: calc(100% - 10px);
+}
+
+.dialogText table.full-width th {
+	text-align: left;
+}
+
+.dialogText table.full-width th, .dialogText table.full-width td {
+	padding: 4px;
+}
+
+.dialogText table.full-width td input {
+	width: calc(100% - 4px);
 }
