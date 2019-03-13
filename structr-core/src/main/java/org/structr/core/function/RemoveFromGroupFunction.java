@@ -33,7 +33,7 @@ public class RemoveFromGroupFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "remove_from_group()";
+		return "remove_from_group";
 	}
 
 	@Override

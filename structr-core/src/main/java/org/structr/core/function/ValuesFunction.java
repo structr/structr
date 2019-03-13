@@ -38,7 +38,7 @@ public class ValuesFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "values()";
+		return "values";
 	}
 
 	@Override

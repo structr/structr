@@ -42,7 +42,7 @@ public class CreateArchiveFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "create_archive()";
+		return "create_archive";
 	}
 
 	@Override

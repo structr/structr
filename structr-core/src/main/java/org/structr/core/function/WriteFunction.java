@@ -36,7 +36,7 @@ public class WriteFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "write()";
+		return "write";
 	}
 
 	@Override

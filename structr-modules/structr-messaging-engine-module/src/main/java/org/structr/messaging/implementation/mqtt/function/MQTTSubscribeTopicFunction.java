@@ -30,7 +30,7 @@ public class MQTTSubscribeTopicFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mqtt_subscribe()";
+		return "mqtt_subscribe";
 	}
 
 	@Override

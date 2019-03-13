@@ -32,7 +32,7 @@ public class PrintFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "print()";
+		return "print";
 	}
 
 	@Override

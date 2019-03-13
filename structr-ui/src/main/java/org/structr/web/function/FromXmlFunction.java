@@ -48,7 +48,7 @@ public class FromXmlFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "from_xml()";
+		return "from_xml";
 	}
 
 	@Override

@@ -34,7 +34,7 @@ public class EmptyFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "empty()";
+		return "empty";
 	}
 
 	@Override

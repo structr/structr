@@ -34,7 +34,7 @@ public class AnalyzeJavaFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "analyze_java()";
+		return "analyze_java";
 	}
 
 	@Override

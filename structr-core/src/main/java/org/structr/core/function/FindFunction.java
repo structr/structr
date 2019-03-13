@@ -42,7 +42,7 @@ public class FindFunction extends AbstractQueryFunction {
 
 	@Override
 	public String getName() {
-		return "find()";
+		return "find";
 	}
 
 	@Override

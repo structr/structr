@@ -31,7 +31,7 @@ public class GetRequestHeaderFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "get_request_header()";
+		return "get_request_header";
 	}
 
 	@Override

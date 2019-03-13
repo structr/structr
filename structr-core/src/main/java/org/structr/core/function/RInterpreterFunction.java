@@ -37,7 +37,7 @@ public class RInterpreterFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "r()";
+		return "r";
 	}
 
 	@Override

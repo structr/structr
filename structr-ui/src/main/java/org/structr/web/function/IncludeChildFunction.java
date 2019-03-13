@@ -42,7 +42,7 @@ public class IncludeChildFunction extends IncludeFunction {
 
 	@Override
 	public String getName() {
-		return "include_child()";
+		return "include_child";
 	}
 
 	@Override

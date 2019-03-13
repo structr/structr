@@ -37,7 +37,7 @@ public class ServerLogFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "serverlog()";
+		return "serverlog";
 	}
 
 	@Override

@@ -39,7 +39,7 @@ public class JdbcFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "jdbc()";
+		return "jdbc";
 	}
 
 	@Override

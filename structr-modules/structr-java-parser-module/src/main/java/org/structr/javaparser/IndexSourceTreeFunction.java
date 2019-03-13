@@ -34,7 +34,7 @@ public class IndexSourceTreeFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "index_source_tree()";
+		return "index_source_tree";
 	}
 
 	@Override

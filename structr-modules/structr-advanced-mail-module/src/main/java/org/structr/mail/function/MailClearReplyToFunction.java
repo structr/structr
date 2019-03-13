@@ -29,7 +29,7 @@ public class MailClearReplyToFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mail_clear_reply_to()";
+		return "mail_clear_reply_to";
 	}
 
 	@Override

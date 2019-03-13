@@ -33,12 +33,12 @@ public class EqualFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "equal()";
+		return "equal";
 	}
 
 	@Override
 	public List<String> aliases() {
-		return Arrays.asList("eq()");
+		return Arrays.asList("eq");
 	}
 
 	@Override

@@ -18,9 +18,9 @@
  */
 package org.structr.core.function;
 
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -30,7 +30,7 @@ public class DivFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "div()";
+		return "div";
 	}
 
 	@Override
@@ -46,7 +46,7 @@ public class DivFunction extends Function<Object, Object> {
 
 			} catch (NumberFormatException nfe) {
 
-				logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getName(), caller, getParametersAsString(sources) });
+				logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getReplacement(), caller, getParametersAsString(sources) });
 				return nfe.getMessage();
 
 			}
@@ -62,7 +62,7 @@ public class DivFunction extends Function<Object, Object> {
 
 				} catch (NumberFormatException nfe) {
 
-					logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getName(), caller, getParametersAsString(sources) });
+					logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getReplacement(), caller, getParametersAsString(sources) });
 					return nfe.getMessage();
 				}
 			}

@@ -30,7 +30,7 @@ public class HttpHeadFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "HEAD()";
+		return "HEAD";
 	}
 
 	@Override

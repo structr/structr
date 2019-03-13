@@ -30,7 +30,7 @@ public class FloorFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "floor()";
+		return "floor";
 	}
 
 	@Override

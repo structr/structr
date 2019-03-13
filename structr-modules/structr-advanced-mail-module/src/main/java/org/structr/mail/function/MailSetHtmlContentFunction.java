@@ -30,7 +30,7 @@ public class MailSetHtmlContentFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mail_set_html_content()";
+		return "mail_set_html_content";
 	}
 
 	@Override

@@ -31,7 +31,7 @@ public class StoreFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "store()";
+		return "store";
 	}
 
 	@Override

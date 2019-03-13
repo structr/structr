@@ -29,7 +29,7 @@ public class MailClearBccFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mail_clear_bcc()";
+		return "mail_clear_bcc";
 	}
 
 	@Override

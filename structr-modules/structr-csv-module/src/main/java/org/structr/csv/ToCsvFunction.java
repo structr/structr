@@ -51,7 +51,7 @@ public class ToCsvFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "to_csv()";
+		return "to_csv";
 	}
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {

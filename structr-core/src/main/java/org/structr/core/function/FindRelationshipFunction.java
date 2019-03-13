@@ -42,7 +42,7 @@ public class FindRelationshipFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "find_relationship()";
+		return "find_relationship";
 	}
 
 	@Override

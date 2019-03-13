@@ -31,7 +31,7 @@ public class SplitRegexFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "split_regex()";
+		return "split_regex";
 	}
 
 	@Override

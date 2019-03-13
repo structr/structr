@@ -34,7 +34,7 @@ public class NumberFormatFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "number_format()";
+		return "number_format";
 	}
 
 	@Override

@@ -34,7 +34,7 @@ public class HasRelationshipFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "has_relationship()";
+		return "has_relationship";
 	}
 
 	@Override

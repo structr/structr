@@ -33,7 +33,7 @@ public class AncestorTypesFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "ancestor_types()";
+		return "ancestor_types";
 	}
 
 	@Override

@@ -33,7 +33,7 @@ public class MergeFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "merge()";
+		return "merge";
 	}
 
 	@Override

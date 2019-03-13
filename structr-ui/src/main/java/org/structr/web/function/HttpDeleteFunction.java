@@ -35,7 +35,7 @@ public class HttpDeleteFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "DELETE()";
+		return "DELETE";
 	}
 
 	@Override

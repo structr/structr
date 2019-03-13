@@ -29,7 +29,7 @@ public class MailClearBounceAddressFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mail_clear_bounce_address()";
+		return "mail_clear_bounce_address";
 	}
 
 	@Override

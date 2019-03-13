@@ -30,7 +30,7 @@ public class LengthFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "length()";
+		return "length";
 	}
 
 	@Override

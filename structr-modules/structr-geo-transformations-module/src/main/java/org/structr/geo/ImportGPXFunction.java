@@ -81,7 +81,7 @@ public class ImportGPXFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "import_gpx()";
+		return "import_gpx";
 	}
 
 	@Override

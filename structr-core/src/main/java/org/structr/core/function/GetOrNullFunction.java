@@ -37,7 +37,7 @@ public class GetOrNullFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "get_or_null()";
+		return "get_or_null";
 	}
 
 	@Override

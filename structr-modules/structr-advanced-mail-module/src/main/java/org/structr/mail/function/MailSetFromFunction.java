@@ -29,7 +29,7 @@ public class MailSetFromFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mail_set_from()";
+		return "mail_set_from";
 	}
 
 	@Override

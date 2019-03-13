@@ -30,7 +30,7 @@ public class MailSetBounceAddressFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mail_set_bounce_address()";
+		return "mail_set_bounce_address";
 	}
 
 	@Override

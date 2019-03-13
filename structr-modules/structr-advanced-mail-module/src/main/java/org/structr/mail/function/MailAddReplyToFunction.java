@@ -29,7 +29,7 @@ public class MailAddReplyToFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mail_add_reply_to()";
+		return "mail_add_reply_to";
 	}
 
 	@Override

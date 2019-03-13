@@ -30,7 +30,7 @@ public class NotFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "not()";
+		return "not";
 	}
 
 	@Override

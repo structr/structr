@@ -29,7 +29,7 @@ public class MailSetTextContentFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mail_set_text_content()";
+		return "mail_set_text_content";
 	}
 
 	@Override

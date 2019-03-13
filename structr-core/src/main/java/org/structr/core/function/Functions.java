@@ -67,10 +67,10 @@ public class Functions {
 
 	public static void put(final boolean licensed, final int edition, final Function<Object, Object> function) {
 
-		registerFunction(licensed, edition, function.getName().replace("()", ""), function);
+		registerFunction(licensed, edition, function.getName(), function);
 
 		function.aliases().forEach(alias -> {
-			registerFunction(licensed, edition, alias.replace("()", ""), function);
+			registerFunction(licensed, edition, alias, function);
 		});
 	}
 

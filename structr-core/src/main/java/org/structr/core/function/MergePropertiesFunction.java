@@ -36,7 +36,7 @@ public class MergePropertiesFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "merge_properties()";
+		return "merge_properties";
 	}
 
 	@Override

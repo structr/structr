@@ -31,7 +31,7 @@ public class MultFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mult()";
+		return "mult";
 	}
 
 	@Override

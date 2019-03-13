@@ -34,7 +34,7 @@ public class MergeUniqueFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "merge_unique()";
+		return "merge_unique";
 	}
 
 	@Override

@@ -30,7 +30,7 @@ public class UpperFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "upper()";
+		return "upper";
 	}
 
 	@Override

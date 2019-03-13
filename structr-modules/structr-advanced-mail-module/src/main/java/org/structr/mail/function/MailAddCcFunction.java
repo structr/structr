@@ -29,7 +29,7 @@ public class MailAddCcFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mail_add_cc()";
+		return "mail_add_cc";
 	}
 
 	@Override

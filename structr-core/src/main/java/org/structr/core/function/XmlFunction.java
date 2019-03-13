@@ -37,7 +37,7 @@ public class XmlFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "xml()";
+		return "xml";
 	}
 
 	@Override

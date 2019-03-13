@@ -41,7 +41,7 @@ public class PDFFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "pdf()";
+		return "pdf";
 	}
 
 	@Override

@@ -40,7 +40,7 @@ public class CreateFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "create()";
+		return "create";
 	}
 
 	@Override

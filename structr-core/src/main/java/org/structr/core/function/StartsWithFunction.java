@@ -28,7 +28,7 @@ public class StartsWithFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "starts_with()";
+		return "starts_with";
 	}
 
 	@Override

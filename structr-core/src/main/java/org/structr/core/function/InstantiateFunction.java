@@ -31,7 +31,7 @@ public class InstantiateFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "instantiate()";
+		return "instantiate";
 	}
 
 	@Override

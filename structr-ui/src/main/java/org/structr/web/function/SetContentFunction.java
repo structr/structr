@@ -34,7 +34,7 @@ public class SetContentFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "set_content()";
+		return "set_content";
 	}
 
 	@Override

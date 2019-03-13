@@ -31,7 +31,7 @@ public class EscapeJavascriptFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "escape_javascript()";
+		return "escape_javascript";
 	}
 
 	@Override

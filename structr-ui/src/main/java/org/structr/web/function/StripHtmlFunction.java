@@ -31,7 +31,7 @@ public class StripHtmlFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "strip_html()";
+		return "strip_html";
 	}
 
 	@Override

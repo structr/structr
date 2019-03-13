@@ -42,7 +42,7 @@ public class GetOrCreateFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "get_or_create()";
+		return "get_or_create";
 	}
 
 	@Override

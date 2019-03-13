@@ -33,7 +33,7 @@ public class AddToGroupFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "add_to_group()";
+		return "add_to_group";
 	}
 
 	@Override

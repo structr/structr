@@ -29,7 +29,7 @@ public class MailClearHeadersFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mail_clear_headers()";
+		return "mail_clear_headers";
 	}
 
 	@Override

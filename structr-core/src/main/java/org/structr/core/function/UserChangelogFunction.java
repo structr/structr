@@ -32,7 +32,7 @@ public class UserChangelogFunction extends ChangelogFunction {
 
 	@Override
 	public String getName() {
-		return "user_changelog()";
+		return "user_changelog";
 	}
 
 	@Override

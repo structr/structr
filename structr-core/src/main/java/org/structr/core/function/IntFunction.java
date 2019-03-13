@@ -30,7 +30,7 @@ public class IntFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "int()";
+		return "int";
 	}
 
 	@Override

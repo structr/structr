@@ -29,7 +29,7 @@ public class MailSetSubjectFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mail_set_subject()";
+		return "mail_set_subject";
 	}
 
 	@Override

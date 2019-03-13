@@ -29,7 +29,7 @@ public class CallPrivilegedFunction extends CallFunction {
 
 	@Override
 	public String getName() {
-		return "call_privileged()";
+		return "call_privileged";
 	}
 
 	@Override

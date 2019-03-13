@@ -31,7 +31,7 @@ public class ComplementFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "complement()";
+		return "complement";
 	}
 
 	@Override
@@ -49,7 +49,7 @@ public class ComplementFunction extends Function<Object, Object> {
 
 		} else {
 
-			logger.warn("Argument 1 for must be a Collection. Parameters: {}", new Object[] { getName(), getParametersAsString(sources) });
+			logger.warn("Argument 1 for must be a Collection. Parameters: {}", new Object[] { getReplacement(), getParametersAsString(sources) });
 			return "Argument 1 for complement must be a Collection";
 
 		}

@@ -36,7 +36,7 @@ public class TemplateFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "template()";
+		return "template";
 	}
 
 	@Override

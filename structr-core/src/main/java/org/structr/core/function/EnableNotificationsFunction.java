@@ -32,7 +32,7 @@ public class EnableNotificationsFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "enable_notifications()";
+		return "enable_notifications";
 	}
 
 	@Override

@@ -32,7 +32,7 @@ public class GetCsvHeadersFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "get_csv_headers()";
+		return "get_csv_headers";
 	}
 
 	@Override
@@ -76,7 +76,7 @@ public class GetCsvHeadersFunction extends UiFunction {
 
 			} catch (Throwable t) {
 
-				logException(t, "{}: Exception for parameter: {}", new Object[] { getName(), getParametersAsString(sources) });
+				logException(t, "{}: Exception for parameter: {}", new Object[] { getReplacement(), getParametersAsString(sources) });
 			}
 
 			return "";

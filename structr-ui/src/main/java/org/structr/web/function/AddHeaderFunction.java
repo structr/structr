@@ -30,7 +30,7 @@ public class AddHeaderFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "add_header()";
+		return "add_header";
 	}
 
 	@Override

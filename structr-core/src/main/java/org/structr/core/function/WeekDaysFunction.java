@@ -36,7 +36,7 @@ public class WeekDaysFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "week_days()";
+		return "week_days";
 	}
 
 	@Override
@@ -63,10 +63,10 @@ public class WeekDaysFunction extends Function<Object, Object> {
 
 				//adjust for starting and ending on a Sunday:
 				return daysWithoutWeekends + (startWeek == DayOfWeek.SUNDAY ? 1 : 0) + (endWeek == DayOfWeek.SUNDAY ? 1 : 0);
-				
+
 			} catch (Exception ex) {
 
-				logger.warn("{}: Could not calculate week days. Parameters: {}", new Object[] { getName(), caller, getParametersAsString(sources) });
+				logger.warn("{}: Could not calculate week days. Parameters: {}", new Object[] { getReplacement(), caller, getParametersAsString(sources) });
 
 			}
 

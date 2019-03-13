@@ -36,7 +36,7 @@ public class GetOutgoingRelationshipsFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "get_outgoing_relationships()";
+		return "get_outgoing_relationships";
 	}
 
 	@Override

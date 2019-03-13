@@ -32,7 +32,7 @@ public class UnescapeHtmlFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "unescape_html()";
+		return "unescape_html";
 	}
 
 	@Override

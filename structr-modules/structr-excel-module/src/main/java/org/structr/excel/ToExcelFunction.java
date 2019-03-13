@@ -53,7 +53,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "to_excel()";
+		return "to_excel";
 	}
 
 	@Override

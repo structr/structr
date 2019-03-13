@@ -39,7 +39,7 @@ public class KeysFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "keys()";
+		return "keys";
 	}
 
 	@Override

@@ -35,7 +35,7 @@ public class ParseJavaFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "parse_java()";
+		return "parse_java";
 	}
 
 	@Override

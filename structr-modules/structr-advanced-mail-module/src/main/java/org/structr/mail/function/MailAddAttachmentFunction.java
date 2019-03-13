@@ -35,7 +35,7 @@ public class MailAddAttachmentFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mail_add_attachment()";
+		return "mail_add_attachment";
 	}
 
 	@Override

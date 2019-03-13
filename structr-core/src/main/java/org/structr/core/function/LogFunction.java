@@ -37,7 +37,7 @@ public class LogFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "log()";
+		return "log";
 	}
 
 	@Override

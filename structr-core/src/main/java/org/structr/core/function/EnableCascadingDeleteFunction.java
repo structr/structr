@@ -32,7 +32,7 @@ public class EnableCascadingDeleteFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "enable_cascading_delete()";
+		return "enable_cascading_delete";
 	}
 
 	@Override

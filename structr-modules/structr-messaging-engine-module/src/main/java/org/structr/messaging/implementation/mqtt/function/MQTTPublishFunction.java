@@ -33,7 +33,7 @@ public class MQTTPublishFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mqtt_publish()";
+		return "mqtt_publish";
 	}
 
 	@Override

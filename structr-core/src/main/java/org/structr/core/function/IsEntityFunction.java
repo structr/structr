@@ -31,7 +31,7 @@ public class IsEntityFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "is_entity()";
+		return "is_entity";
 	}
 
 	@Override

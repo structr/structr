@@ -41,7 +41,7 @@ public class GetRelationshipTypesFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "get_relationship_types()";
+		return "get_relationship_types";
 	}
 
 	@Override

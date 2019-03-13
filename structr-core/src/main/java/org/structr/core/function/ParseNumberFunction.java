@@ -36,7 +36,7 @@ public class ParseNumberFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "parse_number()";
+		return "parse_number";
 	}
 
 	@Override
@@ -48,7 +48,7 @@ public class ParseNumberFunction extends Function<Object, Object> {
 		}
 
 		try {
-		
+
 			final String numberString = sources[0].toString().replaceAll("[^\\d.,]", "");;
 
 			if (StringUtils.isBlank(numberString)) {
@@ -57,7 +57,7 @@ public class ParseNumberFunction extends Function<Object, Object> {
 
 			Locale locale = ctx.getLocale();
 			try {
-			
+
 				if (sources.length == 2) {
 
 					final String localeString = sources[1].toString();
@@ -72,7 +72,7 @@ public class ParseNumberFunction extends Function<Object, Object> {
 
 			} catch (ParseException ex) {
 
-				logException(ex, "{}: Could not parse string \"{}\" to number. Parameters: {}", new Object[] { getName(), caller, getParametersAsString(sources) });
+				logException(ex, "{}: Could not parse string \"{}\" to number. Parameters: {}", new Object[] { getReplacement(), caller, getParametersAsString(sources) });
 			}
 
 		} catch (final IllegalArgumentException e) {

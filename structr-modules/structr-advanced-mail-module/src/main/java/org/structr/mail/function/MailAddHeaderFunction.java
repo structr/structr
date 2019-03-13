@@ -29,7 +29,7 @@ public class MailAddHeaderFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mail_add_header()";
+		return "mail_add_header";
 	}
 
 	@Override

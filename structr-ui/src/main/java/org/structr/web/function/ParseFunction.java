@@ -35,7 +35,7 @@ public class ParseFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "parse()";
+		return "parse";
 	}
 
 	@Override

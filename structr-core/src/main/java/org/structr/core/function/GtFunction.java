@@ -31,7 +31,7 @@ public class GtFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "gt()";
+		return "gt";
 	}
 
 	@Override

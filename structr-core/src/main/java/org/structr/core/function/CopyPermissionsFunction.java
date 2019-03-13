@@ -33,7 +33,7 @@ public class CopyPermissionsFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "copy_permissions()";
+		return "copy_permissions";
 	}
 
 	@Override

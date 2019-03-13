@@ -36,7 +36,7 @@ public class DebugFunction extends LogFunction {
 
 	@Override
 	public String getName() {
-		return "debug()";
+		return "debug";
 	}
 
 	@Override

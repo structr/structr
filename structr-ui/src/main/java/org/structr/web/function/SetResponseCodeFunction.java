@@ -33,7 +33,7 @@ public class SetResponseCodeFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "set_response_code()";
+		return "set_response_code";
 	}
 
 	@Override

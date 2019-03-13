@@ -33,7 +33,7 @@ public class InheritingTypesFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "inheriting_types()";
+		return "inheriting_types";
 	}
 
 	@Override

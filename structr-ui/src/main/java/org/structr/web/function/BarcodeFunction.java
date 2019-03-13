@@ -40,7 +40,7 @@ public class BarcodeFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "barcode()";
+		return "barcode";
 	}
 
 	@Override

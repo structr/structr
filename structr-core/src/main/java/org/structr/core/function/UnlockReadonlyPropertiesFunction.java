@@ -32,7 +32,7 @@ public class UnlockReadonlyPropertiesFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "unlock_readonly_properties_once()";
+		return "unlock_readonly_properties_once";
 	}
 
 	@Override

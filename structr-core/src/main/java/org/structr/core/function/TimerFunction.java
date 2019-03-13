@@ -32,7 +32,7 @@ public class TimerFunction extends Function<Object, Object>{
 
 	@Override
 	public String getName() {
-		return "timer()";
+		return "timer";
 	}
 
 	@Override

@@ -35,7 +35,7 @@ public class IsInGroupFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "is_in_group()";
+		return "is_in_group";
 	}
 
 	@Override

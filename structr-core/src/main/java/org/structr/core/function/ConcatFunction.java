@@ -36,7 +36,7 @@ public class ConcatFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "concat()";
+		return "concat";
 	}
 
 	@Override

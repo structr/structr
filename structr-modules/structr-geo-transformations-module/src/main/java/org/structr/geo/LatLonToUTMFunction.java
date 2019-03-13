@@ -37,7 +37,7 @@ public class LatLonToUTMFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "lat_lon_to_utm()";
+		return "lat_lon_to_utm";
 	}
 
 	@Override

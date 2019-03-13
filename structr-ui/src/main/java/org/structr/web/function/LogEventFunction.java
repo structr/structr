@@ -35,7 +35,7 @@ public class LogEventFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "log_event()";
+		return "log_event";
 	}
 
 	@Override

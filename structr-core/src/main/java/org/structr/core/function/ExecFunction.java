@@ -38,7 +38,7 @@ public class ExecFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "exec()";
+		return "exec";
 	}
 
 	@Override

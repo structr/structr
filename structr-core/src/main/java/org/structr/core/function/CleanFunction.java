@@ -34,7 +34,7 @@ public class CleanFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "clean()";
+		return "clean";
 	}
 
 	@Override

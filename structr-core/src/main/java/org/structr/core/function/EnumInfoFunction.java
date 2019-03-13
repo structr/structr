@@ -39,7 +39,7 @@ public class EnumInfoFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "enum_info()";
+		return "enum_info";
 	}
 
 	@Override

@@ -29,7 +29,7 @@ public class MailClearAttachmentsFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mail_clear_attachments()";
+		return "mail_clear_attachments";
 	}
 
 	@Override

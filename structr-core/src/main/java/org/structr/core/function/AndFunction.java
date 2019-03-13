@@ -31,7 +31,7 @@ public class AndFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "and()";
+		return "and";
 	}
 
 	@Override

@@ -30,7 +30,7 @@ public class MaxFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "max()";
+		return "max";
 	}
 
 	@Override
@@ -44,7 +44,7 @@ public class MaxFunction extends Function<Object, Object> {
 
 		} catch (NumberFormatException nfe) {
 
-			logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getName(), caller, getParametersAsString(sources) });
+			logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getReplacement(), caller, getParametersAsString(sources) });
 			return usage(ctx.isJavaScriptContext());
 
 		} catch (ArgumentNullException pe) {

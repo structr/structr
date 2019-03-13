@@ -120,6 +120,6 @@ public class CopyFileContentsFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "copy_file_contents()";
+		return "copy_file_contents";
 	}
 }

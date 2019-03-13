@@ -31,7 +31,7 @@ public class JoinFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "join()";
+		return "join";
 	}
 
 	@Override

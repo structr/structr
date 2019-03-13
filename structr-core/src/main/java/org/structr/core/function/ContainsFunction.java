@@ -33,7 +33,7 @@ public class ContainsFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "contains()";
+		return "contains";
 	}
 
 	@Override

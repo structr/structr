@@ -33,7 +33,7 @@ public class MailBeginFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mail_begin()";
+		return "mail_begin";
 	}
 
 	@Override

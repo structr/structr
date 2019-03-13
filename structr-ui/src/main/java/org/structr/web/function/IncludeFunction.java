@@ -51,7 +51,7 @@ public class IncludeFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "include()";
+		return "include";
 	}
 
 	@Override

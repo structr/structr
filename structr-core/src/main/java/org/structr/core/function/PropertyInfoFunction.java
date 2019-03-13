@@ -36,7 +36,7 @@ public class PropertyInfoFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "property_info()";
+		return "property_info";
 	}
 
 	@Override

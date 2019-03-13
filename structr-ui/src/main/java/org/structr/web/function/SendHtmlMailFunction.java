@@ -42,7 +42,7 @@ public class SendHtmlMailFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "send_html_mail()";
+		return "send_html_mail";
 	}
 
 	@Override

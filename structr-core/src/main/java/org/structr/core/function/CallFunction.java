@@ -37,7 +37,7 @@ public class CallFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "call()";
+		return "call";
 	}
 
 	@Override

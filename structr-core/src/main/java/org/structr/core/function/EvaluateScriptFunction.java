@@ -34,7 +34,7 @@ public class EvaluateScriptFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "evaluate_script()";
+		return "evaluate_script";
 	}
 
 	@Override

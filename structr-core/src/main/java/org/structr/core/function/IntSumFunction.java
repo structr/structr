@@ -30,7 +30,7 @@ public class IntSumFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "int_sum()";
+		return "int_sum";
 	}
 
 	@Override

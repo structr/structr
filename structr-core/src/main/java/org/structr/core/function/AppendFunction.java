@@ -34,7 +34,7 @@ public class AppendFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "append()";
+		return "append";
 	}
 
 	@Override

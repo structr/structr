@@ -30,7 +30,7 @@ public class MailSendFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mail_send()";
+		return "mail_send";
 	}
 
 	@Override

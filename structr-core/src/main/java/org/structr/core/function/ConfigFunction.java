@@ -34,7 +34,7 @@ public class ConfigFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "config()";
+		return "config";
 	}
 
 	@Override

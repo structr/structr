@@ -30,7 +30,7 @@ public class TypeInfoFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "type_info()";
+		return "type_info";
 	}
 
 	@Override

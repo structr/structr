@@ -33,7 +33,7 @@ public class CreateRelationshipFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "create_relationship()";
+		return "create_relationship";
 	}
 
 	@Override
