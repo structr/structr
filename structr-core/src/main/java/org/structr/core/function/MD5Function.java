@@ -31,7 +31,7 @@ public class MD5Function extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "md5()";
+		return "md5";
 	}
 
 	@Override

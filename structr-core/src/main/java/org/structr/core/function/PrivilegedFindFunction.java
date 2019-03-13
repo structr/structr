@@ -38,7 +38,7 @@ public class PrivilegedFindFunction extends Function<Object, Object> {
 
     @Override
     public String getName() {
-        return("find_privileged()");
+        return "find_privileged";
     }
 
     @Override
