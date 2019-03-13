@@ -144,6 +144,8 @@ var _Widgets = {
 			Structr.dialog('Widget Servers');
 			dialogText.html(html);
 
+			Structr.activateCommentsInElement(dialogText, {helpElementCss: { 'font-size': '13px'}});
+
 			_Widgets.updateWidgetServersTable();
 
 			dialogText[0].querySelector('button#save-widget-server').addEventListener('click', function () {
