@@ -285,6 +285,8 @@ var Structr = {
 
 		Promise.resolve($.ajax('templates/' + templateName + '.html')).then(function(templateHtml) {
 			Structr.templateCache.addObject(templateHtml, templateName);
+		}).catch(function(e) {
+			console.log(e.statusText, templateName, e);
 		});
 
 	}),
