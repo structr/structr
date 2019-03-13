@@ -1742,17 +1742,20 @@ var Structr = {
 			callback(parameterizedTemplate, cacheHit);
 		});
 	},
-	activateCommentsInElement: function(elem) {
+	activateCommentsInElement: function(elem, defaults) {
 
 		$('[data-comment]', elem).each(function(idx, el) {
-			Structr.appendInfoTextToElement({
+
+			let config = {
 				text: $(el).data("comment"),
 				element: $(el),
 				css: {
 					"margin": "0 4px",
 					"vertical-align": "top"
 				}
-			});
+			};
+
+			Structr.appendInfoTextToElement(Object.assign(config, defaults));
 		});
 
 	},
