@@ -34,7 +34,7 @@ public class Base64DecodeFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "base64decode()";
+		return "base64decode";
 	}
 
 	@Override
