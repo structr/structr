@@ -36,6 +36,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.mail.entity.EMailMessage;
@@ -228,7 +229,22 @@ public class MailService extends Thread implements RunnableService {
 				final String path = (attachmentBasePath.getValue() + "/" + Integer.toString(cal.get(Calendar.YEAR)) + "/" + Integer.toString(cal.get(Calendar.MONTH)) + "/" + Integer.toString(cal.get(Calendar.DAY_OF_MONTH)) + "/" + mb.getUuid());
 
 				org.structr.web.entity.Folder fileFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), path);
-				file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), p.getInputStream(), p.getContentType(), fileClass, p.getFileName(), fileFolder);
+
+				try {
+
+					String fileName = p.getFileName();
+
+					if (fileName == null) {
+						fileName = NodeServiceCommand.getNextUuid();
+					}
+
+					file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), p.getInputStream(), p.getContentType(), fileClass, fileName, fileFolder);
+
+				} catch (FrameworkException ex) {
+
+					logger.warn("EMail in mailbox[" + mb.getUuid() + "] attachment has invalid name. Using random UUID as fallback.");
+					file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), p.getInputStream(), p.getContentType(), fileClass, NodeServiceCommand.getNextUuid(), fileFolder);
+				}
 
 				tx.success();
 
@@ -287,7 +303,7 @@ public class MailService extends Thread implements RunnableService {
 					} else if (part.isMimeType("text/plain")) {
 
 						result.put("content", content.concat(getText(part)));
-					} else {
+					} else if (!part.isMimeType("message/delivery-status")){
 
 						logger.warn("Cannot handle content type given by email part. Given metadata is either faulty or specific implementation is missing. Type: {}, Mailbox: {}, Content: {}", part.getContentType(), mb.getUuid(), part.getContent().toString());
 					}
