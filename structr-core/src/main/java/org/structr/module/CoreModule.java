@@ -47,6 +47,7 @@ import org.structr.core.function.CreateRelationshipFunction;
 import org.structr.core.function.CypherFunction;
 import org.structr.core.function.DateFormatFunction;
 import org.structr.core.function.DebugFunction;
+import org.structr.core.function.DeleteCacheValueFunction;
 import org.structr.core.function.DeleteFunction;
 import org.structr.core.function.DisableCascadingDeleteFunction;
 import org.structr.core.function.DisableNotificationsFunction;
@@ -71,6 +72,7 @@ import org.structr.core.function.FirstFunction;
 import org.structr.core.function.FloorFunction;
 import org.structr.core.function.Functions;
 import org.structr.core.function.GeocodeFunction;
+import org.structr.core.function.GetCacheValueFunction;
 import org.structr.core.function.GetCounterFunction;
 import org.structr.core.function.GetFunction;
 import org.structr.core.function.GetIncomingRelationshipsFunction;
@@ -82,6 +84,7 @@ import org.structr.core.function.GetRelationshipsFunction;
 import org.structr.core.function.GrantFunction;
 import org.structr.core.function.GtFunction;
 import org.structr.core.function.GteFunction;
+import org.structr.core.function.HasCacheValueFunction;
 import org.structr.core.function.HasIncomingRelationshipFunction;
 import org.structr.core.function.HasOutgoingRelationshipFunction;
 import org.structr.core.function.HasRelationshipFunction;
@@ -332,6 +335,10 @@ public class CoreModule implements StructrModule {
 		Functions.put(true, LicenseManager.Community, new EndsWithFunction());
 		Functions.put(true, LicenseManager.Community, new Base64EncodeFunction());
 		Functions.put(true, LicenseManager.Community, new Base64DecodeFunction());
+
+		Functions.put(true, LicenseManager.Community, new HasCacheValueFunction());
+		Functions.put(true, LicenseManager.Community, new GetCacheValueFunction());
+		Functions.put(true, LicenseManager.Community, new DeleteCacheValueFunction());
 
 		// ----- BEGIN functions with side effects -----
 		Functions.put(true, LicenseManager.Community, new SetFunction());
