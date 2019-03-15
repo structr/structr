@@ -77,7 +77,7 @@ public class Functions {
 	private static void registerFunction(final boolean licensed, final int edition, final String name, final Function<Object, Object> function) {
 
 		if (functions.containsKey(name)) {
-			logger.warn("A Function named '{}' is already registered, previous function will be overwritten with this one.", name);
+			logger.warn("A function named '{}' is already registered! The previous function will be overwritten with this one.", name);
 		}
 
 		if (licensed) {

@@ -33,36 +33,39 @@ public class ODFModule implements StructrModule{
 	public void onLoad(final LicenseManager licenseManager) {
 	}
 
-        @Override
-        public String getName() {
-                return "odf";
-        }
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
+	}
 
-        @Override
-        public Set<String> getDependencies() {
-                return null;
-        }
+	@Override
+	public String getName() {
+		return "odf";
+	}
 
-        @Override
-        public Set<String> getFeatures() {
-                return null;
-        }
+	@Override
+	public Set<String> getDependencies() {
+		return null;
+	}
 
-        @Override
-        public void insertImportStatements(AbstractSchemaNode schemaNode, StringBuilder buf) {
-        }
+	@Override
+	public Set<String> getFeatures() {
+		return null;
+	}
 
-        @Override
-        public void insertSourceCode(AbstractSchemaNode schemaNode, StringBuilder buf) {
-        }
+	@Override
+	public void insertImportStatements(AbstractSchemaNode schemaNode, StringBuilder buf) {
+	}
 
-        @Override
-        public void insertSaveAction(AbstractSchemaNode schemaNode, StringBuilder buf, Actions.Type type) {
-        }
+	@Override
+	public void insertSourceCode(AbstractSchemaNode schemaNode, StringBuilder buf) {
+	}
 
-        @Override
-        public Set<String> getInterfacesForType(AbstractSchemaNode schemaNode) {
-                return null;
-        }
+	@Override
+	public void insertSaveAction(AbstractSchemaNode schemaNode, StringBuilder buf, Actions.Type type) {
+	}
 
+	@Override
+	public Set<String> getInterfacesForType(AbstractSchemaNode schemaNode) {
+		return null;
+	}
 }

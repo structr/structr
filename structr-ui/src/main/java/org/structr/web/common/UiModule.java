@@ -75,6 +75,16 @@ public class UiModule implements StructrModule {
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
 
+		DataSources.put(true, LicenseManager.Community, "idRequestParameterDataSource", new IdRequestParameterGraphDataSource("nodeId"));
+		DataSources.put(true, LicenseManager.Community, "restDataSource",               new RestDataSource());
+		DataSources.put(true, LicenseManager.Community, "cypherDataSource",             new CypherGraphDataSource());
+		DataSources.put(true, LicenseManager.Community, "functionDataSource",           new FunctionDataSource());
+		DataSources.put(true, LicenseManager.Community, "xpathDataSource",              new XPathGraphDataSource());
+	}
+
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
+
 		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
 		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
 		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
@@ -91,13 +101,6 @@ public class UiModule implements StructrModule {
 		Functions.put(true, LicenseManager.Community, new RenderFunction());
 		Functions.put(true, LicenseManager.Community, new SetDetailsObjectFunction());
 		Functions.put(true, LicenseManager.Community, new ConfirmationKeyFunction());
-
-		DataSources.put(true, LicenseManager.Community, "idRequestParameterDataSource", new IdRequestParameterGraphDataSource("nodeId"));
-		DataSources.put(true, LicenseManager.Community, "restDataSource",               new RestDataSource());
-		DataSources.put(true, LicenseManager.Community, "cypherDataSource",             new CypherGraphDataSource());
-		DataSources.put(true, LicenseManager.Community, "functionDataSource",           new FunctionDataSource());
-		DataSources.put(true, LicenseManager.Community, "xpathDataSource",              new XPathGraphDataSource());
-
 
 		// Basic Edition and up
 		Functions.put(basicEdition, LicenseManager.Basic, new SendHtmlMailFunction());
@@ -130,7 +133,6 @@ public class UiModule implements StructrModule {
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new ScheduleFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MaintenanceFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new BarcodeFunction());
-
 	}
 
 	@Override

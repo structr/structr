@@ -34,6 +34,10 @@ public class CSVModule implements StructrModule {
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+	}
+
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
 		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
 //		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);

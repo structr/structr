@@ -27,15 +27,19 @@ import org.structr.pdf.function.PDFFunction;
 import org.structr.schema.action.Actions;
 
 public class PDFModule implements StructrModule {
+
 	@Override
 	public void onLoad(LicenseManager licenseManager) {
+	}
+
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
 		// final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
 		// final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
 		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
 
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new PDFFunction());
-
 	}
 
 	@Override

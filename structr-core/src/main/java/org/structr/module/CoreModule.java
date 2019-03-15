@@ -179,6 +179,10 @@ public class CoreModule implements StructrModule {
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+	}
+
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
 		final boolean licensed = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
 

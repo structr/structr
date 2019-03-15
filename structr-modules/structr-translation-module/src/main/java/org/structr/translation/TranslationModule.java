@@ -34,16 +34,18 @@ public class TranslationModule implements StructrModule {
 	public static final Setting<String> TranslationGoogleAPIKey      = new StringSetting(Settings.miscGroup,   "Translation Module", "translation.google.apikey", "");
 	public static final Setting<String> TranslationDeepLAPIKey       = new StringSetting(Settings.miscGroup,   "Translation Module", "translation.deepl.apikey", "");
 
-
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+	}
+
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
 //		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
 		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
 //		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
 
-		Functions.put(smallBusinessEdition, LicenseManager.Basic, new TranslateFunction());
-
+		Functions.put(smallBusinessEdition, LicenseManager.SmallBusiness, new TranslateFunction());
 	}
 
 	@Override

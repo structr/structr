@@ -66,11 +66,15 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 		final boolean enterpriseEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
 
-		// Enterprise only
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new FlowFunction());
-
 		DataSources.put(enterpriseEdition, LicenseManager.Enterprise, "flowDataSource", new FlowContainerDataSource());
+	}
 
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
+
+		final boolean enterpriseEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
+
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new FlowFunction());
 	}
 
 	@Override

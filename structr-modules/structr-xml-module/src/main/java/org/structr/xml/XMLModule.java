@@ -33,8 +33,12 @@ public class XMLModule implements StructrModule, org.structr.module.xml.XMLModul
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+	}
 
-		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
+
+//		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
 //		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
 //		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
 	}

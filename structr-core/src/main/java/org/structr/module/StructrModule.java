@@ -38,6 +38,13 @@ public interface StructrModule {
 	void onLoad(final LicenseManager licenseManager);
 
 	/**
+	 * Registers the functions of the module
+	 *
+	 * @param licenseManager the license manager or null
+	 */
+	void registerModuleFunctions(final LicenseManager licenseManager);
+
+	/**
 	 * Returns the name of this module, with an optional version number.
 	 *
 	 * @return the name of this module
