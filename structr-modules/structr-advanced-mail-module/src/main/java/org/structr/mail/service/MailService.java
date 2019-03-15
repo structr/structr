@@ -274,7 +274,7 @@ public class MailService extends Thread implements RunnableService {
 				final String content = result.get("content") != null ? result.get("content") : "";
 
 				BodyPart part = (BodyPart) p.getBodyPart(i);
-				if (part.getContentType().contains("multipart")) {
+				if (part.isMimeType("multipart/mixed") || part.isMimeType("multipart/alternative") || part.isMimeType("multipart/parallel")) {
 
 					Map<String,String> subResult = handleMultipart(mb, (Multipart)part.getContent(), attachments);
 
