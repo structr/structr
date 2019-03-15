@@ -43,7 +43,7 @@ public class MaintenanceFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "maintenance()";
+		return "maintenance";
 	}
 
 	@Override

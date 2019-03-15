@@ -36,6 +36,11 @@ public class RInterpreterFunction extends Function<Object, Object> {
 	public static final String ERROR_MESSAGE_R_JS = "Usage: ${{Structr.r(<R code>)}}";
 
 	@Override
+	public String getName() {
+		return "r";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -85,10 +90,5 @@ public class RInterpreterFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "";
-	}
-
-	@Override
-	public String getName() {
-		return "r()";
 	}
 }

@@ -31,7 +31,7 @@ public class RintFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "rint()";
+		return "rint";
 	}
 
 	@Override

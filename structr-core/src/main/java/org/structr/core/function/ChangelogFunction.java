@@ -60,7 +60,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "changelog()";
+		return "changelog";
 	}
 
 	@Override

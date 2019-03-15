@@ -30,7 +30,7 @@ public class UrlEncodeFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "urlencode()";
+		return "urlencode";
 	}
 
 	@Override

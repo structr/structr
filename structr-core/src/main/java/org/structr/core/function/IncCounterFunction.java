@@ -18,9 +18,9 @@
  */
 package org.structr.core.function;
 
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -30,7 +30,7 @@ public class IncCounterFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "inc_counter()";
+		return "inc_counter";
 	}
 
 	@Override
@@ -57,7 +57,7 @@ public class IncCounterFunction extends Function<Object, Object> {
 
 			} catch (NumberFormatException nfe) {
 
-				logException(nfe, "{}: NumberFormatException parsing counter level \"{}\" in element \"{}\". Parameters: {}", new Object[] { getName(), sources[0].toString(), caller, getParametersAsString(sources) });
+				logException(nfe, "{}: NumberFormatException parsing counter level \"{}\" in element \"{}\". Parameters: {}", new Object[] { getReplacement(), sources[0].toString(), caller, getParametersAsString(sources) });
 			}
 
 		} catch (ArgumentNullException pe) {

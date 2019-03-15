@@ -30,7 +30,7 @@ public class CoalesceFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "coalesce()";
+		return "coalesce";
 	}
 
 	@Override

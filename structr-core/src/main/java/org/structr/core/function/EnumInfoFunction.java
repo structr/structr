@@ -38,6 +38,11 @@ public class EnumInfoFunction extends Function<Object, Object> {
 	public static final String ERROR_MESSAGE_ENUM_INFO_JS = "Usage: ${Structr.enum_info(type, enumProperty[, raw])}. Example ${Structr.enum_info('Document', 'documentType')}";
 
 	@Override
+	public String getName() {
+		return "enum_info";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
@@ -113,10 +118,5 @@ public class EnumInfoFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Returns the enum values as an array";
-	}
-
-	@Override
-	public String getName() {
-		return "enum_info()";
 	}
 }

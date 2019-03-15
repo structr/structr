@@ -47,6 +47,11 @@ public class FromXmlFunction extends UiFunction {
 	public static final String ERROR_MESSAGE_FROM_XML_JS = "Usage: ${{Structr.from_xml(src)}}. Example: ${{Structr.from_xml('<entry>0</entry>')}}";
 
 	@Override
+	public String getName() {
+		return "from_xml";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, Object[] sources) throws FrameworkException {
 
 		if (sources != null && sources.length > 0) {
@@ -96,11 +101,6 @@ public class FromXmlFunction extends UiFunction {
 	@Override
 	public String shortDescription() {
 		return "Parses the given XML and returns a list of objects.";
-	}
-
-	@Override
-	public String getName() {
-		return "from_xml()";
 	}
 
 	// ----- private methods -----

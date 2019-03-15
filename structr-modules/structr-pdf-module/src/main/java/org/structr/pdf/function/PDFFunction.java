@@ -39,6 +39,10 @@ public class PDFFunction extends Function<Object, Object> {
 	public static final String ERROR_MESSAGE_PDF = "Usage: ${ pdf(page [, wkhtmltopdfParameter, baseUrl, runWithXServer, xServerSettings]) }";
 	public static final String ERROR_MESSAGE_PDF_JS = "Usage: ${{ Structr.pdf(page [, wkhtmltopdfParameter, baseUrl, runWithXServer, xServerSettings]); }}";
 
+	@Override
+	public String getName() {
+		return "pdf";
+	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
@@ -171,12 +175,6 @@ public class PDFFunction extends Function<Object, Object> {
 
 	@Override
 	public String shortDescription() {
-
 		return "Creates the PDF representation of a given page.";
-	}
-
-	@Override
-	public String getName() {
-		return "pdf()";
 	}
 }

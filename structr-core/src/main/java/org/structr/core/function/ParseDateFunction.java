@@ -34,7 +34,7 @@ public class ParseDateFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "parse_date()";
+		return "parse_date";
 	}
 
 	@Override
@@ -63,7 +63,7 @@ public class ParseDateFunction extends Function<Object, Object> {
 
 			} catch (ParseException ex) {
 
-				logger.warn("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[] { getName(), dateString, pattern, caller, getParametersAsString(sources) });
+				logger.warn("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[] { getReplacement(), dateString, pattern, caller, getParametersAsString(sources) });
 
 			}
 

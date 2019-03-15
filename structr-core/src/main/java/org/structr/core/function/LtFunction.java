@@ -31,7 +31,7 @@ public class LtFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "lt()";
+		return "lt";
 	}
 
 	@Override

@@ -37,7 +37,7 @@ public class FromCsvFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "from_csv()";
+		return "from_csv";
 	}
 
 	@Override
@@ -89,7 +89,7 @@ public class FromCsvFunction extends UiFunction {
 
 			} catch (Throwable t) {
 
-				logException(t, "{}: Exception for parameter: {}", new Object[] { getName(), getParametersAsString(sources) });
+				logException(t, "{}: Exception for parameter: {}", new Object[] { getReplacement(), getParametersAsString(sources) });
 			}
 
 			return "";

@@ -33,7 +33,7 @@ public class SetPrivilegedFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "set_privileged()";
+		return "set_privileged";
 	}
 
 	@Override

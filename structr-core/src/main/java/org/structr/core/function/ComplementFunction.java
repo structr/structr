@@ -19,23 +19,19 @@
 package org.structr.core.function;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class ComplementFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_COMPLEMENT = "Usage: ${complement(list1, list2, list3, ...)}. (The resulting list contains no duplicates) Example: ${complement(allUsers, me)} => List of all users except myself";
 
 	@Override
 	public String getName() {
-		return "complement()";
+		return "complement";
 	}
 
 	@Override
@@ -53,7 +49,7 @@ public class ComplementFunction extends Function<Object, Object> {
 
 		} else {
 
-			logger.warn("Argument 1 for must be a Collection. Parameters: {}", new Object[] { getName(), getParametersAsString(sources) });
+			logger.warn("Argument 1 for must be a Collection. Parameters: {}", new Object[] { getReplacement(), getParametersAsString(sources) });
 			return "Argument 1 for complement must be a Collection";
 
 		}

@@ -42,7 +42,7 @@ public class GetFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "get()";
+		return "get";
 	}
 
 	@Override

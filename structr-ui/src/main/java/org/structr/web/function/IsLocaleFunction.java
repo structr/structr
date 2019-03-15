@@ -32,7 +32,7 @@ public class IsLocaleFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "is_locale()";
+		return "is_locale";
 	}
 
 	@Override

@@ -239,6 +239,28 @@ $(function() {
 			Structr.dialog('Refactoring helper');
 			new RefactoringHelper(dialog).show();
 		}
+
+		// Ctrl-Alt-i
+		if (k === 73 && altKey && ctrlKey) {
+			e.preventDefault();
+
+			let tableData = [];
+			Object.keys(_Icons).forEach(function(key) {
+				if (typeof _Icons[key] === "string") {
+					tableData.push({
+						name: key,
+						icon: '<i class="' + _Icons.getFullSpriteClass(_Icons[key]) + '" />'
+					});
+				}
+			});
+
+			let html = '<table>' + tableData.map(function(trData) {
+				return '<tr><td>' + trData.name + '</td><td>' + trData.icon + '</td></tr>';
+			}).join('') + '</table>';
+
+			Structr.dialog('Icons');
+			dialogText.html(html);
+		}
 	});
 
 	resizeFunction = function() {
@@ -263,6 +285,8 @@ var Structr = {
 
 		Promise.resolve($.ajax('templates/' + templateName + '.html')).then(function(templateHtml) {
 			Structr.templateCache.addObject(templateHtml, templateName);
+		}).catch(function(e) {
+			console.log(e.statusText, templateName, e);
 		});
 
 	}),
@@ -1718,17 +1742,20 @@ var Structr = {
 			callback(parameterizedTemplate, cacheHit);
 		});
 	},
-	activateCommentsInElement: function(elem) {
+	activateCommentsInElement: function(elem, defaults) {
 
 		$('[data-comment]', elem).each(function(idx, el) {
-			Structr.appendInfoTextToElement({
+
+			let config = {
 				text: $(el).data("comment"),
 				element: $(el),
 				css: {
 					"margin": "0 4px",
 					"vertical-align": "top"
 				}
-			});
+			};
+
+			Structr.appendInfoTextToElement(Object.assign(config, defaults));
 		});
 
 	},

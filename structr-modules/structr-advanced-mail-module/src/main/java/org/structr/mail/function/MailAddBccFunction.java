@@ -25,7 +25,12 @@ import org.structr.schema.action.Function;
 public class MailAddBccFunction extends Function<Object, Object> {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_add_bcc(bccAddress[, bccName])}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${Structr.mail_add_bcc(bccAddress[, bccName])}";
+	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_add_bcc(bccAddress[, bccName]) }}";
+
+	@Override
+	public String getName() {
+		return "mail_add_bcc";
+	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
@@ -56,10 +61,5 @@ public class MailAddBccFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "";
-	}
-
-	@Override
-	public String getName() {
-		return "mail_add_bcc()";
 	}
 }

@@ -55,26 +55,26 @@ public class AdvancedMailModule implements StructrModule {
 //		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
 		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
 
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_begin",                new MailBeginFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_set_from",             new MailSetFromFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_set_subject",          new MailSetSubjectFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_set_html_content",     new MailSetHtmlContentFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_set_text_content",     new MailSetTextContentFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_add_to",               new MailAddToFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_clear_to",             new MailClearToFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_add_cc",               new MailAddCcFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_clear_cc",             new MailClearCcFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_add_bcc",              new MailAddBccFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_clear_bcc",            new MailClearBccFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_set_bounce_address",   new MailSetBounceAddressFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_clear_bounce_address", new MailClearBounceAddressFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_add_reply_to",         new MailAddReplyToFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_clear_reply_to",       new MailClearReplyToFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_add_attachment",       new MailAddAttachmentFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_clear_attachments",    new MailClearAttachmentsFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_add_header",           new MailAddHeaderFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_clear_headers",        new MailClearHeadersFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_send",                 new MailSendFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailBeginFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailSetFromFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailSetSubjectFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailSetHtmlContentFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailSetTextContentFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailAddToFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearToFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailAddCcFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearCcFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailAddBccFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearBccFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailSetBounceAddressFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearBounceAddressFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailAddReplyToFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearReplyToFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailAddAttachmentFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearAttachmentsFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailAddHeaderFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearHeadersFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailSendFunction());
 	}
 
 	@Override

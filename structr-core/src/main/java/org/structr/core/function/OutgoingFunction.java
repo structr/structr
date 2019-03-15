@@ -35,7 +35,7 @@ public class OutgoingFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "outgoing()";
+		return "outgoing";
 	}
 
 	@Override

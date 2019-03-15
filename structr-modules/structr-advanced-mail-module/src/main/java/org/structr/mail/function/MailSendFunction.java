@@ -26,7 +26,12 @@ import org.structr.schema.action.Function;
 public class MailSendFunction extends Function<Object, Object> {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_send()}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${Structr.mail_send()}";
+	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_send() }}";
+
+	@Override
+	public String getName() {
+		return "mail_send";
+	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
@@ -55,10 +60,5 @@ public class MailSendFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "";
-	}
-
-	@Override
-	public String getName() {
-		return "mail_send()";
 	}
 }

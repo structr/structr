@@ -31,7 +31,7 @@ public class OrFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "or()";
+		return "or";
 	}
 
 	@Override

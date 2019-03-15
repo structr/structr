@@ -80,17 +80,17 @@ public class UiModule implements StructrModule {
 		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
 
 		// Community Edition
-		Functions.put(true, LicenseManager.Community, "escape_html",              new EscapeHtmlFunction());
-		Functions.put(true, LicenseManager.Community, "unescape_html",            new UnescapeHtmlFunction());
-		Functions.put(true, LicenseManager.Community, "strip_html",               new StripHtmlFunction());
-		Functions.put(true, LicenseManager.Community, "from_json",                new FromJsonFunction());
-		Functions.put(true, LicenseManager.Community, "to_json",                  new ToJsonFunction());
-		Functions.put(true, LicenseManager.Community, "to_graph_object",          new ToGraphObjectFunction());
-		Functions.put(true, LicenseManager.Community, "include",                  new IncludeFunction());
-		Functions.put(true, LicenseManager.Community, "include_child",            new IncludeChildFunction());
-		Functions.put(true, LicenseManager.Community, "render",                   new RenderFunction());
-		Functions.put(true, LicenseManager.Community, "set_details_object",       new SetDetailsObjectFunction());
-		Functions.put(true, LicenseManager.Community, "confirmation_key",         new ConfirmationKeyFunction());
+		Functions.put(true, LicenseManager.Community, new EscapeHtmlFunction());
+		Functions.put(true, LicenseManager.Community, new UnescapeHtmlFunction());
+		Functions.put(true, LicenseManager.Community, new StripHtmlFunction());
+		Functions.put(true, LicenseManager.Community, new FromJsonFunction());
+		Functions.put(true, LicenseManager.Community, new ToJsonFunction());
+		Functions.put(true, LicenseManager.Community, new ToGraphObjectFunction());
+		Functions.put(true, LicenseManager.Community, new IncludeFunction());
+		Functions.put(true, LicenseManager.Community, new IncludeChildFunction());
+		Functions.put(true, LicenseManager.Community, new RenderFunction());
+		Functions.put(true, LicenseManager.Community, new SetDetailsObjectFunction());
+		Functions.put(true, LicenseManager.Community, new ConfirmationKeyFunction());
 
 		DataSources.put(true, LicenseManager.Community, "idRequestParameterDataSource", new IdRequestParameterGraphDataSource("nodeId"));
 		DataSources.put(true, LicenseManager.Community, "restDataSource",               new RestDataSource());
@@ -100,36 +100,36 @@ public class UiModule implements StructrModule {
 
 
 		// Basic Edition and up
-		Functions.put(basicEdition, LicenseManager.Basic, "send_html_mail",           new SendHtmlMailFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, "send_plaintext_mail",      new SendPlaintextMailFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, "get_content",              new GetContentFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, "set_content",              new SetContentFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, "append_content",           new AppendContentFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, "copy_file_contents",       new CopyFileContentsFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, "set_session_attribute",    new SetSessionAttributeFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, "get_session_attribute",    new GetSessionAttributeFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, "remove_session_attribute", new RemoveSessionAttributeFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, "is_locale",                new IsLocaleFunction());
+		Functions.put(basicEdition, LicenseManager.Basic, new SendHtmlMailFunction());
+		Functions.put(basicEdition, LicenseManager.Basic, new SendPlaintextMailFunction());
+		Functions.put(basicEdition, LicenseManager.Basic, new GetContentFunction());
+		Functions.put(basicEdition, LicenseManager.Basic, new SetContentFunction());
+		Functions.put(basicEdition, LicenseManager.Basic, new AppendContentFunction());
+		Functions.put(basicEdition, LicenseManager.Basic, new CopyFileContentsFunction());
+		Functions.put(basicEdition, LicenseManager.Basic, new SetSessionAttributeFunction());
+		Functions.put(basicEdition, LicenseManager.Basic, new GetSessionAttributeFunction());
+		Functions.put(basicEdition, LicenseManager.Basic, new RemoveSessionAttributeFunction());
+		Functions.put(basicEdition, LicenseManager.Basic, new IsLocaleFunction());
 
 		// Small Business and up
-		Functions.put(smallBusinessEdition, LicenseManager.SmallBusiness, "log_event",          new LogEventFunction());
+		Functions.put(smallBusinessEdition, LicenseManager.SmallBusiness, new LogEventFunction());
 
 		// Enterprise only
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "GET",                      new HttpGetFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "HEAD",                     new HttpHeadFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "POST",                     new HttpPostFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "PUT",                      new HttpPutFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "DELETE",                   new HttpDeleteFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "add_header",               new AddHeaderFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "set_response_header",      new SetResponseHeaderFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "set_response_code",        new SetResponseCodeFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "get_request_header",       new GetRequestHeaderFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "from_xml",                 new FromXmlFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "parse",                    new ParseFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "create_archive",           new CreateArchiveFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "schedule",                 new ScheduleFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "maintenance",              new MaintenanceFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "barcode",                  new BarcodeFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new HttpGetFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new HttpHeadFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new HttpPostFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new HttpPutFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new HttpDeleteFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new AddHeaderFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new SetResponseHeaderFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new SetResponseCodeFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new GetRequestHeaderFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new FromXmlFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new ParseFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new CreateArchiveFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new ScheduleFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MaintenanceFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new BarcodeFunction());
 
 	}
 

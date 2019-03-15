@@ -32,7 +32,7 @@ public class AbbrFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "abbr()";
+		return "abbr";
 	}
 
 	@Override
@@ -64,7 +64,7 @@ public class AbbrFunction extends Function<Object, Object> {
 
 		} catch (final NumberFormatException nfe) {
 
-			logException(nfe, "{}: NumberFormatException in \"{}\". Can not parse \"{}\" as Integer. Returning original string. Parameters: {}", new Object[] { getName(), caller, sources[1], getParametersAsString(sources) });
+			logException(nfe, "{}: NumberFormatException in \"{}\". Can not parse \"{}\" as Integer. Returning original string. Parameters: {}", new Object[] { getReplacement(), caller, sources[1], getParametersAsString(sources) });
 
 			return sources[0];
 

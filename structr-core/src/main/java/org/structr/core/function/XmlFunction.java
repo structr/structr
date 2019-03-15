@@ -33,11 +33,11 @@ import org.xml.sax.SAXException;
 
 public class XmlFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_XML = "Usage: ${xml(xmlSource)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\")}";
+	public static final String ERROR_MESSAGE_XML = "Usage: ${xml(xmlSource)}. Example: ${xml(xml(this.xmlSource), \"/test/testValue\")}";
 
 	@Override
 	public String getName() {
-		return "xml()";
+		return "xml";
 	}
 
 	@Override

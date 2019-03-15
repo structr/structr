@@ -33,6 +33,12 @@ public class PropertyInfoFunction extends Function<Object, Object> {
 	public static final String ERROR_MESSAGE_PROPERTY_INFO    = "Usage: ${property_info(type, name)}. Example ${property_info('User', 'name')}";
 	public static final String ERROR_MESSAGE_PROPERTY_INFO_JS = "Usage: ${Structr.propertyInfo(type, name)}. Example ${Structr.propertyInfo('User', 'name')}";
 
+
+	@Override
+	public String getName() {
+		return "property_info";
+	}
+
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
@@ -89,10 +95,5 @@ public class PropertyInfoFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Returns the schema information for the given property";
-	}
-
-	@Override
-	public String getName() {
-		return "schema_property()";
 	}
 }

@@ -39,7 +39,7 @@ public class SearchFunction extends AbstractQueryFunction {
 
 	@Override
 	public String getName() {
-		return "search()";
+		return "search";
 	}
 
 	@Override

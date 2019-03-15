@@ -34,7 +34,7 @@ public class ReadFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "read()";
+		return "read";
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public class ReadFunction extends Function<Object, Object> {
 
 		} catch (IOException ioex) {
 
-			logException(ioex, "{}: IOException in element \"{}\" for parameters: {}", new Object[] { getName(), caller, getParametersAsString(sources) });
+			logException(ioex, "{}: IOException in element \"{}\" for parameters: {}", new Object[] { getReplacement(), caller, getParametersAsString(sources) });
 
 		} catch (ArgumentNullException pe) {
 

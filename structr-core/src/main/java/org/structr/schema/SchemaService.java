@@ -212,6 +212,33 @@ public class SchemaService implements Service {
 							// compile all classes at once and register
 							final Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
 
+							for (final Class newType : newTypes.values()) {
+
+								// instantiate classes to execute static initializer of helpers
+								try {
+
+									// do full reload
+									config.registerEntityType(newType);
+									newType.newInstance();
+
+								} catch (final Throwable t) {
+
+									// abstract classes and interfaces will throw errors here
+									if (newType.isInterface() || Modifier.isAbstract(newType.getModifiers())) {
+										// ignore
+									} else {
+
+										// everything else is a severe problem and should be not only reported but also
+										// make the schema compilation fail (otherwise bad things will happen later)
+										errorBuffer.add(new InstantiationErrorToken(newType.getName(), t));
+										logger.error("Unable to instantiate dynamic entity {}", newType.getName(), t);
+									}
+								}
+							}
+
+							// calculate difference between previous and new classes
+							removedClasses.keySet().removeAll(StructrApp.getConfiguration().getTypeAndPropertyMapping().keySet());
+
 							if (errorBuffer.hasError()) {
 
 								if (Settings.SchemAutoMigration.getValue()) {
@@ -249,32 +276,6 @@ public class SchemaService implements Service {
 								retryCount = 0;
 							}
 
-							for (final Class newType : newTypes.values()) {
-
-								// instantiate classes to execute static initializer of helpers
-								try {
-
-									// do full reload
-									config.registerEntityType(newType);
-									newType.newInstance();
-
-								} catch (final Throwable t) {
-
-									// abstract classes and interfaces will throw errors here
-									if (newType.isInterface() || Modifier.isAbstract(newType.getModifiers())) {
-										// ignore
-									} else {
-
-										// everything else is a severe problem and should be not only reported but also
-										// make the schema compilation fail (otherwise bad things will happen later)
-										errorBuffer.add(new InstantiationErrorToken(newType.getName(), t));
-										logger.error("Unable to instantiate dynamic entity {}", newType.getName(), t);
-									}
-								}
-							}
-
-							// calculate difference between previous and new classes
-							removedClasses.keySet().removeAll(StructrApp.getConfiguration().getTypeAndPropertyMapping().keySet());
 						}
 
 						// create properties and views etc.

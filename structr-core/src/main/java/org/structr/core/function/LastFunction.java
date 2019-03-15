@@ -32,7 +32,7 @@ public class LastFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "last()";
+		return "last";
 	}
 
 	@Override

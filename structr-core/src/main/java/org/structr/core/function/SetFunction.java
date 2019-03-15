@@ -43,7 +43,7 @@ public class SetFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "set()";
+		return "set";
 	}
 
 	@Override

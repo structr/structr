@@ -35,7 +35,7 @@ public class ErrorFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "error()";
+		return "error";
 	}
 
 	@Override

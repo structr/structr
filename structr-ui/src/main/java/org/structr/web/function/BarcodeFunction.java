@@ -39,6 +39,11 @@ public class BarcodeFunction extends Function<Object, Object> {
 	public static final String ERROR_MESSAGE_BARCODE_JS = "Usage: ${{ Structr.barcode(type, data[, width, height[, hintsMap]]); }}";
 
 	@Override
+	public String getName() {
+		return "barcode";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -134,10 +139,5 @@ public class BarcodeFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Creates a barcode of given type with the given data.";
-	}
-
-	@Override
-	public String getName() {
-		return "barcode()";
 	}
 }

@@ -36,7 +36,7 @@ public class RenderFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "render()";
+		return "render";
 	}
 
 	@Override

@@ -35,7 +35,7 @@ public class RevokeFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "revoke()";
+		return "revoke";
 	}
 
 	@Override

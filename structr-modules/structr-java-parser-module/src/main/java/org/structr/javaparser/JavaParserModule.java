@@ -80,8 +80,8 @@ import org.structr.core.function.Functions;
 import org.structr.core.property.PropertyMap;
 import org.structr.javaparser.entity.AddJarsToIndexFunction;
 import org.structr.javaparser.entity.ClassOrInterface;
-import org.structr.javaparser.entity.JavaInterface;
 import org.structr.javaparser.entity.JavaClass;
+import org.structr.javaparser.entity.JavaInterface;
 import org.structr.javaparser.entity.Method;
 import org.structr.javaparser.entity.Module;
 import org.structr.javaparser.entity.Package;
@@ -123,12 +123,12 @@ public class JavaParserModule implements StructrModule {
 		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
 
 		// Enterprise only
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "index_source_tree",               new IndexSourceTreeFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "parse_source_tree",               new ParseSourceTreeFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "analyze_source_tree",             new AnalyzeSourceTreeFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "parse_java",                      new ParseJavaFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "analyze_java",                    new AnalyzeJavaFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "add_jars_to_index",               new AddJarsToIndexFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new IndexSourceTreeFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new ParseSourceTreeFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new AnalyzeSourceTreeFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new ParseJavaFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new AnalyzeJavaFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new AddJarsToIndexFunction());
 	}
 
 	/**

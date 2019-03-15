@@ -32,6 +32,11 @@ public class CopyPermissionsFunction extends Function<Object, Object> {
 	public static final String ERROR_MESSAGE_JS = "Usage: Structr.copyPermissions(Structr.this, other);";
 
 	@Override
+	public String getName() {
+		return "copy_permissions";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -79,10 +84,5 @@ public class CopyPermissionsFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Copies the security configuration of an entity to another entity.";
-	}
-
-	@Override
-	public String getName() {
-		return "copy_permissions()";
 	}
 }

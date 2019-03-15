@@ -32,6 +32,11 @@ public class InheritingTypesFunction extends Function<Object, Object> {
 	public static final String ERROR_MESSAGE_INHERITING_TYPES_JS = "Usage: ${Structr.inheriting_types(type[, blacklist])}. Example ${Structr.inheriting_types('User')}";
 
 	@Override
+	public String getName() {
+		return "inheriting_types";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
@@ -65,10 +70,5 @@ public class InheritingTypesFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Returns the names of the child classes of the given type";
-	}
-
-	@Override
-	public String getName() {
-		return "inheriting_types()";
 	}
 }

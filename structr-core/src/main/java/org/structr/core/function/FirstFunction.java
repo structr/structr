@@ -32,7 +32,7 @@ public class FirstFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "first()";
+		return "first";
 	}
 
 	@Override

@@ -37,7 +37,7 @@ public class HttpGetFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "GET()";
+		return "GET";
 	}
 
 	@Override

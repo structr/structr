@@ -31,7 +31,7 @@ public class CapitalizeFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "capitalize()";
+		return "capitalize";
 	}
 
 	@Override

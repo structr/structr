@@ -34,7 +34,7 @@ public class AnalyzeSourceTreeFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "analyze_source_tree()";
+		return "analyze_source_tree";
 	}
 
 	@Override

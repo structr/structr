@@ -46,7 +46,7 @@ public class XMLModule implements StructrModule, org.structr.module.xml.XMLModul
 
 	@Override
 	public Set<String> getDependencies() {
-		// CSV import depends on the API builder now
+		// XML import depends on the API builder now
 		return new LinkedHashSet<>(Arrays.asList(new String[] { "api-builder" } ));
 	}
 

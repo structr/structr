@@ -35,7 +35,7 @@ public class GrantFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "grant()";
+		return "grant";
 	}
 
 	@Override

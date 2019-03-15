@@ -80,6 +80,11 @@ public class ImportGPXFunction extends Function<Object, Object> {
 	}
 
 	@Override
+	public String getName() {
+		return "import_gpx";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -169,11 +174,6 @@ public class ImportGPXFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Imports a GPX file and creates a list of objects of a given type from it.";
-	}
-
-	@Override
-	public String getName() {
-		return "import_gpx";
 	}
 
 	// ----- private methods -----

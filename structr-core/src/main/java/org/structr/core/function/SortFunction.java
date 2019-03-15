@@ -38,7 +38,7 @@ public class SortFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "sort()";
+		return "sort";
 	}
 
 	@Override

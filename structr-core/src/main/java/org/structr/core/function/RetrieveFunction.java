@@ -31,7 +31,7 @@ public class RetrieveFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "retrieve()";
+		return "retrieve";
 	}
 
 	@Override

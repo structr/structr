@@ -34,7 +34,7 @@ public class AppendContentFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "append_content()";
+		return "append_content";
 	}
 
 	@Override

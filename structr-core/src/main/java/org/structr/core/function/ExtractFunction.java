@@ -37,7 +37,7 @@ public class ExtractFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "extract()";
+		return "extract";
 	}
 
 	@Override

@@ -29,6 +29,11 @@ public class MQTTSubscribeTopicFunction extends Function<Object, Object> {
 	public static final String ERROR_MESSAGE_MQTTSUBSCRIBE_JS = "Usage: ${{Structr.mqtt_subscribe(client, topic)}}. Example ${{Structr.mqtt_subscribe(client, topic)}}";
 
 	@Override
+	public String getName() {
+		return "mqtt_subscribe";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 		if (sources != null && sources.length == 2 && sources[0] != null && sources[1] != null) {
 
@@ -60,10 +65,5 @@ public class MQTTSubscribeTopicFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Subscribes given topic on given mqtt client.";
-	}
-
-	@Override
-	public String getName() {
-		return "mqtt_subscribe";
 	}
 }

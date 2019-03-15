@@ -33,7 +33,7 @@ public class SetLocaleFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "set_locale()";
+		return "set_locale";
 	}
 
 	@Override

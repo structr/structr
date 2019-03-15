@@ -34,7 +34,7 @@ public class ParseSourceTreeFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "parse_source_tree()";
+		return "parse_source_tree";
 	}
 
 	@Override

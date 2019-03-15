@@ -30,7 +30,7 @@ public class SubstringFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "substring()";
+		return "substring";
 	}
 
 	@Override

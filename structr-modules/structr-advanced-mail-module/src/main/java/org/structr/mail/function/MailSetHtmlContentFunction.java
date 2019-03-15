@@ -25,7 +25,13 @@ import org.structr.schema.action.Function;
 public class MailSetHtmlContentFunction extends Function<Object, Object> {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_set_html_content(htmlContent)}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${Structr.mail_set_html_content(htmlContent)}";
+	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_set_html_content(htmlContent) }}";
+
+
+	@Override
+	public String getName() {
+		return "mail_set_html_content";
+	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
@@ -53,10 +59,5 @@ public class MailSetHtmlContentFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "";
-	}
-
-	@Override
-	public String getName() {
-		return "mail_set_html_content(htmlContent)";
 	}
 }

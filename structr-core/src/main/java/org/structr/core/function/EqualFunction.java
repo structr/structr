@@ -18,6 +18,8 @@
  */
 package org.structr.core.function;
 
+import java.util.Arrays;
+import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -31,7 +33,12 @@ public class EqualFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "equal()";
+		return "equal";
+	}
+
+	@Override
+	public List<String> aliases() {
+		return Arrays.asList("eq");
 	}
 
 	@Override

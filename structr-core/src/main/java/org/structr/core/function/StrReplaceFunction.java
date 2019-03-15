@@ -30,7 +30,7 @@ public class StrReplaceFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "str_replace()";
+		return "str_replace";
 	}
 
 	@Override

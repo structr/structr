@@ -33,7 +33,7 @@ public class ReplaceFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "replace()";
+		return "replace";
 	}
 
 	@Override

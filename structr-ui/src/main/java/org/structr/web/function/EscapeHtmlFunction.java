@@ -32,7 +32,7 @@ public class EscapeHtmlFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "escape_html()";
+		return "escape_html";
 	}
 
 	@Override

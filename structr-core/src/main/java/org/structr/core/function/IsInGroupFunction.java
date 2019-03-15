@@ -34,6 +34,11 @@ public class IsInGroupFunction extends Function<Object, Object> {
 	public static final String ERROR_MESSAGE_JS = "Usage: ${{Structr.isInGroup(group, principal);}}";
 
 	@Override
+	public String getName() {
+		return "is_in_group";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -78,10 +83,5 @@ public class IsInGroupFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Returns true if a user is in the given group.";
-	}
-
-	@Override
-	public String getName() {
-		return "isInGroup()";
 	}
 }

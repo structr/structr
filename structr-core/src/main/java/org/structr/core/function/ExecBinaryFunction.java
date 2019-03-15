@@ -39,7 +39,7 @@ public class ExecBinaryFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "exec_binary()";
+		return "exec_binary";
 	}
 
 	@Override

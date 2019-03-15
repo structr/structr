@@ -18,26 +18,17 @@
  */
 package org.structr.web.function;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
-import org.structr.web.datasource.FunctionDataSource;
-import org.structr.web.entity.File;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Template;
 
@@ -51,7 +42,7 @@ public class IncludeChildFunction extends IncludeFunction {
 
 	@Override
 	public String getName() {
-		return "include_child()";
+		return "include_child";
 	}
 
 	@Override
@@ -72,7 +63,7 @@ public class IncludeChildFunction extends IncludeFunction {
 			final List<DOMNode> nodeList             = app.nodeQuery(DOMNode.class).andName((String)sources[0]).getAsList();
 
 			DOMNode node = null;
-			
+
 			// Are we are in a Template node?
 			if (caller instanceof Template) {
 

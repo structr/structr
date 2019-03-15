@@ -30,7 +30,7 @@ public class SubtFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "subt()";
+		return "subt";
 	}
 
 	@Override

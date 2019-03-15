@@ -36,6 +36,11 @@ public class LatLonToUTMFunction extends Function<Object, Object> {
 	private static final String UTMzdlChars   = "CDEFGHJKLMNPQRSTUVWXX";
 
 	@Override
+	public String getName() {
+		return "lat_lon_to_utm";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -119,11 +124,6 @@ public class LatLonToUTMFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Converts the given latitude/longitude coordinates into an UTM string.";
-	}
-
-	@Override
-	public String getName() {
-		return "lat_lon_to_utm";
 	}
 
 	// ----- private methods -----

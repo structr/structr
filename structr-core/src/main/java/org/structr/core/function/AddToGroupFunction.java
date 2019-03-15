@@ -32,6 +32,11 @@ public class AddToGroupFunction extends Function<Object, Object> {
 	public static final String ERROR_MESSAGE_JS = "Usage: ${{Structr.addToGroup(group, principal);}}";
 
 	@Override
+	public String getName() {
+		return "add_to_group";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -76,10 +81,5 @@ public class AddToGroupFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Adds a user to a group.";
-	}
-
-	@Override
-	public String getName() {
-		return "addToGroup()";
 	}
 }

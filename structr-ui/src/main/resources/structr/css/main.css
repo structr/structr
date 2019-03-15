@@ -323,8 +323,13 @@ img.disabled {
 	width: 385px;
 }
 
-#remoteWidgetsFilter  {
-	margin: -6px 0 6px 0;
+#remoteWidgets input:first-of-type  {
+	margin-top: -6px;
+}
+
+#widgetsSlideout select#widget-server-selector {
+	width: calc(100% - 65px);
+	margin-left: 1px;
 }
 
 #widgetsSlideout button.add_widgets_icon {
@@ -5023,4 +5028,64 @@ dl.help-definitions dt {
 
 dl.help-definitions dd {
 	margin-bottom: 6px;
+}
+
+#structr-console .terminal-output span,
+#structr-console .terminal-output a,
+#structr-console .cmd div,
+#structr-console .cmd span,
+#structr-console .terminal td,
+#structr-console .terminal pre,
+#structr-console .terminal h1,
+#structr-console .terminal h2,
+#structr-console .terminal h3,
+#structr-console .terminal h4,
+#structr-console .terminal h5,
+#structr-console .terminal h6 {
+	user-select: text;
+}
+
+.tab-group a.tab-group-toggle {
+	text-decoration: none;
+}
+
+.tab-group .tab-group-content {
+	display: intial;
+}
+.tab-group.collapsed .tab-group-content {
+	display: none;
+}
+
+.tab-group i.collapsed {
+	display: none;
+}
+.tab-group i.expanded {
+	display: inline-block;
+}
+
+.tab-group.collapsed i.collapsed {
+	display: inline-block;
+}
+.tab-group.collapsed i.expanded {
+	display: none;
+}
+
+.dialogText .dialog-padding {
+	padding: 10px;
+}
+
+.dialogText table.full-width {
+	width: calc(100% - 10px);
+}
+
+.dialogText table.full-width th {
+	text-align: left;
+}
+
+.dialogText table.full-width th, .dialogText table.full-width td {
+	padding: 4px;
+}
+
+.dialogText table.full-width td input {
+	width: calc(100% - 4px);
 }

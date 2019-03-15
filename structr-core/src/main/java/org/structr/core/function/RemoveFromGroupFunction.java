@@ -32,6 +32,11 @@ public class RemoveFromGroupFunction extends Function<Object, Object> {
 	public static final String ERROR_MESSAGE_JS = "Usage: ${{Structr.removeFromGroup(group, principal);}}";
 
 	@Override
+	public String getName() {
+		return "remove_from_group";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -76,10 +81,5 @@ public class RemoveFromGroupFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Removes a user from a group.";
-	}
-
-	@Override
-	public String getName() {
-		return "removeFromGroup()";
 	}
 }

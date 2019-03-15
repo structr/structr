@@ -30,7 +30,7 @@ public class ToGraphObjectFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "to_graph_object()";
+		return "to_graph_object";
 	}
 
 	@Override

@@ -26,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -60,6 +61,10 @@ public abstract class Function<S, T> extends Hint {
 	public abstract T apply(ActionContext ctx, Object caller, S[] sources) throws FrameworkException;
 	public abstract String usage(boolean inJavaScriptContext);
 
+	public List<String> aliases() {
+		return Collections.EMPTY_LIST;
+	}
+
 	/**
 	 * Basic logging for functions called with wrong parameter count
 	 *
@@ -79,7 +84,7 @@ public abstract class Function<S, T> extends Hint {
 	 * @param inJavaScriptContext Has the function been called from a JavaScript context?
 	 */
 	protected void logParameterError(final Object caller, final Object[] parameters, final String message, final boolean inJavaScriptContext) {
-		logger.warn("{}: {} \"{}\". Parameters: {}. {}", new Object[] { getName(), message, caller, getParametersAsString(parameters), usage(inJavaScriptContext) });
+		logger.warn("{}: {} '{}'. Parameters: {}. {}", new Object[] { getReplacement(), message, caller, getParametersAsString(parameters), usage(inJavaScriptContext) });
 	}
 
 	/**
@@ -90,7 +95,7 @@ public abstract class Function<S, T> extends Hint {
 	 * @param parameters The method parameters
 	 */
 	protected void logException (final Object caller, final Throwable t, final Object[] parameters) {
-		logException(t, "{}: Exception in \"{}\" for parameters: {}", new Object[] { getName(), caller, getParametersAsString(parameters) });
+		logException(t, "{}: Exception in '{}' for parameters: {}", new Object[] { getReplacement(), caller, getParametersAsString(parameters) });
 	}
 
 	/**
@@ -201,7 +206,7 @@ public abstract class Function<S, T> extends Hint {
 
 		} catch (Throwable t) {
 
-			logException(t, "{}: Exception parsing \"1\"", new Object[] { getName(), obj });
+			logException(t, "{}: Exception parsing '{}'", new Object[] { getReplacement(), obj });
 		}
 
 		return null;
@@ -263,7 +268,7 @@ public abstract class Function<S, T> extends Hint {
 
 			} catch (Throwable t) {
 
-				logException(t, "{}: Exception parsing \"1\"", new Object[] { getName(), obj });
+				logException(t, "{}: Exception parsing '{}'", new Object[] { getReplacement(), obj });
 			}
 		}
 

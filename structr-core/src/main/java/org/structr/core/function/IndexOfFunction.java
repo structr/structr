@@ -30,7 +30,7 @@ public class IndexOfFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "index_of()";
+		return "index_of";
 	}
 
 	@Override

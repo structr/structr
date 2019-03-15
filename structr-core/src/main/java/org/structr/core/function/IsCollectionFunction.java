@@ -30,7 +30,7 @@ public class IsCollectionFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "is_collection()";
+		return "is_collection";
 	}
 
 	@Override

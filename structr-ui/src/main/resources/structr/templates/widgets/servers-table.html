@@ -1,0 +1,20 @@
+<table class="full-width">
+	<thead>
+		<tr>
+			<th style="width: 20%">Name</th>
+			<th style="width: 75%">URL</th>
+			<th style="width: 5%">Actions</th>
+		</tr>
+	</thead>
+	<tbody>
+		${config.servers.map((s) => {
+			return `
+			<tr data-acdn-id="${s.id}">
+				<td>${s.editable !== false ? `<input data-key="name" value="${s.name}">` : `${s.name}`}</td>
+				<td>${s.editable !== false ? `<input data-key="content" value="${s.content}">` : `${s.content}`}</td>
+				<td>${s.editable !== false ? `<button class="delete"><i class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}" /></button>` : ''}</td>
+			</tr>
+			`;
+		}).join('')}
+	</tbody>
+</table>

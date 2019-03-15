@@ -31,7 +31,7 @@ public class AddJarsToIndexFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "add_jars_to_index()";
+		return "add_jars_to_index";
 	}
 
 	@Override

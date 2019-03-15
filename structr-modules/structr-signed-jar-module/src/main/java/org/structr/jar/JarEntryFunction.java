@@ -50,7 +50,7 @@ public class JarEntryFunction extends UiFunction {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return "jar_entry()";
+		return "jar_entry";
 	}
 
 	@Override

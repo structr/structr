@@ -44,7 +44,7 @@ public class DeleteFunction extends Function<Object, Object> implements Batchabl
 
 	@Override
 	public String getName() {
-		return "delete()";
+		return "delete";
 	}
 
 	@Override

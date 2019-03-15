@@ -31,7 +31,7 @@ public abstract class Hint {
 	public abstract String getName();
 
 	public String getReplacement() {
-		return getName();
+		return getName().concat("()");
 	}
 
 	public void allowNameModification(final boolean allowModification) {

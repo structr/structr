@@ -36,7 +36,7 @@ public class XPathFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "xpath()";
+		return "xpath";
 	}
 
 	@Override

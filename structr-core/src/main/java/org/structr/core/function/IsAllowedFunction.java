@@ -37,7 +37,7 @@ public class IsAllowedFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "is_allowed()";
+		return "is_allowed";
 	}
 
 	@Override

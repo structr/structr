@@ -31,7 +31,7 @@ public class GteFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "gte()";
+		return "gte";
 	}
 
 	@Override

@@ -28,7 +28,7 @@ public class EndsWithFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "ends_with()";
+		return "ends_with";
 	}
 
 	@Override

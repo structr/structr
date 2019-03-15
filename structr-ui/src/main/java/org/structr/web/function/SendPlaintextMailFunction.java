@@ -32,7 +32,7 @@ public class SendPlaintextMailFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "send_plaintext_mail()";
+		return "send_plaintext_mail";
 	}
 
 	@Override

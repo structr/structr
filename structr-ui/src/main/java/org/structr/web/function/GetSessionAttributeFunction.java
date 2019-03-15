@@ -32,7 +32,7 @@ public class GetSessionAttributeFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "get_session_attribute()";
+		return "get_session_attribute";
 	}
 
 	@Override

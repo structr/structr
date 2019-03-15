@@ -26,7 +26,12 @@ import org.structr.schema.action.Function;
 public class MailSetBounceAddressFunction extends Function<Object, Object> {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_set_bounce_address(bounceAddress)}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${Structr.mail_set_bounce_address(bounceAddress)}";
+	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_set_bounce_address(bounceAddress) }}";
+
+	@Override
+	public String getName() {
+		return "mail_set_bounce_address";
+	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
@@ -55,10 +60,5 @@ public class MailSetBounceAddressFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "";
-	}
-
-	@Override
-	public String getName() {
-		return "mail_add_to()";
 	}
 }

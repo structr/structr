@@ -30,7 +30,7 @@ public class CeilFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "ceil()";
+		return "ceil";
 	}
 
 	@Override

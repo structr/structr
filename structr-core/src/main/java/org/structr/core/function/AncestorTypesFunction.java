@@ -32,6 +32,11 @@ public class AncestorTypesFunction extends Function<Object, Object> {
 	public static final String ERROR_MESSAGE_ANCESTOR_TYPES_JS = "Usage: ${Structr.ancestor_types(type[, blacklist])}. Example ${Structr.ancestor_types('User')}";
 
 	@Override
+	public String getName() {
+		return "ancestor_types";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
@@ -69,10 +74,5 @@ public class AncestorTypesFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Returns the names of the parent classes of the given type";
-	}
-
-	@Override
-	public String getName() {
-		return "ancestor_types()";
 	}
 }

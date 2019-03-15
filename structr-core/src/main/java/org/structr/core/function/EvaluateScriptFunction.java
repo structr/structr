@@ -33,6 +33,11 @@ public class EvaluateScriptFunction extends Function<Object, Object> {
 	public static final String ERROR_MESSAGE_EVALUATE_SCRIPT_JS	 = "Usage: ${Structr.evaluate_script(entity, script)}";
 
 	@Override
+	public String getName() {
+		return "evaluate_script";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		if(sources != null && sources.length == 2 && sources[1] != null && sources[1] instanceof String && sources[0] != null && sources[0] instanceof GraphObject) {
@@ -58,10 +63,4 @@ public class EvaluateScriptFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Evaluates script given as string in the context of given parameters.";
 	}
-
-	@Override
-	public String getName() {
-		return "evaluate_script()";
-	}
-
 }

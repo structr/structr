@@ -32,7 +32,7 @@ public class UnlockSystemPropertiesFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "unlock_system_properties_once()";
+		return "unlock_system_properties_once";
 	}
 
 	@Override

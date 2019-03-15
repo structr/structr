@@ -31,7 +31,7 @@ public class ScheduleFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "schedule()";
+		return "schedule";
 	}
 
 	@Override

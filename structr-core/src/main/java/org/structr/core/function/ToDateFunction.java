@@ -33,7 +33,7 @@ public class ToDateFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "to_date()";
+		return "to_date";
 	}
 
 	@Override

@@ -30,7 +30,7 @@ public class LowerFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "lower()";
+		return "lower";
 	}
 
 	@Override

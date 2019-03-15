@@ -29,7 +29,12 @@ import org.structr.web.entity.File;
 public class MailBeginFunction extends Function<Object, Object> {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_begin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]])}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${Structr.mail_begin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]])}";
+	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_begin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]]) }}";
+
+	@Override
+	public String getName() {
+		return "mail_begin";
+	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
@@ -84,10 +89,5 @@ public class MailBeginFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "";
-	}
-
-	@Override
-	public String getName() {
-		return "mail_begin()";
 	}
 }

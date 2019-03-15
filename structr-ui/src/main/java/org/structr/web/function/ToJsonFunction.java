@@ -41,7 +41,7 @@ public class ToJsonFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "to_json()";
+		return "to_json";
 	}
 
 	@Override

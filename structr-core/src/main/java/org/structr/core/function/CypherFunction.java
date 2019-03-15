@@ -34,7 +34,7 @@ public class CypherFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "cypher()";
+		return "cypher";
 	}
 
 	@Override

@@ -29,7 +29,7 @@ public class ConfirmationKeyFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "confirmation_key()";
+		return "confirmation_key";
 	}
 
 	@Override

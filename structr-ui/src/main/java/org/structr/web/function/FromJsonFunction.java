@@ -38,7 +38,7 @@ public class FromJsonFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "from_json()";
+		return "from_json";
 	}
 
 	@Override

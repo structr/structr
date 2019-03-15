@@ -42,7 +42,7 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "localize()";
+		return "localize";
 	}
 
 	@Override

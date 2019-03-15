@@ -32,6 +32,11 @@ public class MQTTPublishFunction extends Function<Object, Object> {
 	public static final String ERROR_MESSAGE_MQTTPUBLISH_JS = "Usage: ${{Structr.mqtt_publish(client, topic, message)}}. Example ${{Structr.mqtt_publish(client, topic, message)}}";
 
 	@Override
+	public String getName() {
+		return "mqtt_publish";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 		if (sources != null && sources.length == 3 && sources[0] != null && sources[1] != null && sources[2] != null) {
 
@@ -65,10 +70,4 @@ public class MQTTPublishFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Publishes message on given mqtt client with given topic.";
 	}
-
-	@Override
-	public String getName() {
-		return "mqtt_publish";
-	}
-
 }

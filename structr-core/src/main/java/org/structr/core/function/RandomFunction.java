@@ -31,7 +31,7 @@ public class RandomFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "random()";
+		return "random";
 	}
 
 	@Override

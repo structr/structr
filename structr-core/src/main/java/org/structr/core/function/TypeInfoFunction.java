@@ -29,6 +29,11 @@ public class TypeInfoFunction extends Function<Object, Object> {
 	public static final String ERROR_MESSAGE_TYPE_INFO_JS = "Usage: ${Structr.type_info(type[, view])}. Example ${Structr.type_info('User', 'public')}";
 
 	@Override
+	public String getName() {
+		return "type_info";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
@@ -56,10 +61,5 @@ public class TypeInfoFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Returns the type information for the specified type";
-	}
-
-	@Override
-	public String getName() {
-		return "type_info()";
 	}
 }

@@ -35,7 +35,7 @@ public class HttpPutFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "PUT()";
+		return "PUT";
 	}
 
 	@Override

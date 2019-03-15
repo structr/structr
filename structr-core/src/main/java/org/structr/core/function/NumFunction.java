@@ -30,7 +30,7 @@ public class NumFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "num()";
+		return "num";
 	}
 
 	@Override

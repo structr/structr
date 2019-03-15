@@ -33,7 +33,7 @@ public class TrimFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "trim()";
+		return "trim";
 	}
 
 	@Override

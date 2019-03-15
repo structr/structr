@@ -34,7 +34,7 @@ public class SizeFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "size()";
+		return "size";
 	}
 
 	@Override

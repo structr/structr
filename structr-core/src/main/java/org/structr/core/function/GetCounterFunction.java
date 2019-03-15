@@ -30,7 +30,7 @@ public class GetCounterFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "get_counter()";
+		return "get_counter";
 	}
 
 	@Override
@@ -44,7 +44,7 @@ public class GetCounterFunction extends Function<Object, Object> {
 
 		} catch (NumberFormatException nfe) {
 
-			logException(nfe, "{}: NumberFormatException parsing counter level \"{}\" in element \"{}\". Parameters: {}", new Object[] { getName(), sources[0].toString(), caller, getParametersAsString(sources) });
+			logException(nfe, "{}: NumberFormatException parsing counter level \"{}\" in element \"{}\". Parameters: {}", new Object[] { getReplacement(), sources[0].toString(), caller, getParametersAsString(sources) });
 
 		} catch (ArgumentNullException pe) {
 

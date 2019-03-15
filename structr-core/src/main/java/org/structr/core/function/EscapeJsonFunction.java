@@ -31,7 +31,7 @@ public class EscapeJsonFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "escape_json()";
+		return "escape_json";
 	}
 
 	@Override

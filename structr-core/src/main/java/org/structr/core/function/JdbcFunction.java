@@ -38,6 +38,11 @@ public class JdbcFunction extends Function<Object, Object> {
 	public static final String ERROR_MESSAGE    = "Usage: ${jdbc(url, query)}. Example: ${jdbc(\"jdbc:mysql://localhost:3306\", \"SELECT * from Test\")}";
 
 	@Override
+	public String getName() {
+		return "jdbc";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -99,10 +104,5 @@ public class JdbcFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Fetches data from a JDBC source";
-	}
-
-	@Override
-	public String getName() {
-		return "jdbc";
 	}
 }

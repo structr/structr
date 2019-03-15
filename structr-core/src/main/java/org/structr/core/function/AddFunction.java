@@ -31,7 +31,7 @@ public class AddFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "add()";
+		return "add";
 	}
 
 	@Override

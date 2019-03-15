@@ -32,7 +32,7 @@ public class SetResponseHeaderFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "set_response_header()";
+		return "set_response_header";
 	}
 
 	@Override

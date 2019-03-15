@@ -35,7 +35,7 @@ public class GeocodeFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "geocode()";
+		return "geocode";
 	}
 
 	@Override

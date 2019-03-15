@@ -30,7 +30,7 @@ public class ModFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mod()";
+		return "mod";
 	}
 
 	@Override

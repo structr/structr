@@ -32,7 +32,7 @@ public class SetDetailsObjectFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "set_details_object()";
+		return "set_details_object";
 	}
 
 	@Override

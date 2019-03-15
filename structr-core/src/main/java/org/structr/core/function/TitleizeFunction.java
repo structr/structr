@@ -30,7 +30,7 @@ public class TitleizeFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "titleize()";
+		return "titleize";
 	}
 
 	@Override

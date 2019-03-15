@@ -32,7 +32,7 @@ public class NthFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "nth()";
+		return "nth";
 	}
 
 	@Override

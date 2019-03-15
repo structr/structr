@@ -31,7 +31,12 @@ import org.structr.web.entity.File;
 public class MailAddAttachmentFunction extends Function<Object, Object> {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_add_attachment(file[, name])}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${Structr.mail_add_attachment(file[, name])}";
+	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_add_attachment(file[, name]) }}";
+
+	@Override
+	public String getName() {
+		return "mail_add_attachment";
+	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
@@ -74,11 +79,6 @@ public class MailAddAttachmentFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "";
-	}
-
-	@Override
-	public String getName() {
-		return "mail_add_attachment()";
 	}
 
 	public static void addAttachment(final AdvancedMailContainer amc, final File fileNode) throws MalformedURLException {

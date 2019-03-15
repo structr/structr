@@ -33,7 +33,7 @@ public class UnwindFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "unwind()";
+		return "unwind";
 	}
 
 	@Override

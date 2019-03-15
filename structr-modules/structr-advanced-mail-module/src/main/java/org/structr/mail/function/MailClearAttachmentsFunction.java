@@ -25,7 +25,12 @@ import org.structr.schema.action.Function;
 public class MailClearAttachmentsFunction extends Function<Object, Object> {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_clear_attachments()}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${Structr.mail_clear_attachments()}";
+	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_clear_attachments() }}";
+
+	@Override
+	public String getName() {
+		return "mail_clear_attachments";
+	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
@@ -43,10 +48,5 @@ public class MailClearAttachmentsFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "";
-	}
-
-	@Override
-	public String getName() {
-		return "mail_clear_attachments()";
 	}
 }

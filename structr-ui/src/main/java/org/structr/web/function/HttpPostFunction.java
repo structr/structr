@@ -34,7 +34,7 @@ public class HttpPostFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "POST()";
+		return "POST";
 	}
 
 	@Override

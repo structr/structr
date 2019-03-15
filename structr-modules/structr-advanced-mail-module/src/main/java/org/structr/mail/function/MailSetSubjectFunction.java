@@ -28,6 +28,11 @@ public class MailSetSubjectFunction extends Function<Object, Object> {
 	public final String ERROR_MESSAGE_JS = "Usage: ${Structr.mail_set_subject(subject)}";
 
 	@Override
+	public String getName() {
+		return "mail_set_subject";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
@@ -53,10 +58,5 @@ public class MailSetSubjectFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "";
-	}
-
-	@Override
-	public String getName() {
-		return "mail_set_subject(subject)";
 	}
 }
