@@ -64,5 +64,7 @@ public class ChoiceSetting extends StringSetting {
 			}
 		}
 
+		renderResetButton(group);
+
 	}
 }
