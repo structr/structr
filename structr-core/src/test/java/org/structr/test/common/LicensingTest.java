@@ -73,7 +73,7 @@ public class LicensingTest {
 		try (final Tx tx = app.tx()) {
 
 			// delete everything
-			Services.getInstance().getDatabaseService("default").cleanDatabase();
+			Services.getInstance().getDatabaseService().cleanDatabase();
 
 			FlushCachesCommand.flushAll();
 

@@ -494,7 +494,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		final Class valueType = valueType();
 		if (valueType != null) {
 
-			if (Services.getInstance().getDatabaseService("default").nodeIndex().supports(valueType)) {
+			if (Services.getInstance().getDatabaseService().nodeIndex().supports(valueType)) {
 				return true;
 			}
 
@@ -523,7 +523,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 			if (valueType != null) {
 
 				// indexable indicated by value type
-				if (Services.getInstance().getDatabaseService("default").nodeIndex().supports(valueType)) {
+				if (Services.getInstance().getDatabaseService().nodeIndex().supports(valueType)) {
 					return true;
 				}
 

@@ -49,7 +49,7 @@ public class NodeService implements SingletonService {
 	private String filesPath                = null;
 	private boolean isInitialized           = false;
 	private CountResult initialCount        = null;
-	private String name                     = null;
+	private String serviceName              = null;
 
 	@Override
 	public void injectArguments(Command command) {
@@ -64,20 +64,17 @@ public class NodeService implements SingletonService {
 	}
 
 	@Override
-	public boolean initialize(final StructrServices services, final String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		// default is fallback and doesn't need to be stored
-		if (!"default".equals(serviceName)) {
+		// initialize service name from the outside
+		this.serviceName = serviceName;
 
-			this.name = serviceName;
-		}
-
-		final String databaseDriver = Settings.DatabaseDriver.getPrefixedValue(this.name);
+		final String databaseDriver = Settings.DatabaseDriver.getPrefixedValue(serviceName);
 
 		databaseService = (DatabaseService)Class.forName(databaseDriver).newInstance();
 		if (databaseService != null) {
 
-			if (databaseService.initialize(this.name)) {
+			if (databaseService.initialize(serviceName)) {
 
 				filesPath = Settings.FilesPath.getValue();
 
@@ -240,7 +237,7 @@ public class NodeService implements SingletonService {
 						tx.success();
 
 					} catch (Throwable t) {
-						logger.warn("Unable to count number of nodes and relationships: {}", t.getMessage());
+						logger.warn("Unable to create initial user: {}", t.getMessage());
 					}
 				}
 			}
@@ -251,8 +248,8 @@ public class NodeService implements SingletonService {
 	private void checkCacheSizes() {
 
 		final CountResult counts      = getInitialCounts();
-		final long nodeCacheSize      = Settings.NodeCacheSize.getPrefixedValue(name);
-		final long relCacheSize       = Settings.RelationshipCacheSize.getPrefixedValue(name);
+		final long nodeCacheSize      = Settings.NodeCacheSize.getPrefixedValue(serviceName);
+		final long relCacheSize       = Settings.RelationshipCacheSize.getPrefixedValue(serviceName);
 		final long nodeCount          = counts.getNodeCount();
 		final long relCount           = counts.getRelationshipCount();
 

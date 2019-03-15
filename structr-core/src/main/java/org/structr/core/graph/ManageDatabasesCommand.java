@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 
 /**
  */
@@ -108,13 +109,13 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 			if ("default".equals(name)) {
 
 				// activate default connection..
-				//Services.getInstance().setActiveService(NodeService.class, "");
-				Settings.DatabaseConnection.setValue("");
+				Settings.getOrCreateStringSetting("NodeService.active").setValue(null);
+				Services.getInstance().activateService(NodeService.class, "");
 
 			} else if (getConnectionNames().contains(name)) {
 
-				//Services.getInstance().setActiveService(NodeService.class, name);
-				Settings.DatabaseConnection.setValue(name);
+				Settings.getOrCreateStringSetting("NodeService.active").setValue(name);
+				Services.getInstance().activateService(NodeService.class, name);
 
 			} else {
 
@@ -238,7 +239,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		settings.put(KEY_FORCE_STREAMING,         Settings.ForceResultStreaming.getPrefixedValue(prefix));
 
 		// active?
-		settings.put(KEY_ACTIVE, Settings.DatabaseConnection.getValue("").equals(prefix));
+		settings.put(KEY_ACTIVE, Settings.getOrCreateStringSetting("NodeService.active").getValue("").equals(prefix));
 
 		return settings;
 	}

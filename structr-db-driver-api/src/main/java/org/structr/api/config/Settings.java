@@ -118,7 +118,6 @@ public class Settings {
 
 	// database settings
 	public static final Setting<String> DatabaseAvailableConnections = new StringSetting(databaseGroup,  "hidden",                     "database.available.connections",   null);
-	public static final Setting<String> DatabaseConnection           = new StringSetting(databaseGroup,  "Database Driver Connection", "database.connection",              null);
 	public static final Setting<String> DatabaseDriver               = new StringSetting(databaseGroup,  "Database Driver",            "database.driver",                  "org.structr.memory.MemoryDatabaseService");
 	public static final Setting<String> DatabaseDriverMode           = new ChoiceSetting(databaseGroup,  "Database Driver",            "database.driver.mode",             "embedded", Settings.getStringsAsSet("embedded", "remote"));
 	public static final Setting<String> ConnectionUrl                = new StringSetting(databaseGroup,  "Database Connection",        "database.connection.url",          "bolt://localhost:7688");

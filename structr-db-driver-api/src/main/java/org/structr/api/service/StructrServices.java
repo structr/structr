@@ -29,6 +29,6 @@ public interface StructrServices {
 	void registerInitializationCallback(final InitializationCallback callback);
 	<T extends Service> T getService(final Class<T> serviceClass, final String name);
 	<T extends Service> Map<String, T> getServices(final Class<T> serviceClass);
-	DatabaseService getDatabaseService(String name);
+	DatabaseService getDatabaseService();
 	LicenseManager getLicenseManager();
 }

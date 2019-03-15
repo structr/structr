@@ -75,7 +75,6 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	private Properties globalGraphProperties                          = null;
 	private CypherRelationshipIndex relationshipIndex                 = null;
 	private CypherNodeIndex nodeIndex                                 = null;
-	private String serviceName                                        = null;
 	private String databaseUrl                                        = null;
 	private String databasePath                                       = null;
 	private Driver driver                                             = null;
@@ -83,6 +82,8 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	@Override
 	public boolean initialize(final String name) {
 
+		String serviceName = null;
+		
 		if (!"default".equals(name)) {
 
 			serviceName = name;

@@ -871,7 +871,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				boolean result = false;
 				try {
 
-					final DatabaseService db       = Services.getInstance().getDatabaseService("default");
+					final DatabaseService db       = Services.getInstance().getDatabaseService();
 					final NativeQuery<Boolean> cpq = db.query(customPermissionQuery, Boolean.class);
 
 					cpq.configure(params);

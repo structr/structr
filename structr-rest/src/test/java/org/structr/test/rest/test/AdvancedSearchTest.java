@@ -1353,7 +1353,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 	@Test
 	public void testSpatialSearchWithoutGeocoding() {
 
-		if (Services.getInstance().getDatabaseService("default").supportsFeature(DatabaseFeature.SpatialQueries)) {
+		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.SpatialQueries)) {
 
 			// center of Germany is 51.163375; 10.447683
 			// test: 2.38km north: 51.183727, 10.460942
