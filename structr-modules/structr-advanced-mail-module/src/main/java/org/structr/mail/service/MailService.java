@@ -263,7 +263,7 @@ public class MailService extends Thread implements RunnableService {
 
 	}
 
-	private Map<String,String> handleMultipart(final Mailbox mb, Multipart p, List<File> attachments) {
+	private Map<String,String> handleMultipart(final Mailbox mb, final String subject, Multipart p, List<File> attachments) {
 
 		Map<String,String> result = new HashMap<>();
 
@@ -274,9 +274,9 @@ public class MailService extends Thread implements RunnableService {
 				final String content = result.get("content") != null ? result.get("content") : "";
 
 				BodyPart part = (BodyPart) p.getBodyPart(i);
-				if (part.isMimeType("multipart/mixed") || part.isMimeType("multipart/alternative") || part.isMimeType("multipart/parallel")) {
+				if (part.getContent() instanceof Multipart) {
 
-					Map<String,String> subResult = handleMultipart(mb, (Multipart)part.getContent(), attachments);
+					Map<String,String> subResult = handleMultipart(mb, subject, (Multipart)part.getContent(), attachments);
 
 					if (subResult.get("content") != null) {
 						result.put("content", content.concat(subResult.get("content")));
@@ -305,7 +305,7 @@ public class MailService extends Thread implements RunnableService {
 						result.put("content", content.concat(getText(part)));
 					} else if (!part.isMimeType("message/delivery-status")){
 
-						logger.warn("Cannot handle content type given by email part. Given metadata is either faulty or specific implementation is missing. Type: {}, Mailbox: {}, Content: {}", part.getContentType(), mb.getUuid(), part.getContent().toString());
+						logger.warn("Cannot handle content type given by email part. Given metadata is either faulty or specific implementation is missing. Type: {}, Mailbox: {}, Content: {}, Subject; {}", part.getContentType(), mb.getUuid(), part.getContent().toString(), subject);
 					}
 				}
 			}
@@ -578,7 +578,7 @@ public class MailService extends Thread implements RunnableService {
 
 								if (message.getContentType().contains("multipart")) {
 
-									Map<String, String> result = handleMultipart(mailbox, (Multipart)contentObj, attachments);
+									Map<String, String> result = handleMultipart(mailbox, message.getSubject(), (Multipart)contentObj, attachments);
 									content = result.get("content");
 									htmlContent = result.get("htmlContent");
 								} else if (message.getContentType().contains("text/plain")){
