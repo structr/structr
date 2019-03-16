@@ -68,7 +68,7 @@ public class Functions {
 
 	public static void put(final LicenseManager licenseManager, final Function<Object, Object> function) {
 
-		final boolean licensed = licenseManager.isEdition(function.getRequiredLicense());
+		final boolean licensed = (licenseManager == null || licenseManager.isEdition(function.getRequiredLicense()));
 
 		registerFunction(licensed, function.getName(), function);
 
