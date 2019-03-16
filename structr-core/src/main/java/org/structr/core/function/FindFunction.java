@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import java.util.Map;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -31,9 +32,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
-/**
- *
- */
 public class FindFunction extends AbstractQueryFunction {
 
 	public static final String ERROR_MESSAGE_FIND = "Usage: ${find(type, key, value)}. Example: ${find(\"User\", \"email\", \"tester@test.com\"}";
@@ -43,6 +41,11 @@ public class FindFunction extends AbstractQueryFunction {
 	@Override
 	public String getName() {
 		return "find";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

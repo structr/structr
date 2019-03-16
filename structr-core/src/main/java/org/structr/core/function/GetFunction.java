@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.api.config.Settings;
+import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
@@ -43,6 +44,11 @@ public class GetFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "get";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

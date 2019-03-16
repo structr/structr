@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import java.util.List;
 import java.util.Map;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -40,6 +41,11 @@ public class PrivilegedFindFunction extends Function<Object, Object> {
     public String getName() {
         return "find_privileged";
     }
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
+	}
 
     @Override
     public Object apply(final ActionContext ctx, final Object caller, Object[] sources) throws FrameworkException {

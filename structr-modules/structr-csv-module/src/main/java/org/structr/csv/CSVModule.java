@@ -39,13 +39,9 @@ public class CSVModule implements StructrModule {
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
-		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
-//		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
-//		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
-
-		Functions.put(basicEdition, LicenseManager.Basic, new FromCsvFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, new ToCsvFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, new GetCsvHeadersFunction());
+		Functions.put(licenseManager, new FromCsvFunction());
+		Functions.put(licenseManager, new ToCsvFunction());
+		Functions.put(licenseManager, new GetCsvHeadersFunction());
 	}
 
 	@Override

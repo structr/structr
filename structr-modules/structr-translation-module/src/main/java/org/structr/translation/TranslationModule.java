@@ -41,11 +41,7 @@ public class TranslationModule implements StructrModule {
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
-//		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
-		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
-//		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
-
-		Functions.put(smallBusinessEdition, LicenseManager.SmallBusiness, new TranslateFunction());
+		Functions.put(licenseManager, new TranslateFunction());
 	}
 
 	@Override

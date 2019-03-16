@@ -122,17 +122,12 @@ public class JavaParserModule implements StructrModule {
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
-//		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
-//		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
-		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
-
-		// Enterprise only
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new IndexSourceTreeFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new ParseSourceTreeFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new AnalyzeSourceTreeFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new ParseJavaFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new AnalyzeJavaFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new AddJarsToIndexFunction());
+		Functions.put(licenseManager, new IndexSourceTreeFunction());
+		Functions.put(licenseManager, new ParseSourceTreeFunction());
+		Functions.put(licenseManager, new AnalyzeSourceTreeFunction());
+		Functions.put(licenseManager, new ParseJavaFunction());
+		Functions.put(licenseManager, new AnalyzeJavaFunction());
+		Functions.put(licenseManager, new AddJarsToIndexFunction());
 	}
 
 	/**

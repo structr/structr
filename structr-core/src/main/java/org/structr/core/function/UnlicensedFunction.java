@@ -61,4 +61,9 @@ public class UnlicensedFunction extends Function<Object, Object> {
 	public String getName() {
 		return "unlicensed";
 	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
+	}
 }

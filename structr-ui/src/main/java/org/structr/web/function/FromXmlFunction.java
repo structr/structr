@@ -20,6 +20,7 @@ package org.structr.web.function;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.XmlFunction;
@@ -32,9 +33,6 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-/**
- *
- */
 public class FromXmlFunction extends UiFunction {
 
 	private static final Property<List> attributesProperty = new GenericProperty<>("attributes");
@@ -49,6 +47,11 @@ public class FromXmlFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "from_xml";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
 	}
 
 	@Override

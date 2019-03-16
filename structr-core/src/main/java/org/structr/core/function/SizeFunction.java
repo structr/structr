@@ -21,13 +21,11 @@ package org.structr.core.function;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class SizeFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_SIZE = "Usage: ${size(collection)}. Example: ${size(this.children)}";
@@ -35,6 +33,11 @@ public class SizeFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "size";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override
@@ -72,7 +75,6 @@ public class SizeFunction extends Function<Object, Object> {
 		return 0;
 	}
 
-
 	@Override
 	public String usage(boolean inJavaScriptContext) {
 		return ERROR_MESSAGE_SIZE;
@@ -82,5 +84,4 @@ public class SizeFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Returns the size of the given collection";
 	}
-
 }

@@ -26,6 +26,7 @@ import com.google.cloud.translate.Translation;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.structr.api.service.LicenseManager;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.UiFunction;
@@ -38,6 +39,11 @@ public class TranslateFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "translate";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.SmallBusiness;
 	}
 
 	@Override

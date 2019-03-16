@@ -21,13 +21,11 @@ package org.structr.core.function;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Set;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class MergeUniqueFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_MERGE_UNIQUE = "Usage: ${merge_unique(list1, list2, list3, ...)}. Example: ${merge_unique(this.children, this.siblings)}";
@@ -35,6 +33,11 @@ public class MergeUniqueFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "merge_unique";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

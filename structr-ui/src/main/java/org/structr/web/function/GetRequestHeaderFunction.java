@@ -19,6 +19,7 @@
 package org.structr.web.function;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -32,6 +33,11 @@ public class GetRequestHeaderFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "get_request_header";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
 	}
 
 	@Override

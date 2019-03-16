@@ -20,6 +20,7 @@ package org.structr.mail.function;
 
 import java.net.MalformedURLException;
 import org.apache.commons.mail.EmailAttachment;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.AdvancedMailContainer;
 import org.structr.common.DynamicMailAttachment;
 import org.structr.common.error.FrameworkException;
@@ -36,6 +37,11 @@ public class MailAddAttachmentFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "mail_add_attachment";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
 	}
 
 	@Override

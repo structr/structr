@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import org.slf4j.LoggerFactory;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.Scripting;
@@ -35,6 +36,11 @@ public class EvaluateScriptFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "evaluate_script";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override

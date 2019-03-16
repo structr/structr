@@ -21,6 +21,7 @@ package org.structr.core.function;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -35,6 +36,11 @@ public class CleanFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "clean";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

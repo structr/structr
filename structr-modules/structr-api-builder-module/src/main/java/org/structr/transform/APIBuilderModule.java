@@ -72,9 +72,7 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
-		final boolean enterpriseEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
-
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new FlowFunction());
+		Functions.put(licenseManager, new FlowFunction());
 	}
 
 	@Override

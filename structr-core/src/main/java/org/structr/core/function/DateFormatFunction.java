@@ -21,8 +21,8 @@ package org.structr.core.function;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
 import org.mozilla.javascript.ScriptRuntime;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -37,6 +37,11 @@ public class DateFormatFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "date_format";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -38,6 +39,11 @@ public class ExtractFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "extract";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

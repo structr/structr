@@ -18,13 +18,11 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class AndFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_AND = "Usage: ${and(bool1, bool2)}. Example: ${and(\"true\", \"true\")}";
@@ -32,6 +30,11 @@ public class AndFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "and";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override
@@ -54,7 +57,6 @@ public class AndFunction extends Function<Object, Object> {
 						logException(caller, t, sources);
 
 						return t.getMessage();
-
 					}
 
 				} else {
@@ -62,7 +64,6 @@ public class AndFunction extends Function<Object, Object> {
 					// null is false
 					return false;
 				}
-
 			}
 
 		} else {
@@ -70,7 +71,6 @@ public class AndFunction extends Function<Object, Object> {
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			result = false;
-
 		}
 
 		return result;
@@ -85,5 +85,4 @@ public class AndFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Returns the conjunction of the given arguments";
 	}
-
 }

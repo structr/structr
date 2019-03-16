@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import java.util.Date;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -33,6 +34,11 @@ public class TimerFunction extends Function<Object, Object>{
 	@Override
 	public String getName() {
 		return "timer";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

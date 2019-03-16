@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import java.util.List;
+import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -33,6 +34,11 @@ public class NthFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "nth";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

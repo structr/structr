@@ -18,6 +18,7 @@
  */
 package org.structr.mail.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -30,6 +31,11 @@ public class MailClearAttachmentsFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "mail_clear_attachments";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
 	}
 
 	@Override

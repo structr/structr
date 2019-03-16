@@ -21,6 +21,7 @@ package org.structr.core.function;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
@@ -38,6 +39,11 @@ public class CallFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "call";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override

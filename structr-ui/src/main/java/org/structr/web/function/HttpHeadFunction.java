@@ -18,6 +18,7 @@
  */
 package org.structr.web.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.schema.action.ActionContext;
 
 /**
@@ -31,6 +32,11 @@ public class HttpHeadFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "HEAD";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
 	}
 
 	@Override

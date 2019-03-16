@@ -22,6 +22,7 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Map;
 import org.mozilla.javascript.Wrapper;
+import org.structr.api.service.LicenseManager;
 import org.structr.api.util.PagingIterable;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -31,9 +32,6 @@ import org.structr.core.Value;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.schema.action.ActionContext;
 
-/**
- *
- */
 public class ToJsonFunction extends UiFunction {
 
 	public static final String ERROR_MESSAGE_TO_JSON    = "Usage: ${to_json(obj [, view[, depth = 3]])}. Example: ${to_json(this, 'public', 4)}";
@@ -42,6 +40,11 @@ public class ToJsonFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "to_json";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

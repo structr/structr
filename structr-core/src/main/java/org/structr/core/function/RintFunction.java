@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import java.util.Random;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -32,6 +33,11 @@ public class RintFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "rint";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

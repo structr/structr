@@ -21,6 +21,7 @@ package org.structr.web.function;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -43,6 +44,11 @@ public class IncludeChildFunction extends IncludeFunction {
 	@Override
 	public String getName() {
 		return "include_child";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

@@ -18,6 +18,7 @@
  */
 package org.structr.javaparser;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -35,6 +36,11 @@ public class IndexSourceTreeFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "index_source_tree";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
 	}
 
 	@Override

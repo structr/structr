@@ -21,6 +21,7 @@ package org.structr.web.function;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Scanner;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -36,6 +37,11 @@ public class GetContentFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "get_content";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override

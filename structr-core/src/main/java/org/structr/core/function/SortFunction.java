@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import java.util.Collections;
 import java.util.List;
+import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.error.FrameworkException;
@@ -29,9 +30,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class SortFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_SORT = "Usage: ${sort(list1, [key [, descending=false]])}. Example: ${sort(this.children, \"name\")}";
@@ -39,6 +37,11 @@ public class SortFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "sort";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

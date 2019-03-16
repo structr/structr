@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.api.graph.Node;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeFactory;
@@ -32,6 +33,11 @@ public class InstantiateFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "instantiate";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override

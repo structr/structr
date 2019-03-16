@@ -20,6 +20,7 @@ package org.structr.mail.function;
 
 import java.net.MalformedURLException;
 import java.util.List;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.AdvancedMailContainer;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
@@ -34,6 +35,11 @@ public class MailBeginFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "mail_begin";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
 	}
 
 	@Override

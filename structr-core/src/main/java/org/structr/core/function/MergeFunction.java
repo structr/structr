@@ -20,13 +20,11 @@ package org.structr.core.function;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class MergeFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_MERGE = "Usage: ${merge(list1, list2, list3, ...)}. Example: ${merge(this.children, this.siblings)}";
@@ -34,6 +32,11 @@ public class MergeFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "merge";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override
@@ -61,7 +64,6 @@ public class MergeFunction extends Function<Object, Object> {
 
 		return list;
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {

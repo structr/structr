@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import org.structr.api.config.Settings;
+import org.structr.api.service.LicenseManager;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.common.AccessMode;
 import org.structr.common.error.ArgumentCountException;
@@ -43,6 +44,11 @@ public class LocalizeFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "localize";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override

@@ -20,6 +20,7 @@ package org.structr.web.function;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -35,6 +36,11 @@ public class AppendContentFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "append_content";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override

@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.Permissions;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
@@ -34,6 +35,11 @@ public class CopyPermissionsFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "copy_permissions";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

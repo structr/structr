@@ -56,11 +56,9 @@ public class MessageEngineModule implements StructrModule {
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
-		final boolean enterpriseEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
-
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MQTTPublishFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MQTTSubscribeTopicFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MQTTUnsubscribeTopicFunction());
+		Functions.put(licenseManager, new MQTTPublishFunction());
+		Functions.put(licenseManager, new MQTTSubscribeTopicFunction());
+		Functions.put(licenseManager, new MQTTUnsubscribeTopicFunction());
     }
 
     @Override

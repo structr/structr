@@ -18,6 +18,7 @@
  */
 package org.structr.mail.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -30,6 +31,11 @@ public class MailClearBounceAddressFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "mail_clear_bounce_address";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
 	}
 
 	@Override
