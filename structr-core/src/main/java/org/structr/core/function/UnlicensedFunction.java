@@ -64,6 +64,6 @@ public class UnlicensedFunction extends Function<Object, Object> {
 
 	@Override
 	public int getRequiredLicense() {
-		return LicenseManager.Community;
+		return edition;
 	}
 }
