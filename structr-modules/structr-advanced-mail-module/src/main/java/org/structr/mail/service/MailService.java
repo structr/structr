@@ -22,9 +22,14 @@ import com.google.gson.Gson;
 import com.sun.mail.util.BASE64DecoderStream;
 import com.sun.mail.util.MailConnectException;
 import io.netty.util.internal.ConcurrentSet;
-import org.apache.commons.io.IOUtils;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.mail.*;
 import org.apache.commons.lang.ArrayUtils;
-import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.*;
@@ -46,16 +51,9 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 
-import javax.mail.*;
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 @ServiceDependency(SchemaService.class)
 public class MailService extends Thread implements RunnableService {
+
 	private static final Logger logger                      = LoggerFactory.getLogger(MailService.class.getName());
 	private static final ExecutorService threadExecutor     = Executors.newCachedThreadPool();
 	private boolean run                                     = false;
@@ -63,10 +61,9 @@ public class MailService extends Thread implements RunnableService {
 	private Set<Mailbox> processingMailboxes                = null;
 	private int maxConnectionRetries                        = 5;
 
-	public static final SettingsGroup mailGroup             = new SettingsGroup("mail","Advanced EMailMessage Configuration");
-	public static final Setting<Integer> maxEmails          = new IntegerSetting(mailGroup,"EMailMessage", "mail.maxEmails",25);
-	public static final Setting<Integer> updateInterval     = new IntegerSetting(mailGroup,"EMailMessage", "mail.updateInterval",30000);
-	public static final Setting<String> attachmentBasePath  = new StringSetting(mailGroup,"EMailMessage", "mail.attachmentBasePath","/mail/attachments");
+	public static final Setting<Integer> maxEmails          = new IntegerSetting(Settings.smtpGroup, "MailService", "mail.maxEmails",          25,                  "The number of mails which are checked");
+	public static final Setting<Integer> updateInterval     = new IntegerSetting(Settings.smtpGroup, "MailService", "mail.updateInterval",     30000,               "The interval in which the mailbox is checked. Unit is milliseconds");
+	public static final Setting<String> attachmentBasePath  = new StringSetting (Settings.smtpGroup, "MailService", "mail.attachmentBasePath", "/mail/attachments", "The path in structrs virtual filesystem where attachments are downloaded to");
 
 	//////////////////////////////////////////////////////////////// Public Methods
 
