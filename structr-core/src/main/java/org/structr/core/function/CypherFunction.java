@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -35,6 +36,11 @@ public class CypherFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "cypher";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

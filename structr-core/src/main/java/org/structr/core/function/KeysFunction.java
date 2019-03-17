@@ -22,6 +22,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -29,9 +30,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class KeysFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_KEYS = "Usage: ${keys(entity [, viewName])}. Example: ${keys(this, \"ui\")}";
@@ -40,6 +38,11 @@ public class KeysFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "keys";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override
@@ -70,7 +73,7 @@ public class KeysFunction extends Function<Object, Object> {
 
 				return new LinkedList<>(((Map)sources[0]).keySet());
 			} else {
-				
+
 				return null;
 			}
 

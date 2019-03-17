@@ -33,6 +33,10 @@ public class RestModule implements StructrModule {
 	}
 
 	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
+	}
+
+	@Override
 	public String getName() {
 		return "rest";
 	}

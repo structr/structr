@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
@@ -38,6 +39,11 @@ public class IsAllowedFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "is_allowed";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override

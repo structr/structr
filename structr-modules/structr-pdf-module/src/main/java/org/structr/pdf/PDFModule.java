@@ -30,11 +30,11 @@ public class PDFModule implements StructrModule {
 
 	@Override
 	public void onLoad(LicenseManager licenseManager) {
+	}
 
-		final boolean enterpriseEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
-
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new PDFFunction());
-
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
+		Functions.put(licenseManager, new PDFFunction());
 	}
 
 	@Override

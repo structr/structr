@@ -20,14 +20,12 @@ package org.structr.core.function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class LogFunction extends Function<Object, Object> {
 
 	private static final Logger logger = LoggerFactory.getLogger(LogFunction.class.getName());
@@ -38,6 +36,11 @@ public class LogFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "log";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override
@@ -63,7 +66,6 @@ public class LogFunction extends Function<Object, Object> {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 	}
 
@@ -76,5 +78,4 @@ public class LogFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Logs the given string to the logfile";
 	}
-
 }

@@ -21,6 +21,7 @@ package org.structr.core.function;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
@@ -40,6 +41,11 @@ public class EnumInfoFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "enum_info";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override

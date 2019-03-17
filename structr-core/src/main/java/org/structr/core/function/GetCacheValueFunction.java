@@ -4,43 +4,41 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.javaparser;
+package org.structr.core.function;
 
-import com.github.javaparser.ParseProblemException;
 import org.structr.api.service.LicenseManager;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
+import org.structr.core.parser.CacheExpression;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-public class AnalyzeJavaFunction extends Function<Object, Object> {
+public class GetCacheValueFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_ANALYZE_JAVA = "Usage: ${analyze_java(javaSource)}";
+	public static final String ERROR_MESSAGE_GET_CACHE_VALUE    = "Usage: ${get_cache_value(cacheKey)}. Example: ${get_cache_value('mykey')}";
+	public static final String ERROR_MESSAGE_GET_CACHE_VALUE_JS = "Usage: ${{ Structr.get_cache_value(cacheKey); }}. Example: ${{ Structr.get_cache_value('mykey'); }}";
 
 	@Override
 	public String getName() {
-		return "analyze_java";
+		return "get_cache_value";
 	}
 
 	@Override
 	public int getRequiredLicense() {
-		return LicenseManager.Enterprise;
+		return LicenseManager.Community;
 	}
 
 	@Override
@@ -50,43 +48,25 @@ public class AnalyzeJavaFunction extends Function<Object, Object> {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			if (sources[0] instanceof String) {
+			final String cacheKey = sources[0].toString();
 
-				final SecurityContext securityContext = ctx.getSecurityContext();
-				final App app                         = StructrApp.getInstance(securityContext);
+			return CacheExpression.getCachedValue(cacheKey);
 
-				// Analyze string as Java code
-				new JavaParserModule(app).analyzeMethodsInJavaFile((String) sources[0]);
-
-				return "";
-			}
-
-			return null;
-
-		} catch (final ParseProblemException ex) {
-
-			logException(caller, ex, sources);
-			return "";
-
-		} catch (ArgumentNullException pe) {
-
-			// silently ignore null arguments
-			return null;
-
-		} catch (ArgumentCountException pe) {
+		} catch (ArgumentNullException | ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
+
+			return false;
 		}
 	}
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_ANALYZE_JAVA;
+		return inJavaScriptContext ? ERROR_MESSAGE_GET_CACHE_VALUE_JS : ERROR_MESSAGE_GET_CACHE_VALUE;
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Analyzes the given string as Java and adds result to the graph.";
+		return "Retrieves the cached value for the given key. Returns null if no cached value exists.";
 	}
 }

@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -31,6 +32,11 @@ public class DivFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "div";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override
@@ -50,7 +56,6 @@ public class DivFunction extends Function<Object, Object> {
 				return nfe.getMessage();
 
 			}
-
 
 		} catch (ArgumentNullException pe) {
 

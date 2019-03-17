@@ -21,6 +21,7 @@ package org.structr.core.function;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.service.LicenseManager;
 import org.structr.core.GraphObject;
 
 public class UserChangelogFunction extends ChangelogFunction {
@@ -33,6 +34,11 @@ public class UserChangelogFunction extends ChangelogFunction {
 	@Override
 	public String getName() {
 		return "user_changelog";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override

@@ -19,6 +19,7 @@
 package org.structr.web.function;
 
 import java.util.Map;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.IntProperty;
@@ -35,6 +36,11 @@ public class HttpPostFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "POST";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
 	}
 
 	@Override

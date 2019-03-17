@@ -27,6 +27,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
+import org.structr.api.service.LicenseManager;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.UiFunction;
 
@@ -38,6 +39,11 @@ public class FromCsvFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "from_csv";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override

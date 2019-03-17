@@ -19,6 +19,7 @@
 package org.structr.web.function;
 
 import org.apache.commons.mail.EmailException;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.MailHelper;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -33,6 +34,11 @@ public class SendPlaintextMailFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "send_plaintext_mail";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override

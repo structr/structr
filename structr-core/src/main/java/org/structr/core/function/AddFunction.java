@@ -18,13 +18,11 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class AddFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_ADD = "Usage: ${add(values...)}. Example: ${add(1, 2, 3, this.children.size)}";
@@ -32,6 +30,11 @@ public class AddFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "add";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override
@@ -54,19 +57,13 @@ public class AddFunction extends Function<Object, Object> {
 						logException(caller, t, sources);
 
 						return t.getMessage();
-
 					}
-
 				}
-
 			}
-
 		}
 
 		return result;
-
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {

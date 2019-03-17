@@ -18,6 +18,7 @@
  */
 package org.structr.javaparser.entity;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -32,6 +33,11 @@ public class AddJarsToIndexFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "add_jars_to_index";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
 	}
 
 	@Override

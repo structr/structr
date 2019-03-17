@@ -21,6 +21,7 @@ package org.structr.core.function;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -38,6 +39,11 @@ public class RInterpreterFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "r";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override

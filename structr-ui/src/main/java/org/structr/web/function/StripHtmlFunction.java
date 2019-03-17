@@ -18,6 +18,7 @@
  */
 package org.structr.web.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -32,6 +33,11 @@ public class StripHtmlFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "strip_html";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

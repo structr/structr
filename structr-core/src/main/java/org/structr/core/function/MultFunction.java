@@ -18,13 +18,11 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class MultFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_MULT = "Usage: ${mult(value1, value2)}. Example: ${mult(5, 2)}";
@@ -32,6 +30,11 @@ public class MultFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "mult";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override
@@ -47,7 +50,6 @@ public class MultFunction extends Function<Object, Object> {
 				if (i == null) {
 
 					return null;
-
 				}
 
 				try {
@@ -59,7 +61,6 @@ public class MultFunction extends Function<Object, Object> {
 					logException(caller, t, sources);
 
 					return t.getMessage();
-
 				}
 			}
 
@@ -70,9 +71,7 @@ public class MultFunction extends Function<Object, Object> {
 		}
 
 		return result;
-
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -83,5 +82,4 @@ public class MultFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Multiplies the first argument by the second argument";
 	}
-
 }

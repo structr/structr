@@ -18,9 +18,10 @@
  */
 package org.structr.core.function;
 
-import org.structr.common.error.FrameworkException;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -31,6 +32,11 @@ public class NotFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "not";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

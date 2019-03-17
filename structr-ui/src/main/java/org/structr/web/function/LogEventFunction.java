@@ -20,6 +20,7 @@ package org.structr.web.function;
 
 import java.util.Date;
 import java.util.Map;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
@@ -36,6 +37,11 @@ public class LogEventFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "log_event";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.SmallBusiness;
 	}
 
 	@Override

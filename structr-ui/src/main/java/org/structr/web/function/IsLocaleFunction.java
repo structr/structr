@@ -19,12 +19,10 @@
 package org.structr.web.function;
 
 import java.util.Locale;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
-/**
- *
- */
 public class IsLocaleFunction extends UiFunction {
 
 	public static final String ERROR_MESSAGE_IS_LOCALE    = "Usage: ${is_locale(locales...)}";
@@ -33,6 +31,11 @@ public class IsLocaleFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "is_locale";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override
@@ -55,9 +58,7 @@ public class IsLocaleFunction extends UiFunction {
 			} else {
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
-
 			}
-
 		}
 
 		return false;
@@ -72,5 +73,4 @@ public class IsLocaleFunction extends UiFunction {
 	public String shortDescription() {
 		return "Returns true if the current user locale is equal to the given argument";
 	}
-
 }

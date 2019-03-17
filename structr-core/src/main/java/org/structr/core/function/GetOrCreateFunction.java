@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import java.util.Map;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -31,9 +32,6 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class GetOrCreateFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_GET_OR_CREATE     = "Usage: ${get_or_create(type, properties)}. Example: ${get_or_create(\"User\", \"email\", \"tester@test.com\"}";
@@ -46,8 +44,12 @@ public class GetOrCreateFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
+	}
 
+	@Override
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
 

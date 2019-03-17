@@ -50,31 +50,31 @@ public class AdvancedMailModule implements StructrModule {
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+	}
 
-//		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
-//		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
-		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailBeginFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailSetFromFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailSetSubjectFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailSetHtmlContentFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailSetTextContentFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailAddToFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearToFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailAddCcFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearCcFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailAddBccFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearBccFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailSetBounceAddressFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearBounceAddressFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailAddReplyToFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearReplyToFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailAddAttachmentFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearAttachmentsFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailAddHeaderFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearHeadersFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailSendFunction());
+		Functions.put(licenseManager, new MailBeginFunction());
+		Functions.put(licenseManager, new MailSetFromFunction());
+		Functions.put(licenseManager, new MailSetSubjectFunction());
+		Functions.put(licenseManager, new MailSetHtmlContentFunction());
+		Functions.put(licenseManager, new MailSetTextContentFunction());
+		Functions.put(licenseManager, new MailAddToFunction());
+		Functions.put(licenseManager, new MailClearToFunction());
+		Functions.put(licenseManager, new MailAddCcFunction());
+		Functions.put(licenseManager, new MailClearCcFunction());
+		Functions.put(licenseManager, new MailAddBccFunction());
+		Functions.put(licenseManager, new MailClearBccFunction());
+		Functions.put(licenseManager, new MailSetBounceAddressFunction());
+		Functions.put(licenseManager, new MailClearBounceAddressFunction());
+		Functions.put(licenseManager, new MailAddReplyToFunction());
+		Functions.put(licenseManager, new MailClearReplyToFunction());
+		Functions.put(licenseManager, new MailAddAttachmentFunction());
+		Functions.put(licenseManager, new MailClearAttachmentsFunction());
+		Functions.put(licenseManager, new MailAddHeaderFunction());
+		Functions.put(licenseManager, new MailClearHeadersFunction());
+		Functions.put(licenseManager, new MailSendFunction());
 	}
 
 	@Override

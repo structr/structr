@@ -18,6 +18,7 @@
  */
 package org.structr.messaging.implementation.mqtt.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.schema.action.ActionContext;
@@ -31,6 +32,11 @@ public class MQTTSubscribeTopicFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "mqtt_subscribe";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
 	}
 
 	@Override

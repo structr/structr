@@ -21,6 +21,7 @@ package org.structr.core.function;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
@@ -34,6 +35,11 @@ public class AncestorTypesFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "ancestor_types";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override

@@ -32,12 +32,12 @@ public class ExcelModule implements StructrModule {
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+	}
 
-//		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
-//		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
-		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new ToExcelFunction());
+		Functions.put(licenseManager, new ToExcelFunction());
 	}
 
 	@Override

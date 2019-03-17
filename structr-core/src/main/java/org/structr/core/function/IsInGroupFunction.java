@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.api.graph.RelationshipType;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -36,6 +37,11 @@ public class IsInGroupFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "is_in_group";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override

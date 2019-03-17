@@ -21,6 +21,7 @@ package org.structr.core.function;
 import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.Undefined;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -35,6 +36,11 @@ public class EmptyFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "empty";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

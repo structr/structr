@@ -19,13 +19,11 @@
 package org.structr.core.function;
 
 import java.util.Date;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class ToDateFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_TO_DATE    = "Usage: ${to_date(value)}. Example: ${to_date(1473201885000)}";
@@ -37,6 +35,11 @@ public class ToDateFunction extends Function<Object, Object> {
 	}
 
 	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		// if source is a number, try to convert from millis
@@ -44,15 +47,15 @@ public class ToDateFunction extends Function<Object, Object> {
 
 			try {
 				Long timestamp = 0L;
-				
+
 				if (sources[0] instanceof Double) {
-				
+
 					timestamp = Math.round((Double) sources[0]);
-				
+
 				} else if (sources[0] instanceof Integer || sources[0] instanceof Long) {
-					
+
 					timestamp = (Long) sources[0];
-				
+
 				} else {
 					throw new UnsupportedOperationException();
 				}
@@ -62,9 +65,9 @@ public class ToDateFunction extends Function<Object, Object> {
 			} catch (Throwable t) {
 				// fail silently
 			}
-		
+
 		} else {
-		
+
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}

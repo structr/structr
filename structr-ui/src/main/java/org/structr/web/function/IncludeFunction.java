@@ -24,6 +24,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -52,6 +53,11 @@ public class IncludeFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "include";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override
@@ -135,7 +141,7 @@ public class IncludeFunction extends Function<Object, Object> {
 	}
 
 	protected String renderNode(final SecurityContext securityContext, final ActionContext ctx, final RenderContext innerCtx, final Object[] sources, final App app, final DOMNode node) throws FrameworkException {
-		
+
 		if (node != null) {
 
 			if (sources.length == 3 && sources[1] instanceof Iterable && sources[2] instanceof String ) {
@@ -213,7 +219,7 @@ public class IncludeFunction extends Function<Object, Object> {
 
 		}
 
-		return StringUtils.join(innerCtx.getBuffer().getQueue(), "");		
+		return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
 	}
-	
+
 }

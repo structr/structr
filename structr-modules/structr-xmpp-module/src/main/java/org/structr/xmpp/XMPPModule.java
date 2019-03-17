@@ -34,6 +34,10 @@ public class XMPPModule implements StructrModule {
 	}
 
 	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
+	}
+
+	@Override
 	public String getName() {
 		return "xmpp";
 	}

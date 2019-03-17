@@ -24,6 +24,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.service.Command;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -44,6 +45,11 @@ public class MaintenanceFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "maintenance";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
 	}
 
 	@Override

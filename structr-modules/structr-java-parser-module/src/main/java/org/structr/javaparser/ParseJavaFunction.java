@@ -20,6 +20,7 @@ package org.structr.javaparser;
 
 import com.github.javaparser.ParseProblemException;
 import com.google.gson.GsonBuilder;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -36,6 +37,11 @@ public class ParseJavaFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "parse_java";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
 	}
 
 	@Override

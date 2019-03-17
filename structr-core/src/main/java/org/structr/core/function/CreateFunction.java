@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import java.util.Map;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
@@ -30,9 +31,6 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class CreateFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_CREATE    = "Usage: ${create(type, key, value)}. Example: ${create(\"Feedback\", \"text\", this.text)}";
@@ -41,6 +39,11 @@ public class CreateFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "create";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

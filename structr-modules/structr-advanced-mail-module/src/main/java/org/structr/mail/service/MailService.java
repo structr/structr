@@ -21,10 +21,41 @@ package org.structr.mail.service;
 import com.google.gson.Gson;
 import com.sun.mail.util.BASE64DecoderStream;
 import com.sun.mail.util.MailConnectException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.mail.Address;
+import javax.mail.AuthenticationFailedException;
+import javax.mail.BodyPart;
+import javax.mail.Folder;
+import javax.mail.Header;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.Part;
+import javax.mail.Session;
+import javax.mail.Store;
 import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.*;
+import org.structr.api.config.IntegerSetting;
+import org.structr.api.config.Setting;
+import org.structr.api.config.Settings;
+import org.structr.api.config.StringSetting;
 import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.ServiceDependency;
@@ -33,6 +64,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.mail.entity.EMailMessage;
@@ -42,17 +74,9 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 
-import javax.mail.*;
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 @ServiceDependency(SchemaService.class)
 public class MailService extends Thread implements RunnableService {
+
 	private static final Logger logger                      = LoggerFactory.getLogger(MailService.class.getName());
 	private static final ExecutorService threadExecutor     = Executors.newCachedThreadPool();
 	private boolean run                                     = false;
@@ -60,10 +84,9 @@ public class MailService extends Thread implements RunnableService {
 	private Set<Mailbox> processingMailboxes                = null;
 	private int maxConnectionRetries                        = 5;
 
-	public static final SettingsGroup mailGroup             = new SettingsGroup("mail","Advanced EMailMessage Configuration");
-	public static final Setting<Integer> maxEmails          = new IntegerSetting(mailGroup,"EMailMessage", "mail.maxEmails",25);
-	public static final Setting<Integer> updateInterval     = new IntegerSetting(mailGroup,"EMailMessage", "mail.updateInterval",30000);
-	public static final Setting<String> attachmentBasePath  = new StringSetting(mailGroup,"EMailMessage", "mail.attachmentBasePath","/mail/attachments");
+	public static final Setting<Integer> maxEmails          = new IntegerSetting(Settings.smtpGroup, "MailService", "mail.maxEmails",          25,                  "The number of mails which are checked");
+	public static final Setting<Integer> updateInterval     = new IntegerSetting(Settings.smtpGroup, "MailService", "mail.updateInterval",     30000,               "The interval in which the mailbox is checked. Unit is milliseconds");
+	public static final Setting<String> attachmentBasePath  = new StringSetting (Settings.smtpGroup, "MailService", "mail.attachmentBasePath", "/mail/attachments", "The path in structrs virtual filesystem where attachments are downloaded to");
 
 	//////////////////////////////////////////////////////////////// Public Methods
 
@@ -226,7 +249,22 @@ public class MailService extends Thread implements RunnableService {
 				final String path = (attachmentBasePath.getValue() + "/" + Integer.toString(cal.get(Calendar.YEAR)) + "/" + Integer.toString(cal.get(Calendar.MONTH)) + "/" + Integer.toString(cal.get(Calendar.DAY_OF_MONTH)) + "/" + mb.getUuid());
 
 				org.structr.web.entity.Folder fileFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), path);
-				file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), p.getInputStream(), p.getContentType(), fileClass, p.getFileName(), fileFolder);
+
+				try {
+
+					String fileName = p.getFileName();
+
+					if (fileName == null) {
+						fileName = NodeServiceCommand.getNextUuid();
+					}
+
+					file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), p.getInputStream(), p.getContentType(), fileClass, fileName, fileFolder);
+
+				} catch (FrameworkException ex) {
+
+					logger.warn("EMail in mailbox[" + mb.getUuid() + "] attachment has invalid name. Using random UUID as fallback.");
+					file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), p.getInputStream(), p.getContentType(), fileClass, NodeServiceCommand.getNextUuid(), fileFolder);
+				}
 
 				tx.success();
 
@@ -245,7 +283,7 @@ public class MailService extends Thread implements RunnableService {
 
 	}
 
-	private Map<String,String> handleMultipart(final Mailbox mb, Multipart p, List<File> attachments) {
+	private Map<String,String> handleMultipart(final Mailbox mb, final String subject, Multipart p, List<File> attachments) {
 
 		Map<String,String> result = new HashMap<>();
 
@@ -256,9 +294,9 @@ public class MailService extends Thread implements RunnableService {
 				final String content = result.get("content") != null ? result.get("content") : "";
 
 				BodyPart part = (BodyPart) p.getBodyPart(i);
-				if (part.getContentType().contains("multipart")) {
+				if (part.getContent() instanceof Multipart) {
 
-					Map<String,String> subResult = handleMultipart(mb, (Multipart)part.getContent(), attachments);
+					Map<String,String> subResult = handleMultipart(mb, subject, (Multipart)part.getContent(), attachments);
 
 					if (subResult.get("content") != null) {
 						result.put("content", content.concat(subResult.get("content")));
@@ -285,9 +323,9 @@ public class MailService extends Thread implements RunnableService {
 					} else if (part.isMimeType("text/plain")) {
 
 						result.put("content", content.concat(getText(part)));
-					} else {
+					} else if (!part.isMimeType("message/delivery-status")){
 
-						logger.warn("Cannot handle content type given by email part. Given metadata is either faulty or specific implementation is missing. Type: {}, Mailbox: {}, Content: {}", part.getContentType(), mb.getUuid(), part.getContent().toString());
+						logger.warn("Cannot handle content type given by email part. Given metadata is either faulty or specific implementation is missing. Type: {}, Mailbox: {}, Content: {}, Subject; {}", part.getContentType(), mb.getUuid(), part.getContent().toString(), subject);
 					}
 				}
 			}
@@ -560,7 +598,7 @@ public class MailService extends Thread implements RunnableService {
 
 								if (message.getContentType().contains("multipart")) {
 
-									Map<String, String> result = handleMultipart(mailbox, (Multipart)contentObj, attachments);
+									Map<String, String> result = handleMultipart(mailbox, message.getSubject(), (Multipart)contentObj, attachments);
 									content = result.get("content");
 									htmlContent = result.get("htmlContent");
 								} else if (message.getContentType().contains("text/plain")){

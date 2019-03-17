@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.imageio.ImageIO;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -41,6 +42,11 @@ public class BarcodeFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "barcode";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
 	}
 
 	@Override

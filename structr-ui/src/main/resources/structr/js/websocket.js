@@ -429,7 +429,7 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, result, data.rawResultCount);
 
-			} else if (command.startsWith('CLONE') || command === 'REPLACE_TEMPLATE') { console.log(command, data.callback)
+			} else if (command.startsWith('CLONE') || command === 'REPLACE_TEMPLATE') {
 
 				_Logger.log(_LogType.WS[command], result, data);
 

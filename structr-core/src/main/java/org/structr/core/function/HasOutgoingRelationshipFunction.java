@@ -18,9 +18,10 @@
  */
 package org.structr.core.function;
 
-import org.structr.common.error.FrameworkException;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
@@ -35,6 +36,11 @@ public class HasOutgoingRelationshipFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "has_outgoing_relationship";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

@@ -24,10 +24,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.util.AbstractBinaryProcess;
@@ -40,6 +41,11 @@ public class ExecBinaryFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "exec_binary";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override

@@ -60,6 +60,7 @@ public abstract class Function<S, T> extends Hint {
 
 	public abstract T apply(ActionContext ctx, Object caller, S[] sources) throws FrameworkException;
 	public abstract String usage(boolean inJavaScriptContext);
+	public abstract int getRequiredLicense();
 
 	public List<String> aliases() {
 		return Collections.EMPTY_LIST;

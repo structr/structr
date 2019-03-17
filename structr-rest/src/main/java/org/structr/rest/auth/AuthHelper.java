@@ -439,7 +439,7 @@ public class AuthHelper {
 
 					try {
 
-						final String currentKey = TimeBasedOneTimePasswordHelper.generateCurrentNumberString(Principal.getTwoFactorSecret(principal), Settings.TwoFactorDigits.getValue());
+						final String currentKey = TimeBasedOneTimePasswordHelper.generateCurrentNumberString(Principal.getTwoFactorSecret(principal), AuthHelper.getCryptoAlgorithm(), Settings.TwoFactorPeriod.getValue(), Settings.TwoFactorDigits.getValue());
 
 						// check two factor authentication
 						if (currentKey.equals(twoFactorCode)) {
@@ -475,5 +475,11 @@ public class AuthHelper {
 
 	public static String getIdentificationTokenForPrincipal () {
 		return UUID.randomUUID().toString() + "!" + new Date().getTime();
+	}
+
+	// The StandardName for the given SHA algorithm.
+	// see https://docs.oracle.com/javase/7/docs/technotes/guides/security/StandardNames.html#Mac
+	private static String getCryptoAlgorithm() {
+		return "Hmac" + Settings.TwoFactorAlgorithm.getValue();
 	}
 }

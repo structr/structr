@@ -21,6 +21,7 @@ package org.structr.core.function;
 import java.util.Collection;
 import org.apache.commons.lang3.ArrayUtils;
 import org.python.google.common.collect.Iterables;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -34,6 +35,11 @@ public class ContainsFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "contains";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

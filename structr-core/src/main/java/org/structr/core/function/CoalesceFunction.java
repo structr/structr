@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -34,6 +35,11 @@ public class CoalesceFunction extends Function<Object, Object> {
 	}
 
 	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources != null) {
@@ -45,7 +51,6 @@ public class CoalesceFunction extends Function<Object, Object> {
 				if (sources[i] != null) {
 					return sources[i].toString();
 				}
-
 			}
 
 			// no non-null value was supplied
@@ -55,7 +60,6 @@ public class CoalesceFunction extends Function<Object, Object> {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 	}
 

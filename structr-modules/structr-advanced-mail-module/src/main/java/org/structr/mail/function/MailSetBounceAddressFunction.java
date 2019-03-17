@@ -18,6 +18,7 @@
  */
 package org.structr.mail.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.AdvancedMailContainer;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
@@ -31,6 +32,11 @@ public class MailSetBounceAddressFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "mail_set_bounce_address";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
 	}
 
 	@Override

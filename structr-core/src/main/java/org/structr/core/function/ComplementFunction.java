@@ -21,6 +21,7 @@ package org.structr.core.function;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -32,6 +33,11 @@ public class ComplementFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "complement";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

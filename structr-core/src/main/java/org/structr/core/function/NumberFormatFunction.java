@@ -21,6 +21,7 @@ package org.structr.core.function;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -35,6 +36,11 @@ public class NumberFormatFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "number_format";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override
@@ -54,7 +60,6 @@ public class NumberFormatFunction extends Function<Object, Object> {
 			final String pattern = sources[2].toString();
 
 			return new DecimalFormat(pattern, DecimalFormatSymbols.getInstance(Locale.forLanguageTag(langCode))).format(val);
-
 
 		} catch (ArgumentNullException pe) {
 

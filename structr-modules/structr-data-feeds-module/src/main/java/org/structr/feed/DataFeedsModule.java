@@ -34,6 +34,10 @@ public class DataFeedsModule implements StructrModule {
 	}
 
 	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
+	}
+
+	@Override
 	public String getName() {
 		return "data-feeds";
 	}

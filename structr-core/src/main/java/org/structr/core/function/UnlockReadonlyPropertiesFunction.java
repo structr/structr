@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -33,6 +34,11 @@ public class UnlockReadonlyPropertiesFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "unlock_readonly_properties_once";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override

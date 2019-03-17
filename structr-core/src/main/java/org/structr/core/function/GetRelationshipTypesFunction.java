@@ -21,6 +21,7 @@ package org.structr.core.function;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -42,6 +43,11 @@ public class GetRelationshipTypesFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "get_relationship_types";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
 	}
 
 	@Override

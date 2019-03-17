@@ -25,12 +25,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.service.LicenseManager;
 import org.structr.core.GraphObjectMap;
 import org.structr.schema.action.ActionContext;
 
-/**
- *
- */
 public class FromJsonFunction extends UiFunction {
 
 	public static final String ERROR_MESSAGE_FROM_JSON    = "Usage: ${from_json(src)}. Example: ${from_json('{name:test}')}";
@@ -39,6 +37,11 @@ public class FromJsonFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "from_json";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

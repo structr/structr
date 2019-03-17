@@ -281,6 +281,7 @@ var _Widgets = {
 	repaintRemoteWidgets: function (search) {
 
 		_Widgets.remoteWidgetFilter = search;
+		_Widgets.remoteWidgetsEl.empty();
 
 		if (search && search.length > 0) {
 

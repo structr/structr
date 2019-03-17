@@ -20,15 +20,13 @@ package org.structr.web.function;
 
 import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 
-/**
- *
- */
 public class RenderFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_RENDER    = "Usage: ${render(node)} or ${render(nodes)}. Example: ${render(get(this, \"children\"))}";
@@ -40,6 +38,11 @@ public class RenderFunction extends Function<Object, Object> {
 	}
 
 	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources != null && sources.length == 1) {
@@ -47,10 +50,10 @@ public class RenderFunction extends Function<Object, Object> {
 			RenderContext innerCtx = new RenderContext((RenderContext)ctx);
 
 			if (sources[0] == null) {
-				
+
 				return "";
 			}
-			
+
 			if (sources[0] instanceof DOMNode) {
 
 				((DOMNode)sources[0]).render(innerCtx, 0);
@@ -62,13 +65,11 @@ public class RenderFunction extends Function<Object, Object> {
 					if (obj instanceof DOMNode) {
 						((DOMNode)obj).render(innerCtx, 0);
 					}
-
 				}
 
 			} else {
 
 				logger.warn("Error: Parameter 1 is neither node nor collection. Parameters: {}", getParametersAsString(sources));
-
 			}
 
 			return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
@@ -76,7 +77,6 @@ public class RenderFunction extends Function<Object, Object> {
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
 		}
 
 		return usage(ctx.isJavaScriptContext());
@@ -91,5 +91,4 @@ public class RenderFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Renders the children of the current node";
 	}
-
 }

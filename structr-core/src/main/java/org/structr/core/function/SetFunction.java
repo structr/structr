@@ -22,10 +22,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.util.Map;
 import org.structr.api.config.Settings;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
@@ -44,6 +45,11 @@ public class SetFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "set";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

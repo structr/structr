@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.error.ArgumentCountException;
@@ -36,6 +37,11 @@ public class RevokeFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "revoke";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override
