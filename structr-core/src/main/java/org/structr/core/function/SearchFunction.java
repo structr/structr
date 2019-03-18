@@ -134,6 +134,7 @@ public class SearchFunction extends AbstractQueryFunction {
 			return query.getAsList();
 
 		} catch (final IllegalArgumentException e) {
+			
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 
