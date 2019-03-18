@@ -48,6 +48,9 @@ public class SearchFunction extends AbstractQueryFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
+		final SecurityContext securityContext = ctx.getSecurityContext();
+		final boolean ignoreResultCount       = securityContext.ignoreResultCount();
+
 		try {
 
 			if (sources == null) {
@@ -55,7 +58,6 @@ public class SearchFunction extends AbstractQueryFunction {
 				throw new IllegalArgumentException();
 			}
 
-			final SecurityContext securityContext = ctx.getSecurityContext();
 			final ConfigurationProvider config    = StructrApp.getConfiguration();
 			final Query query                     = StructrApp.getInstance(securityContext).nodeQuery();
 
@@ -136,7 +138,9 @@ public class SearchFunction extends AbstractQueryFunction {
 			return usage(ctx.isJavaScriptContext());
 
 		} finally {
+			
 			resetRange();
+			securityContext.ignoreResultCount(ignoreResultCount);
 		}
 	}
 
