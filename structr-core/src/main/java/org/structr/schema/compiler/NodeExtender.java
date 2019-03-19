@@ -207,6 +207,8 @@ public class NodeExtender {
 
 					System.out.println("Code source: " + source.getUuid() + " of type " + source.getClass().getSimpleName());
 
+					System.out.println(context);
+
 					/*
 					final String src = ((JavaFileObject) diagnostic.getSource()).getCharContent(true).toString();
 					

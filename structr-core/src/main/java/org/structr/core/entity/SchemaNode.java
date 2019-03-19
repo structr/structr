@@ -389,7 +389,7 @@ public class SchemaNode extends AbstractSchemaNode {
 					}
 				}
 
-				setProperty(implementsInterfaces, String.join(",", interfaceStrings));
+				setProperty(implementsInterfaces, String.join(",", splitInterfaces));
 			}
 		}
 
