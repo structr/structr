@@ -95,6 +95,8 @@ public interface LDAPGroup extends Group {
 
 			} catch (Throwable t) {
 
+				t.printStackTrace();
+
 				LoggerFactory.getLogger(LDAPGroup.class).warn("Unable to sync group {}: {}", thisGroup.getName(), t.getMessage());
 			}
 
