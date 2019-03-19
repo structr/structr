@@ -18,49 +18,13 @@
  */
 package org.structr.schema;
 
-import java.util.Map;
-import java.util.TreeMap;
-
 /**
+ *
+ * @author chrisi
  */
-public class SourceLine {
 
-	private final StringBuilder buf = new StringBuilder();
-	private CodeSource codeSource   = null;
 
-	public SourceLine(final CodeSource codeSource) {
-		this.codeSource = codeSource;
-	}
-
-	public SourceLine(final CodeSource codeSource, final Object initial) {
-		
-		buf.append(initial); 
-		
-		this.codeSource = codeSource;
-	}
-
-	@Override
-	public String toString() {
-		return buf.toString();
-	}
-
-	public SourceLine append(final Object data) {
-
-		buf.append(data);
-
-		return this;
-	}
-
-	public SourceLine quoted(final Object data) {
-
-		buf.append("\"");
-		buf.append(data);
-		buf.append("\"");
-
-		return this;
-	}
-
-	public CodeSource getCodeSource() {
-		return codeSource;
-	}
+public interface CodeSource {
+	
+	String getUuid();
 }

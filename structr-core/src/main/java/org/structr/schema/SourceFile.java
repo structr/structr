@@ -29,39 +29,50 @@ import org.parboiled.common.StringUtils;
  */
 public class SourceFile extends SimpleJavaFileObject {
 
-	private List<SourceLine> lines = new LinkedList<>();
-	private String className       = null;
-	private CharSequence content   = null;
-	private int indentLevel        = 0;
+	private List<SourceLine> lines            = new LinkedList<>();
+	private String className                  = null;
+	private CharSequence content              = null;
+	private int indentLevel                   = 0;
 		
 	public SourceFile(final String className) {
 		
 		super(URI.create("string:///" + className.replace('.', '/') + Kind.SOURCE.extension), Kind.SOURCE);
 	}
 
-	public void append(final String data) {
-		lines.add(new SourceLine(data));
-	}
-
 	public void importLine(final String className) {
-		line("import ", className, ";");
+		line(null, "import ", className, ";");
 	}
 
-	public void open(final Object... data) {
-		line(data);
+	public SourceLine begin(final CodeSource source, final Object... data) {
+
+		final SourceLine line = line(source, data);
+		
 		indent();
+
+		return line;
 	}
 
-	public void close() {
+	public void end() {
+		
 		outdent();
-		line("}");
+		line(null, "}");
 	}
-	
-	
 
-	public SourceLine line(final Object... data) {
+	public SourceLine end(final Object... data) {
+		
+		outdent();
+		return line(null, data);
+	}
 
-		final SourceLine line = new SourceLine(getIndentation());
+	public SourceLine endBegin(final CodeSource source, final Object... data) {
+		
+		outdent();
+		return begin(source, data);
+	}
+
+	public SourceLine line(final CodeSource source, final Object... data) {
+
+		final SourceLine line = new SourceLine(source, getIndentation());
 
 		for (final Object d : data) {
 			line.append(d);
@@ -77,7 +88,7 @@ public class SourceFile extends SimpleJavaFileObject {
 	}
 	
 	public String getContent() {
-		return StringUtils.join(lines, "");
+		return StringUtils.join(lines, "\n");
 	}
 
 	public void indent() {
@@ -105,5 +116,11 @@ public class SourceFile extends SimpleJavaFileObject {
 
 		return buf.toString();
 	}
-	
+
+	private void storePosition(final String uuid) {
+
+		
+
+		
+	}
 }

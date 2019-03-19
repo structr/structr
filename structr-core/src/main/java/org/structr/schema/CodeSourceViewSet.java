@@ -18,49 +18,17 @@
  */
 package org.structr.schema;
 
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.LinkedHashSet;
 
-/**
- */
-public class SourceLine {
+public class CodeSourceViewSet extends LinkedHashSet<String> {
 
-	private final StringBuilder buf = new StringBuilder();
-	private CodeSource codeSource   = null;
+	private CodeSource source = null;
 
-	public SourceLine(final CodeSource codeSource) {
-		this.codeSource = codeSource;
+	public CodeSourceViewSet(final CodeSource source) {
+		this.source = source;
 	}
 
-	public SourceLine(final CodeSource codeSource, final Object initial) {
-		
-		buf.append(initial); 
-		
-		this.codeSource = codeSource;
-	}
-
-	@Override
-	public String toString() {
-		return buf.toString();
-	}
-
-	public SourceLine append(final Object data) {
-
-		buf.append(data);
-
-		return this;
-	}
-
-	public SourceLine quoted(final Object data) {
-
-		buf.append("\"");
-		buf.append(data);
-		buf.append("\"");
-
-		return this;
-	}
-
-	public CodeSource getCodeSource() {
-		return codeSource;
+	public CodeSource getSource() {
+		return source;
 	}
 }

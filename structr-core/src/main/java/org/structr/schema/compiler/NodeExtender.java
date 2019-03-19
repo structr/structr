@@ -18,7 +18,6 @@
  */
 package org.structr.schema.compiler;
 
-import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -27,12 +26,9 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
@@ -52,6 +48,7 @@ import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.module.JarConfigurationProvider;
+import org.structr.schema.CodeSource;
 import org.structr.schema.SourceFile;
 import org.structr.schema.SourceLine;
 
@@ -195,32 +192,32 @@ public class NodeExtender {
 
 				final int errorContext    = 5;
 				final int errorLineNumber = Long.valueOf(diagnostic.getLineNumber()).intValue();
-				final JavaFileObject obj  = diagnostic.getSource();
-				String name               = "unknown";
-
-				if (obj != null && obj instanceof CharSequenceJavaFileObject) {
-					name = ((CharSequenceJavaFileObject)obj).getClassName();
-				}
+				final SourceFile obj      = (SourceFile)diagnostic.getSource();
+				String name               = obj.getName();
 
 				errorBuffer.add(new DiagnosticErrorToken(name, diagnostic));
 
 				if (Settings.LogSchemaErrors.getValue()) {
 
-					try {
+					final SourceFile sourceFile = (SourceFile)diagnostic.getSource();
+					final List<SourceLine> code = sourceFile.getLines();
+					final SourceLine line       = code.get(errorLineNumber - 1);
+					final CodeSource source     = line.getCodeSource();
+					final String context        = StringUtils.join(code.subList(Math.max(0, errorLineNumber - errorContext), Math.min(code.size(), errorLineNumber + errorContext)), "\n");
 
-						final String src = ((JavaFileObject) diagnostic.getSource()).getCharContent(true).toString();
-						
-						// Add line numbers
-						final AtomicInteger index = new AtomicInteger();
-						final List<String> code   = Arrays.asList(src.split("\\R")).stream().map(line -> (index.getAndIncrement()+1) + ": " + line).collect(Collectors.toList());
-						final String context      = StringUtils.join(code.subList(Math.max(0, errorLineNumber - errorContext), Math.min(code.size(), errorLineNumber + errorContext)), "\n");
-						
-						// log also to log file
-						logger.error("Unable to compile dynamic entity {}:{}: {}\n{}", name, diagnostic.getLineNumber(), diagnostic.getMessage(Locale.ENGLISH), context);
+					System.out.println("Code source: " + source.getUuid() + " of type " + source.getClass().getSimpleName());
 
-					} catch (IOException ex) {
-						java.util.logging.Logger.getLogger(NodeExtender.class.getName()).log(Level.SEVERE, null, ex);
-					}
+					/*
+					final String src = ((JavaFileObject) diagnostic.getSource()).getCharContent(true).toString();
+					
+					// Add line numbers
+					final AtomicInteger index = new AtomicInteger();
+					final List<String> code   = Arrays.asList(src.split("\\R")).stream().map(line -> (index.getAndIncrement()+1) + ": " + line).collect(Collectors.toList());
+					final String context      = StringUtils.join(code.subList(Math.max(0, errorLineNumber - errorContext), Math.min(code.size(), errorLineNumber + errorContext)), "\n");
+					
+					// log also to log file
+					logger.error("Unable to compile dynamic entity {}:{}: {}\n{}", name, diagnostic.getLineNumber(), diagnostic.getMessage(Locale.ENGLISH), context);
+					*/
 				}
 			}
 		}

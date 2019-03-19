@@ -54,6 +54,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.property.TypeProperty;
 import org.structr.core.property.UuidProperty;
+import org.structr.schema.CodeSource;
 import org.structr.schema.action.ActionContext;
 
 
@@ -62,7 +63,7 @@ import org.structr.schema.action.ActionContext;
  *
  *
  */
-public interface GraphObject {
+public interface GraphObject extends CodeSource {
 
 	static final Logger logger = LoggerFactory.getLogger(GraphObject.class);
 
@@ -83,13 +84,6 @@ public interface GraphObject {
 	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema().category(SYSTEM_CATEGORY);
 
 	// ----- methods common to both types -----
-	/**
-	 * Returns the UUID of this graph object.
-	 *
-	 * @return the UUID
-	 */
-	public String getUuid();
-
 	/**
 	 * Returns the type of this graph object.
 	 *

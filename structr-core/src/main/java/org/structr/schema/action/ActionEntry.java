@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import static org.structr.core.entity.SchemaMethod.source;
+import org.structr.schema.CodeSource;
 import org.structr.schema.SourceFile;
 import org.structr.schema.SourceLine;
 
@@ -40,7 +42,7 @@ public class ActionEntry implements Comparable<ActionEntry> {
 	private boolean doExport                     = false;
 	private boolean overrides                    = false;
 	private boolean callSuper                    = false;
-	private String sourceUuid                    = null;
+	private CodeSource codeSource                = null;
 	private String returnType                    = null;
 	private String call                          = null;
 	private String name                          = null;
@@ -132,8 +134,8 @@ public class ActionEntry implements Comparable<ActionEntry> {
 		this.call = value;
 	}
 
-	public void setSourceUuid(final String uuid) {
-		this.sourceUuid = uuid;
+	public void setCodeSource(final CodeSource codeSource) {
+		this.codeSource = codeSource;
 	}
 
 	public void setReturnType(final String returnType) {
@@ -197,15 +199,29 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 		if (Actions.Type.Java.equals(type)) {
 
-			sourceFile.append(this.call);
+			if (StringUtils.isNotBlank(call)) {
+
+				final SourceLine line = sourceFile.line(codeSource, call);
+			
+				final String trimmed = call.trim();
+				if (!trimmed.endsWith(";") &&  !trimmed.endsWith("}")) {
+
+					line.append(";");
+				}
+			}
+
+			if (!"void".equals(returnType) && (StringUtils.isBlank(call) || Actions.Type.Custom.equals(getType()))) {
+
+				sourceFile.line(codeSource, "return null;");
+			}
 
 		} else {
 
 			final String methodName = this.type.equals(Actions.Type.Custom) ? this.name : this.type.getLogName();
-			final SourceLine line   = sourceFile.line(Actions.class.getSimpleName());
+			final SourceLine line   = sourceFile.line(codeSource, Actions.class.getSimpleName());
 			line.append(".execute(").append(securityContextVariable).append(", ").append(objVariable).append(", ");
 			line.append("SchemaMethod.getCachedSourceCode(\"");
-			line.append(sourceUuid);
+			line.append(codeSource.getUuid());
 			line.append("\")");
 
 			if (includeParameters) {
