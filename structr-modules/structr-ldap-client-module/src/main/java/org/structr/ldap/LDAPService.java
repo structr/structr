@@ -31,6 +31,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.ldap.codec.osgi.DefaultLdapCodecService;
 import org.apache.directory.api.ldap.codec.standalone.CodecFactoryUtil;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
+import org.apache.directory.api.ldap.model.cursor.CursorLdapReferralException;
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -285,26 +286,32 @@ public class LDAPService extends Thread implements SingletonService {
 
 			while (cursor.next()) {
 
-				final Entry entry           = cursor.get();
-				final Attribute objectClass = entry.get("objectclass");
+				try {
+					final Entry entry           = cursor.get();
+					final Attribute objectClass = entry.get("objectclass");
 
-				for (final java.util.Map.Entry<String, String> groupEntry : possibleGroupNames.entrySet()) {
+					for (final java.util.Map.Entry<String, String> groupEntry : possibleGroupNames.entrySet()) {
 
-					final String possibleGroupName  = groupEntry.getKey();
-					final String possibleMemberName = groupEntry.getValue();
+						final String possibleGroupName  = groupEntry.getKey();
+						final String possibleMemberName = groupEntry.getValue();
 
-					if (objectClass.contains(possibleGroupName)) {
+						if (objectClass.contains(possibleGroupName)) {
 
-						// add group members
-						final Attribute groupMembers = entry.get(possibleMemberName);
-						if (groupMembers != null) {
+							// add group members
+							final Attribute groupMembers = entry.get(possibleMemberName);
+							if (groupMembers != null) {
 
-							for (final Value value : groupMembers) {
+								for (final Value value : groupMembers) {
 
-								memberDNs.add(value.getString());
+									memberDNs.add(value.getString());
+								}
 							}
 						}
 					}
+					
+				} catch (CursorLdapReferralException e) {
+				
+					logger.info("CursorLdapReferralException caught, info: {}, remaining DN: {}, resolved object: {}, result code: {}", e.getReferralInfo(), e.getRemainingDn(), e.getResolvedObject(), e.getResultCode());
 				}
 			}
 		}
