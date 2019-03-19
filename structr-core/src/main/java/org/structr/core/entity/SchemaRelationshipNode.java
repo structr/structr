@@ -69,6 +69,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.schema.ReloadSchema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
+import org.structr.schema.SourceFile;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonSchema.Cascade;
@@ -509,11 +510,10 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		return propertyName;
 	}
 
-	public String getSource(final Map<String, SchemaNode> schemaNodes, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public void getSource(final SourceFile src, final Map<String, SchemaNode> schemaNodes, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final Map<String, List<ActionEntry>> actions       = new LinkedHashMap<>();
 		final Map<String, Set<String>> viewProperties      = new LinkedHashMap<>();
-		final StringBuilder src                            = new StringBuilder();
 		final Class baseType                               = AbstractRelationship.class;
 		final String _className                            = getClassName();
 		final String _sourceNodeType                       = getSchemaNodeSourceType();
@@ -527,9 +527,9 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		src.append("package org.structr.dynamic;\n\n");
 
-		SchemaHelper.formatImportStatements(this, src, baseType, Collections.emptyList());
+		SchemaHelper.formatImportStatements(src, this, baseType, Collections.emptyList());
 
-		src.append("public class ").append(_className).append(" extends ").append(getBaseType());
+		src.line("public class ").append(_className).append(" extends ").append(getBaseType());
 
 		if ("OWNS".equals(getProperty(relationshipType))) {
 			interfaces.add(Ownership.class.getName());
@@ -557,7 +557,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		src.append(" {\n\n");
 
 		if (!Direction.None.equals(getProperty(permissionPropagation))) {
-			src.append("\tstatic {\n\t\tSchemaRelationshipNode.registerPropagatingRelationshipType(").append(_className).append(".class);\n\t}\n\n");
+			src.line("\tstatic {\n\t\tSchemaRelationshipNode.registerPropagatingRelationshipType(").append(_className).append(".class);\n\t}\n\n");
 		}
 
 		src.append(SchemaHelper.extractProperties(schemaNodes, this, propertyNames, validators, compoundIndexKeys, enums, viewProperties, propertyValidators, errorBuffer));
@@ -566,8 +566,8 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		SchemaHelper.extractMethods(schemaNodes, this, actions);
 
 		// source and target id properties
-		src.append("\tpublic static final Property<java.lang.String> sourceIdProperty = new SourceId(\"sourceId\").partOfBuiltInSchema();\n");
-		src.append("\tpublic static final Property<java.lang.String> targetIdProperty = new TargetId(\"targetId\").partOfBuiltInSchema();\n");
+		src.line("\tpublic static final Property<java.lang.String> sourceIdProperty = new SourceId(\"sourceId\").partOfBuiltInSchema();\n");
+		src.line("\tpublic static final Property<java.lang.String> targetIdProperty = new TargetId(\"targetId\").partOfBuiltInSchema();\n");
 
 		// add sourceId and targetId to view properties
 		//SchemaHelper.addPropertyToView(PropertyView.Public, "sourceId", viewProperties);
@@ -593,37 +593,34 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		}
 
 		// abstract method implementations
-		src.append("\n\t@Override\n");
-		src.append("\tpublic Class<").append(_sourceNodeType).append("> getSourceType() {\n");
-		src.append("\t\treturn ").append(_sourceNodeType).append(".class;\n");
-		src.append("\t}\n\n");
-		src.append("\t@Override\n");
-		src.append("\tpublic Class<").append(_targetNodeType).append("> getTargetType() {\n");
-		src.append("\t\treturn ").append(_targetNodeType).append(".class;\n");
-		src.append("\t}\n\n");
-		src.append("\t@Override\n");
-		src.append("\tpublic Property<java.lang.String> getSourceIdProperty() {\n");
-		src.append("\t\treturn sourceId;\n");
-		src.append("\t}\n\n");
-		src.append("\t@Override\n");
-		src.append("\tpublic Property<java.lang.String> getTargetIdProperty() {\n");
-		src.append("\t\treturn targetId;\n");
-		src.append("\t}\n\n");
-		src.append("\t@Override\n");
-		src.append("\tpublic java.lang.String name() {\n");
-		src.append("\t\treturn \"").append(getRelationshipType()).append("\";\n");
-		src.append("\t}\n\n");
+		src.line("\n\t@Override\n");
+		src.line("\tpublic Class<").append(_sourceNodeType).append("> getSourceType() {\n");
+		src.line("\t\treturn ").append(_sourceNodeType).append(".class;\n");
+		src.line("\t}\n\n");
+		src.line("\t@Override\n");
+		src.line("\tpublic Class<").append(_targetNodeType).append("> getTargetType() {\n");
+		src.line("\t\treturn ").append(_targetNodeType).append(".class;\n");
+		src.line("\t}\n\n");
+		src.line("\t@Override\n");
+		src.line("\tpublic Property<java.lang.String> getSourceIdProperty() {\n");
+		src.line("\t\treturn sourceId;\n");
+		src.line("\t}\n\n");
+		src.line("\t@Override\n");
+		src.line("\tpublic Property<java.lang.String> getTargetIdProperty() {\n");
+		src.line("\t\treturn targetId;\n");
+		src.line("\t}\n\n");
+		src.line("\t@Override\n");
+		src.line("\tpublic java.lang.String name() {\n");
+		src.line("\t\treturn \"").append(getRelationshipType()).append("\";\n");
+		src.line("\t}\n\n");
 
 		SchemaHelper.formatValidators(src, validators, compoundIndexKeys, false, propertyValidators);
-		SchemaHelper.formatMethods(this, src, actions, Collections.emptySet());
+		SchemaHelper.formatMethods(src, this, actions, Collections.emptySet());
 
 		formatRelationshipFlags(src);
-
 		formatPermissionPropagation(src);
 
 		src.append("}\n");
-
-		return src.toString();
 	}
 
 	// ----- public methods -----
@@ -917,7 +914,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	}
 
 	// ----- private methods -----
-	private void formatRelationshipFlags(final StringBuilder src) {
+	private void formatRelationshipFlags(final SourceFile src) {
 
 		Long cascadingDelete = getProperty(cascadingDeleteFlag);
 		if (cascadingDelete != null) {
@@ -982,37 +979,37 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		}
 	}
 
-	private void formatPermissionPropagation(final StringBuilder buf) {
+	private void formatPermissionPropagation(final SourceFile buf) {
 
 		if (!Direction.None.equals(getProperty(permissionPropagation))) {
 
 			buf.append("\n\t@Override\n");
 			buf.append("\tpublic SchemaRelationshipNode.Direction getPropagationDirection() {\n");
-			buf.append("\t\treturn SchemaRelationshipNode.Direction.").append(getProperty(permissionPropagation)).append(";\n");
+			buf.line("\t\treturn SchemaRelationshipNode.Direction.").append(getProperty(permissionPropagation)).append(";\n");
 			buf.append("\t}\n\n");
 
 
 			buf.append("\n\t@Override\n");
 			buf.append("\tpublic SchemaRelationshipNode.Propagation getReadPropagation() {\n");
-			buf.append("\t\treturn SchemaRelationshipNode.Propagation.").append(getProperty(readPropagation)).append(";\n");
+			buf.line("\t\treturn SchemaRelationshipNode.Propagation.").append(getProperty(readPropagation)).append(";\n");
 			buf.append("\t}\n\n");
 
 
 			buf.append("\n\t@Override\n");
 			buf.append("\tpublic SchemaRelationshipNode.Propagation getWritePropagation() {\n");
-			buf.append("\t\treturn SchemaRelationshipNode.Propagation.").append(getProperty(writePropagation)).append(";\n");
+			buf.line("\t\treturn SchemaRelationshipNode.Propagation.").append(getProperty(writePropagation)).append(";\n");
 			buf.append("\t}\n\n");
 
 
 			buf.append("\n\t@Override\n");
 			buf.append("\tpublic SchemaRelationshipNode.Propagation getDeletePropagation() {\n");
-			buf.append("\t\treturn SchemaRelationshipNode.Propagation.").append(getProperty(deletePropagation)).append(";\n");
+			buf.line("\t\treturn SchemaRelationshipNode.Propagation.").append(getProperty(deletePropagation)).append(";\n");
 			buf.append("\t}\n\n");
 
 
 			buf.append("\n\t@Override\n");
 			buf.append("\tpublic SchemaRelationshipNode.Propagation getAccessControlPropagation() {\n");
-			buf.append("\t\treturn SchemaRelationshipNode.Propagation.").append(getProperty(accessControlPropagation)).append(";\n");
+			buf.line("\t\treturn SchemaRelationshipNode.Propagation.").append(getProperty(accessControlPropagation)).append(";\n");
 			buf.append("\t}\n\n");
 
 
@@ -1021,7 +1018,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 			final String _propertyMask = getProperty(propertyMask);
 			if (_propertyMask != null) {
 
-				buf.append("\t\treturn \"").append(_propertyMask).append("\";\n");
+				buf.line("\t\treturn \"").append(_propertyMask).append("\";\n");
 
 			} else {
 

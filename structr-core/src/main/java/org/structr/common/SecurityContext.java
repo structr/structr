@@ -61,7 +61,7 @@ public class SecurityContext {
 	private static final Logger logger                   = LoggerFactory.getLogger(SecurityContext.class.getName());
 	private static final Map<String, Long> resourceFlags = new ConcurrentHashMap<>();
 	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,-]+)");
-	private MergeMode remoteCollectionMergeMode  = MergeMode.Replace;
+	private MergeMode remoteCollectionMergeMode          = MergeMode.Replace;
 	private boolean uuidWasSetManually                   = false;
 	private boolean doTransactionNotifications           = false;
 	private boolean forceMergeOfNestedProperties         = false;

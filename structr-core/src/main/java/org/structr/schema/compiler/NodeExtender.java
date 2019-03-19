@@ -18,6 +18,7 @@
  */
 package org.structr.schema.compiler;
 
+import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
@@ -50,6 +52,8 @@ import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.module.JarConfigurationProvider;
+import org.structr.schema.SourceFile;
+import org.structr.schema.SourceLine;
 
 /**
  *
@@ -64,14 +68,14 @@ public class NodeExtender {
 	private static final ClassLoader classLoader     = fileManager.getClassLoader(null);
 	private static final Map<String, Class> classes  = new TreeMap<>();
 
-	private List<JavaFileObject> jfiles  = null;
+	private List<SourceFile> sources     = null;
 	private Set<String> fqcns            = null;
 	private String initiatedBySessionId  = null;
 
 	public NodeExtender(final String initiatedBySessionId) {
 
 		this.initiatedBySessionId = initiatedBySessionId;
-		this.jfiles               = new ArrayList<>();
+		this.sources              = new ArrayList<>();
 		this.fqcns                = new LinkedHashSet<>();
 	}
 
@@ -87,13 +91,13 @@ public class NodeExtender {
 		return classes;
 	}
 
-	public void addClass(final String className, final String content) throws ClassNotFoundException {
+	public void addClass(final String className, final SourceFile sourceFile) throws ClassNotFoundException {
 
-		if (className != null && content != null) {
+		if (className != null && sourceFile != null) {
 
 			final String packageName = JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE;
 
-			jfiles.add(new CharSequenceJavaFileObject(className, content));
+			sources.add(sourceFile);
 			fqcns.add(packageName.concat(".".concat(className)));
 
 			if (Settings.LogSchemaOutput.getValue()) {
@@ -102,7 +106,7 @@ public class NodeExtender {
 
 				int count = 0;
 
-				for (final String line : content.split("[\\n\\r]{1}")) {
+				for (final SourceLine line : sourceFile.getLines()) {
 					System.out.println(StringUtils.rightPad(++count + ": ", 6) + line);
 				}
 			}
@@ -114,13 +118,13 @@ public class NodeExtender {
 		final Writer errorWriter     = new StringWriter();
 		final List<Class> newClasses = new LinkedList<>();
 
-		if (!jfiles.isEmpty()) {
+		if (!sources.isEmpty()) {
 
-			logger.info("Compiling {} dynamic entities...", jfiles.size());
+			logger.info("Compiling {} dynamic entities...", sources.size());
 
 			final long t0 = System.currentTimeMillis();
 
-			Boolean success = compiler.getTask(errorWriter, fileManager, new Listener(errorBuffer), Arrays.asList("-g"), null, jfiles).call();
+			Boolean success = compiler.getTask(errorWriter, fileManager, new Listener(errorBuffer), Arrays.asList("-g"), null, sources).call();
 
 			logger.info("Compiling done in {} ms", System.currentTimeMillis() - t0);
 
@@ -155,7 +159,7 @@ public class NodeExtender {
 					classes.put(newType.getName(), newType);
 				}
 
-				logger.info("Successfully compiled {} dynamic entities: {}", new Object[] { jfiles.size(), jfiles.stream().map(f -> f.getName().replaceFirst("/", "")).collect(Collectors.joining(", ")) });
+				logger.info("Successfully compiled {} dynamic entities: {}", new Object[] { sources.size(), sources.stream().map(f -> f.getName().replaceFirst("/", "")).collect(Collectors.joining(", ")) });
 
 				final Map<String, Object> data = new LinkedHashMap();
 				data.put("success", true);
@@ -189,8 +193,10 @@ public class NodeExtender {
 
 			if (diagnostic.getKind().equals(Kind.ERROR)) {
 
-				final JavaFileObject obj = diagnostic.getSource();
-				String name              = "unknown";
+				final int errorContext    = 5;
+				final int errorLineNumber = Long.valueOf(diagnostic.getLineNumber()).intValue();
+				final JavaFileObject obj  = diagnostic.getSource();
+				String name               = "unknown";
 
 				if (obj != null && obj instanceof CharSequenceJavaFileObject) {
 					name = ((CharSequenceJavaFileObject)obj).getClassName();
@@ -200,16 +206,21 @@ public class NodeExtender {
 
 				if (Settings.LogSchemaErrors.getValue()) {
 
-					String src = ((CharSequenceJavaFileObject) diagnostic.getSource()).getCharContent(true).toString();
+					try {
 
-					// Add line numbers
-					final AtomicInteger index = new AtomicInteger();
-					src = Arrays.asList(src.split("\\R")).stream()
-						.map(line -> (index.getAndIncrement()+1) + ": " + line)
-						.collect(Collectors.joining("\n"));
+						final String src = ((JavaFileObject) diagnostic.getSource()).getCharContent(true).toString();
+						
+						// Add line numbers
+						final AtomicInteger index = new AtomicInteger();
+						final List<String> code   = Arrays.asList(src.split("\\R")).stream().map(line -> (index.getAndIncrement()+1) + ": " + line).collect(Collectors.toList());
+						final String context      = StringUtils.join(code.subList(Math.max(0, errorLineNumber - errorContext), Math.min(code.size(), errorLineNumber + errorContext)), "\n");
+						
+						// log also to log file
+						logger.error("Unable to compile dynamic entity {}:{}: {}\n{}", name, diagnostic.getLineNumber(), diagnostic.getMessage(Locale.ENGLISH), context);
 
-					// log also to log file
-					logger.error("Unable to compile dynamic entity {}:{}: {}\n{}", name, diagnostic.getLineNumber(), diagnostic.getMessage(Locale.ENGLISH), src);
+					} catch (IOException ex) {
+						java.util.logging.Logger.getLogger(NodeExtender.class.getName()).log(Level.SEVERE, null, ex);
+					}
 				}
 			}
 		}
