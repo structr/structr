@@ -1755,7 +1755,11 @@ var Structr = {
 				}
 			};
 
-			Structr.appendInfoTextToElement(Object.assign(config, defaults));
+			let elCommentConfig = $(el).data('commentConfig') || {};
+
+			// base config is overridden by the defaults parameter which is overriden by the element config
+			let infoConfig = Object.assign(config, defaults, elCommentConfig);
+			Structr.appendInfoTextToElement(infoConfig);
 		});
 
 	},
