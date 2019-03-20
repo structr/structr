@@ -68,6 +68,7 @@ import org.structr.schema.json.JsonScriptProperty;
 import org.structr.schema.json.JsonStringArrayProperty;
 import org.structr.schema.json.JsonStringProperty;
 import org.structr.schema.json.JsonType;
+import org.structr.schema.json.diff.JsonDiff;
 
 /**
  * @param <T>
@@ -111,7 +112,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	@Override
 	public boolean equals(final Object other) {
 
-		if (other instanceof StructrPropertyDefinition) {
+		if (other instanceof StructrTypeDefinition) {
 
 			return other.hashCode() == hashCode();
 		}
@@ -1094,6 +1095,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		for (final StructrPropertyDefinition property : properties) {
 			property.initializeReferences();
 		}
+	}
+
+	void diff(final JsonDiff diff, final StructrTypeDefinition other) {
+
+		// ....
 	}
 
 	// ----- static methods -----

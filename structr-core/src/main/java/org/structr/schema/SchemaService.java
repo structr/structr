@@ -138,6 +138,11 @@ public class SchemaService implements Service {
 
 				try (final Tx tx = app.tx()) {
 
+					final JsonSchema currentSchema = StructrSchema.createFromDatabase(app);
+
+					// diff and merge 
+					currentSchema.diff(dynamicSchema);
+
 					while (retryCount-- > 0) {
 
 						final Map<String, Map<String, PropertyKey>> removedClasses = new HashMap<>(config.getTypeAndPropertyMapping());

@@ -19,12 +19,14 @@
 package org.structr.schema.export;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import static org.apache.cxf.common.util.StringUtils.diff;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
@@ -33,6 +35,7 @@ import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
+import org.structr.schema.json.diff.JsonDiff;
 
 /**
  *
@@ -223,4 +226,47 @@ public class StructrTypeDefinitions implements StructrDefinition {
 	Set<StructrRelationshipTypeDefinition> getRelationships() {
 		return relationships;
 	}
+
+	JsonDiff diff(final StructrTypeDefinitions other) {
+
+		final JsonDiff diff = new JsonDiff();
+
+		final Map<String, StructrTypeDefinition> localTypes = getMappedTypes();
+		final Map<String, StructrTypeDefinition> otherTypes = other.getMappedTypes();
+
+		final Set<String> removedTypes = new TreeSet<>(localTypes.keySet());
+		final Set<String> addedTypes   = new TreeSet<>(otherTypes.keySet());
+		final Set<String> bothTypes    = new TreeSet<>(localTypes.keySet());
+
+		removedTypes.removeAll(otherTypes.keySet());
+		addedTypes.removeAll(localTypes.keySet());
+		bothTypes.retainAll(otherTypes.keySet());
+
+		// find detailed differences in the intersection of both schemas
+		for (final String name : bothTypes) {
+
+			final StructrTypeDefinition localType = localTypes.get(name);
+			final StructrTypeDefinition otherType = otherTypes.get(name);
+			
+			// compare types
+			localType.diff(diff, otherType);
+		}
+		
+		// the same must be done for global methods and relationships!
+
+		return diff;
+	}
+
+	private Map<String, StructrTypeDefinition> getMappedTypes() {
+
+		final LinkedHashMap<String, StructrTypeDefinition> mapped = new LinkedHashMap<>();
+
+		for (final StructrTypeDefinition def : getTypes()) {
+
+			mapped.put(def.getName(), def);
+		}
+		
+		return mapped;
+	}
+	
 }

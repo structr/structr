@@ -46,9 +46,9 @@ import org.structr.common.error.DiagnosticErrorToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.module.JarConfigurationProvider;
-import org.structr.schema.CodeSource;
 import org.structr.schema.SourceFile;
 import org.structr.schema.SourceLine;
 
@@ -202,12 +202,11 @@ public class NodeExtender {
 					final SourceFile sourceFile = (SourceFile)diagnostic.getSource();
 					final List<SourceLine> code = sourceFile.getLines();
 					final SourceLine line       = code.get(errorLineNumber - 1);
-					final CodeSource source     = line.getCodeSource();
-					final String context        = StringUtils.join(code.subList(Math.max(0, errorLineNumber - errorContext), Math.min(code.size(), errorLineNumber + errorContext)), "\n");
+					final AbstractNode source   = (AbstractNode)line.getCodeSource();
 
-					System.out.println("Code source: " + source.getUuid() + " of type " + source.getClass().getSimpleName());
-
-					System.out.println(context);
+					System.out.println("Code source: " + source.getUuid() + " of type " + source.getClass().getSimpleName() + " name " + source.getName());
+					System.out.println("Line with error:");
+					System.out.println(line);
 
 					/*
 					final String src = ((JavaFileObject) diagnostic.getSource()).getCharContent(true).toString();

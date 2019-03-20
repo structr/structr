@@ -18,7 +18,9 @@
  */
 package org.structr.schema.json;
 
+import org.structr.schema.json.diff.JsonDiff;
 import java.net.URI;
+import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 
@@ -120,21 +122,24 @@ public interface JsonSchema {
 
 	public static final String EMPTY_SCHEMA                = "{\"definitions\":{}, \"methods\":[]}";
 
-	public URI getId();
+	URI getId();
 
-	public String getTitle();
-	public void setTitle(final String title);
+	String getTitle();
+	void setTitle(final String title);
 
-	public String getDescription();
-	public void setDescription(final String description);
+	String getDescription();
+	void setDescription(final String description);
 
-	public JsonObjectType addType(final String name);
-	public JsonType getType(final String name);
-	public JsonType getType(final String name, final boolean create);
-	public void removeType(final String name);
+	JsonObjectType addType(final String name);
+	JsonType getType(final String name);
+	JsonType getType(final String name, final boolean create);
+	void removeType(final String name);
 
-	public void createDatabaseSchema(final App app, final ImportMode importMode) throws FrameworkException;
+	void createDatabaseSchema(final App app, final ImportMode importMode) throws FrameworkException;
 
-	public Object resolveURI(final URI uri);
-	public String toJsonPointer(final URI uri);
+	Object resolveURI(final URI uri);
+	String toJsonPointer(final URI uri);
+
+	JsonDiff diff(final JsonSchema other);
+
 }
