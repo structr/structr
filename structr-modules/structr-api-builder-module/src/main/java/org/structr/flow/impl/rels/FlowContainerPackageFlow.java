@@ -41,6 +41,11 @@ public class FlowContainerPackageFlow extends OneToMany<FlowContainerPackage, Fl
 	}
 
 	@Override
+	public int getCascadingDeleteFlag() {
+		return Relation.SOURCE_TO_TARGET;
+	}	
+
+	@Override
 	public int getAutocreationFlag() {
 		return Relation.ALWAYS;
 	}
