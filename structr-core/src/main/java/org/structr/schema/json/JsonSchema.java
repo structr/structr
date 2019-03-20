@@ -18,9 +18,7 @@
  */
 package org.structr.schema.json;
 
-import org.structr.schema.json.diff.JsonDiff;
 import java.net.URI;
-import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 
@@ -140,6 +138,6 @@ public interface JsonSchema {
 	Object resolveURI(final URI uri);
 	String toJsonPointer(final URI uri);
 
-	JsonDiff diff(final JsonSchema other);
+	void diff(final JsonSchema other) throws FrameworkException;
 
 }

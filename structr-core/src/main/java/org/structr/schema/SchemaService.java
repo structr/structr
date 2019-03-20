@@ -136,12 +136,23 @@ public class SchemaService implements Service {
 
 			try {
 
+
 				try (final Tx tx = app.tx()) {
 
 					final JsonSchema currentSchema = StructrSchema.createFromDatabase(app);
 
 					// diff and merge 
 					currentSchema.diff(dynamicSchema);
+
+					// commit changes before trying to build the schema
+					tx.success();
+
+				} catch (Throwable t) {
+					t.printStackTrace();
+				}
+
+
+				try (final Tx tx = app.tx()) {
 
 					while (retryCount-- > 0) {
 

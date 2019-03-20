@@ -68,7 +68,6 @@ import org.structr.schema.json.JsonScriptProperty;
 import org.structr.schema.json.JsonStringArrayProperty;
 import org.structr.schema.json.JsonStringProperty;
 import org.structr.schema.json.JsonType;
-import org.structr.schema.json.diff.JsonDiff;
 
 /**
  * @param <T>
@@ -868,10 +867,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 		}
 
-		this.isInterface    = schemaNode.getProperty(SchemaNode.isInterface);
-		this.isAbstract     = schemaNode.getProperty(SchemaNode.isAbstract);
-		this.isBuiltinType  = schemaNode.getProperty(SchemaNode.isBuiltinType);
-		this.category       = schemaNode.getProperty(SchemaNode.category);
+		this.isInterface   = schemaNode.getProperty(SchemaNode.isInterface);
+		this.isAbstract    = schemaNode.getProperty(SchemaNode.isAbstract);
+		this.isBuiltinType = schemaNode.getProperty(SchemaNode.isBuiltinType);
+		this.category      = schemaNode.getProperty(SchemaNode.category);
+		this.schemaNode    = schemaNode;
 
 		if (this.category == null && getClass().equals(StructrNodeTypeDefinition.class)) {
 
@@ -1097,7 +1097,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 	}
 
-	void diff(final JsonDiff diff, final StructrTypeDefinition other) {
+	void diff(final StructrTypeDefinition other) {
 
 		// ....
 	}

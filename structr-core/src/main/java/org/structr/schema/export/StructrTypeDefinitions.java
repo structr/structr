@@ -19,23 +19,21 @@
 package org.structr.schema.export;
 
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import static org.apache.cxf.common.util.StringUtils.diff;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
-import org.structr.schema.json.diff.JsonDiff;
 
 /**
  *
@@ -227,34 +225,47 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		return relationships;
 	}
 
-	JsonDiff diff(final StructrTypeDefinitions other) {
+	void diff(final StructrTypeDefinitions other) throws FrameworkException {
 
-		final JsonDiff diff = new JsonDiff();
+		final Map<String, StructrTypeDefinition> databaseTypes = getMappedTypes();
+		final Map<String, StructrTypeDefinition> structrTypes  = other.getMappedTypes();
+		final Set<String> typesOnlyInDatabase                  = new TreeSet<>(databaseTypes.keySet());
+		final Set<String> typesOnlyInStructrSchema             = new TreeSet<>(structrTypes.keySet());
+		final Set<String> bothTypes                            = new TreeSet<>(databaseTypes.keySet());
 
-		final Map<String, StructrTypeDefinition> localTypes = getMappedTypes();
-		final Map<String, StructrTypeDefinition> otherTypes = other.getMappedTypes();
+		typesOnlyInDatabase.removeAll(structrTypes.keySet());
+		typesOnlyInStructrSchema.removeAll(databaseTypes.keySet());
+		bothTypes.retainAll(structrTypes.keySet());
 
-		final Set<String> removedTypes = new TreeSet<>(localTypes.keySet());
-		final Set<String> addedTypes   = new TreeSet<>(otherTypes.keySet());
-		final Set<String> bothTypes    = new TreeSet<>(localTypes.keySet());
+		// types that exist in the only database
+		for (final String key : typesOnlyInDatabase) {
 
-		removedTypes.removeAll(otherTypes.keySet());
-		addedTypes.removeAll(localTypes.keySet());
-		bothTypes.retainAll(otherTypes.keySet());
+			final StructrTypeDefinition type = databaseTypes.get(key);
+			if (type.isBuiltinType()) {
+
+				handleRemovedBuiltInType(type);
+				
+			} else {
+
+				// type should be ok, probably created by user
+			}
+		}
+
+		// nothing to do for this set, these types can simply be created without problems
+		//System.out.println(typesOnlyInStructrSchema);
+
 
 		// find detailed differences in the intersection of both schemas
 		for (final String name : bothTypes) {
 
-			final StructrTypeDefinition localType = localTypes.get(name);
-			final StructrTypeDefinition otherType = otherTypes.get(name);
+			final StructrTypeDefinition localType = databaseTypes.get(name);
+			final StructrTypeDefinition otherType = structrTypes.get(name);
 			
 			// compare types
-			localType.diff(diff, otherType);
+			localType.diff(otherType);
 		}
 		
 		// the same must be done for global methods and relationships!
-
-		return diff;
 	}
 
 	private Map<String, StructrTypeDefinition> getMappedTypes() {
@@ -267,6 +278,17 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		}
 		
 		return mapped;
+	}
+	
+	private void handleRemovedBuiltInType(final StructrTypeDefinition type) throws FrameworkException {
+
+		System.out.println("Built-in type " + type.getName() + " was removed or renamed in the current version of the Structr schema.");
+
+		// handle migration
+		
+
+		// We can not determine if the type was deleted or renamed, so we need to delete it..
+		StructrApp.getInstance().delete(type.getSchemaNode());
 	}
 	
 }

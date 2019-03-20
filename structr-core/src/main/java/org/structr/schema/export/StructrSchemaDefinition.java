@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.schema.json.diff.JsonDiff;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
@@ -182,11 +181,11 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 	}
 
 	@Override
-	public JsonDiff diff(final JsonSchema schema) {
+	public void diff(final JsonSchema schema) throws FrameworkException {
 
 		final StructrSchemaDefinition other = (StructrSchemaDefinition)schema; // provoke ClassCastException if type doesn't match
 
-		return this.typeDefinitions.diff(other.typeDefinitions);
+		this.typeDefinitions.diff(other.typeDefinitions);
 	}
 
 	// ----- package methods -----
