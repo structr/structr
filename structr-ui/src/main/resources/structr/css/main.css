@@ -3520,9 +3520,9 @@ input.tree-search-input:focus {
 	position: absolute;
 }
 
-.tree-contents {
+/*.tree-contents {
 	overflow: hidden;
-}
+}*/
 
 .tree-contents-with-top-buttons {
 	margin-top: 8px;
