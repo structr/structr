@@ -188,7 +188,7 @@ public abstract class PropertySourceGenerator {
 
 		if (StringUtils.isNotBlank(source.getDbName())) {
 			line.append(", ");
-			line.append(source.getDbName());
+			line.quoted(source.getDbName());
 		}
 
 		if (getPropertyParameters() != null) {

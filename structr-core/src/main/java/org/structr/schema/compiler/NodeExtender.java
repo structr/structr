@@ -26,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -207,6 +208,7 @@ public class NodeExtender {
 					System.out.println("Code source: " + source.getUuid() + " of type " + source.getClass().getSimpleName() + " name " + source.getName());
 					System.out.println("Line with error:");
 					System.out.println(line);
+					System.out.println("Error: " + diagnostic.getMessage(Locale.ENGLISH));
 
 					/*
 					final String src = ((JavaFileObject) diagnostic.getSource()).getCharContent(true).toString();
