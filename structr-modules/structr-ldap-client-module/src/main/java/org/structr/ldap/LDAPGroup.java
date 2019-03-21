@@ -19,13 +19,13 @@
 package org.structr.ldap;
 
 import java.net.URI;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import static org.structr.core.GraphObject.logger;
 import org.structr.core.Services;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.ModificationQueue;
@@ -38,6 +38,8 @@ import org.structr.schema.json.JsonSchema;
 /**
  */
 public interface LDAPGroup extends Group {
+
+	static final Logger logger = LoggerFactory.getLogger(LDAPGroup.class);
 
 	static class Impl { static {
 
@@ -95,9 +97,7 @@ public interface LDAPGroup extends Group {
 
 			} catch (Throwable t) {
 
-				t.printStackTrace();
-
-				LoggerFactory.getLogger(LDAPGroup.class).warn("Unable to sync group {}: {}", thisGroup.getName(), t.getMessage());
+				logger.warn("Unable to sync group {}: {}", thisGroup.getName(), t.getMessage());
 			}
 
 		} else {
@@ -105,7 +105,6 @@ public interface LDAPGroup extends Group {
 			final String message = "LDAPService not available, is it configured in structr.conf?<br /><a href=\"/structr/config\" target=\"_blank\">Open Structr Configuration</a>";
 
 			TransactionCommand.simpleBroadcastWarning("Service not configured", message, Predicate.only(securityContext.getSessionId()));
-
 
 			logger.warn(message);
 		}

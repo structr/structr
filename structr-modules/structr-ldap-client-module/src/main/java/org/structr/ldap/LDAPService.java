@@ -100,9 +100,9 @@ public class LDAPService extends Thread implements SingletonService {
 			return;
 		}
 
-		if (connection != null) {
+		connection.setTimeOut(connectionTimeout);
 
-			connection.setTimeOut(connectionTimeout);
+		try {
 
 			if (connection.connect()) {
 
@@ -130,7 +130,17 @@ public class LDAPService extends Thread implements SingletonService {
 
 					updateWithFilterAndScope(group, connection, groupPath, groupFilter, groupScope);
 				}
+		
+				connection.unBind();
 			}
+
+		} catch (Throwable t) {
+
+			logger.warn("Unable to sync group {}: {}", group.getName(), t.getMessage());
+
+		} finally {
+
+			connection.close();
 		}
 	}
 
@@ -140,24 +150,22 @@ public class LDAPService extends Thread implements SingletonService {
 		final int port                  = getPort();
 		final boolean useSsl            = getUseSSL();
 		final LdapConnection connection = new LdapNetworkConnection(host, port, useSsl);
-		if (connection != null) {
 
-			connection.setTimeOut(connectionTimeout);
+		connection.setTimeOut(connectionTimeout);
 
-			try {
-				if (connection.connect()) {
+		try {
+			if (connection.connect()) {
 
-					connection.bind(dn, secret);
-					connection.unBind();
-				}
-
-				connection.close();
-
-				return true;
-
-			} catch (LdapException | IOException ex) {
-				logger.warn("Cannot bind {} on LDAP server {}: {}", dn, (host + ":" + port), ex.getMessage());
+				connection.bind(dn, secret);
+				connection.unBind();
 			}
+
+			connection.close();
+
+			return true;
+
+		} catch (LdapException | IOException ex) {
+			logger.warn("Cannot bind {} on LDAP server {}: {}", dn, (host + ":" + port), ex.getMessage());
 		}
 
 		return false;
@@ -308,9 +316,9 @@ public class LDAPService extends Thread implements SingletonService {
 							}
 						}
 					}
-					
+
 				} catch (CursorLdapReferralException e) {
-				
+
 					logger.info("CursorLdapReferralException caught, info: {}, remaining DN: {}, resolved object: {}, result code: {}", e.getReferralInfo(), e.getRemainingDn(), e.getResolvedObject(), e.getResultCode());
 				}
 			}
