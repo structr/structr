@@ -556,9 +556,9 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 				notionPropertyParser = new NotionPropertyParser(new ErrorBuffer(), getName(), this);
 				notionPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
 
-			} catch (FrameworkException fex) {
-
-				logger.warn("", fex);
+			} catch (FrameworkException ignore) {
+				// ignore this error because we only need the property parser to extract
+				// some information, the generated code is not used at all
 			}
 		}
 
@@ -574,8 +574,8 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 				intPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
 
 			} catch (FrameworkException fex) {
-
-				logger.warn("", fex);
+				// ignore this error because we only need the property parser to extract
+				// some information, the generated code is not used at all
 			}
 		}
 
@@ -591,8 +591,8 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 				intArrayPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
 
 			} catch (FrameworkException fex) {
-
-				logger.warn("", fex);
+				// ignore this error because we only need the property parser to extract
+				// some information, the generated code is not used at all
 			}
 		}
 
@@ -608,8 +608,8 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 				longPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
 
 			} catch (FrameworkException fex) {
-
-				logger.warn("", fex);
+				// ignore this error because we only need the property parser to extract
+				// some information, the generated code is not used at all
 			}
 		}
 
@@ -625,8 +625,8 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 				longArrayPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
 
 			} catch (FrameworkException fex) {
-
-				logger.warn("", fex);
+				// ignore this error because we only need the property parser to extract
+				// some information, the generated code is not used at all
 			}
 		}
 
@@ -642,8 +642,8 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 				doublePropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
 
 			} catch (FrameworkException fex) {
-
-				logger.warn("", fex);
+				// ignore this error because we only need the property parser to extract
+				// some information, the generated code is not used at all
 			}
 		}
 
@@ -659,8 +659,8 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 				doubleArrayPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
 
 			} catch (FrameworkException fex) {
-
-				logger.warn("", fex);
+				// ignore this error because we only need the property parser to extract
+				// some information, the generated code is not used at all
 			}
 		}
 
