@@ -18,13 +18,7 @@
  */
 package org.structr.schema;
 
-/**
- *
- * @author chrisi
- */
-
-
 public interface CodeSource {
-	
+
 	String getUuid();
 }

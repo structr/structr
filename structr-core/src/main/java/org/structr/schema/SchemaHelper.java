@@ -1288,7 +1288,7 @@ public class SchemaHelper {
 		line.append(name);
 		line.append("(final SecurityContext arg0, final ErrorBuffer arg1, final ModificationQueue arg2) throws FrameworkException {");
 
-		final SourceLine call = src.line(schemaNode, "\t\tsuper.");
+		final SourceLine call = src.line(schemaNode, "super.");
 		call.append(name);
 		call.append("(arg0, arg1, arg2);");
 
@@ -1317,7 +1317,7 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			
+
 			//src.append("\t\t\t").append(action.getSource(src, "this", "arg0", false)).append(";\n");
 			action.getSource(src, "this", "arg0", false);
 		}
@@ -1337,7 +1337,7 @@ public class SchemaHelper {
 				formatActiveAction(src, codeSource, action);
 
 			} else {
-				
+
 				final String returnType              = action.getReturnType();
 				final Map<String, String> parameters = action.getParameters();
 
@@ -1352,7 +1352,7 @@ public class SchemaHelper {
 					}
 
 					final SourceLine line = src.begin(codeSource, "public ");
-					
+
 					line.append(returnType);
 					line.append(" ");
 					line.append(action.getName());
@@ -1403,7 +1403,7 @@ public class SchemaHelper {
 					line.append(StringUtils.join(parameters.keySet(), ", "));
 					line.append(");");
 				}
-				
+
 				action.getSource(src, "this", true, false);
 
 				src.end();
@@ -1420,9 +1420,9 @@ public class SchemaHelper {
 		line.append("(final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {");
 
 		src.line(codeSource, "return");
-		
+
 		action.getSource(src, "this", true, false);
-		
+
 		src.end();
 	}
 
