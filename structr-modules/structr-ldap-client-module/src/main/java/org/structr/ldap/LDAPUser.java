@@ -21,17 +21,25 @@ package org.structr.ldap;
 import java.io.IOException;
 import java.net.URI;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Group;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
@@ -42,6 +50,8 @@ import org.structr.web.entity.User;
  *
  */
 public interface LDAPUser extends User {
+
+	static final Logger logger = LoggerFactory.getLogger(LDAPGroup.class);
 
 	static class Impl { static {
 
@@ -57,6 +67,7 @@ public interface LDAPUser extends User {
 		type.addPropertyGetter("distinguishedName", String.class);
 		type.addPropertySetter("distinguishedName", String.class);
 
+		type.overrideMethod("onModification",   true, LDAPUser.class.getName() + ".onModification(this, arg0, arg1, arg2);");
 		type.overrideMethod("onAuthenticate",   true, LDAPUser.class.getName() + ".onAuthenticate(this);");
 		type.overrideMethod("initializeFrom",  false, LDAPUser.class.getName() + ".initializeFrom(this, arg0);");
 		type.overrideMethod("isValidPassword", false, "return " + LDAPUser.class.getName() + ".isValidPassword(this, arg0);");
@@ -66,6 +77,17 @@ public interface LDAPUser extends User {
 
 	void initializeFrom(final Entry entry) throws FrameworkException;
 	void setDistinguishedName(final String distinguishedName) throws FrameworkException;
+
+	static void onModification(final LDAPUser thisNode, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		// delete this user if there is no group association left
+		final List<Group> groups = Iterables.toList(thisNode.getGroups());
+		if (groups.isEmpty()) {
+
+			logger.info("Deleting LDAPUser {} with UUID {} because it is not associated with a group any more.", thisNode.getName(), thisNode.getUuid());
+			StructrApp.getInstance().delete(thisNode);
+		}
+	}
 
 	static void initializeFrom(final LDAPUser thisUser, final Entry entry) throws FrameworkException {
 
