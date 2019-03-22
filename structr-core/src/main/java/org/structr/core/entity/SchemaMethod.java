@@ -96,7 +96,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		final List<SchemaMethodParameter> params = Iterables.toList(getProperty(parameters));
 
 		// add UUID
-		entry.setSourceUuid(getUuid());
+		entry.setCodeSource(this);
 
 		// Parameters must be sorted by index
 		Collections.sort(params, new GraphObjectComparator(SchemaMethodParameter.index, false));

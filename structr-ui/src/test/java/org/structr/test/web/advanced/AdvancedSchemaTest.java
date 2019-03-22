@@ -30,6 +30,7 @@ import static org.hamcrest.Matchers.hasSize;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
@@ -67,6 +68,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 	@Test
 	public void test01InheritanceOfFileAttributesToImage() {
+
+		Settings.LogSchemaOutput.setValue(true);
 
 		try (final Tx tx = app.tx()) {
 

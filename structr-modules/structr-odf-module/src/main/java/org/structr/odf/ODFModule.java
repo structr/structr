@@ -22,6 +22,7 @@ import java.util.Set;
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.module.StructrModule;
+import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
 /**
@@ -53,15 +54,15 @@ public class ODFModule implements StructrModule{
 	}
 
 	@Override
-	public void insertImportStatements(AbstractSchemaNode schemaNode, StringBuilder buf) {
+	public void insertImportStatements(AbstractSchemaNode schemaNode, SourceFile buf) {
 	}
 
 	@Override
-	public void insertSourceCode(AbstractSchemaNode schemaNode, StringBuilder buf) {
+	public void insertSourceCode(AbstractSchemaNode schemaNode, SourceFile buf) {
 	}
 
 	@Override
-	public void insertSaveAction(AbstractSchemaNode schemaNode, StringBuilder buf, Actions.Type type) {
+	public void insertSaveAction(AbstractSchemaNode schemaNode, SourceFile buf, Actions.Type type) {
 	}
 
 	@Override

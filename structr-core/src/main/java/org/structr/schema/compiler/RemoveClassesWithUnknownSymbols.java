@@ -24,10 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaReloadingNode;
-import org.structr.core.graph.Tx;
 
 /**
  * A migration handler that removes schema nodes for classes that have
@@ -51,6 +47,10 @@ public class RemoveClassesWithUnknownSymbols implements MigrationHandler {
 			final Matcher matcher = PATTERN.matcher(detail);
 			if (matcher.matches()) {
 
+				System.out.println(errorToken.toJSON());
+
+				/*
+
 				try {
 
 					final App app = StructrApp.getInstance();
@@ -72,6 +72,8 @@ public class RemoveClassesWithUnknownSymbols implements MigrationHandler {
 				} catch (ArrayIndexOutOfBoundsException ibex) {
 					logger.warn("Unable to extract error information from {}: {}", detail, ibex.getMessage());
 				}
+
+				*/
 			}
 		}
 	}

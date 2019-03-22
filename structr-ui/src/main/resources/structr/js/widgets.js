@@ -253,6 +253,7 @@ var _Widgets = {
 		if (!url.startsWith(document.location.origin)) {
 
 			_Widgets.remoteWidgetsEl.empty();
+			_Widgets.remoteWidgetData = [];
 
 			fetch(url + '?sort=treePath').then(function(response) {
 
@@ -271,7 +272,7 @@ var _Widgets = {
 				_Widgets.repaintRemoteWidgets(_Widgets.remoteWidgetFilter);
 
 			}).catch(function(e) {
-				new MessageBuilder().error().text('Could not fetch data from server. Make sure that the resource loads correctly and check CORS settings.').requiresConfirmation().show();
+				new MessageBuilder().error().text('Could not fetch data from server. Make sure that the resource loads correctly and check CORS settings.<br>Also check your adblocker settings for possible conflicts.').requiresConfirmation().show();
 			});
 
 		} else {

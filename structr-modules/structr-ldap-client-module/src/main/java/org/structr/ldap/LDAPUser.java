@@ -27,11 +27,15 @@ import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Group;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
@@ -42,6 +46,8 @@ import org.structr.web.entity.User;
  *
  */
 public interface LDAPUser extends User {
+
+	static final Logger logger = LoggerFactory.getLogger(LDAPGroup.class);
 
 	static class Impl { static {
 
@@ -101,8 +107,25 @@ public interface LDAPUser extends User {
 
 		final LDAPService ldapService = Services.getInstance().getService(LDAPService.class, "default");
 		final String dn               = thisUser.getDistinguishedName();
+		boolean hasLDAPGroups         = false;
 
 		if (ldapService != null) {
+
+			// delete this user if there is no group association left
+			for (final Group group : Iterables.toList(thisUser.getGroups())) {
+
+				if (group instanceof LDAPGroup) {
+
+					hasLDAPGroups = true;
+					break;
+				}
+			}
+
+			if (!hasLDAPGroups) {
+
+				logger.info("LDAPUser {} with UUID {} is not associated with an LDAPGroup, authentication denied.", thisUser.getName(), thisUser.getUuid());
+				return false;
+			}
 
 			return ldapService.canSuccessfullyBind(dn, password);
 

@@ -31,6 +31,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.ldap.codec.osgi.DefaultLdapCodecService;
 import org.apache.directory.api.ldap.codec.standalone.CodecFactoryUtil;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
+import org.apache.directory.api.ldap.model.cursor.CursorLdapReferralException;
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -99,9 +100,9 @@ public class LDAPService extends Thread implements SingletonService {
 			return;
 		}
 
-		if (connection != null) {
+		connection.setTimeOut(connectionTimeout);
 
-			connection.setTimeOut(connectionTimeout);
+		try {
 
 			if (connection.connect()) {
 
@@ -129,7 +130,17 @@ public class LDAPService extends Thread implements SingletonService {
 
 					updateWithFilterAndScope(group, connection, groupPath, groupFilter, groupScope);
 				}
+		
+				connection.unBind();
 			}
+
+		} catch (Throwable t) {
+
+			logger.warn("Unable to sync group {}: {}", group.getName(), t.getMessage());
+
+		} finally {
+
+			connection.close();
 		}
 	}
 
@@ -139,24 +150,22 @@ public class LDAPService extends Thread implements SingletonService {
 		final int port                  = getPort();
 		final boolean useSsl            = getUseSSL();
 		final LdapConnection connection = new LdapNetworkConnection(host, port, useSsl);
-		if (connection != null) {
 
-			connection.setTimeOut(connectionTimeout);
+		connection.setTimeOut(connectionTimeout);
 
-			try {
-				if (connection.connect()) {
+		try {
+			if (connection.connect()) {
 
-					connection.bind(dn, secret);
-					connection.unBind();
-				}
-
-				connection.close();
-
-				return true;
-
-			} catch (LdapException | IOException ex) {
-				logger.warn("Cannot bind {} on LDAP server {}: {}", dn, (host + ":" + port), ex.getMessage());
+				connection.bind(dn, secret);
+				connection.unBind();
 			}
+
+			connection.close();
+
+			return true;
+
+		} catch (LdapException | IOException ex) {
+			logger.warn("Cannot bind {} on LDAP server {}: {}", dn, (host + ":" + port), ex.getMessage());
 		}
 
 		return false;
@@ -285,26 +294,32 @@ public class LDAPService extends Thread implements SingletonService {
 
 			while (cursor.next()) {
 
-				final Entry entry           = cursor.get();
-				final Attribute objectClass = entry.get("objectclass");
+				try {
+					final Entry entry           = cursor.get();
+					final Attribute objectClass = entry.get("objectclass");
 
-				for (final java.util.Map.Entry<String, String> groupEntry : possibleGroupNames.entrySet()) {
+					for (final java.util.Map.Entry<String, String> groupEntry : possibleGroupNames.entrySet()) {
 
-					final String possibleGroupName  = groupEntry.getKey();
-					final String possibleMemberName = groupEntry.getValue();
+						final String possibleGroupName  = groupEntry.getKey();
+						final String possibleMemberName = groupEntry.getValue();
 
-					if (objectClass.contains(possibleGroupName)) {
+						if (objectClass.contains(possibleGroupName)) {
 
-						// add group members
-						final Attribute groupMembers = entry.get(possibleMemberName);
-						if (groupMembers != null) {
+							// add group members
+							final Attribute groupMembers = entry.get(possibleMemberName);
+							if (groupMembers != null) {
 
-							for (final Value value : groupMembers) {
+								for (final Value value : groupMembers) {
 
-								memberDNs.add(value.getString());
+									memberDNs.add(value.getString());
+								}
 							}
 						}
 					}
+
+				} catch (CursorLdapReferralException e) {
+
+					logger.info("CursorLdapReferralException caught, info: {}, remaining DN: {}, resolved object: {}, result code: {}", e.getReferralInfo(), e.getRemainingDn(), e.getResolvedObject(), e.getResultCode());
 				}
 			}
 		}

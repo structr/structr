@@ -28,7 +28,6 @@ import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLType;
 import static graphql.schema.GraphQLTypeReference.typeRef;
 
-import java.sql.Struct;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -68,6 +67,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.SchemaService;
+import org.structr.schema.SourceFile;
 
 /**
  *
@@ -389,7 +389,7 @@ public class SchemaNode extends AbstractSchemaNode {
 					}
 				}
 
-				setProperty(implementsInterfaces, String.join(",", interfaceStrings));
+				setProperty(implementsInterfaces, String.join(",", splitInterfaces));
 			}
 		}
 
@@ -483,13 +483,16 @@ public class SchemaNode extends AbstractSchemaNode {
 	@Export
 	public String getGeneratedSourceCode() throws FrameworkException, UnlicensedTypeException {
 
+		final SourceFile sourceFile               = new SourceFile("");
 		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
 
 		// collect list of schema nodes
 		StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
 
 		// return generated source code for this class
-		return SchemaHelper.getSource(this, schemaNodes, SchemaService.getBlacklist(), new ErrorBuffer());
+		SchemaHelper.getSource(sourceFile, this, schemaNodes, SchemaService.getBlacklist(), new ErrorBuffer());
+
+		return sourceFile.getContent();
 	}
 
 	@Override
