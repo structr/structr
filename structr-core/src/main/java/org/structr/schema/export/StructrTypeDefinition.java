@@ -1467,10 +1467,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 	private void handleRemovedMethod(final StructrMethodDefinition method) throws FrameworkException {
 
-		logger.warn("Method {}.{} was removed or renamed in the current version of the Structr schema, deleting.", getName(), method.getName());
+		final SchemaMethod schemaMethod = method.getSchemaMethod();
+		if (schemaMethod != null) {
 
-		// We can not determine yet if the type was deleted or renamed, so we need to delete it..
-		StructrApp.getInstance().delete(method.getSchemaMethod());
+			final Boolean value = schemaMethod.getProperty(SchemaMethod.isPartOfBuiltInSchema);
+			if (value != null && value) {
+
+				logger.warn("Internal schema method {}.{} was removed or renamed in the current version of the Structr schema, deleting.", getName(), method.getName());
+
+				// We can not determine yet if the type was deleted or renamed, so we need to delete it..
+				StructrApp.getInstance().delete(method.getSchemaMethod());
+			}
+		}
 	}
 
 	private void handleRemovedProperty(final StructrPropertyDefinition property) throws FrameworkException {
