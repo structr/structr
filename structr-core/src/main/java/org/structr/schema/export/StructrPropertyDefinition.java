@@ -450,6 +450,9 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	void initializeReferences() {
 	}
 
+	void diff(final StructrPropertyDefinition other) {
+	}
+
 	// ----- static methods -----
 	static StructrPropertyDefinition deserialize(final StructrTypeDefinition parent, final String name, final Map<String, Object> source) {
 
