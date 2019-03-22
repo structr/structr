@@ -253,6 +253,7 @@ var _Widgets = {
 		if (!url.startsWith(document.location.origin)) {
 
 			_Widgets.remoteWidgetsEl.empty();
+			_Widgets.remoteWidgetData = [];
 
 			fetch(url + '?sort=treePath').then(function(response) {
 

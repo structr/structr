@@ -338,6 +338,23 @@ img.disabled {
 	top: 8px;
 }
 
+#add-widget-server {
+	width: 50%;
+}
+
+#add-widget-server td:first-of-type {
+	width: 100px;
+}
+
+#add-widget-server td:first-of-type label {
+	width: 100px;
+	min-width: 100px;
+}
+
+#add-widget-server td input {
+	width: 100%;
+}
+
 .ver-scrollable {
 	position: relative;
 	overflow: auto;

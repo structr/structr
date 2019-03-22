@@ -58,7 +58,7 @@ public interface Widget extends NodeInterface {
 		type.addStringProperty("source",        PropertyView.Ui, PropertyView.Public);
 		type.addStringProperty("description",   PropertyView.Ui, PropertyView.Public);
 		type.addStringProperty("configuration", PropertyView.Ui, PropertyView.Public);
-		type.addStringProperty("treePath",      PropertyView.Ui, PropertyView.Public);
+		type.addStringProperty("treePath",      PropertyView.Ui, PropertyView.Public).setIndexed(true);
 		type.addBooleanProperty("isWidget",     PropertyView.Ui, PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 
 		image.relate(type, "PICTURE_OF", Cardinality.ManyToOne, "pictures", "widget");
