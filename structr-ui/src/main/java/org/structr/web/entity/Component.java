@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,6 +37,7 @@ public interface Component extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Component"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 
 		type.addIntegerProperty("position");
 		type.addStringProperty("kind", PropertyView.Public, PropertyView.Ui);

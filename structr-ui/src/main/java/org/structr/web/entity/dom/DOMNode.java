@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,7 +22,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -49,6 +48,7 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.DataSources;
+import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
@@ -58,18 +58,18 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.EndNode;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.SchemaService;
+import org.structr.schema.action.Function;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.AsyncBuffer;
-import org.structr.core.datasources.GraphDataSource;
-import org.structr.core.property.EndNode;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
@@ -210,6 +210,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		type.overrideMethod("displayForLocale",                    false, "return " + DOMNode.class.getName() + ".displayForLocale(this, arg0);");
 		type.overrideMethod("displayForConditions",                false, "return " + DOMNode.class.getName() + ".displayForConditions(this, arg0);");
+		type.overrideMethod("shouldBeRendered",                    false, "return " + DOMNode.class.getName() + ".shouldBeRendered(this, arg0);");
 
 		// Renderable
 		type.overrideMethod("render",                              false, DOMNode.class.getName() + ".render(this, arg0, arg1);");
@@ -317,6 +318,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	boolean renderDetails();
 	boolean displayForLocale(final RenderContext renderContext);
 	boolean displayForConditions(final RenderContext renderContext);
+	boolean shouldBeRendered(final RenderContext renderContext);
 
 	int getChildPosition(final DOMNode otherNode);
 
@@ -439,7 +441,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	public static Set<DOMNode> getAllChildNodes(final DOMNode node) {
 
-		Set<DOMNode> allChildNodes = new HashSet<>();
+		final Set<DOMNode> allChildNodes = new LinkedHashSet<>();
 
 		getAllChildNodes(node, allChildNodes);
 
@@ -477,12 +479,19 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		final Iterable<GraphObject> listSource = renderContext.getListSource();
 		if (listSource != null) {
 
-			for (final GraphObject dataObject : listSource) {
+			for (final Object dataObject : listSource) {
 
 				// make current data object available in renderContext
-				renderContext.putDataObject(dataKey, dataObject);
-				node.renderContent(renderContext, depth + 1);
+				if (dataObject instanceof GraphObject) {
 
+					renderContext.putDataObject(dataKey, (GraphObject)dataObject);
+
+				} else if (dataObject instanceof Iterable) {
+
+					renderContext.putDataObject(dataKey, Function.recursivelyWrapIterableInMap((Iterable)dataObject, 0));
+				}
+
+				node.renderContent(renderContext, depth + 1);
 			}
 
 			renderContext.clearDataObject(dataKey);
@@ -999,12 +1008,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	static boolean displayForLocale(final DOMNode thisNode, final RenderContext renderContext) {
 
-		// In raw or widget mode, render everything
-		EditMode editMode = renderContext.getEditMode(thisNode.getSecurityContext().getUser(false));
-		if (EditMode.DEPLOYMENT.equals(editMode) || EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
-			return true;
-		}
-
 		String localeString = renderContext.getLocale().toString();
 
 		String show = thisNode.getProperty(StructrApp.key(DOMNode.class, "showForLocales"));
@@ -1030,12 +1033,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	}
 
 	static boolean displayForConditions(final DOMNode thisNode, final RenderContext renderContext) {
-
-		// In raw or widget mode, render everything
-		EditMode editMode = renderContext.getEditMode(renderContext.getSecurityContext().getUser(false));
-		if (EditMode.DEPLOYMENT.equals(editMode) || EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
-			return true;
-		}
 
 		String _showConditions = thisNode.getProperty(StructrApp.key(DOMNode.class, "showConditions"));
 		String _hideConditions = thisNode.getProperty(StructrApp.key(DOMNode.class, "hideConditions"));
@@ -1067,6 +1064,21 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	}
 
+	static boolean shouldBeRendered(final DOMNode thisNode, final RenderContext renderContext) {
+
+		// In raw, widget or deployment mode, render everything
+		EditMode editMode = renderContext.getEditMode(renderContext.getSecurityContext().getUser(false));
+		if (EditMode.DEPLOYMENT.equals(editMode) || EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
+			return true;
+		}
+
+		if (thisNode.isHidden() || !thisNode.displayForLocale(renderContext) || !thisNode.displayForConditions(renderContext)) {
+			return false;
+		}
+
+		return true;
+	}
+
 	static boolean renderDeploymentExportComments(final DOMNode thisNode, final AsyncBuffer out, final boolean isContentNode) {
 
 		final Set<String> instructions = new LinkedHashSet<>();
@@ -1074,6 +1086,10 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		thisNode.getVisibilityInstructions(instructions);
 		thisNode.getLinkableInstructions(instructions);
 		thisNode.getSecurityInstructions(instructions);
+
+		if (thisNode.isHidden()) {
+			instructions.add("@structr:hidden");
+		}
 
 		if (isContentNode) {
 
@@ -1128,6 +1144,16 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		if (_contentType != null) {
 
 			instructions.add("@structr:content(" + escapeForHtmlAttributes(_contentType) + ")");
+		}
+
+		if (thisNode.getType().equals("Content")) {
+
+			final String _name = thisNode.getProperty(AbstractNode.name);
+			if (StringUtils.isNotEmpty(_name)) {
+
+				instructions.add("@structr:name(" + escapeForHtmlAttributes(_name) + ")");
+			}
+
 		}
 
 		final String _showConditions = thisNode.getShowConditions();
@@ -1358,14 +1384,14 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			for (final String p : rawProps) {
 
-				String htmlName = "data-structr-meta-" + CaseHelper.toUnderscore(p, false).replaceAll("_", "-");
-				Object value = null;
-				try {
-					value    = thisNode.getProperty(p);
+				final String htmlName = "data-structr-meta-" + CaseHelper.toUnderscore(p, false).replaceAll("_", "-");
+				final PropertyKey key = StructrApp.key(DOMNode.class, p, false);
 
+				if (key != null) {
+
+					final Object value    = thisNode.getProperty(key);
 					if (value != null) {
 
-						final PropertyKey key    = StructrApp.key(DOMNode.class, p);
 						final boolean isBoolean  = key instanceof BooleanProperty;
 						final String stringValue = value.toString();
 
@@ -1373,8 +1399,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 							out.append(" ").append(htmlName).append("=\"").append(escapeForHtmlAttributes(stringValue)).append("\"");
 						}
 					}
-				} catch (IllegalArgumentException ex) {
-					logger.warn("Unable to find property for " + p, ex);
 				}
 			}
 		}
@@ -1388,7 +1412,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		for (final String key : props) {
 
-			PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(thisNode.getClass(), key, false);
+			PropertyKey propertyKey = StructrApp.key(thisNode.getClass(), key, false);
 			if (propertyKey == null) {
 
 				// support arbitrary data-* attributes
@@ -1424,24 +1448,33 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	static void handleNewChild(final DOMNode thisNode, Node newChild) {
 
-		final Page page = (Page)thisNode.getOwnerDocument();
 
-		for (final DOMNode child : DOMNode.getAllChildNodes(thisNode)) {
+		try {
 
-			try {
+			final Page page            = (Page)thisNode.getOwnerDocument();
+			final DOMNode newChildNode = (DOMNode)newChild;
 
-				child.setOwnerDocument(page);
+			newChildNode.setOwnerDocument(page);
 
-			} catch (FrameworkException ex) {
-				logger.warn("", ex);
+			for (final DOMNode child : DOMNode.getAllChildNodes(newChildNode)) {
+
+					child.setOwnerDocument(page);
 			}
+
+		} catch (FrameworkException ex) {
+			logger.warn("", ex);
 		}
 	}
 
 	static void render(final DOMNode thisNode, final RenderContext renderContext, final int depth) throws FrameworkException {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
-		if (!securityContext.isVisible(thisNode)) {
+		final EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
+
+		// admin-only edit modes ==> visibility check not necessary
+		final boolean isAdminOnlyEditMode = (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode) || EditMode.DEPLOYMENT.equals(editMode));
+
+		if (!isAdminOnlyEditMode && !securityContext.isVisible(thisNode)) {
 			return;
 		}
 
@@ -1456,9 +1489,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			return;
 		}
 
-		final EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
-
-		if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode) || EditMode.DEPLOYMENT.equals(editMode)) {
+		if (isAdminOnlyEditMode) {
 
 			thisNode.renderContent(renderContext, depth);
 

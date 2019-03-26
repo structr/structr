@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -68,10 +69,12 @@ public class Services implements StructrServices {
 	public static final String WS_INDENTATION                            = "ws.indentation";
 
 	// singleton instance
+	private static String jvmIdentifier                = ManagementFactory.getRuntimeMXBean().getName();
 	private static Services singletonInstance          = null;
 	private static boolean testingModeDisabled         = false;
 	private static boolean calculateHierarchy          = false;
 	private static boolean updateIndexConfiguration    = false;
+	private static Boolean cachedTestingFlag           = null;
 
 	// non-static members
 	private final List<InitializationCallback> callbacks       = new LinkedList<>();
@@ -618,7 +621,7 @@ public class Services implements StructrServices {
 		final NodeService nodeService = getService(NodeService.class);
 		if (nodeService != null) {
 
-			return nodeService.getGraphDb();
+			return nodeService.getDatabaseService();
 		}
 
 		return null;
@@ -807,17 +810,32 @@ public class Services implements StructrServices {
 			return false;
 		}
 
+		if (cachedTestingFlag != null) {
+			return cachedTestingFlag;
+		}
+
 		for (final StackTraceElement[] stackTraces : Thread.getAllStackTraces().values()) {
 
 			for (final StackTraceElement elem : stackTraces) {
 
 				if (elem.getClassName().startsWith("org.junit.")) {
+					cachedTestingFlag = true;
+					return true;
+				}
+
+				if (elem.getClassName().startsWith("org.testng.")) {
+					cachedTestingFlag = true;
 					return true;
 				}
 			}
 		}
 
+		cachedTestingFlag = false;
 		return false;
+	}
+
+	public static String getJVMIdentifier() {
+		return jvmIdentifier;
 	}
 
 	// ----- private methods -----

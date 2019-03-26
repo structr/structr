@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -48,6 +48,11 @@ var _Dashboard = {
 			t.append('<tr><td class="key">Working Directory</td><td>' + (_Dashboard.meObj.workingDirectory ? _Dashboard.meObj.workingDirectory.name : '') + '</td></tr>');
 			t.append('<tr><td class="key">Session ID(s)</td><td>' + _Dashboard.meObj.sessionIds.join('<br>') + '</td></tr>');
 			t.append('<tr><td class="key">Groups</td><td>' + _Dashboard.meObj.groups.map(function(g) { return g.name; }).join(', ') + '</td></tr>');
+
+			if (_Dashboard.meObj.isAdmin) {
+				_Dashboard.appendDeploymentBox();
+				_Dashboard.appendMaintenanceBox();
+			}
 		});
 		_Dashboard.checkAdmin();
 
@@ -57,11 +62,6 @@ var _Dashboard = {
 		});
 
 		_Dashboard.appendAboutBox();
-
-		if (me.isAdmin) {
-			_Dashboard.appendDeploymentBox();
-			_Dashboard.appendMaintenanceBox();
-		}
 
 		/*
 		var myPages = _Dashboard.appendBox('My Pages', 'my-pages');

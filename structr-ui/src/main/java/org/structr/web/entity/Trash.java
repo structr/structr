@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,6 +35,6 @@ public interface Trash extends Folder {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Trash"));
 		type.setExtends(URI.create("#/definitions/Folder"));
-		type.setCategory("core");
+		type.setCategory("ui");
 	}}
 }

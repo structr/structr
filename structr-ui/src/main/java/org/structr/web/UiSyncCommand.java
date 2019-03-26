@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -151,7 +151,7 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 
 					@Override
 					public int compare(final ShadowDocument t1, final ShadowDocument t2) {
-						return Long.valueOf(t2.getId()).compareTo(t1.getId());
+						return t2.getPropertyContainer().getId().compareTo(t1.getPropertyContainer().getId());
 					}
 				});
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -79,6 +79,12 @@ public class DeploymentCommentHandler implements CommentHandler {
 			node.setProperties(node.getSecurityContext(), changedProperties);
 		});
 
+		handlers.put("hidden", (Page page, DOMNode node, final String parameters) -> {
+			final PropertyMap changedProperties = new PropertyMap();
+			changedProperties.put(AbstractNode.hidden, true);
+			node.setProperties(node.getSecurityContext(), changedProperties);
+		});
+
 		handlers.put("link", (Page page, DOMNode node, final String parameters) -> {
 
 			if (node instanceof LinkSource) {
@@ -102,6 +108,10 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 		handlers.put("content", (Page page, DOMNode node, final String parameters) -> {
 			node.setProperty(StructrApp.key(Content.class, "contentType"), parameters);
+		});
+
+		handlers.put("name", (Page page, DOMNode node, final String parameters) -> {
+			node.setProperty(StructrApp.key(DOMNode.class, "name"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
 		handlers.put("show", (Page page, DOMNode node, final String parameters) -> {

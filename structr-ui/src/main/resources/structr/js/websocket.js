@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -212,14 +212,21 @@ function wsConnect() {
 					}
 
 					var msgClass;
+					var requiresConfirmation = false;
 					if (codeStr.startsWith('2')) {
 						msgClass = 'success';
 					} else if (codeStr.startsWith('3')) {
 						msgClass = 'info';
 					} else if (codeStr.startsWith('4')) {
 						msgClass = 'warning';
+						requiresConfirmation = true;
 					} else {
 						msgClass = 'error';
+						requiresConfirmation = true;
+					}
+
+					if (data.data.requiresConfirmation) {
+						requiresConfirmation = data.data.requiresConfirmation;
 					}
 
 					if (msg && msg.startsWith('{')) {
@@ -261,15 +268,36 @@ function wsConnect() {
 					} else {
 
 						if (codeStr === "404") {
-							new MessageBuilder().className(msgClass).text('Object not found.').show();
+
+							var msgBuilder = new MessageBuilder().className(msgClass);
+
+							if (requiresConfirmation) {
+								msgBuilder.requiresConfirmation();
+							}
+
+							if (data.message) {
+								msgBuilder.title('Object not found.').text(data.message);
+							} else {
+								msgBuilder.text('Object not found.');
+							}
+
+							msgBuilder.show();
+
 						} else if (data.error && data.error.errors) {
-							Structr.errorFromResponse(data.error);
+
+							Structr.errorFromResponse(data.error, null, { requiresConfirmation: true });
+
 						} else {
-							new MessageBuilder().className(msgClass).text(msg).show();
+
+							var msgBuilder = new MessageBuilder().className(msgClass).text(msg);
+
+							if (requiresConfirmation) {
+								msgBuilder.requiresConfirmation();
+							}
+
+							msgBuilder.show();
 						}
-
 					}
-
 				}
 
 			} else if (command === 'GET_PROPERTY') {
@@ -289,9 +317,11 @@ function wsConnect() {
 					obj = StructrModel.create(data.data, null, false);
 				}
 
-				obj = StructrModel.update(data);
+				StructrModel.update(data);
 
-				StructrModel.callCallback(data.callback, obj);
+				if (command === 'SET_PERMISSION') {
+					StructrModel.callCallback(data.callback, obj);
+				}
 
 			} else if (command === 'GET' || command === 'GET_RELATIONSHIP' || command === 'GET_PROPERTIES') {
 
@@ -387,18 +417,6 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, result);
 
-			} else if (command.startsWith('WEBAPPDATA')) {
-
-				_Logger.log(_LogType.WS[command], result, data);
-
-				StructrModel.callCallback(data.callback, result);
-
-			} else if (command.startsWith('LAYOUTS')) {
-
-				_Logger.log(_LogType.WS[command], result, data);
-
-				StructrModel.callCallback(data.callback, data.data);
-
 			} else if (command.startsWith('LIST')) {
 
 				_Logger.log(_LogType.WS[command], result, data);
@@ -411,13 +429,23 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, result, data.rawResultCount);
 
+			} else if (command.startsWith('CLONE') || command === 'REPLACE_TEMPLATE') {
+
+				_Logger.log(_LogType.WS[command], result, data);
+
+				StructrModel.callCallback(data.callback, result, data.rawResultCount);
+
 			} else if (command === 'DELETE') {
 
 				StructrModel.del(data.id);
 
+				StructrModel.callCallback(data.callback, [], 0);
+
 			} else if (command === 'INSERT_BEFORE' || command === 'APPEND_CHILD' || command === 'APPEND_MEMBER') {
 
 				StructrModel.create(result[0], data.data.refId);
+
+				StructrModel.callCallback(data.callback, result[0]);
 
 			} else if (command.startsWith('APPEND_FILE')) {
 
@@ -431,6 +459,8 @@ function wsConnect() {
 					obj.remove();
 				}
 
+				StructrModel.callCallback(data.callback);
+
 			} else if (command === 'REMOVE_CHILD') {
 
 				var obj = StructrModel.obj(data.id);
@@ -438,6 +468,8 @@ function wsConnect() {
 					_Logger.log(_LogType.WS[command], 'Remove object from parent', data, obj);
 					obj.remove(data.data.parentId);
 				}
+
+				StructrModel.callCallback(data.callback);
 
 			} else if (command === 'CREATE' || command === 'ADD' || command === 'IMPORT') {
 
@@ -477,7 +509,7 @@ function wsConnect() {
 						}
 					}
 
-					if (command === 'CREATE' && entity.isPage) {
+					if (command === 'CREATE' && entity.isPage && lastMenuEntry === _Pages._moduleName) {
 						if (entity.createdBy === userId) {
 							setTimeout(function () {
 								var tab = $('#show_' + entity.id);

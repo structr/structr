@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.structr.api.Predicate;
+import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.RelationshipType;
@@ -83,7 +84,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 
 	// dummy implementation of NodeInterface
 	@Override
-	public void init(SecurityContext securityContext, Node dbNode, Class type, boolean isCreation, final long transactionId) {
+	public void init(SecurityContext securityContext, Node dbNode, Class type, final long transactionId) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
@@ -163,12 +164,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public void setRawPathSegmentId(final long pathSegmentId) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public long getId() {
+	public void setRawPathSegmentId(final Identity pathSegmentId) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
@@ -383,7 +379,17 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
+	public void grant(Permission permission, Principal principal, SecurityContext ctx) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
 	public void revoke(Permission permission, Principal principal) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public void revoke(Permission permission, Principal principal, SecurityContext ctx) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 

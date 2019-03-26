@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,7 +33,6 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -44,7 +43,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -52,10 +50,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.graph.Direction;
-import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
-import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.Iterables;
@@ -114,7 +109,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
-		DatabaseService graphDb = Services.getInstance().getService(NodeService.class).getGraphDb();
+		DatabaseService graphDb = Services.getInstance().getService(NodeService.class).getDatabaseService();
 		String mode             = (String)attributes.get("mode");
 		String fileName         = (String)attributes.get("file");
 		String validate         = (String)attributes.get("validate");
@@ -195,7 +190,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 				conditionalIncludeFiles = false;
 
-				for (final GraphObject obj : StructrApp.getInstance().cypher(query, null)) {
+				for (final GraphObject obj : StructrApp.getInstance().query(query, null)) {
 
 					if (obj.isNode()) {
 						nodes.add((AbstractNode)obj.getSyncNode());
@@ -639,27 +634,33 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 	private static void importDatabase(final DatabaseService graphDb, final SecurityContext securityContext, final ZipInputStream zis, boolean doValidation, final Long batchSize) throws FrameworkException, IOException {
 
-		final App app                   = StructrApp.getInstance();
-		final DataInputStream dis       = new DataInputStream(new BufferedInputStream(zis));
-		final long internalBatchSize    = batchSize != null ? batchSize : 200;
-		final String uuidPropertyName   = GraphObject.id.dbName();
-		final Map<String, Node> uuidMap = new LinkedHashMap<>();
-		final Set<Long> deletedNodes    = new HashSet<>();
-		double t0                       = System.nanoTime();
-		PropertyContainer currentObject = null;
-		String currentKey               = null;
-		boolean finished                = false;
-		long totalNodeCount             = 0;
-		long totalRelCount              = 0;
+		final App app                             = StructrApp.getInstance();
+		final Set<String> labels                  = new LinkedHashSet<>();
+		final DataInputStream dis                 = new DataInputStream(new BufferedInputStream(zis));
+		final long internalBatchSize              = batchSize != null ? batchSize : 200;
+		final String uuidPropertyName             = GraphObject.id.dbName();
+		double t0                                 = System.nanoTime();
+		EntityCreation currentObject              = null;
+		String currentKey                         = null;
+		boolean finished                          = false;
+		long totalNodeCount                       = 0;
+		long totalRelCount                        = 0;
+
+		labels.add(NodeInterface.class.getSimpleName());
+
+		// add tenant identifier to all nodes
+		if (graphDb.getTenantIdentifier() != null) {
+			labels.add(graphDb.getTenantIdentifier());
+		}
 
 		do {
 
 			try (final Tx tx = app.tx(doValidation)) {
 
-				final List<Relationship> rels = new LinkedList<>();
-				final List<Node> nodes        = new LinkedList<>();
-				long nodeCount                = 0;
-				long relCount                 = 0;
+				final List<RelationshipCreation> rels = new LinkedList<>();
+				final List<NodeCreation> nodes        = new LinkedList<>();
+				long nodeCount                        = 0;
+				long relCount                         = 0;
 
 				do {
 
@@ -684,11 +685,13 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 								break;
 							}
 
-							currentObject = graphDb.createNode(Collections.EMPTY_SET, Collections.EMPTY_MAP);
+							final NodeCreation newNode = new NodeCreation(labels);
 							nodeCount++;
 
 							// store for later use
-							nodes.add((Node)currentObject);
+							nodes.add(newNode);
+
+							currentObject = newNode;
 
 						} else if (objectType == 'R') {
 
@@ -698,38 +701,18 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 								break;
 							}
 
-							String startId     = (String)deserialize(dis);
-							String endId       = (String)deserialize(dis);
-							String relTypeName = (String)deserialize(dis);
+							final String startId              = (String)deserialize(dis);
+							final String endId                = (String)deserialize(dis);
+							final String relTypeName          = (String)deserialize(dis);
+							final RelationshipType relType    = RelationshipType.forName(relTypeName);
+							final RelationshipCreation newRel = new RelationshipCreation(startId, endId, relType);
 
-							Node endNode   = uuidMap.get(endId);
-							Node startNode = uuidMap.get(startId);
+							// store for later use
+							rels.add(newRel);
 
-							if (startNode != null && endNode != null) {
+							currentObject = newRel;
 
-								if (deletedNodes.contains(startNode.getId()) || deletedNodes.contains(endNode.getId())) {
-
-									System.out.println("NOT creating relationship between deleted nodes..");
-									currentObject = null;
-									currentKey    = null;
-
-								} else {
-
-									RelationshipType relType = RelationshipType.forName(relTypeName);
-									currentObject = startNode.createRelationshipTo(endNode, relType);
-
-									// store for later use
-									rels.add((Relationship)currentObject);
-
-									relCount++;
-								}
-
-							} else {
-
-								System.out.println("NOT creating relationship of type " + relTypeName + ", start: " + startId + ", end: " + endId);
-								currentObject = null;
-								currentKey    = null;
-							}
+							relCount++;
 
 						} else {
 
@@ -755,28 +738,24 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 										if (uuidPropertyName.equals(currentKey) && currentObject instanceof Node) {
 
 											final String uuid = (String)obj;
-											uuidMap.put(uuid, (Node)currentObject);
+											currentObject.setId(uuid);
 										}
 
 										if (currentKey.length() != 0) {
 
 											// store object in DB
-											currentObject.setProperty(currentKey, obj);
+											currentObject.put(currentKey, obj);
 
 											// set type label
-											if (currentObject instanceof Node && NodeInterface.type.dbName().equals(currentKey)) {
+											if (currentObject instanceof NodeCreation && NodeInterface.type.dbName().equals(currentKey)) {
 
-												((Node) currentObject).addLabel(graphDb.forName(Label.class, (String) obj));
+												((NodeCreation)currentObject).addLabel((String) obj);
 											}
 
 										} else {
 
 											logger.error("Invalid property key for value {}, ignoring", obj);
 										}
-
-									} else {
-
-										logger.warn("No current object to store property value for key {}, seed file corrupt?", currentKey);
 									}
 								}
 
@@ -789,6 +768,12 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 					}
 
 				} while (!finished);
+
+				final Map<String, Node> nodeMap = new LinkedHashMap<>();
+
+				// create nodes and rels
+				nodes.stream().forEach(e -> e.create(graphDb, nodeMap));
+				rels.stream().forEach(e -> e.create(graphDb, nodeMap));
 
 				totalNodeCount += nodeCount;
 				totalRelCount  += relCount;
@@ -924,155 +909,68 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		}
 	}
 
-	private static boolean checkAndMerge(final NodeInterface node, final Set<Long> deletedNodes, final Set<Long> deletedRels) throws FrameworkException {
+	static class NodeCreation extends EntityCreation {
 
-		final Class type                        = node.getClass();
-		final String name                       = node.getName();
-		final List<NodeInterface> existingNodes = StructrApp.getInstance().nodeQuery(type).andName(name).getAsList();
+		private final Set<String> labels = new LinkedHashSet<>();
 
-		for (NodeInterface existingNode : existingNodes) {
-
-			final Node sourceNode = node.getNode();
-			final Node targetNode = existingNode.getNode();
-
-			// skip newly created node
-			if (sourceNode.getId() == targetNode.getId()) {
-
-				continue;
-			}
-
-			logger.info("Found existing schema node {}, merging!", name);
-
-			copyProperties(sourceNode, targetNode);
-
-			// handle outgoing rels
-			for (final Relationship outRel : sourceNode.getRelationships(Direction.OUTGOING)) {
-
-				final Node otherNode      = outRel.getEndNode();
-				final Relationship newRel = targetNode.createRelationshipTo(otherNode, outRel.getType());
-
-				copyProperties(outRel, newRel);
-
-				// report deletion
-				deletedRels.add(outRel.getId());
-
-				// remove previous relationship
-				outRel.delete(true);
-
-				System.out.println("############################################ Deleting relationship " + outRel.getId());
-			}
-
-			// handle incoming rels
-			for (final Relationship inRel : sourceNode.getRelationships(Direction.INCOMING)) {
-
-				final Node otherNode      = inRel.getStartNode();
-				final Relationship newRel = otherNode.createRelationshipTo(targetNode, inRel.getType());
-
-				copyProperties(inRel, newRel);
-
-				// report deletion
-				deletedRels.add(inRel.getId());
-
-				// remove previous relationship
-				inRel.delete(true);
-
-				System.out.println("############################################ Deleting relationship " + inRel.getId());
-			}
-
-			// merge properties, views and methods
-			final Map<String, List<Node>> groupedNodes = groupByTypeAndName(Iterables.toList(Iterables.map(new EndNodes(), targetNode.getRelationships(Direction.OUTGOING))));
-			for (final List<Node> nodes : groupedNodes.values()) {
-
-				final int size = nodes.size();
-				if (size > 1) {
-
-					final Node groupTargetNode = nodes.get(0);
-
-					for (final Node groupSourceNode : nodes.subList(1, size)) {
-
-						copyProperties(groupSourceNode, groupTargetNode);
-
-						// delete relationships of merged node
-						for (final Relationship groupRel : groupSourceNode.getRelationships()) {
-							deletedRels.add(groupRel.getId());
-							groupRel.delete(true);
-						}
-
-						// delete merged node
-						deletedNodes.add(groupSourceNode.getId());
-						groupSourceNode.delete(true);
-
-						System.out.println("############################################ Deleting node " + groupSourceNode.getId());
-					}
-				}
-			}
-
-			// report deletion
-			deletedNodes.add(sourceNode.getId());
-
-			// delete
-			sourceNode.delete(true);
-
-			System.out.println("############################################ Deleting node " + sourceNode.getId());
-
-			return true;
+		public NodeCreation(final Set<String> labels) {
+			this.labels.addAll(labels);
 		}
-
-		return false;
-	}
-
-	private static void copyProperties(final PropertyContainer source, final PropertyContainer target) {
-
-		for (final String key : source.getPropertyKeys()) {
-
-			// skip id
-			if (!"id".equals(key)) {
-
-				target.setProperty(key, source.getProperty(key));
-			}
-		}
-	}
-
-	private static Map<String, List<Node>> groupByTypeAndName(final Iterable<Node> nodes) {
-
-		final Map<String, List<Node>> groupedNodes = new LinkedHashMap<>();
-
-		for (final Node node : nodes) {
-
-			if (node.hasProperty("name") && node.hasProperty("type")) {
-
-				final String typeAndName = node.getProperty("type") + "." + node.getProperty("name");
-				List<Node> nodeList      = groupedNodes.get(typeAndName);
-
-				if (nodeList == null) {
-
-					nodeList = new LinkedList<>();
-					groupedNodes.put(typeAndName, nodeList);
-				}
-
-				nodeList.add(node);
-			}
-		}
-
-		return groupedNodes;
-	}
-
-	private static class EndNodes implements Function<Relationship, Node> {
 
 		@Override
-		public Node apply(Relationship from) throws RuntimeException {
-			return from.getEndNode();
+		public void create(final DatabaseService db, final Map<String, Node> nodeMap) {
+
+			final String type = (String)get("type");
+			if (type != null) {
+
+				final Node node = db.createNode(type, labels, this);
+				nodeMap.put(getId(), node);
+			}
+		}
+
+		void addLabel(final String label) {
+			this.labels.add(label);
+		}
+	}
+
+	static class RelationshipCreation extends EntityCreation {
+
+		private RelationshipType relType = null;
+		private String sourceId          = null;
+		private String targetId          = null;
+
+		public RelationshipCreation(final String sourceId, final String targetId, final RelationshipType relType) {
+
+			this.sourceId = sourceId;
+			this.targetId = targetId;
+			this.relType  = relType;
+		}
+
+		@Override
+		void create(final DatabaseService db, final Map<String, Node> nodeMap) {
+
+			final Node sourceNode = nodeMap.get(sourceId);
+			final Node targetNode = nodeMap.get(targetId);
+
+			if (sourceNode != null && targetNode != null) {
+
+				sourceNode.createRelationshipTo(targetNode, relType, this);
+			}
+		}
+	}
+
+	static abstract class EntityCreation extends LinkedHashMap<String, Object> {
+
+		private String id = null;
+
+		abstract void create(final DatabaseService db, final Map<String, Node> nodeMap);
+
+		public void setId(final String id) {
+			this.id = id;
+		}
+
+		public String getId() {
+			return id;
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
-

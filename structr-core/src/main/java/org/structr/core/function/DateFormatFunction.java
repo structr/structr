@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,10 +21,8 @@ package org.structr.core.function;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import jdk.nashorn.internal.objects.NativeDate;
 import org.mozilla.javascript.ScriptRuntime;
-import org.mozilla.javascript.ScriptableObject;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -38,7 +36,12 @@ public class DateFormatFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "date_format()";
+		return "date_format";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override
@@ -77,8 +80,7 @@ public class DateFormatFunction extends Function<Object, Object> {
 
 				} catch (ParseException ex) {
 
-					logger.warn("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[] { getName(), sources[0].toString(), "yyyy-MM-dd'T'HH:mm:ssZ", caller, getParametersAsString(sources) });
-					//logException(caller, ex, sources);
+					logger.warn("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[] { getReplacement(), sources[0].toString(), "yyyy-MM-dd'T'HH:mm:ssZ", caller, getParametersAsString(sources) });
 					return sources[0];
 				}
 			}

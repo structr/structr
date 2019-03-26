@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,7 @@ package org.structr.core.function;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
@@ -36,6 +37,16 @@ public class EnumInfoFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_ENUM_INFO    = "Usage: ${enum_info(type, enumProperty[, raw])}. Example ${enum_info('Document', 'documentType')}";
 	public static final String ERROR_MESSAGE_ENUM_INFO_JS = "Usage: ${Structr.enum_info(type, enumProperty[, raw])}. Example ${Structr.enum_info('Document', 'documentType')}";
+
+	@Override
+	public String getName() {
+		return "enum_info";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
+	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
@@ -113,10 +124,5 @@ public class EnumInfoFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Returns the enum values as an array";
-	}
-
-	@Override
-	public String getName() {
-		return "enum_info()";
 	}
 }

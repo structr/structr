@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -107,7 +107,7 @@ public class CloneNodeCommand extends AbstractCommand {
 					
 					parent.insertBefore(clonedNode, nextSibling);
 					
-				} else {
+				} else if (parent != null) {
 					
 					parent.appendChild(clonedNode);
 				}

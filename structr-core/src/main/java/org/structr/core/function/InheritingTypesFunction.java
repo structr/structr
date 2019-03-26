@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.schema.SchemaHelper;
@@ -30,6 +31,16 @@ public class InheritingTypesFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_INHERITING_TYPES    = "Usage: ${inheriting_types(type[, blacklist])}. Example ${inheriting_types('User')}";
 	public static final String ERROR_MESSAGE_INHERITING_TYPES_JS = "Usage: ${Structr.inheriting_types(type[, blacklist])}. Example ${Structr.inheriting_types('User')}";
+
+	@Override
+	public String getName() {
+		return "inheriting_types";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
+	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
@@ -65,10 +76,5 @@ public class InheritingTypesFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Returns the names of the child classes of the given type";
-	}
-
-	@Override
-	public String getName() {
-		return "inheriting_types()";
 	}
 }

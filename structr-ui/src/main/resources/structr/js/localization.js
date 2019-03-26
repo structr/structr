@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -147,7 +147,7 @@ var _Localization = {
 		_Localization.localizationDetails.show();
 
 		$.ajax({
-			url: rootUrl + 'Localizations/ui?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&sort=locale',
+			url: rootUrl + 'Localizations/all?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&sort=locale',
 			success: function(data) {
 				data.result.forEach(function (loc) {
 					if (key === loc.name && domain === loc.domain) {

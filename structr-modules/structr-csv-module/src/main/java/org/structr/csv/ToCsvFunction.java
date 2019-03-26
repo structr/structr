@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,10 +29,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.DateProperty;
@@ -41,17 +43,21 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.parser.DatePropertyParser;
 import org.structr.web.function.UiFunction;
 
-/**
- *
- */
 public class ToCsvFunction extends UiFunction {
+
 	public static final String ERROR_MESSAGE_TO_CSV    = "Usage: ${to_csv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}. Example: ${to_csv(find('Page'), 'ui')}";
 	public static final String ERROR_MESSAGE_TO_CSV_JS = "Usage: ${{Structr.to_csv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}}. Example: ${{Structr.to_csv(Structr.find('Page'), 'ui'))}}";
 
 	@Override
 	public String getName() {
-		return "to_csv()";
+		return "to_csv";
 	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
+	}
+
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
@@ -242,24 +248,33 @@ public class ToCsvFunction extends UiFunction {
 
 			} else if (properties != null) {
 
-				if (obj instanceof GraphObject) {
+				if (obj instanceof GraphObjectMap) {
 
-					final GraphObject castedObj = (GraphObject)obj;
+					final Map convertedMap = ((GraphObjectMap)obj).toMap();
+
+					for (final String colName : properties) {
+						final Object value = convertedMap.get(colName);
+						isFirstCol = appendColumnString(row, value, isFirstCol, quoteChar, delimiterChar);
+					}
+
+				} else if (obj instanceof GraphObject) {
+
+					final GraphObject graphObj = (GraphObject)obj;
 
 					for (final String colName : properties) {
 						final PropertyKey key = StructrApp.key(obj.getClass(), colName);
-						final Object value = castedObj.getProperty(key);
+						final Object value = graphObj.getProperty(key);
 						isFirstCol = appendColumnString(row, value, isFirstCol, quoteChar, delimiterChar);
 					}
+
 				} else if (obj instanceof Map) {
 
-					final Map castedObj = (Map)obj;
+					final Map map = (Map)obj;
 
 					for (final String colName : properties) {
-						final Object value = castedObj.get(colName);
+						final Object value = map.get(colName);
 						isFirstCol = appendColumnString(row, value, isFirstCol, quoteChar, delimiterChar);
 					}
-
 				}
 			}
 

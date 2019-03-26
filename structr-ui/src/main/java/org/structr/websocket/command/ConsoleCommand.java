@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,12 +18,11 @@
  */
 package org.structr.websocket.command;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonPrimitive;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang.StringUtils;
@@ -85,10 +84,10 @@ public class ConsoleCommand extends AbstractCommand {
 
 					final List<TabCompletionResult> tabCompletionResult = console.getTabCompletion(line);
 
-					final JsonArray commands = new JsonArray();
+					final List<String> commands = new ArrayList<>();
 
 					for (final TabCompletionResult res : tabCompletionResult) {
-						commands.add(new JsonPrimitive(res.getCommand()));
+						commands.add(res.getCommand());
 					}
 
 					getWebSocket().send(MessageBuilder.forName(getCommand())
@@ -112,7 +111,6 @@ public class ConsoleCommand extends AbstractCommand {
 							.message(out.toString("UTF-8"))
 							.build(), true);
 				}
-
 
 			} catch (IOException | FrameworkException ex) {
 

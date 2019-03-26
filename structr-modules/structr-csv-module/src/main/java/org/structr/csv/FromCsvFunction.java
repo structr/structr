@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,6 +27,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
+import org.structr.api.service.LicenseManager;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.UiFunction;
 
@@ -37,7 +38,12 @@ public class FromCsvFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "from_csv()";
+		return "from_csv";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override
@@ -89,7 +95,7 @@ public class FromCsvFunction extends UiFunction {
 
 			} catch (Throwable t) {
 
-				logException(t, "{}: Exception for parameter: {}", new Object[] { getName(), getParametersAsString(sources) });
+				logException(t, "{}: Exception for parameter: {}", new Object[] { getReplacement(), getParametersAsString(sources) });
 			}
 
 			return "";

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -135,7 +135,7 @@ public interface ODFExporter extends NodeInterface {
 			// If no result file is given, create one and set it as result document
 			if (output == null) {
 
-				output = FileHelper.createFile(securityContext, new byte[]{}, template.getContentType(), File.class, thisNode.getName().concat("_").concat(template.getName()));
+				output = FileHelper.createFile(securityContext, new byte[]{}, template.getContentType(), File.class, thisNode.getName().concat("_").concat(template.getName()), false);
 
 				output.setParent(template.getParent());
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,13 +18,10 @@
  */
 package org.structr.schema.parser;
 
+import org.structr.schema.CodeSource;
 import org.structr.schema.SchemaHelper.Type;
 
-/**
- *
- *
- */
-public interface PropertyDefinition {
+public interface PropertyDefinition extends CodeSource {
 
 	String getPropertyName();
 	Type getPropertyType();

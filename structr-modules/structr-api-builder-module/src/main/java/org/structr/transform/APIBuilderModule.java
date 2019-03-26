@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -52,6 +52,7 @@ import org.structr.flow.datasource.FlowContainerDataSource;
 import org.structr.flow.impl.FlowFunction;
 import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
+import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
 /**
@@ -66,11 +67,13 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 		final boolean enterpriseEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
 
-		// Enterprise only
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "flow", new FlowFunction());
-		
 		DataSources.put(enterpriseEdition, LicenseManager.Enterprise, "flowDataSource", new FlowContainerDataSource());
+	}
 
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
+
+		Functions.put(licenseManager, new FlowFunction());
 	}
 
 	@Override
@@ -89,11 +92,11 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 	}
 
 	@Override
-	public void insertImportStatements(final AbstractSchemaNode schemaNode, final StringBuilder buf) {
+	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
 	}
 
 	@Override
-	public void insertSourceCode(final AbstractSchemaNode schemaNode, final StringBuilder buf) {
+	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
 	}
 
 	@Override
@@ -102,7 +105,7 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 	}
 
 	@Override
-	public void insertSaveAction(final AbstractSchemaNode schemaNode, final StringBuilder buf, final Actions.Type type) {
+	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
 	}
 
 	@Override

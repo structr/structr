@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,7 +30,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
@@ -48,8 +47,11 @@ import org.structr.common.error.DiagnosticErrorToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.module.JarConfigurationProvider;
+import org.structr.schema.SourceFile;
+import org.structr.schema.SourceLine;
 
 /**
  *
@@ -64,14 +66,14 @@ public class NodeExtender {
 	private static final ClassLoader classLoader     = fileManager.getClassLoader(null);
 	private static final Map<String, Class> classes  = new TreeMap<>();
 
-	private List<JavaFileObject> jfiles  = null;
+	private List<SourceFile> sources     = null;
 	private Set<String> fqcns            = null;
 	private String initiatedBySessionId  = null;
 
 	public NodeExtender(final String initiatedBySessionId) {
 
 		this.initiatedBySessionId = initiatedBySessionId;
-		this.jfiles               = new ArrayList<>();
+		this.sources              = new ArrayList<>();
 		this.fqcns                = new LinkedHashSet<>();
 	}
 
@@ -87,13 +89,13 @@ public class NodeExtender {
 		return classes;
 	}
 
-	public void addClass(final String className, final String content) throws ClassNotFoundException {
+	public void addClass(final String className, final SourceFile sourceFile) throws ClassNotFoundException {
 
-		if (className != null && content != null) {
+		if (className != null && sourceFile != null) {
 
 			final String packageName = JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE;
 
-			jfiles.add(new CharSequenceJavaFileObject(className, content));
+			sources.add(sourceFile);
 			fqcns.add(packageName.concat(".".concat(className)));
 
 			if (Settings.LogSchemaOutput.getValue()) {
@@ -102,7 +104,7 @@ public class NodeExtender {
 
 				int count = 0;
 
-				for (final String line : content.split("[\\n\\r]{1}")) {
+				for (final SourceLine line : sourceFile.getLines()) {
 					System.out.println(StringUtils.rightPad(++count + ": ", 6) + line);
 				}
 			}
@@ -114,13 +116,13 @@ public class NodeExtender {
 		final Writer errorWriter     = new StringWriter();
 		final List<Class> newClasses = new LinkedList<>();
 
-		if (!jfiles.isEmpty()) {
+		if (!sources.isEmpty()) {
 
-			logger.info("Compiling {} dynamic entities...", jfiles.size());
+			logger.info("Compiling {} dynamic entities...", sources.size());
 
 			final long t0 = System.currentTimeMillis();
 
-			Boolean success = compiler.getTask(errorWriter, fileManager, new Listener(errorBuffer), null, null, jfiles).call();
+			Boolean success = compiler.getTask(errorWriter, fileManager, new Listener(errorBuffer), Arrays.asList("-g"), null, sources).call();
 
 			logger.info("Compiling done in {} ms", System.currentTimeMillis() - t0);
 
@@ -155,7 +157,7 @@ public class NodeExtender {
 					classes.put(newType.getName(), newType);
 				}
 
-				logger.info("Successfully compiled {} dynamic entities: {}", new Object[] { jfiles.size(), jfiles.stream().map(f -> f.getName().replaceFirst("/", "")).collect(Collectors.joining(", ")) });
+				logger.info("Successfully compiled {} dynamic entities: {}", new Object[] { sources.size(), sources.stream().map(f -> f.getName().replaceFirst("/", "")).collect(Collectors.joining(", ")) });
 
 				final Map<String, Object> data = new LinkedHashMap();
 				data.put("success", true);
@@ -189,27 +191,36 @@ public class NodeExtender {
 
 			if (diagnostic.getKind().equals(Kind.ERROR)) {
 
-				final JavaFileObject obj = diagnostic.getSource();
-				String name              = "unknown";
-
-				if (obj != null && obj instanceof CharSequenceJavaFileObject) {
-					name = ((CharSequenceJavaFileObject)obj).getClassName();
-				}
+				final int errorContext    = 5;
+				final int errorLineNumber = Long.valueOf(diagnostic.getLineNumber()).intValue();
+				final SourceFile obj      = (SourceFile)diagnostic.getSource();
+				String name               = obj.getName();
 
 				errorBuffer.add(new DiagnosticErrorToken(name, diagnostic));
 
 				if (Settings.LogSchemaErrors.getValue()) {
 
-					String src = ((CharSequenceJavaFileObject) diagnostic.getSource()).getCharContent(true).toString();
+					final SourceFile sourceFile = (SourceFile)diagnostic.getSource();
+					final List<SourceLine> code = sourceFile.getLines();
+					final SourceLine line       = code.get(errorLineNumber - 1);
+					final AbstractNode source   = (AbstractNode)line.getCodeSource();
 
+					System.out.println("Code source: " + source.getUuid() + " of type " + source.getClass().getSimpleName() + " name " + source.getName());
+					System.out.println("Line with error:");
+					System.out.println(line);
+					System.out.println("Error: " + diagnostic.getMessage(Locale.ENGLISH));
+
+					/*
+					final String src = ((JavaFileObject) diagnostic.getSource()).getCharContent(true).toString();
+					
 					// Add line numbers
 					final AtomicInteger index = new AtomicInteger();
-					src = Arrays.asList(src.split("\\R")).stream()
-						.map(line -> (index.getAndIncrement()+1) + ": " + line)
-						.collect(Collectors.joining("\n"));
-
+					final List<String> code   = Arrays.asList(src.split("\\R")).stream().map(line -> (index.getAndIncrement()+1) + ": " + line).collect(Collectors.toList());
+					final String context      = StringUtils.join(code.subList(Math.max(0, errorLineNumber - errorContext), Math.min(code.size(), errorLineNumber + errorContext)), "\n");
+					
 					// log also to log file
-					logger.error("Unable to compile dynamic entity {}:{}: {}\n{}", name, diagnostic.getLineNumber(), diagnostic.getMessage(Locale.ENGLISH), src);
+					logger.error("Unable to compile dynamic entity {}:{}: {}\n{}", name, diagnostic.getLineNumber(), diagnostic.getMessage(Locale.ENGLISH), context);
+					*/
 				}
 			}
 		}

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -57,7 +57,7 @@ public class DumpDatabaseCommand extends NodeServiceCommand implements Maintenan
 
 			try (final Tx tx = app.tx()) {
 
-				final File file = FileHelper.createFile(securityContext, new byte[0], "application/zip", File.class, fileName);
+				final File file = FileHelper.createFile(securityContext, new byte[0], "application/zip", File.class, fileName, false);
 
 				// make file visible for auth. users
 				file.setProperties(securityContext, new PropertyMap(File.visibleToAuthenticatedUsers, true));

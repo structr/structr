@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -42,7 +42,7 @@ public class PagingIterable<T> implements ResultStream<T> {
 	@Override
 	public Iterator<T> iterator() {
 
-		if (source.isConsumed()) {
+		if (isConsumed()) {
 
 			logger.error("PagingIterable already consumed, please use Iterables.toList() to be able to iterate a streaming result more than once.");
 			Thread.dumpStack();
@@ -94,4 +94,8 @@ public class PagingIterable<T> implements ResultStream<T> {
 		}
 
 	}, Integer.MAX_VALUE, 1);
+	
+	public boolean isConsumed() {
+		return source != null && source.isConsumed();
+	}
 }

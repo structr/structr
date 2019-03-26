@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.web.function;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.XmlFunction;
@@ -32,9 +33,6 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-/**
- *
- */
 public class FromXmlFunction extends UiFunction {
 
 	private static final Property<List> attributesProperty = new GenericProperty<>("attributes");
@@ -45,6 +43,16 @@ public class FromXmlFunction extends UiFunction {
 
 	public static final String ERROR_MESSAGE_FROM_XML    = "Usage: ${from_xml(source)}. Example: ${from_xml('<entry>0</entry>')}";
 	public static final String ERROR_MESSAGE_FROM_XML_JS = "Usage: ${{Structr.from_xml(src)}}. Example: ${{Structr.from_xml('<entry>0</entry>')}}";
+
+	@Override
+	public String getName() {
+		return "from_xml";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
+	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, Object[] sources) throws FrameworkException {
@@ -96,11 +104,6 @@ public class FromXmlFunction extends UiFunction {
 	@Override
 	public String shortDescription() {
 		return "Parses the given XML and returns a list of objects.";
-	}
-
-	@Override
-	public String getName() {
-		return "from_xml()";
 	}
 
 	// ----- private methods -----

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import java.util.Map;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -31,9 +32,6 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class FindRelationshipFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_FIND_RELATIONSHIP = "Usage: ${find_relationship(type, key, value)}. Example: ${find_relationship(\"PersonRELATED_TOPerson\"}";
@@ -42,7 +40,12 @@ public class FindRelationshipFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "find_relationship()";
+		return "find_relationship";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

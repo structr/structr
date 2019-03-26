@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -90,7 +90,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 						createPage(file, fileName);
 
 					} catch (FrameworkException fex) {
-						logger.warn("Exception while importing page {}: {}", new Object[] { fileName, fex.toString() });
+						logger.warn("Exception while importing page {}: {}", new Object[] { fileName, fex.toString()});
 					}
 				}
 			}

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,8 +24,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.structr.schema.action.ActionContext;
+import org.structr.api.service.LicenseManager;
 import org.structr.rest.common.HttpHelper;
+import org.structr.schema.action.ActionContext;
 
 /**
  *
@@ -37,7 +38,12 @@ public class HttpGetFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "GET()";
+		return "GET";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
 	}
 
 	@Override

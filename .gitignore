@@ -24,6 +24,7 @@ structr-ui/structr-ui*.pid
 structr-ui/*.key
 *.diff
 **nb-configuration.xml
+**nbproject
 **nohup.out
 **.directory
 docs/html

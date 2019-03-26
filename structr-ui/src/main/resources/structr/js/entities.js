@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -718,7 +718,7 @@ var _Entities = {
 	listProperties: function(entity, view, tabView, typeInfo) {
 
 		_Entities.getSchemaProperties(entity.type, view, function(properties) {
-			
+
 			let filteredProperties = Object.keys(properties).filter(function(key) {
 				return !(typeInfo[key].isCollection && typeInfo[key].relatedType);
 			});
@@ -739,7 +739,7 @@ var _Entities = {
 					var id = entity.id;
 
 					var tempNodeCache = new AsyncObjectCache(function(id) {
-						Command.getProperties(id, 'id,name,type,tag,isContent,content', function (node) {
+						Command.get(id, 'id,name,type,tag,isContent,content', function (node) {
 							tempNodeCache.addObject(node, node.id);
 						});
 					});
@@ -755,7 +755,7 @@ var _Entities = {
 
 						if (typeInfo) {
 							keys.forEach(function(key) {
-								
+
 								if (typeInfo[key] && typeInfo[key].category && typeInfo[key].category !== 'System') {
 
 									var category = typeInfo[key].category;
@@ -768,7 +768,7 @@ var _Entities = {
 								}
 							});
 						}
-						
+
 						if (view === '_html_') {
 							// add custom html attributes
 							Object.keys(res).forEach(function(key) {
@@ -1100,7 +1100,7 @@ var _Entities = {
 
 		Structr.appendInfoTextToElement({
 			element: $('.newKey', propsTable),
-			text: "Any attribute name is allowed but 'data-' attributes are recommended.",
+			text: "Any attribute name is allowed but 'data-' attributes are recommended. (data-structr is reserved for internal use)",
 			insertAfter: true,
 			css: {
 				marginLeft: "3px",
@@ -1329,7 +1329,13 @@ var _Entities = {
 					var userInput = keyInput.val();
 					var regexAllowed = new RegExp("^[a-zA-Z0-9_\-]*$");
 
-					if (regexAllowed.test(userInput)) {
+					if (userInput.indexOf('data-structr') === 0) {
+						blinkRed(keyInput);
+						new MessageBuilder().error('Key can not start with "data-structr" as it is reserved for internal use.').show();
+					} else if (!regexAllowed.test(userInput)) {
+						blinkRed(keyInput);
+						new MessageBuilder().error('Key contains forbidden characters. Allowed: "a-z", "A-Z", "-" and "_".').show();
+					} else {
 						var newKey = '_custom_html_' + userInput;
 						var val = input.val();
 
@@ -1339,9 +1345,6 @@ var _Entities = {
 							blinkGreen(input);
 							Structr.showAndHideInfoBoxMessage('New property "' + newKey + '" has been added and saved with value "' + val + '".', 'success', 2000, 1000);
 						});
-					} else {
-						blinkRed(keyInput);
-						new MessageBuilder().error('Key contains forbidden characters. Allowed: "a-z", "A-Z", "-" and "_".').show();
 					}
 
 				} else {
@@ -1541,7 +1544,7 @@ var _Entities = {
 
 						var principalId = result.principalId;
 						if (principalId) {
-							Command.get(principalId, "id,name,isGroup", function(p) {
+							Command.get(principalId, 'id,name,isGroup', function(p) {
 								_Entities.addPrincipal(entity, p, permissions);
 							});
 						}
@@ -1584,16 +1587,16 @@ var _Entities = {
 				var rec = $('#recursive', el).is(':checked');
 				Command.setPermission(entity.id, pId, 'grant', 'read', rec);
 
-				Command.get(pId, "id,name,isGroup", function(p) {
+				Command.get(pId, 'id,name,isGroup', function(p) {
 					_Entities.addPrincipal(entity, p, {'read': true});
 				});
 			});
 		};
 
 		if (entity.targetId) {
-			Command.getRelationship(id, entity.targetId, "id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) { handleGraphObject(entity); });
+			Command.getRelationship(id, entity.targetId, 'id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', function(entity) { handleGraphObject(entity); });
 		} else {
-			Command.get(id, "id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) { handleGraphObject(entity); });
+			Command.get(id, 'id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', function(entity) { handleGraphObject(entity); });
 		}
 	},
 	showAccessControlDialog: function(entity) {
@@ -1615,14 +1618,14 @@ var _Entities = {
 						_Crud.refreshCell(id, "owner", entity.owner, entity.type, initialObj.ownerId);
 					}
 
-					_Crud.refreshCell(id, "visibleToPublicUsers",        entity.visibleToPublicUsers,        entity.type, initialObj.visibleToPublicUsers);
-					_Crud.refreshCell(id, "visibleToAuthenticatedUsers", entity.visibleToAuthenticatedUsers, entity.type, initialObj.visibleToAuthenticatedUsers);
+					_Crud.refreshCell(id, 'visibleToPublicUsers',        entity.visibleToPublicUsers,        entity.type, initialObj.visibleToPublicUsers);
+					_Crud.refreshCell(id, 'visibleToAuthenticatedUsers', entity.visibleToAuthenticatedUsers, entity.type, initialObj.visibleToAuthenticatedUsers);
 				};
 
 				if (entity.targetId) {
-					Command.getRelationship(id, entity.targetId, "id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", handleGraphObject);
+					Command.getRelationship(id, entity.targetId, 'id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', handleGraphObject);
 				} else {
-					Command.get(id, "id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", handleGraphObject);
+					Command.get(id, 'id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', handleGraphObject);
 				}
 			}
 		});

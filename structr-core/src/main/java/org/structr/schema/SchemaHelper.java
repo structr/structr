@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -101,6 +102,7 @@ import org.structr.schema.parser.BooleanPropertyParser;
 import org.structr.schema.parser.CountPropertyParser;
 import org.structr.schema.parser.CustomPropertyParser;
 import org.structr.schema.parser.CypherPropertyParser;
+import org.structr.schema.parser.DateArrayPropertyParser;
 import org.structr.schema.parser.DatePropertyParser;
 import org.structr.schema.parser.DoubleArrayPropertyParser;
 import org.structr.schema.parser.DoublePropertyParser;
@@ -132,7 +134,7 @@ public class SchemaHelper {
 
 	public enum Type {
 
-		String, StringArray, LongArray, DoubleArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, IdNotion, Cypher, Join, Thumbnail, Password, Custom;
+		String, StringArray, DateArray, LongArray, DoubleArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, IdNotion, Cypher, Join, Thumbnail, Password, Custom;
 	}
 
 	public static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new TreeMap<>(new ReverseTypeComparator());
@@ -141,8 +143,8 @@ public class SchemaHelper {
 	private static final Map<String, String> normalizedEntityNameCache                = new LinkedHashMap<>();
 	private static final Set<String> basePropertyNames                                = new LinkedHashSet<>(Arrays.asList(
 		"base", "type", "id", "createdDate", "createdBy", "lastModifiedDate", "lastModifiedBy", "visibleToPublicUsers", "visibleToAuthenticatedUsers",		// from GraphObject
-		"cascadeDelete", "relType", "sourceNode", "targetNode", "sourceId", "targetId", "sourceNodeProperty", "targetNodeProperty",							// from AbstractRelationship
-		"name", "hidden", "owner", "ownerId", "grantees"															// from NodeInterface
+		"relType", "sourceNode", "targetNode", "sourceId", "targetId", "sourceNodeProperty", "targetNodeProperty",				// from AbstractRelationship
+		"name", "hidden", "owner", "ownerId", "grantees"													// from NodeInterface
 	));
 
 	static {
@@ -153,6 +155,7 @@ public class SchemaHelper {
 		parserMap.put(Type.IntegerArray, IntegerArrayPropertyParser.class);
 		parserMap.put(Type.DoubleArray, DoubleArrayPropertyParser.class);
 		parserMap.put(Type.StringArray, StringArrayPropertyParser.class);
+		parserMap.put(Type.DateArray, DateArrayPropertyParser.class);
 		parserMap.put(Type.LongArray, LongArrayPropertyParser.class);
 		parserMap.put(Type.Function, FunctionPropertyParser.class);
 		parserMap.put(Type.Password, PasswordPropertySourceGenerator.class);
@@ -176,22 +179,23 @@ public class SchemaHelper {
 		sortIndexMap.put(Type.IntegerArray, 1);
 		sortIndexMap.put(Type.DoubleArray,  2);
 		sortIndexMap.put(Type.StringArray,  3);
-		sortIndexMap.put(Type.LongArray,    4);
-		sortIndexMap.put(Type.Password,     5);
-		sortIndexMap.put(Type.Boolean,      6);
-		sortIndexMap.put(Type.Integer,      7);
-		sortIndexMap.put(Type.String,       8);
-		sortIndexMap.put(Type.Double,       9);
-		sortIndexMap.put(Type.Long,        10);
-		sortIndexMap.put(Type.Enum,        11);
-		sortIndexMap.put(Type.Date,        12);
-		sortIndexMap.put(Type.Function,    13);
-		sortIndexMap.put(Type.Cypher,      14);
-		sortIndexMap.put(Type.Count,       15);
-		sortIndexMap.put(Type.Custom,      16);
-		sortIndexMap.put(Type.Join,        17);
-		sortIndexMap.put(Type.IdNotion,    18);
-		sortIndexMap.put(Type.Notion,      19);
+		sortIndexMap.put(Type.DateArray,    4);
+		sortIndexMap.put(Type.LongArray,    5);
+		sortIndexMap.put(Type.Password,     6);
+		sortIndexMap.put(Type.Boolean,      7);
+		sortIndexMap.put(Type.Integer,      8);
+		sortIndexMap.put(Type.String,       9);
+		sortIndexMap.put(Type.Double,      10);
+		sortIndexMap.put(Type.Long,        11);
+		sortIndexMap.put(Type.Enum,        12);
+		sortIndexMap.put(Type.Date,        13);
+		sortIndexMap.put(Type.Function,    14);
+		sortIndexMap.put(Type.Cypher,      15);
+		sortIndexMap.put(Type.Count,       16);
+		sortIndexMap.put(Type.Custom,      17);
+		sortIndexMap.put(Type.Join,        18);
+		sortIndexMap.put(Type.IdNotion,    19);
+		sortIndexMap.put(Type.Notion,      20);
 
 		graphQLTypeMap.put(Type.Password, Scalars.GraphQLString);
 		graphQLTypeMap.put(Type.Boolean, Scalars.GraphQLBoolean);
@@ -546,11 +550,11 @@ public class SchemaHelper {
 
 	}
 
-	public static String getSource(final AbstractSchemaNode schemaNode, final Map<String, SchemaNode> schemaNodes, final Set<String> blacklist, final ErrorBuffer errorBuffer) throws FrameworkException, UnlicensedTypeException {
+	public static void getSource(final SourceFile sourceFile, final AbstractSchemaNode schemaNode, final Map<String, SchemaNode> schemaNodes, final Set<String> blacklist, final ErrorBuffer errorBuffer) throws FrameworkException, UnlicensedTypeException {
 
 		final Collection<StructrModule> modules                = StructrApp.getConfiguration().getModules().values();
 		final Map<String, List<ActionEntry>> methods           = new LinkedHashMap<>();
-		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
+		final Map<String, CodeSourceViewSet> viewProperties    = new LinkedHashMap<>();
 		final List<String> propertyValidators                  = new LinkedList<>();
 		final Set<String> existingPropertyNames                = new LinkedHashSet<>();
 		final Set<String> compoundIndexKeys                    = new LinkedHashSet<>();
@@ -558,10 +562,7 @@ public class SchemaHelper {
 		final Set<String> relationshipPropertyNames            = new LinkedHashSet<>();
 		final Set<Validator> validators                        = new LinkedHashSet<>();
 		final Set<String> implementedInterfaces                = new LinkedHashSet<>();
-		final List<String> importStatements                    = new LinkedList<>();
 		final Set<String> enums                                = new LinkedHashSet<>();
-		final StringBuilder src                                = new StringBuilder();
-		final StringBuilder mixinCodeBuffer                    = new StringBuilder();
 		final Class baseType                                   = AbstractNode.class;
 		final String _className                                = schemaNode.getProperty(SchemaNode.name);
 		final String _extendsClass                             = schemaNode.getProperty(SchemaNode.extendsClass);
@@ -575,54 +576,53 @@ public class SchemaHelper {
 			// can not detect whether a dynamic type is missing because those are only available
 			// after compiling the whole set of schema nodes
 			logger.warn("Dynamic type {} cannot be used, superclass {} not defined.", schemaNode.getName(), superClass);
-			return null;
+			throw new FrameworkException(500, "Dynamic type " + schemaNode.getName() + " cannot be used, superclass " + superClass + " not defined.");
 		}
 
 		// import mixins, check that all types exist and return null otherwise (causing this class to be ignored)
 		SchemaHelper.collectInterfaces(schemaNode, implementedInterfaces);
 
 		// package name
-		src.append("package org.structr.dynamic;\n\n");
+		sourceFile.line(null, "package org.structr.dynamic;");
 
 		// include import statements from mixins
-		SchemaHelper.formatImportStatements(schemaNode, src, baseType, importStatements);
+		SchemaHelper.formatImportStatements(sourceFile, schemaNode, baseType);
+
+		final SourceLine classDefinition = sourceFile.begin(schemaNode, "public ");
 
 		if (schemaNode.getProperty(SchemaNode.isInterface)) {
 
 			// create interface
-			src.append("public interface ");
-			src.append(_className);
+			classDefinition.append("interface ");
+			classDefinition.append(_className);
 
 			// output implemented interfaces
 			if (!implementedInterfaces.isEmpty()) {
 
-				src.append(" extends ");
-				src.append(StringUtils.join(implementedInterfaces, ", "));
+				classDefinition.append(" extends ");
+				classDefinition.append(StringUtils.join(implementedInterfaces, ", "));
 			}
 
 		} else {
 
-			// create class
-			src.append("public ");
-
 			if (schemaNode.getProperty(SchemaNode.isAbstract)) {
-				src.append("abstract ");
+				classDefinition.append("abstract ");
 			}
 
-			src.append("class ");
-			src.append(_className);
-			src.append(" extends ");
-			src.append(superClass);
+			classDefinition.append("class ");
+			classDefinition.append(_className);
+			classDefinition.append(" extends ");
+			classDefinition.append(superClass);
 
 			// output implemented interfaces
 			if (!implementedInterfaces.isEmpty()) {
 
-				src.append(" implements ");
-				src.append(StringUtils.join(implementedInterfaces, ", "));
+				classDefinition.append(" implements ");
+				classDefinition.append(StringUtils.join(implementedInterfaces, ", "));
 			}
 		}
 
-		src.append(" {\n\n");
+		classDefinition.append(" {");
 
 		// output related node definitions, collect property views
 		for (final SchemaRelationshipNode outRel : schemaNode.getProperty(SchemaNode.relatedTo)) {
@@ -636,7 +636,7 @@ public class SchemaHelper {
 
 			propertyNames.add(propertyName);
 
-			src.append(outRel.getPropertySource(propertyName, true));
+			outRel.getPropertySource(sourceFile, propertyName, true);
 
 			// built-in schema views are controlled manually, but all user-generated
 			// schema changes are expected to be added to "custom" view.
@@ -659,7 +659,7 @@ public class SchemaHelper {
 
 			propertyNames.add(propertyName);
 
-			src.append(inRel.getPropertySource(propertyName, false));
+			inRel.getPropertySource(sourceFile, propertyName, false);
 
 			// built-in schema views are controlled manually, but all user-generated
 			// schema changes are expected to be added to "custom" view.
@@ -670,26 +670,25 @@ public class SchemaHelper {
 			relationshipPropertyNames.add(propertyName);
 		}
 
-		src.append(SchemaHelper.extractProperties(schemaNodes, schemaNode, propertyNames, validators, compoundIndexKeys, enums, viewProperties, propertyValidators, errorBuffer));
-
+		SchemaHelper.extractProperties(sourceFile, schemaNodes, schemaNode, propertyNames, validators, compoundIndexKeys, enums, viewProperties, propertyValidators, errorBuffer);
 		SchemaHelper.extractViews(schemaNodes, schemaNode, viewProperties, relationshipPropertyNames, errorBuffer);
 		SchemaHelper.extractMethods(schemaNodes, schemaNode, methods);
 
 		// output possible enum definitions
 		for (final String enumDefition : enums) {
-			src.append(enumDefition);
+			sourceFile.line(schemaNode, enumDefition);
 		}
 
-		for (Entry<String, Set<String>> entry : viewProperties.entrySet()) {
+		for (Entry<String, CodeSourceViewSet> entry : viewProperties.entrySet()) {
 
-			final String viewName  = entry.getKey();
-			final Set<String> view = entry.getValue();
+			final CodeSourceViewSet view = entry.getValue();
+			final String viewName        = entry.getKey();
 
 			if (!view.isEmpty()) {
 
 				schemaNode.addDynamicView(viewName);
 
-				SchemaHelper.formatView(src, _className, viewName, viewName, view);
+				SchemaHelper.formatView(sourceFile, view.getSource(), _className, viewName, viewName, view);
 			}
 		}
 
@@ -702,31 +701,26 @@ public class SchemaHelper {
 				order = "GraphObjectComparator.ASCENDING";
 			}
 
-			src.append("\n\t@Override\n");
-			src.append("\tpublic PropertyKey getDefaultSortKey() {\n");
-			src.append("\t\treturn ").append(schemaNode.getProperty(defaultSortKey)).append("Property;\n");
-			src.append("\t}\n");
+			sourceFile.line(schemaNode, "@Override");
+			sourceFile.begin(schemaNode, "public PropertyKey getDefaultSortKey() {");
+			sourceFile.line(schemaNode, "return ", schemaNode.getProperty(defaultSortKey), "Property;");
+			sourceFile.end();
 
-			src.append("\n\t@Override\n");
-			src.append("\tpublic String getDefaultSortOrder() {\n");
-			src.append("\t\treturn ").append(order).append(";\n");
-			src.append("\t}\n");
+			sourceFile.line(schemaNode, "@Override");
+			sourceFile.begin(schemaNode, "public String getDefaultSortOrder() {");
+			sourceFile.line(schemaNode, "return ", order, ";");
+			sourceFile.end();
 		}
 
-		SchemaHelper.formatValidators(src, validators, compoundIndexKeys, extendsAbstractNode, propertyValidators);
-		SchemaHelper.formatMethods(schemaNode, src, methods, implementedInterfaces);
-
-		// insert dynamic code here
-		src.append(mixinCodeBuffer);
+		SchemaHelper.formatValidators(sourceFile, schemaNode, validators, compoundIndexKeys, extendsAbstractNode, propertyValidators);
+		SchemaHelper.formatMethods(sourceFile, schemaNode, methods, implementedInterfaces);
 
 		// insert source code from module
 		for (final StructrModule module : modules) {
-			module.insertSourceCode(schemaNode, src);
+			module.insertSourceCode(schemaNode, sourceFile);
 		}
 
-		src.append("}\n");
-
-		return src.toString();
+		sourceFile.end("}");
 	}
 
 	public static Set<String> getUnlicensedTypes(final SchemaNode schemaNode) throws FrameworkException {
@@ -742,10 +736,9 @@ public class SchemaHelper {
 		return checkLicense(Services.getInstance().getLicenseManager(), superClass, implementedInterfaces);
 	}
 
-	public static String extractProperties(final Map<String, SchemaNode> schemaNodes, final Schema entity, final Set<String> propertyNames, final Set<Validator> validators, final Set<String> compoundIndexKeys, final Set<String> enums, final Map<String, Set<String>> views, final List<String> propertyValidators, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static void extractProperties(final SourceFile src, final Map<String, SchemaNode> schemaNodes, final Schema entity, final Set<String> propertyNames, final Set<Validator> validators, final Set<String> compoundIndexKeys, final Set<String> enums, final Map<String, CodeSourceViewSet> views, final List<String> propertyValidators, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
-		final StringBuilder src                   = new StringBuilder();
 
 		// output property source code and collect views
 		for (String propertyName : SchemaHelper.getProperties(propertyContainer)) {
@@ -842,11 +835,9 @@ public class SchemaHelper {
 				}
 			}
 		}
-
-		return src.toString();
 	}
 
-	public static void extractViews(final Map<String, SchemaNode> schemaNodes, final Schema entity, final Map<String, Set<String>> views, final Set<String> relPropertyNames, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static void extractViews(final Map<String, SchemaNode> schemaNodes, final Schema entity, final Map<String, CodeSourceViewSet> views, final Set<String> relPropertyNames, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
 		final ConfigurationProvider config        = StructrApp.getConfiguration();
@@ -927,10 +918,10 @@ public class SchemaHelper {
 				final String viewName           = schemaView.getName();
 
 				// clear view before filling it again
-				Set<String> view = views.get(viewName);
+				CodeSourceViewSet view = views.get(viewName);
 				if (view == null) {
 
-					view = new LinkedHashSet<>();
+					view = new CodeSourceViewSet(schemaView);
 					views.put(viewName, view);
 				}
 
@@ -1034,12 +1025,12 @@ public class SchemaHelper {
 		}
 	}
 
-	public static void addPropertyToView(final String viewName, final String propertyName, final Map<String, Set<String>> views) {
+	public static void addPropertyToView(final String viewName, final String propertyName, final Map<String, CodeSourceViewSet> views) {
 
-		Set<String> view = views.get(viewName);
+		CodeSourceViewSet view = views.get(viewName);
 		if (view == null) {
 
-			view = new LinkedHashSet<>();
+			view = new CodeSourceViewSet(null);
 			views.put(viewName, view);
 		}
 
@@ -1091,80 +1082,64 @@ public class SchemaHelper {
 		return keys;
 	}
 
-	public static void formatView(final StringBuilder src, final String _className, final String viewName, final String view, final Set<String> viewProperties) {
+	public static void formatView(final SourceFile src, final CodeSource codeSource, final String _className, final String viewName, final String view, final Set<String> viewProperties) {
 
 		// output default view
-		src.append("\n\tpublic static final View ").append(viewName).append("View = new View(").append(_className).append(".class, \"").append(view).append("\",\n");
-		src.append("\t\t");
-
-		for (final Iterator<String> it = viewProperties.iterator(); it.hasNext();) {
-
-			src.append(it.next());
-
-			if (it.hasNext()) {
-				src.append(", ");
-			}
-		}
-
-		src.append("\n\t);\n");
-
+		src.line(codeSource, "public static final View ").append(viewName).append("View = new View(").append(_className).append(".class, \"").append(view).append("\",");
+		src.indent();
+		src.line(codeSource, StringUtils.join(viewProperties, ", "));
+		src.outdent();
+		src.line(codeSource, ");");
 	}
 
-	public static void formatImportStatements(final AbstractSchemaNode schemaNode, final StringBuilder src, final Class baseType, final List<String> importStatements) {
+	public static void formatImportStatements(final SourceFile sourceFile, final AbstractSchemaNode schemaNode, final Class baseType) {
 
-		src.append("import ").append(baseType.getName()).append(";\n");
-		src.append("import ").append(ConfigurationProvider.class.getName()).append(";\n");
-		src.append("import ").append(GraphObjectComparator.class.getName()).append(";\n");
-		src.append("import ").append(PermissionPropagation.class.getName()).append(";\n");
-		src.append("import ").append(FrameworkException.class.getName()).append(";\n");
-		src.append("import ").append(DatePropertyParser.class.getName()).append(";\n");
-		src.append("import ").append(ModificationQueue.class.getName()).append(";\n");
-		src.append("import ").append(PropertyConverter.class.getName()).append(";\n");
-		src.append("import ").append(ValidationHelper.class.getName()).append(";\n");
-		src.append("import ").append(SecurityContext.class.getName()).append(";\n");
-		src.append("import ").append(LinkedHashSet.class.getName()).append(";\n");
-		src.append("import ").append(PropertyView.class.getName()).append(";\n");
-		src.append("import ").append(GraphObject.class.getName()).append(";\n");
-		src.append("import ").append(ErrorBuffer.class.getName()).append(";\n");
-		src.append("import ").append(StringUtils.class.getName()).append(";\n");
-		src.append("import ").append(Collections.class.getName()).append(";\n");
-		src.append("import ").append(StructrApp.class.getName()).append(";\n");
-		src.append("import ").append(LinkedList.class.getName()).append(";\n");
-		src.append("import ").append(Collection.class.getName()).append(";\n");
-		src.append("import ").append(Iterables.class.getName()).append(";\n");
-		src.append("import ").append(Services.class.getName()).append(";\n");
-		src.append("import ").append(Actions.class.getName()).append(";\n");
-		src.append("import ").append(HashMap.class.getName()).append(";\n");
-		src.append("import ").append(Export.class.getName()).append(";\n");
-		src.append("import ").append(View.class.getName()).append(";\n");
-		src.append("import ").append(List.class.getName()).append(";\n");
-		src.append("import ").append(Set.class.getName()).append(";\n");
+		sourceFile.importLine(baseType.getName());
+		sourceFile.importLine(ConfigurationProvider.class.getName());
+		sourceFile.importLine(GraphObjectComparator.class.getName());
+		sourceFile.importLine(PermissionPropagation.class.getName());
+		sourceFile.importLine(FrameworkException.class.getName());
+		sourceFile.importLine(DatePropertyParser.class.getName());
+		sourceFile.importLine(DateArrayPropertyParser.class.getName());
+		sourceFile.importLine(ModificationQueue.class.getName());
+		sourceFile.importLine(PropertyConverter.class.getName());
+		sourceFile.importLine(ValidationHelper.class.getName());
+		sourceFile.importLine(SecurityContext.class.getName());
+		sourceFile.importLine(LinkedHashSet.class.getName());
+		sourceFile.importLine(PropertyView.class.getName());
+		sourceFile.importLine(GraphObject.class.getName());
+		sourceFile.importLine(ErrorBuffer.class.getName());
+		sourceFile.importLine(StringUtils.class.getName());
+		sourceFile.importLine(Collections.class.getName());
+		sourceFile.importLine(StructrApp.class.getName());
+		sourceFile.importLine(LinkedList.class.getName());
+		sourceFile.importLine(Collection.class.getName());
+		sourceFile.importLine(Iterables.class.getName());
+		sourceFile.importLine(Services.class.getName());
+		sourceFile.importLine(Actions.class.getName());
+		sourceFile.importLine(HashMap.class.getName());
+		sourceFile.importLine(Export.class.getName());
+		sourceFile.importLine(View.class.getName());
+		sourceFile.importLine(List.class.getName());
+		sourceFile.importLine(Set.class.getName());
+                sourceFile.importLine(Date.class.getName());
 
 		if (hasRestClasses()) {
-			src.append("import org.structr.rest.RestMethodResult;\n");
+			sourceFile.importLine("org.structr.rest.RestMethodResult");
 		}
 
-		src.append("import org.structr.core.property.*;\n");
+		sourceFile.importLine("org.structr.core.property.*");
 
 		if (hasUiClasses()) {
-			src.append("import org.structr.web.property.*;\n");
+			sourceFile.importLine("org.structr.web.property.*");
 		}
 
 		for (final StructrModule module : StructrApp.getConfiguration().getModules().values()) {
-			module.insertImportStatements(schemaNode, src);
+			module.insertImportStatements(schemaNode, sourceFile);
 		}
 
-		src.append("import org.structr.core.notion.*;\n");
-		src.append("import org.structr.core.entity.*;\n");
-
-		// include imports from mixins
-		for (final String importLine : importStatements) {
-			src.append(importLine);
-			src.append("\n");
-		}
-
-		src.append("\n");
-
+		sourceFile.importLine("org.structr.core.notion.*");
+		sourceFile.importLine("org.structr.core.entity.*");
 	}
 
 	public static void collectInterfaces(final AbstractSchemaNode schemaInfo, final Set<String> interfaces) throws FrameworkException {
@@ -1197,36 +1172,34 @@ public class SchemaHelper {
 		return propertyName.replaceAll("[^\\w]+", "");
 	}
 
-	public static void formatValidators(final StringBuilder src, final Set<Validator> validators, final Set<String> compoundIndexKeys, final boolean extendsAbstractNode, final List<String> propertyValidators) {
+	public static void formatValidators(final SourceFile src, final CodeSource codeSource, final Set<Validator> validators, final Set<String> compoundIndexKeys, final boolean extendsAbstractNode, final List<String> propertyValidators) {
 
 		if (!validators.isEmpty() || !compoundIndexKeys.isEmpty()) {
 
-			src.append("\n\t@Override\n");
-			src.append("\tpublic boolean isValid(final ErrorBuffer errorBuffer) {\n\n");
-			src.append("\t\tboolean valid = super.isValid(errorBuffer);\n\n");
+			src.line(codeSource, "@Override");
+			src.begin(codeSource, "public boolean isValid(final ErrorBuffer errorBuffer) {");
+			src.line(codeSource, "boolean valid = super.isValid(errorBuffer);");
 
 			for (final Validator validator : validators) {
-				src.append("\t\tvalid &= ").append(validator.getSource("this", true)).append(";\n");
+				src.line(codeSource, "valid &= ").append(validator.getSource("this", true)).append(";");
 			}
 
 			if (!compoundIndexKeys.isEmpty()) {
 
-				src.append("\t\tvalid &= ValidationHelper.areValidCompoundUniqueProperties(this, errorBuffer, ").append(StringUtils.join(compoundIndexKeys, ", ")).append(");\n");
+				src.line(codeSource, "valid &= ValidationHelper.areValidCompoundUniqueProperties(this, errorBuffer, ").append(StringUtils.join(compoundIndexKeys, ", ")).append(");");
 			}
 
 			for (final String propertyValidator : propertyValidators) {
 
-				src.append("\t\tvalid &= new ");
-				src.append(propertyValidator);
-				src.append("().isValid(this, errorBuffer);\n");
+				src.line(codeSource, "valid &= new ").append(propertyValidator).append("().isValid(this, errorBuffer);");
 			}
 
-			src.append("\n\t\treturn valid;\n");
-			src.append("\t}\n");
+			src.line(codeSource, "return valid;");
+			src.end();
 		}
 	}
 
-	public static void formatMethods(final AbstractSchemaNode schemaNode, final StringBuilder src, final Map<String, List<ActionEntry>> saveActions, final Set<String> implementedInterfaces) {
+	public static void formatMethods(final SourceFile src, final AbstractSchemaNode schemaNode, final Map<String, List<ActionEntry>> saveActions, final Set<String> implementedInterfaces) {
 
 		/*
 		Methods are collected and grouped by name. There can be multiple methods with the same
@@ -1241,221 +1214,216 @@ public class SchemaHelper {
 			switch (name) {
 
 				case "onCreation":
-					formatCreationCallback(schemaNode, src, name, actionList);
+					formatCreationCallback(src, schemaNode, name, actionList);
 					break;
 
 				case "afterCreation":
-					formatAfterCreationCallback(schemaNode, src, name, actionList);
+					formatAfterCreationCallback(src, schemaNode, name, actionList);
 					break;
 
 				case "onModification":
-					formatModificationCallback(schemaNode, src, name, actionList);
+					formatModificationCallback(src, schemaNode, name, actionList);
 					break;
 
 				case "afterDeletion":
-					formatDeletionCallback(schemaNode, src, name, actionList);
+					formatDeletionCallback(src, schemaNode, name, actionList);
 					break;
 
 				default:
-					formatCustomMethods(src, actionList);
+					formatCustomMethods(src, schemaNode, actionList);
 					break;
 			}
 		}
 
 	}
 
-	public static void formatCreationCallback(final AbstractSchemaNode schemaNode, final StringBuilder src, final String name, final List<ActionEntry> actionList) {
+	public static void formatCreationCallback(final SourceFile src, final AbstractSchemaNode schemaNode, final String name, final List<ActionEntry> actionList) {
 
-		src.append("\n\t@Override\n");
-		src.append("\tpublic void ");
-		src.append(name);
-		src.append("(final SecurityContext arg0, final ErrorBuffer arg1) throws FrameworkException {\n\n");
-		src.append("\t\tsuper.");
-		src.append(name);
-		src.append("(arg0, arg1);\n\n");
+		src.line(schemaNode, "@Override");
 
-		for (final ActionEntry action : actionList) {
+		final SourceLine line = src.begin(schemaNode, "public void ");
+		line.append(name);
+		line.append("(final SecurityContext arg0, final ErrorBuffer arg1) throws FrameworkException {");
 
-			src.append("\t\t").append(action.getSource("this", "arg0", false)).append(";\n");
-		}
+		final SourceLine call = src.line(schemaNode, "super.");
+		call.append(name);
+		call.append("(arg0, arg1);");
 
-		src.append("\t}\n");
-
-	}
-
-	public static void formatAfterCreationCallback(final AbstractSchemaNode schemaNode, final StringBuilder src, final String name, final List<ActionEntry> actionList) {
-
-		src.append("\n\t@Override\n");
-		src.append("\tpublic void ");
-		src.append(name);
-		src.append("(final SecurityContext arg0) throws FrameworkException {\n\n");
-		src.append("\t\tsuper.");
-		src.append(name);
-		src.append("(arg0);\n\n");
 
 		for (final ActionEntry action : actionList) {
 
-			src.append("\t\t").append(action.getSource("this", "arg0", false)).append(";\n");
+			//src.append("\t\t").append(action.getSource("this", "arg0", false)).append(";\n");
+			action.getSource(src, "this", "arg0", false);
 		}
 
-		src.append("\t}\n");
-
+		src.end();
 	}
 
-	public static void formatModificationCallback(final AbstractSchemaNode schemaNode, final StringBuilder src, final String name, final List<ActionEntry> actionList) {
+	public static void formatAfterCreationCallback(final SourceFile src, final AbstractSchemaNode schemaNode, final String name, final List<ActionEntry> actionList) {
 
-		src.append("\n\t@Override\n");
-		src.append("\tpublic void ");
-		src.append(name);
-		src.append("(final SecurityContext arg0, final ErrorBuffer arg1, final ModificationQueue arg2) throws FrameworkException {\n\n");
-		src.append("\t\tsuper.");
-		src.append(name);
-		src.append("(arg0, arg1, arg2);\n\n");
+		src.line(schemaNode, "@Override");
+
+		final SourceLine line = src.begin(schemaNode, "public void ");
+		line.append(name);
+		line.append("(final SecurityContext arg0) throws FrameworkException {");
+
+		final SourceLine call = src.line(schemaNode, "super.");
+		call.append(name);
+		call.append("(arg0);");
 
 		for (final ActionEntry action : actionList) {
 
-			src.append("\t\t").append(action.getSource("this", "arg0", true)).append(";\n");
+			//src.append("\t\t").append(action.getSource("this", "arg0", false)).append(";\n");
+			action.getSource(src, "this", "arg0", false);
 		}
 
-		src.append("\t}\n");
-
+		src.end();
 	}
 
-	public static void formatDeletionCallback(final AbstractSchemaNode schemaNode, final StringBuilder src, final String name, final List<ActionEntry> actionList) {
+	public static void formatModificationCallback(final SourceFile src, final AbstractSchemaNode schemaNode, final String name, final List<ActionEntry> actionList) {
 
-		src.append("\n\t@Override\n");
-		src.append("\tpublic void ");
-		src.append(name);
-		src.append("(final SecurityContext arg0, final PropertyMap arg1) {\n\n");
-		src.append("\t\tsuper.");
-		src.append(name);
-		src.append("(arg0, arg1);\n\n");
+		src.line(schemaNode, "@Override");
 
-		src.append("\t\ttry {\n\n");
+		final SourceLine line = src.begin(schemaNode, "public void ");
+		line.append(name);
+		line.append("(final SecurityContext arg0, final ErrorBuffer arg1, final ModificationQueue arg2) throws FrameworkException {");
+
+		final SourceLine call = src.line(schemaNode, "super.");
+		call.append(name);
+		call.append("(arg0, arg1, arg2);");
 
 		for (final ActionEntry action : actionList) {
 
-			src.append("\t\t\t").append(action.getSource("this", "arg0", false)).append(";\n");
+			//src.append("\t\t").append(action.getSource("this", "arg0", true)).append(";\n");
+			action.getSource(src, "this", "arg0", true);
 		}
 
-		src.append("\t\t} catch (FrameworkException fex) {\n");
-		src.append("\t\t\tfex.printStackTrace();\n");
-		src.append("\t\t}\n");
-		src.append("\t}\n");
-
+		src.end();
 	}
 
-	public static void formatCustomMethods(final StringBuilder src, final List<ActionEntry> actionList) {
+	public static void formatDeletionCallback(final SourceFile src, final AbstractSchemaNode schemaNode, final String name, final List<ActionEntry> actionList) {
+
+		src.line(schemaNode, "@Override");
+
+		final SourceLine line = src.begin(schemaNode, "public void ");
+		line.append(name);
+		line.append("(final SecurityContext arg0, final PropertyMap arg1) {");
+
+		final SourceLine call = src.line(schemaNode, "super.");
+		call.append(name);
+		call.append("(arg0, arg1);");
+
+		src.begin(schemaNode, "try {");
+
+		for (final ActionEntry action : actionList) {
+
+
+			//src.append("\t\t\t").append(action.getSource(src, "this", "arg0", false)).append(";\n");
+			action.getSource(src, "this", "arg0", false);
+		}
+
+		src.endBegin(schemaNode, "} catch (FrameworkException fex) {");
+		src.line(schemaNode, "fex.printStackTrace();");
+		src.end();
+		src.end();
+	}
+
+	public static void formatCustomMethods(final SourceFile src, final CodeSource codeSource, final List<ActionEntry> actionList) {
 
 		for (final ActionEntry action : actionList) {
 
 			if (Actions.Type.Custom.equals(action.getType())) {
 
-				formatActiveAction(src, action);
+				formatActiveAction(src, codeSource, action);
 
 			} else {
 
-				final String source                  = action.getSource("this", true, false);
 				final String returnType              = action.getReturnType();
 				final Map<String, String> parameters = action.getParameters();
 
 				if (returnType != null && parameters != null) {
 
-					src.append("\n");
-
 					if (action.overrides()) {
-						src.append("\t@Override\n");
+						src.line(codeSource, "@Override");
 					}
 
 					if (action.doExport()) {
-						src.append("\t@Export\n");
+						src.line(codeSource, "@Export");
 					}
 
-					src.append("\tpublic ");
-					src.append(returnType);
-					src.append(" ");
-					src.append(action.getName());
-					src.append("(");
+					final SourceLine line = src.begin(codeSource, "public ");
+
+					line.append(returnType);
+					line.append(" ");
+					line.append(action.getName());
+					line.append("(");
 
 					// output parameters
 					for (final Iterator<Entry<String, String>> it = parameters.entrySet().iterator(); it.hasNext();) {
 
 						final Entry<String, String> entry = it.next();
 
-						src.append("final ");
-						src.append(entry.getValue());
-						src.append(" ");
-						src.append(entry.getKey());
+						line.append("final ");
+						line.append(entry.getValue());
+						line.append(" ");
+						line.append(entry.getKey());
 
 						if (it.hasNext()) {
-							src.append(", ");
+							line.append(", ");
 						}
 					}
 
-					src.append(")");
+					line.append(")");
 
 					final List<String> exceptions = action.getExceptions();
 					if (!exceptions.isEmpty()) {
 
-						src.append(" throws ");
-						src.append(StringUtils.join(exceptions, ", "));
+						line.append(" throws ");
+						line.append(StringUtils.join(exceptions, ", "));
 					}
 
-					src.append(" {\n");
+					line.append(" {");
 
 				} else {
 
-					src.append("\n\t@Export\n");
-					src.append("\tpublic java.lang.Object ");
-					src.append(action.getName());
-					src.append("(final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {\n\n");
+					src.line(codeSource, "@Export");
+
+					final SourceLine line = src.begin(codeSource, "public java.lang.Object ");
+					line.append(action.getName());
+					line.append("(final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {");
 				}
 
 				if (action.callSuper()) {
 
-					src.append("\n\t\t// call super\n");
-					src.append("\t\tsuper.");
-					src.append(action.getName());
-					src.append("(");
-					src.append(StringUtils.join(parameters.keySet(), ", "));
-					src.append(");\n\n");
+					src.line(codeSource, "// call super");
+
+					final SourceLine line = src.line(codeSource, "super.");
+					line.append(action.getName());
+					line.append("(");
+					line.append(StringUtils.join(parameters.keySet(), ", "));
+					line.append(");");
 				}
 
-				if (StringUtils.isNotBlank(source)) {
+				action.getSource(src, "this", true, false);
 
-					src.append("\t\t");
-					src.append(source);
-
-					final String trimmed = source.trim();
-					if (!trimmed.endsWith(";") &&  !trimmed.endsWith("}")) {
-
-						src.append(";");
-					}
-
-					src.append("\n");
-				}
-
-				if (!"void".equals(returnType) && (StringUtils.isBlank(source) || Actions.Type.Custom.equals(action.getType()))) {
-
-					src.append("\t\treturn null;\n");
-				}
-
-				src.append("\t}\n");
+				src.end();
 			}
 		}
 	}
 
-	public static void formatActiveAction(final StringBuilder src, final ActionEntry action) {
+	public static void formatActiveAction(final SourceFile src, final CodeSource codeSource, final ActionEntry action) {
 
-		src.append("\n\t@Export\n");
-		src.append("\tpublic java.lang.Object ");
-		src.append(action.getName());
-		src.append("(final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {\n\n");
+		src.line(codeSource, "@Export");
 
-		src.append("\t\treturn ");
-		src.append(action.getSource("this", true, false));
-		src.append(";\n\n");
-		src.append("\t}\n");
+		final SourceLine line = src.begin(codeSource, "public java.lang.Object ");
+		line.append(action.getName());
+		line.append("(final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {");
+
+		src.line(codeSource, "return");
+
+		action.getSource(src, "this", true, false);
+
+		src.end();
 	}
 
 	private static Map<String, Object> getPropertiesForView(final SecurityContext securityContext, final Class type, final String propertyView) throws FrameworkException {
@@ -1845,7 +1813,7 @@ public class SchemaHelper {
 				if (property.isIndexed() || property.isCompound()) {
 
 					final String name          = property.getName();
-					final String selectionName = name + "Selection";
+					final String selectionName = type + name + "Selection";
 
 					GraphQLInputObjectType selectionType = selectionTypes.get(selectionName);
 					if (selectionType == null) {

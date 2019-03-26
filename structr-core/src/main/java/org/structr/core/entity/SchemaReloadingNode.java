@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,6 +25,7 @@ import org.structr.core.graph.ModificationQueue;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.ReloadSchema;
+import org.structr.schema.action.Actions;
 
 /**
  *
@@ -32,31 +33,50 @@ import org.structr.schema.ReloadSchema;
  */
 public abstract class SchemaReloadingNode extends AbstractNode {
 
+	public abstract boolean reloadSchemaOnCreate();
+	public abstract boolean reloadSchemaOnModify(final ModificationQueue modificationQueue);
+	public abstract boolean reloadSchemaOnDelete();
+
 	@Override
 	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
+		Actions.clearCache();
+
 		super.onCreation(securityContext, errorBuffer);
 
-		// register transaction post processing that recreates the schema information
-		TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+		if (reloadSchemaOnCreate()) {
+
+			// register transaction post processing that recreates the schema information
+			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+		}
 	}
 
 	@Override
 	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
+		Actions.clearCache();
+
 		super.onModification(securityContext, errorBuffer, modificationQueue);
 
-		// register transaction post processing that recreates the schema information
-		TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+		if (reloadSchemaOnModify(modificationQueue)) {
+
+			// register transaction post processing that recreates the schema information
+			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+		}
 	}
 
 	@Override
 	public void onNodeDeletion() {
 
+		Actions.clearCache();
+
 		super.onNodeDeletion();
 
-		// register transaction post processing that recreates the schema information
-		TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+		if (reloadSchemaOnDelete()) {
+
+			// register transaction post processing that recreates the schema information
+			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+		}
 	}
 
 	public String getResourceSignature() {

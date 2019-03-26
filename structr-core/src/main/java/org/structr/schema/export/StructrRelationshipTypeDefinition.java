@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -60,6 +60,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	private String aclDeleteMask                  = null;
 	private String aclAccessControlMask           = null;
 	private String aclHiddenProperties            = null;
+	private boolean isPartOfBuiltInSchema         = false;
 
 	public StructrRelationshipTypeDefinition(final StructrSchemaDefinition root, final String name) {
 
@@ -369,17 +370,18 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		final String targetNodeType = targetNode.getClassName();
 
 
-		this.sourceType           = root.getId().resolve("definitions/" + sourceNodeType);
-		this.targetType           = root.getId().resolve("definitions/" + targetNodeType);
-		this.relationshipType     = schemaNode.getProperty(SchemaRelationshipNode.relationshipType);
-		this.sourcePropertyName   = schemaNode.getProperty(SchemaRelationshipNode.sourceJsonName);
-		this.targetPropertyName   = schemaNode.getProperty(SchemaRelationshipNode.targetJsonName);
-		this.aclResolution        = schemaNode.getProperty(SchemaRelationshipNode.permissionPropagation).name();
-		this.aclReadMask          = schemaNode.getProperty(SchemaRelationshipNode.readPropagation).name();
-		this.aclWriteMask         = schemaNode.getProperty(SchemaRelationshipNode.writePropagation).name();
-		this.aclDeleteMask        = schemaNode.getProperty(SchemaRelationshipNode.deletePropagation).name();
-		this.aclAccessControlMask = schemaNode.getProperty(SchemaRelationshipNode.accessControlPropagation).name();
-		this.aclHiddenProperties  = schemaNode.getProperty(SchemaRelationshipNode.propertyMask);
+		this.sourceType            = root.getId().resolve("definitions/" + sourceNodeType);
+		this.targetType            = root.getId().resolve("definitions/" + targetNodeType);
+		this.relationshipType      = schemaNode.getProperty(SchemaRelationshipNode.relationshipType);
+		this.sourcePropertyName    = schemaNode.getProperty(SchemaRelationshipNode.sourceJsonName);
+		this.targetPropertyName    = schemaNode.getProperty(SchemaRelationshipNode.targetJsonName);
+		this.aclResolution         = schemaNode.getProperty(SchemaRelationshipNode.permissionPropagation).name();
+		this.aclReadMask           = schemaNode.getProperty(SchemaRelationshipNode.readPropagation).name();
+		this.aclWriteMask          = schemaNode.getProperty(SchemaRelationshipNode.writePropagation).name();
+		this.aclDeleteMask         = schemaNode.getProperty(SchemaRelationshipNode.deletePropagation).name();
+		this.aclAccessControlMask  = schemaNode.getProperty(SchemaRelationshipNode.accessControlPropagation).name();
+		this.aclHiddenProperties   = schemaNode.getProperty(SchemaRelationshipNode.propertyMask);
+		this.isPartOfBuiltInSchema = schemaNode.getProperty(SchemaRelationshipNode.isPartOfBuiltInSchema);
 
 		if (sourcePropertyName == null) {
 			sourcePropertyName = schemaNode.getPropertyName(sourceNodeType, root.getExistingPropertyNames(), false);
@@ -474,6 +476,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 			if (SchemaService.DynamicSchemaRootURI.equals(root.getId())) {
 
+				this.isPartOfBuiltInSchema = true;
 				properties.put(SchemaRelationshipNode.isPartOfBuiltInSchema, true);
 			}
 		}
@@ -481,6 +484,16 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		_schemaNode.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return _schemaNode;
+	}
+
+	@Override
+	public boolean isBuiltinType() {
+		return isPartOfBuiltInSchema;
+	}
+
+	@Override
+	public void setIsBuiltinType() {
+		this.isPartOfBuiltInSchema = true;
 	}
 
 	void resolveEndpointTypesForDatabaseSchemaCreation(final Map<String, SchemaNode> schemaNodes, final App app) throws FrameworkException {

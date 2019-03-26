@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,6 +37,7 @@ public interface ContentItem extends NodeInterface {
 		final JsonObjectType type = schema.addType("ContentItem");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ContentItem"));
+		type.setCategory("ui");
 
 		type.addBooleanProperty("isContentItem", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 

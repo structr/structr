@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -213,6 +213,11 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public Class<? extends GraphObject> getDeclaringClass() {
 		return propertyKey.getDeclaringClass();
+	}
+
+	@Override
+	public String getSourceUuid() {
+		return propertyKey.getSourceUuid();
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,6 +36,7 @@ public interface Schema {
 	public PropertyContainer getPropertyContainer();
 	public String getClassName();
 	public String getSuperclassName();
+	public String getUuid();
 
 	public Iterable<SchemaProperty> getSchemaProperties();
 	public Iterable<SchemaView> getSchemaViews();

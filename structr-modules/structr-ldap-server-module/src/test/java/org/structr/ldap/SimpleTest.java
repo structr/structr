@@ -18,7 +18,7 @@
  */
 package org.structr.ldap;
 
-import org.junit.Test;
+import org.testng.annotations.Test;
 
 /**
  */

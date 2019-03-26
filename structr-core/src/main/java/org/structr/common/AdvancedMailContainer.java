@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -191,18 +191,18 @@ public class AdvancedMailContainer {
 	}
 
 
-	public void send() throws EmailException, FrameworkException {
+	public String send() throws EmailException, FrameworkException {
 
-		boolean mandatoryFieldsPresent = (this.fromAddress != null && this.subject != null && this.htmlContent != null);
+		boolean mandatoryFieldsPresent = (this.fromAddress != null && this.subject != null && (this.htmlContent != null || this.textContent != null));
 
 		if (!mandatoryFieldsPresent) {
-			throw new FrameworkException(422, "Unable to send e-mail. Not all mandatory fields are set (fromAddress, subject, hmtlContent)'");
+			throw new FrameworkException(422, "Unable to send e-mail. Not all mandatory fields are set (fromAddress, subject and either hmtlContent or textContent)'");
 		}
 
 		if (getTo().isEmpty() && getCc().isEmpty() && getBcc().isEmpty()) {
 			throw new FrameworkException(422, "Unable to send e-mail: There aren't any recipients (empty to:, cc: and bcc: fields)");
 		}
 
-		MailHelper.sendAdvancedMail(this);
+		return MailHelper.sendAdvancedMail(this);
 	}
 }

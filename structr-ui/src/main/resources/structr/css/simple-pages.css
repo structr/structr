@@ -1,0 +1,165 @@
+/**
+ * Copyright (C) 2010-2019 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+@charset "UTF-8";
+
+/** Defaults */
+
+@font-face { font-family: 'Open Sans'; src: url('../fonts/OpenSans-Light.ttf') format('truetype'); font-weight: 300;}
+@font-face { font-family: 'Open Sans'; src: url('../fonts/OpenSans-Regular.ttf') format('truetype'); font-weight: 400;}
+@font-face { font-family: 'Open Sans'; src: url('../fonts/OpenSans-Semibold.ttf') format('truetype'); font-weight: 600;}
+@font-face { font-family: 'Open Sans'; src: url('../fonts/OpenSans-Bold.ttf') format('truetype'); font-weight: 700;}
+
+@font-face { font-family: 'Roboto'; src: url('../fonts/Roboto-Light.ttf') format('truetype'); font-weight: 300;}
+@font-face { font-family: 'Roboto'; src: url('../fonts/Roboto-Regular.ttf') format('truetype'); font-weight: 400;}
+@font-face { font-family: 'Roboto'; src: url('../fonts/Roboto-Medium.ttf') format('truetype'); font-weight: 600;}
+@font-face { font-family: 'Roboto'; src: url('../fonts/Roboto-Bold.ttf') format('truetype'); font-weight: 700;}
+
+#simple-pages-tree .page.node {
+	margin-left: 0;
+	padding-left: 8px;
+}
+
+#simple-pages-tree .page.node b.name_ {
+	cursor: pointer;
+}
+
+#simple-pages-tree .page.node.selected {
+	background: #b5e27f ! important;
+}
+
+.page-root .preview {
+	width: 100%;
+	border: none;
+}
+
+.dialogText .template-preview {
+	border: 1px solid transparent;
+	display: inline-block;
+	width: 280px;
+	position: relative;
+}
+
+.dialogText .template-preview:hover {
+	border: 1px solid #81ce25;
+	background-color: #fff;
+}
+
+.dialogText .template-preview .name_ {
+	position: absolute;
+	top: 8px;
+	text-align: center;
+	display: inline-block;
+	width: 100%;
+}
+
+.dialogText .template-preview iframe {
+	width: 280px;
+	height: 280px;
+	display: block;
+	margin: 0 auto;
+	/*background-color: #fff;*/
+	border: 1px solid rgba(0,0,0,.125);
+	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
+	transform: scale(0.75);
+	-ms-zoom: 0.75;
+	-moz-transform: scale(0.75);
+	-o-transform: scale(0.75);
+	-webkit-transform: scale(0.75);
+}
+
+.page-root {
+	position: relative;
+}
+
+.add-page-template {
+	position: absolute;
+	left: 4px;
+	top: 8px;
+}
+
+
+/**
+ * Styles for content of preview iframe
+ */
+
+[data-structr-id] {
+	position: relative;
+	display: block;
+	min-height: 12px;
+	padding: 24px;
+	/*margin: 12px;*/
+	border: 1px solid rgba(0,0,0,.125);
+	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
+}
+
+[data-structr-id] > .edit-header {
+	display: none;
+	border-bottom: 1px solid rgba(0,0,0,.125);
+	background-color: rgba(204,204,204,.25);
+	font-size: 9pt;
+	position: absolute;
+	z-index: 1;
+	top: 0;
+	left: 0px;
+	width: 100%;
+}
+
+[data-structr-id].hover > .edit-header {
+	display: block;
+	font-family: Roboto, Arial, Helvetica, Sans-serif;
+	font-size: 8pt;
+}
+
+[data-structr-id] > .edit-header > .name_ {
+	margin: 4px;
+}
+
+[data-structr-id].hover {
+	border: 1px solid rgba(0,0,0,.25);
+	box-shadow: 0px 0px 36px rgba(127,127,127,.2);
+}
+
+[data-structr-id] .sprite.button {
+	cursor: pointer;
+	height: 16px;
+	width: 16px;
+	top: 4px;
+	position: absolute;
+}
+
+[data-structr-id] .edit_props_icon {
+	right: 24px;
+	position: absolute;
+}
+
+[data-structr-id] .add_icon {
+	right: 4px;
+}
+
+[data-structr-id] .delete_icon {
+	right: 44px;
+}
+
+[data-structr-id] .replace_icon {
+	right: 64px;
+}
+
+[data-structr-id].hover .sprite.button {
+	display: block ! important;
+}

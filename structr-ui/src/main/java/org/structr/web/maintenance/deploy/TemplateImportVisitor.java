@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -145,7 +145,7 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 
 			try {
 
-				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), DOMNode.class, (Map<String, Object>)data);
+				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), Template.class, (Map<String, Object>)data);
 
 			} catch (FrameworkException ex) {
 				logger.warn("Unable to resolve properties for template: {}", ex.getMessage());
@@ -245,7 +245,8 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 
 		} catch (Throwable t) {
 
-			logger.debug("Error trying to create template {}", fileName);
+			logger.error("Error trying to create template {}", fileName);
+			t.printStackTrace();
 		}
 	}
 }

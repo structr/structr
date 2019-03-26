@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,6 +37,11 @@ public class FlowContainerPackagePackage extends OneToMany<FlowContainerPackage,
 	@Override
 	public String name() {
 		return "CONTAINS_PACKAGE";
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override

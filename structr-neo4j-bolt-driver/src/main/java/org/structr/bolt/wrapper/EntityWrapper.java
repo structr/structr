@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.NotFoundException;
 import org.structr.api.NotInTransactionException;
+import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Cachable;
 import org.structr.bolt.BoltDatabaseService;
@@ -44,8 +45,13 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 	protected final Map<String, Object> data = new ConcurrentHashMap<>();
 	protected BoltDatabaseService db         = null;
+	protected boolean deleted                = false;
 	protected boolean stale                  = false;
 	protected long id                        = -1L;
+
+	protected EntityWrapper() {
+		// nop constructor for cache access
+	}
 
 	public EntityWrapper(final BoltDatabaseService db, final T entity) {
 
@@ -65,7 +71,11 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 	}
 
 	@Override
-	public long getId() {
+	public Identity getId() {
+		return new BoltIdentity(id);
+	}
+
+	public long getDatabaseId() {
 		return id;
 	}
 
@@ -133,7 +143,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		if (needsUpdate(key, value)) {
 
 			final Map<String, Object> map = new HashMap<>();
-			final String query            = getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = {value}";
+			final String query            = getQueryPrefix() + " WHERE ID(n) = $id SET n.`" + key + "` = $value";
 
 			map.put("id", id);
 			map.put("value", value);
@@ -162,7 +172,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 			final Map<String, Object> map = new HashMap<>();
 			final SessionTransaction tx   = db.getCurrentTransaction();
-			final String query            = getQueryPrefix() + " WHERE ID(n) = {id} SET n += {properties}";
+			final String query            = getQueryPrefix() + " WHERE ID(n) = $id SET n += $properties";
 
 			// overwrite a potential "id" property
 			map.put("id", id);
@@ -185,7 +195,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
-		final String query            = getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = Null";
+		final String query            = getQueryPrefix() + " WHERE ID(n) = $id SET n.`" + key + "` = Null";
 
 		map.put("id", id);
 
@@ -218,7 +228,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		map.put("id", id);
 
 		buf.append(getQueryPrefix());
-		buf.append(" WHERE ID(n) = {id}");
+		buf.append(" WHERE ID(n) = $id");
 
 		if (deleteRelationships) {
 
@@ -230,12 +240,18 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		tx.set(buf.toString(), map);
 		setModified();
 
-		stale = true;
+		stale   = true;
+		deleted = true;
 	}
 
 	@Override
 	public boolean isSpatialEntity() {
 		return false;
+	}
+
+	@Override
+	public boolean isDeleted() {
+		return deleted;
 	}
 
 	public boolean isStale() {
@@ -271,7 +287,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 			try {
 
 				// update data
-				update(tx.getEntity(getQueryPrefix() + " WHERE ID(n) = {id} RETURN n", map).asMap());
+				update(tx.getEntity(getQueryPrefix() + " WHERE ID(n) = $id RETURN n", map).asMap());
 
 			} catch (NoSuchRecordException nex) {
 				throw new NotFoundException(nex);

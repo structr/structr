@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -209,14 +209,6 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		return false;
 	}
 
-	/*
-
-	@Override
-	public String getContextName() {
-		return "#text";
-	}
-	*/
-
 	public static void updateFromNode(final Content thisContent, final DOMNode newNode) throws FrameworkException {
 
 		if (newNode instanceof Content) {
@@ -229,31 +221,12 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
 	}
 
-	/*
-	@Override
-	public String getIdHash() {
-
-		final DOMNode _parent = getProperty(DOMNode.parent);
-		if (_parent != null) {
-
-			String dataHash = _parent.getProperty(DOMNode.dataHashProperty);
-			if (dataHash == null) {
-				dataHash = _parent.getIdHash();
-			}
-
-			return dataHash + "Content" + treeGetChildPosition(this);
-		}
-
-		return super.getIdHash();
-	}
-
-	*/
-
 	public static void renderContent(final Content thisNode, final RenderContext renderContext, final int depth) throws FrameworkException {
 
 		final SecurityContext securityContext = thisNode.getSecurityContext();
 
 		try {
+
 			final EditMode edit = renderContext.getEditMode(securityContext.getUser(false));
 			if (EditMode.DEPLOYMENT.equals(edit)) {
 
@@ -268,7 +241,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 				return;
 			}
 
-			if (thisNode.isHidden() || !thisNode.displayForLocale(renderContext) || !thisNode.displayForConditions(renderContext)) {
+			if (!thisNode.shouldBeRendered(renderContext)) {
 				return;
 			}
 
@@ -367,16 +340,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		}
 	}
 
-	/*
-	@Override
-	public boolean isSynced() {
-		return false;
-	}
-
 	// ----- interface org.w3c.dom.Text -----
-
-	*/
-
 	public static Text splitText(final Content thisNode, final int offset) throws DOMException {
 
 		thisNode.checkWriteAccess();
@@ -443,28 +407,6 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
 		return false;
 	}
-
-	/*
-
-	@Override
-	public String getWholeText() {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public Text replaceWholeText(String string) throws DOMException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public String getData() throws DOMException {
-
-		checkReadAccess();
-
-		return getProperty(content);
-	}
-
-	*/
 
 	public static void setData(final Content thisNode, final String data) throws DOMException {
 
@@ -597,85 +539,4 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
 		}
 	}
-
-	/*
-
-	// ----- interface org.w3c.dom.Node -----
-	@Override
-	public String getTextContent() throws DOMException {
-		return getData();
-	}
-
-	@Override
-	public void setTextContent(String textContent) throws DOMException {
-		setData(textContent);
-	}
-
-	@Override
-	public String getLocalName() {
-		return null;
-	}
-
-	@Override
-	public short getNodeType() {
-		return TEXT_NODE;
-	}
-
-	@Override
-	public String getNodeName() {
-		return "#text";
-	}
-
-	@Override
-	public String getNodeValue() throws DOMException {
-		return getData();
-	}
-
-	@Override
-	public void setNodeValue(String data) throws DOMException {
-		setData(data);
-	}
-
-	@Override
-	public NamedNodeMap getAttributes() {
-		return null;
-	}
-
-	@Override
-	public boolean hasAttributes() {
-		return false;
-	}
-
-	// ----- interface DOMImportable -----
-	@Override
-	public Node doImport(Page newPage) throws DOMException {
-
-		// for #text elements, importing is basically a clone operation
-		return newPage.createTextNode(getData());
-	}
-
-	// ----- interface Favoritable -----
-	@Override
-	public String getContext() {
-		return getPagePath();
-	}
-
-	@Override
-	public String getFavoriteContent() {
-		return getProperty(Content.content);
-	}
-
-	@Override
-	public String getFavoriteContentType() {
-		return getProperty(Content.contentType);
-	}
-
-	@Override
-	public void setFavoriteContent(String content) throws FrameworkException {
-		setProperty(Content.content, content);
-	}
-
-
-*/
-
 }

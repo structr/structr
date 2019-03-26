@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,6 +24,7 @@ import java.util.function.Function;
 import org.neo4j.helpers.collection.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Identity;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -67,8 +68,8 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	}
 
 	public abstract T instantiate(final S obj);
-	public abstract T instantiate(final S obj, final long pathSegmentId);
-	public abstract T instantiateWithType(final S obj, final Class<T> type, final long pathSegmentId, boolean isCreation) throws FrameworkException;
+	public abstract T instantiate(final S obj, final Identity pathSegmentId);
+	public abstract T instantiateWithType(final S obj, final Class<T> type, final Identity pathSegmentId, boolean isCreation) throws FrameworkException;
 	public abstract T instantiate(final S obj, final boolean includeHidden, final boolean publicOnly) throws FrameworkException;
 
 	/**

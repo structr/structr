@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -99,7 +99,7 @@ var _Files = {
 
 		if (folderContents) {
 			folderContents.css({
-				height: windowHeight - headerOffsetHeight - 46 + 'px'
+				height: windowHeight - headerOffsetHeight - 43 + 'px'
 			});
 		}
 
@@ -160,7 +160,7 @@ var _Files = {
 
 		Structr.updateMainHelpLink('https://support.structr.com/article/49');
 
-		main.append('<div id="files-main"><div class="column-resizer"></div><div class="fit-to-height" id="file-tree-container"><div id="file-tree"></div></div><div class="fit-to-height" id="folder-contents-container"><div id="folder-contents"></div></div>');
+		main.append('<div class="tree-main" id="files-main"><div class="column-resizer"></div><div class="fit-to-height tree-container" id="file-tree-container"><div class="tree" id="file-tree"></div></div><div class="fit-to-height tree-contents-container" id="folder-contents-container"><div class="tree-contents tree-contents-with-top-buttons" id="folder-contents"></div></div>');
 		filesMain = $('#files-main');
 
 		fileTree = $('#file-tree');
@@ -1131,7 +1131,7 @@ var _Files = {
 
 				if (!_Files.isMinificationTarget(StructrModel.obj(Structr.getId(el)))) {
 
-					Command.get(Structr.getId(el), "id,name,contentType,isTemplate", function(entity) {
+					Command.get(Structr.getId(el), 'id,name,contentType,isTemplate', function(entity) {
 						$('#files-tabs ul').append('<li id="tab-' + entity.id + '">' + entity.name + '</li>');
 						$('#files-tabs').append('<div id="content-tab-' + entity.id + '"></div>');
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import java.util.List;
 import java.util.Map;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -35,6 +36,16 @@ import org.structr.schema.action.Function;
 public class PrivilegedFindFunction extends Function<Object, Object> {
 
     public static final String ERROR_MESSAGE_PRIVILEGEDFIND = "Usage: ${find_privileged(type, key, value)}. Example: ${find_privileged(\"User\", \"email\", \"tester@test.com\"}";
+
+    @Override
+    public String getName() {
+        return "find_privileged";
+    }
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
+	}
 
     @Override
     public Object apply(final ActionContext ctx, final Object caller, Object[] sources) throws FrameworkException {
@@ -147,10 +158,4 @@ public class PrivilegedFindFunction extends Function<Object, Object> {
     public String shortDescription() {
         return "Returns a collection of entities of the given type from the database, takes optional key/value pairs. Executed in a super user context.";
     }
-
-    @Override
-    public String getName() {
-        return("find_privileged()");
-    }
-
 }

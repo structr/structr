@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,6 +43,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
 import org.structr.core.property.DoubleProperty;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.StringProperty;
@@ -58,6 +60,11 @@ public abstract class Function<S, T> extends Hint {
 
 	public abstract T apply(ActionContext ctx, Object caller, S[] sources) throws FrameworkException;
 	public abstract String usage(boolean inJavaScriptContext);
+	public abstract int getRequiredLicense();
+
+	public List<String> aliases() {
+		return Collections.EMPTY_LIST;
+	}
 
 	/**
 	 * Basic logging for functions called with wrong parameter count
@@ -78,7 +85,7 @@ public abstract class Function<S, T> extends Hint {
 	 * @param inJavaScriptContext Has the function been called from a JavaScript context?
 	 */
 	protected void logParameterError(final Object caller, final Object[] parameters, final String message, final boolean inJavaScriptContext) {
-		logger.warn("{}: {} \"{}\". Parameters: {}. {}", new Object[] { getName(), message, caller, getParametersAsString(parameters), usage(inJavaScriptContext) });
+		logger.warn("{}: {} '{}'. Parameters: {}. {}", new Object[] { getReplacement(), message, caller, getParametersAsString(parameters), usage(inJavaScriptContext) });
 	}
 
 	/**
@@ -89,7 +96,7 @@ public abstract class Function<S, T> extends Hint {
 	 * @param parameters The method parameters
 	 */
 	protected void logException (final Object caller, final Throwable t, final Object[] parameters) {
-		logException(t, "{}: Exception in \"{}\" for parameters: {}", new Object[] { getName(), caller, getParametersAsString(parameters) });
+		logException(t, "{}: Exception in '{}' for parameters: {}", new Object[] { getReplacement(), caller, getParametersAsString(parameters) });
 	}
 
 	/**
@@ -200,7 +207,7 @@ public abstract class Function<S, T> extends Hint {
 
 		} catch (Throwable t) {
 
-			logException(t, "{}: Exception parsing \"1\"", new Object[] { getName(), obj });
+			logException(t, "{}: Exception parsing '{}'", new Object[] { getReplacement(), obj });
 		}
 
 		return null;
@@ -262,7 +269,7 @@ public abstract class Function<S, T> extends Hint {
 
 			} catch (Throwable t) {
 
-				logException(t, "{}: Exception parsing \"1\"", new Object[] { getName(), obj });
+				logException(t, "{}: Exception parsing '{}'", new Object[] { getReplacement(), obj });
 			}
 		}
 
@@ -511,6 +518,18 @@ public abstract class Function<S, T> extends Hint {
 		}
 	}
 
+	public static GraphObjectMap recursivelyWrapIterableInMap (final Iterable list, final Integer outputDepth) {
+
+		final GraphObjectMap listWrapperObject = new GraphObjectMap();
+
+		if (outputDepth <= 20) {
+			listWrapperObject.put(new GenericProperty("values"), Function.toGraphObject(list, outputDepth + 1));
+		}
+
+		return listWrapperObject;
+
+	}
+
 	public static GraphObjectMap toGraphObjectMap(final Map<String, Object> src) {
 
 		final GraphObjectMap dest = new GraphObjectMap();
@@ -526,12 +545,11 @@ public abstract class Function<S, T> extends Hint {
 
 			return sourceObject;
 
-		} else if (sourceObject instanceof List) {
+		} else if (sourceObject instanceof Iterable) {
 
-			final List list = (List)sourceObject;
 			final List<GraphObject> res = new ArrayList<>();
 
-			for(final Object o : list){
+			for(final Object o : (Iterable)sourceObject) {
 
 				if (o instanceof Map) {
 
@@ -550,7 +568,13 @@ public abstract class Function<S, T> extends Hint {
 					res.add(Function.wrapStringInGraphObjectMap((String)o));
 
 				} else if (o instanceof Number) {
+
 					res.add(Function.wrapNumberInGraphObjectMap((Number)o));
+
+				} else if (o instanceof Iterable) {
+
+					res.add(Function.recursivelyWrapIterableInMap((Iterable)o, outputDepth));
+
 				}
 			}
 
@@ -580,7 +604,7 @@ public abstract class Function<S, T> extends Hint {
 			return Function.wrapStringInGraphObjectMap((String)sourceObject);
 
 		} else if (sourceObject instanceof Number) {
-			
+
 			return Function.wrapNumberInGraphObjectMap((Number)sourceObject);
 		}
 

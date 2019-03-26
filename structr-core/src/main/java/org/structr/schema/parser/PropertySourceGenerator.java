@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.schema.parser;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -34,16 +35,19 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.CodeSource;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
+import org.structr.schema.SourceFile;
+import org.structr.schema.SourceLine;
 
 /**
  *
  *
  */
 public abstract class PropertySourceGenerator {
-
+ 
 	private final Set<String> compoundIndexKeys   = new LinkedHashSet<>();
 	private final Set<Validator> globalValidators = new LinkedHashSet<>();
 	private final Set<String> enumDefinitions     = new LinkedHashSet<>();
@@ -65,7 +69,7 @@ public abstract class PropertySourceGenerator {
 		this.source       = propertyDefinition;
 	}
 
-	public void getPropertySource(final Map<String, SchemaNode> schemaNodes, final StringBuilder buf, final Schema entity) throws FrameworkException {
+	public void getPropertySource(final Map<String, SchemaNode> schemaNodes, final SourceFile buf, final Schema entity) throws FrameworkException {
 
 		if (source.isNotNull()) {
 
@@ -83,7 +87,6 @@ public abstract class PropertySourceGenerator {
 		}
 
 		parseFormatString(schemaNodes, entity, source.getFormat());
-
 		getPropertySource(buf);
 	}
 
@@ -167,100 +170,119 @@ public abstract class PropertySourceGenerator {
 	}
 
 	// ----- protected methods -----
-	protected void getPropertySource(final StringBuilder buf) {
+	protected void getPropertySource(final SourceFile src) {
 
-		buf.append("\tpublic static final Property<").append(getValueType()).append("> ").append(SchemaHelper.cleanPropertyName(source.getPropertyName())).append("Property");
-		buf.append(" = new ").append(getPropertyType()).append("(\"").append(source.getPropertyName()).append("\"");
+		final String sourceUuid = source.getUuid();
+
+		final SourceLine line = src.line(source, "public static final");
+
+		line.append(" Property<");
+		line.append(getValueType());
+		line.append("> ");
+		line.append(SchemaHelper.cleanPropertyName(source.getPropertyName()));
+		line.append("Property");
+		line.append(" = new ");
+		line.append(getPropertyType());
+		line.append("(");
+		line.quoted(source.getPropertyName());
 
 		if (StringUtils.isNotBlank(source.getDbName())) {
-			buf.append(", \"").append(source.getDbName()).append("\"");
+			line.append(", ");
+			line.quoted(source.getDbName());
 		}
 
 		if (getPropertyParameters() != null) {
-			buf.append(getPropertyParameters());
+			line.append(getPropertyParameters());
 		}
 
-		buf.append(")");
+		line.append(")");
 
 		if (StringUtils.isNotBlank(source.getContentType())) {
-			buf.append(".contentType(\"").append(source.getContentType()).append("\")");
+			line.append(".contentType(").quoted(source.getContentType()).append(")");
 		}
 
 		if (StringUtils.isNotBlank(source.getDefaultValue())) {
-			buf.append(".defaultValue(").append(getDefaultValue()).append(")");
+			line.append(".defaultValue(").append(getDefaultValue()).append(")");
 		}
 
 		if (StringUtils.isNotBlank(source.getFormat())) {
-			buf.append(".format(\"").append(StringEscapeUtils.escapeJava(source.getFormat())).append("\")");
+			line.append(".format(").quoted(StringEscapeUtils.escapeJava(source.getFormat())).append(")");
 		}
 
-		if (StringUtils.isNotBlank(source.getReadFunction())) {
-			buf.append(".readFunction(\"").append(StringEscapeUtils.escapeJava(source.getReadFunction())).append("\")");
-		}
+		if (StringUtils.isNotBlank(sourceUuid)) {
 
-		if (StringUtils.isNotBlank(source.getWriteFunction())) {
-			buf.append(".writeFunction(\"").append(StringEscapeUtils.escapeJava(source.getWriteFunction())).append("\")");
+			line.append(".setSourceUuid(").quoted(sourceUuid).append(")");
+
+		} else {
+
+			if (StringUtils.isNotBlank(source.getReadFunction())) {
+				line.append(".readFunction(").quoted(StringEscapeUtils.escapeJava(source.getReadFunction())).append(")");
+			}
+
+			if (StringUtils.isNotBlank(source.getWriteFunction())) {
+				line.append(".writeFunction(").quoted(StringEscapeUtils.escapeJava(source.getWriteFunction())).append(")");
+			}
 		}
 
 		if (StringUtils.isNotBlank(source.getTypeHint())) {
-			buf.append(".typeHint(\"").append(StringEscapeUtils.escapeJava(source.getTypeHint())).append("\")");
+			line.append(".typeHint(").quoted(StringEscapeUtils.escapeJava(source.getTypeHint())).append(")");
 		}
 
 		if (source.isUnique()) {
-			buf.append(".unique()");
+			line.append(".unique()");
 		}
 
 		if (source.isCompound()) {
-			buf.append(".compound()");
+			line.append(".compound()");
 		}
 
 		if (source.isNotNull()) {
-			buf.append(".notNull()");
+			line.append(".notNull()");
 		}
 
 		if (source.isCachingEnabled()) {
-			buf.append(".cachingEnabled(true)");
+			line.append(".cachingEnabled(true)");
 		}
 
 		if (source.isIndexed()) {
 
 			if (StringUtils.isNotBlank(source.getDefaultValue())) {
 
-				buf.append(".indexedWhenEmpty()");
+				line.append(".indexedWhenEmpty()");
 
 			} else {
 
-				buf.append(".indexed()");
+				line.append(".indexed()");
 			}
 		}
 
 		if (source.isReadOnly()) {
 
-			buf.append(".readOnly()");
+			line.append(".readOnly()");
 		}
 
 		final String[] transformators = source.getTransformators();
 		if (transformators != null && transformators.length > 0) {
 
-			buf.append(".transformators(\"");
-			buf.append(StringUtils.join(transformators, "\", \""));
-			buf.append("\")");
+			line.append(".transformators(");
+			line.quoted(StringUtils.join(transformators, "\", \""));
+			line.append(")");
 		}
 
 		if (source.isPartOfBuiltInSchema()) {
-			buf.append(".partOfBuiltInSchema()");
+			line.append(".partOfBuiltInSchema()");
 		}
 
-		buf.append(".dynamic()");
+		line.append(".dynamic()");
 
 		if (StringUtils.isNotBlank(source.getHint())) {
-			buf.append(".hint(\"").append(StringEscapeUtils.escapeJava(source.getHint())).append("\")");
+			line.append(".hint(").quoted(StringEscapeUtils.escapeJava(source.getHint())).append(")");
 		}
 
 		if (StringUtils.isNotBlank(source.getCategory())) {
-			buf.append(".category(\"").append(StringEscapeUtils.escapeJava(source.getCategory())).append("\")");
+			line.append(".category(").quoted(StringEscapeUtils.escapeJava(source.getCategory())).append(")");
 		}
 
-		buf.append(";\n");
+		line.append(";");
 	}
 }

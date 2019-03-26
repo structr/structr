@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,9 @@
  */
 package org.structr.messaging.implementation.mqtt.function;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.schema.action.ActionContext;
@@ -26,10 +28,20 @@ import org.structr.schema.action.Function;
 
 public class MQTTPublishFunction extends Function<Object, Object> {
 
-	private static final org.slf4j.Logger logger = LoggerFactory.getLogger(MQTTPublishFunction.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(MQTTPublishFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_MQTTPUBLISH    = "Usage: ${mqtt_publish(client, topic, message)}. Example ${mqtt_publish(client, 'myTopic', 'myMessage')}";
 	public static final String ERROR_MESSAGE_MQTTPUBLISH_JS = "Usage: ${{Structr.mqtt_publish(client, topic, message)}}. Example ${{Structr.mqtt_publish(client, topic, message)}}";
+
+	@Override
+	public String getName() {
+		return "mqtt_publish";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
+	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
@@ -65,10 +77,4 @@ public class MQTTPublishFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Publishes message on given mqtt client with given topic.";
 	}
-
-	@Override
-	public String getName() {
-		return "mqtt_publish";
-	}
-
 }

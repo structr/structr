@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -52,6 +52,11 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	private static FixedSizeCache<Long, NodeWrapper> nodeCache                   = null;
 	private boolean dontUseCache                                                 = false;
 
+	protected NodeWrapper() {
+		// nop constructor for cache access
+		super();
+	}
+
 	private NodeWrapper(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Node node) {
 		super(db, node);
 	}
@@ -102,7 +107,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		final StringBuilder buf       = new StringBuilder();
 
 		map.put("id1", id);
-		map.put("id2", endNode.getId());
+		map.put("id2", db.unwrap(endNode.getId()));
 		map.put("relProperties", properties);
 
 		buf.append("MATCH (n");
@@ -113,9 +118,9 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		buf.append("MERGE (n)-[r:");
 		buf.append(relationshipType.name());
 		buf.append("]->(m)");
-		buf.append(" SET r += {relProperties} RETURN r");
+		buf.append(" SET r += $relProperties RETURN r");
 
-		final org.neo4j.driver.v1.types.Relationship rel = WrapperUtility.executeWithRetry(() -> tx.getRelationship(buf.toString(), map));
+		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship(buf.toString(), map);
 
 		setModified();
 		otherNode.setModified();
@@ -142,7 +147,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		map.put("id", id);
 
-		tx.set(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = {id} SET n :", label.name()), map);
+		tx.set(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id SET n :", label.name()), map);
 
 		setModified();
 	}
@@ -158,7 +163,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		map.put("id", id);
 
-		tx.set(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = {id} REMOVE n:", label.name()), map);
+		tx.set(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id REMOVE n:", label.name()), map);
 		setModified();
 	}
 
@@ -175,7 +180,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		map.put("id", id);
 
 		// execute query
-		for (final String label : tx.getStrings(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = {id} RETURN LABELS(n)"), map)) {
+		for (final String label : tx.getStrings(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id RETURN LABELS(n)"), map)) {
 			result.add(db.forName(Label.class, label));
 		}
 
@@ -191,14 +196,14 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		final Map<String, Object> params = new LinkedHashMap<>();
 		final String tenantIdentifier = getTenantIdentifer(db);
 
-		params.put("id1", getId());
-		params.put("id2", targetNode.getId());
+		params.put("id1", id);
+		params.put("id2", db.unwrap(targetNode.getId()));
 
 		try {
 
 			// try to fetch existing relationship by node ID(s)
 			// FIXME: this call can be very slow when lots of relationships exist
-			tx.getLong(concat("MATCH (n", tenantIdentifier, ")-[r:", type.name(), "]->(m", tenantIdentifier, ") WHERE id(n) = {id1} AND id(m) = {id2} RETURN id(r)"), params);
+			tx.getLong(concat("MATCH (n", tenantIdentifier, ")-[r:", type.name(), "]->(m", tenantIdentifier, ") WHERE id(n) = $id1 AND id(m) = $id2 RETURN id(r)"), params);
 
 			// success
 			return true;
@@ -306,73 +311,6 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		list.add(rel);
 	}
 
-	// ----- public static methods -----
-	public static FixedSizeCache<Long, NodeWrapper> getCache() {
-		return nodeCache;
-	}
-
-	public static void expunge(final Set<Long> toRemove) {
-
-		synchronized (nodeCache) {
-
-			nodeCache.removeAll(toRemove);
-		}
-	}
-
-	public static void clearCache() {
-
-		synchronized (nodeCache) {
-
-			nodeCache.clear();
-		}
-	}
-
-	public static NodeWrapper newInstance(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Node node) {
-
-		synchronized (nodeCache) {
-
-			NodeWrapper wrapper = nodeCache.get(node.id());
-			if (wrapper == null || wrapper.stale) {
-
-				wrapper = new NodeWrapper(db, node);
-				nodeCache.put(node.id(), wrapper);
-			}
-
-			return wrapper;
-		}
-	}
-
-	public static NodeWrapper newInstance(final BoltDatabaseService db, final long id) {
-
-		synchronized (nodeCache) {
-
-			NodeWrapper wrapper = nodeCache.get(id);
-			if (wrapper == null || wrapper.stale) {
-
-				final SessionTransaction tx   = db.getCurrentTransaction();
-				final Map<String, Object> map = new HashMap<>();
-
-				map.put("id", id);
-
-				final Iterable<org.neo4j.driver.v1.types.Node> result   = tx.getNodes("MATCH (n) WHERE ID(n) = {id} RETURN DISTINCT n", map);
-				final Iterator<org.neo4j.driver.v1.types.Node> iterator = result.iterator();
-
-				if (iterator.hasNext()) {
-
-					wrapper = NodeWrapper.newInstance(db, iterator.next());
-
-					nodeCache.put(id, wrapper);
-
-				} else {
-
-					throw new NotFoundException("Node with ID " + id + " not found.");
-				}
-			}
-
-			return wrapper;
-		}
-	}
-
 	// ----- protected methods -----
 	@Override
 	protected boolean isNode() {
@@ -410,7 +348,78 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		return count;
 	}
 
-	private String concat(final String... parts) {
+	// ----- public static methods -----
+	public static NodeWrapper newInstance(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Node node) {
+
+		synchronized (nodeCache) {
+
+			NodeWrapper wrapper = nodeCache.get(node.id());
+			if (wrapper == null || wrapper.stale) {
+
+				wrapper = new NodeWrapper(db, node);
+				nodeCache.put(node.id(), wrapper);
+			}
+
+			return wrapper;
+		}
+	}
+
+	public static NodeWrapper newInstance(final BoltDatabaseService db, final long id) {
+
+		synchronized (nodeCache) {
+
+			NodeWrapper wrapper = nodeCache.get(id);
+			if (wrapper == null || wrapper.stale) {
+
+				final SessionTransaction tx   = db.getCurrentTransaction();
+				final Map<String, Object> map = new HashMap<>();
+				final String tenantIdentifier = getTenantIdentifer(db);
+
+				map.put("id", id);
+
+				final Iterable<org.neo4j.driver.v1.types.Node> result   = tx.getNodes(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id RETURN DISTINCT n"), map);
+				final Iterator<org.neo4j.driver.v1.types.Node> iterator = result.iterator();
+
+				if (iterator.hasNext()) {
+
+					wrapper = NodeWrapper.newInstance(db, iterator.next());
+
+					nodeCache.put(id, wrapper);
+
+				} else {
+
+					throw new NotFoundException("Node with ID " + id + " not found.");
+				}
+			}
+
+			return wrapper;
+		}
+	}
+
+	// ----- package-private static methods
+	static FixedSizeCache<Long, NodeWrapper> getCache() {
+		return nodeCache;
+	}
+
+	public static void expunge(final Set<Long> toRemove) {
+
+		synchronized (nodeCache) {
+
+			nodeCache.removeAll(toRemove);
+		}
+	}
+
+	// ----- protected static methods -----
+	protected static void clearCache() {
+
+		synchronized (nodeCache) {
+
+			nodeCache.clear();
+		}
+	}
+
+	// ----- private static methods -----
+	private static String concat(final String... parts) {
 
 		final StringBuilder buf = new StringBuilder();
 
@@ -426,7 +435,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		return buf.toString();
 	}
 
-	private String getTenantIdentifer(final BoltDatabaseService db) {
+	private static String getTenantIdentifer(final BoltDatabaseService db) {
 
 		final String identifier = db.getTenantIdentifier();
 
@@ -456,7 +465,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 			final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
 			final Map<String, Object> map               = new HashMap<>();
 			final SessionTransaction tx                 = db.getCurrentTransaction();
-			final String whereStatement                 = " WHERE ID(n) = {id} ";
+			final String whereStatement                 = " WHERE ID(n) = $id ";
 
 			map.put("id", id);
 

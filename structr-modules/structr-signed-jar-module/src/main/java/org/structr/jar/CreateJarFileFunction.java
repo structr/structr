@@ -229,7 +229,7 @@ public class CreateJarFileFunction extends UiFunction {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return "create_jar_file()";
+		return "create_jar_file";
 	}
 
 	@Override

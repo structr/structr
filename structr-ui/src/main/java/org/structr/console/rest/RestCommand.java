@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console;
+import org.structr.schema.action.ActionContext;
 import org.structr.util.Writable;
 
 /**
@@ -76,13 +77,7 @@ public abstract class RestCommand {
 
 	protected String getBaseUrl() {
 
-		final StringBuilder buf = new StringBuilder("http://");
-
-		buf.append(Settings.ApplicationHost.getValue());
-		buf.append(":");
-		buf.append(Settings.HttpPort.getValue());
-
-		return buf.toString();
+		return ActionContext.getBaseUrl();
 	}
 
 	protected String getBasePath() {

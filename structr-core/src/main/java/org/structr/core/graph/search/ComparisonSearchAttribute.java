@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph.search;
 
-import org.renjin.sexp.Null;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Occurrence;

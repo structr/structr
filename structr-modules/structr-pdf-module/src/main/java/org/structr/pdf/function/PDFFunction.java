@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,23 +23,32 @@ import com.github.jhonnymertz.wkhtmltopdf.wrapper.Pdf;
 import com.github.jhonnymertz.wkhtmltopdf.wrapper.configurations.WrapperConfig;
 import com.github.jhonnymertz.wkhtmltopdf.wrapper.configurations.XvfbConfig;
 import com.github.jhonnymertz.wkhtmltopdf.wrapper.params.Param;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import org.structr.api.config.Settings;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 public class PDFFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_PDF = "Usage: ${ pdf(page [, wkhtmltopdfParameter, baseUrl, runWithXServer, xServerSettings]) }";
 	public static final String ERROR_MESSAGE_PDF_JS = "Usage: ${{ Structr.pdf(page [, wkhtmltopdfParameter, baseUrl, runWithXServer, xServerSettings]); }}";
 
+	@Override
+	public String getName() {
+		return "pdf";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
+	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
@@ -76,7 +85,7 @@ public class PDFFunction extends Function<Object, Object> {
 
 		if (baseUrl == null || baseUrl.length() == 0) {
 
-			baseUrl = ctx.getBaseUrl() + "/";
+			baseUrl = ActionContext.getBaseUrl(ctx.getSecurityContext().getRequest()) + "/";
 		}
 
 		Principal currentUser = ctx.getSecurityContext().getUser(false);
@@ -172,12 +181,6 @@ public class PDFFunction extends Function<Object, Object> {
 
 	@Override
 	public String shortDescription() {
-
 		return "Creates the PDF representation of a given page.";
-	}
-
-	@Override
-	public String getName() {
-		return "pdf()";
 	}
 }

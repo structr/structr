@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,15 +38,19 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.script.Scripting;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 
+import java.awt.*;
 import java.net.URI;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public interface KafkaClient extends MessageClient {
@@ -201,35 +205,51 @@ public interface KafkaClient extends MessageClient {
 
 	static Properties getConfiguration(KafkaClient thisClient, Class clazz) {
 		Properties props = new Properties();
-		String[] servers = thisClient.getServers();
-		if(servers != null) {
-			props.setProperty("bootstrap.servers", String.join(",", servers));
-		} else {
-			props.setProperty("bootstrap.servers", "");
-		}
 
-		if(clazz == KafkaProducer.class) {
-			props.put("acks", "all");
-			props.put("retries", 0);
-			props.put("batch.size", 16384);
-			props.put("linger.ms", 1);
-			props.put("buffer.memory", 33554432);
-			props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-			props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-		} else if(clazz == KafkaConsumer.class) {
-			String gId = thisClient.getGroupId();
-			if(gId != null && gId.length() > 0) {
-				props.put("group.id", gId);
+		try {
+			String[] servers = thisClient.getServers();
+			if (servers != null) {
+				props.setProperty("bootstrap.servers", String.join(",", servers));
 			} else {
-				props.put("group.id", "structr-" + thisClient.getUuid());
+				props.setProperty("bootstrap.servers", "");
 			}
-			props.put("enable.auto.commit", "true");
-			props.put("auto.commit.interval.ms", "1000");
-			props.put("session.timeout.ms", "30000");
-			props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-			props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-		} else {
-			return null;
+
+			if (clazz == KafkaProducer.class) {
+				props.put("acks", "all");
+				props.put("retries", 0);
+				props.put("batch.size", 16384);
+				props.put("linger.ms", 1);
+				props.put("buffer.memory", 33554432);
+				props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+				props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+			} else if (clazz == KafkaConsumer.class) {
+
+				String gId = null;
+
+				if (thisClient.getGroupId() != null) {
+
+					gId = Scripting.replaceVariables(new ActionContext(SecurityContext.getSuperUserInstance()), null, thisClient.getGroupId(), false);
+				} else {
+					gId = thisClient.getGroupId();
+				}
+
+				if (gId != null && gId.length() > 0) {
+					props.put("group.id", gId);
+				} else {
+					props.put("group.id", "structr-" + thisClient.getUuid());
+				}
+				props.put("enable.auto.commit", "true");
+				props.put("auto.commit.interval.ms", "1000");
+				props.put("session.timeout.ms", "30000");
+				props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+				props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+			} else {
+				return null;
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.error("Exception while trying to generate KafkaClient configuration: ", ex);
 		}
 
 		return props;
@@ -268,22 +288,43 @@ public interface KafkaClient extends MessageClient {
 					consumer.close();
 				}
 				this.consumer = new KafkaConsumer<>(getConfiguration(client, KafkaConsumer.class));
-				this.currentGroupId = client.getGroupId();
+
+				if (client.getGroupId() != null) {
+					this.currentGroupId = Scripting.replaceVariables(new ActionContext(SecurityContext.getSuperUserInstance()), null, client.getGroupId(), false);
+				} else {
+					this.currentGroupId = client.getGroupId();
+				}
 
 			} catch (KafkaException ex) {
 
 				logger.error("Could not setup consumer for KafkaClient " + client.getUuid() + ", triggered by ConsumerWorker Thread. " + ex.getLocalizedMessage());
 				try {Thread.sleep(1000);} catch (InterruptedException iex) {}
 
+			} catch (FrameworkException ex) {
+
+				logger.error("Could not refresh KafkaConsumer configuration: ", ex);
 			}
 		}
 
 		private boolean newGroupId() {
-			String cId = client.getGroupId();
+			try {
+				String cId = null;
 
-			return (currentGroupId == null && cId != null) ||
-					(currentGroupId != null && cId == null) ||
-					(!(currentGroupId == null && cId == null) && !currentGroupId.equals(cId));
+				if (client.getGroupId() != null) {
+					cId = Scripting.replaceVariables(new ActionContext(SecurityContext.getSuperUserInstance()), null, client.getGroupId(), false);
+				} else {
+					cId = client.getGroupId();
+				}
+
+				return (currentGroupId == null && cId != null) ||
+						(currentGroupId != null && cId == null) ||
+						(!(currentGroupId == null && cId == null) && !currentGroupId.equals(cId));
+
+			} catch (FrameworkException ex) {
+
+				logger.error("Exception while trying to evaluate KafkaClient groupId: ", ex);
+				return false;
+			}
 		}
 
 		private void updateSubscriptions(boolean forceUpdate) {

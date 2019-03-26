@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -57,7 +57,7 @@ var _Flows = {
 		}
 
 		if (flowsCanvas) {
-			flowsCanvas.style.height = windowHeight - headerOffsetHeight - 24 + 'px';
+			flowsCanvas.style.height = windowHeight - headerOffsetHeight - 19 + 'px';
 		}
 
 		_Flows.moveResizer();
@@ -80,7 +80,7 @@ var _Flows = {
 
 		main = document.querySelector('#main');
 
-		main.innerHTML = '<div id="flows-main"><div class="column-resizer"></div><div class="fit-to-height" id="flows-tree-container"><div id="flows-tree"></div></div><div class="fit-to-height" id="flows-canvas-container"><div id="flows-canvas"></div></div>';
+		main.innerHTML = '<div class="tree-main" id="flows-main"><div class="column-resizer"></div><div class="fit-to-height tree-container" id="flows-tree-container"><div class="tree" id="flows-tree"></div></div><div class="fit-to-height tree-contents-container" id="flows-canvas-container"><div class="tree-contents tree-contents-with-top-buttons" id="flows-canvas"></div></div>';
 		flowsMain = document.querySelector('#flows-main');
 
 		let markup = `

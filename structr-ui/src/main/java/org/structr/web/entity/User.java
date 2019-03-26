@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -48,7 +48,7 @@ public interface User extends Principal {
 
 		user.setExtends(schema.getType("Principal"));
 		user.setImplements(URI.create("https://structr.org/v1.1/definitions/User"));
-		user.setCategory("core");
+		user.setCategory("ui");
 
 		user.addStringProperty("confirmationKey", PropertyView.Ui).setIndexed(true);
 		user.addStringProperty("twitterName").setIndexed(true);
@@ -125,65 +125,67 @@ public interface User extends Principal {
 
 	public static void onCreateAndModify(final User user, final SecurityContext securityContext, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		final PropertyKey<Boolean> skipSecurityRels = StructrApp.key(User.class, "skipSecurityRelationships");
-		if (user.getProperty(skipSecurityRels).equals(Boolean.TRUE) && !user.isAdmin()) {
+		final SecurityContext previousSecurityContext = user.getSecurityContext();
 
-			throw new FrameworkException(422, "", new SemanticErrorToken(user.getClass().getSimpleName(), skipSecurityRels, "can_only_be_set_for_admin_accounts"));
-		}
+		try {
 
-		if (Principal.getTwoFactorSecret(user) == null) {
+			user.setSecurityContext(SecurityContext.getSuperUserInstance());
 
-			user.setProperty(StructrApp.key(User.class, "isTwoFactorUser"),    false);
-			user.setProperty(StructrApp.key(User.class, "twoFactorConfirmed"), false);
-			user.setProperty(StructrApp.key(User.class, "twoFactorSecret"),    TimeBasedOneTimePasswordHelper.generateBase32Secret());
-		}
+			final PropertyKey<Boolean> skipSecurityRels = StructrApp.key(User.class, "skipSecurityRelationships");
+			if (user.getProperty(skipSecurityRels).equals(Boolean.TRUE) && !user.isAdmin()) {
 
-		if (Settings.FilesystemEnabled.getValue()) {
+				throw new FrameworkException(422, "", new SemanticErrorToken(user.getClass().getSimpleName(), skipSecurityRels, "can_only_be_set_for_admin_accounts"));
+			}
 
-			final PropertyKey<Folder> homeFolderKey = StructrApp.key(Folder.class, "homeFolderOfUser");
-			final PropertyKey<Folder> parentKey     = StructrApp.key(AbstractFile.class, "parent");
+			if (Principal.getTwoFactorSecret(user) == null) {
 
-			// use superuser context here
-			final SecurityContext storedContext = user.getSecurityContext();
+				user.setProperty(StructrApp.key(User.class, "isTwoFactorUser"),    false);
+				user.setProperty(StructrApp.key(User.class, "twoFactorConfirmed"), false);
+				user.setProperty(StructrApp.key(User.class, "twoFactorSecret"),    TimeBasedOneTimePasswordHelper.generateBase32Secret());
+			}
 
-			try {
+			if (Settings.FilesystemEnabled.getValue()) {
 
-				user.setSecurityContext(SecurityContext.getSuperUserInstance());
+				final PropertyKey<Folder> homeFolderKey = StructrApp.key(Folder.class, "homeFolderOfUser");
+				final PropertyKey<Folder> parentKey     = StructrApp.key(AbstractFile.class, "parent");
 
-				Folder homeDir = user.getHomeDirectory();
-				if (homeDir == null) {
+				try {
 
-					// create home directory
-					final App app     = StructrApp.getInstance();
-					Folder homeFolder = app.nodeQuery(Folder.class).and(Folder.name, "home").and(parentKey, null).getFirst();
+					Folder homeDir = user.getHomeDirectory();
+					if (homeDir == null) {
 
-					if (homeFolder == null) {
+						// create home directory
+						final App app     = StructrApp.getInstance();
+						Folder homeFolder = app.nodeQuery(Folder.class).and(Folder.name, "home").and(parentKey, null).getFirst();
 
-						homeFolder = app.create(Folder.class,
-							new NodeAttribute(Folder.name, "home"),
-							new NodeAttribute(Folder.owner, null),
-							new NodeAttribute(Folder.visibleToAuthenticatedUsers, true)
+						if (homeFolder == null) {
+
+							homeFolder = app.create(Folder.class,
+								new NodeAttribute(Folder.name, "home"),
+								new NodeAttribute(Folder.owner, null),
+								new NodeAttribute(Folder.visibleToAuthenticatedUsers, true)
+							);
+						}
+
+						app.create(Folder.class,
+							new NodeAttribute(Folder.name, user.getUuid()),
+							new NodeAttribute(Folder.owner, user),
+							new NodeAttribute(Folder.visibleToAuthenticatedUsers, true),
+							new NodeAttribute(parentKey, homeFolder),
+							new NodeAttribute(homeFolderKey, user)
 						);
 					}
 
-					app.create(Folder.class,
-						new NodeAttribute(Folder.name, user.getUuid()),
-						new NodeAttribute(Folder.owner, user),
-						new NodeAttribute(Folder.visibleToAuthenticatedUsers, true),
-						new NodeAttribute(parentKey, homeFolder),
-						new NodeAttribute(homeFolderKey, user)
-					);
+				} catch (Throwable t) {
+
+					t.printStackTrace();
 				}
-
-			} catch (Throwable t) {
-
-				t.printStackTrace();
-
-			} finally {
-
-				// restore previous context
-				user.setSecurityContext(storedContext);
 			}
+
+		} finally {
+
+			// restore previous context
+			user.setSecurityContext(previousSecurityContext);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -30,7 +31,12 @@ public class CoalesceFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "coalesce()";
+		return "coalesce";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override
@@ -45,7 +51,6 @@ public class CoalesceFunction extends Function<Object, Object> {
 				if (sources[i] != null) {
 					return sources[i].toString();
 				}
-
 			}
 
 			// no non-null value was supplied
@@ -55,7 +60,6 @@ public class CoalesceFunction extends Function<Object, Object> {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 	}
 

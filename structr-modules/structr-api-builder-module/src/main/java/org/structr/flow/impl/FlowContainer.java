@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -67,7 +67,7 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 	@Export
 	public Map<String, Object> evaluate(final Map<String, Object> parameters) {
 
-		final FlowEngine engine       = new FlowEngine(new Context(null, parameters));
+		final FlowEngine engine       = new FlowEngine(new Context(null, parameters != null ? parameters : new HashMap()));
 		final FlowResult result       = engine.execute(getProperty(startNode));
 		final Map<String, Object> map = new LinkedHashMap<>();
 

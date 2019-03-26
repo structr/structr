@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,13 +18,10 @@
  */
 package org.structr.core.entity;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
-import org.structr.api.graph.Node;
-import org.structr.api.util.FixedSizeCache;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.property.GenericProperty;
@@ -37,11 +34,9 @@ import org.structr.schema.NonIndexed;
  */
 public class GenericNode extends AbstractNode implements NonIndexed {
 
-	private static final FixedSizeCache<Long, Set<PropertyKey>> propertyKeys = new FixedSizeCache<>(1000);
-
 	@Override
 	public int hashCode() {
-		return Long.valueOf(getId()).hashCode();
+		return getUuid().hashCode();
 	}
 
 	@Override
@@ -62,29 +57,15 @@ public class GenericNode extends AbstractNode implements NonIndexed {
 	@Override
 	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
 
-		final Node node = getNode();
-		if (node != null) {
+		final Set<PropertyKey> keys = new TreeSet<>(new PropertyKeyComparator());
 
-			final long id = node.getId();
-			Set<PropertyKey> keys = propertyKeys.get(id);
-			if (keys == null) {
+		// add all properties from a schema entity (if existing)
+		keys.addAll(Iterables.toList(super.getPropertyKeys(propertyView)));
 
-				keys = new TreeSet<>(new PropertyKeyComparator());
+		// add properties that are physically present on the node
+		keys.addAll(Iterables.toList(Iterables.map(new GenericPropertyKeyMapper(), dbNode.getPropertyKeys())));
 
-				// add all properties from a schema entity (if existing)
-				keys.addAll(Iterables.toList(super.getPropertyKeys(propertyView)));
-
-				// add properties that are physically present on the node
-				keys.addAll(Iterables.toList(Iterables.map(new GenericPropertyKeyMapper(), dbNode.getPropertyKeys())));
-
-				propertyKeys.put(id, keys);
-			}
-
-			return keys;
-		}
-
-		// return the whole set
-		return Collections.EMPTY_SET;
+		return keys;
 	}
 
 	@Override

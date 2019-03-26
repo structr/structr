@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,6 +25,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -34,6 +35,16 @@ public class LatLonToUTMFunction extends Function<Object, Object> {
 	private static final String ERROR_MESSAGE = "Usage: ${lat_lon_to_utm(latitude, longitude)}. Example: ${lat_lon_to_utm(41.3445, 7.35)}";
 	private static final Logger logger        = LoggerFactory.getLogger(LatLonToUTMFunction.class.getName());
 	private static final String UTMzdlChars   = "CDEFGHJKLMNPQRSTUVWXX";
+
+	@Override
+	public String getName() {
+		return "lat_lon_to_utm";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
+	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
@@ -119,11 +130,6 @@ public class LatLonToUTMFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Converts the given latitude/longitude coordinates into an UTM string.";
-	}
-
-	@Override
-	public String getName() {
-		return "lat_lon_to_utm";
 	}
 
 	// ----- private methods -----

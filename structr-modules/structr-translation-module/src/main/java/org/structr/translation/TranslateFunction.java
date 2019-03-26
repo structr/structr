@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,6 +26,7 @@ import com.google.cloud.translate.Translation;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.structr.api.service.LicenseManager;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.UiFunction;
@@ -37,7 +38,12 @@ public class TranslateFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "translate()";
+		return "translate";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.SmallBusiness;
 	}
 
 	@Override
@@ -54,13 +60,13 @@ public class TranslateFunction extends UiFunction {
 
 				// default is google
 				String translationProvider = "google";
-				
+
 				if (sources.length == 4 && sources[3] instanceof String) {
 					translationProvider = (String) sources[3];
 				}
-				
+
 				switch (translationProvider) {
-					
+
 					case "google": {
 						final String gctAPIKey = TranslationModule.TranslationGoogleAPIKey.getValue();
 
@@ -68,7 +74,7 @@ public class TranslateFunction extends UiFunction {
 							logger.error("Google Cloud Translation API Key not configured in structr.conf");
 							return "";
 						}
-						
+
 
 						final Translate translate = TranslateOptions.builder().apiKey(gctAPIKey).build().service();
 
@@ -79,27 +85,27 @@ public class TranslateFunction extends UiFunction {
 						);
 
 						return translation.translatedText();
-					}	
-					case "deepl": {	
+					}
+					case "deepl": {
 						final String deeplAPIKey = TranslationModule.TranslationDeepLAPIKey.getValue();
 
 						if (deeplAPIKey == null) {
 							logger.error("DeepL Translation API Key not configured in structr.conf");
 							return "";
 						}
-						
+
 						final String response = HttpHelper.get("https://api.deepl.com/v2/translate?text=" + encodeURL(text) + "&source_lang=" + sourceLanguage.toUpperCase() + "&target_lang=" + targetLanguage.toUpperCase() + "&auth_key=" + deeplAPIKey);
 
 						final JsonObject resultObject = new JsonParser().parse(response).getAsJsonObject();
 						final JsonArray translations = (JsonArray) resultObject.getAsJsonArray("translations");
-						
+
 						if (translations.size() > 0) {
 							final JsonObject translation = translations.get(0).getAsJsonObject();
 							return translation.get("text").getAsString();
 						}
 					}
 				}
-				
+
 
 
 			} catch (TranslateException te) {
@@ -108,7 +114,7 @@ public class TranslateFunction extends UiFunction {
 
 			} catch (Throwable t) {
 
-				logException(t, "{}: Exception for parameter: {}", new Object[] { getName(), getParametersAsString(sources) });
+				logException(t, "{}: Exception for parameter: {}", new Object[] { getReplacement(), getParametersAsString(sources) });
 			}
 
 			return "";

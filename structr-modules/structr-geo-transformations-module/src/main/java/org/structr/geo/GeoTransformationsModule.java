@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.module.StructrModule;
+import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
 /**
@@ -32,11 +33,14 @@ public class GeoTransformationsModule implements StructrModule {
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+	}
 
-		// extend set of builtin functions
-		Functions.put(true, LicenseManager.Community, "lat_lon_to_utm", new LatLonToUTMFunction());
-		Functions.put(true, LicenseManager.Community, "utm_to_lat_lon", new UTMToLatLonFunction());
-		Functions.put(true, LicenseManager.Community, "import_gpx",     new ImportGPXFunction());
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
+
+		Functions.put(licenseManager, new LatLonToUTMFunction());
+		Functions.put(licenseManager, new UTMToLatLonFunction());
+		Functions.put(licenseManager, new ImportGPXFunction());
 	}
 
 	@Override
@@ -55,11 +59,11 @@ public class GeoTransformationsModule implements StructrModule {
 	}
 
 	@Override
-	public void insertImportStatements(final AbstractSchemaNode schemaNode, final StringBuilder buf) {
+	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
 	}
 
 	@Override
-	public void insertSourceCode(final AbstractSchemaNode schemaNode, final StringBuilder buf) {
+	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
 	}
 
 	@Override
@@ -68,6 +72,6 @@ public class GeoTransformationsModule implements StructrModule {
 	}
 
 	@Override
-	public void insertSaveAction(final AbstractSchemaNode schemaNode, final StringBuilder buf, final Actions.Type type) {
+	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
 	}
 }

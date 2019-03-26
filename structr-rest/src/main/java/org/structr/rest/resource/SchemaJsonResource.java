@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -113,8 +113,10 @@ public class SchemaJsonResource extends Resource {
 			} catch (URISyntaxException | InvalidSchemaException ex) {
 				logger.error("Error while importing JsonSchema: " + ex.getMessage());
 			}
-			return new RestMethodResult(200, "Schema import started");
+
+			return new RestMethodResult(200, "Schema imported successfully");
 		}
+
 		return new RestMethodResult(400, "Invalid request body. Specify schema json string as 'schema' in request body.");
 	}
 

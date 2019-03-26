@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLOutputType;
 import static graphql.schema.GraphQLTypeReference.typeRef;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -53,6 +54,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
+import org.structr.schema.SourceFile;
 import org.structr.schema.parser.DoubleArrayPropertyParser;
 import org.structr.schema.parser.DoublePropertyParser;
 import org.structr.schema.parser.IntPropertyParser;
@@ -70,9 +72,10 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaProperty.class.getName());
 
-	public static final Property<AbstractSchemaNode> schemaNode            = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<AbstractSchemaNode> schemaNode            = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType));
 	public static final Property<Iterable<SchemaView>>   schemaViews       = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
 
+	public static final Property<String>             declaringUuid         = new StringProperty("declaringUuid");
 	public static final Property<String>             declaringClass        = new StringProperty("declaringClass");
 	public static final Property<String>             defaultValue          = new StringProperty("defaultValue");
 	public static final Property<String>             propertyType          = new StringProperty("propertyType").indexed();
@@ -99,6 +102,12 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String>             writeFunction         = new StringProperty("writeFunction");
 	public static final Property<String[]>           validators            = new ArrayProperty("validators", String.class);
 	public static final Property<String[]>           transformers          = new ArrayProperty("transformers", String.class);
+
+	private static final Set<PropertyKey> schemaRebuildTriggerKeys = new LinkedHashSet<>(Arrays.asList(
+		name, declaringUuid, declaringClass, defaultValue, propertyType, contentType, dbName, fqcn, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly,
+		isDynamic, isBuiltinProperty, isPartOfBuiltInSchema, isDefaultInUi, isDefaultInPublic, isCachingEnabled, contentHash, validators, transformers
+
+	));
 
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
 		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers, isCachingEnabled
@@ -545,11 +554,11 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 			try {
 				notionPropertyParser = new NotionPropertyParser(new ErrorBuffer(), getName(), this);
-				notionPropertyParser.getPropertySource(schemaNodes, new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+				notionPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
 
-			} catch (FrameworkException fex) {
-
-				logger.warn("", fex);
+			} catch (FrameworkException ignore) {
+				// ignore this error because we only need the property parser to extract
+				// some information, the generated code is not used at all
 			}
 		}
 
@@ -562,11 +571,11 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 			try {
 				intPropertyParser = new IntPropertyParser(new ErrorBuffer(), getName(), this);
-				intPropertyParser.getPropertySource(schemaNodes, new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+				intPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
 
 			} catch (FrameworkException fex) {
-
-				logger.warn("", fex);
+				// ignore this error because we only need the property parser to extract
+				// some information, the generated code is not used at all
 			}
 		}
 
@@ -579,11 +588,11 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 			try {
 				intArrayPropertyParser = new IntegerArrayPropertyParser(new ErrorBuffer(), getName(), this);
-				intArrayPropertyParser.getPropertySource(schemaNodes, new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+				intArrayPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
 
 			} catch (FrameworkException fex) {
-
-				logger.warn("", fex);
+				// ignore this error because we only need the property parser to extract
+				// some information, the generated code is not used at all
 			}
 		}
 
@@ -596,11 +605,11 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 			try {
 				longPropertyParser = new LongPropertyParser(new ErrorBuffer(), getName(), this);
-				longPropertyParser.getPropertySource(schemaNodes, new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+				longPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
 
 			} catch (FrameworkException fex) {
-
-				logger.warn("", fex);
+				// ignore this error because we only need the property parser to extract
+				// some information, the generated code is not used at all
 			}
 		}
 
@@ -613,11 +622,11 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 			try {
 				longArrayPropertyParser = new LongArrayPropertyParser(new ErrorBuffer(), getName(), this);
-				longArrayPropertyParser.getPropertySource(schemaNodes, new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+				longArrayPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
 
 			} catch (FrameworkException fex) {
-
-				logger.warn("", fex);
+				// ignore this error because we only need the property parser to extract
+				// some information, the generated code is not used at all
 			}
 		}
 
@@ -630,11 +639,11 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 			try {
 				doublePropertyParser = new DoublePropertyParser(new ErrorBuffer(), getName(), this);
-				doublePropertyParser.getPropertySource(schemaNodes, new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+				doublePropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
 
 			} catch (FrameworkException fex) {
-
-				logger.warn("", fex);
+				// ignore this error because we only need the property parser to extract
+				// some information, the generated code is not used at all
 			}
 		}
 
@@ -647,15 +656,39 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 			try {
 				doubleArrayPropertyParser = new DoubleArrayPropertyParser(new ErrorBuffer(), getName(), this);
-				doubleArrayPropertyParser.getPropertySource(schemaNodes, new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+				doubleArrayPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
 
 			} catch (FrameworkException fex) {
-
-				logger.warn("", fex);
+				// ignore this error because we only need the property parser to extract
+				// some information, the generated code is not used at all
 			}
 		}
 
 		return doubleArrayPropertyParser;
+	}
+
+	@Override
+	public boolean reloadSchemaOnCreate() {
+		return true;
+	}
+
+	@Override
+	public boolean reloadSchemaOnModify(final ModificationQueue modificationQueue) {
+
+		final Set<PropertyKey> modifiedProperties = modificationQueue.getModifiedProperties();
+		for (final PropertyKey triggerKey : schemaRebuildTriggerKeys) {
+
+			if (modifiedProperties.contains(triggerKey)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean reloadSchemaOnDelete() {
+		return true;
 	}
 
 	// ----- public static methods -----

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -32,6 +33,17 @@ public class PropertyInfoFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_PROPERTY_INFO    = "Usage: ${property_info(type, name)}. Example ${property_info('User', 'name')}";
 	public static final String ERROR_MESSAGE_PROPERTY_INFO_JS = "Usage: ${Structr.propertyInfo(type, name)}. Example ${Structr.propertyInfo('User', 'name')}";
+
+
+	@Override
+	public String getName() {
+		return "property_info";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
+	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
@@ -89,10 +101,5 @@ public class PropertyInfoFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Returns the schema information for the given property";
-	}
-
-	@Override
-	public String getName() {
-		return "schema_property()";
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import org.slf4j.LoggerFactory;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.Scripting;
@@ -31,6 +32,16 @@ public class EvaluateScriptFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_EVALUATE_SCRIPT	 = "Usage: ${evaluate_script(entity, script)}";
 	public static final String ERROR_MESSAGE_EVALUATE_SCRIPT_JS	 = "Usage: ${Structr.evaluate_script(entity, script)}";
+
+	@Override
+	public String getName() {
+		return "evaluate_script";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
+	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
@@ -58,10 +69,4 @@ public class EvaluateScriptFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Evaluates script given as string in the context of given parameters.";
 	}
-
-	@Override
-	public String getName() {
-		return "evaluate_script()";
-	}
-
 }

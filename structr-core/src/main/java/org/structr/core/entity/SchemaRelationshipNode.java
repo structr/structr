@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -66,9 +66,12 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.CodeSourceViewSet;
 import org.structr.schema.ReloadSchema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
+import org.structr.schema.SourceFile;
+import org.structr.schema.SourceLine;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonSchema.Cascade;
@@ -287,13 +290,12 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		return null;
 	}
 
-	public String getPropertySource(final String propertyName, final boolean outgoing) {
-		return getPropertySource(propertyName, outgoing, false);
+	public void getPropertySource(final SourceFile src, final String propertyName, final boolean outgoing) {
+		getPropertySource(src, propertyName, outgoing, false);
 	}
 
-	public String getPropertySource(final String propertyName, final boolean outgoing, final boolean newStatementOnly) {
+	public void getPropertySource(final SourceFile src, final String propertyName, final boolean outgoing, final boolean newStatementOnly) {
 
-		final StringBuilder buf           = new StringBuilder();
 		final Boolean partOfBuiltInSchema = getProperty(isPartOfBuiltInSchema);
 		final String _sourceMultiplicity  = getProperty(sourceMultiplicity);
 		final String _targetMultiplicity  = getProperty(targetMultiplicity);
@@ -302,49 +304,76 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		final String _sourceType          = getSchemaNodeSourceType();
 		final String _targetType          = getSchemaNodeTargetType();
 		final String _className           = getClassName();
+		final SourceLine line             = src.line(this);
 
 		if (outgoing) {
+
 
 			if ("1".equals(_targetMultiplicity)) {
 
 				if (!newStatementOnly) {
 
-					buf.append("\tpublic static final Property<").append(_targetType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
-					buf.append(" = ");
+					line.append("public static final Property<");
+					line.append("org.structr.dynamic.");
+					line.append(_targetType);
+					line.append("> ");
+					line.append(SchemaHelper.cleanPropertyName(propertyName));
+					line.append("Property");
+					line.append(" = ");
+					
 				}
-				buf.append("new EndNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
-				buf.append(getNotion(_sourceType, _targetNotion));
+				
+				line.append("new EndNode<>(\"");
+				line.append(propertyName);
+				line.append("\", ");
+				line.append(_className);
+				line.append(".class");
+				line.append(getNotion(_sourceType, _targetNotion));
 
 				if (newStatementOnly) {
 
-					buf.append(")");
+					line.append(")");
 
 				} else {
 
-					buf.append(").dynamic()");
-					buf.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
-					buf.append(";\n");
+					line.append(").dynamic()");
+					line.append(".setSourceUuid(\"");
+					line.append(getUuid());
+					line.append("\")");
+					line.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
+					line.append(";");
 				}
 
 			} else {
 
 				if (!newStatementOnly) {
 
-					buf.append("\tpublic static final Property<java.lang.Iterable<").append(_targetType).append(">> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
-					buf.append(" = ");
+					line.append("public static final Property<java.lang.Iterable<");
+					line.append("org.structr.dynamic.".concat(_targetType));
+					line.append(">> ");
+					line.append(SchemaHelper.cleanPropertyName(propertyName));
+					line.append("Property");
+					line.append(" = ");
 				}
-				buf.append("new EndNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
-				buf.append(getNotion(_sourceType, _targetNotion));
+
+				line.append("new EndNodes<>(\"");
+				line.append(propertyName);
+				line.append("\", ");
+				line.append(_className);
+				line.append(".class");
+				line.append(getNotion(_sourceType, _targetNotion));
 
 				if (newStatementOnly) {
 
-					buf.append(")");
+					line.append(")");
 
 				} else {
 
-					buf.append(").dynamic()");
-					buf.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
-					buf.append(";\n");
+					line.append(").dynamic()");
+					line.append(".setSourceUuid(\"");
+					line.append(getUuid()).append("\")");
+					line.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
+					line.append(";");
 				}
 			}
 
@@ -354,47 +383,67 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 				if (!newStatementOnly) {
 
-					buf.append("\tpublic static final Property<").append(_sourceType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
-					buf.append(" = ");
+					line.append("public static final Property<");
+					line.append("org.structr.dynamic.".concat(_sourceType)).append("> ");
+					line.append(SchemaHelper.cleanPropertyName(propertyName));
+					line.append("Property");
+					line.append(" = ");
 				}
-				buf.append("new StartNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
-				buf.append(getNotion(_targetType, _sourceNotion));
+
+				line.append("new StartNode<>(\"");
+				line.append(propertyName);
+				line.append("\", ");
+				line.append(_className);
+				line.append(".class");
+				line.append(getNotion(_targetType, _sourceNotion));
 
 				if (newStatementOnly) {
 
-					buf.append(")");
+					line.append(")");
 
 				} else {
 
-					buf.append(").dynamic()");
-					buf.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
-					buf.append(";\n");
+					line.append(").dynamic()");
+					line.append(".setSourceUuid(\"");
+					line.append(getUuid());
+					line.append("\")");
+					line.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
+					line.append(";");
 				}
 
 			} else {
 
 				if (!newStatementOnly) {
 
-					buf.append("\tpublic static final Property<java.lang.Iterable<").append(_sourceType).append(">> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
-					buf.append(" = ");
+					line.append("\tpublic static final Property<java.lang.Iterable<");
+					line.append("org.structr.dynamic.".concat(_sourceType));
+					line.append(">> ");
+					line.append(SchemaHelper.cleanPropertyName(propertyName));
+					line.append("Property");
+					line.append(" = ");
 				}
-				buf.append("new StartNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
-				buf.append(getNotion(_targetType, _sourceNotion));
+
+				line.append("new StartNodes<>(\"");
+				line.append(propertyName);
+				line.append("\", ");
+				line.append(_className);
+				line.append(".class");
+				line.append(getNotion(_targetType, _sourceNotion));
 
 				if (newStatementOnly) {
 
-					buf.append(")");
+					line.append(")");
 
 				} else {
 
-					buf.append(").dynamic()");
-					buf.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
-					buf.append(";\n");
+					line.append(").dynamic()");
+					line.append(".setSourceUuid(\"");
+					line.append(getUuid()).append("\")");
+					line.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
+					line.append(";");
 				}
 			}
 		}
-
-		return buf.toString();
 	}
 
 	public String getMultiplicity(final boolean outgoing) {
@@ -505,27 +554,26 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		return propertyName;
 	}
 
-	public String getSource(final Map<String, SchemaNode> schemaNodes, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public void getSource(final SourceFile src, final Map<String, SchemaNode> schemaNodes, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		final Map<String, List<ActionEntry>> actions       = new LinkedHashMap<>();
-		final Map<String, Set<String>> viewProperties      = new LinkedHashMap<>();
-		final StringBuilder src                            = new StringBuilder();
-		final Class baseType                               = AbstractRelationship.class;
-		final String _className                            = getClassName();
-		final String _sourceNodeType                       = getSchemaNodeSourceType();
-		final String _targetNodeType                       = getSchemaNodeTargetType();
-		final List<String> propertyValidators              = new LinkedList<>();
-		final Set<String> compoundIndexKeys                = new LinkedHashSet<>();
-		final Set<String> propertyNames                    = new LinkedHashSet<>();
-		final Set<Validator> validators                    = new LinkedHashSet<>();
-		final Set<String> enums                            = new LinkedHashSet<>();
-		final Set<String> interfaces                       = new LinkedHashSet<>();
+		final Map<String, List<ActionEntry>> actions        = new LinkedHashMap<>();
+		final Map<String, CodeSourceViewSet> viewProperties = new LinkedHashMap<>();
+		final Class baseType                                = AbstractRelationship.class;
+		final String _className                             = getClassName();
+		final String _sourceNodeType                        = getSchemaNodeSourceType();
+		final String _targetNodeType                        = getSchemaNodeTargetType();
+		final List<String> propertyValidators               = new LinkedList<>();
+		final Set<String> compoundIndexKeys                 = new LinkedHashSet<>();
+		final Set<String> propertyNames                     = new LinkedHashSet<>();
+		final Set<Validator> validators                     = new LinkedHashSet<>();
+		final Set<String> enums                             = new LinkedHashSet<>();
+		final Set<String> interfaces                        = new LinkedHashSet<>();
 
-		src.append("package org.structr.dynamic;\n\n");
+		src.line(this, "package org.structr.dynamic;");
 
-		SchemaHelper.formatImportStatements(this, src, baseType, Collections.emptyList());
+		SchemaHelper.formatImportStatements(src, this, baseType);
 
-		src.append("public class ").append(_className).append(" extends ").append(getBaseType());
+		final SourceLine classDefinition = src.begin(this, "public class ").append(_className).append(" extends ").append(getBaseType());
 
 		if ("OWNS".equals(getProperty(relationshipType))) {
 			interfaces.add(Ownership.class.getName());
@@ -538,88 +586,79 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		// append interfaces if present
 		if (!interfaces.isEmpty()) {
 
-			src.append(" implements ");
-
-			for (final Iterator<String> it = interfaces.iterator(); it.hasNext();) {
-
-				src.append(it.next());
-
-				if (it.hasNext()) {
-					src.append(", ");
-				}
-			}
+			classDefinition.append(" implements ");
+			classDefinition.append(StringUtils.join(interfaces, ", "));
 		}
 
-		src.append(" {\n\n");
+		classDefinition.append(" {");
 
 		if (!Direction.None.equals(getProperty(permissionPropagation))) {
-			src.append("\tstatic {\n\t\tSchemaRelationshipNode.registerPropagatingRelationshipType(").append(_className).append(".class);\n\t}\n\n");
+			
+			src.begin(this, "static {");
+			src.line(this, "SchemaRelationshipNode.registerPropagatingRelationshipType(").append(_className).append(".class);");
+			src.end();
 		}
 
-		src.append(SchemaHelper.extractProperties(schemaNodes, this, propertyNames, validators, compoundIndexKeys, enums, viewProperties, propertyValidators, errorBuffer));
-
+		SchemaHelper.extractProperties(src, schemaNodes, this, propertyNames, validators, compoundIndexKeys, enums, viewProperties, propertyValidators, errorBuffer);
 		SchemaHelper.extractViews(schemaNodes, this, viewProperties, Collections.EMPTY_SET, errorBuffer);
 		SchemaHelper.extractMethods(schemaNodes, this, actions);
 
 		// source and target id properties
-		src.append("\tpublic static final Property<java.lang.String> sourceIdProperty = new SourceId(\"sourceId\").partOfBuiltInSchema();\n");
-		src.append("\tpublic static final Property<java.lang.String> targetIdProperty = new TargetId(\"targetId\").partOfBuiltInSchema();\n");
-
-		// add sourceId and targetId to view properties
-		//SchemaHelper.addPropertyToView(PropertyView.Public, "sourceId", viewProperties);
-		//SchemaHelper.addPropertyToView(PropertyView.Public, "targetId", viewProperties);
+		src.line(this, "public static final Property<java.lang.String> sourceIdProperty = new SourceId(\"sourceId\").partOfBuiltInSchema();");
+		src.line(this, "public static final Property<java.lang.String> targetIdProperty = new TargetId(\"targetId\").partOfBuiltInSchema();");
 
 		SchemaHelper.addPropertyToView(PropertyView.Ui, "sourceId", viewProperties);
 		SchemaHelper.addPropertyToView(PropertyView.Ui, "targetId", viewProperties);
 
 		// output possible enum definitions
 		for (final String enumDefition : enums) {
-			src.append(enumDefition);
+			src.line(this, enumDefition);
 		}
 
-		for (Map.Entry<String, Set<String>> entry :viewProperties.entrySet()) {
+		for (Map.Entry<String, CodeSourceViewSet> entry : viewProperties.entrySet()) {
 
-			final String viewName  = entry.getKey();
-			final Set<String> view = entry.getValue();
+			final CodeSourceViewSet view = entry.getValue();
+			final String viewName        = entry.getKey();
 
 			if (!view.isEmpty()) {
 				dynamicViews.add(viewName);
-				SchemaHelper.formatView(src, _className, viewName, viewName, view);
+				SchemaHelper.formatView(src, view.getSource(), _className, viewName, viewName, view);
 			}
 		}
 
 		// abstract method implementations
-		src.append("\n\t@Override\n");
-		src.append("\tpublic Class<").append(_sourceNodeType).append("> getSourceType() {\n");
-		src.append("\t\treturn ").append(_sourceNodeType).append(".class;\n");
-		src.append("\t}\n\n");
-		src.append("\t@Override\n");
-		src.append("\tpublic Class<").append(_targetNodeType).append("> getTargetType() {\n");
-		src.append("\t\treturn ").append(_targetNodeType).append(".class;\n");
-		src.append("\t}\n\n");
-		src.append("\t@Override\n");
-		src.append("\tpublic Property<java.lang.String> getSourceIdProperty() {\n");
-		src.append("\t\treturn sourceId;\n");
-		src.append("\t}\n\n");
-		src.append("\t@Override\n");
-		src.append("\tpublic Property<java.lang.String> getTargetIdProperty() {\n");
-		src.append("\t\treturn targetId;\n");
-		src.append("\t}\n\n");
-		src.append("\t@Override\n");
-		src.append("\tpublic java.lang.String name() {\n");
-		src.append("\t\treturn \"").append(getRelationshipType()).append("\";\n");
-		src.append("\t}\n\n");
+		src.line(this, "@Override");
+		src.begin(this, "public Class<").append(_sourceNodeType).append("> getSourceType() {");
+		src.line(this, "return ").append(_sourceNodeType).append(".class;");
+		src.end();
+		
+		src.line(this, "@Override");
+		src.begin(this, "public Class<").append(_targetNodeType).append("> getTargetType() {");
+		src.line(this, "return ").append(_targetNodeType).append(".class;");
+		src.end();
 
-		SchemaHelper.formatValidators(src, validators, compoundIndexKeys, false, propertyValidators);
-		SchemaHelper.formatMethods(this, src, actions, Collections.emptySet());
+		src.line(this, "@Override");
+		src.begin(this, "public Property<java.lang.String> getSourceIdProperty() {");
+		src.line(this, "return sourceId;");
+		src.end();
+
+		src.line(this, "@Override");
+		src.begin(this, "public Property<java.lang.String> getTargetIdProperty() {");
+		src.line(this, "return targetId;");
+		src.end();
+
+		src.line(this, "@Override");
+		src.begin(this, "public java.lang.String name() {");
+		src.line(this, "return \"").append(getRelationshipType()).append("\";");
+		src.end();
+
+		SchemaHelper.formatValidators(src, this, validators, compoundIndexKeys, false, propertyValidators);
+		SchemaHelper.formatMethods(src, this, actions, Collections.emptySet());
 
 		formatRelationshipFlags(src);
-
 		formatPermissionPropagation(src);
 
-		src.append("}\n");
-
-		return src.toString();
+		src.end();
 	}
 
 	// ----- public methods -----
@@ -897,119 +936,134 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		return cascade;
 	}
 
+	@Override
+	public boolean reloadSchemaOnCreate() {
+		return true;
+	}
+
+	@Override
+	public boolean reloadSchemaOnModify(final ModificationQueue modificationQueue) {
+		return true;
+	}
+
+	@Override
+	public boolean reloadSchemaOnDelete() {
+		return true;
+	}
+
 	// ----- private methods -----
-	private void formatRelationshipFlags(final StringBuilder src) {
+	private void formatRelationshipFlags(final SourceFile src) {
 
 		Long cascadingDelete = getProperty(cascadingDeleteFlag);
 		if (cascadingDelete != null) {
 
-			src.append("\n\t@Override\n");
-			src.append("\tpublic int getCascadingDeleteFlag() {\n");
+			src.line(this, "@Override");
+			src.begin(this, "public int getCascadingDeleteFlag() {");
 
 			switch (cascadingDelete.intValue()) {
 
 				case Relation.ALWAYS :
-					src.append("\t\treturn Relation.ALWAYS;\n");
+					src.line(this, "return Relation.ALWAYS;");
 					break;
 
 				case Relation.CONSTRAINT_BASED :
-					src.append("\t\treturn Relation.CONSTRAINT_BASED;\n");
+					src.line(this, "return Relation.CONSTRAINT_BASED;");
 					break;
 
 				case Relation.SOURCE_TO_TARGET :
-					src.append("\t\treturn Relation.SOURCE_TO_TARGET;\n");
+					src.line(this, "return Relation.SOURCE_TO_TARGET;");
 					break;
 
 				case Relation.TARGET_TO_SOURCE :
-					src.append("\t\treturn Relation.TARGET_TO_SOURCE;\n");
+					src.line(this, "return Relation.TARGET_TO_SOURCE;");
 					break;
 
 				case Relation.NONE :
 
 				default :
-					src.append("\t\treturn Relation.NONE;\n");
+					src.line(this, "return Relation.NONE;");
 
 			}
 
-			src.append("\t}\n\n");
+			src.end();
 		}
 
 		Long autocreate = getProperty(autocreationFlag);
 		if (autocreate != null) {
 
-			src.append("\n\t@Override\n");
-			src.append("\tpublic int getAutocreationFlag() {\n");
+			src.line(this, "@Override");
+			src.begin(this, "public int getAutocreationFlag() {");
 
 			switch (autocreate.intValue()) {
 
 				case Relation.ALWAYS :
-					src.append("\t\treturn Relation.ALWAYS;\n");
+					src.line(this, "return Relation.ALWAYS;");
 					break;
 
 				case Relation.SOURCE_TO_TARGET :
-					src.append("\t\treturn Relation.SOURCE_TO_TARGET;\n");
+					src.line(this, "return Relation.SOURCE_TO_TARGET;");
 					break;
 
 				case Relation.TARGET_TO_SOURCE :
-					src.append("\t\treturn Relation.TARGET_TO_SOURCE;\n");
+					src.line(this, "return Relation.TARGET_TO_SOURCE;");
 					break;
 
 				default :
-					src.append("\t\treturn Relation.NONE;\n");
+					src.line(this, "return Relation.NONE;");
 
 			}
 
-			src.append("\t}\n\n");
+			src.end();
 		}
 	}
 
-	private void formatPermissionPropagation(final StringBuilder buf) {
+	private void formatPermissionPropagation(final SourceFile buf) {
 
 		if (!Direction.None.equals(getProperty(permissionPropagation))) {
 
-			buf.append("\n\t@Override\n");
-			buf.append("\tpublic SchemaRelationshipNode.Direction getPropagationDirection() {\n");
-			buf.append("\t\treturn SchemaRelationshipNode.Direction.").append(getProperty(permissionPropagation)).append(";\n");
-			buf.append("\t}\n\n");
+			buf.line(this, "@Override");
+			buf.begin(this, "public SchemaRelationshipNode.Direction getPropagationDirection() {");
+			buf.line(this, "return SchemaRelationshipNode.Direction.").append(getProperty(permissionPropagation)).append(";");
+			buf.end();
 
 
-			buf.append("\n\t@Override\n");
-			buf.append("\tpublic SchemaRelationshipNode.Propagation getReadPropagation() {\n");
-			buf.append("\t\treturn SchemaRelationshipNode.Propagation.").append(getProperty(readPropagation)).append(";\n");
-			buf.append("\t}\n\n");
+			buf.line(this, "@Override");
+			buf.begin(this, "public SchemaRelationshipNode.Propagation getReadPropagation() {");
+			buf.line(this, "return SchemaRelationshipNode.Propagation.").append(getProperty(readPropagation)).append(";");
+			buf.end();
 
 
-			buf.append("\n\t@Override\n");
-			buf.append("\tpublic SchemaRelationshipNode.Propagation getWritePropagation() {\n");
-			buf.append("\t\treturn SchemaRelationshipNode.Propagation.").append(getProperty(writePropagation)).append(";\n");
-			buf.append("\t}\n\n");
+			buf.line(this, "@Override");
+			buf.begin(this, "public SchemaRelationshipNode.Propagation getWritePropagation() {");
+			buf.line(this, "return SchemaRelationshipNode.Propagation.").append(getProperty(writePropagation)).append(";");
+			buf.end();
 
 
-			buf.append("\n\t@Override\n");
-			buf.append("\tpublic SchemaRelationshipNode.Propagation getDeletePropagation() {\n");
-			buf.append("\t\treturn SchemaRelationshipNode.Propagation.").append(getProperty(deletePropagation)).append(";\n");
-			buf.append("\t}\n\n");
+			buf.line(this, "@Override");
+			buf.begin(this, "public SchemaRelationshipNode.Propagation getDeletePropagation() {");
+			buf.line(this, "return SchemaRelationshipNode.Propagation.").append(getProperty(deletePropagation)).append(";");
+			buf.end();
 
 
-			buf.append("\n\t@Override\n");
-			buf.append("\tpublic SchemaRelationshipNode.Propagation getAccessControlPropagation() {\n");
-			buf.append("\t\treturn SchemaRelationshipNode.Propagation.").append(getProperty(accessControlPropagation)).append(";\n");
-			buf.append("\t}\n\n");
+			buf.line(this, "@Override");
+			buf.begin(this, "public SchemaRelationshipNode.Propagation getAccessControlPropagation() {");
+			buf.line(this, "return SchemaRelationshipNode.Propagation.").append(getProperty(accessControlPropagation)).append(";");
+			buf.end();
 
 
-			buf.append("\n\t@Override\n");
-			buf.append("\tpublic String getDeltaProperties() {\n");
+			buf.line(this, "@Override");
+			buf.begin(this, "public String getDeltaProperties() {");
 			final String _propertyMask = getProperty(propertyMask);
 			if (_propertyMask != null) {
 
-				buf.append("\t\treturn \"").append(_propertyMask).append("\";\n");
+				buf.line(this, "return \"").append(_propertyMask).append("\";");
 
 			} else {
 
-				buf.append("\t\treturn null;\n");
+				buf.line(this, "return null;");
 			}
 
-			buf.append("\t}\n\n");
+			buf.end();
 		}
 	}
 

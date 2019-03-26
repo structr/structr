@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.Permissions;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
@@ -30,6 +31,16 @@ public class CopyPermissionsFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE    = "Usage: copy_permissions(this, this.child)";
 	public static final String ERROR_MESSAGE_JS = "Usage: Structr.copyPermissions(Structr.this, other);";
+
+	@Override
+	public String getName() {
+		return "copy_permissions";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
+	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
@@ -79,10 +90,5 @@ public class CopyPermissionsFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Copies the security configuration of an entity to another entity.";
-	}
-
-	@Override
-	public String getName() {
-		return "copy_permissions()";
 	}
 }

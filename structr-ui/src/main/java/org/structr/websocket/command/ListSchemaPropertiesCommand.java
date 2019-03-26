@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.websocket.command;
 
 import java.util.*;
 import org.structr.common.PropertyView;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
@@ -28,6 +29,7 @@ import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
@@ -35,12 +37,8 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * Websocket command to return the children of the given node
- *
- *
+ * Websocket command to return the properties of a given schema entity.
  */
 public class ListSchemaPropertiesCommand extends AbstractCommand {
 
@@ -91,6 +89,7 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 						for (final PropertyKey key : allProperties) {
 
 							final String declaringClass   = key.getDeclaringClass() != null ? key.getDeclaringClass().getSimpleName() : "GraphObject";
+							final String declaringUuid    = key.getSourceUuid();
 							final String propertyName     = key.jsonName();
 							final GraphObjectMap property = new GraphObjectMap();
 							final Class valueType         = key.valueType();
@@ -113,8 +112,27 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 							property.put(SchemaProperty.propertyType, valueTypeName);
 							property.put(SchemaProperty.notNull, key.isNotNull());
 							property.put(SchemaProperty.unique, key.isUnique());
+							property.put(SchemaProperty.isPartOfBuiltInSchema, key.isPartOfBuiltInSchema());
 							property.put(SchemaProperty.isDynamic, key.isDynamic());
 							property.put(SchemaProperty.declaringClass, declaringClass);
+							property.put(SchemaProperty.declaringUuid, declaringUuid);
+
+							if (declaringUuid != null) {
+
+								try {
+
+									final GraphObject declaringEntity = StructrApp.getInstance().get(AbstractNode.class, declaringUuid);
+									if (declaringEntity != null) {
+
+										if (declaringEntity instanceof SchemaProperty) {
+
+											final SchemaProperty schemaProperty = (SchemaProperty)declaringEntity;
+											property.put(new GenericProperty("declaringPropertyType"), schemaProperty.getPropertyType().name());
+										}
+									}
+
+								} catch (FrameworkException ignore) {}
+							}
 
 							// store in result
 							result.add(property);
@@ -148,8 +166,6 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 		getWebSocket().send(webSocketData, true);
 
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,6 +25,7 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.ContentContainer;
 import org.structr.web.entity.ContentItem;
@@ -96,20 +97,37 @@ public class AppendContentItemCommand extends AbstractCommand {
 
 		if (parentNode instanceof ContentContainer) {
 
-			ContentContainer container = (ContentContainer) parentNode;
+			final ContentContainer container = (ContentContainer) parentNode;
+			final NodeInterface node         = (NodeInterface) getNode(id);
 
-			ContentItem item = (ContentItem) getNode(id);
-
-			if (item != null) {
+			if (node != null) {
 
 				try {
-					final List<ContentItem> items = Iterables.toList(container.getItems());
 
-					items.add(item);
+					if (node instanceof ContentItem) {
 
-					container.setProperty(StructrApp.key(ContentContainer.class, "items"), items);
+						final ContentItem item = (ContentItem) node;
 
-					TransactionCommand.registerNodeCallback(item, callback);
+						final List<ContentItem> items = Iterables.toList(container.getItems());
+
+						items.add(item);
+
+						container.setProperty(StructrApp.key(ContentContainer.class, "items"), items);
+
+					} else if (node instanceof ContentContainer) {
+
+						final ContentContainer child = (ContentContainer) node;
+
+						child.setProperty(StructrApp.key(ContentContainer.class, "parent"), container);
+
+					} else {
+
+						// send exception
+						getWebSocket().send(MessageBuilder.status().code(422).message("Given object is not of type ContentItem or ContentContainer").build(), true);
+						return;
+					}
+
+					TransactionCommand.registerNodeCallback(node, callback);
 
 				} catch (FrameworkException ex) {
 					logger.error("", ex);
@@ -117,13 +135,11 @@ public class AppendContentItemCommand extends AbstractCommand {
 				}
 			}
 
-
 		} else {
 
 			// send exception
 			getWebSocket().send(MessageBuilder.status().code(422).message("Parent node is not instance of ContentContainer").build(), true);
 		}
-
 	}
 
 	@Override

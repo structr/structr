@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,7 @@ import java.util.Set;
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.module.StructrModule;
+import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
 /**
@@ -33,36 +34,39 @@ public class ODFModule implements StructrModule{
 	public void onLoad(final LicenseManager licenseManager) {
 	}
 
-        @Override
-        public String getName() {
-                return "odf";
-        }
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
+	}
 
-        @Override
-        public Set<String> getDependencies() {
-                return null;
-        }
+	@Override
+	public String getName() {
+		return "odf";
+	}
 
-        @Override
-        public Set<String> getFeatures() {
-                return null;
-        }
+	@Override
+	public Set<String> getDependencies() {
+		return null;
+	}
 
-        @Override
-        public void insertImportStatements(AbstractSchemaNode schemaNode, StringBuilder buf) {
-        }
+	@Override
+	public Set<String> getFeatures() {
+		return null;
+	}
 
-        @Override
-        public void insertSourceCode(AbstractSchemaNode schemaNode, StringBuilder buf) {
-        }
+	@Override
+	public void insertImportStatements(AbstractSchemaNode schemaNode, SourceFile buf) {
+	}
 
-        @Override
-        public void insertSaveAction(AbstractSchemaNode schemaNode, StringBuilder buf, Actions.Type type) {
-        }
+	@Override
+	public void insertSourceCode(AbstractSchemaNode schemaNode, SourceFile buf) {
+	}
 
-        @Override
-        public Set<String> getInterfacesForType(AbstractSchemaNode schemaNode) {
-                return null;
-        }
+	@Override
+	public void insertSaveAction(AbstractSchemaNode schemaNode, SourceFile buf, Actions.Type type) {
+	}
 
+	@Override
+	public Set<String> getInterfacesForType(AbstractSchemaNode schemaNode) {
+		return null;
+	}
 }

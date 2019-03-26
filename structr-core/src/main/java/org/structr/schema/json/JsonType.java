@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -78,6 +78,7 @@ public interface JsonType extends Comparable<JsonType> {
 	JsonEnumProperty addEnumProperty(final String name, final String...views);
 	JsonDynamicProperty addCustomProperty(final String name, final String fqcn, final String... views);
 	JsonStringArrayProperty addStringArrayProperty(final String name, final String... views);
+	JsonDateArrayProperty addDateArrayProperty(final String name, final String... views);
 	JsonIntegerArrayProperty addIntegerArrayProperty(final String name, final String... views);
 	JsonLongArrayProperty addLongArrayProperty(final String name, final String... views);
 	JsonNumberArrayProperty addDoubleArrayProperty(final String name, final String... views);

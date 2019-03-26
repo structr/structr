@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -55,7 +55,7 @@ public interface RelationshipInterface extends GraphObject, NonIndexed {
 	public String getTargetNodeId();
 	public void setTargetNodeId(final String targetIdNode) throws FrameworkException;
 
-	public int cascadeDelete();
+	public int getCascadingDeleteFlag();
 
 	public boolean isInternal();
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import org.structr.api.config.Settings;
+import org.structr.api.service.LicenseManager;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.common.AccessMode;
 import org.structr.common.error.ArgumentCountException;
@@ -42,7 +43,12 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "localize()";
+		return "localize";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,7 @@ package org.structr.core.graph;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Identity;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -55,11 +56,11 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 
 	@Override
 	public T instantiate(final Relationship relationship) {
-		return instantiate(relationship, -1);
+		return instantiate(relationship, null);
 	}
 
 	@Override
-	public T instantiate(final Relationship relationship, final long pathSegmentId) {
+	public T instantiate(final Relationship relationship, final Identity pathSegmentId) {
 
 		if (relationship == null || TransactionCommand.isDeleted(relationship)) {
 			return null;
@@ -70,11 +71,11 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 			return null;
 		}
 
-		return (T) instantiateWithType(relationship, relationshipType, -1, false);
+		return (T) instantiateWithType(relationship, relationshipType, pathSegmentId, false);
 	}
 
 	@Override
-	public T instantiateWithType(final Relationship relationship, final Class<T> relClass, final long pathSegmentId, final boolean isCreation) {
+	public T instantiateWithType(final Relationship relationship, final Class<T> relClass, final Identity pathSegmentId, final boolean isCreation) {
 
 		// cannot instantiate relationship without type
 		if (relClass == null) {

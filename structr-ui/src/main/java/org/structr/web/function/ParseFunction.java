@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,13 +21,11 @@ package org.structr.web.function;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.structr.api.service.LicenseManager;
 import org.structr.core.GraphObjectMap;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.microformat.MicroformatParser;
 
-/**
- *
- */
 public class ParseFunction extends UiFunction {
 
 	public static final String ERROR_MESSAGE_PARSE    = "Usage: ${parse(URL, selector)}. Example: ${parse('http://structr.org', 'li.data')}";
@@ -35,7 +33,12 @@ public class ParseFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "parse()";
+		return "parse";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
 	}
 
 	@Override
@@ -63,7 +66,6 @@ public class ParseFunction extends UiFunction {
 			} catch (Throwable t) {
 
 				logException(caller, t, sources);
-
 			}
 
 			return "";
@@ -71,7 +73,6 @@ public class ParseFunction extends UiFunction {
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
 		}
 
 		return usage(ctx.isJavaScriptContext());
@@ -86,5 +87,4 @@ public class ParseFunction extends UiFunction {
 	public String shortDescription() {
 		return "Parses the given string and returns an object";
 	}
-
 }

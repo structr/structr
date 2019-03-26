@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -50,21 +50,41 @@ public interface AccessControllable {
 
 	/**
 	 * Grant given permission to given principal.
-	 * 
+	 *
 	 * @param permission
 	 * @param principal
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	public void grant(final Permission permission, final Principal principal) throws FrameworkException;
 
 	/**
-	 * Revoke given permission from given principal.
-	 * 
+	 * Grant given permission to given principal.
+	 *
 	 * @param permission
 	 * @param principal
-	 * @throws FrameworkException 
+	 * @param ctx
+	 * @throws FrameworkException
+	 */
+	public void grant(final Permission permission, final Principal principal, final SecurityContext ctx) throws FrameworkException;
+
+	/**
+	 * Revoke given permission from given principal.
+	 *
+	 * @param permission
+	 * @param principal
+	 * @throws FrameworkException
 	 */
 	public void revoke(final Permission permission, final Principal principal) throws FrameworkException;
+
+	/**
+	 * Revoke given permission from given principal.
+	 *
+	 * @param permission
+	 * @param principal
+	 * @param ctx
+	 * @throws FrameworkException
+	 */
+	public void revoke(final Permission permission, final Principal principal, final SecurityContext ctx) throws FrameworkException;
 
 
 	/**

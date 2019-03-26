@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -69,7 +69,7 @@ public class Settings {
 	public static final Setting<String> LayoutsPath           = new StringSetting(generalGroup,             "Paths",       "layouts.path",               "layouts" + File.separator, "IMPORTANT: Path is relative to base.path");
 	public static final Setting<String> WebDataPath           = new StringSetting(generalGroup,             "Paths",       "data.webapp.path",           "webapp-data" + File.separator, "IMPORTANT: Path is relative to base.path");
 	public static final Setting<Boolean> LogSchemaOutput      = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log",           false);
-	public static final Setting<Boolean> LogSchemaErrors      = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log.errors",    false);
+	public static final Setting<Boolean> LogSchemaErrors      = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log.errors",    true);
 	public static final Setting<Boolean> RequestLogging       = new BooleanSetting(generalGroup,            "Logging",     "log.requests",               false);
 	public static final Setting<Boolean> DebugLogging         = new BooleanSetting(generalGroup,            "Logging",     "log.debug",                  false, "Controls the behaviour of the debug() function. If disabled, the debug() function behaves like a NOP. If enabled, it behaves exactly like the log() function.");
 	public static final Setting<String> LogPrefix             = new StringSetting(generalGroup,             "Logging",     "log.prefix",                 "structr");
@@ -103,7 +103,7 @@ public class Settings {
 	public static final Setting<Boolean> JsonIndentation      = new BooleanSetting(serverGroup, "HTTP Settings", "json.indentation",                true);
 	public static final Setting<Boolean> HtmlIndentation      = new BooleanSetting(serverGroup, "HTTP Settings", "html.indentation",                true);
 	public static final Setting<Boolean> WsIndentation        = new BooleanSetting(serverGroup, "HTTP Settings", "ws.indentation",                  true);
-	public static final Setting<Integer> SessionTimeout       = new IntegerSetting(serverGroup, "HTTP Settings", "application.session.timeout",     1800);
+	public static final Setting<Integer> SessionTimeout       = new IntegerSetting(serverGroup, "HTTP Settings", "application.session.timeout",     1800, "The session inactivity timeout. Unit is seconds");
 
 	public static final Setting<String> AccessControlMaxAge           = new StringSetting(serverGroup, "CORS Settings", "access.control.max.age",           "3600");
 	public static final Setting<String> AccessControlAllowMethods     = new StringSetting(serverGroup, "CORS Settings", "access.control.allow.methods",     "");
@@ -138,8 +138,8 @@ public class Settings {
 	public static final Setting<Boolean> FilesystemEnabled        = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.enabled",              false);
 	public static final Setting<Boolean> UniquePaths              = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.unique.paths",         true);
 	public static final Setting<String> DefaultChecksums          = new StringSetting(applicationGroup,  "Filesystem",   "application.filesystem.checksums.default",    "", "List of checksums to be calculated on file creation by default.");
-	public static final Setting<Integer> IndexingMaxFileSize      = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.maxsize",     10);
-	public static final Setting<Integer> IndexingLimit            = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.limit",       50000);
+	public static final Setting<Integer> IndexingMaxFileSize      = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.maxsize",     10, "Maximum size (MB) of a file to be indexed");
+	public static final Setting<Integer> IndexingLimit            = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.limit",       50000, "Maximum number of words to be indexed");
 	public static final Setting<Integer> IndexingMinLength        = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.minlength",   3);
 	public static final Setting<Integer> IndexingMaxLength        = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.maxlength",   30);
 	public static final Setting<Boolean> FollowSymlinks           = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.mount.followSymlinks", true);
@@ -296,9 +296,9 @@ public class Settings {
 
 	public static final Setting<Integer> TwoFactorLevel                = new IntegerChoiceSetting(securityGroup, "Two Factor Authentication", "security.twofactorauthentication.level",                1,             Settings.getTwoFactorSettingOptions());
 	public static final Setting<String> TwoFactorIssuer                = new StringSetting(securityGroup,        "Two Factor Authentication", "security.twofactorauthentication.issuer",               "Structr",     "Must be URL-compliant in order to scan the created QR code");
-	public static final Setting<String> TwoFactorAlgorithm             = new ChoiceSetting(securityGroup,        "Two Factor Authentication", "security.twofactorauthentication.algorithm",            "SHA1",        Settings.getStringsAsSet("SHA1", "SHA256", "SHA512"), "<i>Currently, the algorithm parameter is ignored by the Google Authenticator implementations.</i>");
-	public static final Setting<Integer> TwoFactorDigits               = new IntegerChoiceSetting(securityGroup, "Two Factor Authentication", "security.twofactorauthentication.digits",               6,             Settings.getTwoFactorDigitsOptions(), "<i>Currently, the digits parameter is ignored by the Google Authenticator implementations.</i> This means that even if 8 digits are shown, only last 6 digits are used for authentication.");
-	public static final Setting<Integer> TwoFactorPeriod               = new IntegerSetting(securityGroup,       "Two Factor Authentication", "security.twofactorauthentication.period",               30,            "Defines the period that a TOTP code will be valid for, in seconds.<br><i>Currently, the period parameter is ignored by the Google Authenticator implementations.</i>");
+	public static final Setting<String> TwoFactorAlgorithm             = new ChoiceSetting(securityGroup,        "Two Factor Authentication", "security.twofactorauthentication.algorithm",            "SHA1",        Settings.getStringsAsSet("SHA1", "SHA256", "SHA512"), "Respected by the most recent Google Authenticator implementations. <i>Warning: Changing this setting after users are already confirmed will effectively lock them out. Set [User].twoFactorConfirmed to false to show them a new QR code.</i>");
+	public static final Setting<Integer> TwoFactorDigits               = new IntegerChoiceSetting(securityGroup, "Two Factor Authentication", "security.twofactorauthentication.digits",               6,             Settings.getTwoFactorDigitsOptions(), "Respected by the most recent Google Authenticator implementations. <i>Warning: Changing this setting after users are already confirmed may lock them out. Set [User].twoFactorConfirmed to false to show them a new QR code.</i>");
+	public static final Setting<Integer> TwoFactorPeriod               = new IntegerSetting(securityGroup,       "Two Factor Authentication", "security.twofactorauthentication.period",               30,            "Defines the period that a TOTP code will be valid for, in seconds.<br>Respected by the most recent Google Authenticator implementations. <i>Warning: Changing this setting after users are already confirmed will effectively lock them out. Set [User].twoFactorConfirmed to false to show them a new QR code.</i>");
 	public static final Setting<Integer> TwoFactorLoginTimeout         = new IntegerSetting(securityGroup,       "Two Factor Authentication", "security.twofactorauthentication.logintimeout",         30,            "Defines how long the two-factor login time window in seconds is. After entering the username and password the user has this amount of time to enter a two factor token before he has to re-authenticate via password");
 	public static final Setting<String> TwoFactorLoginPage             = new StringSetting(securityGroup,        "Two Factor Authentication", "security.twofactorauthentication.loginpage",            "/twofactor",  "The application page where the user enters the current two factor token");
 	public static final Setting<String> TwoFactorWhitelistedIPs        = new StringSetting(securityGroup,        "Two Factor Authentication", "security.twofactorauthentication.whitelistedIPs",       "",            "A comma-separated (,) list of IPs for which two factor authentication is disabled.");
@@ -381,19 +381,18 @@ public class Settings {
 	public static final Setting<String> LDAPSecret          = new StringSetting(ldapGroup, "General",  "ldap.secret", "");
 	public static final Setting<Boolean> LDAPUseSSL         = new BooleanSetting(ldapGroup, "General", "ldap.useSsl", false);
 	public static final Setting<String> LDAPScope           = new StringSetting(ldapGroup, "General",  "ldap.scope", "SUBTREE");
-	public static final Setting<String> LDAPPropertyMapping = new StringSetting(ldapGroup, "General",  "ldap.propertyMapping", "{ sn: name, email: eMail } ", "Mapping from LDAP properties to Structr properties");
+	public static final Setting<String> LDAPPropertyMapping = new StringSetting(ldapGroup, "General",  "ldap.propertyMapping", "{ sn: name, email: eMail }", "Mapping from LDAP properties to Structr properties");
+	public static final Setting<String> LDAPGroupNames      = new StringSetting(ldapGroup, "General",  "ldap.groupNames", "{ group: member, groupOfNames: member, groupOfUniqueNames: uniqueMember }", "LDAP objectclass tuples for group and member identification.");
 	public static final Setting<Integer> LDAPUpdateInterval = new IntegerSetting(ldapGroup, "General", "ldap.updateInterval", 600, "Update interval for group synchronization in seconds");
 
 	// miscellaneous settings
-	public static final Setting<String> TranslationGoogleApiKey = new StringSetting(miscGroup,  "Translation Module", "translation.google.apikey",         "");
-
 	public static final Setting<String> PaymentPaypalMode      = new StringSetting(miscGroup,  "Payment Options", "paypal.mode",         "");
 	public static final Setting<String> PaymentPaypalUsername  = new StringSetting(miscGroup,  "Payment Options", "paypal.username",     "");
 	public static final Setting<String> PaymentPaypalPassword  = new StringSetting(miscGroup,  "Payment Options", "paypal.password",     "");
 	public static final Setting<String> PaymentPaypalSignature = new StringSetting(miscGroup,  "Payment Options", "paypal.signature",    "");
 	public static final Setting<String> PaymentPaypalRedirect  = new StringSetting(miscGroup,  "Payment Options", "paypal.redirect",     "");
 	public static final Setting<String> PaymentStripeApiKey    = new StringSetting(miscGroup,  "Payment Options", "stripe.apikey",       "");
-
+	public static final Setting<String> SchemaDeploymentFormat = new ChoiceSetting(miscGroup,  "hidden", "Deployment.schema.format", "file", Settings.getStringsAsSet("file", "tree"));
 
 	public static Collection<SettingsGroup> getGroups() {
 		return groups.values();

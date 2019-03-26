@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,14 +19,52 @@
 package org.structr.autocomplete;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.core.GraphObject;
+import org.structr.core.function.Functions;
+import org.structr.schema.action.Function;
+import org.structr.schema.action.Hint;
 
 /**
  *
  *
  */
 public class PlaintextHintProvider extends AbstractHintProvider {
+
+	@Override
+	protected List<Hint> getAllHints(final GraphObject currentNode, final String currentToken, final String previousToken, final String thirdToken) {
+
+		final List<Hint> hints = new LinkedList<>();
+
+		// add functions
+		for (final Function<Object, Object> func : Functions.getFunctions()) {
+			hints.add(func);
+		}
+
+		// sort hints
+		Collections.sort(hints, comparator);
+
+		// add keywords
+		if ("(".equals(currentToken) && StringUtils.isNotBlank(previousToken)) {
+			
+			hints.add(0, createHint("this",     "", "The current object",         "this"));
+			hints.add(0, createHint("response", "", "The current response",       "response"));
+			hints.add(0, createHint("request",  "", "The current request",        "request"));
+			hints.add(0, createHint("page",     "", "The current page",           "page"));
+			hints.add(0, createHint("me",       "", "The current user",           "me"));
+			hints.add(0, createHint("locale",   "", "The current locale",         "locale"));
+			hints.add(0, createHint("current",  "", "The current details object", "current"));
+			
+		}
+
+		return hints;
+	}
 
 	@Override
 	protected String getFunctionName(String sourceName) {
@@ -87,11 +125,6 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 		}
 
 		return tokens;
-	}
-
-	@Override
-	protected boolean isJavascript() {
-		return false;
 	}
 
 	// ----- private methods -----

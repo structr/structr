@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -45,12 +45,14 @@ import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
 
@@ -115,24 +117,41 @@ public class RegistrationResource extends Resource {
 			final String localeString = (String) propertySet.get("locale");
 			final String confKey      = AuthHelper.getConfirmationKey();
 
-			Principal user = StructrApp.getInstance().nodeQuery(User.class).and(eMailKey, emailString).getFirst();
-			if (user != null) {
+			final App app = StructrApp.getInstance(securityContext);
 
-				// For existing users, update confirmation key
-				user.setProperty(confKeyKey, confKey);
+			Principal user = null;
 
-				existingUser = true;
+			try (final Tx tx = app.tx(true, true, true)) {
 
+				user = StructrApp.getInstance().nodeQuery(User.class).and(eMailKey, emailString).getFirst();
+				if (user != null) {
 
-			} else {
+					// For existing users, update confirmation key
+					user.setProperty(confKeyKey, confKey);
 
-				final Authenticator auth = securityContext.getAuthenticator();
-				user = createUser(securityContext, eMailKey, emailString, propertySet, Settings.RestUserAutocreate.getValue(), auth.getUserClass(), confKey);
+					existingUser = true;
+
+				} else {
+
+					final Authenticator auth = securityContext.getAuthenticator();
+					user = createUser(securityContext, eMailKey, emailString, propertySet, Settings.RestUserAutocreate.getValue(), auth.getUserClass(), confKey);
+				}
+
+				tx.success();
 			}
 
 			if (user != null) {
 
-				if (!sendInvitationLink(user, propertySet, confKey, localeString)) {
+				boolean mailSuccess = false;
+
+				try (final Tx tx = app.tx(true, true, true)) {
+
+					mailSuccess = sendInvitationLink(user, propertySet, confKey, localeString);
+
+					tx.success();
+				}
+
+				if (!mailSuccess) {
 
 					// return 400 Bad request
 					return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
@@ -160,14 +179,11 @@ public class RegistrationResource extends Resource {
 
 			}
 
-
 		} else {
 
 			// return 400 Bad request
 			return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
-
 		}
-
 	}
 
 	@Override
@@ -192,12 +208,10 @@ public class RegistrationResource extends Resource {
 		populateReplacementMap(replacementMap, propertySetFromUserPOST);
 
 		final String userEmail = user.getProperty(eMailKey);
-		final String appHost   = Settings.ApplicationHost.getValue();
-		final Integer httpPort = Settings.HttpPort.getValue();
 
 		replacementMap.put(toPlaceholder("eMail"), userEmail);
 		replacementMap.put(toPlaceholder("link"),
-			getTemplateText(TemplateKey.BASE_URL, "http://" + appHost + ":" + httpPort, localeString)
+			getTemplateText(TemplateKey.BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
 			      + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE, localeString)
 			+ "?" + getTemplateText(TemplateKey.CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY, localeString) + "=" + confKey
 			+ "&" + getTemplateText(TemplateKey.TARGET_PAGE_KEY, HtmlServlet.TARGET_PAGE_KEY, localeString) + "=" + getTemplateText(TemplateKey.TARGET_PAGE, "register_thanks", localeString)
@@ -485,4 +499,8 @@ public class RegistrationResource extends Resource {
 
 	}
 
+	@Override
+	public boolean createPostTransaction() {
+		return false;
+	}
 }

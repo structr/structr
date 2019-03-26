@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import org.apache.commons.io.IOUtils;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -34,7 +35,12 @@ public class ReadFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "read()";
+		return "read";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override
@@ -59,7 +65,7 @@ public class ReadFunction extends Function<Object, Object> {
 
 		} catch (IOException ioex) {
 
-			logException(ioex, "{}: IOException in element \"{}\" for parameters: {}", new Object[] { getName(), caller, getParametersAsString(sources) });
+			logException(ioex, "{}: IOException in element \"{}\" for parameters: {}", new Object[] { getReplacement(), caller, getParametersAsString(sources) });
 
 		} catch (ArgumentNullException pe) {
 

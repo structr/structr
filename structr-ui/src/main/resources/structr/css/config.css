@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -183,4 +183,60 @@ button.toggle-option {
 
 button.active {
 	background-color: #ccc !important;
+}
+
+
+#search-container {
+    position: absolute;
+    top: 16px;
+    left: 180px;
+}
+
+#search-box {
+    border-radius: 4px;
+}
+
+li.search-matches.active {
+	background: #81ce25;
+}
+
+li.search-matches {
+	background: #b5e27f;
+}
+
+label.search-matches {
+    color: #81ce25;
+}
+
+label span.search-matches {
+    background: #81ce25;
+    border-radius: 12px;
+    padding-right: 3px;
+    padding-bottom: 1px;
+}
+
+input.search-matches {
+    border: 2px solid #81ce25;
+}
+
+button.search-matches {
+    border: 1px solid #81ce25 !important;
+    color: #81ce25;
+}
+
+select.search-matches {
+    border: 2px solid #81ce25;
+}
+
+select option.search-matches {
+	color: #81ce25;
+}
+
+td.search-matches {
+	color: #81ce25;
+	font-weight: bold;
+}
+
+.no-search-match, li.no-search-match {
+	display: none;
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,6 +34,7 @@ import org.structr.flow.impl.rels.FlowNodeDataSource;
 import org.structr.flow.impl.rels.FlowNameDataSource;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  *
@@ -57,11 +58,12 @@ public class FlowFirst extends FlowDataSource {
 
 			Object dsData = _dataSource.get(context);
 
-			if (dsData != null && dsData instanceof Collection) {
-				Collection c = (Collection)dsData;
+			if (dsData instanceof Iterable) {
+				Iterable c = (Iterable)dsData;
+				Iterator it = c.iterator();
 
-				if (!c.isEmpty()) {
-					Object data = c.iterator().next();
+				if (it.hasNext()) {
+					Object data = it.next();
 					context.setData(getUuid(), data);
 					return data;
 				}

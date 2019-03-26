@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -40,6 +40,11 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 	private long targetNodeId = -1L;
 	private String type       = null;
 
+	protected RelationshipWrapper() {
+		// nop constructor for cache access
+		super();
+	}
+
 	private RelationshipWrapper(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Relationship relationship) {
 
 		super(db, relationship);
@@ -67,29 +72,6 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 
 	@Override
 	public void onRemoveFromCache() {
-
-		/*
-		 * The below code causes nodes to be invalidated when the relationship
-		 * cache is undersized, which is an undesired side effect that
-		 * prevents the cache from working correctly.
-
-		try {
-
-			final NodeWrapper startNode = (NodeWrapper)getStartNode();
-			if (startNode != null) {
-
-				startNode.onRemoveFromCache();
-			}
-
-			final NodeWrapper endNode = (NodeWrapper)getEndNode();
-			if (endNode != null) {
-
-				endNode.onRemoveFromCache();
-			}
-
-		} catch (Throwable t) {}
-		*/
-
 		stale = true;
 	}
 
@@ -132,7 +114,7 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 	@Override
 	public Node getOtherNode(final Node node) {
 
-		if (node.getId() == sourceNodeId) {
+		if (db.unwrap(node.getId()) == sourceNodeId) {
 			return getEndNode();
 		}
 
@@ -167,7 +149,7 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 
 	public Direction getDirectionForNode(final NodeWrapper node) {
 
-		if (node.getId() == sourceNodeId) {
+		if (db.unwrap(node.getId()) == sourceNodeId) {
 			return Direction.OUTGOING;
 		}
 
@@ -181,11 +163,7 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 	}
 
 	// ----- public static methods -----
-	public static FixedSizeCache<Long, RelationshipWrapper> getCache() {
-		return relationshipCache;
-	}
-
-	public static void clearCache() {
+	protected static void clearCache() {
 		relationshipCache.clear();
 	}
 
@@ -232,7 +210,7 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 					buf.append(tenantIdentifier);
 				}
 
-				buf.append(") WHERE ID(n) = {id} RETURN n");
+				buf.append(") WHERE ID(n) = $id RETURN n");
 
 				wrapper = new RelationshipWrapper(db, tx.getRelationship(buf.toString(), map));
 					relationshipCache.put(id, wrapper);

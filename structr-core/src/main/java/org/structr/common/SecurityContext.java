@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -61,7 +61,7 @@ public class SecurityContext {
 	private static final Logger logger                   = LoggerFactory.getLogger(SecurityContext.class.getName());
 	private static final Map<String, Long> resourceFlags = new ConcurrentHashMap<>();
 	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,-]+)");
-	private MergeMode remoteCollectionMergeMode  = MergeMode.Replace;
+	private MergeMode remoteCollectionMergeMode          = MergeMode.Replace;
 	private boolean uuidWasSetManually                   = false;
 	private boolean doTransactionNotifications           = false;
 	private boolean forceMergeOfNestedProperties         = false;
@@ -917,8 +917,6 @@ public class SecurityContext {
 		public SuperUserSecurityContext() {
 		}
 
-		//~--- get methods --------------------------------------------
-
 		@Override
 		public Principal getUser(final boolean tryLogin) {
 
@@ -945,12 +943,10 @@ public class SecurityContext {
 		public AccessMode getAccessMode() {
 
 			return (AccessMode.Backend);
-
 		}
 
 		@Override
 		public boolean isReadable(final NodeInterface node, final boolean includeHidden, final boolean publicOnly) {
-
 			return true;
 		}
 
@@ -963,16 +959,12 @@ public class SecurityContext {
 
 		@Override
 		public boolean isSuperUser() {
-
 			return true;
-
 		}
 
 		@Override
 		public boolean isSuperUserSecurityContext () {
-
 			return true;
-
 		}
 	}
 }

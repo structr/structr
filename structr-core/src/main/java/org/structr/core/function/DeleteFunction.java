@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,7 @@ package org.structr.core.function;
 import java.util.Iterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -30,9 +31,6 @@ import org.structr.core.graph.Tx;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class DeleteFunction extends Function<Object, Object> implements BatchableFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeleteFunction.class);
@@ -44,7 +42,12 @@ public class DeleteFunction extends Function<Object, Object> implements Batchabl
 
 	@Override
 	public String getName() {
-		return "delete()";
+		return "delete";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

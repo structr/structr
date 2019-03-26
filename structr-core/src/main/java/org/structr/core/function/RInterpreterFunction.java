@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,7 @@ package org.structr.core.function;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -34,6 +35,16 @@ public class RInterpreterFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_R    = "Usage: ${r(<R code>)}";
 	public static final String ERROR_MESSAGE_R_JS = "Usage: ${{Structr.r(<R code>)}}";
+
+	@Override
+	public String getName() {
+		return "r";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
+	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
@@ -85,10 +96,5 @@ public class RInterpreterFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "";
-	}
-
-	@Override
-	public String getName() {
-		return "r()";
 	}
 }

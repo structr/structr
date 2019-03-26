@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -66,7 +66,6 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.GenericProperty;
-import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
@@ -593,21 +592,25 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			for (final Map.Entry<Field, View> entry : views.entrySet()) {
 
-				final Field field = entry.getKey();
-				final View view = entry.getValue();
+				final Field field        = entry.getKey();
+				final View view          = entry.getValue();
+				final PropertyKey[] keys = view.properties();
 
-				for (final PropertyKey propertyKey : view.properties()) {
+				// register field in view for entity class and declaring superclass
+				registerPropertySet(field.getDeclaringClass(), view.name(), keys);
+				registerPropertySet(type, view.name(), keys);
 
-					// register field in view for entity class and declaring superclass
-					registerPropertySet(field.getDeclaringClass(), view.name(), propertyKey);
-					registerPropertySet(type, view.name(), propertyKey);
+				for (final PropertyKey propertyKey : keys) {
 
 					// replace field in any other view of this type (not superclass!)
 					for (final Map.Entry<Field, View> other : views.entrySet()) {
-						for (final Property property : other.getValue().properties()) {
-							if (propertyKey.jsonName().equals(property.jsonName())) {
-								registerPropertySet(type, other.getValue().name(), propertyKey);
-							}
+
+						final View otherView = other.getValue();
+
+						final Set<PropertyKey> otherKeys = getPropertyViewMapForType(type).get(otherView.name());
+						if (otherKeys != null && otherKeys.contains(propertyKey)) {
+
+							replaceKeyInSet(otherKeys, propertyKey);
 						}
 					}
 				}
@@ -866,7 +869,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	public void registerPropertySet(final Class type, final String propertyView, final String propertyName) {
 
 		this.registerPropertySet(type, propertyView, this.getPropertyKeyForJSONName(type, propertyName));
-
 	}
 
 	@Override
@@ -1131,6 +1133,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 						if (!modules.containsKey(moduleName)) {
 
+							structrModule.registerModuleFunctions(licenseManager);
+
 							if (coreModules.contains(moduleName) || licenseManager == null || licenseManager.isModuleLicensed(moduleName)) {
 
 								modules.put(moduleName, structrModule);
@@ -1175,30 +1179,75 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 						final String name = attrs.getValue("Structr-Module-Name");
 
 						// only scan and load modules that are licensed
-						if (name != null && (licenseManager == null || licenseManager.isModuleLicensed(name))) {
+						if (name != null) {
 
-							for (final Enumeration<? extends JarEntry> entries = jarFile.entries(); entries.hasMoreElements();) {
+							if (licenseManager == null || licenseManager.isModuleLicensed(name)) {
 
-								final JarEntry entry = entries.nextElement();
-								final String entryName = entry.getName();
+								for (final Enumeration<? extends JarEntry> entries = jarFile.entries(); entries.hasMoreElements();) {
 
-								if (entryName.endsWith(".class")) {
+									final JarEntry entry = entries.nextElement();
+									final String entryName = entry.getName();
 
-									// cat entry > /dev/null (necessary to get signers below)
-									IOUtils.copy(jarFile.getInputStream(entry), new ByteArrayOutputStream(65535));
+									if (entryName.endsWith(".class")) {
 
-									// verify module
-									if (licenseManager == null || licenseManager.isValid(entry.getCodeSigners())) {
+										// cat entry > /dev/null (necessary to get signers below)
+										IOUtils.copy(jarFile.getInputStream(entry), new ByteArrayOutputStream(65535));
 
-										final String fileEntry = entry.getName().replaceAll("[/]+", ".");
-										final String fqcn      = fileEntry.substring(0, fileEntry.length() - 6);
+										// verify module
+										if (licenseManager == null || licenseManager.isValid(entry.getCodeSigners())) {
 
-										// add class entry to Module
-										classes.add(fqcn);
+											final String fileEntry = entry.getName().replaceAll("[/]+", ".");
+											final String fqcn      = fileEntry.substring(0, fileEntry.length() - 6);
 
-										if (licenseManager != null) {
-											// store licensing information
-											licenseManager.addLicensedClass(fqcn);
+											// add class entry to Module
+											classes.add(fqcn);
+
+											if (licenseManager != null) {
+												// store licensing information
+												licenseManager.addLicensedClass(fqcn);
+											}
+										}
+									}
+								}
+
+							} else {
+
+								// module is not licensed, only load functions as unlicensed
+
+								for (final Enumeration<? extends JarEntry> entries = jarFile.entries(); entries.hasMoreElements();) {
+
+									final JarEntry entry = entries.nextElement();
+									final String entryName = entry.getName();
+
+									if (entryName.endsWith(".class")) {
+
+										// cat entry > /dev/null (necessary to get signers below)
+										IOUtils.copy(jarFile.getInputStream(entry), new ByteArrayOutputStream(65535));
+
+										// verify module
+										if (licenseManager == null || licenseManager.isValid(entry.getCodeSigners())) {
+
+											final String fileEntry = entry.getName().replaceAll("[/]+", ".");
+											final String fqcn      = fileEntry.substring(0, fileEntry.length() - 6);
+
+											try {
+
+												final Class clazz   = Class.forName(fqcn);
+												final int modifiers = clazz.getModifiers();
+
+												// register entity classes
+												if (StructrModule.class.isAssignableFrom(clazz) && !(Modifier.isAbstract(modifiers))) {
+
+													// we need to make sure that a module is initialized exactly once
+													final StructrModule structrModule = (StructrModule) clazz.newInstance();
+
+													structrModule.registerModuleFunctions(licenseManager);
+
+												}
+
+											} catch (Throwable t) {
+												logger.warn("Error trying to load class {}: {}",  fqcn, t.getMessage());
+											}
 										}
 									}
 								}
@@ -1534,6 +1583,25 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		}
 
 		return transformations;
+	}
+
+	private void replaceKeyInSet(final Set<PropertyKey> set, final PropertyKey key) {
+
+		final List<PropertyKey> list = new LinkedList<>(set);
+
+		set.clear();
+
+		for (final PropertyKey existingKey : list) {
+
+			if (existingKey.equals(key)) {
+
+				set.add(key);
+
+			} else {
+
+				set.add(existingKey);
+			}
+		}
 	}
 
 	public void printCacheStats() {

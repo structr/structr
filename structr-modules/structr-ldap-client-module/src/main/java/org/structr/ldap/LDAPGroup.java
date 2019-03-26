@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,13 +19,13 @@
 package org.structr.ldap;
 
 import java.net.URI;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import static org.structr.core.GraphObject.logger;
 import org.structr.core.Services;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.ModificationQueue;
@@ -39,6 +39,8 @@ import org.structr.schema.json.JsonSchema;
  */
 public interface LDAPGroup extends Group {
 
+	static final Logger logger = LoggerFactory.getLogger(LDAPGroup.class);
+
 	static class Impl { static {
 
 		final JsonSchema schema    = SchemaService.getDynamicSchema();
@@ -48,9 +50,18 @@ public interface LDAPGroup extends Group {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/LDAPGroup"));
 
 		type.addStringProperty("distinguishedName", PropertyView.Public, PropertyView.Ui).setUnique(true).setIndexed(true);
+		type.addStringProperty("path",              PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("filter",            PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("scope",             PropertyView.Public, PropertyView.Ui);
 
 		type.addPropertyGetter("distinguishedName", String.class);
 		type.addPropertySetter("distinguishedName", String.class);
+		type.addPropertyGetter("path",              String.class);
+		type.addPropertySetter("path",              String.class);
+		type.addPropertyGetter("filter",            String.class);
+		type.addPropertySetter("filter",            String.class);
+		type.addPropertyGetter("scope",             String.class);
+		type.addPropertySetter("scope",             String.class);
 
 		final JsonMethod updateMethod = type.addMethod("update");
 		updateMethod.setSource(LDAPGroup.class.getName() + ".update(getSecurityContext(), this);");
@@ -60,8 +71,11 @@ public interface LDAPGroup extends Group {
 		type.overrideMethod("onModification", true,  LDAPGroup.class.getName() + ".onModification(this, arg0, arg1, arg2);");
 	}}
 
-	String getDistinguishedName();
 	void setDistinguishedName(final String distinguishedName) throws FrameworkException;
+	String getDistinguishedName();
+	String getPath();
+	String getFilter();
+	String getScope();
 
 	// ----- static methods -----
 	static void onCreation(final LDAPGroup thisNode, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -83,7 +97,7 @@ public interface LDAPGroup extends Group {
 
 			} catch (Throwable t) {
 
-				LoggerFactory.getLogger(LDAPGroup.class).warn("Unable to sync group {}: {}", thisGroup.getName(), t.getMessage());
+				logger.warn("Unable to sync group {}: {}", thisGroup.getName(), t.getMessage());
 			}
 
 		} else {
@@ -91,7 +105,6 @@ public interface LDAPGroup extends Group {
 			final String message = "LDAPService not available, is it configured in structr.conf?<br /><a href=\"/structr/config\" target=\"_blank\">Open Structr Configuration</a>";
 
 			TransactionCommand.simpleBroadcastWarning("Service not configured", message, Predicate.only(securityContext.getSessionId()));
-
 
 			logger.warn(message);
 		}

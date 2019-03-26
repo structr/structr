@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -221,7 +221,9 @@ public class ResourceHelper {
 
 			} catch (Throwable t) {
 
-				// ignore exceptions thrown here
+				// ignore exceptions thrown here but make it possible to set a breakpoint
+				final boolean test = false;
+
 			}
 
 		} while (found);

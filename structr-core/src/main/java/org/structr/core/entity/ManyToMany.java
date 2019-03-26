@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -70,9 +70,11 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 
 		if (securityContext.doEnsureCardinality() && targetNode != null && sourceNode.hasRelationshipTo(this, targetNode)) {
 
-			throw new FrameworkException(422, "Relationship already exists", new DuplicateRelationshipToken(
+			final String message = "Relationship already exists from " + sourceNode.getType() + "(" + sourceNode.getUuid() + ") " + sourceNode.getName() + " to " + targetNode.getType() + " (" + targetNode.getUuid() + ") " + targetNode.getName();
+
+			throw new FrameworkException(422, message, new DuplicateRelationshipToken(
 				getClass().getSimpleName(),
-				"Relationship already exists from " + sourceNode.getType() + "(" + sourceNode.getUuid() + ") " + sourceNode.getName() + " to " + targetNode.getType() + " (" + targetNode.getUuid() + ") " + targetNode.getName()
+				message
 			));
 		}
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -75,8 +75,6 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 
 			// check existing relationships
 			final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationship(clazz);
-//			if (incomingRel != null && sourceType.isAssignableFrom(incomingRel.getSourceType())) {
-//			if (incomingRel != null && sourceType.isInstance(incomingRel.getSourceNode())) {
 			if (incomingRel != null && SearchCommand.isTypeAssignableFromOtherType(sourceType, incomingRel.getSourceType())) {
 
 				app.delete(incomingRel);

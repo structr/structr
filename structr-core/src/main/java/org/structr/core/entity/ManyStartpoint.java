@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -73,7 +73,7 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 			} else {
 
 				// sort relationships by id
-				return Iterables.map((Relationship from) -> nodeFactory.instantiate(from.getStartNode(), from.getId()), rels);
+				return Iterables.map(from -> nodeFactory.instantiate(from.getStartNode(), from.getId()), rels);
 			}
 		}
 

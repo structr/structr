@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,6 +34,8 @@ import org.structr.api.DatabaseService;
 import org.structr.api.NotFoundException;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.GraphProperties;
+import org.structr.api.graph.Identity;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.api.service.Command;
 import org.structr.api.service.Service;
 import org.structr.api.util.FixedSizeCache;
@@ -42,12 +44,13 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.DummyFulltextIndexer;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.CypherQueryCommand;
+import org.structr.core.graph.NativeQueryCommand;
 import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.GraphDatabaseCommand;
@@ -61,6 +64,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.module.StructrModule;
@@ -75,15 +79,15 @@ public class StructrApp implements App {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrApp.class);
 
-	private static FixedSizeCache<String, Long> nodeUuidMap = null;
-	private static FixedSizeCache<String, Long> relUuidMap  = null;
-	private static final URI schemaBaseURI                  = URI.create("https://structr.org/v1.1/#");
-	private static final Object globalConfigLock            = new Object();
-	private Map<String, Object> appContextStore             = new LinkedHashMap<>();
-	private RelationshipFactory relFactory                  = null;
-	private NodeFactory nodeFactory                         = null;
-	private DatabaseService graphDb                         = null;
-	private SecurityContext securityContext                 = null;
+	private static FixedSizeCache<String, Identity> nodeUuidMap = null;
+	private static FixedSizeCache<String, Identity> relUuidMap  = null;
+	private static final URI schemaBaseURI                      = URI.create("https://structr.org/v1.1/#");
+	private static final Object globalConfigLock                = new Object();
+	private Map<String, Object> appContextStore                 = new LinkedHashMap<>();
+	private RelationshipFactory relFactory                      = null;
+	private NodeFactory nodeFactory                             = null;
+	private DatabaseService graphDb                             = null;
+	private SecurityContext securityContext                     = null;
 
 	private StructrApp(final SecurityContext securityContext) {
 
@@ -148,6 +152,11 @@ public class StructrApp implements App {
 	}
 
 	@Override
+	public <T extends NodeInterface> void delete(final Class<T> type) {
+		getDatabaseService().clearCaches();
+		getDatabaseService().deleteNodesByLabel(type.getSimpleName());
+	}
+	@Override
 	public void delete(final NodeInterface node) {
 		removeNodeFromCache(node);
 		command(DeleteNodeCommand.class).execute(node);
@@ -181,7 +190,7 @@ public class StructrApp implements App {
 			return null;
 		}
 
-		final Long nodeId = getNodeFromCache(uuid);
+		final Identity nodeId = getNodeFromCache(uuid);
 		if (nodeId == null) {
 
 			final Query query = nodeQuery().uuid(uuid);
@@ -194,7 +203,9 @@ public class StructrApp implements App {
 			final GraphObject entity = query.getFirst();
 			if (entity != null) {
 
-				nodeUuidMap.put(uuid, entity.getId());
+				final PropertyContainer container = entity.getPropertyContainer();
+
+				nodeUuidMap.put(uuid, container.getId());
 				return (NodeInterface)entity;
 			}
 
@@ -223,7 +234,7 @@ public class StructrApp implements App {
 			return null;
 		}
 
-		final Long id = getRelFromCache(uuid);
+		final Identity id = getRelFromCache(uuid);
 		if (id == null) {
 
 			final Query query = relationshipQuery().uuid(uuid);
@@ -240,7 +251,9 @@ public class StructrApp implements App {
 			final GraphObject entity = query.getFirst();
 			if (entity != null) {
 
-				relUuidMap.put(uuid, entity.getId());
+				final PropertyContainer container = entity.getPropertyContainer();
+
+				relUuidMap.put(uuid, container.getId());
 				return (RelationshipInterface)entity;
 			}
 
@@ -360,8 +373,8 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public Iterable<GraphObject> cypher(final String cypherQuery, final Map<String, Object> parameters) throws FrameworkException {
-		return Services.getInstance().command(securityContext, CypherQueryCommand.class).execute(cypherQuery, parameters);
+	public Iterable<GraphObject> query(final String nativeQuery, final Map<String, Object> parameters) throws FrameworkException {
+		return Services.getInstance().command(securityContext, NativeQueryCommand.class).execute(nativeQuery, parameters);
 	}
 
 	@Override
@@ -496,6 +509,10 @@ public class StructrApp implements App {
 	}
 
 	public static <T> PropertyKey<T> key(final Class type, final String name) {
+		return StructrApp.key(type, name, true);
+	}
+
+	public static <T> PropertyKey<T> key(final Class type, final String name, final boolean logMissing) {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		PropertyKey<T> key                 = config.getPropertyKeyForJSONName(type, name, false);
@@ -519,16 +536,34 @@ public class StructrApp implements App {
 			}
 		}
 
-		if (key != null) {
+		if (key == null) {
 
-			return key;
+			key = new GenericProperty(name);
+
+			if (logMissing && !type.equals(GraphObjectMap.class)) {
+
+				logger.warn("Unknown property key {}.{}! Using generic property key. This may lead to conversion problems. If you encounter problems please report the following source of the call.", type.getSimpleName(), name);
+
+				try {
+
+					// output for first stack trace element "above" this class
+					for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+
+						if (ste.getClassName().equals(Thread.class.getCanonicalName()) || ste.getClassName().equals(StructrApp.class.getCanonicalName())) {
+							continue;
+						}
+
+						logger.warn("Source of this call: {}", ste.toString());
+						break;
+					}
+
+				} catch (SecurityException se) {
+					logger.warn("Unable to determine the stack source because the checkPermission flag is set.");
+				}
+			}
 		}
 
-		logger.warn("Unknown property key {}.{}!", type.getSimpleName(), name);
-
-		Thread.dumpStack();
-
-		return null;
+		return key;
 	}
 
 	@Override
@@ -577,7 +612,7 @@ public class StructrApp implements App {
 	private static final Map<Class, URI> typeIdMap   = new LinkedHashMap<>();
 
 	// ---------- private methods -----
-	private synchronized Long getNodeFromCache(final String uuid) {
+	private synchronized Identity getNodeFromCache(final String uuid) {
 
 		if (nodeUuidMap == null) {
 
@@ -587,7 +622,7 @@ public class StructrApp implements App {
 		return nodeUuidMap.get(uuid);
 	}
 
-	private synchronized Long getRelFromCache(final String uuid) {
+	private synchronized Identity getRelFromCache(final String uuid) {
 
 		if (relUuidMap == null) {
 

@@ -3,8 +3,12 @@
 # configuration options for structr-ui
 #
 
+if [ -z "$MEMORY_OPTS" ]; then
+	MEMORY_OPTS="-Xms4g -Xmx4g"
+fi
+
 RUN_OPTS="-cp lib/*:${project.build.finalName}.jar"
-JAVA_OPTS="-Djava.awt.headless=true -Djava.system.class.loader=org.structr.StructrClassLoader -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.timezone=Europe/Berlin -Duser.country=US -Duser.language=en -Dorg.apache.sshd.registerBouncyCastle=false -Dorg.neo4j.io.pagecache.implSingleFilePageSwapper.channelStripePower=0 -server -d64 -Xms4g -Xmx4g -XX:+UseNUMA -XX:+UseG1GC"
+JAVA_OPTS="-Djava.awt.headless=true -Djava.system.class.loader=org.structr.StructrClassLoader -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.timezone=Europe/Berlin -Duser.country=US -Duser.language=en -Dorg.apache.sshd.registerBouncyCastle=false -Dorg.neo4j.io.pagecache.implSingleFilePageSwapper.channelStripePower=0 -server -d64 $MEMORY_OPTS -XX:+UseNUMA -XX:+UseG1GC"
 MAIN_CLASS="org.structr.Server"
 DISPLAY_NAME="${project.build.finalName}.jar"
 LOG_FILE="logs/server.log"

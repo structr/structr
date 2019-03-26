@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -2093,7 +2093,7 @@ var _Crud = {
 
 			$('.remove', nodeEl).on('click', function(e) {
 				e.preventDefault();
-				Command.get(parentId, "id,type", function(parentObj) {
+				Command.get(parentId, 'id,type', function(parentObj) {
 					_Crud.removeRelatedObject(parentObj, key, obj);
 				});
 				return false;

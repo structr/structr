@@ -1,7 +1,21 @@
 <div id="ldap-group-config">
-	<h3>Group synchronized with LDAP server</h3>
+	<h3>Synchronize this group using distinguished name (prioritized if set)</h3>
 	<div class="row">
 		<input type="text" size="80" id="ldap-group-dn" placeholder="Distinguished Name" value="${config.group.distinguishedName || ''}" />
+		<i class="nullIcon sprite sprite-cross_small_grey" title="Clear value" id="clear-ldap-group-dn"></i>
+	</div>
+	<h3>Synchronize this group using path, filter and scope (if distinguished name not set above)</h3>
+	<div class="row">
+		<input type="text" size="80" id="ldap-group-path" placeholder="Path" value="${config.group.path || ''}" />
+		<i class="nullIcon sprite sprite-cross_small_grey" title="Clear value" id="clear-ldap-group-path"></i>
+	</div>
+	<div class="row">
+		<input type="text" size="80" id="ldap-group-filter" placeholder="Filter" value="${config.group.filter || ''}" />
+		<i class="nullIcon sprite sprite-cross_small_grey" title="Clear value" id="clear-ldap-group-filter"></i>
+	</div>
+	<div class="row">
+		<input type="text" size="80" id="ldap-group-scope" placeholder="Scope" value="${config.group.scope || ''}" />
+		<i class="nullIcon sprite sprite-cross_small_grey" title="Clear value" id="clear-ldap-group-scope"></i>
 	</div>
 	<div class="row">
 		<button type="button" class="action" id="ldap-sync-button">Synchronize now</button>

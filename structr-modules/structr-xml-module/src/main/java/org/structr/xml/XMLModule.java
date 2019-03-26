@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,6 +24,7 @@ import java.util.Set;
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.module.StructrModule;
+import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
 /**
@@ -33,8 +34,12 @@ public class XMLModule implements StructrModule, org.structr.module.xml.XMLModul
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+	}
 
-		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
+
+//		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
 //		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
 //		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
 	}
@@ -46,7 +51,7 @@ public class XMLModule implements StructrModule, org.structr.module.xml.XMLModul
 
 	@Override
 	public Set<String> getDependencies() {
-		// CSV import depends on the API builder now
+		// XML import depends on the API builder now
 		return new LinkedHashSet<>(Arrays.asList(new String[] { "api-builder" } ));
 	}
 
@@ -56,11 +61,11 @@ public class XMLModule implements StructrModule, org.structr.module.xml.XMLModul
 	}
 
 	@Override
-	public void insertImportStatements(final AbstractSchemaNode schemaNode, final StringBuilder buf) {
+	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
 	}
 
 	@Override
-	public void insertSourceCode(final AbstractSchemaNode schemaNode, final StringBuilder buf) {
+	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
 	}
 
 	@Override
@@ -69,6 +74,6 @@ public class XMLModule implements StructrModule, org.structr.module.xml.XMLModul
 	}
 
 	@Override
-	public void insertSaveAction(final AbstractSchemaNode schemaNode, final StringBuilder buf, final Actions.Type type) {
+	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
 	}
 }

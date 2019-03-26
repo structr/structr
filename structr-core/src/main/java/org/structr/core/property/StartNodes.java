@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -80,19 +80,13 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 
 		super(name);
 
-		try {
-
-			this.relation = relationClass.newInstance();
-
-		} catch (Throwable t) {
-			logger.warn("", t);
-		}
-
+		this.relation = Relation.getInstance(relationClass);
 		this.notion   = notion;
 		this.destType = relation.getSourceType();
 
 		this.notion.setType(destType);
 		this.notion.setRelationProperty(this);
+		this.relation.setSourceProperty(this);
 
 		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}

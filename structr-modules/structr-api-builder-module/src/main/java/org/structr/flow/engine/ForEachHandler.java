@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -44,9 +44,9 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 				final Object data = dataSource.get(context);
 				Context loopContext = new Context(context);
 
-				if (data instanceof Collection) {
+				if (data instanceof Iterable) {
 
-					for (final Object o : ((Collection) data)) {
+					for (final Object o : ((Iterable) data)) {
 
 						// Provide current element data for loop context and write evaluation result into main context data for this loop element
 						loopContext.setData(flowElement.getUuid(), o);

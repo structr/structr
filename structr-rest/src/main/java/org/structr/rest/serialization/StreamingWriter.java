@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -477,7 +477,7 @@ public abstract class StreamingWriter {
 
 				for (Map.Entry<String, Object> entry : source.entrySet()) {
 
-					String key = entry.getKey();
+					String key   = getString(entry.getKey());
 					Object value = entry.getValue();
 
 					writer.name(key);
@@ -577,6 +577,15 @@ public abstract class StreamingWriter {
 				t.printStackTrace();
 			}
 		}
+	}
+
+	private String getString(final Object value) {
+		
+		if (value != null) {
+			return value.toString();
+		}
+
+		throw new NullPointerException();
 	}
 
 	private interface Operation {

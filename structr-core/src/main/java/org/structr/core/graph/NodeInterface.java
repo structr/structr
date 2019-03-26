@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.core.graph;
 
 import java.util.List;
 import java.util.Map;
+import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.AccessControllable;
@@ -63,7 +64,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 		id, name, type
 	);
 
-	void init(final SecurityContext securityContext, final Node dbNode, final Class type, final boolean isCreation, final long sourceTransactionId);
+	void init(final SecurityContext securityContext, final Node dbNode, final Class type, final long sourceTransactionId);
 
 	void onNodeCreation();
 	void onNodeInstantiation(final boolean isCreation);
@@ -94,7 +95,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(final Class<R> type);
 	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(final Class<R> type);
 
-	void setRawPathSegmentId(final long pathSegmentId);
+	void setRawPathSegmentId(final Identity pathSegmentId);
 
 	List<Security> getSecurityRelationships();
 

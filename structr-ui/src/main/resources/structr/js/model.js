@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -237,12 +237,30 @@ var StructrModel = {
 
 		if (obj && data.modifiedProperties && data.modifiedProperties.length) {
 
-			$.each(data.modifiedProperties, function(i, key) {
-				_Logger.log(_LogType.MODEL, 'update model', key, data.data[key]);
-				obj[key] = data.data[key];
+			let refreshObj = function(obj, newProperties) {
+				Object.keys(newProperties).forEach(k => {
+					obj[k] = newProperties[k];
+				});
+				StructrModel.refresh(obj.id);
+			};
+
+			let callback = function(newProperties) {
+				refreshObj(obj, newProperties);
+				StructrModel.callCallback(data.callback, obj);
+			};
+
+			let refreshKeys = Object.keys(obj);
+			data.modifiedProperties.forEach((p) => {
+				if (!refreshKeys.includes(p)) {
+					refreshKeys.push(p);
+				}
 			});
 
-			StructrModel.refresh(obj.id);
+			if (data.relData && data.relData.sourceId) {
+				Command.getRelationship(data.id, data.relData.sourceId, refreshKeys.join(','), callback);
+			} else {
+				Command.get(data.id, refreshKeys.join(','), callback);
+			}
 		}
 
 		return obj;
@@ -415,7 +433,7 @@ var StructrModel = {
 
 			var iconEl = element.children('.typeIcon');
 			if (icon && iconEl.length) {
-				_Icons.updateSpritasdeClassTo(iconEl[0], _Icons.getSpriteClassOnly(icon));
+				_Icons.updateSpriteClassTo(iconEl[0], _Icons.getSpriteClassOnly(icon));
 			}
 
 			// check if key icon needs to be displayed (in case of nodes not visible to public/auth users)
@@ -835,6 +853,7 @@ StructrElement.prototype.remove = function() {
 		// remove this element from its parent object in the model
 		var modelEntity = StructrModel.obj(this.parent.id);
 		if (modelEntity) {
+
 			modelEntity.children = modelEntity.children.filter(function(child) {
 				return child.id === this.id;
 			});

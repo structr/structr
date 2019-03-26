@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,7 +38,6 @@ public class RestTabCompletionProvider extends AbstractTabCompletionProvider {
 		final String token                      = getToken(line, " /.");
 
 		results.addAll(getExactResultsForCollection(RestCommand.commandNames(), token, " "));
-		results.addAll(getTabCompletionForUUIDs(securityContext, token, ""));
 
 		Collections.sort(results);
 

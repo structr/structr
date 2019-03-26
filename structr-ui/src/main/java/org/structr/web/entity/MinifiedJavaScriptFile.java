@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -53,7 +53,7 @@ public interface MinifiedJavaScriptFile extends AbstractMinifiedFile {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/MinifiedJavaScriptFile"));
 		type.setExtends(URI.create("#/definitions/AbstractMinifiedFile"));
-		type.setCategory("core");
+		type.setCategory("ui");
 
 		type.addEnumProperty("optimizationLevel", PropertyView.Public, PropertyView.Ui).setEnums("WHITESPACE_ONLY", "SIMPLE_OPTIMIZATIONS", "ADVANCED_OPTIMIZATIONS").setDefaultValue("WHITESPACE_ONLY");
 		type.addStringProperty("warnings",        PropertyView.Public, PropertyView.Ui);

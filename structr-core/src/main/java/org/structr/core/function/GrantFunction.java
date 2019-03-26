@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.error.ArgumentCountException;
@@ -35,7 +36,12 @@ public class GrantFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "grant()";
+		return "grant";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override
@@ -64,7 +70,7 @@ public class GrantFunction extends Function<Object, Object> {
 								final Permission permission = Permissions.valueOf(trimmedPart);
 								if (permission != null) {
 
-									node.grant(permission, principal);
+									node.grant(permission, principal, ctx.getSecurityContext());
 
 								} else {
 

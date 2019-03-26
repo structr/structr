@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,52 +24,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.graph.Tx;
 
 /**
  *
  */
 public abstract class AbstractTabCompletionProvider implements TabCompletionProvider {
-
-	protected List<TabCompletionResult> getTabCompletionForUUIDs(final SecurityContext securityContext, final String token, final String suffix) {
-
-		final List<TabCompletionResult> results = new LinkedList<>();
-
-		if (token.length() >= 3) {
-
-			final App app = StructrApp.getInstance(securityContext);
-			try (final Tx tx = app.tx()) {
-
-				final String tenantIdentifier = app.getDatabaseService().getTenantIdentifier();
-				final StringBuilder buf       = new StringBuilder();
-
-				buf.append("MATCH (n");
-
-				if (tenantIdentifier != null) {
-
-					buf.append(":");
-					buf.append(tenantIdentifier);
-				}
-
-				buf.append(") WHERE n.id STARTS WITH {part} RETURN n");
-
-				for (final GraphObject obj : app.cypher(buf.toString(), toMap("part", token))) {
-
-					results.add(getCompletion(obj.getUuid(), token, suffix));
-				}
-
-				tx.success();
-
-			} catch (FrameworkException ignore) {}
-		}
-
-		return results;
-	}
 
 	protected List<TabCompletionResult> getCaseInsensitiveResultsForCollection(final Collection<String> words, final String token, final String suffix) {
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -377,6 +377,7 @@ public class ConfigServlet extends HttpServlet {
 		head.empty("meta").attr(new Name("viewport"), new Attr("content", "width=1024, user-scalable=yes"));
 		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/lib/jquery-ui-1.10.3.custom.min.css"));
 		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/main.css"));
+		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/sprites.css"));
 		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/config.css"));
 		head.empty("link").attr(new Rel("icon"), new Href("favicon.ico"), new Type("image/x-icon"));
 		head.block("script").attr(new Src("/structr/js/lib/jquery-1.11.1.min.js"));

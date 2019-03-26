@@ -1,0 +1,32 @@
+<div id="widget-server-config-dialog" class="dialog-padding">
+
+	<h3>Configured Servers</h3>
+	<div id="widget-servers-table-container"></div>
+
+	<h3 data-comment="Only use trusted sources for remote widgets! Loading the widgets in the dialog is not dangerous, but adding a widget to your instance runs the code in the widget so <strong>using <em>untrusted sources</em> poses a very real security threat</strong>!" data-comment-config='{"customToggleIcon":"${_Icons.error_icon}", "helpElementCss": { "font-size": "14px"}}'>Add Server</h3>
+	<table id="add-widget-server">
+		<tr>
+			<td style="width: 100px">
+				<label>Name</label>
+			</td>
+			<td>
+				<input id="new-widget-server-name">
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<label data-comment="The server should respond with JSON-formatted widgets as every structr instance would.<br><br>Because the widgets are fetched via a HTTP GET request, the usual rights management applies. Widgets need to be visible to public users to show up in the resulting list.">URL</label>
+			</td>
+			<td>
+				<input id="new-widget-server-url">
+			</td>
+		</tr>
+		<tr>
+			<td>
+			</td>
+			<td>
+				<button id="save-widget-server"><i class="collapsed ${_Icons.getFullSpriteClass(_Icons.floppy_icon)}" /> Save</button>
+			</td>
+		</tr>
+	</table>
+</div>

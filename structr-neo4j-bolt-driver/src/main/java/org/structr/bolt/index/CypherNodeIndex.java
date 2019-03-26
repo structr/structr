@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -65,7 +65,7 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	}
 
 	@Override
-	public String getQuerySuffix(final PageableQuery query) {
+	public String getQuerySuffix(final AdvancedCypherQuery query) {
 
 		final StringBuilder buf = new StringBuilder();
 		final String sortKey    = query.getSortKey();
@@ -83,7 +83,7 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	}
 
 	@Override
-	public Iterable<Node> getResult(final PageableQuery query) {
+	public Iterable<Node> getResult(final AdvancedCypherQuery query) {
 
 		try {
 			final SessionTransaction tx = db.getCurrentTransaction();

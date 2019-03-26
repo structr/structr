@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,9 +18,10 @@
  */
 package org.structr.core.function;
 
-import org.structr.common.error.FrameworkException;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -30,7 +31,12 @@ public class QuotFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "quot()";
+		return "quot";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override
@@ -46,7 +52,7 @@ public class QuotFunction extends Function<Object, Object> {
 
 			} catch (NumberFormatException nfe) {
 
-				logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getName(), caller, getParametersAsString(sources) });
+				logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getReplacement(), caller, getParametersAsString(sources) });
 				return nfe.getMessage();
 			}
 
@@ -60,7 +66,7 @@ public class QuotFunction extends Function<Object, Object> {
 
 				} catch (NumberFormatException nfe) {
 
-					logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getName(), caller, getParametersAsString(sources) });
+					logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getReplacement(), caller, getParametersAsString(sources) });
 					return nfe.getMessage();
 				}
 			}

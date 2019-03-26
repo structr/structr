@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,34 +20,20 @@ package org.structr.web.common;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.File;
-import org.structr.web.entity.Image;
 
 /**
  */
 public class ClosingFileOutputStream extends FileOutputStream {
 
-	private static final Logger logger = LoggerFactory.getLogger(ClosingFileOutputStream.class);
-
-	private boolean notifyIndexerAfterClosing = false;
-	private boolean closed                    = false;
-	private File thisFile                     = null;
-	private java.io.File file                 = null;
+	private boolean closed = false;
+	private File thisFile  = null;
 
 	public ClosingFileOutputStream(final File thisFile, final boolean append, final boolean notifyIndexerAfterClosing) throws IOException {
 
 		super(thisFile.getFileOnDisk(), append);
 
-		this.notifyIndexerAfterClosing = notifyIndexerAfterClosing;
-		this.thisFile                  = thisFile;
-		this.file                      = thisFile.getFileOnDisk();
+		this.thisFile = thisFile;
 	}
 
 	@Override
@@ -57,37 +43,9 @@ public class ClosingFileOutputStream extends FileOutputStream {
 			return;
 		}
 
-		try (Tx tx = StructrApp.getInstance().tx()) {
+		super.close();
 
-			super.close();
-
-			final String _contentType           = FileHelper.getContentMimeType(thisFile);
-			final PropertyMap changedProperties = new PropertyMap();
-
-			changedProperties.put(StructrApp.key(File.class, "checksum"),     FileHelper.getChecksum(file));
-			changedProperties.put(StructrApp.key(File.class, "size"),         file.length());
-			changedProperties.put(StructrApp.key(File.class, "contentType"), _contentType);
-
-			if (StringUtils.startsWith(_contentType, "image") || ImageHelper.isImageType(thisFile.getName())) {
-				changedProperties.put(NodeInterface.type, Image.class.getSimpleName());
-			}
-
-			thisFile.unlockSystemPropertiesOnce();
-			thisFile.setProperties(thisFile.getSecurityContext(), changedProperties);
-
-			thisFile.increaseVersion();
-
-			if (notifyIndexerAfterClosing) {
-				thisFile.notifyUploadCompletion();
-			}
-
-			tx.success();
-
-		} catch (Throwable ex) {
-
-			logger.error("Could not determine or save checksum and size after closing file output stream", ex);
-
-		}
+		thisFile.notifyUploadCompletion();
 
 		closed = true;
 	}

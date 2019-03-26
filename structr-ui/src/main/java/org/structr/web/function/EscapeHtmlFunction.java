@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,9 +18,10 @@
  */
 package org.structr.web.function;
 
-import org.structr.common.error.FrameworkException;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.entity.dom.DOMNode;
@@ -32,7 +33,12 @@ public class EscapeHtmlFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "escape_html()";
+		return "escape_html";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

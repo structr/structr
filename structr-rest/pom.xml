@@ -5,13 +5,13 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr</artifactId>
-		<version>3.1.2</version>
+		<version>3.2-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.structr</groupId>
 	<artifactId>structr-rest</artifactId>
 	<packaging>jar</packaging>
-	<version>3.1.2</version>
+	<version>3.2-SNAPSHOT</version>
 	<name>Structr REST</name>
 	<description>Structr is an open source framework based on the popular Neo4j graph database.</description>
 	<developers>
@@ -30,6 +30,66 @@
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>structr-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-access</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.jayway.restassured</groupId>
+			<artifactId>rest-assured</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>9.4.13.v20181111</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-servlets</artifactId>
+			<version>9.4.13.v20181111</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-runner</artifactId>
+			<version>9.4.13.v20181111</version>
+		</dependency>
+		<dependency>
+			<groupId>org.tuckey</groupId>
+			<artifactId>urlrewritefilter</artifactId>
+			<version>4.0.4</version>
+		</dependency>
+		<dependency>
+			<groupId>com.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>
@@ -58,16 +118,87 @@
 					<debug>true</debug>
 				</configuration>
 			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.20.1</version>
+				<version>2.22.1</version>
 				<configuration>
-					<argLine>-Xms1g -Xmx4g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader -Dorg.neo4j.io.pagecache.implSingleFilePageSwapper.channelStripePower=0</argLine>
-					<reuseForks>false</reuseForks>
-					<forkCount>1</forkCount>
+					<excludes>
+						<exclude>**/*.java</exclude>
+					</excludes>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>2.22.1</version>
+				<configuration>
+					<includes>
+						<include>**/*.java</include>
+					</includes>
+					<argLine>-Xms1g -Xmx1g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
+					<reuseForks>false</reuseForks>
+					<forkCount>1</forkCount>
+					<skipTests>${skipTests}</skipTests>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>io.fabric8</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<version>0.28.0</version>
+				<executions>
+					<execution>
+						<id>prepare-database</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>start</goal>
+						</goals>
+						<configuration>
+							<images>
+								<image>
+									<name>${test.neo4j.version}</name>
+									<alias>database</alias>
+									<run>
+										<ports>
+											<port>7689:7687</port>
+										</ports>
+										<wait>
+											<log>(.?)Bolt enabled on 0.0.0.0:7687.</log>
+											<time>20000</time>
+										</wait>
+										<env>
+											<NEO4J_AUTH>neo4j/admin</NEO4J_AUTH>
+											<NEO4J_ACCEPT_LICENSE_AGREEMENT>yes</NEO4J_ACCEPT_LICENSE_AGREEMENT>
+											<NEO4J_dbms_memory_heap_max__size>4G</NEO4J_dbms_memory_heap_max__size>
+										</env>
+									</run>
+								</image>
+							</images>
+							<skip>${skipTests}</skip>
+						</configuration>
+					</execution>
+					<execution>
+						<id>remove-database</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>stop</goal>
+						</goals>
+						<configuration>
+							<skip>${skipTests}</skip>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
 			<plugin>
 				<groupId>com.mycila</groupId>
 				<artifactId>license-maven-plugin</artifactId>
@@ -85,7 +216,7 @@
 						<exclude>src/test/resources/**</exclude>
 					</excludes>
 					<properties>
-						<year>2018</year>
+						<year>2019</year>
 						<owner>Structr GmbH</owner>
 					</properties>
 				</configuration>
@@ -162,70 +293,12 @@
 			</build>
 		</profile>
 	</profiles>
-	<dependencies>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>structr-core</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-access</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.jayway.restassured</groupId>
-			<artifactId>rest-assured</artifactId>
-			<scope>test</scope>
-			<optional>false</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-server</artifactId>
-			<version>9.4.13.v20181111</version>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-servlets</artifactId>
-			<version>9.4.13.v20181111</version>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-runner</artifactId>
-			<version>9.4.13.v20181111</version>
-		</dependency>
-		<dependency>
-			<groupId>org.tuckey</groupId>
-			<artifactId>urlrewritefilter</artifactId>
-			<version>4.0.4</version>
-		</dependency>
-		<dependency>
-			<groupId>com.opencsv</groupId>
-			<artifactId>opencsv</artifactId>
-		</dependency>
-	</dependencies>
 	<licenses>
 		<license>
 			<name>GNU General Public License, Version 3</name>
 			<url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
 			<comments>
-				Copyright (C) 2010-2018 Structr GmbH
+				Copyright (C) 2010-2019 Structr GmbH
 
 				This file is part of Structr &lt;http://structr.org&gt;.
 

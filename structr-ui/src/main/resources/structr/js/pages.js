@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -131,8 +131,8 @@ var _Pages = {
 				'<div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div>'
 				+ '<div id="activeElements" class="slideOut slideOutLeft"><div class="compTab" id="activeElementsTab">Active Elements</div><div class="page inner"></div></div>'
 				+ '<div id="dataBinding" class="slideOut slideOutLeft"><div class="compTab" id="dataBindingTab">Data Binding</div></div>'
-				+ '<div id="localizations" class="slideOut slideOutLeft"><div class="compTab" id="localizationsTab">Localizations</div><div class="page inner"><input class="locale" placeholder="Locale"><button class="refresh action button">' + _Icons.getHtmlForIcon(_Icons.refresh_icon) + ' Refresh</button><div class="results"></div></div></div>'
-				+ '<div id="previews"></div>'
+				+ '<div id="localizations" class="slideOut slideOutLeft"><div class="compTab" id="localizationsTab">Localizations</div><div class="page inner"><input class="locale" placeholder="Locale"><button class="refresh action button">' + _Icons.getHtmlForIcon(_Icons.refresh_icon) + ' Refresh</button><div class="results ver-scrollable"></div></div></div>'
+				+ '<div id="previews" class="no-preview"></div>'
 				+ '<div id="widgetsSlideout" class="slideOut slideOutRight"><div class="compTab" id="widgetsTab">Widgets</div></div>'
 				+ '<div id="palette" class="slideOut slideOutRight"><div class="compTab" id="paletteTab">HTML Palette</div></div>'
 				+ '<div id="components" class="slideOut slideOutRight"><div class="compTab" id="componentsTab">Shared Components</div></div>'
@@ -188,13 +188,16 @@ var _Pages = {
 
 		Structr.appendInfoTextToElement({
 			element: $('#localizations button.refresh'),
-			text: "On this tab you can load the localizations requested for the given locale on the currently previewed page.<br><br>The retrieval process works just as rendering the page. If you request the locale \"en_US\" you might get Localizations for \"en\" as a fallback if no exact match is found.<br><br>If no Localization could be found, an empty input field is rendered where you can quickly create the missing Localization.",
+			text: "On this tab you can load the localizations requested for the given locale on the currently previewed page (including the UUID of the details object which is also used for the preview).<br><br>The retrieval process works just as rendering the page. If you request the locale \"en_US\" you might get Localizations for \"en\" as a fallback if no exact match is found.<br><br>If no Localization could be found, an empty input field is rendered where you can quickly create the missing Localization.",
 			insertAfter: true,
 			css: {
 				right: "2px",
-				top: "2px",
-				position: "absolute"
-			}
+				top: "2px"
+			},
+			helpElementCss: {
+				width: "200px"
+			},
+			offsetX: -50
 		});
 
 		$('#widgetsTab').on('click', function() {
@@ -374,7 +377,7 @@ var _Pages = {
 			e.stopPropagation();
 			var self = $(this);
 			var link = $.trim(self.parent().children('b.name_').attr('title'));
-			var url = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + link + (LSWrapper.getItem(detailsObjectId + entity.id) ? '/' + LSWrapper.getItem(detailsObjectId + entity.id) : '');
+			var url = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + link + (LSWrapper.getItem(detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(detailsObjectIdKey + entity.id) : '');
 			window.open(url);
 		});
 
@@ -395,7 +398,7 @@ var _Pages = {
 			dialog.append('<p>With these settings you can influence the behaviour of the page previews only. They are not persisted on the Page object but only stored in the UI settings.</p>');
 
 			dialog.append('<table class="props">'
-					+ '<tr><td><label for="details-object-id">UUID of details object to append to preview URL</label></td><td><input id="_details-object-id" name="details-object-id" size="30" value="' + (LSWrapper.getItem(detailsObjectId + entity.id) ?  LSWrapper.getItem(detailsObjectId + entity.id) : '') + '"> <i id="clear-details-object-id" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
+					+ '<tr><td><label for="details-object-id">UUID of details object to append to preview URL</label></td><td><input id="_details-object-id" name="details-object-id" size="30" value="' + (LSWrapper.getItem(detailsObjectIdKey + entity.id) ?  LSWrapper.getItem(detailsObjectIdKey + entity.id) : '') + '"> <i id="clear-details-object-id" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
 					+ '<tr><td><label for="auto-refresh">Automatic refresh</label></td><td><input title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (LSWrapper.getItem(autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '></td></tr>'
 					+ '<tr><td><label for="page-category">Category</label></td><td><input name="page-category" id="_page-category" type="text" value="' + (entity.category || '') + '"> <i id="clear-page-category" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
 					+ '</table>');
@@ -408,20 +411,20 @@ var _Pages = {
 
 			$('#clear-details-object-id').on('click', function() {
 				detailsObjectIdInput.val('');
-				var oldVal = LSWrapper.getItem(detailsObjectId + entity.id) || null;
+				var oldVal = LSWrapper.getItem(detailsObjectIdKey + entity.id) || null;
 				if (oldVal) {
 					blinkGreen(detailsObjectIdInput);
-					LSWrapper.removeItem(detailsObjectId + entity.id);
+					LSWrapper.removeItem(detailsObjectIdKey + entity.id);
 					detailsObjectIdInput.focus();
 				}
 			});
 
 			detailsObjectIdInput.on('blur', function() {
 				var inp = $(this);
-				var oldVal = LSWrapper.getItem(detailsObjectId + entity.id) || null;
+				var oldVal = LSWrapper.getItem(detailsObjectIdKey + entity.id) || null;
 				var newVal = inp.val() || null;
 				if (newVal !== oldVal) {
-					LSWrapper.setItem(detailsObjectId + entity.id, newVal);
+					LSWrapper.setItem(detailsObjectIdKey + entity.id, newVal);
 					blinkGreen(detailsObjectIdInput);
 				}
 			});
@@ -535,6 +538,7 @@ var _Pages = {
 		_Pages.loadIframe(id);
 
 		element.addClass('active');
+		previews.removeClass('no-preview');
 
 		_Logger.log(_LogType.PAGES, 'store active tab', activeTab);
 		LSWrapper.setItem(_Pages.activeTabKey, activeTab);
@@ -567,7 +571,7 @@ var _Pages = {
 						_Entities.handleActiveElement(activeElement);
 					});
 				} else {
-					activeElementsContainer.append("<br><center>Page does not contain any active elements.</center>");
+					activeElementsContainer.append('<br><center>Page does not contain any active elements.</center>');
 				}
 			});
 
@@ -584,8 +588,8 @@ var _Pages = {
 		}
 		_Pages.unloadIframes();
 		var iframe = $('#preview_' + id);
-		Command.get(id, "id,name", function(obj) {
-			var url = viewRootUrl + obj.name + (LSWrapper.getItem(detailsObjectId + id) ? '/' + LSWrapper.getItem(detailsObjectId + id) : '') + '?edit=2';
+		Command.get(id, 'id,name', function(obj) {
+			var url = viewRootUrl + obj.name + (LSWrapper.getItem(detailsObjectIdKey + id) ? '/' + LSWrapper.getItem(detailsObjectIdKey + id) : '') + '?edit=2';
 			iframe.prop('src', url);
 			_Logger.log(_LogType.PAGES, 'iframe', id, 'activated');
 			_Pages.hideAllPreviews();
@@ -597,7 +601,13 @@ var _Pages = {
 	 * Reload preview iframe with given id
 	 */
 	reloadIframe: function(id) {
-		if (!id || id !== activeTab || !_Pages.isPageTabPresent(id)) {
+		if (lastMenuEntry === _Pages._moduleName && (!id || id !== activeTab || !_Pages.isPageTabPresent(id))) {
+
+			if ($('.previewBox iframe').length === 0) {
+				previews.addClass('no-preview');
+				_Pages.hideAllPreviews();
+			}
+
 			return false;
 		}
 		var autoRefreshDisabled = LSWrapper.getItem(autoRefreshDisabledKey + id);
@@ -615,7 +625,7 @@ var _Pages = {
 	unloadIframes: function() {
 		_Logger.log(_LogType.PAGES, 'unloading all preview iframes');
 		_Pages.clearIframeDroppables();
-		$('iframe', $('#previews')).each(function() {
+		$('iframe', previews).each(function() {
 			var pageId = $(this).prop('id').substring('preview_'.length);
 			var iframe = $('#preview_' + pageId);
 			try {
@@ -766,7 +776,6 @@ var _Pages = {
 							+ '.structr-element-container-active:hover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
 							+ '.structr-element-container-selected { -moz-box-shadow: 0 0 8px #860; -webkit-box-shadow: 0 0 8px #860; box-shadow: 0 0 8px #860; }\n'
 							+ '.structr-element-container-selected:hover { -moz-box-shadow: 0 0 10px #750; -webkit-box-shadow: 0 0 10px #750; box-shadow: 0 0 10px #750; }\n'
-							+ '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
 							+ '.structr-editable-area { background-color: #ffe; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888; }\n'
 							+ '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; }\n'
 							+ '.link-hover { border: 1px solid #00c; }\n'
@@ -782,36 +791,36 @@ var _Pages = {
 				_Pages.findDroppablesInIframe(doc, entity.id).each(function(i, element) {
 					var el = $(element);
 
-					_Dragndrop.makeDroppable(el, entity.id);
+//					_Dragndrop.makeDroppable(el, entity.id);
 
 					var structrId = el.attr('data-structr-id');
 					if (structrId) {
-
-						$('.move_icon', el).on('mousedown', function(e) {
-							e.stopPropagation();
-							var self = $(this);
-							var element = self.closest('[data-structr-id]');
-							_Logger.log(_LogType.PAGES, element);
-							var entity = Structr.entity(structrId, element.prop('data-structr-id'));
-							entity.type = element.prop('data-structr_type');
-							entity.name = element.prop('data-structr_name');
-							_Logger.log(_LogType.PAGES, 'move', entity);
-							self.parent().children('.structr-node').show();
-						});
-
-						$('.delete_icon', el).on('click', function(e) {
-							e.stopPropagation();
-							var self = $(this);
-							var element = self.closest('[data-structr-id]');
-							var entity = Structr.entity(structrId, element.prop('data-structr-id'));
-							entity.type = element.prop('data-structr_type');
-							entity.name = element.prop('data-structr_name');
-							_Logger.log(_LogType.PAGES, 'delete', entity);
-							var parentId = element.prop('data-structr-id');
-
-							Command.removeSourceFromTarget(entity.id, parentId);
-							_Entities.deleteNode(this, entity);
-						});
+//
+//						$('.move_icon', el).on('mousedown', function(e) {
+//							e.stopPropagation();
+//							var self = $(this);
+//							var element = self.closest('[data-structr-id]');
+//							_Logger.log(_LogType.PAGES, element);
+//							var entity = Structr.entity(structrId, element.prop('data-structr-id'));
+//							entity.type = element.prop('data-structr_type');
+//							entity.name = element.prop('data-structr_name');
+//							_Logger.log(_LogType.PAGES, 'move', entity);
+//							self.parent().children('.structr-node').show();
+//						});
+//
+//						$('.delete_icon', el).on('click', function(e) {
+//							e.stopPropagation();
+//							var self = $(this);
+//							var element = self.closest('[data-structr-id]');
+//							var entity = Structr.entity(structrId, element.prop('data-structr-id'));
+//							entity.type = element.prop('data-structr_type');
+//							entity.name = element.prop('data-structr_name');
+//							_Logger.log(_LogType.PAGES, 'delete', entity);
+//							var parentId = element.prop('data-structr-id');
+//
+//							Command.removeSourceFromTarget(entity.id, parentId);
+//							_Entities.deleteNode(this, entity);
+//						});
 						var offsetTop = -30;
 						var offsetLeft = 0;
 						el.on({
@@ -859,22 +868,18 @@ var _Pages = {
 								_Pages.unhighlight(structrId);
 							}
 						});
-
 					}
 				});
 
 			} catch (e) {}
 
 			_Pages.activateComments(doc);
-
 		});
 
 		_Dragndrop.makeDroppable(div);
-
 		_Pages.pagesTabResizeContent();
 
 		return div;
-
 	},
 	activateComments: function(doc, callback) {
 
@@ -936,11 +941,8 @@ var _Pages = {
 						_Pages.saveInlineElement(this, callback);
 					}
 				});
-
 			});
-
 		});
-
 	},
 	saveInlineElement: function(el, callback) {
 		var self = $(el);
@@ -994,29 +996,6 @@ var _Pages = {
 
 		return div;
 	},
-	zoomPreviews: function(value) {
-		$('.previewBox', previews).each(function() {
-			var val = value / 100;
-			var box = $(this);
-
-			box.css('-moz-transform', 'scale(' + val + ')');
-			box.css('-o-transform', 'scale(' + val + ')');
-			box.css('-webkit-transform', 'scale(' + val + ')');
-
-			var w = origWidth * val;
-			var h = origHeight * val;
-
-			box.width(w);
-			box.height(h);
-
-			$('iframe', box).width(w);
-			$('iframe', box).height(h);
-
-			_Logger.log(_LogType.PAGES, "box,w,h", box, w, h);
-
-		});
-
-	},
 	displayDataBinding: function(id) {
 		dataBindingSlideout.children('#data-binding-inputs').remove();
 		dataBindingSlideout.append('<div class="inner" id="data-binding-inputs"></div>');
@@ -1052,120 +1031,11 @@ var _Pages = {
 		});
 
 	},
-	refreshLocalizations: function() {
-		var id = activeTab;
-
-		if (_Pages.isPageTabPresent(id)) {
-
-			var localeInput = $('#localizations input.locale');
-			var locale = localeInput.val();
-
-			if (!locale) {
-				blinkRed(localeInput);
-				return;
-			}
-
-			Command.listLocalizations(id, locale, function(result) {
-
-				var localizationsContainer = $('#localizations div.inner div.results');
-				localizationsContainer.empty().attr('id', 'id_' + id);
-
-				if (result.length > 0) {
-
-					result.forEach(function(res) {
-
-						var div = _Pages.getNodeForLocalization(localizationsContainer, res.node);
-
-						var tbody = $('tbody', div);
-
-						var row = $('<tr><td>' + res.key + '</td><td>' + res.domain + '</td><td>' + ((res.localization !== null) ? res.localization.locale : res.locale) + '</td><td class="input"><input class="localized-value" placeholder="..."></td></tr>');
-
-						var input = $('input.localized-value', row);
-
-						if (res.localization !== null) {
-							input.val(res.localization.localizedName).data('localizationId', res.localization.id);
-						}
-
-						input.on('blur', function() {
-							var el = $(this);
-
-							var value = el.val();
-							var localizationId = el.data('localizationId');
-							if (localizationId) {
-								Command.setProperties(localizationId, {
-									localizedName: value
-								}, function() {
-									blinkGreen(el);
-								});
-
-							} else {
-								Command.create({
-									type: 'Localization',
-									name: res.key,
-									domain: res.domain,
-									locale: res.locale,
-									localizedName: value
-								},
-								function(createdLocalization) {
-									el.data('localizationId', createdLocalization.id);
-									blinkGreen(el);
-								});
-							}
-						});
-
-						tbody.append(row);
-					});
-
-				} else {
-
-					localizationsContainer.append("<br><center>No localizations found in page</center>");
-
-				}
-			});
-
-		} else {
-			localizationsContainer.append('<br><center>Cannot show localizations - no preview loaded<br><br></center>');
-		}
-	},
-	getNodeForLocalization: function (container, entity) {
-
-		var idString = 'locNode_' + entity.id;
-
-		var existing = $('#' + idString, container);
-
-		if (existing.length) {
-			return existing;
-		}
-
-		var div = $('<div id="' + idString + '" class="node localization-element ' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
-		var displayName = getElementDisplayName(entity);
-		var iconClass = _Icons.getFullSpriteClass(_Elements.getElementIcon(entity));
-
-		div.append('<i class="typeIcon ' + iconClass + '" />'
-			+ (!_Entities.isContentElement(entity) ? ('<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b>') : ('<div class="content_">' + escapeTags(entity.content) + '</div>'))
-			+ _Elements.classIdString(entity._html_id, entity._html_class));
-
-		if (_Entities.isContentElement(entity)) {
-
-			_Elements.appendEditContentIcon(div, entity);
-
-		}
-
-		_Entities.appendEditPropertiesIcon(div, entity, false);
-
-		div.append('<table><thead><tr><th>Key</th><th>Domain</th><th>Locale</th><th>Localization</th></tr></thead><tbody></tbody></table>');
-
-		container.append(div);
-
-		_Entities.setMouseOver(div);
-
-		return div;
-	},
 	showTypeData: function(id) {
 		if (!id) {
 			return;
 		}
-		Command.get(id, "id,name", function(sourceSchemaNode) {
+		Command.get(id, 'id,name', function(sourceSchemaNode) {
 
 			var typeKey = sourceSchemaNode.name.toLowerCase();
 			LSWrapper.setItem(_Pages.selectedTypeKey, id);
@@ -1209,7 +1079,7 @@ var _Pages = {
 		lastId = lastId || id;
 		stack = stack || [];
 		stack.push(id);
-		Command.get(id, "id,parent", function(obj) {
+		Command.get(id, 'id,parent', function(obj) {
 			if (obj.parent) {
 				_Pages.expandTreeNode(obj.parent.id, stack, lastId);
 			} else {
@@ -1268,5 +1138,133 @@ var _Pages = {
 		if (wasOpen) {
 			_Pages.resize(offsetLeft, offsetRight);
 		}
+	},
+	refreshLocalizations: function() {
+		var id = activeTab;
+
+		if (_Pages.isPageTabPresent(id)) {
+
+			var localeInput = $('#localizations input.locale');
+			var locale = localeInput.val();
+
+			if (!locale) {
+				blinkRed(localeInput);
+				return;
+			}
+
+			var detailObjectId = LSWrapper.getItem(detailsObjectIdKey + id);
+
+			Command.listLocalizations(id, locale, detailObjectId, function(result) {
+
+				$('#localizations .page').prop('id', 'id_' + id);
+
+				var localizationsContainer = $('#localizations div.inner div.results');
+				localizationsContainer.empty().attr('id', 'id_' + id);
+
+				if (result.length > 0) {
+
+					result.forEach(function(res) {
+
+						var div = _Pages.getNodeForLocalization(localizationsContainer, res.node);
+
+						var tbody = $('tbody', div);
+
+						var row = $('<tr><td>' + res.key + '</td><td>' + res.domain + '</td><td>' + ((res.localization !== null) ? res.localization.locale : res.locale) + '</td><td class="input"><input class="localized-value" placeholder="..."></td></tr>');
+
+						var input = $('input.localized-value', row);
+
+						if (res.localization !== null) {
+							input.val(res.localization.localizedName).data('localizationId', res.localization.id);
+						}
+
+						input.on('blur', function() {
+							var el = $(this);
+
+							var value = el.val();
+							var localizationId = el.data('localizationId');
+							if (localizationId) {
+								Command.setProperties(localizationId, {
+									localizedName: value
+								}, function() {
+									blinkGreen(el);
+								});
+
+							} else {
+								Command.create({
+									type: 'Localization',
+									name: res.key,
+									domain: res.domain || null,
+									locale: res.locale,
+									localizedName: value
+								},
+								function(createdLocalization) {
+									el.data('localizationId', createdLocalization.id);
+									blinkGreen(el);
+								});
+							}
+						});
+
+						tbody.append(row);
+					});
+
+				} else {
+
+					localizationsContainer.append("<br><center>No localizations found in page</center>");
+				}
+			});
+
+		} else {
+			localizationsContainer.append('<br><center>Cannot show localizations - no preview loaded<br><br></center>');
+		}
+	},
+	getNodeForLocalization: function (container, entity) {
+
+		var idString = 'locNode_' + entity.id;
+
+		var existing = $('#' + idString, container);
+
+		if (existing.length) {
+			return existing;
+		}
+
+		var div = $('<div id="' + idString + '" class="node localization-element ' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
+
+		// add node id to enable hover effect
+		div.data('nodeId', (_Entities.isContentElement(entity) ? entity.parent.id : entity.id ));
+
+		var displayName = getElementDisplayName(entity);
+		var iconClass = _Icons.getFullSpriteClass(_Elements.getElementIcon(entity));
+
+		var detailHtml = '';
+
+		if (entity.type === 'Content') {
+			detailHtml = '<div class="content_">' + fitStringToWidth(escapeTags(entity.content), 200) + '</div>';
+		} else if (entity.type === 'Template') {
+			if (entity.name) {
+				detailHtml = '<div class="content_">' + displayName + '</div>';
+			} else {
+				detailHtml = '<div class="content_">' + escapeTags(entity.content) + '</div>';
+			}
+		} else {
+			detailHtml = '<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b>';
+		}
+
+		div.append('<i class="typeIcon ' + iconClass + '" />' + detailHtml + _Elements.classIdString(entity._html_id, entity._html_class));
+
+		if (_Entities.isContentElement(entity)) {
+
+			_Elements.appendEditContentIcon(div, entity);
+
+		}
+
+		_Entities.appendEditPropertiesIcon(div, entity, false);
+
+		div.append('<table><thead><tr><th>Key</th><th>Domain</th><th>Locale</th><th>Localization</th></tr></thead><tbody></tbody></table>');
+
+		container.append(div);
+
+		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds&&entity.syncedNodesIds.length)?entity.syncedNodesIds:[entity.sharedComponentId]));
+
+		return div;
 	}
 };

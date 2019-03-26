@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -282,12 +282,7 @@ public class ActionContext {
 
 						case "remoteAddress":
 						case "remote_address":
-							final String remoteAddress = securityContext.getRequest().getHeader("X-FORWARDED-FOR");
-							if (remoteAddress == null) {
-								return securityContext.getRequest().getRemoteAddr();
-							}
-							return remoteAddress;
-
+							return getRemoteAddr(securityContext.getRequest());
 						case "response": {
 							final HttpServletResponse response = securityContext.getResponse();
 							if (response != null) {
@@ -322,7 +317,7 @@ public class ActionContext {
 						case "baseUrl":
 						case "base_url": {
 
-							return getBaseUrl();
+							return getBaseUrl(securityContext.getRequest());
 						}
 					}
 
@@ -357,7 +352,11 @@ public class ActionContext {
 		return value;
 	}
 
-	public String getBaseUrl () {
+	public static String getBaseUrl () {
+		return getBaseUrl(null);
+	}
+
+	public static String getBaseUrl (final HttpServletRequest request) {
 
 		final String baseUrlOverride = Settings.BaseUrlOverride.getValue();
 
@@ -367,21 +366,30 @@ public class ActionContext {
 
 		final StringBuilder sb = new StringBuilder("http");
 
-		final Boolean httpsEnabled = Settings.HttpsEnabled.getValue();
-		final int port = securityContext.getRequest().getServerPort();
+		final Boolean httpsEnabled       = Settings.HttpsEnabled.getValue();
+		final String name                = (request != null) ? request.getServerName() : Settings.ApplicationHost.getValue();
+		final int port                   = (request != null) ? request.getServerPort() : Settings.HttpPort.getValue();
 
 		if (httpsEnabled) {
 			sb.append("s");
 		}
 
 		sb.append("://");
-		sb.append(securityContext.getRequest().getServerName());
+		sb.append(name);
 
 		if ( !(httpsEnabled && port == 443) && !(!httpsEnabled && port == 80)) {
 			sb.append(":").append(port);
 		}
 
 		return sb.toString();
+	}
+
+	public static String getRemoteAddr(HttpServletRequest request) {
+		final String remoteAddress = request.getHeader("X-FORWARDED-FOR");
+		if (remoteAddress == null) {
+			return request.getRemoteAddr();
+		}
+		return remoteAddress;
 	}
 
 	public void print(final Object... objects) {
@@ -441,9 +449,9 @@ public class ActionContext {
 				try (final Tx tx = app.tx()) {
 
 					final List<JavaScriptSource> jsFiles = app.nodeQuery(JavaScriptSource.class)
-						.and(JavaScriptSource.name, fileName)
-						.and(StructrApp.key(JavaScriptSource.class, "useAsJavascriptLibrary"), true)
-						.getAsList();
+							.and(JavaScriptSource.name, fileName)
+							.and(StructrApp.key(JavaScriptSource.class, "useAsJavascriptLibrary"), true)
+							.getAsList();
 
 					if (jsFiles.isEmpty()) {
 						logger.warn("No JavaScript library file found with fileName: {}", fileName );

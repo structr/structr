@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -51,6 +51,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.servlet.JsonRestServlet;
 
 /**
@@ -142,6 +143,10 @@ public abstract class Resource {
 				tx.success();
 
 				logger.info("DeleteObjects: {} objects processed", count);
+
+			} catch (NotFoundException nfex) {
+
+				// ignore NotFoundException
 
 			} catch (Throwable t) {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -142,3 +142,183 @@ $(function () {
 	});
 });
 
+
+
+/* config search */
+
+let hitClass = 'search-matches';
+let noHitClass = 'no-search-match';
+
+let clearSearch = () => {
+
+	document.querySelectorAll('.' + hitClass).forEach((node) => {
+		node.classList.remove(hitClass);
+	});
+
+	document.querySelectorAll('.' + noHitClass).forEach((node) => {
+		node.classList.remove(noHitClass);
+	});
+
+};
+
+let doSearch = (q) => {
+
+	clearSearch();
+
+	// all tabs
+	document.querySelectorAll('.tabs-menu li a').forEach((tabLink) => {
+
+		let tab = document.querySelector(tabLink.getAttribute('href'));
+
+		let hitInTab = false;
+
+		// all form-groups in tab
+		tab.querySelectorAll('.form-group').forEach((formGroup) => {
+
+			let hitInFormGroup = false;
+
+			// key
+			formGroup.querySelectorAll('label').forEach((label) => {
+				if (containsIgnoreCase(label.firstChild.textContent, q)) {
+					hitInFormGroup = true;
+					label.classList.add(hitClass);
+				}
+			});
+
+			// input
+			formGroup.querySelectorAll('[type=text][name]').forEach((input) => {
+				if (input.value && containsIgnoreCase(input.value, q)) {
+					hitInFormGroup = true;
+					input.classList.add(hitClass);
+				}
+			});
+
+			// select
+			formGroup.querySelectorAll('select option').forEach((option) => {
+				if (containsIgnoreCase(option.textContent, q)) {
+					hitInFormGroup = true;
+					option.closest('select').classList.add(hitClass);
+				}
+			});
+
+			// button
+			formGroup.querySelectorAll('button[data-value]').forEach((button) => {
+				if (containsIgnoreCase(button.dataset.value, q)) {
+					hitInFormGroup = true;
+					button.classList.add(hitClass);
+				}
+			});
+
+			// help text
+			formGroup.querySelectorAll('label[data-comment]').forEach((label) => {
+				if (containsIgnoreCase(label.dataset.comment, q)) {
+					hitInFormGroup = true;
+					label.querySelector('span').classList.add(hitClass);
+				}
+			});
+
+			if (!hitInFormGroup) {
+				formGroup.classList.add(noHitClass);
+			}
+
+			hitInTab = hitInTab || hitInFormGroup;
+		});
+
+		let servicesTable = tab.querySelector('#services-table');
+		if (servicesTable) {
+			servicesTable.querySelectorAll('td:first-of-type').forEach((td) => {
+				if (containsIgnoreCase(td.textContent, q)) {
+					hitInTab = true;
+					td.classList.add(hitClass);
+				}
+			});
+		}
+
+		let liElement = tabLink.parentNode;
+
+		if (hitInTab) {
+			liElement.classList.add(hitClass)
+		} else {
+			liElement.classList.add(noHitClass);
+			tab.classList.add(noHitClass);
+		}
+	});
+
+	// hide everything without search hits
+	document.querySelectorAll('.config-group').forEach((configGroup) => {
+		let hitsInGroup = configGroup.querySelectorAll('.form-group:not(.' + noHitClass + ')').length;
+		if (hitsInGroup === 0) {
+			configGroup.classList.add(noHitClass);
+		}
+	});
+
+	// if any tabs are left, activate the first (if the currently active one is hidden)
+	let activeTabs = document.querySelectorAll('.tabs-menu li.active');
+	if (activeTabs.length > 0 && activeTabs[0].classList.contains(noHitClass)) {
+		let visibleTabLinks = document.querySelectorAll('.tabs-menu li.' + hitClass + ' a');
+		if (visibleTabLinks.length > 0) {
+			visibleTabLinks[0].click();
+		} else {
+			// nothing to show!
+		}
+	}
+};
+
+let containsIgnoreCase = (haystack, needle) => {
+	return haystack.toLowerCase().includes(needle.toLowerCase());
+};
+
+let initSearch = () => {
+
+	let isLogin = document.getElementById('login');
+
+	if (!isLogin) {
+
+		let header = document.getElementById('header');
+
+		let searchContainer = document.createElement('div');
+		searchContainer.id = 'search-container';
+
+		let searchBox = document.createElement('input');
+		searchBox.id = 'search-box';
+		searchBox.placeholder = 'Search config...';
+
+		searchContainer.appendChild(searchBox);
+		header.appendChild(searchContainer);
+
+		let searchTimeout;
+
+		searchBox.addEventListener('keyup', (x) => {
+
+			if (x.keyCode === 27) {
+
+				clearSearch();
+				searchBox.value = '';
+
+			} else {
+
+				window.clearTimeout(searchTimeout);
+
+				searchTimeout = window.setTimeout(() => {
+					let q = searchBox.value;
+
+					if (q.length == 0) {
+						clearSearch();
+					} else if (q.length >= 2) {
+						doSearch(searchBox.value);
+					}
+				}, 250);
+			}
+		});
+
+		window.addEventListener("keydown",function (e) {
+			// capture ctrl-f or meta-f (mac) to activate search
+			if ((e.ctrlKey && e.keyCode === 70) || (e.metaKey && e.keyCode === 70)) {
+				e.preventDefault();
+				searchBox.focus();
+			}
+		});
+	}
+};
+
+document.addEventListener('DOMContentLoaded', initSearch);

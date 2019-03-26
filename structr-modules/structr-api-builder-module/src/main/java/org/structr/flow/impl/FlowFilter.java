@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.property.EndNodes;
@@ -63,11 +64,11 @@ public class FlowFilter extends FlowNode implements DataSource, Filter, Deployab
 		if (ds != null) {
 			Object data = ds.get(context);
 
-			if (data instanceof Collection) {
+			if (data instanceof Iterable) {
 
 				if (condition != null) {
 
-					data = ((Collection) data).stream().filter( el -> {
+					data = Iterables.toList((Iterable) data).stream().filter(el -> {
 
 						try {
 							context.setData(getUuid(), el);
@@ -78,7 +79,7 @@ public class FlowFilter extends FlowNode implements DataSource, Filter, Deployab
 						}
 
 						return false;
-					}).collect(Collectors.toList());
+					});
 
 					context.setData(getUuid(), data);
 				} else {

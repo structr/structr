@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -40,6 +40,7 @@ public interface ContentContainer extends NodeInterface {
 		final JsonObjectType item = schema.addType("ContentItem");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ContentContainer"));
+		type.setCategory("ui");
 
 		type.addBooleanProperty("isContentContainer",                       PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 		type.addCustomProperty("path", ContentPathProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setTypeHint("String").setReadOnly(true).setIndexed(true);

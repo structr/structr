@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -177,6 +177,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 
 	public void setDeclaringClass(final Class declaringClass);
 	public Class getDeclaringClass();
+	public String getSourceUuid();
 
 	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter);
 	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate);

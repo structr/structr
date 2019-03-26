@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -66,7 +66,7 @@ public class RenderContext extends ActionContext {
 
 	public enum EditMode {
 
-		NONE, WIDGET, CONTENT, RAW, DEPLOYMENT;
+		NONE, WIDGET, CONTENT, RAW, DEPLOYMENT, SHAPES, SHAPES_MINIATURES;
 
 	}
 
@@ -231,6 +231,16 @@ public class RenderContext extends ActionContext {
 			case "4":
 
 				edit = EditMode.DEPLOYMENT;
+				break;
+
+			case "5":
+
+				edit = EditMode.SHAPES;
+				break;
+
+			case "6":
+
+				edit = EditMode.SHAPES_MINIATURES;
 				break;
 
 			default:

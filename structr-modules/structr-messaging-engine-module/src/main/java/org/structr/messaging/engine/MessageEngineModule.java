@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,11 @@
 package org.structr.messaging.engine;
 
 import com.google.gson.Gson;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.service.LicenseManager;
@@ -27,20 +32,19 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.function.Functions;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.messaging.implementation.kafka.entity.KafkaClient;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
+import org.structr.messaging.implementation.mqtt.function.MQTTPublishFunction;
+import org.structr.messaging.implementation.mqtt.function.MQTTSubscribeTopicFunction;
+import org.structr.messaging.implementation.mqtt.function.MQTTUnsubscribeTopicFunction;
 import org.structr.module.StructrModule;
+import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
-
-import java.io.*;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
 
 public class MessageEngineModule implements StructrModule {
 
@@ -48,6 +52,14 @@ public class MessageEngineModule implements StructrModule {
 
     @Override
     public void onLoad(LicenseManager licenseManager) {
+	}
+
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
+
+		Functions.put(licenseManager, new MQTTPublishFunction());
+		Functions.put(licenseManager, new MQTTSubscribeTopicFunction());
+		Functions.put(licenseManager, new MQTTUnsubscribeTopicFunction());
     }
 
     @Override
@@ -66,11 +78,11 @@ public class MessageEngineModule implements StructrModule {
     }
 
     @Override
-    public void insertImportStatements(final AbstractSchemaNode schemaNode, final StringBuilder buf) {
+    public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
     }
 
     @Override
-    public void insertSourceCode(final AbstractSchemaNode schemaNode, final StringBuilder buf) {
+    public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
     }
 
     @Override
@@ -79,7 +91,7 @@ public class MessageEngineModule implements StructrModule {
     }
 
     @Override
-    public void insertSaveAction(final AbstractSchemaNode schemaNode, final StringBuilder buf, final Actions.Type type) {
+    public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
     }
 
     @Override

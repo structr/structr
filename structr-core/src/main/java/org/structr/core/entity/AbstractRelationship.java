@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -53,7 +53,6 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -80,7 +79,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	private static final Logger logger = LoggerFactory.getLogger(AbstractRelationship.class.getName());
 
 	public static final Property<String>        internalTimestamp  = new StringProperty("internalTimestamp").systemInternal().indexed().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
-	public static final Property<Integer>       cascadeDelete      = new IntProperty("cascadeDelete");
 	public static final Property<String>        relType            = new RelationshipTypeProperty();
 	public static final SourceId                sourceId           = new SourceId("sourceId");
 	public static final TargetId                targetId           = new TargetId("targetId");
@@ -106,6 +104,8 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	private String cachedEndNodeId             = null;
 	private String cachedStartNodeId           = null;
+	private PropertyKey sourceProperty         = null;
+	private PropertyKey targetProperty         = null;
 
 	protected SecurityContext securityContext  = null;
 	protected Relationship dbRelationship      = null;
@@ -216,13 +216,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	@Override
 	public int hashCode() {
-
-		if (this.dbRelationship == null) {
-
-			return (super.hashCode());
-		}
-
-		return Long.valueOf(dbRelationship.getId()).hashCode();
+		return getUuid().hashCode();
 
 	}
 
@@ -235,15 +229,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			return -1;
 		}
 
-		return ((Long) this.getId()).compareTo((Long) rel.getId());
-	}
-
-	@Override
-	public int cascadeDelete() {
-
-		final Integer value = getProperty(AbstractRelationship.cascadeDelete);
-
-		return value != null ? value : 0;
+		return getUuid().compareTo(rel.getUuid());
 	}
 
 	/**
@@ -260,27 +246,8 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public final long getId() {
-
-		return getInternalId();
-
-	}
-
-	@Override
 	public final String getUuid() {
 		return getProperty(AbstractRelationship.id);
-	}
-
-	public final long getRelationshipId() {
-
-		return getInternalId();
-
-	}
-
-	public final long getInternalId() {
-
-		return dbRelationship.getId();
-
 	}
 
 	@Override
@@ -684,6 +651,22 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		throw new UnsupportedOperationException("Invoking a method on a relationship is not supported at the moment.");
 	}
 
+	public void setSourceProperty(final PropertyKey source) {
+		this.sourceProperty = source;
+	}
+
+	public void setTargetProperty(final PropertyKey target) {
+		this.targetProperty = target;
+	}
+
+	public PropertyKey getSourceProperty() {
+		return sourceProperty;
+	}
+
+	public PropertyKey getTargetProperty() {
+		return targetProperty;
+	}
+
 	// ----- protected methods -----
 	protected final Direction getDirectionForType(final Class<S> sourceType, final Class<T> targetType, final Class<? extends NodeInterface> type) {
 
@@ -700,12 +683,22 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			return Direction.INCOMING;
 		}
 
+		/* one of these blocks is wrong...*/
+		if (sourceType.isAssignableFrom(type) && targetType.isAssignableFrom(type)) {
+			return Direction.BOTH;
+		}
+
 		if (sourceType.isAssignableFrom(type)) {
 			return Direction.OUTGOING;
 		}
 
 		if (targetType.isAssignableFrom(type)) {
 			return Direction.INCOMING;
+		}
+
+		/* one of these blocks is wrong...*/
+		if (type.isAssignableFrom(sourceType) && type.isAssignableFrom(targetType)) {
+			return Direction.BOTH;
 		}
 
 		if (type.isAssignableFrom(sourceType)) {

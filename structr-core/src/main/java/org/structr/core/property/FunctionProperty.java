@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,7 +26,9 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 
@@ -57,6 +59,12 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	@Override
+	public Property<T> setSourceUuid(final String sourceUuid) {
+		this.sourceUuid = sourceUuid;
+		return this;
+	}
+
+	@Override
 	public Class relatedType() {
 		return null;
 	}
@@ -71,6 +79,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 		try {
 
+			final String readFunction = getReadFunction();
 			if (obj != null && readFunction != null) {
 
 				if (cachingEnabled) {
@@ -165,18 +174,25 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public Object setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
+	public Object setProperty(final SecurityContext securityContext, final GraphObject target, final T value) throws FrameworkException {
 
 		final ActionContext ctx = new ActionContext(securityContext);
+		final GraphObject obj   = PropertyMap.unwrap(target);
+		final String func       = getWriteFunction();
 		T result                = null;
 
-		if (writeFunction != null) {
+		if (func != null) {
 
 			try {
 
 				ctx.setConstant("value", value);
 
-				result = (T)Scripting.evaluate(ctx, obj, "${".concat(writeFunction).concat("}"), "setProperty(" + jsonName + ")");
+				result = (T)Scripting.evaluate(ctx, obj, "${".concat(func).concat("}"), "setProperty(" + jsonName + ")");
+
+			} catch (FrameworkException fex) {
+
+				// catch and re-throw FrameworkExceptions
+				throw fex;
 
 			} catch (Throwable t) {
 
@@ -222,5 +238,29 @@ public class FunctionProperty<T> extends Property<T> {
 
 		// fallback
 		return super.convertSearchValue(securityContext, requestParameter);
+	}
+
+	// ----- private methods -----
+	private String getReadFunction() throws FrameworkException {
+		return getCachedSourceCode(sourceUuid, SchemaProperty.readFunction, this.readFunction);
+	}
+
+	private String getWriteFunction() throws FrameworkException {
+		return getCachedSourceCode(sourceUuid, SchemaProperty.writeFunction, this.writeFunction);
+	}
+
+	public String getCachedSourceCode(final String uuid, final PropertyKey<String> key, final String defaultValue) throws FrameworkException {
+
+		final SchemaProperty property = StructrApp.getInstance().get(SchemaProperty.class, uuid);
+		if (property != null) {
+
+			final String value = property.getProperty(key);
+			if (value != null) {
+
+				return value;
+			}
+		}
+
+		return defaultValue;
 	}
 }

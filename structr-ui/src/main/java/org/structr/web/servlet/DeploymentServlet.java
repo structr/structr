@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,20 +26,16 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
-import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
@@ -124,7 +120,7 @@ public class DeploymentServlet extends HttpServlet implements HttpServiceServlet
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 
 		String redirectUrl = null;
-		
+
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			if (!ServletFileUpload.isMultipartContent(request)) {
@@ -174,11 +170,11 @@ public class DeploymentServlet extends HttpServlet implements HttpServiceServlet
 
 			String downloadUrl = null;
 			String fileName    = null;
-			
+
 			while (fileItemsIterator.hasNext()) {
 
 				final FileItemStream item = fileItemsIterator.next();
-				
+
 				if (item.isFormField()) {
 
 					final String fieldName = item.getFieldName();
@@ -188,24 +184,24 @@ public class DeploymentServlet extends HttpServlet implements HttpServiceServlet
 
 						downloadUrl = fieldValue;
 						params.put(fieldName, fieldValue);
-						
+
 					} else if (REDIRECT_URL_PARAMETER.equals(fieldName)) {
-						
+
 						redirectUrl = fieldValue;
 						params.put(fieldName, fieldValue);
 					}
 
 				}
-				
+
 				final String directoryPath = "/tmp/" + UUID.randomUUID();
 				final String filePath      = directoryPath + ".zip";
 				final File file = new File(filePath);
 
 				if (StringUtils.isNotBlank(downloadUrl)) {
-					
+
 					HttpHelper.streamURLToFile(downloadUrl, file);
 					fileName = PathHelper.getName(downloadUrl);
-					
+
 				} else {
 						Files.write(IOUtils.toByteArray(item.openStream()), file);
 						fileName = item.getName();
@@ -236,7 +232,7 @@ public class DeploymentServlet extends HttpServlet implements HttpServiceServlet
 
 				response.sendRedirect(redirectUrl);
 			}
-			
+
 		} catch (Exception t) {
 
 			logger.error("Exception while processing request", t);
@@ -249,7 +245,7 @@ public class DeploymentServlet extends HttpServlet implements HttpServiceServlet
 				} catch (IOException ex) {
 					logger.error("Unable to redirect to " + redirectUrl);
 				}
-			
+
 			} else {
 
 				UiAuthenticator.writeInternalServerError(response);

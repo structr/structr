@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,6 +33,9 @@ import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowNodeDataSource;
 import org.structr.flow.impl.rels.FlowNameDataSource;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -106,5 +109,19 @@ public class FlowGetProperty extends FlowDataSource {
 		}
 
 		return null;
+	}
+
+
+	@Override
+	public Map<String, Object> exportData() {
+		Map<String, Object> result = new HashMap<>();
+
+		result.put("id", this.getUuid());
+		result.put("type", this.getClass().getSimpleName());
+		result.put("propertyName", this.getProperty(propertyName));
+		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
+		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+
+		return result;
 	}
 }

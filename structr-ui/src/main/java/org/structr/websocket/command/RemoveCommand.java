@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,6 +27,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
@@ -72,6 +73,8 @@ public class RemoveCommand extends AbstractCommand {
 						// remove pageId from node and all children ("move to trash")
 						recursivelyRemoveNodesFromPage(domNode, securityContext);
 
+						TransactionCommand.registerNodeCallback(node, callback);
+						
 					} catch (DOMException | FrameworkException ex) {
 
 						logger.error("Could not remove node from page " + domNode, ex);
@@ -96,6 +99,8 @@ public class RemoveCommand extends AbstractCommand {
 								app.delete(rel);
 							}
 						}
+						
+						TransactionCommand.registerNodeCallback(node, callback);
 
 					} catch (Throwable t) {
 

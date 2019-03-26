@@ -1,0 +1,12 @@
+
+run "snippets/code"
+
+click text "Global Methods"
+click # 1 text "Add global schema method"
+sendKeys "cleanDatabase"
+click id "create-button-new"
+click # 1 children id "globals"
+click # 0 text "cleanDatabase()"
+click class "editor"
+sendKeys "log('Cleaning database..')"
+click # 3 tag "button"

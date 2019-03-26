@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,20 +18,23 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class OrFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_OR = "Usage: ${or(bool1, bool2)}. Example: ${or(\"true\", \"true\")}";
 
 	@Override
 	public String getName() {
-		return "or()";
+		return "or";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override
@@ -56,7 +59,6 @@ public class OrFunction extends Function<Object, Object> {
 					} catch (Throwable t) {
 
 						return t.getMessage();
-
 					}
 
 				} else {
@@ -65,12 +67,10 @@ public class OrFunction extends Function<Object, Object> {
 					result |= false;
 				}
 			}
-
 		}
 
 		return result;
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -81,5 +81,4 @@ public class OrFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Returns the disjunction of the given arguments";
 	}
-
 }

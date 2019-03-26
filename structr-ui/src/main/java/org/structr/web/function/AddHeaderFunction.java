@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,11 +18,9 @@
  */
 package org.structr.web.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.schema.action.ActionContext;
 
-/**
- *
- */
 public class AddHeaderFunction extends UiFunction {
 
 	public static final String ERROR_MESSAGE_ADD_HEADER    = "Usage: ${add_header(field, value)}. Example: ${add_header('X-User', 'johndoe')}";
@@ -30,7 +28,12 @@ public class AddHeaderFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "add_header()";
+		return "add_header";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
 	}
 
 	@Override
@@ -48,7 +51,6 @@ public class AddHeaderFunction extends UiFunction {
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
 		}
 
 		return usage(ctx.isJavaScriptContext());
@@ -63,5 +65,4 @@ public class AddHeaderFunction extends UiFunction {
 	public String shortDescription() {
 		return "Adds the given header field and value to the next request";
 	}
-
 }

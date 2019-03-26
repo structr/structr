@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -68,6 +68,10 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 
 	public Set<StructrTypeDefinition> getTypes() {
 		return typeDefinitions.getTypes();
+	}
+
+	public List<Map<String, Object>> getGlobalMethods() {
+		return globalMethods.serialize();
 	}
 
 	@Override
@@ -174,6 +178,14 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 		}
 
 		return pointer.toString();
+	}
+
+	@Override
+	public void diff(final JsonSchema schema) throws FrameworkException {
+
+		final StructrSchemaDefinition other = (StructrSchemaDefinition)schema; // provoke ClassCastException if type doesn't match
+
+		this.typeDefinitions.diff(other.typeDefinitions);
 	}
 
 	// ----- package methods -----

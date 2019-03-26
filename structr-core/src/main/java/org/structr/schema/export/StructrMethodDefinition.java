@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -52,6 +52,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 	private final List<StructrParameterDefinition> parameters = new LinkedList<>();
 	private final List<String> exceptions                     = new LinkedList<>();
+	private SchemaMethod schemaMethod                         = null;
 	private boolean overridesExisting                         = false;
 	private boolean doExport                                  = false;
 	private boolean callSuper                                 = false;
@@ -241,6 +242,10 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	// ----- package methods -----
+	SchemaMethod getSchemaMethod() {
+		return schemaMethod;
+	}
+
 	SchemaMethod createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
 		final PropertyMap getOrCreateProperties = new PropertyMap();
@@ -273,6 +278,8 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		for (final StructrParameterDefinition param : parameters) {
 			param.createDatabaseSchema(app, method, index++);
 		}
+
+		this.schemaMethod = method;
 
 		// return modified property
 		return method;
@@ -362,6 +369,8 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 	void deserialize(final SchemaMethod method) {
 
+		this.schemaMethod = method;
+
 		setName(method.getName());
 		setSource(method.getProperty(SchemaMethod.source));
 		setComment(method.getProperty(SchemaMethod.comment));
@@ -421,7 +430,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	void initializeReferences() {
 	}
 
-	private String getSignature() {
+	String getSignature() {
 
 		final StringBuilder buf = new StringBuilder();
 
@@ -438,6 +447,9 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		}
 
 		return buf.toString();
+	}
+
+	void diff(final StructrMethodDefinition other) {
 	}
 
 	// ----- static methods -----

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -127,6 +127,37 @@ public interface Template extends Content {
 			out.append("</structr:template>");
 			out.append(DOMNode.indent(depth-1, renderContext));
 
+		} else if (EditMode.SHAPES.equals(editMode)) {
+			
+			final AsyncBuffer out = renderContext.getBuffer();
+			
+			out.append("<structr:template data-structr-id=\"");
+			out.append(thisTemplate.getUuid());
+			out.append("\">\n");
+
+			// render content
+			Content.renderContent(thisTemplate, renderContext, depth);
+			
+			out.append("\n</structr:template>\n");
+			
+		} else if (EditMode.SHAPES_MINIATURES.equals(editMode)) {
+			
+			final AsyncBuffer out = renderContext.getBuffer();
+			
+			out.append("<structr:template data-structr-id=\"");
+			out.append(thisTemplate.getUuid());
+			out.append("\">\n");
+
+			// Append preview CSS
+			out.append("<style type=\"text/css\">");
+			out.append(thisTemplate.getProperty("previewCss"));
+			out.append("</style>\n");
+			
+			// render content
+			Content.renderContent(thisTemplate, renderContext, depth);
+			
+			out.append("\n</structr:template>\n");
+			
 		} else {
 
 			// "super" call using static method..

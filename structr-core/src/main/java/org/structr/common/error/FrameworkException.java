@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -67,7 +67,7 @@ public class FrameworkException extends Exception {
 
 		StringBuilder buf = new StringBuilder();
 
-		if (errorBuffer != null) {
+		if (errorBuffer != null && !errorBuffer.getErrorTokens().isEmpty()) {
 
 			for (final Iterator<ErrorToken> it = errorBuffer.getErrorTokens().iterator(); it.hasNext();) {
 

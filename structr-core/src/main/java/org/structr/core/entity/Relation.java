@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,8 @@
  */
 package org.structr.core.entity;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.SecurityContext;
@@ -26,6 +28,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
 
 /**
  * Defines constants for structr's relationship entities.
@@ -105,4 +108,31 @@ public interface Relation<A extends NodeInterface, B extends NodeInterface, S ex
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException;
 
 	public boolean isHidden();
+
+	public void setSourceProperty(final PropertyKey source);
+	public void setTargetProperty(final PropertyKey target);
+
+	public PropertyKey getSourceProperty();
+	public PropertyKey getTargetProperty();
+
+	public static final Map<Class, Relation> relationCache = new LinkedHashMap<>();
+
+	public static Relation getInstance(final Class<? extends Relation> type) {
+
+		Relation instance = relationCache.get(type);
+		if (instance == null) {
+
+			try {
+
+				instance = type.newInstance();
+				relationCache.put(type, instance);
+
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+		}
+
+		return instance;
+	}
 }

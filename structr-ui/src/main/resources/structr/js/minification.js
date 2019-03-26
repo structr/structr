@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -92,7 +92,7 @@ var _Minification = {
 	},
 
 	reloadHeadAndFiles: function (fileId) {
-		Command.get(fileId, "id,type,path,size,name,minificationSources,lineBreak,optimizationLevel,errors,warnings", function (f) {
+		Command.get(fileId, 'id,type,path,size,name,minificationSources,lineBreak,optimizationLevel,errors,warnings', function (f) {
 			_Minification.updateHead(f);
 
 			$('#minification-files tbody', dialogText).empty();

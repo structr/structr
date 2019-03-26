@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -132,35 +132,40 @@ public class FlowEngine {
 		}
 
 		// No linked FlowExceptionHandler was found, try to find an eligible global one
-		FlowContainer container = current.getFlowContainer();
+		final Logger logger = LoggerFactory.getLogger(FlowEngine.class);
+		try {
+			FlowContainer container = current.getFlowContainer();
 
-		Iterable<FlowBaseNode> flowNodes = container.getProperty(FlowContainer.flowNodes);
+			Iterable<FlowBaseNode> flowNodes = container.getProperty(FlowContainer.flowNodes);
 
-		if (flowNodes != null) {
+			if (flowNodes != null) {
 
-			for (FlowBaseNode node : flowNodes) {
+				for (FlowBaseNode node : flowNodes) {
 
-				if (node instanceof FlowExceptionHandler) {
+					if (node instanceof FlowExceptionHandler) {
 
-					final FlowExceptionHandler exceptionHandler = (FlowExceptionHandler)node;
-					final List<FlowBaseNode> handledNodes       = Iterables.toList(exceptionHandler.getProperty(FlowExceptionHandler.handledNodes));
+						final FlowExceptionHandler exceptionHandler = (FlowExceptionHandler) node;
+						final List<FlowBaseNode> handledNodes = Iterables.toList(exceptionHandler.getProperty(FlowExceptionHandler.handledNodes));
 
-					if (handledNodes == null || handledNodes.size() == 0) {
+						if (handledNodes == null || handledNodes.size() == 0) {
 
-						context.setData(exceptionHandler.getUuid(), exception);
-						return this.execute(context, exceptionHandler);
+							context.setData(exceptionHandler.getUuid(), exception);
+							return this.execute(context, exceptionHandler);
+
+						}
 
 					}
 
 				}
 
 			}
+		} catch (NullPointerException ex) {
 
+			logger.warn("Exception while processing FlowException.", ex);
 		}
 
 		// In case no handler is present at all, print the stack trace and return the intermediate result
-		final Logger logger = LoggerFactory.getLogger(FlowEngine.class);
-		logger.warn(exception.getMessage());
+		logger.warn("FlowEngine exception: ",exception);
 		context.error(new FlowError(exception.getMessage()));
 		return new FlowResult(context);
 	}

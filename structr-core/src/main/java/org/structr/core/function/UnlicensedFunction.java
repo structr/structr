@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -60,5 +60,10 @@ public class UnlicensedFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "unlicensed";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return edition;
 	}
 }

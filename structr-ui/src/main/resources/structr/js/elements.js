@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -303,7 +303,6 @@ var _Elements = {
 					});
 				});
 			});
-
 		}
 	},
 	reloadComponents: function() {
@@ -342,7 +341,6 @@ var _Elements = {
 
 			_Elements.appendEntitiesToDOMElement(result, components);
 			Structr.refreshPositionsForCurrentlyActiveSortable();
-
 		});
 	},
 	createComponent: function(el) {
@@ -370,9 +368,14 @@ var _Elements = {
 		elementsSlideout.append('<div class="ver-scrollable" id="elementsArea"></div>');
 		elements = $('#elementsArea', elementsSlideout);
 
-		elements.append('<button class="btn action" id="delete-all-unattached-nodes">Delete all</button>');
+		elements.append('<button class="btn action disabled" id="delete-all-unattached-nodes" disabled>Loading </button>');
 
 		var btn = $('#delete-all-unattached-nodes');
+		Structr.loaderIcon(btn, {
+			"max-height": "100%",
+			"height": "initial",
+			"width": "initial"
+		});
 		btn.on('click', function() {
 			Structr.confirmation('<p>Delete all DOM elements without parent?</p>',
 					function() {
@@ -388,8 +391,16 @@ var _Elements = {
 
 		Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(result) {
 
-			_Elements.appendEntitiesToDOMElement(result, elements);
+			var count = result.length;
+			if (count > 0) {
+				btn.text('Delete all (' + count + ')');
+				btn.removeClass('disabled');
+				btn.prop('disabled', false);
+			} else {
+				btn.text('No unused elements');
+			}
 
+			_Elements.appendEntitiesToDOMElement(result, elements);
 		});
 
 	},
@@ -489,7 +500,7 @@ var _Elements = {
 						if (el && el.children && el.children.length) {
 							var newSpriteClass = _Icons.getSpriteClassOnly(_Icons.brick_icon);
 							el.children('i.typeIcon').each(function (i, el) {
-								_Icons.updateSpritasdeClassTo(el, newSpriteClass);
+								_Icons.updateSpriteClassTo(el, newSpriteClass);
 							});
 						}
 					});
@@ -510,24 +521,26 @@ var _Elements = {
 			div.append('<i title="Edit Link" class="link_icon button ' + _Icons.getFullSpriteClass(_Icons.link_icon) + '" />');
 			if (entity.linkableId) {
 
-				if (entity.linkable.isFile) {
+				Command.get(entity.linkableId, 'id,type,name,isFile,isPage', function(linkedEntity) {
 
-					div.append('<span class="linkable">' + entity.linkable.name + '</span>');
+					div.append('<span class="linkable">' + linkedEntity.name + '</span>');
 
-					$('.linkable', div).on('click', function(e) {
-						e.stopPropagation();
+					if (linkedEntity.isFile) {
 
-						var file = {'name': entity.linkable.name, 'id': entity.linkableId};
+						$('.linkable', div).on('click', function(e) {
+							e.stopPropagation();
 
-						Structr.dialog('Edit ' + file.name, function() {
-							_Logger.log(_LogType.ELEMENTS, 'content saved');
-						}, function() {
-							_Logger.log(_LogType.ELEMENTS, 'cancelled');
+							var file = {'name': linkedEntity.name, 'id': linkedEntity.id};
+
+							Structr.dialog('Edit ' + file.name, function() {
+								_Logger.log(_LogType.ELEMENTS, 'content saved');
+							}, function() {
+								_Logger.log(_LogType.ELEMENTS, 'cancelled');
+							});
+							_Files.editContent(this, file, $('#dialogBox .dialogText'));
 						});
-						_Files.editContent(this, file, $('#dialogBox .dialogText'));
-
-					});
-				}
+					}
+				});
 			}
 
 			$('.link_icon', div).on('click', function(e) {
@@ -691,7 +704,7 @@ var _Elements = {
 			subDiv.on('click', function(e) {
 				if (!subDiv.children('.node').length) {
 					e.stopPropagation();
-					Command.get(subFolder.id, "id,name,files,folders", function(node) {
+					Command.get(subFolder.id, 'id,name,files,folders', function(node) {
 						_Elements.expandFolder(e, entity, node, callback);
 					});
 				} else {
@@ -710,7 +723,7 @@ var _Elements = {
 
 		$.each(folder.files, function(i, f) {
 
-			Command.get(f.id, "id,name,contentType,linkingElements", function(file) {
+			Command.get(f.id, 'id,name,contentType,linkingElements', function(file) {
 
 				$('.' + folder.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><i class="fa ' + _Icons.getFileIconClass(file) + '"></i> '
 						+ '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
@@ -725,7 +738,7 @@ var _Elements = {
 	},
 	handleLinkableElement: function (div, entityToLinkTo, linkableObject) {
 
-		if (isIn(entityToLinkTo.id, linkableObject.linkingElementsIds)) { 
+		if (isIn(entityToLinkTo.id, linkableObject.linkingElementsIds)) {
 			div.addClass('nodeActive');
 		}
 
@@ -736,9 +749,12 @@ var _Elements = {
 			if (div.hasClass('nodeActive')) {
 				Command.setProperty(entityToLinkTo.id, 'linkableId', null);
 			} else {
-				Command.getProperty(entityToLinkTo.id, '_html_src', function(val) {
+
+				var attrName = (entityToLinkTo.type === 'Link') ? '_html_href' : '_html_src';
+
+				Command.getProperty(entityToLinkTo.id, attrName, function(val) {
 					if (!val || val === '') {
-						Command.setProperty(entityToLinkTo.id, '_html_src', '${link.path}', null);
+						Command.setProperty(entityToLinkTo.id, attrName, '${link.path}', null);
 					}
 				});
 
@@ -843,7 +859,7 @@ var _Elements = {
 					var pageId = (entity.type === 'Page') ? entity.id : entity.pageId;
 					var tagName = (itemText === 'content') ? null : itemText;
 
-					Command.createAndAppendDOMNode(pageId, entity.id, tagName, {}, _Elements.isInheritVisibililtyFlagsChecked());
+					Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName), _Elements.isInheritVisibililtyFlagsChecked());
 				}
 
 				_Elements.removeContextMenu();
@@ -938,7 +954,7 @@ var _Elements = {
 			var pageId = isPage ? entity.id : entity.pageId;
 			var tagName = (itemText === 'content') ? null : itemText;
 
-			Command.createAndAppendDOMNode(pageId, entity.id, tagName, {}, _Elements.isInheritVisibililtyFlagsChecked());
+			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName), _Elements.isInheritVisibililtyFlagsChecked());
 		};
 
 		var handleWrapInHTMLAction = function (itemText) {
@@ -979,7 +995,7 @@ var _Elements = {
 			elements.push({
 				name: 'Insert div element',
 				clickHandler: function() {
-					Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', {}, _Elements.isInheritVisibililtyFlagsChecked());
+					Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', _Dragndrop.getAdditionalDataForElementCreation('div'), _Elements.isInheritVisibililtyFlagsChecked());
 					return false;
 				}
 			});
@@ -1614,8 +1630,8 @@ var _Elements = {
 			Command.patch(entity.id, text1, text2, function() {
 				Structr.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
 				_Pages.reloadPreviews();
-				dialogSaveButton.prop("disabled", true).addClass('disabled');
-				saveAndClose.prop("disabled", true).addClass('disabled');
+				dialogSaveButton.prop('disabled', true).addClass('disabled');
+				saveAndClose.prop('disabled', true).addClass('disabled');
 				Command.getProperty(entity.id, 'content', function(newText) {
 					text = newText;
 				});

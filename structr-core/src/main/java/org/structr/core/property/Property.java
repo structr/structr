@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -67,7 +67,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean dynamic                              = false;
 	protected boolean isCMISProperty                       = false;
 	protected boolean isPartOfBuiltInSchema                = false;
-	protected boolean cachingEnabled					   = false;
+	protected boolean cachingEnabled                       = false;
 	protected String dbName                                = null;
 	protected String jsonName                              = null;
 	protected String format                                = null;
@@ -76,6 +76,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected String writeFunction                         = null;
 	protected String hint                                  = null;
 	protected String category                              = null;
+	protected String sourceUuid                            = null;
 
 	private boolean requiresSynchronization                = false;
 
@@ -232,6 +233,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return category;
 	}
 
+	public Property<T> setSourceUuid(final String sourceUuid) {
+		this.sourceUuid = sourceUuid;
+		return this;
+	}
+
 	@Override
 	public Property<T> partOfBuiltInSchema() {
 		this.isPartOfBuiltInSchema = true;
@@ -271,6 +277,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public Class getDeclaringClass() {
 		return declaringClass;
+	}
+
+	@Override
+	public String getSourceUuid() {
+		return sourceUuid;
 	}
 
 	@Override

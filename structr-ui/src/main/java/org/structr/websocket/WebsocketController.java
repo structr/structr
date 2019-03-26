@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -119,24 +119,6 @@ public class WebsocketController implements StructrTransactionListener {
 					continue;
 				}
 
-				// if the object IS NOT of type AbstractNode AND the client is NOT priviledged OR
-				// if the object IS of type AbstractNode AND the client has no access to the node
-				// THEN skip sending a message
-				if (obj instanceof AbstractNode) {
-
-					final AbstractNode node = (AbstractNode)obj;
-
-					if (node.isHidden() || !securityContext.isVisible(node)) {
-						continue;
-					}
-
-				} else {
-
-					if (!socket.isPrivilegedUser(socket.getCurrentUser())) {
-						continue;
-					}
-				}
-
 				if (result != null && BroadcastCommands.contains(command)) {
 
 					final WebSocketMessage clientData = webSocketData.copy();
@@ -233,7 +215,7 @@ public class WebsocketController implements StructrTransactionListener {
 				final WebSocketMessage message = createMessage("CREATE", callbackId);
 
 				message.setGraphObject(node);
-				message.setResult(Arrays.asList(new GraphObject[]{node}));
+				message.setResult(Arrays.asList(node));
 				message.setCode(201);
 
 				return message;
@@ -247,28 +229,36 @@ public class WebsocketController implements StructrTransactionListener {
 				if (securityContext != null) {
 
 					// only include changed properties (+ id and type)
-					LinkedHashSet<String> propertySet = new LinkedHashSet();
+					final LinkedHashSet<String> propertySet = new LinkedHashSet();
+
 					propertySet.add("id");
 					propertySet.add("type");
+
 					for (Iterator<PropertyKey> it = modificationEvent.getModifiedProperties().keySet().iterator(); it.hasNext(); ) {
+
 						final String jsonName = ((PropertyKey)it.next()).jsonName();
 						if (!propertySet.contains(jsonName)) {
+
 							propertySet.add(jsonName);
 						}
 					}
+
 					for (Iterator<PropertyKey> it = modificationEvent.getRemovedProperties().keySet().iterator(); it.hasNext(); ) {
+
 						final String jsonName = ((PropertyKey)it.next()).jsonName();
 						if (!propertySet.contains(jsonName)) {
+
 							propertySet.add(jsonName);
 						}
 					}
+
 					if (propertySet.size() > 2) {
 						securityContext.setCustomView(propertySet);
 					}
 				}
 
 				message.setGraphObject(node);
-				message.setResult(Arrays.asList(new GraphObject[]{node}));
+				message.setResult(Arrays.asList(node));
 				message.setId(node.getUuid());
 				message.getModifiedProperties().addAll(modificationEvent.getModifiedProperties().keySet());
 				message.getRemovedProperties().addAll(modificationEvent.getRemovedProperties().keySet());

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.UnknownClientException;
+import org.structr.api.UnknownDatabaseException;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.PropertyView;
@@ -52,6 +54,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.property.TypeProperty;
 import org.structr.core.property.UuidProperty;
+import org.structr.schema.CodeSource;
 import org.structr.schema.action.ActionContext;
 
 
@@ -60,7 +63,7 @@ import org.structr.schema.action.ActionContext;
  *
  *
  */
-public interface GraphObject {
+public interface GraphObject extends CodeSource {
 
 	static final Logger logger = LoggerFactory.getLogger(GraphObject.class);
 
@@ -81,30 +84,6 @@ public interface GraphObject {
 	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema().category(SYSTEM_CATEGORY);
 
 	// ----- methods common to both types -----
-	/**
-	 * Returns the database ID of this graph object.
-	 *
-	 * @return the database ID
-	 */
-	public long getId();
-
-	/**
-	 * Returns the database ID of this graph object as a string.
-	 *
-	 * @return the database ID as a string
-	 */
-
-	default String getIdString() {
-		return Long.toString(getId());
-	}
-
-	/**
-	 * Returns the UUID of this graph object.
-	 *
-	 * @return the UUID
-	 */
-	public String getUuid();
-
 	/**
 	 * Returns the type of this graph object.
 	 *
@@ -163,6 +142,10 @@ public interface GraphObject {
 
 	/**
 	 * Sets the given properties.
+	 *
+	 * @param securityContext
+	 * @param properties
+	 * @param isCreation
 	 */
 	default void setPropertiesInternal(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 
@@ -234,8 +217,16 @@ public interface GraphObject {
 
 		if (atLeastOnePropertyChanged) {
 
-			// set primitive values directly for better performance
-			getPropertyContainer().setProperties(container.getData());
+			try {
+
+				// set primitive values directly for better performance
+				getPropertyContainer().setProperties(container.getData());
+
+			} catch (UnknownClientException | UnknownDatabaseException e) {
+
+				logger.warn("Unable to set properties of {} with UUID {}: {}", getType(), getUuid(), e.getMessage());
+				logger.warn("Properties: {}", container.getData());
+			}
 		}
 	}
 
@@ -303,8 +294,16 @@ public interface GraphObject {
 			}
 		}
 
-		// use "internal" setProperty for "indexing"
-		getPropertyContainer().setProperties(values);
+		try {
+
+			// use "internal" setProperty for "indexing"
+			getPropertyContainer().setProperties(values);
+
+		} catch (UnknownClientException | UnknownDatabaseException e) {
+
+			logger.warn("Unable to index properties of {} with UUID {}: {}", getType(), getUuid(), e.getMessage());
+			logger.warn("Properties: {}", values);
+		}
 	}
 
 	default void filterIndexableForCreation(final SecurityContext securityContext, final PropertyMap src, final CreationContainer indexable, final PropertyMap filtered) throws FrameworkException {

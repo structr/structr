@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -199,5 +199,28 @@ public class PathHelper {
 		String cleanedPath = clean(path);
 
 		return StringUtils.splitByWholeSeparator(cleanedPath, PATH_SEP);
+	}
+
+	/**
+	 * Simply removes all relative parts of a path (meaning ".." and ".")
+	 *
+	 * @param path
+	 * @return path without relative parts
+	 */
+	public static String removeRelativeParts(final String path) {
+
+		String partialPath = "";
+
+		for (String part : PathHelper.getParts(path)) {
+
+			// ignore ".." and "." in paths
+			if ("..".equals(part) || ".".equals(part)) {
+				continue;
+			}
+
+			partialPath += PathHelper.PATH_SEP + part;
+		}
+
+		return partialPath;
 	}
 }

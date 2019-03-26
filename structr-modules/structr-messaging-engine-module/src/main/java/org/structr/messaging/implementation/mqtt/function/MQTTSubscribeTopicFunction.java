@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.messaging.implementation.mqtt.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.schema.action.ActionContext;
@@ -27,6 +28,16 @@ public class MQTTSubscribeTopicFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_MQTTSUBSCRIBE    = "Usage: ${mqtt_subscribe(client, topic)}. Example ${mqtt_subscribe(client, 'myTopic')}";
 	public static final String ERROR_MESSAGE_MQTTSUBSCRIBE_JS = "Usage: ${{Structr.mqtt_subscribe(client, topic)}}. Example ${{Structr.mqtt_subscribe(client, topic)}}";
+
+	@Override
+	public String getName() {
+		return "mqtt_subscribe";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
+	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
@@ -60,10 +71,5 @@ public class MQTTSubscribeTopicFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Subscribes given topic on given mqtt client.";
-	}
-
-	@Override
-	public String getName() {
-		return "mqtt_subscribe";
 	}
 }

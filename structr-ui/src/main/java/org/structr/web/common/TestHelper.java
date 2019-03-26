@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -238,18 +238,24 @@ public class TestHelper {
 
 				body.append(", ");
 
-				// integer?
+				// Integer
 				if (key.startsWith("i:")) {
 
 					body.append(key.substring(2));
 					body.append(": ");
 					body.append(count);
 
-				// boolean?
+				// Boolean
 				} else if (key.startsWith("b:")) {
 
 					body.append(key.substring(2));
 					body.append(": true");
+
+				// Enum with language
+				} else if (key.startsWith("lang:")) {
+
+					body.append(key.substring(5));
+					body.append(": \"de\"");
 
 				} else {
 

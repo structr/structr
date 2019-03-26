@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -47,6 +47,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.Relation;
 import org.structr.core.function.ChangelogFunction;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
@@ -261,7 +262,7 @@ public class ModificationQueue {
 
 		if (sourceNode != null && targetNode != null) {
 
-			modifyEndNodes(user, sourceNode, targetNode, relationship.getRelType());
+			modifyEndNodes(user, sourceNode, targetNode, relationship, false);
 
 			if (Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue()) {
 
@@ -314,7 +315,7 @@ public class ModificationQueue {
 				state.propagatedModification();
 
 				// save hash to avoid repeated propagation
-				alreadyPropagated.add(hash(node));
+				alreadyPropagated.add(hash(node.getNode()));
 			}
 		}
 	}
@@ -336,7 +337,7 @@ public class ModificationQueue {
 		final NodeInterface sourceNode = relationship.getSourceNodeAsSuperUser();
 		final NodeInterface targetNode = relationship.getTargetNodeAsSuperUser();
 
-		modifyEndNodes(user, sourceNode, targetNode, relationship.getRelType());
+		modifyEndNodes(user, sourceNode, targetNode, relationship, true);
 
 		if (Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue()) {
 
@@ -362,7 +363,7 @@ public class ModificationQueue {
 
 	public boolean isDeleted(final Node node) {
 
-		final GraphObjectModificationState state = modifications.get("N" + node.getId());
+		final GraphObjectModificationState state = modifications.get(hash(node));
 		if (state != null) {
 
 			return state.isDeleted() || state.isPassivelyDeleted();
@@ -373,7 +374,7 @@ public class ModificationQueue {
 
 	public boolean isDeleted(final Relationship rel) {
 
-		final GraphObjectModificationState state = modifications.get("R" + rel.getId());
+		final GraphObjectModificationState state = modifications.get(hash(rel));
 		if (state != null) {
 
 			return state.isDeleted() || state.isPassivelyDeleted();
@@ -476,8 +477,10 @@ public class ModificationQueue {
 		after.putAll(state.getModifiedProperties());
 		after.putAll(state.getNewProperties());
 
-		result.put(new GenericProperty("before"), before);
-		result.put(new GenericProperty("after"),  after);
+		result.put(new GenericProperty("before"),  before);
+		result.put(new GenericProperty("after"),   after);
+		result.put(new GenericProperty("added"),   state.getAddedRemoteProperties());
+		result.put(new GenericProperty("removed"), state.getRemovedRemoteProperties());
 
 		return result;
 	}
@@ -487,10 +490,12 @@ public class ModificationQueue {
 	}
 
 	// ----- private methods -----
-	private void modifyEndNodes(final Principal user, final NodeInterface startNode, final NodeInterface endNode, final RelationshipType relType) {
+	private void modifyEndNodes(final Principal user, final NodeInterface startNode, final NodeInterface endNode, final RelationshipInterface rel, final boolean isDeletion) {
 
 		// only modify if nodes are accessible
 		if (startNode != null && endNode != null) {
+
+			final RelationshipType relType = rel.getRelType();
 
 			if (RelType.OWNS.equals(relType)) {
 
@@ -513,8 +518,36 @@ public class ModificationQueue {
 				return;
 			}
 
-			modify(user, startNode, null, null, null);
-			modify(user, endNode, null, null, null);
+			final Relation relation  = Relation.getInstance((Class)rel.getClass());
+			final PropertyKey source = relation.getSourceProperty();
+			final PropertyKey target = relation.getTargetProperty();
+			final Object sourceValue = source != null && source.isCollection() ? new LinkedList<>() : null;
+			final Object targetValue = target != null && target.isCollection() ? new LinkedList<>() : null;
+
+			modify(user, startNode, target, null, targetValue);
+			modify(user, endNode, source, null, sourceValue);
+
+			if (source != null && target != null) {
+
+				if (isDeletion) {
+
+					// update removed properties
+					getState(startNode).remove(target, endNode);
+					getState(endNode).remove(source, startNode);
+
+				} else {
+
+
+					// update added properties
+					getState(startNode).add(target, endNode);
+					getState(endNode).add(source, startNode);
+				}
+
+			} else {
+
+				// dont log so much..
+				//logger.warn("No properties registered for {}: source: {}, target: {}", rel.getClass(), source, target);
+			}
 		}
 	}
 
@@ -524,7 +557,7 @@ public class ModificationQueue {
 
 	private GraphObjectModificationState getState(final NodeInterface node, final boolean checkPropagation) {
 
-		String hash = hash(node);
+		String hash = hash(node.getNode());
 		GraphObjectModificationState state = modifications.get(hash);
 
 		if (state == null && !(checkPropagation && alreadyPropagated.contains(hash))) {
@@ -543,7 +576,7 @@ public class ModificationQueue {
 
 	private GraphObjectModificationState getState(final RelationshipInterface rel, final boolean create) {
 
-		String hash = hash(rel);
+		String hash = hash(rel.getRelationship());
 		GraphObjectModificationState state = modifications.get(hash);
 
 		if (state == null && create) {
@@ -556,11 +589,11 @@ public class ModificationQueue {
 		return state;
 	}
 
-	private String hash(final NodeInterface node) {
+	private String hash(final Node node) {
 		return "N" + node.getId();
 	}
 
-	private String hash(final RelationshipInterface rel) {
+	private String hash(final Relationship rel) {
 		return "R" + rel.getId();
 	}
 

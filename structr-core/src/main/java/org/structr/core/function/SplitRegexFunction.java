@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,9 +19,10 @@
 package org.structr.core.function;
 
 import java.util.Arrays;
-import org.structr.common.error.FrameworkException;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -31,7 +32,12 @@ public class SplitRegexFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "split_regex()";
+		return "split_regex";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

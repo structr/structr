@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,9 +18,11 @@
  */
 package org.structr.console.tabcompletion;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.SecurityContext;
+import org.structr.core.function.Functions;
 
 /**
  *
@@ -30,9 +32,18 @@ public class JavaScriptTabCompletionProvider extends AbstractTabCompletionProvid
 	@Override
 	public List<TabCompletionResult> getTabCompletion(final SecurityContext securityContext, final String line) {
 
-		final List<TabCompletionResult> result = new LinkedList<>();
+		final List<TabCompletionResult> results = new LinkedList<>();
 
+		if (line.startsWith("Structr.")) {
+			List<TabCompletionResult> intermediateList = getExactResultsForCollection(Functions.getNames(), line.substring(8), "(");
 
-		return result;
+			intermediateList.forEach((tcr) -> {
+				results.add(new TabCompletionResult("Structr." + tcr.getCommand(), tcr.getCompletion(), tcr.getSuffix()));
+			});
+		}
+
+		Collections.sort(results);
+
+		return results;
 	}
 }

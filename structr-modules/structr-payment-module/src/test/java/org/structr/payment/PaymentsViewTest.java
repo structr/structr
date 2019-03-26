@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,12 +18,13 @@
  */
 package org.structr.payment;
 
-import org.junit.Test;
+import org.structr.test.web.StructrUiTest;
+import org.testng.annotations.Test;
 import org.structr.web.common.TestHelper;
 
 /**
  */
-public class PaymentsViewTest extends StructrPaymentModuleTest {
+public class PaymentsViewTest extends StructrUiTest {
 
 	@Test
 	public void testViews() {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,8 @@
  */
 package org.structr.flow.impl;
 
+import java.util.Map;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -27,12 +29,20 @@ import org.structr.flow.engine.FlowEngine;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-import java.util.Map;
-
 public class FlowFunction extends Function<Object, Object> {
 
 	public static final String USAGE    = "Usage: ${flow(name)}";
-	public static final String USAGE_JS = "Usage: ${Structr.flow(name)}";
+	public static final String USAGE_JS = "Usage: ${{ Structr.flow(name) }}";
+
+	@Override
+	public String getName() {
+		return "flow";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
+	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
@@ -50,7 +60,6 @@ public class FlowFunction extends Function<Object, Object> {
 				if (sources.length > 1 && sources[1] instanceof Map) {
 					parameters = (Map)sources[1];
 				}
-
 
 				if (container != null) {
 
@@ -74,9 +83,7 @@ public class FlowFunction extends Function<Object, Object> {
 								for (int c = 1; c < sources.length; c += 2) {
 									context.setParameter(sources[c].toString(), sources[c + 1]);
 								}
-
 							}
-
 						}
 
 						final FlowEngine engine = new FlowEngine(context);
@@ -112,10 +119,5 @@ public class FlowFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Returns the evaluation result of the Flow with the given name.";
-	}
-
-	@Override
-	public String getName() {
-		return "flow()";
 	}
 }

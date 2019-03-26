@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -120,7 +120,7 @@ var _Icons = {
 		return 'sprite ' + _Icons.getSpriteClassOnly(key);
 
 	},
-	updateSpritasdeClassTo: function (el, newSpriteClass) {
+	updateSpriteClassTo: function (el, newSpriteClass) {
 		el.classList.forEach(function(cls) {
 			if (cls.indexOf('sprite-') === 0) {
 				el.classList.remove(cls);

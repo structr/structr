@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,6 +25,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -41,6 +42,16 @@ public class UTMToLatLonFunction extends Function<Object, Object> {
 	private static final String UTMzdlChars              = "CDEFGHJKLMNPQRSTUVWXX";
 	public static final DoubleProperty latitudeProperty  = new DoubleProperty("latitude");
 	public static final DoubleProperty longitudeProperty = new DoubleProperty("longitude");
+
+	@Override
+	public String getName() {
+		return "utm_to_lat_lon";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
+	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
@@ -110,11 +121,6 @@ public class UTMToLatLonFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Converts the given UTM string to latitude/longitude coordinates.";
-	}
-
-	@Override
-	public String getName() {
-		return "utm_to_lat_lon";
 	}
 
 	// ----- private methods -----

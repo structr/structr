@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -412,8 +412,8 @@ var LSWrapper = new (function() {
 		_localStorageObject[key] = value;
 	};
 
-	this.getItem = function (key) {
-		return (_localStorageObject[key] === undefined) ? null : _localStorageObject[key];
+	this.getItem = function (key, defaultValue = null) {
+		return (_localStorageObject[key] === undefined) ? defaultValue : _localStorageObject[key];
 	};
 
 	this.removeItem = function (key) {
@@ -757,8 +757,7 @@ var _Console = new (function() {
 				},
 				completion: function(lineToBeCompleted, callback) {
 					Command.console(lineToBeCompleted, mode, function(data) {
-						var commands = JSON.parse(data.data.commands);
-						callback(commands);
+						callback(data.data.commands);
 					}, true);
 				}
 			});

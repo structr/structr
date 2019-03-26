@@ -1,0 +1,7 @@
+
+# delete first page
+mouseOver css "div.page.node > b"
+mouseOver css "div.page.node > i.delete_icon"
+click css "div.page.node > i.delete_icon"
+click class "yesButton"
+

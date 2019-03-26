@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,6 +27,7 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLType;
 import static graphql.schema.GraphQLTypeReference.typeRef;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -66,6 +67,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.SchemaService;
+import org.structr.schema.SourceFile;
 
 /**
  *
@@ -294,6 +296,13 @@ public class SchemaNode extends AbstractSchemaNode {
 				return;
 			}
 
+			// migrate RemoteDocument
+			if (_extendsClass.equals("org.structr.web.entity.RemoteDocument")) {
+
+				setProperty(extendsClass, "org.structr.feed.entity.RemoteDocument");
+				return;
+			}
+
 			// migrate Person
 			if (_extendsClass.equals("org.structr.core.entity.Person")) {
 
@@ -361,6 +370,56 @@ public class SchemaNode extends AbstractSchemaNode {
 				}
 			}
 		}
+
+		// migrate Mail and Mailbox
+		// change name and implemented class
+		if ("Mail".equals(getName())) {
+
+			String interfaceStrings = getProperty(implementsInterfaces);
+
+			if (interfaceStrings != null && Arrays.stream(interfaceStrings.split(",")).anyMatch("org.structr.mail.entity.Mail"::equals)) {
+
+				String[] splitInterfaces = interfaceStrings.split(",");
+
+				setProperty(name, "EMailMessage");
+
+				for (int i = 0; i < splitInterfaces.length; i++) {
+					if (splitInterfaces[i].equals("org.structr.mail.entity.Mail")) {
+						splitInterfaces[i] = "org.structr.mail.entity.EMailMessage";
+					}
+				}
+
+				setProperty(implementsInterfaces, String.join(",", splitInterfaces));
+			}
+		}
+
+		if("Mailbox".equals(getName())) {
+
+			String interfaceStrings = getProperty(implementsInterfaces);
+
+			if (interfaceStrings != null && Arrays.stream(interfaceStrings.split(",")).anyMatch("org.structr.mail.entity.Mailbox"::equals)) {
+
+				for (final SchemaProperty p : getProperty(SchemaNode.schemaProperties)) {
+
+					if ("mails".equals(p.getName())) {
+
+						StructrApp.getInstance().delete(p);
+					}
+				}
+			}
+		}
+
+		if("LDAPUser".equals(getName())) {
+
+			for (final SchemaMethod method : getProperty(SchemaNode.schemaMethods)) {
+
+				if ("onModification".equals(method.getName())) {
+
+					StructrApp.getInstance().delete(method);
+				}
+			}
+		}
+
 	}
 
 	public void initializeGraphQL(final Map<String, SchemaNode> schemaNodes, final Map<String, GraphQLType> graphQLTypes, final Set<String> blacklist) throws FrameworkException {
@@ -430,6 +489,36 @@ public class SchemaNode extends AbstractSchemaNode {
 
 		// register type in GraphQL schema
 		graphQLTypes.put(className, GraphQLObjectType.newObject().name(className).fields(new LinkedList<>(fields.values())).build());
+	}
+
+	@Export
+	public String getGeneratedSourceCode() throws FrameworkException, UnlicensedTypeException {
+
+		final SourceFile sourceFile               = new SourceFile("");
+		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
+
+		// collect list of schema nodes
+		StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
+
+		// return generated source code for this class
+		SchemaHelper.getSource(sourceFile, this, schemaNodes, SchemaService.getBlacklist(), new ErrorBuffer());
+
+		return sourceFile.getContent();
+	}
+
+	@Override
+	public boolean reloadSchemaOnCreate() {
+		return true;
+	}
+
+	@Override
+	public boolean reloadSchemaOnModify(final ModificationQueue modificationQueue) {
+		return true;
+	}
+
+	@Override
+	public boolean reloadSchemaOnDelete() {
+		return true;
 	}
 
 	// ----- private methods -----
@@ -555,19 +644,6 @@ public class SchemaNode extends AbstractSchemaNode {
 		return true;
 	}
 
-	@Export
-	public String getGeneratedSourceCode() throws FrameworkException, UnlicensedTypeException {
-
-		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
-
-		// collect list of schema nodes
-		StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
-
-		// return generated source code for this class
-		return SchemaHelper.getSource(this, schemaNodes, SchemaService.getBlacklist(), new ErrorBuffer());
-	}
-
-	// ----- private methods -----
 	private String addToList(final String source, final String value) {
 
 		final List<String> list = new LinkedList<>();

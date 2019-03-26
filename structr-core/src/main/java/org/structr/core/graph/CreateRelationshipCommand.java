@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -64,7 +64,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		final PropertyMap properties         = new PropertyMap(attributes);
 		final PropertyMap toNotify           = new PropertyMap();
 		final CreationContainer tmp          = new CreationContainer(false);
-		final R template                     = instantiate(relType);
+		final R template                     = (R)Relation.getInstance(relType);
 		final Node startNode                 = fromNode.getNode();
 		final Node endNode                   = toNode.getNode();
 		final Date now                       = new Date();
@@ -85,7 +85,6 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		tmp.getData().put(AbstractRelationship.targetId.jsonName(), toNode.getUuid());
 		tmp.getData().put(AbstractRelationship.visibleToPublicUsers.jsonName(), false);
 		tmp.getData().put(AbstractRelationship.visibleToAuthenticatedUsers.jsonName(), false);
-		tmp.getData().put(AbstractRelationship.cascadeDelete.jsonName(), template.getCascadingDeleteFlag());
 
 		if (user != null) {
 			tmp.getData().put(AbstractRelationship.createdBy.jsonName(), user.getUuid());
@@ -109,7 +108,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 		// create relationship including initial properties
 		final Relationship rel = startNode.createRelationshipTo(endNode, template, tmp.getData());
-		final R newRel         = factory.instantiateWithType(rel, relType, -1, true);
+		final R newRel         = factory.instantiateWithType(rel, relType, null, true);
 
 		if (newRel != null) {
 
@@ -150,18 +149,5 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		securityContext.enableModificationOfAccessTime();
 
 		return newRel;
-	}
-
-	private <T extends Relation> T instantiate(final Class<T> type) {
-
-		try {
-
-			return type.newInstance();
-
-		} catch(Throwable t) {
-			logger.warn("", t);
-		}
-
-		return null;
 	}
 }

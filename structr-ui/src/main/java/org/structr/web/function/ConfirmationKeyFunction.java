@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,9 +18,9 @@
  */
 package org.structr.web.function;
 
+import org.structr.api.service.LicenseManager;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.action.ActionContext;
-
 
 public class ConfirmationKeyFunction extends UiFunction {
 
@@ -29,7 +29,12 @@ public class ConfirmationKeyFunction extends UiFunction {
 
 	@Override
 	public String getName() {
-		return "confirmation_key()";
+		return "confirmation_key";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override

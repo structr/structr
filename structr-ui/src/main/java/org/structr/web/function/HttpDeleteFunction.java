@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.web.function;
 
 import java.util.Map;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.IntProperty;
@@ -27,7 +28,6 @@ import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-
 public class HttpDeleteFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_DELETE    = "Usage: ${DELETE(URL[, contentType])}. Example: ${DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json')}";
@@ -35,7 +35,12 @@ public class HttpDeleteFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "DELETE()";
+		return "DELETE";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
 	}
 
 	@Override

@@ -1,0 +1,23 @@
+<div class="ver-scrollable">
+
+	<div class="tab-group${config.localCollapsed ? ' collapsed' : ''}" data-key="${_Widgets.localWidgetsCollapsedKey}">
+		<a href="javascript:void(0);" class="tab-group-toggle"><h2><i class="collapsed ${_Icons.getFullSpriteClass(_Icons.collapsed_icon)}" /><i class="expanded ${_Icons.getFullSpriteClass(_Icons.expanded_icon)}" /> Local Widgets</h2></a>
+		<div class="tab-group-content">
+			<button class="action add_widgets_icon button"><i title="Add Widget" class="${_Icons.getFullSpriteClass(_Icons.add_widget_icon)}" /> Add Widget</button>
+			<div id="widgets"></div>
+		</div>
+	</div>
+
+	<div class="tab-group${config.remoteCollapsed ? ' collapsed' : ''}" data-key="${_Widgets.remoteWidgetsCollapsedKey}">
+		<a href="javascript:void(0);" class="tab-group-toggle"><h2><i class="collapsed ${_Icons.getFullSpriteClass(_Icons.collapsed_icon)}" /><i class="expanded ${_Icons.getFullSpriteClass(_Icons.expanded_icon)}" /> Remote Widgets</h2></a>
+		<div class="tab-group-content">
+			<div>
+				<span id="widget-server-selector-container"></span>
+				<button id="edit-widget-servers" title="Edit Widget Servers"><i class="${_Icons.getFullSpriteClass(_Icons.edit_icon)}" /></button>
+			</div>
+			<div><input placeholder="Filter..." id="remoteWidgetsFilter"></div>
+			<div id="remoteWidgets"></div>
+		</div>
+	</div>
+
+</div>

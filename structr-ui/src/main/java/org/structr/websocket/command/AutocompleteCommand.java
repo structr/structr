@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,7 @@ import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.autocomplete.AbstractHintProvider;
+import org.structr.autocomplete.JavaHintProvider;
 import org.structr.autocomplete.JavascriptHintProvider;
 import org.structr.autocomplete.PlaintextHintProvider;
 import org.structr.common.error.FrameworkException;
@@ -34,12 +35,8 @@ import org.structr.core.property.Property;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * Websocket command to return the children of the given node
- *
- *
+ * Websocket command to support autocompletion in the backend ui.
  */
 public class AutocompleteCommand extends AbstractCommand {
 
@@ -51,9 +48,9 @@ public class AutocompleteCommand extends AbstractCommand {
 
 		StructrWebSocket.addCommand(AutocompleteCommand.class);
 
-		hintProviders.put("text/plain",             new PlaintextHintProvider());
-		hintProviders.put("text/javascript",        new JavascriptHintProvider());
-		hintProviders.put("application/javascript", new JavascriptHintProvider());
+		hintProviders.put("text/javascript",  new JavascriptHintProvider());
+		hintProviders.put("text/x-java",      new JavaHintProvider());
+		hintProviders.put("text",             new PlaintextHintProvider());
 	}
 
 	@Override
@@ -105,9 +102,6 @@ public class AutocompleteCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
-
 		return "AUTOCOMPLETE";
 	}
-
-	// ----- private methods -----
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,7 +27,7 @@ import org.structr.bolt.SessionTransaction;
  */
 public class NodeResultStream extends AbstractResultStream<Node> {
 
-	public NodeResultStream(final BoltDatabaseService db, final PageableQuery query) {
+	public NodeResultStream(final BoltDatabaseService db, final CypherQuery query) {
 		super(db, query);
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,7 +38,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class FavoritesCommand extends AbstractCommand {
 
-	private static final Logger logger                          = LoggerFactory.getLogger(LayoutsCommand.class.getName());
+	private static final Logger logger                          = LoggerFactory.getLogger(FavoritesCommand.class.getName());
 
 	static {
 

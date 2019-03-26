@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,7 +19,6 @@
 package org.structr.core.graph;
 
 import java.io.File;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +31,7 @@ import org.structr.api.index.Index;
 import org.structr.api.service.Command;
 import org.structr.api.service.SingletonService;
 import org.structr.api.service.StructrServices;
+import org.structr.api.util.CountResult;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -42,10 +42,8 @@ import org.structr.core.property.PropertyKey;
  */
 public class NodeService implements SingletonService {
 
-	private static final Logger logger            = LoggerFactory.getLogger(NodeService.class.getName());
-	private static final String INITIAL_SEED_FILE = "seed.zip";
-
-	private DatabaseService graphDb      = null;
+	private static final Logger logger   = LoggerFactory.getLogger(NodeService.class.getName());
+	private DatabaseService databaseService      = null;
 	private Index<Node> nodeIndex        = null;
 	private Index<Relationship> relIndex = null;
 	private String filesPath             = null;
@@ -57,7 +55,7 @@ public class NodeService implements SingletonService {
 
 		if (command != null) {
 
-			command.setArgument("graphDb",           graphDb);
+			command.setArgument("graphDb",           databaseService);
 			command.setArgument("nodeIndex",         nodeIndex);
 			command.setArgument("relationshipIndex", relIndex);
 			command.setArgument("filesPath",         filesPath);
@@ -68,10 +66,10 @@ public class NodeService implements SingletonService {
 	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final String databaseDriver = Settings.DatabaseDriver.getValue();
-		graphDb = (DatabaseService)Class.forName(databaseDriver).newInstance();
-		if (graphDb != null) {
+		databaseService = (DatabaseService)Class.forName(databaseDriver).newInstance();
+		if (databaseService != null) {
 
-			if (graphDb.initialize()) {
+			if (databaseService.initialize()) {
 
 				filesPath = Settings.FilesPath.getValue();
 
@@ -85,10 +83,10 @@ public class NodeService implements SingletonService {
 				logger.info("Database driver loaded, initializing indexes..");
 
 				// index creation transaction
-				try ( final Transaction tx = graphDb.beginTx() ) {
+				try ( final Transaction tx = databaseService.beginTx() ) {
 
-					nodeIndex = graphDb.nodeIndex();
-					relIndex  = graphDb.relationshipIndex();
+					nodeIndex = databaseService.nodeIndex();
+					relIndex  = databaseService.relationshipIndex();
 
 					tx.success();
 
@@ -117,7 +115,10 @@ public class NodeService implements SingletonService {
 			basePath = ".";
 		}
 
-		checkCacheSizes();
+		// don't check cache sizes when testing..
+		if (!Services.isTesting()) {
+			checkCacheSizes();
+		}
 	}
 
 	@Override
@@ -125,10 +126,10 @@ public class NodeService implements SingletonService {
 
 		if (isRunning()) {
 
-			logger.info("Shutting down graph database service");
-			graphDb.shutdown();
+			logger.info("Shutting down database service");
+			databaseService.shutdown();
 
-			graphDb       = null;
+			databaseService       = null;
 			isInitialized = false;
 		}
 	}
@@ -138,14 +139,14 @@ public class NodeService implements SingletonService {
 		return NodeService.class.getSimpleName();
 	}
 
-	public DatabaseService getGraphDb() {
-		return graphDb;
+	public DatabaseService getDatabaseService() {
+		return databaseService;
 	}
 
 	@Override
 	public boolean isRunning() {
 
-		return ((graphDb != null) && isInitialized);
+		return ((databaseService != null) && isInitialized);
 	}
 
 	@Override
@@ -182,7 +183,7 @@ public class NodeService implements SingletonService {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				initialCount = new CountResult();
+				initialCount = databaseService.getNodeAndRelationshipCount();
 				tx.success();
 
 			} catch (Throwable t) {
@@ -194,41 +195,43 @@ public class NodeService implements SingletonService {
 	}
 
 	public CountResult getCurrentCounts() {
-		return new CountResult();
+		return databaseService.getNodeAndRelationshipCount();
 	}
 
 	public void createAdminUser() {
 
-		// do two very quick count queries to determine the number of Structr nodes in the database
-		final CountResult count           = getInitialCounts();
-		final long abstractNodeCount      = count.getAbstractNodeCount();
-		final long nodeInterfaceCount     = count.getNodeInterfaceCount();
-		final boolean hasApplicationNodes = abstractNodeCount == nodeInterfaceCount && abstractNodeCount > 0;
+		if (!Services.isTesting()) {
 
-		if (!hasApplicationNodes && !Services.isTesting()) {
+			// do two very quick count queries to determine the number of Structr nodes in the database
+			final CountResult count           = getInitialCounts();
+			final long nodeCount              = count.getNodeCount();
+			final boolean hasApplicationNodes = nodeCount > 0;
 
-			logger.info("Creating initial user..");
+			if (!hasApplicationNodes) {
 
-			final Class userType = StructrApp.getConfiguration().getNodeEntityClass("User");
-			if (userType != null) {
+				logger.info("Creating initial user..");
 
-				final PropertyKey<Boolean> isAdminKey = StructrApp.key(userType, "isAdmin");
-				final PropertyKey<String> passwordKey = StructrApp.key(userType, "password");
-				final PropertyKey<String> nameKey     = StructrApp.key(userType, "name");
-				final App app                         = StructrApp.getInstance();
+				final Class userType = StructrApp.getConfiguration().getNodeEntityClass("User");
+				if (userType != null) {
 
-				try (final Tx tx = app.tx()) {
+					final PropertyKey<Boolean> isAdminKey = StructrApp.key(userType, "isAdmin");
+					final PropertyKey<String> passwordKey = StructrApp.key(userType, "password");
+					final PropertyKey<String> nameKey     = StructrApp.key(userType, "name");
+					final App app                         = StructrApp.getInstance();
 
-					app.create(userType,
-						new NodeAttribute<>(nameKey,     "admin"),
-						new NodeAttribute<>(passwordKey, "admin"),
-						new NodeAttribute<>(isAdminKey,  true)
-					);
+					try (final Tx tx = app.tx()) {
 
-					tx.success();
+						app.create(userType,
+							new NodeAttribute<>(nameKey,     "admin"),
+							new NodeAttribute<>(passwordKey, "admin"),
+							new NodeAttribute<>(isAdminKey,  true)
+						);
 
-				} catch (Throwable t) {
-					logger.warn("Unable to count number of nodes and relationships: {}", t.getMessage());
+						tx.success();
+
+					} catch (Throwable t) {
+						logger.warn("Unable to count number of nodes and relationships: {}", t.getMessage());
+					}
 				}
 			}
 		}
@@ -240,114 +243,23 @@ public class NodeService implements SingletonService {
 		final CountResult counts = getInitialCounts();
 		final long nodeCacheSize = Settings.NodeCacheSize.getValue();
 		final long relCacheSize  = Settings.RelationshipCacheSize.getValue();
+		final long nodeCount     = counts.getNodeCount();
+		final long relCount      = counts.getRelationshipCount();
 
-		logger.info("Database contains {} nodes, {} relationships.", counts.getAbstractNodeCount(), counts.getRelationshipCount());
+		logger.info("Database contains {} nodes, {} relationships.", nodeCount, relCount);
 
-		if (nodeCacheSize < counts.getAbstractNodeCount()) {
-			logger.warn("Insufficient node cache size detected, please set application.cache.node.size to at least {} for best performance.", counts.getAbstractNodeCount());
+		if (nodeCacheSize < nodeCount) {
+			logger.warn("Insufficient node cache size detected, please set application.cache.node.size to at least {} for best performance.", nodeCount);
 		}
 
-		if (relCacheSize < counts.getRelationshipCount()) {
-			logger.warn("Insufficient relationship cache size detected, please set application.cache.relationship.size to at least {} for best performance.", counts.getRelationshipCount());
+		if (relCacheSize < relCount) {
+			logger.warn("Insufficient relationship cache size detected, please set application.cache.relationship.size to at least {} for best performance.", relCount);
 		}
 
 	}
-
-	/* disabled
-	private void importSeedFile(final String basePath) {
-
-		final File seedFile = new File(Settings.trim(basePath) + "/" + INITIAL_SEED_FILE);
-		if (seedFile.exists()) {
-
-			boolean hasApplicationNodes = false;
-
-			logger.info("Checking if seed file should be imported..");
-
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				final CountResult count = getInitialCounts();
-
-				// do two very quick count queries to determine the number of Structr nodes in the database
-				final long abstractNodeCount  = count.abstractNodeCount;
-				final long nodeInterfaceCount = count.nodeInterfaceCount;
-
-				hasApplicationNodes = abstractNodeCount == nodeInterfaceCount && abstractNodeCount > 0;
-
-				tx.success();
-
-			} catch (FrameworkException fex) { }
-
-			if (!hasApplicationNodes) {
-
-				logger.info("Found initial seed file and no application nodes, applying initial seed..");
-
-				try {
-
-					SyncCommand.importFromFile(graphDb, SecurityContext.getSuperUserInstance(), seedFile.getAbsoluteFile().getAbsolutePath(), false);
-
-				} catch (FrameworkException fex) {
-
-					logger.warn("Unable to import initial seed file.", fex);
-				}
-			}
-
-			logger.info("Done.");
-		}
-	}
-	*/
-
-	private int getCount(final String query, final String resultKey) {
-
-		for (final Map<String, Object> row : graphDb.execute(query)) {
-
-			if (row.containsKey(resultKey)) {
-
-				final Object value = row.get(resultKey);
-				if (value != null && value instanceof Number) {
-
-					final Number number = (Number)value;
-					return number.intValue();
-				}
-			}
-		}
-
-		return 0;
-	}
-
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
 		return "core";
-	}
-
-	// ----- nested classes -----
-	public class CountResult {
-
-		private long abstractNodeCount  = 0L;
-		private long relationshipCount  = 0L;
-		private long nodeInterfaceCount = 0L;
-
-		public CountResult() {
-
-			final String tenantIdentifier = graphDb.getTenantIdentifier();
-			final String part             = tenantIdentifier != null ? ":" + tenantIdentifier : "";
-
-			// do some very quick count queries to determine the number of Structr nodes and rels in the database
-			this.abstractNodeCount  = getCount("MATCH (n" + part + ":AbstractNode) RETURN COUNT(n) AS count", "count");
-			this.nodeInterfaceCount = getCount("MATCH (n" + part + ":NodeInterface) RETURN COUNT(n) AS count", "count");
-			this.relationshipCount  = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN count(r) AS count", "count");
-		}
-
-		public long getAbstractNodeCount() {
-			return abstractNodeCount;
-		}
-
-		public long getRelationshipCount() {
-			return relationshipCount;
-		}
-
-		public long getNodeInterfaceCount() {
-			return nodeInterfaceCount;
-		}
 	}
 }

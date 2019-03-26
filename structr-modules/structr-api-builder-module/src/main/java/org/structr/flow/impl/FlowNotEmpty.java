@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -66,7 +66,7 @@ public class FlowNotEmpty extends FlowCondition implements DataSource, Deployabl
 				return false;
 			} else if (currentData instanceof String && ((String) currentData).length() == 0) {
 				return false;
-			} else if (currentData instanceof Collection && ((Collection) currentData).size() == 0) {
+			} else if (currentData instanceof Iterable && Iterables.toList((Iterable) currentData).size() == 0) {
 				return false;
 			}
 		}

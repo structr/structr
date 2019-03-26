@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -69,8 +69,9 @@ public class EnumPropertyParser extends PropertySourceGenerator {
 	@Override
 	public void parseFormatString(final Map<String, SchemaNode> schemaNodes, final Schema entity, String expression) throws FrameworkException {
 
-		final String[] enumTypes = expression.split("[, ]+");
-		if (StringUtils.isNotBlank(expression) && enumTypes.length > 0) {
+		if (StringUtils.isNotBlank(expression)) {
+
+			final String[] enumTypes = expression.split("[, ]+");
 
 			enumTypeName = StringUtils.capitalize(getSourcePropertyName());
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,26 +18,21 @@
  */
 package org.structr.messaging;
 
-import org.junit.Test;
-import org.structr.api.graph.Node;
-import org.structr.api.graph.RelationshipType;
+import org.testng.annotations.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Actions;
-
+import org.structr.test.web.StructrUiTest;
 import java.util.ArrayList;
 import java.util.List;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-public class SimpleMessagingTest extends StructrMessagingEngineModuleTest {
+public class SimpleMessagingTest extends StructrUiTest {
 
 	@Test
 	public void test01() {

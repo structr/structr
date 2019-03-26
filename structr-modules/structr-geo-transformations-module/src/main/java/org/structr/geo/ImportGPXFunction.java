@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.XmlFunction;
@@ -77,6 +78,16 @@ public class ImportGPXFunction extends Function<Object, Object> {
 		fieldMapping.put("dgpsid",        new StringProperty("dgpsId"));
 		fieldMapping.put("geoidheight",   new DoubleProperty("geoidHeight"));
 
+	}
+
+	@Override
+	public String getName() {
+		return "import_gpx";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override
@@ -169,11 +180,6 @@ public class ImportGPXFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Imports a GPX file and creates a list of objects of a given type from it.";
-	}
-
-	@Override
-	public String getName() {
-		return "import_gpx";
 	}
 
 	// ----- private methods -----

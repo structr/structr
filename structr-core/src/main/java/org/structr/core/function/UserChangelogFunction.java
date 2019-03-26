@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,7 @@ package org.structr.core.function;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.service.LicenseManager;
 import org.structr.core.GraphObject;
 
 public class UserChangelogFunction extends ChangelogFunction {
@@ -32,7 +33,12 @@ public class UserChangelogFunction extends ChangelogFunction {
 
 	@Override
 	public String getName() {
-		return "user_changelog()";
+		return "user_changelog";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Basic;
 	}
 
 	@Override

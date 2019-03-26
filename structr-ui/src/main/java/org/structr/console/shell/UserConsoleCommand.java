@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import org.apache.commons.lang.StringUtils;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -194,7 +195,8 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 
 				if (user != null) {
 
-					if (!user.getProperty(Principal.ownedNodes).iterator().hasNext()) {
+					final List<NodeInterface> ownedNodes = Iterables.toList(user.getProperty(Principal.ownedNodes));
+					if (ownedNodes.isEmpty()) {
 
 						app.delete(user);
 

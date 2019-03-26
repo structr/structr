@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -36,7 +37,12 @@ public class WeekDaysFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "week_days()";
+		return "week_days";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override
@@ -63,10 +69,10 @@ public class WeekDaysFunction extends Function<Object, Object> {
 
 				//adjust for starting and ending on a Sunday:
 				return daysWithoutWeekends + (startWeek == DayOfWeek.SUNDAY ? 1 : 0) + (endWeek == DayOfWeek.SUNDAY ? 1 : 0);
-				
+
 			} catch (Exception ex) {
 
-				logger.warn("{}: Could not calculate week days. Parameters: {}", new Object[] { getName(), caller, getParametersAsString(sources) });
+				logger.warn("{}: Could not calculate week days. Parameters: {}", new Object[] { getReplacement(), caller, getParametersAsString(sources) });
 
 			}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -53,12 +53,12 @@ public interface Widget extends NodeInterface {
 		final JsonObjectType image = schema.addType("Image");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Widget"));
-		type.setCategory("core");
+		type.setCategory("ui");
 
 		type.addStringProperty("source",        PropertyView.Ui, PropertyView.Public);
 		type.addStringProperty("description",   PropertyView.Ui, PropertyView.Public);
 		type.addStringProperty("configuration", PropertyView.Ui, PropertyView.Public);
-		type.addStringProperty("treePath",      PropertyView.Ui, PropertyView.Public);
+		type.addStringProperty("treePath",      PropertyView.Ui, PropertyView.Public).setIndexed(true);
 		type.addBooleanProperty("isWidget",     PropertyView.Ui, PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 
 		image.relate(type, "PICTURE_OF", Cardinality.ManyToOne, "pictures", "widget");

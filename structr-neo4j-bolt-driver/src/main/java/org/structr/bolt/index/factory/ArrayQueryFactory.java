@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,13 +18,18 @@
  */
 package org.structr.bolt.index.factory;
 
+import org.structr.api.index.AbstractIndex;
 import org.structr.api.search.QueryPredicate;
 import org.structr.bolt.index.AdvancedCypherQuery;
 
 public class ArrayQueryFactory extends KeywordQueryFactory {
 
+	public ArrayQueryFactory(final AbstractIndex index) {
+		super(index);
+	}
+
 	@Override
-	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
+	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
 
 		final Object value = getReadValue(predicate.getValue());
 		final String name  = predicate.getName();

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.mail.function;
 
 import java.net.MalformedURLException;
 import org.apache.commons.mail.EmailAttachment;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.AdvancedMailContainer;
 import org.structr.common.DynamicMailAttachment;
 import org.structr.common.error.FrameworkException;
@@ -31,7 +32,17 @@ import org.structr.web.entity.File;
 public class MailAddAttachmentFunction extends Function<Object, Object> {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_add_attachment(file[, name])}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${Structr.mail_add_attachment(file[, name])}";
+	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_add_attachment(file[, name]) }}";
+
+	@Override
+	public String getName() {
+		return "mail_add_attachment";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
+	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
@@ -74,11 +85,6 @@ public class MailAddAttachmentFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "";
-	}
-
-	@Override
-	public String getName() {
-		return "mail_add_attachment()";
 	}
 
 	public static void addAttachment(final AdvancedMailContainer amc, final File fileNode) throws MalformedURLException {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,25 +18,25 @@
  */
 package org.structr.pdf;
 
+import java.util.Set;
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.module.StructrModule;
 import org.structr.pdf.function.PDFFunction;
+import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
-import java.util.Set;
-
 public class PDFModule implements StructrModule {
+
 	@Override
 	public void onLoad(LicenseManager licenseManager) {
+	}
 
-		// final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
-		// final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
-		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "pdf", new PDFFunction());
-
+		Functions.put(licenseManager, new PDFFunction());
 	}
 
 	@Override
@@ -55,17 +55,17 @@ public class PDFModule implements StructrModule {
 	}
 
 	@Override
-	public void insertImportStatements(AbstractSchemaNode schemaNode, StringBuilder buf) {
+	public void insertImportStatements(AbstractSchemaNode schemaNode, SourceFile buf) {
 
 	}
 
 	@Override
-	public void insertSourceCode(AbstractSchemaNode schemaNode, StringBuilder buf) {
+	public void insertSourceCode(AbstractSchemaNode schemaNode, SourceFile buf) {
 
 	}
 
 	@Override
-	public void insertSaveAction(AbstractSchemaNode schemaNode, StringBuilder buf, Actions.Type type) {
+	public void insertSaveAction(AbstractSchemaNode schemaNode, SourceFile buf, Actions.Type type) {
 
 	}
 

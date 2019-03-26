@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -98,7 +98,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.setImplements(URI.create("#/definitions/JavaScriptSource"));
 		type.setImplements(URI.create("#/definitions/Favoritable"));
 		type.setExtends(URI.create("#/definitions/AbstractFile"));
-		type.setCategory("core");
+		type.setCategory("ui");
 
 		type.addStringProperty("url", PropertyView.Public, PropertyView.Ui);
 
@@ -348,6 +348,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				synchronized (tx) {
 
 					FileHelper.updateMetadata(thisFile, true);
+					File.increaseVersion(thisFile);
 
 					tx.success();
 				}
@@ -799,13 +800,14 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		if (newParent != null && !newParent.equals(previousParent)) {
 
-			newFile = newParent.getFileOnDisk(thisFile, "", true);
+			newFile = newParent.getFileOnDisk(thisFile, "", false);
 		}
 
-		if (previousFile != null && newFile != null && !previousFile.equals(newFile)) {
+		if (previousFile != null && previousFile.exists() && newFile != null && !newFile.exists() && !previousFile.equals(newFile)) {
 
 			try {
 
+				logger.info("Moving file {} from {} to {}..", previousFile, previousParent, newFile);
 				Files.move(previousFile, newFile);
 
 			} catch (IOException ioex) {

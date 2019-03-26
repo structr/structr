@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,7 @@ package org.structr.core.function;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -34,7 +35,12 @@ public class ParseDateFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "parse_date()";
+		return "parse_date";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Community;
 	}
 
 	@Override
@@ -63,7 +69,7 @@ public class ParseDateFunction extends Function<Object, Object> {
 
 			} catch (ParseException ex) {
 
-				logger.warn("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[] { getName(), dateString, pattern, caller, getParametersAsString(sources) });
+				logger.warn("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[] { getReplacement(), dateString, pattern, caller, getParametersAsString(sources) });
 
 			}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -572,18 +572,22 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 
 	}
 
-	public static void handleNewChild(final Page thisPage, Node newChild) {
+	public static void handleNewChild(final Page thisPage, Node node) {
 
-		for (final DOMNode child : (Set<DOMNode>)thisPage.getAllChildNodes()) {
+		try {
 
-			try {
+			final DOMNode newChild = (DOMNode)node;
 
-				child.setOwnerDocument(thisPage);
+			newChild.setOwnerDocument(thisPage);
 
-			} catch (FrameworkException ex) {
-				logger.warn("", ex);
+			for (final DOMNode child : (Set<DOMNode>)newChild.getAllChildNodes()) {
+
+					child.setOwnerDocument(thisPage);
+
 			}
 
+		} catch (FrameworkException ex) {
+			logger.warn("Unable to add new child element to page: {}", ex.getMessage());
 		}
 
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.imageio.ImageIO;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -37,6 +38,16 @@ public class BarcodeFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_BARCODE = "Usage: ${ barcode(type, data[, width, height[, hintKey, hintValue]]) }";
 	public static final String ERROR_MESSAGE_BARCODE_JS = "Usage: ${{ Structr.barcode(type, data[, width, height[, hintsMap]]); }}";
+
+	@Override
+	public String getName() {
+		return "barcode";
+	}
+
+	@Override
+	public int getRequiredLicense() {
+		return LicenseManager.Enterprise;
+	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
@@ -134,10 +145,5 @@ public class BarcodeFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Creates a barcode of given type with the given data.";
-	}
-
-	@Override
-	public String getName() {
-		return "barcode()";
 	}
 }

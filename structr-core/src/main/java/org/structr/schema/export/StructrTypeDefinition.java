@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,7 @@ package org.structr.schema.export;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -49,6 +50,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonBooleanArrayProperty;
 import org.structr.schema.json.JsonBooleanProperty;
+import org.structr.schema.json.JsonDateArrayProperty;
 import org.structr.schema.json.JsonDateProperty;
 import org.structr.schema.json.JsonDynamicProperty;
 import org.structr.schema.json.JsonEnumProperty;
@@ -110,7 +112,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	@Override
 	public boolean equals(final Object other) {
 
-		if (other instanceof StructrPropertyDefinition) {
+		if (other instanceof StructrTypeDefinition) {
 
 			return other.hashCode() == hashCode();
 		}
@@ -364,13 +366,25 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	@Override
 	public JsonStringArrayProperty addStringArrayProperty(final String name, final String... views) {
 
-		final StructrStringArrayProperty stringProperty = new StructrStringArrayProperty(this, name);
+		final StructrStringArrayProperty stringArrayProperty = new StructrStringArrayProperty(this, name);
 
 		addPropertyNameToViews(name, views);
 
-		properties.add(stringProperty);
+		properties.add(stringArrayProperty);
 
-		return stringProperty;
+		return stringArrayProperty;
+	}
+
+	@Override
+	public JsonDateArrayProperty addDateArrayProperty(final String name, final String... views) {
+
+		final StructrDateArrayProperty dateArrayProperty = new StructrDateArrayProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(dateArrayProperty);
+
+		return dateArrayProperty;
 	}
 
 	@Override
@@ -854,10 +868,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 		}
 
-		this.isInterface    = schemaNode.getProperty(SchemaNode.isInterface);
-		this.isAbstract     = schemaNode.getProperty(SchemaNode.isAbstract);
-		this.isBuiltinType  = schemaNode.getProperty(SchemaNode.isBuiltinType);
-		this.category       = schemaNode.getProperty(SchemaNode.category);
+		this.isInterface   = schemaNode.getProperty(SchemaNode.isInterface);
+		this.isAbstract    = schemaNode.getProperty(SchemaNode.isAbstract);
+		this.isBuiltinType = schemaNode.getProperty(SchemaNode.isBuiltinType);
+		this.category      = schemaNode.getProperty(SchemaNode.category);
+		this.schemaNode    = schemaNode;
 
 		if (this.category == null && getClass().equals(StructrNodeTypeDefinition.class)) {
 
@@ -1080,6 +1095,82 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		for (final StructrPropertyDefinition property : properties) {
 			property.initializeReferences();
+		}
+	}
+
+	void diff(final StructrTypeDefinition other) throws FrameworkException {
+
+		diffMethods(other);
+		diffProperties(other);
+	}
+
+	void diffProperties(final StructrTypeDefinition other) throws FrameworkException {
+
+		final Map<String, StructrPropertyDefinition> databaseProperties = getMappedProperties();
+		final Map<String, StructrPropertyDefinition> structrProperties  = other.getMappedProperties();
+		final Set<String> propertiesOnlyInDatabase                      = new TreeSet<>(databaseProperties.keySet());
+		final Set<String> propertiesOnlyInStructrSchema                 = new TreeSet<>(structrProperties.keySet());
+		final Set<String> bothPropertys                                 = new TreeSet<>(databaseProperties.keySet());
+
+		propertiesOnlyInDatabase.removeAll(structrProperties.keySet());
+		propertiesOnlyInStructrSchema.removeAll(databaseProperties.keySet());
+		bothPropertys.retainAll(structrProperties.keySet());
+
+		// properties that exist in the database only
+		for (final String key : propertiesOnlyInDatabase) {
+
+			final StructrPropertyDefinition property = databaseProperties.get(key);
+
+			handleRemovedProperty(property);
+		}
+
+		// nothing to do for this set, these properties can simply be created without problems
+		//System.out.println(propertiesOnlyInStructrSchema);
+
+
+		// find detailed differences in the intersection of both schemas
+		for (final String name : bothPropertys) {
+
+			final StructrPropertyDefinition localProperty = databaseProperties.get(name);
+			final StructrPropertyDefinition otherProperty = structrProperties.get(name);
+
+			// compare properties in detail
+			localProperty.diff(otherProperty);
+		}
+	}
+
+	void diffMethods(final StructrTypeDefinition other) throws FrameworkException {
+
+		final Map<String, StructrMethodDefinition> databaseMethods = getMappedMethodsBySignature();
+		final Map<String, StructrMethodDefinition> structrMethods  = other.getMappedMethodsBySignature();
+		final Set<String> methodsOnlyInDatabase                    = new TreeSet<>(databaseMethods.keySet());
+		final Set<String> methodsOnlyInStructrSchema               = new TreeSet<>(structrMethods.keySet());
+		final Set<String> bothMethods                              = new TreeSet<>(databaseMethods.keySet());
+
+		methodsOnlyInDatabase.removeAll(structrMethods.keySet());
+		methodsOnlyInStructrSchema.removeAll(databaseMethods.keySet());
+		bothMethods.retainAll(structrMethods.keySet());
+
+		// methods that exist in the database only
+		for (final String key : methodsOnlyInDatabase) {
+
+			final StructrMethodDefinition method = databaseMethods.get(key);
+
+			handleRemovedMethod(method);
+		}
+
+		// nothing to do for this set, these methods can simply be created without problems
+		//System.out.println(methodsOnlyInStructrSchema);
+
+
+		// find detailed differences in the intersection of both schemas
+		for (final String name : bothMethods) {
+
+			final StructrMethodDefinition localMethod = databaseMethods.get(name);
+			final StructrMethodDefinition otherMethod = structrMethods.get(name);
+
+			// compare methods in detail
+			localMethod.diff(otherMethod);
 		}
 	}
 
@@ -1348,5 +1439,56 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 
 		return parameterizedType.substring(parameterizedType.lastIndexOf(".") + 1);
+	}
+
+	private Map<String, StructrPropertyDefinition> getMappedProperties() {
+
+		final LinkedHashMap<String, StructrPropertyDefinition> mapped = new LinkedHashMap<>();
+
+		for (final StructrPropertyDefinition def : this.properties) {
+
+			mapped.put(def.getName(), def);
+		}
+
+		return mapped;
+	}
+
+	private Map<String, StructrMethodDefinition> getMappedMethodsBySignature() {
+
+		final LinkedHashMap<String, StructrMethodDefinition> mapped = new LinkedHashMap<>();
+
+		for (final StructrMethodDefinition def : this.methods) {
+
+			mapped.put(def.getSignature(), def);
+		}
+
+		return mapped;
+	}
+
+	private void handleRemovedMethod(final StructrMethodDefinition method) throws FrameworkException {
+
+
+		/*
+
+		don't delete anything, this is not stable
+
+
+		final SchemaMethod schemaMethod = method.getSchemaMethod();
+		if (schemaMethod != null) {
+
+			final Boolean value = schemaMethod.getProperty(SchemaMethod.isPartOfBuiltInSchema);
+			if (value != null && value) {
+
+				logger.warn("Internal schema method {}.{} was removed or renamed in the current version of the Structr schema, deleting.", getName(), method.getName());
+
+				// We can not determine yet if the type was deleted or renamed, so we need to delete it..
+				StructrApp.getInstance().delete(method.getSchemaMethod());
+			}
+		}
+		*/
+	}
+
+	private void handleRemovedProperty(final StructrPropertyDefinition property) throws FrameworkException {
+		//logger.warn("Property {}.{} was removed or renamed in the current version of the Structr schema, no action taken.", getName(), property.getName());
 	}
 }

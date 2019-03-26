@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,7 +26,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.api.util.ResultStream;
 import org.structr.common.MailHelper;
 import org.structr.common.SecurityContext;
@@ -42,6 +41,7 @@ import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
 
@@ -158,12 +158,10 @@ public class ResetPasswordResource extends Resource {
 		populateReplacementMap(replacementMap, propertySetFromUserPOST);
 
 		final String userEmail = user.getProperty("eMail");
-		final String appHost   = Settings.ApplicationHost.getValue();
-		final Integer httpPort = Settings.HttpPort.getValue();
 
 		replacementMap.put(toPlaceholder("eMail"), userEmail);
 		replacementMap.put(toPlaceholder("link"),
-			getTemplateText(TemplateKey.RESET_PASSWORD_BASE_URL, "http://" + appHost + ":" + httpPort, localeString, confKey)
+			getTemplateText(TemplateKey.RESET_PASSWORD_BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString, confKey)
 			      + getTemplateText(TemplateKey.RESET_PASSWORD_PAGE, HtmlServlet.RESET_PASSWORD_PAGE, localeString, confKey)
 			+ "?" + getTemplateText(TemplateKey.RESET_PASSWORD_CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY, localeString, confKey) + "=" + confKey
 			+ "&" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PAGE_KEY, HtmlServlet.TARGET_PAGE_KEY, localeString, confKey) + "=" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PAGE, HtmlServlet.RESET_PASSWORD_PAGE, localeString, confKey)

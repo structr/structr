@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2018 Structr GmbH
+ * Copyright (C) 2010-2019 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
@@ -56,11 +57,11 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 
 	@Override
 	public T instantiate(final Node node) {
-		return instantiate(node, -1);
+		return instantiate(node, null);
 	}
 
 	@Override
-	public T instantiate(final Node node, final long pathSegmentId) {
+	public T instantiate(final Node node, final Identity pathSegmentId) {
 
 		if (node == null) {
 			return null;
@@ -74,7 +75,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 	}
 
 	@Override
-	public T instantiateWithType(final Node node, final Class<T> nodeClass, final long pathSegmentId, boolean isCreation) {
+	public T instantiateWithType(final Node node, final Class<T> nodeClass, final Identity pathSegmentId, boolean isCreation) {
 
 		// cannot instantiate node without type
 		if (nodeClass == null) {
@@ -95,7 +96,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 			newNode = (T)factoryDefinition.createGenericNode();
 		}
 
-		newNode.init(factoryProfile.getSecurityContext(), node, nodeClass, isCreation, TransactionCommand.getCurrentTransactionId());
+		newNode.init(factoryProfile.getSecurityContext(), node, nodeClass, TransactionCommand.getCurrentTransactionId());
 		newNode.setRawPathSegmentId(pathSegmentId);
 		newNode.onNodeInstantiation(isCreation);
 
