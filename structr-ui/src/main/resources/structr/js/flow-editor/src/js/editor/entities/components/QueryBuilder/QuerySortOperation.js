@@ -87,7 +87,7 @@ export class QuerySortOperation {
 
             const structrRest = new StructrRest();
             await structrRest.get("_schema/" + queryType).then((res) => {
-                const properties = res.result[0].views.ui;
+                const properties = res.result[0].views.all;
 
                 let entries = Object.entries(properties).sort();
 
