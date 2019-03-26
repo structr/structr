@@ -25,6 +25,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -40,6 +42,8 @@ import org.structr.schema.json.JsonType;
  *
  */
 public class StructrTypeDefinitions implements StructrDefinition {
+
+	private static final Logger logger = LoggerFactory.getLogger(StructrTypeDefinitions.class);
 
 	private final Set<StructrRelationshipTypeDefinition> relationships = new TreeSet<>();
 	private final Set<StructrTypeDefinition> typeDefinitions           = new TreeSet<>();
@@ -244,7 +248,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 			if (type.isBuiltinType()) {
 
 				handleRemovedBuiltInType(type);
-				
+
 			} else {
 
 				// type should be ok, probably created by user
@@ -260,11 +264,11 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 			final StructrTypeDefinition localType = databaseTypes.get(name);
 			final StructrTypeDefinition otherType = structrTypes.get(name);
-			
+
 			// compare types
 			localType.diff(otherType);
 		}
-		
+
 		// the same must be done for global methods and relationships!
 	}
 
@@ -276,19 +280,16 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 			mapped.put(def.getName(), def);
 		}
-		
+
 		return mapped;
 	}
-	
+
 	private void handleRemovedBuiltInType(final StructrTypeDefinition type) throws FrameworkException {
 
-		System.out.println("Built-in type " + type.getName() + " was removed or renamed in the current version of the Structr schema.");
+		logger.warn("Built-in type {} was removed or renamed in the current version of the Structr schema, deleting.", type.getName());
 
-		// handle migration
-		
-
-		// We can not determine if the type was deleted or renamed, so we need to delete it..
+		// We can not determine yet if the type was deleted or renamed, so we need to delete it..
 		StructrApp.getInstance().delete(type.getSchemaNode());
 	}
-	
+
 }

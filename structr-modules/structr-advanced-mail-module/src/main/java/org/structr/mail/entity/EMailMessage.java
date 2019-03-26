@@ -18,15 +18,14 @@
  */
 package org.structr.mail.entity;
 
+import java.net.URI;
+import java.util.Date;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
-
-import java.net.URI;
-import java.util.Date;
 
 public interface EMailMessage extends NodeInterface {
 
@@ -38,19 +37,19 @@ public interface EMailMessage extends NodeInterface {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/EMailMessage"));
 
-		type.addStringProperty("subject",          PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("from",             PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("fromMail",         PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("to",               PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("content",          PropertyView.Public, PropertyView.Ui).setIndexed(false);
-		type.addStringProperty("htmlContent",      PropertyView.Public, PropertyView.Ui).setIndexed(false);
-		type.addStringProperty("folder",           PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("header",		     PropertyView.Public, PropertyView.Ui).setIndexed(false);
-		type.addStringProperty("messageId",		 PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("inReplyTo",		 PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("subject",          PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("from",             PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("fromMail",         PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("to",               PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("content",          PropertyView.Ui).setIndexed(false);
+		type.addStringProperty("htmlContent",      PropertyView.Ui).setIndexed(false);
+		type.addStringProperty("folder",           PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("header",           PropertyView.Ui).setIndexed(false);
+		type.addStringProperty("messageId",        PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("inReplyTo",        PropertyView.Ui).setIndexed(true);
 
-		type.addDateProperty("receivedDate",       PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addDateProperty("sentDate",           PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addDateProperty("receivedDate",       PropertyView.Ui).setIndexed(true);
+		type.addDateProperty("sentDate",           PropertyView.Ui).setIndexed(true);
 
 		type.addPropertyGetter("subject",           String.class);
 		type.addPropertyGetter("from",              String.class);
@@ -67,8 +66,8 @@ public interface EMailMessage extends NodeInterface {
 		type.relate(file, "HAS_ATTACHMENT", Relation.Cardinality.OneToMany, "attachedMail", "attachedFiles").setCascadingDelete(JsonSchema.Cascade.sourceToTarget);
 
 		// view configuration
-		type.addViewProperty(PropertyView.Public, "subject,from,fromMail,to,content,htmlContent,folder,receivedDate,sentDate,mailbox,header,messageId,inReplyTo, attachedFiles");
-		type.addViewProperty(PropertyView.Ui, "subject,from,fromMail,to,content,htmlContent,folder,receivedDate,sentDate,mailbox,header,messageId,inReplyTo, attachedFiles");
+		type.addViewProperty(PropertyView.Public, "id,type");
+		type.addViewProperty(PropertyView.Ui,     "id,type,subject,from,fromMail,to,content,htmlContent,folder,receivedDate,sentDate,mailbox,header,messageId,inReplyTo,attachedFiles");
 	}}
 
 }
