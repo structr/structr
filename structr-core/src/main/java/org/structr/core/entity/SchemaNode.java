@@ -409,6 +409,17 @@ public class SchemaNode extends AbstractSchemaNode {
 			}
 		}
 
+		if("LDAPUser".equals(getName())) {
+
+			for (final SchemaMethod method : getProperty(SchemaNode.schemaMethods)) {
+
+				if ("onModification".equals(method.getName())) {
+
+					StructrApp.getInstance().delete(method);
+				}
+			}
+		}
+
 	}
 
 	public void initializeGraphQL(final Map<String, SchemaNode> schemaNodes, final Map<String, GraphQLType> graphQLTypes, final Set<String> blacklist) throws FrameworkException {

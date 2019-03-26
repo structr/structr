@@ -585,7 +585,9 @@ public class MailService extends Thread implements RunnableService {
 
 								if (messageId != null) {
 									pm.put(StructrApp.key(EMailMessage.class, "messageId"), messageId);
-								} else if (inReplyTo != null) {
+								}
+
+								if (inReplyTo != null) {
 									pm.put(StructrApp.key(EMailMessage.class, "inReplyTo"), inReplyTo);
 								}
 

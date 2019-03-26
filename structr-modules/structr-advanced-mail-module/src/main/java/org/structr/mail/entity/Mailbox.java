@@ -18,6 +18,11 @@
  */
 package org.structr.mail.entity;
 
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.StructrApp;
@@ -26,12 +31,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
-
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 public interface Mailbox extends NodeInterface {
 	class Impl { static {
@@ -42,14 +41,14 @@ public interface Mailbox extends NodeInterface {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Mailbox"));
 
-		type.addStringProperty("host",                           PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addStringProperty("user",                           PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addStringProperty("password",                       PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(false);
-		type.addStringProperty("overrideMailEntityType",         PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("folders",                   PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addEnumProperty("mailProtocol",                     PropertyView.Public, PropertyView.Ui).setEnums("pop3,imaps").setIndexed(true).setRequired(true);
-		type.addIntegerProperty("port",                          PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addFunctionProperty("availableFoldersOnServer",     PropertyView.Public, PropertyView.Ui).setReadFunction("{return Structr.this.getAvailableFoldersOnServer()}").setIndexed(false);
+		type.addStringProperty("host",                           PropertyView.Ui).setIndexed(true).setRequired(true);
+		type.addStringProperty("user",                           PropertyView.Ui).setIndexed(true).setRequired(true);
+		type.addStringProperty("password",                       PropertyView.Ui).setIndexed(true).setRequired(false);
+		type.addStringProperty("overrideMailEntityType",         PropertyView.Ui).setIndexed(true);
+		type.addStringArrayProperty("folders",                   PropertyView.Ui).setIndexed(true);
+		type.addEnumProperty("mailProtocol",                     PropertyView.Ui).setEnums("pop3,imaps").setIndexed(true).setRequired(true);
+		type.addIntegerProperty("port",                          PropertyView.Ui).setIndexed(true);
+		type.addFunctionProperty("availableFoldersOnServer",     PropertyView.Ui).setReadFunction("{return Structr.this.getAvailableFoldersOnServer()}").setIndexed(false);
 
 		type.addPropertyGetter("host",                    String.class);
 		type.addPropertyGetter("user",                    String.class);
@@ -69,8 +68,8 @@ public interface Mailbox extends NodeInterface {
 		type.relate(mail, "CONTAINS_EMAILMESSAGES", Relation.Cardinality.OneToMany, "mailbox", "emails").setCascadingDelete(JsonSchema.Cascade.sourceToTarget);
 
 		// view configuration
-		type.addViewProperty(PropertyView.Public, "host,user,password,mailProtocol,emails,folders,overrideMailEntityType");
-		type.addViewProperty(PropertyView.Ui, "host,user,password,mailProtocol,emails,folders,overrideMailEntityType");
+		type.addViewProperty(PropertyView.Public, "id,type,name");
+		type.addViewProperty(PropertyView.Ui,     "id,type,name,host,user,password,mailProtocol,emails,folders,overrideMailEntityType");
 	}}
 
 	String getHost();
