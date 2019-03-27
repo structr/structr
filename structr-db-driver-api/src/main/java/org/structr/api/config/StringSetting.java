@@ -77,12 +77,8 @@ public class StringSetting extends Setting<String> {
 	public void render(final Tag parent) {
 
 		final Tag group = parent.block("div").css("form-group");
-		final Tag label = group.block("label").text(getKey());
 
-		if (getComment() != null) {
-			label.attr(new Attr("class", "has-comment"));
-			label.attr(new Attr("data-comment", getComment()));
-		}
+		renderLabel(group);
 
 		final Tag input    = group.empty("input").attr(new Attr("type", "text"), new Attr("name", getKey()));
 		final String value = getValue();
