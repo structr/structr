@@ -291,7 +291,7 @@ public class Settings {
 	public static final Setting<Integer> ProxyMaxRequestSize   = new IntegerSetting(servletsGroup, "ProxyServlet", "ProxyServlet.maxRequestSize",        1200);
 
 	// cron settings
-	public static final Setting<String> CronTasks              = new StringSetting(cronGroup,  "CronService.tasks", "", "List with cron task configurations");
+	public static final Setting<String> CronTasks              = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations");
 
 	//security settings
 	public static final Setting<String> SuperUserName                  = new StringSetting(securityGroup,     "Superuser",            "superuser.username",                    "superadmin", "Name of the superuser");
