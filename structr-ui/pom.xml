@@ -241,12 +241,15 @@
 						<configuration>
 							<summaryFiles>
 								<summaryFile>${project.build.directory}/failsafe-reports/failsafe-summary.xml</summaryFile>
+								<!--
 								<summaryFile>${project.build.directory}/failsafe-reports/selenium-summary.xml</summaryFile>
+								-->
 							</summaryFiles>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
+			<!--
 			<plugin>
 				<groupId>io.fabric8</groupId>
 				<artifactId>docker-maven-plugin</artifactId>
@@ -294,7 +297,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!--
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
