@@ -27,7 +27,7 @@ import {StructrRest} from "./flow-editor/src/js/rest/StructrRest.js";
 import {Rest} from "./flow-editor/src/js/rest/Rest.js";
 
 let main, flowsMain, flowsTree, flowsCanvas;
-let editor, flowId;
+let flowEditor, flowId;
 const methodPageSize = 10000, methodPage = 1;
 const flowsResizerLeftKey = 'structrFlowsResizerLeftKey_' + port;
 const activeFlowsTabPrefix = 'activeFlowsTabPrefix' + port;
@@ -179,18 +179,18 @@ var _Flows = {
             }
 		});
 		document.querySelector('#create-new-flow').onclick = () => createFlow(document.getElementById('name-input'));
-		document.querySelector('.reset_view_icon').onclick = () => editor.resetView();
+		document.querySelector('.reset_view_icon').onclick = () => flowEditor.resetView();
 
 		document.querySelector('.delete_flow_icon').onclick = () => deleteFlow(flowId);
 		document.querySelector('.layout_icon').onclick = function() {
 			if (!this.getAttribute('class').includes('disabled')) {
-				new LayoutModal(editor);
+				new LayoutModal(flowEditor);
 			}
 		};
 
 		document.querySelector('.run_flow_icon').addEventListener('click', function() {
 			if (!this.getAttribute('class').includes('disabled')) {
-				editor.executeFlow();
+				flowEditor.executeFlow();
 			}
 		});
 
@@ -364,9 +364,9 @@ var _Flows = {
 					});
                 }
 
-                if (editor !== undefined && editor !== null && editor.cleanup !== undefined) {
-                    editor.cleanup();
-                    editor = undefined;
+                if (flowEditor !== undefined && flowEditor !== null && flowEditor.cleanup !== undefined) {
+                    flowEditor.cleanup();
+                    flowEditor = undefined;
                 }
 
                 // display flow canvas
@@ -687,9 +687,9 @@ var _Flows = {
 
 	initFlow: function(id) {
 
-		if (editor !== undefined && editor !== null && editor.cleanup !== undefined) {
-			editor.cleanup();
-			editor = undefined;
+		if (flowEditor !== undefined && flowEditor !== null && flowEditor.cleanup !== undefined) {
+			flowEditor.cleanup();
+			flowEditor = undefined;
 		}
 
 		// display flow canvas
@@ -702,14 +702,14 @@ var _Flows = {
             document.title = "Flow - " + r[0].name;
 
             let rootElement = document.querySelector("#nodeEditor");
-            editor = new FlowEditor(rootElement, r[0], {deactivateInternalEvents: true});
+            flowEditor = new FlowEditor(rootElement, r[0], {deactivateInternalEvents: true});
 
-            editor.waitForInitialization().then( () => {
+            flowEditor.waitForInitialization().then( () => {
 
                 let promises = [];
 
                 r[0].flowNodes.forEach(node => {
-                    promises.push(persistence.getNodesById(node.id).then(n => editor.renderNode(n[0])));
+                    promises.push(persistence.getNodesById(node.id).then(n => flowEditor.renderNode(n[0])));
                 });
 
                 Promise.all(promises).then(() => {
@@ -724,7 +724,7 @@ var _Flows = {
                                 }
 
                                 if (r[0].flowNodes.filter(el => el.id === rel.sourceId).length > 0 && r[0].flowNodes.filter(el => el.id === rel.targetId).length > 0) {
-                                    editor.connectNodes(rel);
+                                    flowEditor.connectNodes(rel);
                                 }
 
                             });
@@ -733,9 +733,9 @@ var _Flows = {
 
                     }
 
-                    editor.applySavedLayout();
-                    editor._editor.view.update();
-					editor.resetView();
+                    flowEditor.applySavedLayout();
+                    flowEditor._editor.view.update();
+					flowEditor.resetView();
 
 					// activate buttons
 					document.querySelector('.run_flow_icon').classList.remove('disabled');
