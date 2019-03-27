@@ -512,7 +512,7 @@ var Structr = {
 			}
 		});
 		$.ui.ddmanager.droppables['default'] = newDroppables;
-		$('iframe').unload();
+		$('iframe').contents().remove();
 		fastRemoveAllChildren(main[0]);
 		$('#graph-box').hide();
 	},

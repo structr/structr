@@ -152,7 +152,7 @@ public class RestAuthenticator implements Authenticator {
 			 // allow cross site resource sharing (read only)
 			final String maxAge = Settings.AccessControlMaxAge.getValue();
 			if (StringUtils.isNotBlank(maxAge)) {
-				response.setHeader("Access-Control-MaxAge", maxAge);
+				response.setHeader("Access-Control-Max-Age", maxAge);
 			}
 
 			final String allowMethods = Settings.AccessControlAllowMethods.getValue();

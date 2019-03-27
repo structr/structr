@@ -764,7 +764,7 @@ var _Pages = {
 			} catch (e) {}
 		});
 
-		$('#preview_' + entity.id).load(function() {
+		$('#preview_' + entity.id).on('load', function() {
 			try {
 				var doc = $(this).contents();
 				var head = $(doc).find('head');
