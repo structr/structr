@@ -98,12 +98,16 @@ public class Settings {
 	public static final Setting<String> ResourceHandlers      = new StringSetting(serverGroup,  "hidden",        "HttpService.resourceHandlers",    "StructrUiHandler");
 	public static final Setting<String> LifecycleListeners    = new StringSetting(serverGroup,  "hidden",        "HttpService.lifecycle.listeners", "");
 	public static final Setting<Boolean> GzipCompression      = new BooleanSetting(serverGroup, "HTTP Settings", "HttpService.gzip.enabled",        true);
-	public static final Setting<Boolean> ForceHttps           = new BooleanSetting(serverGroup, "HTTP Settings", "HttpService.force.https",         false);
 	public static final Setting<Boolean> Async                = new BooleanSetting(serverGroup, "HTTP Settings", "HttpService.async",               true);
 	public static final Setting<Boolean> JsonIndentation      = new BooleanSetting(serverGroup, "HTTP Settings", "json.indentation",                true);
 	public static final Setting<Boolean> HtmlIndentation      = new BooleanSetting(serverGroup, "HTTP Settings", "html.indentation",                true);
 	public static final Setting<Boolean> WsIndentation        = new BooleanSetting(serverGroup, "HTTP Settings", "ws.indentation",                  true);
 	public static final Setting<Integer> SessionTimeout       = new IntegerSetting(serverGroup, "HTTP Settings", "application.session.timeout",     1800, "The session inactivity timeout. Unit is seconds");
+
+	public static final Setting<Boolean> ForceHttps           = new BooleanSetting(serverGroup, "HTTPS Settings", "HttpService.force.https",         		false);
+	public static final Setting<String> excludedProtocols     = new StringSetting(serverGroup, "HTTPS Settings", "HttpService.ssl.protocols.excluded",  	"TLSv1,TLSv1.1");
+	public static final Setting<String> includedProtocols 	  = new StringSetting(serverGroup, "HTTPS Settings", "HttpService.ssl.protocols.included",		"TLSv1.2");
+	public static final Setting<String> disabledCipherSuits   = new StringSetting(serverGroup,  "HTTPS Settings", "HttpService.ssl.ciphers.excluded",    	"");
 
 	public static final Setting<String> AccessControlMaxAge           = new StringSetting(serverGroup, "CORS Settings", "access.control.max.age",           "3600");
 	public static final Setting<String> AccessControlAllowMethods     = new StringSetting(serverGroup, "CORS Settings", "access.control.allow.methods",     "");

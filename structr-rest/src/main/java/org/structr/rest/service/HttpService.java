@@ -430,6 +430,25 @@ public class HttpService implements RunnableService {
 				sslContextFactory.setKeyStorePath(keyStorePath);
 				sslContextFactory.setKeyStorePassword(keyStorePassword);
 
+				String excludedProtocols = Settings.excludedProtocols.getValue();
+				String includedProtocols = Settings.includedProtocols.getValue();
+				String disabledCiphers = Settings.disabledCipherSuits.getValue();
+
+				if (disabledCiphers.length() > 0) {
+					disabledCiphers = disabledCiphers.replaceAll("\\s+", "");
+					sslContextFactory.setExcludeCipherSuites(disabledCiphers.split(","));
+				}
+
+				if (excludedProtocols.length() > 0) {
+					excludedProtocols = excludedProtocols.replaceAll("\\s+", "");
+					sslContextFactory.setExcludeProtocols(excludedProtocols.split(","));
+				}
+
+				if (includedProtocols.length() > 0) {
+					includedProtocols = includedProtocols.replaceAll("\\s+", "");
+					sslContextFactory.setIncludeProtocols(includedProtocols.split(","));
+				}
+
 				final ServerConnector https = new ServerConnector(server,
 					new SslConnectionFactory(sslContextFactory, "http/1.1"),
 					new HttpConnectionFactory(httpsConfig));
@@ -439,6 +458,8 @@ public class HttpService implements RunnableService {
 
 				https.setHost(host);
 				https.setPort(httpsPort);
+
+				logger.debug(https.dump());
 
 				connectors.add(https);
 
