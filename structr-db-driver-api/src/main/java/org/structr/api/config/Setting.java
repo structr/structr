@@ -150,6 +150,16 @@ public abstract class Setting<T> {
 	}
 
 	// ----- protected methods -----
+	protected void renderLabel(final Tag group) {
+
+		final Tag label = group.block("label").text(getKey());
+
+		if (getComment() != null) {
+			label.attr(new Attr("class", "has-comment"));
+			label.attr(new Attr("data-comment", getComment()));
+		}
+	}
+
 	protected void renderResetButton(final Tag group) {
 
 		if (isModified()) {

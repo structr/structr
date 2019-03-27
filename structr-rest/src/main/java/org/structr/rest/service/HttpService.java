@@ -459,7 +459,9 @@ public class HttpService implements RunnableService {
 				https.setHost(host);
 				https.setPort(httpsPort);
 
-				logger.debug(https.dump());
+				if (Settings.dumbJettyStartupConfig.getValue()) {
+					logger.info(https.dump());
+				}
 
 				connectors.add(https);
 

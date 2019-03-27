@@ -388,7 +388,7 @@ public class ConfigServlet extends HttpServlet {
 		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/sprites.css"));
 		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/config.css"));
 		head.empty("link").attr(new Rel("icon"), new Href("favicon.ico"), new Type("image/x-icon"));
-		head.block("script").attr(new Src("/structr/js/lib/jquery-1.11.1.min.js"));
+		head.block("script").attr(new Src("/structr/js/lib/jquery-3.3.1.min.js"));
 		head.block("script").attr(new Src("/structr/js/icons.js"));
 		head.block("script").attr(new Src("/structr/js/config.js"));
 

@@ -32,8 +32,8 @@ import org.structr.schema.action.Actions;
 
 public class TranslationModule implements StructrModule {
 
-	public static final Setting<String> TranslationGoogleAPIKey      = new StringSetting(Settings.miscGroup,   "Translation Module", "translation.google.apikey", "");
-	public static final Setting<String> TranslationDeepLAPIKey       = new StringSetting(Settings.miscGroup,   "Translation Module", "translation.deepl.apikey", "");
+	public static final Setting<String> TranslationGoogleAPIKey      = new StringSetting(Settings.miscGroup,   "Translation Module", "translation.google.apikey", "", "Google Cloud Translation API Key");
+	public static final Setting<String> TranslationDeepLAPIKey       = new StringSetting(Settings.miscGroup,   "Translation Module", "translation.deepl.apikey", "", "DeepL API Key");
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
