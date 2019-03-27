@@ -38,6 +38,8 @@ public interface LicenseManager {
 	String getStartDate();
 	String getEndDate();
 
+	int getNumberOfUsers();
+
 	boolean isValid(final Feature feature);
 	boolean isValid(final CodeSigner[] codeSigners);
 
