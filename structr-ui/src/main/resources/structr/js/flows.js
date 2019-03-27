@@ -44,7 +44,6 @@ var _Flows = {
 
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
-		Structr.adaptUiToAvailableModules();
 
 	},
 	resize: function() {
@@ -333,7 +332,6 @@ var _Flows = {
 		Structr.unblockMenu(100);
 
 		_Flows.resize();
-		Structr.adaptUiToAvailableFeatures();
 
 		$(flowsTree).on('select_node.jstree', function(a, b) {
 
@@ -363,7 +361,7 @@ var _Flows = {
                     persistence.deleteNode({
 						type: type,
 						id: id
-					})
+					});
                 }
 
                 if (editor !== undefined && editor !== null && editor.cleanup !== undefined) {
@@ -373,7 +371,6 @@ var _Flows = {
 
                 // display flow canvas
                 flowsCanvas.innerHTML = '<div id="nodeEditor" class="node-editor"></div>';
-
 
             };
 
@@ -629,7 +626,7 @@ var _Flows = {
         dialogText.append('<div class="editor"></div>');
 		let contentBox = $('.editor', dialogText);
 		let lineWrapping = LSWrapper.getItem(lineWrappingKey);
-		editor = CodeMirror(contentBox.get(0), {
+		let cmEditor = CodeMirror(contentBox.get(0), {
 			value: element.value,
 			mode: "application/javascript",
 			lineNumbers: true,
@@ -660,7 +657,7 @@ var _Flows = {
 
         dialogSaveButton.off('click').on('click', function(e) {
             e.stopPropagation();
-            element.value = editor.getValue();
+            element.value = cmEditor.getValue();
             element.dispatchEvent(new Event('change'));
             dialogSaveButton.prop("disabled", true).addClass('disabled');
         });
@@ -672,8 +669,8 @@ var _Flows = {
         });
 
 
-        editor.on('change', function(cm, change) {
-            if (element.value === editor.getValue()) {
+        cmEditor.on('change', function(cm, change) {
+            if (element.value === cmEditor.getValue()) {
                 dialogSaveButton.prop("disabled", true).addClass('disabled');
                 saveAndClose.prop("disabled", true).addClass('disabled');
             } else {
@@ -682,10 +679,10 @@ var _Flows = {
             }
         });
 
-        editor.focus();
-        editor.setCursor(editor.lineCount(), 0);
+        cmEditor.focus();
+        cmEditor.setCursor(cmEditor.lineCount(), 0);
 
-        window.setTimeout(() => {$('.closeButton', dialogBtn).blur(); editor.focus();}, 10);
+        window.setTimeout(() => {$('.closeButton', dialogBtn).blur(); cmEditor.focus();}, 10);
 	},
 
 	initFlow: function(id) {

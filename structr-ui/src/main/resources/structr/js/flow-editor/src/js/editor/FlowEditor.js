@@ -173,15 +173,17 @@ export class FlowEditor {
                 },
                 global: {
                     keydown: function (event) {
-                        if (event.key === 'x' && event.altKey === true) {
+                        if (event.which === 88 && event.altKey === true) {
                             // Execute flow on alt+x
                             self.executeFlow();
                             event.stopPropagation();
-                        } else if (event.key === 'l' && event.altKey === true) {
+
+                        } else if (event.which === 76 && event.altKey === true) {
                             // Open layout modal on alt+l
                             new LayoutModal(self);
                             event.stopPropagation();
-                        } else if (event.key === 's' && event.altKey === true) {
+
+                        } else if (event.which === 83 && event.altKey === true) {
                             event.stopPropagation();
                             // Save layout on alt+s
                             if (confirm('Save layout?')) {
@@ -191,19 +193,25 @@ export class FlowEditor {
                                     self.saveLayout(false);
                                 }
                             }
-                        } else if (event.key === 'Escape') {
+
+                        } else if (event.which === 27) {
                             // Close panel on ESC and clear selection
                             event.stopPropagation();
                             ResultPanel.removePanel();
                             self._editor.selected.list = [];
                             self._editor.view.update();
-                        } else if (event.key === "p" && event.altKey === true) {
+
+                        } else if (event.which === 80 && event.altKey === true) {
+							// search on alt+p
                             const id = prompt("Enter UUID for FlowNode to search for:");
                             self.selectNodeById(id);
                             event.stopPropagation();
-                        } else if (event.key === "o" && event.altKey === true) {
+
+                        } else if (event.which === 79 && event.altKey === true) {
+							// log selected nodes on alt+o
                             self._editor.selected.list.map((node) => console.log(node.data.dbNode.type + '[' + node.data.dbNode.id + "]"));
                             event.stopPropagation();
+
                         }
                     },
                     keyup: function (event) {
