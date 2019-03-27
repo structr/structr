@@ -68,6 +68,8 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 
 				context.deepCopy(loopContext);
 
+				context.setData(flowElement.getUuid(), data);
+
 			}
 
 		}

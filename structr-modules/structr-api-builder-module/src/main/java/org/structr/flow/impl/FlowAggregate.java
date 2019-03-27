@@ -81,7 +81,14 @@ public class FlowAggregate extends FlowNode implements Aggregation, DataSource, 
 	public Object get(Context context) throws FlowException {
 
 		if (context.getData(getUuid()) == null) {
-			aggregate(context);
+
+			DataSource startValue = getProperty(startValueSource);
+
+			if (startValue != null) {
+
+				context.setData(getUuid(), startValue.get(context));
+			}
+
 		}
 
 		return context.getData(getUuid());
