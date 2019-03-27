@@ -20,25 +20,18 @@ package org.structr.core.function;
 
 import java.util.Arrays;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class SplitFunction extends Function<Object, Object> {
+public class SplitFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_SPLIT = "Usage: ${split(value)}. Example: ${split(this.commaSeparatedItems)}";
 
 	@Override
 	public String getName() {
 		return "split";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

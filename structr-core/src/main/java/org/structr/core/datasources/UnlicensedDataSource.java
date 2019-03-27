@@ -20,7 +20,6 @@ package org.structr.core.datasources;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
@@ -33,12 +32,12 @@ public class UnlicensedDataSource implements GraphDataSource {
 
 	private static final Logger logger = LoggerFactory.getLogger(UnlicensedDataSource.class);
 
-	private String name = null;
-	private int edition = LicenseManager.Community;
+	private String name   = null;
+	private String module = null;
 
-	public UnlicensedDataSource(final String name, final int edition) {
-		this.name    = name;
-		this.edition = edition;
+	public UnlicensedDataSource(final String name, final String module) {
+		this.name   = name;
+		this.module = module;
 	}
 
 	@Override

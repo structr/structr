@@ -19,25 +19,18 @@
 package org.structr.core.function;
 
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class JoinFunction extends Function<Object, Object> {
+public class JoinFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_JOIN = "Usage: ${join(collection, separator)}. Example: ${join(this.names, \",\")}";
 
 	@Override
 	public String getName() {
 		return "join";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

@@ -23,12 +23,10 @@ import java.nio.charset.Charset;
 import org.apache.commons.io.input.ReversedLinesFileReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class ServerLogFunction extends Function<Object, Object> {
+public class ServerLogFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_SERVERLOG = "Usage: ${serverlog([lines=50])}. Example: ${serverlog(200)}";
 	public static final String ERROR_MESSAGE_SERVERLOG_JS = "Usage: ${{Structr.serverlog([n=50])}}. Example: ${{Structr.serverlog(200)}}";
@@ -38,11 +36,6 @@ public class ServerLogFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "serverlog";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

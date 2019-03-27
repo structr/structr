@@ -18,10 +18,9 @@
  */
 package org.structr.web.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.schema.action.ActionContext;
 
-public class AddHeaderFunction extends UiFunction {
+public class AddHeaderFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_ADD_HEADER    = "Usage: ${add_header(field, value)}. Example: ${add_header('X-User', 'johndoe')}";
 	public static final String ERROR_MESSAGE_ADD_HEADER_JS = "Usage: ${{Structr.add_header(field, value)}}. Example: ${{Structr.add_header('X-User', 'johndoe')}}";
@@ -29,11 +28,6 @@ public class AddHeaderFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "add_header";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Enterprise;
 	}
 
 	@Override

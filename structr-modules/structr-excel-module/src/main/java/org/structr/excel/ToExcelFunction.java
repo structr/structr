@@ -35,7 +35,6 @@ import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -58,8 +57,8 @@ public class ToExcelFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Enterprise;
+	public String getRequiredModule() {
+		return "excel";
 	}
 
 	@Override

@@ -24,25 +24,18 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import org.apache.commons.io.IOUtils;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class WriteFunction extends Function<Object, Object> {
+public class WriteFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_WRITE = "Usage: ${write(filename, value)}. Example: ${write(\"text.txt\", this.name)}";
 
 	@Override
 	public String getName() {
 		return "write";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

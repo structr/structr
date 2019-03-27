@@ -27,11 +27,9 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
-import org.structr.api.service.LicenseManager;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.function.UiFunction;
 
-public class FromCsvFunction extends UiFunction {
+public class FromCsvFunction extends CsvFunction {
 
 	public static final String ERROR_MESSAGE_FROM_CSV    = "Usage: ${from_csv(source[, delimiterChar[, quoteChar[, recordSeparator[, header]]]])}. Example: ${from_csv('COL1;COL2;COL3\none;two;three')}";
 	public static final String ERROR_MESSAGE_FROM_CSV_JS = "Usage: ${{Structr.from_csv(source[, delimiterChar[, quoteChar[, recordSeparator[, header]]]])}}. Example: ${{Structr.from_csv('COL1;COL2;COL3\none;two;three')}}";
@@ -39,11 +37,6 @@ public class FromCsvFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "from_csv";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

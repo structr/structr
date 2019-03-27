@@ -18,7 +18,6 @@
  */
 package org.structr.javaparser;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -26,21 +25,15 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 import org.structr.web.entity.Folder;
 
-public class ParseSourceTreeFunction extends Function<Object, Object> {
+public class ParseSourceTreeFunction extends ParserModuleFunction {
 
 	public static final String ERROR_MESSAGE_PARSE_SOURCE_TREE = "Usage: ${parse_source_tree(path)}";
 
 	@Override
 	public String getName() {
 		return "parse_source_tree";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Enterprise;
 	}
 
 	@Override

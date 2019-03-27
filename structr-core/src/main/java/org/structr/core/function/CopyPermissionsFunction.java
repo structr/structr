@@ -18,16 +18,14 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.Permissions;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class CopyPermissionsFunction extends Function<Object, Object> {
+public class CopyPermissionsFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE    = "Usage: copy_permissions(this, this.child)";
 	public static final String ERROR_MESSAGE_JS = "Usage: Structr.copyPermissions(Structr.this, other);";
@@ -35,11 +33,6 @@ public class CopyPermissionsFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "copy_permissions";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

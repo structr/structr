@@ -18,25 +18,18 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class DivFunction extends Function<Object, Object> {
+public class DivFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_DIV = "Usage: ${div(value1, value2)}. Example: ${div(5, 2)}";
 
 	@Override
 	public String getName() {
 		return "div";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

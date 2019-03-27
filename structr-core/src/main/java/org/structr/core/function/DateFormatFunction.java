@@ -22,14 +22,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import org.mozilla.javascript.ScriptRuntime;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class DateFormatFunction extends Function<Object, Object> {
+public class DateFormatFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_DATE_FORMAT    = "Usage: ${date_format(value, pattern)}. Example: ${date_format(this.creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
 	public static final String ERROR_MESSAGE_DATE_FORMAT_JS = "Usage: ${{Structr.date_format(value, pattern)}}. Example: ${{Structr.date_format(Structr.get('this').creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}}";
@@ -37,11 +35,6 @@ public class DateFormatFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "date_format";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

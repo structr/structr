@@ -20,14 +20,12 @@ package org.structr.web.function;
 
 import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 
-public class RenderFunction extends Function<Object, Object> {
+public class RenderFunction extends UiCommunityFunction {
 
 	public static final String ERROR_MESSAGE_RENDER    = "Usage: ${render(node)} or ${render(nodes)}. Example: ${render(get(this, \"children\"))}";
 	public static final String ERROR_MESSAGE_RENDER_JS = "Usage: ${{Structr.render(node)}} or ${{Structr.render(nodes)}}. Example: ${{Structr.render(Structr.get('this').children)}}";
@@ -35,11 +33,6 @@ public class RenderFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "render";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

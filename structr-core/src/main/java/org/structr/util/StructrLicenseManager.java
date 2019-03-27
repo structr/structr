@@ -137,12 +137,10 @@ public class StructrLicenseManager implements LicenseManager {
 	private PublicKey publicKey                         = null;
 	private boolean allModulesLicensed                  = false;
 	private boolean licensePresent                      = false;
-	private String edition                              = "Community";
 	private String licensee                             = null;
 	private String startDateString                      = null;
 	private String endDateString                        = null;
 	private String numberOfUsersString                  = null;
-	private int editionMask                             = CommunityMask;
 
 	public StructrLicenseManager(final String licenseFileName) {
 
@@ -160,26 +158,7 @@ public class StructrLicenseManager implements LicenseManager {
 			// read license file (if present)
 			if (isValid(properties)) {
 
-				// init edition
-				edition = properties.get(EditionKey);
-				if (edition != null) {
-
-					switch (edition) {
-
-						case "Enterprise":
-							editionMask = EnterpriseMask;
-							break;
-
-						case "Small Business":
-							editionMask = SmallBusinessMask;
-							break;
-
-						case "Basic":
-							editionMask = BasicMask;
-							break;
-					}
-				}
-
+				// determine edition (community, other?)
 				licensee            = properties.get(NameKey);
 				startDateString     = properties.get(StartKey);
 				endDateString       = properties.get(EndKey);
@@ -207,7 +186,7 @@ public class StructrLicenseManager implements LicenseManager {
 			}
 		}
 
-		logger.info("Running {} Edition with {}.", edition, allModulesLicensed ? "all modules" : "modules " + modules.toString());
+		logger.info("Running {} Edition with {}.", getEdition(), allModulesLicensed ? "all modules" : "modules " + modules.toString());
 
 		if (licensee != null) {
 
@@ -220,6 +199,12 @@ public class StructrLicenseManager implements LicenseManager {
 	}
 
 	@Override
+	public String getEdition() {
+		return "don't know...";
+	}
+
+
+	@Override
 	public boolean isModuleLicensed(final String module) {
 		return allModulesLicensed || modules.contains(module);
 	}
@@ -227,16 +212,6 @@ public class StructrLicenseManager implements LicenseManager {
 	@Override
 	public boolean isClassLicensed(final String fqcn) {
 		return allModulesLicensed || classes.contains(fqcn);
-	}
-
-	@Override
-	public boolean isEdition(final int bitmask) {
-		return (editionMask & bitmask) > 0;
-	}
-
-	@Override
-	public String getEdition() {
-		return edition;
 	}
 
 	@Override
@@ -263,7 +238,7 @@ public class StructrLicenseManager implements LicenseManager {
 	public int getNumberOfUsers() {
 
 		if (numberOfUsersString != null) {
-			
+
 			try {
 
 				return Integer.valueOf(numberOfUsersString);

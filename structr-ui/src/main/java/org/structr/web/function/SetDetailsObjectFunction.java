@@ -18,12 +18,11 @@
  */
 package org.structr.web.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 
-public class SetDetailsObjectFunction extends UiFunction {
+public class SetDetailsObjectFunction extends UiCommunityFunction {
 
 	public static final String ERROR_MESSAGE_SET_DETAILS_OBJECT    = "Usage: ${set_details_object(obj)}. Example: ${set_details_object(this)}";
 	public static final String ERROR_MESSAGE_SET_DETAILS_OBJECT_JS = "Usage: ${{Structr.setDetailsObject(obj)}}. Example: ${{Structr.setDetailsObject(Structr.this)}}";
@@ -31,11 +30,6 @@ public class SetDetailsObjectFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "set_details_object";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

@@ -21,23 +21,16 @@ package org.structr.core.function;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class SizeFunction extends Function<Object, Object> {
+public class SizeFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_SIZE = "Usage: ${size(collection)}. Example: ${size(this.children)}";
 
 	@Override
 	public String getName() {
 		return "size";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

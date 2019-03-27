@@ -18,14 +18,12 @@
  */
 package org.structr.web.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class SetSessionAttributeFunction extends Function<Object, Object> {
+public class SetSessionAttributeFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_SET_SESSION_ATTRIBUTE    = "Usage: ${set_session_attribute(key, value)}. Example: ${set_session_attribute(\"do_no_track\", true)}";
 	public static final String ERROR_MESSAGE_SET_SESSION_ATTRIBUTE_JS = "Usage: ${{Structr.set_session_attribute(key, value)}}. Example: ${{Structr.set_session_attribute(\"do_not_track\", true)}}";
@@ -34,11 +32,6 @@ public class SetSessionAttributeFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "set_session_attribute";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

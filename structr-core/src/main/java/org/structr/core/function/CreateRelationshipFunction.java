@@ -18,16 +18,14 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class CreateRelationshipFunction extends Function<Object, Object> {
+public class CreateRelationshipFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_CREATE_RELATIONSHIP    = "Usage: ${create_relationship(from, to, relType)}. Example: ${create_relationship(me, user, 'FOLLOWS')} (Relationshiptype has to exist)";
 	public static final String ERROR_MESSAGE_CREATE_RELATIONSHIP_JS = "Usage: ${{Structr.create_relationship(from, to, relType)}}. Example: ${{Structr.create_relationship(Structr.get('me'), user, 'FOLLOWS')}} (Relationshiptype has to exist)";
@@ -35,11 +33,6 @@ public class CreateRelationshipFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "create_relationship";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

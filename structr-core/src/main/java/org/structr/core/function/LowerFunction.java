@@ -18,25 +18,18 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class LowerFunction extends Function<Object, Object> {
+public class LowerFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_LOWER = "Usage: ${lower(string)}. Example: ${lower(this.email)}";
 
 	@Override
 	public String getName() {
 		return "lower";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

@@ -21,13 +21,11 @@ package org.structr.core.function;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class AncestorTypesFunction extends Function<Object, Object> {
+public class AncestorTypesFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_ANCESTOR_TYPES    = "Usage: ${ancestor_types(type[, blacklist])}. Example ${ancestor_types('User')}";
 	public static final String ERROR_MESSAGE_ANCESTOR_TYPES_JS = "Usage: ${Structr.ancestor_types(type[, blacklist])}. Example ${Structr.ancestor_types('User')}";
@@ -35,11 +33,6 @@ public class AncestorTypesFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "ancestor_types";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

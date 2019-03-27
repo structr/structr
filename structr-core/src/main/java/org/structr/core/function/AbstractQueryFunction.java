@@ -20,12 +20,11 @@ package org.structr.core.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.app.Query;
-import org.structr.schema.action.Function;
 
 /**
  * Abstract implementation of the basic functions of the Interface QueryFunction.
  */
-public abstract class AbstractQueryFunction extends Function<Object, Object> implements QueryFunction {
+public abstract class AbstractQueryFunction extends CoreFunction implements QueryFunction {
 
 	private int start = -1;
 	private int end   = -1;

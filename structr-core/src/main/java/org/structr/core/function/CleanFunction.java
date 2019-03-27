@@ -21,26 +21,19 @@ package org.structr.core.function;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import static org.structr.core.function.Functions.cleanString;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class CleanFunction extends Function<Object, Object> {
+public class CleanFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_CLEAN = "Usage: ${clean(string)}. Example: ${clean(this.stringWithNonWordChars)}";
 
 	@Override
 	public String getName() {
 		return "clean";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

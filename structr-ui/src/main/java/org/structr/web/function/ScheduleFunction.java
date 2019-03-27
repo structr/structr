@@ -19,13 +19,12 @@
 package org.structr.web.function;
 
 import java.util.Collections;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.importer.ScriptJob;
 
-public class ScheduleFunction extends UiFunction {
+public class ScheduleFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_SCHEDULE    = "Usage: ${schedule(script[, title])}. Example: ${schedule(\"delete(find('User'))\", \"Delete all users!\")}";
 	public static final String ERROR_MESSAGE_SCHEDULE_JS = "Usage: ${{Structr.schedule(script[, title])}}. Example: ${{Structr.schedule(function() {}, 'This is a no-op!')}}";
@@ -33,11 +32,6 @@ public class ScheduleFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "schedule";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Enterprise;
 	}
 
 	@Override

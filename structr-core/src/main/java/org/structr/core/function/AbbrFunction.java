@@ -19,26 +19,19 @@
 package org.structr.core.function;
 
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 /**
  *
  */
-public class AbbrFunction extends Function<Object, Object> {
+public class AbbrFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_ABBR = "Usage: ${abbr(longString, maxLength)}. Example: ${abbr(this.title, 20)}";
 
 	@Override
 	public String getName() {
 		return "abbr";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

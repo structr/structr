@@ -19,13 +19,12 @@
 package org.structr.web.function;
 
 import javax.servlet.http.HttpServletRequest;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.schema.action.ActionContext;
 
-public class GetRequestHeaderFunction extends UiFunction {
+public class GetRequestHeaderFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_GET_REQUEST_HEADER    = "Usage: ${get_request_header(name)}. Example: ${get_request_header('User-Agent')}";
 	public static final String ERROR_MESSAGE_GET_REQUEST_HEADER_JS = "Usage: ${{Structr.getRequestHeader(name)}}. Example: ${{Structr.getRequestHeader('User-Agent')}}";
@@ -33,11 +32,6 @@ public class GetRequestHeaderFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "get_request_header";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Enterprise;
 	}
 
 	@Override

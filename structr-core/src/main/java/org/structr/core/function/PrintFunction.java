@@ -18,15 +18,13 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 /**
  *
  */
-public class PrintFunction extends Function<Object, Object> {
+public class PrintFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_PRINT    = "Usage: ${print(objects...)}. Example: ${print(this.name, \"test\")}";
 	public static final String ERROR_MESSAGE_PRINT_JS = "Usage: ${{Structr.print(objects...)}}. Example: ${{Structr.print(Structr.get('this').name, \"test\")}}";
@@ -34,11 +32,6 @@ public class PrintFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "print";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

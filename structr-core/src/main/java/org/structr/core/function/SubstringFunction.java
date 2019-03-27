@@ -18,25 +18,18 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class SubstringFunction extends Function<Object, Object> {
+public class SubstringFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_SUBSTRING = "Usage: ${substring(string, start, length)}. Example: ${substring(this.name, 19, 3)}";
 
 	@Override
 	public String getName() {
 		return "substring";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

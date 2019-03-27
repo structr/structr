@@ -20,23 +20,16 @@ package org.structr.core.function;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class UnwindFunction extends Function<Object, Object> {
+public class UnwindFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_UNWIND = "Usage: ${unwind(list1, ...)}. Example: ${unwind(this.children)}";
 
 	@Override
 	public String getName() {
 		return "unwind";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

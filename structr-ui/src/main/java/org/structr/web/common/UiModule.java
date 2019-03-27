@@ -76,11 +76,11 @@ public class UiModule implements StructrModule {
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
 
-		DataSources.put(true, LicenseManager.Community, "idRequestParameterDataSource", new IdRequestParameterGraphDataSource("nodeId"));
-		DataSources.put(true, LicenseManager.Community, "restDataSource",               new RestDataSource());
-		DataSources.put(true, LicenseManager.Community, "cypherDataSource",             new CypherGraphDataSource());
-		DataSources.put(true, LicenseManager.Community, "functionDataSource",           new FunctionDataSource());
-		DataSources.put(true, LicenseManager.Community, "xpathDataSource",              new XPathGraphDataSource());
+		DataSources.put(true, "ui", "idRequestParameterDataSource", new IdRequestParameterGraphDataSource("nodeId"));
+		DataSources.put(true, "ui", "restDataSource",               new RestDataSource());
+		DataSources.put(true, "ui", "cypherDataSource",             new CypherGraphDataSource());
+		DataSources.put(true, "ui", "functionDataSource",           new FunctionDataSource());
+		DataSources.put(true, "ui", "xpathDataSource",              new XPathGraphDataSource());
 	}
 
 	@Override

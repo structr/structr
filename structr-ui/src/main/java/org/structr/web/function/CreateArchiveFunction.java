@@ -26,7 +26,6 @@ import org.apache.commons.compress.archivers.ArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.ConfigurationProvider;
@@ -36,7 +35,7 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
-public class CreateArchiveFunction extends UiFunction {
+public class CreateArchiveFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_CREATE_ARCHIVE    = "Usage: ${create_archive(archiveFileName, files [, CustomFileType])}. Example: ${create_archive(\"archive\", find(\"File\"))}";
 	public static final String ERROR_MESSAGE_CREATE_ARCHIVE_JS = "Usage: ${{Structr.createArchive(archiveFileName, files [, CustomFileType])}}. Example: ${{Structr.createArchive(\"archive\", Structr.find(\"File\"))}}";
@@ -44,11 +43,6 @@ public class CreateArchiveFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "create_archive";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Enterprise;
 	}
 
 	@Override

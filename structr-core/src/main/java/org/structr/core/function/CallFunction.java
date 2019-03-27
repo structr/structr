@@ -21,17 +21,15 @@ package org.structr.core.function;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObjectMap;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
-import org.structr.schema.action.Function;
 
 
-public class CallFunction extends Function<Object, Object> {
+public class CallFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_CALL    = "Usage: ${call(key [, key, value]}. Example ${call('myEvent', 'key1', 'value1', 'key2', 'value2')}";
 	public static final String ERROR_MESSAGE_CALL_JS = "Usage: ${{Structr.call(key [, parameterMap]}}. Example ${{Structr.call('myEvent', {key1: 'value1', key2: 'value2'})}}";
@@ -39,11 +37,6 @@ public class CallFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "call";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

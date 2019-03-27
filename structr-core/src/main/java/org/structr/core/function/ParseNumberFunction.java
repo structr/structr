@@ -22,12 +22,10 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Locale;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class ParseNumberFunction extends Function<Object, Object> {
+public class ParseNumberFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_PARSE_NUMBER    = "Usage: ${parse_number(value, locale)}. Example: ${parse_number('12345.6789', 'en')}";
 	public static final String ERROR_MESSAGE_PARSE_NUMBER_JS = "Usage: ${{Structr.parseNumber(value, pattern)}}. Example: ${{Structr.parseNumber('12345.6789', 'en')}}";
@@ -35,11 +33,6 @@ public class ParseNumberFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "parse_number";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

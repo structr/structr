@@ -19,7 +19,6 @@
 package org.structr.core.function;
 
 import java.util.Map;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
@@ -38,11 +37,6 @@ public class SearchFunction extends AbstractQueryFunction {
 	@Override
 	public String getName() {
 		return "search";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override
@@ -134,12 +128,12 @@ public class SearchFunction extends AbstractQueryFunction {
 			return query.getAsList();
 
 		} catch (final IllegalArgumentException e) {
-			
+
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 
 		} finally {
-			
+
 			resetRange();
 			securityContext.ignoreResultCount(ignoreResultCount);
 		}

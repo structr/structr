@@ -20,15 +20,13 @@ package org.structr.core.function;
 
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class ConfigFunction extends Function<Object, Object> {
+public class ConfigFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_CONFIG    = "Usage: ${config(keyFromStructrConf[, \"default\"])}. Example: ${config(\"base.path\")}";
 	public static final String ERROR_MESSAGE_CONFIG_JS = "Usage: ${{Structr.config(keyFromStructrConf[, \"default\"])}}. Example: ${{Structr.config(\"base.path\")}}";
@@ -36,11 +34,6 @@ public class ConfigFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "config";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

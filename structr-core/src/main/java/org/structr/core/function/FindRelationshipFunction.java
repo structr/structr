@@ -19,7 +19,6 @@
 package org.structr.core.function;
 
 import java.util.Map;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -30,9 +29,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class FindRelationshipFunction extends Function<Object, Object> {
+public class FindRelationshipFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_FIND_RELATIONSHIP = "Usage: ${find_relationship(type, key, value)}. Example: ${find_relationship(\"PersonRELATED_TOPerson\"}";
 	public static final String ERROR_MESSAGE_FIND_RELATIONSHIP_NO_TYPE_SPECIFIED = "Error in find_relationship(): no type specified.";
@@ -41,11 +39,6 @@ public class FindRelationshipFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "find_relationship";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override
