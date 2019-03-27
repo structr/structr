@@ -178,6 +178,7 @@ var _Icons = {
 			case _Icons.exec_icon:                    return 'sprite-control_play';
 			case _Icons.arrow_undo_icon:              return 'sprite-arrow_undo';
 			case _Icons.information_icon:             return 'sprite-information';
+			case _Icons.help_icon:                    return 'sprite-help';
 			case _Icons.refresh_icon:                 return 'sprite-arrow_refresh';
 			case _Icons.error_icon:                   return 'sprite-error';
 			case _Icons.exclamation_icon:             return 'sprite-exclamation';
