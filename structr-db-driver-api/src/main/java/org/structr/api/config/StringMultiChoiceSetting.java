@@ -34,9 +34,6 @@ public class StringMultiChoiceSetting extends Setting<String> {
 
 	/**
 	 * Constructor to create an empty StringSetting with NO default value.
-	 *
-	 * @param group
-	 * @param key
 	 */
 	public StringMultiChoiceSetting(final SettingsGroup group, final String key) {
 		this(group, key, null);
@@ -44,25 +41,34 @@ public class StringMultiChoiceSetting extends Setting<String> {
 
 	/**
 	 * Constructor to create a StringSetting WITH default value.
-	 *
-	 * @param group
-	 * @param key
-	 * @param value
 	 */
 	public StringMultiChoiceSetting(final SettingsGroup group, final String key, final String value) {
 		this(group, null, key, value);
 	}
 
-
 	/**
 	 * Constructor to create a StringSetting with category name and default value.
-	 * @param group
-	 * @param categoryName
-	 * @param key
-	 * @param value
 	 */
 	public StringMultiChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value) {
 		super(group, categoryName, key, value);
+	}
+
+	/**
+	 * Constructor to create a StringSetting with category name and default value and a list of possible values
+	 */
+	public StringMultiChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final Set<String> possibleValues) {
+		super(group, categoryName, key, value);
+
+		this.AvailableOptions = possibleValues;
+	}
+
+	/**
+	 * Constructor to create a StringSetting with category name and default value and a list of possible values
+	 */
+	public StringMultiChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final Set<String> possibleValues, final String comment) {
+		super(group, categoryName, key, value, comment);
+
+		this.AvailableOptions = possibleValues;
 	}
 
 	/**
