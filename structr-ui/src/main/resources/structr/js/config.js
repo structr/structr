@@ -106,7 +106,7 @@ $(function () {
 	});
 
 	let anchor = getAnchorFromUrl(window.location.href) || 'general';
-	$('a[href=#' + anchor + ']').click();
+	$('a[href$=' + anchor + ']').click();
 
 	$("button.toggle-option").on('click', function() {
 

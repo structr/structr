@@ -104,10 +104,11 @@ public class Settings {
 	public static final Setting<Boolean> WsIndentation        = new BooleanSetting(serverGroup, "HTTP Settings", "ws.indentation",                  true);
 	public static final Setting<Integer> SessionTimeout       = new IntegerSetting(serverGroup, "HTTP Settings", "application.session.timeout",     1800, "The session inactivity timeout. Unit is seconds");
 
-	public static final Setting<Boolean> ForceHttps           = new BooleanSetting(serverGroup, "HTTPS Settings", "HttpService.force.https",         		false);
-	public static final Setting<String> excludedProtocols     = new StringSetting(serverGroup, "HTTPS Settings", "HttpService.ssl.protocols.excluded",  	"TLSv1,TLSv1.1");
-	public static final Setting<String> includedProtocols 	  = new StringSetting(serverGroup, "HTTPS Settings", "HttpService.ssl.protocols.included",		"TLSv1.2");
-	public static final Setting<String> disabledCipherSuits   = new StringSetting(serverGroup,  "HTTPS Settings", "HttpService.ssl.ciphers.excluded",    	"");
+	public static final Setting<Boolean> ForceHttps           	= new BooleanSetting(serverGroup, "HTTPS Settings", "HttpService.force.https",         		false);
+	public static final Setting<Boolean> dumbJettyStartupConfig = new BooleanSetting(serverGroup, "HTTPS Settings", "HttpService.log.jetty.startupConfig",	false);
+	public static final Setting<String> excludedProtocols     	= new StringSetting(serverGroup, "HTTPS Settings", "HttpService.ssl.protocols.excluded",  	"TLSv1,TLSv1.1");
+	public static final Setting<String> includedProtocols 	  	= new StringSetting(serverGroup, "HTTPS Settings", "HttpService.ssl.protocols.included",		"TLSv1.2");
+	public static final Setting<String> disabledCipherSuits   	= new StringSetting(serverGroup,  "HTTPS Settings", "HttpService.ssl.ciphers.excluded",    	"");
 
 	public static final Setting<String> AccessControlMaxAge           = new StringSetting(serverGroup, "CORS Settings", "access.control.max.age",           "3600");
 	public static final Setting<String> AccessControlAllowMethods     = new StringSetting(serverGroup, "CORS Settings", "access.control.allow.methods",     "");
@@ -179,7 +180,7 @@ public class Settings {
 	public static final Setting<Boolean> CmisEnabled             = new BooleanSetting(advancedGroup, "hidden",      "cmis.enabled",                  false);
 
 	// servlets
-	public static final Setting<String> Servlets              = new StringMultiChoiceSetting(servletsGroup,  "General", "HttpService.servlets",             "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet");
+	public static final StringMultiChoiceSetting Servlets     = new StringMultiChoiceSetting(servletsGroup, "General", "HttpService.servlets", "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet", Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet"), "Changes to this setting require a restart of the HttpService in the 'Services' tab.");
 
 	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "ConfigServlet.enabled",             true);
 
