@@ -481,7 +481,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			out
 				.append("<!--")
 				.append(DOMNode.indent(depth, renderContext))
-				.append("--><script>if (!window.jQuery) { document.write('<script src=\"/structr/js/lib/jquery-1.11.1.min.js\"><\\/script>'); }</script><!--")
+				.append("--><script>if (!window.jQuery) { document.write('<script src=\"/structr/js/lib/jquery-3.3.1.min.js\"><\\/script>'); }</script><!--")
 				.append(DOMNode.indent(depth, renderContext))
 				.append("--><script>if (!window.jQuery.ui) { document.write('<script src=\"/structr/js/lib/jquery-ui-1.11.0.custom.min.js\"><\\/script>'); }</script><!--")
 				.append(DOMNode.indent(depth, renderContext))
