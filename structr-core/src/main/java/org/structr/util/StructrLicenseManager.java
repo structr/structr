@@ -125,11 +125,6 @@ public class StructrLicenseManager implements LicenseManager {
 	public static final String HostIdMappingKey        = "hostIdValidationAttempts";
 	public static final int ServerPort                 = 5725;
 
-	private static final int CommunityMask              = 0x01; // 0001
-	private static final int BasicMask                  = 0x03; // 0011
-	private static final int SmallBusinessMask          = 0x07; // 0111
-	private static final int EnterpriseMask             = 0x0f; // 1111
-
 	private final Set<String> modules                   = new LinkedHashSet<>(Arrays.asList("core", "rest", "ui"));
 	private final Set<String> classes                   = new LinkedHashSet<>();
 	private final SimpleDateFormat format               = new SimpleDateFormat(DatePattern);
@@ -137,6 +132,7 @@ public class StructrLicenseManager implements LicenseManager {
 	private PublicKey publicKey                         = null;
 	private boolean allModulesLicensed                  = false;
 	private boolean licensePresent                      = false;
+	private String edition                              = "Community";
 	private String licensee                             = null;
 	private String startDateString                      = null;
 	private String endDateString                        = null;
@@ -158,7 +154,7 @@ public class StructrLicenseManager implements LicenseManager {
 			// read license file (if present)
 			if (isValid(properties)) {
 
-				// determine edition (community, other?)
+				edition             = properties.get(EditionKey);
 				licensee            = properties.get(NameKey);
 				startDateString     = properties.get(StartKey);
 				endDateString       = properties.get(EndKey);
@@ -186,7 +182,7 @@ public class StructrLicenseManager implements LicenseManager {
 			}
 		}
 
-		logger.info("Running {} Edition with {}.", getEdition(), allModulesLicensed ? "all modules" : "modules " + modules.toString());
+		logger.info("Running {} Edition with {}.", edition, allModulesLicensed ? "all modules" : "modules " + modules.toString());
 
 		if (licensee != null) {
 
@@ -196,13 +192,18 @@ public class StructrLicenseManager implements LicenseManager {
 
 			logger.info("Evaluation License");
 		}
+
+		final int userLimit = getNumberOfUsers();
+		if (userLimit > 0) {
+
+			logger.info("Licensed for {} users", userLimit);
+		}
 	}
 
 	@Override
 	public String getEdition() {
-		return "don't know...";
+		return edition;
 	}
-
 
 	@Override
 	public boolean isModuleLicensed(final String module) {
