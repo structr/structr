@@ -28,9 +28,9 @@ var _Shapes = {
 	_moduleName: 'shapes',
 	autoRefresh: [],
 	onload: function() {
-		
+
 		Structr.fetchHtmlTemplate('shapes/main', {}, function(html) {
-		
+
 			main.append(html);
 
 			_Shapes.init();
@@ -40,9 +40,9 @@ var _Shapes = {
 			});
 
 			Structr.unblockMenu(500);
-			
+
 		});
-		
+
 	},
 	init: function() {
 
@@ -227,7 +227,7 @@ var _Shapes = {
 
 					var children = area.children();
 
-					if (children.size() === 0) {
+					if (children.length === 0) {
 						area.css({minHeight: 100});
 					} else {
 						children.each(function(i, child) {
@@ -318,7 +318,7 @@ var _Shapes = {
 			body.find('.button-area').remove();
 
 			var buttonArea = $('.button-area', area);
-			if (buttonArea.size() === 0) {
+			if (buttonArea.length === 0) {
 				var isFirst = c.is(':first');
 				var isLast = c.is(':last');
 				var hasSiblings = c.parent().children().length > 1;
