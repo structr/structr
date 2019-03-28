@@ -68,7 +68,7 @@ import org.structr.schema.parser.DatePropertyParser;
  * This servlet produces CSV (comma separated value) lists out of a search
  * result.
  */
-public class CsvServlet extends AbstractServletBase implements HttpServiceServlet {
+public class CsvServlet extends AbstractDataServlet implements HttpServiceServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(CsvServlet.class.getName());
 
@@ -101,6 +101,8 @@ public class CsvServlet extends AbstractServletBase implements HttpServiceServle
 		Authenticator authenticator = null;
 		ResultStream result = null;
 		Resource resource = null;
+
+		setCustomResponseHeaders(response);
 
 		try {
 
@@ -266,6 +268,8 @@ public class CsvServlet extends AbstractServletBase implements HttpServiceServle
 
 		final Authenticator authenticator;
 		final Resource resource;
+
+		setCustomResponseHeaders(response);
 
 		try {
 
