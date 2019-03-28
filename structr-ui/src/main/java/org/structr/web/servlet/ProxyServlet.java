@@ -40,6 +40,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
+import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.rest.common.HttpHelper;
 import org.structr.web.entity.User;
@@ -47,7 +48,7 @@ import org.structr.web.entity.User;
 /**
  * Servlet for proxy requests.
  */
-public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
+public class ProxyServlet extends AbstractServletBase implements HttpServiceServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(ProxyServlet.class.getName());
 
@@ -65,6 +66,8 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
+
+		setCustomResponseHeaders(response);
 
 		final PropertyKey<String> proxyUrlKey      = StructrApp.key(User.class, "proxyUrl");
 		final PropertyKey<String> proxyUsernameKey = StructrApp.key(User.class, "proxyUsername");

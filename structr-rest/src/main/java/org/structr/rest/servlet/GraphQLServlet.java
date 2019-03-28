@@ -54,7 +54,7 @@ import org.structr.schema.SchemaService;
 /**
  * A servlet that implements the structr graphQL endpoint.
  */
-public class GraphQLServlet extends HttpServlet implements HttpServiceServlet {
+public class GraphQLServlet extends AbstractServletBase implements HttpServiceServlet {
 
 	public static final int DEFAULT_VALUE_PAGE_SIZE                     = 20;
 	private static final Logger logger                                  = LoggerFactory.getLogger(GraphQLServlet.class.getName());
@@ -76,6 +76,8 @@ public class GraphQLServlet extends HttpServlet implements HttpServiceServlet {
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		try {
+
+			setCustomResponseHeaders(response);
 
 			assertInitialized();
 
@@ -103,6 +105,8 @@ public class GraphQLServlet extends HttpServlet implements HttpServiceServlet {
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		try {
+
+			setCustomResponseHeaders(response);
 
 			assertInitialized();
 
@@ -134,6 +138,8 @@ public class GraphQLServlet extends HttpServlet implements HttpServiceServlet {
 		final Authenticator authenticator;
 
 		try {
+
+			setCustomResponseHeaders(response);
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {

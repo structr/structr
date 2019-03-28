@@ -20,7 +20,6 @@ package org.structr.core.function;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -28,20 +27,14 @@ import org.structr.common.geo.AddressComponent;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class GeocodeFunction extends Function<Object, Object> {
+public class GeocodeFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_GEOCODE = "Usage: ${geocode(street, city, country)}. Example: ${set(this, geocode(this.street, this.city, this.country))}";
 
 	@Override
 	public String getName() {
 		return "geocode";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

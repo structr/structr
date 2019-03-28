@@ -18,24 +18,22 @@
  */
 package org.structr.mail.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
+import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class MailAddToFunction extends Function<Object, Object> {
+public class MailAddToFunction extends AdvancedMailModuleFunction {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_add_to(toAddress[, toName])}";
 	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_add_to(toAddress[, toName]) }}";
 
-	@Override
-	public String getName() {
-		return "mail_add_to";
+	public MailAddToFunction(final AdvancedMailModule parent) {
+		super(parent);
 	}
 
 	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Enterprise;
+	public String getName() {
+		return "mail_add_to";
 	}
 
 	@Override

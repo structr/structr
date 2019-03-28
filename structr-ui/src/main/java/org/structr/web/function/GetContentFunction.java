@@ -21,15 +21,13 @@ package org.structr.web.function;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Scanner;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 import org.structr.web.entity.File;
 
-public class GetContentFunction extends Function<Object, Object> {
+public class GetContentFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_GET_CONTENT    = "Usage: ${get_content(file[, encoding = \"UTF-8\"])}. Example: ${get_content(first(find('File', 'name', 'test.txt')))}";
 	public static final String ERROR_MESSAGE_GET_CONTENT_JS = "Usage: ${{Structr.getContent(file[, encoding = \"UTF-8\"])}}. Example: ${{Structr.getContent(fileNode)}}";
@@ -37,11 +35,6 @@ public class GetContentFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "get_content";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

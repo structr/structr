@@ -18,26 +18,19 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class IsEntityFunction extends Function<Object, Object> {
+public class IsEntityFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_IS_ENTITY = "Usage: ${is_entity(value)}. Example: ${is_entity(this)}";
 
 	@Override
 	public String getName() {
 		return "is_entity";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

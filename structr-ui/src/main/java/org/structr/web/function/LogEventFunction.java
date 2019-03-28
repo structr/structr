@@ -20,7 +20,6 @@ package org.structr.web.function;
 
 import java.util.Date;
 import java.util.Map;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
@@ -29,7 +28,7 @@ import org.structr.rest.logging.entity.LogEvent;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
 
-public class LogEventFunction extends UiFunction {
+public class LogEventFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_LOG_EVENT    = "Usage: ${log_event(action, message)}. Example: ${log_event('read', 'Book has been read')}";
 	public static final String ERROR_MESSAGE_LOG_EVENT_JS = "Usage: ${{Structr.logEvent(action, message)}}. Example: ${{Structr.logEvent('read', 'Book has been read')}}";
@@ -37,11 +36,6 @@ public class LogEventFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "log_event";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.SmallBusiness;
 	}
 
 	@Override

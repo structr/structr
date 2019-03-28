@@ -19,24 +19,17 @@
 package org.structr.core.function;
 
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 
-public class TitleizeFunction extends Function<Object, Object> {
+public class TitleizeFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_TITLEIZE = "Usage: ${titleize(string, separator)}. (Default separator is \" \") Example: ${titleize(this.lowerCamelCaseString, \"_\")}";
 
 	@Override
 	public String getName() {
 		return "titleize";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

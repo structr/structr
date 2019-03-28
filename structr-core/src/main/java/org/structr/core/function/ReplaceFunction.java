@@ -19,7 +19,6 @@
 package org.structr.core.function;
 
 import java.util.List;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -28,18 +27,13 @@ import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-public class ReplaceFunction extends Function<Object, Object> {
+public class ReplaceFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_REPLACE = "Usage: ${replace(template, source)}. Example: ${replace(\"${this.id}\", this)}";
 
 	@Override
 	public String getName() {
 		return "replace";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

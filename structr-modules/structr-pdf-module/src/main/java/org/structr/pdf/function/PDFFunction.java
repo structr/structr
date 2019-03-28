@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.structr.api.config.Settings;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
@@ -46,8 +45,8 @@ public class PDFFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Enterprise;
+	public String getRequiredModule() {
+		return "pdf";
 	}
 
 	@Override

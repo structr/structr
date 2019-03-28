@@ -19,7 +19,6 @@
 package org.structr.flow.impl;
 
 import java.util.Map;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -28,20 +27,27 @@ import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
+import org.structr.transform.APIBuilderModule;
 
 public class FlowFunction extends Function<Object, Object> {
 
 	public static final String USAGE    = "Usage: ${flow(name)}";
 	public static final String USAGE_JS = "Usage: ${{ Structr.flow(name) }}";
 
-	@Override
-	public String getName() {
-		return "flow";
+	private APIBuilderModule parent     = null;
+
+	public FlowFunction(final APIBuilderModule parent) {
+		this.parent = parent;
 	}
 
 	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Enterprise;
+	public String getName() {
+		return "flow-engine";
+	}
+
+	@Override
+	public String getRequiredModule() {
+		return parent.getName();
 	}
 
 	@Override

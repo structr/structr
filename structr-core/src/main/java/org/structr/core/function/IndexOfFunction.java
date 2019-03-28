@@ -18,25 +18,18 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class IndexOfFunction extends Function<Object, Object> {
+public class IndexOfFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_INDEX_OF = "Usage: ${index_of(string, word)}. Example: ${index_of(this.name, \"the\")}";
 
 	@Override
 	public String getName() {
 		return "index_of";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

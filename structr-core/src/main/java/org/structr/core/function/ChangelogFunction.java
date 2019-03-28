@@ -35,7 +35,6 @@ import org.mozilla.javascript.ScriptRuntime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -48,9 +47,8 @@ import org.structr.core.property.EndNodeProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class ChangelogFunction extends Function<Object, Object> {
+public class ChangelogFunction extends AdvancedScriptingFunction {
 
 	protected static final Pattern uuidPattern = Pattern.compile("[a-f0-9]{32}");
 
@@ -62,11 +60,6 @@ public class ChangelogFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "changelog";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

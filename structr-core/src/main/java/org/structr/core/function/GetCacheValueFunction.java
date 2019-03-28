@@ -18,15 +18,13 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.parser.CacheExpression;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class GetCacheValueFunction extends Function<Object, Object> {
+public class GetCacheValueFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_GET_CACHE_VALUE    = "Usage: ${get_cache_value(cacheKey)}. Example: ${get_cache_value('mykey')}";
 	public static final String ERROR_MESSAGE_GET_CACHE_VALUE_JS = "Usage: ${{ Structr.get_cache_value(cacheKey); }}. Example: ${{ Structr.get_cache_value('mykey'); }}";
@@ -34,11 +32,6 @@ public class GetCacheValueFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "get_cache_value";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

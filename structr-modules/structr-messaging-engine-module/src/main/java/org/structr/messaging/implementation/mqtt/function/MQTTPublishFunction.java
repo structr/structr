@@ -20,13 +20,11 @@ package org.structr.messaging.implementation.mqtt.function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class MQTTPublishFunction extends Function<Object, Object> {
+public class MQTTPublishFunction extends MessagingModuleFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(MQTTPublishFunction.class.getName());
 
@@ -36,11 +34,6 @@ public class MQTTPublishFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "mqtt_publish";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Enterprise;
 	}
 
 	@Override

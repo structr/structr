@@ -22,7 +22,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.util.Map;
 import org.structr.api.config.Settings;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -35,9 +34,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class SetFunction extends Function<Object, Object> {
+public class SetFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_SET = "Usage: ${set(entity, propertyKey, value, ...)}. Example: ${set(this, \"email\", lower(this.email))}";
 	public static final String ERROR_MESSAGE_SET_JS = "Usage: ${{Structr.set(entity, propertyKey, value, ...)}}. Example: ${{Structr.set(this, \"email\", lower(this.email))}}";
@@ -45,11 +43,6 @@ public class SetFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "set";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

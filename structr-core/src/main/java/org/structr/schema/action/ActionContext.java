@@ -257,35 +257,64 @@ public class ActionContext {
 				if (securityContext != null) {
 
 					// "data-less" keywords to start the evaluation chain
+
+					// 1. keywords without special handling
 					switch (key) {
 
 						case "request":
 							return securityContext.getRequest();
 
-						case "host":
-							return securityContext.getRequest().getServerName();
+						case "me":
+							return securityContext.getUser(false);
 
-						case "port":
-							return securityContext.getRequest().getServerPort();
+						case "depth":
+							return securityContext.getSerializationDepth() - 1;
 
-						case "pathInfo":
-						case "path_info":
-							return securityContext.getRequest().getPathInfo();
+					}
 
-						case "queryString":
-						case "query_string":
-							return securityContext.getRequest().getQueryString();
+					// 2. keywords which require a request
+					final HttpServletRequest request = securityContext.getRequest();
 
-						case "parameterMap":
-						case "parameter_map":
-							return securityContext.getRequest().getParameterMap();
+					if (request != null) {
 
-						case "remoteAddress":
-						case "remote_address":
-							return getRemoteAddr(securityContext.getRequest());
-						case "response": {
-							final HttpServletResponse response = securityContext.getResponse();
-							if (response != null) {
+						switch (key) {
+
+							case "host":
+								return request.getServerName();
+
+							case "port":
+								return request.getServerPort();
+
+							case "pathInfo":
+							case "path_info":
+								return request.getPathInfo();
+
+							case "queryString":
+							case "query_string":
+								return request.getQueryString();
+
+							case "parameterMap":
+							case "parameter_map":
+								return request.getParameterMap();
+
+							case "remoteAddress":
+							case "remote_address":
+								return getRemoteAddr(request);
+
+							case "baseUrl":
+							case "base_url":
+								return getBaseUrl(request);
+						}
+					}
+
+					// 3. keywords which require a response
+					final HttpServletResponse response = securityContext.getResponse();
+
+					if (response != null) {
+
+						switch (key) {
+
+							case "response": {
 
 								try {
 									// return output stream of HTTP response for streaming
@@ -294,33 +323,14 @@ public class ActionContext {
 								} catch (IOException ioex) {
 									logger.warn("", ioex);
 								}
+								return null;
 							}
-							return null;
-						}
 
-						case "statusCode":
-						case "status_code": {
-							final HttpServletResponse response = securityContext.getResponse();
-							if (response != null) {
+							case "statusCode":
+							case "status_code":
 								return response.getStatus();
-							}
-							return null;
-						}
-
-						case "me":
-							return securityContext.getUser(false);
-
-						case "depth":
-							return securityContext.getSerializationDepth() - 1;
-
-
-						case "baseUrl":
-						case "base_url": {
-
-							return getBaseUrl(securityContext.getRequest());
 						}
 					}
-
 				}
 
 				// keywords that do not need a security context

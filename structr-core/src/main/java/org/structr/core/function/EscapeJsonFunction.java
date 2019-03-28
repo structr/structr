@@ -19,25 +19,18 @@
 package org.structr.core.function;
 
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class EscapeJsonFunction extends Function<Object, Object> {
+public class EscapeJsonFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_ESCAPE_JSON = "Usage: ${escape_json(string)}. Example: ${escape_json(this.name)}";
 
 	@Override
 	public String getName() {
 		return "escape_json";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

@@ -32,7 +32,7 @@ public class DataSources {
 
 	private static final Map<String, GraphDataSource> dataSources = new LinkedHashMap<>();
 
-	public static void put(final boolean licensed, final int edition, final String name, final GraphDataSource dataSource) {
+	public static void put(final boolean licensed, final String module, final String name, final GraphDataSource dataSource) {
 
 		if (licensed) {
 
@@ -40,7 +40,7 @@ public class DataSources {
 
 		} else {
 
-			dataSources.put(name, new UnlicensedDataSource(name, edition));
+			dataSources.put(name, new UnlicensedDataSource(name, module));
 		}
 	}
 

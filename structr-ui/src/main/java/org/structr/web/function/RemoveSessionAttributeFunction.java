@@ -18,15 +18,13 @@
  */
 package org.structr.web.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 import static org.structr.web.function.SetSessionAttributeFunction.SESSION_ATTRIBUTE_PREFIX;
 
-public class RemoveSessionAttributeFunction extends Function<Object, Object> {
+public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_REMOVE_SESSION_ATTRIBUTE    = "Usage: ${remove_session_attribute(key)}. Example: ${remove_session_attribute(\"do_no_track\")}";
 	public static final String ERROR_MESSAGE_REMOVE_SESSION_ATTRIBUTE_JS = "Usage: ${{Structr.remove_session_attribute(key)}}. Example: ${{Structr.remove_session_attribute(\"do_not_track\")}}";
@@ -34,11 +32,6 @@ public class RemoveSessionAttributeFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "remove_session_attribute";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

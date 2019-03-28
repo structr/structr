@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.XmlFunction;
@@ -35,13 +34,12 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class ImportGPXFunction extends Function<Object, Object> {
+public class ImportGPXFunction extends GeoFunction {
 
 	private static final Logger logger                                   = LoggerFactory.getLogger(ImportGPXFunction.class.getName());
 	public static final Property<List<GraphObjectMap>> waypointsProperty = new GenericProperty<>("waypoints");
@@ -83,11 +81,6 @@ public class ImportGPXFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "import_gpx";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

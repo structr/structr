@@ -21,26 +21,19 @@ package org.structr.core.function;
 import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.Undefined;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 /**
  *
  */
-public class EmptyFunction extends Function<Object, Object> {
+public class EmptyFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_EMPTY = "Usage: ${empty(string|array|collection)}. Example: ${if(empty(possibleEmptyString), \"empty\", \"non-empty\")}";
 
 	@Override
 	public String getName() {
 		return "empty";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

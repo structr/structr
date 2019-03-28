@@ -20,18 +20,16 @@ package org.structr.web.function;
 
 import java.io.IOException;
 import org.python.google.common.io.Files;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 
-public class CopyFileContentsFunction extends Function<Object, Object> {
+public class CopyFileContentsFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_COPY_FILE_CONTENTS = "Usage: ${ copy_file_contents(sourceFile, targetFile) }";
 	public static final String ERROR_MESSAGE_COPY_FILE_CONTENTS_JS = "Usage: ${{ Structr.copy_file_contents(sourceFile, targetFile); }}";
@@ -39,11 +37,6 @@ public class CopyFileContentsFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "copy_file_contents";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

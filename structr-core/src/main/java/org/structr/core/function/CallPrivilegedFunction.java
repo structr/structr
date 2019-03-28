@@ -18,7 +18,6 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.schema.action.ActionContext;
 
@@ -31,11 +30,6 @@ public class CallPrivilegedFunction extends CallFunction {
 	@Override
 	public String getName() {
 		return "call_privileged";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

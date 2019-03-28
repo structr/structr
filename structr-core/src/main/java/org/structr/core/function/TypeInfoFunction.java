@@ -18,13 +18,11 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class TypeInfoFunction extends Function<Object, Object> {
+public class TypeInfoFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_TYPE_INFO    = "Usage: ${type_info(type[, view])}. Example ${type_info('User', 'public')}";
 	public static final String ERROR_MESSAGE_TYPE_INFO_JS = "Usage: ${Structr.type_info(type[, view])}. Example ${Structr.type_info('User', 'public')}";
@@ -32,11 +30,6 @@ public class TypeInfoFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "type_info";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

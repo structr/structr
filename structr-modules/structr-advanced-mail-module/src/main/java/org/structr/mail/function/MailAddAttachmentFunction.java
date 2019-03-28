@@ -20,28 +20,26 @@ package org.structr.mail.function;
 
 import java.net.MalformedURLException;
 import org.apache.commons.mail.EmailAttachment;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.AdvancedMailContainer;
 import org.structr.common.DynamicMailAttachment;
 import org.structr.common.error.FrameworkException;
+import org.structr.mail.AdvancedMailModule;
 import org.structr.mail.DynamicFileDataSource;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 import org.structr.web.entity.File;
 
-public class MailAddAttachmentFunction extends Function<Object, Object> {
+public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_add_attachment(file[, name])}";
 	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_add_attachment(file[, name]) }}";
 
-	@Override
-	public String getName() {
-		return "mail_add_attachment";
+	public MailAddAttachmentFunction(final AdvancedMailModule parent) {
+		super(parent);
 	}
 
 	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Enterprise;
+	public String getName() {
+		return "mail_add_attachment";
 	}
 
 	@Override

@@ -18,15 +18,13 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 /**
  *
  */
-public class EnableNotificationsFunction extends Function<Object, Object> {
+public class EnableNotificationsFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_ENABLE_NOTIFICATIONS    = "Usage: ${enable_notifications()}";
 	public static final String ERROR_MESSAGE_ENABLE_NOTIFICATIONS_JS = "Usage: ${Structr.enableNotifications()}";
@@ -34,11 +32,6 @@ public class EnableNotificationsFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "enable_notifications";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

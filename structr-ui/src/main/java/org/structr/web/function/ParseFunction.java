@@ -21,12 +21,11 @@ package org.structr.web.function;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.structr.api.service.LicenseManager;
 import org.structr.core.GraphObjectMap;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.microformat.MicroformatParser;
 
-public class ParseFunction extends UiFunction {
+public class ParseFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_PARSE    = "Usage: ${parse(URL, selector)}. Example: ${parse('http://structr.org', 'li.data')}";
 	public static final String ERROR_MESSAGE_PARSE_JS = "Usage: ${{Structr.parse(URL, selector)}}. Example: ${{Structr.parse('http://structr.org', 'li.data')}}";
@@ -34,11 +33,6 @@ public class ParseFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "parse";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Enterprise;
 	}
 
 	@Override

@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
 import org.structr.common.error.FrameworkException;
@@ -41,9 +40,8 @@ import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.parser.DatePropertyParser;
-import org.structr.web.function.UiFunction;
 
-public class ToCsvFunction extends UiFunction {
+public class ToCsvFunction extends CsvFunction {
 
 	public static final String ERROR_MESSAGE_TO_CSV    = "Usage: ${to_csv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}. Example: ${to_csv(find('Page'), 'ui')}";
 	public static final String ERROR_MESSAGE_TO_CSV_JS = "Usage: ${{Structr.to_csv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}}. Example: ${{Structr.to_csv(Structr.find('Page'), 'ui'))}}";
@@ -51,11 +49,6 @@ public class ToCsvFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "to_csv";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

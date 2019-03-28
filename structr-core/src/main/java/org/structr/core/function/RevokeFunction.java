@@ -18,7 +18,6 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.error.ArgumentCountException;
@@ -27,9 +26,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class RevokeFunction extends Function<Object, Object> {
+public class RevokeFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_REVOKE    = "Usage: ${revoke(principal, node, permissions)}. Example: ${revoke(me, this, 'write, delete'))}";
 	public static final String ERROR_MESSAGE_REVOKE_JS = "Usage: ${{Structr.revoke(principal, node, permissions)}}. Example: ${{Structr.revoke(Structr.('me'), Structr.this, 'write, delete'))}}";
@@ -37,11 +35,6 @@ public class RevokeFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "revoke";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

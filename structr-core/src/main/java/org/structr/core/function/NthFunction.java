@@ -19,26 +19,19 @@
 package org.structr.core.function;
 
 import java.util.List;
-import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class NthFunction extends Function<Object, Object> {
+public class NthFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_NTH = "Usage: ${nth(collection)}. Example: ${nth(this.children, 2)}";
 
 	@Override
 	public String getName() {
 		return "nth";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

@@ -21,7 +21,6 @@ package org.structr.core.function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
@@ -35,11 +34,6 @@ public class DebugFunction extends LogFunction {
 	@Override
 	public String getName() {
 		return "debug";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

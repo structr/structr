@@ -20,7 +20,6 @@ package org.structr.core.function;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -28,9 +27,8 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class GetOutgoingRelationshipsFunction extends Function<Object, Object> {
+public class GetOutgoingRelationshipsFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS    = "Usage: ${get_outgoing_relationships(from, to [, relType])}. Example: ${get_outgoing_relationships(me, user, 'FOLLOWS')}";
 	public static final String ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS_JS = "Usage: ${{Structr.get_outgoing_relationships(from, to [, relType])}}. Example: ${{Structr.get_outgoing_relationships(Structr.get('me'), user, 'FOLLOWS')}}";
@@ -38,11 +36,6 @@ public class GetOutgoingRelationshipsFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "get_outgoing_relationships";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

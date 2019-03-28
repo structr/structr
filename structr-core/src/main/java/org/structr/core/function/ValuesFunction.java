@@ -22,26 +22,19 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class ValuesFunction extends Function<Object, Object> {
+public class ValuesFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_VALUES = "Usage: ${values(entity, viewName)}. Example: ${values(this, \"ui\")}";
 
 	@Override
 	public String getName() {
 		return "values";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

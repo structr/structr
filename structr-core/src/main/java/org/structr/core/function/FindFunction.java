@@ -19,7 +19,6 @@
 package org.structr.core.function;
 
 import java.util.Map;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -41,11 +40,6 @@ public class FindFunction extends AbstractQueryFunction {
 	@Override
 	public String getName() {
 		return "find";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

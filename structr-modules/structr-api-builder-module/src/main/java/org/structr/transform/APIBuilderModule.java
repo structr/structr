@@ -65,15 +65,15 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
 
-		final boolean enterpriseEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
+		final boolean licensed = licenseManager == null || licenseManager.isModuleLicensed(getName());
 
-		DataSources.put(enterpriseEdition, LicenseManager.Enterprise, "flowDataSource", new FlowContainerDataSource());
+		DataSources.put(licensed, getName(), "flowDataSource", new FlowContainerDataSource());
 	}
 
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
-		Functions.put(licenseManager, new FlowFunction());
+		Functions.put(licenseManager, new FlowFunction(this));
 	}
 
 	@Override

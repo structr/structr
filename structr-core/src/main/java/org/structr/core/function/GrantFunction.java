@@ -18,7 +18,6 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.error.ArgumentCountException;
@@ -27,9 +26,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class GrantFunction extends Function<Object, Object> {
+public class GrantFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_GRANT    = "Usage: ${grant(principal, node, permissions)}. Example: ${grant(me, this, 'read, write, delete'))}";
 	public static final String ERROR_MESSAGE_GRANT_JS = "Usage: ${{Structr.grant(principal, node, permissions)}}. Example: ${{Structr.grant(Structr.get('me'), Structr.this, 'read, write, delete'))}}";
@@ -37,11 +35,6 @@ public class GrantFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "grant";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

@@ -18,13 +18,11 @@
  */
 package org.structr.messaging.implementation.mqtt.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class MQTTSubscribeTopicFunction extends Function<Object, Object> {
+public class MQTTSubscribeTopicFunction extends MessagingModuleFunction {
 
 	public static final String ERROR_MESSAGE_MQTTSUBSCRIBE    = "Usage: ${mqtt_subscribe(client, topic)}. Example ${mqtt_subscribe(client, 'myTopic')}";
 	public static final String ERROR_MESSAGE_MQTTSUBSCRIBE_JS = "Usage: ${{Structr.mqtt_subscribe(client, topic)}}. Example ${{Structr.mqtt_subscribe(client, topic)}}";
@@ -32,11 +30,6 @@ public class MQTTSubscribeTopicFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "mqtt_subscribe";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Enterprise;
 	}
 
 	@Override
