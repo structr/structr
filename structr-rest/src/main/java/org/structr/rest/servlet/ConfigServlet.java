@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -43,7 +42,7 @@ import org.structr.core.Services;
 /**
  *
  */
-public class ConfigServlet extends HttpServlet {
+public class ConfigServlet extends AbstractServletBase {
 
 	private static final Logger logger                     = LoggerFactory.getLogger(ConfigServlet.class);
 	private static final Set<String> authenticatedSessions = new HashSet<>();
@@ -53,6 +52,8 @@ public class ConfigServlet extends HttpServlet {
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+
+		setCustomResponseHeaders(response);
 
 		if (!isAuthenticated(request)) {
 
@@ -173,6 +174,8 @@ public class ConfigServlet extends HttpServlet {
 
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+
+		setCustomResponseHeaders(response);
 
 		final String action   = request.getParameter("action");
 		String redirectTarget = "";
