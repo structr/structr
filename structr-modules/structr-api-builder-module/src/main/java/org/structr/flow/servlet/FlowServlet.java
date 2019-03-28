@@ -60,6 +60,8 @@ public class FlowServlet extends JsonRestServlet {
 		ResultStream result             = null;
 		Resource resource               = null;
 
+		setCustomResponseHeaders(response);
+
 		try {
 
 			final Map<String, Object> flowParameters = new HashMap<>();

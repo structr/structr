@@ -25,14 +25,12 @@ import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -48,7 +46,6 @@ import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
@@ -82,6 +79,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
+import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.util.Base64;
 import org.structr.web.auth.UiAuthenticator;
@@ -101,7 +99,7 @@ import org.structr.websocket.command.AbstractCommand;
 /**
  * Main servlet for content rendering.
  */
-public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
+public class HtmlServlet extends AbstractServletBase implements HttpServiceServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(HtmlServlet.class.getName());
 
@@ -115,10 +113,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	public static final String TARGET_PAGE_KEY           = "target";
 	public static final String ERROR_PAGE_KEY            = "onerror";
 
-	public static final String CUSTOM_RESPONSE_HEADERS      = "HtmlServlet.customResponseHeaders";
 	public static final String OBJECT_RESOLUTION_PROPERTIES = "HtmlServlet.resolveProperties";
 
-	private static final List<String> customResponseHeaders        = new LinkedList<>();
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
 	private static final ExecutorService threadPool                = Executors.newCachedThreadPool();
 
@@ -129,12 +125,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	private boolean isAsync = false;
 
 	public HtmlServlet() {
-
-		final String customResponseHeadersString = Settings.HtmlCustomResponseHeaders.getValue();
-		if (StringUtils.isNotBlank(customResponseHeadersString)) {
-
-			customResponseHeaders.addAll(Arrays.asList(customResponseHeadersString.split("[ ,]+")));
-		}
 
 		// resolving properties
 		final String resolvePropertiesSource = Settings.HtmlResolveProperties.getValue();
@@ -1396,17 +1386,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		response.setHeader("Pragma", "no-cache, no-store"); // HTTP 1.0.
 		response.setDateHeader("Expires", 0);
 
-	}
-
-	private static void setCustomResponseHeaders(final HttpServletResponse response) {
-
-		for (final String header : customResponseHeaders) {
-
-			final String[] keyValuePair = header.split("[ :]+");
-			response.setHeader(keyValuePair[0], keyValuePair[1]);
-
-			logger.debug("Set custom response header: {} {}", new Object[]{keyValuePair[0], keyValuePair[1]});
-		}
 	}
 
 	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final NodeInterface node, final boolean dontCache) {

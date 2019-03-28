@@ -64,6 +64,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.rest.JsonInputGSONAdapter;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
+import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
@@ -75,7 +76,7 @@ import org.structr.web.entity.Image;
 /**
  * Simple upload servlet.
  */
-public class UploadServlet extends HttpServlet implements HttpServiceServlet {
+public class UploadServlet extends AbstractServletBase implements HttpServiceServlet {
 
 	private static final Logger logger                             = LoggerFactory.getLogger(UploadServlet.class.getName());
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
@@ -113,6 +114,8 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
+
+		setCustomResponseHeaders(response);
 
 		try {
 
@@ -390,6 +393,8 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
+
+		setCustomResponseHeaders(response);
 
 		try (final Tx tx = StructrApp.getInstance().tx(true, false, false)) {
 
