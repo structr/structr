@@ -53,6 +53,7 @@ import org.structr.core.graph.Tx;
 import org.structr.rest.common.HttpHelper;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
+import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.maintenance.DeployCommand;
 
@@ -60,7 +61,7 @@ import org.structr.web.maintenance.DeployCommand;
 /**
  * Endpoint for deployment file upload
  */
-public class DeploymentServlet extends HttpServlet implements HttpServiceServlet {
+public class DeploymentServlet extends AbstractServletBase implements HttpServiceServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeploymentServlet.class.getName());
 
@@ -120,6 +121,8 @@ public class DeploymentServlet extends HttpServlet implements HttpServiceServlet
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 
 		String redirectUrl = null;
+
+		setCustomResponseHeaders(response);
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 

@@ -70,12 +70,6 @@ public class PdfServlet extends HtmlServlet {
 
 	public PdfServlet() {
 
-		final String customResponseHeadersString = Settings.HtmlCustomResponseHeaders.getValue();
-		if (StringUtils.isNotBlank(customResponseHeadersString)) {
-
-			customResponseHeaders.addAll(Arrays.asList(customResponseHeadersString.split("[ ,]+")));
-		}
-
 		// resolving properties
 		final String resolvePropertiesSource = Settings.HtmlResolveProperties.getValue();
 		for (final String src : resolvePropertiesSource.split("[, ]+")) {
@@ -123,6 +117,8 @@ public class PdfServlet extends HtmlServlet {
 		final ServletOutputStream out = async.getResponse().getOutputStream();
 		final AtomicBoolean finished = new AtomicBoolean(false);
 		final DOMNode rootNode = rootElement;
+
+		setCustomResponseHeaders(response);
 
 		response.setContentType("application/pdf");
 		response.setHeader("Content-Disposition","attachment;filename=\"FileName.pdf\"");
