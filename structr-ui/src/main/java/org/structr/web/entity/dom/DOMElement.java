@@ -263,7 +263,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addViewProperty(PropertyView.Ui, "restQuery");
 		type.addViewProperty(PropertyView.Ui, "functionQuery");
 
-		if (Services.getInstance().getLicenseManager().isModuleLicensed("flow-engine")) {
+		if (Services.getInstance().getLicenseManager().isModuleLicensed("api-builder")) {
 			type.addViewProperty(PropertyView.Public, "flow");
 			type.addViewProperty(PropertyView.Ui, "flow");
 		}
