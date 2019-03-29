@@ -48,6 +48,7 @@ import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.ResourceHandler;
@@ -211,6 +212,10 @@ public class HttpService implements RunnableService {
 		contexts.addHandler(new DefaultHandler());
 
 		final ServletContextHandler servletContext = new ServletContextHandler(server, contextPath, true, true);
+		final ErrorHandler errorHandler = new ErrorHandler();
+
+		errorHandler.setShowStacks(false);
+		servletContext.setErrorHandler(errorHandler);
 
 		if (enableGzipCompression) {
 			gzipHandler = new GzipHandler();

@@ -41,12 +41,6 @@ import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.property.PropertyKey;
 
-//~--- classes ----------------------------------------------------------------
-
-/**
- *
- *
- */
 public class RestAuthenticator implements Authenticator {
 
 	private static final Logger logger       = LoggerFactory.getLogger(RestAuthenticator.class.getName());

@@ -42,7 +42,7 @@ public class FlowFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "flow-engine";
+		return "flow";
 	}
 
 	@Override

@@ -271,7 +271,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		synced.getSourceProperty().setCategory(PAGE_CATEGORY);
 		synced.getTargetProperty().setCategory(PAGE_CATEGORY);
 
-		if (Services.getInstance().getLicenseManager().isModuleLicensed("flow-engine")) {
+		if (Services.isTesting() || Services.getInstance().getLicenseManager().isModuleLicensed("flow-engine")) {
 
 			type.addCustomProperty("flow", EndNode.class.getName()).setFormat("org.structr.flow.impl.rels.DOMNodeFLOWFlowContainer");
 		}

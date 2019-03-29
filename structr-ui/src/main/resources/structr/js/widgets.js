@@ -320,7 +320,7 @@ var _Widgets = {
 					var idString = lowerPart + suffix;
 					var newParent = $('#' + idString);
 
-					if (newParent.size() === 0) {
+					if (newParent.length === 0) {
 						_Widgets.appendFolderElement(parent, idString, _Icons.folder_icon, part);
 						newParent = $('#' + idString);
 					}
@@ -334,7 +334,7 @@ var _Widgets = {
 			var idString = 'other' + suffix;
 			var newParent = $('#' + idString);
 
-			if (newParent.size() === 0) {
+			if (newParent.length === 0) {
 				_Widgets.appendFolderElement(parent, idString, _Icons.folder_icon, 'Uncategorized');
 				newParent = $('#' + idString);
 			}

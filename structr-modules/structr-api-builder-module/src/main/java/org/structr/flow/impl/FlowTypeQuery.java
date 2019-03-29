@@ -79,7 +79,7 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 				resolveQueryObject(jsonObject, query);
 			}
 
-			return query;
+			return query.getAsList();
 
 		} catch (FrameworkException ex) {
 
