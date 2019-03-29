@@ -25,31 +25,27 @@ import org.structr.api.config.Settings;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 
 public abstract class AbstractServletBase extends HttpServlet {
 
-	protected static final List<String> customResponseHeaders = new LinkedList<>();
-
-	private void addCustomRequestHeaders () {
-		final String customResponseHeadersString = Settings.HtmlCustomResponseHeaders.getValue();
-		if (StringUtils.isNotBlank(customResponseHeadersString)) {
-
-			customResponseHeaders.addAll(Arrays.asList(customResponseHeadersString.split("[ ,]+")));
-		}
-	}
-
 	protected void setCustomResponseHeaders(final HttpServletResponse response) {
-		addCustomRequestHeaders();
 
-		for (final String header : customResponseHeaders) {
+		if (response != null) {
 
-			final String[] keyValuePair = header.split("[ :]+");
-			response.setHeader(keyValuePair[0], keyValuePair[1]);
+			final String customResponseHeadersString = Settings.HtmlCustomResponseHeaders.getValue();
+			if (StringUtils.isNotBlank(customResponseHeadersString)) {
 
-			logger.debug("Set custom response header: {} {}", new Object[]{keyValuePair[0], keyValuePair[1]});
+				for (final String header : Arrays.asList(customResponseHeadersString.split("[ ,]+"))) {
+
+					final String[] keyValuePair = header.split("[ :]+");
+					if (keyValuePair != null && keyValuePair.length == 2) {
+
+						response.setHeader(keyValuePair[0], keyValuePair[1]);
+
+						logger.debug("Set custom response header: {} {}", keyValuePair[0], keyValuePair[1]);
+					}
+				}
+			}
 		}
 	}
-
 }
