@@ -64,16 +64,13 @@ import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMTER_OUTPUT_D
 public abstract class AbstractDataServlet extends AbstractServletBase implements HttpServiceServlet {
 
 	// final fields
-	protected final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
 	protected final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
-
-	// non-final fields
-	protected Value<String> propertyView = null;
-	protected String defaultPropertyView;
+	protected final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
+	protected Value<String> propertyView                                = null;
+	protected String defaultPropertyView                                = null;
 
 	@Override
 	public void init() {
-
 
 		// inject resources
 		final ResourceProvider provider = config.getResourceProvider();
