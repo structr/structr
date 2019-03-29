@@ -44,7 +44,7 @@ public abstract class Setting<T> {
 
 	public Setting(final SettingsGroup group, final String categoryName, final String key, final T value, final String comment) {
 
-		this.key          = key;
+		this.key          = key.toLowerCase();
 		this.value        = value;
 		this.category     = categoryName;
 		this.group        = group;
