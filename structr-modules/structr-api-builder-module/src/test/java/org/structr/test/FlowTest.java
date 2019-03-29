@@ -34,7 +34,6 @@ import java.util.Map;
 import static org.hamcrest.CoreMatchers.equalTo;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.NodeAttribute;
@@ -108,7 +107,7 @@ public class FlowTest extends StructrUiTest {
 
 
 	@Test
-	public void testCustomHtmlAttribute() {
+	public void testFlowRepeater() {
 
 		try (final Tx tx = app.tx()) {
 
@@ -141,8 +140,8 @@ public class FlowTest extends StructrUiTest {
 
 			// evaluate flow
 			final Map<String, Object> map = flowContainer.evaluate(new LinkedHashMap<>());
-			final Query result            = (Query)map.get("result");
-			final List<Group> groups      = Iterables.toList(result.getResultStream());
+			final Iterable result         = (Iterable)map.get("result");
+			final List<Group> groups      = Iterables.toList(result);
 
 			assertEquals("Invalid number of groups in flow result", 4, groups.size());
 
