@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
+import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.ConstantBooleanTrue;
@@ -271,9 +272,18 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		synced.getSourceProperty().setCategory(PAGE_CATEGORY);
 		synced.getTargetProperty().setCategory(PAGE_CATEGORY);
 
-		if (Services.isTesting() || Services.getInstance().getLicenseManager().isModuleLicensed("flow-engine")) {
+		final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
+		if (licenseManager == null || licenseManager.isModuleLicensed("api-builder")) {
 
-			type.addCustomProperty("flow", EndNode.class.getName()).setFormat("org.structr.flow.impl.rels.DOMNodeFLOWFlowContainer");
+			try {
+
+				final String name = "org.structr.flow.impl.rels.DOMNodeFLOWFlowContainer";
+				Class.forName(name);
+
+				// register flow only if the above class exists
+				type.addCustomProperty("flow", EndNode.class.getName()).setFormat(name);
+
+			} catch (Throwable ignore) {}
 		}
 	}}
 
