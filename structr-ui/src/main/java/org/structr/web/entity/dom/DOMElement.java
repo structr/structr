@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
+import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -263,7 +264,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addViewProperty(PropertyView.Ui, "restQuery");
 		type.addViewProperty(PropertyView.Ui, "functionQuery");
 
-		if (Services.getInstance().getLicenseManager().isModuleLicensed("api-builder")) {
+		final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
+		if (licenseManager == null || licenseManager.isModuleLicensed("api-builder")) {
+
 			type.addViewProperty(PropertyView.Public, "flow");
 			type.addViewProperty(PropertyView.Ui, "flow");
 		}

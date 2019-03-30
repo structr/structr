@@ -152,7 +152,7 @@ public class FlowTest extends StructrUiTest {
 
 			final Html html    = createElement(newPage, newPage, "html");
 			final Head head    = createElement(newPage, html, "head");
-			final Title title  = createElement(newPage, head, "title", "Test Page for custom HTTP headers");
+			final Title title  = createElement(newPage, head, "title", "Test Page for flow-based repeater");
 			final Body body    = createElement(newPage, html, "body");
 			final Div div1     = createElement(newPage, body, "div", "${group.name}");
 
