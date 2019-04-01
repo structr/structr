@@ -167,7 +167,7 @@ var _Schema = {
 		$.each($('#schema-graph .node'), function(i, n) {
 			var node = $(n);
 			var type = node.text();
-			var obj = node.position();
+			var obj = node.offset();
 			obj.left = (obj.left - canvas.offset().left) / _Schema.zoomLevel;
 			obj.top  = (obj.top  - canvas.offset().top)  / _Schema.zoomLevel;
 			_Schema.nodePositions[type] = obj;
