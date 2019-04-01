@@ -1355,15 +1355,33 @@ var _Files = {
 				dialogBtn.children('#saveAndClose').remove();
 
 				var h = '<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '>&nbsp;&nbsp;'
-				+ '<label for="isTemplate">Replace template expressions:</label> <input id="isTemplate" type="checkbox"' + (file.isTemplate ? ' checked="checked" ' : '') + '></span>';
+				+ '<label for="isTemplate">Replace template expressions:</label> <input id="isTemplate" type="checkbox"><label for="showTemplatePreview">Show preview:</label> <input id="showTemplatePreview" type="checkbox"></span>';
 				dialogMeta.html(h);
+
+				let lineWrappingCheckbox = $('#lineWrapping');
+				let isTemplateCheckbox = $('#isTemplate').prop('checked', file.isTemplate);
+				let showPreviewCheckbox = $('#showTemplatePreview');
 
 				Structr.appendInfoTextToElement({
 					text: "Expressions like <pre>Hello ${print(me.name)} !</pre> will be evaluated. To see a preview, tick this checkbox.",
-					element: dialogMeta
+					element: isTemplateCheckbox,
+					insertAfter: true,
+					css: {
+						"margin-right": "4px"
+					}
 				});
 
-				$('#lineWrapping').on('change', function() {
+
+				let isTemplateCheckboxChangeFunction = function(isTemplate) {
+					if (isTemplate) {
+						showPreviewCheckbox.attr('disabled', null);
+					} else {
+						showPreviewCheckbox.attr('disabled', 'disabled');
+					}
+				};
+				isTemplateCheckboxChangeFunction(file.isTemplate);
+
+				lineWrappingCheckbox.on('change', function() {
 					var inp = $(this);
 					if (inp.is(':checked')) {
 						LSWrapper.setItem(lineWrappingKey, "1");
@@ -1375,20 +1393,24 @@ var _Files = {
 					editor.refresh();
 				});
 
-				$('#isTemplate').on('change', function() {
-					var inp = $(this);
-					var active = inp.is(':checked');
+				isTemplateCheckbox.on('change', function() {
+					var active = isTemplateCheckbox.is(':checked');
 					_Entities.setProperty(file.id, 'isTemplate', active, false, function() {
-						if (active) {
-							_Files.updateTemplatePreview(element, url, dataType, contentType);
-						} else {
-							var previewArea = $('#template-preview');
-							previewArea.hide();
-							$('textarea', previewArea).val('');
-							var contentBox = $('.editor', element);
-							contentBox.width('inherit');
-						}
+						isTemplateCheckboxChangeFunction(active);
 					});
+				});
+
+				showPreviewCheckbox.on('change', function() {
+					var active = showPreviewCheckbox.is(':checked');
+					if (active) {
+						_Files.updateTemplatePreview(element, url, dataType, contentType);
+					} else {
+						var previewArea = $('#template-preview');
+						previewArea.hide();
+						$('textarea', previewArea).val('');
+						var contentBox = $('.editor', element);
+						contentBox.width('inherit');
+					}
 				});
 
 				dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled">Save</button>');
@@ -1458,10 +1480,6 @@ var _Files = {
 				});
 
 				_Files.resize();
-
-				if (file.isTemplate) {
-					_Files.updateTemplatePreview(element, url, dataType, contentType);
-				}
 			},
 			error: function(xhr, statusText, error) {
 				console.log(xhr, statusText, error);
