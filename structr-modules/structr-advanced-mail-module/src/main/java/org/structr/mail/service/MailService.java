@@ -61,9 +61,9 @@ public class MailService extends Thread implements RunnableService {
 	private Set<Mailbox> processingMailboxes                = null;
 	private int maxConnectionRetries                        = 5;
 
-	public static final Setting<Integer> maxEmails          = new IntegerSetting(Settings.smtpGroup, "MailService", "mail.maxEmails",          25,                  "The number of mails which are checked");
-	public static final Setting<Integer> updateInterval     = new IntegerSetting(Settings.smtpGroup, "MailService", "mail.updateInterval",     30000,               "The interval in which the mailbox is checked. Unit is milliseconds");
-	public static final Setting<String> attachmentBasePath  = new StringSetting (Settings.smtpGroup, "MailService", "mail.attachmentBasePath", "/mail/attachments", "The path in structrs virtual filesystem where attachments are downloaded to");
+	public static final Setting<Integer> maxEmails          = new IntegerSetting(Settings.smtpGroup, "MailService", "mail.maxemails",          25,                  "The number of mails which are checked");
+	public static final Setting<Integer> updateInterval     = new IntegerSetting(Settings.smtpGroup, "MailService", "mail.updateinterval",     30000,               "The interval in which the mailbox is checked. Unit is milliseconds");
+	public static final Setting<String> attachmentBasePath  = new StringSetting (Settings.smtpGroup, "MailService", "mail.attachmentbasepath", "/mail/attachments", "The path in structrs virtual filesystem where attachments are downloaded to");
 
 	//////////////////////////////////////////////////////////////// Public Methods
 

@@ -153,7 +153,7 @@ public class Settings {
 	public static final Setting<String> HttpProxyUrl              = new StringSetting(applicationGroup,  "Proxy",        "application.proxy.http.url",                  "");
 	public static final Setting<String> HttpProxyUser             = new StringSetting(applicationGroup,  "Proxy",        "application.proxy.http.username",             "");
 	public static final Setting<String> HttpProxyPassword         = new StringSetting(applicationGroup,  "Proxy",        "application.proxy.http.password",             "");
-	public static final Setting<Boolean> SchemAutoMigration       = new BooleanSetting(applicationGroup, "Schema",       "application.schema.automigration",            false, "Enable automatic migration of schema information between versions (if possible -- may delete schema nodes)");
+	public static final Setting<Boolean> SchemaAutoMigration      = new BooleanSetting(applicationGroup, "Schema",       "application.schema.automigration",            false, "Enable automatic migration of schema information between versions (if possible -- may delete schema nodes)");
 	public static final Setting<Boolean> AllowUnknownPropertyKeys = new BooleanSetting(applicationGroup, "Schema",       "application.schema.allowunknownkeys",         false, "Enables get() and set() built-in functions to use property keys that are not defined in the schema.");
 	public static final Setting<Boolean> logMissingLocalizations  = new BooleanSetting(applicationGroup, "Localization", "application.localization.logmissing",         false, "Turns on logging for requested but non-existing localizations.");
 
@@ -482,27 +482,30 @@ public class Settings {
 
 	public static Setting<?> createSettingForValue(final SettingsGroup group, final String key, final String value) {
 
-		// try to determine property value type, string, integer or boolean?
-		final String lowerCaseValue = value.toLowerCase();
+		if (value != null) {
 
-		// boolean
-		if ("true".equals(lowerCaseValue) || "false".equals(lowerCaseValue)) {
+			// try to determine property value type, string, integer or boolean?
+			final String lowerCaseValue = value.toLowerCase();
 
-			final Setting<Boolean> setting = new BooleanSetting(group, key.toLowerCase());
-			setting.setIsDynamic(true);
-			setting.setValue(Boolean.parseBoolean(value));
+			// boolean
+			if ("true".equals(lowerCaseValue) || "false".equals(lowerCaseValue)) {
 
-			return setting;
-		}
+				final Setting<Boolean> setting = new BooleanSetting(group, key.toLowerCase());
+				setting.setIsDynamic(true);
+				setting.setValue(Boolean.parseBoolean(value));
 
-		// integer
-		if (Settings.isNumeric(value)) {
+				return setting;
+			}
 
-			final Setting<Integer> setting = new IntegerSetting(group, key.toLowerCase());
-			setting.setIsDynamic(true);
-			setting.setValue(Integer.parseInt(value));
+			// integer
+			if (Settings.isNumeric(value)) {
 
-			return setting;
+				final Setting<Integer> setting = new IntegerSetting(group, key.toLowerCase());
+				setting.setIsDynamic(true);
+				setting.setValue(Integer.parseInt(value));
+
+				return setting;
+			}
 		}
 
 		final Setting<String> setting = new StringSetting(group, key.toLowerCase());
@@ -549,9 +552,10 @@ public class Settings {
 
 			while (keys.hasNext()) {
 
-				final String key   = keys.next().toLowerCase();
+				final String key   = keys.next();
+				final String lcKey = key.toLowerCase();
 				final String value = trim(config.getString(key));
-				Setting<?> setting = Settings.getSetting(key);
+				Setting<?> setting = Settings.getSetting(lcKey);
 
 				if (setting != null) {
 
@@ -562,12 +566,12 @@ public class Settings {
 					SettingsGroup targetGroup = miscGroup;
 
 					// put key in cron group if it contains ".cronExpression"
-					if (key.contains(".cronexpression")) {
+					if (lcKey.contains(".cronexpression")) {
 						targetGroup = cronGroup;
 					}
 
 					// create new StringSetting for unknown key
-					Settings.createSettingForValue(targetGroup, key, value);
+					Settings.createSettingForValue(targetGroup, lcKey, value);
 				}
 			}
 
