@@ -18,15 +18,17 @@
  */
 package org.structr.rest.servlet;
 
-import org.apache.commons.lang3.StringUtils;
-import static org.structr.core.GraphObject.logger;
-import org.structr.api.config.Settings;
-
+import java.util.Arrays;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Arrays;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 
 public abstract class AbstractServletBase extends HttpServlet {
+
+	private static final Logger logger = LoggerFactory.getLogger(AbstractServletBase.class.getName());
 
 	protected void setCustomResponseHeaders(final HttpServletResponse response) {
 
