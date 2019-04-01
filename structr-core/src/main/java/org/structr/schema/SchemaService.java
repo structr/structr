@@ -141,7 +141,7 @@ public class SchemaService implements Service {
 
 					final JsonSchema currentSchema = StructrSchema.createFromDatabase(app);
 
-					// diff and merge 
+					// diff and merge
 					currentSchema.diff(dynamicSchema);
 
 					// commit changes before trying to build the schema
@@ -186,7 +186,7 @@ public class SchemaService implements Service {
 
 							final String className      = schemaInfo.getClassName();
 							final SourceFile sourceFile = new SourceFile(className);
-							
+
 							// generate source code
 							SchemaHelper.getSource(sourceFile, schemaInfo, schemaNodes, blacklist, errorBuffer);
 
@@ -207,10 +207,10 @@ public class SchemaService implements Service {
 							if (!blacklist.contains(sourceType) && !blacklist.contains(targetType)) {
 
 								final SourceFile relationshipSource = new SourceFile(schemaRelationship.getClassName());
-								
+
 								// generate source code
 								schemaRelationship.getSource(relationshipSource, schemaNodes, errorBuffer);
-								
+
 								nodeExtender.addClass(schemaRelationship.getClassName(), relationshipSource);
 								dynamicViews.addAll(schemaRelationship.getDynamicViews());
 
