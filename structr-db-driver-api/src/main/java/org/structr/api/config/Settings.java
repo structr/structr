@@ -20,6 +20,7 @@ package org.structr.api.config;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -79,8 +80,8 @@ public class Settings {
 	public static final Setting<Integer> ServicesStartTimeout = new IntegerSetting(generalGroup,            "Services",    "services.start.timeout",     30);
 	public static final Setting<Integer> ServicesStartRetries = new IntegerSetting(generalGroup,            "Services",    "services.start.retries",     10);
 
-	public static final Setting<Integer> NodeServiceStartTimeout = new IntegerSetting(generalGroup,  "Services",    "NodeService.start.timeout",     30);
-	public static final Setting<Integer> NodeServiceStartRetries = new IntegerSetting(generalGroup,  "Services",    "NodeService.start.retries",     3);
+	public static final Setting<Integer> NodeServiceStartTimeout = new IntegerSetting(generalGroup,  "Services",    "nodeservice.start.timeout",     30);
+	public static final Setting<Integer> NodeServiceStartRetries = new IntegerSetting(generalGroup,  "Services",    "nodeservice.start.retries",     3);
 
 	// server settings
 	public static final Setting<String> ApplicationHost       = new StringSetting(serverGroup,  "Interfaces", "application.host",              "0.0.0.0", "The listen address of the Structr server");
@@ -95,20 +96,20 @@ public class Settings {
 	public static final Setting<String> BaseUrlOverride       = new StringSetting(serverGroup,  "Interfaces", "application.baseurl.override",  "", "Overrides the baseUrl that can be used to prefix links to local web resources. By default, the value is assembled from the protocol, hostname and port of the server instance Structr is running on");
 
 	// HTTP service settings
-	public static final Setting<String> ResourceHandlers      = new StringSetting(serverGroup,  "hidden",        "HttpService.resourceHandlers",    "StructrUiHandler", "This handler is needed to serve static files with the built-in Jetty container.");
-	public static final Setting<String> LifecycleListeners    = new StringSetting(serverGroup,  "hidden",        "HttpService.lifecycle.listeners", "");
-	public static final Setting<Boolean> GzipCompression      = new BooleanSetting(serverGroup, "HTTP Settings", "HttpService.gzip.enabled",        true);
-	public static final Setting<Boolean> Async                = new BooleanSetting(serverGroup, "HTTP Settings", "HttpService.async",               true, "Whether the HttpServices uses asynchronous request handling. Disable this option if you encounter problems with HTTP responses.");
+	public static final Setting<String> ResourceHandlers      = new StringSetting(serverGroup,  "hidden",        "httpservice.resourcehandlers",    "StructrUiHandler", "This handler is needed to serve static files with the built-in Jetty container.");
+	public static final Setting<String> LifecycleListeners    = new StringSetting(serverGroup,  "hidden",        "httpservice.lifecycle.listeners", "");
+	public static final Setting<Boolean> GzipCompression      = new BooleanSetting(serverGroup, "HTTP Settings", "httpservice.gzip.enabled",        true);
+	public static final Setting<Boolean> Async                = new BooleanSetting(serverGroup, "HTTP Settings", "httpservice.async",               true, "Whether the HttpServices uses asynchronous request handling. Disable this option if you encounter problems with HTTP responses.");
 	public static final Setting<Boolean> JsonIndentation      = new BooleanSetting(serverGroup, "HTTP Settings", "json.indentation",                true, "Whether JSON output should be indented (beautified) or compacted");
 	public static final Setting<Boolean> HtmlIndentation      = new BooleanSetting(serverGroup, "HTTP Settings", "html.indentation",                true, "Whether the page source should be indented (beautified) or compacted. Note: Does not work for template/content nodes which contain raw HTML");
 	public static final Setting<Boolean> WsIndentation        = new BooleanSetting(serverGroup, "HTTP Settings", "ws.indentation",                  false, "Prettyprints websocket responses if set to true");
 	public static final Setting<Integer> SessionTimeout       = new IntegerSetting(serverGroup, "HTTP Settings", "application.session.timeout",     1800, "The session timeout for HTTP sessions. Unit is seconds");
 
-	public static final Setting<Boolean> ForceHttps           	= new BooleanSetting(serverGroup, "HTTPS Settings", "HttpService.force.https",         		false, "Allows forcing HTTPS.");
-	public static final Setting<Boolean> dumbJettyStartupConfig = new BooleanSetting(serverGroup, "HTTPS Settings", "HttpService.log.jetty.startupConfig",	false);
-	public static final Setting<String> excludedProtocols     	= new StringSetting(serverGroup, "HTTPS Settings", "HttpService.ssl.protocols.excluded",  	"TLSv1,TLSv1.1");
-	public static final Setting<String> includedProtocols 	  	= new StringSetting(serverGroup, "HTTPS Settings", "HttpService.ssl.protocols.included",		"TLSv1.2");
-	public static final Setting<String> disabledCipherSuits   	= new StringSetting(serverGroup,  "HTTPS Settings", "HttpService.ssl.ciphers.excluded",    	"");
+	public static final Setting<Boolean> ForceHttps           	= new BooleanSetting(serverGroup, "HTTPS Settings", "httpservice.force.https",         		false, "Allows forcing HTTPS.");
+	public static final Setting<Boolean> dumbJettyStartupConfig = new BooleanSetting(serverGroup,     "HTTPS Settings", "httpservice.log.jetty.startupconfig",	false);
+	public static final Setting<String> excludedProtocols     	= new StringSetting(serverGroup,  "HTTPS Settings", "httpservice.ssl.protocols.excluded",       "TLSv1,TLSv1.1");
+	public static final Setting<String> includedProtocols 	  	= new StringSetting(serverGroup,  "HTTPS Settings", "httpservice.ssl.protocols.included",       "TLSv1.2");
+	public static final Setting<String> disabledCipherSuits   	= new StringSetting(serverGroup,  "HTTPS Settings", "httpservice.ssl.ciphers.excluded",    	"");
 
 	public static final Setting<String> AccessControlMaxAge           = new StringSetting(serverGroup, "CORS Settings", "access.control.max.age",           "3600", "Sets the value of the <code>Access-Control-Max-Age</code> header. Unit is seconds.");
 	public static final Setting<String> AccessControlAllowMethods     = new StringSetting(serverGroup, "CORS Settings", "access.control.allow.methods",     "", "Sets the value of the <code>Access-Control-Allow-Methods</code> header. Comma-delimited list of the allowed HTTP request methods.");
@@ -116,10 +117,10 @@ public class Settings {
 	public static final Setting<String> AccessControlAllowCredentials = new StringSetting(serverGroup, "CORS Settings", "access.control.allow.credentials", "", "Sets the value of the <code>Access-Control-Allow-Credentials</code> header.");
 	public static final Setting<String> AccessControlExposeHeaders    = new StringSetting(serverGroup, "CORS Settings", "access.control.expose.headers",    "", "Sets the value of the <code>Access-Control-Expose-Headers</code> header.");
 
-	public static final Setting<String> UiHandlerContextPath        = new StringSetting(serverGroup,  "hidden", "StructrUiHandler.contextPath",       "/structr", "Static resource handling configuration.");
-	public static final Setting<Boolean> UiHandlerDirectoriesListed = new BooleanSetting(serverGroup, "hidden", "StructrUiHandler.directoriesListed", false);
-	public static final Setting<String> UiHandlerResourceBase       = new StringSetting(serverGroup,  "hidden", "StructrUiHandler.resourceBase",      "src/main/resources/structr");
-	public static final Setting<String> UiHandlerWelcomeFiles       = new StringSetting(serverGroup,  "hidden", "StructrUiHandler.welcomeFiles",      "index.html");
+	public static final Setting<String> UiHandlerContextPath        = new StringSetting(serverGroup,  "hidden", "structruihandler.contextpath",       "/structr", "Static resource handling configuration.");
+	public static final Setting<Boolean> UiHandlerDirectoriesListed = new BooleanSetting(serverGroup, "hidden", "structruihandler.directorieslisted", false);
+	public static final Setting<String> UiHandlerResourceBase       = new StringSetting(serverGroup,  "hidden", "structruihandler.resourcebase",      "src/main/resources/structr");
+	public static final Setting<String> UiHandlerWelcomeFiles       = new StringSetting(serverGroup,  "hidden", "structruihandler.welcomefiles",      "index.html");
 
 	// database settings
 	public static final Setting<String> DatabaseAvailableConnections = new StringSetting(databaseGroup,  "hidden",                     "database.available.connections",   null);
@@ -148,14 +149,14 @@ public class Settings {
 	public static final Setting<Integer> IndexingLimit            = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.limit",       50000, "Maximum number of words to be indexed per file.");
 	public static final Setting<Integer> IndexingMinLength        = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.minlength",   3,     "Minimum length of words to be indexed");
 	public static final Setting<Integer> IndexingMaxLength        = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.maxlength",   30,    "Maximum length of words to be indexed");
-	public static final Setting<Boolean> FollowSymlinks           = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.mount.followSymlinks", true);
+	public static final Setting<Boolean> FollowSymlinks           = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.mount.followsymlinks", true);
 	public static final Setting<String> DefaultUploadFolder       = new StringSetting(applicationGroup,  "Filesystem",   "application.uploads.folder",                  "", "The default path for files uploaded via the UploadServlet (available from Structr 2.1+)");
 	public static final Setting<String> HttpProxyUrl              = new StringSetting(applicationGroup,  "Proxy",        "application.proxy.http.url",                  "");
 	public static final Setting<String> HttpProxyUser             = new StringSetting(applicationGroup,  "Proxy",        "application.proxy.http.username",             "");
 	public static final Setting<String> HttpProxyPassword         = new StringSetting(applicationGroup,  "Proxy",        "application.proxy.http.password",             "");
-	public static final Setting<Boolean> SchemAutoMigration       = new BooleanSetting(applicationGroup, "Schema",       "application.schema.automigration",            false, "Enable automatic migration of schema information between versions (if possible -- may delete schema nodes)");
-	public static final Setting<Boolean> AllowUnknownPropertyKeys = new BooleanSetting(applicationGroup, "Schema",       "application.schema.allowUnknownKeys",         false, "Enables get() and set() built-in functions to use property keys that are not defined in the schema.");
-	public static final Setting<Boolean> logMissingLocalizations  = new BooleanSetting(applicationGroup, "Localization", "application.localization.logMissing",         false, "Turns on logging for requested but non-existing localizations.");
+	public static final Setting<Boolean> SchemaAutoMigration      = new BooleanSetting(applicationGroup, "Schema",       "application.schema.automigration",            false, "Enable automatic migration of schema information between versions (if possible -- may delete schema nodes)");
+	public static final Setting<Boolean> AllowUnknownPropertyKeys = new BooleanSetting(applicationGroup, "Schema",       "application.schema.allowunknownkeys",         false, "Enables get() and set() built-in functions to use property keys that are not defined in the schema.");
+	public static final Setting<Boolean> logMissingLocalizations  = new BooleanSetting(applicationGroup, "Localization", "application.localization.logmissing",         false, "Turns on logging for requested but non-existing localizations.");
 
 	// mail settings
 	public static final Setting<String> SmtpHost              = new StringSetting(smtpGroup,  "SMTP Settings", "smtp.host",         "localhost", "Address of the SMTP server used to send e-mails");
@@ -168,128 +169,128 @@ public class Settings {
 
 	// advanced settings
 	public static final Setting<String> ForeignTypeName               = new StringSetting(advancedGroup,  "hidden", "foreign.type.key",               "");
-	public static final Setting<Boolean> JsonRedundancyReduction      = new BooleanSetting(advancedGroup, "JSON",   "json.redundancyReduction",       true);
+	public static final Setting<Boolean> JsonRedundancyReduction      = new BooleanSetting(advancedGroup, "JSON",   "json.redundancyreduction",       true);
 	public static final Setting<Integer> JsonParallelizationThreshold = new IntegerSetting(advancedGroup, "JSON",   "json.parallelization.threshold", 100, "Collection size threshold for multi-threaded JSON generation");
 	public static final Setting<Boolean> JsonLenient                  = new BooleanSetting(advancedGroup, "JSON",   "json.lenient",                   false, "Whether to use lenient serialization, e.g. allow to serialize NaN, -Infinity, Infinity instead of just returning null. Note: as long as Javascript doesn’t support NaN etc., most of the UI will be broken");
-	public static final Setting<Boolean> ForceArrays                  = new BooleanSetting(advancedGroup, "JSON",   "json.output.forceArrays",        false);
+	public static final Setting<Boolean> ForceArrays                  = new BooleanSetting(advancedGroup, "JSON",   "json.output.forcearrays",        false);
 
 	public static final Setting<String> GeocodingProvider        = new StringSetting(advancedGroup,  "Geocoding",   "geocoding.provider",            "org.structr.common.geo.GoogleGeoCodingProvider", "Geocoding configuration");
 	public static final Setting<String> GeocodingLanguage        = new StringSetting(advancedGroup,  "Geocoding",   "geocoding.language",            "de", "Geocoding configuration");
 	public static final Setting<String> GeocodingApiKey          = new StringSetting(advancedGroup,  "Geocoding",   "geocoding.apikey",              "", "Geocoding configuration");
-	public static final Setting<String> DefaultDateFormat        = new StringSetting(advancedGroup,  "Date Format", "DateProperty.defaultFormat",    "yyyy-MM-dd'T'HH:mm:ssZ", "Default ISO8601 date format pattern");
+	public static final Setting<String> DefaultDateFormat        = new StringSetting(advancedGroup,  "Date Format", "dateproperty.defaultformat",    "yyyy-MM-dd'T'HH:mm:ssZ", "Default ISO8601 date format pattern");
 	public static final Setting<Boolean> InheritanceDetection    = new BooleanSetting(advancedGroup, "hidden",      "importer.inheritancedetection", true);
 	public static final Setting<Boolean> CmisEnabled             = new BooleanSetting(advancedGroup, "hidden",      "cmis.enabled",                  false);
 
 	// servlets
-	public static final StringMultiChoiceSetting Servlets     = new StringMultiChoiceSetting(servletsGroup, "General", "HttpService.servlets", "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet", Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet"), "Servlets that are listed in this configuration key will be available in the HttpService. Changes to this setting require a restart of the HttpService in the 'Services' tab.");
+	public static final StringMultiChoiceSetting Servlets     = new StringMultiChoiceSetting(servletsGroup, "General", "httpservice.servlets", "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet", Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet"), "Servlets that are listed in this configuration key will be available in the HttpService. Changes to this setting require a restart of the HttpService in the 'Services' tab.");
 
-	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "ConfigServlet.enabled",             true, "Enables the config servlet (available under <code>http(s)://<your-server>/structr/config</code>)");
+	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "configservlet.enabled",             true, "Enables the config servlet (available under <code>http(s)://<your-server>/structr/config</code>)");
 
-	public static final Setting<String> RestServletPath       = new StringSetting(servletsGroup,  "JsonRestServlet", "JsonRestServlet.path",             "/structr/rest/*", "URL pattern for REST server. Do not change unless you know what you are doing.");
-	public static final Setting<String> RestServletClass      = new StringSetting(servletsGroup,  "JsonRestServlet", "JsonRestServlet.class",            "org.structr.rest.servlet.JsonRestServlet", "FQCN of servlet class to use in the REST server. Do not change unless you know what you are doing.");
-	public static final Setting<String> RestAuthenticator     = new StringSetting(servletsGroup,  "JsonRestServlet", "JsonRestServlet.authenticator",    "org.structr.web.auth.UiAuthenticator", "FQCN of authenticator class to use in the REST server. Do not change unless you know what you are doing.");
-	public static final Setting<String> RestDefaultView       = new StringSetting(servletsGroup,  "JsonRestServlet", "JsonRestServlet.defaultview",      "public", "Default view to use when no view is given in the URL");
-	public static final Setting<Integer> RestOutputDepth      = new IntegerSetting(servletsGroup, "JsonRestServlet", "JsonRestServlet.outputdepth",      3, "Maximum nesting depth of JSON output");
-	public static final Setting<String> RestResourceProvider  = new StringSetting(servletsGroup,  "JsonRestServlet", "JsonRestServlet.resourceprovider", "org.structr.web.common.UiResourceProvider", "FQCN of resource provider class to use in the REST server. Do not change unless you know what you are doing.");
-	public static final Setting<String> RestUserClass         = new StringSetting(servletsGroup,  "JsonRestServlet", "JsonRestServlet.user.class",       "org.structr.dynamic.User");
-	public static final Setting<Boolean> RestUserAutologin    = new BooleanSetting(servletsGroup, "JsonRestServlet", "JsonRestServlet.user.autologin",   false);
-	public static final Setting<Boolean> RestUserAutocreate   = new BooleanSetting(servletsGroup, "JsonRestServlet", "JsonRestServlet.user.autocreate",  false, "Enable this to support user self registration");
+	public static final Setting<String> RestServletPath       = new StringSetting(servletsGroup,  "JsonRestServlet", "jsonrestservlet.path",             "/structr/rest/*", "URL pattern for REST server. Do not change unless you know what you are doing.");
+	public static final Setting<String> RestServletClass      = new StringSetting(servletsGroup,  "JsonRestServlet", "jsonrestservlet.class",            "org.structr.rest.servlet.JsonRestServlet", "FQCN of servlet class to use in the REST server. Do not change unless you know what you are doing.");
+	public static final Setting<String> RestAuthenticator     = new StringSetting(servletsGroup,  "JsonRestServlet", "jsonrestservlet.authenticator",    "org.structr.web.auth.UiAuthenticator", "FQCN of authenticator class to use in the REST server. Do not change unless you know what you are doing.");
+	public static final Setting<String> RestDefaultView       = new StringSetting(servletsGroup,  "JsonRestServlet", "jsonrestservlet.defaultview",      "public", "Default view to use when no view is given in the URL");
+	public static final Setting<Integer> RestOutputDepth      = new IntegerSetting(servletsGroup, "JsonRestServlet", "jsonrestservlet.outputdepth",      3, "Maximum nesting depth of JSON output");
+	public static final Setting<String> RestResourceProvider  = new StringSetting(servletsGroup,  "JsonRestServlet", "jsonrestservlet.resourceprovider", "org.structr.web.common.UiResourceProvider", "FQCN of resource provider class to use in the REST server. Do not change unless you know what you are doing.");
+	public static final Setting<String> RestUserClass         = new StringSetting(servletsGroup,  "JsonRestServlet", "jsonrestservlet.user.class",       "org.structr.dynamic.User");
+	public static final Setting<Boolean> RestUserAutologin    = new BooleanSetting(servletsGroup, "JsonRestServlet", "jsonrestservlet.user.autologin",   false);
+	public static final Setting<Boolean> RestUserAutocreate   = new BooleanSetting(servletsGroup, "JsonRestServlet", "jsonrestservlet.user.autocreate",  false, "Enable this to support user self registration");
 
-	public static final Setting<String> FlowServletPath       = new StringSetting(servletsGroup,  "FlowServlet", "FlowServlet.path",             "/structr/flow/*");
-	public static final Setting<String> FlowServletClass      = new StringSetting(servletsGroup,  "FlowServlet", "FlowServlet.class",            "org.structr.flow.servlet.FlowServlet");
-	public static final Setting<String> FlowAuthenticator     = new StringSetting(servletsGroup,  "FlowServlet", "FlowServlet.authenticator",    "org.structr.web.auth.UiAuthenticator");
-	public static final Setting<String> FlowDefaultView       = new StringSetting(servletsGroup,  "FlowServlet", "FlowServlet.defaultview",      "public");
-	public static final Setting<Integer> FlowOutputDepth      = new IntegerSetting(servletsGroup, "FlowServlet", "FlowServlet.outputdepth",      3);
-	public static final Setting<String> FlowResourceProvider  = new StringSetting(servletsGroup,  "FlowServlet", "FlowServlet.resourceprovider", "org.structr.web.common.UiResourceProvider");
-	public static final Setting<String> FlowUserClass         = new StringSetting(servletsGroup,  "FlowServlet", "FlowServlet.user.class",       "org.structr.dynamic.User");
-	public static final Setting<Boolean> FlowUserAutologin    = new BooleanSetting(servletsGroup, "FlowServlet", "FlowServlet.user.autologin",   false);
-	public static final Setting<Boolean> FlowUserAutocreate   = new BooleanSetting(servletsGroup, "FlowServlet", "FlowServlet.user.autocreate",  false);
+	public static final Setting<String> FlowServletPath       = new StringSetting(servletsGroup,  "FlowServlet", "flowservlet.path",             "/structr/flow/*");
+	public static final Setting<String> FlowServletClass      = new StringSetting(servletsGroup,  "FlowServlet", "flowservlet.class",            "org.structr.flow.servlet.FlowServlet");
+	public static final Setting<String> FlowAuthenticator     = new StringSetting(servletsGroup,  "FlowServlet", "flowservlet.authenticator",    "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> FlowDefaultView       = new StringSetting(servletsGroup,  "FlowServlet", "flowservlet.defaultview",      "public");
+	public static final Setting<Integer> FlowOutputDepth      = new IntegerSetting(servletsGroup, "FlowServlet", "flowservlet.outputdepth",      3);
+	public static final Setting<String> FlowResourceProvider  = new StringSetting(servletsGroup,  "FlowServlet", "flowservlet.resourceprovider", "org.structr.web.common.UiResourceProvider");
+	public static final Setting<String> FlowUserClass         = new StringSetting(servletsGroup,  "FlowServlet", "flowservlet.user.class",       "org.structr.dynamic.User");
+	public static final Setting<Boolean> FlowUserAutologin    = new BooleanSetting(servletsGroup, "FlowServlet", "flowservlet.user.autologin",   false);
+	public static final Setting<Boolean> FlowUserAutocreate   = new BooleanSetting(servletsGroup, "FlowServlet", "flowservlet.user.autocreate",  false);
 
-	public static final Setting<String> HtmlServletPath           = new StringSetting(servletsGroup,  "HtmlServlet", "HtmlServlet.path",                  "/structr/html/*", "URL pattern for HTTP server. Do not change unless you know what you are doing.");
-	public static final Setting<String> HtmlServletClass          = new StringSetting(servletsGroup,  "HtmlServlet", "HtmlServlet.class",                 "org.structr.web.servlet.HtmlServlet", "FQCN of servlet class to use for HTTP requests. Do not change unless you know what you are doing.");
-	public static final Setting<String> HtmlAuthenticator         = new StringSetting(servletsGroup,  "HtmlServlet", "HtmlServlet.authenticator",         "org.structr.web.auth.UiAuthenticator", "FQCN of authenticator class to use for HTTP requests. Do not change unless you know what you are doing.");
-	public static final Setting<String> HtmlDefaultView           = new StringSetting(servletsGroup,  "HtmlServlet", "HtmlServlet.defaultview",           "public", "Not used for HtmlServlet");
-	public static final Setting<Integer> HtmlOutputDepth          = new IntegerSetting(servletsGroup, "HtmlServlet", "HtmlServlet.outputdepth",           3, "Not used for HtmlServlet");
-	public static final Setting<String> HtmlResourceProvider      = new StringSetting(servletsGroup,  "HtmlServlet", "HtmlServlet.resourceprovider",      "org.structr.web.common.UiResourceProvider", "FQCN of resource provider class to use in the HTTP server. Do not change unless you know what you are doing.");
-	public static final Setting<Boolean> HtmlUserAutologin        = new BooleanSetting(servletsGroup, "HtmlServlet", "HtmlServlet.user.autologin",        false);
-	public static final Setting<Boolean> HtmlUserAutocreate       = new BooleanSetting(servletsGroup, "HtmlServlet", "HtmlServlet.user.autocreate",       true);
-	public static final Setting<String> HtmlResolveProperties     = new StringSetting(servletsGroup,  "HtmlServlet", "HtmlServlet.resolveProperties",     "AbstractNode.name", "Specifies the list of properties that are be used to resolve entities from URL paths.");
-	public static final Setting<String> HtmlCustomResponseHeaders = new TextSetting(servletsGroup,    "HtmlServlet", "HtmlServlet.customResponseHeaders", "Strict-Transport-Security:max-age=60,X-Content-Type-Options:nosniff,X-Frame-Options:SAMEORIGIN,X-XSS-Protection:1;mode=block", "List of custom response headers that will be added to every HTTP response");
+	public static final Setting<String> HtmlServletPath           = new StringSetting(servletsGroup,  "HtmlServlet", "htmlservlet.path",                  "/structr/html/*", "URL pattern for HTTP server. Do not change unless you know what you are doing.");
+	public static final Setting<String> HtmlServletClass          = new StringSetting(servletsGroup,  "HtmlServlet", "htmlservlet.class",                 "org.structr.web.servlet.HtmlServlet", "FQCN of servlet class to use for HTTP requests. Do not change unless you know what you are doing.");
+	public static final Setting<String> HtmlAuthenticator         = new StringSetting(servletsGroup,  "HtmlServlet", "htmlservlet.authenticator",         "org.structr.web.auth.UiAuthenticator", "FQCN of authenticator class to use for HTTP requests. Do not change unless you know what you are doing.");
+	public static final Setting<String> HtmlDefaultView           = new StringSetting(servletsGroup,  "HtmlServlet", "htmlservlet.defaultview",           "public", "Not used for HtmlServlet");
+	public static final Setting<Integer> HtmlOutputDepth          = new IntegerSetting(servletsGroup, "HtmlServlet", "htmlservlet.outputdepth",           3, "Not used for HtmlServlet");
+	public static final Setting<String> HtmlResourceProvider      = new StringSetting(servletsGroup,  "HtmlServlet", "htmlservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider", "FQCN of resource provider class to use in the HTTP server. Do not change unless you know what you are doing.");
+	public static final Setting<Boolean> HtmlUserAutologin        = new BooleanSetting(servletsGroup, "HtmlServlet", "htmlservlet.user.autologin",        false);
+	public static final Setting<Boolean> HtmlUserAutocreate       = new BooleanSetting(servletsGroup, "HtmlServlet", "htmlservlet.user.autocreate",       true);
+	public static final Setting<String> HtmlResolveProperties     = new StringSetting(servletsGroup,  "HtmlServlet", "htmlservlet.resolveproperties",     "AbstractNode.name", "Specifies the list of properties that are be used to resolve entities from URL paths.");
+	public static final Setting<String> HtmlCustomResponseHeaders = new TextSetting(servletsGroup,    "HtmlServlet", "htmlservlet.customresponseheaders", "Strict-Transport-Security:max-age=60,X-Content-Type-Options:nosniff,X-Frame-Options:SAMEORIGIN,X-XSS-Protection:1;mode=block", "List of custom response headers that will be added to every HTTP response");
 
-	public static final Setting<String> PdfServletPath           = new StringSetting(servletsGroup,  "PdfServlet", "PdfServlet.path",                  "/structr/pdf/*");
-	public static final Setting<String> PdfServletClass          = new StringSetting(servletsGroup,  "PdfServlet", "PdfServlet.class",                 "org.structr.pdf.servlet.PdfServlet");
-	public static final Setting<String> PdfAuthenticator         = new StringSetting(servletsGroup,  "PdfServlet", "PdfServlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
-	public static final Setting<String> PdfDefaultView           = new StringSetting(servletsGroup,  "PdfServlet", "PdfServlet.defaultview",           "public");
-	public static final Setting<Integer> PdfOutputDepth          = new IntegerSetting(servletsGroup, "PdfServlet", "PdfServlet.outputdepth",           3);
-	public static final Setting<String> PdfResourceProvider      = new StringSetting(servletsGroup,  "PdfServlet", "PdfServlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
-	public static final Setting<Boolean> PdfUserAutologin        = new BooleanSetting(servletsGroup, "PdfServlet", "PdfServlet.user.autologin",        false);
-	public static final Setting<Boolean> PdfUserAutocreate       = new BooleanSetting(servletsGroup, "PdfServlet", "PdfServlet.user.autocreate",       true);
-	public static final Setting<String> PdfResolveProperties     = new StringSetting(servletsGroup,  "PdfServlet", "PdfServlet.resolveProperties",     "AbstractNode.name");
-	public static final Setting<String> PdfCustomResponseHeaders = new TextSetting(servletsGroup,    "PdfServlet", "PdfServlet.customResponseHeaders", "Strict-Transport-Security:max-age=60,X-Content-Type-Options:nosniff,X-Frame-Options:SAMEORIGIN,X-XSS-Protection:1;mode=block");
+	public static final Setting<String> PdfServletPath           = new StringSetting(servletsGroup,  "PdfServlet", "pdfservlet.path",                  "/structr/pdf/*");
+	public static final Setting<String> PdfServletClass          = new StringSetting(servletsGroup,  "PdfServlet", "pdfservlet.class",                 "org.structr.pdf.servlet.PdfServlet");
+	public static final Setting<String> PdfAuthenticator         = new StringSetting(servletsGroup,  "PdfServlet", "pdfservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> PdfDefaultView           = new StringSetting(servletsGroup,  "PdfServlet", "pdfservlet.defaultview",           "public");
+	public static final Setting<Integer> PdfOutputDepth          = new IntegerSetting(servletsGroup, "PdfServlet", "pdfservlet.outputdepth",           3);
+	public static final Setting<String> PdfResourceProvider      = new StringSetting(servletsGroup,  "PdfServlet", "pdfservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
+	public static final Setting<Boolean> PdfUserAutologin        = new BooleanSetting(servletsGroup, "PdfServlet", "pdfservlet.user.autologin",        false);
+	public static final Setting<Boolean> PdfUserAutocreate       = new BooleanSetting(servletsGroup, "PdfServlet", "pdfservlet.user.autocreate",       true);
+	public static final Setting<String> PdfResolveProperties     = new StringSetting(servletsGroup,  "PdfServlet", "pdfservlet.resolveproperties",     "AbstractNode.name");
+	public static final Setting<String> PdfCustomResponseHeaders = new TextSetting(servletsGroup,    "PdfServlet", "pdfservlet.customresponseheaders", "Strict-Transport-Security:max-age=60,X-Content-Type-Options:nosniff,X-Frame-Options:SAMEORIGIN,X-XSS-Protection:1;mode=block");
 
-	public static final Setting<String> WebsocketServletPath       = new StringSetting(servletsGroup,  "WebSocketServlet", "WebSocketServlet.path",              "/structr/ws/*", "URL pattern for WebSockets. Do not change unless you know what you are doing.");
-	public static final Setting<String> WebsocketServletClass      = new StringSetting(servletsGroup,  "WebSocketServlet", "WebSocketServlet.class",             "org.structr.websocket.servlet.WebSocketServlet", "FQCN of servlet class to use for WebSockets. Do not change unless you know what you are doing.");
-	public static final Setting<String> WebsocketAuthenticator     = new StringSetting(servletsGroup,  "WebSocketServlet", "WebSocketServlet.authenticator",     "org.structr.web.auth.UiAuthenticator", "FQCN of authenticator class to use for WebSockets. Do not change unless you know what you are doing.");
-	public static final Setting<String> WebsocketDefaultView       = new StringSetting(servletsGroup,  "WebSocketServlet", "WebSocketServlet.defaultview",       "public", "Unused");
-	public static final Setting<Integer> WebsocketOutputDepth      = new IntegerSetting(servletsGroup, "WebSocketServlet", "WebSocketServlet.outputdepth",       3, "Maximum nesting depth of JSON output");
-	public static final Setting<String> WebsocketResourceProvider  = new StringSetting(servletsGroup,  "WebSocketServlet", "WebSocketServlet.resourceprovider",  "org.structr.web.common.UiResourceProvider", "FQCN of resource provider class to use with WebSockets. Do not change unless you know what you are doing.");
-	public static final Setting<Boolean> WebsocketUserAutologin    = new BooleanSetting(servletsGroup, "WebSocketServlet", "WebSocketServlet.user.autologin",    false, "Unused");
-	public static final Setting<Boolean> WebsocketUserAutocreate   = new BooleanSetting(servletsGroup, "WebSocketServlet", "WebSocketServlet.user.autocreate",   false, "Unused");
-	public static final Setting<Boolean> WebsocketFrontendAccess   = new BooleanSetting(servletsGroup, "WebSocketServlet", "WebSocketServlet.frontendAccess",    false);
+	public static final Setting<String> WebsocketServletPath       = new StringSetting(servletsGroup,  "WebSocketServlet", "websocketservlet.path",              "/structr/ws/*", "URL pattern for WebSockets. Do not change unless you know what you are doing.");
+	public static final Setting<String> WebsocketServletClass      = new StringSetting(servletsGroup,  "WebSocketServlet", "websocketservlet.class",             "org.structr.websocket.servlet.WebSocketServlet", "FQCN of servlet class to use for WebSockets. Do not change unless you know what you are doing.");
+	public static final Setting<String> WebsocketAuthenticator     = new StringSetting(servletsGroup,  "WebSocketServlet", "websocketservlet.authenticator",     "org.structr.web.auth.UiAuthenticator", "FQCN of authenticator class to use for WebSockets. Do not change unless you know what you are doing.");
+	public static final Setting<String> WebsocketDefaultView       = new StringSetting(servletsGroup,  "WebSocketServlet", "websocketservlet.defaultview",       "public", "Unused");
+	public static final Setting<Integer> WebsocketOutputDepth      = new IntegerSetting(servletsGroup, "WebSocketServlet", "websocketservlet.outputdepth",       3, "Maximum nesting depth of JSON output");
+	public static final Setting<String> WebsocketResourceProvider  = new StringSetting(servletsGroup,  "WebSocketServlet", "websocketservlet.resourceprovider",  "org.structr.web.common.UiResourceProvider", "FQCN of resource provider class to use with WebSockets. Do not change unless you know what you are doing.");
+	public static final Setting<Boolean> WebsocketUserAutologin    = new BooleanSetting(servletsGroup, "WebSocketServlet", "websocketservlet.user.autologin",    false, "Unused");
+	public static final Setting<Boolean> WebsocketUserAutocreate   = new BooleanSetting(servletsGroup, "WebSocketServlet", "websocketservlet.user.autocreate",   false, "Unused");
+	public static final Setting<Boolean> WebsocketFrontendAccess   = new BooleanSetting(servletsGroup, "WebSocketServlet", "websocketservlet.frontendaccess",    false);
 
-	public static final Setting<String> CsvServletPath       = new StringSetting(servletsGroup,  "CsvServlet", "CsvServlet.path",              "/structr/csv/*", "URL pattern for CSV output. Do not change unless you know what you are doing.");
-	public static final Setting<String> CsvServletClass      = new StringSetting(servletsGroup,  "CsvServlet", "CsvServlet.class",             "org.structr.rest.servlet.CsvServlet", "Servlet class to use for CSV output. Do not change unless you know what you are doing.");
-	public static final Setting<String> CsvAuthenticator     = new StringSetting(servletsGroup,  "CsvServlet", "CsvServlet.authenticator",     "org.structr.web.auth.UiAuthenticator", "FQCN of Authenticator class to use for CSV output. Do not change unless you know what you are doing.");
-	public static final Setting<String> CsvDefaultView       = new StringSetting(servletsGroup,  "CsvServlet", "CsvServlet.defaultview",       "public", "Default view to use when no view is given in the URL");
-	public static final Setting<Integer> CsvOutputDepth      = new IntegerSetting(servletsGroup, "CsvServlet", "CsvServlet.outputdepth",       3, "Maximum nesting depth of JSON output");
-	public static final Setting<String> CsvResourceProvider  = new StringSetting(servletsGroup,  "CsvServlet", "CsvServlet.resourceprovider",  "org.structr.web.common.UiResourceProvider", "FQCN of resource provider class to use in the REST server. Do not change unless you know what you are doing.");
-	public static final Setting<Boolean> CsvUserAutologin    = new BooleanSetting(servletsGroup, "CsvServlet", "CsvServlet.user.autologin",    false, "Unused");
-	public static final Setting<Boolean> CsvUserAutocreate   = new BooleanSetting(servletsGroup, "CsvServlet", "CsvServlet.user.autocreate",   false, "Unused");
-	public static final Setting<Boolean> CsvFrontendAccess   = new BooleanSetting(servletsGroup, "CsvServlet", "CsvServlet.frontendAccess",    false, "Unused");
+	public static final Setting<String> CsvServletPath       = new StringSetting(servletsGroup,  "CsvServlet", "csvservlet.path",              "/structr/csv/*", "URL pattern for CSV output. Do not change unless you know what you are doing.");
+	public static final Setting<String> CsvServletClass      = new StringSetting(servletsGroup,  "CsvServlet", "csvservlet.class",             "org.structr.rest.servlet.CsvServlet", "Servlet class to use for CSV output. Do not change unless you know what you are doing.");
+	public static final Setting<String> CsvAuthenticator     = new StringSetting(servletsGroup,  "CsvServlet", "csvservlet.authenticator",     "org.structr.web.auth.UiAuthenticator", "FQCN of Authenticator class to use for CSV output. Do not change unless you know what you are doing.");
+	public static final Setting<String> CsvDefaultView       = new StringSetting(servletsGroup,  "CsvServlet", "csvservlet.defaultview",       "public", "Default view to use when no view is given in the URL");
+	public static final Setting<Integer> CsvOutputDepth      = new IntegerSetting(servletsGroup, "CsvServlet", "csvservlet.outputdepth",       3, "Maximum nesting depth of JSON output");
+	public static final Setting<String> CsvResourceProvider  = new StringSetting(servletsGroup,  "CsvServlet", "csvservlet.resourceprovider",  "org.structr.web.common.UiResourceProvider", "FQCN of resource provider class to use in the REST server. Do not change unless you know what you are doing.");
+	public static final Setting<Boolean> CsvUserAutologin    = new BooleanSetting(servletsGroup, "CsvServlet", "csvservlet.user.autologin",    false, "Unused");
+	public static final Setting<Boolean> CsvUserAutocreate   = new BooleanSetting(servletsGroup, "CsvServlet", "csvservlet.user.autocreate",   false, "Unused");
+	public static final Setting<Boolean> CsvFrontendAccess   = new BooleanSetting(servletsGroup, "CsvServlet", "csvservlet.frontendaccess",    false, "Unused");
 
-	public static final Setting<String> UploadServletPath       = new StringSetting(servletsGroup,  "UploadServlet", "UploadServlet.path",                  "/structr/upload", "URL pattern for file upload. Do not change unless you know what you are doing.");
-	public static final Setting<String> UploadServletClass      = new StringSetting(servletsGroup,  "UploadServlet", "UploadServlet.class",                 "org.structr.web.servlet.UploadServlet", "FQCN of servlet class to use for file upload. Do not change unless you know what you are doing.");
-	public static final Setting<String> UploadAuthenticator     = new StringSetting(servletsGroup,  "UploadServlet", "UploadServlet.authenticator",         "org.structr.web.auth.UiAuthenticator", "FQCN of authenticator class to use for file upload. Do not change unless you know what you are doing.");
-	public static final Setting<String> UploadDefaultView       = new StringSetting(servletsGroup,  "UploadServlet", "UploadServlet.defaultview",           "public", "Default view to use when no view is given in the URL");
-	public static final Setting<Integer> UploadOutputDepth      = new IntegerSetting(servletsGroup, "UploadServlet", "UploadServlet.outputdepth",           3, "Maximum nesting depth of JSON output");
-	public static final Setting<String> UploadResourceProvider  = new StringSetting(servletsGroup,  "UploadServlet", "UploadServlet.resourceprovider",      "org.structr.web.common.UiResourceProvider", "FQCN of resource provider class to use for file upload. Do not change unless you know what you are doing.	");
-	public static final Setting<Boolean> UploadUserAutologin    = new BooleanSetting(servletsGroup, "UploadServlet", "UploadServlet.user.autologin",        false);
-	public static final Setting<Boolean> UploadUserAutocreate   = new BooleanSetting(servletsGroup, "UploadServlet", "UploadServlet.user.autocreate",       false, "Unused");
-	public static final Setting<Boolean> UploadAllowAnonymous   = new BooleanSetting(servletsGroup, "UploadServlet", "UploadServlet.allowAnonymousUploads", false);
-	public static final Setting<Integer> UploadMaxFileSize      = new IntegerSetting(servletsGroup, "UploadServlet", "UploadServlet.maxFileSize",           1000, "Maximum allowed file size for single file uploads. Unit is Megabytes");
-	public static final Setting<Integer> UploadMaxRequestSize   = new IntegerSetting(servletsGroup, "UploadServlet", "UploadServlet.maxRequestSize",        1200, "Maximum allowed request size for single file uploads. Unit is Megabytes");
+	public static final Setting<String> UploadServletPath       = new StringSetting(servletsGroup,  "UploadServlet", "uploadservlet.path",                  "/structr/upload", "URL pattern for file upload. Do not change unless you know what you are doing.");
+	public static final Setting<String> UploadServletClass      = new StringSetting(servletsGroup,  "UploadServlet", "uploadservlet.class",                 "org.structr.web.servlet.UploadServlet", "FQCN of servlet class to use for file upload. Do not change unless you know what you are doing.");
+	public static final Setting<String> UploadAuthenticator     = new StringSetting(servletsGroup,  "UploadServlet", "uploadservlet.authenticator",         "org.structr.web.auth.UiAuthenticator", "FQCN of authenticator class to use for file upload. Do not change unless you know what you are doing.");
+	public static final Setting<String> UploadDefaultView       = new StringSetting(servletsGroup,  "UploadServlet", "uploadservlet.defaultview",           "public", "Default view to use when no view is given in the URL");
+	public static final Setting<Integer> UploadOutputDepth      = new IntegerSetting(servletsGroup, "UploadServlet", "uploadservlet.outputdepth",           3, "Maximum nesting depth of JSON output");
+	public static final Setting<String> UploadResourceProvider  = new StringSetting(servletsGroup,  "UploadServlet", "uploadservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider", "FQCN of resource provider class to use for file upload. Do not change unless you know what you are doing.	");
+	public static final Setting<Boolean> UploadUserAutologin    = new BooleanSetting(servletsGroup, "UploadServlet", "uploadservlet.user.autologin",        false);
+	public static final Setting<Boolean> UploadUserAutocreate   = new BooleanSetting(servletsGroup, "UploadServlet", "uploadservlet.user.autocreate",       false, "Unused");
+	public static final Setting<Boolean> UploadAllowAnonymous   = new BooleanSetting(servletsGroup, "UploadServlet", "uploadservlet.allowanonymousuploads", false);
+	public static final Setting<Integer> UploadMaxFileSize      = new IntegerSetting(servletsGroup, "UploadServlet", "uploadservlet.maxfilesize",           1000, "Maximum allowed file size for single file uploads. Unit is Megabytes");
+	public static final Setting<Integer> UploadMaxRequestSize   = new IntegerSetting(servletsGroup, "UploadServlet", "uploadservlet.maxrequestsize",        1200, "Maximum allowed request size for single file uploads. Unit is Megabytes");
 
-	public static final Setting<String> GraphQLServletPath       = new StringSetting(servletsGroup,  "GraphQLServlet", "GraphQLServlet.path",                  "/structr/graphql");
-	public static final Setting<String> GraphQLServletClass      = new StringSetting(servletsGroup,  "GraphQLServlet", "GraphQLServlet.class",                 "org.structr.rest.servlet.GraphQLServlet");
-	public static final Setting<String> GraphQLAuthenticator     = new StringSetting(servletsGroup,  "GraphQLServlet", "GraphQLServlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
-	public static final Setting<String> GraphQLResourceProvider  = new StringSetting(servletsGroup,  "GraphQLServlet", "GraphQLServlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
-	public static final Setting<String> GraphQLDefaultView       = new StringSetting(servletsGroup,  "GraphQLServlet", "GraphQLServlet.defaultview",           "public");
-	public static final Setting<Integer> GraphQLOutputDepth      = new IntegerSetting(servletsGroup, "GraphQLServlet", "GraphQLServlet.outputdepth",	   3);
+	public static final Setting<String> GraphQLServletPath       = new StringSetting(servletsGroup,  "GraphQLServlet", "graphqlservlet.path",                  "/structr/graphql");
+	public static final Setting<String> GraphQLServletClass      = new StringSetting(servletsGroup,  "GraphQLServlet", "graphqlservlet.class",                 "org.structr.rest.servlet.GraphQLServlet");
+	public static final Setting<String> GraphQLAuthenticator     = new StringSetting(servletsGroup,  "GraphQLServlet", "graphqlservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> GraphQLResourceProvider  = new StringSetting(servletsGroup,  "GraphQLServlet", "graphqlservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
+	public static final Setting<String> GraphQLDefaultView       = new StringSetting(servletsGroup,  "GraphQLServlet", "graphqlservlet.defaultview",           "public");
+	public static final Setting<Integer> GraphQLOutputDepth      = new IntegerSetting(servletsGroup, "GraphQLServlet", "graphqlservlet.outputdepth",	   3);
 
-	public static final Setting<String> DeploymentServletPath                = new StringSetting(servletsGroup,  "DeploymentServlet", "DeploymentServlet.path",                      "/structr/deploy");
-	public static final Setting<String> DeploymentServletClass               = new StringSetting(servletsGroup,  "DeploymentServlet", "DeploymentServlet.class",                     "org.structr.web.servlet.DeploymentServlet");
-	public static final Setting<String> DeploymentAuthenticator              = new StringSetting(servletsGroup,  "DeploymentServlet", "DeploymentServlet.authenticator",             "org.structr.web.auth.UiAuthenticator");
-	public static final Setting<String> DeploymentDefaultView                = new StringSetting(servletsGroup,  "DeploymentServlet", "DeploymentServlet.defaultview",               "public");
-	public static final Setting<Integer> DeploymentOutputDepth               = new IntegerSetting(servletsGroup, "DeploymentServlet", "DeploymentServlet.outputdepth",               3);
-	public static final Setting<String> DeploymentResourceProvider           = new StringSetting(servletsGroup,  "DeploymentServlet", "DeploymentServlet.resourceprovider",          "org.structr.web.common.UiResourceProvider");
-	public static final Setting<Boolean> DeploymentUserAutologin             = new BooleanSetting(servletsGroup, "DeploymentServlet", "DeploymentServlet.user.autologin",            false);
-	public static final Setting<Boolean> DeploymentUserAutocreate            = new BooleanSetting(servletsGroup, "DeploymentServlet", "DeploymentServlet.user.autocreate",           false);
-	public static final Setting<Boolean> DeploymentAllowAnonymousDeployments = new BooleanSetting(servletsGroup, "DeploymentServlet", "DeploymentServlet.allowAnonymousDeployments", false);
-	public static final Setting<Boolean> DeploymentAllowAnonymousUploads     = new BooleanSetting(servletsGroup, "DeploymentServlet", "DeploymentServlet.allowAnonymousUploads",     false);
-	public static final Setting<Integer> DeploymentMaxFileSize               = new IntegerSetting(servletsGroup, "DeploymentServlet", "DeploymentServlet.maxFileSize",               1000);
-	public static final Setting<Integer> DeploymentMaxRequestSize            = new IntegerSetting(servletsGroup, "DeploymentServlet", "DeploymentServlet.maxRequestSize",            1200);
+	public static final Setting<String> DeploymentServletPath                = new StringSetting(servletsGroup,  "DeploymentServlet", "deploymentservlet.path",                      "/structr/deploy");
+	public static final Setting<String> DeploymentServletClass               = new StringSetting(servletsGroup,  "DeploymentServlet", "deploymentservlet.class",                     "org.structr.web.servlet.DeploymentServlet");
+	public static final Setting<String> DeploymentAuthenticator              = new StringSetting(servletsGroup,  "DeploymentServlet", "deploymentservlet.authenticator",             "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> DeploymentDefaultView                = new StringSetting(servletsGroup,  "DeploymentServlet", "deploymentservlet.defaultview",               "public");
+	public static final Setting<Integer> DeploymentOutputDepth               = new IntegerSetting(servletsGroup, "DeploymentServlet", "deploymentservlet.outputdepth",               3);
+	public static final Setting<String> DeploymentResourceProvider           = new StringSetting(servletsGroup,  "DeploymentServlet", "deploymentservlet.resourceprovider",          "org.structr.web.common.UiResourceProvider");
+	public static final Setting<Boolean> DeploymentUserAutologin             = new BooleanSetting(servletsGroup, "DeploymentServlet", "deploymentservlet.user.autologin",            false);
+	public static final Setting<Boolean> DeploymentUserAutocreate            = new BooleanSetting(servletsGroup, "DeploymentServlet", "deploymentservlet.user.autocreate",           false);
+	public static final Setting<Boolean> DeploymentAllowAnonymousDeployments = new BooleanSetting(servletsGroup, "DeploymentServlet", "deploymentservlet.allowanonymousdeployments", false);
+	public static final Setting<Boolean> DeploymentAllowAnonymousUploads     = new BooleanSetting(servletsGroup, "DeploymentServlet", "deploymentservlet.allowanonymousuploads",     false);
+	public static final Setting<Integer> DeploymentMaxFileSize               = new IntegerSetting(servletsGroup, "DeploymentServlet", "deploymentservlet.maxfilesize",               1000);
+	public static final Setting<Integer> DeploymentMaxRequestSize            = new IntegerSetting(servletsGroup, "DeploymentServlet", "deploymentservlet.maxrequestsize",            1200);
 
-	public static final Setting<String> ProxyServletPath       = new StringSetting(servletsGroup,  "ProxyServlet", "ProxyServlet.path",                  "/structr/proxy");
-	public static final Setting<String> ProxyServletClass      = new StringSetting(servletsGroup,  "ProxyServlet", "ProxyServlet.class",                 "org.structr.web.servlet.ProxyServlet");
-	public static final Setting<String> ProxyAuthenticator     = new StringSetting(servletsGroup,  "ProxyServlet", "ProxyServlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
-	public static final Setting<String> ProxyDefaultView       = new StringSetting(servletsGroup,  "ProxyServlet", "ProxyServlet.defaultview",           "public");
-	public static final Setting<Integer> ProxyOutputDepth      = new IntegerSetting(servletsGroup, "ProxyServlet", "ProxyServlet.outputdepth",           3);
-	public static final Setting<String> ProxyResourceProvider  = new StringSetting(servletsGroup,  "ProxyServlet", "ProxyServlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
-	public static final Setting<Boolean> ProxyUserAutologin    = new BooleanSetting(servletsGroup, "ProxyServlet", "ProxyServlet.user.autologin",        false);
-	public static final Setting<Boolean> ProxyUserAutocreate   = new BooleanSetting(servletsGroup, "ProxyServlet", "ProxyServlet.user.autocreate",       false);
-	public static final Setting<Boolean> ProxyAllowAnonymous   = new BooleanSetting(servletsGroup, "ProxyServlet", "ProxyServlet.allowAnonymousProxys", false);
-	public static final Setting<Integer> ProxyMaxFileSize      = new IntegerSetting(servletsGroup, "ProxyServlet", "ProxyServlet.maxFileSize",           1000);
-	public static final Setting<Integer> ProxyMaxRequestSize   = new IntegerSetting(servletsGroup, "ProxyServlet", "ProxyServlet.maxRequestSize",        1200);
+	public static final Setting<String> ProxyServletPath       = new StringSetting(servletsGroup,  "ProxyServlet", "proxyservlet.path",                  "/structr/proxy");
+	public static final Setting<String> ProxyServletClass      = new StringSetting(servletsGroup,  "ProxyServlet", "proxyservlet.class",                 "org.structr.web.servlet.ProxyServlet");
+	public static final Setting<String> ProxyAuthenticator     = new StringSetting(servletsGroup,  "ProxyServlet", "proxyservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> ProxyDefaultView       = new StringSetting(servletsGroup,  "ProxyServlet", "proxyservlet.defaultview",           "public");
+	public static final Setting<Integer> ProxyOutputDepth      = new IntegerSetting(servletsGroup, "ProxyServlet", "proxyservlet.outputdepth",           3);
+	public static final Setting<String> ProxyResourceProvider  = new StringSetting(servletsGroup,  "ProxyServlet", "proxyservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
+	public static final Setting<Boolean> ProxyUserAutologin    = new BooleanSetting(servletsGroup, "ProxyServlet", "proxyservlet.user.autologin",        false);
+	public static final Setting<Boolean> ProxyUserAutocreate   = new BooleanSetting(servletsGroup, "ProxyServlet", "proxyservlet.user.autocreate",       false);
+	public static final Setting<Boolean> ProxyAllowAnonymous   = new BooleanSetting(servletsGroup, "ProxyServlet", "proxyservlet.allowanonymousproxys", false);
+	public static final Setting<Integer> ProxyMaxFileSize      = new IntegerSetting(servletsGroup, "ProxyServlet", "proxyservlet.maxfilesize",           1000);
+	public static final Setting<Integer> ProxyMaxRequestSize   = new IntegerSetting(servletsGroup, "ProxyServlet", "proxyservlet.maxrequestsize",        1200);
 
 	// cron settings
 	public static final Setting<String> CronTasks              = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations");
@@ -307,7 +308,7 @@ public class Settings {
 	public static final Setting<Integer> TwoFactorPeriod               = new IntegerSetting(securityGroup,       "Two Factor Authentication", "security.twofactorauthentication.period",               30,            "Defines the period that a TOTP code will be valid for, in seconds.<br>Respected by the most recent Google Authenticator implementations. <i>Warning: Changing this setting after users are already confirmed will effectively lock them out. Set [User].twoFactorConfirmed to false to show them a new QR code.</i>");
 	public static final Setting<Integer> TwoFactorLoginTimeout         = new IntegerSetting(securityGroup,       "Two Factor Authentication", "security.twofactorauthentication.logintimeout",         30,            "Defines how long the two-factor login time window in seconds is. After entering the username and password the user has this amount of time to enter a two factor token before he has to re-authenticate via password");
 	public static final Setting<String> TwoFactorLoginPage             = new StringSetting(securityGroup,        "Two Factor Authentication", "security.twofactorauthentication.loginpage",            "/twofactor",  "The application page where the user enters the current two factor token");
-	public static final Setting<String> TwoFactorWhitelistedIPs        = new StringSetting(securityGroup,        "Two Factor Authentication", "security.twofactorauthentication.whitelistedIPs",       "",            "A comma-separated (,) list of IPs for which two factor authentication is disabled.");
+	public static final Setting<String> TwoFactorWhitelistedIPs        = new StringSetting(securityGroup,        "Two Factor Authentication", "security.twofactorauthentication.whitelistedips",       "",            "A comma-separated (,) list of IPs for which two factor authentication is disabled.");
 
 	public static final Setting<Boolean> PasswordForceChange                 = new BooleanSetting(securityGroup, "Password Policy", "security.passwordpolicy.forcechange",                         false, "Indicates if a forced password change is active");
 	public static final Setting<Integer> PasswordForceChangeDays             = new IntegerSetting(securityGroup, "Password Policy", "security.passwordpolicy.maxage",                              90,    "The number of days after which a user has to change his password");
@@ -315,13 +316,13 @@ public class Settings {
 	public static final Setting<Integer> PasswordAttempts                    = new IntegerSetting(securityGroup, "Password Policy", "security.passwordpolicy.maxfailedattempts",                   4,     "The maximum number of failed login attempts before a user is blocked. (Can be disabled by setting to zero or a negative number)");
 	public static final Setting<Boolean> PasswordResetFailedCounterOnPWReset = new BooleanSetting(securityGroup, "Password Policy", "security.passwordpolicy.resetFailedAttemptsOnPasswordReset",  true,  "Configures if resetting the users password also resets the failed login attempts counter");
 
-	public static final Setting<String> RegistrationCustomUserClass               = new StringSetting(securityGroup,  "User Self Registration", "Registration.customUserClass",              "");
-	public static final Setting<Boolean> RegistrationAllowLoginBeforeConfirmation = new BooleanSetting(securityGroup, "User Self Registration", "Registration.allowLoginBeforeConfirmation", false, "Enables self-registered users to login without clicking the activation link in the registration email.");
-	public static final Setting<String> RegistrationCustomAttributes              = new StringSetting(securityGroup,  "User Self Registration", "Registration.customUserAttributes",         "name", "User self-registration configuration");
+	public static final Setting<String> RegistrationCustomUserClass               = new StringSetting(securityGroup,  "User Self Registration", "registration.customuserclass",              "");
+	public static final Setting<Boolean> RegistrationAllowLoginBeforeConfirmation = new BooleanSetting(securityGroup, "User Self Registration", "registration.allowloginbeforeconfirmation", false, "Enables self-registered users to login without clicking the activation link in the registration email.");
+	public static final Setting<String> RegistrationCustomAttributes              = new StringSetting(securityGroup,  "User Self Registration", "registration.customuserattributes",         "name", "User self-registration configuration");
 
-	public static final Setting<Integer> ConfirmationKeyPasswordResetValidityPeriod = new IntegerSetting(securityGroup, "Confirmation Key Validity", "ConfirmationKey.PasswordReset.validityPeriod", 30,    "Validity period (in minutes) of the confirmation key generated when a user resets his password. Default is 30.");
-	public static final Setting<Integer> ConfirmationKeyRegistrationValidityPeriod  = new IntegerSetting(securityGroup, "Confirmation Key Validity", "ConfirmationKey.Registration.validityPeriod",  2880,  "Validity period (in minutes) of the confirmation key generated during self registration. Default is 2 days (2880 minutes)");
-	public static final Setting<Boolean> ConfirmationKeyValidWithoutTimestamp       = new BooleanSetting(securityGroup, "Confirmation Key Validity", "ConfirmationKey.validWithoutTimestamp",        false, "How to interpret confirmation keys without a timestamp");
+	public static final Setting<Integer> ConfirmationKeyPasswordResetValidityPeriod = new IntegerSetting(securityGroup, "Confirmation Key Validity", "confirmationkey.passwordreset.validityperiod", 30,    "Validity period (in minutes) of the confirmation key generated when a user resets his password. Default is 30.");
+	public static final Setting<Integer> ConfirmationKeyRegistrationValidityPeriod  = new IntegerSetting(securityGroup, "Confirmation Key Validity", "confirmationkey.registration.validityperiod",  2880,  "Validity period (in minutes) of the confirmation key generated during self registration. Default is 2 days (2880 minutes)");
+	public static final Setting<Boolean> ConfirmationKeyValidWithoutTimestamp       = new BooleanSetting(securityGroup, "Confirmation Key Validity", "confirmationkey.validwithouttimestamp",        false, "How to interpret confirmation keys without a timestamp");
 
 	// oauth settings
 	public static final Setting<String> OAuthServers            = new StringSetting(oauthGroup, "General", "oauth.servers", "github twitter linkedin google facebook auth0");
@@ -382,14 +383,14 @@ public class Settings {
 	// LDAP settings
 	public static final Setting<String> LDAPHost            = new StringSetting(ldapGroup, "General",  "ldap.host", "localhost");
 	public static final Setting<Integer> LDAPPort           = new IntegerSetting(ldapGroup, "General", "ldap.port", 389);
-	public static final Setting<Integer> LDAPConnectTimeout = new IntegerSetting(ldapGroup, "General", "ldap.connectTimeout", 1000, "Connection timeout in milliseconds");
-	public static final Setting<String> LDAPBindDN          = new StringSetting(ldapGroup, "General",  "ldap.bindDn", "", "DN that is used to authenticate synchronization");
+	public static final Setting<Integer> LDAPConnectTimeout = new IntegerSetting(ldapGroup, "General", "ldap.connecttimeout", 1000, "Connection timeout in milliseconds");
+	public static final Setting<String> LDAPBindDN          = new StringSetting(ldapGroup, "General",  "ldap.binddn", "", "DN that is used to authenticate synchronization");
 	public static final Setting<String> LDAPSecret          = new StringSetting(ldapGroup, "General",  "ldap.secret", "");
-	public static final Setting<Boolean> LDAPUseSSL         = new BooleanSetting(ldapGroup, "General", "ldap.useSsl", false);
+	public static final Setting<Boolean> LDAPUseSSL         = new BooleanSetting(ldapGroup, "General", "ldap.usessl", false);
 	public static final Setting<String> LDAPScope           = new StringSetting(ldapGroup, "General",  "ldap.scope", "SUBTREE");
-	public static final Setting<String> LDAPPropertyMapping = new StringSetting(ldapGroup, "General",  "ldap.propertyMapping", "{ sn: name, email: eMail }", "Mapping from LDAP properties to Structr properties");
-	public static final Setting<String> LDAPGroupNames      = new StringSetting(ldapGroup, "General",  "ldap.groupNames", "{ group: member, groupOfNames: member, groupOfUniqueNames: uniqueMember }", "LDAP objectclass tuples for group and member identification.");
-	public static final Setting<Integer> LDAPUpdateInterval = new IntegerSetting(ldapGroup, "General", "ldap.updateInterval", 600, "Update interval for group synchronization in seconds");
+	public static final Setting<String> LDAPPropertyMapping = new StringSetting(ldapGroup, "General",  "ldap.propertymapping", "{ sn: name, email: eMail }", "Mapping from LDAP properties to Structr properties");
+	public static final Setting<String> LDAPGroupNames      = new StringSetting(ldapGroup, "General",  "ldap.groupnames", "{ group: member, groupOfNames: member, groupOfUniqueNames: uniqueMember }", "LDAP objectclass tuples for group and member identification.");
+	public static final Setting<Integer> LDAPUpdateInterval = new IntegerSetting(ldapGroup, "General", "ldap.updateinterval", 600, "Update interval for group synchronization in seconds");
 
 	// miscellaneous settings
 	public static final Setting<String> PaymentPaypalMode      = new StringSetting(miscGroup,  "Payment Options", "paypal.mode",         "");
@@ -398,7 +399,8 @@ public class Settings {
 	public static final Setting<String> PaymentPaypalSignature = new StringSetting(miscGroup,  "Payment Options", "paypal.signature",    "");
 	public static final Setting<String> PaymentPaypalRedirect  = new StringSetting(miscGroup,  "Payment Options", "paypal.redirect",     "");
 	public static final Setting<String> PaymentStripeApiKey    = new StringSetting(miscGroup,  "Payment Options", "stripe.apikey",       "");
-	public static final Setting<String> SchemaDeploymentFormat = new ChoiceSetting(miscGroup,  "hidden", "Deployment.schema.format", "file", Settings.getStringsAsSet("file", "tree"));
+
+	public static final Setting<String> SchemaDeploymentFormat = new ChoiceSetting(miscGroup,  "hidden",          "deployment.schema.format", "file", Settings.getStringsAsSet("file", "tree"));
 
 	public static Collection<SettingsGroup> getGroups() {
 		return groups.values();
@@ -413,12 +415,12 @@ public class Settings {
 	}
 
 	public static <T> Setting<T> getSetting(final String... keys) {
-		return settings.get(StringUtils.join(keys, "."));
+		return settings.get(StringUtils.join(toLowerCase(keys), "."));
 	}
 
 	public static Setting<String> getStringSetting(final String... keys) {
 
-		final String key        = StringUtils.join(keys, ".");
+		final String key        = StringUtils.join(toLowerCase(keys), ".");
 		Setting<String> setting = settings.get(key);
 
 		return setting;
@@ -426,7 +428,7 @@ public class Settings {
 
 	public static Setting<String> getOrCreateStringSetting(final String... keys) {
 
-		final String key        = StringUtils.join(keys, ".");
+		final String key        = StringUtils.join(toLowerCase(keys), ".");
 		Setting<String> setting = settings.get(key);
 
 		if (setting == null) {
@@ -439,7 +441,7 @@ public class Settings {
 
 	public static Setting<Integer> getIntegerSetting(final String... keys) {
 
-		final String key        = StringUtils.join(keys, ".");
+		final String key        = StringUtils.join(toLowerCase(keys), ".");
 		Setting<Integer> setting = settings.get(key);
 
 		return setting;
@@ -447,7 +449,7 @@ public class Settings {
 
 	public static Setting<Integer> getOrCreateIntegerSetting(final String... keys) {
 
-		final String key        = StringUtils.join(keys, ".");
+		final String key        = StringUtils.join(toLowerCase(keys), ".");
 		Setting<Integer> setting = settings.get(key);
 
 		if (setting == null) {
@@ -460,7 +462,7 @@ public class Settings {
 
 	public static Setting<Boolean> getBooleanSetting(final String... keys) {
 
-		final String key         = StringUtils.join(keys, ".");
+		final String key         = StringUtils.join(toLowerCase(keys), ".");
 		Setting<Boolean> setting = settings.get(key);
 
 		return setting;
@@ -468,7 +470,7 @@ public class Settings {
 
 	public static Setting<Boolean> getOrCreateBooleanSetting(final String... keys) {
 
-		final String key         = StringUtils.join(keys, ".");
+		final String key         = StringUtils.join(toLowerCase(keys), ".");
 		Setting<Boolean> setting = settings.get(key);
 
 		if (setting == null) {
@@ -481,30 +483,33 @@ public class Settings {
 
 	public static Setting<?> createSettingForValue(final SettingsGroup group, final String key, final String value) {
 
-		// try to determine property value type, string, integer or boolean?
-		final String lowerCaseValue = value.toLowerCase();
+		if (value != null) {
 
-		// boolean
-		if ("true".equals(lowerCaseValue) || "false".equals(lowerCaseValue)) {
+			// try to determine property value type, string, integer or boolean?
+			final String lowerCaseValue = value.toLowerCase();
 
-			final Setting<Boolean> setting = new BooleanSetting(group, key);
-			setting.setIsDynamic(true);
-			setting.setValue(Boolean.parseBoolean(value));
+			// boolean
+			if ("true".equals(lowerCaseValue) || "false".equals(lowerCaseValue)) {
 
-			return setting;
+				final Setting<Boolean> setting = new BooleanSetting(group, key.toLowerCase());
+				setting.setIsDynamic(true);
+				setting.setValue(Boolean.parseBoolean(value));
+
+				return setting;
+			}
+
+			// integer
+			if (Settings.isNumeric(value)) {
+
+				final Setting<Integer> setting = new IntegerSetting(group, key.toLowerCase());
+				setting.setIsDynamic(true);
+				setting.setValue(Integer.parseInt(value));
+
+				return setting;
+			}
 		}
 
-		// integer
-		if (Settings.isNumeric(value)) {
-
-			final Setting<Integer> setting = new IntegerSetting(group, key);
-			setting.setIsDynamic(true);
-			setting.setValue(Integer.parseInt(value));
-
-			return setting;
-		}
-
-		final Setting<String> setting = new StringSetting(group, key);
+		final Setting<String> setting = new StringSetting(group, key.toLowerCase());
 		setting.setIsDynamic(true);
 		setting.setValue(value);
 
@@ -549,8 +554,9 @@ public class Settings {
 			while (keys.hasNext()) {
 
 				final String key   = keys.next();
+				final String lcKey = key.toLowerCase();
 				final String value = trim(config.getString(key));
-				Setting<?> setting = Settings.getSetting(key);
+				Setting<?> setting = Settings.getSetting(lcKey);
 
 				if (setting != null) {
 
@@ -561,12 +567,12 @@ public class Settings {
 					SettingsGroup targetGroup = miscGroup;
 
 					// put key in cron group if it contains ".cronExpression"
-					if (key.contains(".cronExpression")) {
+					if (lcKey.contains(".cronexpression")) {
 						targetGroup = cronGroup;
 					}
 
 					// create new StringSetting for unknown key
-					Settings.createSettingForValue(targetGroup, key, value);
+					Settings.createSettingForValue(targetGroup, lcKey, value);
 				}
 			}
 
@@ -605,6 +611,18 @@ public class Settings {
 		}
 
 		return path + "/";
+	}
+
+	private static String[] toLowerCase(final String... input) {
+
+		final ArrayList<String> lower = new ArrayList(input.length);
+
+		for (final String i : input) {
+
+			lower.add(i.toLowerCase());
+		}
+
+		return lower.toArray(new String[0]);
 	}
 
 	// ----- package methods -----

@@ -18,6 +18,9 @@
  */
 package org.structr.test.common;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -945,6 +948,57 @@ public class SystemTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
+	}
+
+	@Test
+	public void testConfigurationFile() {
+
+		File tmpConfig = null;
+
+		try {
+
+			tmpConfig = File.createTempFile("structr", "test");
+
+			try (final PrintWriter writer = new PrintWriter(tmpConfig)) {
+
+				writer.println("application.TITLE = Structr Test Title");
+				writer.println("application.menu.main = Pages,Code,Schema,Flows,Data");
+				writer.println("configured.services = NodeService AgentService CronService SchemaService LogService HttpService FtpService SSHService MailService");
+				writer.println("database.driver.mode = remote");
+				writer.println("database.connection.url = localhost:7687");
+				writer.println("HttpService.servlets = JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet FlowServlet");
+				writer.println("security.twofactorauthentication.level = 0");
+				writer.println("deployment.export.exportFileUuids = false");
+				writer.println("application.schema.automigration = true");
+				writer.println("mail.maxEmails = 50");
+				writer.println("non.Existing.KEY = 12345b");
+				writer.println("nodeextender.log = true");
+				writer.println("DATABASE.cAchE.NOde.SIZE = 112233");
+			}
+
+			Settings.loadConfiguration(tmpConfig.getAbsolutePath());
+
+		} catch (IOException ioex) {
+
+			fail("Unexpected exception");
+		}
+
+		// check configuration
+
+		assertEquals("Invalid configuration setting result", "Structr Test Title", Settings.ApplicationTitle.getValue());
+		assertEquals("Invalid configuration setting result", "Pages,Code,Schema,Flows,Data", Settings.MenuEntries.getValue());
+		assertEquals("Invalid configuration setting result", "NodeService AgentService CronService SchemaService LogService HttpService FtpService SSHService MailService", Settings.Services.getValue());
+		assertEquals("Invalid configuration setting result", "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet FlowServlet", Settings.Servlets.getValue());
+		assertEquals("Invalid configuration setting result", Integer.valueOf(0), Settings.TwoFactorLevel.getValue());
+		assertEquals("Invalid configuration setting result", Boolean.valueOf(false), Settings.getBooleanSetting("deployment.export.exportfileuuids").getValue());
+		assertEquals("Invalid configuration setting result", Boolean.valueOf(true), Settings.SchemaAutoMigration.getValue());
+		assertEquals("Invalid configuration setting result", Integer.valueOf(50), Settings.getIntegerSetting("mail", "maxemails").getValue());
+		assertEquals("Invalid configuration setting result", "12345b", Settings.getStringSetting("non", "existing", "key").getValue());
+		assertEquals("Invalid configuration setting result", Boolean.valueOf(true), Settings.LogSchemaOutput.getValue());
+		assertEquals("Invalid configuration setting result", Integer.valueOf(112233), Settings.NodeCacheSize.getValue());
+
+
+		tmpConfig.deleteOnExit();
 	}
 
 	// ----- nested classes -----

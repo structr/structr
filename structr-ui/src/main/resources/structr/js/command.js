@@ -1340,7 +1340,7 @@ var Command = {
 			// add ownerless configs
 			if (ownerlessConfigs.length > 0) {
 				sortedAndGrouped.push({
-					ownerName: null,
+					ownerName: 'Layouts without owner',
 					configs: ownerlessConfigs
 				});
 			}

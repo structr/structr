@@ -49,6 +49,10 @@ public class FunctionProperty<T> extends Property<T> {
 		super(name);
 	}
 
+	public FunctionProperty(final String name, final String dbName) {
+		super(name, dbName);
+	}
+
 	@Override
 	public Property<T> indexed() {
 
