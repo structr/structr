@@ -120,7 +120,8 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 
-		String redirectUrl = null;
+		SecurityContext securityContext = null;
+		String redirectUrl              = null;
 
 		setCustomResponseHeaders(response);
 
@@ -132,7 +133,6 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				return;
 			}
 
-			final SecurityContext securityContext;
 			try {
 				securityContext = getConfig().getAuthenticator().initializeAndExamineRequest(request, response);
 
@@ -149,6 +149,13 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				return;
 			}
 
+			tx.success();
+			
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+		try {
 			// Ensure access mode is frontend
 			securityContext.setAccessMode(AccessMode.Frontend);
 
@@ -167,9 +174,11 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 			response.setContentType("text/html");
 
-			//final List<FileItem> fileItemsList         = uploader.parseRequest(request);
 			final FileItemIterator fileItemsIterator   = uploader.getItemIterator(request);
 			final Map<String, Object> params           = new HashMap<>();
+			final String directoryPath                 = "/tmp/" + UUID.randomUUID();
+			final String filePath                      = directoryPath + ".zip";
+			final File file                            = new File(filePath);
 
 			String downloadUrl = null;
 			String fileName    = null;
@@ -194,41 +203,39 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 						params.put(fieldName, fieldValue);
 					}
 
-				}
-
-				final String directoryPath = "/tmp/" + UUID.randomUUID();
-				final String filePath      = directoryPath + ".zip";
-				final File file = new File(filePath);
-
-				if (StringUtils.isNotBlank(downloadUrl)) {
-
-					HttpHelper.streamURLToFile(downloadUrl, file);
-					fileName = PathHelper.getName(downloadUrl);
-
 				} else {
-						Files.write(IOUtils.toByteArray(item.openStream()), file);
+
+					try (final InputStream is = item.openStream()) {
+						
+						Files.write(IOUtils.toByteArray(is), file);
 						fileName = item.getName();
+					}
 				}
+			}
 
-				if (file.exists() && file.length() > 0L) {
+			if (StringUtils.isNotBlank(downloadUrl)) {
 
-					unzip(file, directoryPath);
+				HttpHelper.streamURLToFile(downloadUrl, file);
+				fileName = PathHelper.getName(downloadUrl);
+			}
 
-					DeployCommand deployCommand = StructrApp.getInstance(securityContext).command(DeployCommand.class);
+			if (file.exists() && file.length() > 0L) {
 
-					final Map<String, Object> attributes = new HashMap<>();
-					attributes.put("source", directoryPath  + "/" + StringUtils.substringBeforeLast(fileName, "."));
+				unzip(file, directoryPath);
 
-					deployCommand.execute(attributes);
+				DeployCommand deployCommand = StructrApp.getInstance(securityContext).command(DeployCommand.class);
 
-				}
+				final Map<String, Object> attributes = new HashMap<>();
+
+				attributes.put("mode", "import");
+				attributes.put("source", directoryPath  + "/" + StringUtils.substringBeforeLast(fileName, "."));
+
+				deployCommand.execute(attributes);
 
 				file.delete();
 				File dir = new File(directoryPath);
 				dir.delete();
 			}
-
-			tx.success();
 
 			// send redirect to allow form-based file upload without JavaScript..
 			if (StringUtils.isNotBlank(redirectUrl)) {
