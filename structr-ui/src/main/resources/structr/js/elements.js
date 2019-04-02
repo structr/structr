@@ -363,45 +363,48 @@ var _Elements = {
 	},
 	reloadUnattachedNodes: function() {
 
-		_Elements.clearUnattachedNodes();
+		if (elementsSlideout.hasClass('open')) {
 
-		elementsSlideout.append('<div class="ver-scrollable" id="elementsArea"></div>');
-		elements = $('#elementsArea', elementsSlideout);
+			_Elements.clearUnattachedNodes();
 
-		elements.append('<button class="btn action disabled" id="delete-all-unattached-nodes" disabled>Loading </button>');
+			elementsSlideout.append('<div class="ver-scrollable" id="elementsArea"></div>');
+			elements = $('#elementsArea', elementsSlideout);
 
-		var btn = $('#delete-all-unattached-nodes');
-		Structr.loaderIcon(btn, {
-			"max-height": "100%",
-			"height": "initial",
-			"width": "initial"
-		});
-		btn.on('click', function() {
-			Structr.confirmation('<p>Delete all DOM elements without parent?</p>',
-					function() {
-						Command.deleteUnattachedNodes();
-						$.unblockUI({
-							fadeOut: 25
+			elements.append('<button class="btn action disabled" id="delete-all-unattached-nodes" disabled>Loading </button>');
+
+			var btn = $('#delete-all-unattached-nodes');
+			Structr.loaderIcon(btn, {
+				"max-height": "100%",
+				"height": "initial",
+				"width": "initial"
+			});
+			btn.on('click', function() {
+				Structr.confirmation('<p>Delete all DOM elements without parent?</p>',
+						function() {
+							Command.deleteUnattachedNodes();
+							$.unblockUI({
+								fadeOut: 25
+							});
+							Structr.closeSlideOuts([elementsSlideout]);
 						});
-						Structr.closeSlideOuts([elementsSlideout]);
-					});
-		});
+			});
 
-		_Dragndrop.makeSortable(elements);
+			_Dragndrop.makeSortable(elements);
 
-		Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(result) {
+			Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(result) {
 
-			var count = result.length;
-			if (count > 0) {
-				btn.text('Delete all (' + count + ')');
-				btn.removeClass('disabled');
-				btn.prop('disabled', false);
-			} else {
-				btn.text('No unused elements');
-			}
+				var count = result.length;
+				if (count > 0) {
+					btn.text('Delete all (' + count + ')');
+					btn.removeClass('disabled');
+					btn.prop('disabled', false);
+				} else {
+					btn.text('No unused elements');
+				}
 
-			_Elements.appendEntitiesToDOMElement(result, elements);
-		});
+				_Elements.appendEntitiesToDOMElement(result, elements);
+			});
+		}
 
 	},
 	appendEntitiesToDOMElement: function (entities, domElement) {
