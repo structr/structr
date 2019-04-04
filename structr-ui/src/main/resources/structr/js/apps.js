@@ -85,24 +85,5 @@ var _Apps = {
 				_Apps.install(app);
 			});
 		});
-	},
-	install: function(app) {
-
-		var data = {
-			mode: 'import',
-			extendExistingSchema: app.extendExistingSchema,
-			downloadUrl: app.url
-		};
-
-		$.ajax({
-			url: '/structr/deploy',
-			data: JSON.stringify(data),
-			contentType: 'multipart/form-data',
-			method: 'POST',
-			cache: false,
-			contentType: false,
-			processData: false
-		});
-
 	}
 };
