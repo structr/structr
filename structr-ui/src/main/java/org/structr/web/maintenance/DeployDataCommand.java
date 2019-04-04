@@ -148,8 +148,8 @@ public class DeployDataCommand extends DeployCommand {
 
 				if (User.class.isAssignableFrom(type)) {
 
-					logger.warn("User type in export set! Type '{}' is a User type.\n\tAs much data as possible will be exported (no passwords/salts - you will NOT be able to log in with those users).\n\tIf these users are important for grants, you might want to create them via pre-data-deploy.conf or import them separately and set their passwords via pre/post-data-deploy.conf", type.getSimpleName());
-					publishWarningMessage("User type in export set", "Type '" + type.getSimpleName() + "' is a User type.<br> As much data as possible will be exported (<b>no passwords/salts - you will NOT be able to log in with those users</b>). If these users are important for grants, you might want to create them via pre-data-deploy.conf or import them separately and set their passwords via pre/post-data-deploy.conf");
+					logger.warn("User type in export set! Type '{}' is a User type.\n\tIf the user who is running the import is present in the import, this can lead to problems!", type.getSimpleName());
+					publishWarningMessage("User type in export set", "Type '" + type.getSimpleName() + "' is a User type.<br>If the user who is running the import is present in the import, this can lead to problems!");
 				}
 
 				publishProgressMessage(DEPLOYMENT_DATA_EXPORT_STATUS, "Exporting nodes for type " + type.getSimpleName());
