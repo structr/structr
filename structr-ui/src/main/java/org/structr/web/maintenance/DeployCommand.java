@@ -197,6 +197,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (name.length() > 32) {
 
 			return pattern.matcher(name.substring(name.length() - 32)).matches();
+
 		} else {
 
 			return false;
@@ -216,9 +217,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final long startTime = System.currentTimeMillis();
 			customHeaders.put("start", new Date(startTime).toString());
 
-			final String path         = (String) attributes.get("source");
-			final SecurityContext ctx = SecurityContext.getSuperUserInstance();
-			final App app             = StructrApp.getInstance(ctx);
+			final boolean extendExistingSchema = isTrue(attributes.get("extendExistingSchema"));
+			final String path                  = (String) attributes.get("source");
+			final SecurityContext ctx          = SecurityContext.getSuperUserInstance();
+			final App app                      = StructrApp.getInstance(ctx);
 
 			ctx.setDoTransactionNotifications(false);
 			ctx.disableEnsureCardinality();
@@ -394,7 +396,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					info("Importing data from schema/ directory");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing schema");
 
-					importSchema(schemaFolder);
+					importSchema(schemaFolder, extendExistingSchema);
 
 				} catch (ImportFailureException fex) {
 
@@ -1848,7 +1850,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void importSchema(final Path schemaFolder) {
+	private void importSchema(final Path schemaFolder, final boolean extendExistingSchema) {
 
 		final Path schemaJsonFile = schemaFolder.resolve("schema.json");
 
@@ -1929,7 +1931,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					}
 				}
 
-				StructrSchema.replaceDatabaseSchema(app, schema);
+				if (extendExistingSchema) {
+					
+					StructrSchema.extendDatabaseSchema(app, schema);
+					
+				} else {
+
+					StructrSchema.replaceDatabaseSchema(app, schema);
+				}
 
 			} catch (Throwable t) {
 
@@ -1978,6 +1987,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		} catch (IOException ioex) {
 			logger.warn("", ioex);
 		}
+	}
+
+	private boolean isTrue(final Object value) {
+
+		if (value != null) {
+
+			return "true".equalsIgnoreCase(value.toString());			
+		}
+
+		return false;
 	}
 
 	// ----- public static methods -----

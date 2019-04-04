@@ -3006,6 +3006,58 @@ input.bitmask {
 }
 
 /*
+ * Apps
+ */
+
+.app-category {
+	margin: 12px;
+	padding: 2px 12px 6px 12px;
+	position: relative;
+	font-size: 1.2em;
+}
+
+.app-category h2 {
+	margin: 0;
+}
+
+.app-category p {
+	margin: 0;
+}
+
+.app-tile {
+	background-color: #fff;
+	border: 1px solid rgba(0,0,0,.125);
+	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
+	margin: 12px 12px 12px 0;
+	padding: 2px 6px;
+	position: relative;
+	width: 120px;
+	min-width: 120px;
+	min-height: 200px;
+	float: left;
+	font-size: 1.2em;
+}
+
+.app-tile h4 {
+	margin: 0;
+	font-size: 1em;
+	font-weight: 500;
+}
+
+.app-tile p {
+	margin: 0;
+	font-size: 1em;
+	font-weight: 300;
+	font-size: 0.8em;
+}
+
+.app-tile button {
+	position: absolute;
+	bottom: 2px;
+	right: 2px;
+}
+
+/*
  * Graph
  */
 
