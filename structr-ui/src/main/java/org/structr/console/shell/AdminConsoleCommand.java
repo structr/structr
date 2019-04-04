@@ -28,9 +28,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.util.Writable;
 
-/**
- *
- */
 public abstract class AdminConsoleCommand {
 
 	private static final Map<String, Class<? extends AdminConsoleCommand>> commands = new TreeMap<>();
