@@ -45,7 +45,7 @@ var _Apps = {
 
 	},
 	loadData: function() {
-		
+
 		$.ajax({
 			url: 'https://structr.com/structr/rest/StructrApplicationCategory?sort=position',
 			statusCode: {
@@ -71,19 +71,35 @@ var _Apps = {
 			});
 
 			category.apps.forEach(function(app) {
-				
+
 				_Apps.appendTile(container, app);
 
 			});
 		});
 	},
 	appendTile: function(container, app) {
-		
+
 		Structr.fetchHtmlTemplate('apps/tile', app, function(tile) {
-			container.append(tile);
-			$('#_' + app.id).on('click', function() {
-				_Apps.install(app);
-			});
+
+			let $tile = $(tile);
+			container.append($tile);
+
+			let form = $tile.find('form');
+			if (form.length > 0) {
+				form[0].addEventListener('submit', (e) => {
+					e.preventDefault();
+
+					Structr.confirmation(
+						'<h3>Install "' + app.name + '"?</h3><p>The current applicaiton will be <b>REMOVED</b>!</p><p>Make sure you have a backup or nothing important in this installation!</p>',
+						function() {
+							$.unblockUI({ fadeOut: 25 });
+							form.submit();
+						}
+					);
+
+					return false;
+				});
+			}
 		});
 	}
 };
