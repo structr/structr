@@ -23,6 +23,7 @@ $(document).ready(function() {
 var _Apps = {
 	_moduleName: 'apps',
 	appsContainer: undefined,
+	deployServletAvailable: true,
 
 	init: function() {},
 	unload: function() {},
@@ -30,20 +31,26 @@ var _Apps = {
 
 		_Apps.init();
 
-		Structr.fetchHtmlTemplate('apps/apps', {}, function(html) {
+		fetch('/structr/deploy').then((result) => {
+			console.log(result.status);
+			_Apps.deployServletAvailable = (result.status !== 404);
+		}).then(() => {
 
-			main.append(html);
+			Structr.fetchHtmlTemplate('apps/apps', {hideInfo: _Apps.deployServletAvailable}, function(html) {
 
-			_Apps.appsContainer = $('#apps', main);
+				main.append(html);
 
-			_Apps.loadData();
+				_Apps.appsContainer = $('#apps', main);
 
-			$(window).off('resize');
-			$(window).on('resize', function() {
-				Structr.resize();
+				_Apps.loadData();
+
+				$(window).off('resize');
+				$(window).on('resize', function() {
+					Structr.resize();
+				});
+
+				Structr.unblockMenu(100);
 			});
-
-			Structr.unblockMenu(100);
 		});
 	},
 	loadData: function() {
@@ -91,17 +98,27 @@ var _Apps = {
 				form[0].addEventListener('submit', (e) => {
 					e.preventDefault();
 
-					Structr.confirmation(
-						'<h3>Install "' + app.name + '"?</h3><p>The current application will be <b>REMOVED</b>!</p><p>Make sure you have a backup or nothing important in this installation!</p>',
-						function() {
-							$.unblockUI({ fadeOut: 25 });
-							form.submit();
-						}
-					);
+					if (_Apps.deployServletAvailable) {
+
+						Structr.confirmation(
+							'<h3>Install "' + app.name + '"?</h3><p>The current application will be <b>REMOVED</b>!</p><p>Make sure you have a backup or nothing important in this installation!</p>',
+							function() {
+								$.unblockUI({ fadeOut: 25 });
+								form.submit();
+							}
+						);
+
+					} else {
+						_Apps.showDeploymentServletUnavailableMessage(app);
+					}
 
 					return false;
 				});
 			}
 		});
+	},
+	showDeploymentServletUnavailableMessage: function(app) {
+
+		new MessageBuilder().title('Unable to install "' + app.name + '"').warning('The <code>DeploymentServlet</code> needs to be activated in <code>structr.conf</code> for the installation process to work.').requiresConfirmation().allowConfirmAll().show();
 	}
 };
