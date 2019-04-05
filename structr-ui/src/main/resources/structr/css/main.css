@@ -3009,6 +3009,15 @@ input.bitmask {
  * Apps
  */
 
+.apps-requirements {
+	text-align: left;
+	padding: 14px 14px 14px 40px ! important;
+	font-size: 10pt;
+	background-position: 16px 16px;
+	margin: 10px 0px 0px 20px;
+	width: fit-content;
+}
+
 .app-category {
 	margin: 12px;
 	padding: 2px 12px 6px 12px;

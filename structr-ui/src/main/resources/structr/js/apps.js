@@ -22,27 +22,29 @@ $(document).ready(function() {
 
 var _Apps = {
 	_moduleName: 'apps',
+	appsContainer: undefined,
 
 	init: function() {},
 	unload: function() {},
 	onload: function() {
 
 		_Apps.init();
-		main.append('<div id="apps"></div>');
 
-		_Apps.loadData();
+		Structr.fetchHtmlTemplate('apps/apps', {}, function(html) {
 
-		$('.apps-info a.internal-link').on('click', function() {
-			$('#' + $(this).text() + '_').click();
+			main.append(html);
+
+			_Apps.appsContainer = $('#apps', main);
+
+			_Apps.loadData();
+
+			$(window).off('resize');
+			$(window).on('resize', function() {
+				Structr.resize();
+			});
+
+			Structr.unblockMenu(100);
 		});
-
-		$(window).off('resize');
-		$(window).on('resize', function() {
-			Structr.resize();
-		});
-
-		Structr.unblockMenu(100);
-
 	},
 	loadData: function() {
 
@@ -61,7 +63,7 @@ var _Apps = {
 
 		Structr.fetchHtmlTemplate('apps/category', category, function(html) {
 
-			main.append(html);
+			_Apps.appsContainer.append(html);
 			var container = $('#' + category.id);
 
 			category.apps.sort(function(a, b) {
