@@ -20,63 +20,53 @@ package org.structr.console.shell;
 
 import java.io.IOException;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
 import org.structr.util.Writable;
+import org.structr.web.maintenance.DeployDataCommand;
 
 /**
- * A console command that displays help texts for other console commands.
+ * A console wrapper for DeployDataCommand, export mode.
  */
-public class HelpConsoleCommand extends AdminConsoleCommand {
+public class ExportDataConsoleCommand extends AdminConsoleCommand {
 
 	static {
-		AdminConsoleCommand.registerCommand("help", HelpConsoleCommand.class);
+		AdminConsoleCommand.registerCommand("export-data", ExportDataConsoleCommand.class);
 	}
 
 	@Override
 	public void run(final SecurityContext securityContext, final List<String> parameters, final Writable writable) throws FrameworkException, IOException {
 
-		if (parameters.size() > 1) {
+		final Principal user = securityContext.getUser(false);
+		if (user != null && user.isAdmin()) {
 
-			final String key              = parameters.get(1);
-			final AdminConsoleCommand cmd = AdminConsoleCommand.getCommand(key);
+			final DeployDataCommand cmd = StructrApp.getInstance(securityContext).command(DeployDataCommand.class);
 
-			if (cmd != null) {
-
-				cmd.detailHelp(writable);
-
-			} else {
-
-				writable.println("Unknown command '" + key + "'.");
-			}
+			cmd.setLogBuffer(writable);
+			cmd.execute(toMap(
+					"mode", "export",
+					"target", getParameter(parameters, 1),
+					"types", getParameter(parameters, 2)
+			));
 
 		} else {
 
-			int maxCommandNameLength = 0;
-
-			for (final String key : AdminConsoleCommand.commandNames()) {
-				maxCommandNameLength = Math.max(maxCommandNameLength, key.length());
-			}
-
-			for (final String key : AdminConsoleCommand.commandNames()) {
-
-				final AdminConsoleCommand cmd = AdminConsoleCommand.getCommand(key);
-
-				writable.print(StringUtils.rightPad(key, maxCommandNameLength));
-				writable.print(" - ");
-				cmd.commandHelp(writable);
-			}
+			writable.println("You must be admin user to use this command.");
 		}
 	}
 
 	@Override
 	public void commandHelp(final Writable writable) throws IOException {
-		writable.println("Prints a list of all commands and a short help text. Use 'help <command> to get more details.");
+		writable.println("Exports data from the Structr application to a directory.");
 	}
 
 	@Override
 	public void detailHelp(final Writable writable) throws IOException {
-		commandHelp(writable);
+		writable.println("exportData <target> <types>  -  Exports data from this application to a path in the file system.");
+		writable.println("");
+		writable.println("  <target> - absolute path to the target directory");
+		writable.println("  <types>  - comma-separated list of types to export");
 	}
 }

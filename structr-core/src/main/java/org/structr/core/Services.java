@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -70,11 +71,13 @@ public class Services implements StructrServices {
 
 	// singleton instance
 	private static String jvmIdentifier                = ManagementFactory.getRuntimeMXBean().getName();
+	private static final long licenseCheckInterval     = TimeUnit.HOURS.toMillis(2);
 	private static Services singletonInstance          = null;
 	private static boolean testingModeDisabled         = false;
 	private static boolean calculateHierarchy          = false;
 	private static boolean updateIndexConfiguration    = false;
 	private static Boolean cachedTestingFlag           = null;
+	private static long lastLicenseCheck               = 0L;
 
 	// non-static members
 	private final List<InitializationCallback> callbacks       = new LinkedList<>();
@@ -97,6 +100,12 @@ public class Services implements StructrServices {
 
 			singletonInstance = new Services();
 			singletonInstance.initialize();
+		}
+
+		if (System.currentTimeMillis() > lastLicenseCheck + licenseCheckInterval) {
+
+			singletonInstance.checkLicense();
+			lastLicenseCheck = System.currentTimeMillis();
 		}
 
 		return singletonInstance;
@@ -871,6 +880,13 @@ public class Services implements StructrServices {
 
 			// recurse upwards
 			return recursiveGetHierarchyLevel(dependencyMap, alreadyCalculated, dependency, depth + 1) + 1;
+		}
+	}
+
+	private void checkLicense() {
+		
+		if (licenseManager != null) {
+			licenseManager.refresh();
 		}
 	}
 }
