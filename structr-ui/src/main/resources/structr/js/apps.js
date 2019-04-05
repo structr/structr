@@ -90,7 +90,7 @@ var _Apps = {
 					e.preventDefault();
 
 					Structr.confirmation(
-						'<h3>Install "' + app.name + '"?</h3><p>The current applicaiton will be <b>REMOVED</b>!</p><p>Make sure you have a backup or nothing important in this installation!</p>',
+						'<h3>Install "' + app.name + '"?</h3><p>The current application will be <b>REMOVED</b>!</p><p>Make sure you have a backup or nothing important in this installation!</p>',
 						function() {
 							$.unblockUI({ fadeOut: 25 });
 							form.submit();
