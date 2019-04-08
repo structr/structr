@@ -128,16 +128,15 @@ public class StructrLicenseManager implements LicenseManager {
 	private final Set<String> communityModules          = new LinkedHashSet<>(Arrays.asList("core", "rest", "ui"));
 	private final Set<String> modules                   = new LinkedHashSet<>(communityModules);
 	private final Set<String> classes                   = new LinkedHashSet<>();
-	private final SimpleDateFormat format               = new SimpleDateFormat(DatePattern);
 	private Certificate certificate                     = null;
 	private PublicKey publicKey                         = null;
 	private boolean allModulesLicensed                  = false;
 	private boolean licensePresent                      = false;
 	private String edition                              = "Community";
 	private String licensee                             = null;
-	private String startDateString                      = null;
-	private String endDateString                        = null;
 	private String numberOfUsersString                  = null;
+	private Date startDate                              = null;
+	private Date endDate                                = null;
 
 	public StructrLicenseManager(final String licenseFileName) {
 
@@ -157,8 +156,6 @@ public class StructrLicenseManager implements LicenseManager {
 
 				edition             = properties.get(EditionKey);
 				licensee            = properties.get(NameKey);
-				startDateString     = properties.get(StartKey);
-				endDateString       = properties.get(EndKey);
 				numberOfUsersString = properties.get(UsersKey);
 
 				// init modules
@@ -205,8 +202,9 @@ public class StructrLicenseManager implements LicenseManager {
 	public void refresh() {
 
 		// verify that the license is valid for the current date
-		final Date endDate = parseDate(endDateString);
-		if (licenseExpired(endDate)) {
+		if (licenseExpired()) {
+
+			final SimpleDateFormat format = new SimpleDateFormat(DatePattern);
 
 			logger.error("License found in license file is not valid any more, license period ended {}.", format.format(endDate.getTime()));
 
@@ -245,13 +243,13 @@ public class StructrLicenseManager implements LicenseManager {
 	}
 
 	@Override
-	public String getStartDate() {
-		return startDateString;
+	public Date getStartDate() {
+		return startDate;
 	}
 
 	@Override
-	public String getEndDate() {
-		return endDateString;
+	public Date getEndDate() {
+		return endDate;
 	}
 
 	@Override
@@ -325,19 +323,21 @@ public class StructrLicenseManager implements LicenseManager {
 			return false;
 		}
 
-		final String src             = collectLicenseFieldsForSignature(properties);
-		final String name            = properties.get(NameKey);
-		final String key             = properties.get(SignatureKey);
-		final String hostId          = properties.get(MachineKey);
-		final String thisHostId      = createHash();
-		final String edition         = properties.get(EditionKey);
-		final String modules         = properties.get(ModulesKey);
-		final String dateString      = properties.get(DateKey);
-		final String startDateString = properties.get(StartKey);
-		final String endDateString   = properties.get(EndKey);
-		final String serversString   = properties.get(ServersKey);
-		final String usersString     = properties.get(UsersKey); // unused (cannot be verified here)
-		final Date now               = new Date();
+
+		final SimpleDateFormat format = new SimpleDateFormat(DatePattern);
+		final String src              = collectLicenseFieldsForSignature(properties);
+		final String name             = properties.get(NameKey);
+		final String key              = properties.get(SignatureKey);
+		final String hostId           = properties.get(MachineKey);
+		final String thisHostId       = createHash();
+		final String edition          = properties.get(EditionKey);
+		final String modules          = properties.get(ModulesKey);
+		final String dateString       = properties.get(DateKey);
+		final String startDateString  = properties.get(StartKey);
+		final String endDateString    = properties.get(EndKey);
+		final String serversString    = properties.get(ServersKey);
+		final String usersString      = properties.get(UsersKey); // unused (cannot be verified here)
+		final Date now                = new Date();
 
 		if (StringUtils.isEmpty(key)) {
 
@@ -442,7 +442,7 @@ public class StructrLicenseManager implements LicenseManager {
 		}
 
 		// verify that the license is valid for the current date
-		final Date startDate = parseDate(startDateString);
+		startDate = parseDate(startDateString);
 		if (startDate != null && now.before(startDate) && !now.equals(startDate)) {
 
 			logger.error("License found in license file is not yet valid, license period starts {}.", format.format(startDate.getTime()));
@@ -450,8 +450,8 @@ public class StructrLicenseManager implements LicenseManager {
 		}
 
 		// verify that the license is valid for the current date
-		final Date endDate = parseDate(endDateString);
-		if (licenseExpired(endDate)) {
+		endDate = parseDate(endDateString);
+		if (licenseExpired()) {
 
 			logger.error("License found in license file is not valid any more, license period ended {}.", format.format(endDate.getTime()));
 			return false;
@@ -460,7 +460,7 @@ public class StructrLicenseManager implements LicenseManager {
 		return true;
 	}
 
-	private boolean licenseExpired(final Date endDate) {
+	private boolean licenseExpired() {
 
 		final Date now = new Date();
 
@@ -563,6 +563,8 @@ public class StructrLicenseManager implements LicenseManager {
 		if (dateOrNull != null) {
 
 			try {
+
+				final SimpleDateFormat format = new SimpleDateFormat(DatePattern);
 				return alignToDay(format.parse(dateOrNull));
 
 			} catch (Throwable ignore) {}
@@ -574,6 +576,8 @@ public class StructrLicenseManager implements LicenseManager {
 	private Date alignToDay(final Date date) {
 
 		try {
+
+			final SimpleDateFormat format = new SimpleDateFormat(DatePattern);
 			return format.parse(format.format(date));
 
 		} catch (Throwable ignore) {}
