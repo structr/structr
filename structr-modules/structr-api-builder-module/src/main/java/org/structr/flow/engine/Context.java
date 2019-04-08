@@ -149,7 +149,7 @@ public class Context {
 		this.thisObject = context.thisObject;
 		this.data = deepCopyMap(context.data);
 		this.store = deepCopyMap(context.store);
-		this.parameters = deepCopyMap(context.store);
+		this.parameters = deepCopyMap(context.parameters);
 		this.currentData = deepCopyMap(context.currentData);
 		this.result = context.result;
 		this.error = context.error;
