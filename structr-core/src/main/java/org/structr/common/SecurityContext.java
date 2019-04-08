@@ -69,6 +69,7 @@ public class SecurityContext {
 	private boolean modifyAccessTime                     = true;
 	private boolean ignoreResultCount                    = false;
 	private boolean ensureCardinality                    = true;
+	private boolean doInnerCallbacks                     = true;
 	private boolean isReadOnlyTransaction                = false;
 	private boolean doMultiThreadedJsonOutput            = false;
 	private int serializationDepth                       = -1;
@@ -835,6 +836,18 @@ public class SecurityContext {
 
 	public void enableEnsureCardinality() {
 		ensureCardinality = false;
+	}
+
+	public void disableInnerCallbacks() {
+		doInnerCallbacks = false;
+	}
+
+	public void enableInnerCallbacks() {
+		doInnerCallbacks = false;
+	}
+
+	public boolean doInnerCallbacks() {
+		return doInnerCallbacks;
 	}
 
 	public boolean forceMergeOfNestedProperties() {

@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FlowFilter extends FlowNode implements DataSource, Filter, DeployableEntity {
 	public static final Property<DataSource> dataSource             = new StartNode<>("dataSource", FlowDataInput.class);
@@ -80,6 +81,8 @@ public class FlowFilter extends FlowNode implements DataSource, Filter, Deployab
 
 						return false;
 					});
+
+					data = ((Stream) data).collect(Collectors.toList());
 
 					context.setData(getUuid(), data);
 				} else {

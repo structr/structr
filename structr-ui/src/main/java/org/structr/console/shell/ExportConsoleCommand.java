@@ -60,6 +60,6 @@ public class ExportConsoleCommand extends AdminConsoleCommand {
 
 	@Override
 	public void detailHelp(final Writable writable) throws IOException {
-		writable.println("export <target> - exports this application to the given target directory.");
+		writable.println("export <target>  -  exports this Structr application to the given target directory.");
 	}
 }

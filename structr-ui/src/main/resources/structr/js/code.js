@@ -1738,6 +1738,8 @@ var _Code = {
 
 		_Code.addRecentlyUsedElement(entity);
 
+		var path = _Code.getPathForEntity(entity);
+
 		if (updateLocationStack) {
 			_Code.updatePathLocationStack(path);
 			_Code.lastClickedPath = path;

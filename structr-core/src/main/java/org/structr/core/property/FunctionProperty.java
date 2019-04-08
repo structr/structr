@@ -83,6 +83,10 @@ public class FunctionProperty<T> extends Property<T> {
 
 		try {
 
+			if (!securityContext.doInnerCallbacks()) {
+				return null;
+			}
+
 			final String readFunction = getReadFunction();
 			if (obj != null && readFunction != null) {
 
@@ -93,9 +97,7 @@ public class FunctionProperty<T> extends Property<T> {
 					if (cachedValue != null) {
 						return (T) cachedValue;
 					}
-
 				}
-
 
 				final ActionContext actionContext = new ActionContext(securityContext);
 
@@ -117,7 +119,6 @@ public class FunctionProperty<T> extends Property<T> {
 
 			t.printStackTrace();
 			logger.warn("Exception while evaluating read function in Function property \"{}\"", jsonName());
-
 		}
 
 		return null;
@@ -203,6 +204,10 @@ public class FunctionProperty<T> extends Property<T> {
 		if (func != null) {
 
 			try {
+
+				if (!securityContext.doInnerCallbacks()) {
+					return null;
+				}
 
 				ctx.setConstant("value", value);
 

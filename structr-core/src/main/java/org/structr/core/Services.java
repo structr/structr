@@ -36,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -73,11 +74,13 @@ public class Services implements StructrServices {
 
 	// singleton instance
 	private static String jvmIdentifier                = ManagementFactory.getRuntimeMXBean().getName();
+	private static final long licenseCheckInterval     = TimeUnit.HOURS.toMillis(2);
 	private static Services singletonInstance          = null;
 	private static boolean testingModeDisabled         = false;
 	private static boolean calculateHierarchy          = false;
 	private static boolean updateIndexConfiguration    = false;
 	private static Boolean cachedTestingFlag           = null;
+	private static long lastLicenseCheck               = 0L;
 
 	// non-static members
 	private final Map<Class, Map<String, Service>> serviceCache = new ConcurrentHashMap<>(10, 0.9f, 8);
@@ -102,6 +105,12 @@ public class Services implements StructrServices {
 
 			singletonInstance = new Services();
 			singletonInstance.initialize();
+		}
+
+		if (System.currentTimeMillis() > lastLicenseCheck + licenseCheckInterval) {
+
+			singletonInstance.checkLicense();
+			lastLicenseCheck = System.currentTimeMillis();
 		}
 
 		return singletonInstance;
@@ -943,5 +952,12 @@ public class Services implements StructrServices {
 
 	private void addService(final Class type, final Service service, final String name) {
 		getServices(type).put(name, service);
+	}
+	
+	private void checkLicense() {
+		
+		if (licenseManager != null) {
+			licenseManager.refresh();
+		}
 	}
 }

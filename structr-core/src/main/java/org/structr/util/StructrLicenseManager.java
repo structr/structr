@@ -125,7 +125,8 @@ public class StructrLicenseManager implements LicenseManager {
 	public static final String HostIdMappingKey        = "hostIdValidationAttempts";
 	public static final int ServerPort                 = 5725;
 
-	private final Set<String> modules                   = new LinkedHashSet<>(Arrays.asList("core", "rest", "ui"));
+	private final Set<String> communityModules          = new LinkedHashSet<>(Arrays.asList("core", "rest", "ui"));
+	private final Set<String> modules                   = new LinkedHashSet<>(communityModules);
 	private final Set<String> classes                   = new LinkedHashSet<>();
 	private final SimpleDateFormat format               = new SimpleDateFormat(DatePattern);
 	private Certificate certificate                     = null;
@@ -197,6 +198,24 @@ public class StructrLicenseManager implements LicenseManager {
 		if (userLimit > 0) {
 
 			logger.info("Licensed for {} users", userLimit);
+		}
+	}
+
+	@Override
+	public void refresh() {
+
+		// verify that the license is valid for the current date
+		final Date endDate = parseDate(endDateString);
+		if (licenseExpired(endDate)) {
+
+			logger.error("License found in license file is not valid any more, license period ended {}.", format.format(endDate.getTime()));
+
+			modules.clear();
+			modules.addAll(communityModules);
+
+			allModulesLicensed = false;
+
+			edition = "Community";
 		}
 	}
 
@@ -432,13 +451,20 @@ public class StructrLicenseManager implements LicenseManager {
 
 		// verify that the license is valid for the current date
 		final Date endDate = parseDate(endDateString);
-		if (endDate != null && now.after(endDate) && !now.equals(endDate)) {
+		if (licenseExpired(endDate)) {
 
 			logger.error("License found in license file is not valid any more, license period ended {}.", format.format(endDate.getTime()));
 			return false;
 		}
 
 		return true;
+	}
+
+	private boolean licenseExpired(final Date endDate) {
+
+		final Date now = new Date();
+
+		return (endDate != null && now.after(endDate) && !now.equals(endDate));
 	}
 
 	private Map<String, String> read(final String fileName) {

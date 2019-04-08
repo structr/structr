@@ -24,6 +24,8 @@ import java.security.CodeSigner;
  */
 public interface LicenseManager {
 
+	void refresh();
+
 	String getEdition();
 
 	String getLicensee();

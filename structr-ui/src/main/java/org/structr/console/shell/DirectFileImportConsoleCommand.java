@@ -66,12 +66,13 @@ public class DirectFileImportConsoleCommand extends AdminConsoleCommand {
 
 	@Override
 	public void detailHelp(final Writable writable) throws IOException {
-		writable.println("file-import <source> <target> <mode> <existing> <index>: Import files directly from a server directoy.");
-		writable.println("  <source>:   Path to a directory on the server.");
-		writable.println("  <target>:   Target path in Structr's virtual file system.");
-		writable.println("  <mode>:     Whether to copy or move the files into Structr's files directory. Possible values: copy (default), move");
-		writable.println("  <existing>: How to handle files already existing with the same path in Structr. Possible values: skip (default), overwrite, rename");
-		writable.println("  <index>:    Whether new files should be fulltext-indexed after import. Possible values: true (default), false");
+		writable.println("file-import <source> <target> <mode> <existing> <index>  -  Import files directly from a server directoy.");
+		writable.println("");
+		writable.println("  <source>   - Path to a directory on the server.");
+		writable.println("  <target>   - Target path in Structr's virtual file system.");
+		writable.println("  <mode>     - Whether to copy or move the files into Structr's files directory. Possible values: copy (default), move");
+		writable.println("  <existing> - How to handle files already existing with the same path in Structr. Possible values: skip (default), overwrite, rename");
+		writable.println("  <index>    - Whether new files should be fulltext-indexed after import. Possible values: true (default), false");
 	}
 
 	@Override

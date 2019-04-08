@@ -372,6 +372,9 @@ export class FlowEditor {
 				console.log(e);
 			}
 
+		} else {
+
+			console.log('Error in connectionCreationHandler. Input or Output dbnode were null.');
 		}
 
 	}

@@ -25,15 +25,15 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.util.Writable;
-import org.structr.web.maintenance.DeployCommand;
+import org.structr.web.maintenance.DeployDataCommand;
 
 /**
- * A console wrapper for DeployCommand, import mode.
+ * A console wrapper for DeployDataCommand, import mode.
  */
-public class ImportConsoleCommand extends AdminConsoleCommand {
+public class ImportDataConsoleCommand extends AdminConsoleCommand {
 
 	static {
-		AdminConsoleCommand.registerCommand("import", ImportConsoleCommand.class);
+		AdminConsoleCommand.registerCommand("import-data", ImportDataConsoleCommand.class);
 	}
 
 	@Override
@@ -42,12 +42,14 @@ public class ImportConsoleCommand extends AdminConsoleCommand {
 		final Principal user = securityContext.getUser(false);
 		if (user != null && user.isAdmin()) {
 
-			final DeployCommand cmd = StructrApp.getInstance(securityContext).command(DeployCommand.class);
+			final DeployDataCommand cmd = StructrApp.getInstance(securityContext).command(DeployDataCommand.class);
 
 			cmd.setLogBuffer(writable);
 			cmd.execute(toMap(
-					"mode",   "import",
-					"source", getParameter(parameters, 1)
+					"mode",              "import",
+					"source",            getParameter(parameters, 1),
+					"doInnerCallbacks",  getParameter(parameters, 2),
+					"doCascadingDelete", getParameter(parameters, 3)
 			));
 
 		} else {
@@ -58,12 +60,16 @@ public class ImportConsoleCommand extends AdminConsoleCommand {
 
 	@Override
 	public void commandHelp(final Writable writable) throws IOException {
-		writable.println("Imports a Structr application from a directory.");
+		writable.println("Imports data into a Structr application from a directory.");
 	}
 
 	@Override
 	public void detailHelp(final Writable writable) throws IOException {
-		writable.println("import <source>  -  imports an application from the given source directory.");
+		writable.println("importData <source> <doInnerCallbacks> <doCascadingDelete>  -  Imports data for an application from a path in the file system.");
+		writable.println("");
+		writable.println("  <source>            - absolute path to the source directory");
+		writable.println("  <doInnerCallbacks>  - (optional) decides if onCreate/onSave methods are run and function properties are evaluated during data deployment. Often this leads to errors because onSave contains validation code which will fail during data deployment. (default = false. Only set to true if you know what you're doing!)");
+		writable.println("  <doCascadingDelete> - (optional) decides if cascadingDelete is enabled during data deployment. This leads to errors because cascading delete triggers onSave methods on remote nodes which will fail during data deployment. (default = false. Only set to true if you know what you're doing!)");
 	}
 
 	@Override

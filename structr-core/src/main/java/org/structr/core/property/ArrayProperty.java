@@ -185,7 +185,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 		@Override
 		public T[] revert(Object source) throws FrameworkException {
-			
+
 			if (source == null) {
 				return null;
 			}
@@ -216,7 +216,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 			}
 
 			return result;
-		
+
 		}
 
 		@Override
@@ -259,6 +259,10 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 			if (componentType.isInstance(o)) {
 
 				result.add((T)o);
+
+			} else if (componentType.equals(Integer.class) && o instanceof Double) {
+
+				result.add((T)(Integer)((Double)o).intValue());
 
 			} else if (o != null) {
 
