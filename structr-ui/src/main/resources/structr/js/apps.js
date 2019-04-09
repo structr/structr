@@ -22,30 +22,39 @@ $(document).ready(function() {
 
 var _Apps = {
 	_moduleName: 'apps',
+	appsContainer: undefined,
+	deployServletAvailable: true,
 
 	init: function() {},
 	unload: function() {},
 	onload: function() {
 
 		_Apps.init();
-		main.append('<div id="apps"></div>');
 
-		_Apps.loadData();
+		fetch('/structr/deploy').then((result) => {
+			console.log(result.status);
+			_Apps.deployServletAvailable = (result.status !== 404);
+		}).then(() => {
 
-		$('.apps-info a.internal-link').on('click', function() {
-			$('#' + $(this).text() + '_').click();
+			Structr.fetchHtmlTemplate('apps/apps', {hideInfo: _Apps.deployServletAvailable}, function(html) {
+
+				main.append(html);
+
+				_Apps.appsContainer = $('#apps', main);
+
+				_Apps.loadData();
+
+				$(window).off('resize');
+				$(window).on('resize', function() {
+					Structr.resize();
+				});
+
+				Structr.unblockMenu(100);
+			});
 		});
-
-		$(window).off('resize');
-		$(window).on('resize', function() {
-			Structr.resize();
-		});
-
-		Structr.unblockMenu(100);
-
 	},
 	loadData: function() {
-		
+
 		$.ajax({
 			url: 'https://structr.com/structr/rest/StructrApplicationCategory?sort=position',
 			statusCode: {
@@ -61,7 +70,7 @@ var _Apps = {
 
 		Structr.fetchHtmlTemplate('apps/category', category, function(html) {
 
-			main.append(html);
+			_Apps.appsContainer.append(html);
 			var container = $('#' + category.id);
 
 			category.apps.sort(function(a, b) {
@@ -71,19 +80,45 @@ var _Apps = {
 			});
 
 			category.apps.forEach(function(app) {
-				
+
 				_Apps.appendTile(container, app);
 
 			});
 		});
 	},
 	appendTile: function(container, app) {
-		
+
 		Structr.fetchHtmlTemplate('apps/tile', app, function(tile) {
-			container.append(tile);
-			$('#_' + app.id).on('click', function() {
-				_Apps.install(app);
-			});
+
+			let $tile = $(tile);
+			container.append($tile);
+
+			let form = $tile.find('form');
+			if (form.length > 0) {
+				form[0].addEventListener('submit', (e) => {
+					e.preventDefault();
+
+					if (_Apps.deployServletAvailable) {
+
+						Structr.confirmation(
+							'<h3>Install "' + app.name + '"?</h3><p>The current application will be <b>REMOVED</b>!</p><p>Make sure you have a backup or nothing important in this installation!</p>',
+							function() {
+								$.unblockUI({ fadeOut: 25 });
+								form.submit();
+							}
+						);
+
+					} else {
+						_Apps.showDeploymentServletUnavailableMessage(app);
+					}
+
+					return false;
+				});
+			}
 		});
+	},
+	showDeploymentServletUnavailableMessage: function(app) {
+
+		new MessageBuilder().title('Unable to install "' + app.name + '"').warning('The <code>DeploymentServlet</code> needs to be activated in <code>structr.conf</code> for the installation process to work.').requiresConfirmation().allowConfirmAll().show();
 	}
 };

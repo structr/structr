@@ -19,6 +19,7 @@
 package org.structr.api.service;
 
 import java.security.CodeSigner;
+import java.util.Date;
 
 /**
  */
@@ -31,8 +32,8 @@ public interface LicenseManager {
 	String getLicensee();
 	String getHardwareFingerprint();
 
-	String getStartDate();
-	String getEndDate();
+	Date getStartDate();
+	Date getEndDate();
 
 	int getNumberOfUsers();
 
