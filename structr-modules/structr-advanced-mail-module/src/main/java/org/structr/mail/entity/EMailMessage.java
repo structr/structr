@@ -41,6 +41,9 @@ public interface EMailMessage extends NodeInterface {
 		type.addStringProperty("from",             PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("fromMail",         PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("to",               PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("cc",               PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("bcc",              PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("replyTo",          PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("content",          PropertyView.Ui).setIndexed(false);
 		type.addStringProperty("htmlContent",      PropertyView.Ui).setIndexed(false);
 		type.addStringProperty("folder",           PropertyView.Ui).setIndexed(true);

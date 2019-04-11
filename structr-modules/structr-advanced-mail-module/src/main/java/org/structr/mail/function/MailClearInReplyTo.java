@@ -18,41 +18,29 @@
  */
 package org.structr.mail.function;
 
-import org.apache.commons.mail.EmailException;
 import org.structr.common.error.FrameworkException;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
-public class MailSendFunction extends AdvancedMailModuleFunction {
+public class MailClearInReplyTo extends AdvancedMailModuleFunction {
 
-	public final String ERROR_MESSAGE    = "Usage: ${mail_send()}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_send() }}";
+	public final String ERROR_MESSAGE    = "Usage: ${mail_clear_in_reply_to()}";
+	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_clear_in_reply_to() }}";
 
-	public MailSendFunction(final AdvancedMailModule parent) {
+	public MailClearInReplyTo(final AdvancedMailModule parent) {
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
-		return "mail_send";
+		return "mail_clear_in_reply_to";
 	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-		try {
+		ctx.getAdvancedMailContainer().clearInReplyTo();
 
-			return ctx.getAdvancedMailContainer().send(ctx.getSecurityContext());
-
-		} catch (FrameworkException ex) {
-
-			logger.warn(ex.getMessage());
-
-		} catch (EmailException ex) {
-
-			logException(caller, ex, sources);
-
-		}
 		return "";
 	}
 

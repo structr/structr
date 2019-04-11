@@ -113,9 +113,6 @@ import org.structr.web.maintenance.deploy.PageImportVisitor;
 import org.structr.web.maintenance.deploy.TemplateImportVisitor;
 import org.structr.websocket.command.CreateComponentCommand;
 
-/**
- *
- */
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger                     = LoggerFactory.getLogger(DeployCommand.class.getName());

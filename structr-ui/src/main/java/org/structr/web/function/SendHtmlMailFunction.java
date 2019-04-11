@@ -18,9 +18,9 @@
  */
 package org.structr.web.function;
 
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.activation.FileDataSource;
 import org.apache.commons.mail.EmailAttachment;
 import org.apache.commons.mail.EmailException;
 import org.slf4j.Logger;
@@ -75,19 +75,16 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 					for (File fileNode : fileNodes) {
 
 						final DynamicMailAttachment attachment = new DynamicMailAttachment();
-						attachment.setURL(fileNode.getFileOnDisk().toURI().toURL());
 						attachment.setName(fileNode.getProperty(File.name));
 						attachment.setDisposition(EmailAttachment.ATTACHMENT);
 
-						if(fileNode.isTemplate()) {
+						if (fileNode.isTemplate()) {
 
-							attachment.setIsDynamic(true);
 							attachment.setDataSource(fileNode);
 
 						} else {
 
-							attachment.setIsDynamic(false);
-							attachment.setURL(fileNode.getFileOnDisk().toURI().toURL());
+							attachment.setDataSource(new FileDataSource(fileNode.getFileOnDisk()));
 						}
 
 						attachments.add(attachment);
@@ -96,7 +93,7 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 
 				return MailHelper.sendHtmlMail(from, fromName, to, toName, null, null, from, subject, htmlContent, textContent,attachments);
 
-			} catch (EmailException | MalformedURLException ex) {
+			} catch (EmailException ex) {
 
 				logException(caller, ex, sources);
 

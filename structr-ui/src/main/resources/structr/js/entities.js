@@ -622,6 +622,14 @@ var _Entities = {
 					});
 				}
 
+				if (entity.sharedComponentId) {
+					_Entities.appendPropTab(entity, mainTabs, contentEl, 'scc', 'Shared Component Configuration', false, function(c) {
+						console.log(c);
+//						_Entities.accessControlDialog(entity, c, typeInfo);
+					});
+				}
+
+
 				activeView = activeViewOverride || LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id) || activeView;
 				$('#tab-' + activeView).click();
 
