@@ -22,27 +22,36 @@ import org.structr.common.error.FrameworkException;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
-public class MailClearInReplyTo extends AdvancedMailModuleFunction {
+public class MailRemoveHeaderFunction extends AdvancedMailModuleFunction {
 
-	public final String ERROR_MESSAGE    = "Usage: ${mail_clear_in_reply_to()}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_clear_in_reply_to() }}";
+	public final String ERROR_MESSAGE    = "Usage: ${mail_remove_header(name)}";
+	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_remove_header(name) }}";
 
-	public MailClearInReplyTo(final AdvancedMailModule parent) {
+	public MailRemoveHeaderFunction(final AdvancedMailModule parent) {
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
-		return "mail_clear_in_reply_to";
+		return "mail_remove_header";
 	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-		ctx.getAdvancedMailContainer().clearInReplyTo();
-		ctx.getAdvancedMailContainer().removeCustomHeader(MailSetInReplyTo.IN_REPLY_TO_HEADER);
+		try {
 
-		return "";
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
+
+			ctx.getAdvancedMailContainer().removeCustomHeader(sources[0].toString());
+
+			return "";
+
+		} catch (IllegalArgumentException e) {
+
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
+		}
 	}
 
 	@Override

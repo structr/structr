@@ -27,6 +27,8 @@ public class MailSetInReplyTo extends AdvancedMailModuleFunction {
 	public final String ERROR_MESSAGE    = "Usage: ${mail_set_in_reply_to(messageId)}";
 	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_set_in_reply_to(messageId) }}";
 
+	public static final String IN_REPLY_TO_HEADER = "In-reply-to";
+
 	public MailSetInReplyTo(final AdvancedMailModule parent) {
 		super(parent);
 	}
@@ -46,7 +48,7 @@ public class MailSetInReplyTo extends AdvancedMailModuleFunction {
 			final String inReplyTo = sources[0].toString();
 
 			ctx.getAdvancedMailContainer().setInReplyTo(inReplyTo);
-			ctx.getAdvancedMailContainer().addCustomHeader("In-reply-to", inReplyTo);
+			ctx.getAdvancedMailContainer().addCustomHeader(IN_REPLY_TO_HEADER, inReplyTo);
 
 			return "";
 

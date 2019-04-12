@@ -171,6 +171,10 @@ public class AdvancedMailContainer {
 		getCustomHeaders().put(name, content);
 	}
 
+	public void removeCustomHeader(final String name) {
+		getCustomHeaders().remove(name);
+	}
+
 	public void clearCustomHeaders() {
 		getCustomHeaders().clear();
 	}
