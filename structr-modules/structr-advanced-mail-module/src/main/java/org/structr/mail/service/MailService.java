@@ -21,10 +21,10 @@ package org.structr.mail.service;
 import com.google.gson.Gson;
 import com.sun.mail.util.BASE64DecoderStream;
 import com.sun.mail.util.MailConnectException;
-import io.netty.util.internal.ConcurrentSet;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -83,7 +83,7 @@ public class MailService extends Thread implements RunnableService {
 		supportedCommands.add(FetchMailsCommand.class);
 		supportedCommands.add(FetchFoldersCommand.class);
 
-		processingMailboxes = new ConcurrentSet<>();
+		processingMailboxes = ConcurrentHashMap.newKeySet();
 
 		super.setDaemon(true);
 	}
