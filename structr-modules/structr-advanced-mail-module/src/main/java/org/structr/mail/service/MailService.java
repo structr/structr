@@ -23,6 +23,7 @@ import com.sun.mail.util.BASE64DecoderStream;
 import com.sun.mail.util.MailConnectException;
 import io.netty.util.internal.ConcurrentSet;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -30,6 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.activation.DataSource;
 import javax.mail.*;
+import javax.mail.internet.MimeUtility;
 import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -572,7 +574,7 @@ public class MailService extends Thread implements RunnableService {
 			processingMailboxes.remove(mailbox);
 		}
 
-		private void fetchMessagesInFolder(final Folder folder) {
+		private void fetchMessagesInFolder (final Folder folder) {
 
 			if (folder != null) {
 
@@ -598,10 +600,10 @@ public class MailService extends Thread implements RunnableService {
 
 						PropertyMap pm = new PropertyMap();
 
-						final String from = message.getFrom() != null ? Arrays.stream(message.getFrom()).map(Address::toString).reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
-						final String to  = message.getRecipients(Message.RecipientType.TO) != null ? Arrays.stream(message.getRecipients(Message.RecipientType.TO)).map((a) -> a != null ? a.toString() : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
-						final String cc  = message.getRecipients(Message.RecipientType.CC) != null ? Arrays.stream(message.getRecipients(Message.RecipientType.CC)).map((a) -> a != null ? a.toString() : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
-						final String bcc = message.getRecipients(Message.RecipientType.BCC) != null ? Arrays.stream(message.getRecipients(Message.RecipientType.BCC)).map((a) -> a != null ? a.toString() : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
+						final String from = message.getFrom() != null ? Arrays.stream(message.getFrom()).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
+						final String to   = message.getRecipients(Message.RecipientType.TO) != null ? Arrays.stream(message.getRecipients(Message.RecipientType.TO)).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
+						final String cc   = message.getRecipients(Message.RecipientType.CC) != null ? Arrays.stream(message.getRecipients(Message.RecipientType.CC)).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
+						final String bcc  = message.getRecipients(Message.RecipientType.BCC) != null ? Arrays.stream(message.getRecipients(Message.RecipientType.BCC)).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
 
 						try (Tx tx = app.tx()) {
 
@@ -721,6 +723,19 @@ public class MailService extends Thread implements RunnableService {
 				} catch (Throwable ex) {
 					logger.error("Error while updating Mails: ", ex);
 				}
+			}
+		}
+
+		private String decodeText (final String text) {
+
+			try {
+
+				return MimeUtility.decodeText(text);
+
+			} catch (UnsupportedEncodingException ex) {
+
+				logger.warn("UnsupportedEncodingException for input '{}'. Returning as is.", text);
+				return text;
 			}
 		}
 	}
