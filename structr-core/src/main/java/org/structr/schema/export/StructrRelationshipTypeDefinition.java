@@ -56,11 +56,11 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	private Cardinality cardinality               = null;
 	private Cascade cascadingDelete               = null;
 	private Cascade cascadingCreate               = null;
-	private Direction permissionPropagation       = null;
-	private Propagation readPropagation           = null;
-	private Propagation writePropagation          = null;
-	private Propagation deletePropagation         = null;
-	private Propagation accessControlPropagation  = null;
+	private Direction permissionPropagation       = Direction.None;
+	private Propagation readPropagation           = Propagation.Remove;
+	private Propagation writePropagation          = Propagation.Remove;
+	private Propagation deletePropagation         = Propagation.Remove;
+	private Propagation accessControlPropagation  = Propagation.Remove;
 	private String aclHiddenProperties            = null;
 	private boolean isPartOfBuiltInSchema         = false;
 
@@ -251,23 +251,23 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 
 		// only write values that differ from the default
-		if (!SchemaRelationshipNode.Direction.None.name().equals(permissionPropagation)) {
+		if (!SchemaRelationshipNode.Direction.None.equals(permissionPropagation)) {
 
 			map.put(JsonSchema.KEY_ACL_RESOLUTION, permissionPropagation);
 
-			if (!SchemaRelationshipNode.Propagation.Remove.name().equals(readPropagation)) {
+			if (!SchemaRelationshipNode.Propagation.Remove.equals(readPropagation)) {
 				map.put(JsonSchema.KEY_ACL_READ_MASK, readPropagation);
 			}
 
-			if (!SchemaRelationshipNode.Propagation.Remove.name().equals(writePropagation)) {
+			if (!SchemaRelationshipNode.Propagation.Remove.equals(writePropagation)) {
 				map.put(JsonSchema.KEY_ACL_WRITE_MASK, writePropagation);
 			}
 
-			if (!SchemaRelationshipNode.Propagation.Remove.name().equals(deletePropagation)) {
+			if (!SchemaRelationshipNode.Propagation.Remove.equals(deletePropagation)) {
 				map.put(JsonSchema.KEY_ACL_DELETE_MASK, deletePropagation);
 			}
 
-			if (!SchemaRelationshipNode.Propagation.Remove.name().equals(accessControlPropagation)) {
+			if (!SchemaRelationshipNode.Propagation.Remove.equals(accessControlPropagation)) {
 				map.put(JsonSchema.KEY_ACL_ACCESS_CONTROL_MASK, accessControlPropagation);
 			}
 
