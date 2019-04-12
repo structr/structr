@@ -628,6 +628,17 @@ public class Services implements StructrServices {
 		return (T) serviceCache.get(type);
 	}
 
+	public <T extends Service> T getServiceImplementation(final Class<T> type) {
+
+		for (final Service service : serviceCache.values()) {
+			if (type.isAssignableFrom(service.getClass())) {
+				return (T)service;
+			}
+		}
+
+		return null;
+	}
+
 	@Override
 	public DatabaseService getDatabaseService() {
 
