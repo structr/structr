@@ -18,23 +18,24 @@
  */
 package org.structr.mail.function;
 
-import org.apache.commons.mail.EmailException;
 import org.structr.common.error.FrameworkException;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
-public class MailSendFunction extends AdvancedMailModuleFunction {
+public class MailSetInReplyTo extends AdvancedMailModuleFunction {
 
-	public final String ERROR_MESSAGE    = "Usage: ${mail_send()}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_send() }}";
+	public final String ERROR_MESSAGE    = "Usage: ${mail_set_in_reply_to(messageId)}";
+	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_set_in_reply_to(messageId) }}";
 
-	public MailSendFunction(final AdvancedMailModule parent) {
+	public static final String IN_REPLY_TO_HEADER = "In-reply-to";
+
+	public MailSetInReplyTo(final AdvancedMailModule parent) {
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
-		return "mail_send";
+		return "mail_set_in_reply_to";
 	}
 
 	@Override
@@ -42,18 +43,20 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 
 		try {
 
-			return ctx.getAdvancedMailContainer().send(ctx.getSecurityContext());
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-		} catch (FrameworkException ex) {
+			final String inReplyTo = sources[0].toString();
 
-			logger.warn(ex.getMessage());
+			ctx.getAdvancedMailContainer().setInReplyTo(inReplyTo);
+			ctx.getAdvancedMailContainer().addCustomHeader(IN_REPLY_TO_HEADER, inReplyTo);
 
-		} catch (EmailException ex) {
+			return "";
 
-			logException(caller, ex, sources);
+		} catch (IllegalArgumentException e) {
 
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 		}
-		return "";
 	}
 
 	@Override
@@ -63,6 +66,6 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Automatically sets the In-reply-to header for the outgoing mail so the recipient mail client knows to which message the mail is a reply.";
 	}
 }

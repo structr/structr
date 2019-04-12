@@ -23,23 +23,10 @@ import org.apache.commons.mail.EmailAttachment;
 
 public class DynamicMailAttachment extends EmailAttachment {
 
-	private boolean dynamic;
 	private DataSource ds;
-
-	public DynamicMailAttachment() {
-		dynamic = false;
-	}
-
-	public void setIsDynamic(boolean dynamic) {
-		this.dynamic = dynamic;
-	}
 
 	public void setDataSource(DataSource ds) {
 		this.ds = ds;
-	}
-
-	public boolean isDynamic() {
-		return this.dynamic;
 	}
 
 	public DataSource getDataSource() {

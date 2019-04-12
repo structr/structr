@@ -16,32 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.service;
+package org.structr.common.mail;
 
-import java.security.CodeSigner;
-import java.util.Date;
+import org.structr.api.service.Service;
+import org.structr.common.AdvancedMailContainer;
+import org.structr.common.SecurityContext;
+import org.structr.core.graph.NodeInterface;
 
-/**
- */
-public interface LicenseManager {
+public interface MailServiceInterface extends Service {
 
-	void refresh();
-
-	String getEdition();
-
-	String getLicensee();
-	String getHardwareFingerprint();
-
-	Date getStartDate();
-	Date getEndDate();
-
-	int getNumberOfUsers();
-
-	boolean isValid(final Feature feature);
-	boolean isValid(final CodeSigner[] codeSigners);
-
-	boolean isModuleLicensed(final String module);
-	boolean isClassLicensed(final String fqcn);
-
-	void addLicensedClass(final String fqcn);
+	public NodeInterface saveOutgoingMessage(final SecurityContext securityContext, final AdvancedMailContainer amc, final String messageId);
 }

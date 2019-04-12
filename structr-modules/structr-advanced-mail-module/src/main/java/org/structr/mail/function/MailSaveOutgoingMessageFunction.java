@@ -18,23 +18,23 @@
  */
 package org.structr.mail.function;
 
-import org.apache.commons.mail.EmailException;
 import org.structr.common.error.FrameworkException;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
-public class MailSendFunction extends AdvancedMailModuleFunction {
+public class MailSaveOutgoingMessageFunction extends AdvancedMailModuleFunction {
 
-	public final String ERROR_MESSAGE    = "Usage: ${mail_send()}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_send() }}";
 
-	public MailSendFunction(final AdvancedMailModule parent) {
+	public final String ERROR_MESSAGE    = "Usage: ${mail_save_outgoing_message(true)}";
+	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_save_outgoing_message(true) }}";
+
+	public MailSaveOutgoingMessageFunction(final AdvancedMailModule parent) {
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
-		return "mail_send";
+		return "mail_save_outgoing_message";
 	}
 
 	@Override
@@ -42,18 +42,17 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 
 		try {
 
-			return ctx.getAdvancedMailContainer().send(ctx.getSecurityContext());
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-		} catch (FrameworkException ex) {
+			ctx.getAdvancedMailContainer().setSaveOutgoingMessage((boolean)sources[0]);
 
-			logger.warn(ex.getMessage());
+			return "";
 
-		} catch (EmailException ex) {
+		} catch (IllegalArgumentException e) {
 
-			logException(caller, ex, sources);
-
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 		}
-		return "";
 	}
 
 	@Override

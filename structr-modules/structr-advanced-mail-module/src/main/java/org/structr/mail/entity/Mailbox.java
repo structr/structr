@@ -33,6 +33,7 @@ import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 
 public interface Mailbox extends NodeInterface {
+
 	class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();

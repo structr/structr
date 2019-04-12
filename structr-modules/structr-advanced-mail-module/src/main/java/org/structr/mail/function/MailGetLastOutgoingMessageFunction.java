@@ -18,42 +18,30 @@
  */
 package org.structr.mail.function;
 
-import org.apache.commons.mail.EmailException;
 import org.structr.common.error.FrameworkException;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
-public class MailSendFunction extends AdvancedMailModuleFunction {
+public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFunction {
 
-	public final String ERROR_MESSAGE    = "Usage: ${mail_send()}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_send() }}";
 
-	public MailSendFunction(final AdvancedMailModule parent) {
+	public final String ERROR_MESSAGE    = "Usage: ${mail_get_last_outgoing_message()}";
+	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_get_last_outgoing_message() }}";
+
+	public MailGetLastOutgoingMessageFunction(final AdvancedMailModule parent) {
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
-		return "mail_send";
+		return "mail_get_last_outgoing_message";
 	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-		try {
+		return ctx.getAdvancedMailContainer().getLastOutgoingMessage();
 
-			return ctx.getAdvancedMailContainer().send(ctx.getSecurityContext());
-
-		} catch (FrameworkException ex) {
-
-			logger.warn(ex.getMessage());
-
-		} catch (EmailException ex) {
-
-			logException(caller, ex, sources);
-
-		}
-		return "";
 	}
 
 	@Override
@@ -63,6 +51,6 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Returns the last outgoing message sent by the advanced mail module in the current script";
 	}
 }

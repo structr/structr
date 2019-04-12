@@ -74,7 +74,7 @@ public class Services implements StructrServices {
 
 	// singleton instance
 	private static String jvmIdentifier                = ManagementFactory.getRuntimeMXBean().getName();
-	private static final long licenseCheckInterval     = TimeUnit.HOURS.toMillis(2);
+	private static final long licenseCheckInterval     = TimeUnit.SECONDS.toMillis(2);
 	private static Services singletonInstance          = null;
 	private static boolean testingModeDisabled         = false;
 	private static boolean calculateHierarchy          = false;
@@ -109,8 +109,12 @@ public class Services implements StructrServices {
 
 		if (System.currentTimeMillis() > lastLicenseCheck + licenseCheckInterval) {
 
-			singletonInstance.checkLicense();
 			lastLicenseCheck = System.currentTimeMillis();
+
+			synchronized (Services.class) {
+
+				singletonInstance.checkLicense();
+			}
 		}
 
 		return singletonInstance;
@@ -638,6 +642,17 @@ public class Services implements StructrServices {
 		return (Map)serviceMap;
 	}
 
+	public <T extends Service> T getServiceImplementation(final Class<T> type) {
+
+		for (final Service service : serviceCache.values()) {
+			if (type.isAssignableFrom(service.getClass())) {
+				return (T)service;
+			}
+		}
+
+		return null;
+	}
+
 	@Override
 	public DatabaseService getDatabaseService() {
 
@@ -955,7 +970,7 @@ public class Services implements StructrServices {
 	}
 	
 	private void checkLicense() {
-		
+
 		if (licenseManager != null) {
 			licenseManager.refresh();
 		}

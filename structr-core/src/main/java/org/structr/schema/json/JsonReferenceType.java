@@ -20,6 +20,8 @@ package org.structr.schema.json;
 
 import java.net.URI;
 import org.structr.core.entity.Relation.Cardinality;
+import org.structr.core.entity.SchemaRelationshipNode.Direction;
+import org.structr.core.entity.SchemaRelationshipNode.Propagation;
 import org.structr.schema.json.JsonSchema.Cascade;
 
 /**
@@ -40,6 +42,18 @@ public interface JsonReferenceType extends JsonType {
 	public JsonReferenceType setCascadingDelete(final Cascade cascade);
 	public JsonReferenceType setCascadingCreate(final Cascade cascade);
 
+	public Direction getPermissionPropagation();
+	public Propagation getReadPermissionPropagation();
+	public Propagation getWritePermissionPropagation();
+	public Propagation getDeletePermissionPropagation();
+	public Propagation getAccessControlPermissionPropagation();
+
+	public JsonReferenceType setPermissionPropagation(final Direction value);
+	public JsonReferenceType setReadPermissionPropagation(final Propagation value);
+	public JsonReferenceType setWritePermissionPropagation(final Propagation value);
+	public JsonReferenceType setDeletePermissionPropagation(final Propagation value);
+	public JsonReferenceType setAccessControlPermissionPropagation(final Propagation value);
+
 	public URI getSourceType();
 	public URI getTargetType();
 
@@ -51,4 +65,6 @@ public interface JsonReferenceType extends JsonType {
 
 	public JsonReferenceProperty getSourceProperty();
 	public JsonReferenceProperty getTargetProperty();
+
+
 }

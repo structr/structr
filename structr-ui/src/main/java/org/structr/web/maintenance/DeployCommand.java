@@ -113,9 +113,6 @@ import org.structr.web.maintenance.deploy.PageImportVisitor;
 import org.structr.web.maintenance.deploy.TemplateImportVisitor;
 import org.structr.websocket.command.CreateComponentCommand;
 
-/**
- *
- */
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger                     = LoggerFactory.getLogger(DeployCommand.class.getName());
@@ -126,6 +123,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private final static String DEPLOYMENT_IMPORT_STATUS   = "DEPLOYMENT_IMPORT_STATUS";
 	private final static String DEPLOYMENT_EXPORT_STATUS   = "DEPLOYMENT_EXPORT_STATUS";
+
+	private final static String DEPLOYMENT_SCHEMA_GLOBAL_METHODS_FOLDER = "_globalMethods";
+	private final static String DEPLOYMENT_SCHEMA_METHODS_FOLDER        = "methods";
+	private final static String DEPLOYMENT_SCHEMA_FUNCTIONS_FOLDER      = "functions";
+	private final static String DEPLOYMENT_SCHEMA_READ_FUNCTION_SUFFIX  = ".readFunction";
+	private final static String DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX = ".writeFunction";
+	private final static String DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY  = "source";
 
 	static {
 
@@ -1100,15 +1104,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				if (globalSchemaMethods.size() > 0) {
 
-					final Path globalMethodsFolder = Files.createDirectories(targetFolder.resolve("_globalMethods"));
+					final Path globalMethodsFolder = Files.createDirectories(targetFolder.resolve(DEPLOYMENT_SCHEMA_GLOBAL_METHODS_FOLDER));
 
 					for (Map<String, Object> schemaMethod : globalSchemaMethods) {
 
-						final String methodSource     = (String) schemaMethod.get("source");
+						final String methodSource     = (String) schemaMethod.get(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY);
 						final Path globalMethodFile   = globalMethodsFolder.resolve((String) schemaMethod.get("name"));
 						final String relativeFilePath = "./" + targetFolder.relativize(globalMethodFile).toString();
 
-						schemaMethod.put("source", relativeFilePath);
+						schemaMethod.put(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY, relativeFilePath);
 
 						if (Files.exists(globalMethodFile)) {
 							logger.warn("File '{}' already exists - this can happen if there is a non-unique global method definition. This is not supported in tree-based schema export and will causes errors!", relativeFilePath);
@@ -1142,18 +1146,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 						if (hasFunctionProperties) {
 
-							final Path functionsFolder = Files.createDirectories(typeFolder.resolve("functions"));
+							final Path functionsFolder = Files.createDirectories(typeFolder.resolve(DEPLOYMENT_SCHEMA_FUNCTIONS_FOLDER));
 
 							for (final StructrFunctionProperty fp : functionProperties) {
 
-								final Path readFunctionFile  = functionsFolder.resolve(fp.getName() + ".readFunction");
+								final Path readFunctionFile  = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_READ_FUNCTION_SUFFIX);
 								final String readFunction    = fp.getReadFunction();
 								fp.setReadFunction("./" + targetFolder.relativize(readFunctionFile).toString());
 								if (readFunction != null) {
 									writeStringToFile(readFunctionFile, readFunction);
 								}
 
-								final Path writeFunctionFile = functionsFolder.resolve(fp.getName() + ".writeFunction");
+								final Path writeFunctionFile = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX);
 								final String writeFunction   = fp.getWriteFunction();
 								fp.setWriteFunction("./" + targetFolder.relativize(writeFunctionFile).toString());
 								if (writeFunction != null) {
@@ -1164,7 +1168,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 						if (hasMethods) {
 
-							final Path methodsFolder = Files.createDirectories(typeFolder.resolve("methods"));
+							final Path methodsFolder = Files.createDirectories(typeFolder.resolve(DEPLOYMENT_SCHEMA_METHODS_FOLDER));
 
 							for (final Object m : typeDef.getMethods()) {
 
@@ -1734,12 +1738,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try (final FileReader reader = new FileReader(schemaJsonFile.toFile())) {
 
+				// detect tree-based export (absence of folder "File")
+				final boolean isTreeBasedExport = Files.exists(schemaFolder.resolve("File"));
+
 				final StructrSchemaDefinition schema = (StructrSchemaDefinition)StructrSchema.createFromSource(reader);
 
+				if (isTreeBasedExport) {
 
-				if (Settings.SchemaDeploymentFormat.getValue().equals("tree")) {
-
-					final Path globalMethodsFolder = schemaFolder.resolve("_globalMethods");
+					final Path globalMethodsFolder = schemaFolder.resolve(DEPLOYMENT_SCHEMA_GLOBAL_METHODS_FOLDER);
 
 					if (Files.exists(globalMethodsFolder)) {
 
@@ -1747,11 +1753,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 							final Path globalMethodFile = globalMethodsFolder.resolve((String) schemaMethod.get("name"));
 
-							schemaMethod.put("source", (Files.exists(globalMethodFile)) ? new String(Files.readAllBytes(globalMethodFile)) : null);
+							schemaMethod.put(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY, (Files.exists(globalMethodFile)) ? new String(Files.readAllBytes(globalMethodFile)) : null);
 						}
-
-					} else {
-						// looks like an old export - dont touch
 					}
 
 					for (final StructrTypeDefinition typeDef : schema.getTypes()) {
@@ -1760,7 +1763,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 						if (Files.exists(typeFolder)) {
 
-							final Path functionsFolder = typeFolder.resolve("functions");
+							final Path functionsFolder = typeFolder.resolve(DEPLOYMENT_SCHEMA_FUNCTIONS_FOLDER);
 
 							if (Files.exists(functionsFolder)) {
 
@@ -1770,8 +1773,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 										final StructrFunctionProperty fp = (StructrFunctionProperty)propDef;
 
-										final Path readFunctionFile    = functionsFolder.resolve(fp.getName() + ".readFunction");
-										final Path writeFunctionFile   = functionsFolder.resolve(fp.getName() + ".writeFunction");
+										final Path readFunctionFile    = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_READ_FUNCTION_SUFFIX);
+										final Path writeFunctionFile   = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX);
 
 										fp.setReadFunction ((Files.exists(readFunctionFile))  ? new String(Files.readAllBytes(readFunctionFile))  : null);
 										fp.setWriteFunction((Files.exists(writeFunctionFile)) ? new String(Files.readAllBytes(writeFunctionFile)) : null);
@@ -1779,7 +1782,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 								}
 							}
 
-							final Path methodsFolder = typeFolder.resolve("methods");
+							final Path methodsFolder = typeFolder.resolve(DEPLOYMENT_SCHEMA_METHODS_FOLDER);
 
 							if (Files.exists(methodsFolder)) {
 
@@ -1791,17 +1794,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 									method.setSource((Files.exists(methodFile)) ? new String(Files.readAllBytes(methodFile)) : null);
 								}
 							}
-
-						} else {
-							// looks like an old export - dont touch
 						}
 					}
 				}
 
 				if (extendExistingSchema) {
-					
+
 					StructrSchema.extendDatabaseSchema(app, schema);
-					
+
 				} else {
 
 					StructrSchema.replaceDatabaseSchema(app, schema);
@@ -1872,7 +1872,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (value != null) {
 
-			return "true".equalsIgnoreCase(value.toString());			
+			return "true".equalsIgnoreCase(value.toString());
 		}
 
 		return false;
