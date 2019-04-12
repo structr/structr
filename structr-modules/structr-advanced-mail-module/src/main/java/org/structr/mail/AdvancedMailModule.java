@@ -38,6 +38,7 @@ import org.structr.mail.function.MailClearInReplyTo;
 import org.structr.mail.function.MailClearReplyToFunction;
 import org.structr.mail.function.MailClearToFunction;
 import org.structr.mail.function.MailGetLastOutgoingMessageFunction;
+import org.structr.mail.function.MailRemoveHeaderFunction;
 import org.structr.mail.function.MailSaveOutgoingMessageFunction;
 import org.structr.mail.function.MailSendFunction;
 import org.structr.mail.function.MailSetBounceAddressFunction;
@@ -78,6 +79,7 @@ public class AdvancedMailModule implements StructrModule {
 		Functions.put(licenseManager, new MailAddAttachmentFunction(this));
 		Functions.put(licenseManager, new MailClearAttachmentsFunction(this));
 		Functions.put(licenseManager, new MailAddHeaderFunction(this));
+		Functions.put(licenseManager, new MailRemoveHeaderFunction(this));
 		Functions.put(licenseManager, new MailClearHeadersFunction(this));
 		Functions.put(licenseManager, new MailSetInReplyTo(this));
 		Functions.put(licenseManager, new MailClearInReplyTo(this));
