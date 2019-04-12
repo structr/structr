@@ -44,6 +44,7 @@ import org.structr.common.AdvancedMailContainer;
 import org.structr.common.DynamicMailAttachment;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.mail.MailServiceInterface;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -60,7 +61,7 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 
 @ServiceDependency(SchemaService.class)
-public class MailService extends Thread implements RunnableService {
+public class MailService extends Thread implements RunnableService, MailServiceInterface {
 
 	private static final Logger logger                      = LoggerFactory.getLogger(MailService.class.getName());
 	private static final ExecutorService threadExecutor     = Executors.newCachedThreadPool();
@@ -213,6 +214,7 @@ public class MailService extends Thread implements RunnableService {
 		return "advanced-mail";
 	}
 
+	@Override
 	public NodeInterface saveOutgoingMessage(final SecurityContext securityContext, final AdvancedMailContainer amc, final String messageId) {
 
 		NodeInterface outgoingMessage = null;

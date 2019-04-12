@@ -18,16 +18,14 @@
  */
 package org.structr.common;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.apache.commons.mail.EmailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.service.Service;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.mail.MailServiceInterface;
 import org.structr.core.Services;
 
 public class AdvancedMailContainer {
@@ -284,21 +282,10 @@ public class AdvancedMailContainer {
 
 	private void createOutgoingMessage(final SecurityContext securityContext, final String messageId) {
 
-		try {
+		final MailServiceInterface mailServiceClass = Services.getInstance().getServiceImplementation(MailServiceInterface.class);
 
-			final Service mailServiceClass = Services.getInstance().getService(Services.getInstance().getServiceClassForName("MailService"));
-
-			if (mailServiceClass != null) {
-
-				final Method save = mailServiceClass.getClass().getDeclaredMethod("saveOutgoingMessage", SecurityContext.class, AdvancedMailContainer.class, String.class);
-
-				if (save != null) {
-					this.lastOutgoingMessage = save.invoke(mailServiceClass, securityContext, this, messageId);
-				}
-			}
-
-		} catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-			logger.warn("", ex);
+		if (mailServiceClass != null) {
+			this.lastOutgoingMessage = mailServiceClass.saveOutgoingMessage(securityContext, this, messageId);
 		}
 	}
 }
