@@ -18,7 +18,13 @@
  */
 package org.structr.sql;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
@@ -31,7 +37,6 @@ class SQLNode extends SQLEntity implements Node {
 
 	private static FixedSizeCache<SQLIdentity, SQLNode> nodeCache = null;
 
-
 	public SQLNode(final SQLDatabaseService db, final PropertySetResult id) {
 		super(db, id);
 	}
@@ -41,28 +46,123 @@ class SQLNode extends SQLEntity implements Node {
 	}
 
 	@Override
+	public String toString() {
+		return data.toString();
+	}
+
+	@Override
 	public Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return createRelationshipTo(endNode, relationshipType, new LinkedHashMap<>());
 	}
 
 	@Override
 	public Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		try {
+
+			final SQLTransaction tx     = db.getCurrentTransaction();
+			final PreparedStatement stm = tx.prepareStatement("INSERT INTO Relationship (source, target, type) values(?, ?, ?)");
+			final long sourceId         = id.getId();
+			final long targetId         = ((SQLIdentity)endNode.getId()).getId();
+
+			stm.setLong(1, sourceId);
+			stm.setLong(2, targetId);
+			stm.setString(3, relationshipType.name());
+
+			final int createNodeResultCount = stm.executeUpdate();
+			if (createNodeResultCount == 1) {
+
+				final ResultSet generatedKeys = stm.getGeneratedKeys();
+				if (generatedKeys.next()) {
+
+					final PreparedStatement createProperty = tx.prepareStatement("INSERT INTO RelationshipProperty(relationshipId, name, type, stringValue, intValue) values(?, ?, ?, ?, ?)");
+					final long newRelationshipId           = generatedKeys.getLong(1);
+
+					for (final Entry<String, Object> entry : properties.entrySet()) {
+
+						final Object value = entry.getValue();
+
+						createProperty.setLong(1, newRelationshipId);
+						createProperty.setString(2, entry.getKey());
+						createProperty.setInt(3, getInsertTypeForValue(value));
+
+						if (value != null) {
+
+							if (value instanceof String) {
+
+								createProperty.setString(4, (String)value);
+								createProperty.setNull(5, Types.INTEGER);
+							}
+
+							if (value instanceof Integer) {
+
+								createProperty.setNull(4, Types.VARCHAR);
+								createProperty.setInt(5, (Integer)value);
+							}
+
+						} else {
+
+							createProperty.setNull(4, Types.VARCHAR);
+							createProperty.setNull(5, Types.INTEGER);
+						}
+
+						createProperty.executeUpdate();
+					}
+
+					FIXME: this doesnt work: we need (source, target, relType) when creating a new Relationship instance
+					return SQLRelationship.newInstance(db, new PropertySetResult(SQLIdentity.forId(newRelationshipId), properties));
+				}
+			}
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
+
+		return null;
 	}
 
 	@Override
 	public void addLabel(final String label) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		try {
+
+			final SQLTransaction tx     = db.getCurrentTransaction();
+			final PreparedStatement stm = tx.prepareStatement("INSERT INTO Label (nodeId, name) values(?, ?)");
+
+			stm.setLong(1, id.getId());
+			stm.setString(2, label);
+
+			tx.executeUpdate(stm);
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	@Override
 	public void removeLabel(final String label) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		try {
+
+			final SQLTransaction tx     = db.getCurrentTransaction();
+			final PreparedStatement stm = tx.prepareStatement("DELETE FROM Label WHERE nodeId = ? AND name = ?");
+
+			stm.setLong(1, id.getId());
+			stm.setString(2, label);
+
+			tx.executeUpdate(stm);
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	@Override
 	public Iterable<String> getLabels() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		final SQLTransaction tx = db.getCurrentTransaction();
+
+		return tx.getNodeLabels(id);
 	}
 
 	@Override
@@ -116,7 +216,7 @@ class SQLNode extends SQLEntity implements Node {
 
 				final SQLTransaction tx = db.getCurrentTransaction();
 
-				wrapper = SQLNode.newInstance(db, tx.getProperties(identity));
+				wrapper = SQLNode.newInstance(db, tx.getNode(identity));
 
 				nodeCache.put(identity, wrapper);
 			}
@@ -125,7 +225,6 @@ class SQLNode extends SQLEntity implements Node {
 		}
 	}
 
-	@Override
 	public boolean isStale() {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}

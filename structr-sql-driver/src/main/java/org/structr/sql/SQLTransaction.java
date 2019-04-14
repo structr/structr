@@ -22,7 +22,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Iterator;
+import java.sql.Statement;
 import java.util.concurrent.atomic.AtomicLong;
 import org.structr.api.Transaction;
 
@@ -31,13 +31,15 @@ import org.structr.api.Transaction;
 public class SQLTransaction implements Transaction {
 
 	private static final AtomicLong transactionIdCounter = new AtomicLong();
+	private SQLDatabaseService db                        = null;
 	private long transactionId                           = transactionIdCounter.get();
 	private Connection connection                        = null;
 	private boolean success                              = false;
 
-	public SQLTransaction(final Connection connection) {
+	public SQLTransaction(final SQLDatabaseService db, final Connection connection) {
 
 		this.connection = connection;
+		this.db         = db;
 
 		try {
 
@@ -82,19 +84,23 @@ public class SQLTransaction implements Transaction {
 	}
 
 	// ----- package-private methods -----
-	PropertySetResult getProperties(final SQLIdentity id) {
+	PropertySetResult getNode(final SQLIdentity id) {
 
 		try {
 
-			final PreparedStatement statement = connection.prepareStatement("SELECT * FROM Property WHERE nodeId = ?");
+			final PreparedStatement statement = connection.prepareStatement("SELECT * FROM NodeProperty WHERE nodeId = ?");
 
-			statement.setLong(0, id.getId());
+			statement.setLong(1, id.getId());
 
 			if (statement.execute()) {
 
 				try (final ResultSet result = statement.getResultSet()) {
 
-					return new PropertySetResult(id, result);
+					final PropertySetResult node = new PropertySetResult(id);
+					while (result.next()) {
+
+						node.visit(result);
+					}
 				}
 			}
 
@@ -105,14 +111,17 @@ public class SQLTransaction implements Transaction {
 		return null;
 	}
 
-	Iterable<PropertySetResult> getNodes(final String query) {
+	StringStream getNodeLabels(final SQLIdentity id) {
 
 		try {
 
-			final PreparedStatement statement = connection.prepareStatement(query);
+			final PreparedStatement statement = connection.prepareStatement("SELECT name FROM Label WHERE nodeId = ?");
+
+			statement.setLong(1, id.getId());
+
 			if (statement.execute()) {
 
-				return new ResultSetIterable(statement.getResultSet());
+				return new StringStream(statement.getResultSet(), 1);
 			}
 
 		} catch (SQLException ex) {
@@ -122,45 +131,33 @@ public class SQLTransaction implements Transaction {
 		return null;
 	}
 
-	private class ResultSetIterable implements Iterable<PropertySetResult> {
+	PreparedStatement prepareStatement(final String sql) throws SQLException {
+		return connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+	}
 
-		private ResultSet resultSet = null;
+	boolean executeUpdate(final PreparedStatement statement) {
 
-		public ResultSetIterable(final ResultSet resultSet) {
-			this.resultSet = resultSet;
+		try {
+
+			return statement.executeUpdate() > 0;
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
 		}
 
-		@Override
-		public Iterator<PropertySetResult> iterator() {
+		return false;
+	}
 
-			return new Iterator<PropertySetResult>() {
+	ResultSet executeQuery(final PreparedStatement statement) {
 
-				@Override
-				public boolean hasNext() {
+		try {
 
-					try {
-						return resultSet.next();
+			return statement.executeQuery();
 
-					} catch (SQLException ex) {
-						ex.printStackTrace();
-					}
-
-					return false;
-				}
-
-				@Override
-				public PropertySetResult next() {
-
-					try {
-						return new PropertySetResult(resultSet);
-
-					} catch (SQLException ex) {
-						ex.printStackTrace();
-					}
-
-					return null;
-				}
-			};
+		} catch (SQLException ex) {
+			ex.printStackTrace();
 		}
+
+		return null;
 	}
 }

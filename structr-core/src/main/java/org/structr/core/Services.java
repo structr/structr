@@ -644,9 +644,13 @@ public class Services implements StructrServices {
 
 	public <T extends Service> T getServiceImplementation(final Class<T> type) {
 
-		for (final Service service : serviceCache.values()) {
-			if (type.isAssignableFrom(service.getClass())) {
-				return (T)service;
+		for (final Map<String, Service> serviceList : serviceCache.values()) {
+
+			for (final Service service : serviceList.values()) {
+
+				if (type.isAssignableFrom(service.getClass())) {
+					return (T)service;
+				}
 			}
 		}
 
@@ -968,7 +972,7 @@ public class Services implements StructrServices {
 	private void addService(final Class type, final Service service, final String name) {
 		getServices(type).put(name, service);
 	}
-	
+
 	private void checkLicense() {
 
 		if (licenseManager != null) {

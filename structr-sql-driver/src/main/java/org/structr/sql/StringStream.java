@@ -18,33 +18,25 @@
  */
 package org.structr.sql;
 
-import org.structr.api.graph.Identity;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Iterator;
 
 /**
  */
-public class SQLIdentity implements Identity {
+class StringStream implements Iterable<String> {
 
-	private Long id = null;
+	private ResultSet resultSet = null;
+	private int columnIndex     = -1;
 
-	public SQLIdentity(final Long id) {
-		this.id = id;
-	}
+	public StringStream(final ResultSet resultSet, final int columnIndex) throws SQLException {
 
-	public Long getId() {
-		return id;
+		this.columnIndex = columnIndex;
+		this.resultSet   = resultSet;
 	}
 
 	@Override
-	public int compareTo(final Object o) {
-
-		// provoke ClassCastException if type doesn't match
-		final SQLIdentity other = (SQLIdentity)o;
-
-		return id.compareTo(other.id);
+	public Iterator<String> iterator() {
+		return new StringStreamIterator(resultSet, columnIndex);
 	}
-
-	static SQLIdentity forId(final long id) {
-		return new SQLIdentity(id);
-	}
-
 }

@@ -20,45 +20,57 @@ package org.structr.sql;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Iterator;
 
 /**
  */
-class PropertySetResult {
+class StringStreamIterator implements Iterator<String> {
 
-	private Map<String, Object> data = new LinkedHashMap<>();
-	private SQLIdentity id           = null;
+	private ResultSet resultSet = null;
+	private boolean firstCall   = true;
+	private int columnIndex     = -1;
 
-	public PropertySetResult(final SQLIdentity identity) {
-		this.id = identity;
+	public StringStreamIterator(final ResultSet resultSet, final int columnIndex) {
+
+		this.columnIndex = columnIndex;
+		this.resultSet   = resultSet;
 	}
 
-	public PropertySetResult(final SQLIdentity identity, final Map<String, Object> data) {
+	@Override
+	public boolean hasNext() {
 
-		this.id = identity;
-		this.data.putAll(data);
-	}
+		try {
 
-	SQLIdentity id() {
-		return id;
-	}
+			if (firstCall) {
 
-	Map<String, Object> data() {
-		return data;
-	}
+				return resultSet.isBeforeFirst();
+			}
 
-	void visit(final ResultSet result) throws SQLException {
+			return !resultSet.isLast();
 
-		// The type column contains the column index
-		// of the actual value in this property row.
-		final String name  = result.getString("name");
-		final int type     = result.getInt("type");
-		final Object value = result.getObject(type);
-
-		if (name != null && value != null) {
-
-			data.put(name, value);
+		} catch (SQLException ex) {
+			ex.printStackTrace();
 		}
+
+		return true;
+	}
+
+	@Override
+	public String next() {
+
+		firstCall = false;
+
+		try {
+
+			if (resultSet.next()) {
+
+				return resultSet.getString(columnIndex);
+			}
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
+
+		return null;
 	}
 }

@@ -18,8 +18,12 @@
  */
 package org.structr.sql;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.slf4j.Logger;
@@ -35,6 +39,7 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
 import org.structr.api.util.CountResult;
+import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
 
 /**
@@ -50,12 +55,14 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 	public boolean initialize(final String serviceName) {
 
 		dataSource = new BasicDataSource();
-		dataSource.setUrl("jdbc:mysql://localhost/structr");
+		dataSource.setUrl("jdbc:mysql://localhost/structr?serverTimezone=UTC");
 		dataSource.setMaxTotal(20);
 		dataSource.setMaxIdle(10);
 		dataSource.setDefaultAutoCommit(false);
 		dataSource.setUsername("structr");
 		dataSource.setPassword("test");
+
+		SQLNode.initialize(1000);
 
 		return true;
 	}
@@ -84,10 +91,11 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 
 			try {
 
-				current = new SQLTransaction(dataSource.getConnection());
+				current = new SQLTransaction(this, dataSource.getConnection());
 				transactions.set(current);
 
 			} catch (SQLException ex) {
+				ex.printStackTrace();
 				logger.warn("Unable to get connection: {}", ex.getMessage());
 			}
 		}
@@ -97,7 +105,70 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 
 	@Override
 	public Node createNode(final String type, final Set<String> labels, final Map<String, Object> properties) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		try {
+
+			final SQLTransaction tx            = getCurrentTransaction();
+			final PreparedStatement createNode = tx.prepareStatement("INSERT INTO Node values()");
+			final int createNodeResultCount    = createNode.executeUpdate();
+
+			if (createNodeResultCount == 1) {
+
+				final ResultSet generatedKeys = createNode.getGeneratedKeys();
+				if (generatedKeys.next()) {
+
+					final PreparedStatement createProperty = tx.prepareStatement("INSERT INTO NodeProperty(nodeId, name, type, stringValue, intValue) values(?, ?, ?, ?, ?)");
+					final PreparedStatement createLabel    = tx.prepareStatement("INSERT INTO Label(nodeId, name) values(?, ?)");
+					final long newNodeId                   = generatedKeys.getLong(1);
+
+					for (final String label : labels) {
+
+						createLabel.setLong(1, newNodeId);
+						createLabel.setString(2, label);
+
+						createLabel.executeUpdate();
+					}
+
+					for (final Entry<String, Object> entry : properties.entrySet()) {
+
+						final Object value = entry.getValue();
+
+						createProperty.setLong(1, newNodeId);
+						createProperty.setString(2, entry.getKey());
+						createProperty.setInt(3, SQLEntity.getInsertTypeForValue(value));
+
+						if (value != null) {
+
+							if (value instanceof String) {
+
+								createProperty.setString(4, (String)value);
+								createProperty.setNull(5, Types.INTEGER);
+							}
+
+							if (value instanceof Integer) {
+
+								createProperty.setNull(4, Types.VARCHAR);
+								createProperty.setInt(5, (Integer)value);
+							}
+
+						} else {
+
+							createProperty.setNull(4, Types.VARCHAR);
+							createProperty.setNull(5, Types.INTEGER);
+						}
+
+						createProperty.executeUpdate();
+					}
+
+					return SQLNode.newInstance(this, new PropertySetResult(SQLIdentity.forId(newNodeId), properties));
+				}
+			}
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
+
+		return null;
 	}
 
 	@Override
@@ -117,17 +188,58 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 
 	@Override
 	public Iterable<Node> getAllNodes() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		try {
+
+			final SQLTransaction tx     = getCurrentTransaction();
+			final PreparedStatement stm = tx.prepareStatement("SELECT * FROM NodeProperty ORDER BY nodeId");
+
+			return Iterables.map(r -> SQLNode.newInstance(this, r), new PropertyStream(stm.executeQuery()));
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
+
+		return null;
 	}
 
 	@Override
 	public Iterable<Node> getNodesByLabel(final String label) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		try {
+
+			final SQLTransaction tx     = getCurrentTransaction();
+			final PreparedStatement stm = tx.prepareStatement("SELECT p.* FROM Label l JOIN NodeProperty p ON p.nodeId = l.nodeId WHERE l.name = ? ORDER BY p.nodeId");
+
+			stm.setString(1, label);
+
+			return Iterables.map(r -> SQLNode.newInstance(this, r), new PropertyStream(stm.executeQuery()));
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
+
+		return null;
 	}
 
 	@Override
 	public Iterable<Node> getNodesByTypeProperty(final String type) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		try {
+
+			final SQLTransaction tx     = getCurrentTransaction();
+			final PreparedStatement stm = tx.prepareStatement("SELECT p.* FROM NodeProperty x JOIN NodeProperty p ON p.nodeId = x.nodeId WHERE x.name = ? AND x.stringValue = ? ORDER BY p.nodeId");
+
+			stm.setString(1, "type");
+			stm.setString(2, type);
+
+			return Iterables.map(r -> SQLNode.newInstance(this, r), new PropertyStream(stm.executeQuery()));
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
+
+		return null;
 	}
 
 	@Override

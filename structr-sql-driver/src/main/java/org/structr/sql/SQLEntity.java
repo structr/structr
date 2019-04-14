@@ -93,4 +93,21 @@ public abstract class SQLEntity implements PropertyContainer {
 	@Override
 	public void delete(final boolean deleteRelationships) throws NotInTransactionException {
 	}
+
+	// ----- public static methods -----
+	public static int getInsertTypeForValue(final Object value) {
+
+		if (value != null) {
+
+			if (value instanceof String) {
+				return 5;
+			}
+
+			if (value instanceof Integer) {
+				return 6;
+			}
+		}
+
+		return -1;
+	}
 }
