@@ -1362,5 +1362,18 @@ var Command = {
 	 */
 	getApplicationConfigurationDataNode: function(id, callback) {
 		return Command.get(id, 'content', callback);
-	}
+	},
+	/**
+     * Requests log snapshot from the server.
+     *
+     */
+    getServerLogSnapshot: function(numberOfLines, callback) {
+        var obj  = {
+            command: 'SERVER_LOG',
+            data: {
+                numberOfLines: numberOfLines
+            }
+        };
+        return sendObj(obj, callback);
+    }
 };

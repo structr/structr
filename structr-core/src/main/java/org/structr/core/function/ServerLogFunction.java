@@ -49,6 +49,22 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 
 		}
 
+		return getServerLog(lines);
+	}
+
+	@Override
+	public String usage(boolean inJavaScriptContext) {
+		return (inJavaScriptContext ? ERROR_MESSAGE_SERVERLOG_JS : ERROR_MESSAGE_SERVERLOG);
+	}
+
+	@Override
+	public String shortDescription() {
+		return "Returns the last n lines from the server log file";
+	}
+
+	public static String getServerLog(final int numberOfLines) {
+		int lines = numberOfLines;
+
 		try (final ReversedLinesFileReader reader = new ReversedLinesFileReader(getServerlogFile(), Charset.forName("utf-8"))) {
 
 			final StringBuilder sb = new StringBuilder();
@@ -75,13 +91,4 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 
 	}
 
-	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SERVERLOG_JS : ERROR_MESSAGE_SERVERLOG);
-	}
-
-	@Override
-	public String shortDescription() {
-		return "Returns the last n lines from the server log file";
-	}
 }

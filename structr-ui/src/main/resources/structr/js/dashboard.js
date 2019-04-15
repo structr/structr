@@ -52,6 +52,7 @@ var _Dashboard = {
 			if (_Dashboard.meObj.isAdmin) {
 				_Dashboard.appendDeploymentBox();
 				_Dashboard.appendMaintenanceBox();
+				_Dashboard.appendLogBox();
 			}
 		});
 		_Dashboard.checkAdmin();
@@ -344,6 +345,21 @@ var _Dashboard = {
 			}
 		});
 	},
+    appendLogBox: function () {
+
+        var logBox = _Dashboard.appendBox('Server Log', 'server-log');
+        var logBoxContentBox = $('<textarea readonly=true rows=25 style="width: 100%;resize: none;"></textarea>').appendTo(logBox);
+
+        var updateLog = function() {
+            Command.getServerLogSnapshot(50, (a)=> {
+                logBoxContentBox.html(a[0].result);
+                logBoxContentBox.scrollTop(logBoxContentBox[0].scrollHeight);
+            });
+		};
+
+        let handle = window.setInterval(()=>updateLog(), 1000);
+        updateLog();
+    },
 	deploy: function(mode, location) {
 
 		var data = {
