@@ -347,18 +347,44 @@ var _Dashboard = {
 	},
     appendLogBox: function () {
 
-        var logBox = _Dashboard.appendBox('Server Log', 'server-log');
-        var logBoxContentBox = $('<textarea readonly=true rows=25 style="width: 100%;resize: none;"></textarea>').appendTo(logBox);
+        let logBox = _Dashboard.appendBox('Server Log', 'server-log');
+        let logBoxContentBox = $('<textarea readonly=true rows=25 style="width: 100%;resize: none;"></textarea>').appendTo(logBox);
 
-        var updateLog = function() {
-            Command.getServerLogSnapshot(50, (a)=> {
+        let scrollEnabled = true;
+
+        let updateLog = function() {
+            Command.getServerLogSnapshot(300, (a)=> {
                 logBoxContentBox.html(a[0].result);
-                logBoxContentBox.scrollTop(logBoxContentBox[0].scrollHeight);
+                if (scrollEnabled) {
+                    logBoxContentBox.scrollTop(logBoxContentBox[0].scrollHeight);
+                }
             });
 		};
 
-        let handle = window.setInterval(()=>updateLog(), 1000);
+        let registerEventHandlers = function() {
+            let handle = window.setInterval(()=>updateLog(), 1000);
+
+            logBoxContentBox.bind('scroll', (event) => {
+            	let textarea = event.target;
+
+            	let maxScroll = textarea.scrollHeight - 4;
+            	let currentScroll = (textarea.scrollTop+$(textarea).height());
+
+            	if (currentScroll >= maxScroll) {
+                    scrollEnabled = true;
+				} else {
+                    scrollEnabled = false;
+
+				}
+
+            });
+		};
+
+
+        registerEventHandlers();
         updateLog();
+
+
     },
 	deploy: function(mode, location) {
 
