@@ -386,7 +386,7 @@ var _ResourceAccessGrants = {
 			var raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', 'public');
 
 			raPager.cleanupFunction = function () {
-				$('#resourceAccesses table tbody tr').remove();
+				$('#resourceAccessesTable tbody tr').remove();
 			};
 
 			raPager.activateFilterElements(_Security.resourceAccesses);
