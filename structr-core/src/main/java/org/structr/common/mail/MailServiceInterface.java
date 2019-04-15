@@ -16,20 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common;
+package org.structr.common.mail;
 
-import javax.activation.DataSource;
-import org.apache.commons.mail.EmailAttachment;
+import org.structr.api.service.Service;
+import org.structr.common.AdvancedMailContainer;
+import org.structr.common.SecurityContext;
+import org.structr.core.graph.NodeInterface;
 
-public class DynamicMailAttachment extends EmailAttachment {
+public interface MailServiceInterface extends Service {
 
-	private DataSource ds;
-
-	public void setDataSource(DataSource ds) {
-		this.ds = ds;
-	}
-
-	public DataSource getDataSource() {
-		return this.ds;
-	}
+	public NodeInterface saveOutgoingMessage(final SecurityContext securityContext, final AdvancedMailContainer amc, final String messageId);
 }

@@ -19,6 +19,7 @@
 package org.structr.mail.function;
 
 import java.net.MalformedURLException;
+import javax.activation.FileDataSource;
 import org.apache.commons.mail.EmailAttachment;
 import org.structr.common.AdvancedMailContainer;
 import org.structr.common.DynamicMailAttachment;
@@ -92,19 +93,17 @@ public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 	public static void addAttachment(final AdvancedMailContainer amc, final File fileNode, final String attachmentName) throws MalformedURLException {
 
 		final DynamicMailAttachment attachment = new DynamicMailAttachment();
-		attachment.setURL(fileNode.getFileOnDisk().toURI().toURL());
 		attachment.setName(attachmentName);
 		attachment.setDisposition(EmailAttachment.ATTACHMENT);
 
 		if (fileNode.isTemplate()) {
 
-			attachment.setIsDynamic(true);
 			attachment.setDataSource(new DynamicFileDataSource(fileNode));
 
 		} else {
 
-			attachment.setIsDynamic(false);
-			attachment.setURL(fileNode.getFileOnDisk().toURI().toURL());
+			attachment.setDataSource(new FileDataSource(fileNode.getFileOnDisk()));
+
 		}
 
 		amc.addAttachment(attachment);
