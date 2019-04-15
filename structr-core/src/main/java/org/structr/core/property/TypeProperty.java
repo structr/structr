@@ -19,14 +19,17 @@
 package org.structr.core.property;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchCommand;
 
@@ -85,6 +88,7 @@ public class TypeProperty extends StringProperty {
 		final Set<Label> toRemove     = new LinkedHashSet<>();
 		final Set<Label> toAdd        = new LinkedHashSet<>();
 		final Node dbNode             = node.getNode();
+		final List<Label> labels      = Iterables.toList(dbNode.getLabels());
 
 		// include optional tenant identifier when modifying labels
 		final String tenantIdentifier = graphDb.getTenantIdentifier();
@@ -93,8 +97,15 @@ public class TypeProperty extends StringProperty {
 			toAdd.add(graphDb.forName(Label.class, tenantIdentifier));
 		}
 
+		// initialize type property from single label on unknown nodes
+		if (node instanceof GenericNode && labels.size() == 1 && !dbNode.hasProperty("type")) {
+
+			dbNode.setProperty("type", labels.get(0).name());
+			return;
+		}
+
 		// collect labels that are already present on a node
-		for (final Label label : dbNode.getLabels()) {
+		for (final Label label : labels) {
 			toRemove.add(label);
 		}
 
