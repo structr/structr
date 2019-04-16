@@ -557,7 +557,11 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, result);
 
-			} else {
+			} else if (command === 'SERVER_LOG') {
+
+                StructrModel.callCallback(data.callback, result);
+
+            } else {
 				console.log('Received unknown command: ' + command);
 
 				if (sessionValid === false) {
