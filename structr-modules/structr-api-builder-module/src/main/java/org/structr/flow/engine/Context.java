@@ -105,6 +105,8 @@ public class Context {
 
 	public void setParameter(final String key, final Object value) { this.parameters.put(key,value); }
 
+	public void setParameters(final Map<String,Object> parameters) { this.parameters = parameters; }
+
 	public Object getParameter(final String key) {
 		return this.parameters.get(key);
 	}
