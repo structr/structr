@@ -55,7 +55,7 @@ public class SearchFunction extends AbstractQueryFunction {
 			final ConfigurationProvider config    = StructrApp.getConfiguration();
 			final Query query                     = StructrApp.getInstance(securityContext).nodeQuery();
 
-			applyRange(securityContext, query);
+			applyQueryParameters(securityContext, query);
 
 			Class type = null;
 
@@ -134,7 +134,7 @@ public class SearchFunction extends AbstractQueryFunction {
 
 		} finally {
 
-			resetRange();
+			resetQueryParameters(securityContext);
 			securityContext.ignoreResultCount(ignoreResultCount);
 		}
 	}
@@ -148,5 +148,4 @@ public class SearchFunction extends AbstractQueryFunction {
 	public String shortDescription() {
 		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs. Searches case-insensitve / inexact.";
 	}
-
 }
