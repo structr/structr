@@ -82,13 +82,14 @@ public class TypeProperty extends StringProperty {
 		return result;
 	}
 
-	public static void updateLabels(final DatabaseService graphDb, final NodeInterface node, final Class newType, final boolean removeUnused) {
+	public static void updateLabels(final DatabaseService graphDb, final NodeInterface node, final Class inputType, final boolean removeUnused) {
 
 		final Set<Label> intersection = new LinkedHashSet<>();
 		final Set<Label> toRemove     = new LinkedHashSet<>();
 		final Set<Label> toAdd        = new LinkedHashSet<>();
 		final Node dbNode             = node.getNode();
 		final List<Label> labels      = Iterables.toList(dbNode.getLabels());
+		Class singleLabelType         = inputType;
 
 		// include optional tenant identifier when modifying labels
 		final String tenantIdentifier = graphDb.getTenantIdentifier();
@@ -100,8 +101,14 @@ public class TypeProperty extends StringProperty {
 		// initialize type property from single label on unknown nodes
 		if (node instanceof GenericNode && labels.size() == 1 && !dbNode.hasProperty("type")) {
 
+			final String singleLabelTypeName = labels.get(0).name();
+			final Class typeCandidate        = StructrApp.getConfiguration().getNodeEntityClass(singleLabelTypeName);
+
+			if (typeCandidate != null) {
+				singleLabelType = typeCandidate;
+			}
+
 			dbNode.setProperty("type", labels.get(0).name());
-			return;
 		}
 
 		// collect labels that are already present on a node
@@ -110,7 +117,7 @@ public class TypeProperty extends StringProperty {
 		}
 
 		// collect new labels
-		for (final Class supertype : SearchCommand.typeAndAllSupertypes(newType)) {
+		for (final Class supertype : SearchCommand.typeAndAllSupertypes(singleLabelType)) {
 
 			final String supertypeName = supertype.getName();
 

@@ -245,11 +245,6 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 	}
 
 	@Override
-	public boolean isSpatialEntity() {
-		return false;
-	}
-
-	@Override
 	public boolean isDeleted() {
 		return deleted;
 	}
