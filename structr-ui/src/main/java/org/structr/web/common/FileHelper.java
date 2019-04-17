@@ -166,7 +166,7 @@ public class FileHelper {
 
 		return createFile(securityContext, fileStream, fileType, props);
 	}
-	
+
 	/**
 	 * Create a new file node from the given input stream and sets the parentFolder
 	 *
@@ -191,7 +191,7 @@ public class FileHelper {
 
 		return newFile;
 	}
-	
+
 	/**
 	 * Create a new file node from the given byte array
 	 *
@@ -372,7 +372,7 @@ public class FileHelper {
 		propertiesWithChecksums.put(StructrApp.key(File.class, "checksum"), FileHelper.getChecksum(fileOnDisk));
 
 		if (StringUtils.contains(checksums, "crc32"))	{
-			propertiesWithChecksums.put(StructrApp.key(File.class, "crc32"), FileHelper.getChecksum(fileOnDisk));
+			propertiesWithChecksums.put(StructrApp.key(File.class, "crc32"), FileHelper.getCRC32Checksum(fileOnDisk));
 		}
 
 		if (StringUtils.contains(checksums, "md5"))	{
