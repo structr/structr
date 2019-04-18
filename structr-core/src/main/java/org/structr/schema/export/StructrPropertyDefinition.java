@@ -522,6 +522,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 					newProperty = new StructrCustomProperty(parent, name);
 					break;
 
+				case "encrypted":
+					newProperty = new StructrEncryptedStringProperty(parent, name);
+					break;
+
 				case "object":
 
 					// notion properties don't contain $link
@@ -768,6 +772,11 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 				final StructrCustomProperty custom = new StructrCustomProperty(parent, name);
 				custom.deserialize(schemaNodes, property);
 				return custom;
+
+			case Encrypted:
+				final StructrEncryptedStringProperty encrypted = new StructrEncryptedStringProperty(parent, name);
+				encrypted.deserialize(schemaNodes, property);
+				return encrypted;
 		}
 
 		throw new IllegalStateException("Unknown type " + type);

@@ -352,6 +352,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
+	public JsonStringProperty addEncryptedProperty(final String name, final String... views) {
+
+		final StructrEncryptedStringProperty encrypted = new StructrEncryptedStringProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(encrypted);
+
+		return encrypted;
+	}
+
+	@Override
 	public JsonStringProperty addPasswordProperty(final String name, final String... views) {
 
 		final StructrPasswordProperty passwordProperty = new StructrPasswordProperty(this, name);

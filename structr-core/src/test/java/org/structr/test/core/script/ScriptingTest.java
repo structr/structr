@@ -59,9 +59,7 @@ import org.structr.core.entity.SuperUser;
 import org.structr.core.function.DateFormatFunction;
 import org.structr.core.function.FindFunction;
 import org.structr.core.function.NumberFormatFunction;
-import org.structr.core.function.ParseDateFunction;
 import org.structr.core.function.RoundFunction;
-import org.structr.core.function.ToDateFunction;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -3085,6 +3083,65 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
+	}
+
+	@Test
+	public void testCryptoFunctions() {
+
+		this.cleanDatabaseAndSchema();
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// test failures
+		try {
+
+			Scripting.replaceVariables(ctx, null, "${encrypt('plaintext')}");
+			fail("Encrypt function should throw an exception when no initial encryption key is set.");
+
+		} catch (FrameworkException fex) {
+			assertEquals("Invalid error code", 422, fex.getStatus());
+		}
+
+		// test failures
+		try {
+
+			assertEquals("Decrypt function should return null when no initial encryption key is set.", "", Scripting.replaceVariables(ctx, null, "${decrypt('plaintext')}"));
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+
+		// test functions without global encryption key
+		try {
+
+			assertEquals("Invalid encryption result", "ZuAM6SQ7GTc2KW55M/apUA==", Scripting.replaceVariables(ctx, null, "${encrypt('plaintext', 'structr')}"));
+			assertEquals("Invalid encryption result", "b4bn2+w7yaEve3YGtn4IGA==", Scripting.replaceVariables(ctx, null, "${encrypt('plaintext', 'password')}"));
+
+			assertEquals("Invalid decryption result", "ZuAM6SQ7GTc2KW55M/apUA==", Scripting.replaceVariables(ctx, null, "${encrypt('plaintext', 'structr')}"));
+			assertEquals("Invalid decryption result", "b4bn2+w7yaEve3YGtn4IGA==", Scripting.replaceVariables(ctx, null, "${encrypt('plaintext', 'password')}"));
+
+		} catch (FrameworkException fex) {
+			assertEquals("Invalid error code", 422, fex.getStatus());
+		}
+
+		// test functions with global encryption key
+		try {
+
+			assertEquals("Invalid response when setting encryption key via scriptin", "", Scripting.replaceVariables(ctx, null, "${set_encryption_key('structr')}"));
+
+			assertEquals("Invalid encryption result", "ZuAM6SQ7GTc2KW55M/apUA==", Scripting.replaceVariables(ctx, null, "${encrypt('plaintext')}"));
+			assertEquals("Invalid encryption result", "ZuAM6SQ7GTc2KW55M/apUA==", Scripting.replaceVariables(ctx, null, "${encrypt('plaintext', 'structr')}"));
+			assertEquals("Invalid encryption result", "b4bn2+w7yaEve3YGtn4IGA==", Scripting.replaceVariables(ctx, null, "${encrypt('plaintext', 'password')}"));
+
+			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt('ZuAM6SQ7GTc2KW55M/apUA==')}"));
+			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt('ZuAM6SQ7GTc2KW55M/apUA==', 'structr')}"));
+			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt('b4bn2+w7yaEve3YGtn4IGA==', 'password')}"));
+
+		} catch (FrameworkException fex) {
+			assertEquals("Invalid error code", 422, fex.getStatus());
+		}
 	}
 
 	// ----- private methods ----

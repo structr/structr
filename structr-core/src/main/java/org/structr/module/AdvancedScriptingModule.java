@@ -28,10 +28,12 @@ import org.structr.core.function.CallFunction;
 import org.structr.core.function.CallPrivilegedFunction;
 import org.structr.core.function.ChangelogFunction;
 import org.structr.core.function.ConfigFunction;
+import org.structr.core.function.DecryptFunction;
 import org.structr.core.function.DisableCascadingDeleteFunction;
 import org.structr.core.function.DisableNotificationsFunction;
 import org.structr.core.function.EnableCascadingDeleteFunction;
 import org.structr.core.function.EnableNotificationsFunction;
+import org.structr.core.function.EncryptFunction;
 import org.structr.core.function.EnumInfoFunction;
 import org.structr.core.function.ErrorFunction;
 import org.structr.core.function.EvaluateScriptFunction;
@@ -54,6 +56,7 @@ import org.structr.core.function.ReadFunction;
 import org.structr.core.function.RemoveFromGroupFunction;
 import org.structr.core.function.RevokeFunction;
 import org.structr.core.function.ServerLogFunction;
+import org.structr.core.function.SetEncryptionKeyFunction;
 import org.structr.core.function.SetPrivilegedFunction;
 import org.structr.core.function.TemplateFunction;
 import org.structr.core.function.TypeInfoFunction;
@@ -128,6 +131,10 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new JdbcFunction());
 
 		Functions.put(licenseManager, new GetRelationshipTypesFunction());
+
+		Functions.put(licenseManager, new SetEncryptionKeyFunction());
+		Functions.put(licenseManager, new EncryptFunction());
+		Functions.put(licenseManager, new DecryptFunction());
 	}
 
 	@Override
