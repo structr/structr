@@ -38,6 +38,8 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 
 		if (key == null) {
 
+			logger.info("set_encryption_key() was called with null parameter, resetting global secret key");
+
 			// reset hash
 			secretKeyHash = null;
 			return;

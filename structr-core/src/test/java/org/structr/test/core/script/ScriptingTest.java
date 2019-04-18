@@ -3142,6 +3142,25 @@ public class ScriptingTest extends StructrTest {
 		} catch (FrameworkException fex) {
 			assertEquals("Invalid error code", 422, fex.getStatus());
 		}
+
+		// test resetting encryption key using the built-in function
+		try {
+
+			assertEquals("Invalid response when setting encryption key via scriptin", "", Scripting.replaceVariables(ctx, null, "${set_encryption_key(null)}"));
+
+		} catch (FrameworkException fex) {
+			assertEquals("Invalid error code", 422, fex.getStatus());
+		}
+
+		// test failures
+		try {
+
+			Scripting.replaceVariables(ctx, null, "${encrypt('plaintext')}");
+			fail("Encrypt function should throw an exception when no initial encryption key is set.");
+
+		} catch (FrameworkException fex) {
+			assertEquals("Invalid error code", 422, fex.getStatus());
+		}
 	}
 
 	// ----- private methods ----

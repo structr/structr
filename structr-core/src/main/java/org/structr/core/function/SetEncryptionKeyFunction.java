@@ -18,8 +18,6 @@
  */
 package org.structr.core.function;
 
-import org.structr.common.error.ArgumentCountException;
-import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
@@ -36,17 +34,22 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		try {
+		if (sources != null && sources.length == 1) {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
+			if (sources[0] == null) {
 
-			CryptFunction.setEncryptionKey(sources[0].toString());
+				CryptFunction.setEncryptionKey(null);
+
+			} else {
+
+				CryptFunction.setEncryptionKey(sources[0].toString());
+			}
 
 			return null;
 
-		} catch (ArgumentNullException | ArgumentCountException pe) {
+		} else {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			// only show the error message for wrong parameter count
 			return usage(ctx.isJavaScriptContext());
