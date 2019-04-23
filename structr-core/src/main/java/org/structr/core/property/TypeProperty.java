@@ -19,13 +19,16 @@
 package org.structr.core.property;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Node;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchCommand;
 
@@ -78,12 +81,14 @@ public class TypeProperty extends StringProperty {
 		return result;
 	}
 
-	public static void updateLabels(final DatabaseService graphDb, final NodeInterface node, final Class newType, final boolean removeUnused) {
+	public static void updateLabels(final DatabaseService graphDb, final NodeInterface node, final Class inputType, final boolean removeUnused) {
 
 		final Set<String> intersection = new LinkedHashSet<>();
 		final Set<String> toRemove     = new LinkedHashSet<>();
 		final Set<String> toAdd        = new LinkedHashSet<>();
-		final Node dbNode             = node.getNode();
+		final Node dbNode              = node.getNode();
+		final List<String> labels      = Iterables.toList(dbNode.getLabels());
+		Class singleLabelType          = inputType;
 
 		// include optional tenant identifier when modifying labels
 		final String tenantIdentifier = graphDb.getTenantIdentifier();
@@ -92,13 +97,26 @@ public class TypeProperty extends StringProperty {
 			toAdd.add(tenantIdentifier);
 		}
 
+		// initialize type property from single label on unknown nodes
+		if (node instanceof GenericNode && labels.size() == 1 && !dbNode.hasProperty("type")) {
+
+			final String singleLabelTypeName = labels.get(0);
+			final Class typeCandidate        = StructrApp.getConfiguration().getNodeEntityClass(singleLabelTypeName);
+
+			if (typeCandidate != null) {
+				singleLabelType = typeCandidate;
+			}
+
+			dbNode.setProperty("type", labels.get(0));
+		}
+
 		// collect labels that are already present on a node
-		for (final String label : dbNode.getLabels()) {
+		for (final String label : labels) {
 			toRemove.add(label);
 		}
 
 		// collect new labels
-		for (final Class supertype : SearchCommand.typeAndAllSupertypes(newType)) {
+		for (final Class supertype : SearchCommand.typeAndAllSupertypes(singleLabelType)) {
 
 			final String supertypeName = supertype.getName();
 

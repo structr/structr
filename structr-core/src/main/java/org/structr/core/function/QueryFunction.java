@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.app.Query;
+import org.structr.core.property.PropertyKey;
 
 /**
  * Interface to identify functions that execute database queries. This interface
@@ -27,10 +28,4 @@ import org.structr.core.app.Query;
  * set query parameters like paging etc. BEFORE execution of the actual query.
  */
 public interface QueryFunction {
-
-	void setRangeStart(final int start);
-	void setRangeEnd(final int end);
-
-	void applyRange(final SecurityContext securityContext, final Query query);
-	void resetRange();
 }

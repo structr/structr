@@ -18,30 +18,23 @@
  */
 package org.structr.core.function;
 
+import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.Query;
+import org.structr.core.app.StructrApp;
+import org.structr.core.property.PropertyKey;
 
 /**
  * Abstract implementation of the basic functions of the Interface QueryFunction.
  */
 public abstract class AbstractQueryFunction extends CoreFunction implements QueryFunction {
 
-	private int start = -1;
-	private int end   = -1;
+	public void applyQueryParameters(final SecurityContext securityContext, final Query query) {
 
-	// ----- interface QueryFunction -----
-	@Override
-	public void setRangeStart(final int start) {
-		this.start = start;
-	}
-
-	@Override
-	public void setRangeEnd(final int end) {
-		this.end = end;
-	}
-
-	@Override
-	public void applyRange(final SecurityContext securityContext, final Query query) {
+		final ContextStore contextStore = securityContext.getContextStore();
+		final String sortKey            = contextStore.getSortKey();
+		final int start                 = contextStore.getRangeStart();
+		final int end                   = contextStore.getRangeEnd();
 
 		// paging applied by surrounding slice() function
 		if (start >= 0 && end >= 0) {
@@ -56,12 +49,37 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 			}
 		}
+
+		if (sortKey != null) {
+
+			final Class type = query.getType();
+			if (type != null) {
+
+				final PropertyKey key = StructrApp.key(type, sortKey);
+				if (key != null) {
+					
+					if (contextStore.getSortDescending()) {
+
+						query.sortDescending(key);
+						
+					} else {
+
+						query.sortAscending(key);
+					}
+				}
+
+			} else {
+				
+				logger.warn("Cannot apply sort key, missing type in query object.");
+			}
+		}
+
 	}
 
-	@Override
-	public void resetRange() {
+	protected void resetQueryParameters(final SecurityContext securityContext) {
+		
+		final ContextStore contextStore = securityContext.getContextStore();
 
-		this.start = -1;
-		this.end   = -1;
+		contextStore.resetQueryParameters();
 	}
 }

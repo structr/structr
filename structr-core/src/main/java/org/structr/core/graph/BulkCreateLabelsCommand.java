@@ -23,7 +23,6 @@ import java.util.Map;
 import org.structr.api.DatabaseService;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
-import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
@@ -42,7 +41,7 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 		final SecurityContext superUserContext    = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory             = new NodeFactory(superUserContext);
 		final boolean removeUnused                = !attributes.containsKey("removeUnused");
-		final Iterable<AbstractNode> nodes        = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getNodesByTypeProperty(entityType)));
+		final Iterable<AbstractNode> nodes        = Iterables.map(nodeFactory, graphDb.getNodesByTypeProperty(entityType));
 
 		if (entityType == null) {
 

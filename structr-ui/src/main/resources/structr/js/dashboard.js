@@ -56,6 +56,7 @@ var _Dashboard = {
 			if (_Dashboard.meObj.isAdmin) {
 				_Dashboard.appendDeploymentBox();
 				_Dashboard.appendMaintenanceBox();
+				_Dashboard.appendLogBox();
 			}
 		});
 		_Dashboard.checkAdmin();
@@ -357,6 +358,47 @@ var _Dashboard = {
 			}
 		});
 	},
+    appendLogBox: function () {
+
+        let logBox = _Dashboard.appendBox('Server Log', 'server-log');
+        let logBoxContentBox = $('<textarea readonly=true rows=25 style="width: 100%;resize: none;"></textarea>').appendTo(logBox);
+
+        let scrollEnabled = true;
+
+        let updateLog = function() {
+            Command.getServerLogSnapshot(300, (a)=> {
+                logBoxContentBox.html(a[0].result);
+                if (scrollEnabled) {
+                    logBoxContentBox.scrollTop(logBoxContentBox[0].scrollHeight);
+                }
+            });
+		};
+
+        let registerEventHandlers = function() {
+            let handle = window.setInterval(()=>updateLog(), 1000);
+
+            logBoxContentBox.bind('scroll', (event) => {
+            	let textarea = event.target;
+
+            	let maxScroll = textarea.scrollHeight - 4;
+            	let currentScroll = (textarea.scrollTop+$(textarea).height());
+
+            	if (currentScroll >= maxScroll) {
+                    scrollEnabled = true;
+				} else {
+                    scrollEnabled = false;
+
+				}
+
+            });
+		};
+
+
+        registerEventHandlers();
+        updateLog();
+
+
+    },
 	deploy: function(mode, location) {
 
 		var data = {

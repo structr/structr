@@ -45,6 +45,9 @@ public class FindFunction extends AbstractQueryFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
+		final SecurityContext securityContext = ctx.getSecurityContext();
+		final boolean ignoreResultCount       = securityContext.ignoreResultCount();
+
 		try {
 
 			if (sources == null) {
@@ -52,13 +55,9 @@ public class FindFunction extends AbstractQueryFunction {
 				throw new IllegalArgumentException();
 			}
 
-			final SecurityContext securityContext = ctx.getSecurityContext();
 			final ConfigurationProvider config    = StructrApp.getConfiguration();
 			final App app                         = StructrApp.getInstance(securityContext);
-			final Query query                     = app.nodeQuery().sort(GraphObject.createdDate).order(false);
-
-			// paging applied by surrounding slice() function
-			applyRange(securityContext, query);
+			final Query query                     = app.nodeQuery();//.sort(GraphObject.createdDate).order(false);
 
 			// the type to query for
 			Class type = null;
@@ -85,6 +84,9 @@ public class FindFunction extends AbstractQueryFunction {
 				logger.warn("Error in find(): no type specified. Parameters: {}", getParametersAsString(sources));
 				return ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED;
 			}
+
+			// apply sorting and pagination by surrounding sort() and slice() expressions
+			applyQueryParameters(securityContext, query);
 
 			// extension for native javascript objects
 			if (sources.length == 2 && sources[1] instanceof Map) {
@@ -146,7 +148,9 @@ public class FindFunction extends AbstractQueryFunction {
 			return usage(ctx.isJavaScriptContext());
 
 		} finally {
-			resetRange();
+			
+			resetQueryParameters(securityContext);
+			securityContext.ignoreResultCount(ignoreResultCount);
 		}
 	}
 

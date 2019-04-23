@@ -24,6 +24,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.Localization;
 import org.structr.core.property.GenericProperty;
+import org.structr.core.property.PropertyKey;
 
 /**
  * Encapsulates all information stored for Action-/SecurityContexts which are available via scripting
@@ -38,6 +39,10 @@ public class ContextStore {
 	protected AdvancedMailContainer amc                 = new AdvancedMailContainer();
 	protected ArrayList<GraphObjectMap> localizations   = new ArrayList<>();
 	protected Map<String, Object> functionPropertyCache = new HashMap<>();
+	protected boolean sortDescending                    = false;
+	protected String sortKey                            = null;
+	protected int queryRangeStart                       = -1;
+	protected int queryRangeEnd                         = -1;
 
 	public ContextStore () {
 	}
@@ -182,7 +187,6 @@ public class ContextStore {
 				localizations.add(converted);
 			}
 		}
-
 	}
 
 	public ArrayList<GraphObjectMap> getRequestedLocalizations () {
@@ -190,6 +194,48 @@ public class ContextStore {
 		return localizations;
 
 	}
+
+	// ----- query configuration
+	public void setRangeStart(final int start) {
+		this.queryRangeStart = start;
+	}
+
+	public void setRangeEnd(final int end) {
+		this.queryRangeEnd = end;
+	}
+	
+	public void setSortKey(final String sortKey) {
+		this.sortKey = sortKey;
+	}
+
+	public void setSortDescending(final boolean descending) {
+		this.sortDescending = descending;
+	}
+
+	public int getRangeStart() {
+		return queryRangeStart;
+	}
+
+	public int getRangeEnd() {
+		return queryRangeEnd;
+	}
+
+	public String getSortKey() {
+		return sortKey;
+	}
+
+	public boolean getSortDescending() {
+		return sortDescending;
+	}
+
+	public void resetQueryParameters() {
+
+		sortKey         = null;
+		sortDescending  = false;
+		queryRangeStart = -1;
+		queryRangeEnd   = -1;
+	}
+
 
 	// ----- private methods -----
 	private String contextCacheKey(final String uuid, final String propertyName) {

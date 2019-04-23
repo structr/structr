@@ -113,6 +113,7 @@ var _Schema = {
 	selectedNodes: [],
 	typeOptions: '<select class="property-type"><option value="">--Select--</option>'
 		+ '<option value="String">String</option>'
+		+ '<option value="Encrypted">Encrypted</option>'
 		+ '<option value="StringArray">String[]</option>'
 		+ '<option value="Integer">Integer</option>'
 		+ '<option value="IntegerArray">Integer[]</option>'

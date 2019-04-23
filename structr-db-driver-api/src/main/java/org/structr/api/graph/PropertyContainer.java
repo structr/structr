@@ -41,7 +41,6 @@ public interface PropertyContainer {
 
 	boolean isStale();
 	boolean isDeleted();
-	boolean isSpatialEntity();
 
 	default int compare(final String key, final PropertyContainer a, final PropertyContainer b) {
 

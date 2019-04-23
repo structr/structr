@@ -18,15 +18,11 @@
  */
 package org.structr.common;
 
-import java.util.Collections;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
-import org.structr.api.util.Iterables;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -50,8 +46,6 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 
 	public static final Class GENERIC_NODE_TYPE          = GenericNode.class;
 	public static final Class GENERIC_REL_TYPE           = GenericRelationship.class;
-
-	private String externalNodeTypeName = null;
 
 	@Override
 	public AbstractRelationship createGenericRelationship() {
@@ -100,50 +94,6 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 				if (nodeType != null) {
 
 					return nodeType;
-				}
-			}
-
-		} else {
-
- 			if (externalNodeTypeName == null) {
-
-				// try to determine external node
-				// type name from configuration
-				externalNodeTypeName = Settings.ForeignTypeName.getValue();
-			}
-
-			if (externalNodeTypeName != null && node.hasProperty(externalNodeTypeName)) {
-
-				Object typeObj = node.getProperty(externalNodeTypeName);
-				if (typeObj != null) {
-
-					// String externalNodeType = typeObj.toString();
-
-					// initialize dynamic type
-					// genericNodeExtender.getType(externalNodeType);
-
-					// return dynamic type
-					final Class dynamicType = StructrApp.getConfiguration().getNodeEntityClass(typeObj.toString());
-					if (dynamicType != null) {
-
-						return dynamicType;
-					}
-				}
-			}
-
-			final Iterable<String> labels = node.getLabels();
-			if (labels != null) {
-
-				final List<String> sortedLabels = Iterables.toList(labels);
-				Collections.sort(sortedLabels);
-
-				final String typeName = StringUtils.join(sortedLabels, "");
-
-				// return dynamic type
-				final Class dynamicType = StructrApp.getConfiguration().getNodeEntityClass(typeName);
-				if (dynamicType != null) {
-
-					return dynamicType;
 				}
 			}
 		}

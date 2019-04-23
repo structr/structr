@@ -25,6 +25,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
+import org.structr.common.ContextStore;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
@@ -82,6 +84,10 @@ public class SliceExpression extends Expression {
 			return ERROR_MESSAGE_SLICE;
 		}
 
+		// load context store
+		final SecurityContext securityContext = ctx.getSecurityContext();
+		final ContextStore contextStore       = securityContext.getContextStore();
+
 		// evaluate start and end bounds
 		final Object startObject = startExpression.evaluate(ctx, entity);
 		final Object endObject   = endExpression.evaluate(ctx, entity);
@@ -110,19 +116,10 @@ public class SliceExpression extends Expression {
 
 		if (valid) {
 
-			if (listExpression instanceof QueryFunction) {
+			if (listExpression instanceof QueryFunction || (listExpression instanceof FunctionExpression && ((FunctionExpression)listExpression).getFunction() instanceof QueryFunction)) {
 
-				final QueryFunction queryFunction = (QueryFunction)listExpression;
-				queryFunction.setRangeStart(start);
-				queryFunction.setRangeEnd(end);
-
-				return listExpression.evaluate(ctx, entity);
-
-			} else if (listExpression instanceof FunctionExpression && ((FunctionExpression)listExpression).getFunction() instanceof QueryFunction) {
-
-				final QueryFunction queryFunction = (QueryFunction)((FunctionExpression)listExpression).getFunction();
-				queryFunction.setRangeStart(start);
-				queryFunction.setRangeEnd(end);
+				contextStore.setRangeStart(start);
+				contextStore.setRangeEnd(end);
 
 				return listExpression.evaluate(ctx, entity);
 

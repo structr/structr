@@ -243,11 +243,6 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 	}
 
 	@Override
-	public boolean isSpatialEntity() {
-		return false;
-	}
-
-	@Override
 	public boolean isDeleted() {
 		return deleted;
 	}

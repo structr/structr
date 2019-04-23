@@ -18,6 +18,7 @@
  */
 package org.structr.flow.impl;
 
+import java.awt.*;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,8 +68,11 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 	@Export
 	public Map<String, Object> evaluate(final Map<String, Object> parameters) {
 
-		final FlowEngine engine       = new FlowEngine(new Context(null, parameters != null ? parameters : new HashMap()));
-		final FlowResult result       = engine.execute(getProperty(startNode));
+		final FlowEngine engine       = new FlowEngine();
+		final Context context         = new Context();
+		context.setParameters(parameters);
+		final FlowNode entry          = getProperty(startNode);
+		final FlowResult result       = engine.execute(context, entry);
 		final Map<String, Object> map = new LinkedHashMap<>();
 
 		map.put("error",  result.getError());
@@ -76,6 +80,38 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 
 		return map;
 	}
+
+	/*
+	@Export
+	public void duplicate(final Map<String, Object> parameters) {
+
+		App app = StructrApp.getInstance(securityContext);
+
+		try (Tx tx = app.tx()) {
+
+			PropertyMap props = new PropertyMap();
+			props.put(flowPackage, getProperty(flowPackage));
+			props.put(name, getProperty(name) + "_copy");
+
+			FlowContainer container = app.create(FlowContainer.class, props);
+
+
+
+
+
+		} catch (FrameworkException ex) {
+
+			logger.warn("Error while trying to duplicate flow.", ex);
+		}
+
+
+
+		for (FlowBaseNode node : getProperty(flowNodes)) {
+
+		}
+
+	}
+	*/
 
 	@Override
 	public Map<String, Object> exportData() {

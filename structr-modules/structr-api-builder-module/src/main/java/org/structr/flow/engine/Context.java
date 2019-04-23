@@ -105,6 +105,8 @@ public class Context {
 
 	public void setParameter(final String key, final Object value) { this.parameters.put(key,value); }
 
+	public void setParameters(final Map<String,Object> parameters) { this.parameters = parameters; }
+
 	public Object getParameter(final String key) {
 		return this.parameters.get(key);
 	}
@@ -149,7 +151,7 @@ public class Context {
 		this.thisObject = context.thisObject;
 		this.data = deepCopyMap(context.data);
 		this.store = deepCopyMap(context.store);
-		this.parameters = deepCopyMap(context.store);
+		this.parameters = deepCopyMap(context.parameters);
 		this.currentData = deepCopyMap(context.currentData);
 		this.result = context.result;
 		this.error = context.error;

@@ -59,10 +59,10 @@ public class StructrScriptable extends ScriptableObject {
 	private static final Logger logger = LoggerFactory.getLogger(StructrScriptable.class.getName());
 	private static final Object[] IDs  = { "id", "type" };
 
-	private ActionContext actionContext     = null;
-	private FrameworkException exception    = null;
-	private GraphObject entity              = null;
-	private Context scriptingContext        = null;
+	protected ActionContext actionContext     = null;
+	protected FrameworkException exception    = null;
+	protected GraphObject entity              = null;
+	protected Context scriptingContext        = null;
 
 	public StructrScriptable(final ActionContext actionContext, final GraphObject entity, final Context scriptingContext) {
 

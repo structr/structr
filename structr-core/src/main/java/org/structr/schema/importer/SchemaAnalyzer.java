@@ -41,9 +41,7 @@ import org.structr.api.config.Settings;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
-import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
-import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.ValidationHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -142,7 +140,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 		try (final Tx tx = app.tx()) {
 
-			nodeIterable = Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllNodes());
+			nodeIterable = graphDb.getAllNodes();
 			tx.success();
 
 		} catch(FrameworkException fex) {
@@ -280,7 +278,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
-			relIterable = Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllRelationships());
+			relIterable = graphDb.getAllRelationships();
 			tx.success();
 
 		} catch(FrameworkException fex) {
