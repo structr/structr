@@ -170,7 +170,7 @@ function wsConnect() {
 					LSWrapper.setAsJSON(data.data.localStorageString);
 				}
 
-				StructrModel.callCallback(data.callback, data.data[data.data['key']]);
+				StructrModel.callCallback(data.callback, data.data);
 
 			} else if (command === 'CONSOLE') {
 
