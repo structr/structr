@@ -32,11 +32,11 @@ public abstract class SQLEntity implements PropertyContainer {
 	protected SQLIdentity id           = null;
 	protected boolean stale            = false;
 
-	SQLEntity(final SQLDatabaseService db, final PropertySetResult result) {
+	SQLEntity(final SQLDatabaseService db, final SQLIdentity identity, final Map<String, Object> data) {
 
 		this.db   = db;
-		this.id   = result.id();
-		this.data = result.data();
+		this.id   = identity;
+		this.data = data;
 	}
 
 	SQLEntity(final SQLIdentity id) {

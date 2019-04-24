@@ -33,8 +33,13 @@ class SQLRelationship extends SQLEntity implements Relationship {
 	private SQLIdentity sourceNode   = null;
 	private SQLIdentity targetNode   = null;
 
-	public SQLRelationship(final SQLDatabaseService db, final PropertySetResult id) {
-		super(db, id);
+	public SQLRelationship(final SQLDatabaseService db, final RelationshipResult result) {
+
+		super(db, result.id(), result.data());
+
+		this.relType    = result.getRelType();
+		this.sourceNode = result.getSourceNode();
+		this.targetNode = result.getTargetNode();
 	}
 
 	public SQLRelationship(final SQLIdentity id) {
@@ -57,11 +62,6 @@ class SQLRelationship extends SQLEntity implements Relationship {
 
 	@Override
 	public boolean isDeleted() {
-		return false;
-	}
-
-	@Override
-	public boolean isSpatialEntity() {
 		return false;
 	}
 
@@ -91,7 +91,7 @@ class SQLRelationship extends SQLEntity implements Relationship {
 	}
 
 	// ----- public static methods -----
-	public static SQLRelationship newInstance(final SQLDatabaseService db, final PropertySetResult result) {
+	public static SQLRelationship newInstance(final SQLDatabaseService db, final RelationshipResult result) {
 
 		synchronized (relCache) {
 
@@ -117,7 +117,7 @@ class SQLRelationship extends SQLEntity implements Relationship {
 
 				final SQLTransaction tx = db.getCurrentTransaction();
 
-				wrapper = SQLRelationship.newInstance(db, tx.getNode(identity));
+				wrapper = SQLRelationship.newInstance(db, tx.getRelationship(identity));
 
 				relCache.put(identity, wrapper);
 			}

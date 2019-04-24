@@ -26,10 +26,10 @@ import java.util.logging.Logger;
 
 /**
  */
-class PropertyStreamIterator implements Iterator<PropertySetResult> {
+class PropertyStreamIterator implements Iterator<NodeResult> {
 
-	private PropertySetResult previous = null;
-	private PropertySetResult current  = null;
+	private NodeResult previous = null;
+	private NodeResult current  = null;
 	private ResultSet resultSet        = null;
 	private long currentObjectId       = -1;
 	private boolean firstCall          = true;
@@ -59,7 +59,7 @@ class PropertyStreamIterator implements Iterator<PropertySetResult> {
 	}
 
 	@Override
-	public PropertySetResult next() {
+	public NodeResult next() {
 
 		firstCall = false;
 
@@ -74,7 +74,7 @@ class PropertyStreamIterator implements Iterator<PropertySetResult> {
 					// current object has changed..
 					currentObjectId = thisObjectId;
 					previous        = current;
-					current         = new PropertySetResult(SQLIdentity.forId(thisObjectId));
+					current         = new NodeResult(SQLIdentity.forId(thisObjectId));
 
 					current.visit(resultSet);
 

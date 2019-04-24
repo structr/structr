@@ -24,7 +24,7 @@ import java.util.Iterator;
 
 /**
  */
-class PropertyStream implements Iterable<PropertySetResult> {
+class PropertyStream implements Iterable<NodeResult> {
 
 	private ResultSet resultSet = null;
 
@@ -33,7 +33,7 @@ class PropertyStream implements Iterable<PropertySetResult> {
 	}
 
 	@Override
-	public Iterator<PropertySetResult> iterator() {
+	public Iterator<NodeResult> iterator() {
 		return new PropertyStreamIterator(resultSet);
 	}
 }

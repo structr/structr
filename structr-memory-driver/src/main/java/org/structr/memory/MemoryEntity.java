@@ -111,11 +111,6 @@ public abstract class MemoryEntity implements PropertyContainer {
 	}
 
 	@Override
-	public boolean isSpatialEntity() {
-		return false;
-	}
-
-	@Override
 	public boolean isStale() {
 		return false;
 	}

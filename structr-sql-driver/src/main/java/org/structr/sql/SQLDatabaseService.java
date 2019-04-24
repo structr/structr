@@ -77,10 +77,37 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 
 	@Override
 	public void cleanDatabase() {
+
+		try {
+
+			final SQLTransaction tx = getCurrentTransaction();
+
+			tx.prepareStatement("DELETE FROM Node").execute();
+			tx.prepareStatement("DELETE FROM Label").execute();
+			tx.prepareStatement("DELETE FROM Relationship").execute();
+			tx.prepareStatement("DELETE FROM NodeProperty").execute();
+			tx.prepareStatement("DELETE FROM RelationshipProperty").execute();
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	@Override
 	public void deleteNodesByLabel(final String label) {
+
+		try {
+
+			final SQLTransaction tx     = getCurrentTransaction();
+			final PreparedStatement stm = tx.prepareStatement("DELETE n, l, p FROM Label l JOIN Node n ON n.id = l.nodeId JOIN NodeProperty p ON o.nodeId = l.nodeId WHERE l.name = ?");
+
+			stm.setString(1, label);
+
+			stm.execute();
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	@Override
@@ -160,7 +187,7 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 						createProperty.executeUpdate();
 					}
 
-					return SQLNode.newInstance(this, new PropertySetResult(SQLIdentity.forId(newNodeId), properties));
+					return SQLNode.newInstance(this, new NodeResult(SQLIdentity.forId(newNodeId), properties));
 				}
 			}
 
@@ -183,7 +210,7 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 
 	@Override
 	public Relationship getRelationshipById(final Identity id) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return getRelationshipById((SQLIdentity)id);
 	}
 
 	@Override
@@ -305,6 +332,10 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 	// ----- package-private methods -----
 	SQLNode getNodeById(final SQLIdentity identity) {
 		return SQLNode.newInstance(this, identity);
+	}
+
+	SQLRelationship getRelationshipById(final SQLIdentity identity) {
+		return SQLRelationship.newInstance(this, identity);
 	}
 
 	SQLTransaction getCurrentTransaction() {

@@ -22,22 +22,30 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.structr.api.graph.RelationshipType;
 
 /**
  */
-class PropertySetResult {
+class RelationshipResult {
 
 	private Map<String, Object> data = new LinkedHashMap<>();
 	private SQLIdentity id           = null;
+	private RelationshipType relType = null;
+	private SQLIdentity sourceNode   = null;
+	private SQLIdentity targetNode   = null;
 
-	public PropertySetResult(final SQLIdentity identity) {
-		this.id = identity;
+	public RelationshipResult(final SQLIdentity identity, final SQLIdentity sourceNode, final SQLIdentity targetNode, final RelationshipType relType) {
+		this(identity, sourceNode, targetNode, relType, null);
 	}
 
-	public PropertySetResult(final SQLIdentity identity, final Map<String, Object> data) {
+	public RelationshipResult(final SQLIdentity identity, final SQLIdentity sourceNode, final SQLIdentity targetNode, final RelationshipType relType, final Map<String, Object> data) {
 
-		this.id = identity;
 		this.data.putAll(data);
+
+		this.id         = identity;
+		this.relType    = relType;
+		this.sourceNode = sourceNode;
+		this.targetNode = targetNode;
 	}
 
 	SQLIdentity id() {
@@ -60,5 +68,17 @@ class PropertySetResult {
 
 			data.put(name, value);
 		}
+	}
+
+	RelationshipType getRelType() {
+		return relType;
+	}
+
+	SQLIdentity getSourceNode() {
+		return sourceNode;
+	}
+
+	SQLIdentity getTargetNode() {
+		return targetNode;
 	}
 }

@@ -20,45 +20,20 @@ package org.structr.sql;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Iterator;
 
 /**
  */
-class NodeResult {
+class IdentityStream implements Iterable<SQLIdentity> {
 
-	private Map<String, Object> data = new LinkedHashMap<>();
-	private SQLIdentity id           = null;
+	private ResultSet resultSet = null;
 
-	public NodeResult(final SQLIdentity identity) {
-		this.id = identity;
+	public IdentityStream(final ResultSet resultSet) throws SQLException {
+		this.resultSet = resultSet;
 	}
 
-	public NodeResult(final SQLIdentity identity, final Map<String, Object> data) {
-
-		this.id = identity;
-		this.data.putAll(data);
-	}
-
-	SQLIdentity id() {
-		return id;
-	}
-
-	Map<String, Object> data() {
-		return data;
-	}
-
-	void visit(final ResultSet result) throws SQLException {
-
-		// The type column contains the column index
-		// of the actual value in this property row.
-		final String name  = result.getString("name");
-		final int type     = result.getInt("type");
-		final Object value = result.getObject(type);
-
-		if (name != null && value != null) {
-
-			data.put(name, value);
-		}
+	@Override
+	public Iterator<SQLIdentity> iterator() {
+		return new IdentityStreamIterator(resultSet);
 	}
 }

@@ -30,6 +30,7 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.FixedSizeCache;
+import org.structr.api.util.Iterables;
 
 /**
  */
@@ -37,8 +38,8 @@ class SQLNode extends SQLEntity implements Node {
 
 	private static FixedSizeCache<SQLIdentity, SQLNode> nodeCache = null;
 
-	public SQLNode(final SQLDatabaseService db, final PropertySetResult id) {
-		super(db, id);
+	public SQLNode(final SQLDatabaseService db, final NodeResult result) {
+		super(db, result.id(), result.data());
 	}
 
 	public SQLNode(final SQLIdentity id) {
@@ -60,10 +61,11 @@ class SQLNode extends SQLEntity implements Node {
 
 		try {
 
-			final SQLTransaction tx     = db.getCurrentTransaction();
-			final PreparedStatement stm = tx.prepareStatement("INSERT INTO Relationship (source, target, type) values(?, ?, ?)");
-			final long sourceId         = id.getId();
-			final long targetId         = ((SQLIdentity)endNode.getId()).getId();
+			final SQLTransaction tx          = db.getCurrentTransaction();
+			final PreparedStatement stm      = tx.prepareStatement("INSERT INTO Relationship (source, target, type) values(?, ?, ?)");
+			final SQLIdentity targetIdentity = (SQLIdentity)endNode.getId();
+			final long sourceId              = id.getId();
+			final long targetId              = targetIdentity.getId();
 
 			stm.setLong(1, sourceId);
 			stm.setLong(2, targetId);
@@ -77,6 +79,7 @@ class SQLNode extends SQLEntity implements Node {
 
 					final PreparedStatement createProperty = tx.prepareStatement("INSERT INTO RelationshipProperty(relationshipId, name, type, stringValue, intValue) values(?, ?, ?, ?, ?)");
 					final long newRelationshipId           = generatedKeys.getLong(1);
+					final SQLIdentity newId                = SQLIdentity.forId(newRelationshipId);
 
 					for (final Entry<String, Object> entry : properties.entrySet()) {
 
@@ -109,8 +112,8 @@ class SQLNode extends SQLEntity implements Node {
 						createProperty.executeUpdate();
 					}
 
-					FIXME: this doesnt work: we need (source, target, relType) when creating a new Relationship instance
-					return SQLRelationship.newInstance(db, new PropertySetResult(SQLIdentity.forId(newRelationshipId), properties));
+					//FIXME: this doesnt work: we need (source, target, relType) when creating a new Relationship instance
+					return SQLRelationship.newInstance(db, new RelationshipResult(newId, getIdentity(), targetIdentity, relationshipType, data));
 				}
 			}
 
@@ -167,22 +170,133 @@ class SQLNode extends SQLEntity implements Node {
 
 	@Override
 	public boolean hasRelationshipTo(final RelationshipType relationshipType, final Node targetNode) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		try {
+
+			final SQLTransaction tx     = db.getCurrentTransaction();
+			final PreparedStatement stm = tx.prepareStatement("SELECT COUNT(*) FROM Relationship WHERE name = ? AND source = ? AND target = ?");
+			final long idValue          = getIdentity().getId();
+
+			stm.setString(1, relationshipType.name());
+			stm.setLong(2, idValue);
+			stm.setLong(3, idValue);
+
+			if (stm.execute()) {
+
+				try (final ResultSet result = stm.getResultSet()) {
+
+					if (result.next()) {
+
+						return result.getLong(1) > 0;
+					}
+				}
+			}
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
+
+		return false;
 	}
 
 	@Override
 	public Iterable<Relationship> getRelationships() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		try {
+
+			final SQLTransaction tx     = db.getCurrentTransaction();
+			final PreparedStatement stm = tx.prepareStatement("SELECT id FROM Relationship WHERE source = ? OR target = ?");
+			final long idValue          = getIdentity().getId();
+
+			stm.setLong(1, idValue);
+			stm.setLong(2, idValue);
+
+			return Iterables.map(r -> SQLRelationship.newInstance(db, r), new IdentityStream(stm.executeQuery()));
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
+
+		return null;
 	}
 
 	@Override
 	public Iterable<Relationship> getRelationships(final Direction direction) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		final StringBuilder buf = new StringBuilder("SELECT * FROM Relationship WHERE ");
+
+		switch (direction) {
+
+			case OUTGOING:
+				buf.append("source = ?");
+				break;
+
+			case INCOMING:
+				buf.append("target = ?");
+				break;
+
+			case BOTH:
+				return getRelationships();
+		}
+
+		try {
+
+			final SQLTransaction tx     = db.getCurrentTransaction();
+			final PreparedStatement stm = tx.prepareStatement(buf.toString());
+			final long idValue          = getIdentity().getId();
+
+			stm.setLong(1, idValue);
+
+			return Iterables.map(r -> SQLRelationship.newInstance(db, r), new IdentityStream(stm.executeQuery()));
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
+
+		return null;
 	}
 
 	@Override
 	public Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		final StringBuilder buf = new StringBuilder("SELECT * FROM Relationship WHERE type = ?");
+
+		switch (direction) {
+
+			case OUTGOING:
+				buf.append("source = ?");
+				break;
+
+			case INCOMING:
+				buf.append("target = ?");
+				break;
+
+			case BOTH:
+				buf.append("source = ? OR target = ?");
+				break;
+		}
+
+		try {
+
+			final SQLTransaction tx     = db.getCurrentTransaction();
+			final PreparedStatement stm = tx.prepareStatement(buf.toString());
+			final long idValue          = getIdentity().getId();
+
+			stm.setString(1, relationshipType.name());
+			stm.setLong(2, idValue);
+
+			// optionally set third parameter
+			if (Direction.BOTH.equals(direction)) {
+				stm.setLong(3, idValue);
+			}
+
+			return Iterables.map(r -> SQLRelationship.newInstance(db, r), new IdentityStream(stm.executeQuery()));
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
+
+		return null;
 	}
 
 	// ----- public static methods -----
@@ -190,7 +304,7 @@ class SQLNode extends SQLEntity implements Node {
 		nodeCache = new FixedSizeCache<>(cacheSize);
 	}
 
-	public static SQLNode newInstance(final SQLDatabaseService db, final PropertySetResult result) {
+	public static SQLNode newInstance(final SQLDatabaseService db, final NodeResult result) {
 
 		synchronized (nodeCache) {
 
@@ -225,17 +339,13 @@ class SQLNode extends SQLEntity implements Node {
 		}
 	}
 
+	@Override
 	public boolean isStale() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return false;
 	}
 
 	@Override
 	public boolean isDeleted() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public boolean isSpatialEntity() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return false;
 	}
 }

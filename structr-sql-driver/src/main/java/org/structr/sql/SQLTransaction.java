@@ -25,6 +25,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.atomic.AtomicLong;
 import org.structr.api.Transaction;
+import org.structr.api.graph.RelationshipType;
 
 /**
  */
@@ -84,7 +85,7 @@ public class SQLTransaction implements Transaction {
 	}
 
 	// ----- package-private methods -----
-	PropertySetResult getNode(final SQLIdentity id) {
+	NodeResult getNode(final SQLIdentity id) {
 
 		try {
 
@@ -96,11 +97,60 @@ public class SQLTransaction implements Transaction {
 
 				try (final ResultSet result = statement.getResultSet()) {
 
-					final PropertySetResult node = new PropertySetResult(id);
+					final NodeResult node = new NodeResult(id);
 					while (result.next()) {
 
 						node.visit(result);
 					}
+
+					return node;
+				}
+			}
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
+
+		return null;
+	}
+
+	RelationshipResult getRelationship(final SQLIdentity id) {
+
+		try {
+
+			final PreparedStatement relationship = connection.prepareStatement("SELECT * FROM Relationship WHERE relationshipId = ?");
+			final long relationshipId            = id.getId();
+
+			relationship.setLong(1, relationshipId);
+
+			if (relationship.execute()) {
+
+				try (final ResultSet queryResult = relationship.getResultSet()) {
+
+					final long source                  = queryResult.getLong(2);
+					final long target                  = queryResult.getLong(3);
+					final String type                  = queryResult.getString(4);
+					final SQLIdentity sourceId         = SQLIdentity.forId(source);
+					final SQLIdentity targetId         = SQLIdentity.forId(target);
+					final RelationshipType relType     = db.forName(RelationshipType.class, type);
+					final PreparedStatement properties = connection.prepareStatement("SELECT * FROM RelationshipProperty WHERE relationshipId = ?");
+
+					properties.setLong(1, relationshipId);
+
+					if (properties.execute()) {
+
+						try (final ResultSet result = properties.getResultSet()) {
+
+							final RelationshipResult relationshipResult = new RelationshipResult(id, sourceId, targetId, relType);
+							while (result.next()) {
+
+								relationshipResult.visit(result);
+							}
+
+							return relationshipResult;
+						}
+					}
+
 				}
 			}
 
