@@ -331,7 +331,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 				try {
 
-					String fileName = p.getFileName();
+					String fileName = decodeText(p.getFileName());
 
 					if (fileName == null) {
 						fileName = NodeServiceCommand.getNextUuid();
@@ -536,6 +536,19 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 		return null;
 	}
 
+	private String decodeText (final String text) {
+
+		try {
+
+			return MimeUtility.decodeText(text);
+
+		} catch (UnsupportedEncodingException ex) {
+
+			logger.warn("UnsupportedEncodingException for input '{}'. Returning as is.", text);
+			return text;
+		}
+	}
+
 	//////////////////////////////////////////////////////////////// Nested classes
 	private class MailFetchTask implements Runnable {
 		private final Mailbox mailbox;
@@ -725,19 +738,6 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 				} catch (Throwable ex) {
 					logger.error("Error while updating Mails: ", ex);
 				}
-			}
-		}
-
-		private String decodeText (final String text) {
-
-			try {
-
-				return MimeUtility.decodeText(text);
-
-			} catch (UnsupportedEncodingException ex) {
-
-				logger.warn("UnsupportedEncodingException for input '{}'. Returning as is.", text);
-				return text;
 			}
 		}
 	}
