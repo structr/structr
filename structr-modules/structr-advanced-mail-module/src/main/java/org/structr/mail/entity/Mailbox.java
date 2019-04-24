@@ -44,19 +44,19 @@ public interface Mailbox extends NodeInterface {
 
 		type.addStringProperty("host",                           PropertyView.Ui).setIndexed(true).setRequired(true);
 		type.addStringProperty("user",                           PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addStringProperty("password",                       PropertyView.Ui).setIndexed(true).setRequired(false);
 		type.addStringProperty("overrideMailEntityType",         PropertyView.Ui).setIndexed(true);
+		type.addEncryptedProperty("password",                    PropertyView.Ui).setIndexed(true).setRequired(false);
 		type.addStringArrayProperty("folders",                   PropertyView.Ui).setIndexed(true);
 		type.addEnumProperty("mailProtocol",                     PropertyView.Ui).setEnums("pop3,imaps").setIndexed(true).setRequired(true);
 		type.addIntegerProperty("port",                          PropertyView.Ui).setIndexed(true);
 		type.addFunctionProperty("availableFoldersOnServer",     PropertyView.Ui).setReadFunction("{return Structr.this.getAvailableFoldersOnServer()}").setIndexed(false);
 
-		type.addPropertyGetter("host",                    String.class);
-		type.addPropertyGetter("user",                    String.class);
-		type.addPropertyGetter("password",                String.class);
-		type.addPropertyGetter("overrideMailEntityType",  String.class);
-		type.addPropertyGetter("mailProtocol",            Object.class);
-		type.addPropertyGetter("port",      		      Integer.class);
+		type.addPropertyGetter("host",                     String.class);
+		type.addPropertyGetter("user",                     String.class);
+		type.addPropertyGetter("password",                 String.class);
+		type.addPropertyGetter("overrideMailEntityType",   String.class);
+		type.addPropertyGetter("mailProtocol",             Object.class);
+		type.addPropertyGetter("port",      		       Integer.class);
 		type.addMethod("getFolders")
 				.setReturnType("String[]")
 				.setSource("return getProperty(foldersProperty);");
