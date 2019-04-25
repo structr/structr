@@ -25,7 +25,7 @@ import org.structr.api.util.FixedSizeCache;
 
 /**
  */
-class SQLRelationship extends SQLEntity implements Relationship {
+public class SQLRelationship extends SQLEntity implements Relationship {
 
 	private static FixedSizeCache<SQLIdentity, SQLRelationship> relCache = null;
 

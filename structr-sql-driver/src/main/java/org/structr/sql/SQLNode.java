@@ -34,7 +34,7 @@ import org.structr.api.util.Iterables;
 
 /**
  */
-class SQLNode extends SQLEntity implements Node {
+public class SQLNode extends SQLEntity implements Node {
 
 	private static FixedSizeCache<SQLIdentity, SQLNode> nodeCache = null;
 

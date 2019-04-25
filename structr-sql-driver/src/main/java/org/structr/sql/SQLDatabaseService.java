@@ -22,6 +22,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -49,7 +50,10 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 	private static final Logger logger                     = LoggerFactory.getLogger(SQLDatabaseService.class);
 
 	private final ThreadLocal<SQLTransaction> transactions = new ThreadLocal<>();
+	private final Map<String, Object> properties           = new LinkedHashMap<>();
 	private BasicDataSource dataSource                     = null;
+	private SQLRelationshipIndex relIndex                  = null;
+	private SQLNodeIndex nodeIndex                         = null;
 
 	@Override
 	public boolean initialize(final String serviceName) {
@@ -271,12 +275,38 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 
 	@Override
 	public Iterable<Relationship> getAllRelationships() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		try {
+
+			final SQLTransaction tx     = getCurrentTransaction();
+			final PreparedStatement stm = tx.prepareStatement("SELECT id FROM Relationship");
+
+			return Iterables.map(r -> SQLRelationship.newInstance(this, r), new IdentityStream(stm.executeQuery()));
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
+
+		return null;
 	}
 
 	@Override
 	public Iterable<Relationship> getRelationshipsByType(final String type) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		try {
+
+			final SQLTransaction tx     = getCurrentTransaction();
+			final PreparedStatement stm = tx.prepareStatement("SELECT id FROM Relationship WHERE type = ?");
+
+			stm.setString(1, type);
+
+			return Iterables.map(r -> SQLRelationship.newInstance(this, r), new IdentityStream(stm.executeQuery()));
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
+
+		return null;
 	}
 
 	@Override
@@ -286,47 +316,58 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 
 	@Override
 	public Index<Node> nodeIndex() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		if (nodeIndex == null) {
+
+			nodeIndex = new SQLNodeIndex(this);
+		}
+
+		return nodeIndex;
 	}
 
 	@Override
 	public Index<Relationship> relationshipIndex() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		if (relIndex == null) {
+
+			relIndex = new SQLRelationshipIndex(this);
+		}
+
+		return relIndex;
 	}
 
 	@Override
 	public void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfig, final Map<String, Map<String, Boolean>> removedClasses) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public CountResult getNodeAndRelationshipCount() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return new CountResult(0, 0);
 	}
 
 	@Override
 	public <T> T execute(NativeQuery<T> nativeQuery) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public <T> NativeQuery<T> query(final Object query, final Class<T> resultType) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public boolean supportsFeature(final DatabaseFeature feature, final Object... parameters) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return false;
 	}
 
 	@Override
 	public void setProperty(final String name, final Object value) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		properties.put(name, value);
 	}
 
 	@Override
 	public Object getProperty(final String name) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return properties.get(name);
 	}
 
 	// ----- package-private methods -----
