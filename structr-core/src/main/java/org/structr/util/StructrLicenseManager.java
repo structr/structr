@@ -345,6 +345,9 @@ public class StructrLicenseManager implements LicenseManager {
 			return false;
 		}
 
+		startDate = parseDate(startDateString);
+		endDate   = parseDate(endDateString);
+
 		try {
 
 			final byte[] data      = src.getBytes(CharSet);
@@ -442,7 +445,6 @@ public class StructrLicenseManager implements LicenseManager {
 		}
 
 		// verify that the license is valid for the current date
-		startDate = parseDate(startDateString);
 		if (startDate != null && now.before(startDate) && !now.equals(startDate)) {
 
 			logger.error("License found in license file is not yet valid, license period starts {}.", format.format(startDate.getTime()));
@@ -450,7 +452,6 @@ public class StructrLicenseManager implements LicenseManager {
 		}
 
 		// verify that the license is valid for the current date
-		endDate = parseDate(endDateString);
 		if (licenseExpired()) {
 
 			logger.error("License found in license file is not valid any more, license period ended {}.", format.format(endDate.getTime()));
