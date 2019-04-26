@@ -109,7 +109,7 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 			return new String(cipher.doFinal(Base64.getDecoder().decode(encryptedText)), CHARSET);
 
 		} catch (Throwable t) {
-			logger.error("Unable to decrypt ciphertext: {}", t.getMessage());
+			logger.error("Unable to decrypt ciphertext: {}: {}", t.getClass().getSimpleName(), t.getMessage());
 		}
 
 		return null;
@@ -135,7 +135,7 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 			return new String(cipher.doFinal(Base64.getDecoder().decode(encryptedText)), CHARSET);
 
 		} catch (Throwable t) {
-			logger.error("Unable to decrypt ciphertext: {}", t.getMessage());
+			logger.error("Unable to decrypt ciphertext: {}: {}", t.getClass().getSimpleName(), t.getMessage());
 		}
 
 		return null;
