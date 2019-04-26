@@ -49,8 +49,13 @@ var _Dashboard = {
 
 			templateConfig.envInfo = data.result;
 
-			templateConfig.envInfo.startDate = _Dashboard.dateToIsoString(templateConfig.envInfo.startDate);
-			templateConfig.envInfo.endDate = _Dashboard.dateToIsoString(templateConfig.envInfo.endDate);
+			if (templateConfig.envInfo.startDate) {
+				templateConfig.envInfo.startDate = _Dashboard.dateToIsoString(templateConfig.envInfo.startDate);
+			}
+
+			if (templateConfig.envInfo.endDate) {
+				templateConfig.envInfo.endDate = _Dashboard.dateToIsoString(templateConfig.envInfo.endDate);
+			}
 
 			return fetch(rootUrl + '/me/ui');
 
