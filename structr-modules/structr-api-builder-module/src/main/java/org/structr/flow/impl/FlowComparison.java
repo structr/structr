@@ -68,44 +68,37 @@ public class FlowComparison extends FlowCondition implements DataSource, Deploya
 
 		Boolean result = true;
 
-		if (value != null) {
+		for (final DataSource _ds : getProperty(dataSources)) {
 
-			for (final DataSource _ds : getProperty(dataSources)) {
+			Object data = _ds.get(context);
 
-				Object data = _ds.get(context);
+			if (data == null || data instanceof Comparable) {
 
-				if (data instanceof Comparable) {
+				Comparable c = (Comparable) data;
 
-					Comparable c = (Comparable) data;
-
-					switch (op) {
-						case equal:
-							result = result && c.compareTo(value) == 0;
-							break;
-						case notEqual:
-							result = result && c.compareTo(value) != 0;
-							break;
-						case greater:
-							result = result && c.compareTo(value) > 0;
-							break;
-						case greaterOrEqual:
-							result = result && c.compareTo(value) >= 0;
-							break;
-						case less:
-							result = result && c.compareTo(value) < 0;
-							break;
-						case lessOrEqual:
-							result = result && c.compareTo(value) <= 0;
-							break;
-					}
-
+				switch (op) {
+					case equal:
+						result = result && ((c == null && value == null) || (c != null && value != null && c.compareTo(value) == 0));
+						break;
+					case notEqual:
+						result = result && ((c == null && value != null) || (c != null && value == null) || (c != null && value != null && c.compareTo(value) != 0));
+						break;
+					case greater:
+						result = result && ((c != null && value == null) || (c != null && value != null && c.compareTo(value) > 0));
+						break;
+					case greaterOrEqual:
+						result = result && ((c == null && value == null) || (c != null && value != null && c.compareTo(value) >= 0));
+						break;
+					case less:
+						result = result && ((c == null && value != null) || (c != null && value != null && c.compareTo(value) < 0));
+						break;
+					case lessOrEqual:
+						result = result && ((c == null && value != null) || (c == null && value == null) || (c != null && value != null && c.compareTo(value) <= 0));
+						break;
 				}
 
 			}
 
-		} else {
-
-			return false;
 		}
 
 		return result;
