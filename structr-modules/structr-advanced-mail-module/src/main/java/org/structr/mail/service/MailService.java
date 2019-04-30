@@ -573,7 +573,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 				final Store store = connectToStore(mailbox);
 
-				if (store.isConnected()) {
+				if (store != null && store.isConnected()) {
 
 					for (final String folder : folders) {
 
