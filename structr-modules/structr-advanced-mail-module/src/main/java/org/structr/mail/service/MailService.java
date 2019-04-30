@@ -133,24 +133,28 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 			List<String> folders = new ArrayList<>();
 
-			try {
-				final Folder defaultFolder = store.getDefaultFolder();
-				if (defaultFolder != null) {
+			if (store.isConnected()) {
 
-					final Folder[] folderList = defaultFolder.list("*");
+				try {
+					final Folder defaultFolder = store.getDefaultFolder();
+					if (defaultFolder != null) {
 
-					for (final Folder folder : folderList) {
+						final Folder[] folderList = defaultFolder.list("*");
 
-						if ((folder.getType() & javax.mail.Folder.HOLDS_MESSAGES) != 0) {
+						for (final Folder folder : folderList) {
 
-							folders.add(folder.getFullName());
+							if ((folder.getType() & javax.mail.Folder.HOLDS_MESSAGES) != 0) {
+
+								folders.add(folder.getFullName());
+							}
 						}
 					}
+
+				} catch (MessagingException ex) {
+
+					logger.error("Exception while trying to fetch mailbox folders.", ex);
 				}
 
-			} catch (MessagingException ex) {
-
-				logger.error("Exception while trying to fetch mailbox folders.", ex);
 			}
 
 			return folders;
@@ -408,7 +412,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 					}
 
 
-				} else if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()) || (part.getContentType().toLowerCase().contains("image/") && Part.INLINE.equalsIgnoreCase(part.getDisposition()))) {
+				} else if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()) || (part.getContentType().toLowerCase().contains("image/") && Part.INLINE.equalsIgnoreCase(part.getDisposition())) || part.getContentType().toLowerCase().contains("application/pdf")) {
 
 					final File file = extractFileAttachment(mb, part);
 

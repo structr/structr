@@ -67,14 +67,9 @@ public class Services implements StructrServices {
 
 	private static final Logger logger                                   = LoggerFactory.getLogger(StructrApp.class.getName());
 
-	// Configuration constants
-	public static final String LOG_SERVICE_INTERVAL                      = "structr.logging.interval";
-	public static final String LOG_SERVICE_THRESHOLD                     = "structr.logging.threshold";
-	public static final String WS_INDENTATION                            = "ws.indentation";
-
 	// singleton instance
 	private static String jvmIdentifier                = ManagementFactory.getRuntimeMXBean().getName();
-	private static final long licenseCheckInterval     = TimeUnit.SECONDS.toMillis(2);
+	private static final long licenseCheckInterval     = TimeUnit.HOURS.toMillis(2);
 	private static Services singletonInstance          = null;
 	private static boolean testingModeDisabled         = false;
 	private static boolean calculateHierarchy          = false;
