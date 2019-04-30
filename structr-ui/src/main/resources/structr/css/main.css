@@ -166,6 +166,10 @@ input[type="checkbox"] {
 	margin-left: 5px;
 }
 
+#main {
+	height: calc(100% - 72px);
+}
+
 #main-help {
 	position: absolute;
 	top: 64px;
@@ -1795,7 +1799,7 @@ button.enabled, button.active {
 	-khtml-user-select: none;
 	-moz-user-select: none;
 	-ms-user-select: none;
-	
+
 }
 
 .pager input {
