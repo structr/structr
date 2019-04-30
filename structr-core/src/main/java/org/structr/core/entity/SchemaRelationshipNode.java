@@ -39,6 +39,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.graph.PropagationDirection;
+import org.structr.api.graph.PropagationMode;
 import org.structr.api.util.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.PermissionPropagation;
@@ -73,8 +75,8 @@ import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.SourceFile;
 import org.structr.schema.SourceLine;
 import org.structr.schema.action.ActionEntry;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonSchema.Cascade;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonSchema.Cascade;
 import org.structr.schema.parser.Validator;
 
 /**
@@ -106,22 +108,13 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	public static final Property<Long>       autocreationFlag       = new LongProperty("autocreationFlag");
 	public static final Property<Boolean>    isPartOfBuiltInSchema  = new BooleanProperty("isPartOfBuiltInSchema");
 
-
-	public enum Propagation {
-		Add, Keep, Remove
-	}
-
-	public enum Direction {
-		None, In, Out, Both
-	}
-
 	// permission propagation via domain relationships
-	public static final Property<Direction>   permissionPropagation    = new EnumProperty("permissionPropagation", Direction.class, Direction.None);
-	public static final Property<Propagation> readPropagation          = new EnumProperty<>("readPropagation", Propagation.class, Propagation.Remove);
-	public static final Property<Propagation> writePropagation         = new EnumProperty<>("writePropagation", Propagation.class, Propagation.Remove);
-	public static final Property<Propagation> deletePropagation        = new EnumProperty<>("deletePropagation", Propagation.class, Propagation.Remove);
-	public static final Property<Propagation> accessControlPropagation = new EnumProperty<>("accessControlPropagation", Propagation.class, Propagation.Remove);
-	public static final Property<String>      propertyMask             = new StringProperty("propertyMask");
+	public static final Property<PropagationDirection>   permissionPropagation = new EnumProperty("permissionPropagation", PropagationDirection.class, PropagationDirection.None);
+	public static final Property<PropagationMode> readPropagation              = new EnumProperty<>("readPropagation", PropagationMode.class, PropagationMode.Remove);
+	public static final Property<PropagationMode> writePropagation             = new EnumProperty<>("writePropagation", PropagationMode.class, PropagationMode.Remove);
+	public static final Property<PropagationMode> deletePropagation            = new EnumProperty<>("deletePropagation", PropagationMode.class, PropagationMode.Remove);
+	public static final Property<PropagationMode> accessControlPropagation     = new EnumProperty<>("accessControlPropagation", PropagationMode.class, PropagationMode.Remove);
+	public static final Property<String>      propertyMask                     = new StringProperty("propertyMask");
 
 	public static final View defaultView = new View(SchemaRelationshipNode.class, PropertyView.Public,
 		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
@@ -320,9 +313,9 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 					line.append(SchemaHelper.cleanPropertyName(propertyName));
 					line.append("Property");
 					line.append(" = ");
-					
+
 				}
-				
+
 				line.append("new EndNode<>(\"");
 				line.append(propertyName);
 				line.append("\", ");
@@ -579,7 +572,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 			interfaces.add(Ownership.class.getName());
 		}
 
-		if (!Direction.None.equals(getProperty(permissionPropagation))) {
+		if (!PropagationDirection.None.equals(getProperty(permissionPropagation))) {
 			interfaces.add(PermissionPropagation.class.getName());
 		}
 
@@ -592,8 +585,8 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		classDefinition.append(" {");
 
-		if (!Direction.None.equals(getProperty(permissionPropagation))) {
-			
+		if (!PropagationDirection.None.equals(getProperty(permissionPropagation))) {
+
 			src.begin(this, "static {");
 			src.line(this, "SchemaRelationshipNode.registerPropagatingRelationshipType(").append(_className).append(".class);");
 			src.end();
@@ -631,7 +624,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		src.begin(this, "public Class<").append(_sourceNodeType).append("> getSourceType() {");
 		src.line(this, "return ").append(_sourceNodeType).append(".class;");
 		src.end();
-		
+
 		src.line(this, "@Override");
 		src.begin(this, "public Class<").append(_targetNodeType).append("> getTargetType() {");
 		src.line(this, "return ").append(_targetNodeType).append(".class;");
@@ -1019,7 +1012,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 	private void formatPermissionPropagation(final SourceFile buf) {
 
-		if (!Direction.None.equals(getProperty(permissionPropagation))) {
+		if (!PropagationDirection.None.equals(getProperty(permissionPropagation))) {
 
 			buf.line(this, "@Override");
 			buf.begin(this, "public SchemaRelationshipNode.Direction getPropagationDirection() {");

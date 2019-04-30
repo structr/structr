@@ -269,7 +269,7 @@ public class AdvancedMailContainer {
 
 	/*~~~~~~~~ private functions  ~~~~~~~~~*/
 
-	public String getDisplayName (final String name, final String address) {
+	public String getDisplayName (final String address, final String name) {
 		return (name == null) ? address : (name + "<" + address + ">");
 	}
 

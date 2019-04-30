@@ -36,13 +36,13 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.test.core.entity.SixOneManyToMany;
 import org.structr.test.core.entity.TestOne;
 import org.structr.test.core.entity.TestSeven;
 import org.structr.test.core.entity.TestSix;
-import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -1115,10 +1115,10 @@ public class SearchAndSortingTest extends StructrTest {
 
 		try {
 
-			final NodeHasLocation rel = createTestRelationships(NodeHasLocation.class, 1).get(0);
-			final PropertyKey key1    = new StringProperty("jghsdkhgshdhgsdjkfgh").indexed();
-			final Class type          = NodeHasLocation.class;
-			final String val1         = "54354354546806849870";
+			final GenericRelationship rel = createTestRelationships(GenericRelationship.class, 1).get(0);
+			final PropertyKey key1        = new StringProperty("jghsdkhgshdhgsdjkfgh").indexed();
+			final Class type              = GenericRelationship.class;
+			final String val1             = "54354354546806849870";
 
 			final List<RelationshipInterface> result;
 

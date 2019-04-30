@@ -18,6 +18,7 @@
  */
 package org.structr.sql;
 
+import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
@@ -32,6 +33,7 @@ public class SQLRelationship extends SQLEntity implements Relationship {
 	private RelationshipType relType = null;
 	private SQLIdentity sourceNode   = null;
 	private SQLIdentity targetNode   = null;
+	private boolean isDeleted        = false;
 
 	public SQLRelationship(final SQLDatabaseService db, final RelationshipResult result) {
 
@@ -62,7 +64,7 @@ public class SQLRelationship extends SQLEntity implements Relationship {
 
 	@Override
 	public boolean isDeleted() {
-		return false;
+		return isDeleted;
 	}
 
 	@Override
@@ -88,6 +90,16 @@ public class SQLRelationship extends SQLEntity implements Relationship {
 	@Override
 	public RelationshipType getType() {
 		return relType;
+	}
+
+	@Override
+	public void delete(final boolean deleteRelationships) throws NotInTransactionException {
+
+		final SQLTransaction tx = db.getCurrentTransaction();
+
+		tx.deleteRelationship(getIdentity());
+
+		isDeleted = true;
 	}
 
 	// ----- public static methods -----

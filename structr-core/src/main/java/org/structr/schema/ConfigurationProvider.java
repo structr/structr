@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Set;
 import org.structr.agent.Agent;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
@@ -53,7 +54,6 @@ public interface ConfigurationProvider {
 	public Map<String, Class> getInterfaces();
 
 	public Set<Class> getClassesForInterface(final String simpleName);
-
 
 	public void registerPropertyGroup(final Class entityClass, final PropertyKey propertyKey, final PropertyGroup propertyGroup);
 	public void registerConvertedProperty(final PropertyKey property);
@@ -127,4 +127,6 @@ public interface ConfigurationProvider {
 
 	Map<String, StructrModule> getModules();
 	Map<String, Map<String, PropertyKey>> getTypeAndPropertyMapping();
+
+	JsonSchema getStaticSchema();
 }

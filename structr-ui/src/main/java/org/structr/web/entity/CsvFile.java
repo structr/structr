@@ -20,8 +20,8 @@ package org.structr.web.entity;
 
 import java.net.URI;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 
 /**
  *

@@ -16,138 +16,165 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-$(document).ready(function() {
+$(document).ready(function () {
 	Structr.registerModule(_Dashboard);
 });
 
 var _Dashboard = {
 	_moduleName: 'dashboard',
 	dashboard: undefined,
-	aboutMe: undefined,
-	meObj: undefined,
+	logInterval: undefined,
 
-	init: function() {
-		$('#dashboard').remove();
+	init: function () {},
+	unload: function () {
+		window.clearInterval(_Dashboard.logInterval);
 	},
-	unload: function() {},
-	onload: function() {
+	removeActiveClass: function (nodelist) {
+		nodelist.forEach(function (el) {
+			el.classList.remove('active');
+		});
+	},
+	onload: function () {
+
 		_Dashboard.init();
 		Structr.updateMainHelpLink('https://support.structr.com/article/202');
 
-		main.append('<div id="dashboard"></div>');
-		_Dashboard.dashboard = $('#dashboard', main);
+		let templateConfig = {};
 
-		_Dashboard.appendDatabaseSelectionBox();
+		fetch(rootUrl + '/_env').then(function (response) {
 
-		_Dashboard.aboutMe = _Dashboard.appendBox('About Me', 'about-me');
-		_Dashboard.aboutMe.append('<div class="dashboard-info">You are currently logged in as <b>' + me.username + '<b>.</div>');
-		_Dashboard.aboutMe.append('<div class="dashboard-info admin red"></div>');
-		_Dashboard.aboutMe.append('<table class="props"></table>');
+			return response.json();
 
-		$.get(rootUrl + '/me/ui', function(data) {
-			_Dashboard.meObj = data.result;
-			var t = $('table', _Dashboard.aboutMe);
-			t.append('<tr><td class="key">ID</td><td>' + _Dashboard.meObj.id + '</td></tr>');
-			t.append('<tr><td class="key">E-Mail</td><td>' + (_Dashboard.meObj.eMail || '') + '</td></tr>');
-			t.append('<tr><td class="key">Working Directory</td><td>' + (_Dashboard.meObj.workingDirectory ? _Dashboard.meObj.workingDirectory.name : '') + '</td></tr>');
-			t.append('<tr><td class="key">Session ID(s)</td><td>' + _Dashboard.meObj.sessionIds.join('<br>') + '</td></tr>');
-			t.append('<tr><td class="key">Groups</td><td>' + _Dashboard.meObj.groups.map(function(g) { return g.name; }).join(', ') + '</td></tr>');
+		}).then(function (data) {
 
-			if (_Dashboard.meObj.isAdmin) {
-				_Dashboard.appendDeploymentBox();
-				_Dashboard.appendMaintenanceBox();
-				_Dashboard.appendLogBox();
+			templateConfig.envInfo = data.result;
+
+			if (templateConfig.envInfo.startDate) {
+				templateConfig.envInfo.startDate = _Dashboard.dateToIsoString(templateConfig.envInfo.startDate);
 			}
+
+			if (templateConfig.envInfo.endDate) {
+				templateConfig.envInfo.endDate = _Dashboard.dateToIsoString(templateConfig.envInfo.endDate);
+			}
+
+			return fetch(rootUrl + '/me/ui');
+
+		}).then(function (response) {
+
+			return response.json();
+
+		}).then(function (data) {
+
+			templateConfig.meObj = data.result;
+
+		}).then(function () {
+
+			Structr.fetchHtmlTemplate('dashboard/dashboard', templateConfig, function (html) {
+
+				main.append(html);
+
+				document.querySelectorAll('#dashboard .tabs-menu li a').forEach(function (tabLink) {
+					tabLink.addEventListener('click', function (e) {
+						e.preventDefault();
+						let targetId = e.target.getAttribute('href');
+
+						_Dashboard.removeActiveClass(document.querySelectorAll('#dashboard .tabs-contents .tab-content'));
+						_Dashboard.removeActiveClass(document.querySelectorAll('#dashboard .tabs-menu li'));
+
+						e.target.closest('li').classList.add('active');
+						document.querySelector(targetId).classList.add('active');
+					});
+				});
+
+				document.querySelector('#clear-local-storage-on-server').addEventListener('click', function () {
+					_Dashboard.clearLocalStorageOnServer(templateConfig.meObj.id);
+				});
+
+				_Dashboard.checkLicenseEnd(templateConfig.envInfo, $('#dash-about-structr .end-date'));
+
+				$('button#do-import').on('click', function () {
+					var location = $('#deployment-source-input').val();
+					if (location && location.length) {
+						_Dashboard.deploy('import', location);
+					} else {
+						// show error message
+					}
+				});
+
+				$('button#do-export').on('click', function () {
+					var location = $('#deployment-target-input').val();
+					if (location && location.length) {
+						_Dashboard.deploy('export', location);
+					} else {
+						// show error message
+					}
+				});
+
+				_Dashboard.activateLogBox();
+
+				_Dashboard.appendGlobalSchemaMethods($('#dash-global-schema-methods'));
+				_Dashboard.appendDatabaseSelectionBox();
+
+				$(window).off('resize');
+				$(window).on('resize', function () {
+					Structr.resize();
+				});
+
+				Structr.unblockMenu(100);
+			});
 		});
-		_Dashboard.checkAdmin();
-
-		_Dashboard.aboutMe.append('<button class="action" id="clear-local-storage-on-server">Reset stored UI settings</button>');
-		$('#clear-local-storage-on-server').on('click', function() {
-			_Dashboard.clearLocalStorageOnServer();
-		});
-
-		_Dashboard.appendAboutBox();
-
-		$('.dashboard-info a.internal-link').on('click', function() {
-			$('#' + $(this).text() + '_').click();
-		});
-
-		$(window).off('resize');
-		$(window).on('resize', function() {
-			Structr.resize();
-		});
-
-		Structr.unblockMenu(100);
-
 	},
-	appendBox: function(heading, id) {
-		_Dashboard.dashboard.append('<div id="' + id + '" class="dashboard-box"><div class="dashboard-header"><h2>' + heading + '</h2></div></div>');
-		return $('#' + id, main);
+	dateToIsoString: function (dateString) {
+		let date = new Date(dateString);
+		return date.getFullYear() + '-' + ('' + (date.getMonth() + 1)).padStart(2, '0') + '-' + ('' + date.getDate()).padStart(2, '0');
 	},
-	checkAdmin: function() {
-		if (me.isAdmin && _Dashboard.aboutMe && _Dashboard.aboutMe.length && _Dashboard.aboutMe.find('admin').length === 0) {
-			$('.dashboard-info.admin', _Dashboard.aboutMe).text('You have admin rights.');
-		}
+	displayVersion: function (obj) {
+		return (obj.version ? ' (v' + obj.version + ')' : '');
 	},
-	displayVersion: function(obj) {
-		return (obj.version ? ' (v' + obj.version + ')': '');
-	},
-	displayName: function(obj) {
+	displayName: function (obj) {
 		return fitStringToWidth(obj.name, 160);
 	},
-	clearLocalStorageOnServer: function() {
+	clearLocalStorageOnServer: function (userId) {
 
-		var clear = function (userId) {
-			Command.setProperty(userId, 'localStorage', null, false, function() {
-				blinkGreen($('#clear-local-storage-on-server'));
-				LSWrapper.clear();
-			});
-		};
-
-		if (!_Dashboard.meObj) {
-			Command.rest("/me/ui", function (result) {
-				clear(result[0].id);
-			});
-		} else {
-			clear(_Dashboard.meObj.id);
-		}
+		Command.setProperty(userId, 'localStorage', null, false, function () {
+			blinkGreen($('#clear-local-storage-on-server'));
+			LSWrapper.clear();
+		});
 	},
-	appendDatabaseSelectionBox: function() {
+	appendDatabaseSelectionBox: function () {
 
-		_Dashboard.appendBox('Database Connections', 'database-connections');
+		Structr.fetchHtmlTemplate('dashboard/database.connections', {}, function (html) {
 
-		Structr.fetchHtmlTemplate('dashboard/database.connections', { }, function (html) {
-
-			var parent = $('#database-connections');
+			var parent = $('#dash-connections');
 
 			parent.append(html);
 
 			_Dashboard.loadDatabaseSelectionBox();
 		});
 	},
-	loadDatabaseSelectionBox: function() {
+	loadDatabaseSelectionBox: function () {
 
 		$.post(
 			rootUrl + '/maintenance/manageDatabases',
-			JSON.stringify({ command: "list" }),
-			function(data) {
+			JSON.stringify({command: "list"}),
+			function (data) {
 
 				var body = $('#database-connection-table-body');
 				body.empty();
 
-				data.result.forEach(function(result) {
+				data.result.forEach(function (result) {
 
 					Structr.fetchHtmlTemplate('dashboard/connection.row', _Dashboard.mapConnectionResult(result), function (html) {
 
 						body.append(html);
 
-						$('button#button_' + result.name).on('click', function(btn) {
+						$('button#button_' + result.name).on('click', function (btn) {
 
 							Structr.showLoadingMessage(
 								'Changing database connection to ' + result.name,
 								'Please wait until the change has been applied. If you don\'t have a valid session ID in the other database, you will need to re-login after the change.',
 								200
-							);
+								);
 
 							$.post(
 								rootUrl + '/maintenance/manageDatabases',
@@ -155,7 +182,7 @@ var _Dashboard = {
 									command: 'activate',
 									name: result.name
 								}),
-								function() {
+								function () {
 									Structr.hideLoadingMessage();
 									_Dashboard.onload();
 								}
@@ -166,30 +193,7 @@ var _Dashboard = {
 			}
 		);
 	},
-	appendAboutBox: function () {
-
-		var aboutStructrBox = _Dashboard.appendBox('About Structr', 'about-structr');
-		var aboutStructrTable = $('<table class="props"></table>').appendTo(aboutStructrBox);
-
-		$.get(rootUrl + '/_env', function(data) {
-			var envInfo = data.result;
-
-			if (envInfo.edition) {
-				var tooltipText = 'Structr ' + envInfo.edition + ' Edition';
-				var versionInfo = '<i title="' + tooltipText + '" class="' + _Icons.getFullSpriteClass(_Icons.getIconForEdition(envInfo.edition)) + '"></i> (' + tooltipText + ')';
-
-				aboutStructrTable.append('<tr><td class="key">Edition</td><td>' + versionInfo + '</td></tr>');
-				aboutStructrTable.append('<tr><td class="key">Licensee</td><td>' + (envInfo.licensee || 'Unlicensed') + '</td></tr>');
-				aboutStructrTable.append('<tr><td class="key">Host ID</td><td>' + (envInfo.hostId || '') + '</td></tr>');
-				aboutStructrTable.append('<tr><td class="key">License Start Date</td><td>' + (envInfo.startDate || '-') + '</td></tr>');
-				aboutStructrTable.append('<tr><td class="key">License End Date</td><td class="end-date">' + (envInfo.endDate || '-') + '</td></tr>');
-
-				_Dashboard.checkLicenseEnd(envInfo, $('.end-date', aboutStructrTable));
-			}
-		});
-
-	},
-	checkLicenseEnd:function (envInfo, element, cfg) {
+	checkLicenseEnd: function (envInfo, element, cfg) {
 
 		if (envInfo && envInfo.endDate && element) {
 
@@ -224,17 +228,16 @@ var _Dashboard = {
 
 		}
 	},
-	appendMaintenanceBox: function () {
+	appendGlobalSchemaMethods: function (container) {
 
-		var maintenanceBox  = _Dashboard.appendBox('Global schema methods', 'maintenance');
-		var maintenanceList = $('<div></div>').appendTo(maintenanceBox);
+		var maintenanceList = $('<div></div>').appendTo(container);
 
-		$.get(rootUrl + '/SchemaMethod?schemaNode=&sort=name', function(data) {
+		$.get(rootUrl + '/SchemaMethod?schemaNode=&sort=name', function (data) {
 
-			data.result.forEach(function(result) {
+			data.result.forEach(function (result) {
 
-				var methodRow = $('<div class="dashboard-info" style="border-bottom: 1px solid #ddd; padding-bottom: 2px;"></div>');
-				var methodName = $('<span style="line-height: 2em;">' + result.name + ' </span>');
+				var methodRow = $('<div class="global-method" style=""></div>');
+				var methodName = $('<span>' + result.name + '</span>');
 
 				methodRow.append(methodName).append('<button id="run-' + result.id + '" class="pull-right" style="margin-left: 1em;">Run now</button>');
 				maintenanceList.append(methodRow);
@@ -251,9 +254,9 @@ var _Dashboard = {
 					});
 				}
 
-				$('button#run-' + result.id).on('click', function() {
+				$('button#run-' + result.id).on('click', function () {
 
-					Structr.dialog('Run global schema method ' + result.name, function() {}, function() {
+					Structr.dialog('Run global schema method ' + result.name, function () {}, function () {
 						$('#run-method').remove();
 						$('#clear-log').remove();
 					});
@@ -275,16 +278,16 @@ var _Dashboard = {
 					Structr.appendInfoTextToElement({
 						element: $('#params h3'),
 						text: "Parameters can be accessed by using the <code>retrieve()</code> function.",
-						css: { marginLeft: "5px" },
-						helpElementCss: { fontSize: "12px" }
+						css: {marginLeft: "5px"},
+						helpElementCss: {fontSize: "12px"}
 					});
 
-					addParamBtn.on('click', function() {
+					addParamBtn.on('click', function () {
 						var newParam = $('<div class="param"><input class="param-name" placeholder="Parameter name"> : <input class="param-value" placeholder="Parameter value"></div>');
 						var removeParam = $('<i class="button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" alt="Remove parameter" title="Remove parameter"/>');
 
 						newParam.append(removeParam);
-						removeParam.on('click', function() {
+						removeParam.on('click', function () {
 							newParam.remove();
 						});
 						paramsBox.append(newParam);
@@ -293,7 +296,7 @@ var _Dashboard = {
 					dialog.append('<h3>Method output</h3>');
 					dialog.append('<pre id="log-output"></pre>');
 
-					$('#run-method').on('click', function() {
+					$('#run-method').on('click', function () {
 
 						$('#log-output').empty();
 						$('#log-output').append('Running method..\n');
@@ -311,95 +314,57 @@ var _Dashboard = {
 							url: rootUrl + '/maintenance/globalSchemaMethods/' + result.name,
 							data: JSON.stringify(params),
 							method: 'POST',
-							complete: function(data) {
+							complete: function (data) {
 								$('#log-output').append(data.responseText);
 								$('#log-output').append('Done.');
 							}
 						});
 					});
 
-					$('#clear-log').on('click', function() {
+					$('#clear-log').on('click', function () {
 						$('#log-output').empty();
 					});
 				});
 			});
 		});
-
 	},
-	appendDeploymentBox: function () {
+	activateLogBox: function () {
 
-		var deploymentBox  = _Dashboard.appendBox('Deployment', 'deployment');
-		var container      = $('<div></div>').appendTo(deploymentBox);
+		let logBoxContentBox = $('#dash-server-log textarea');
 
-		container.append('<h3>Import application from local directory</h3>');
-		container.append('<div><input type="text" id="deployment-source-input" size="60" placeholder="Enter directory path..."> <button class="action" id="do-import">Import from local directory</button></div>');
+		let scrollEnabled = true;
 
-		container.append('<h3>Import application from URL</h3>');
-		container.append('<form action="/structr/deploy" method="POST" enctype="multipart/form-data"><input type="hidden" name="redirectUrl" value="' + window.location.href + '"><input type="text" id="deployment-url-input" size="60" placeholder="Enter download URL..." name="downloadUrl"> <button type="submit" class="action">Import from URL</button></form>');
-
-		container.append('<h3>Export application to local directory</h3>');
-		container.append('<div><input type="text" id="deployment-target-input" size="60" placeholder="Enter directory path..."> <button class="action" id="do-export">Export to local directory</button></div>');
-
-		$('button#do-import').on('click', function() {
-			var location = $('#deployment-source-input').val();
-			if (location && location.length) {
-				_Dashboard.deploy('import', location);
-			} else {
-				// show error message
-			}
-		});
-
-		$('button#do-export').on('click', function() {
-			var location = $('#deployment-target-input').val();
-			if (location && location.length) {
-				_Dashboard.deploy('export', location);
-			} else {
-				// show error message
-			}
-		});
-	},
-    appendLogBox: function () {
-
-        let logBox = _Dashboard.appendBox('Server Log', 'server-log');
-        let logBoxContentBox = $('<textarea readonly=true rows=25 style="width: 100%;resize: none;"></textarea>').appendTo(logBox);
-
-        let scrollEnabled = true;
-
-        let updateLog = function() {
-            Command.getServerLogSnapshot(300, (a)=> {
-                logBoxContentBox.html(a[0].result);
-                if (scrollEnabled) {
-                    logBoxContentBox.scrollTop(logBoxContentBox[0].scrollHeight);
-                }
-            });
-		};
-
-        let registerEventHandlers = function() {
-            let handle = window.setInterval(()=>updateLog(), 1000);
-
-            logBoxContentBox.bind('scroll', (event) => {
-            	let textarea = event.target;
-
-            	let maxScroll = textarea.scrollHeight - 4;
-            	let currentScroll = (textarea.scrollTop+$(textarea).height());
-
-            	if (currentScroll >= maxScroll) {
-                    scrollEnabled = true;
-				} else {
-                    scrollEnabled = false;
-
+		let updateLog = function () {
+			Command.getServerLogSnapshot(300, (a) => {
+				logBoxContentBox.html(a[0].result);
+				if (scrollEnabled) {
+					logBoxContentBox.scrollTop(logBoxContentBox[0].scrollHeight);
 				}
-
-            });
+			});
 		};
 
+		let registerEventHandlers = function () {
+			_Dashboard.logInterval = window.setInterval(() => updateLog(), 1000);
 
-        registerEventHandlers();
-        updateLog();
+			logBoxContentBox.bind('scroll', (event) => {
+				let textarea = event.target;
 
+				let maxScroll = textarea.scrollHeight - 4;
+				let currentScroll = (textarea.scrollTop + $(textarea).height());
 
-    },
-	deploy: function(mode, location) {
+				if (currentScroll >= maxScroll) {
+					scrollEnabled = true;
+				} else {
+					scrollEnabled = false;
+				}
+			});
+		};
+
+		registerEventHandlers();
+		updateLog();
+
+	},
+	deploy: function (mode, location) {
 
 		var data = {
 			mode: mode
@@ -418,21 +383,21 @@ var _Dashboard = {
 		});
 
 	},
-	mapConnectionResult: function(result) {
+	mapConnectionResult: function (result) {
 
 		var activeString = result.active ? '<b>active</b>' : '-';
-		var button       = result.active ? '' : '<button class="action" id="button_' + result.name + '">Connect</button>';
+		var button = result.active ? '' : '<button class="action" id="button_' + result.name + '">Connect</button>';
 
 		if (result.driver === 'org.structr.memory.MemoryDatabaseService') {
 
 			return {
 
-				name:     result.name,
-				type:     'in-memory',
-				url:      '-',
+				name: result.name,
+				type: 'in-memory',
+				url: '-',
 				username: '-',
-				active:   activeString,
-				button:   button
+				active: activeString,
+				button: button
 
 			};
 
@@ -440,32 +405,32 @@ var _Dashboard = {
 
 			return {
 
-				name:     result.name,
-				type:     'neo4j',
-				url:      result.url,
+				name: result.name,
+				type: 'neo4j',
+				url: result.url,
 				username: result.username,
-				active:   activeString,
-				button:   button
+				active: activeString,
+				button: button
 			};
 		}
 	}
 };
 
 /*
-		<td style="text-align: left;">${config.name}</td>
-		<td style="text-align: left;">${config.type}</td>
-		<td style="text-align: left;">${config.url}</td>
-		<td style="text-align: left;">${config.username}</td>
-		<td style="text-align: right;">${config.active}</td>
-		settings.put("name",                  name);
-		settings.put("driver",                Settings.DatabaseDriver.getPrefixedValue(prefix));
-		settings.put("mode",                  Settings.DatabaseDriverMode.getPrefixedValue(prefix));
-		settings.put("url",                   Settings.ConnectionUrl.getPrefixedValue(prefix));
-		settings.put("username",              Settings.ConnectionUser.getPrefixedValue(prefix));
-		settings.put("password",              Settings.ConnectionPassword.getPrefixedValue(prefix));
-		settings.put("tenantIdentifier",      Settings.TenantIdentifier.getPrefixedValue(prefix));
-		settings.put("relationshipCacheSize", Settings.RelationshipCacheSize.getPrefixedValue(prefix));
-		settings.put("nodeCacheSize",         Settings.NodeCacheSize.getPrefixedValue(prefix));
-		settings.put("uuidCachesize",         Settings.UuidCacheSize.getPrefixedValue(prefix));
-		settings.put("forceStreaming",        Settings.ForceResultStreaming.getPrefixedValue(prefix));
+ <td style="text-align: left;">${config.name}</td>
+ <td style="text-align: left;">${config.type}</td>
+ <td style="text-align: left;">${config.url}</td>
+ <td style="text-align: left;">${config.username}</td>
+ <td style="text-align: right;">${config.active}</td>
+ settings.put("name",                  name);
+ settings.put("driver",                Settings.DatabaseDriver.getPrefixedValue(prefix));
+ settings.put("mode",                  Settings.DatabaseDriverMode.getPrefixedValue(prefix));
+ settings.put("url",                   Settings.ConnectionUrl.getPrefixedValue(prefix));
+ settings.put("username",              Settings.ConnectionUser.getPrefixedValue(prefix));
+ settings.put("password",              Settings.ConnectionPassword.getPrefixedValue(prefix));
+ settings.put("tenantIdentifier",      Settings.TenantIdentifier.getPrefixedValue(prefix));
+ settings.put("relationshipCacheSize", Settings.RelationshipCacheSize.getPrefixedValue(prefix));
+ settings.put("nodeCacheSize",         Settings.NodeCacheSize.getPrefixedValue(prefix));
+ settings.put("uuidCachesize",         Settings.UuidCacheSize.getPrefixedValue(prefix));
+ settings.put("forceStreaming",        Settings.ForceResultStreaming.getPrefixedValue(prefix));
  */

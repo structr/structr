@@ -1,0 +1,154 @@
+<div id="dashboard">
+
+	<ul class="tabs-menu">
+		<li class="active">
+			<a href="#dash-connections">Database Connections</a>
+		</li>
+		<li>
+			<a href="#dash-about-me">About Me</a>
+		</li>
+		<li>
+			<a href="#dash-about-structr">About Structr</a>
+		</li>
+		<li>
+			<a href="#dash-deployment">Deployment</a>
+		</li>
+		<li>
+			<a href="#dash-global-schema-methods">Global schema methods</a>
+		</li>
+		<li>
+			<a href="#dash-server-log">Server Log</a>
+		</li>
+<!--		<li>
+			<a href="#dash-sysinfo">System Information</a>
+		</li>-->
+	</ul>
+
+	<div class="tabs-contents">
+
+		<div class="tab-content active" id="dash-connections">
+		</div>
+
+		<div class="tab-content" id="dash-about-me">
+			<p>You are currently logged in as <b>${config.meObj.name}</b></p>
+			<table class="props">
+				<tr><td class="key">ID</td><td>${config.meObj.id}</td></tr>
+				<tr><td class="key">E-Mail</td><td>${config.meObj.eMail || ''}</td></tr>
+				<tr><td class="key">Working Directory</td><td>${config.meObj.workingDirectory ? config.meObj.workingDirectory.name : ''}</td></tr>
+				<tr><td class="key">Session ID(s)</td><td>${config.meObj.sessionIds.join('<br>')}</td></tr>
+				<tr><td class="key">Groups</td><td>${config.meObj.groups.map(function(g) { return g.name; }).join(', ')}</td></tr>
+			</table>
+
+			<button class="action" id="clear-local-storage-on-server">Reset stored UI settings</button>
+		</div>
+
+		<div class="tab-content" id="dash-about-structr">
+
+			<table class="props">
+
+				<tr><td class="key">Edition</td><td><i title="Structr ${config.envInfo.edition} Edition" class="${_Icons.getFullSpriteClass(_Icons.getIconForEdition(config.envInfo.edition))}"></i> (Structr ${config.envInfo.edition} Edition)</td></tr>
+				<tr><td class="key">Licensee</td><td>${config.envInfo.licensee || 'Unlicensed'}</td></tr>
+				<tr><td class="key">Host ID</td><td>${config.envInfo.hostId || ''}</td></tr>
+				<tr><td class="key">License Start Date</td><td>${config.envInfo.startDate || '-'}</td></tr>
+				<tr><td class="key">License End Date</td><td class="end-date">${config.envInfo.endDate || '-'}</td></tr>
+			</table>
+		</div>
+
+		<div class="tab-content" id="dash-deployment">
+
+			<h3>Import application from local directory</h3>
+			<div>
+				<input type="text" id="deployment-source-input" size="60" placeholder="Enter directory path...">
+				<button class="action" id="do-import">Import from local directory</button>
+			</div>
+
+			<h3>Import application from URL</h3>
+			<form action="/structr/deploy" method="POST" enctype="multipart/form-data">
+				<input type="hidden" name="redirectUrl" value="${window.location.href}">
+				<input type="text" id="deployment-url-input" size="60" placeholder="Enter download URL..." name="downloadUrl">
+				<button type="submit" class="action">Import from URL</button>
+			</form>
+
+			<h3>Export application to local directory</h3>
+			<div>
+				<input type="text" id="deployment-target-input" size="60" placeholder="Enter directory path...">
+				<button class="action" id="do-export">Export to local directory</button>
+			</div>
+
+		</div>
+
+		<div class="tab-content" id="dash-global-schema-methods">
+
+		</div>
+
+		<div class="tab-content" id="dash-server-log">
+			<textarea readonly="readonly" rows=25 style="width: 100%; resize: none;"></textarea>
+		</div>
+
+		<div class="tab-content" id="dash-sysinfo">
+
+		</div>
+	</div>
+
+	<style type="text/css">
+
+		div#dashboard {
+			margin: 12px;
+		}
+
+		div#dashboard .tab-content {
+			padding: 12px;
+		}
+
+		div#dashboard .tab-content.active {
+			display: block;
+		}
+
+		#about-structr .props {
+			margin-top: 10px;
+		}
+
+		#about-structr .props i {
+			cursor: default;
+		}
+
+		.heading-narrow {
+			margin: 4px 0;
+		}
+
+		#params {
+			display: inline-block;
+			width: 50%;
+			vertical-align: top;
+		}
+
+		#params i.button.sprite-delete {
+			margin-left: 2px;
+			vertical-align: sub;
+		}
+
+		.global-method {
+			padding: 12px 0;
+			border-bottom: 1px solid #ddd;
+			line-height: 2em;
+		}
+
+		.global-method img.icon, .global-method i.icon {
+			vertical-align: bottom;
+			width: 16px;
+			max-height: 16px;
+		}
+
+		#global-method-comment {
+			display: inline-block;
+			width: 47.5%;
+			margin-left: 2.5%;
+			vertical-align: top;
+		}
+
+		#deployment-source-input, #deployment-url-input, #deployment-target-input {
+			height: 14px;
+			margin: 0 4px 12px 0;
+		}
+	</style>
+</div>

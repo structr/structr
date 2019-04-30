@@ -22,12 +22,12 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
 import org.apache.commons.io.IOUtils;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.fulltext.Indexable;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 
 /**
  * Represents feed enclosures

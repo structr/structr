@@ -37,7 +37,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
-import org.structr.core.entity.relationship.NodeHasLocation;
+import org.structr.core.entity.GenericRelationship;
 import org.structr.core.graph.BulkDeleteCommand;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeAttribute;
@@ -138,11 +138,11 @@ public class PerformanceTest extends StructrUiTest {
 
 		try {
 
-			int expected                  = 1000;
-			final App app                 = StructrApp.getInstance(setupSecurityContext());
-			final List<GenericNode> nodes = new ArrayList<>(createNodes(app, GenericNode.class, expected + 1));
-			List<NodeHasLocation> rels    = new LinkedList<>();
-			long t0                       = System.nanoTime();
+			int expected                   = 1000;
+			final App app                  = StructrApp.getInstance(setupSecurityContext());
+			final List<GenericNode> nodes  = new ArrayList<>(createNodes(app, GenericNode.class, expected + 1));
+			List<GenericRelationship> rels = new LinkedList<>();
+			long t0                        = System.nanoTime();
 
  			try (final Tx tx = app.tx()) {
 
@@ -151,7 +151,7 @@ public class PerformanceTest extends StructrUiTest {
 					final GenericNode n1 = nodes.get(i);
 					final GenericNode n2 = nodes.get(i+1);
 
-					rels.add(app.create(n1, n2, NodeHasLocation.class));
+					rels.add(app.create(n1, n2, GenericRelationship.class));
 				}
 
 				tx.success();

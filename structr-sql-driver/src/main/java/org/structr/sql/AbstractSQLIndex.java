@@ -18,14 +18,47 @@
  */
 package org.structr.sql;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.QueryFactory;
+import org.structr.api.search.ArrayQuery;
+import org.structr.api.search.ComparisonQuery;
+import org.structr.api.search.EmptyQuery;
+import org.structr.api.search.ExactQuery;
+import org.structr.api.search.FulltextQuery;
+import org.structr.api.search.GroupQuery;
+import org.structr.api.search.NotEmptyQuery;
 import org.structr.api.search.QueryContext;
+import org.structr.api.search.RangeQuery;
+import org.structr.api.search.RelationshipQuery;
+import org.structr.api.search.SpatialQuery;
 import org.structr.api.search.TypeConverter;
+import org.structr.api.search.TypeQuery;
+import org.structr.api.search.UuidQuery;
+import org.structr.sql.converter.BooleanTypeConverter;
+import org.structr.sql.converter.ByteTypeConverter;
+import org.structr.sql.converter.DateTypeConverter;
+import org.structr.sql.converter.DoubleTypeConverter;
+import org.structr.sql.converter.FloatTypeConverter;
+import org.structr.sql.converter.IntTypeConverter;
+import org.structr.sql.converter.LongTypeConverter;
+import org.structr.sql.converter.ShortTypeConverter;
+import org.structr.sql.converter.StringTypeConverter;
+import org.structr.sql.factory.ArrayQueryFactory;
+import org.structr.sql.factory.ComparisonQueryFactory;
+import org.structr.sql.factory.EmptyQueryFactory;
+import org.structr.sql.factory.GroupQueryFactory;
+import org.structr.sql.factory.KeywordQueryFactory;
+import org.structr.sql.factory.NotEmptyQueryFactory;
+import org.structr.sql.factory.RangeQueryFactory;
+import org.structr.sql.factory.RelationshipQueryFactory;
+import org.structr.sql.factory.SpatialQueryFactory;
+import org.structr.sql.factory.TypeQueryFactory;
+import org.structr.sql.factory.UuidQueryFactory;
 
 /**
  */
@@ -34,6 +67,9 @@ public abstract class AbstractSQLIndex<T extends PropertyContainer> extends Abst
 	private final Map<Class, TypeConverter> converters = new HashMap<>();
 	private final Map<Class, QueryFactory> factories   = new HashMap<>();
 	protected SQLDatabaseService db                    = null;
+
+	public abstract String getQueryPrefix(final String mainType, final String sourceTypeLabel, final String targetTypeLabel);
+	public abstract String getQuerySuffix(final SQLQuery query);
 
 	public AbstractSQLIndex(final SQLDatabaseService db) {
 
@@ -46,7 +82,7 @@ public abstract class AbstractSQLIndex<T extends PropertyContainer> extends Abst
 
 	@Override
 	public SQLQuery createQuery(final QueryContext context) {
-		return null;
+		return new SQLQuery(context, this);
 	}
 
 	@Override
@@ -72,8 +108,6 @@ public abstract class AbstractSQLIndex<T extends PropertyContainer> extends Abst
 	// ----- private methods -----
 	private void init() {
 
-		/*
-
 		factories.put(NotEmptyQuery.class,     new NotEmptyQueryFactory(this));
 		factories.put(FulltextQuery.class,     new KeywordQueryFactory(this));
 		factories.put(SpatialQuery.class,      new SpatialQueryFactory(this));
@@ -96,7 +130,5 @@ public abstract class AbstractSQLIndex<T extends PropertyContainer> extends Abst
 		converters.put(Float.class,   new FloatTypeConverter());
 		converters.put(Double.class,  new DoubleTypeConverter());
 		converters.put(byte.class,    new ByteTypeConverter());
-
-		*/
 	}
 }

@@ -25,8 +25,8 @@ import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.schema.SchemaHelper.Type;
-import org.structr.schema.json.JsonDateArrayProperty;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonDateArrayProperty;
+import org.structr.api.schema.JsonSchema;
 
 /**
  *

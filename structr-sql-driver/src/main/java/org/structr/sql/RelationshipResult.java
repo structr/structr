@@ -40,7 +40,9 @@ class RelationshipResult {
 
 	public RelationshipResult(final SQLIdentity identity, final SQLIdentity sourceNode, final SQLIdentity targetNode, final RelationshipType relType, final Map<String, Object> data) {
 
-		this.data.putAll(data);
+		if (data != null) {
+			this.data.putAll(data);
+		}
 
 		this.id         = identity;
 		this.relType    = relType;
@@ -62,11 +64,15 @@ class RelationshipResult {
 		// of the actual value in this property row.
 		final String name  = result.getString("name");
 		final int type     = result.getInt("type");
-		final Object value = result.getObject(type);
 
-		if (name != null && value != null) {
+		if (type >= 0){
 
-			data.put(name, value);
+			final Object value = result.getObject(type);
+
+			if (name != null && value != null) {
+
+				data.put(name, value);
+			}
 		}
 	}
 

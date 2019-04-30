@@ -31,6 +31,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.property.ArrayProperty;
+import org.structr.core.property.DateProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
@@ -75,8 +76,8 @@ public class EnvResource extends Resource {
 			info.setProperty(new StringProperty("edition"),   licenseManager.getEdition());
 			info.setProperty(new StringProperty("licensee"),  licenseManager.getLicensee());
 			info.setProperty(new StringProperty("hostId"),    licenseManager.getHardwareFingerprint());
-			info.setProperty(new StringProperty("startDate"), licenseManager.getStartDate());
-			info.setProperty(new StringProperty("endDate"),   licenseManager.getEndDate());
+			info.setProperty(new DateProperty("startDate"), licenseManager.getStartDate());
+			info.setProperty(new DateProperty("endDate"),   licenseManager.getEndDate());
 
 		} else {
 

@@ -26,8 +26,8 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.json.JsonDynamicProperty;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonDynamicProperty;
+import org.structr.api.schema.JsonSchema;
 
 /**
  *

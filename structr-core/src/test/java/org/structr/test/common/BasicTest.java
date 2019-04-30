@@ -31,7 +31,6 @@ import org.structr.api.NotInTransactionException;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.GraphObjectComparator;
-import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -40,6 +39,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
+import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
@@ -47,7 +47,6 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.Security;
-import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -1129,14 +1128,14 @@ public class BasicTest extends StructrTest {
 			final List<GenericNode> nodes = createTestNodes(GenericNode.class, 2);
 			final NodeInterface startNode = nodes.get(0);
 			final NodeInterface endNode   = nodes.get(1);
-			NodeHasLocation rel           = null;
+			GenericRelationship rel       = null;
 
 			assertTrue(startNode != null);
 			assertTrue(endNode != null);
 
 			try (final Tx tx = app.tx()) {
 
-				rel = app.create(startNode, endNode, NodeHasLocation.class);
+				rel = app.create(startNode, endNode, GenericRelationship.class);
 				tx.success();
 			}
 
@@ -1144,8 +1143,8 @@ public class BasicTest extends StructrTest {
 
 				assertEquals(startNode.getUuid(), rel.getSourceNodeId());
 				assertEquals(endNode.getUuid(), rel.getTargetNodeId());
-				assertEquals(RelType.IS_AT.name(), rel.getType());
-				assertEquals(NodeHasLocation.class, rel.getClass());
+				assertEquals("GENERIC", rel.getType());
+				assertEquals(GenericRelationship.class, rel.getClass());
 			}
 
 		} catch (FrameworkException ex) {
@@ -1347,9 +1346,9 @@ public class BasicTest extends StructrTest {
 
 		try {
 
-			final NodeHasLocation rel = (createTestRelationships(NodeHasLocation.class, 1)).get(0);
-			final PropertyKey key1         = new StringProperty("jghsdkhgshdhgsdjkfgh");
-			final String val1              = "54354354546806849870";
+			final GenericRelationship rel = (createTestRelationships(GenericRelationship.class, 1)).get(0);
+			final PropertyKey key1        = new StringProperty("jghsdkhgshdhgsdjkfgh");
+			final String val1             = "54354354546806849870";
 
 			try (final Tx tx = app.tx()) {
 

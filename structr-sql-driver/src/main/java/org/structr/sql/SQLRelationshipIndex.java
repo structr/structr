@@ -29,7 +29,39 @@ public class SQLRelationshipIndex extends AbstractSQLIndex<Relationship> {
 	}
 
 	@Override
+	public String getQueryPrefix(final String mainType, final String sourceTypeLabel, final String targetTypeLabel) {
+		return "SELECT DISTINCT relationshipId FROM RelationshipProperty";
+	}
+
+	@Override
+	public String getQuerySuffix(final SQLQuery query) {
+		return "";
+	}
+
+	@Override
 	public Iterable<Relationship> getResult(final SQLQuery query) {
+
+		/*
+
+		try {
+			final SQLTransaction tx      = db.getCurrentTransaction();
+			final List<Object> params    = query.getParameters();
+			final String sql             = query.getStatement();
+			final PreparedStatement stm  = tx.prepareStatement(sql);
+			int index                    = 1;
+
+			for (final Object value : params) {
+
+				stm.setObject(index++, value);
+			}
+
+			return Iterables.map(r -> SQLRelationship.newInstance(db, r), new IdentityStream(stm.executeQuery()));
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
+
+		*/
 
 		return null;
 	}

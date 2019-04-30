@@ -76,7 +76,7 @@ import org.structr.schema.compiler.RemoveClassesWithUnknownSymbols;
 import org.structr.schema.compiler.RemoveDuplicateClasses;
 import org.structr.schema.compiler.RemoveMethodsWithUnusedSignature;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonSchema;
 
 /**
  * Structr Schema Service for dynamic class support at runtime.
@@ -109,6 +109,10 @@ public class SchemaService implements Service {
 
 	@Override
 	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+
+		// initialize static classes if necessary
+		services.getDatabaseService().initializeSchema(StructrApp.getConfiguration().getStaticSchema());
+
 		return reloadSchema(new ErrorBuffer(), null);
 	}
 
@@ -446,15 +450,7 @@ public class SchemaService implements Service {
 	}
 
 	public static void ensureBuiltinTypesExist(final App app) throws FrameworkException {
-
-		try {
-
-			StructrSchema.extendDatabaseSchema(app, dynamicSchema);
-
-		} catch (Exception ex) {
-
-			ex.printStackTrace();
-		}
+		StructrSchema.extendDatabaseSchema(app, dynamicSchema);
 	}
 
 	@Override

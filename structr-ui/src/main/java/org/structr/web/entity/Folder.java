@@ -21,6 +21,7 @@ package org.structr.web.entity;
 import java.io.IOException;
 import java.net.URI;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.structr.api.graph.Cardinality;
 import org.structr.api.util.Iterables;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISFolderInfo;
@@ -31,13 +32,12 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.files.cmis.config.StructrFolderActions;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 
 
 public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextAwareEntity {

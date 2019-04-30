@@ -25,7 +25,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.atomic.AtomicLong;
 import org.structr.api.Transaction;
-import org.structr.api.graph.RelationshipType;
 
 /**
  */
@@ -89,21 +88,20 @@ public class SQLTransaction implements Transaction {
 
 		try {
 
-			final PreparedStatement statement = connection.prepareStatement("SELECT * FROM NodeProperty WHERE nodeId = ?");
+			final PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + id.getType() + " WHERE id = ?");
 
-			statement.setLong(1, id.getId());
+			statement.setString(1, id.getId());
 
 			if (statement.execute()) {
 
 				try (final ResultSet result = statement.getResultSet()) {
 
-					final NodeResult node = new NodeResult(id);
-					while (result.next()) {
+					final NodeResultStreamIterator iterator = new NodeResultStreamIterator(db, result);
 
-						node.visit(result);
+					if (iterator.hasNext()) {
+
+						return iterator.next();
 					}
-
-					return node;
 				}
 			}
 
@@ -116,48 +114,6 @@ public class SQLTransaction implements Transaction {
 
 	RelationshipResult getRelationship(final SQLIdentity id) {
 
-		try {
-
-			final PreparedStatement relationship = connection.prepareStatement("SELECT * FROM Relationship WHERE relationshipId = ?");
-			final long relationshipId            = id.getId();
-
-			relationship.setLong(1, relationshipId);
-
-			if (relationship.execute()) {
-
-				try (final ResultSet queryResult = relationship.getResultSet()) {
-
-					final long source                  = queryResult.getLong(2);
-					final long target                  = queryResult.getLong(3);
-					final String type                  = queryResult.getString(4);
-					final SQLIdentity sourceId         = SQLIdentity.forId(source);
-					final SQLIdentity targetId         = SQLIdentity.forId(target);
-					final RelationshipType relType     = db.forName(RelationshipType.class, type);
-					final PreparedStatement properties = connection.prepareStatement("SELECT * FROM RelationshipProperty WHERE relationshipId = ?");
-
-					properties.setLong(1, relationshipId);
-
-					if (properties.execute()) {
-
-						try (final ResultSet result = properties.getResultSet()) {
-
-							final RelationshipResult relationshipResult = new RelationshipResult(id, sourceId, targetId, relType);
-							while (result.next()) {
-
-								relationshipResult.visit(result);
-							}
-
-							return relationshipResult;
-						}
-					}
-
-				}
-			}
-
-		} catch (SQLException ex) {
-			ex.printStackTrace();
-		}
-
 		return null;
 	}
 
@@ -165,9 +121,10 @@ public class SQLTransaction implements Transaction {
 
 		try {
 
-			final PreparedStatement statement = connection.prepareStatement("SELECT name FROM Label WHERE nodeId = ?");
+			final PreparedStatement statement = connection.prepareStatement("SELECT name FROM Label WHERE nodeType = ? AND nodeId = ?");
 
-			statement.setLong(1, id.getId());
+			statement.setString(1, id.getType());
+			statement.setString(2, id.getId());
 
 			if (statement.execute()) {
 
@@ -209,5 +166,57 @@ public class SQLTransaction implements Transaction {
 		}
 
 		return null;
+	}
+
+	void deleteNode(final SQLIdentity identity, final boolean deleteRelationships) {
+
+		try {
+
+			final String nodeId          = identity.getId();
+			final String type            = identity.getType();
+			final PreparedStatement stm1 = prepareStatement("DELETE FROM " + type + " WHERE n.id = ?");
+			final PreparedStatement stm2 = prepareStatement("DELETE FROM Label WHERE nodeId = ?");
+
+			stm1.setString(1, nodeId);
+			stm2.setString(1, nodeId);
+
+			stm1.executeUpdate();
+			stm2.executeUpdate();
+
+			/*
+			if (deleteRelationships) {
+
+				final PreparedStatement stm3 = prepareStatement("DELETE r, p FROM Relationship r JOIN RelationshipProperty p ON o.relationshipId = r.id WHERE r.source = ? OR r.target = ?");
+
+				stm3.setString(1, nodeId);
+				stm3.setString(2, nodeId);
+
+				stm3.executeUpdate();
+			}
+			*/
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	void deleteRelationship(final SQLIdentity identity) {
+
+		/*
+
+		try {
+
+			final PreparedStatement stm = prepareStatement("DELETE r, p FROM Relationship r JOIN RelationshipProperty p ON o.relationshipId = r.id WHERE r.source = ? OR r.target = ?");
+			final long nodeId           = identity.getId();
+
+			stm.setLong(1, nodeId);
+			stm.setLong(2, nodeId);
+
+			stm.executeUpdate();
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
+		*/
 	}
 }

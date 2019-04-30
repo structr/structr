@@ -18,15 +18,18 @@
  */
 package org.structr.sql;
 
+import com.google.gson.Gson;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.AbstractDatabaseService;
@@ -39,6 +42,9 @@ import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
+import org.structr.api.schema.JsonProperty;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
@@ -48,6 +54,11 @@ import org.structr.api.util.NodeWithOwnerResult;
 public class SQLDatabaseService extends AbstractDatabaseService implements GraphProperties {
 
 	private static final Logger logger                     = LoggerFactory.getLogger(SQLDatabaseService.class);
+	private static final Set<String> uuidFields            = new LinkedHashSet<>(Arrays.asList("id", "createdBy", "lastModifiedBy"));
+	private static final Set<String> varcharFields         = new LinkedHashSet<>(Arrays.asList("type"));
+	private static final Set<String> varcharTypes          = new LinkedHashSet<>(Arrays.asList("string"));
+	private static final Set<String> bigintTypes           = new LinkedHashSet<>(Arrays.asList("long"));
+	private static final Set<String> intTypes              = new LinkedHashSet<>(Arrays.asList("integer"));
 
 	private final ThreadLocal<SQLTransaction> transactions = new ThreadLocal<>();
 	private final Map<String, Object> properties           = new LinkedHashMap<>();
@@ -59,7 +70,7 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 	public boolean initialize(final String serviceName) {
 
 		dataSource = new BasicDataSource();
-		dataSource.setUrl("jdbc:mysql://localhost/structr?serverTimezone=UTC");
+		dataSource.setUrl("jdbc:mysql://localhost/structr?serverTimezone=UTC&useSSL=false");
 		dataSource.setMaxTotal(20);
 		dataSource.setMaxIdle(10);
 		dataSource.setDefaultAutoCommit(false);
@@ -67,6 +78,7 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 		dataSource.setPassword("test");
 
 		SQLNode.initialize(1000);
+		SQLRelationship.initialize(1000);
 
 		return true;
 	}
@@ -82,36 +94,19 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 	@Override
 	public void cleanDatabase() {
 
+		/*
 		try {
 
 			final SQLTransaction tx = getCurrentTransaction();
 
-			tx.prepareStatement("DELETE FROM Node").execute();
-			tx.prepareStatement("DELETE FROM Label").execute();
-			tx.prepareStatement("DELETE FROM Relationship").execute();
-			tx.prepareStatement("DELETE FROM NodeProperty").execute();
-			tx.prepareStatement("DELETE FROM RelationshipProperty").execute();
-
 		} catch (SQLException ex) {
 			ex.printStackTrace();
 		}
+		*/
 	}
 
 	@Override
 	public void deleteNodesByLabel(final String label) {
-
-		try {
-
-			final SQLTransaction tx     = getCurrentTransaction();
-			final PreparedStatement stm = tx.prepareStatement("DELETE n, l, p FROM Label l JOIN Node n ON n.id = l.nodeId JOIN NodeProperty p ON o.nodeId = l.nodeId WHERE l.name = ?");
-
-			stm.setString(1, label);
-
-			stm.execute();
-
-		} catch (SQLException ex) {
-			ex.printStackTrace();
-		}
 	}
 
 	@Override
@@ -139,60 +134,34 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 
 		try {
 
-			final SQLTransaction tx            = getCurrentTransaction();
-			final PreparedStatement createNode = tx.prepareStatement("INSERT INTO Node values()");
-			final int createNodeResultCount    = createNode.executeUpdate();
+			final SQLTransaction tx = getCurrentTransaction();
+			final StringBuilder buf = new StringBuilder("INSERT INTO ");
+			int index               = 1;
 
+			buf.append(type);
+			buf.append("(`");
+			buf.append(StringUtils.join(properties.keySet(), "`, `"));
+			buf.append("`) VALUES(");
+			buf.append(StringUtils.repeat("?", ", ", properties.size()));
+			buf.append(")");
+
+			System.out.println(buf.toString());
+
+			final PreparedStatement createNode = tx.prepareStatement(buf.toString());
+			final String uuid                  = (String)properties.get("id");
+
+			// fill in values
+			for (final Object value : properties.values()) {
+
+				createNode.setObject(index++, convertValue(value));
+			}
+
+			final int createNodeResultCount = createNode.executeUpdate();
 			if (createNodeResultCount == 1) {
 
-				final ResultSet generatedKeys = createNode.getGeneratedKeys();
-				if (generatedKeys.next()) {
+				final SQLIdentity identity = SQLIdentity.getInstance(uuid, type);
 
-					final PreparedStatement createProperty = tx.prepareStatement("INSERT INTO NodeProperty(nodeId, name, type, stringValue, intValue) values(?, ?, ?, ?, ?)");
-					final PreparedStatement createLabel    = tx.prepareStatement("INSERT INTO Label(nodeId, name) values(?, ?)");
-					final long newNodeId                   = generatedKeys.getLong(1);
-
-					for (final String label : labels) {
-
-						createLabel.setLong(1, newNodeId);
-						createLabel.setString(2, label);
-
-						createLabel.executeUpdate();
-					}
-
-					for (final Entry<String, Object> entry : properties.entrySet()) {
-
-						final Object value = entry.getValue();
-
-						createProperty.setLong(1, newNodeId);
-						createProperty.setString(2, entry.getKey());
-						createProperty.setInt(3, SQLEntity.getInsertTypeForValue(value));
-
-						if (value != null) {
-
-							if (value instanceof String) {
-
-								createProperty.setString(4, (String)value);
-								createProperty.setNull(5, Types.INTEGER);
-							}
-
-							if (value instanceof Integer) {
-
-								createProperty.setNull(4, Types.VARCHAR);
-								createProperty.setInt(5, (Integer)value);
-							}
-
-						} else {
-
-							createProperty.setNull(4, Types.VARCHAR);
-							createProperty.setNull(5, Types.INTEGER);
-						}
-
-						createProperty.executeUpdate();
-					}
-
-					return SQLNode.newInstance(this, new NodeResult(SQLIdentity.forId(newNodeId), properties));
-				}
+				return SQLNode.newInstance(this, new NodeResult(identity, properties));
 			}
 
 		} catch (SQLException ex) {
@@ -220,16 +189,21 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 	@Override
 	public Iterable<Node> getAllNodes() {
 
+		/*
+	}
+
 		try {
 
 			final SQLTransaction tx     = getCurrentTransaction();
-			final PreparedStatement stm = tx.prepareStatement("SELECT * FROM NodeProperty ORDER BY nodeId");
+			final PreparedStatement stm = tx.prepareStatement("SELECT id FROM Node ORDER BY id");
 
-			return Iterables.map(r -> SQLNode.newInstance(this, r), new PropertyStream(stm.executeQuery()));
+			return Iterables.map(r -> SQLNode.newInstance(this, r), new IdentityStream(stm.executeQuery()));
 
 		} catch (SQLException ex) {
 			ex.printStackTrace();
 		}
+
+		*/
 
 		return null;
 	}
@@ -237,18 +211,22 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 	@Override
 	public Iterable<Node> getNodesByLabel(final String label) {
 
+		/*
+
 		try {
 
 			final SQLTransaction tx     = getCurrentTransaction();
-			final PreparedStatement stm = tx.prepareStatement("SELECT p.* FROM Label l JOIN NodeProperty p ON p.nodeId = l.nodeId WHERE l.name = ? ORDER BY p.nodeId");
+			final PreparedStatement stm = tx.prepareStatement("SELECT DISTINCT nodeId FROM Label l WHERE l.name = ? ORDER BY p.nodeId");
 
 			stm.setString(1, label);
 
-			return Iterables.map(r -> SQLNode.newInstance(this, r), new PropertyStream(stm.executeQuery()));
+			return Iterables.map(r -> SQLNode.newInstance(this, r), new IdentityStream(stm.executeQuery()));
 
 		} catch (SQLException ex) {
 			ex.printStackTrace();
 		}
+
+		*/
 
 		return null;
 	}
@@ -259,12 +237,9 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 		try {
 
 			final SQLTransaction tx     = getCurrentTransaction();
-			final PreparedStatement stm = tx.prepareStatement("SELECT p.* FROM NodeProperty x JOIN NodeProperty p ON p.nodeId = x.nodeId WHERE x.name = ? AND x.stringValue = ? ORDER BY p.nodeId");
+			final PreparedStatement stm = tx.prepareStatement("SELECT DISTINCT * FROM " + type);
 
-			stm.setString(1, "type");
-			stm.setString(2, type);
-
-			return Iterables.map(r -> SQLNode.newInstance(this, r), new PropertyStream(stm.executeQuery()));
+			return Iterables.map(r -> SQLNode.newInstance(this, r), new IdentityStream(type, stm.executeQuery()));
 
 		} catch (SQLException ex) {
 			ex.printStackTrace();
@@ -275,6 +250,8 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 
 	@Override
 	public Iterable<Relationship> getAllRelationships() {
+
+		/*
 
 		try {
 
@@ -287,6 +264,8 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 			ex.printStackTrace();
 		}
 
+		*/
+
 		return null;
 	}
 
@@ -296,11 +275,11 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 		try {
 
 			final SQLTransaction tx     = getCurrentTransaction();
-			final PreparedStatement stm = tx.prepareStatement("SELECT id FROM Relationship WHERE type = ?");
+			final PreparedStatement stm = tx.prepareStatement("SELECT * FROM " + type);
 
 			stm.setString(1, type);
 
-			return Iterables.map(r -> SQLRelationship.newInstance(this, r), new IdentityStream(stm.executeQuery()));
+			return Iterables.map(r -> SQLRelationship.newInstance(this, r), new IdentityStream(type, stm.executeQuery()));
 
 		} catch (SQLException ex) {
 			ex.printStackTrace();
@@ -311,7 +290,7 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 
 	@Override
 	public GraphProperties getGlobalProperties() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return this;
 	}
 
 	@Override
@@ -370,6 +349,62 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 		return properties.get(name);
 	}
 
+	@Override
+	public void initializeSchema(final JsonSchema schema) {
+
+		try (final Transaction tx = beginTx()) {
+
+			for (final JsonType type : schema.getTypes()) {
+
+				if (!type.isAbstract() && !type.isInterface()) {
+
+					final StringBuilder buf = new StringBuilder();
+					final List<String> cols = new LinkedList<>();
+
+					for (final JsonProperty property : type.getProperties()) {
+
+						final String sqlType = getSQLTypeForProperty(property);
+						if (sqlType != null) {
+
+							final StringBuilder col = new StringBuilder();
+
+							col.append("`");
+							col.append(property.getName());
+							col.append("` ");
+							col.append(sqlType);
+
+							cols.add(col.toString());
+						}
+					}
+
+					// build actual statement
+					buf.append("CREATE TABLE IF NOT EXISTS `");
+					buf.append(type.getName());
+					buf.append("` (");
+					buf.append(StringUtils.join(cols, ", "));
+					buf.append(", PRIMARY KEY (id)");
+					buf.append(")");
+
+					System.out.println(buf.toString());
+
+					// create table
+					getCurrentTransaction().prepareStatement(buf.toString()).executeUpdate();
+				}
+			}
+
+			tx.success();
+
+		} catch (SQLException e) {
+
+			System.out.println("Error code: " + e.getErrorCode());
+			e.printStackTrace();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+		}
+	}
+
 	// ----- package-private methods -----
 	SQLNode getNodeById(final SQLIdentity identity) {
 		return SQLNode.newInstance(this, identity);
@@ -388,5 +423,52 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 		}
 
 		throw new NotInTransactionException("Not in transaction");
+	}
+
+	// ----- private methods -----
+	private String getSQLTypeForProperty(final JsonProperty property) {
+
+		final StringBuilder buf = new StringBuilder();
+		final String name       = property.getName();
+		final String type       = property.getType();
+
+		if (uuidFields.contains(name)) {
+
+			buf.append("char(32)");
+
+		} else if (varcharTypes.contains(type) || varcharFields.contains(name)) {
+
+			buf.append("text");
+
+		} else if (intTypes.contains(type)) {
+
+			buf.append("int");
+
+		} else if (bigintTypes.contains(type)) {
+
+			buf.append("bigint");
+
+		} else if ("array".equals(type)) {
+
+			buf.append("json");
+
+		} else {
+
+			buf.append(type);
+		}
+
+		return buf.toString();
+	}
+
+	private Object convertValue(final Object value) {
+
+		if (value != null && value.getClass().isArray()) {
+
+			final Gson gson = new Gson();
+
+			return gson.toJson(value);
+		}
+
+		return value;
 	}
 }

@@ -35,9 +35,10 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
+import org.structr.core.app.StructrApp;
 
 /**
  *
@@ -54,7 +55,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 	private String title                              = null;
 	private URI id                                    = null;
 
-	StructrSchemaDefinition(final URI id) {
+	public StructrSchemaDefinition(final URI id) {
 
 		this.typeDefinitions = new StructrTypeDefinitions(this);
 		this.globalMethods   = new StructrGlobalSchemaMethods();
@@ -66,7 +67,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 		return id;
 	}
 
-	public Set<StructrTypeDefinition> getTypes() {
+	public Set<StructrTypeDefinition> getTypeDefinitions() {
 		return typeDefinitions.getTypes();
 	}
 
@@ -110,6 +111,11 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 	}
 
 	@Override
+	public Iterable<JsonType> getTypes() {
+		return (Iterable)typeDefinitions.getTypes();
+	}
+
+	@Override
 	public void removeType(final String name) {
 		typeDefinitions.removeType(name);
 	}
@@ -124,7 +130,10 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 	}
 
 	@Override
-	public void createDatabaseSchema(final App app, ImportMode importMode) throws FrameworkException {
+	public void createDatabaseSchema(final ImportMode importMode) throws Exception {
+
+		final App app = StructrApp.getInstance();
+
 		typeDefinitions.createDatabaseSchema(app, importMode);
 		globalMethods.createDatabaseSchema(app, importMode);
 	}
@@ -181,7 +190,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 	}
 
 	@Override
-	public void diff(final JsonSchema schema) throws FrameworkException {
+	public void diff(final JsonSchema schema) throws Exception {
 
 		final StructrSchemaDefinition other = (StructrSchemaDefinition)schema; // provoke ClassCastException if type doesn't match
 
@@ -368,7 +377,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 
 		if (types != null && !types.isEmpty()) {
 
-			final Set<String> schemaTypes = new LinkedHashSet<>(schema.getTypes().stream().map(t -> t.getName()).collect(Collectors.toSet()));
+			final Set<String> schemaTypes = new LinkedHashSet<>(schema.getTypeDefinitions().stream().map(t -> t.getName()).collect(Collectors.toSet()));
 
 			for (final String toRemove : schemaTypes) {
 

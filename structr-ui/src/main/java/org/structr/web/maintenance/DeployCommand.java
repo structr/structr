@@ -1125,7 +1125,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				}
 
 				// move all methods/function properties to files
-				for (final StructrTypeDefinition typeDef : schema.getTypes()) {
+				for (final StructrTypeDefinition typeDef : schema.getTypeDefinitions()) {
 
 					final String typeName = typeDef.getName();
 
@@ -1757,7 +1757,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						}
 					}
 
-					for (final StructrTypeDefinition typeDef : schema.getTypes()) {
+					for (final StructrTypeDefinition typeDef : schema.getTypeDefinitions()) {
 
 						final Path typeFolder = schemaFolder.resolve(typeDef.getName());
 

@@ -105,10 +105,6 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 								return ReturnValue.Success;
 							}
-
-						} else {
-
-							logger.info("Indexable {} not available, retrying in 1s", indexableId);
 						}
 
 						tx.success();

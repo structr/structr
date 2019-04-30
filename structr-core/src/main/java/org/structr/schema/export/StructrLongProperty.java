@@ -27,8 +27,8 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper.Type;
-import org.structr.schema.json.JsonLongProperty;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonLongProperty;
+import org.structr.api.schema.JsonSchema;
 import org.structr.schema.parser.LongPropertyParser;
 
 /**

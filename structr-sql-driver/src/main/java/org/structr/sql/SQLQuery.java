@@ -18,166 +18,290 @@
  */
 package org.structr.sql;
 
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
-import org.structr.api.Predicate;
-import org.structr.api.graph.PropertyContainer;
+import org.structr.api.index.DatabaseQuery;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortType;
-import org.structr.api.index.DatabaseQuery;
-import org.structr.api.util.Iterables;
-import org.structr.sql.index.predicate.Conjunction;
-import org.structr.sql.index.predicate.GroupPredicate;
-import org.structr.sql.index.predicate.NotPredicate;
 
 /**
+ *
  */
-public class SQLQuery<T extends PropertyContainer> implements DatabaseQuery, Predicate<T> {
+public class SQLQuery implements DatabaseQuery {
 
-	private QueryContext queryContext          = new QueryContext();
-	private GroupPredicate<T> rootPredicate    = new GroupPredicate<>(null);
-	private GroupPredicate<T> currentPredicate = rootPredicate;
-	private String sortKey                     = null;
-	private String mainType                    = null;
-	private boolean sortDescending             = false;
-	private boolean negateNextPredicate        = false;
+	private final List<Object> parameters    = new LinkedList<>();
+	private final List<String> typeLabels    = new LinkedList<>();
+	private final StringBuilder buffer       = new StringBuilder();
+	private AbstractSQLIndex index           = null;
+	private String sourceTypeLabel           = null;
+	private String targetTypeLabel           = null;
+	private boolean sortDescending           = false;
+	private SortType sortType                = null;
+	private String sortKey                   = null;
+	private int page                         = 0;
+	private int pageSize                     = 0;
+	private int predicateCount               = 0;
+	private QueryContext queryContext        = null;
 
-	public SQLQuery(final QueryContext queryContext) {
+	public SQLQuery(final QueryContext queryContext, AbstractSQLIndex index) {
+
 		this.queryContext = queryContext;
+		this.pageSize     = 1000000;
+		this.index        = index;
 	}
 
-	public void setMainType(final String mainType) {
-		this.mainType = mainType;
+	@Override
+	public String toString() {
+		return getStatement();
 	}
 
-	public String getMainType() {
-		return mainType;
+	public String getSortKey() {
+		return sortKey;
 	}
 
-	public void addPredicate(final Predicate<T> predicate) {
+	public String getStatement() {
 
-		if (negateNextPredicate) {
+		final StringBuilder buf = new StringBuilder("SELECT * FROM ");
+		final int typeCount     = typeLabels.size();
 
-			negateNextPredicate = false;
-			currentPredicate.add(new NotPredicate<>(predicate));
+		switch (typeCount) {
 
-		} else {
+			case 0:
 
-			currentPredicate.add(predicate);
+				// select all nodes?
+				break;
+
+			case 1:
+
+				buf.append(typeLabels.get(0));
+
+				if (buffer.length() > 0) {
+					buf.append(" WHERE ");
+					buf.append(buffer);
+				}
+
+				buf.append(index.getQuerySuffix(this));
+				break;
+
+			default:
+
+				/*
+				// create UNION query
+				for (final Iterator<String> it = typeLabels.iterator(); it.hasNext();) {
+
+					buf.append(index.getQueryPrefix(it.next(), sourceTypeLabel, targetTypeLabel));
+
+					if (buffer.length() > 0) {
+						buf.append(" WHERE ");
+						buf.append(buffer);
+					}
+
+					buf.append(index.getQuerySuffix(this));
+
+					if (it.hasNext()) {
+						buf.append(" UNION ");
+					}
+				}
+				*/
+				break;
 		}
+
+		/*
+		if (sortKey != null) {
+
+			switch (sortType) {
+
+				case Default:
+					// default is "String"
+					// no COALESCE needed => much faster
+					buf.append(" ORDER BY sortKey");
+
+					break;
+
+				default:
+					// other types are numeric
+					buf.append(" ORDER BY COALESCE(sortKey, ");
+
+					// COALESCE needs a correctly typed minimum value,
+					// so we need to supply a value based on the sort
+					// type.
+
+					buf.append("-1");
+					buf.append(")");
+			}
+
+			if (sortDescending) {
+				buf.append(" DESC");
+			}
+		}
+
+		if (queryContext.isSliced()) {
+
+			buf.append(" SKIP ");
+			buf.append(queryContext.getSkip());
+			buf.append(" LIMIT ");
+			buf.append(queryContext.getLimit());
+		}
+		*/
+
+		return buf.toString();
+	}
+
+	public List<Object> getParameters() {
+		return parameters;
+	}
+
+	public void beginGroup() {
+		buffer.append("(");
+	}
+
+	public void endGroup() {
+		buffer.append(")");
 	}
 
 	@Override
 	public void and() {
-		currentPredicate.setConjunction(Conjunction.And);
-	}
-
-	@Override
-	public void or() {
-		currentPredicate.setConjunction(Conjunction.Or);
+		buffer.append(" AND ");
 	}
 
 	@Override
 	public void not() {
-		negateNextPredicate = true;
+		buffer.append(" NOT ");
 	}
 
 	@Override
 	public void andNot() {
-		currentPredicate.setConjunction(Conjunction.And);
-		not();
+		buffer.append(" AND NOT ");
 	}
 
 	@Override
-	public void sort(SortType sortType, String sortKey, boolean sortDescending) {
+	public void or() {
+		buffer.append(" OR ");
+	}
+
+	public void typeLabel(final String typeLabel) {
+		this.typeLabels.add(typeLabel);
+	}
+
+	public void addSimpleParameter(final String key, final String operator, final Object value) {
+		addSimpleParameter(key, operator, value, true);
+	}
+
+	public void addSimpleParameter(final String key, final String operator, final Object value, final boolean isProperty) {
+		addSimpleParameter(key, operator, value, isProperty, false);
+	}
+
+	public void addSimpleParameter(final String key, final String operator, final Object value, final boolean isProperty, final boolean caseInsensitive) {
+
+		if (value != null) {
+
+			if (isProperty) {
+
+				if (caseInsensitive) {
+					buffer.append("LOWER(");
+				}
+
+				buffer.append("n.");
+				buffer.append(key);
+			}
+
+			if (isProperty) {
+
+				if (caseInsensitive) {
+					buffer.append(") ");
+				} else {
+					buffer.append(" ");
+				}
+
+			} else {
+
+				buffer.append(" ");
+			}
+
+			buffer.append(operator);
+			buffer.append(" ?");
+
+			parameters.add(caseInsensitive && value instanceof String ? ((String) value).toLowerCase() : value);
+		}
+	}
+
+	public void addListParameter(final String key, final String operator, final Object value) {
+
+		/*
+
+		if (value != null) {
+
+			final String paramKey = "param" + count++;
+
+			buffer.append("ANY(x IN n.`");
+			buffer.append(key);
+			buffer.append("` WHERE x ");
+			buffer.append(operator);
+			buffer.append(" {");
+			buffer.append(paramKey);
+			buffer.append("})");
+
+			parameters.put(paramKey, value);
+
+		} else {
+
+			buffer.append("ANY(x IN n.`");
+			buffer.append(key);
+			buffer.append("` WHERE x ");
+			buffer.append(operator);
+			buffer.append(" Null)");
+		}
+
+		*/
+	}
+
+	public void addParameters(final String key, final String operator1, final Object value1, final String operator2, final Object value2) {
+
+		/*
+
+		final String paramKey1 = "param" + count++;
+		final String paramKey2 = "param" + count++;
+
+		buffer.append("(n.`");
+		buffer.append(key);
+		buffer.append("` ");
+		buffer.append(operator1);
+		buffer.append(" {");
+		buffer.append(paramKey1);
+		buffer.append("}");
+		buffer.append(" AND ");
+		buffer.append("n.`");
+		buffer.append(key);
+		buffer.append("` ");
+		buffer.append(operator2);
+		buffer.append(" {");
+		buffer.append(paramKey2);
+		buffer.append("})");
+
+		parameters.put(paramKey1, value1);
+		parameters.put(paramKey2, value2);
+
+		*/
+	}
+
+	@Override
+	public void sort(final SortType sortType, final String sortKey, final boolean sortDescending) {
 
 		this.sortDescending = sortDescending;
+		this.sortType       = sortType;
 		this.sortKey        = sortKey;
 	}
 
-	public void beginGroup() {
-
-		final GroupPredicate<T> group = new GroupPredicate<>(currentPredicate);
-
-		currentPredicate.add(group);
-
-		// enter group
-		currentPredicate = group;
+	public void setSourceType(final String sourceTypeLabel) {
+		this.sourceTypeLabel = sourceTypeLabel;
 	}
 
-	public void endGroup() {
-
-		currentPredicate = currentPredicate.getParent();
-	}
-
-	public Iterable<T> sort(final Iterable<T> source) {
-
-		if (sortKey != null) {
-
-			try {
-
-				final List<T> list = Iterables.toList(source);
-
-				Collections.sort(list, new Sorter());
-
-				return list;
-
-			} catch (Throwable t) {
-				t.printStackTrace();
-			}
-		}
-
-		return source;
-	}
-
-	@Override
-	public boolean accept(final T value) {
-		return rootPredicate.accept(value);
+	public void setTargetType(final String targetTypeLabel) {
+		this.targetTypeLabel = targetTypeLabel;
 	}
 
 	@Override
 	public QueryContext getQueryContext() {
 		return queryContext;
-	}
-
-	// ----- nested classes -----
-	private class Sorter implements Comparator<T> {
-
-		@Override
-		public int compare(T o1, T o2) {
-
-			final Object v1 = o1.getProperty(sortKey);
-			final Object v2 = o2.getProperty(sortKey);
-
-			if (v1 == null && v2 == null) {
-				return 0;
-			}
-
-			if (v1 == null && v2 != null) {
-				return sortDescending ? 1 : -1;
-			}
-
-			if (v1 != null && v2 == null) {
-				return sortDescending ? -1 : 1;
-			}
-
-			if (v1 instanceof Comparable && v2 instanceof Comparable) {
-
-				final Comparable c1 = (Comparable)v1;
-				final Comparable c2 = (Comparable)v2;
-
-				if (sortDescending) {
-
-					return c2.compareTo(c1);
-
-				} else {
-
-					return c1.compareTo(c2);
-				}
-			}
-
-			throw new ClassCastException("Cannot sort values of types " + v1.getClass().getName() + ", " + v2.getClass().getName());
-		}
 	}
 }

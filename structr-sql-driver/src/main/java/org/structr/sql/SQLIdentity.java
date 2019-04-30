@@ -24,14 +24,20 @@ import org.structr.api.graph.Identity;
  */
 public class SQLIdentity implements Identity {
 
-	private Long id = null;
+	private String type = null;
+	private String id   = null;
 
-	public SQLIdentity(final Long id) {
-		this.id = id;
+	public SQLIdentity(final String id, final String type) {
+		this.type = type;
+		this.id   = id;
 	}
 
-	public Long getId() {
+	public String getId() {
 		return id;
+	}
+
+	public String getType() {
+		return type;
 	}
 
 	@Override
@@ -39,12 +45,20 @@ public class SQLIdentity implements Identity {
 
 		// provoke ClassCastException if type doesn't match
 		final SQLIdentity other = (SQLIdentity)o;
+		final String otherType  = other.getType();
+		final String otherId    = other.getId();
 
-		return id.compareTo(other.id);
+		final int types = type.compareTo(otherType);
+		if (types == 0) {
+
+			return id.compareTo(otherId);
+		}
+
+		return types;
 	}
 
-	static SQLIdentity forId(final long id) {
-		return new SQLIdentity(id);
+	static SQLIdentity getInstance(final String id, final String type) {
+		return new SQLIdentity(id, type);
 	}
 
 }

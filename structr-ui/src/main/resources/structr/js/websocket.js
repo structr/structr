@@ -145,7 +145,6 @@ function wsConnect() {
 				}
 
 				me = data.data;
-				_Dashboard.checkAdmin();
 				isAdmin = data.data.isAdmin;
 
 				_Logger.log(_LogType.WS[command], code, 'user:', user, 'session valid:', sessionValid, 'isAdmin', isAdmin);
@@ -170,7 +169,7 @@ function wsConnect() {
 					LSWrapper.setAsJSON(data.data.localStorageString);
 				}
 
-				StructrModel.callCallback(data.callback, data.data[data.data['key']]);
+				StructrModel.callCallback(data.callback, data.data);
 
 			} else if (command === 'CONSOLE') {
 

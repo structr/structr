@@ -23,7 +23,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonType;
+import org.structr.api.schema.JsonType;
 
 /**
  *

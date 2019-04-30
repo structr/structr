@@ -27,11 +27,14 @@ import java.util.Iterator;
 class IdentityStreamIterator implements Iterator<SQLIdentity> {
 
 	private ResultSet resultSet = null;
-	private boolean firstCall   = true;
+	private boolean nextCalled  = true;
+	private String type         = null;
+	private boolean hasNext     = false;
 
-	public IdentityStreamIterator(final ResultSet resultSet) {
+	public IdentityStreamIterator(final String type, final ResultSet resultSet) {
 
-		this.resultSet  = resultSet;
+		this.resultSet = resultSet;
+		this.type      = type;
 	}
 
 	@Override
@@ -39,37 +42,34 @@ class IdentityStreamIterator implements Iterator<SQLIdentity> {
 
 		try {
 
-			if (firstCall) {
+			if (nextCalled) {
 
-				return resultSet.isBeforeFirst();
+				hasNext    = resultSet.next();
+				nextCalled = false;
 			}
-
-			return !resultSet.isAfterLast();
 
 		} catch (SQLException ex) {
 			ex.printStackTrace();
 		}
 
-		return false;
+		return hasNext;
 	}
 
 	@Override
 	public SQLIdentity next() {
 
-		firstCall = false;
+		hasNext    = false;
+		nextCalled = true;
 
 		try {
 			// fetch data for next result..
-			if (resultSet.next()) {
-
-				return SQLIdentity.forId(resultSet.getLong(1));
-			}
+			return SQLIdentity.getInstance(resultSet.getString(1), type);
 
 		} catch (SQLException ex) {
 			ex.printStackTrace();
 		}
 
 		// return last result
-		return null;
+		throw new IllegalStateException("next() called with hasNext() returning false");
 	}
 }

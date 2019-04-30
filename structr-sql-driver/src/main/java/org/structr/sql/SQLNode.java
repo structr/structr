@@ -18,32 +18,28 @@
  */
 package org.structr.sql;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Map.Entry;
+import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.FixedSizeCache;
-import org.structr.api.util.Iterables;
 
 /**
  */
 public class SQLNode extends SQLEntity implements Node {
 
 	private static FixedSizeCache<SQLIdentity, SQLNode> nodeCache = null;
+	private boolean isDeleted = false;
 
-	public SQLNode(final SQLDatabaseService db, final NodeResult result) {
-		super(db, result.id(), result.data());
+	public SQLNode(final SQLDatabaseService db, final SQLIdentity id) {
+		this(db, id, null);
 	}
 
-	public SQLNode(final SQLIdentity id) {
-		super(id);
+	public SQLNode(final SQLDatabaseService db, final SQLIdentity id, final Map<String, Object> data) {
+		super(db, id, data);
 	}
 
 	@Override
@@ -58,6 +54,8 @@ public class SQLNode extends SQLEntity implements Node {
 
 	@Override
 	public Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties) {
+
+		/*
 
 		try {
 
@@ -77,43 +75,19 @@ public class SQLNode extends SQLEntity implements Node {
 				final ResultSet generatedKeys = stm.getGeneratedKeys();
 				if (generatedKeys.next()) {
 
-					final PreparedStatement createProperty = tx.prepareStatement("INSERT INTO RelationshipProperty(relationshipId, name, type, stringValue, intValue) values(?, ?, ?, ?, ?)");
+					final PreparedStatement createProperty = tx.prepareStatement(CREATE_REL_PROPERTY_STATEMENT);
 					final long newRelationshipId           = generatedKeys.getLong(1);
 					final SQLIdentity newId                = SQLIdentity.forId(newRelationshipId);
 
 					for (final Entry<String, Object> entry : properties.entrySet()) {
 
-						final Object value = entry.getValue();
-
-						createProperty.setLong(1, newRelationshipId);
-						createProperty.setString(2, entry.getKey());
-						createProperty.setInt(3, getInsertTypeForValue(value));
-
-						if (value != null) {
-
-							if (value instanceof String) {
-
-								createProperty.setString(4, (String)value);
-								createProperty.setNull(5, Types.INTEGER);
-							}
-
-							if (value instanceof Integer) {
-
-								createProperty.setNull(4, Types.VARCHAR);
-								createProperty.setInt(5, (Integer)value);
-							}
-
-						} else {
-
-							createProperty.setNull(4, Types.VARCHAR);
-							createProperty.setNull(5, Types.INTEGER);
-						}
+						SQLEntity.configureStatement(createProperty, newRelationshipId, entry.getKey(), entry.getValue());
 
 						createProperty.executeUpdate();
 					}
 
 					//FIXME: this doesnt work: we need (source, target, relType) when creating a new Relationship instance
-					return SQLRelationship.newInstance(db, new RelationshipResult(newId, getIdentity(), targetIdentity, relationshipType, data));
+					return SQLRelationship.newInstance(db, new RelationshipResult(newId, getIdentity(), targetIdentity, relationshipType, properties));
 				}
 			}
 
@@ -121,11 +95,15 @@ public class SQLNode extends SQLEntity implements Node {
 			ex.printStackTrace();
 		}
 
+		*/
+
 		return null;
 	}
 
 	@Override
 	public void addLabel(final String label) {
+
+		/*
 
 		try {
 
@@ -140,10 +118,13 @@ public class SQLNode extends SQLEntity implements Node {
 		} catch (SQLException ex) {
 			ex.printStackTrace();
 		}
+		*/
 	}
 
 	@Override
 	public void removeLabel(final String label) {
+
+		/*
 
 		try {
 
@@ -158,6 +139,7 @@ public class SQLNode extends SQLEntity implements Node {
 		} catch (SQLException ex) {
 			ex.printStackTrace();
 		}
+		*/
 	}
 
 	@Override
@@ -168,13 +150,46 @@ public class SQLNode extends SQLEntity implements Node {
 		return tx.getNodeLabels(id);
 	}
 
-	@Override
-	public boolean hasRelationshipTo(final RelationshipType relationshipType, final Node targetNode) {
+	public boolean hasLabel(final String label) {
+
+		/*
 
 		try {
 
 			final SQLTransaction tx     = db.getCurrentTransaction();
-			final PreparedStatement stm = tx.prepareStatement("SELECT COUNT(*) FROM Relationship WHERE name = ? AND source = ? AND target = ?");
+			final PreparedStatement stm = tx.prepareStatement("SELECT COUNT(*) FROM Label WHERE nodeId = ? AND name = ?");
+
+			stm.setLong(1, id.getId());
+			stm.setString(2, label);
+
+			if (stm.execute()) {
+
+				try (final ResultSet result = stm.getResultSet()) {
+
+					if (result.next()) {
+
+						return result.getLong(1) > 0;
+					}
+				}
+			}
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
+		*/
+
+		return false;
+	}
+
+	@Override
+	public boolean hasRelationshipTo(final RelationshipType relationshipType, final Node targetNode) {
+
+		/*
+
+		try {
+
+			final SQLTransaction tx     = db.getCurrentTransaction();
+			final PreparedStatement stm = tx.prepareStatement("SELECT COUNT(*) FROM Relationship WHERE type = ? AND source = ? AND target = ?");
 			final long idValue          = getIdentity().getId();
 
 			stm.setString(1, relationshipType.name());
@@ -195,12 +210,15 @@ public class SQLNode extends SQLEntity implements Node {
 		} catch (SQLException ex) {
 			ex.printStackTrace();
 		}
+		*/
 
 		return false;
 	}
 
 	@Override
 	public Iterable<Relationship> getRelationships() {
+
+		/*
 
 		try {
 
@@ -217,11 +235,15 @@ public class SQLNode extends SQLEntity implements Node {
 			ex.printStackTrace();
 		}
 
+		*/
+
 		return null;
 	}
 
 	@Override
 	public Iterable<Relationship> getRelationships(final Direction direction) {
+
+		/*
 
 		final StringBuilder buf = new StringBuilder("SELECT * FROM Relationship WHERE ");
 
@@ -253,13 +275,17 @@ public class SQLNode extends SQLEntity implements Node {
 			ex.printStackTrace();
 		}
 
+		*/
+
 		return null;
 	}
 
 	@Override
 	public Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType) {
 
-		final StringBuilder buf = new StringBuilder("SELECT * FROM Relationship WHERE type = ?");
+		/*
+
+		final StringBuilder buf = new StringBuilder("SELECT * FROM Relationship WHERE type = ? AND ");
 
 		switch (direction) {
 
@@ -295,8 +321,19 @@ public class SQLNode extends SQLEntity implements Node {
 		} catch (SQLException ex) {
 			ex.printStackTrace();
 		}
+		*/
 
 		return null;
+	}
+
+	@Override
+	public void delete(final boolean deleteRelationships) throws NotInTransactionException {
+
+		final SQLTransaction tx = db.getCurrentTransaction();
+
+		tx.deleteNode(getIdentity(), deleteRelationships);
+
+		isDeleted = true;
 	}
 
 	// ----- public static methods -----
@@ -308,13 +345,13 @@ public class SQLNode extends SQLEntity implements Node {
 
 		synchronized (nodeCache) {
 
-			final SQLIdentity id = result.id();
-			SQLNode wrapper      = nodeCache.get(id);
+			final SQLIdentity identity = result.id();
+			SQLNode wrapper = nodeCache.get(identity);
 
 			if (wrapper == null || wrapper.stale) {
 
-				wrapper = new SQLNode(db, result);
-				nodeCache.put(id, wrapper);
+				wrapper = new SQLNode(db, identity, result.data());
+				nodeCache.put(identity, wrapper);
 			}
 
 			return wrapper;
@@ -346,6 +383,6 @@ public class SQLNode extends SQLEntity implements Node {
 
 	@Override
 	public boolean isDeleted() {
-		return false;
+		return isDeleted;
 	}
 }

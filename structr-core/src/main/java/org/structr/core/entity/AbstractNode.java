@@ -49,6 +49,12 @@ import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
+import org.structr.api.graph.PropagationDirection;
+import static org.structr.api.graph.PropagationDirection.In;
+import static org.structr.api.graph.PropagationDirection.Out;
+import static org.structr.api.graph.PropagationMode.Add;
+import static org.structr.api.graph.PropagationMode.Keep;
+import static org.structr.api.graph.PropagationMode.Remove;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
@@ -1048,15 +1054,15 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	 *
 	 * @return whether permission resolution can continue along this relationship
 	 */
-	private boolean propagationAllowed(final AbstractNode thisNode, final RelationshipInterface rel, final SchemaRelationshipNode.Direction propagationDirection, final boolean doLog) {
+	private boolean propagationAllowed(final AbstractNode thisNode, final RelationshipInterface rel, final PropagationDirection propagationDirection, final boolean doLog) {
 
 		// early exit
-		if (propagationDirection.equals(SchemaRelationshipNode.Direction.Both)) {
+		if (propagationDirection.equals(PropagationDirection.Both)) {
 			return true;
 		}
 
 		// early exit
-		if (propagationDirection.equals(SchemaRelationshipNode.Direction.None)) {
+		if (propagationDirection.equals(PropagationDirection.None)) {
 			return false;
 		}
 

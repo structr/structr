@@ -25,7 +25,7 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.schema.SchemaHelper.Type;
-import org.structr.schema.json.JsonBooleanProperty;
+import org.structr.api.schema.JsonBooleanProperty;
 
 /**
  *

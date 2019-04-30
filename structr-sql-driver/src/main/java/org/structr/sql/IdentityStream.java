@@ -27,13 +27,14 @@ import java.util.Iterator;
 class IdentityStream implements Iterable<SQLIdentity> {
 
 	private ResultSet resultSet = null;
+	private String type         = null;
 
-	public IdentityStream(final ResultSet resultSet) throws SQLException {
+	public IdentityStream(final String type, final ResultSet resultSet) throws SQLException {
 		this.resultSet = resultSet;
 	}
 
 	@Override
 	public Iterator<SQLIdentity> iterator() {
-		return new IdentityStreamIterator(resultSet);
+		return new IdentityStreamIterator(type, resultSet);
 	}
 }

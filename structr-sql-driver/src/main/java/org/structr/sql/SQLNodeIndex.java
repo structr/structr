@@ -18,7 +18,11 @@
  */
 package org.structr.sql;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.List;
 import org.structr.api.graph.Node;
+import org.structr.api.util.Iterables;
 
 /**
  */
@@ -29,7 +33,37 @@ public class SQLNodeIndex extends AbstractSQLIndex<Node> {
 	}
 
 	@Override
+	public String getQueryPrefix(final String mainType, final String sourceTypeLabel, final String targetTypeLabel) {
+		return null;
+	}
+
+	@Override
+	public String getQuerySuffix(final SQLQuery query) {
+		return "";
+	}
+
+	@Override
 	public Iterable<Node> getResult(final SQLQuery query) {
+
+		try {
+			final SQLTransaction tx      = db.getCurrentTransaction();
+			final List<Object> params    = query.getParameters();
+			final String sql             = query.getStatement();
+			final PreparedStatement stm  = tx.prepareStatement(sql);
+			int index                    = 1;
+
+			for (final Object value : params) {
+
+				stm.setObject(index++, value);
+			}
+
+			System.out.println(sql + ": " + params);
+
+			return Iterables.map(r -> SQLNode.newInstance(db, r), new NodeResultStream(db, stm.executeQuery()));
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
 
 		return null;
 	}

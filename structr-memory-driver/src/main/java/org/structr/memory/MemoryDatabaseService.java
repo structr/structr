@@ -42,6 +42,7 @@ import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
 import org.structr.api.util.CountResult;
 import org.structr.api.graph.RelationshipType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
 import org.structr.memory.index.filter.Filter;
@@ -299,6 +300,11 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 		}
 
 		return false;
+	}
+
+	@Override
+	public void initializeSchema(final JsonSchema schema) {
+		// no-op
 	}
 
 	// ----- graph repository methods -----

@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -34,13 +33,13 @@ import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.InvalidSchemaException;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonSchema;
 
 public class SchemaJsonResource extends Resource {
+
 	private static final String resourceIdentifier = "_schemaJson";
-	private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SchemaResource.class.getName());
-	private String uriPart = null;
+	private static final org.slf4j.Logger logger   = LoggerFactory.getLogger(SchemaResource.class.getName());
+	private String uriPart                         = null;
 
 	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
@@ -85,14 +84,8 @@ public class SchemaJsonResource extends Resource {
 
 		String schema = null;
 
-		try {
-
-			final JsonSchema jsonSchema = StructrSchema.createFromDatabase(StructrApp.getInstance());
-			schema                      = jsonSchema.toString();
-
-		} catch (URISyntaxException ex) {
-			logger.error("Error while creating JsonSchema: " + ex.getMessage());
-		}
+		final JsonSchema jsonSchema = StructrSchema.createFromDatabase(StructrApp.getInstance());
+		schema                      = jsonSchema.toString();
 
 		return new PagingIterable<>(Arrays.asList(schema));
 
@@ -106,13 +99,7 @@ public class SchemaJsonResource extends Resource {
 			final App app = StructrApp.getInstance(securityContext);
 			String schemaJson = (String)propertySet.get("schema");
 
-			try {
-
-				StructrSchema.replaceDatabaseSchema(app, StructrSchema.createFromSource(schemaJson));
-
-			} catch (URISyntaxException | InvalidSchemaException ex) {
-				logger.error("Error while importing JsonSchema: " + ex.getMessage());
-			}
+			StructrSchema.replaceDatabaseSchema(app, StructrSchema.createFromSource(schemaJson));
 
 			return new RestMethodResult(200, "Schema imported successfully");
 		}

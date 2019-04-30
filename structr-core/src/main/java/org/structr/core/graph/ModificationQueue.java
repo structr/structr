@@ -510,13 +510,6 @@ public class ModificationQueue {
 				return;
 			}
 
-			if (RelType.IS_AT.equals(relType)) {
-
-				modifyLocation(startNode);
-				modifyLocation(endNode);
-				return;
-			}
-
 			final Relation relation  = Relation.getInstance((Class)rel.getClass());
 			final PropertyKey source = relation.getSourceProperty();
 			final PropertyKey target = relation.getTargetProperty();

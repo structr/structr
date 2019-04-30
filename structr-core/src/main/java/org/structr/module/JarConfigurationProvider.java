@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -51,6 +52,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.Agent;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.service.Service;
 import org.structr.common.DefaultFactoryDefinition;
@@ -62,6 +66,7 @@ import org.structr.core.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
+import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -69,6 +74,7 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
+import org.structr.schema.export.StructrSchemaDefinition;
 
 /**
  * The module service main class.
@@ -77,6 +83,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(JarConfigurationProvider.class.getName());
 
+	public static final URI StaticSchemaRootURI      = URI.create("https://structr.org/v2.0/#");
 	public static final String DYNAMIC_TYPES_PACKAGE = "org.structr.dynamic";
 
 	private static final Set<String> coreModules                                                   = new HashSet<>(Arrays.asList("core", "rest", "ui"));
@@ -117,6 +124,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private FactoryDefinition factoryDefinition                                                    = new DefaultFactoryDefinition();
 	private LicenseManager licenseManager                                                          = null;
+
+	private final StructrSchemaDefinition staticSchema                                             = new StructrSchemaDefinition(StaticSchemaRootURI);
 
 	// ----- interface ConfigurationProvider -----
 	@Override
@@ -529,6 +538,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		// method requiring two different calls instead of one
 		final String simpleName = type.getSimpleName();
 		final String fqcn       = type.getName();
+		JsonType jsonType       = null;
 
 		// do not register types that match org.structr.*Mixin (helpers)
 		if (fqcn.startsWith("org.structr.") && simpleName.endsWith("Mixin")) {
@@ -547,6 +557,58 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			relationshipEntityClassCache.put(simpleName, type);
 			relationshipPackages.add(fqcn.substring(0, fqcn.lastIndexOf(".")));
 			globalPropertyViewMap.remove(fqcn);
+		}
+
+		// identify node types to enable schema management
+		if (!fqcn.startsWith("org.structr.test.")) {
+
+			if (AbstractNode.class.isAssignableFrom(type)) {
+
+				jsonType = staticSchema.addType(simpleName);
+
+				storeModifiers(type, jsonType);
+			}
+
+			if (AbstractRelationship.class.isAssignableFrom(type) && !GenericRelationship.class.isAssignableFrom(type)) {
+
+				// instantiate relationship class
+				try {
+
+					final Relation instance = Relation.getInstance(type);
+					final Class sourceType  = instance.getSourceType();
+					final Class targetType  = instance.getTargetType();
+
+					final JsonObjectType st = (JsonObjectType)staticSchema.addType(sourceType.getSimpleName());
+					final JsonObjectType tt = (JsonObjectType)staticSchema.addType(targetType.getSimpleName());
+
+					storeModifiers(sourceType, st);
+					storeModifiers(targetType, tt);
+
+					final PropertyKey sp    = instance.getSourceProperty();
+					final PropertyKey tp    = instance.getTargetProperty();
+
+					jsonType = st.relate(
+						tt,
+						instance.name(),
+						Relation.getCardinality(instance),
+						sp.jsonName(),
+						tp.jsonName()
+
+					);
+
+					jsonType.setName(simpleName);
+
+					// configure internal properties
+					jsonType.addStringProperty("sourceType");
+					jsonType.addStringProperty("sourceId");
+					jsonType.addStringProperty("relationshipType");
+					jsonType.addStringProperty("targetType");
+					jsonType.addStringProperty("targetId");
+
+				} catch (Throwable t) {
+					t.printStackTrace();
+				}
+			}
 		}
 
 		// interface that extends NodeInterface, must be stored
@@ -588,6 +650,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				}
 
 				registerProperty(type, propertyKey);
+
+				registerJsonProperty(jsonType, propertyKey);
 			}
 
 			for (final Map.Entry<Field, View> entry : views.entrySet()) {
@@ -666,13 +730,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			interfaceMap.put(type, interfaces);
 
 			for (Class iface : type.getInterfaces()) {
-
-				/*
-				if (GraphObject.class.isAssignableFrom(iface)) {
-
-					reverseInterfaceMap.put(iface.getSimpleName(), iface);
-				}
-				*/
 
 				interfaces.add(iface);
 			}
@@ -1604,6 +1661,56 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		}
 	}
 
+	private void registerJsonProperty(final JsonType type, final PropertyKey key) {
+
+		// we're only interested in primitives here..
+		if (type != null && key.relatedType() == null) {
+
+			final String name     = key.dbName();
+			final String typeName = key.typeName();
+
+			if (typeName != null) {
+				switch (typeName) {
+
+					case "String":
+						type.addStringProperty(name);
+						break;
+
+					case "Integer":
+						type.addIntegerProperty(name);
+						break;
+
+					case "Date":
+					case "Long":
+						type.addLongProperty(name);
+						break;
+
+					case "Boolean":
+						type.addBooleanProperty(name);
+						break;
+
+					case "String[]":
+						type.addStringArrayProperty(name);
+						break;
+
+					case "Integer[]":
+						type.addIntegerArrayProperty(name);
+						break;
+
+					case "Date[]":
+					case "Long[]":
+						type.addLongArrayProperty(name);
+						break;
+
+					case "Boolean[]":
+						type.addBooleanArrayProperty(name);
+						break;
+				}
+			}
+		}
+	}
+
+
 	public void printCacheStats() {
 
 		System.out.println("###################################################");
@@ -1626,5 +1733,23 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		System.out.println("" + globalKnownPropertyKeys.size());
 		System.out.println("" + dynamicViews.size());
 		System.out.println("###################################################");
+	}
+
+	@Override
+	public JsonSchema getStaticSchema() {
+		return staticSchema;
+	}
+
+	private void storeModifiers(final Class type, final JsonType jsonType) {
+
+		if (Modifier.isAbstract(type.getModifiers())) {
+
+			jsonType.setIsAbstract();
+
+			if (type.isInterface()) {
+
+				jsonType.setIsInterface();
+			}
+		}
 	}
 }
