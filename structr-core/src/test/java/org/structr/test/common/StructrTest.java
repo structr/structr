@@ -47,8 +47,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.memory.MemoryDatabaseService;
 import org.structr.schema.SchemaService;
-import org.structr.sql.SQLDatabaseService;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import org.testng.annotations.AfterClass;
@@ -363,8 +363,7 @@ public class StructrTest {
 	protected void setupDatabaseConnection() {
 
 		// use database driver from system property, default to MemoryDatabaseService
-		//Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", MemoryDatabaseService.class.getName()));
-		Settings.DatabaseDriver.setValue(SQLDatabaseService.class.getName());
+		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", MemoryDatabaseService.class.getName()));
 		Settings.DatabaseDriverMode.setValue("remote");
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");

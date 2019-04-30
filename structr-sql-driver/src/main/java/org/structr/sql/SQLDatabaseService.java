@@ -349,7 +349,6 @@ public class SQLDatabaseService extends AbstractDatabaseService implements Graph
 		return properties.get(name);
 	}
 
-	@Override
 	public void initializeSchema(final JsonSchema schema) {
 
 		try (final Transaction tx = beginTx()) {

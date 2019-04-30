@@ -47,6 +47,10 @@ import javatools.parsers.PlingStemmer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.graph.Direction;
+import org.structr.api.graph.PropagationDirection;
+import org.structr.api.graph.PropagationMode;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
@@ -1098,18 +1102,21 @@ public class SchemaHelper {
 	public static void formatImportStatements(final SourceFile sourceFile, final AbstractSchemaNode schemaNode, final Class baseType) {
 
 		sourceFile.importLine(baseType.getName());
+		sourceFile.importLine(DateArrayPropertyParser.class.getName());
 		sourceFile.importLine(ConfigurationProvider.class.getName());
 		sourceFile.importLine(GraphObjectComparator.class.getName());
 		sourceFile.importLine(PermissionPropagation.class.getName());
+		sourceFile.importLine(PropagationDirection.class.getName());
 		sourceFile.importLine(FrameworkException.class.getName());
 		sourceFile.importLine(DatePropertyParser.class.getName());
-		sourceFile.importLine(DateArrayPropertyParser.class.getName());
 		sourceFile.importLine(ModificationQueue.class.getName());
 		sourceFile.importLine(PropertyConverter.class.getName());
 		sourceFile.importLine(ValidationHelper.class.getName());
+		sourceFile.importLine(PropagationMode.class.getName());
 		sourceFile.importLine(SecurityContext.class.getName());
 		sourceFile.importLine(LinkedHashSet.class.getName());
 		sourceFile.importLine(PropertyView.class.getName());
+		sourceFile.importLine(Cardinality.class.getName());
 		sourceFile.importLine(GraphObject.class.getName());
 		sourceFile.importLine(ErrorBuffer.class.getName());
 		sourceFile.importLine(StringUtils.class.getName());
@@ -1117,6 +1124,7 @@ public class SchemaHelper {
 		sourceFile.importLine(StructrApp.class.getName());
 		sourceFile.importLine(LinkedList.class.getName());
 		sourceFile.importLine(Collection.class.getName());
+		sourceFile.importLine(Direction.class.getName());
 		sourceFile.importLine(Iterables.class.getName());
 		sourceFile.importLine(Services.class.getName());
 		sourceFile.importLine(Actions.class.getName());

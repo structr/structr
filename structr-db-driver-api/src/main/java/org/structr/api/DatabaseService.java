@@ -25,7 +25,6 @@ import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
-import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.NodeWithOwnerResult;
 
@@ -79,8 +78,6 @@ public interface DatabaseService {
 
 	String getTenantIdentifier();
 	String getInternalTimestamp();
-
-	void initializeSchema(final JsonSchema schema);
 
 	// ----- index -----
 	Index<Node> nodeIndex();

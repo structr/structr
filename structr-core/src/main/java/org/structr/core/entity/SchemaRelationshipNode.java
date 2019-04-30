@@ -1015,32 +1015,32 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		if (!PropagationDirection.None.equals(getProperty(permissionPropagation))) {
 
 			buf.line(this, "@Override");
-			buf.begin(this, "public SchemaRelationshipNode.Direction getPropagationDirection() {");
-			buf.line(this, "return SchemaRelationshipNode.Direction.").append(getProperty(permissionPropagation)).append(";");
+			buf.begin(this, "public PropagationDirection getPropagationDirection() {");
+			buf.line(this, "return PropagationDirection.").append(getProperty(permissionPropagation)).append(";");
 			buf.end();
 
 
 			buf.line(this, "@Override");
-			buf.begin(this, "public SchemaRelationshipNode.Propagation getReadPropagation() {");
-			buf.line(this, "return SchemaRelationshipNode.Propagation.").append(getProperty(readPropagation)).append(";");
+			buf.begin(this, "public PropagationMode getReadPropagation() {");
+			buf.line(this, "return PropagationMode.").append(getProperty(readPropagation)).append(";");
 			buf.end();
 
 
 			buf.line(this, "@Override");
-			buf.begin(this, "public SchemaRelationshipNode.Propagation getWritePropagation() {");
-			buf.line(this, "return SchemaRelationshipNode.Propagation.").append(getProperty(writePropagation)).append(";");
+			buf.begin(this, "public PropagationMode getWritePropagation() {");
+			buf.line(this, "return PropagationMode.").append(getProperty(writePropagation)).append(";");
 			buf.end();
 
 
 			buf.line(this, "@Override");
-			buf.begin(this, "public SchemaRelationshipNode.Propagation getDeletePropagation() {");
-			buf.line(this, "return SchemaRelationshipNode.Propagation.").append(getProperty(deletePropagation)).append(";");
+			buf.begin(this, "public PropagationMode getDeletePropagation() {");
+			buf.line(this, "return PropagationMode.").append(getProperty(deletePropagation)).append(";");
 			buf.end();
 
 
 			buf.line(this, "@Override");
-			buf.begin(this, "public SchemaRelationshipNode.Propagation getAccessControlPropagation() {");
-			buf.line(this, "return SchemaRelationshipNode.Propagation.").append(getProperty(accessControlPropagation)).append(";");
+			buf.begin(this, "public PropagationMode getAccessControlPropagation() {");
+			buf.line(this, "return PropagationMode.").append(getProperty(accessControlPropagation)).append(";");
 			buf.end();
 
 

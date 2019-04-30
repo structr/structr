@@ -58,7 +58,6 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.index.Index;
-import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
@@ -762,11 +761,6 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		return false;
-	}
-
-	@Override
-	public void initializeSchema(final JsonSchema schema) {
-		// no-op
 	}
 
 	// ----- private methods -----

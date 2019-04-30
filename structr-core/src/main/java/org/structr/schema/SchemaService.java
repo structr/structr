@@ -109,10 +109,6 @@ public class SchemaService implements Service {
 
 	@Override
 	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-
-		// initialize static classes if necessary
-		services.getDatabaseService().initializeSchema(StructrApp.getConfiguration().getStaticSchema());
-
 		return reloadSchema(new ErrorBuffer(), null);
 	}
 
