@@ -812,7 +812,7 @@ var _Elements = {
 		var leftOrRight = 'left';
 		var topOrBottom = 'top';
 		var x = (e.clientX - 8);
-		var y = (div.offset().top - 58);
+		var y = div.offset().top;
 
 		if (e.pageX > ($(window).width() / 2)) {
 			leftOrRight = 'right';

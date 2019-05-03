@@ -4107,10 +4107,6 @@ i.fa.ps {
 /**
  * Settings for insert shortcut menu
  */
-#menu-area {
-	position: relative;
-}
-
 #add-child-dialog {
 	padding: 0;
 	top: 1px;
