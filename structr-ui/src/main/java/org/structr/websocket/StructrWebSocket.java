@@ -566,6 +566,10 @@ public class StructrWebSocket implements WebSocketListener {
 		securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
 		securityContext.setSessionId(sessionId);
 
+		if (securityContext.getRequest() == null) {
+			securityContext.setRequest(request);
+		}
+
 		logger.debug("Session ID of security context " + securityContext + " set to " + sessionId);
 
 		timedOut = false;

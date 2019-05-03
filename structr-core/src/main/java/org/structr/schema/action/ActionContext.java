@@ -264,6 +264,10 @@ public class ActionContext {
 						case "request":
 							return securityContext.getRequest();
 
+						case "baseUrl":
+						case "base_url":
+							return getBaseUrl(securityContext.getRequest());
+
 						case "me":
 							return securityContext.getUser(false);
 
@@ -300,10 +304,6 @@ public class ActionContext {
 							case "remoteAddress":
 							case "remote_address":
 								return getRemoteAddr(request);
-
-							case "baseUrl":
-							case "base_url":
-								return getBaseUrl(request);
 						}
 					}
 
@@ -396,10 +396,13 @@ public class ActionContext {
 	}
 
 	public static String getRemoteAddr(HttpServletRequest request) {
+
 		final String remoteAddress = request.getHeader("X-FORWARDED-FOR");
+
 		if (remoteAddress == null) {
 			return request.getRemoteAddr();
 		}
+
 		return remoteAddress;
 	}
 
