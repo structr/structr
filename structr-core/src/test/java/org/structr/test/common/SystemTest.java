@@ -29,7 +29,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.apache.commons.lang3.StringUtils;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -37,6 +36,7 @@ import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -48,10 +48,6 @@ import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
-import org.structr.test.core.entity.TestEight;
-import org.structr.test.core.entity.TestFive;
-import org.structr.test.core.entity.TestOne;
-import org.structr.test.core.entity.TestSix;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -66,10 +62,15 @@ import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
+import org.structr.test.core.entity.TestEight;
+import org.structr.test.core.entity.TestFive;
+import org.structr.test.core.entity.TestOne;
+import org.structr.test.core.entity.TestSix;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
 /**
  *
@@ -970,6 +971,10 @@ public class SystemTest extends StructrTest {
 				writer.println("non.Existing.KEY = 12345b");
 				writer.println("nodeextender.log = true");
 				writer.println("DATABASE.cAchE.NOde.SIZE = 112233");
+
+				writer.println("thisIsACaseSensitiveCustomKey = CustomValue");
+				writer.println("thisIsACaseSensitiveKey.cronExpression = * * * * * *");
+
 			}
 
 			Settings.loadConfiguration(tmpConfig.getAbsolutePath());
@@ -993,6 +998,22 @@ public class SystemTest extends StructrTest {
 		assertEquals("Invalid configuration setting result", Boolean.valueOf(true), Settings.LogSchemaOutput.getValue());
 		assertEquals("Invalid configuration setting result", Integer.valueOf(112233), Settings.NodeCacheSize.getValue());
 
+
+		// test two custom entries in settings - those should remain untouched (ie not lower-cased)
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			assertEquals("Invalid configuration setting result", "CustomValue", Scripting.evaluate(actionContext, null, "${config('thisIsACaseSensitiveCustomKey')}", "testReadConfig1"));
+			assertEquals("Invalid configuration setting result", "* * * * * *", Scripting.evaluate(actionContext, null, "${config('thisIsACaseSensitiveKey.cronExpression')}", "testReadConfig2"));
+
+			tx.success();
+
+		} catch(UnlicensedScriptException |FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
 
 		tmpConfig.deleteOnExit();
 	}
