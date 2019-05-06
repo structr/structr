@@ -402,7 +402,7 @@ var _Flows = {
                 if (name.indexOf(".") !== -1) {
 					dataObject.effectiveName = name;
 				} else {
-                	dataObject.name = name;
+                	dataObject.name = name;	
 				}
 
                 if (id !== null) {

@@ -19,6 +19,7 @@
 package org.structr.flow.deployment;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -34,6 +35,7 @@ import org.structr.flow.impl.FlowContainerConfiguration;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -41,9 +43,9 @@ import java.util.TreeMap;
 public class FlowTreeDeploymentHandler implements FlowDeploymentInterface{
 
 	private static final Logger logger                                                      = LoggerFactory.getLogger(FlowTreeDeploymentHandler.class.getName());
-	private static final Gson gson                                                          = new Gson();
+	private static final Gson gson                                                          = new GsonBuilder().setPrettyPrinting().create();
 
-	public final static String FLOW_DEPLOYMENT_TREE_BASE_FOLDER                            = "flows";
+	public final static String FLOW_DEPLOYMENT_TREE_BASE_FOLDER                             = "flows";
 	private final static String FLOW_DEPLOYMENT_TREE_REL_FOLDER                             = "rels";
 	private final static String FLOW_DEPLOYMENT_TREE_NODE_FOLDER                            = "nodes";
 	private final static String FLOW_DEPLOYMENT_TREE_NODE_SCRIPTS_FOLDER                    = "scripts";
@@ -55,6 +57,7 @@ public class FlowTreeDeploymentHandler implements FlowDeploymentInterface{
 	private final static String FLOW_DEPLOYMENT_REL_FILE                                    = "rel.json";
 	private final static String FLOW_DEPLOYMENT_CONFIG_FILE                                 = "config.json";
 
+	private static final String[] FLOW_BLACKLISTED_REL_TYPES                                = {"OWNS","SECURITY"};
 	private static final String[] FLOW_SCRIPT_ATTRIBUTES									= {"query", "script", "result"};
 
 
@@ -181,7 +184,9 @@ public class FlowTreeDeploymentHandler implements FlowDeploymentInterface{
 				// Remove scripts from exportData and export them seperately
 				for (final String key : FLOW_SCRIPT_ATTRIBUTES) {
 					if (exportData.containsKey(key)) {
-						scriptData.put(key, exportData.get(key).toString());
+						if (exportData.get(key) != null) {
+							scriptData.put(key, exportData.get(key).toString());
+						}
 						exportData.remove(key);
 					}
 				}
@@ -219,15 +224,19 @@ public class FlowTreeDeploymentHandler implements FlowDeploymentInterface{
 
 		try {
 
-			final Path relPath = Files.createDirectories(target.resolve(rel.getUuid()));
+			if (!Arrays.asList(FLOW_BLACKLISTED_REL_TYPES).contains(rel.getRelType().name())) {
 
-			Map<String, String> attrs = new TreeMap<>();
-			attrs.put("type", rel.getClass().getSimpleName());
-			attrs.put("relType", ((RelationshipInterface) rel).getRelType().name());
-			attrs.put("sourceId", ((RelationshipInterface) rel).getSourceNodeId());
-			attrs.put("targetId", ((RelationshipInterface) rel).getTargetNodeId());
+				final Path relPath = Files.createDirectories(target.resolve(rel.getUuid()));
 
-			writeData(relPath.resolve(FLOW_DEPLOYMENT_REL_FILE), gson.toJson(attrs));
+				Map<String, String> attrs = new TreeMap<>();
+				attrs.put("type", rel.getClass().getSimpleName());
+				attrs.put("relType", ((RelationshipInterface) rel).getRelType().name());
+				attrs.put("sourceId", ((RelationshipInterface) rel).getSourceNodeId());
+				attrs.put("targetId", ((RelationshipInterface) rel).getTargetNodeId());
+
+				writeData(relPath.resolve(FLOW_DEPLOYMENT_REL_FILE), gson.toJson(attrs));
+
+			}
 
 		} catch (IOException ex) {
 
