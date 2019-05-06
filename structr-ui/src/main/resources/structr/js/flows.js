@@ -393,13 +393,20 @@ var _Flows = {
                     }
                 }
 
+                let dataObject = {
+					type: type,
+					id: id,
+					scheduledForIndexing: true
+				};
+
+                if (name.indexOf(".") !== -1) {
+					dataObject.effectiveName = name;
+				} else {
+                	dataObject.name = name;
+				}
+
                 if (id !== null) {
-                    await persistence._persistObject({
-                        type: type,
-                        id: id,
-                        name: name,
-                        scheduledForIndexing: true
-                    });
+                    await persistence._persistObject(dataObject);
 
                     _Flows.refreshTree(() => {});
                 }
