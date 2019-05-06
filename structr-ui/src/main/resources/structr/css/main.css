@@ -1847,7 +1847,7 @@ button.enabled, button.active {
 	cursor: pointer;
 }
 
-.pager input.filter[type="text"][data-attribute="name"], .pager input.filter[type="text"][data-attribute="category"] {
+.pager input.filter[type="text"][data-attribute="name"], .pager input.filter[type="text"][data-attribute="category"], .pager input.filter[type="text"][data-attribute="domain"] {
 	width: 52px;
 	font-size: 1.1em;
 	text-align: left;
