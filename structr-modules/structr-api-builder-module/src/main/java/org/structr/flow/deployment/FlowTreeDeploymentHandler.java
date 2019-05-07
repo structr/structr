@@ -127,6 +127,9 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 				app.delete(toDelete);
 			}
 
+		}
+
+		try (final Tx tx = app.tx()) {
 
 			// Import new flow data
 
@@ -143,20 +146,21 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 		// Start at flows base folder
 		final File rootDir = new File(flowFolder.toAbsolutePath().toString());
-		File[] children = rootDir.listFiles();
 
 		// Start import for each flow and their respective __children
+		if (rootDir.toPath().resolve(FLOW_DEPLOYMENT_CONTAINER_FILE).toFile().isFile()) {
+
+			importFlow(rootDir.toPath(), packagePath);
+		}
+
+		File[] children = rootDir.listFiles();
+		
 		if (children != null) {
 
 			for (final File dir : children) {
 
 				// Construct effective path based on current flow dir
 				final String effectivePackagePath = packagePath != null ? packagePath + "." + dir.getName() : dir.getName();
-
-				if (dir.toPath().resolve(FLOW_DEPLOYMENT_CONTAINER_FILE).toFile().isFile()) {
-
-					importFlow(dir.toPath(), packagePath);
-				}
 
 				File[] subDirs = dir.listFiles();
 				if (subDirs != null) {
