@@ -418,6 +418,10 @@ public class Settings {
 		return settings.get(StringUtils.join(toLowerCase(keys), "."));
 	}
 
+	public static <T> Setting<T> getCaseSensitiveSetting(final String... keys) {
+		return settings.get(StringUtils.join(keys, "."));
+	}
+
 	public static Setting<String> getStringSetting(final String... keys) {
 
 		final String key        = StringUtils.join(toLowerCase(keys), ".");
@@ -491,8 +495,9 @@ public class Settings {
 			// boolean
 			if ("true".equals(lowerCaseValue) || "false".equals(lowerCaseValue)) {
 
-				final Setting<Boolean> setting = new BooleanSetting(group, key.toLowerCase());
+				final Setting<Boolean> setting = new BooleanSetting(group, key);
 				setting.setIsDynamic(true);
+				setting.updateKey(key);
 				setting.setValue(Boolean.parseBoolean(value));
 
 				return setting;
@@ -501,16 +506,18 @@ public class Settings {
 			// integer
 			if (Settings.isNumeric(value)) {
 
-				final Setting<Integer> setting = new IntegerSetting(group, key.toLowerCase());
+				final Setting<Integer> setting = new IntegerSetting(group, key);
 				setting.setIsDynamic(true);
+				setting.updateKey(key);
 				setting.setValue(Integer.parseInt(value));
 
 				return setting;
 			}
 		}
 
-		final Setting<String> setting = new StringSetting(group, key.toLowerCase());
+		final Setting<String> setting = new StringSetting(group, key);
 		setting.setIsDynamic(true);
+		setting.updateKey(key);
 		setting.setValue(value);
 
 		return setting;
@@ -558,21 +565,30 @@ public class Settings {
 				final String value = trim(config.getString(key));
 				Setting<?> setting = Settings.getSetting(lcKey);
 
+				if (setting != null && setting.isDynamic()) {
+
+					// unregister dynamic settings so the type can change (and cronExpressions are put in correct group)
+					setting.unregister();
+					setting = null;
+				}
+
 				if (setting != null) {
 
 					setting.fromString(value);
 
 				} else {
 
+					// unknown setting => dynamic
+
 					SettingsGroup targetGroup = miscGroup;
 
 					// put key in cron group if it contains ".cronExpression"
-					if (lcKey.contains(".cronexpression")) {
+					if (key.contains(".cronExpression")) {
 						targetGroup = cronGroup;
 					}
 
 					// create new StringSetting for unknown key
-					Settings.createSettingForValue(targetGroup, lcKey, value);
+					Settings.createSettingForValue(targetGroup, key, value);
 				}
 			}
 

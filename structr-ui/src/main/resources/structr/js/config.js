@@ -84,6 +84,12 @@ function getAnchorFromUrl(url) {
 
 $(function () {
 
+	$('#new-entry-button').on('click', createNewEntry);
+
+	$('#reload-config-button').on('click', function() {
+		window.location.href = window.location.origin + window.location.pathname + "?reload" + $('#active_section').val();
+	});
+
 	$('#configTabs a').on('click', function() {
 		$('#configTabs li').removeClass('active');
 		$('.tab-content').hide();

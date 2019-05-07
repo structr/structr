@@ -186,7 +186,7 @@ var _Dashboard = {
 				var methodRow = $('<div class="global-method" style=""></div>');
 				var methodName = $('<span>' + result.name + '</span>');
 
-				methodRow.append(methodName).append('<button id="run-' + result.id + '" class="pull-right" style="margin-left: 1em;">Run now</button>');
+				methodRow.append('<button id="run-' + result.id + '" class="action button">Run now</button>').append(methodName);
 				maintenanceList.append(methodRow);
 
 				var cleanedComment = (result.comment && result.comment.trim() !== '') ? result.comment.replaceAll("\n", "<br>") : '';

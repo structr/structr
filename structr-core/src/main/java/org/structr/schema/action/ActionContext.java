@@ -264,6 +264,10 @@ public class ActionContext {
 						case "request":
 							return securityContext.getRequest();
 
+						case "baseUrl":
+						case "base_url":
+							return getBaseUrl(securityContext.getRequest());
+
 						case "me":
 							return securityContext.getUser(false);
 
@@ -300,10 +304,6 @@ public class ActionContext {
 							case "remoteAddress":
 							case "remote_address":
 								return getRemoteAddr(request);
-
-							case "baseUrl":
-							case "base_url":
-								return getBaseUrl(request);
 						}
 					}
 
@@ -378,7 +378,7 @@ public class ActionContext {
 
 		final Boolean httpsEnabled       = Settings.HttpsEnabled.getValue();
 		final String name                = (request != null) ? request.getServerName() : Settings.ApplicationHost.getValue();
-		final int port                   = (request != null) ? request.getServerPort() : Settings.HttpPort.getValue();
+		final Integer port               = (request != null) ? request.getServerPort() : ((httpsEnabled) ? Settings.HttpsPort.getValue() : Settings.HttpPort.getValue());
 
 		if (httpsEnabled) {
 			sb.append("s");
@@ -387,7 +387,8 @@ public class ActionContext {
 		sb.append("://");
 		sb.append(name);
 
-		if ( !(httpsEnabled && port == 443) && !(!httpsEnabled && port == 80)) {
+		// we need to specify the port if (protocol = HTTPS and port != 443 OR protocol = HTTP and port != 80)
+		if ( (httpsEnabled && port != 443) || (!httpsEnabled && port != 80) ) {
 			sb.append(":").append(port);
 		}
 
@@ -395,10 +396,13 @@ public class ActionContext {
 	}
 
 	public static String getRemoteAddr(HttpServletRequest request) {
+
 		final String remoteAddress = request.getHeader("X-FORWARDED-FOR");
+
 		if (remoteAddress == null) {
 			return request.getRemoteAddr();
 		}
+
 		return remoteAddress;
 	}
 
