@@ -28,7 +28,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -37,6 +36,7 @@ import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
+import static org.testng.AssertJUnit.fail;
 
 /**
  *
@@ -83,9 +83,6 @@ public class EndpointTest extends StructrRestTestBase {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
-
-		Settings.CypherDebugLogging.setValue(true);
-		Settings.ThreadAccessLogging.setValue(true);
 
 		final ExecutorService service  = Executors.newCachedThreadPool();
 		final AtomicInteger numSuccess = new AtomicInteger();
@@ -138,13 +135,15 @@ public class EndpointTest extends StructrRestTestBase {
 
 		service.shutdown();
 
-		Settings.CypherDebugLogging.setValue(false);
-		Settings.ThreadAccessLogging.setValue(false);
-
 		System.out.println("#############################################################################################");
 		System.out.println("200:  " + numSuccess.get());
 		System.out.println("422:  " + numFailure.get());
 		System.out.println("Time: " + (t1-t0) + " ms");
+
+		if (numFailure.get() > 0) {
+
+			fail("Concurrent property write access is broken.");
+		}
 
 	}
 }
