@@ -44,75 +44,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class FlowLegacyDeploymentHandler implements FlowDeploymentInterface {
+public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler implements FlowDeploymentInterface {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowLegacyDeploymentHandler.class.getName());
-
-	private static final Class[] classesToExport = {
-			FlowAction.class,
-			FlowAnd.class,
-			FlowCall.class,
-			FlowContainer.class,
-			FlowDataSource.class,
-			FlowDecision.class,
-			FlowForEach.class,
-			FlowGetProperty.class,
-			FlowKeyValue.class,
-			FlowNot.class,
-			FlowNotNull.class,
-			FlowObjectDataSource.class,
-			FlowOr.class,
-			FlowParameterInput.class,
-			FlowParameterDataSource.class,
-			FlowReturn.class,
-			FlowScriptCondition.class,
-			FlowStore.class,
-			FlowAggregate.class,
-			FlowConstant.class,
-			FlowCollectionDataSource.class,
-			FlowExceptionHandler.class,
-			FlowTypeQuery.class,
-			FlowIsTrue.class,
-			FlowContainerPackage.class,
-			FlowLog.class,
-			FlowFirst.class,
-			FlowNotEmpty.class,
-			FlowFilter.class,
-			FlowComparison.class,
-			FlowFork.class,
-			FlowForkJoin.class
-	};
-
-	private static final Class[] relsToExport = {
-			FlowCallContainer.class,
-			FlowCallParameter.class,
-			FlowConditionCondition.class,
-			FlowContainerBaseNode.class,
-			FlowContainerFlowNode.class,
-			FlowDataInput.class,
-			FlowDataInputs.class,
-			FlowDataSourceForEach.class,
-			FlowDecisionCondition.class,
-			FlowDecisionFalse.class,
-			FlowDecisionTrue.class,
-			FlowForEachBody.class,
-			FlowKeySource.class,
-			FlowKeyValueObjectInput.class,
-			FlowNameDataSource.class,
-			FlowNodeDataSource.class,
-			FlowNodes.class,
-			FlowValueSource.class,
-			FlowAggregateStartValue.class,
-			FlowScriptConditionSource.class,
-			/* Do not export principal relation as the principal won't be available after an import into a clean database
-			FlowContainerConfigurationPrincipal.class,
-			*/
-			FlowExceptionHandlerNodes.class,
-			FlowContainerPackageFlow.class,
-			FlowContainerPackagePackage.class,
-			FlowConditionBaseNode.class,
-			FlowForkBody.class
-	};
 
 	@Override
 	public void doExport(final Path target, final Gson gson) throws FrameworkException {
