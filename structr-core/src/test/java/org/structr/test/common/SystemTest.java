@@ -965,7 +965,6 @@ public class SystemTest extends StructrTest {
 				writer.println("database.connection.url = localhost:7687");
 				writer.println("HttpService.servlets = JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet FlowServlet");
 				writer.println("security.twofactorauthentication.level = 0");
-				writer.println("deployment.export.exportFileUuids = false");
 				writer.println("application.schema.automigration = true");
 				writer.println("mail.maxEmails = 50");
 				writer.println("non.Existing.KEY = 12345b");
@@ -991,7 +990,6 @@ public class SystemTest extends StructrTest {
 		assertEquals("Invalid configuration setting result", "NodeService AgentService CronService SchemaService LogService HttpService FtpService SSHService MailService", Settings.Services.getValue());
 		assertEquals("Invalid configuration setting result", "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet FlowServlet", Settings.Servlets.getValue());
 		assertEquals("Invalid configuration setting result", Integer.valueOf(0), Settings.TwoFactorLevel.getValue());
-		assertEquals("Invalid configuration setting result", Boolean.valueOf(false), Settings.getBooleanSetting("deployment.export.exportfileuuids").getValue());
 		assertEquals("Invalid configuration setting result", Boolean.valueOf(true), Settings.SchemaAutoMigration.getValue());
 		assertEquals("Invalid configuration setting result", Integer.valueOf(50), Settings.getIntegerSetting("mail", "maxemails").getValue());
 		assertEquals("Invalid configuration setting result", "12345b", Settings.getStringSetting("non", "existing", "key").getValue());
