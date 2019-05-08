@@ -140,7 +140,7 @@ public class EndpointTest extends StructrRestTestBase {
 		System.out.println("422:  " + numFailure.get());
 		System.out.println("Time: " + (t1-t0) + " ms");
 
-		if (numFailure.get() > 0) {
+		if (numSuccess.get() > 0) {
 
 			fail("Concurrent property write access is broken.");
 		}
