@@ -930,6 +930,14 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
+	public void setPropertyKeyForJSONName(final Class type, final String jsonName, final PropertyKey key) {
+
+		final Map<String, PropertyKey> classJSNamePropertyMap = getClassJSNamePropertyMapForType(type);
+
+		classJSNamePropertyMap.put(jsonName, key);
+	}
+
+	@Override
 	public Set<PropertyValidator> getPropertyValidators(final SecurityContext securityContext, Class type, PropertyKey propertyKey) {
 
 		Set<PropertyValidator> validators = new LinkedHashSet<>();
