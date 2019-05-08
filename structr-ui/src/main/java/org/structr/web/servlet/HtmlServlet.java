@@ -893,7 +893,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					logger.warn(" -> From: {} | URI: {} | Query: {} | User: {}", request.getRemoteAddr(), request.getRequestURI(), request.getQueryString(), username);
 
 				} catch (IOException | InterruptedException t) {
-					logger.warn("Unexpected exception", t);
+					//logger.warn("Unexpected exception", t);
 				}
 			}
 
@@ -909,7 +909,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					logger.warn(" -> From: {} | URI: {} | Query: {} | User: {}", request.getRemoteAddr(), request.getRequestURI(), request.getQueryString(), username);
 
 				} else {
-					logger.warn("Unexpected exception", t);
+					//logger.warn("Unexpected exception", t);
 				}
 			}
 		});

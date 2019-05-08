@@ -144,6 +144,27 @@ public class EndpointTest extends StructrRestTestBase {
 
 			fail("Concurrent property write access is broken.");
 		}
+	}
+
+	/*
+	@Test
+	public void testRestInputValidation() {
+
+		try {
+
+			final JsonSchema schema      = StructrSchema.createFromDatabase(app);
+			final JsonObjectType project = schema.addType("Project");
+
+			project.addStringProperty("name");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+		RestAssured.given().accept("application/json").body("{ name: blah }").expect().statusCode(422).when().post("/Project");
 
 	}
+	*/
 }
