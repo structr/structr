@@ -22,6 +22,7 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -41,11 +42,13 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 	private static final Logger logger = LoggerFactory.getLogger(EntityWrapper.class.getName());
 
-	protected final Map<String, Object> data = new ConcurrentHashMap<>();
-	protected BoltDatabaseService db         = null;
-	protected boolean deleted                = false;
-	protected boolean stale                  = false;
-	protected long id                        = -1L;
+	private final Map<Long, Map<String, Object>> txData = new ConcurrentHashMap<>();
+	private final Map<String, Object> entityData        = new LinkedHashMap<>();
+
+	protected BoltDatabaseService db                    = null;
+	protected boolean deleted                           = false;
+	protected boolean stale                             = false;
+	protected long id                                   = -1L;
 
 	protected EntityWrapper() {
 		// nop constructor for cache access
@@ -53,7 +56,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 	public EntityWrapper(final BoltDatabaseService db, final T entity) {
 
-		this.data.putAll(entity.asMap());
+		this.entityData.putAll(entity.asMap());
 		this.id   = entity.id();
 		this.db   = db;
 	}
@@ -62,11 +65,6 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 	protected abstract boolean isNode();
 	public abstract void clearCaches();
 	public abstract void onClose();
-
-	@Override
-	public String toString() {
-		return (this instanceof NodeWrapper ? "N" : "R") + getId();
-	}
 
 	@Override
 	public Identity getId() {
@@ -82,7 +80,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 		assertNotStale();
 
-		return data.containsKey(name);
+		return accessData().containsKey(name);
 	}
 
 	@Override
@@ -90,7 +88,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 		assertNotStale();
 
-		final Object value = data.get(name);
+		final Object value = accessData().get(name);
 		if (value instanceof List) {
 
 			try {
@@ -150,7 +148,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 			tx.set(query, map);
 
 			// update data
-			update(key, value);
+			accessData().put(key, value);
 
 			// mark node as modified
 			setModified();
@@ -201,7 +199,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 		tx.set(query, map);
 
 		// remove key from data
-		data.remove(key);
+		accessData().put(key, null);
 
 		setModified();
 	}
@@ -211,7 +209,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 		assertNotStale();
 
-		return data.keySet();
+		return accessData().keySet();
 	}
 
 	@Override
@@ -259,6 +257,45 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 		db.getCurrentTransaction().modified(this);
 	}
 
+	public void rollback(final long transactionId) {
+
+		synchronized (this) {
+
+			txData.remove(transactionId);
+
+			stale = false;
+		}
+	}
+
+	public void commit(final long transactionId) {
+
+		synchronized (this) {
+
+			final Map<String, Object> changes = txData.get(transactionId);
+			if (changes != null) {
+
+				for (final Entry<String, Object> entry : changes.entrySet()) {
+
+					final String key   = entry.getKey();
+					final Object value = entry.getValue();
+
+					if (value != null) {
+
+						entityData.put(key, value);
+
+					} else {
+
+						entityData.remove(key);
+					}
+				}
+
+				txData.remove(transactionId);
+			}
+
+			stale = false;
+		}
+	}
+
 	// ----- protected methods -----
 	protected synchronized void assertNotStale() {
 
@@ -275,8 +312,6 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 			map.put("id", id);
 
-			data.clear();
-
 			try {
 
 				// update data
@@ -292,23 +327,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 	// ----- private methods -----
 	private void update(final Map<String, Object> values) {
-
-		for (final Entry<String, Object> entry : values.entrySet()) {
-
-			update(entry.getKey(), entry.getValue());
-		}
-	}
-
-	private void update(final String key, final Object value) {
-
-		if (value != null) {
-
-			data.put(key, value);
-
-		} else {
-
-			data.remove(key);
-		}
+		accessData().putAll(values);
 	}
 
 	private void filter(final Map<String, Object> data) {
@@ -329,7 +348,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 	private boolean needsUpdate(final String key, final Object newValue) {
 
-		final Object existingValue = data.get(key);
+		final Object existingValue = accessData().get(key);
 
 		if (existingValue == null && newValue == null) {
 			return false;
@@ -370,5 +389,35 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 		}
 
 		return existingValue.equals(newValue);
+	}
+
+	// ----- private methods -----
+	private Map<String, Object> accessData() {
+
+		// read-only access does not need a transaction
+		final SessionTransaction tx = db.getCurrentTransaction(false);
+		if (tx != null) {
+
+			if (deleted || tx.isDeleted(this)) {
+				throw new NotFoundException("Entity with ID " + id + " not found.");
+			}
+
+			final long transactionId = tx.getTransactionId();
+			Map<String, Object> copy = txData.get(transactionId);
+
+			if (copy == null) {
+
+				copy = new LinkedHashMap<>(entityData);
+				txData.put(transactionId, copy);
+
+				tx.accessed(this);
+			}
+
+			return copy;
+
+		} else {
+
+			return entityData;
+		}
 	}
 }

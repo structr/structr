@@ -51,7 +51,13 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 			}
 
 			final String defaultValue = sources.length >= 2 ? sources[1].toString() : "";
-			final Setting setting     = Settings.getSetting(configKey);
+			Setting setting           = Settings.getSetting(configKey);
+
+			if (setting == null) {
+
+				setting = Settings.getCaseSensitiveSetting(configKey);
+
+			}
 
 			if (setting != null) {
 

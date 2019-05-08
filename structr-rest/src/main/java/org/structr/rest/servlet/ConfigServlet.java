@@ -86,7 +86,11 @@ public class ConfigServlet extends AbstractServletBase {
 			} else if (request.getParameter("reset") != null) {
 
 				final String key      = request.getParameter("reset");
-				final Setting setting = Settings.getSetting(key);
+				Setting setting = Settings.getSetting(key);
+
+				if (setting == null) {
+					setting = Settings.getCaseSensitiveSetting(key);
+				}
 
 				if (setting != null) {
 
@@ -218,23 +222,38 @@ public class ConfigServlet extends AbstractServletBase {
 				}
 
 				Setting<?> setting = Settings.getSetting(key);
+
+				if (setting != null && setting.isDynamic()) {
+
+					// unregister dynamic settings so the type can change
+					setting.unregister();
+					setting = null;
+				}
+
 				if (setting == null) {
 
-					// group specified?
-					final String group = request.getParameter(key + "._settings_group");
-					if (group != null) {
+					if (key.contains(".cronExpression")) {
 
-						parent = Settings.getGroup(group);
-						if (parent == null) {
-
-							// default to misc group
-							parent = Settings.miscGroup;
-						}
+						parent = Settings.cronGroup;
 
 					} else {
 
-						// fallback to misc group
-						parent = Settings.miscGroup;
+						// group specified?
+						final String group = request.getParameter(key + "._settings_group");
+						if (group != null) {
+
+							parent = Settings.getGroup(group);
+							if (parent == null) {
+
+								// default to misc group
+								parent = Settings.miscGroup;
+							}
+
+						} else {
+
+							// fallback to misc group
+							parent = Settings.miscGroup;
+						}
 					}
 
 					setting = Settings.createSettingForValue(parent, key, value);
@@ -341,10 +360,8 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag buttons = form.block("div").css("buttons");
 
 		buttons.block("button").attr(new Type("button")).id("new-entry-button").text("Add entry");
-		buttons.block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "' + $('#active_section').val() + '" +  "?reload';")).text("Reload configuration file");
+		buttons.block("button").attr(new Type("button")).id("reload-config-button").text("Reload configuration file");
 		buttons.empty("input").attr(new Type("submit"), new Value("Save to structr.conf"));
-
-		body.block("script").text("$('#new-entry-button').on('click', createNewEntry);");
 
 		return doc;
 	}

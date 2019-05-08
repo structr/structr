@@ -82,7 +82,7 @@
 		</div>
 
 		<div class="tab-content" id="dash-server-log">
-			<textarea readonly="readonly" rows=25 style="width: 100%; resize: none;"></textarea>
+			<textarea readonly="readonly" rows=25></textarea>
 		</div>
 
 		<div class="tab-content" id="dash-sysinfo">
@@ -94,6 +94,7 @@
 
 		div#dashboard {
 			margin: 12px;
+			height: calc(100% - 12px);
 		}
 
 		div#dashboard .tab-content {
@@ -102,6 +103,10 @@
 
 		div#dashboard .tab-content.active {
 			display: block;
+		}
+
+		div#dashboard .tabs-contents {
+			height: calc(100% - 14px);
 		}
 
 		#about-structr .props {
@@ -128,9 +133,19 @@
 		}
 
 		.global-method {
-			padding: 12px 0;
-			border-bottom: 1px solid #ddd;
+			padding: 12px 8px;
+			border: 1px solid #ddd;
+			border-bottom: 0;
 			line-height: 2em;
+		}
+
+		.global-method button.action {
+			margin-left: 1em;
+			margin-right: 1em;
+		}
+
+		.global-method:last-of-type {
+			border-bottom: 1px solid #ddd;
 		}
 
 		.global-method img.icon, .global-method i.icon {
@@ -149,6 +164,16 @@
 		#deployment-source-input, #deployment-url-input, #deployment-target-input {
 			height: 14px;
 			margin: 0 4px 12px 0;
+		}
+
+		#dash-server-log {
+			height: calc(100% - 34px);
+		}
+
+		#dash-server-log textarea {
+			height: 100%;
+			width: 100%;
+			resize: none;
 		}
 	</style>
 </div>

@@ -534,6 +534,12 @@ public class StructrApp implements App {
 					key = config.getPropertyKeyForJSONName(iface, name, false);
 				}
 			}
+
+			// store key in cache
+			if (key != null) {
+
+				config.setPropertyKeyForJSONName(type, name, key);
+			}
 		}
 
 		if (key == null) {

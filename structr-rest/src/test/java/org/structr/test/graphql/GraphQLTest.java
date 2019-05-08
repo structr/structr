@@ -693,14 +693,14 @@ public class GraphQLTest extends StructrGraphQLTest {
 		// test data setup
 		try (final Tx tx = app.tx()) {
 
-			final Principal p1 = app.create(Principal.class, "First Tester");
 			final Principal p2 = app.create(Principal.class, "Second Tester");
-			final MailTemplate m1 = app.create(MailTemplate.class, "First Template");
-			final MailTemplate m2 = app.create(MailTemplate.class, "Second Template");
+			final Principal p1 = app.create(Principal.class, "First Tester");
 			final MailTemplate m3 = app.create(MailTemplate.class, "Third Template");
-			final MailTemplate m4 = app.create(MailTemplate.class, "Fourth Template");
+			final MailTemplate m2 = app.create(MailTemplate.class, "Second Template");
 			final MailTemplate m5 = app.create(MailTemplate.class, "Fifth Template");
+			final MailTemplate m1 = app.create(MailTemplate.class, "First Template");
 			final MailTemplate m6 = app.create(MailTemplate.class, "Sixth Template");
+			final MailTemplate m4 = app.create(MailTemplate.class, "Fourth Template");
 
 			m1.setProperty(MailTemplate.owner, p1);
 			m2.setProperty(MailTemplate.owner, p1);
@@ -813,8 +813,8 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			final Class type = StructrApp.getConfiguration().getNodeEntityClass("FunctionTest");
 
-			app.create(type, "test1");
 			app.create(type, "test2");
+			app.create(type, "test1");
 
 			tx.success();
 
@@ -841,7 +841,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		}
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ FunctionTest(stringTest: {_contains: \"e\"}) { id, type, name, stringTest, boolTest }}");
+			final Map<String, Object> result = fetchGraphQL("{ FunctionTest(stringTest: {_contains: \"e\"}, _sort: \"name\") { id, type, name, stringTest, boolTest }}");
 			assertMapPathValueIs(result, "FunctionTest.#",            2);
 			assertMapPathValueIs(result, "FunctionTest.0.name",       "test1");
 			assertMapPathValueIs(result, "FunctionTest.0.stringTest", "true");

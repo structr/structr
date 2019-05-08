@@ -79,12 +79,12 @@ public interface ConfigurationProvider {
 	public Set<PropertyKey> getPropertySet(final Class type, final String propertyView);
 
 	public PropertyKey getPropertyKeyForDatabaseName(final Class type, final String dbName);
-
 	public PropertyKey getPropertyKeyForDatabaseName(final Class type, final String dbName, final boolean createGeneric);
 
 	public PropertyKey getPropertyKeyForJSONName(final Class type, final String jsonName);
-
 	public PropertyKey getPropertyKeyForJSONName(final Class type, final String jsonName, final boolean createIfNotFound);
+
+	public void setPropertyKeyForJSONName(final Class type, final String jsonName, final PropertyKey key);
 
 	public Set<PropertyValidator> getPropertyValidators(final SecurityContext securityContext, final Class type, final PropertyKey propertyKey);
 

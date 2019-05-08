@@ -338,7 +338,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				}
 
 				// Disable Basic auth for any EditMode other than NONE
-				if (edit.equals(EditMode.NONE)) {
+				if (EditMode.NONE.equals(edit)) {
 
 					final HttpBasicAuthResult authResult = checkHttpBasicAuth(securityContext, request, response, ((file != null) ? file.getPath() : (dataNode == null) ? path : StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP)));
 
@@ -893,7 +893,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					logger.warn(" -> From: {} | URI: {} | Query: {} | User: {}", request.getRemoteAddr(), request.getRequestURI(), request.getQueryString(), username);
 
 				} catch (IOException | InterruptedException t) {
-					logger.warn("Unexpected exception", t);
+					//logger.warn("Unexpected exception", t);
 				}
 			}
 
@@ -909,7 +909,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					logger.warn(" -> From: {} | URI: {} | Query: {} | User: {}", request.getRemoteAddr(), request.getRequestURI(), request.getQueryString(), username);
 
 				} else {
-					logger.warn("Unexpected exception", t);
+					//logger.warn("Unexpected exception", t);
 				}
 			}
 		});

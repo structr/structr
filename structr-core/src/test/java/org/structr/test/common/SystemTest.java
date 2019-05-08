@@ -29,15 +29,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.apache.commons.lang3.StringUtils;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -48,10 +51,6 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
-import org.structr.test.core.entity.TestEight;
-import org.structr.test.core.entity.TestFive;
-import org.structr.test.core.entity.TestOne;
-import org.structr.test.core.entity.TestSix;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -63,13 +62,16 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
+import org.structr.test.core.entity.TestEight;
+import org.structr.test.core.entity.TestFive;
+import org.structr.test.core.entity.TestOne;
+import org.structr.test.core.entity.TestSix;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
 /**
  *
@@ -968,12 +970,15 @@ public class SystemTest extends StructrTest {
 				writer.println("database.connection.url = localhost:7687");
 				writer.println("HttpService.servlets = JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet FlowServlet");
 				writer.println("security.twofactorauthentication.level = 0");
-				writer.println("deployment.export.exportFileUuids = false");
 				writer.println("application.schema.automigration = true");
 				writer.println("mail.maxEmails = 50");
 				writer.println("non.Existing.KEY = 12345b");
 				writer.println("nodeextender.log = true");
 				writer.println("DATABASE.cAchE.NOde.SIZE = 112233");
+
+				writer.println("thisIsACaseSensitiveCustomKey = CustomValue");
+				writer.println("thisIsACaseSensitiveKey.cronExpression = * * * * * *");
+
 			}
 
 			Settings.loadConfiguration(tmpConfig.getAbsolutePath());
@@ -990,13 +995,30 @@ public class SystemTest extends StructrTest {
 		assertEquals("Invalid configuration setting result", "NodeService AgentService CronService SchemaService LogService HttpService FtpService SSHService MailService", Settings.Services.getValue());
 		assertEquals("Invalid configuration setting result", "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet FlowServlet", Settings.Servlets.getValue());
 		assertEquals("Invalid configuration setting result", Integer.valueOf(0), Settings.TwoFactorLevel.getValue());
-		assertEquals("Invalid configuration setting result", Boolean.valueOf(false), Settings.getBooleanSetting("deployment.export.exportfileuuids").getValue());
 		assertEquals("Invalid configuration setting result", Boolean.valueOf(true), Settings.SchemaAutoMigration.getValue());
-		assertEquals("Invalid configuration setting result", Integer.valueOf(50), Settings.getIntegerSetting("mail", "maxemails").getValue());
-		assertEquals("Invalid configuration setting result", "12345b", Settings.getStringSetting("non", "existing", "key").getValue());
 		assertEquals("Invalid configuration setting result", Boolean.valueOf(true), Settings.LogSchemaOutput.getValue());
 		assertEquals("Invalid configuration setting result", Integer.valueOf(112233), Settings.NodeCacheSize.getValue());
 
+		// config setting will not be found
+		assertNull("Invalid configuration setting result", Settings.getBooleanSetting("deployment.export.exportfileuuids"));
+		assertNull("Invalid configuration setting result", Settings.getIntegerSetting("mail", "maxemails"));
+		assertNull("Invalid configuration setting result", Settings.getStringSetting("non", "existing", "key"));
+
+		// test two custom entries in settings - those should remain untouched (ie not lower-cased)
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			assertEquals("Invalid configuration setting result", "CustomValue", Scripting.evaluate(actionContext, null, "${config('thisIsACaseSensitiveCustomKey')}", "testReadConfig1"));
+			assertEquals("Invalid configuration setting result", "* * * * * *", Scripting.evaluate(actionContext, null, "${config('thisIsACaseSensitiveKey.cronExpression')}", "testReadConfig2"));
+
+			tx.success();
+
+		} catch(UnlicensedScriptException |FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
 
 		tmpConfig.deleteOnExit();
 	}

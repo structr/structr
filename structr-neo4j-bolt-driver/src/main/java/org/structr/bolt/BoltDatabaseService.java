@@ -643,11 +643,14 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		execute("MATCH (n:" + tenantId + ") DETACH DELETE n", Collections.emptyMap());
 	}
 
-	// ----- package-private methods
-	SessionTransaction getCurrentTransaction() {
+	public SessionTransaction getCurrentTransaction() {
+		return getCurrentTransaction(true);
+	}
+
+	public SessionTransaction getCurrentTransaction(final boolean throwNotInTransactionException) {
 
 		final SessionTransaction tx = sessions.get();
-		if (tx == null || tx.isClosed()) {
+		if (throwNotInTransactionException && (tx == null || tx.isClosed())) {
 
 			throw new NotInTransactionException("Not in transaction");
 		}

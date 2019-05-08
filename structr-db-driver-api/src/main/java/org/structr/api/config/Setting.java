@@ -65,6 +65,19 @@ public abstract class Setting<T> {
 		return key;
 	}
 
+	public void updateKey(final String key) {
+
+		if (isDynamic()) {
+
+			unregister();
+
+			this.key = key;
+
+			group.registerSetting(this);
+			Settings.registerSetting(this);
+		}
+	}
+
 	public String getCategory() {
 		return category;
 	}
