@@ -18,6 +18,10 @@
  */
 package org.structr.test.web.advanced;
 
+import java.util.ArrayList;
+import java.util.List;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Node;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,9 +55,8 @@ public class ImporterTest extends StructrUiTest {
 		Settings.JsonIndentation.setValue(true);
 		Settings.HtmlIndentation.setValue(true);
 
-		final String source = testImport("http://ci.structr.org:59399/tests/getbootstrap.com/docs/3.3/examples/jumbotron/", RenderContext.EditMode.NONE);
-
-		assertEquals("<!DOCTYPE html>\n"
+		final String actual   = testImport("http://ci.structr.org:59399/tests/getbootstrap.com/docs/3.3/examples/jumbotron/", RenderContext.EditMode.NONE);
+		final String expected = "<!DOCTYPE html>\n"
 			+ "<html lang=\"en\">\n"
 			+ "	<head>\n"
 			+ "		<meta charset=\"utf-8\">\n"
@@ -62,13 +65,6 @@ public class ImporterTest extends StructrUiTest {
 			+ "		<meta content=\"\" name=\"description\">\n"
 			+ "		<meta content=\"\" name=\"author\">\n"
 			+ "		<link href=\"/favicon.ico?1\" rel=\"icon\">\n"
-			/*
-			+ "		<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n"
-			+ "		<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->\n"
-			+ "		<meta name=\"description\" content=\"\">\n"
-			+ "		<meta name=\"author\" content=\"\">\n"
-			+ "		<link href=\"/favicon.ico?1\" rel=\"icon\">\n"
-			*/
 			+ "		<title>Jumbotron Template for Bootstrap</title><!-- Bootstrap core CSS -->\n"
 			+ "		<link href=\"/dist/css/bootstrap.min.css?1\" rel=\"stylesheet\"><!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->\n"
 			+ "		<link href=\"/assets/css/ie10-viewport-bug-workaround.css?1\" rel=\"stylesheet\"><!-- Custom styles for this template -->\n"
@@ -133,9 +129,9 @@ public class ImporterTest extends StructrUiTest {
 			+ "		<script type=\"text/javascript\" src=\"/dist/js/bootstrap.min.js\"></script><!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->\n"
 			+ "		<script type=\"text/javascript\" src=\"/assets/js/ie10-viewport-bug-workaround.js\"></script>\n"
 			+ "	</body>\n"
-			+ "</html>",
-			source
-		);
+			+ "</html>";
+
+		compare(expected, actual);
 
 		//assertFileExists("/favicon.ico", 1);
 		assertFileExists("/dist/css/bootstrap.min.css", 0);
@@ -155,9 +151,8 @@ public class ImporterTest extends StructrUiTest {
 		Settings.JsonIndentation.setValue(true);
 		Settings.HtmlIndentation.setValue(true);
 
-		final String source = testImport("http://ci.structr.org:59399/tests/getbootstrap.com/docs/3.3/examples/jumbotron/", RenderContext.EditMode.WIDGET);
-
-		assertEquals("<!DOCTYPE html>\n"
+		final String actual   = testImport("http://ci.structr.org:59399/tests/getbootstrap.com/docs/3.3/examples/jumbotron/", RenderContext.EditMode.WIDGET);
+		final String expected = "<!DOCTYPE html>\n"
 			+ "<html lang=\"en\">\n"
 			+ "	<head>\n"
 			+ "		<meta charset=\"utf-8\">\n"
@@ -230,9 +225,9 @@ public class ImporterTest extends StructrUiTest {
 			+ "		<script type=\"text/javascript\" src=\"${link.path}\"></script><!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->\n"
 			+ "		<script type=\"text/javascript\" src=\"${link.path}\"></script>\n"
 			+ "	</body>\n"
-			+ "</html>",
-			source
-		);
+			+ "</html>";
+
+		compare(expected, actual);
 	}
 
 	@Test
@@ -241,7 +236,7 @@ public class ImporterTest extends StructrUiTest {
 		Settings.JsonIndentation.setValue(true);
 		Settings.HtmlIndentation.setValue(true);
 
-		final String source = testImportWidget("<div class=\"row\">\n"
+		final String actual = testImportWidget("<div class=\"row\">\n"
 			+ "	<div class=\"col-lg-12\">\n"
 			+ "		<h2>Feeds</h2>\n"
 			+ "		<div class=\"table-responsive\">\n"
@@ -287,7 +282,7 @@ public class ImporterTest extends StructrUiTest {
 
 		//System.out.println(source);
 
-		assertEquals("<!DOCTYPE html>\n"
+		final String expected = "<!DOCTYPE html>\n"
 			+ "<html>\n"
 			+ "	<head></head>\n"
 			+ "	<body>\n"
@@ -334,9 +329,9 @@ public class ImporterTest extends StructrUiTest {
 			+ "			</div>\n"
 			+ "		</div>\n"
 			+ "	</body>\n"
-			+ "</html>",
-			source
-		);
+			+ "</html>";
+
+		compare(expected, actual);
 	}
 
 	@Test
@@ -347,14 +342,14 @@ public class ImporterTest extends StructrUiTest {
 			Settings.JsonIndentation.setValue(true);
 			Settings.HtmlIndentation.setValue(true);
 
-			final String source = testImportWidget(
+			final String actual = testImportWidget(
 					"<div>\n"
 							+ "      <script type=\"text/javascript\" src=\"/structr/js/lib/jquery-1.11.1.min.js\"></script>\n"
 							+ "      <script type=\"text/javascript\"></script>\n"
 							+ "</div>",
 					RenderContext.EditMode.WIDGET, "https://widgets.structr.org/structr/rest/widgets");
 
-			assertEquals("<!DOCTYPE html>\n"
+			final String expected = "<!DOCTYPE html>\n"
 					+ "<html>\n"
 					+ "	<head></head>\n"
 					+ "	<body>\n"
@@ -363,11 +358,11 @@ public class ImporterTest extends StructrUiTest {
 					+ "			<script type=\"text/javascript\"></script>\n"
 					+ "		</div>\n"
 					+ "	</body>\n"
-					+ "</html>",
-					source
-			);
+					+ "</html>";
 
-			Script secondScriptElement = (Script) app.nodeQuery(Script.class).blank(StructrApp.key(Script.class, "_html_src")).getFirst();
+			compare(expected, actual);
+
+			final Script secondScriptElement = (Script) app.nodeQuery(Script.class).blank(StructrApp.key(Script.class, "_html_src")).getFirst();
 
 			assertNull(secondScriptElement.getOutgoingRelationship(StructrApp.getConfiguration().getRelationshipEntityClass("LinkSourceLINKLinkable")));
 
@@ -386,9 +381,8 @@ public class ImporterTest extends StructrUiTest {
 			Settings.JsonIndentation.setValue(true);
 			Settings.HtmlIndentation.setValue(true);
 
-			final String source = testImportWidget("<div><script type=\"module\"></script></div>", RenderContext.EditMode.WIDGET);
-
-			assertEquals("<!DOCTYPE html>\n"
+			final String actual = testImportWidget("<div><script type=\"module\"></script></div>", RenderContext.EditMode.WIDGET);
+			final String expected = "<!DOCTYPE html>\n"
 					+ "<html>\n"
 					+ "	<head></head>\n"
 					+ "	<body>\n"
@@ -396,9 +390,9 @@ public class ImporterTest extends StructrUiTest {
 					+ "			<script type=\"module\"></script>\n"
 					+ "		</div>\n"
 					+ "	</body>\n"
-					+ "</html>",
-					source
-			);
+					+ "</html>";
+
+			compare(expected, actual);
 
 			Script script = app.nodeQuery(Script.class).getFirst();
 
@@ -500,6 +494,38 @@ public class ImporterTest extends StructrUiTest {
 
 		} catch (FrameworkException ex) {
 			logger.warn("", ex);
+		}
+	}
+
+	private void compare(final String expected, final String actual) {
+
+		// creates a flat list of all nodes that the given documents contain
+		// and compares the lists node by node in order to avoid different
+		// attribute orders to break the tests
+
+		final List<Node> expectedNodes = new ArrayList<>();
+		final List<Node> actualNodes   = new ArrayList<>();
+
+		collectNodes(expectedNodes, Jsoup.parse(expected));
+		collectNodes(actualNodes, Jsoup.parse(actual));
+
+		for (int i=0; i < expectedNodes.size(); i++) {
+
+			final Node expectedNode = expectedNodes.get(i);
+			final Node actualNode   = actualNodes.get(i);
+			final String acName     = actualNode.nodeName();
+
+			assertEquals("Tag name mismatch", expectedNode.nodeName(), actualNode.nodeName());
+			assertEquals("Attribute mismatch in " + acName, expectedNode.attributes(), actualNode.attributes());
+		}
+	}
+
+	private void collectNodes(final List<Node> target, final Node current) {
+
+		target.add(current);
+
+		for (final Node child : current.childNodes()) {
+			collectNodes(target, child);
 		}
 	}
 }

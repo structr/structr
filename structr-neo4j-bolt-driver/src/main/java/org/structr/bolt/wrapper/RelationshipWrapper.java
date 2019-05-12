@@ -59,6 +59,11 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 	}
 
 	@Override
+	public String toString() {
+		return "R" + getId();
+	}
+
+	@Override
 	protected String getQueryPrefix() {
 
 		final String tenantIdentifier = db.getTenantIdentifier();
@@ -80,6 +85,14 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 		synchronized (relationshipCache) {
 
 			relationshipCache.removeAll(toRemove);
+		}
+	}
+
+	public static void expunge(final Long toRemove) {
+
+		synchronized (relationshipCache) {
+
+			relationshipCache.remove(toRemove);
 		}
 	}
 
@@ -213,8 +226,9 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 				buf.append(") WHERE ID(n) = $id RETURN n");
 
 				wrapper = new RelationshipWrapper(db, tx.getRelationship(buf.toString(), map));
-					relationshipCache.put(id, wrapper);
-				}
+
+				relationshipCache.put(id, wrapper);
+			}
 
 			return wrapper;
 		}

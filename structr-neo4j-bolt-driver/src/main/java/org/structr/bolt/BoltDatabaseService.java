@@ -657,9 +657,13 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	}
 
 	public SessionTransaction getCurrentTransaction() {
+		return getCurrentTransaction(true);
+	}
+
+	public SessionTransaction getCurrentTransaction(final boolean throwNotInTransactionException) {
 
 		final SessionTransaction tx = sessions.get();
-		if (tx == null || tx.isClosed()) {
+		if (throwNotInTransactionException && (tx == null || tx.isClosed())) {
 
 			throw new NotInTransactionException("Not in transaction");
 		}

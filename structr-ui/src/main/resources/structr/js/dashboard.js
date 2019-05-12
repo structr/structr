@@ -283,7 +283,7 @@ var _Dashboard = {
 
         let updateLog = function() {
             Command.getServerLogSnapshot(300, (a) => {
-                logBoxContentBox.html(a[0].result);
+                logBoxContentBox.text(a[0].result);
                 if (scrollEnabled) {
                     logBoxContentBox.scrollTop(logBoxContentBox[0].scrollHeight);
                 }

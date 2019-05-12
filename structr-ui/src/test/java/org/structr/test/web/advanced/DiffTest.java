@@ -18,9 +18,12 @@
  */
 package org.structr.test.web.advanced;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Node;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +55,7 @@ public class DiffTest extends StructrUiTest {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body>Test</body></html>", (String from) -> from.replace("Test", "Wurst"));
 
-		assertEquals(
+		compare(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
 			"	<head>\n" +
@@ -69,7 +72,7 @@ public class DiffTest extends StructrUiTest {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body>Test</body></html>", (String from) -> from.replace("Test", "<h1>Title text</h1>"));
 
-		assertEquals(
+		compare(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
 			"	<head>\n" +
@@ -88,7 +91,7 @@ public class DiffTest extends StructrUiTest {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body>Test</body></html>", (String from) -> from.replace("Test", "<div><h1>Title text</h1></div>"));
 
-		assertEquals(
+		compare(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
 			"	<head>\n" +
@@ -109,7 +112,7 @@ public class DiffTest extends StructrUiTest {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body>Test</body></html>", (String from) -> from.replace("Test", "<div><div><h1>Title text</h1><p>paragraph</p></div></div>"));
 
-		assertEquals(
+		compare(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
 			"	<head>\n" +
@@ -133,7 +136,7 @@ public class DiffTest extends StructrUiTest {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body>Test</body></html>", (String from) -> from.replace("Test", "Test<b>bold</b>between<i>italic</i>Text"));
 
-		assertEquals(
+		compare(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
 			"	<head>\n" +
@@ -159,7 +162,7 @@ public class DiffTest extends StructrUiTest {
 			return mod;
 		});
 
-		assertEquals(
+		compare(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
 			"	<head>\n" +
@@ -187,7 +190,7 @@ public class DiffTest extends StructrUiTest {
 			return buf.toString();
 		});
 
-		assertEquals(
+		compare(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
 			"	<head>\n" +
@@ -219,7 +222,7 @@ public class DiffTest extends StructrUiTest {
 			return buf.toString();
 		});
 
-		assertEquals(
+		compare(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
 			"	<head>\n" +
@@ -253,7 +256,7 @@ public class DiffTest extends StructrUiTest {
 			return buf.toString();
 		});
 
-		assertEquals(
+		compare(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
 			"	<head>\n" +
@@ -296,7 +299,7 @@ public class DiffTest extends StructrUiTest {
 		});
 
 
-		assertEquals(
+		compare(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
 			"	<head>\n" +
@@ -335,7 +338,7 @@ public class DiffTest extends StructrUiTest {
 			return buf.toString();
 		});
 
-		assertEquals(
+		compare(
 			"<!DOCTYPE html>\n"
 			+ "<html>\n"
 			+ "	<head>\n"
@@ -373,14 +376,14 @@ public class DiffTest extends StructrUiTest {
 			return buf.toString();
 		});
 
-		assertEquals(
+		compare(
 			"<!DOCTYPE html>\n"
 			+ "<html>\n"
 			+ "	<head>\n"
 			+ "		<title>Title</title>\n"
 			+ "	</head>\n"
 			+ "	<body>\n"
-			+ "		<div id=\"one\" class=\"test\">\n"
+			+ "		<div class=\"test\" id=\"one\">\n"
 			+ "			<h2>one</h2>\n"
 			+ "		</div>\n"
 			+ "		<div>\n"
@@ -411,7 +414,7 @@ public class DiffTest extends StructrUiTest {
 			return modified;
 		});
 
-		assertEquals(
+		compare(
 			"<!DOCTYPE html>\n"
 			+ "<html>\n"
 			+ "	<head>\n"
@@ -419,7 +422,7 @@ public class DiffTest extends StructrUiTest {
 			+ "	</head>\n"
 			+ "	<body>\n"
 			+ "		<div>\n"
-			+ "			<h2 id=\"two\" class=\"foo\">one</h2>\n"
+			+ "			<h2 class=\"foo\" id=\"two\">one</h2>\n"
 			+ "		</div>\n"
 			+ "		<div>\n"
 			+ "			<h2>two</h2>\n"
@@ -458,7 +461,7 @@ public class DiffTest extends StructrUiTest {
 
 		System.out.println(result1);
 
-		assertEquals(
+		compare(
 			"<!DOCTYPE html>\n"
 			+ "<html>\n"
 			+ "	<head>\n"
@@ -499,7 +502,7 @@ public class DiffTest extends StructrUiTest {
 
 		System.out.println(result1);
 
-		assertEquals(
+		compare(
 			"<!DOCTYPE html>\n"
 			+ "<html>\n"
 			+ "	<head>\n"
@@ -535,7 +538,7 @@ public class DiffTest extends StructrUiTest {
 
 		System.out.println(result1);
 
-		assertEquals(
+		compare(
 			"<!DOCTYPE html>\n"
 			+ "<html>\n"
 			+ "	<head>\n"
@@ -569,7 +572,7 @@ public class DiffTest extends StructrUiTest {
 
 		System.out.println(result1);
 
-		assertEquals(
+		compare(
 			"<!DOCTYPE html>\n"
 			+ "<html>\n"
 			+ "	<head>\n"
@@ -716,5 +719,37 @@ public class DiffTest extends StructrUiTest {
 		}
 
 		return list;
+	}
+
+	private void compare(final String expected, final String actual) {
+
+		// creates a flat list of all nodes that the given documents contain
+		// and compares the lists node by node in order to avoid different
+		// attribute orders to break the tests
+
+		final List<Node> expectedNodes = new ArrayList<>();
+		final List<Node> actualNodes   = new ArrayList<>();
+
+		collectNodes(expectedNodes, Jsoup.parse(expected));
+		collectNodes(actualNodes, Jsoup.parse(actual));
+
+		for (int i=0; i < expectedNodes.size(); i++) {
+
+			final Node expectedNode = expectedNodes.get(i);
+			final Node actualNode   = actualNodes.get(i);
+			final String acName     = actualNode.nodeName();
+
+			assertEquals("Tag name mismatch", expectedNode.nodeName(), actualNode.nodeName());
+			assertEquals("Attribute mismatch in " + acName, expectedNode.attributes(), actualNode.attributes());
+		}
+	}
+
+	private void collectNodes(final List<Node> target, final Node current) {
+
+		target.add(current);
+
+		for (final Node child : current.childNodes()) {
+			collectNodes(target, child);
+		}
 	}
 }

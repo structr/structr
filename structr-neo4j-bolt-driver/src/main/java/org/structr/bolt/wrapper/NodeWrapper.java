@@ -48,8 +48,9 @@ import org.structr.bolt.mapper.RelationshipRelationshipMapper;
 public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implements Node {
 
 	private static final Logger logger                                           = LoggerFactory.getLogger(NodeWrapper.class);
-	private final Map<String, Map<String, RelationshipResult>> relationshipCache = new HashMap<>();
 	private static FixedSizeCache<Long, NodeWrapper> nodeCache                   = null;
+
+	private final Map<String, Map<String, RelationshipResult>> relationshipCache = new HashMap<>();
 	private boolean dontUseCache                                                 = false;
 
 	protected NodeWrapper() {
@@ -63,6 +64,11 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 	public static void initialize(final int cacheSize) {
 		nodeCache = new FixedSizeCache<>(cacheSize);
+	}
+
+	@Override
+	public String toString() {
+		return "N" + getId();
 	}
 
 	@Override
@@ -84,6 +90,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 	@Override
 	public void onClose() {
+
 		dontUseCache = false;
 		relationshipCache.clear();
 	}
@@ -96,9 +103,9 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	@Override
 	public Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties) {
 
-		assertNotStale();
-
 		dontUseCache = true;
+
+		assertNotStale();
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
@@ -253,7 +260,6 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		assertNotStale();
 
-
 		final RelationshipResult cache = getRelationshipCache(direction, relationshipType);
 		final String tenantIdentifier = getTenantIdentifer(db);
 		final String rel               = relationshipType.name();
@@ -304,11 +310,14 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 	public void addToCache(final RelationshipWrapper rel) {
 
-		final Direction direction   = rel.getDirectionForNode(this);
-		final RelationshipType type = rel.getType();
-		RelationshipResult list = getRelationshipCache(direction, type);
+		synchronized (relationshipCache) {
 
-		list.add(rel);
+			final Direction direction   = rel.getDirectionForNode(this);
+			final RelationshipType type = rel.getType();
+			RelationshipResult list = getRelationshipCache(direction, type);
+
+			list.add(rel);
+		}
 	}
 
 	// ----- protected methods -----
@@ -320,32 +329,38 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	// ----- private methods -----
 	private Map<String, RelationshipResult> getCache(final Direction direction) {
 
-		final String directionKey             = direction != null ? direction.name() : "*";
-		Map<String, RelationshipResult> cache = relationshipCache.get(directionKey);
+		synchronized (relationshipCache) {
 
-		if (cache == null) {
+			final String directionKey             = direction != null ? direction.name() : "*";
+			Map<String, RelationshipResult> cache = relationshipCache.get(directionKey);
 
-			cache = new HashMap<>();
-			relationshipCache.put(directionKey, cache);
+			if (cache == null) {
+
+				cache = new HashMap<>();
+				relationshipCache.put(directionKey, cache);
+			}
+
+			return cache;
 		}
-
-		return cache;
 	}
 
 	private RelationshipResult getRelationshipCache(final Direction direction, final RelationshipType relType) {
 
-		final String relTypeKey                     = relType != null ? relType.name() : "*";
-		final Map<String, RelationshipResult> cache = getCache(direction);
+		synchronized (relationshipCache) {
 
-		RelationshipResult count = cache.get(relTypeKey);
-		if (count == null) {
+			final String relTypeKey                     = relType != null ? relType.name() : "*";
+			final Map<String, RelationshipResult> cache = getCache(direction);
 
-			count = new RelationshipResult();
-			cache.put(relTypeKey, count);
+			RelationshipResult count = cache.get(relTypeKey);
+			if (count == null) {
+
+				count = new RelationshipResult();
+				cache.put(relTypeKey, count);
+			}
+
+			// never return null
+			return count;
 		}
-
-		// never return null
-		return count;
 	}
 
 	// ----- public static methods -----
@@ -354,7 +369,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		synchronized (nodeCache) {
 
 			NodeWrapper wrapper = nodeCache.get(node.id());
-			if (wrapper == null || wrapper.stale) {
+			if (wrapper == null) { // || wrapper.stale) {
 
 				wrapper = new NodeWrapper(db, node);
 				nodeCache.put(node.id(), wrapper);
@@ -369,11 +384,11 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		synchronized (nodeCache) {
 
 			NodeWrapper wrapper = nodeCache.get(id);
-			if (wrapper == null || wrapper.stale) {
+			if (wrapper == null) { // || wrapper.stale) {
 
 				final SessionTransaction tx   = db.getCurrentTransaction();
-				final Map<String, Object> map = new HashMap<>();
 				final String tenantIdentifier = getTenantIdentifer(db);
+				final Map<String, Object> map = new HashMap<>();
 
 				map.put("id", id);
 
@@ -406,6 +421,14 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		synchronized (nodeCache) {
 
 			nodeCache.removeAll(toRemove);
+		}
+	}
+
+	public static void expunge(final Long toRemove) {
+
+		synchronized (nodeCache) {
+
+			nodeCache.remove(toRemove);
 		}
 	}
 
