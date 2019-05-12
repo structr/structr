@@ -54,14 +54,7 @@ public abstract class FlowDeploymentHandler {
 	private static final Logger logger = LoggerFactory.getLogger(FlowDeploymentHandler.class.getName());
 
 	public static void exportDeploymentData (final Path target, final Gson gson) throws FrameworkException {
-
-		if (Settings.SchemaDeploymentFormat.getValue().equals("tree")) {
-
-			new FlowTreeDeploymentHandler().doExport(target, gson);
-		} else {
-
-			new FlowLegacyDeploymentHandler().doExport(target, gson);
-		}
+		new FlowTreeDeploymentHandler().doExport(target, gson);
 	}
 
 
@@ -69,7 +62,7 @@ public abstract class FlowDeploymentHandler {
 
 		final File flowDir = new File(source.resolve(FlowTreeDeploymentHandler.FLOW_DEPLOYMENT_TREE_BASE_FOLDER).toAbsolutePath().toString());
 
-		if (Settings.SchemaDeploymentFormat.getValue().equals("tree") && flowDir.isDirectory()) {
+		if (flowDir.isDirectory()) {
 
 			new FlowTreeDeploymentHandler().doImport(source, gson);
 		} else {

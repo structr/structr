@@ -154,7 +154,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 		}
 
 		File[] children = rootDir.listFiles();
-		
+
 		if (children != null) {
 
 			for (final File dir : children) {
