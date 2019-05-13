@@ -40,6 +40,7 @@ import {FlowFilter} from "./entities/FlowFilter.js";
 import {FlowComparison} from "./entities/FlowComparison.js";
 import {FlowFork} from "./entities/FlowFork.js";
 import {FlowForkJoin} from "./entities/FlowForkJoin.js";
+import {CloneHandler} from "./utility/CloneHandler.js";
 
 
 
@@ -212,6 +213,8 @@ export class FlowEditor {
 							self._editor.selected.list.map((node) => console.log(node.data.dbNode.type + '[' + node.data.dbNode.id + "]"));
 							event.stopPropagation();
 
+						} else if (event.key === "c" && event.ctrlKey) {
+							self._copyElementsForCloning();
 						}
 					},
 					keyup: function (event) {
@@ -334,6 +337,14 @@ export class FlowEditor {
 			d3.event.preventDefault();
 		});
 
+	}
+
+	_copyElementsForCloning() {
+		// Copy selected elements
+		let editorNodes = this._editor.selected.list;
+
+		let cloneHandler = new CloneHandler();
+		cloneHandler.copyElements(editorNodes);
 	}
 
 	_connectionCreationHandler(input, output) {
