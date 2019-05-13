@@ -470,6 +470,11 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		return "";
 	}
 
+	@Override
+	public void removeFromCache() {
+		NodeWrapper.expunge(id);
+	}
+
 	// ----- nested classes -----
 	private class RelationshipResult {
 

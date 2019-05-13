@@ -169,6 +169,11 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 		return Direction.INCOMING;
 	}
 
+	@Override
+	public void removeFromCache() {
+		RelationshipWrapper.expunge(id);
+	}
+
 	// ----- protected methods -----
 	@Override
 	protected boolean isNode() {
