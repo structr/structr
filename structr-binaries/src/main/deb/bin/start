@@ -39,7 +39,7 @@ fi
 
 echo -n "        Starting structr server $DISPLAY_NAME: "
 
-java $RUN_OPTS $JAVA_OPTS $MAIN_CLASS >$LOG_FILE 2>&1 & echo $! >$PID_FILE
+java $RUN_OPTS $JAVA_OPTS $MAIN_CLASS >>$LOG_FILE 2>&1 & echo $! >$PID_FILE
 
 sleep 1
 
