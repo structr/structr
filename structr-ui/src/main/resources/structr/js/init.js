@@ -737,7 +737,7 @@ var Structr = {
 		} else {
 
 			// Calculate dimensions of dialog
-			if ($('.blockPage').length) {
+			if ($('.blockPage').length && !loginBox.is(':visible')) {
 				Structr.setSize($(window).width(), $(window).height(), Math.min(900, $(window).width() - 24), Math.min(600, $(window).height() - 24));
 			}
 
