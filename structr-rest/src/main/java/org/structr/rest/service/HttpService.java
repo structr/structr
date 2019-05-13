@@ -22,12 +22,14 @@ import ch.qos.logback.access.jetty.RequestLogImpl;
 import ch.qos.logback.access.servlet.TeeFilter;
 import java.io.File;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import javax.servlet.DispatcherType;
 import javax.servlet.http.HttpServlet;
@@ -278,10 +280,14 @@ public class HttpService implements RunnableService {
 
 			final String hardwareId = licenseManager.getHardwareFingerprint();
 
-			DefaultSessionIdManager idManager = new DefaultSessionIdManager(server);
+			DefaultSessionIdManager idManager = new DefaultSessionIdManager(server, new SecureRandom(hardwareId.getBytes()));
 			idManager.setWorkerName(hardwareId);
 
 			sessionCache.getSessionHandler().setSessionIdManager(idManager);
+			
+			if (Settings.HttpOnly.getValue()) {
+				sessionCache.getSessionHandler().setHttpOnly(isTest);
+			}
 
 		}
 
@@ -458,6 +464,10 @@ public class HttpService implements RunnableService {
 					new SslConnectionFactory(sslContextFactory, "http/1.1"),
 					new HttpConnectionFactory(httpsConfig));
 
+				if (Settings.ForceHttps.getValue()) {
+					sessionCache.getSessionHandler().setSecureRequestOnly(true);
+				}
+				
 				https.setPort(httpsPort);
 				https.setIdleTimeout(500000);
 

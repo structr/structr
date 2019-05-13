@@ -107,6 +107,7 @@ public class Settings {
 	public static final Setting<Integer> SessionTimeout       = new IntegerSetting(serverGroup, "HTTP Settings", "application.session.timeout",     1800, "The session timeout for HTTP sessions. Unit is seconds");
 
 	public static final Setting<Boolean> ForceHttps           	= new BooleanSetting(serverGroup, "HTTPS Settings", "httpservice.force.https",         		false, "Allows forcing HTTPS.");
+	public static final Setting<Boolean> HttpOnly           	= new BooleanSetting(serverGroup, "HTTPS Settings", "httpservice.cookies.httponly",         	false, "Set HttpOnly to true for cookies. Please note that this will disable backend access!");
 	public static final Setting<Boolean> dumbJettyStartupConfig = new BooleanSetting(serverGroup,     "HTTPS Settings", "httpservice.log.jetty.startupconfig",	false);
 	public static final Setting<String> excludedProtocols     	= new StringSetting(serverGroup,  "HTTPS Settings", "httpservice.ssl.protocols.excluded",       "TLSv1,TLSv1.1");
 	public static final Setting<String> includedProtocols 	  	= new StringSetting(serverGroup,  "HTTPS Settings", "httpservice.ssl.protocols.included",       "TLSv1.2");
