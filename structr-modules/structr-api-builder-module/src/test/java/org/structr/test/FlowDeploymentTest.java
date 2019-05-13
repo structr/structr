@@ -39,50 +39,58 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 
 		final Map<String, Object> flowParameters         = new HashMap<>();
 		Map<String,Object> resultMap                     = null;
+		FlowContainer container                          = null;
+		String containerUuid                             = null;
 
-		try (final Tx tx = app.tx()) {
+		try {
 
-			FlowContainer container = app.create(FlowContainer.class, "testFlow");
+			try (final Tx tx = app.tx()) {
+
+				container = app.create(FlowContainer.class, "testFlow");
+
+				container.setProperty(FlowContainer.effectiveName, "flow.deployment.test");
+				containerUuid = container.getUuid();
+
+				FlowAction action = app.create(FlowAction.class, "createAction");
+				action.setProperty(FlowAction.script, "{ ['a','b','c'].forEach( data => Structr.create('User','name',data)) }");
+				action.setProperty(FlowAction.flowContainer, container);
+
+				FlowDataSource ds = app.create(FlowDataSource.class, "ds");
+				ds.setProperty(FlowAction.flowContainer, container);
+
+				FlowReturn ret = app.create(FlowReturn.class, "ds");
+				ret.setProperty(FlowReturn.dataSource, ds);
+				ret.setProperty(FlowAction.flowContainer, container);
+
+				action.setProperty(FlowAction.next, ret);
+
+				container.setProperty(FlowContainer.startNode, action);
+
+				ds.setProperty(FlowDataSource.query, "find('User')");
+				resultMap = container.evaluate(flowParameters);
+				assertNotNull(resultMap);
+				assertNotNull(resultMap.get("result"));
+
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				container = app.nodeQuery(FlowContainer.class).uuid(containerUuid).getFirst();
+
+				doImportExportRoundtrip(true);
+
+				tx.success();
+			}
 
 
-			FlowAction action = app.create(FlowAction.class, "createAction");
-			action.setProperty(FlowAction.script, "{ ['a','b','c'].forEach( data => Structr.create('User','name',data)) }");
-			action.setProperty(FlowAction.flowContainer, container);
-
-			FlowDataSource ds = app.create(FlowDataSource.class, "ds");
-			ds.setProperty(FlowAction.flowContainer, container);
-
-			FlowReturn ret = app.create(FlowReturn.class, "ds");
-			ret.setProperty(FlowReturn.dataSource, ds);
-			ret.setProperty(FlowAction.flowContainer, container);
-
-			action.setProperty(FlowAction.next, ret);
-
-			container.setProperty(FlowContainer.startNode, action);
-
-			ds.setProperty(FlowDataSource.query, "find('User')");
-			resultMap = container.evaluate(flowParameters);
-			assertNotNull(resultMap);
-			assertNotNull(resultMap.get("result"));
-
-			ds.setProperty(FlowDataSource.query, "size(find('User'))");
-
-			resultMap = container.evaluate(flowParameters);
-			assertNotNull(resultMap);
-			assertNotNull(resultMap.get("result"));
-
-			doImportExportRoundtrip(true);
-
-			ds.setProperty(FlowDataSource.query, "find('User')");
-			resultMap = container.evaluate(flowParameters);
-			assertNotNull(resultMap);
-			assertNotNull(resultMap.get("result"));
-
-			ds.setProperty(FlowDataSource.query, "size(find('User'))");
-
-			resultMap = container.evaluate(flowParameters);
-			assertNotNull(resultMap);
-			assertNotNull(resultMap.get("result"));
+			try (final Tx tx = app.tx()) {
+				container = app.nodeQuery(FlowContainer.class).and(FlowContainer.effectiveName, "flow.deployment.test").getFirst();
+				assertNotNull(container);
+				resultMap = container.evaluate(flowParameters);
+				assertNotNull(resultMap);
+				assertNotNull(resultMap.get("result"));
+			}
 
 		} catch (Throwable ex) {
 

@@ -20,12 +20,12 @@ package org.structr.flow.deployment;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -37,7 +37,6 @@ import org.structr.flow.impl.FlowContainer;
 import org.structr.flow.impl.FlowContainerConfiguration;
 import org.structr.flow.impl.rels.FlowContainerConfigurationFlow;
 
-import java.awt.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -75,7 +74,12 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 			final App app = StructrApp.getInstance();
 
-			final Path baseFolder = Files.createDirectories(target.resolve(FLOW_DEPLOYMENT_TREE_BASE_FOLDER));
+			Path baseFolder = target.resolve(FLOW_DEPLOYMENT_TREE_BASE_FOLDER);
+
+			// Delete any existing export data and reinitialize base folder
+			FileUtils.deleteDirectory(baseFolder.toFile());
+			baseFolder = Files.createDirectories(baseFolder);
+
 
 			try (final Tx tx = app.tx()) {
 
@@ -127,12 +131,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 				app.delete(toDelete);
 			}
 
-		}
-
-		try (final Tx tx = app.tx()) {
-
 			// Import new flow data
-
 			visitFlowFolders(flowFolder, null);
 
 			tx.success();
@@ -148,11 +147,6 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 		final File rootDir = new File(flowFolder.toAbsolutePath().toString());
 
 		// Start import for each flow and their respective __children
-		if (rootDir.toPath().resolve(FLOW_DEPLOYMENT_CONTAINER_FILE).toFile().isFile()) {
-
-			importFlow(rootDir.toPath(), packagePath);
-		}
-
 		File[] children = rootDir.listFiles();
 
 		if (children != null) {
@@ -161,6 +155,12 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 				// Construct effective path based on current flow dir
 				final String effectivePackagePath = packagePath != null ? packagePath + "." + dir.getName() : dir.getName();
+
+				// Import flow from file
+				if (dir.toPath().resolve(FLOW_DEPLOYMENT_CONTAINER_FILE).toFile().isFile()) {
+
+					importFlow(dir.toPath(), effectivePackagePath);
+				}
 
 				File[] subDirs = dir.listFiles();
 				if (subDirs != null) {
@@ -188,7 +188,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 			final Map<String, Object> flowContainerData = readData(flowRootDir.resolve(FLOW_DEPLOYMENT_CONTAINER_FILE));
 			final FlowContainer flowContainer = app.create(FlowContainer.class, convertMapToPropertyMap(FlowContainer.class, flowContainerData));
 			// Set flow package implicitly
-			flowContainer.setProperty(FlowContainer.effectiveName, packagePath + flowContainer.getName());
+			flowContainer.setProperty(FlowContainer.effectiveName, packagePath);
 
 			// 3. Create flow nodes
 			final File nodesDir = new File(flowRootDir.resolve(FLOW_DEPLOYMENT_TREE_NODE_FOLDER).toAbsolutePath().toString());
