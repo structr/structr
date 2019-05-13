@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -243,8 +244,9 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 				final NodeInterface toNode = app.getNodeById(relPropsData.get("targetId").toString());
 
 				if (fromNode != null && toNode != null) {
-
-					app.create(fromNode, toNode, clazz);
+					RelationshipInterface rel = app.create(fromNode, toNode, clazz);
+					rel.unlockSystemPropertiesOnce();
+					rel.setProperty(AbstractRelationship.id, relPropsData.get("id").toString());
 				} else {
 
 					logger.error("Could not import rel data for: " + gson.toJson(relPropsData));
@@ -334,6 +336,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 				final Path relPath = Files.createDirectories(target.resolve(rel.getUuid()));
 
 				Map<String, String> attrs = new TreeMap<>();
+				attrs.put("id", rel.getUuid());
 				attrs.put("type", rel.getClass().getSimpleName());
 				attrs.put("relType", ((RelationshipInterface) rel).getRelType().name());
 				attrs.put("sourceId", ((RelationshipInterface) rel).getSourceNodeId());
