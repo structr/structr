@@ -65,6 +65,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 	protected abstract String getQueryPrefix();
 	protected abstract boolean isNode();
+	public abstract void removeFromCache();
 	public abstract void clearCaches();
 	public abstract void onClose();
 

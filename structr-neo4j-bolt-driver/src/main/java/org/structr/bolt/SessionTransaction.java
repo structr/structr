@@ -101,7 +101,9 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		if (!success) {
 
 			for (final EntityWrapper entity : accessedEntities) {
+
 				entity.rollback(transactionId);
+				entity.removeFromCache();
 			}
 
 			for (final EntityWrapper entity : modifiedEntities) {

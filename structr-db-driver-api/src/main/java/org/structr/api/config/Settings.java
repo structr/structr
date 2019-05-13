@@ -192,15 +192,16 @@ public class Settings {
 
 	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "configservlet.enabled",             true, "Enables the config servlet (available under <code>http(s)://<your-server>/structr/config</code>)");
 
-	public static final Setting<String> RestServletPath       = new StringSetting(servletsGroup,  "JsonRestServlet", "jsonrestservlet.path",             "/structr/rest/*", "URL pattern for REST server. Do not change unless you know what you are doing.");
-	public static final Setting<String> RestServletClass      = new StringSetting(servletsGroup,  "JsonRestServlet", "jsonrestservlet.class",            "org.structr.rest.servlet.JsonRestServlet", "FQCN of servlet class to use in the REST server. Do not change unless you know what you are doing.");
-	public static final Setting<String> RestAuthenticator     = new StringSetting(servletsGroup,  "JsonRestServlet", "jsonrestservlet.authenticator",    "org.structr.web.auth.UiAuthenticator", "FQCN of authenticator class to use in the REST server. Do not change unless you know what you are doing.");
-	public static final Setting<String> RestDefaultView       = new StringSetting(servletsGroup,  "JsonRestServlet", "jsonrestservlet.defaultview",      "public", "Default view to use when no view is given in the URL");
-	public static final Setting<Integer> RestOutputDepth      = new IntegerSetting(servletsGroup, "JsonRestServlet", "jsonrestservlet.outputdepth",      3, "Maximum nesting depth of JSON output");
-	public static final Setting<String> RestResourceProvider  = new StringSetting(servletsGroup,  "JsonRestServlet", "jsonrestservlet.resourceprovider", "org.structr.web.common.UiResourceProvider", "FQCN of resource provider class to use in the REST server. Do not change unless you know what you are doing.");
-	public static final Setting<String> RestUserClass         = new StringSetting(servletsGroup,  "JsonRestServlet", "jsonrestservlet.user.class",       "org.structr.dynamic.User");
-	public static final Setting<Boolean> RestUserAutologin    = new BooleanSetting(servletsGroup, "JsonRestServlet", "jsonrestservlet.user.autologin",   false);
-	public static final Setting<Boolean> RestUserAutocreate   = new BooleanSetting(servletsGroup, "JsonRestServlet", "jsonrestservlet.user.autocreate",  false, "Enable this to support user self registration");
+	public static final Setting<String> RestServletPath       = new StringSetting(servletsGroup,            "JsonRestServlet", "jsonrestservlet.path",                         "/structr/rest/*", "URL pattern for REST server. Do not change unless you know what you are doing.");
+	public static final Setting<String> RestServletClass      = new StringSetting(servletsGroup,            "JsonRestServlet", "jsonrestservlet.class",                        "org.structr.rest.servlet.JsonRestServlet", "FQCN of servlet class to use in the REST server. Do not change unless you know what you are doing.");
+	public static final Setting<String> RestAuthenticator     = new StringSetting(servletsGroup,            "JsonRestServlet", "jsonrestservlet.authenticator",                "org.structr.web.auth.UiAuthenticator", "FQCN of authenticator class to use in the REST server. Do not change unless you know what you are doing.");
+	public static final Setting<String> RestDefaultView       = new StringSetting(servletsGroup,            "JsonRestServlet", "jsonrestservlet.defaultview",                  "public", "Default view to use when no view is given in the URL");
+	public static final Setting<Integer> RestOutputDepth      = new IntegerSetting(servletsGroup,           "JsonRestServlet", "jsonrestservlet.outputdepth",                  3, "Maximum nesting depth of JSON output");
+	public static final Setting<String> RestResourceProvider  = new StringSetting(servletsGroup,            "JsonRestServlet", "jsonrestservlet.resourceprovider",             "org.structr.web.common.UiResourceProvider", "FQCN of resource provider class to use in the REST server. Do not change unless you know what you are doing.");
+	public static final Setting<String> RestUserClass         = new StringSetting(servletsGroup,            "JsonRestServlet", "jsonrestservlet.user.class",                   "org.structr.dynamic.User");
+	public static final Setting<Boolean> RestUserAutologin    = new BooleanSetting(servletsGroup,           "JsonRestServlet", "jsonrestservlet.user.autologin",               false);
+	public static final Setting<Boolean> RestUserAutocreate   = new BooleanSetting(servletsGroup,           "JsonRestServlet", "jsonrestservlet.user.autocreate",              false, "Enable this to support user self registration");
+	public static final Setting<String> InputValidationMode   = new StringMultiChoiceSetting(servletsGroup, "JsonRestServlet", "jsonrestservlet.unknowninput.validation.mode", "ignore", new LinkedHashSet<>(Arrays.asList("accept", "warn", "ignore", "reject")), "Controls how Structr reacts to unknown keys in JSON input.");
 
 	public static final Setting<String> FlowServletPath       = new StringSetting(servletsGroup,  "FlowServlet", "flowservlet.path",             "/structr/flow/*");
 	public static final Setting<String> FlowServletClass      = new StringSetting(servletsGroup,  "FlowServlet", "flowservlet.class",            "org.structr.flow.servlet.FlowServlet");
@@ -387,15 +388,15 @@ public class Settings {
 	public static final Setting<String> OAuthAuth0ReturnUri      = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.return_uri", "");
 
 	// LDAP settings
-	public static final Setting<String> LDAPHost            = new StringSetting(ldapGroup, "General",  "ldap.host", "localhost");
+	public static final Setting<String> LDAPHost            = new StringSetting(ldapGroup,  "General", "ldap.host", "localhost");
 	public static final Setting<Integer> LDAPPort           = new IntegerSetting(ldapGroup, "General", "ldap.port", 389);
 	public static final Setting<Integer> LDAPConnectTimeout = new IntegerSetting(ldapGroup, "General", "ldap.connecttimeout", 1000, "Connection timeout in milliseconds");
-	public static final Setting<String> LDAPBindDN          = new StringSetting(ldapGroup, "General",  "ldap.binddn", "", "DN that is used to authenticate synchronization");
-	public static final Setting<String> LDAPSecret          = new StringSetting(ldapGroup, "General",  "ldap.secret", "");
+	public static final Setting<String> LDAPBindDN          = new StringSetting(ldapGroup,  "General", "ldap.binddn", "", "DN that is used to authenticate synchronization");
+	public static final Setting<String> LDAPSecret          = new StringSetting(ldapGroup,  "General", "ldap.secret", "");
 	public static final Setting<Boolean> LDAPUseSSL         = new BooleanSetting(ldapGroup, "General", "ldap.usessl", false);
-	public static final Setting<String> LDAPScope           = new StringSetting(ldapGroup, "General",  "ldap.scope", "SUBTREE");
-	public static final Setting<String> LDAPPropertyMapping = new StringSetting(ldapGroup, "General",  "ldap.propertymapping", "{ sn: name, email: eMail }", "Mapping from LDAP properties to Structr properties");
-	public static final Setting<String> LDAPGroupNames      = new StringSetting(ldapGroup, "General",  "ldap.groupnames", "{ group: member, groupOfNames: member, groupOfUniqueNames: uniqueMember }", "LDAP objectclass tuples for group and member identification.");
+	public static final Setting<String> LDAPScope           = new StringSetting(ldapGroup,  "General", "ldap.scope", "SUBTREE");
+	public static final Setting<String> LDAPPropertyMapping = new StringSetting(ldapGroup,  "General", "ldap.propertymapping", "{ sn: name, email: eMail }", "Mapping from LDAP properties to Structr properties");
+	public static final Setting<String> LDAPGroupNames      = new StringSetting(ldapGroup,  "General", "ldap.groupnames", "{ group: member, groupOfNames: member, groupOfUniqueNames: uniqueMember }", "LDAP objectclass tuples for group and member identification.");
 	public static final Setting<Integer> LDAPUpdateInterval = new IntegerSetting(ldapGroup, "General", "ldap.updateinterval", 600, "Update interval for group synchronization in seconds");
 
 	// miscellaneous settings
