@@ -75,6 +75,7 @@ import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.StructrServices;
 import org.structr.core.Services;
 import org.structr.rest.ResourceProvider;
+import org.structr.rest.auth.SessionHelper;
 import org.structr.schema.SchemaService;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
@@ -291,6 +292,10 @@ public class HttpService implements RunnableService {
 
 		}
 
+		if (Settings.ClearSessionsOnStartup.getValue()) {
+			SessionHelper.clearAllSessions();
+		}
+		
 		final StructrSessionDataStore sessionDataStore = new StructrSessionDataStore();
 		//final FileSessionDataStore store = new FileSessionDataStore();
 		//store.setStoreDir(baseDir.toPath().resolve("sessions").toFile());
@@ -443,7 +448,7 @@ public class HttpService implements RunnableService {
 
 				String excludedProtocols = Settings.excludedProtocols.getValue();
 				String includedProtocols = Settings.includedProtocols.getValue();
-				String disabledCiphers = Settings.disabledCipherSuits.getValue();
+				String disabledCiphers = Settings.disabledCipherSuites.getValue();
 
 				if (disabledCiphers.length() > 0) {
 					disabledCiphers = disabledCiphers.replaceAll("\\s+", "");
@@ -474,7 +479,7 @@ public class HttpService implements RunnableService {
 				https.setHost(host);
 				https.setPort(httpsPort);
 
-				if (Settings.dumbJettyStartupConfig.getValue()) {
+				if (Settings.dumpJettyStartupConfig.getValue()) {
 					logger.info(https.dump());
 				}
 
@@ -512,10 +517,15 @@ public class HttpService implements RunnableService {
 	@Override
 	public void shutdown() {
 
+		
 		if (server != null) {
 
 			try {
 				server.stop();
+
+				if (Settings.ClearSessionsOnShutdown.getValue()) {
+					SessionHelper.clearAllSessions();
+				}
 
 			} catch (Exception ex) {
 

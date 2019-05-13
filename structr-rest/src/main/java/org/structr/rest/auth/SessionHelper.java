@@ -33,6 +33,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.service.HttpService;
 
@@ -169,6 +170,30 @@ public class SessionHelper {
 		}
 	}
 
+	/**
+	 * Remove all sessionIds for all users
+	 * 
+	 */
+	public static void clearAllSessions() {
+
+		logger.info("Clearing all session ids for all users");
+
+		final PropertyKey<String[]> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
+		
+		try (final Tx tx = StructrApp.getInstance().tx(false, false, false)) {
+			
+			for (final Principal user : StructrApp.getInstance().get(Principal.class)) {
+				user.removeProperty(sessionIdKey);
+			}
+			
+			tx.success();
+			
+		} catch (final FrameworkException ex) {
+			logger.warn("Removing all session ids failed: {}", ex);
+		}
+		
+	}
+	
 	public static void invalidateSession(final String sessionId) {
 
 		if (sessionId != null) {
@@ -281,16 +306,15 @@ public class SessionHelper {
 				}
 			}
 
+			final Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
+
 			if (isNotTimedOut) {
 
-				final Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
 				//logger.debug("Valid session found: {}, last accessed {}, authenticated with user {}", new Object[]{session, session.getLastAccessedTime(), user});
-
 				return user;
 
 			} else {
 
-				final Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
 				if (user != null) {
 
 					//logger.info("Timed-out session: {}, last accessed {}, authenticated with user {}", new Object[]{session, (session != null ? session.getLastAccessedTime() : ""), user});
