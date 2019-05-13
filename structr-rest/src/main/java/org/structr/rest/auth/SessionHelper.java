@@ -138,7 +138,7 @@ public class SessionHelper {
 	}
 
 	/**
-	 * Remove old sessionIds of the given user
+	 * Remove old sessionIds of the given user.
 	 *
 	 * @param user
 	 */
@@ -171,7 +171,40 @@ public class SessionHelper {
 	}
 
 	/**
-	 * Remove all sessionIds for all users
+	 * Remove all sessionIds of the given user.
+	 *
+	 * @param user
+	 */
+	public static void clearAllSessions(final Principal user) {
+
+		logger.info("Clearing all sessions for user {} ({})", user.getName(), user.getUuid());
+
+		final PropertyKey<String[]> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
+		final String[] sessionIds                = user.getProperty(sessionIdKey);
+
+		if (sessionIds != null && sessionIds.length > 0) {
+
+			final SessionCache sessionCache = Services.getInstance().getService(HttpService.class).getSessionCache();
+
+			for (final String sessionId : sessionIds) {
+
+				HttpSession session = null;
+				try {
+					session = sessionCache.get(sessionId);
+
+				} catch (Exception ex) {
+					logger.warn("Unable to retrieve session " + sessionId + " from session cache:", ex);
+				}
+
+				if (session == null) {
+					SessionHelper.clearSession(sessionId);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Remove all sessionIds for all users.
 	 * 
 	 */
 	public static void clearAllSessions() {
@@ -183,7 +216,7 @@ public class SessionHelper {
 		try (final Tx tx = StructrApp.getInstance().tx(false, false, false)) {
 			
 			for (final Principal user : StructrApp.getInstance().get(Principal.class)) {
-				user.removeProperty(sessionIdKey);
+				clearAllSessions(user);
 			}
 			
 			tx.success();
