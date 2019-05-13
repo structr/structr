@@ -105,7 +105,6 @@ public class FlowTest extends StructrUiTest {
 
 	}
 
-
 	@Test
 	public void testFlowRepeater() {
 
