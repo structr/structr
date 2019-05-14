@@ -37,6 +37,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.HashHelper;
+import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.EndNodes;
@@ -223,6 +224,12 @@ public interface Principal extends NodeInterface, AccessControllable {
 			if (ids != null) {
 
 				if (!ArrayUtils.contains(ids, sessionId)) {
+					
+					if (ids.length >= Settings.MaxSessionsPerUser.getValue()) {
+						final String errorMessage = "Not adding session id, limit " + Settings.MaxSessionsPerUser.getKey() + " exceeded.";
+						logger.warn(errorMessage);
+						throw new AuthenticationException(errorMessage);
+					}
 
 					principal.setProperty(key, (String[]) ArrayUtils.add(principal.getProperty(key), sessionId));
 				}
