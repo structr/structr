@@ -335,10 +335,16 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 				try {
 
-					String fileName = decodeText(p.getFileName());
+					String fileName = p.getFileName();
 
 					if (fileName == null) {
+
 						fileName = NodeServiceCommand.getNextUuid();
+
+					} else {
+
+						fileName = decodeText(fileName);
+
 					}
 
 					file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), p.getInputStream(), p.getContentType(), fileClass, fileName, fileFolder);
