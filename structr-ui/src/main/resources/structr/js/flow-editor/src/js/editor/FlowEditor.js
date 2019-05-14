@@ -215,7 +215,10 @@ export class FlowEditor {
 
 						} else if (event.key === "c" && event.ctrlKey) {
 							self._copyElementsForCloning();
+						} else if (event.key === "v" && event.ctrlKey) {
+							self._pasteClonedElements();
 						}
+
 					},
 					keyup: function (event) {
 						if (event.key === "Shift" || event.key === "Ctrl") {
@@ -344,7 +347,14 @@ export class FlowEditor {
 		let editorNodes = this._editor.selected.list;
 
 		let cloneHandler = new CloneHandler();
-		cloneHandler.copyElements(editorNodes);
+		window._flow_clone_clipboard = cloneHandler.copyElements(editorNodes);
+	}
+
+	_pasteClonedElements() {
+
+		let cloneHandler = new CloneHandler();
+		cloneHandler.pasteElements(this, window._flow_clone_clipboard);
+
 	}
 
 	_connectionCreationHandler(input, output) {
