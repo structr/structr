@@ -703,6 +703,7 @@ var _Flows = {
 		flowsCanvas.innerHTML = '<div id="nodeEditor" class="node-editor"></div>';
 
 		flowId = id;
+		let rest = new Rest();
         let persistence = new Persistence();
 
         persistence.getNodesById(id, new FlowContainer()).then( r => {
@@ -713,43 +714,41 @@ var _Flows = {
 
             flowEditor.waitForInitialization().then( () => {
 
-                let promises = [];
+				rest.post('/structr/rest/FlowContainer/' + r[0].id + "/getFlowNodes").then((res) => {
 
-                r[0].flowNodes.forEach(node => {
-                    promises.push(persistence.getNodesById(node.id).then(n => flowEditor.renderNode(n[0])));
-                });
+					let result = res.result;
 
-                Promise.all(promises).then(() => {
-                    for (let [name, con] of Object.entries(FlowConnectionTypes.getInst().getAllConnectionTypes())) {
+					for (let node of result) {
 
-                        persistence.getNodesByClass(con).then(relNodes => {
+						flowEditor.renderNode(node);
+					}
 
-                            relNodes.forEach(rel => {
+				}).then(() => {
 
-                                if (Array.isArray(rel)) {
-                                    rel = rel[0];
-                                }
+					rest.post('/structr/rest/FlowContainer/' + r[0].id + "/getFlowRelationships").then((res) => {
 
-                                if (r[0].flowNodes.filter(el => el.id === rel.sourceId).length > 0 && r[0].flowNodes.filter(el => el.id === rel.targetId).length > 0) {
-                                    flowEditor.connectNodes(rel);
-                                }
+						let result = res.result;
 
-                            });
+						for (let rel of result) {
 
-                        });
+							flowEditor.connectNodes(rel);
+						}
 
-                    }
+					}).then(() => {
 
-                    flowEditor.applySavedLayout();
-                    flowEditor._editor.view.update();
-					flowEditor.resetView();
+						flowEditor.applySavedLayout();
+						flowEditor._editor.view.update();
+						flowEditor.resetView();
 
-					// activate buttons
-					document.querySelector('.run_flow_icon').classList.remove('disabled');
-					document.querySelector('.delete_flow_icon').classList.remove('disabled');
-					document.querySelector('.layout_icon').classList.remove('disabled');
+						// activate buttons
+						document.querySelector('.run_flow_icon').classList.remove('disabled');
+						document.querySelector('.delete_flow_icon').classList.remove('disabled');
+						document.querySelector('.layout_icon').classList.remove('disabled');
 
-                });
+
+					});
+
+				});
 
             });
 
