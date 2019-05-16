@@ -118,7 +118,7 @@ var _Crud = {
 					if (!data || !data.result || data.result_count === 0) {
 
 						//
-						
+
 					} else {
 
 						data.result.forEach(function(prop) {
@@ -127,7 +127,7 @@ var _Crud = {
 
 						_Crud.keys[type] = properties;
 					}
-					
+
 					if (callback) {
 						callback();
 					}
@@ -151,7 +151,7 @@ var _Crud = {
 			error:function () {
 				console.log("ERROR: loading Schema " + type);
 			}
-		});		
+		});
 	},
 	getProperties: function(type, callback) {
 
@@ -163,11 +163,11 @@ var _Crud = {
 		_Crud.addSchemaProperties(type, 'public', properties, function() {
 			_Crud.addSchemaProperties(type, 'custom', properties, function() {
 				_Crud.addSchemaProperties(type, 'all', properties, function() {
-					
+
 					if (Object.keys(properties).length === 0) {
 						new MessageBuilder().warning("Unable to find schema information for type '" + type + "'. There might be database nodes with no type information or a type unknown to Structr in the database.").show();
 					} else {
-					
+
 						if (callback) {
 							callback(type, properties);
 						}
@@ -184,6 +184,17 @@ var _Crud = {
 	order: {},
 	page: {},
 	pageSize: {},
+	typeCategories: {
+		rels: 'Relationship Types',
+		custom: 'Custom Types',
+		core: 'Core Types',
+		html: 'HTML Types',
+		file: 'File Types',
+		ui: 'UI Types',
+		flow: 'Flow Types',
+		log: 'Log Types',
+		other: 'Other Types'
+	},
 	moveResizer: function(left) {
 		left = left || LSWrapper.getItem(crudResizerLeftKey) || 210;
 		$('.column-resizer', main).css({ left: left });
@@ -206,28 +217,14 @@ var _Crud = {
 		_Crud.moveResizer();
 		Structr.initVerticalSlider($('.column-resizer', main), crudResizerLeftKey, 204, _Crud.moveResizer);
 
-		$('#crudTypeFilterSettings').append(
-			'<div><input type="checkbox" id="crudTypeToggleRels"><label for="crudTypeToggleRels"> Relationship Types</label></div>' +
-			'<div><input type="checkbox" id="crudTypeToggleCustom"><label for="crudTypeToggleCustom"> Custom Types</label></div>' +
-			'<div><input type="checkbox" id="crudTypeToggleCore"><label for="crudTypeToggleCore"> Core Types</label></div>' +
-			'<div><input type="checkbox" id="crudTypeToggleHtml"><label for="crudTypeToggleHtml"> HTML Types</label></div>' +
-			'<div><input type="checkbox" id="crudTypeToggleFile"><label for="crudTypeToggleFile"> File Types</label></div>' +
-			'<div><input type="checkbox" id="crudTypeToggleUi"><label for="crudTypeToggleUi"> UI Types</label></div>' +
-			'<div><input type="checkbox" id="crudTypeToggleFlow"><label for="crudTypeToggleFlow"> Flow Types</label></div>' +
-			'<div><input type="checkbox" id="crudTypeToggleLog"><label for="crudTypeToggleLog"> Log Types</label></div>' +
-			'<div><input type="checkbox" id="crudTypeToggleOther"><label for="crudTypeToggleOther"> Other Types</label></div>'
-		);
-
+		let filterSettings = $('#crudTypeFilterSettings');
 		var savedTypeVisibility = LSWrapper.getItem(_Crud.displayTypeConfigKey) || {};
-		$('#crudTypeToggleRels').prop('checked',   (savedTypeVisibility.rels   === undefined ? false : savedTypeVisibility.rels));
-		$('#crudTypeToggleCustom').prop('checked', (savedTypeVisibility.custom === undefined ? true : savedTypeVisibility.custom));
-		$('#crudTypeToggleCore').prop('checked',   (savedTypeVisibility.core   === undefined ? false : savedTypeVisibility.core));
-		$('#crudTypeToggleHtml').prop('checked',   (savedTypeVisibility.html   === undefined ? false : savedTypeVisibility.html));
-		$('#crudTypeToggleFile').prop('checked',   (savedTypeVisibility.file   === undefined ? false : savedTypeVisibility.file));
-		$('#crudTypeToggleUi').prop('checked',     (savedTypeVisibility.ui     === undefined ? true : savedTypeVisibility.ui));
-		$('#crudTypeToggleFlow').prop('checked',   (savedTypeVisibility.flow   === undefined ? false : savedTypeVisibility.flow));
-		$('#crudTypeToggleLog').prop('checked',    (savedTypeVisibility.log    === undefined ? false : savedTypeVisibility.log));
-		$('#crudTypeToggleOther').prop('checked',  (savedTypeVisibility.other  === undefined ? true : savedTypeVisibility.other));
+
+		Object.keys(_Crud.typeCategories).forEach(function(k) {
+			let elId = 'crudTypeToggle' + k;
+			filterSettings.append('<div><input type="checkbox" id="' + elId + '"><label for="' + elId + '"> ' + _Crud.typeCategories[k] + '</label></div>');
+			$('#' + elId).prop('checked', (savedTypeVisibility[k] === undefined ? false : savedTypeVisibility[k]));
+		});
 
 		$('#crudTypesSearch').keyup(function (e) {
 			if (e.keyCode === 27) {
@@ -244,7 +241,6 @@ var _Crud = {
 				if (matchingTypes.length === 1) {
 					_Crud.typeSelected(matchingTypes[0]);
 				}
-
 			}
 
 			_Crud.filterTypes($(this).val().toLowerCase());
@@ -263,7 +259,6 @@ var _Crud = {
 			}
 			_Crud.resize();
 			Structr.unblockMenu();
-
 		});
 
 		searchField = $('.search', main);
@@ -289,11 +284,8 @@ var _Crud = {
 			} else if (e.keyCode === 27 || searchString === '') {
 
 				_Crud.clearSearch(main);
-
 			}
-
 		});
-
 	},
 	onload: function() {
 
@@ -448,18 +440,13 @@ var _Crud = {
 	},
 	getTypeVisibilityConfig: function () {
 
-		return {
-			rels:   $('#crudTypeToggleRels').prop('checked'),
-			custom: $('#crudTypeToggleCustom').prop('checked'),
-			core:   $('#crudTypeToggleCore').prop('checked'),
-			html:   $('#crudTypeToggleHtml').prop('checked'),
-			file:   $('#crudTypeToggleFile').prop('checked'),
-			ui:     $('#crudTypeToggleUi').prop('checked'),
-			flow:   $('#crudTypeToggleFlow').prop('checked'),
-			log:    $('#crudTypeToggleLog').prop('checked'),
-			other:  $('#crudTypeToggleOther').prop('checked')
-		};
+		let visibility = {};
 
+		Object.keys(_Crud.typeCategories).forEach(function(k) {
+			visibility[k] = $('#crudTypeToggle' + k).prop('checked');
+		});
+
+		return visibility;
 	},
 	hideTypeVisibilityConfig: function () {
 		$('#crudTypeFilterSettings').addClass('hidden');
@@ -522,7 +509,7 @@ var _Crud = {
 
 	},
 	removeRecentType: function (typeToRemove) {
-		
+
 		var currentType = LSWrapper.getItem(crudTypeKey);
 		if (typeToRemove === currentType) {
 			LSWrapper.removeItem(crudTypeKey);
@@ -986,10 +973,10 @@ var _Crud = {
 		_Crud.showLoadingMessageAfterDelay('Loading data for type <b>' + type + '</b>', 100);
 
 		var hiddenKeys             = _Crud.getHiddenKeys(type);
-		
+
 		// 'id' attribute is mandatory for request
 		hiddenKeys.splice(hiddenKeys.indexOf('id'));
-		
+
 		var acceptHeaderProperties = Object.keys(properties).filter(function(key) { return !hiddenKeys.includes(key); }).join(',');
 
 		$.ajax({
@@ -1869,7 +1856,7 @@ var _Crud = {
 				let values = value || [];
 
 				if (!id) {
-					
+
 					let focusAndActivateField = function(el) {
 						$(el).focus().on('keydown', function(e) {
 							if (e.which === 9) { // tab key
@@ -1881,13 +1868,13 @@ var _Crud = {
 						});
 						return false;
 					}
-					
+
 					// create dialog
 					_Schema.getTypeInfo(type, function(typeInfo) {
 						cell.append('<input name="' + key + '" size="4">');
 						focusAndActivateField(cell.find('[name="' + key + '"]').last());
 					});
-					
+
 				} else {
 					// update existing object
 					_Schema.getTypeInfo(type, function(typeInfo) {
@@ -2724,7 +2711,7 @@ var _Crud = {
 				});
 
 			}
-			
+
 			if (_Crud.isImageType(_Crud.types[type])) {
 
 				// hidden keys for Image types
@@ -2748,7 +2735,7 @@ var _Crud = {
 				});
 
 			}
-			
+
 			if (_Crud.isFileType(_Crud.types[type])) {
 
 				// hidden keys for File types

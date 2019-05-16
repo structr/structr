@@ -51,8 +51,8 @@ $(document).ready(function() {
 		$('.toggle-type', typeTable).each(function(i, checkbox) {
 			var inp = $(checkbox);
 			inp.prop("checked", checked);
-			_Schema.checkIsHiddenSchemaNode(inp);
 		});
+		_Schema.updateHiddenSchemaTypes();
 		_Schema.reload();
 	});
 
@@ -61,8 +61,8 @@ $(document).ready(function() {
 		$('.toggle-type', typeTable).each(function(i, checkbox) {
 			var inp = $(checkbox);
 			inp.prop("checked", !inp.prop("checked"));
-			_Schema.checkIsHiddenSchemaNode(inp);
 		});
+		_Schema.updateHiddenSchemaTypes();
 		_Schema.reload();
 	});
 
@@ -78,7 +78,7 @@ $(document).ready(function() {
 		var td = $(this);
 		var inp = $('.toggle-type', td.parent());
 		inp.prop("checked", !inp.prop("checked"));
-		_Schema.checkIsHiddenSchemaNode(inp);
+		_Schema.updateHiddenSchemaTypes();
 		_Schema.reload();
 		return false;
 	});
@@ -542,8 +542,16 @@ var _Schema = {
 		return _Schema.schemaLoaded;
 	},
 	loadNodes: function(callback) {
-		var url = rootUrl + 'SchemaNode/ui?sort=hierarchyLevel&order=asc';
-		_Schema.hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey)) || [];
+
+		let url = rootUrl + 'SchemaNode/ui?sort=hierarchyLevel&order=asc';
+		_Schema.hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
+
+		let allNodesHidden = false;
+		if (!_Schema.hiddenSchemaNodes) {
+			_Schema.hiddenSchemaNodes = [];
+			allNodesHidden = true;
+		}
+
 		$.ajax({
 			url: url,
 			dataType: 'json',
@@ -552,6 +560,12 @@ var _Schema = {
 
 				var hierarchy = {};
 				var x=0, y=0;
+
+				if (allNodesHidden) {
+
+					_Schema.hiddenSchemaNodes = data.result.map(function(entity) { return entity.name; });
+					LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
+				}
 
 				_Schema.nodePositions = LSWrapper.getItem(_Schema.schemaPositionsKey);
 				if (!_Schema.nodePositions) {
@@ -3305,12 +3319,12 @@ var _Schema = {
 				exact: false
 			},
 			{
-				caption: "Html Types",
+				caption: "UI Types",
 				filter: { isBuiltinType: true, category: 'ui' },
 				exact: false
 			},
 			{
-				caption: "Page Types",
+				caption: "HTML Types",
 				filter: { isBuiltinType: true, category: 'html' },
 				exact: false
 			},
@@ -3348,10 +3362,10 @@ var _Schema = {
 
 			Command.query('SchemaNode', 1000, 1, 'name', 'asc', visType.filter, function(schemaNodes) {
 				schemaNodes.forEach(function(schemaNode) {
-					schemaVisibilityTable.append('<tr><td><input class="toggle-type" data-structr-type="' + schemaNode.name + '" type="checkbox" ' + (_Schema.hiddenSchemaNodes.indexOf(schemaNode.name) > -1 ? '' : 'checked') + '></td><td>' + schemaNode.name + '</td></tr>');
+					let hidden = _Schema.hiddenSchemaNodes.indexOf(schemaNode.name) > -1;
+					schemaVisibilityTable.append('<tr><td><input class="toggle-type" data-structr-type="' + schemaNode.name + '" type="checkbox" ' + (hidden ? '' : 'checked') + '></td><td>' + schemaNode.name + '</td></tr>');
 				});
 			}, visType.exact);
-
 		});
 
 		$('#' + id + '-tabs > li', container).off('click').on('click', function(e) {
@@ -3362,32 +3376,35 @@ var _Schema = {
 		var activeTab = LSWrapper.getItem(_Schema.activeSchemaToolsSelectedVisibilityTab) || visibilityTables[0].caption;
 		activateTab(activeTab);
 	},
-	checkIsHiddenSchemaNode: function(inp) {
-		var typeName = inp.attr('data-structr-type');
-		_Schema.setSchemaTypeVisibility(typeName, inp.is(':checked'));
-	},
-	setSchemaTypeVisibility: function (typeName, visible) {
-		var position = _Schema.hiddenSchemaNodes.indexOf(typeName);
-		if (!visible) {
-			if (position === -1) {
-				_Schema.hiddenSchemaNodes.push(typeName);
-				LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
+	updateHiddenSchemaTypes: function() {
+
+		let hiddenTypes = [];
+
+		$('.schema-visibility-table input.toggle-type').each(function(i, checkbox) {
+			let inp = $(checkbox);
+			var typeName = inp.attr('data-structr-type');
+			let visible = inp.is(':checked');
+
+			if (!visible) {
+				hiddenTypes.push(typeName);
 			}
-		} else {
-			if (position > -1) {
-				_Schema.hiddenSchemaNodes.splice(position, 1);
-				LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
-			}
-		}
+		});
+
+		_Schema.hiddenSchemaNodes = hiddenTypes;
+		LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
 	},
 	hideSelectedSchemaTypes: function () {
+
+		console.log(_Schema.hiddenSchemaNodes.length);
 
 		if (_Schema.selectedNodes.length > 0) {
 
 			_Schema.selectedNodes.forEach(function(n) {
-				_Schema.setSchemaTypeVisibility(n.name, false);
+				_Schema.hiddenSchemaNodes.push(n.name);
 			});
 
+			LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
+			console.log(_Schema.hiddenSchemaNodes.length);
 			_Schema.reload();
 		}
 	},
