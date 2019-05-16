@@ -52,8 +52,8 @@ public class FixedSizeCache<K, V> {
 		cache.keySet().removeAll(keys);
 	}
 
-	public synchronized void remove(final K key) {
-		cache.remove(key);
+	public synchronized V remove(final K key) {
+		return cache.remove(key);
 	}
 
 	public synchronized void clear() {

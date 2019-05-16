@@ -112,8 +112,8 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		} else {
 
-			NodeWrapper.expunge(deletedNodes);
 			RelationshipWrapper.expunge(deletedRels);
+			NodeWrapper.expunge(deletedNodes);
 
 			for (final EntityWrapper entity : accessedEntities) {
 				entity.commit(transactionId);
