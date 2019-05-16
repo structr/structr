@@ -562,8 +562,11 @@ var _Schema = {
 				var x=0, y=0;
 
 				if (allNodesHidden) {
-
-					_Schema.hiddenSchemaNodes = data.result.map(function(entity) { return entity.name; });
+					_Schema.hiddenSchemaNodes = data.result.filter(function(entity) {
+						return entity.isBuiltinType;
+					}).map(function(entity) {
+						return entity.name;
+					});
 					LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
 				}
 
