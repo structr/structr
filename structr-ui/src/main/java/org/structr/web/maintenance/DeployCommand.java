@@ -221,10 +221,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final long startTime = System.currentTimeMillis();
 			customHeaders.put("start", new Date(startTime).toString());
 
-			final boolean extendExistingSchema = isTrue(attributes.get("extendExistingSchema"));
-			final String path                  = (String) attributes.get("source");
-			final SecurityContext ctx          = SecurityContext.getSuperUserInstance();
-			final App app                      = StructrApp.getInstance(ctx);
+			final boolean extendExistingApp = isTrue(attributes.get("extendExistingApp"));
+			final String path               = (String) attributes.get("source");
+			final SecurityContext ctx       = SecurityContext.getSuperUserInstance();
+			final App app                   = StructrApp.getInstance(ctx);
 
 			ctx.setDoTransactionNotifications(false);
 			ctx.disableEnsureCardinality();
@@ -371,7 +371,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Importing data from schema/ directory");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing schema");
 
-					importSchema(schemaFolder, extendExistingSchema);
+					importSchema(schemaFolder, extendExistingApp);
 
 				} catch (ImportFailureException fex) {
 
@@ -428,7 +428,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// remove all DOMNodes from the database (clean webapp for import, but only
 			// if the actual import directories exist, don't delete web components if
 			// an empty directory was specified accidentially).
-			if (Files.exists(templates) && Files.exists(components) && Files.exists(pages)) {
+			if (!extendExistingApp && Files.exists(templates) && Files.exists(components) && Files.exists(pages)) {
 
 				try (final Tx tx = app.tx()) {
 
