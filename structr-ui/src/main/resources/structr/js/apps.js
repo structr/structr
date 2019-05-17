@@ -104,7 +104,11 @@ var _Apps = {
 							'<h3>Install "' + app.name + '"?</h3><p>The current application will be <b>REMOVED</b>!</p><p>Make sure you have a backup or nothing important in this installation!</p>',
 							function() {
 								$.unblockUI({ fadeOut: 25 });
-								form.submit();
+
+								LSWrapper.removeItem(_Schema.hiddenSchemaNodesKey);
+								Structr.saveLocalStorage(function() {
+									form.submit();
+								});
 							}
 						);
 
