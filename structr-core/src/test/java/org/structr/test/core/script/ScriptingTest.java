@@ -35,6 +35,7 @@ import java.util.Random;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
 import org.structr.common.AccessMode;
@@ -1482,6 +1483,47 @@ public class ScriptingTest extends StructrTest {
 				Iterables.toList(testOne.getProperty(TestOne.manyToManyTestSixs)).toString(),
 				Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 0, 1000)}")
 			);
+
+			Settings.CypherDebugLogging.setValue(true);
+
+			try {
+
+				// find with range
+				assertEquals("Invalid find range result",  4, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   2,    5))}", "range test")).size());
+				assertEquals("Invalid find range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   0,   20))}", "range test")).size());
+				assertEquals("Invalid find range result", 19, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   1,   20))}", "range test")).size());
+				assertEquals("Invalid find range result",  6, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(null,    5))}", "range test")).size());
+				assertEquals("Invalid find range result", 12, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   8, null))}", "range test")).size());
+				assertEquals("Invalid find range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(null, null))}", "range test")).size());
+
+				// find with range
+				assertEquals("Invalid find range result",  3, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   2,    5, true, false))}", "range test")).size());
+				assertEquals("Invalid find range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   0,   20, true, false))}", "range test")).size());
+				assertEquals("Invalid find range result", 19, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   1,   20, true, false))}", "range test")).size());
+				assertEquals("Invalid find range result",  5, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(null,    5, true, false))}", "range test")).size());
+				assertEquals("Invalid find range result", 12, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   8, null, true, false))}", "range test")).size());
+				assertEquals("Invalid find range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(null, null, true, false))}", "range test")).size());
+
+				// find with range
+				assertEquals("Invalid find range result",  3, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   2,    5, false, true))}", "range test")).size());
+				assertEquals("Invalid find range result", 19, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   0,   20, false, true))}", "range test")).size());
+				assertEquals("Invalid find range result", 18, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   1,   20, false, true))}", "range test")).size());
+				assertEquals("Invalid find range result",  6, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(null,    5, false, true))}", "range test")).size());
+				assertEquals("Invalid find range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   8, null, false, true))}", "range test")).size());
+				assertEquals("Invalid find range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(null, null, false, true))}", "range test")).size());
+
+				// find with range
+				assertEquals("Invalid find range result",  2, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   2,    5, false, false))}", "range test")).size());
+				assertEquals("Invalid find range result", 19, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   0,   20, false, false))}", "range test")).size());
+				assertEquals("Invalid find range result", 18, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   1,   20, false, false))}", "range test")).size());
+				assertEquals("Invalid find range result",  5, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(null,    5, false, false))}", "range test")).size());
+				assertEquals("Invalid find range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   8, null, false, false))}", "range test")).size());
+				assertEquals("Invalid find range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(null, null, false, false))}", "range test")).size());
+
+			} finally {
+
+				Settings.CypherDebugLogging.setValue(false);
+			}
 
 			// slice with find
 			final List sliceResult2 = (List)Scripting.evaluate(ctx, testOne, "${slice(find('TestSix'),  0,  5)}", "slice test");

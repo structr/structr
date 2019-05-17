@@ -32,16 +32,20 @@ import org.structr.core.property.PropertyKey;
 public class RangeSearchAttribute<T> extends SearchAttribute<T> implements RangeQuery {
 
 	private PropertyKey<T> searchKey = null;
+	private boolean includeStart     = true;
+	private boolean includeEnd       = true;
 	private T rangeStart             = null;
 	private T rangeEnd               = null;
 
-	public RangeSearchAttribute(final PropertyKey<T> searchKey, final T rangeStart, final T rangeEnd, final Occurrence occur) {
+	public RangeSearchAttribute(final PropertyKey<T> searchKey, final T rangeStart, final T rangeEnd, final Occurrence occur, final boolean includeStart, final boolean includeEnd) {
 
 		super(occur);
 
-		this.searchKey  = searchKey;
-		this.rangeStart = rangeStart;
-		this.rangeEnd   = rangeEnd;
+		this.includeStart = includeStart;
+		this.includeEnd   = includeEnd;
+		this.searchKey    = searchKey;
+		this.rangeStart   = rangeStart;
+		this.rangeEnd     = rangeEnd;
 	}
 
 	@Override
@@ -76,8 +80,21 @@ public class RangeSearchAttribute<T> extends SearchAttribute<T> implements Range
 				final Comparable cs = (Comparable)rangeStart;
 				final Comparable ce = (Comparable)rangeEnd;
 
-				// FIXME: is this correct??
-				return cs.compareTo(cv) <= 0 && ce.compareTo(cv) >= 0;
+				if (includeStart && includeEnd) {
+					return cs.compareTo(cv) <= 0 && ce.compareTo(cv) >= 0;
+				}
+
+				if (includeStart && !includeEnd) {
+					return cs.compareTo(cv) <= 0 && ce.compareTo(cv) > 0;
+				}
+
+				if (!includeStart && includeEnd) {
+					return cs.compareTo(cv) < 0 && ce.compareTo(cv) >= 0;
+				}
+
+				if (!includeStart && !includeEnd) {
+					return cs.compareTo(cv) < 0 && ce.compareTo(cv) > 0;
+				}
 			}
 		}
 
@@ -92,6 +109,16 @@ public class RangeSearchAttribute<T> extends SearchAttribute<T> implements Range
 	@Override
 	public T getRangeEnd() {
 		return rangeEnd;
+	}
+
+	@Override
+	public boolean getIncludeStart() {
+		return includeStart;
+	}
+
+	@Override
+	public boolean getIncludeEnd() {
+		return includeEnd;
 	}
 
 	@Override
