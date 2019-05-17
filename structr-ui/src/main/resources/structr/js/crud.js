@@ -195,6 +195,17 @@ var _Crud = {
 		log: 'Log Types',
 		other: 'Other Types'
 	},
+	defaultTypeVisibility: {
+		rels: false,
+		custom: true,
+		core: false,
+		html: false,
+		file: false,
+		ui: true,
+		flow: false,
+		log: false,
+		other: true
+	},
 	moveResizer: function(left) {
 		left = left || LSWrapper.getItem(crudResizerLeftKey) || 210;
 		$('.column-resizer', main).css({ left: left });
@@ -223,7 +234,7 @@ var _Crud = {
 		Object.keys(_Crud.typeCategories).forEach(function(k) {
 			let elId = 'crudTypeToggle' + k;
 			filterSettings.append('<div><input type="checkbox" id="' + elId + '"><label for="' + elId + '"> ' + _Crud.typeCategories[k] + '</label></div>');
-			$('#' + elId).prop('checked', (savedTypeVisibility[k] === undefined ? false : savedTypeVisibility[k]));
+			$('#' + elId).prop('checked', (savedTypeVisibility[k] === undefined ? _Crud.defaultTypeVisibility[k] : savedTypeVisibility[k]));
 		});
 
 		$('#crudTypesSearch').keyup(function (e) {
