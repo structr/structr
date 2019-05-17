@@ -714,8 +714,10 @@ var _Pages = {
 			e.stopPropagation();
 		});
 
+		let pageName = (entity.name ? entity.name : '[' + entity.type + ']');
+
 		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.page_icon) + '" />'
-				+ '<b title="' + entity.name + '" class="name_">' + fitStringToWidth(entity.name, 200) + '</b> <span class="id">' + entity.id + '</span>' + (entity.position ? ' <span class="position">' + entity.position + '</span>' : ''));
+				+ '<b title="' + entity.name + '" class="name_">' + fitStringToWidth(pageName, 200) + '</b> <span class="id">' + entity.id + '</span>' + (entity.position ? ' <span class="position">' + entity.position + '</span>' : ''));
 
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 		_Entities.appendAccessControlIcon(div, entity);
