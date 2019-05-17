@@ -3435,8 +3435,6 @@ var _Schema = {
 	},
 	hideSelectedSchemaTypes: function () {
 
-		console.log(_Schema.hiddenSchemaNodes.length);
-
 		if (_Schema.selectedNodes.length > 0) {
 
 			_Schema.selectedNodes.forEach(function(n) {
@@ -3444,7 +3442,6 @@ var _Schema = {
 			});
 
 			LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
-			console.log(_Schema.hiddenSchemaNodes.length);
 			_Schema.reload();
 		}
 	},
