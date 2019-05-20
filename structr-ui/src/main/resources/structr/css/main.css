@@ -1261,6 +1261,19 @@ i.button {
 	margin-left: 0;
 }
 
+#newComponentDropzone {
+	border: 3px dashed lightgray;
+	padding: 10px 0;
+}
+
+#newComponentDropzone .new-component-info {
+	text-align: center;
+}
+
+#newComponentDropzone .new-component-info .sprite {
+	vertical-align: middle;
+}
+
 .slideOut .node.widget {
 	margin-left: 0;
 	padding-left: 0;
