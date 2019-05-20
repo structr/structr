@@ -300,6 +300,8 @@ var _Widgets = {
 				_Widgets.appendWidgetElement(obj, true, _Widgets.remoteWidgetsEl);
 			});
 		}
+
+		_Pages.resize();
 	},
 	getTreeParent: function(element, treePath, suffix) {
 
