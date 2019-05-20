@@ -29,7 +29,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.TypeProperty;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Create labels for all nodes of the given type.
  */

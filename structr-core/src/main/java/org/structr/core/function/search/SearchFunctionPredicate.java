@@ -16,14 +16,16 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.search;
+package org.structr.core.function.search;
 
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.Query;
+import org.structr.core.property.PropertyKey;
 
-public interface RangeQuery<T> extends QueryPredicate {
+/**
+ */
+public interface SearchFunctionPredicate {
 
-	T getRangeStart();
-	T getRangeEnd();
-	
-	boolean getIncludeStart();
-	boolean getIncludeEnd();
+	void configureQuery(final SecurityContext securityContext, final PropertyKey key, final Query query) throws FrameworkException;
 }

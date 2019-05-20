@@ -556,9 +556,9 @@ var Structr = {
 		});
 
 	},
-	saveLocalStorage: function() {
+	saveLocalStorage: function(callback) {
 		_Logger.log(_LogType.INIT, "Saving localstorage");
-		Command.saveLocalStorage();
+		Command.saveLocalStorage(callback);
 	},
 	restoreLocalStorage: function(callback) {
 		if (!LSWrapper.isLoaded()) {

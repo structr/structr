@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.function.search.SearchFunctionPredicate;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
@@ -113,12 +114,20 @@ public class SearchFunction extends AbstractQueryFunction {
 						final PropertyConverter inputConverter = key.inputConverter(securityContext);
 						Object value = sources[c + 1];
 
-						if (inputConverter != null) {
+						if (value instanceof SearchFunctionPredicate) {
 
-							value = inputConverter.convert(value);
+							// allow predicate to modify query
+							((SearchFunctionPredicate)value).configureQuery(securityContext, key, query);
+
+						} else {
+
+							if (inputConverter != null) {
+
+								value = inputConverter.convert(value);
+							}
+
+							query.and(key, value, false);
 						}
-
-						query.and(key, value, false);
 					}
 
 				}

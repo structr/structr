@@ -95,7 +95,10 @@ public class TypeProperty extends StringProperty {
 		final String tenantIdentifier = graphDb.getTenantIdentifier();
 		if (tenantIdentifier != null) {
 
-			toAdd.add(graphDb.forName(Label.class, tenantIdentifier));
+			final Label tenantLabel = graphDb.forName(Label.class, tenantIdentifier);
+
+			toAdd.add(tenantLabel);
+			labels.remove(tenantLabel);
 		}
 
 		// initialize type property from single label on unknown nodes
