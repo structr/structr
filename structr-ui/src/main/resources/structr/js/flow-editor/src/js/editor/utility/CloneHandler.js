@@ -1,5 +1,6 @@
 import {Persistence} from "../../persistence/Persistence.js";
 import {FlowConnectionTypes} from "../FlowConnectionTypes.js";
+import {Rest} from "../../rest/Rest.js";
 
 export class CloneHandler {
 
@@ -135,6 +136,7 @@ export class CloneHandler {
 
 	async _renderNewNodes(editor, nodes, positions) {
 
+		let rest = new Rest();
 		let persistence = new Persistence();
 
 		let promises = [];
@@ -146,27 +148,19 @@ export class CloneHandler {
 
 		let nodeList = Object.entries(nodes).map(([key,value]) => value);
 
-		for (let [name, con] of Object.entries(FlowConnectionTypes.getInst().getAllConnectionTypes())) {
 
-			await persistence.getNodesByClass(con).then(relNodes => {
+		// TODO: Filter already connected rels
+		rest.post('/structr/rest/FlowContainer/' + editor._flowContainer.id + "/getFlowRelationships").then((res) => {
+			let result = res.result;
 
-				relNodes.forEach(rel => {
+			for (let rel of result) {
 
-					if (Array.isArray(rel)) {
-						rel = rel[0];
-					}
+				editor.connectNodes(rel);
+			}
+		}).then(() => {
 
-					if (nodeList.filter(el => el.id === rel.sourceId).length > 0 && nodeList.filter(el => el.id === rel.targetId).length > 0) {
-						editor.connectNodes(rel);
-					}
-
-				});
-
-			});
-
-		}
-
-		editor._editor.view.update();
+			editor._editor.view.update();
+		});
 
 
 		for (let [index, data] of Object.entries(positions)) {
