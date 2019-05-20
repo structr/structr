@@ -110,8 +110,13 @@ var _Pages = {
 			height: windowHeight - headerOffsetHeight - 42 + 'px'
 		});
 
-		$('.ver-scrollable').css({
-			height: windowHeight - headerOffsetHeight - 42 + 'px'
+		$('.ver-scrollable').each(function(i, el) {
+
+			let topOffset = ($(this).parent().hasClass('slideOut')) ? $(this).position().top : 0;
+
+			$(this).css({
+				height: windowHeight - headerOffsetHeight - topOffset - 42 + 'px'
+			});
 		});
 	},
 	onload: function() {
@@ -260,10 +265,12 @@ var _Pages = {
 		pagesSlideout.find(':not(.compTab)').remove();
 		previewTabs.empty();
 
+		pagesSlideout.append('<div id="pagesPager"></div>');
 		pagesSlideout.append('<div class="ver-scrollable" id="pagesTree"></div>');
+		let pagesPager = $('#pagesPager', pagesSlideout);
 		pages = $('#pagesTree', pagesSlideout);
 
-		var pPager = _Pager.addPager('pages', pages, true, 'Page', null, function(pages) {
+		var pPager = _Pager.addPager('pages', pagesPager, true, 'Page', null, function(pages) {
 			pages.forEach(function(page) {
 				StructrModel.create(page);
 			});
@@ -271,7 +278,7 @@ var _Pages = {
 		});
 		pPager.cleanupFunction = function () {
 			_Pages.clearPreviews();
-			$('.node', pPager.el).remove();
+			$('.node', pages).remove();
 		};
 		pPager.pager.append('Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" title="Here you can filter the pages list by page name"/>');
 		var categoryFilter = $('<input type="text" class="filter page-label" data-attribute="category" placeholder="Category" />');
