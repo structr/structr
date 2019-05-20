@@ -1262,8 +1262,15 @@ i.button {
 }
 
 #newComponentDropzone {
-	border: 3px dashed lightgray;
+	border: 2px dashed lightgray;
+	border-radius: 5px;
 	padding: 10px 0;
+	color: lightgray;
+	margin-bottom: 4px;
+}
+
+#newComponentDropzone.allow-drop {
+	color: black;
 }
 
 #newComponentDropzone .new-component-info {
@@ -1273,6 +1280,22 @@ i.button {
 #newComponentDropzone .new-component-info .sprite {
 	vertical-align: middle;
 }
+
+#newComponentDropzone .new-component-info .active {
+	visibility: hidden;
+	display: none;
+}
+
+#newComponentDropzone.allow-drop .new-component-info .inactive {
+	visibility: hidden;
+	display: none;
+}
+
+#newComponentDropzone.allow-drop .new-component-info .active {
+	visibility: visible;
+	display: inline-block;
+}
+
 
 .slideOut .node.widget {
 	margin-left: 0;
