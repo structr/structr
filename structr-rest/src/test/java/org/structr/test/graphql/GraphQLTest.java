@@ -1464,7 +1464,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		RestAssured.basePath = "/structr/graphql";
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Project(testBoolean: { _equals: true}) { testBoolean, testDouble, testLong, testInt } }");
+			final Map<String, Object> result = fetchGraphQL("{ Project(testBoolean: { _equals: true}, _sort: \"name\") { testBoolean, testDouble, testLong, testInt } }");
 			assertMapPathValueIs(result, "Project.#",           2);
 			assertMapPathValueIs(result, "Project.0.testBoolean", true);
 			assertMapPathValueIs(result, "Project.0.testDouble",  252.52);
@@ -2536,6 +2536,103 @@ public class GraphQLTest extends StructrGraphQLTest {
 			assertMapPathValueIs(result, "Task.4.name",            "Task1.5");
 			assertMapPathValueIs(result, "Task.5.name",            "Task1.6");
 			assertMapPathValueIs(result, "Task.6.name",            "Task1.7");
+		}
+	}
+
+	@Test
+	public void testInheritance() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType baseType = schema.addType("BaseType");
+			final JsonObjectType project  = schema.addType("Project");
+			final JsonObjectType task     = schema.addType("Task");
+
+			project.setExtends(baseType);
+			task.setExtends(baseType);
+
+			baseType.addBooleanProperty("isChecked").setIndexed(true);
+
+			project.relate(task, "TASK",  Relation.Cardinality.OneToMany, "project",   "tasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (URISyntaxException|FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final Class<NodeInterface> baseType    = StructrApp.getConfiguration().getNodeEntityClass("BaseType");
+		final Class<NodeInterface> projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final Class<NodeInterface> taskType    = StructrApp.getConfiguration().getNodeEntityClass("Task");
+		final PropertyKey checkedKey           = StructrApp.getConfiguration().getPropertyKeyForJSONName(baseType, "isChecked");
+		final PropertyKey projectTasksKey      = StructrApp.getConfiguration().getPropertyKeyForJSONName(projectType, "tasks");
+
+		try (final Tx tx = app.tx()) {
+
+			final List<NodeInterface> tasks1 = new LinkedList<>();
+			final List<NodeInterface> tasks2 = new LinkedList<>();
+			final List<NodeInterface> tasks3 = new LinkedList<>();
+			final List<NodeInterface> tasks4 = new LinkedList<>();
+
+			final NodeInterface project1     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project1"), new NodeAttribute<>(checkedKey, true));
+			final NodeInterface project2     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project2"), new NodeAttribute<>(checkedKey, false));
+			final NodeInterface project3     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project3"), new NodeAttribute<>(checkedKey, true));
+			final NodeInterface project4     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Projecto"), new NodeAttribute<>(checkedKey, false));
+
+			tasks1.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task1.1"), new NodeAttribute<>(checkedKey, false)));
+			tasks1.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task1.3"), new NodeAttribute<>(checkedKey, true)));
+			tasks1.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task1.5"), new NodeAttribute<>(checkedKey, false)));
+			tasks1.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task1.6"), new NodeAttribute<>(checkedKey, true)));
+
+			tasks2.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task2.1"), new NodeAttribute<>(checkedKey, false)));
+			tasks2.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task2.2"), new NodeAttribute<>(checkedKey, true)));
+			tasks2.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task2.3"), new NodeAttribute<>(checkedKey, false)));
+			tasks2.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task2.4"), new NodeAttribute<>(checkedKey, true)));
+
+			tasks3.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task3.1"), new NodeAttribute<>(checkedKey, false)));
+			tasks3.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task3.2"), new NodeAttribute<>(checkedKey, true)));
+			tasks3.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task3.3"), new NodeAttribute<>(checkedKey, false)));
+			tasks3.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task3.4"), new NodeAttribute<>(checkedKey, true)));
+
+			tasks4.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task4.1"), new NodeAttribute<>(checkedKey, false)));
+			tasks4.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task4.2"), new NodeAttribute<>(checkedKey, true)));
+			tasks4.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task4.3"), new NodeAttribute<>(checkedKey, false)));
+			tasks4.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task4.4"), new NodeAttribute<>(checkedKey, true)));
+
+			project1.setProperty(projectTasksKey, tasks1);
+			project2.setProperty(projectTasksKey, tasks2);
+			project3.setProperty(projectTasksKey, tasks3);
+			project4.setProperty(projectTasksKey, tasks4);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(_sort: \"name\", isChecked: { _equals: true}, tasks: { isChecked: { _equals: true }}) { id, type, name, isChecked, tasks { id, type, name, isChecked }}}");
+
+			assertMapPathValueIs(result, "Project.#",                  2);
+			assertMapPathValueIs(result, "Project.0.name",            "Project1");
+			assertMapPathValueIs(result, "Project.0.isChecked",       true);
+			assertMapPathValueIs(result, "Project.0.tasks.0.name",    "Task1.1");
+			assertMapPathValueIs(result, "Project.0.tasks.1.name",    "Task1.3");
+			assertMapPathValueIs(result, "Project.0.tasks.2.name",    "Task1.5");
+			assertMapPathValueIs(result, "Project.0.tasks.3.name",    "Task1.6");
+			assertMapPathValueIs(result, "Project.1.name",            "Project3");
+			assertMapPathValueIs(result, "Project.1.isChecked",       true);
+			assertMapPathValueIs(result, "Project.1.tasks.0.name",    "Task3.1");
+			assertMapPathValueIs(result, "Project.1.tasks.1.name",    "Task3.2");
+			assertMapPathValueIs(result, "Project.1.tasks.2.name",    "Task3.3");
+			assertMapPathValueIs(result, "Project.1.tasks.3.name",    "Task3.4");
 		}
 
 	}

@@ -353,7 +353,7 @@ public class SchemaService implements Service {
 										.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
 										.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
 										.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
-										.argument(SchemaHelper.getGraphQLQueryArgumentsForType(schemaNodes, selectionTypes, existingQueryTypeNames, className))
+										.arguments(SchemaHelper.getGraphQLQueryArgumentsForType(schemaNodes, selectionTypes, existingQueryTypeNames, className))
 									);
 
 								} catch (Throwable t) {
@@ -369,9 +369,11 @@ public class SchemaService implements Service {
 									graphQLSchema = GraphQLSchema
 										.newSchema()
 										.query(queryTypeBuilder.name("Query").build())
-										.build(new LinkedHashSet<>(graphQLTypes.values()));
+										.additionalTypes(new LinkedHashSet<>(graphQLTypes.values()))
+										.build();
 
 								} catch (Throwable t) {
+									t.printStackTrace();
 									logger.warn("Unable to build GraphQL schema: {}", t.getMessage());
 								}
 							}

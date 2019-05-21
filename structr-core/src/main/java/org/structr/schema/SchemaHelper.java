@@ -1779,7 +1779,7 @@ public class SchemaHelper {
 
 					arguments.add(GraphQLArgument.newArgument().name(propertyName).type(GraphQLInputObjectType.newInputObject()
 						.name(queryTypeName)
-						.fields(getGraphQLInputFieldsForType(selectionTypes, targetNode))
+						.fields(getGraphQLInputFieldsForType(schemaNodes, selectionTypes, targetNode))
 						.build()
 					).build());
 
@@ -1799,7 +1799,7 @@ public class SchemaHelper {
 
 					arguments.add(GraphQLArgument.newArgument().name(propertyName).type(GraphQLInputObjectType.newInputObject()
 						.name(queryTypeName)
-						.fields(getGraphQLInputFieldsForType(selectionTypes, sourceNode))
+						.fields(getGraphQLInputFieldsForType(schemaNodes, selectionTypes, sourceNode))
 						.build()
 					).build());
 
@@ -1843,7 +1843,7 @@ public class SchemaHelper {
 				// manual registration for built-in relationships that are not dynamic
 				arguments.add(GraphQLArgument.newArgument().name("owner").type(GraphQLInputObjectType.newInputObject()
 					.name(ownerTypeName)
-					.fields(getGraphQLInputFieldsForType(selectionTypes, schemaNodes.get("Principal")))
+					.fields(getGraphQLInputFieldsForType(schemaNodes, selectionTypes, schemaNodes.get("Principal")))
 					.build()
 				).build());
 
@@ -1854,11 +1854,21 @@ public class SchemaHelper {
 		return arguments;
 	}
 
-	public static List<GraphQLInputObjectField> getGraphQLInputFieldsForType(final Map<String, GraphQLInputObjectType> selectionTypes, final SchemaNode targetNode) {
+	public static List<GraphQLInputObjectField> getGraphQLInputFieldsForType(final Map<String, SchemaNode> schemaNodes, final Map<String, GraphQLInputObjectType> selectionTypes, final SchemaNode schemaNode) throws FrameworkException {
 
 		final Map<String, GraphQLInputObjectField> fields = new LinkedHashMap<>();
 
-		for (final SchemaProperty property : targetNode.getSchemaProperties()) {
+		// register parent type arguments as well!
+		final SchemaNode parentSchemaNode = schemaNode.getParentSchemaNode(schemaNodes);
+		if (parentSchemaNode != null && !parentSchemaNode.equals(schemaNode)) {
+
+			for (final GraphQLInputObjectField field : getGraphQLInputFieldsForType(schemaNodes, selectionTypes, parentSchemaNode)) {
+
+				fields.put(field.getName(), field);
+			}
+		}
+
+		for (final SchemaProperty property : schemaNode.getSchemaProperties()) {
 
 			if (property.isIndexed() || property.isCompound()) {
 
