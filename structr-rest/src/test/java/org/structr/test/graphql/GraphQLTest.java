@@ -1464,7 +1464,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		RestAssured.basePath = "/structr/graphql";
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Project(testBoolean: { _equals: true}) { testBoolean, testDouble, testLong, testInt } }");
+			final Map<String, Object> result = fetchGraphQL("{ Project(testBoolean: { _equals: true}, sort: \"name\") { testBoolean, testDouble, testLong, testInt } }");
 			assertMapPathValueIs(result, "Project.#",           2);
 			assertMapPathValueIs(result, "Project.0.testBoolean", true);
 			assertMapPathValueIs(result, "Project.0.testDouble",  252.52);

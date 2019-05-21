@@ -18,7 +18,9 @@
  */
 package org.structr.test.core.entity;
 
+import java.util.Date;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.DateProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
@@ -42,5 +44,6 @@ public class TestSix extends AbstractNode {
 
 	public static final Property<Iterable<TestNine>>  oneToManyTestNinesCascadeConstraint  = new EndNodes<>("oneToManyTestNinesCascadeConstraint", SixNineOneToManyCascadeConstraint.class);
 
-	public static final Property<Integer>             index                                = new IntProperty("index");
+	public static final Property<Integer>             index                                = new IntProperty("index").indexed();
+	public static final Property<Date>                date                                 = new DateProperty("date").indexed();
 }

@@ -27,5 +27,5 @@ import org.structr.core.property.PropertyKey;
  */
 public interface SearchFunctionPredicate {
 
-	void configureQuery(final SecurityContext securityContext, final PropertyKey key, final Query query) throws FrameworkException;
+	void configureQuery(final SecurityContext securityContext, final PropertyKey key, final Query query, final boolean exact) throws FrameworkException;
 }

@@ -42,7 +42,7 @@ public class RangePredicate implements SearchFunctionPredicate {
 	}
 
 	@Override
-	public void configureQuery(final SecurityContext securityContext, final PropertyKey key, final Query query) throws FrameworkException {
+	public void configureQuery(final SecurityContext securityContext, final PropertyKey key, final Query query, final boolean exact) throws FrameworkException {
 
 		final PropertyConverter inputConverter = key.inputConverter(securityContext);
 		Object start                           = rangeStart;

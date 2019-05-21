@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import java.util.Map;
+import java.util.Map.Entry;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -27,7 +28,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.function.search.SearchFunctionPredicate;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
@@ -91,7 +91,31 @@ public class FindFunction extends AbstractQueryFunction {
 			// extension for native javascript objects
 			if (sources.length == 2 && sources[1] instanceof Map) {
 
-				query.and(PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]));
+				final Map<String, Object> queryData = (Map)sources[1];
+				for (final Entry<String, Object> entry : queryData.entrySet()) {
+
+					final String keyName  = entry.getKey();
+					final Object value    = entry.getValue();
+					final PropertyKey key = StructrApp.key(type, keyName);
+
+					if (value instanceof SearchFunctionPredicate) {
+
+						// allow predicate to modify query
+						((SearchFunctionPredicate)value).configureQuery(securityContext, key, query, true);
+
+					} else {
+
+						final PropertyConverter inputConverter = key.inputConverter(securityContext);
+						if (inputConverter != null) {
+
+							query.and(key, inputConverter.convert(value));
+
+						} else {
+
+							query.and(key, value);
+						}
+					}
+				}
 
 			} else if (sources.length == 2) {
 
@@ -131,7 +155,7 @@ public class FindFunction extends AbstractQueryFunction {
 						if (value instanceof SearchFunctionPredicate) {
 
 							// allow predicate to modify query
-							((SearchFunctionPredicate)value).configureQuery(securityContext, key, query);
+							((SearchFunctionPredicate)value).configureQuery(securityContext, key, query, true);
 
 						} else {
 
