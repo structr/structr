@@ -74,6 +74,7 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonFunctionProperty;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
@@ -3234,6 +3235,131 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 			assertEquals("Invalid error code", 422, fex.getStatus());
+		}
+	}
+
+	@Test
+	public void testFunctionPropertyTypeHint() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType project  = schema.addType("Project");
+
+			project.addStringProperty("name1");
+			project.addStringProperty("name2");
+
+			final JsonFunctionProperty p1 = project.addFunctionProperty("functionProperty1");
+			final JsonFunctionProperty p2 = project.addFunctionProperty("functionProperty2");
+
+			p1.setTypeHint("String");
+			p2.setTypeHint("String");
+
+			p1.setWriteFunction("set(this, 'name1', concat('from StructrScript', value))");
+			p2.setWriteFunction("{ Structr.this.name2 = 'from JavaScript' + Structr.get('value'); }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class type       = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final PropertyKey key1 = StructrApp.key(type, "functionProperty1");
+                final PropertyKey key2 = StructrApp.key(type, "functionProperty2");
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			app.create(type,
+				new NodeAttribute<>(key1, "test1"),
+				new NodeAttribute<>(key2, "test2")
+			);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// check result
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject node = app.nodeQuery(type).getFirst();
+
+			assertEquals("Write function has no access to 'this' object when creating a node", "from StructrScripttest1", node.getProperty(StructrApp.key(type, "name1")));
+			assertEquals("Write function has no access to 'this' object when creating a node", "from JavaScripttest2", node.getProperty(StructrApp.key(type, "name2")));
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testStringConcatenationInJavaScript() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType project  = schema.addType("Project");
+
+			project.addFunctionProperty("test1").setFormat("{ return Structr.this.name + 'test' + 123; }");
+			project.addFunctionProperty("test2").setFormat("{ return 'test' + 123 + Structr.this.name; }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			// create some test objects
+			Scripting.evaluate(ctx, null, "${{ Structr.create('Group', { name: 'test' + 123 + 'structr' }); }}", "test");
+			Scripting.evaluate(ctx, null, "${{ var g = Structr.create('Group'); g.name = 'test' + 123 + 'structr'; }}", "test");
+			Scripting.evaluate(ctx, null, "${{ var g = Structr.create('Group'); Structr.set(g, 'name', 'test' + 123 + 'structr'); }}", "test");
+			Scripting.evaluate(ctx, null, "${{ Structr.create('Group', 'name', 'test' + 123 + 'structr'); }}", "test");
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+
+		// check result
+		try (final Tx tx = app.tx()) {
+
+			int index = 1;
+
+			for (final Group group : app.nodeQuery(Group.class).getResultStream()) {
+
+				System.out.println(group.getName());
+
+				assertEquals("Invalid JavaScript string concatenation result for script #" + index++, "test123structr", group.getName());
+			}
+
+			final NodeInterface project = app.create(projectType, "structr");
+			
+			assertEquals("Invalid JavaScript string concatenation result in read function", "structrtest123", project.getProperty("test1"));
+			assertEquals("Invalid JavaScript string concatenation result in read function", "test123structr", project.getProperty("test2"));
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
 		}
 	}
 
