@@ -541,7 +541,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 				.newFieldDefinition()
 				.name(SchemaHelper.cleanPropertyName(getPropertyName()))
 				.type(outputType)
-				.argument(SchemaProperty.getGraphQLArgumentsForType(getPropertyType()))
+				.arguments(SchemaProperty.getGraphQLArgumentsForType(getPropertyType()))
 				.build();
 		}
 
