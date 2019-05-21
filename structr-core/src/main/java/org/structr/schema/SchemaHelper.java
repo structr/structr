@@ -1709,10 +1709,6 @@ public class SchemaHelper {
 						// object type
 						return typeRef(typeHint);
 					}
-
-				} else {
-
-					logger.warn("Unable to register property {} with GraphQL, no type hint present. Please set typeHint property of {} to use it with GraphQL", property.getFullName(), property.getUuid());
 				}
 				break;
 		}
