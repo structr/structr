@@ -1526,10 +1526,10 @@ public class ScriptingTest extends StructrTest {
 			}
 
 			// slice with find
-			final List sliceResult2 = (List)Scripting.evaluate(ctx, testOne, "${slice(find('TestSix'),  0,  5)}", "slice test");
-			final List sliceResult3 = (List)Scripting.evaluate(ctx, testOne, "${slice(find('TestSix'),  5, 10)}", "slice test");
-			final List sliceResult4 = (List)Scripting.evaluate(ctx, testOne, "${slice(find('TestSix'), 10, 15)}", "slice test");
-			final List sliceResult5 = (List)Scripting.evaluate(ctx, testOne, "${slice(find('TestSix'), 15, 20)}", "slice test");
+			final List sliceResult2 = (List)Scripting.evaluate(ctx, testOne, "${slice(sort(find('TestSix'), 'name'),  0,  5)}", "slice test");
+			final List sliceResult3 = (List)Scripting.evaluate(ctx, testOne, "${slice(sort(find('TestSix'), 'name'),  5, 10)}", "slice test");
+			final List sliceResult4 = (List)Scripting.evaluate(ctx, testOne, "${slice(sort(find('TestSix'), 'name'), 10, 15)}", "slice test");
+			final List sliceResult5 = (List)Scripting.evaluate(ctx, testOne, "${slice(sort(find('TestSix'), 'name'), 15, 20)}", "slice test");
 
 			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResult2.size());
 			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResult3.size());
