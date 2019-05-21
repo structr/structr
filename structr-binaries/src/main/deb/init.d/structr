@@ -40,8 +40,7 @@ case "$1" in
   ;;
   restart)
 
-        /usr/lib/structr/bin/stop
-        /usr/lib/structr/bin/start
+        /usr/lib/structr/bin/stop && /usr/lib/structr/bin/start
         ;;
   stop)
         /usr/lib/structr/bin/stop

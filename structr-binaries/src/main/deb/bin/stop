@@ -1,12 +1,12 @@
 #!/bin/bash
 
+. bin/config
+
 PID_FILE='/var/run/structr.pid'
 
 if [ ! -e $PID_FILE ]; then
 
-	echo
-	echo "        No server running."
-	echo
+	echo "No server running."
 
 	exit 0
 
@@ -14,14 +14,13 @@ fi
 
 SERVER_PID=`cat $PID_FILE`
 
-echo
-echo -n "        Stopping structr server $DISPLAY_NAME: "
+echo "Stopping Structr instance '$DISPLAY_NAME'..."
 
 kill $SERVER_PID
 
+( tail -q -n0 -F $LOG_FILE 2>/dev/null & echo $! >tail.pid ) | sed -n '/Shutdown complete/q'
+tail -q -200 $LOG_FILE 2> /dev/null | grep 'Shutting down'
 rm $PID_FILE
 
-sleep 1
-
-echo "OK"
+echo -n "Structr instance '$DISPLAY_NAME' stopped (PID $SERVER_PID)"
 echo
