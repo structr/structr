@@ -397,7 +397,11 @@ public class StructrScriptable extends ScriptableObject {
 
 		if (source != null) {
 
-			if (source instanceof Wrapper) {
+			if (source instanceof ConsString) {
+
+				return source.toString();
+			
+			} else if (source instanceof Wrapper) {
 
 				return unwrap(((Wrapper)source).unwrap());
 

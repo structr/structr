@@ -40,6 +40,7 @@ import {FlowFilter} from "./entities/FlowFilter.js";
 import {FlowComparison} from "./entities/FlowComparison.js";
 import {FlowFork} from "./entities/FlowFork.js";
 import {FlowForkJoin} from "./entities/FlowForkJoin.js";
+import {CloneHandler} from "./utility/CloneHandler.js";
 
 
 
@@ -212,7 +213,12 @@ export class FlowEditor {
 							self._editor.selected.list.map((node) => console.log(node.data.dbNode.type + '[' + node.data.dbNode.id + "]"));
 							event.stopPropagation();
 
+						} else if (event.key === "c" && event.ctrlKey) {
+							self._copyElementsForCloning();
+						} else if (event.key === "v" && event.ctrlKey) {
+							self._pasteClonedElements();
 						}
+
 					},
 					keyup: function (event) {
 						if (event.key === "Shift" || event.key === "Ctrl") {
@@ -333,6 +339,21 @@ export class FlowEditor {
 			self._editor.view.contextMenu.show(x, y, this._getContextMenuItemsForElement(self, element), false, onClick);
 			d3.event.preventDefault();
 		});
+
+	}
+
+	_copyElementsForCloning() {
+		// Copy selected elements
+		let editorNodes = this._editor.selected.list;
+
+		let cloneHandler = new CloneHandler();
+		window._flow_clone_clipboard = cloneHandler.copyElements(editorNodes);
+	}
+
+	_pasteClonedElements() {
+
+		let cloneHandler = new CloneHandler();
+		cloneHandler.pasteElements(this, window._flow_clone_clipboard);
 
 	}
 

@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -66,6 +65,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 	private static final String[] FLOW_BLACKLISTED_REL_TYPES                                = {"OWNS","SECURITY","CONTAINS_FLOW"};
 	private static final String[] FLOW_SCRIPT_ATTRIBUTES									= {"query", "script", "result"};
+	private static final String[] FLOW_IGNORE_WARNING_FOR_RELS								= {"FlowCallContainer"};
 
 
 	@Override
@@ -247,9 +247,9 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 					RelationshipInterface rel = app.create(fromNode, toNode, clazz);
 					rel.unlockSystemPropertiesOnce();
 					rel.setProperty(AbstractRelationship.id, relPropsData.get("id").toString());
-				} else {
+				} else if (!Arrays.asList(FLOW_IGNORE_WARNING_FOR_RELS).contains(clazz.getSimpleName())) {
 
-					logger.error("Could not import rel data for: " + gson.toJson(relPropsData));
+					logger.warn("Could not import rel data for: " + gson.toJson(relPropsData));
 				}
 
 			}

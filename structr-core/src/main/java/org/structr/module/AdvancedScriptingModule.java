@@ -52,6 +52,7 @@ import org.structr.core.function.LocalizeFunction;
 import org.structr.core.function.PrivilegedFindFunction;
 import org.structr.core.function.PropertyInfoFunction;
 import org.structr.core.function.RInterpreterFunction;
+import org.structr.core.function.RangeFunction;
 import org.structr.core.function.ReadFunction;
 import org.structr.core.function.RemoveFromGroupFunction;
 import org.structr.core.function.RevokeFunction;
@@ -135,6 +136,8 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new SetEncryptionKeyFunction());
 		Functions.put(licenseManager, new EncryptFunction());
 		Functions.put(licenseManager, new DecryptFunction());
+
+		Functions.put(licenseManager, new RangeFunction());
 	}
 
 	@Override

@@ -20,6 +20,7 @@ package org.structr.websocket.command;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
@@ -103,7 +104,7 @@ public class SearchCommand extends AbstractCommand {
 
 						}
 
-						final List<GraphObject> result = Iterables.toList(StructrApp.getInstance(securityContext).query(cypherQuery, obj));
+						final List<GraphObject> result = flatten(Iterables.toList(StructrApp.getInstance(securityContext).query(cypherQuery, obj)));
 
 						int resultCountBeforePaging = result.size();
 						webSocketData.setRawResultCount(resultCountBeforePaging);
@@ -184,7 +185,6 @@ public class SearchCommand extends AbstractCommand {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
 
@@ -192,4 +192,32 @@ public class SearchCommand extends AbstractCommand {
 
 	}
 
+	// ----- private methods -----
+	private List<GraphObject> flatten(final List src) {
+
+		final List<GraphObject> list = new LinkedList<>();
+
+		flatten(list, src);
+
+		return list;
+	}
+
+	private void flatten(final List<GraphObject> list, final Object o) {
+
+		if (o instanceof Iterable) {
+
+			for (final Object obj : (Iterable)o) {
+
+				flatten(list, obj);
+			}
+
+		} else if (o instanceof GraphObject) {
+
+			list.add((GraphObject)o);
+
+		} else {
+
+			logger.warn("Unable to handle object of type {}, ignoring.", o.getClass().getName());
+		}
+	}
 }

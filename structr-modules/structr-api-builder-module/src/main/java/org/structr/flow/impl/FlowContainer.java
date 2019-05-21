@@ -19,10 +19,16 @@
 package org.structr.flow.impl;
 
 import java.awt.*;
+import java.sql.Struct;
 import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
+import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
@@ -31,10 +37,12 @@ import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
 import org.structr.flow.api.FlowResult;
+import org.structr.flow.deployment.FlowAbstractDeploymentHandler;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
 import org.structr.flow.impl.rels.DOMNodeFLOWFlowContainer;
@@ -81,37 +89,62 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 		return map;
 	}
 
-	/*
 	@Export
-	public void duplicate(final Map<String, Object> parameters) {
+	public Iterable<FlowBaseNode> getFlowNodes() {
 
 		App app = StructrApp.getInstance(securityContext);
 
 		try (Tx tx = app.tx()) {
 
-			PropertyMap props = new PropertyMap();
-			props.put(flowPackage, getProperty(flowPackage));
-			props.put(name, getProperty(name) + "_copy");
-
-			FlowContainer container = app.create(FlowContainer.class, props);
-
-
-
+			return this.getProperty(FlowContainer.flowNodes);
 
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("Error while trying to duplicate flow.", ex);
+			logger.warn("Error while trying to get flow nodes.", ex);
 		}
 
+		return null;
+	}
 
+	@Export
+	public Iterable<AbstractRelationship> getFlowRelationships() {
 
-		for (FlowBaseNode node : getProperty(flowNodes)) {
+		App app = StructrApp.getInstance(securityContext);
 
+		List<AbstractRelationship> rels = null;
+
+		try (Tx tx = app.tx()) {
+
+			rels = new ArrayList<>();
+			Iterable<FlowBaseNode> nodes = this.getProperty(FlowContainer.flowNodes);
+
+			for (final FlowBaseNode node : nodes) {
+
+				 rels.addAll(StreamSupport.stream(node.getRelationships().spliterator(), false).filter(rel -> {
+					if (!RelType.SECURITY.equals(rel.getRelType()) && !RelType.OWNS.equals(rel.getRelType())) {
+						return true;
+					}
+					return false;
+				}).collect(Collectors.toList()));
+
+				tx.success();
+
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.warn("Error while trying to get flow relationships flow.", ex);
 		}
+
+		if (rels != null) {
+
+			rels = rels.stream().distinct().collect(Collectors.toList());
+		}
+
+		return rels;
 
 	}
-	*/
 
 	@Override
 	public Map<String, Object> exportData() {

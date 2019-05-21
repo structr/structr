@@ -318,10 +318,6 @@ function wsConnect() {
 
 				StructrModel.update(data);
 
-				if (command === 'SET_PERMISSION') {
-					StructrModel.callCallback(data.callback, obj);
-				}
-
 			} else if (command === 'GET' || command === 'GET_RELATIONSHIP' || command === 'GET_PROPERTIES') {
 
 				_Logger.log(_LogType.WS[command], data);

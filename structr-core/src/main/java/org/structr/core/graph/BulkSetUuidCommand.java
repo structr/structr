@@ -31,19 +31,13 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Sets a new UUID on each graph object of the given type. For nodes, set type,
  * for relationships relType.
- *
- *
  */
 public class BulkSetUuidCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(BulkSetUuidCommand.class.getName());
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {

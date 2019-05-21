@@ -53,42 +53,35 @@ import org.structr.websocket.command.PingCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
 /**
- *
- *
- *
  */
 public class StructrWebSocket implements WebSocketListener {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrWebSocket.class.getName());
 	private static final Map<String, Class> commandSet = new LinkedHashMap<>();
 
-	//~--- fields ---------------------------------------------------------
-	private Session session = null;
-	private Gson gson = null;
-	private HttpServletRequest request = null;
-	private SecurityContext securityContext = null;
-	private WebsocketController syncController = null;
+	private Session session                        = null;
+	private Gson gson                              = null;
+	private HttpServletRequest request             = null;
+	private SecurityContext securityContext        = null;
+	private WebsocketController syncController     = null;
 	private Map<String, FileUploadHandler> uploads = null;
-	private Authenticator authenticator = null;
-	private String pagePath = null;
-	private Console console = null;
-	private Boolean timedOut = false;
+	private Authenticator authenticator            = null;
+	private String pagePath                        = null;
+	private Console console                        = null;
+	private Boolean timedOut                       = false;
 
-	//~--- constructors ---------------------------------------------------
 	public StructrWebSocket() {}
 
 	public StructrWebSocket(final WebsocketController syncController, final Gson gson, final Authenticator authenticator) {
 
-		this.uploads = new LinkedHashMap<>();
+		this.uploads        = new LinkedHashMap<>();
 		this.syncController = syncController;
-		this.gson = gson;
-		this.authenticator = authenticator;
+		this.gson           = gson;
+		this.authenticator  = authenticator;
 
 	}
 
-	//~--- methods --------------------------------------------------------
 	public void setRequest(final HttpServletRequest request) {
 		this.request = request;
 	}
@@ -361,7 +354,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		} catch (Throwable t) {
 			// ignore
-			logger.warn("Unable to send websocket message to remote client: {}", t.getMessage());
+			logger.warn("Unable to send websocket message to remote client: {}", t);
 		}
 
 	}
@@ -560,7 +553,6 @@ public class StructrWebSocket implements WebSocketListener {
 		return null;
 	}
 
-	//~--- set methods ----------------------------------------------------
 	public void setAuthenticated(final String sessionId, final Principal user) {
 
 		securityContext = SecurityContext.getInstance(user, AccessMode.Backend);

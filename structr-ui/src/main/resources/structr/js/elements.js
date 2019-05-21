@@ -310,10 +310,13 @@ var _Elements = {
 		if (!componentsSlideout) return;
 		componentsSlideout.find(':not(.compTab)').remove();
 
+		componentsSlideout.append('<div class="" id="newComponentDropzone"><div class="new-component-info"><i class="active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /><i class="inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> Drop element here to create new shared component</div></div>');
+		let newComponentDropzone = $('#newComponentDropzone', componentsSlideout);
+
 		componentsSlideout.append('<div class="ver-scrollable" id="componentsArea"></div>');
 		components = $('#componentsArea', componentsSlideout);
 
-		components.droppable({
+		newComponentDropzone.droppable({
 			drop: function(e, ui) {
 				e.preventDefault();
 				e.stopPropagation();

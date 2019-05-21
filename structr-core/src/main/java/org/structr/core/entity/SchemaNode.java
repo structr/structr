@@ -443,10 +443,11 @@ public class SchemaNode extends AbstractSchemaNode {
 
 		// variables
 		final Map<String, GraphQLFieldDefinition> fields = new LinkedHashMap<>();
+		final SchemaNode parentSchemaNode                = getParentSchemaNode(schemaNodes);
 		final String className                           = getClassName();
 
 		// add inherited fields from superclass
-		registerParentType(schemaNodes, getParentSchemaNode(schemaNodes), graphQLTypes, fields, blacklist);
+		registerParentType(schemaNodes, parentSchemaNode, graphQLTypes, fields, blacklist);
 
 		// add inherited fields from interfaces
 		for (final SchemaNode ifaceNode : getInterfaceSchemaNodes(schemaNodes)) {
@@ -474,12 +475,12 @@ public class SchemaNode extends AbstractSchemaNode {
 			registerIncomingGraphQLFields(fields, inNode, blacklist);
 		}
 
-		fields.put("id", GraphQLFieldDefinition.newFieldDefinition().name("id").type(Scalars.GraphQLString).argument(SchemaProperty.getGraphQLArgumentsForUUID()).build());
+		fields.put("id", GraphQLFieldDefinition.newFieldDefinition().name("id").type(Scalars.GraphQLString).arguments(SchemaProperty.getGraphQLArgumentsForUUID()).build());
 
 		// add static fields (name etc., can be overwritten)
 		fields.putIfAbsent("type", GraphQLFieldDefinition.newFieldDefinition().name("type").type(Scalars.GraphQLString).build());
-		fields.putIfAbsent("name", GraphQLFieldDefinition.newFieldDefinition().name("name").type(Scalars.GraphQLString).argument(SchemaProperty.getGraphQLArgumentsForType(Type.String)).build());
-		fields.putIfAbsent("owner", GraphQLFieldDefinition.newFieldDefinition().name("owner").type(typeRef("Principal")).argument(SchemaProperty.getGraphQLArgumentsForRelatedType("Principal")).build());
+		fields.putIfAbsent("name", GraphQLFieldDefinition.newFieldDefinition().name("name").type(Scalars.GraphQLString).arguments(SchemaProperty.getGraphQLArgumentsForType(Type.String)).build());
+		fields.putIfAbsent("owner", GraphQLFieldDefinition.newFieldDefinition().name("owner").type(typeRef("Principal")).arguments(SchemaProperty.getGraphQLArgumentsForRelatedType("Principal")).build());
 		fields.putIfAbsent("createdBy", GraphQLFieldDefinition.newFieldDefinition().name("createdBy").type(Scalars.GraphQLString).build());
 		fields.putIfAbsent("createdDate", GraphQLFieldDefinition.newFieldDefinition().name("createdDate").type(Scalars.GraphQLString).build());
 		fields.putIfAbsent("lastModifiedBy", GraphQLFieldDefinition.newFieldDefinition().name("lastModifiedBy").type(Scalars.GraphQLString).build());
@@ -488,7 +489,12 @@ public class SchemaNode extends AbstractSchemaNode {
 		fields.putIfAbsent("visibleToAuthenticatedUsers", GraphQLFieldDefinition.newFieldDefinition().name("visibleToAuthenticatedUsers").type(Scalars.GraphQLString).build());
 
 		// register type in GraphQL schema
-		graphQLTypes.put(className, GraphQLObjectType.newObject().name(className).fields(new LinkedList<>(fields.values())).build());
+		final GraphQLObjectType.Builder builder = GraphQLObjectType.newObject();
+
+		builder.name(className);
+		builder.fields(new LinkedList<>(fields.values()));
+
+		graphQLTypes.put(className, builder.build());
 	}
 
 	@Export

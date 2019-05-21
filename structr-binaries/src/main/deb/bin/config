@@ -5,8 +5,10 @@
 
 if [ -f /usr/lib/structr/bin/memory.config ]; then
 	MEMORY_OPTS="$(cat /usr/lib/structr/bin/memory.config)"
+elif [ -n "$MEMORY_OPTS" ]; then
+	MEMORY_OPTS="$MEMORY_OPTS"
 else
-	MEMORY_OPTS="-Xms4g -Xmx4g"
+	MEMORY_OPTS=""
 fi
 
 RUN_OPTS="-cp lib/*:FINAL_NAME.jar"
