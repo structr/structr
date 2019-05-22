@@ -31,10 +31,7 @@ import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.structr.web.entity.File;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- *
  *
  */
 public class ChunkCommand extends AbstractCommand {
@@ -46,8 +43,6 @@ public class ChunkCommand extends AbstractCommand {
 		StructrWebSocket.addCommand(ChunkCommand.class);
 
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
@@ -128,16 +123,11 @@ public class ChunkCommand extends AbstractCommand {
 		}
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public String getCommand() {
 		return "CHUNK";
 	}
 }
-
-
-
 /**
  * { "command" : "CHUNK", "id" : <uuid>, "data" : { "chunk" : "ölasdkfjoifhp9wea8hisaghsakjgf", "chunkId" : 3 } }
  */
