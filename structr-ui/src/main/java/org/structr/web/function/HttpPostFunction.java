@@ -21,6 +21,7 @@ package org.structr.web.function;
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.common.HttpHelper;
@@ -71,7 +72,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			if ("application/json".equals(contentType)) {
 
 				final FromJsonFunction fromJsonFunction = new FromJsonFunction();
-				response.setProperty(new StringProperty("body"), fromJsonFunction.apply(ctx, caller, new Object[]{responseBody}));
+				response.setProperty(new GenericProperty<>("body"), fromJsonFunction.apply(ctx, caller, new Object[]{responseBody}));
 
 			} else {
 
