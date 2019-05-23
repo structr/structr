@@ -43,6 +43,7 @@ import org.structr.core.function.Functions;
 import org.structr.core.function.GeocodeFunction;
 import org.structr.core.function.GetRelationshipTypesFunction;
 import org.structr.core.function.GrantFunction;
+import org.structr.core.function.HasErrorFunction;
 import org.structr.core.function.InheritingTypesFunction;
 import org.structr.core.function.InstantiateFunction;
 import org.structr.core.function.IsAllowedFunction;
@@ -83,6 +84,7 @@ public class AdvancedScriptingModule implements StructrModule {
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
 		Functions.put(licenseManager, new ErrorFunction());
+		Functions.put(licenseManager, new HasErrorFunction());
 		Functions.put(licenseManager, new ConfigFunction());
 		Functions.put(licenseManager, new ChangelogFunction());
 		Functions.put(licenseManager, new UserChangelogFunction());

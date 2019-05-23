@@ -1008,7 +1008,7 @@ var Command = {
 	 *
 	 * The server gives no feedback on a CHUNK command.
 	 */
-	chunk: function(id, chunkId, chunkSize, chunk, chunks) {
+	chunk: function(id, chunkId, chunkSize, chunk, chunks, callback) {
 		var obj = {
 			command: 'CHUNK',
 			id: id,
@@ -1020,7 +1020,7 @@ var Command = {
 			}
 		};
 		_Logger.log(_LogType.WS[obj.command], 'chunk()', obj);
-		return sendObj(obj);
+		return sendObj(obj, callback);
 	},
 	/**
 	 * Send a CREATE command to the server.
