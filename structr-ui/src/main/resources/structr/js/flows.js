@@ -720,7 +720,7 @@ var _Flows = {
 
 					for (let node of result) {
 
-						flowEditor.renderNode(node);
+						flowEditor.renderNode(persistence._wrapObject(node,node));
 					}
 
 				}).then(() => {
