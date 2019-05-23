@@ -117,7 +117,7 @@ var _Elements = {
 		},
 		{
 			elements: ['button'],
-			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'onclick', 'style']
+			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'onclick', 'style', 'title']
 		},
 		{
 			elements: ['select', 'option'],

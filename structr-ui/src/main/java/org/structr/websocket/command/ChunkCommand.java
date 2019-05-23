@@ -24,12 +24,14 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.util.Base64;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
-import org.structr.web.entity.File;
 
 /**
  *
@@ -111,6 +113,12 @@ public class ChunkCommand extends AbstractCommand {
 
 			// This should trigger setting of lastModifiedDate in any case
 			getWebSocket().send(MessageBuilder.status().code(200).message("{\"id\":\"" + file.getUuid() + "\", \"name\":\"" + file.getName() + "\",\"size\":" + currentSize + "}").build(), true);
+
+			if (sequenceNumber+1 == chunks) {
+
+				TransactionCommand.registerNodeCallback((NodeInterface) file, callback);
+
+			}
 
 		} catch (IOException | FrameworkException ex) {
 

@@ -1288,13 +1288,13 @@ var _Files = {
 			}
 		});
 	},
-	updateTextFile: function(file, text) {
+	updateTextFile: function(file, text, callback) {
 		var chunks = Math.ceil(text.length / chunkSize);
 		for (var c = 0; c < chunks; c++) {
 			var start = c * chunkSize;
 			var end = (c + 1) * chunkSize;
 			var chunk = utf8_to_b64(text.substring(start, end));
-			Command.chunk(file.id, c, chunkSize, chunk, chunks);
+			Command.chunk(file.id, c, chunkSize, chunk, chunks, ((c+1 === chunks) ? callback : undefined));
 		}
 	},
 	editContent: function(button, file, element) {
@@ -1359,8 +1359,8 @@ var _Files = {
 				dialogMeta.html(h);
 
 				let lineWrappingCheckbox = $('#lineWrapping');
-				let isTemplateCheckbox = $('#isTemplate').prop('checked', file.isTemplate);
-				let showPreviewCheckbox = $('#showTemplatePreview');
+				let isTemplateCheckbox   = $('#isTemplate').prop('checked', file.isTemplate);
+				let showPreviewCheckbox  = $('#showTemplatePreview');
 
 				Structr.appendInfoTextToElement({
 					text: "Expressions like <pre>Hello ${print(me.name)} !</pre> will be evaluated. To see a preview, tick this checkbox.",
@@ -1382,8 +1382,7 @@ var _Files = {
 				isTemplateCheckboxChangeFunction(file.isTemplate);
 
 				lineWrappingCheckbox.on('change', function() {
-					var inp = $(this);
-					if (inp.is(':checked')) {
+					if ($(this).is(':checked')) {
 						LSWrapper.setItem(lineWrappingKey, "1");
 						editor.setOption('lineWrapping', true);
 					} else {
@@ -1408,8 +1407,7 @@ var _Files = {
 						var previewArea = $('#template-preview');
 						previewArea.hide();
 						$('textarea', previewArea).val('');
-						var contentBox = $('.editor', element);
-						contentBox.width('inherit');
+						$('.editor', element).width('inherit');
 					}
 				});
 
@@ -1428,45 +1426,40 @@ var _Files = {
 						dialogSaveButton.prop("disabled", false).removeClass('disabled');
 						saveAndClose.prop("disabled", false).removeClass('disabled');
 					}
-
 				});
 
 				$('button#saveFile', dialogBtn).on('click', function(e) {
 
-					var isTemplate = $('#isTemplate').is(':checked');
+					e.preventDefault();
+					e.stopPropagation();
 
-					if (isTemplate) {
-						$('#isTemplate').prop('checked', false);
-						_Entities.setProperty(file.id, 'isTemplate', false, false, function() {
+					var newText = editor.getValue();
+					if (text === newText) {
+						return;
+					}
 
-							e.preventDefault();
-							e.stopPropagation();
-							var newText = editor.getValue();
-							if (text === newText) {
-								return;
-							}
-							_Files.updateTextFile(file, newText);
-							text = newText;
-							dialogSaveButton.prop("disabled", true).addClass('disabled');
-							saveAndClose.prop("disabled", true).addClass('disabled');
+					let saveFileAction = function (callback) {
 
-							$('#isTemplate').click();
-
-						});
-
-					} else {
-						e.preventDefault();
-						e.stopPropagation();
-						var newText = editor.getValue();
-						if (text === newText) {
-							return;
-						}
-						_Files.updateTextFile(file, newText);
+						_Files.updateTextFile(file, newText, callback);
 						text = newText;
 						dialogSaveButton.prop("disabled", true).addClass('disabled');
 						saveAndClose.prop("disabled", true).addClass('disabled');
-					}
+					};
 
+					if ($('#isTemplate').is(':checked')) {
+
+						_Entities.setProperty(file.id, 'isTemplate', false, false, function() {
+
+							saveFileAction(function() {
+
+								_Entities.setProperty(file.id, 'isTemplate', true);
+							});
+						});
+
+					} else {
+
+						saveFileAction();
+					}
 				});
 
 				saveAndClose.on('click', function(e) {
