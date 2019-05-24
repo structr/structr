@@ -353,7 +353,9 @@ export class FlowEditor {
 	_pasteClonedElements() {
 
 		let cloneHandler = new CloneHandler();
-		cloneHandler.pasteElements(this, window._flow_clone_clipboard);
+		if (window._flow_clone_clipboard !== undefined) {
+			cloneHandler.pasteElements(this, window._flow_clone_clipboard);
+		}
 
 	}
 
