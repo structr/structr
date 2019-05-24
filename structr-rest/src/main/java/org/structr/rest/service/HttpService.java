@@ -414,14 +414,14 @@ public class HttpService implements RunnableService {
 		}
 
 		contexts.addHandler(servletContext);
+		
+		httpConfig = new HttpConfiguration();
+		httpConfig.setSecureScheme("https");
+		httpConfig.setSecurePort(httpsPort);
+		//httpConfig.setOutputBufferSize(8192);
+		httpConfig.setRequestHeaderSize(requestHeaderSize);
 
 		if (StringUtils.isNotBlank(host) && Settings.HttpPort.getValue() > -1) {
-
-			httpConfig = new HttpConfiguration();
-			httpConfig.setSecureScheme("https");
-			httpConfig.setSecurePort(httpsPort);
-			//httpConfig.setOutputBufferSize(8192);
-			httpConfig.setRequestHeaderSize(requestHeaderSize);
 
 			final ServerConnector httpConnector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
 
@@ -465,7 +465,7 @@ public class HttpService implements RunnableService {
 					sslContextFactory.setIncludeProtocols(includedProtocols.split(","));
 				}
 
-				final ServerConnector https = new ServerConnector(server,
+				final ServerConnector httpsConnector = new ServerConnector(server,
 					new SslConnectionFactory(sslContextFactory, "http/1.1"),
 					new HttpConnectionFactory(httpsConfig));
 
@@ -473,17 +473,17 @@ public class HttpService implements RunnableService {
 					sessionCache.getSessionHandler().setSecureRequestOnly(true);
 				}
 				
-				https.setPort(httpsPort);
-				https.setIdleTimeout(500000);
+				httpsConnector.setPort(httpsPort);
+				httpsConnector.setIdleTimeout(500000);
 
-				https.setHost(host);
-				https.setPort(httpsPort);
+				httpsConnector.setHost(host);
+				httpsConnector.setPort(httpsPort);
 
 				if (Settings.dumpJettyStartupConfig.getValue()) {
-					logger.info(https.dump());
+					logger.info(httpsConnector.dump());
 				}
 
-				connectors.add(https);
+				connectors.add(httpsConnector);
 
 			} else {
 

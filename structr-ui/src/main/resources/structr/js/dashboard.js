@@ -48,8 +48,30 @@ var _Dashboard = {
 		}).then(function(data) {
 
 			templateConfig.envInfo = data.result;
+			
+			templateConfig.envInfo.version = (data.result.components['structr'] || data.result.components['structr-ui']).version;
+			templateConfig.envInfo.build   = (data.result.components['structr'] || data.result.components['structr-ui']).build;
+			templateConfig.envInfo.date    = (data.result.components['structr'] || data.result.components['structr-ui']).date;
 
-			if (templateConfig.envInfo.startDate) {
+			templateConfig.envInfo.version = '3.3-SNAPSHOT';
+		
+			// Search for newer releases and store latest version
+			data.result.availableReleases.forEach(function(version) {
+				console.log(version, templateConfig.envInfo.version);
+				if (version > templateConfig.envInfo.version) {
+					templateConfig.envInfo.newReleaseAvailable = version;
+				}
+			});
+
+			// Search for newer snapshots and store latest version
+			data.result.availableSnapshots.forEach(function(version) {
+				console.log(version, templateConfig.envInfo.version);
+				if (version > templateConfig.envInfo.version) {
+					templateConfig.envInfo.newSnapshotAvailable = version;
+				}
+			});
+
+		if (templateConfig.envInfo.startDate) {
 				templateConfig.envInfo.startDate = _Dashboard.dateToIsoString(templateConfig.envInfo.startDate);
 			}
 
@@ -140,7 +162,10 @@ var _Dashboard = {
 			LSWrapper.clear();
 		});
 	},
-	checkLicenseEnd:function (envInfo, element, cfg) {
+	checkNewVersions: function() {
+		
+	},
+	checkLicenseEnd: function(envInfo, element, cfg) {
 
 		if (envInfo && envInfo.endDate && element) {
 
@@ -175,7 +200,7 @@ var _Dashboard = {
 
 		}
 	},
-	appendGlobalSchemaMethods: function (container) {
+	appendGlobalSchemaMethods: function(container) {
 
 		var maintenanceList = $('<div></div>').appendTo(container);
 
@@ -275,7 +300,7 @@ var _Dashboard = {
 			});
 		});
 	},
-    activateLogBox: function () {
+    activateLogBox: function() {
 
 		let logBoxContentBox = $('#dash-server-log textarea');
 
