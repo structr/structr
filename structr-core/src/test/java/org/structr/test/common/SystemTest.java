@@ -28,6 +28,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1017,6 +1018,104 @@ public class SystemTest extends StructrTest {
 		}
 
 		tmpConfig.deleteOnExit();
+	}
+
+	@Test
+	public void testOverlappingTransactions() {
+
+		final ExecutorService service = Executors.newCachedThreadPool();
+
+		// setup
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType test = sourceSchema.addType("Test");
+
+			test.addStringProperty("test1");
+			test.addStringProperty("test2");
+
+			StructrSchema.extendDatabaseSchema(app, sourceSchema);
+
+			tx.success();
+
+		} catch (Exception t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class type       = StructrApp.getConfiguration().getNodeEntityClass("Test");
+		final PropertyKey key1 = StructrApp.key(type, "test1");
+		final PropertyKey key2 = StructrApp.key(type, "test2");
+
+		// setup
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			app.create(type, new NodeAttribute<>(AbstractNode.name, "Test"), new NodeAttribute<>(key1, "test.key1"), new NodeAttribute<>(key2, "test.key2"));
+
+			tx.success();
+
+		} catch (Exception t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// create two parallel transactions, on that starts first but takes longer
+		// and a second one that starts later but finishes first.
+		service.submit(() -> {
+
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				final GraphObject node1 = app.nodeQuery(type).andName("Test").getFirst();
+
+				node1.setProperty(key1, "key1.value after thread1");
+
+				// wait before committing transaction
+				Thread.sleep(2000);
+
+				tx.success();
+
+			} catch (Exception t) { t.printStackTrace(); }
+		});
+
+		service.submit(() -> {
+
+			// wait before executing transaction
+			try { Thread.sleep(200); } catch (Throwable t) {}
+
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				final GraphObject node1 = app.nodeQuery(type).andName("Test").getFirst();
+
+				node1.setProperty(key2, "key2.value after thread2");
+
+				tx.success();
+
+			} catch (Exception t) { t.printStackTrace(); }
+		});
+
+		try {
+
+			service.awaitTermination(10, TimeUnit.SECONDS);
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+		service.shutdown();
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			final GraphObject node1 = app.nodeQuery(type).andName("Test").getFirst();
+
+			assertEquals("Invalid result for interleaving transactions, transaction isolation violated.", "key1.value after thread1", node1.getProperty(key1));
+			assertEquals("Invalid result for interleaving transactions, transaction isolation violated.", "key2.value after thread2", node1.getProperty(key2));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
 	}
 
 	// ----- nested classes -----
