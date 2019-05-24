@@ -205,7 +205,10 @@ public class NodeExtender {
 					final SourceLine line       = code.get(errorLineNumber - 1);
 					final AbstractNode source   = (AbstractNode)line.getCodeSource();
 
-					System.out.println("Code source: " + source.getUuid() + " of type " + source.getClass().getSimpleName() + " name " + source.getName());
+					if (source != null) {
+						System.out.println("Code source: " + source.getUuid() + " of type " + source.getClass().getSimpleName() + " name " + source.getName());
+					}
+					
 					System.out.println("Line with error:");
 					System.out.println(line);
 					System.out.println("Error: " + diagnostic.getMessage(Locale.ENGLISH));

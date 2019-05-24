@@ -110,22 +110,30 @@ public class LoginCommand extends AbstractCommand {
 
 							// Clear possible existing sessions
 							SessionHelper.clearSession(sessionId);
-							user.addSessionId(sessionId);
+							
+							if (!user.addSessionId(sessionId)) {
+								
+								logger.debug("Unable to login {}: Unable to add new sessionId found", new Object[]{ username, password });
+								getWebSocket().send(MessageBuilder.status().code(403).data("reason", "sessionLimitExceeded").build(), true);
+								
+							} else {
 
-							AuthHelper.sendLoginNotification(user);
+								AuthHelper.sendLoginNotification(user);
 
-							// store token in response data
-							webSocketData.getNodeData().clear();
-							webSocketData.setSessionId(sessionId);
-							webSocketData.getNodeData().put("username", user.getProperty(AbstractNode.name));
+								// store token in response data
+								webSocketData.getNodeData().clear();
+								webSocketData.setSessionId(sessionId);
+								webSocketData.getNodeData().put("username", user.getProperty(AbstractNode.name));
 
-							// authenticate socket
-							getWebSocket().setAuthenticated(sessionId, user);
+								// authenticate socket
+								getWebSocket().setAuthenticated(sessionId, user);
 
-							tx.setSecurityContext(getWebSocket().getSecurityContext());
+								tx.setSecurityContext(getWebSocket().getSecurityContext());
 
-							// send data..
-							getWebSocket().send(webSocketData, false);
+								// send data..
+								getWebSocket().send(webSocketData, false);
+							
+							}
 						}
 					}
 
