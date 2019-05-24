@@ -39,8 +39,9 @@
 		<div class="tab-content" id="dash-about-structr">
 
 			<table class="props">
-
+				<tr><td class="key">Version</td><td>${config.envInfo.version} ${config.envInfo.build} ${config.envInfo.date} (${(config.envInfo.newReleaseAvailable ? 'newer release available: ' +  config.envInfo.newReleaseAvailable : 'no new release available')} | ${(config.envInfo.newSnapshotAvailable ? 'newer snapshot available: ' +  config.envInfo.newSnapshotAvailable : 'no new snapshot available')})</td></tr>
 				<tr><td class="key">Edition</td><td><i title="Structr ${config.envInfo.edition} Edition" class="${_Icons.getFullSpriteClass(_Icons.getIconForEdition(config.envInfo.edition))}"></i> (Structr ${config.envInfo.edition} Edition)</td></tr>
+				<tr><td class="key">Modules</td><td>${Object.keys(config.envInfo.modules).join(', ')}</td></tr>
 				<tr><td class="key">Licensee</td><td>${config.envInfo.licensee || 'Unlicensed'}</td></tr>
 				<tr><td class="key">Host ID</td><td>${config.envInfo.hostId || ''}</td></tr>
 				<tr><td class="key">License Start Date</td><td>${config.envInfo.startDate || '-'}</td></tr>

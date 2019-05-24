@@ -182,7 +182,11 @@ function wsConnect() {
 				if (code === 403) {
 					user = null;
 					userId = null;
-					Structr.login('Wrong username or password!');
+					if (data.data.reason === 'sessionLimitExceeded') {
+						Structr.login('Max. number of sessions exceeded.');
+					} else {
+						Structr.login('Wrong username or password!');
+					}
 				} else if (code === 401) {
 					user = null;
 					userId = null;
