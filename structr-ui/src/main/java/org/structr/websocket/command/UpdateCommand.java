@@ -31,7 +31,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
@@ -96,12 +95,12 @@ public class UpdateCommand extends AbstractCommand {
 						return;
 
 					}
-
-					tx.success();
 				}
+
+				tx.success();
 			}
 
-			final Set<GraphObject> entities = new LinkedHashSet<>();
+			final Set<String> entities = new LinkedHashSet<>();
 			PropertyMap properties = null;
 
 			try (final Tx tx = app.tx()) {
@@ -113,7 +112,7 @@ public class UpdateCommand extends AbstractCommand {
 				tx.success();
 			}
 
-			final Iterator<GraphObject> iterator = entities.iterator();
+			final Iterator<String> iterator = entities.iterator();
 			while (iterator.hasNext()) {
 
 				count = 0;
@@ -121,7 +120,7 @@ public class UpdateCommand extends AbstractCommand {
 
 					while (iterator.hasNext() && count++ < 100) {
 
-						setProperties(iterator.next(), properties, true);
+						setProperties(app, iterator.next(), properties, true);
 					}
 
 					// commit and close transaction
@@ -149,23 +148,18 @@ public class UpdateCommand extends AbstractCommand {
 
 	}
 
-	private void setProperties(final GraphObject obj, final PropertyMap properties, final boolean rec) throws FrameworkException {
+	private void setProperties(final App app, final String uuid, final PropertyMap properties, final boolean rec) throws FrameworkException {
+
+		final NodeInterface obj = app.getNodeById(uuid);
 
 		obj.setProperties(obj.getSecurityContext(), properties);
 
-		if (obj instanceof NodeInterface) {
-
-			TransactionCommand.registerNodeCallback((NodeInterface) obj, callback);
-
-		} else if (obj instanceof RelationshipInterface) {
-
-			TransactionCommand.registerRelCallback((RelationshipInterface) obj, callback);
-		}
+		TransactionCommand.registerNodeCallback((NodeInterface) obj, callback);
 	}
 
-	private void collectEntities(final Set<GraphObject> entities, final GraphObject obj, final PropertyMap properties, final boolean rec) throws FrameworkException {
+	private void collectEntities(final Set<String> entities, final GraphObject obj, final PropertyMap properties, final boolean rec) throws FrameworkException {
 
-		entities.add(obj);
+		entities.add(obj.getUuid());
 
 		if (rec && obj instanceof LinkedTreeNode) {
 

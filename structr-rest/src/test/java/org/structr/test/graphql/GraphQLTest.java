@@ -128,7 +128,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			.expect()
 				.statusCode(422)
-				.body("message", equalTo("Parse error at } in line 1, column 36"))
+				.body("message", equalTo("Invalid Syntax : offending token '}' at line 1 column 36"))
 				.body("code",    equalTo(422))
 				.body("query",   equalTo(query2))
 
@@ -947,7 +947,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			.expect()
 				.statusCode(422)
-				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Principal of field members"))
+				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Principal of field members @ 'Group/members'"))
 				.body("errors[0].locations[0].line",   equalTo(1))
 				.body("errors[0].locations[0].column", equalTo(27))
 				.body("errors[0].description",         equalTo("Sub selection required for type Principal of field members"))
@@ -964,7 +964,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			.expect()
 				.statusCode(422)
-				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Principal of field owner"))
+				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Principal of field owner @ 'Group/owner'"))
 				.body("errors[0].locations[0].line",   equalTo(1))
 				.body("errors[0].locations[0].column", equalTo(27))
 				.body("errors[0].description",         equalTo("Sub selection required for type Principal of field owner"))
@@ -1060,12 +1060,12 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			.expect()
 				.statusCode(422)
-				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Principal of field test6"))
+				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Principal of field test6 @ 'Test/test6'"))
 				.body("errors[0].locations[0].line",   equalTo(1))
 				.body("errors[0].locations[0].column", equalTo(10))
 				.body("errors[0].description",         equalTo("Sub selection required for type Principal of field test6"))
 				.body("errors[0].validationErrorType", equalTo("SubSelectionRequired"))
-				.body("errors[1].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Tmp of field test7"))
+				.body("errors[1].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Tmp of field test7 @ 'Test/test7'"))
 				.body("errors[1].locations[0].line",   equalTo(1))
 				.body("errors[1].locations[0].column", equalTo(17))
 				.body("errors[1].description",         equalTo("Sub selection required for type Tmp of field test7"))
@@ -2578,11 +2578,13 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final List<NodeInterface> tasks2 = new LinkedList<>();
 			final List<NodeInterface> tasks3 = new LinkedList<>();
 			final List<NodeInterface> tasks4 = new LinkedList<>();
+			final List<NodeInterface> tasks5 = new LinkedList<>();
 
 			final NodeInterface project1     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project1"), new NodeAttribute<>(checkedKey, true));
 			final NodeInterface project2     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project2"), new NodeAttribute<>(checkedKey, false));
 			final NodeInterface project3     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project3"), new NodeAttribute<>(checkedKey, true));
-			final NodeInterface project4     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Projecto"), new NodeAttribute<>(checkedKey, false));
+			final NodeInterface project4     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project4"), new NodeAttribute<>(checkedKey, false));
+			final NodeInterface project5     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project5"), new NodeAttribute<>(checkedKey, true));
 
 			tasks1.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task1.1"), new NodeAttribute<>(checkedKey, false)));
 			tasks1.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task1.3"), new NodeAttribute<>(checkedKey, true)));
@@ -2603,6 +2605,11 @@ public class GraphQLTest extends StructrGraphQLTest {
 			tasks4.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task4.2"), new NodeAttribute<>(checkedKey, true)));
 			tasks4.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task4.3"), new NodeAttribute<>(checkedKey, false)));
 			tasks4.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task4.4"), new NodeAttribute<>(checkedKey, true)));
+
+			tasks5.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task5.1"), new NodeAttribute<>(checkedKey, false)));
+			tasks5.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task5.2"), new NodeAttribute<>(checkedKey, false)));
+			tasks5.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task5.3"), new NodeAttribute<>(checkedKey, false)));
+			tasks5.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task5.4"), new NodeAttribute<>(checkedKey, false)));
 
 			project1.setProperty(projectTasksKey, tasks1);
 			project2.setProperty(projectTasksKey, tasks2);
@@ -2634,6 +2641,23 @@ public class GraphQLTest extends StructrGraphQLTest {
 			assertMapPathValueIs(result, "Project.1.tasks.2.name",    "Task3.3");
 			assertMapPathValueIs(result, "Project.1.tasks.3.name",    "Task3.4");
 		}
+
+		/* failing test, to be implemented...
+		{
+			//final Map<String, Object> result = fetchGraphQL("{ Project(_sort: \"name\", isChecked: { _equals: true}) { id, type, name, isChecked, tasks( isChecked: { _equals: true }, _sort: \"name\", _desc: true ) { id, type, name, isChecked }}}");
+			final Map<String, Object> result = fetchGraphQL("{ Project(_sort: \"name\", isChecked: { _equals: true}) { id, type, name, isChecked, tasks(_sort: \"name\", _desc: true ) { id, type, name, isChecked( _equals: true) }}}");
+
+			assertMapPathValueIs(result, "Project.#",                  2);
+			assertMapPathValueIs(result, "Project.0.name",            "Project1");
+			assertMapPathValueIs(result, "Project.0.isChecked",       true);
+			assertMapPathValueIs(result, "Project.0.tasks.0.name",    "Task1.6");
+			assertMapPathValueIs(result, "Project.0.tasks.1.name",    "Task1.3");
+			assertMapPathValueIs(result, "Project.1.name",            "Project3");
+			assertMapPathValueIs(result, "Project.1.isChecked",       true);
+			assertMapPathValueIs(result, "Project.1.tasks.0.name",    "Task3.4");
+			assertMapPathValueIs(result, "Project.1.tasks.1.name",    "Task3.2");
+		}
+		*/
 
 	}
 

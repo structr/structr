@@ -369,7 +369,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public void addSessionId(String sessionId) {
+	public boolean addSessionId(String sessionId) {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 

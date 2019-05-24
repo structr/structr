@@ -34,6 +34,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.auth.exception.PasswordChangeRequiredException;
+import org.structr.core.auth.exception.SessionLimitExceededException;
 import org.structr.core.auth.exception.TooManyFailedLoginAttemptsException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationFailedException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationRequiredException;
@@ -204,9 +205,17 @@ public class AuthHelper {
 			final String sessionId = request.getSession(false).getId();
 
 			SessionHelper.clearSession(sessionId);
-			user.addSessionId(sessionId);
-
-			AuthHelper.sendLoginNotification(user);
+			
+			if (user.addSessionId(sessionId)) {
+				
+				AuthHelper.sendLoginNotification(user);
+				
+			} else {
+				
+				SessionHelper.clearSession(sessionId);
+				SessionHelper.invalidateSession(sessionId);
+				throw new SessionLimitExceededException();
+			}
 		}
 	}
 
