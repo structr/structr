@@ -5125,3 +5125,11 @@ dl.help-definitions dd {
 .dialogText table.full-width td input {
 	width: calc(100% - 4px);
 }
+
+table#principals tbody td:first-of-type {
+	text-align: left;
+}
+
+table#principals tbody td {
+	text-align: center;
+}
