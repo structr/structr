@@ -24,6 +24,7 @@ var _Dashboard = {
 	_moduleName: 'dashboard',
 	dashboard: undefined,
 	logInterval: undefined,
+	activeTabPrefix: 'activeDashboardTabPrefix' + port,
 
 	init: function() {},
 	unload: function() {
@@ -33,6 +34,13 @@ var _Dashboard = {
 		nodelist.forEach(function(el) {
 			el.classList.remove('active');
 		});
+	},
+	activateActiveTab: function() {
+		let tabId = LSWrapper.getItem(_Dashboard.activeTabPrefix);
+		if (tabId) {
+			let tab = document.querySelector('#dashboard .tabs-menu li a[href="' + tabId + '"]');
+			tab.click();
+		}
 	},
 	onload: function() {
 
@@ -54,12 +62,9 @@ var _Dashboard = {
 			templateConfig.envInfo.version = (data.result.components['structr'] || data.result.components['structr-ui']).version;
 			templateConfig.envInfo.build   = (data.result.components['structr'] || data.result.components['structr-ui']).build;
 			templateConfig.envInfo.date    = (data.result.components['structr'] || data.result.components['structr-ui']).date;
-
-			templateConfig.envInfo.version = '3.3-SNAPSHOT';
 		
 			// Search for newer releases and store latest version
 			data.result.availableReleases.forEach(function(version) {
-				console.log(version, templateConfig.envInfo.version);
 				if (version > templateConfig.envInfo.version) {
 					templateConfig.envInfo.newReleaseAvailable = version;
 				}
@@ -67,7 +72,6 @@ var _Dashboard = {
 
 			// Search for newer snapshots and store latest version
 			data.result.availableSnapshots.forEach(function(version) {
-				console.log(version, templateConfig.envInfo.version);
 				if (version > templateConfig.envInfo.version) {
 					templateConfig.envInfo.newSnapshotAvailable = version;
 				}
@@ -109,6 +113,7 @@ var _Dashboard = {
 
 						e.target.closest('li').classList.add('active');
 						document.querySelector(targetId).classList.add('active');
+						LSWrapper.setItem(_Dashboard.activeTabPrefix, targetId);
 					});
 				});
 
@@ -137,7 +142,7 @@ var _Dashboard = {
 				});
 
 				_Dashboard.activateLogBox();
-
+				_Dashboard.activateActiveTab();
 				_Dashboard.appendGlobalSchemaMethods($('#dash-global-schema-methods'));
 
 				$(window).off('resize');

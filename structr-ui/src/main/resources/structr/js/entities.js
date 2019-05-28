@@ -1525,7 +1525,7 @@ var _Entities = {
 			el.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th></tr></thead><tbody></tbody></table');
 
 			var tb = $('#principals tbody', el);
-			tb.append('<tr id="new"><td><select style="width: 300px;z-index: 999" id="newPrincipal"><option>Select Group/User</option></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td></tr>');
+			tb.append('<tr id="new"><td><select style="z-index: 999" id="newPrincipal"></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td></tr>');
 
 			$.ajax({
 				url: rootUrl + '/' + entity.id + '/in',
@@ -1555,15 +1555,13 @@ var _Entities = {
 			var select = $('#newPrincipal');
 
 			select.select2({
-				placeholder: 'Search user',
+				placeholder: 'Select Group/User',
 				minimumInputLength: 2,
-				width: '90%',
-				style:"text-align:left;",
+				width: '100%',
 				ajax: {
 					url: '/structr/rest/Principal',
 					dataType: 'json',
 					data: function (params) {
-						//console.log(params);
 						return {
 							name: params.term,
 							loose: 1
@@ -1634,8 +1632,14 @@ var _Entities = {
 
 	},
 	addPrincipal: function (entity, principal, permissions) {
+
 		$('#newPrincipal option[value="' + principal.id + '"]').remove();
 		$('#newPrincipal').trigger('chosen:updated');
+
+		if ($('#principals ._' + principal.id, dialogText).length > 0) {
+			return;
+		}
+
 		$('#new').after('<tr class="_' + principal.id + '"><td><i class="typeIcon ' + _Icons.getFullSpriteClass((principal.isGroup ? _Icons.group_icon : _Icons.user_icon)) + '" /> <span class="name">' + principal.name + '</span></td><tr>');
 
 		var row = $('#principals ._' + principal.id, dialogText);
@@ -1655,7 +1659,6 @@ var _Entities = {
 				checkbox.prop('disabled', true);
 
 				if (!$('input:checked', row).length) {
-					$('#newPrincipal').append('<option value="' + row.attr('class').substring(1) + '">' + $('.name', row).text() + '</option>').trigger('chosen:updated');
 					row.remove();
 				}
 				var recursive = $('#recursive', dialogText).is(':checked');

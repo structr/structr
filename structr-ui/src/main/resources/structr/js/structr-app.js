@@ -120,6 +120,7 @@ function StructrApp(baseUrl, locale) {
 			wrongUsernameOrPassword          : 'Wrong username or password!',
 			wrongTwoFactorCode               : 'Wrong two factor code!',
 			invalidTwoFactorToken            : 'Two Factor login took too long',
+			sessionLimitExceeded             : 'Max. number of sessions exceeded.',
 			loginAttempts                    : 'Too many failed password attempts!',
 			passwordChangeRequired           : 'Your password has not been changed for too long!',
 			pleaseEnterEMail                 : 'Please enter your e-mail address!',
@@ -130,7 +131,7 @@ function StructrApp(baseUrl, locale) {
 			areYouSure                       : 'Are you sure?',
 			areYourSureToDelete              : 'Are you sure you want to delete',
 			successfullyExecutedCustomAction : 'Successfully executed custom action',
-			couldNotExecuteCustomAction     : 'Could not execute custom action',
+			couldNotExecuteCustomAction      : 'Could not execute custom action',
 			couldNotReadRelatedProperty      : 'Could not read related property',
 			makeSureContainedInEntity        : 'Make sure it is contained in the\nentity\'s ui view and readable via REST.',
 		},
@@ -147,6 +148,7 @@ function StructrApp(baseUrl, locale) {
 			wrongUsernameOrPassword          : 'Falscher Benutzername oder Passwort!',
 			wrongTwoFactorCode               : 'Falscher Two Factor Code!',
 			invalidTwoFactorToken            : 'Two Factor login hat zu lange gedauert',
+			numberOfSessionsExceeded         : 'Maximale Anzahl erlaubter gleichzeitiger Sessions überschritten.',
 			loginAttempts                    : 'Zu viele fehlgeschlagene Passwort-Eingaben!',
 			passwordChangeRequired           : 'Sie haben Ihr Passwort zu lange nicht geändert!',
 			pleaseEnterEMail                 : 'Bitte E-Mail-Adresse eingeben!',
@@ -583,6 +585,9 @@ function StructrApp(baseUrl, locale) {
 					};
 
 					switch(ajaxRequest.getResponseHeader("reason")) {
+						case "maxSessionLimitExceeded":
+							buttonLabel = s.labels[s.lang].numberOfSessionsExceeded;
+							break;
 						case "loginAttempts":
 							buttonLabel = s.labels[s.lang].loginAttempts;
 							break;

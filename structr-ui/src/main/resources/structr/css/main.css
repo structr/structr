@@ -1883,7 +1883,7 @@ button.enabled, button.active {
 	cursor: pointer;
 }
 
-.pager input.filter[type="text"][data-attribute="name"], .pager input.filter[type="text"][data-attribute="category"], .pager input.filter[type="text"][data-attribute="domain"] {
+.pager input.filter[type="text"][data-attribute="name"], .pager input.filter[type="text"][data-attribute="category"], .pager input.filter[type="text"][data-attribute="domain"], .pager input.filter[type="text"][data-attribute="sourceType"], .pager input.filter[type="text"][data-attribute="locale"] {
 	width: 52px;
 	font-size: 1.1em;
 	text-align: left;
@@ -5124,4 +5124,12 @@ dl.help-definitions dd {
 
 .dialogText table.full-width td input {
 	width: calc(100% - 4px);
+}
+
+table#principals tbody td:first-of-type {
+	text-align: left;
+}
+
+table#principals tbody td {
+	text-align: center;
 }
