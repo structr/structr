@@ -1883,7 +1883,7 @@ button.enabled, button.active {
 	cursor: pointer;
 }
 
-.pager input.filter[type="text"][data-attribute="name"], .pager input.filter[type="text"][data-attribute="category"], .pager input.filter[type="text"][data-attribute="domain"], .pager input.filter[type="text"][data-attribute="sourceType"], .pager input.filter[type="text"][data-attribute="locale"] {
+.pager input.filter {
 	width: 52px;
 	font-size: 1.1em;
 	text-align: left;
@@ -4261,6 +4261,12 @@ i.fa.ps {
 #localizations-pager {
 	height: 42px;
 }
+
+.pager input.filter.w75[type="text"] {
+	width: 75px;
+	font-size: 9pt;
+}
+
 
 .pager input.filter.w100[type="text"] {
 	width: 100px;
