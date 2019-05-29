@@ -388,6 +388,7 @@ public class Console {
 
 			// register Structr scriptable
 			scope.put("Structr", scope, scriptable);
+			scope.put("$",       scope, scriptable);
 		}
 
 		// clear output buffer
