@@ -18,14 +18,35 @@
  */
 package org.structr.core.function.search;
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.app.Query;
-import org.structr.core.property.PropertyKey;
-
 /**
  */
-public interface SearchFunctionPredicate {
+public class SearchParameter {
 
-	void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey key, final Query query, final boolean exact) throws FrameworkException;
+	private boolean exact = true;
+	private String key    = null;
+	private Object value  = null;
+
+	public SearchParameter(final String key, final Object value, final boolean exact) {
+
+		this.exact = exact;
+		this.key   = key;
+		this.value = value;
+	}
+
+	@Override
+	public String toString() {
+		return "Exact(" + key + ", " + value + ")";
+	}
+
+	public boolean isExact() {
+		return exact;
+	}
+
+	public String getKey() {
+		return key;
+	}
+
+	public Object getValue() {
+		return value;
+	}
 }

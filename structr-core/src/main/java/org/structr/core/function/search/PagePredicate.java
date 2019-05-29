@@ -25,7 +25,21 @@ import org.structr.core.property.PropertyKey;
 
 /**
  */
-public interface SearchFunctionPredicate {
+public class PagePredicate extends AbstractPredicate {
 
-	void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey key, final Query query, final boolean exact) throws FrameworkException;
+	private int page     = 1;
+	private int pageSize = 10;
+
+	public PagePredicate(final int page, final int pageSize) {
+
+		this.page     = page;
+		this.pageSize = pageSize;
+	}
+
+	@Override
+	public void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey propertyKey, final Query query, final boolean exact) throws FrameworkException {
+
+		query.page(page);
+		query.pageSize(pageSize);
+	}
 }

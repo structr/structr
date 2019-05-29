@@ -25,8 +25,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import javax.servlet.http.HttpServletRequest;
 import jdk.nashorn.api.scripting.ScriptUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +60,8 @@ public class StructrScriptable extends ScriptableObject {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrScriptable.class.getName());
 	private static final Object[] IDs  = { "id", "type" };
+
+	private Map<Integer, String> namespace    = new TreeMap<>(); // StructrScript function call namespacing
 
 	protected ActionContext actionContext     = null;
 	protected FrameworkException exception    = null;
@@ -310,10 +314,17 @@ public class StructrScriptable extends ScriptableObject {
 		}
 
 		// execute builtin function?
-		final Function<Object, Object> function = Functions.get(CaseHelper.toUnderscore(name, false));
+		final Function<Object, Object> function = getNamespacedFunction(name);
 		if (function != null) {
 
-			return new IdFunctionObject(new FunctionWrapper(function), null, 0, 0);
+			final String namespaceIdentifier = function.getNamespaceIdentifier();
+			if (namespaceIdentifier != null) {
+
+				// only one level possible here..
+				namespace.put(0, name);
+			}
+
+			return new IdFunctionObject(new FunctionWrapper(function), "Function", 0, 0);
 		}
 
 		return null;
@@ -329,6 +340,10 @@ public class StructrScriptable extends ScriptableObject {
 
 	public void clearException() {
 		exception = null;
+	}
+
+	public IdFunctionObject wrapFunction(final Function<Object, Object> function) {
+		return new IdFunctionObject(new FunctionWrapper(function), "Function", 0, 0);
 	}
 
 	// ----- private methods -----
@@ -400,7 +415,7 @@ public class StructrScriptable extends ScriptableObject {
 			if (source instanceof ConsString) {
 
 				return source.toString();
-			
+
 			} else if (source instanceof Wrapper) {
 
 				return unwrap(((Wrapper)source).unwrap());
@@ -438,6 +453,30 @@ public class StructrScriptable extends ScriptableObject {
 		}
 
 		return source;
+	}
+
+	private String getNamespacedKeyword(final String keyword) {
+
+		final StringBuilder buf = new StringBuilder(StringUtils.join(namespace.values(), "."));
+
+		if (buf.length() > 0) {
+			buf.append(".");
+		}
+
+		buf.append(keyword);
+
+		return buf.toString();
+	}
+
+	private Function<Object, Object> getNamespacedFunction(final String word) {
+
+		final Function<Object, Object> function = Functions.get(getNamespacedKeyword(CaseHelper.toUnderscore(word, false)));
+		if (function != null) {
+
+			return function;
+		}
+
+		return Functions.get(word);
 	}
 
 	// ----- nested classes -----

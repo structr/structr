@@ -16,46 +16,29 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.function;
+package org.structr.core.function.search;
 
+import org.structr.core.function.*;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.function.search.RangePredicate;
 import org.structr.schema.action.ActionContext;
 
-public class RangeFunction extends AdvancedScriptingFunction {
+public class FindEmptyFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_RANGE = "Usage: ${range(start, end)}. Example: ${find(\"Event\", \"date\", range(\"2018-12-31\", \"2019-01-01\"))}";
+	public static final String ERROR_MESSAGE_CONTAINS_EMPTY = "Usage: ${empty(key). Example: ${find('Group', empty('name'))}";
 
 	@Override
 	public String getName() {
-		return "find.range";
+		return "find.empty";
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		Object rangeStart    = null;
-		Object rangeEnd      = null;
-		boolean includeStart = true;
-		boolean includeEnd   = true;
-
 		try {
 
-			if (sources == null || sources.length < 2) {
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-				throw new IllegalArgumentException();
-			}
-
-			switch (sources.length) {
-
-				case 4: includeEnd   = Boolean.valueOf(sources[3].toString());
-				case 3: includeStart = Boolean.valueOf(sources[2].toString());
-				case 2: rangeEnd     = sources[1];
-				case 1: rangeStart   = sources[0];
-				default: break;
-			}
-
-			return new RangePredicate(rangeStart, rangeEnd, includeStart, includeEnd);
+			return new SearchParameter(sources[0].toString(), null, true);
 
 		} catch (final IllegalArgumentException e) {
 
@@ -67,11 +50,11 @@ public class RangeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_RANGE;
+		return ERROR_MESSAGE_CONTAINS_EMPTY;
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Returns a range predicate that can be used in find() function calls";
+		return "Returns a query predicate that can be used with find() or search().";
 	}
 }

@@ -18,14 +18,21 @@
  */
 package org.structr.core.function.search;
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.app.Query;
-import org.structr.core.property.PropertyKey;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  */
-public interface SearchFunctionPredicate {
+public abstract class AbstractPredicate implements SearchFunctionPredicate {
 
-	void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey key, final Query query, final boolean exact) throws FrameworkException;
+	protected List<SearchFunctionPredicate> predicates = new LinkedList<>();
+	protected List<SearchParameter> parameters         = new LinkedList<>();
+
+	public void addPredicate(final SearchFunctionPredicate predicate) {
+		predicates.add(predicate);
+	}
+
+	public void addParameter(final SearchParameter param) {
+		parameters.add(param);
+	}
 }

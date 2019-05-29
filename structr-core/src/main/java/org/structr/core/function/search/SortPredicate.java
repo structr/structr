@@ -21,11 +21,34 @@ package org.structr.core.function.search;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
+import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 
 /**
  */
-public interface SearchFunctionPredicate {
+public class SortPredicate extends AbstractPredicate {
 
-	void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey key, final Query query, final boolean exact) throws FrameworkException;
+	private boolean sortDescending = false;
+	private String sortKeyName     = null;
+
+	public SortPredicate(final String sortKeyName, final boolean sortDescending) {
+
+		this.sortKeyName    = sortKeyName;
+		this.sortDescending = sortDescending;
+	}
+
+	@Override
+	public void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey propertyKey, final Query query, final boolean exact) throws FrameworkException {
+
+		final PropertyKey sortKey = StructrApp.key(type, sortKeyName, true);
+
+		if (sortDescending) {
+
+			query.sortDescending(sortKey);
+
+		} else {
+
+			query.sortAscending(sortKey);
+		}
+	}
 }
