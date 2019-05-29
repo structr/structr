@@ -3685,7 +3685,26 @@ public class ScriptingTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
+	}
 
+	@Test
+	public void testNamespaceHandling() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			// test that the empty() function is resolved to the non-namespaced one after exiting find()
+			assertEquals("StructrScript: namespace is not exited correctly after entering find()", "[]true", (Scripting.evaluate(ctx, null, "${(find('Group'),empty(null))}", "test")));
+			assertEquals("JavaScript: namespace is not exited correctly after entering find()", true, (Scripting.evaluate(ctx, null, "${{ $.find('Group'); return $.empty(null); }}", "test")));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
 
 	}
 

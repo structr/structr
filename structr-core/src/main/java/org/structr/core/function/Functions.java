@@ -188,6 +188,7 @@ public class Functions {
 					}
 					lastToken += ")";
 					level--;
+					namespaceMap.remove(level);
 					break;
 
 				case '[':

@@ -28,6 +28,7 @@ import org.testng.annotations.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.structr.common.error.FrameworkException;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
@@ -85,14 +86,16 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 
 
 			try (final Tx tx = app.tx()) {
+
 				container = app.nodeQuery(FlowContainer.class).and(FlowContainer.effectiveName, "flow.deployment.test").getFirst();
+
 				assertNotNull(container);
 				resultMap = container.evaluate(flowParameters);
 				assertNotNull(resultMap);
 				assertNotNull(resultMap.get("result"));
 			}
 
-		} catch (Throwable ex) {
+		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
 			fail("Unexpected exception.");

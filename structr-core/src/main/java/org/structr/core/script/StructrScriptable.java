@@ -22,10 +22,10 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import javax.servlet.http.HttpServletRequest;
 import jdk.nashorn.api.scripting.ScriptUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -61,8 +61,7 @@ public class StructrScriptable extends ScriptableObject {
 	private static final Logger logger = LoggerFactory.getLogger(StructrScriptable.class.getName());
 	private static final Object[] IDs  = { "id", "type" };
 
-	private Map<Integer, String> namespace    = new TreeMap<>(); // StructrScript function call namespacing
-
+	protected Set<String> namespace           = new LinkedHashSet<>();
 	protected ActionContext actionContext     = null;
 	protected FrameworkException exception    = null;
 	protected GraphObject entity              = null;
@@ -320,8 +319,7 @@ public class StructrScriptable extends ScriptableObject {
 			final String namespaceIdentifier = function.getNamespaceIdentifier();
 			if (namespaceIdentifier != null) {
 
-				// only one level possible here..
-				namespace.put(0, name);
+				namespace.add(name);
 			}
 
 			return new IdFunctionObject(new FunctionWrapper(function), "Function", 0, 0);
@@ -456,7 +454,7 @@ public class StructrScriptable extends ScriptableObject {
 
 	private String getNamespacedKeyword(final String keyword) {
 
-		final StringBuilder buf = new StringBuilder(StringUtils.join(namespace.values(), "."));
+		final StringBuilder buf = new StringBuilder(StringUtils.join(namespace, "."));
 
 		if (buf.length() > 0) {
 			buf.append(".");
@@ -500,7 +498,14 @@ public class StructrScriptable extends ScriptableObject {
 					unwrappedParameters[i++] = unwrap(param);
 				}
 
-				return wrap(context, scope, null, function.apply(actionContext, entity, unwrappedParameters));
+				final Object value = function.apply(actionContext, entity, unwrappedParameters);
+
+				// remove namespace identifier
+				if (function.getNamespaceIdentifier() != null) {
+					namespace.remove(function.getNamespaceIdentifier());
+				}
+
+				return wrap(context, scope, null, value);
 
 			} catch (final UnlicensedScriptException uex) {
 				uex.log(logger);

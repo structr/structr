@@ -24,7 +24,7 @@ import org.structr.schema.action.ActionContext;
 
 public class FindEmptyFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_CONTAINS_EMPTY = "Usage: ${empty(key). Example: ${find('Group', empty('name'))}";
+	public static final String ERROR_MESSAGE_FIND_EMPTY = "Usage: ${empty(key). Example: ${find('Group', empty('name'))}";
 
 	@Override
 	public String getName() {
@@ -50,7 +50,7 @@ public class FindEmptyFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_CONTAINS_EMPTY;
+		return ERROR_MESSAGE_FIND_EMPTY;
 	}
 
 	@Override
