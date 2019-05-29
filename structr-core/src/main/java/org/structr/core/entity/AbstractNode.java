@@ -1750,6 +1750,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	@Override
 	public final void grant(Permission permission, Principal principal, SecurityContext ctx) throws FrameworkException {
 
+		grant(Collections.singleton(permission), principal, ctx);
+	}
+
+	@Override
+	public final void grant(final Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
+
 		if (!isGranted(Permission.accessControl, ctx)) {
 			throw new FrameworkException(403, "Access control not permitted");
 		}
@@ -1761,18 +1767,25 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 			try {
 
+				Set<String> permissionSet = new HashSet<>();
+
+				for (Permission permission : permissions) {
+
+					permissionSet.add(permission.name());
+				}
+
 				// ensureCardinality is not neccessary here
-				final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-				final PropertyMap properties          = new PropertyMap();
-				securityContext.disableEnsureCardinality();
+				final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+				final PropertyMap properties           = new PropertyMap();
+				superUserContext.disableEnsureCardinality();
 
 				// performance improvement for grant(): add properties to the CREATE call that would
 				// otherwise be set in separate calls later in the transaction.
 				properties.put(Security.principalId,                    principal.getUuid());
 				properties.put(Security.accessControllableId,           getUuid());
-				properties.put(Security.allowed,                        new String[]{ permission.name() });
+				properties.put(Security.allowed,                        permissionSet.toArray(new String[permissionSet.size()]));
 
-				secRel = StructrApp.getInstance(securityContext).create(principal, (NodeInterface)this, Security.class, properties);
+				secRel = StructrApp.getInstance(superUserContext).create(principal, (NodeInterface)this, Security.class, properties);
 
 			} catch (FrameworkException ex) {
 
@@ -1784,10 +1797,9 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		// only access rel if it exists or was created successfully
 		if (secRel != null) {
 
-			secRel.addPermission(permission);
+			secRel.addPermissions(permissions);
 		}
 	}
-
 
 	@Override
 	public final void revoke(Permission permission, Principal principal) throws FrameworkException {
@@ -1798,6 +1810,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	@Override
 	public final void revoke(Permission permission, Principal principal, SecurityContext ctx) throws FrameworkException {
 
+		revoke(Collections.singleton(permission), principal, ctx);
+	}
+
+	@Override
+	public final void revoke(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
+
 		if (!isGranted(Permission.accessControl, ctx)) {
 			throw new FrameworkException(403, "Access control not permitted");
 		}
@@ -1807,7 +1825,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		Security secRel = getSecurityRelationship(principal);
 		if (secRel != null) {
 
-			secRel.removePermission(permission);
+			secRel.removePermissions(permissions);
 		}
 	}
 

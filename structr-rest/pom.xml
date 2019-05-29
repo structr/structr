@@ -64,17 +64,17 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
-			<version>9.4.17.v20190418</version>
+			<version>9.4.18.v20190429</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlets</artifactId>
-			<version>9.4.17.v20190418</version>
+			<version>9.4.18.v20190429</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-runner</artifactId>
-			<version>9.4.17.v20190418</version>
+			<version>9.4.18.v20190429</version>
 		</dependency>
 		<dependency>
 			<groupId>org.tuckey</groupId>
