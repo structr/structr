@@ -18,6 +18,8 @@
  */
 package org.structr.core.function;
 
+import java.util.HashSet;
+import java.util.Set;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.error.ArgumentCountException;
@@ -54,7 +56,9 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 
 					if (sources[2] instanceof String) {
 
+						final Set<Permission> permissions = new HashSet();
 						final String[] parts = ((String)sources[2]).split("[,]+");
+
 						for (final String part : parts) {
 
 							final String trimmedPart = part.trim();
@@ -63,7 +67,7 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 								final Permission permission = Permissions.valueOf(trimmedPart);
 								if (permission != null) {
 
-									node.revoke(permission, principal, ctx.getSecurityContext());
+									permissions.add(permission);
 
 								} else {
 
@@ -71,6 +75,10 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 									return "Error: unknown permission " + trimmedPart;
 								}
 							}
+						}
+
+						if (permissions.size() > 0) {
+							node.revoke(permissions, principal, ctx.getSecurityContext());
 						}
 
 						return "";
