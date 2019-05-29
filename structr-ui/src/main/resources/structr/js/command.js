@@ -461,14 +461,14 @@ var Command = {
 	 * The server will set the permission contained in the 'data' on the node
 	 * with the given id and broadcast an update notification.
 	 */
-	setPermission: function(id, principalId, action, permission, recursive, callback) {
+	setPermission: function(id, principalId, action, permissions, recursive, callback) {
 		var obj = {
 			command: 'SET_PERMISSION',
 			id: id,
 			data: {
 				principalId: principalId,
 				action: action,
-				permission: permission,
+				permissions: permissions,
 				recursive: recursive
 			}
 		};
