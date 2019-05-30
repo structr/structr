@@ -1744,13 +1744,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	@Override
 	public final void grant(Permission permission, Principal principal) throws FrameworkException {
-		grant(permission, principal, securityContext);
+		grant(Collections.singleton(permission), principal, securityContext);
 	}
 
 	@Override
-	public final void grant(Permission permission, Principal principal, SecurityContext ctx) throws FrameworkException {
-
-		grant(Collections.singleton(permission), principal, ctx);
+	public final void grant(final Set<Permission> permissions, Principal principal) throws FrameworkException {
+		grant(permissions, principal, securityContext);
 	}
 
 	@Override
@@ -1785,17 +1784,14 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				properties.put(Security.accessControllableId,           getUuid());
 				properties.put(Security.allowed,                        permissionSet.toArray(new String[permissionSet.size()]));
 
-				secRel = StructrApp.getInstance(superUserContext).create(principal, (NodeInterface)this, Security.class, properties);
+				StructrApp.getInstance(superUserContext).create(principal, (NodeInterface)this, Security.class, properties);
 
 			} catch (FrameworkException ex) {
 
 				logger.error("Could not create security relationship!", ex);
-
 			}
-		}
 
-		// only access rel if it exists or was created successfully
-		if (secRel != null) {
+		} else {
 
 			secRel.addPermissions(permissions);
 		}
@@ -1803,14 +1799,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	@Override
 	public final void revoke(Permission permission, Principal principal) throws FrameworkException {
-
-		revoke(permission, principal, securityContext);
+		revoke(Collections.singleton(permission), principal, securityContext);
 	}
 
 	@Override
-	public final void revoke(Permission permission, Principal principal, SecurityContext ctx) throws FrameworkException {
-
-		revoke(Collections.singleton(permission), principal, ctx);
+	public final void revoke(final Set<Permission> permissions, Principal principal) throws FrameworkException {
+		revoke(permissions, principal, securityContext);
 	}
 
 	@Override
@@ -1826,6 +1820,59 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		if (secRel != null) {
 
 			secRel.removePermissions(permissions);
+		}
+	}
+
+
+	@Override
+	public final void setAllowed(Set<Permission> permissions, Principal principal) throws FrameworkException {
+		setAllowed(permissions, principal, securityContext);
+	}
+
+	@Override
+	public final void setAllowed(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
+
+		if (!isGranted(Permission.accessControl, ctx)) {
+			throw new FrameworkException(403, "Access control not permitted");
+		}
+
+		clearCaches();
+
+		final Set<String> permissionSet = new HashSet<>();
+
+		for (Permission permission : permissions) {
+
+			permissionSet.add(permission.name());
+		}
+
+		Security secRel = getSecurityRelationship(principal);
+		if (secRel == null) {
+
+			if (permissions.size() > 0) {
+
+				try {
+
+					// ensureCardinality is not neccessary here
+					final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+					final PropertyMap properties           = new PropertyMap();
+					superUserContext.disableEnsureCardinality();
+
+					// performance improvement for grant(): add properties to the CREATE call that would
+					// otherwise be set in separate calls later in the transaction.
+					properties.put(Security.principalId,                    principal.getUuid());
+					properties.put(Security.accessControllableId,           getUuid());
+					properties.put(Security.allowed,                        permissionSet.toArray(new String[permissionSet.size()]));
+
+					StructrApp.getInstance(superUserContext).create(principal, (NodeInterface)this, Security.class, properties);
+
+				} catch (FrameworkException ex) {
+
+					logger.error("Could not create security relationship!", ex);
+				}
+			}
+
+		} else {
+			secRel.setAllowed(permissionSet);
 		}
 	}
 

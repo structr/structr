@@ -150,4 +150,8 @@ public class SecurityDelegate {
 
 		return permissionSet;
 	}
+
+//	public static Set<String> permissionSetToStringSet() {}
+//	public static Set<Permission> stringSetToPermissionSet() {}
+
 }

@@ -1514,7 +1514,9 @@ var _Entities = {
 
 			el.append('<h3>Visibility</h3>');
 
-			if (entity.type === 'Template' || entity.isFolder || (Structr.isModuleActive(_Pages) && !(entity.isContent))) {
+			let allowRecursive = (entity.type === 'Template' || entity.isFolder || (Structr.isModuleActive(_Pages) && !(entity.isContent)));
+
+			if (allowRecursive) {
 				el.append('<div>Apply visibility switches recursively? <input id="recursive" type="checkbox" name="recursive"></div><br>');
 			}
 
@@ -1522,10 +1524,10 @@ var _Entities = {
 			_Entities.appendBooleanSwitch(el, entity, 'visibleToAuthenticatedUsers', ['Visible to auth. users', 'Not visible to auth. users'], 'Click to toggle visibility to logged-in users', '#recursive');
 
 			el.append('<h3>Access Rights</h3>');
-			el.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th></tr></thead><tbody></tbody></table');
+			el.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th>' + (allowRecursive ? '<th></th>' : '') + '</tr></thead><tbody></tbody></table');
 
 			var tb = $('#principals tbody', el);
-			tb.append('<tr id="new"><td><select style="z-index: 999" id="newPrincipal"></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td></tr>');
+			tb.append('<tr id="new"><td><select style="z-index: 999" id="newPrincipal"></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td>' + (allowRecursive ? '<td></td>' : '') + '</tr>');
 
 			$.ajax({
 				url: rootUrl + '/' + entity.id + '/in',
@@ -1545,7 +1547,7 @@ var _Entities = {
 						var principalId = result.principalId;
 						if (principalId) {
 							Command.get(principalId, 'id,name,isGroup', function(p) {
-								_Entities.addPrincipal(entity, p, permissions);
+								_Entities.addPrincipal(entity, p, permissions, allowRecursive);
 							});
 						}
 					});
@@ -1586,7 +1588,7 @@ var _Entities = {
 				Command.setPermission(entity.id, pId, 'grant', 'read', rec);
 
 				Command.get(pId, 'id,name,isGroup', function(p) {
-					_Entities.addPrincipal(entity, p, {'read': true});
+					_Entities.addPrincipal(entity, p, {'read': true}, allowRecursive);
 				});
 			});
 		};
@@ -1631,7 +1633,7 @@ var _Entities = {
 		_Entities.accessControlDialog(entity, dialogText);
 
 	},
-	addPrincipal: function (entity, principal, permissions) {
+	addPrincipal: function (entity, principal, permissions, allowRecursive) {
 
 		$('#newPrincipal option[value="' + principal.id + '"]').remove();
 		$('#newPrincipal').trigger('chosen:updated');
@@ -1646,7 +1648,7 @@ var _Entities = {
 
 		['read', 'write', 'delete', 'accessControl'].forEach(function(perm) {
 
-			row.append('<td><input class="' + perm + '" type="checkbox"' + (permissions[perm] ? ' checked="checked"' : '') + '"></td>');
+			row.append('<td><input class="' + perm + '" type="checkbox" data-permission="' + perm + '"' + (permissions[perm] ? ' checked="checked"' : '') + '"></td>');
 
 			$('.' + perm, row).on('dblclick', function() {
 				return false;
@@ -1668,13 +1670,34 @@ var _Entities = {
 					checkbox.prop('checked', permissions[perm]);
 					_Logger.log(_LogType.ENTITIES, 'Permission successfully updated!');
 
-					disabled = false;
 					checkbox.prop('disabled', false);
 
 					blinkGreen(checkbox.parent());
 				});
 			});
 		});
+
+		if (allowRecursive) {
+			row.append('<td><button class="action apply-to-child-nodes">Apply to child nodes</button></td>');
+
+			let button = row[0].querySelector('button.apply-to-child-nodes');
+
+			button.addEventListener('click', (e) => {
+
+				button.setAttribute('disabled', 'disabled');
+
+				let permissions = [].map.call(row[0].querySelectorAll('input:checked'), (i) => {
+					return i.dataset.permission;
+				}).join(',');
+
+				Command.setPermission(entity.id, principal.id, 'setAllowed', permissions, true, function() {
+
+					button.removeAttribute('disabled');
+
+					blinkGreen(row);
+				});
+			});
+		}
 	},
 	appendInput: function(el, entity, key, label, desc) {
 		if (!el || !entity) {

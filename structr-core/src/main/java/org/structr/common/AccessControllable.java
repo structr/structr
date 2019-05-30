@@ -59,14 +59,13 @@ public interface AccessControllable {
 	public void grant(final Permission permission, final Principal principal) throws FrameworkException;
 
 	/**
-	 * Grant given permission to given principal.
+	 * Grant given permissions to given principal.
 	 *
-	 * @param permission
+	 * @param permissions
 	 * @param principal
-	 * @param ctx
 	 * @throws FrameworkException
 	 */
-	public void grant(final Permission permission, final Principal principal, final SecurityContext ctx) throws FrameworkException;
+	public void grant(final Set<Permission> permissions, final Principal principal) throws FrameworkException;
 
 	/**
 	 * Grant given permissions to given principal.
@@ -88,14 +87,13 @@ public interface AccessControllable {
 	public void revoke(final Permission permission, final Principal principal) throws FrameworkException;
 
 	/**
-	 * Revoke given permission from given principal.
+	 * Revoke given permissions from given principal.
 	 *
-	 * @param permission
+	 * @param permissions
 	 * @param principal
-	 * @param ctx
 	 * @throws FrameworkException
 	 */
-	public void revoke(final Permission permission, final Principal principal, final SecurityContext ctx) throws FrameworkException;
+	public void revoke(final Set<Permission> permissions, final Principal principal) throws FrameworkException;
 
 	/**
 	 * Revoke given permissions from given principal.
@@ -106,6 +104,27 @@ public interface AccessControllable {
 	 * @throws FrameworkException
 	 */
 	public void revoke(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
+
+	/**
+	 * Applies the given permissions to the given principal.
+	 * Permissions not in the set of permissions will be removed if already set
+	 *
+	 * @param permissions
+	 * @param principal
+	 * @throws FrameworkException
+	 */
+	public void setAllowed(final Set<Permission> permissions, final Principal principal) throws FrameworkException;
+
+	/**
+	 * Applies the given permissions to the given principal.
+	 * Permissions not in the set of permissions will be removed if already set
+	 *
+	 * @param permissions
+	 * @param principal
+	 * @param ctx
+	 * @throws FrameworkException
+	 */
+	public void setAllowed(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
 
 	/**
 	 * Return the (cached) incoming relationship between this node and the

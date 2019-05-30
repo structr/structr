@@ -538,7 +538,7 @@ public class StructrScriptable extends ScriptableObject {
 			final StringBuilder buf = new StringBuilder();
 			boolean first           = true;
 
-			buf.append("tostring!![");
+			buf.append("[");
 
 			for (final Object obj : this.toArray()) {
 
