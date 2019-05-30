@@ -170,12 +170,12 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 
 	@Override
 	public String getUuid() {
-		throw new UnsupportedOperationException("Not supported by this container.");
+		return entity.getUuid();
 	}
 
 	@Override
 	public String getType() {
-		throw new UnsupportedOperationException("Not supported by this container.");
+		return entity.getType();
 	}
 
 	@Override
