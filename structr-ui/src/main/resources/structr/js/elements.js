@@ -111,6 +111,10 @@ var _Elements = {
 	],
 	mostUsedAttrs: [
 		{
+			elements: ['div'],
+			attrs: ['style']
+		},
+		{
 			elements: ['input', 'textarea'],
 			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'style'],
 			focus: 'type'
