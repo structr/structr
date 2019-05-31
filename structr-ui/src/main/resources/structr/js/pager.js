@@ -290,11 +290,18 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 		$('input.filter[type=text]', this.filterEl).on('keyup', function(e) {
 			var $filterEl = $(this);
 			var filterAttribute = $filterEl.data('attribute');
+
+			let filterVal = $filterEl.val();
+
+			if (filterVal === '') {
+				pagerFilters[pagerObj.id][filterAttribute] = null;
+			} else {
+				pagerFilters[pagerObj.id][filterAttribute] = filterVal;
+			}
+
 			if (e.keyCode === 13) {
 
 				if (filterAttribute && filterAttribute.length) {
-					pagerFilters[pagerObj.id][filterAttribute] = $filterEl.val();
-
 					page[pagerObj.id] = 1;
 					pagerObj.updatePagerElements();
 					pagerObj.transportFunction();
