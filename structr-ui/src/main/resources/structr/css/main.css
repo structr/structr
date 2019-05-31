@@ -4791,10 +4791,13 @@ span.context-help-text {
 	z-index: 1012;
 }
 
-input.newKey {
-	width: calc(100% - 32px);
+.show-all tr.hidden {
+	display: table-row;
 }
 
+input.newKey {
+	width: calc(100% - 8px);
+}
 
 #csv-import #commit-interval {
 	width: 50px;
