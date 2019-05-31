@@ -1066,8 +1066,13 @@ var _Entities = {
 				var textarea = $('.' + key + '_').find('textarea');
 				_Entities.setProperty(id, key, null, false, function(newVal) {
 					if (!newVal) {
-						blinkGreen(cell);
-						Structr.showAndHideInfoBoxMessage('Property "' + key + '" has been set to null.', 'success', 2000, 1000);
+						if (key.indexOf('_custom_html_') === -1) {
+							blinkGreen(cell);
+							Structr.showAndHideInfoBoxMessage('Property "' + key + '" has been set to null.', 'success', 2000, 1000);
+						} else {
+							nullIcon.closest('tr').remove();
+							Structr.showAndHideInfoBoxMessage('Custom HTML property "' + key + '" has been removed', 'success', 2000, 1000);
+						}
 
 						if (key === 'name') {
 							var entity = StructrModel.objects[id];
@@ -1124,7 +1129,7 @@ var _Entities = {
 				}
 			});
 
-			let saveCustomAttribute = function(row, exitedInput) {
+			let saveCustomHTMLAttribute = function(row, exitedInput) {
 
 				let keyInput = $('td.key input', row);
 				let valInput = $('td.value input', row);
@@ -1158,6 +1163,16 @@ var _Entities = {
 							keyInput.replaceWith(key);
 							valInput.attr('name', newKey);
 
+							let nullIcon = $(_Entities.getNullIconForKey(newKey));
+							$('td:last', row).append(nullIcon);
+							nullIcon.on('click', function() {
+								var key = $(this).prop('id').substring(_Entities.null_prefix.length);
+								_Entities.setProperty(id, key, null, false, function(newVal) {
+									row.remove();
+									Structr.showAndHideInfoBoxMessage('Custom HTML property "' + key + '" has been removed', 'success', 2000, 1000);
+								});
+							});
+
 							// deactivate this function and resume regular save-actions
 							_Entities.activateInput(valInput, id, entity.pageId, typeInfo);
 						});
@@ -1170,7 +1185,7 @@ var _Entities = {
 				propsTable.append(newAttributeRow);
 
 				$('input', newAttributeRow).on('focusout', function(e) {
-					saveCustomAttribute(newAttributeRow, $(this));
+					saveCustomHTMLAttribute(newAttributeRow, $(this));
 				});
 			});
 		}
