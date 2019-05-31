@@ -21,11 +21,40 @@ package org.structr.core.function.search;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
+import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 
 /**
  */
-public interface SearchFunctionPredicate {
+public class OrPredicate extends AbstractPredicate {
 
-	void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey key, final Query query, final boolean exact) throws FrameworkException;
+	@Override
+	public void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey propertyKey, final Query query, final boolean exact) throws FrameworkException {
+
+		for (final SearchParameter p : parameters) {
+
+			final PropertyKey key = StructrApp.key(type, p.getKey(), true);
+			if (key != null) {
+
+				final Object value = p.getValue();
+
+				// check if value is predicate...
+				if (value instanceof SearchFunctionPredicate) {
+
+					((SearchFunctionPredicate)value).configureQuery(securityContext, type, key, query, p.isExact());
+
+				} else {
+
+					query.or(key, value, p.isExact());
+				}
+			}
+		}
+
+		for (final SearchFunctionPredicate p : predicates) {
+
+			query.or();
+			p.configureQuery(securityContext, type, propertyKey, query, exact);
+			query.parent();
+		}
+	}
 }

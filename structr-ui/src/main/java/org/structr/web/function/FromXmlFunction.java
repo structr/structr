@@ -18,20 +18,10 @@
  */
 package org.structr.web.function;
 
-import java.util.List;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
 
 public class FromXmlFunction extends UiAdvancedFunction {
-
-	private static final Property<List> attributesProperty = new GenericProperty<>("attributes");
-	private static final Property<List> childrenProperty   = new GenericProperty<>("children");
-	private static final Property<String> valueProperty    = new StringProperty("value");
-	private static final Property<String> nameProperty     = new StringProperty("name");
-	private static final Property<String> typeProperty     = new StringProperty("type");
 
 	public static final String ERROR_MESSAGE_FROM_XML    = "Usage: ${from_xml(source)}. Example: ${from_xml('<entry>0</entry>')}";
 	public static final String ERROR_MESSAGE_FROM_XML_JS = "Usage: ${{Structr.from_xml(src)}}. Example: ${{Structr.from_xml('<entry>0</entry>')}}";

@@ -32,7 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Script;
-import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Undefined;
 import org.mozilla.javascript.WrappedException;
 import org.renjin.script.RenjinScriptEngine;
@@ -234,7 +234,7 @@ public class Scripting {
 
 		try {
 
-			final Scriptable scope = scriptingContext.initStandardObjects();
+			final ScriptableObject scope = scriptingContext.initStandardObjects();
 			final StructrScriptable scriptable = new StructrScriptable(actionContext, entity, scriptingContext);
 
 			// don't wrap Java primitives
@@ -244,6 +244,7 @@ public class Scripting {
 
 			// register Structr scriptable
 			scope.put("Structr", scope, scriptable);
+			scope.put("$",       scope, scriptable); // shortcut for "Structr"
 
 			// clear output buffer
 			actionContext.clear();

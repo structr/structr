@@ -19,6 +19,7 @@
 package org.structr.core.entity;
 
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import org.structr.api.Predicate;
@@ -115,5 +116,13 @@ public abstract class AbstractEndpoint {
 		}
 
 		return node;
+	}
+
+	protected <T> Set<T> intersect(final Set<T> set1, final Set<T> set2) {
+
+		final Set<T> intersection = new LinkedHashSet<>(set1);
+		intersection.retainAll(set2);
+
+		return intersection;
 	}
 }

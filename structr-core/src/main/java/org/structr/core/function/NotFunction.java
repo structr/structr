@@ -25,7 +25,7 @@ import org.structr.schema.action.ActionContext;
 
 public class NotFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_NOT = "Usage: ${not(bool1, bool2)}. Example: ${not(\"true\", \"true\")}";
+	public static final String ERROR_MESSAGE_NOT = "Usage: ${not(bool)}. Example: ${not(\"true\")}";
 
 	@Override
 	public String getName() {
@@ -61,6 +61,6 @@ public class NotFunction extends CoreFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Negates the given arguments";
+		return "Negates the given argument";
 	}
 }

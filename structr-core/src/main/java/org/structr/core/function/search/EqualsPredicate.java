@@ -25,7 +25,16 @@ import org.structr.core.property.PropertyKey;
 
 /**
  */
-public interface SearchFunctionPredicate {
+public class EqualsPredicate extends AbstractPredicate {
 
-	void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey key, final Query query, final boolean exact) throws FrameworkException;
+	private Object value = null;
+
+	public EqualsPredicate(final Object value) {
+		this.value = value;
+	}
+
+	@Override
+	public void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey propertyKey, final Query query, final boolean exact) throws FrameworkException {
+		query.and(propertyKey, value, true);
+	}
 }

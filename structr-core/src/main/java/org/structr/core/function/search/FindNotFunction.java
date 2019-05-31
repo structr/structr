@@ -16,62 +16,55 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.function;
+package org.structr.core.function.search;
 
+import org.structr.core.function.*;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.function.search.RangePredicate;
 import org.structr.schema.action.ActionContext;
 
-public class RangeFunction extends AdvancedScriptingFunction {
+public class FindNotFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_RANGE = "Usage: ${range(start, end)}. Example: ${find(\"Event\", \"date\", range(\"2018-12-31\", \"2019-01-01\"))}";
+	public static final String ERROR_MESSAGE_NOT = "Usage: ${not(predicate, ...). Example: ${find('Group', not(equals('name', 'Test')))}";
 
 	@Override
 	public String getName() {
-		return "find.range";
+		return "find.not";
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		Object rangeStart    = null;
-		Object rangeEnd      = null;
-		boolean includeStart = true;
-		boolean includeEnd   = true;
+		final NotPredicate notPredicate = new NotPredicate();
 
-		try {
+		if (sources != null) {
 
-			if (sources == null || sources.length < 2) {
+			for (Object i : sources) {
 
-				throw new IllegalArgumentException();
+				if (i instanceof SearchParameter) {
+
+					notPredicate.addParameter((SearchParameter)i);
+
+				} else if (i instanceof SearchFunctionPredicate) {
+
+					notPredicate.addPredicate((SearchFunctionPredicate)i);
+				}
 			}
 
-			switch (sources.length) {
-
-				case 4: includeEnd   = Boolean.valueOf(sources[3].toString());
-				case 3: includeStart = Boolean.valueOf(sources[2].toString());
-				case 2: rangeEnd     = sources[1];
-				case 1: rangeStart   = sources[0];
-				default: break;
-			}
-
-			return new RangePredicate(rangeStart, rangeEnd, includeStart, includeEnd);
-
-		} catch (final IllegalArgumentException e) {
+		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
-			return usage(ctx.isJavaScriptContext());
 		}
+
+		return notPredicate;
 	}
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_RANGE;
+		return ERROR_MESSAGE_NOT;
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Returns a range predicate that can be used in find() function calls";
+		return "Returns a query predicate that can be used with find() or search().";
 	}
 }

@@ -16,46 +16,39 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.function;
+package org.structr.core.function.search;
 
+import org.structr.core.function.*;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.function.search.RangePredicate;
 import org.structr.schema.action.ActionContext;
 
-public class RangeFunction extends AdvancedScriptingFunction {
+public class FindSortFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_RANGE = "Usage: ${range(start, end)}. Example: ${find(\"Event\", \"date\", range(\"2018-12-31\", \"2019-01-01\"))}";
+	public static final String ERROR_MESSAGE_SORT = "Usage: ${sort(key [, descending]). Example: ${find('Group', sort('name'))}";
 
 	@Override
 	public String getName() {
-		return "find.range";
+		return "find.sort";
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		Object rangeStart    = null;
-		Object rangeEnd      = null;
-		boolean includeStart = true;
-		boolean includeEnd   = true;
+		// use String here because the actual type of the query is not known yet
+		String sortKey         = "name";
+		boolean sortDescending = false;
 
 		try {
 
-			if (sources == null || sources.length < 2) {
-
-				throw new IllegalArgumentException();
-			}
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
 			switch (sources.length) {
 
-				case 4: includeEnd   = Boolean.valueOf(sources[3].toString());
-				case 3: includeStart = Boolean.valueOf(sources[2].toString());
-				case 2: rangeEnd     = sources[1];
-				case 1: rangeStart   = sources[0];
-				default: break;
+				case 2: sortDescending = "true".equals(sources[1].toString().toLowerCase()); // no break here
+				case 1: sortKey        = sources[0].toString();
 			}
 
-			return new RangePredicate(rangeStart, rangeEnd, includeStart, includeEnd);
+			return new SortPredicate(sortKey, sortDescending);
 
 		} catch (final IllegalArgumentException e) {
 
@@ -67,11 +60,11 @@ public class RangeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_RANGE;
+		return ERROR_MESSAGE_SORT;
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Returns a range predicate that can be used in find() function calls";
+		return "Returns a query predicate that can be used with find() or search().";
 	}
 }

@@ -18,10 +18,18 @@
  */
 package org.structr.core.function;
 
+import java.util.Map;
+import java.util.Map.Entry;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.converter.PropertyConverter;
+import static org.structr.core.function.FindFunction.ERROR_MESSAGE_FIND;
+import org.structr.core.function.search.AndPredicate;
+import org.structr.core.function.search.SearchFunctionPredicate;
+import org.structr.core.function.search.SearchParameter;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -57,11 +65,11 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 				final PropertyKey key = StructrApp.key(type, sortKey);
 				if (key != null) {
-					
+
 					if (contextStore.getSortDescending()) {
 
 						query.sortDescending(key);
-						
+
 					} else {
 
 						query.sortAscending(key);
@@ -69,7 +77,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 				}
 
 			} else {
-				
+
 				logger.warn("Cannot apply sort key, missing type in query object.");
 			}
 		}
@@ -77,9 +85,186 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 	}
 
 	protected void resetQueryParameters(final SecurityContext securityContext) {
-		
+
 		final ContextStore contextStore = securityContext.getContextStore();
 
 		contextStore.resetQueryParameters();
+	}
+
+	protected boolean isAdvancedSearch(final SecurityContext securityContext, final Class type, final PropertyKey key, final Object value, final Query query, final boolean exact) throws FrameworkException {
+
+		if (value instanceof SearchFunctionPredicate) {
+
+			// allow predicate to modify query
+			((SearchFunctionPredicate)value).configureQuery(securityContext, type, key, query, exact);
+
+			return true;
+		}
+
+		if (value instanceof SearchParameter) {
+
+			// default for simple search predicates is AND
+			final AndPredicate and = new AndPredicate();
+
+			and.addParameter((SearchParameter)value);
+			and.configureQuery(securityContext, type, null, query, exact);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	protected Object handleQuerySources(final SecurityContext securityContext, final Class type, final Query query, final Object[] sources, final boolean exact) throws FrameworkException {
+
+		// extension for native javascript objects
+		if (sources.length == 2) {
+
+			if (sources[1] instanceof Map) {
+
+				handleObject(securityContext, type, query, sources[1], exact);
+
+			} else {
+
+				if (sources[1] == null) {
+
+					throw new IllegalArgumentException();
+				}
+
+				if (!isAdvancedSearch(securityContext, type, null, sources[1], query, exact)) {
+
+					// special case: second parameter is a UUID
+					final PropertyKey key = StructrApp.key(type, "id");
+
+					query.and(key, sources[1].toString());
+
+					return query.getFirst();
+				}
+			}
+
+		} else {
+
+			final int parameter_count = sources.length;
+
+			// the below loop must work for both simple parameters (key, value, key, value, key, value, ...)
+			// as well as advanced ones (predicate, predicate, predicate, ...) so we increment the value
+			// of c inside of the loop if a non-advanced parameter is encountered.
+
+			for (int c = 1; c < parameter_count; c++) {
+
+				if (sources[c] == null) {
+					throw new IllegalArgumentException();
+				}
+
+				if (!isAdvancedSearch(securityContext, type, null, sources[c], query, exact)) {
+
+					final PropertyKey key = StructrApp.key(type, sources[c].toString());
+					if (key != null) {
+
+						final PropertyConverter inputConverter = key.inputConverter(securityContext);
+
+						// check number of parameters dynamically
+						if (c + 1 >= sources.length) {
+
+							throw new FrameworkException(400, "Invalid number of parameters, missing value for key " + key.jsonName() + ": " + ERROR_MESSAGE_FIND);
+						}
+
+						Object value = sources[++c]; // increment c to
+
+						if (!isAdvancedSearch(securityContext, type, key, value, query, exact)) {
+
+							if (inputConverter != null) {
+
+								value = inputConverter.convert(value);
+							}
+
+							query.and(key, value, exact);
+						}
+					}
+
+				}
+			}
+		}
+
+		return query.getAsList();
+	}
+
+	// ----- private methods -----
+	private void handleObject(final SecurityContext securityContext, final Class type, final Query query, final Object source, final boolean exact) throws FrameworkException {
+
+		if (source instanceof Map) {
+
+			final Map<String, Object> queryData = (Map)source;
+			for (final Entry<String, Object> entry : queryData.entrySet()) {
+
+				final String keyName = entry.getKey();
+				final Object value   = entry.getValue();
+
+				if (keyName.startsWith("$")) {
+
+					final String operator = keyName.substring(1).toLowerCase();
+					switch (operator) {
+
+						case "and":
+							handleAndObject(securityContext, type, query, value, exact);
+							break;
+
+						case "or":
+							handleOrObject(securityContext, type, query, value, exact);
+							break;
+
+						case "not":
+							handleNotObject(securityContext, type, query, value, exact);
+							break;
+					}
+
+				} else {
+
+					final PropertyKey key = StructrApp.key(type, keyName);
+
+					if (!isAdvancedSearch(securityContext, type, key, value, query, exact)) {
+
+						final PropertyConverter inputConverter = key.inputConverter(securityContext);
+						if (inputConverter != null) {
+
+							query.and(key, inputConverter.convert(value), exact);
+
+						} else {
+
+							query.and(key, value, exact);
+						}
+					}
+				}
+			}
+
+		} else if (source != null) {
+
+			throw new FrameworkException(422, "Invalid type in advanced search query: expected object, got " + source.getClass().getSimpleName().toLowerCase());
+			
+		} else {
+
+			throw new FrameworkException(422, "Invalid type in advanced search query: expected object, got null");
+		}
+	}
+
+	private void handleAndObject(final SecurityContext securityContext, final Class type, final Query query, final Object source, final boolean exact) throws FrameworkException {
+
+		query.and();
+		handleObject(securityContext, type, query, source, exact);
+		query.parent();
+	}
+
+	private void handleOrObject(final SecurityContext securityContext, final Class type, final Query query, final Object source, final boolean exact) throws FrameworkException {
+
+		query.or();
+		handleObject(securityContext, type, query, source, exact);
+		query.parent();
+	}
+
+	private void handleNotObject(final SecurityContext securityContext, final Class type, final Query query, final Object source, final boolean exact) throws FrameworkException {
+
+		query.not();
+		handleObject(securityContext, type, query, source, exact);
+		query.parent();
 	}
 }
