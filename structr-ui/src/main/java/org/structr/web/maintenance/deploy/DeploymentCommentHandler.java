@@ -122,6 +122,14 @@ public class DeploymentCommentHandler implements CommentHandler {
 			node.setProperty(StructrApp.key(DOMNode.class, "hideConditions"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
+		handlers.put("show-for-locales", (Page page, DOMNode node, final String parameters) -> {
+			node.setProperty(StructrApp.key(DOMNode.class, "showForLocales"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
+		});
+
+		handlers.put("hide-for-locales", (Page page, DOMNode node, final String parameters) -> {
+			node.setProperty(StructrApp.key(DOMNode.class, "hideForLocales"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
+		});
+
 		handlers.put("owner", (Page page, DOMNode node, final String parameters) -> {
 
 			final Principal owner = StructrApp.getInstance().nodeQuery(Principal.class).andName(parameters).getFirst();
