@@ -608,9 +608,13 @@ var _Entities = {
 						_Entities.queryDialog(entity, c, typeInfo);
 					});
 
-					_Entities.appendPropTab(entity, mainTabs, contentEl, 'editBinding', 'Edit Mode Binding', false, function(c) {
-						_Entities.dataBindingDialog(entity, c, typeInfo);
-					});
+					if (entity.isContent !== true) {
+
+						_Entities.appendPropTab(entity, mainTabs, contentEl, 'editBinding', 'Edit Mode Binding', false, function(c) {
+							_Entities.dataBindingDialog(entity, c, typeInfo);
+						});
+
+					}
 
 				}
 
