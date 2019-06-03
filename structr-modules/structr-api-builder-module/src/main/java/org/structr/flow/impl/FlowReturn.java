@@ -67,7 +67,7 @@ public class FlowReturn extends FlowNode implements Return, DeployableEntity, Th
 		}
 
 		try {
-			return Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + script + "}", "FlowReturn(" + getUuid() + ")");
+			return Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + script.trim() + "}", "FlowReturn(" + getUuid() + ")");
 
 		} catch (FrameworkException fex) {
 

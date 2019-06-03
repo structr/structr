@@ -67,7 +67,7 @@ public class FlowLog extends FlowActionNode implements DeployableEntity, Throwin
 			}
 
 			// Evaluate script and write result to context
-			Object result = Scripting.evaluate(context.getActionContext(securityContext, this), this, "${" + _script + "}", "FlowAction(" + getUuid() + ")");
+			Object result = Scripting.evaluate(context.getActionContext(securityContext, this), this, "${" + _script.trim() + "}", "FlowAction(" + getUuid() + ")");
 
 			FlowContainer container = getProperty(flowContainer);
 
