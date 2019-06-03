@@ -22,15 +22,11 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.User;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-/**
- *
- */
 public class SaveLocalStorageCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(SaveLocalStorageCommand.class.getName());
@@ -43,7 +39,7 @@ public class SaveLocalStorageCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		setDoTransactionNotifications(true);
+		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
@@ -56,7 +52,7 @@ public class SaveLocalStorageCommand extends AbstractCommand {
 				final User me = (User) securityContext.getUser(false);
 				me.setLocalStorage(localStorageString);
 
-				TransactionCommand.registerNodeCallback(me, callback);
+				getWebSocket().send(MessageBuilder.forName(getCommand()).callback(webSocketData.getCallback()).build(), true);
 
 			} catch (Throwable t) {
 
@@ -71,14 +67,11 @@ public class SaveLocalStorageCommand extends AbstractCommand {
 			// send exception
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot save localStorage").build(), true);
 		}
-
 	}
 
 	@Override
 	public String getCommand() {
 
 		return "SAVE_LOCAL_STORAGE";
-
 	}
-
 }
