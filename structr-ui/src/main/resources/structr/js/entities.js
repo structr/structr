@@ -715,15 +715,18 @@ var _Entities = {
 				tabView.show();
 				LSWrapper.setItem(_Entities.activeEditTabPrefix  + '_' + entity.id, view);
 
-				_Entities.listProperties(entity, view, tabView, typeInfo);
+				_Entities.listProperties(entity, view, tabView, typeInfo, function() {
+					$('input.dateField', tabView).each(function(i, input) {
+						_Entities.activateDatePicker($(input));
+					});
+				});
 			});
 		});
-
 	},
 	getNullIconForKey: function(key) {
 		return '<i id="' + _Entities.null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />';
 	},
-	listProperties: function(entity, view, tabView, typeInfo) {
+	listProperties: function(entity, view, tabView, typeInfo, callback) {
 
 		_Entities.getSchemaProperties(entity.type, view, function(properties) {
 
@@ -798,11 +801,13 @@ var _Entities = {
 						collectionProperties.forEach(function(key) {
 							_Entities.displayCollectionPager(tempNodeCache, entity, key, 1);
 						});
-
 					});
+
+					if (typeof callback === 'function') {
+						callback();
+					}
 				}
 			});
-
 		});
 	},
 	displayCollectionPager: function(tempNodeCache, entity, key, page) {
@@ -835,7 +840,6 @@ var _Entities = {
 
 					// display result count
 					cell.prev('td.key').append(' <span></span>');
-
 				}
 
 				// update result count
@@ -892,14 +896,10 @@ var _Entities = {
 								});
 							});
 						});
-
 					});
 				}
-
 			}
 		});
-
-
 	},
 	createPropertyTable: function(heading, keys, res, entity, view, tabView, typeInfo, tempNodeCache) {
 
@@ -1009,7 +1009,7 @@ var _Entities = {
 
 						} else if (isDate && !isReadOnly) {
 
-							_Entities.appendDatePicker(cell, res, key, typeInfo[key].format);
+							cell.append('<input class="dateField" name="' + key + '" type="text" value="' + (res[key] || '') + '" data-date-format="' + typeInfo[key].format + '">');
 
 						} else if (isRelated) {
 
@@ -1343,8 +1343,15 @@ var _Entities = {
 		}
 		el.append('<input class="dateField" name="' + key + '" type="text" value="' + entity[key] + '">');
 		var dateField = $(el.find('.dateField'));
+		_Entities.activateDatePicker(dateField, format);
+	},
+	activateDatePicker: function(input, format) {
+		if (!format) {
+			format = input.data('dateFormat');
+		}
+
 		var dateTimePickerFormat = getDateTimePickerFormat(format);
-		dateField.datetimepicker({
+		input.datetimepicker({
 			dateFormat: dateTimePickerFormat.dateFormat,
 			timeFormat: dateTimePickerFormat.timeFormat,
 			separator: dateTimePickerFormat.separator
