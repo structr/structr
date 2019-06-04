@@ -34,12 +34,12 @@ if [ ! -e "structr" ]; then
 
 fi
 
-echo "Starting Structr instance '$DISPLAY_NAME'..."
+echo "Starting Structr instance '$DISPLAY_NAME' in the background."
+echo "(Takes 30-60 seconds until the server becomes available. Watch log file $LOG_FILE for 'Initialization complete' message.)"
 
 java $RUN_OPTS $JAVA_OPTS $MAIN_CLASS >>$LOG_FILE 2>&1 & echo $! >$PID_FILE
 
-( tail -q -n0 -F $LOG_FILE 2>/dev/null & echo $! >tail.pid ) | sed -n '/Initialization complete/q'
-tail -q -200 $LOG_FILE 2> /dev/null | grep 'Starting'
-
-echo -n "Structr instance '$DISPLAY_NAME' started successfully (PID $!)"
-echo
+#( tail -q -n0 -F $LOG_FILE 2>/dev/null & echo $! >tail.pid ) | sed -n '/Initialization complete/q'
+#tail -q -200 $LOG_FILE 2> /dev/null | grep 'Starting'
+#
+#echo "Structr instance '$DISPLAY_NAME' started successfully (PID $!)"
