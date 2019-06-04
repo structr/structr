@@ -285,7 +285,17 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	public final void removeProperty(final PropertyKey key) throws FrameworkException {
 
 		if (!isGranted(Permission.write, securityContext)) {
-			throw new FrameworkException(403, "Modification of node " + this.getProperty(AbstractNode.id) + " with type " + this.getProperty(AbstractNode.type) + " by user " + securityContext.getUser(false).getProperty(AbstractNode.id) + " not permitted.");
+
+			final Principal currentUser = securityContext.getUser(false);
+			String user = null;
+
+			if (currentUser == null) {
+				user = securityContext.isSuperUser() ? "superuser" : "anonymous";
+			} else {
+				user = currentUser.getProperty(AbstractNode.id);
+			}
+
+			throw new FrameworkException(403, "Modification of node " + this.getProperty(AbstractNode.id) + " with type " + this.getProperty(AbstractNode.type) + " by user " + user + " not permitted.");
 		}
 
 		if (this.dbNode != null) {
@@ -1374,8 +1384,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				internalSystemPropertiesUnlocked = false;
 				readOnlyPropertiesUnlocked       = false;
 
-				Principal currentUser = securityContext.getUser(false);
-				String user =  null;
+				final Principal currentUser = securityContext.getUser(false);
+				String user = null;
 
 				if (currentUser == null) {
 					user = securityContext.isSuperUser() ? "superuser" : "anonymous";
@@ -1420,15 +1430,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			internalSystemPropertiesUnlocked = false;
 			readOnlyPropertiesUnlocked       = false;
 
-			Principal currentUser = securityContext.getUser(false);
-			String user =  null;
+			final Principal currentUser = securityContext.getUser(false);
+			String user = null;
 
 			if (currentUser == null) {
-
 				user = securityContext.isSuperUser() ? "superuser" : "anonymous";
-
 			} else {
-
 				user = currentUser.getProperty(AbstractNode.id);
 			}
 
