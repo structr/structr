@@ -604,9 +604,13 @@ var _Entities = {
 
 				if (entity.isDOMNode) {
 
-					_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', !hasCustomDialog, function(c) {
-						_Entities.queryDialog(entity, c, typeInfo);
-					});
+					if (entity.isContent !== true || entity.type === 'Template') {
+
+						_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', !hasCustomDialog, function(c) {
+							_Entities.queryDialog(entity, c, typeInfo);
+						});
+
+					}
 
 					if (entity.isContent !== true) {
 
