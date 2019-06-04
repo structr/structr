@@ -1561,6 +1561,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					} else {
 
+						response.addHeader("Content-Length", Long.toString(file.getSize()));
 						response.setStatus(HttpServletResponse.SC_OK);
 						callbackMap.put("statusCode", HttpServletResponse.SC_OK);
 
