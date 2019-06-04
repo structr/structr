@@ -65,7 +65,7 @@ public class FlowScriptCondition extends FlowCondition implements 	DeployableEnt
 
 			try {
 
-				Object result =  Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + finalScript + "}", "FlowDataSource(" + getUuid() + ")");
+				Object result =  Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + finalScript.trim() + "}", "FlowDataSource(" + getUuid() + ")");
 				context.setData(getUuid(), result);
 				return result;
 			} catch (FrameworkException fex) {

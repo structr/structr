@@ -22,5 +22,4 @@ kill $SERVER_PID
 tail -q -200 $LOG_FILE 2> /dev/null | grep 'Shutting down'
 rm $PID_FILE
 
-echo -n "Structr instance '$DISPLAY_NAME' stopped (PID $SERVER_PID)"
-echo
+echo "Structr instance '$DISPLAY_NAME' stopped (PID $SERVER_PID)"
