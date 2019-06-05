@@ -3589,16 +3589,41 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.sort('name', true)); }}", "testFindNewSyntax");
-			final List<NodeInterface> result2 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.sort('name')); }}", "testFindNewSyntax");
+			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', { 'name2': $.contains('s') }, $.sort('name', true)); }}", "testFindNewSyntax");
+			final List<NodeInterface> result2 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.sort('name', true)); }}", "testFindNewSyntax");
+			final List<NodeInterface> result3 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.sort('name')); }}", "testFindNewSyntax");
 
-			assertEquals("sort() in advanced find() does not sort correctly", result1.get(0).getUuid(), group3);
-			assertEquals("sort() in advanced find() does not sort correctly", result1.get(1).getUuid(), group2);
-			assertEquals("sort() in advanced find() does not sort correctly", result1.get(2).getUuid(), group1);
+			final String testFunction = "${{\n" +
+			"    let users = $.find('Project', {\n" +
+			"            $and: {\n" +
+			"                'name1': 'structr',\n" +
+			"                'age': $.range(30, 50)\n" +
+			"            }\n" +
+			"        },\n" +
+			"        $.sort('name', true),\n" +
+			"        $.page(1, 10)\n" +
+			"    );\n" +
+			"    return users;\n" +
+			"}}";
 
-			assertEquals("sort() in advanced find() does not sort correctly", result2.get(0).getUuid(), group1);
+			final Object result4Object        = Scripting.evaluate(ctx, null, testFunction, "testFindNewSyntax");
+			final List<NodeInterface> result4 = (List)result4Object;
+
+			assertEquals("Advanced find() does not filter correctly", 2, result1.size());
+			assertEquals("Advanced find() does not filter correctly", result1.get(0).getUuid(), group2);
+			assertEquals("Advanced find() does not filter correctly", result1.get(1).getUuid(), group1);
+
+			assertEquals("sort() in advanced find() does not sort correctly", result2.get(0).getUuid(), group3);
 			assertEquals("sort() in advanced find() does not sort correctly", result2.get(1).getUuid(), group2);
-			assertEquals("sort() in advanced find() does not sort correctly", result2.get(2).getUuid(), group3);
+			assertEquals("sort() in advanced find() does not sort correctly", result2.get(2).getUuid(), group1);
+
+			assertEquals("sort() in advanced find() does not sort correctly", result3.get(0).getUuid(), group1);
+			assertEquals("sort() in advanced find() does not sort correctly", result3.get(1).getUuid(), group2);
+			assertEquals("sort() in advanced find() does not sort correctly", result3.get(2).getUuid(), group3);
+
+			assertEquals("Advanced find() does not filter correctly", 2, result4.size());
+			assertEquals("Advanced find() does not filter correctly", result4.get(0).getUuid(), group3);
+			assertEquals("Advanced find() does not filter correctly", result4.get(1).getUuid(), group2);
 
 			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', { name: $.contains('2') }); }}", "testFindNewSyntax")).size());
 			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
