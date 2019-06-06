@@ -3730,7 +3730,89 @@ public class ScriptingTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
+	}
 
+	@Test
+	public void testJavascriptFindDateRange() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			schema.addType("Test");
+
+			final JsonType project  = schema.addType("Project");
+
+			project.addDateProperty("date").setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		final ActionContext ctx = new ActionContext(securityContext);
+		final Class type        = StructrApp.getConfiguration().getNodeEntityClass("Project");
+                final PropertyKey date  = StructrApp.key(type, "date");
+		final Calendar calendar = GregorianCalendar.getInstance();
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			// 01.01.2019
+			calendar.set(2019, 0, 1, 0, 0, 0);
+			app.create(type, new NodeAttribute<>(AbstractNode.name, "p1"), new NodeAttribute<>(date, calendar.getTime()));
+
+			// 01.02.2019
+			calendar.set(2019, 1, 1, 0, 0, 0);
+			app.create(type, new NodeAttribute<>(AbstractNode.name, "p2"), new NodeAttribute<>(date, calendar.getTime()));
+
+			// 01.03.2019
+			calendar.set(2019, 2, 1, 0, 0, 0);
+			app.create(type, new NodeAttribute<>(AbstractNode.name, "p3"), new NodeAttribute<>(date, calendar.getTime()));
+
+			// 01.04.2019
+			calendar.set(2019, 3, 1, 0, 0, 0);
+			app.create(type, new NodeAttribute<>(AbstractNode.name, "p4"), new NodeAttribute<>(date, calendar.getTime()));
+
+			// 01.05.2019
+			calendar.set(2019, 4, 1, 0, 0, 0);
+			app.create(type, new NodeAttribute<>(AbstractNode.name, "p5"), new NodeAttribute<>(date, calendar.getTime()));
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final String errorMessage = "Advanced find() with date range returns wrong result";
+
+			assertEquals(errorMessage, 5, ((List)Scripting.evaluate(ctx, null, formatDateTestScript("new Date",   "2000-01-01", "2100-01-01", "createdDate"), "testFindNewSyntax")).size());
+			assertEquals(errorMessage, 5, ((List)Scripting.evaluate(ctx, null, formatDateTestScript("Date.parse", "2000-01-01", "2100-01-01", "createdDate"), "testFindNewSyntax")).size());
+
+			assertEquals(errorMessage, 5, ((List)Scripting.evaluate(ctx, null, formatDateTestScript("new Date",   "2018-01-01", "2020-01-01", "date"), "testFindNewSyntax")).size());
+			assertEquals(errorMessage, 5, ((List)Scripting.evaluate(ctx, null, formatDateTestScript("Date.parse", "2018-01-01", "2020-01-01", "date"), "testFindNewSyntax")).size());
+
+			assertEquals(errorMessage, 2, ((List)Scripting.evaluate(ctx, null, formatDateTestScript("new Date",   "2018-12-31", "2019-02-15", "date"), "testFindNewSyntax")).size());
+			assertEquals(errorMessage, 2, ((List)Scripting.evaluate(ctx, null, formatDateTestScript("Date.parse", "2018-12-31", "2019-02-15", "date"), "testFindNewSyntax")).size());
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
 	}
 
 
@@ -3808,5 +3890,24 @@ public class ScriptingTest extends StructrTest {
 
 			assertEquals("Invalid map path result for " + mapPath, value, current);
 		}
+	}
+
+	private String formatDateTestScript(final String parseMethod, final String start, final String end, final String fieldName) {
+
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append("${{ let startDate = ");
+		buf.append(parseMethod);
+		buf.append("('");
+		buf.append(start);
+		buf.append("'); let endDate = ");
+		buf.append(parseMethod);
+		buf.append("('");
+		buf.append(end);
+		buf.append("'); return $.find('Project', { ");
+		buf.append(fieldName);
+		buf.append(": $.range(startDate, endDate) }, $.sort('name')); }}");
+
+		return buf.toString();
 	}
 }

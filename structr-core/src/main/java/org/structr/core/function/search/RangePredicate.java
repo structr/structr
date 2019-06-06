@@ -21,7 +21,6 @@ package org.structr.core.function.search;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -43,17 +42,6 @@ public class RangePredicate implements SearchFunctionPredicate {
 
 	@Override
 	public void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey key, final Query query, final boolean exact) throws FrameworkException {
-
-		final PropertyConverter inputConverter = key.inputConverter(securityContext);
-		Object start                           = rangeStart;
-		Object end                             = rangeEnd;
-
-		if (inputConverter != null) {
-
-			start = inputConverter.convert(start);
-			end   = inputConverter.convert(end);
-		}
-
-		query.andRange(key, start, end, includeStart, includeEnd);
+		query.andRange(key, rangeStart, rangeEnd, includeStart, includeEnd);
 	}
 }
