@@ -1552,7 +1552,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						// Tell the client that we support byte ranges
 						response.setHeader("Accept-Ranges", "bytes");
 						response.setHeader("Content-Range", String.format("bytes %s-%s/%s", start, end, len));
-						response.setHeader("Content-Length", String.format("%s", contentLength));
+						response.setHeader("Content-Length", Long.toString(contentLength));
 
 						response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
 						callbackMap.put("statusCode", HttpServletResponse.SC_PARTIAL_CONTENT);
@@ -1561,14 +1561,12 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					} else {
 
-						if (!file.isTemplate()) {
-							response.addHeader("Content-Length", Long.toString(file.getSize()));
-						}
+						long fileSize = IOUtils.copyLarge(in, out);
+
+						response.addHeader("Content-Length", Long.toString(fileSize));
 
 						response.setStatus(HttpServletResponse.SC_OK);
 						callbackMap.put("statusCode", HttpServletResponse.SC_OK);
-
-						IOUtils.copyLarge(in, out);
 					}
 
 				} catch (Throwable t) {
