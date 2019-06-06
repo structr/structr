@@ -18,25 +18,18 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class NotFunction extends Function<Object, Object> {
+public class NotFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_NOT = "Usage: ${not(bool1, bool2)}. Example: ${not(\"true\", \"true\")}";
+	public static final String ERROR_MESSAGE_NOT = "Usage: ${not(bool)}. Example: ${not(\"true\")}";
 
 	@Override
 	public String getName() {
 		return "not";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override
@@ -68,6 +61,6 @@ public class NotFunction extends Function<Object, Object> {
 
 	@Override
 	public String shortDescription() {
-		return "Negates the given arguments";
+		return "Negates the given argument";
 	}
 }

@@ -27,7 +27,7 @@ import {StructrRest} from "./flow-editor/src/js/rest/StructrRest.js";
 import {Rest} from "./flow-editor/src/js/rest/Rest.js";
 
 let main, flowsMain, flowsTree, flowsCanvas;
-let editor, flowId;
+let flowEditor, flowId;
 const methodPageSize = 10000, methodPage = 1;
 const flowsResizerLeftKey = 'structrFlowsResizerLeftKey_' + port;
 const activeFlowsTabPrefix = 'activeFlowsTabPrefix' + port;
@@ -44,7 +44,6 @@ var _Flows = {
 
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
-		Structr.adaptUiToAvailableModules();
 
 	},
 	resize: function() {
@@ -180,18 +179,18 @@ var _Flows = {
             }
 		});
 		document.querySelector('#create-new-flow').onclick = () => createFlow(document.getElementById('name-input'));
-		document.querySelector('.reset_view_icon').onclick = () => editor.resetView();
+		document.querySelector('.reset_view_icon').onclick = () => flowEditor.resetView();
 
 		document.querySelector('.delete_flow_icon').onclick = () => deleteFlow(flowId);
 		document.querySelector('.layout_icon').onclick = function() {
 			if (!this.getAttribute('class').includes('disabled')) {
-				new LayoutModal(editor);
+				new LayoutModal(flowEditor);
 			}
 		};
 
 		document.querySelector('.run_flow_icon').addEventListener('click', function() {
 			if (!this.getAttribute('class').includes('disabled')) {
-				editor.executeFlow();
+				flowEditor.executeFlow();
 			}
 		});
 
@@ -333,7 +332,6 @@ var _Flows = {
 		Structr.unblockMenu(100);
 
 		_Flows.resize();
-		Structr.adaptUiToAvailableFeatures();
 
 		$(flowsTree).on('select_node.jstree', function(a, b) {
 
@@ -363,17 +361,16 @@ var _Flows = {
                     persistence.deleteNode({
 						type: type,
 						id: id
-					})
+					});
                 }
 
-                if (editor !== undefined && editor !== null && editor.cleanup !== undefined) {
-                    editor.cleanup();
-                    editor = undefined;
+                if (flowEditor !== undefined && flowEditor !== null && flowEditor.cleanup !== undefined) {
+                    flowEditor.cleanup();
+                    flowEditor = undefined;
                 }
 
                 // display flow canvas
                 flowsCanvas.innerHTML = '<div id="nodeEditor" class="node-editor"></div>';
-
 
             };
 
@@ -396,13 +393,20 @@ var _Flows = {
                     }
                 }
 
+                let dataObject = {
+					type: type,
+					id: id,
+					scheduledForIndexing: true
+				};
+
+                if (name.indexOf(".") !== -1) {
+					dataObject.effectiveName = name;
+				} else {
+                	dataObject.name = name;	
+				}
+
                 if (id !== null) {
-                    await persistence._persistObject({
-                        type: type,
-                        id: id,
-                        name: name,
-                        scheduledForIndexing: true
-                    });
+                    await persistence._persistObject(dataObject);
 
                     _Flows.refreshTree(() => {});
                 }
@@ -629,7 +633,7 @@ var _Flows = {
         dialogText.append('<div class="editor"></div>');
 		let contentBox = $('.editor', dialogText);
 		let lineWrapping = LSWrapper.getItem(lineWrappingKey);
-		editor = CodeMirror(contentBox.get(0), {
+		let cmEditor = CodeMirror(contentBox.get(0), {
 			value: element.value,
 			mode: "application/javascript",
 			lineNumbers: true,
@@ -660,7 +664,7 @@ var _Flows = {
 
         dialogSaveButton.off('click').on('click', function(e) {
             e.stopPropagation();
-            element.value = editor.getValue();
+            element.value = cmEditor.getValue();
             element.dispatchEvent(new Event('change'));
             dialogSaveButton.prop("disabled", true).addClass('disabled');
         });
@@ -672,8 +676,8 @@ var _Flows = {
         });
 
 
-        editor.on('change', function(cm, change) {
-            if (element.value === editor.getValue()) {
+        cmEditor.on('change', function(cm, change) {
+            if (element.value === cmEditor.getValue()) {
                 dialogSaveButton.prop("disabled", true).addClass('disabled');
                 saveAndClose.prop("disabled", true).addClass('disabled');
             } else {
@@ -682,70 +686,69 @@ var _Flows = {
             }
         });
 
-        editor.focus();
-        editor.setCursor(editor.lineCount(), 0);
+        cmEditor.focus();
+        cmEditor.setCursor(cmEditor.lineCount(), 0);
 
-        window.setTimeout(() => {$('.closeButton', dialogBtn).blur(); editor.focus();}, 10);
+        window.setTimeout(() => {$('.closeButton', dialogBtn).blur(); cmEditor.focus();}, 10);
 	},
 
 	initFlow: function(id) {
 
-		if (editor !== undefined && editor !== null && editor.cleanup !== undefined) {
-			editor.cleanup();
-			editor = undefined;
+		if (flowEditor !== undefined && flowEditor !== null && flowEditor.cleanup !== undefined) {
+			flowEditor.cleanup();
+			flowEditor = undefined;
 		}
 
 		// display flow canvas
 		flowsCanvas.innerHTML = '<div id="nodeEditor" class="node-editor"></div>';
 
 		flowId = id;
+		let rest = new Rest();
         let persistence = new Persistence();
 
         persistence.getNodesById(id, new FlowContainer()).then( r => {
             document.title = "Flow - " + r[0].name;
 
             let rootElement = document.querySelector("#nodeEditor");
-            editor = new FlowEditor(rootElement, r[0], {deactivateInternalEvents: true});
+            flowEditor = new FlowEditor(rootElement, r[0], {deactivateInternalEvents: true});
 
-            editor.waitForInitialization().then( () => {
+            flowEditor.waitForInitialization().then( () => {
 
-                let promises = [];
+				rest.post('/structr/rest/FlowContainer/' + r[0].id + "/getFlowNodes").then((res) => {
 
-                r[0].flowNodes.forEach(node => {
-                    promises.push(persistence.getNodesById(node.id).then(n => editor.renderNode(n[0])));
-                });
+					let result = res.result;
 
-                Promise.all(promises).then(() => {
-                    for (let [name, con] of Object.entries(FlowConnectionTypes.getInst().getAllConnectionTypes())) {
+					for (let node of result) {
 
-                        persistence.getNodesByClass(con).then(relNodes => {
+						flowEditor.renderNode(persistence._wrapObject(node,node));
+					}
 
-                            relNodes.forEach(rel => {
+				}).then(() => {
 
-                                if (Array.isArray(rel)) {
-                                    rel = rel[0];
-                                }
+					rest.post('/structr/rest/FlowContainer/' + r[0].id + "/getFlowRelationships").then((res) => {
 
-                                if (r[0].flowNodes.filter(el => el.id === rel.sourceId).length > 0 && r[0].flowNodes.filter(el => el.id === rel.targetId).length > 0) {
-                                    editor.connectNodes(rel);
-                                }
+						let result = res.result;
 
-                            });
+						for (let rel of result) {
 
-                        });
+							flowEditor.connectNodes(rel);
+						}
 
-                    }
+					}).then(() => {
 
-                    editor.applySavedLayout();
-                    editor._editor.view.update();
-					editor.resetView();
+						flowEditor.applySavedLayout();
+						flowEditor._editor.view.update();
+						flowEditor.resetView();
 
-					// activate buttons
-					document.querySelector('.run_flow_icon').classList.remove('disabled');
-					document.querySelector('.delete_flow_icon').classList.remove('disabled');
-					document.querySelector('.layout_icon').classList.remove('disabled');
+						// activate buttons
+						document.querySelector('.run_flow_icon').classList.remove('disabled');
+						document.querySelector('.delete_flow_icon').classList.remove('disabled');
+						document.querySelector('.layout_icon').classList.remove('disabled');
 
-                });
+
+					});
+
+				});
 
             });
 

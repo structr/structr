@@ -18,23 +18,16 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class EndsWithFunction extends Function<Object, Object> {
+public class EndsWithFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_ENDS_WITH = "Usage: ${ends_with(string, suffix)}. Example: ${ends_with(locale, \"de\")}";
 
 	@Override
 	public String getName() {
 		return "ends_with";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

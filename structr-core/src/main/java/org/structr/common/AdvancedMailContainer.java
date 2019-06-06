@@ -22,9 +22,15 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.apache.commons.mail.EmailException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.mail.MailServiceInterface;
+import org.structr.core.Services;
 
 public class AdvancedMailContainer {
+
+	protected static final Logger logger = LoggerFactory.getLogger(AdvancedMailContainer.class.getName());
 
 	private String fromName      = null;
 	private String fromAddress   = null;
@@ -33,6 +39,8 @@ public class AdvancedMailContainer {
 	private String htmlContent   = null;
 	private String textContent   = null;
 
+	private String inReplyTo     = null;
+
 	private final Map<String, String> to      = new LinkedHashMap<>(1);
 	private final Map<String, String> cc      = new LinkedHashMap<>(0);
 	private final Map<String, String> bcc     = new LinkedHashMap<>(0);
@@ -40,6 +48,9 @@ public class AdvancedMailContainer {
 	private final Map<String, String> headers = new LinkedHashMap<>(0);
 
 	private final ArrayList<DynamicMailAttachment> attachments = new ArrayList();
+
+	private boolean saveOutgoingMessage = false;
+	private Object lastOutgoingMessage = null;
 
 	public String getFromName() {
 		return fromName;
@@ -160,6 +171,10 @@ public class AdvancedMailContainer {
 		getCustomHeaders().put(name, content);
 	}
 
+	public void removeCustomHeader(final String name) {
+		getCustomHeaders().remove(name);
+	}
+
 	public void clearCustomHeaders() {
 		getCustomHeaders().clear();
 	}
@@ -173,8 +188,41 @@ public class AdvancedMailContainer {
 		return bounceAddress;
 	}
 
+	public void setInReplyTo(final String inReplyToMessageId) {
+		this.inReplyTo = inReplyToMessageId;
+	}
+
+	public String getInReplyTo() {
+		return this.inReplyTo;
+	}
+
+	public void clearInReplyTo() {
+		this.inReplyTo = null;
+	}
+
+	public boolean isSaveOutgoingMessage() {
+		return saveOutgoingMessage;
+	}
+
+	public void setSaveOutgoingMessage(boolean saveOutgoingMessage) {
+		this.saveOutgoingMessage = saveOutgoingMessage;
+	}
+
+	public Object getLastOutgoingMessage() {
+
+		if (isSaveOutgoingMessage()) {
+
+			return this.lastOutgoingMessage;
+
+		} else {
+
+			logger.warn("Advanced Mail not configured to save outgoing messages - not returning last outgoing message!");
+			return null;
+		}
+	}
 
 	public void clearMailContainer() {
+
 		setFromName(null);
 		setFromAddress(null);
 		setSubject(null);
@@ -182,16 +230,21 @@ public class AdvancedMailContainer {
 		setTextContent(null);
 		setBounceAddress(null);
 
+		clearInReplyTo();
+
+		setSaveOutgoingMessage(false);
+		this.lastOutgoingMessage = null;
+
 		clearTo();
 		clearCc();
 		clearBcc();
 		clearReplyTo();
 		clearAttachments();
 		clearCustomHeaders();
+
 	}
 
-
-	public String send() throws EmailException, FrameworkException {
+	public String send(final SecurityContext securityContext) throws EmailException, FrameworkException {
 
 		boolean mandatoryFieldsPresent = (this.fromAddress != null && this.subject != null && (this.htmlContent != null || this.textContent != null));
 
@@ -203,6 +256,40 @@ public class AdvancedMailContainer {
 			throw new FrameworkException(422, "Unable to send e-mail: There aren't any recipients (empty to:, cc: and bcc: fields)");
 		}
 
-		return MailHelper.sendAdvancedMail(this);
+		final String sentMessageId = MailHelper.sendAdvancedMail(this);
+
+		if (isSaveOutgoingMessage()) {
+
+			createOutgoingMessage(securityContext, sentMessageId);
+		}
+
+		return sentMessageId;
+	}
+
+
+	/*~~~~~~~~ private functions  ~~~~~~~~~*/
+
+	public String getDisplayName (final String address, final String name) {
+		return (name == null) ? address : (name + "<" + address + ">");
+	}
+
+	public String getCombinedDisplayNames(final Map<String, String> addresses) {
+
+		final ArrayList<String> toList = new ArrayList();
+
+		for (Map.Entry<String, String> entry : addresses.entrySet()) {
+			toList.add(this.getDisplayName(entry.getKey(), entry.getValue()));
+		}
+
+		return String.join(", ", toList);
+	}
+
+	private void createOutgoingMessage(final SecurityContext securityContext, final String messageId) {
+
+		final MailServiceInterface mailServiceClass = Services.getInstance().getServiceImplementation(MailServiceInterface.class);
+
+		if (mailServiceClass != null) {
+			this.lastOutgoingMessage = mailServiceClass.saveOutgoingMessage(securityContext, this, messageId);
+		}
 	}
 }

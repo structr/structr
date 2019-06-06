@@ -606,7 +606,7 @@ public class AccessControlTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final App user1App = StructrApp.getInstance(user1Context);
+		App user1App = StructrApp.getInstance(user1Context);
 
 		// ################################################################################################################
 		// create a group and a test object that becomes accessible for the second user by group membership
@@ -654,12 +654,12 @@ public class AccessControlTest extends StructrTest {
 		// user2 is not yet member of the group, so
 		// it should not be possible to access the object
 
-		final App user2App = StructrApp.getInstance(user2Context);
+		App user2App = StructrApp.getInstance(user2Context);
 
 		try (final Tx tx = user2App.tx()) {
 
 			final TestOne test = user2App.nodeQuery(TestOne.class).getFirst();
-			assertNull(test);
+			assertNull("TestOne instance should not be visible to user2", test);
 
 			tx.success();
 
@@ -712,7 +712,7 @@ public class AccessControlTest extends StructrTest {
 		try (final Tx tx = user2App.tx()) {
 
 			final TestOne test = user2App.nodeQuery(TestOne.class).getFirst();
-			assertNotNull("Group should be readable for members", test);
+			assertNotNull("TestOne instance should be readable for members", test);
 
 			tx.success();
 
@@ -819,10 +819,22 @@ public class AccessControlTest extends StructrTest {
 		// user2 is not member of the group anymore, so
 		// it should not be possible to access the object
 
+		/*
+		try (final Tx tx = app.tx()) {
+
+			user2App = StructrApp.getInstance(SecurityContext.getInstance(app.get(Principal.class, user2Id), AccessMode.Backend));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+		*/
+
 		try (final Tx tx = user2App.tx()) {
 
 			final TestOne test = user2App.nodeQuery(TestOne.class).getFirst();
-			assertNull(test);
+			assertNull("TestOne instance should not be visible to user2", test);
 
 			tx.success();
 

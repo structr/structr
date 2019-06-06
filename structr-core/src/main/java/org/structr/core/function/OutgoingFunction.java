@@ -20,16 +20,14 @@ package org.structr.core.function;
 
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.RelationshipType;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class OutgoingFunction extends Function<Object, Object> {
+public class OutgoingFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_OUTGOING    = "Usage: ${outgoing(entity [, relType])}. Example: ${outgoing(this, 'PARENT_OF')}";
 	public static final String ERROR_MESSAGE_OUTGOING_JS = "Usage: ${{Structr.outgoing(entity [, relType])}}. Example: ${{outgoing(Structr.this, 'PARENT_OF')}}";
@@ -37,11 +35,6 @@ public class OutgoingFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "outgoing";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

@@ -694,14 +694,14 @@ public class GraphQLTest extends StructrGraphQLTest {
 		// test data setup
 		try (final Tx tx = app.tx()) {
 
-			final Principal p1 = app.create(Principal.class, "First Tester");
 			final Principal p2 = app.create(Principal.class, "Second Tester");
-			final MailTemplate m1 = app.create(MailTemplate.class, "First Template");
-			final MailTemplate m2 = app.create(MailTemplate.class, "Second Template");
+			final Principal p1 = app.create(Principal.class, "First Tester");
 			final MailTemplate m3 = app.create(MailTemplate.class, "Third Template");
-			final MailTemplate m4 = app.create(MailTemplate.class, "Fourth Template");
+			final MailTemplate m2 = app.create(MailTemplate.class, "Second Template");
 			final MailTemplate m5 = app.create(MailTemplate.class, "Fifth Template");
+			final MailTemplate m1 = app.create(MailTemplate.class, "First Template");
 			final MailTemplate m6 = app.create(MailTemplate.class, "Sixth Template");
+			final MailTemplate m4 = app.create(MailTemplate.class, "Fourth Template");
 
 			m1.setProperty(MailTemplate.owner, p1);
 			m2.setProperty(MailTemplate.owner, p1);
@@ -814,8 +814,8 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			final Class type = StructrApp.getConfiguration().getNodeEntityClass("FunctionTest");
 
-			app.create(type, "test1");
 			app.create(type, "test2");
+			app.create(type, "test1");
 
 			tx.success();
 
@@ -842,7 +842,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		}
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ FunctionTest(stringTest: {_contains: \"e\"}) { id, type, name, stringTest, boolTest }}");
+			final Map<String, Object> result = fetchGraphQL("{ FunctionTest(stringTest: {_contains: \"e\"}, _sort: \"name\") { id, type, name, stringTest, boolTest }}");
 			assertMapPathValueIs(result, "FunctionTest.#",            2);
 			assertMapPathValueIs(result, "FunctionTest.0.name",       "test1");
 			assertMapPathValueIs(result, "FunctionTest.0.stringTest", "true");
@@ -2578,11 +2578,13 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final List<NodeInterface> tasks2 = new LinkedList<>();
 			final List<NodeInterface> tasks3 = new LinkedList<>();
 			final List<NodeInterface> tasks4 = new LinkedList<>();
+			final List<NodeInterface> tasks5 = new LinkedList<>();
 
 			final NodeInterface project1     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project1"), new NodeAttribute<>(checkedKey, true));
 			final NodeInterface project2     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project2"), new NodeAttribute<>(checkedKey, false));
 			final NodeInterface project3     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project3"), new NodeAttribute<>(checkedKey, true));
-			final NodeInterface project4     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Projecto"), new NodeAttribute<>(checkedKey, false));
+			final NodeInterface project4     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project4"), new NodeAttribute<>(checkedKey, false));
+			final NodeInterface project5     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project5"), new NodeAttribute<>(checkedKey, true));
 
 			tasks1.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task1.1"), new NodeAttribute<>(checkedKey, false)));
 			tasks1.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task1.3"), new NodeAttribute<>(checkedKey, true)));
@@ -2603,6 +2605,11 @@ public class GraphQLTest extends StructrGraphQLTest {
 			tasks4.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task4.2"), new NodeAttribute<>(checkedKey, true)));
 			tasks4.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task4.3"), new NodeAttribute<>(checkedKey, false)));
 			tasks4.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task4.4"), new NodeAttribute<>(checkedKey, true)));
+
+			tasks5.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task5.1"), new NodeAttribute<>(checkedKey, false)));
+			tasks5.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task5.2"), new NodeAttribute<>(checkedKey, false)));
+			tasks5.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task5.3"), new NodeAttribute<>(checkedKey, false)));
+			tasks5.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task5.4"), new NodeAttribute<>(checkedKey, false)));
 
 			project1.setProperty(projectTasksKey, tasks1);
 			project2.setProperty(projectTasksKey, tasks2);
@@ -2634,6 +2641,23 @@ public class GraphQLTest extends StructrGraphQLTest {
 			assertMapPathValueIs(result, "Project.1.tasks.2.name",    "Task3.3");
 			assertMapPathValueIs(result, "Project.1.tasks.3.name",    "Task3.4");
 		}
+
+		/* failing test, to be implemented...
+		{
+			//final Map<String, Object> result = fetchGraphQL("{ Project(_sort: \"name\", isChecked: { _equals: true}) { id, type, name, isChecked, tasks( isChecked: { _equals: true }, _sort: \"name\", _desc: true ) { id, type, name, isChecked }}}");
+			final Map<String, Object> result = fetchGraphQL("{ Project(_sort: \"name\", isChecked: { _equals: true}) { id, type, name, isChecked, tasks(_sort: \"name\", _desc: true ) { id, type, name, isChecked( _equals: true) }}}");
+
+			assertMapPathValueIs(result, "Project.#",                  2);
+			assertMapPathValueIs(result, "Project.0.name",            "Project1");
+			assertMapPathValueIs(result, "Project.0.isChecked",       true);
+			assertMapPathValueIs(result, "Project.0.tasks.0.name",    "Task1.6");
+			assertMapPathValueIs(result, "Project.0.tasks.1.name",    "Task1.3");
+			assertMapPathValueIs(result, "Project.1.name",            "Project3");
+			assertMapPathValueIs(result, "Project.1.isChecked",       true);
+			assertMapPathValueIs(result, "Project.1.tasks.0.name",    "Task3.4");
+			assertMapPathValueIs(result, "Project.1.tasks.1.name",    "Task3.2");
+		}
+		*/
 
 	}
 

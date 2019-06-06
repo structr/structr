@@ -19,20 +19,19 @@
 package org.structr.common.error;
 
 import org.slf4j.Logger;
-import org.structr.api.service.LicenseManager;
 
 /**
  * Exception to be thrown when an unlicensed scripting function is encountered.
  */
 public class UnlicensedScriptException extends RuntimeException {
 
-	private String name    = null;
-	private String edition = null;
+	private String name   = null;
+	private String module = null;
 
-	public UnlicensedScriptException(final String name, final int editionBitmask) {
+	public UnlicensedScriptException(final String name, final String module) {
 
-		this.edition = LicenseManager.getEdition(editionBitmask);
-		this.name    = name;
+		this.module = module;
+		this.name   = name;
 	}
 
 	public void log(final Logger logger) {
@@ -55,9 +54,9 @@ public class UnlicensedScriptException extends RuntimeException {
 
 		buf.append("Call to unlicensed StructrScript function ");
 		buf.append(name);
-		buf.append("(). This function is only available in the ");
-		buf.append(edition);
-		buf.append(" Edition and higher. Please contact licensing@structr.com with this error message for more information.");
+		buf.append("(). This function requires the ");
+		buf.append(module);
+		buf.append(" module. Please contact licensing@structr.com with this error message for more information.");
 
 		return buf.toString();
 	}

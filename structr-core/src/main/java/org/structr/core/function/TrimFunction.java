@@ -21,25 +21,18 @@ package org.structr.core.function;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class TrimFunction extends Function<Object, Object> {
+public class TrimFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_TRIM = "Usage: ${trim(string)}. Example: ${trim(this.text)}";
 
 	@Override
 	public String getName() {
 		return "trim";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

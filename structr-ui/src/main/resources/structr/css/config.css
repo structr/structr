@@ -181,9 +181,21 @@ button.toggle-option {
 	background-color: #fff !important;
 }
 
-button.active {
+button.toggle-option.active {
 	background-color: #ccc !important;
 }
+
+button.toggle-option:not(.active) {
+	opacity: 0.75;
+}
+
+button.toggle-option.active::after {
+	content: " \2713";
+}
+
+/*button.toggle-option:not(.active)::after {
+	content: " \2718";
+}*/
 
 
 #search-container {

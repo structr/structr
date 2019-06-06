@@ -24,13 +24,11 @@ import java.util.Map;
 import org.structr.api.DatabaseService;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
-import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.TypeProperty;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Create labels for all nodes of the given type.
  */
@@ -44,7 +42,7 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 		final SecurityContext superUserContext    = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory             = new NodeFactory(superUserContext);
 		final boolean removeUnused                = !attributes.containsKey("removeUnused");
-		final Iterator<AbstractNode> nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getNodesByTypeProperty(entityType))).iterator();
+		final Iterator<AbstractNode> nodeIterator = Iterables.map(nodeFactory, graphDb.getNodesByTypeProperty(entityType)).iterator();
 
 		if (entityType == null) {
 

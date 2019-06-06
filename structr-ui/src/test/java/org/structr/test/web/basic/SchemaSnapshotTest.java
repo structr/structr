@@ -75,6 +75,7 @@ public class SchemaSnapshotTest extends StructrUiTest {
 			customer.addDoubleArrayProperty("doubleArray", "public", "ui").setMinimum(2.0, true).setMaximum(102.0, true);
 			customer.addBooleanArrayProperty("booleanArray", "public", "ui");
 			customer.addDateArrayProperty("birthdayArray", "public", "ui");
+			customer.addEncryptedProperty("secret", "public", "ui");
 
 			// a project
 			final JsonObjectType project  = sourceSchema.addType("Project");

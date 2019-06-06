@@ -53,8 +53,6 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 	public static final Class GENERIC_NODE_TYPE          = GenericNode.class;
 	public static final Class GENERIC_REL_TYPE           = GenericRelationship.class;
 
-	private String externalNodeTypeName = null;
-
 	@Override
 	public AbstractRelationship createGenericRelationship() {
 		return new GenericRelationship();
@@ -105,49 +103,6 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 				}
 			}
 
-		} else {
-
- 			if (externalNodeTypeName == null) {
-
-				// try to determine external node
-				// type name from configuration
-				externalNodeTypeName = Settings.ForeignTypeName.getValue();
-			}
-
-			if (externalNodeTypeName != null && node.hasProperty(externalNodeTypeName)) {
-
-				Object typeObj = node.getProperty(externalNodeTypeName);
-				if (typeObj != null) {
-
-					// String externalNodeType = typeObj.toString();
-
-					// initialize dynamic type
-					// genericNodeExtender.getType(externalNodeType);
-
-					// return dynamic type
-					final Class dynamicType = StructrApp.getConfiguration().getNodeEntityClass(typeObj.toString());
-					if (dynamicType != null) {
-
-						return dynamicType;
-					}
-				}
-			}
-
-			final Iterable<Label> labels = node.getLabels();
-			if (labels != null) {
-
-				final List<String> sortedLabels = Iterables.toList(Iterables.map(new LabelExtractor(), labels));
-				Collections.sort(sortedLabels);
-
-				final String typeName = StringUtils.join(sortedLabels, "");
-
-				// return dynamic type
-				final Class dynamicType = StructrApp.getConfiguration().getNodeEntityClass(typeName);
-				if (dynamicType != null) {
-
-					return dynamicType;
-				}
-			}
 		}
 
 		return getGenericNodeType();

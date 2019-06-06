@@ -512,7 +512,7 @@ var Structr = {
 			}
 		});
 		$.ui.ddmanager.droppables['default'] = newDroppables;
-		$('iframe').unload();
+		$('iframe').contents().remove();
 		fastRemoveAllChildren(main[0]);
 		$('#graph-box').hide();
 	},
@@ -556,9 +556,9 @@ var Structr = {
 		});
 
 	},
-	saveLocalStorage: function() {
+	saveLocalStorage: function(callback) {
 		_Logger.log(_LogType.INIT, "Saving localstorage");
-		Command.saveLocalStorage();
+		Command.saveLocalStorage(callback);
 	},
 	restoreLocalStorage: function(callback) {
 		if (!LSWrapper.isLoaded()) {
@@ -737,7 +737,7 @@ var Structr = {
 		} else {
 
 			// Calculate dimensions of dialog
-			if ($('.blockPage').length) {
+			if ($('.blockPage').length && !loginBox.is(':visible')) {
 				Structr.setSize($(window).width(), $(window).height(), Math.min(900, $(window).width() - 24), Math.min(600, $(window).height() - 24));
 			}
 

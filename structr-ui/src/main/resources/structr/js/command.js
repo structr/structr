@@ -461,14 +461,14 @@ var Command = {
 	 * The server will set the permission contained in the 'data' on the node
 	 * with the given id and broadcast an update notification.
 	 */
-	setPermission: function(id, principalId, action, permission, recursive, callback) {
+	setPermission: function(id, principalId, action, permissions, recursive, callback) {
 		var obj = {
 			command: 'SET_PERMISSION',
 			id: id,
 			data: {
 				principalId: principalId,
 				action: action,
-				permission: permission,
+				permissions: permissions,
 				recursive: recursive
 			}
 		};
@@ -1008,7 +1008,7 @@ var Command = {
 	 *
 	 * The server gives no feedback on a CHUNK command.
 	 */
-	chunk: function(id, chunkId, chunkSize, chunk, chunks) {
+	chunk: function(id, chunkId, chunkSize, chunk, chunks, callback) {
 		var obj = {
 			command: 'CHUNK',
 			id: id,
@@ -1020,7 +1020,7 @@ var Command = {
 			}
 		};
 		_Logger.log(_LogType.WS[obj.command], 'chunk()', obj);
-		return sendObj(obj);
+		return sendObj(obj, callback);
 	},
 	/**
 	 * Send a CREATE command to the server.
@@ -1340,7 +1340,7 @@ var Command = {
 			// add ownerless configs
 			if (ownerlessConfigs.length > 0) {
 				sortedAndGrouped.push({
-					ownerName: null,
+					ownerName: 'Layouts without owner',
 					configs: ownerlessConfigs
 				});
 			}
@@ -1362,5 +1362,18 @@ var Command = {
 	 */
 	getApplicationConfigurationDataNode: function(id, callback) {
 		return Command.get(id, 'content', callback);
-	}
+	},
+	/**
+     * Requests log snapshot from the server.
+     *
+     */
+    getServerLogSnapshot: function(numberOfLines, callback) {
+        var obj  = {
+            command: 'SERVER_LOG',
+            data: {
+                numberOfLines: numberOfLines
+            }
+        };
+        return sendObj(obj, callback);
+    }
 };

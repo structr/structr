@@ -19,15 +19,18 @@
 package org.structr.mail.function;
 
 import org.apache.commons.mail.EmailException;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
+import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class MailSendFunction extends Function<Object, Object> {
+public class MailSendFunction extends AdvancedMailModuleFunction {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_send()}";
 	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_send() }}";
+
+	public MailSendFunction(final AdvancedMailModule parent) {
+		super(parent);
+	}
 
 	@Override
 	public String getName() {
@@ -35,16 +38,11 @@ public class MailSendFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Enterprise;
-	}
-
-	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
 
-			return ctx.getAdvancedMailContainer().send();
+			return ctx.getAdvancedMailContainer().send(ctx.getSecurityContext());
 
 		} catch (FrameworkException ex) {
 

@@ -115,7 +115,7 @@ input[type="checkbox"] {
 #header .structr-instance-info {
 	float: right;
 	color: #fff;
-	margin-right: 12px;
+	margin-right: 8px;
 }
 
 #header .structr-instance {
@@ -140,7 +140,7 @@ input[type="checkbox"] {
 	font-size: 8.5px;
 	text-align: right;
 	line-height: 1em;
-	margin-top: 1em;
+	margin-top: 6px;
 }
 
 #header .structr-version:empty:before {
@@ -164,6 +164,10 @@ input[type="checkbox"] {
 
 #header .structr-version .edition-icon {
 	margin-left: 5px;
+}
+
+#main {
+	height: calc(100% - 72px);
 }
 
 #main-help {
@@ -1257,6 +1261,42 @@ i.button {
 	margin-left: 0;
 }
 
+#newComponentDropzone {
+	border: 2px dashed lightgray;
+	border-radius: 5px;
+	padding: 10px 0;
+	color: lightgray;
+	margin-bottom: 4px;
+}
+
+#newComponentDropzone.allow-drop {
+	color: black;
+}
+
+#newComponentDropzone .new-component-info {
+	text-align: center;
+}
+
+#newComponentDropzone .new-component-info .sprite {
+	vertical-align: middle;
+}
+
+#newComponentDropzone .new-component-info .active {
+	visibility: hidden;
+	display: none;
+}
+
+#newComponentDropzone.allow-drop .new-component-info .inactive {
+	visibility: hidden;
+	display: none;
+}
+
+#newComponentDropzone.allow-drop .new-component-info .active {
+	visibility: visible;
+	display: inline-block;
+}
+
+
 .slideOut .node.widget {
 	margin-left: 0;
 	padding-left: 0;
@@ -1789,16 +1829,46 @@ button.enabled, button.active {
 	padding: 3px 0 0 7px;
 }
 
-.pager input[type=text] {
-	width: 14px;
-	margin-right: 4px;
-	padding-bottom: 3px;
+.pager {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+
 }
 
-.pager input.page, .pager input.pageNo, .pager input.pageSize, .pager input.pageCount {
-	/*margin-top: -1px;*/
+.pager input {
 	height: 17px;
+}
+
+.pager input[type=text] {
+	width: 24px;
+	margin-right: 4px;
+	padding-bottom: 3px;
+	text-align: center;
+}
+
+.pager input.page, .pager input.pageNo, .pager select.pageSize, .pager input.pageCount {
+	/*margin-top: -1px;*/
 	background-color: #fff;
+}
+
+.pager input.pageNo {
+	background-color: #fff ! important;
+}
+
+.pager input.pageNo.disabled {
+	border: 1px solid transparent;
+}
+
+.pager input.pageCount {
+	background-color: #fff ! important;
+	border: none;
+}
+
+.pager select.pageSize {
+	margin-right: 16px;
 }
 
 .pager button {
@@ -1807,9 +1877,16 @@ button.enabled, button.active {
 	background-color: #e5e5e5;
 }
 
-.pager input.filter[type="text"][data-attribute="name"], .pager input.filter[type="text"][data-attribute="category"] {
+.pager i {
+	font-size: 8pt;
+	padding: 2px 4px;
+	cursor: pointer;
+}
+
+.pager input.filter {
 	width: 52px;
 	font-size: 1.1em;
+	text-align: left;
 }
 
 .pager > div {
@@ -1817,11 +1894,12 @@ button.enabled, button.active {
 	white-space: nowrap;
 }
 
-button.disabled {
+button.disabled, i.disabled {
 	filter: alpha(opacity=60);
 	-khtml-opacity: 0.6;
 	-moz-opacity: 0.6;
 	opacity: 0.6;
+	cursor: not-allowed;
 }
 
 .input-and-button, .select-and-button {
@@ -2900,109 +2978,55 @@ input.bitmask {
 }
 
 /*
- * Dashboard
+ * Apps
  */
 
-.dashboard-box {
-	background-color: #fff;
-	border: 1px solid rgba(0,0,0,.125);
-	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
-	margin: 36px 12px 12px 12px;
-	padding: 2px 12px 6px 12px;
-	position: relative;
-	width: calc(50% - 50px);
-	min-width: 486px;
-	min-height: 286px;
-	float: left;
-	font-size: 1.2em;
-}
-
-.dashboard-header {
-	display: inline-block;
-	position: absolute;
-	height: 12px;
-	line-height: 0;
-	/*width: 120px;*/
-	margin-top: -27px;
-	margin-left: -13px;
-	padding: 0 12px 12px 12px;
-	background-color: #fff;
-	border-top: 1px solid rgba(0,0,0,.125);
-	border-left: 1px solid rgba(0,0,0,.125);
-	border-right: 1px solid rgba(0,0,0,.125);
-	color: #333;
-	font-size: .8em;
-}
-
-.dashboard-header h2 {
-	font-weight: normal;
-}
-
-.dashboard-info {
-	margin: 12px 0;
-}
-
-.dashboard-info img.icon, .dashboard-info i.icon {
-	vertical-align: bottom;
-	width: 16px;
-	max-height: 16px;
-}
-
-.dashboard-info.red {
-	border: 1px solid #d8000c;
-	background-color: #d8000c;
-	color: #fff;
-	display: inline-block;
-	padding: 2px 3px;
-	position: absolute;
-	right: 12px;
-	top: -1px;
-}
-
-#about-structr .props {
-	margin-top: 10px;
-}
-
-#about-structr .props i {
-	cursor: default;
-}
-
-#my-workset {
-	width: 75%;
+.app-category {
 	margin: 12px;
 	padding: 2px 12px 6px 12px;
 	position: relative;
-	min-width: 360px;
-	min-height: 190px;
+	font-size: 1.2em;
+}
+
+.app-category h2 {
+	margin: 0;
+}
+
+.app-category p {
+	margin: 0;
+}
+
+.app-tile {
+	background-color: #fff;
+	border: 1px solid rgba(0,0,0,.125);
+	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
+	margin: 12px 12px 12px 0;
+	padding: 2px 6px;
+	position: relative;
+	width: 120px;
+	min-width: 120px;
+	min-height: 200px;
 	float: left;
 	font-size: 1.2em;
 }
 
-.heading-narrow {
-	margin: 4px 0;
+.app-tile h4 {
+	margin: 0;
+	font-size: 1em;
+	font-weight: 500;
 }
 
-#params {
-	display: inline-block;
-	width: 50%;
-	vertical-align: top;
+.app-tile p {
+	margin: 0;
+	font-size: 1em;
+	font-weight: 300;
+	font-size: 0.8em;
 }
 
-#params i.button.sprite-delete {
-	margin-left: 2px;
-	vertical-align: sub;
-}
-
-#global-method-comment {
-	display: inline-block;
-	width: 47.5%;
-	margin-left: 2.5%;
-	vertical-align: top;
-}
-
-#deployment-source-input, #deployment-url-input, #deployment-target-input {
-	height: 14px;
-	margin: 0 4px 12px 0;
+.app-tile button {
+	position: absolute;
+	bottom: 2px;
+	right: 2px;
 }
 
 /*
@@ -4119,10 +4143,6 @@ i.fa.ps {
 /**
  * Settings for insert shortcut menu
  */
-#menu-area {
-	position: relative;
-}
-
 #add-child-dialog {
 	padding: 0;
 	top: 1px;
@@ -4241,6 +4261,12 @@ i.fa.ps {
 #localizations-pager {
 	height: 42px;
 }
+
+.pager input.filter.w75[type="text"] {
+	width: 75px;
+	font-size: 9pt;
+}
+
 
 .pager input.filter.w100[type="text"] {
 	width: 100px;
@@ -4765,10 +4791,13 @@ span.context-help-text {
 	z-index: 1012;
 }
 
-input.newKey {
-	width: calc(100% - 32px);
+.show-all tr.hidden {
+	display: table-row;
 }
 
+input.newKey {
+	width: calc(100% - 8px);
+}
 
 #csv-import #commit-interval {
 	width: 50px;
@@ -5104,4 +5133,12 @@ dl.help-definitions dd {
 
 .dialogText table.full-width td input {
 	width: calc(100% - 4px);
+}
+
+table#principals tbody td:first-of-type {
+	text-align: left;
+}
+
+table#principals tbody td {
+	text-align: center;
 }

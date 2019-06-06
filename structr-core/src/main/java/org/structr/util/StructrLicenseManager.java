@@ -119,28 +119,24 @@ public class StructrLicenseManager implements LicenseManager {
 	public static final String MachineKey              = "machine";
 	public static final String SignatureKey            = "key";
 	public static final String ServersKey              = "servers";
+	public static final String UsersKey                = "users";
 	public static final String HostIdKey               = "hostId";
 	public static final String LimitKey                = "limit";
 	public static final String HostIdMappingKey        = "hostIdValidationAttempts";
 	public static final int ServerPort                 = 5725;
 
-	private static final int CommunityMask              = 0x01; // 0001
-	private static final int BasicMask                  = 0x03; // 0011
-	private static final int SmallBusinessMask          = 0x07; // 0111
-	private static final int EnterpriseMask             = 0x0f; // 1111
-
-	private final Set<String> modules                   = new LinkedHashSet<>(Arrays.asList("core", "rest", "ui"));
+	private final Set<String> communityModules          = new LinkedHashSet<>(Arrays.asList("core", "rest", "ui"));
+	private final Set<String> modules                   = new LinkedHashSet<>(communityModules);
 	private final Set<String> classes                   = new LinkedHashSet<>();
-	private final SimpleDateFormat format               = new SimpleDateFormat(DatePattern);
 	private Certificate certificate                     = null;
 	private PublicKey publicKey                         = null;
 	private boolean allModulesLicensed                  = false;
 	private boolean licensePresent                      = false;
 	private String edition                              = "Community";
 	private String licensee                             = null;
-	private String startDateString                      = null;
-	private String endDateString                        = null;
-	private int editionMask                             = CommunityMask;
+	private String numberOfUsersString                  = null;
+	private Date startDate                              = null;
+	private Date endDate                                = null;
 
 	public StructrLicenseManager(final String licenseFileName) {
 
@@ -158,29 +154,9 @@ public class StructrLicenseManager implements LicenseManager {
 			// read license file (if present)
 			if (isValid(properties)) {
 
-				// init edition
-				edition = properties.get(EditionKey);
-				if (edition != null) {
-
-					switch (edition) {
-
-						case "Enterprise":
-							editionMask = EnterpriseMask;
-							break;
-
-						case "Small Business":
-							editionMask = SmallBusinessMask;
-							break;
-
-						case "Basic":
-							editionMask = BasicMask;
-							break;
-					}
-				}
-
-				licensee        = properties.get(NameKey);
-				startDateString = properties.get(StartKey);
-				endDateString   = properties.get(EndKey);
+				edition             = properties.get(EditionKey);
+				licensee            = properties.get(NameKey);
+				numberOfUsersString = properties.get(UsersKey);
 
 				// init modules
 				final String licensedModules = properties.get(ModulesKey);
@@ -214,6 +190,36 @@ public class StructrLicenseManager implements LicenseManager {
 
 			logger.info("Evaluation License");
 		}
+
+		final int userLimit = getNumberOfUsers();
+		if (userLimit > 0) {
+
+			logger.info("Licensed for {} users", userLimit);
+		}
+	}
+
+	@Override
+	public void refresh() {
+
+		// verify that the license is valid for the current date
+		if (licenseExpired()) {
+
+			final SimpleDateFormat format = new SimpleDateFormat(DatePattern);
+
+			logger.error("License found in license file is not valid any more, license period ended {}.", format.format(endDate.getTime()));
+
+			modules.clear();
+			modules.addAll(communityModules);
+
+			allModulesLicensed = false;
+
+			edition = "Community";
+		}
+	}
+
+	@Override
+	public String getEdition() {
+		return edition;
 	}
 
 	@Override
@@ -227,16 +233,6 @@ public class StructrLicenseManager implements LicenseManager {
 	}
 
 	@Override
-	public boolean isEdition(final int bitmask) {
-		return (editionMask & bitmask) > 0;
-	}
-
-	@Override
-	public String getEdition() {
-		return edition;
-	}
-
-	@Override
 	public String getLicensee() {
 		return licensee;
 	}
@@ -247,14 +243,33 @@ public class StructrLicenseManager implements LicenseManager {
 	}
 
 	@Override
-	public String getStartDate() {
-		return startDateString;
+	public Date getStartDate() {
+		return startDate;
 	}
 
 	@Override
-	public String getEndDate() {
-		return endDateString;
+	public Date getEndDate() {
+		return endDate;
 	}
+
+	@Override
+	public int getNumberOfUsers() {
+
+		if (numberOfUsersString != null) {
+
+			try {
+
+				return Integer.valueOf(numberOfUsersString);
+
+			} catch (Throwable t) {
+				logger.error("Invalid value for number of users in license key: {}: {}", numberOfUsersString, t.getMessage());
+			}
+
+		}
+
+		return -1;
+	}
+
 
 	@Override
 	public boolean isValid(final Feature feature) {
@@ -308,24 +323,30 @@ public class StructrLicenseManager implements LicenseManager {
 			return false;
 		}
 
-		final String src             = collectLicenseFieldsForSignature(properties);
-		final String name            = properties.get(NameKey);
-		final String key             = properties.get(SignatureKey);
-		final String hostId          = properties.get(MachineKey);
-		final String thisHostId      = createHash();
-		final String edition         = properties.get(EditionKey);
-		final String modules         = properties.get(ModulesKey);
-		final String dateString      = properties.get(DateKey);
-		final String startDateString = properties.get(StartKey);
-		final String endDateString   = properties.get(EndKey);
-		final String serversString   = properties.get(ServersKey);
-		final Date now               = new Date();
+
+		final SimpleDateFormat format = new SimpleDateFormat(DatePattern);
+		final String src              = collectLicenseFieldsForSignature(properties);
+		final String name             = properties.get(NameKey);
+		final String key              = properties.get(SignatureKey);
+		final String hostId           = properties.get(MachineKey);
+		final String thisHostId       = createHash();
+		final String edition          = properties.get(EditionKey);
+		final String modules          = properties.get(ModulesKey);
+		final String dateString       = properties.get(DateKey);
+		final String startDateString  = properties.get(StartKey);
+		final String endDateString    = properties.get(EndKey);
+		final String serversString    = properties.get(ServersKey);
+		final String usersString      = properties.get(UsersKey); // unused (cannot be verified here)
+		final Date now                = new Date();
 
 		if (StringUtils.isEmpty(key)) {
 
 			logger.error("Unable to read key from license file.");
 			return false;
 		}
+
+		startDate = parseDate(startDateString);
+		endDate   = parseDate(endDateString);
 
 		try {
 
@@ -424,7 +445,6 @@ public class StructrLicenseManager implements LicenseManager {
 		}
 
 		// verify that the license is valid for the current date
-		final Date startDate = parseDate(startDateString);
 		if (startDate != null && now.before(startDate) && !now.equals(startDate)) {
 
 			logger.error("License found in license file is not yet valid, license period starts {}.", format.format(startDate.getTime()));
@@ -432,14 +452,20 @@ public class StructrLicenseManager implements LicenseManager {
 		}
 
 		// verify that the license is valid for the current date
-		final Date endDate = parseDate(endDateString);
-		if (endDate != null && now.after(endDate) && !now.equals(endDate)) {
+		if (licenseExpired()) {
 
 			logger.error("License found in license file is not valid any more, license period ended {}.", format.format(endDate.getTime()));
 			return false;
 		}
 
 		return true;
+	}
+
+	private boolean licenseExpired() {
+
+		final Date now = new Date();
+
+		return (endDate != null && now.after(endDate) && !now.equals(endDate));
 	}
 
 	private Map<String, String> read(final String fileName) {
@@ -538,6 +564,8 @@ public class StructrLicenseManager implements LicenseManager {
 		if (dateOrNull != null) {
 
 			try {
+
+				final SimpleDateFormat format = new SimpleDateFormat(DatePattern);
 				return alignToDay(format.parse(dateOrNull));
 
 			} catch (Throwable ignore) {}
@@ -549,6 +577,8 @@ public class StructrLicenseManager implements LicenseManager {
 	private Date alignToDay(final Date date) {
 
 		try {
+
+			final SimpleDateFormat format = new SimpleDateFormat(DatePattern);
 			return format.parse(format.format(date));
 
 		} catch (Throwable ignore) {}
@@ -569,17 +599,23 @@ public class StructrLicenseManager implements LicenseManager {
 		buf.append(properties.get(ModulesKey));
 		buf.append(properties.get(MachineKey));
 
-		// optional value
+		// optional values
 		final String servers = properties.get(ServersKey);
 		if (StringUtils.isNotBlank(servers)) {
 
 			buf.append(servers);
 		}
 
+		final String users = properties.get(UsersKey);
+		if (StringUtils.isNotBlank(users)) {
+
+			buf.append(users);
+		}
+
 		return buf.toString();
 	}
 
-	private static void create(final String name, final String start, final String end, final String edition, final String modules, final String hostId, final String servers, final String keystoreFileName, final String password, final String outputFileName) {
+	private static void create(final String name, final String start, final String end, final String edition, final String modules, final String hostId, final String servers, final String users, final String keystoreFileName, final String password, final String outputFileName) {
 
 		final Map<String, String> properties = new LinkedHashMap<>();
 		final SimpleDateFormat format        = new SimpleDateFormat(DatePattern);
@@ -594,6 +630,10 @@ public class StructrLicenseManager implements LicenseManager {
 
 		if (StringUtils.isNotBlank(servers)) {
 			properties.put(ServersKey, servers);
+		}
+
+		if (StringUtils.isNotBlank(users)) {
+			properties.put(UsersKey, users);
 		}
 
 		sign(properties, keystoreFileName, password);
@@ -789,6 +829,7 @@ public class StructrLicenseManager implements LicenseManager {
 			final String modules  = (String)attributes.get(ModulesKey);
 			final String hostId   = (String)attributes.get(MachineKey);
 			final String servers  = (String)attributes.get(ServersKey);
+			final String users    = (String)attributes.get(UsersKey);
 			final String keystore = (String)attributes.get("keystore");
 			final String password = (String)attributes.get("password");
 
@@ -804,7 +845,7 @@ public class StructrLicenseManager implements LicenseManager {
 
 			} else {
 
-				StructrLicenseManager.create(name, start, end, edition, modules, hostId, servers, keystore, password, outFile);
+				StructrLicenseManager.create(name, start, end, edition, modules, hostId, servers, users, keystore, password, outFile);
 				logger.info("Successfully created license file {}.", outFile);
 			}
 		}

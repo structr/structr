@@ -19,12 +19,10 @@
 package org.structr.core.function;
 
 import java.util.Date;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class ToDateFunction extends Function<Object, Object> {
+public class ToDateFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_TO_DATE    = "Usage: ${to_date(value)}. Example: ${to_date(1473201885000)}";
 	public static final String ERROR_MESSAGE_TO_DATE_JS = "Usage: ${{Structr.toDate(value)}}. Example: ${{Structr.toDate(1473201885000)}}";
@@ -32,11 +30,6 @@ public class ToDateFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "to_date";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

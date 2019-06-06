@@ -18,16 +18,14 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class RemoveFromGroupFunction extends Function<Object, Object> {
+public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE    = "Usage: ${remove_from_group(group, principal)}";
 	public static final String ERROR_MESSAGE_JS = "Usage: ${{Structr.removeFromGroup(group, principal);}}";
@@ -35,11 +33,6 @@ public class RemoveFromGroupFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "remove_from_group";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

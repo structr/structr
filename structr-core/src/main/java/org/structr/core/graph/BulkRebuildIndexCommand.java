@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
-import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.Indexable;
@@ -90,7 +89,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		final DatabaseService graphDb       = (DatabaseService) arguments.get("graphDb");
 		Iterator<AbstractNode> nodeIterator = null;
 
-		nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getNodesByTypeProperty(entityType))).iterator();
+		nodeIterator = Iterables.map(nodeFactory, graphDb.getNodesByTypeProperty(entityType)).iterator();
 
 		if (entityType == null) {
 
@@ -129,7 +128,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 		final RelationshipFactory relFactory             = new RelationshipFactory(SecurityContext.getSuperUserInstance());
 		final DatabaseService graphDb                    = (DatabaseService) arguments.get("graphDb");
-		final Iterator<AbstractRelationship> relIterator = Iterables.map(relFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getRelationshipsByType(relType))).iterator();
+		final Iterator<AbstractRelationship> relIterator = Iterables.map(relFactory, graphDb.getRelationshipsByType(relType)).iterator();
 
 		if (relType == null) {
 

@@ -47,6 +47,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -313,6 +314,10 @@ public interface GraphObject extends CodeSource {
 			final Entry<PropertyKey, Object> attr = iterator.next();
 			final PropertyKey key                 = attr.getKey();
 			final Object value                    = attr.getValue();
+
+			if (key instanceof FunctionProperty) {
+				continue;
+			}
 
 			if (key.isPropertyTypeIndexable() && !key.isReadOnly() && !key.isSystemInternal() && !key.isUnvalidated()) {
 

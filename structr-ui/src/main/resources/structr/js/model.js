@@ -261,6 +261,12 @@ var StructrModel = {
 			} else {
 				Command.get(data.id, refreshKeys.join(','), callback);
 			}
+
+		} else {
+
+			// call callback anyway even if there is no obj
+			StructrModel.callCallback(data.callback, obj);
+
 		}
 
 		return obj;

@@ -18,17 +18,11 @@
  */
 package org.structr.core.function;
 
-import java.util.Map;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
-import org.structr.core.converter.PropertyConverter;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
@@ -44,12 +38,15 @@ public class FindFunction extends AbstractQueryFunction {
 	}
 
 	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
+	public String getNamespaceIdentifier() {
+		return "find";
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
+
+		final SecurityContext securityContext = ctx.getSecurityContext();
+		final boolean ignoreResultCount       = securityContext.ignoreResultCount();
 
 		try {
 
@@ -58,13 +55,9 @@ public class FindFunction extends AbstractQueryFunction {
 				throw new IllegalArgumentException();
 			}
 
-			final SecurityContext securityContext = ctx.getSecurityContext();
 			final ConfigurationProvider config    = StructrApp.getConfiguration();
 			final App app                         = StructrApp.getInstance(securityContext);
-			final Query query                     = app.nodeQuery().sort(GraphObject.createdDate).order(false);
-
-			// paging applied by surrounding slice() function
-			applyRange(securityContext, query);
+			final Query query                     = app.nodeQuery();//.sort(GraphObject.createdDate).order(false);
 
 			// the type to query for
 			Class type = null;
@@ -92,58 +85,10 @@ public class FindFunction extends AbstractQueryFunction {
 				return ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED;
 			}
 
-			// extension for native javascript objects
-			if (sources.length == 2 && sources[1] instanceof Map) {
+			// apply sorting and pagination by surrounding sort() and slice() expressions
+			applyQueryParameters(securityContext, query);
 
-				query.and(PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]));
-
-			} else if (sources.length == 2) {
-
-				if (sources[1] == null) {
-
-					throw new IllegalArgumentException();
-				}
-
-				// special case: second parameter is a UUID
-				final PropertyKey key = StructrApp.key(type, "id");
-
-				query.and(key, sources[1].toString());
-
-				return query.getFirst();
-
-			} else {
-
-				final int parameter_count = sources.length;
-
-				if (parameter_count % 2 == 0) {
-
-					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_FIND);
-				}
-
-				for (int c = 1; c < parameter_count; c += 2) {
-
-					if (sources[c] == null) {
-						throw new IllegalArgumentException();
-					}
-
-					final PropertyKey key = StructrApp.key(type, sources[c].toString());
-
-					if (key != null) {
-
-						final PropertyConverter inputConverter = key.inputConverter(securityContext);
-						Object value = sources[c + 1];
-
-						if (inputConverter != null) {
-
-							value = inputConverter.convert(value);
-						}
-
-						query.and(key, value);
-					}
-				}
-			}
-
-			return query.getAsList();
+			return handleQuerySources(securityContext, type, query, sources, true);
 
 		} catch (final IllegalArgumentException e) {
 
@@ -152,7 +97,9 @@ public class FindFunction extends AbstractQueryFunction {
 			return usage(ctx.isJavaScriptContext());
 
 		} finally {
-			resetRange();
+
+			resetQueryParameters(securityContext);
+			securityContext.ignoreResultCount(ignoreResultCount);
 		}
 	}
 

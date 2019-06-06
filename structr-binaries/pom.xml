@@ -177,18 +177,6 @@
 							<goal>push</goal>
 						</goals>
 					</execution>
-					<execution>
-						<id>tag-latest</id>
-						<phase>install</phase>
-						<goals>
-							<goal>build</goal>
-							<goal>tag</goal>
-							<goal>push</goal>
-						</goals>
-						<configuration>
-							<tag>latest</tag>
-						</configuration>
-					</execution>					
 				</executions>
 				<configuration>
 					<repository>structr/structr</repository>

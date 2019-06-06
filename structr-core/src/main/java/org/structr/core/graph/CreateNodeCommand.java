@@ -307,9 +307,11 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 		} catch (ClassCastException cce) {
 
+			cce.printStackTrace();
+
 			logger.warn("Encountered ClassCastException which is likely caused by faulty cache invalidation. Relationship ID {} of type {}, start and end node IDs: {}, {}",
 				rel.getId(),
-				rel.getType(),
+				rel.getType().name(),
 				rel.getStartNode() != null ? rel.getStartNode().getId() : "null",
 				rel.getEndNode()   != null ? rel.getEndNode().getId()   : "null"
 			);
@@ -344,9 +346,11 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 		} catch (ClassCastException cce) {
 
+			cce.printStackTrace();
+
 			logger.warn("Encountered ClassCastException which is likely caused by faulty cache invalidation. Relationship ID {} of type {}, start and end node IDs: {}, {}",
 				rel.getId(),
-				rel.getType(),
+				rel.getType().name(),
 				rel.getStartNode() != null ? rel.getStartNode().getId() : "null",
 				rel.getEndNode()   != null ? rel.getEndNode().getId()   : "null"
 			);

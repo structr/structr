@@ -22,9 +22,12 @@ import java.net.URI;
 import java.util.Date;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonReferenceProperty;
+import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
 
 public interface EMailMessage extends NodeInterface {
@@ -41,6 +44,9 @@ public interface EMailMessage extends NodeInterface {
 		type.addStringProperty("from",             PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("fromMail",         PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("to",               PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("cc",               PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("bcc",              PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("replyTo",          PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("content",          PropertyView.Ui).setIndexed(false);
 		type.addStringProperty("htmlContent",      PropertyView.Ui).setIndexed(false);
 		type.addStringProperty("folder",           PropertyView.Ui).setIndexed(true);
@@ -63,7 +69,10 @@ public interface EMailMessage extends NodeInterface {
 		type.addPropertyGetter("receivedDate",      Date.class);
 		type.addPropertyGetter("sentDate",          Date.class);
 
-		type.relate(file, "HAS_ATTACHMENT", Relation.Cardinality.OneToMany, "attachedMail", "attachedFiles").setCascadingDelete(JsonSchema.Cascade.sourceToTarget);
+		JsonReferenceType rel = type.relate(file, "HAS_ATTACHMENT", Relation.Cardinality.OneToMany, "attachedMail", "attachedFiles");
+		rel.setCascadingDelete(JsonSchema.Cascade.sourceToTarget);
+		rel.setReadPermissionPropagation(SchemaRelationshipNode.Propagation.Add);
+		rel.setPermissionPropagation(SchemaRelationshipNode.Direction.Out);
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "id,type");

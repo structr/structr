@@ -184,6 +184,8 @@ export class QueryGroup {
     _addOperation() {
         const operation = new QueryOperation();
 
+        operation.setQueryType(this.model.queryType);
+
         //Add listener for deletion event fired by QueryOperation delete button
         operation.getDOMNodes().addEventListener("query.operation.delete", (event) => {
             const toBeDeleted = event.detail;

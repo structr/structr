@@ -18,25 +18,18 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class StrReplaceFunction extends Function<Object, Object> {
+public class StrReplaceFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_STR_REPLACE = "Usage: ${str_replace(subject, search, replacement)}. Example: ${str_replace(\"Hello Wrlod!\", \"Wrlod\", \"World\")}";
 
 	@Override
 	public String getName() {
 		return "str_replace";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

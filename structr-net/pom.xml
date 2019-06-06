@@ -4,12 +4,20 @@
 	<name>Structr Net</name>
 	<groupId>org.structr</groupId>
 	<artifactId>structr-net</artifactId>
+<<<<<<< HEAD
 	<version>3.2.2</version>
+=======
+	<version>3.3-SNAPSHOT</version>
+>>>>>>> master
 
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr</artifactId>
+<<<<<<< HEAD
 		<version>3.2.2</version>
+=======
+		<version>3.3-SNAPSHOT</version>
+>>>>>>> master
 	</parent>
 		
 	<packaging>jar</packaging>

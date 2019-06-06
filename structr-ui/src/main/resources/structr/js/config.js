@@ -84,6 +84,12 @@ function getAnchorFromUrl(url) {
 
 $(function () {
 
+	$('#new-entry-button').on('click', createNewEntry);
+
+	$('#reload-config-button').on('click', function() {
+		window.location.href = window.location.origin + window.location.pathname + "?reload" + $('#active_section').val();
+	});
+
 	$('#configTabs a').on('click', function() {
 		$('#configTabs li').removeClass('active');
 		$('.tab-content').hide();
@@ -106,7 +112,7 @@ $(function () {
 	});
 
 	let anchor = getAnchorFromUrl(window.location.href) || 'general';
-	$('a[href=#' + anchor + ']').click();
+	$('a[href$=' + anchor + ']').click();
 
 	$("button.toggle-option").on('click', function() {
 

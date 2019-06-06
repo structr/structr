@@ -27,6 +27,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Setting;
@@ -85,7 +86,11 @@ public class ConfigServlet extends AbstractServletBase {
 			} else if (request.getParameter("reset") != null) {
 
 				final String key      = request.getParameter("reset");
-				final Setting setting = Settings.getSetting(key);
+				Setting setting = Settings.getSetting(key);
+
+				if (setting == null) {
+					setting = Settings.getCaseSensitiveSetting(key);
+				}
 
 				if (setting != null) {
 
@@ -185,7 +190,8 @@ public class ConfigServlet extends AbstractServletBase {
 			switch (action) {
 
 				case "login":
-					if (Settings.SuperUserPassword.getValue().equals(request.getParameter("password"))) {
+					
+					if (StringUtils.isNoneBlank(Settings.SuperUserPassword.getValue(), request.getParameter("password")) && Settings.SuperUserPassword.getValue().equals(request.getParameter("password"))) {
 						authenticateSession(request);
 					}
 					break;
@@ -217,23 +223,38 @@ public class ConfigServlet extends AbstractServletBase {
 				}
 
 				Setting<?> setting = Settings.getSetting(key);
+
+				if (setting != null && setting.isDynamic()) {
+
+					// unregister dynamic settings so the type can change
+					setting.unregister();
+					setting = null;
+				}
+
 				if (setting == null) {
 
-					// group specified?
-					final String group = request.getParameter(key + "._settings_group");
-					if (group != null) {
+					if (key.contains(".cronExpression")) {
 
-						parent = Settings.getGroup(group);
-						if (parent == null) {
-
-							// default to misc group
-							parent = Settings.miscGroup;
-						}
+						parent = Settings.cronGroup;
 
 					} else {
 
-						// fallback to misc group
-						parent = Settings.miscGroup;
+						// group specified?
+						final String group = request.getParameter(key + "._settings_group");
+						if (group != null) {
+
+							parent = Settings.getGroup(group);
+							if (parent == null) {
+
+								// default to misc group
+								parent = Settings.miscGroup;
+							}
+
+						} else {
+
+							// fallback to misc group
+							parent = Settings.miscGroup;
+						}
 					}
 
 					setting = Settings.createSettingForValue(parent, key, value);
@@ -333,10 +354,8 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag buttons = form.block("div").css("buttons");
 
 		buttons.block("button").attr(new Type("button")).id("new-entry-button").text("Add entry");
-		buttons.block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "' + $('#active_section').val() + '" +  "?reload';")).text("Reload configuration file");
+		buttons.block("button").attr(new Type("button")).id("reload-config-button").text("Reload configuration file");
 		buttons.empty("input").attr(new Type("submit"), new Value("Save to structr.conf"));
-
-		body.block("script").text("$('#new-entry-button').on('click', createNewEntry);");
 
 		return doc;
 	}
@@ -383,7 +402,7 @@ public class ConfigServlet extends AbstractServletBase {
 		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/sprites.css"));
 		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/config.css"));
 		head.empty("link").attr(new Rel("icon"), new Href("favicon.ico"), new Type("image/x-icon"));
-		head.block("script").attr(new Src("/structr/js/lib/jquery-1.11.1.min.js"));
+		head.block("script").attr(new Src("/structr/js/lib/jquery-3.3.1.min.js"));
 		head.block("script").attr(new Src("/structr/js/icons.js"));
 		head.block("script").attr(new Src("/structr/js/config.js"));
 

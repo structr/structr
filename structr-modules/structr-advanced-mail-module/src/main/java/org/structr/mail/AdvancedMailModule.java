@@ -34,12 +34,17 @@ import org.structr.mail.function.MailClearBccFunction;
 import org.structr.mail.function.MailClearBounceAddressFunction;
 import org.structr.mail.function.MailClearCcFunction;
 import org.structr.mail.function.MailClearHeadersFunction;
+import org.structr.mail.function.MailClearInReplyTo;
 import org.structr.mail.function.MailClearReplyToFunction;
 import org.structr.mail.function.MailClearToFunction;
+import org.structr.mail.function.MailGetLastOutgoingMessageFunction;
+import org.structr.mail.function.MailRemoveHeaderFunction;
+import org.structr.mail.function.MailSaveOutgoingMessageFunction;
 import org.structr.mail.function.MailSendFunction;
 import org.structr.mail.function.MailSetBounceAddressFunction;
 import org.structr.mail.function.MailSetFromFunction;
 import org.structr.mail.function.MailSetHtmlContentFunction;
+import org.structr.mail.function.MailSetInReplyTo;
 import org.structr.mail.function.MailSetSubjectFunction;
 import org.structr.mail.function.MailSetTextContentFunction;
 import org.structr.module.StructrModule;
@@ -56,26 +61,31 @@ public class AdvancedMailModule implements StructrModule {
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
-		Functions.put(licenseManager, new MailBeginFunction());
-		Functions.put(licenseManager, new MailSetFromFunction());
-		Functions.put(licenseManager, new MailSetSubjectFunction());
-		Functions.put(licenseManager, new MailSetHtmlContentFunction());
-		Functions.put(licenseManager, new MailSetTextContentFunction());
-		Functions.put(licenseManager, new MailAddToFunction());
-		Functions.put(licenseManager, new MailClearToFunction());
-		Functions.put(licenseManager, new MailAddCcFunction());
-		Functions.put(licenseManager, new MailClearCcFunction());
-		Functions.put(licenseManager, new MailAddBccFunction());
-		Functions.put(licenseManager, new MailClearBccFunction());
-		Functions.put(licenseManager, new MailSetBounceAddressFunction());
-		Functions.put(licenseManager, new MailClearBounceAddressFunction());
-		Functions.put(licenseManager, new MailAddReplyToFunction());
-		Functions.put(licenseManager, new MailClearReplyToFunction());
-		Functions.put(licenseManager, new MailAddAttachmentFunction());
-		Functions.put(licenseManager, new MailClearAttachmentsFunction());
-		Functions.put(licenseManager, new MailAddHeaderFunction());
-		Functions.put(licenseManager, new MailClearHeadersFunction());
-		Functions.put(licenseManager, new MailSendFunction());
+		Functions.put(licenseManager, new MailBeginFunction(this));
+		Functions.put(licenseManager, new MailSetFromFunction(this));
+		Functions.put(licenseManager, new MailSetSubjectFunction(this));
+		Functions.put(licenseManager, new MailSetHtmlContentFunction(this));
+		Functions.put(licenseManager, new MailSetTextContentFunction(this));
+		Functions.put(licenseManager, new MailAddToFunction(this));
+		Functions.put(licenseManager, new MailClearToFunction(this));
+		Functions.put(licenseManager, new MailAddCcFunction(this));
+		Functions.put(licenseManager, new MailClearCcFunction(this));
+		Functions.put(licenseManager, new MailAddBccFunction(this));
+		Functions.put(licenseManager, new MailClearBccFunction(this));
+		Functions.put(licenseManager, new MailSetBounceAddressFunction(this));
+		Functions.put(licenseManager, new MailClearBounceAddressFunction(this));
+		Functions.put(licenseManager, new MailAddReplyToFunction(this));
+		Functions.put(licenseManager, new MailClearReplyToFunction(this));
+		Functions.put(licenseManager, new MailAddAttachmentFunction(this));
+		Functions.put(licenseManager, new MailClearAttachmentsFunction(this));
+		Functions.put(licenseManager, new MailAddHeaderFunction(this));
+		Functions.put(licenseManager, new MailRemoveHeaderFunction(this));
+		Functions.put(licenseManager, new MailClearHeadersFunction(this));
+		Functions.put(licenseManager, new MailSetInReplyTo(this));
+		Functions.put(licenseManager, new MailClearInReplyTo(this));
+		Functions.put(licenseManager, new MailSaveOutgoingMessageFunction(this));
+		Functions.put(licenseManager, new MailGetLastOutgoingMessageFunction(this));
+		Functions.put(licenseManager, new MailSendFunction(this));
 	}
 
 	@Override

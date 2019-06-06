@@ -51,8 +51,8 @@ $(document).ready(function() {
 		$('.toggle-type', typeTable).each(function(i, checkbox) {
 			var inp = $(checkbox);
 			inp.prop("checked", checked);
-			_Schema.checkIsHiddenSchemaNode(inp);
 		});
+		_Schema.updateHiddenSchemaTypes();
 		_Schema.reload();
 	});
 
@@ -61,8 +61,8 @@ $(document).ready(function() {
 		$('.toggle-type', typeTable).each(function(i, checkbox) {
 			var inp = $(checkbox);
 			inp.prop("checked", !inp.prop("checked"));
-			_Schema.checkIsHiddenSchemaNode(inp);
 		});
+		_Schema.updateHiddenSchemaTypes();
 		_Schema.reload();
 	});
 
@@ -78,7 +78,7 @@ $(document).ready(function() {
 		var td = $(this);
 		var inp = $('.toggle-type', td.parent());
 		inp.prop("checked", !inp.prop("checked"));
-		_Schema.checkIsHiddenSchemaNode(inp);
+		_Schema.updateHiddenSchemaTypes();
 		_Schema.reload();
 		return false;
 	});
@@ -113,6 +113,7 @@ var _Schema = {
 	selectedNodes: [],
 	typeOptions: '<select class="property-type"><option value="">--Select--</option>'
 		+ '<option value="String">String</option>'
+		+ '<option value="Encrypted">Encrypted</option>'
 		+ '<option value="StringArray">String[]</option>'
 		+ '<option value="Integer">Integer</option>'
 		+ '<option value="IntegerArray">Integer[]</option>'
@@ -167,7 +168,7 @@ var _Schema = {
 		$.each($('#schema-graph .node'), function(i, n) {
 			var node = $(n);
 			var type = node.text();
-			var obj = node.position();
+			var obj = node.offset();
 			obj.left = (obj.left - canvas.offset().left) / _Schema.zoomLevel;
 			obj.top  = (obj.top  - canvas.offset().top)  / _Schema.zoomLevel;
 			_Schema.nodePositions[type] = obj;
@@ -541,245 +542,291 @@ var _Schema = {
 		return _Schema.schemaLoaded;
 	},
 	loadNodes: function(callback) {
-		var url = rootUrl + 'SchemaNode/ui?sort=hierarchyLevel&order=asc';
-		_Schema.hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey)) || [];
-		$.ajax({
-			url: url,
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8',
-			success: function(data) {
 
-				var hierarchy = {};
-				var x=0, y=0;
+		let noSchemaNodeVisibilityConfigured = false;
+		_Schema.hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
 
-				_Schema.nodePositions = LSWrapper.getItem(_Schema.schemaPositionsKey);
-				if (!_Schema.nodePositions) {
+		Promise.resolve().then(function() {
 
-					var nodePositions = {};
+			if (!_Schema.hiddenSchemaNodes) {
 
-					// positions are stored the 'old' way => convert to the 'new' way
-					data.result.map(function(entity) {
-						return entity.name;
-					}).forEach(function(typeName) {
+				return fetch(rootUrl + '/ApplicationConfigurationDataNode/ui?configType=layout').then(function(response) {
 
-						var nodePos = JSON.parse(LSWrapper.getItem(typeName + localStorageSuffix + 'node-position'));
-						if (nodePos) {
-							nodePositions[typeName] = nodePos.position;
+					return response.json();
 
-							LSWrapper.removeItem(typeName + localStorageSuffix + 'node-position');
-						}
-					});
+				}).then(function(data) {
 
-					_Schema.nodePositions = nodePositions;
-					LSWrapper.setItem(_Schema.schemaPositionsKey, _Schema.nodePositions);
+					if (data.result.length > 0) {
 
-					// After we have converted all types we try to find *all* outdated type positions and delete them
-					Object.keys(JSON.parse(LSWrapper.getAsJSON())).forEach(function(key) {
-
-						if (key.endsWith('node-position')) {
-							LSWrapper.removeItem(key);
-						}
-					});
-				}
-
-				_Schema.loadClassTree(data.result);
-
-				_Schema.availableTypeNames = [];
-
-				data.result.forEach(function(entity) {
-
-					_Schema.availableTypeNames.push(entity.name);
-
-					var level   = 0;
-					var outs    = entity.relatedTo ? entity.relatedTo.length : 0;
-					var ins     = entity.relatedFrom ? entity.relatedFrom.length : 0;
-					var hasRels = (outs > 0 || ins > 0);
-
-					if (ins === 0 && outs === 0) {
-
-						// no rels => push down
-						//level += 100;
+						return data.result[0].content;
 
 					} else {
-
-						if (outs === 0) {
-							level += 10;
-						}
-
-						level += ins;
+						_Schema.hiddenSchemaNodes = [];
+						noSchemaNodeVisibilityConfigured = true;
+						return false;
 					}
+				});
+			} else {
+				return false;
+			}
 
-					if (entity.isBuiltinType && !hasRels) {
+		}).then(function(schemaLayout) {
+
+			if (schemaLayout) {
+
+				_Schema.applySavedLayoutConfiguration(schemaLayout);
+				return;
+
+			} else {
+
+				return fetch(rootUrl + 'SchemaNode/ui?sort=hierarchyLevel&order=asc').then(function(response) {
+
+					return response.json();
+
+				}).then(handleSchemaNodeData).then(function(data) {
+					if (typeof callback === 'function') {
+						callback();
+					}
+				});
+			}
+		});
+
+		let handleSchemaNodeData = function(data) {
+
+			var hierarchy = {};
+			var x=0, y=0;
+
+			if (noSchemaNodeVisibilityConfigured) {
+				_Schema.hiddenSchemaNodes = data.result.filter(function(entity) {
+					return entity.isBuiltinType;
+				}).map(function(entity) {
+					return entity.name;
+				});
+				LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
+			}
+
+			_Schema.nodePositions = LSWrapper.getItem(_Schema.schemaPositionsKey);
+			if (!_Schema.nodePositions) {
+
+				var nodePositions = {};
+
+				// positions are stored the 'old' way => convert to the 'new' way
+				data.result.map(function(entity) {
+					return entity.name;
+				}).forEach(function(typeName) {
+
+					var nodePos = JSON.parse(LSWrapper.getItem(typeName + localStorageSuffix + 'node-position'));
+					if (nodePos) {
+						nodePositions[typeName] = nodePos.position;
+
+						LSWrapper.removeItem(typeName + localStorageSuffix + 'node-position');
+					}
+				});
+
+				_Schema.nodePositions = nodePositions;
+				LSWrapper.setItem(_Schema.schemaPositionsKey, _Schema.nodePositions);
+
+				// After we have converted all types we try to find *all* outdated type positions and delete them
+				Object.keys(JSON.parse(LSWrapper.getAsJSON())).forEach(function(key) {
+
+					if (key.endsWith('node-position')) {
+						LSWrapper.removeItem(key);
+					}
+				});
+			}
+
+			_Schema.loadClassTree(data.result);
+
+			_Schema.availableTypeNames = [];
+
+			data.result.forEach(function(entity) {
+
+				_Schema.availableTypeNames.push(entity.name);
+
+				var level   = 0;
+				var outs    = entity.relatedTo ? entity.relatedTo.length : 0;
+				var ins     = entity.relatedFrom ? entity.relatedFrom.length : 0;
+				var hasRels = (outs > 0 || ins > 0);
+
+				if (ins === 0 && outs === 0) {
+
+					// no rels => push down
+					//level += 100;
+
+				} else {
+
+					if (outs === 0) {
 						level += 10;
 					}
 
-					if (!hierarchy[level]) { hierarchy[level] = []; }
-					hierarchy[level].push(entity);
-				});
-
-				Object.keys(hierarchy).forEach(function(key) {
-
-					hierarchy[key].forEach(function(entity) {
-
-						nodes[entity.id] = entity;
-
-						if (_Schema.hiddenSchemaNodes.length > 0 && _Schema.hiddenSchemaNodes.indexOf(entity.name) > -1) {
-							return;
-						}
-
-						var isBuiltinType = entity.isBuiltinType;
-						var id = 'id_' + entity.id;
-						canvas.append('<div class="schema node compact'
-								+ (isBuiltinType ? ' light' : '')
-								+ '" id="' + id + '"><b>' + entity.name + '</b>'
-								+ '<i class="icon delete ' + _Icons.getFullSpriteClass((isBuiltinType ? _Icons.delete_disabled_icon : _Icons.delete_icon)) + '" />'
-								+ '<i class="icon edit ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />'
-								+ '</div>');
-
-						var node = $('#' + id);
-
-						if (!isBuiltinType) {
-							node.children('b').off('click').on('click', function() {
-								_Schema.makeAttrEditable(node, 'name');
-							});
-
-							node.children('.delete').off('click').on('click', function() {
-								Structr.confirmation('<h3>Delete schema node \'' + entity.name + '\'?</h3><p>This will delete all incoming and outgoing schema relationships as well, but no data will be removed.</p>',
-										function() {
-											$.unblockUI({
-												fadeOut: 25
-											});
-											_Schema.deleteNode(entity.id);
-										});
-							});
-						}
-
-						node.off('mousedown').on('mousedown', function() {
-							node.css({zIndex: ++maxZ});
-						});
-
-						var getX = function() {
-							return (x * 300) + ((y % 2) * 150) + 40;
-						};
-						var getY = function() {
-							return (y * 150) + 50;
-						};
-						var calculatePosition = function() {
-							var calculatedX = getX();
-							if (calculatedX > 1500) {
-								y++;
-								x = 0;
-								calculatedX = getX();
-							}
-							var calculatedY = getY();
-							return { left: calculatedX, top: calculatedY };
-						};
-
-						var storedPosition = _Schema.nodePositions[entity.name];
-						if (!storedPosition) {
-
-							var calculatedPosition = calculatePosition();
-							var count = 0; // prevent endless looping
-
-							while (_Schema.overlapsExistingNodes(calculatedPosition) && count++ < 1000) {
-								x++;
-								calculatedPosition = calculatePosition();
-							}
-						}
-
-						node.offset({
-							left: storedPosition ? storedPosition.left : calculatedPosition.left,
-							top: storedPosition ? storedPosition.top : calculatedPosition.top
-						});
-
-						$('.edit', node).off('click').on('click', function(e) {
-
-							e.stopPropagation();
-							var id = Structr.getId($(this).closest('.schema.node'));
-
-							if (!id) {
-								return false;
-							}
-
-							_Schema.openEditDialog(id);
-
-							return false;
-						});
-
-						nodes[entity.id + '_top'] = instance.addEndpoint(id, {
-							anchor: "Top",
-							maxConnections: -1,
-							isTarget: true,
-							deleteEndpointsOnDetach: false
-						});
-						nodes[entity.id + '_bottom'] = instance.addEndpoint(id, {
-							anchor: "Bottom",
-							maxConnections: -1,
-							isSource: true,
-							deleteEndpointsOnDetach: false
-						});
-
-						instance.draggable(id, {
-							containment: true,
-							start: function(ui) {
-								var nodeOffset   = $(ui.el).offset();
-								var canvasOffset = canvas.offset();
-								_Schema.nodeDragStartpoint = {
-									top:  (nodeOffset.top  - canvasOffset.top ),
-									left: (nodeOffset.left - canvasOffset.left)
-								};
-							},
-							drag: function(ui) {
-
-								var $element = $(ui.el);
-
-								if (!$element.hasClass('selected')) {
-
-									_Schema.clearSelection();
-
-								} else {
-
-									var nodeOffset = $element.offset();
-									var canvasOffset = canvas.offset();
-
-									var posDelta = {
-										top:  (_Schema.nodeDragStartpoint.top  - nodeOffset.top ),
-										left: (_Schema.nodeDragStartpoint.left - nodeOffset.left)
-									};
-
-									_Schema.selectedNodes.forEach(function(selectedNode) {
-										if (selectedNode.nodeId !== $element.attr('id')) {
-											$('#' + selectedNode.nodeId).offset({
-												top:  (selectedNode.pos.top  - posDelta.top  > canvasOffset.top ) ? (selectedNode.pos.top  - posDelta.top ) : canvasOffset.top,
-												left: (selectedNode.pos.left - posDelta.left > canvasOffset.left) ? (selectedNode.pos.left - posDelta.left) : canvasOffset.left
-											});
-										}
-									});
-
-									instance.repaintEverything();
-
-								}
-							},
-							stop: function() {
-								_Schema.storePositions();
-								_Schema.updateSelectedNodes();
-								_Schema.resize();
-							}
-						});
-
-						x++;
-					});
-
-					y++;
-					x = 0;
-				});
-
-				if (typeof callback === 'function') {
-					callback();
+					level += ins;
 				}
 
-			}
-		});
+				if (entity.isBuiltinType && !hasRels) {
+					level += 10;
+				}
+
+				if (!hierarchy[level]) { hierarchy[level] = []; }
+				hierarchy[level].push(entity);
+			});
+
+			Object.keys(hierarchy).forEach(function(key) {
+
+				hierarchy[key].forEach(function(entity) {
+
+					nodes[entity.id] = entity;
+
+					if (_Schema.hiddenSchemaNodes.length > 0 && _Schema.hiddenSchemaNodes.indexOf(entity.name) > -1) {
+						return;
+					}
+
+					var id = 'id_' + entity.id;
+					canvas.append('<div class="schema node compact'
+							+ (entity.isBuiltinType ? ' light' : '')
+							+ '" id="' + id + '"><b>' + entity.name + '</b>'
+							+ '<i class="icon delete ' + _Icons.getFullSpriteClass((entity.isBuiltinType ? _Icons.delete_disabled_icon : _Icons.delete_icon)) + '" />'
+							+ '<i class="icon edit ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />'
+							+ '</div>');
+
+					var node = $('#' + id);
+
+					if (!entity.isBuiltinType) {
+
+						node.children('b').off('click').on('click', function() {
+							_Schema.makeAttrEditable(node, 'name');
+						});
+
+						node.children('.delete').off('click').on('click', function() {
+							Structr.confirmation('<h3>Delete schema node \'' + entity.name + '\'?</h3><p>This will delete all incoming and outgoing schema relationships as well, but no data will be removed.</p>',
+									function() {
+										$.unblockUI({
+											fadeOut: 25
+										});
+										_Schema.deleteNode(entity.id);
+									});
+						});
+					}
+
+					node.off('mousedown').on('mousedown', function() {
+						node.css({zIndex: ++maxZ});
+					});
+
+					var getX = function() {
+						return (x * 300) + ((y % 2) * 150) + 40;
+					};
+					var getY = function() {
+						return (y * 150) + 50;
+					};
+					var calculatePosition = function() {
+						var calculatedX = getX();
+						if (calculatedX > 1500) {
+							y++;
+							x = 0;
+							calculatedX = getX();
+						}
+						var calculatedY = getY();
+						return { left: calculatedX, top: calculatedY };
+					};
+
+					var storedPosition = _Schema.nodePositions[entity.name];
+					if (!storedPosition) {
+
+						var calculatedPosition = calculatePosition();
+						var count = 0; // prevent endless looping
+
+						while (_Schema.overlapsExistingNodes(calculatedPosition) && count++ < 1000) {
+							x++;
+							calculatedPosition = calculatePosition();
+						}
+					}
+
+					node.offset({
+						left: storedPosition ? storedPosition.left : calculatedPosition.left,
+						top: storedPosition ? storedPosition.top : calculatedPosition.top
+					});
+
+					$('.edit', node).off('click').on('click', function(e) {
+
+						e.stopPropagation();
+						var id = Structr.getId($(this).closest('.schema.node'));
+
+						if (!id) {
+							return false;
+						}
+
+						_Schema.openEditDialog(id);
+
+						return false;
+					});
+
+					nodes[entity.id + '_top'] = instance.addEndpoint(id, {
+						anchor: "Top",
+						maxConnections: -1,
+						isTarget: true,
+						deleteEndpointsOnDetach: false
+					});
+					nodes[entity.id + '_bottom'] = instance.addEndpoint(id, {
+						anchor: "Bottom",
+						maxConnections: -1,
+						isSource: true,
+						deleteEndpointsOnDetach: false
+					});
+
+					instance.draggable(id, {
+						containment: true,
+						start: function(ui) {
+							var nodeOffset   = $(ui.el).offset();
+							var canvasOffset = canvas.offset();
+							_Schema.nodeDragStartpoint = {
+								top:  (nodeOffset.top  - canvasOffset.top ),
+								left: (nodeOffset.left - canvasOffset.left)
+							};
+						},
+						drag: function(ui) {
+
+							var $element = $(ui.el);
+
+							if (!$element.hasClass('selected')) {
+
+								_Schema.clearSelection();
+
+							} else {
+
+								var nodeOffset = $element.offset();
+								var canvasOffset = canvas.offset();
+
+								var posDelta = {
+									top:  (_Schema.nodeDragStartpoint.top  - nodeOffset.top ),
+									left: (_Schema.nodeDragStartpoint.left - nodeOffset.left)
+								};
+
+								_Schema.selectedNodes.forEach(function(selectedNode) {
+									if (selectedNode.nodeId !== $element.attr('id')) {
+										$('#' + selectedNode.nodeId).offset({
+											top:  (selectedNode.pos.top  - posDelta.top  > canvasOffset.top ) ? (selectedNode.pos.top  - posDelta.top ) : canvasOffset.top,
+											left: (selectedNode.pos.left - posDelta.left > canvasOffset.left) ? (selectedNode.pos.left - posDelta.left) : canvasOffset.left
+										});
+									}
+								});
+
+								instance.repaintEverything();
+							}
+						},
+						stop: function() {
+							_Schema.storePositions();
+							_Schema.updateSelectedNodes();
+							_Schema.resize();
+						}
+					});
+
+					x++;
+				});
+
+				y++;
+				x = 0;
+			});
+		};
+
 	},
 	openEditDialog: function(id, targetView, callback) {
 
@@ -2739,7 +2786,6 @@ var _Schema = {
 						fadeOut: 25
 					});
 					_Schema.detach(resId);
-					_Schema.reload();
 				});
 	},
 	detach: function(relationshipId) {
@@ -2966,33 +3012,6 @@ var _Schema = {
 				});
 			});
 
-			$('#analyze-schema').off('click').on('click', function() {
-				Structr.confirmation('<h3>Analyze Schema</h3><p>Did you make a backup?<br>Answering "No" cancels the action.</p><p>&nbsp;</p>', function() {
-					$.unblockUI({
-						fadeOut: 25
-					});
-
-					window.setTimeout(function() {
-						Structr.confirmation('<h3>Analyze Schema</h3><p>Are you sure you want to analyze the database schema?<br>Your current schema will be lost!</p><p>&nbsp;</p>', function() {
-							$.unblockUI({
-								fadeOut: 25
-							});
-
-							window.setTimeout(function() {
-								_Schema.openSchemaToolsDialog();
-
-								$.ajax({
-									url: rootUrl + 'maintenance/analyzeSchema',
-									type: 'POST',
-									data: JSON.stringify({}),
-									contentType: 'application/json'
-								});
-							}, 100);
-						});
-					}, 250);
-				}, _Schema.openSchemaToolsDialog);
-			});
-
 			var nodeTypeSelector = $('#node-type-selector');
 			Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name', function(nodes) {
 				nodes.forEach(function(node) {
@@ -3127,76 +3146,7 @@ var _Schema = {
 
 				Command.getApplicationConfigurationDataNode(selectedLayout, function(data) {
 
-					try {
-
-						var loadedConfig = JSON.parse(data.content);
-
-						if (loadedConfig._version) {
-
-							switch (loadedConfig._version) {
-								case 2: {
-
-									_Schema.zoomLevel = loadedConfig.zoom;
-									LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.zoomLevel);
-									_Schema.setZoom(_Schema.zoomLevel, instance, [0,0], $('#schema-graph')[0]);
-									$( "#zoom-slider" ).slider('value', _Schema.zoomLevel);
-
-									_Schema.updateOverlayVisibility(loadedConfig.showRelLabels);
-
-									var hiddenTypes = loadedConfig.hiddenTypes;
-									hiddenTypes = hiddenTypes.filter(function(typeName) {
-										// Filter out types that do not exist in the schema
-										return (_Schema.availableTypeNames.indexOf(typeName) !== -1);
-									});
-									_Schema.hiddenSchemaNodes = hiddenTypes;
-									LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
-
-									// update the list in the visibility table
-									$('#schema-options-table input.toggle-type').prop('checked', true);
-									_Schema.hiddenSchemaNodes.forEach(function(hiddenType) {
-										$('#schema-options-table input.toggle-type[data-structr-type="' + hiddenType + '"]').prop('checked', false);
-									});
-
-									var connectorStyle = loadedConfig.connectorStyle;
-									$('#connector-style').val(connectorStyle);
-									_Schema.connectorStyle = connectorStyle;
-									LSWrapper.setItem(_Schema.schemaConnectorStyleKey, connectorStyle);
-
-									var positions = loadedConfig.positions;
-									LSWrapper.setItem(_Schema.schemaPositionsKey, positions);
-									_Schema.applyNodePositions(positions);
-								}
-									break;
-
-								default:
-									Structr.error('Cannot restore layout: Unknown layout version - was this layout created with a newer version of structr than the one currently running?');
-							}
-
-						} else {
-
-							if (loadedConfig[Object.keys(loadedConfig)[0]].position) {
-								// convert old file type
-								var schemaPositions = {};
-								Object.keys(loadedConfig).forEach(function(type) {
-									schemaPositions[type] = loadedConfig[type].position;
-								});
-								loadedConfig = schemaPositions;
-							}
-
-							LSWrapper.setItem(_Schema.schemaPositionsKey, loadedConfig);
-							_Schema.applyNodePositions(loadedConfig);
-
-							new MessageBuilder().info("This layout was created using an older version of Structr. To make use of newer features you should delete and re-create it with the current version.").show();
-						}
-
-						Structr.saveLocalStorage();
-
-						_Schema.reload();
-
-					} catch (e) {
-						console.warn(e);
-						Structr.error('Unreadable JSON - please make sure you are using JSON exported from this dialog!', true);
-					}
+					_Schema.applySavedLayoutConfiguration(data.content);
 				});
 			});
 
@@ -3251,6 +3201,83 @@ var _Schema = {
 			};
 			refreshLayoutSelector();
 		});
+	},
+	applySavedLayoutConfiguration: function (layoutJSON) {
+
+		try {
+
+			var loadedConfig = JSON.parse(layoutJSON);
+
+			if (loadedConfig._version) {
+
+				switch (loadedConfig._version) {
+					case 2: {
+
+						_Schema.zoomLevel = loadedConfig.zoom;
+						LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.zoomLevel);
+						_Schema.setZoom(_Schema.zoomLevel, instance, [0,0], $('#schema-graph')[0]);
+						$( "#zoom-slider" ).slider('value', _Schema.zoomLevel);
+
+						_Schema.updateOverlayVisibility(loadedConfig.showRelLabels);
+
+						var hiddenTypes = loadedConfig.hiddenTypes;
+
+						// Filter out types that do not exist in the schema (if types are available already!)
+						if (_Schema.availableTypeNames.length > 0) {
+							hiddenTypes = hiddenTypes.filter(function(typeName) {
+								return (_Schema.availableTypeNames.indexOf(typeName) !== -1);
+							});
+						}
+						_Schema.hiddenSchemaNodes = hiddenTypes;
+						LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
+
+						// update the list in the visibility table
+						$('#schema-options-table input.toggle-type').prop('checked', true);
+						_Schema.hiddenSchemaNodes.forEach(function(hiddenType) {
+							$('#schema-options-table input.toggle-type[data-structr-type="' + hiddenType + '"]').prop('checked', false);
+						});
+
+						var connectorStyle = loadedConfig.connectorStyle;
+						$('#connector-style').val(connectorStyle);
+						_Schema.connectorStyle = connectorStyle;
+						LSWrapper.setItem(_Schema.schemaConnectorStyleKey, connectorStyle);
+
+						var positions = loadedConfig.positions;
+						LSWrapper.setItem(_Schema.schemaPositionsKey, positions);
+						_Schema.applyNodePositions(positions);
+					}
+						break;
+
+					default:
+						Structr.error('Cannot restore layout: Unknown layout version - was this layout created with a newer version of structr than the one currently running?');
+				}
+
+			} else {
+
+				if (loadedConfig[Object.keys(loadedConfig)[0]].position) {
+					// convert old file type
+					var schemaPositions = {};
+					Object.keys(loadedConfig).forEach(function(type) {
+						schemaPositions[type] = loadedConfig[type].position;
+					});
+					loadedConfig = schemaPositions;
+				}
+
+				LSWrapper.setItem(_Schema.schemaPositionsKey, loadedConfig);
+				_Schema.applyNodePositions(loadedConfig);
+
+				new MessageBuilder().info("This layout was created using an older version of Structr. To make use of newer features you should delete and re-create it with the current version.").show();
+			}
+
+			Structr.saveLocalStorage();
+
+			_Schema.reload();
+
+		} catch (e) {
+			console.warn(e);
+			Structr.error('Unreadable JSON - please make sure you are using JSON exported from this dialog!', true);
+		}
+
 	},
 	applyNodePositions:function(positions) {
 		$('#schema-graph .node').each(function(i, n) {
@@ -3331,12 +3358,12 @@ var _Schema = {
 				exact: false
 			},
 			{
-				caption: "Html Types",
+				caption: "UI Types",
 				filter: { isBuiltinType: true, category: 'ui' },
 				exact: false
 			},
 			{
-				caption: "Page Types",
+				caption: "HTML Types",
 				filter: { isBuiltinType: true, category: 'html' },
 				exact: false
 			},
@@ -3374,10 +3401,10 @@ var _Schema = {
 
 			Command.query('SchemaNode', 1000, 1, 'name', 'asc', visType.filter, function(schemaNodes) {
 				schemaNodes.forEach(function(schemaNode) {
-					schemaVisibilityTable.append('<tr><td><input class="toggle-type" data-structr-type="' + schemaNode.name + '" type="checkbox" ' + (_Schema.hiddenSchemaNodes.indexOf(schemaNode.name) > -1 ? '' : 'checked') + '></td><td>' + schemaNode.name + '</td></tr>');
+					let hidden = _Schema.hiddenSchemaNodes.indexOf(schemaNode.name) > -1;
+					schemaVisibilityTable.append('<tr><td><input class="toggle-type" data-structr-type="' + schemaNode.name + '" type="checkbox" ' + (hidden ? '' : 'checked') + '></td><td>' + schemaNode.name + '</td></tr>');
 				});
 			}, visType.exact);
-
 		});
 
 		$('#' + id + '-tabs > li', container).off('click').on('click', function(e) {
@@ -3388,32 +3415,32 @@ var _Schema = {
 		var activeTab = LSWrapper.getItem(_Schema.activeSchemaToolsSelectedVisibilityTab) || visibilityTables[0].caption;
 		activateTab(activeTab);
 	},
-	checkIsHiddenSchemaNode: function(inp) {
-		var typeName = inp.attr('data-structr-type');
-		_Schema.setSchemaTypeVisibility(typeName, inp.is(':checked'));
-	},
-	setSchemaTypeVisibility: function (typeName, visible) {
-		var position = _Schema.hiddenSchemaNodes.indexOf(typeName);
-		if (!visible) {
-			if (position === -1) {
-				_Schema.hiddenSchemaNodes.push(typeName);
-				LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
+	updateHiddenSchemaTypes: function() {
+
+		let hiddenTypes = [];
+
+		$('.schema-visibility-table input.toggle-type').each(function(i, checkbox) {
+			let inp = $(checkbox);
+			var typeName = inp.attr('data-structr-type');
+			let visible = inp.is(':checked');
+
+			if (!visible) {
+				hiddenTypes.push(typeName);
 			}
-		} else {
-			if (position > -1) {
-				_Schema.hiddenSchemaNodes.splice(position, 1);
-				LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
-			}
-		}
+		});
+
+		_Schema.hiddenSchemaNodes = hiddenTypes;
+		LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
 	},
 	hideSelectedSchemaTypes: function () {
 
 		if (_Schema.selectedNodes.length > 0) {
 
 			_Schema.selectedNodes.forEach(function(n) {
-				_Schema.setSchemaTypeVisibility(n.name, false);
+				_Schema.hiddenSchemaNodes.push(n.name);
 			});
 
+			LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
 			_Schema.reload();
 		}
 	},

@@ -19,12 +19,11 @@
 package org.structr.web.function;
 
 import javax.servlet.http.HttpServletResponse;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.schema.action.ActionContext;
 
-public class SetResponseCodeFunction extends UiFunction {
+public class SetResponseCodeFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_SET_RESPONSE_CODE    = "Usage: ${set_response_code(int)}. Example: ${set_response_header(302)}";
 	public static final String ERROR_MESSAGE_SET_RESPONSE_CODE_JS = "Usage: ${{Structr.setResponseCode(int)}}. Example: ${{Structr.setResponseHeader(302)}}";
@@ -32,11 +31,6 @@ public class SetResponseCodeFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "set_response_code";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Enterprise;
 	}
 
 	@Override

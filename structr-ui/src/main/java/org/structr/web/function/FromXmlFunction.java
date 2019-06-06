@@ -18,28 +18,10 @@
  */
 package org.structr.web.function;
 
-import java.util.LinkedList;
-import java.util.List;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObjectMap;
-import org.structr.core.function.XmlFunction;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
-import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
-public class FromXmlFunction extends UiFunction {
-
-	private static final Property<List> attributesProperty = new GenericProperty<>("attributes");
-	private static final Property<List> childrenProperty   = new GenericProperty<>("children");
-	private static final Property<String> valueProperty    = new StringProperty("value");
-	private static final Property<String> nameProperty     = new StringProperty("name");
-	private static final Property<String> typeProperty     = new StringProperty("type");
+public class FromXmlFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_FROM_XML    = "Usage: ${from_xml(source)}. Example: ${from_xml('<entry>0</entry>')}";
 	public static final String ERROR_MESSAGE_FROM_XML_JS = "Usage: ${{Structr.from_xml(src)}}. Example: ${{Structr.from_xml('<entry>0</entry>')}}";
@@ -47,11 +29,6 @@ public class FromXmlFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "from_xml";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Enterprise;
 	}
 
 	@Override
@@ -65,24 +42,11 @@ public class FromXmlFunction extends UiFunction {
 
 			try {
 
-				final GraphObjectMap result = new GraphObjectMap();
-				final XmlFunction xml       = new XmlFunction();
-				final Document document     = (Document)xml.apply(ctx, caller, sources);
-
-				if (document != null) {
-
-					convertNode(result, document);
-					return result;
-
-				} else {
-
-					logger.warn("Unable to parse XML document: {}", sources[0].toString());
-				}
+				return org.json.XML.toJSONObject(sources[0].toString()).toString(4);
 
 			} catch (Throwable t) {
 
 				logException(caller, t, sources);
-
 			}
 
 			return "";
@@ -104,59 +68,5 @@ public class FromXmlFunction extends UiFunction {
 	@Override
 	public String shortDescription() {
 		return "Parses the given XML and returns a list of objects.";
-	}
-
-	// ----- private methods -----
-	private void convertNode(final GraphObjectMap map, final Node node) {
-
-		final NodeList nodeList = node.getChildNodes();
-		if (nodeList != null) {
-
-			final List<GraphObjectMap> children = new LinkedList<>();
-			final int length                    = nodeList.getLength();
-
-			for (int i=0; i<length; i++) {
-
-				final GraphObjectMap childMap = new GraphObjectMap();
-				final Node childNode          = nodeList.item(i);
-
-				convertNode(childMap, childNode);
-				children.add(childMap);
-			}
-
-			map.put(childrenProperty, children);
-		}
-
-		final NamedNodeMap attributeList = node.getAttributes();
-		if (attributeList != null) {
-
-			final List<GraphObjectMap> attributes = new LinkedList<>();
-			final int length                      = attributeList.getLength();
-
-			for (int i=0; i<length; i++) {
-
-				final GraphObjectMap attributeMap = new GraphObjectMap();
-				final Node attributeNode          = attributeList.item(i);
-
-				convertNode(attributeMap, attributeNode);
-				attributes.add(attributeMap);
-			}
-
-			map.put(attributesProperty, attributes);
-		}
-
-		map.put(typeProperty, node.getClass().getSimpleName());
-
-		final String nodeName = node.getNodeName();
-		if (nodeName != null) {
-
-			map.put(nameProperty, nodeName);
-		}
-
-		final String nodeValue = node.getNodeValue();
-		if (nodeValue != null) {
-
-			map.put(valueProperty, nodeValue);
-		}
 	}
 }

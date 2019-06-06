@@ -19,7 +19,6 @@
 package org.structr.javaparser;
 
 import com.github.javaparser.ParseProblemException;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -27,20 +26,14 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class AnalyzeJavaFunction extends Function<Object, Object> {
+public class AnalyzeJavaFunction extends ParserModuleFunction {
 
 	public static final String ERROR_MESSAGE_ANALYZE_JAVA = "Usage: ${analyze_java(javaSource)}";
 
 	@Override
 	public String getName() {
 		return "analyze_java";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Enterprise;
 	}
 
 	@Override

@@ -60,7 +60,7 @@ public class FlowAction extends FlowActionNode implements DataSource, Deployable
 				}
 
 				// Evaluate script and write result to context
-				Object result = Scripting.evaluate(context.getActionContext(securityContext, this), this, "${" + _script + "}", "FlowAction(" + getUuid() + ")");
+				Object result = Scripting.evaluate(context.getActionContext(securityContext, this), this, "${" + _script.trim() + "}", "FlowAction(" + getUuid() + ")");
 				context.setData(getUuid(), result);
 
 			} catch (FrameworkException fex) {

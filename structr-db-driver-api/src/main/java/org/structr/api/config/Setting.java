@@ -44,7 +44,7 @@ public abstract class Setting<T> {
 
 	public Setting(final SettingsGroup group, final String categoryName, final String key, final T value, final String comment) {
 
-		this.key          = key;
+		this.key          = key.toLowerCase();
 		this.value        = value;
 		this.category     = categoryName;
 		this.group        = group;
@@ -57,6 +57,19 @@ public abstract class Setting<T> {
 
 	public String getKey() {
 		return key;
+	}
+
+	public void updateKey(final String key) {
+
+		if (isDynamic()) {
+
+			unregister();
+
+			this.key = key;
+
+			group.registerSetting(this);
+			Settings.registerSetting(this);
+		}
 	}
 
 	public String getCategory() {
@@ -108,6 +121,16 @@ public abstract class Setting<T> {
 	}
 
 	// ----- protected methods -----
+	protected void renderLabel(final Tag group) {
+
+		final Tag label = group.block("label").text(getKey());
+
+		if (getComment() != null) {
+			label.attr(new Attr("class", "has-comment"));
+			label.attr(new Attr("data-comment", getComment()));
+		}
+	}
+
 	protected void renderResetButton(final Tag group) {
 
 		if (isModified()) {

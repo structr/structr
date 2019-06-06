@@ -67,6 +67,7 @@ public interface JsonType extends Comparable<JsonType> {
 	JsonType addViewProperty(final String viewName, final String propertyName);
 
 	JsonStringProperty addStringProperty(final String name, final String... views);
+	JsonStringProperty addEncryptedProperty(final String name, final String... views);
 	JsonStringProperty addPasswordProperty(final String name, final String... views);
 	JsonDateProperty addDateProperty(final String name, final String... views);
 	JsonIntegerProperty addIntegerProperty(final String name, final String... views);

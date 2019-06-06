@@ -21,7 +21,6 @@ package org.structr.core.function;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -32,10 +31,9 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 
-public class GetRelationshipTypesFunction extends Function<Object, Object> {
+public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_GET_RELATIONSHIP_TYPES    = "Usage: ${get_relationship_types(node, lookupType [, direction])}. Example: ${get_relationship_types(me, 'existing', 'both')}";
 	public static final String ERROR_MESSAGE_GET_RELATIONSHIP_TYPES_JS = "Usage: ${{Structr.get_relationship_types(node, lookupType [, direction ])}}. Example: ${{Structr.get_relationship_types(me, 'existing', 'both')}}";
@@ -43,11 +41,6 @@ public class GetRelationshipTypesFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "get_relationship_types";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Enterprise;
 	}
 
 	@Override

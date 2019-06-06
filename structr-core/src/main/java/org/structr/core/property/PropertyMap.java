@@ -335,7 +335,7 @@ public class PropertyMap {
 
 		// caution, source can be null when an empty nested property group is encountered!
 		if (source != null) {
-		
+
 			final String batchType = securityContext.getAttribute("batchType", "__");
 			if (batchType.equals(source.get("type"))) {
 
@@ -375,7 +375,7 @@ public class PropertyMap {
 					if (propertyKey == null) {
 						propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity, key);
 					}
-					
+
 					if (propertyKey != null) {
 
 						final PropertyConverter converter = propertyKey.inputConverter(securityContext);
@@ -401,6 +401,11 @@ public class PropertyMap {
 
 							resultMap.put(propertyKey, value);
 						}
+
+					} else {
+
+						// check settings on how to handle invalid JSON input
+						
 					}
 				}
 			}

@@ -19,6 +19,8 @@
 package org.structr.websocket.command;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
@@ -46,7 +48,7 @@ public class SetPermissionCommand extends AbstractCommand {
 
 	private static final String RECURSIVE_KEY    = "recursive";
 	private static final String PRINCIPAL_ID_KEY = "principalId";
-	private static final String PERMISSION_KEY   = "permission";
+	private static final String PERMISSIONS_KEY  = "permissions";
 	private static final String ACTION_KEY       = "action";
 
 	static {
@@ -67,7 +69,7 @@ public class SetPermissionCommand extends AbstractCommand {
 			AbstractNode obj   = getNode(webSocketData.getId());
 			boolean rec        = webSocketData.getNodeDataBooleanValue(RECURSIVE_KEY);
 			String principalId = webSocketData.getNodeDataStringValue(PRINCIPAL_ID_KEY);
-			String permission  = webSocketData.getNodeDataStringValue(PERMISSION_KEY);
+			String permissions = webSocketData.getNodeDataStringValue(PERMISSIONS_KEY);
 			String action      = webSocketData.getNodeDataStringValue(ACTION_KEY);
 
 			if (principalId == null) {
@@ -115,7 +117,20 @@ public class SetPermissionCommand extends AbstractCommand {
 
 					final Value<Tx> value = new StaticValue<>(null);
 
-					setPermission(value, app, obj, principal, action, Permissions.valueOf(permission), rec);
+					final Set<Permission> permissionSet = new HashSet();
+					final String[] parts = permissions.split("[,]+");
+
+					for (final String part : parts) {
+
+						final String trimmedPart = part.trim();
+						if (trimmedPart.length() > 0) {
+
+							permissionSet.add(Permissions.valueOf(trimmedPart));
+						}
+					}
+
+
+					setPermission(value, app, obj, principal, action, permissionSet, rec);
 
 					// commit and close transaction
 					final Tx tx = value.get(null);
@@ -163,7 +178,7 @@ public class SetPermissionCommand extends AbstractCommand {
 		return "SET_PERMISSION";
 	}
 
-	private void setPermission(final Value<Tx> transaction, final App app, final AbstractNode obj, final Principal principal, final String action, final Permission permission, final boolean rec) throws FrameworkException {
+	private void setPermission(final Value<Tx> transaction, final App app, final AbstractNode obj, final Principal principal, final String action, final Set<Permission> permissions, final boolean rec) throws FrameworkException {
 
 		// create new transaction if not already present
 		Tx tx = transaction.get(null);
@@ -176,11 +191,15 @@ public class SetPermissionCommand extends AbstractCommand {
 		switch (action) {
 
 			case "grant":
-				obj.grant(permission, principal);
+				obj.grant(permissions, principal);
 				break;
 
 			case "revoke":
-				obj.revoke(permission, principal);
+				obj.revoke(permissions, principal);
+				break;
+
+			case "setAllowed":
+				obj.setAllowed(permissions, principal);
 				break;
 		}
 
@@ -208,7 +227,7 @@ public class SetPermissionCommand extends AbstractCommand {
 
 			for (final Object t : ((LinkedTreeNode) obj).treeGetChildren()) {
 
-				setPermission(transaction, app, (AbstractNode) t, principal, action, permission, rec);
+				setPermission(transaction, app, (AbstractNode) t, principal, action, permissions, rec);
 			}
 		}
 	}

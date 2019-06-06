@@ -579,6 +579,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 				while (retry) {
 
 					try (final Tx tx = app.tx()) {
+
 						result = resource.doPut(convertPropertySetToMap(jsonInput.getJsonInputs().get(0)));
 						tx.success();
 						retry = false;

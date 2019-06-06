@@ -18,26 +18,19 @@
  */
 package org.structr.javaparser.entity;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.javaparser.*;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class AddJarsToIndexFunction extends Function<Object, Object> {
+public class AddJarsToIndexFunction extends ParserModuleFunction {
 
 	public static final String ERROR_MESSAGE_ADD_JARS_TO_INDEX = "Usage: ${add_jars_to_index(localFilePath)}";
 
 	@Override
 	public String getName() {
 		return "add_jars_to_index";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Enterprise;
 	}
 
 	@Override

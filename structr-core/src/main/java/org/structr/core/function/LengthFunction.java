@@ -18,25 +18,18 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class LengthFunction extends Function<Object, Object> {
+public class LengthFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_LENGTH = "Usage: ${length(string)}. Example: ${length(this.name)}";
 
 	@Override
 	public String getName() {
 		return "length";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

@@ -145,10 +145,16 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 
 		_Pager.restorePagerData(this.id);
 
-		this.el.append('<div class="pager pager' + this.id + '" style="clear: both"><button class="pageLeft">&lt; Prev</button>'
-				+ ' <input class="pageNo" type="text" size="2" value="' + page[this.id] + '"><button class="pageRight">Next &gt;</button>'
-				+ ' of <input class="readonly pageCount" type="text" readonly="readonly" size="2">'
-				+ ' Items: <input class="pageSize" type="text" size="2" value="' + pageSize[this.id] + '"></div>');
+		this.el.append('<div class="pager pager' + this.id + '" style="clear: both"><i class="pageLeft fa fa-angle-left"></i>'
+				+ ' <input class="pageNo" type="text" size="4" value="' + page[this.id] + '"><i class="pageRight fa fa-angle-right"></i>'
+				+ ' of <input readonly="readonly" class="readonly pageCount" type="text" size="4">'
+				+ ' Items: <select class="pageSize">'
+				+ '<option' + (pageSize[this.id] === 5 ? ' selected' : '') + '>5</option>'
+				+ '<option' + (pageSize[this.id] === 10 ? ' selected' : '') + '>10</option>'
+				+ '<option' + (pageSize[this.id] === 25 ? ' selected' : '') + '>25</option>'
+				+ '<option' + (pageSize[this.id] === 50 ? ' selected' : '') + '>50</option>'
+				+ '<option' + (pageSize[this.id] === 100 ? ' selected' : '') + '>100</option>'
+				+ '</select></div>');
 
 		this.pager = $('.pager' + this.id, this.el);
 
@@ -158,33 +164,53 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 		this.pageSize  = $('.pageSize', this.pager);
 		this.pageCount = $('.pageCount', this.pager);
 
-		this.pageSize.on('keypress', function(e) {
-			if (e.keyCode === 13) {
-				pageSize[pagerObj.id] = $(this).val();
-				page[pagerObj.id] = 1;
-				pagerObj.updatePagerElements();
-				pagerObj.transportFunction();
-			}
+		this.pageSize.on('change', function(e) {
+                    pageSize[pagerObj.id] = $(this).val();
+                    page[pagerObj.id] = 1;
+                    pagerObj.updatePagerElements();
+                    pagerObj.transportFunction();
 		});
 
+
+                let limitPager = function(inputEl) {
+                    let val = $(inputEl).val();
+                    if (val < 1 || val > pageCount[pagerObj.id]) {
+                            $(inputEl).val(page[pagerObj.id]);
+                    } else {
+                        page[pagerObj.id] = val;
+                    }
+                    pagerObj.updatePagerElements();
+                    pagerObj.transportFunction();
+                };
+
 		this.pageNo.on('keypress', function(e) {
-			if (e.keyCode === 13) {
-				page[pagerObj.id] = $(this).val();
-				pagerObj.updatePagerElements();
-				pagerObj.transportFunction();
-			}
+                    if (e.keyCode === 13) {
+                        limitPager(this);
+                    }
+		});
+
+		this.pageNo.on('blur', function(e) {
+                    if (e.target.classList.contains('disabled')) return;
+                    limitPager(this);
+		});
+
+                this.pageNo.on('click', function(e) {
+                    if (e.target.classList.contains('disabled')) return;
+                    e.target.select();
 		});
 
 		this.pageLeft.on('click', function(e) {
-			page[pagerObj.id]--;
-			pagerObj.updatePagerElements();
-			pagerObj.transportFunction();
+                    if (e.target.classList.contains('disabled')) return;
+                    page[pagerObj.id]--;
+                    pagerObj.updatePagerElements();
+                    pagerObj.transportFunction();
 		});
 
-		this.pageRight.on('click', function() {
-			page[pagerObj.id]++;
-			pagerObj.updatePagerElements();
-			pagerObj.transportFunction();
+		this.pageRight.on('click', function(e) {
+                    if (e.target.classList.contains('disabled')) return;
+                    page[pagerObj.id]++;
+                    pagerObj.updatePagerElements();
+                    pagerObj.transportFunction();
 		});
 
 		pagerObj.transportFunction();
@@ -264,11 +290,18 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 		$('input.filter[type=text]', this.filterEl).on('keyup', function(e) {
 			var $filterEl = $(this);
 			var filterAttribute = $filterEl.data('attribute');
+
+			let filterVal = $filterEl.val();
+
+			if (filterVal === '') {
+				pagerFilters[pagerObj.id][filterAttribute] = null;
+			} else {
+				pagerFilters[pagerObj.id][filterAttribute] = filterVal;
+			}
+
 			if (e.keyCode === 13) {
 
 				if (filterAttribute && filterAttribute.length) {
-					pagerFilters[pagerObj.id][filterAttribute] = $filterEl.val();
-
 					page[pagerObj.id] = 1;
 					pagerObj.updatePagerElements();
 					pagerObj.transportFunction();

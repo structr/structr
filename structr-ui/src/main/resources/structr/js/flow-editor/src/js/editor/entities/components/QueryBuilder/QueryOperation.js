@@ -94,12 +94,17 @@ export class QueryOperation {
         }
 
         if (queryType !== undefined) {
-            this.handles.key.remove(this.handles.key.childNodes);
+            while(this.handles.key.hasChildNodes()) {
+                this.handles.key.removeChild(this.handles.key.firstChild);
+            }
 
             const structrRest = new StructrRest();
             await structrRest.get("_schema/" + queryType).then((res) => {
                 const properties = res.result[0].views.all;
-                for (let [key,prop] of Object.entries(properties)) {
+
+                let entries = Object.entries(properties).sort();
+
+                for (let [key,prop] of entries) {
                     const option = document.createElement("option");
                     option.value = prop.jsonName;
                     option.text = prop.jsonName;
@@ -261,7 +266,7 @@ export class QueryOperation {
                         entity.valueComponent.setValue(value);
                         break;
                     case 'queryType':
-                        entity._loadKeyOptions(value);
+                        //entity._loadKeyOptions(value);
                         break;
                 }
 

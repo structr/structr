@@ -18,7 +18,8 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
+import java.util.HashSet;
+import java.util.Set;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.error.ArgumentCountException;
@@ -27,9 +28,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class RevokeFunction extends Function<Object, Object> {
+public class RevokeFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_REVOKE    = "Usage: ${revoke(principal, node, permissions)}. Example: ${revoke(me, this, 'write, delete'))}";
 	public static final String ERROR_MESSAGE_REVOKE_JS = "Usage: ${{Structr.revoke(principal, node, permissions)}}. Example: ${{Structr.revoke(Structr.('me'), Structr.this, 'write, delete'))}}";
@@ -37,11 +37,6 @@ public class RevokeFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "revoke";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override
@@ -61,7 +56,9 @@ public class RevokeFunction extends Function<Object, Object> {
 
 					if (sources[2] instanceof String) {
 
+						final Set<Permission> permissions = new HashSet();
 						final String[] parts = ((String)sources[2]).split("[,]+");
+
 						for (final String part : parts) {
 
 							final String trimmedPart = part.trim();
@@ -70,7 +67,7 @@ public class RevokeFunction extends Function<Object, Object> {
 								final Permission permission = Permissions.valueOf(trimmedPart);
 								if (permission != null) {
 
-									node.revoke(permission, principal, ctx.getSecurityContext());
+									permissions.add(permission);
 
 								} else {
 
@@ -78,6 +75,10 @@ public class RevokeFunction extends Function<Object, Object> {
 									return "Error: unknown permission " + trimmedPart;
 								}
 							}
+						}
+
+						if (permissions.size() > 0) {
+							node.revoke(permissions, principal, ctx.getSecurityContext());
 						}
 
 						return "";

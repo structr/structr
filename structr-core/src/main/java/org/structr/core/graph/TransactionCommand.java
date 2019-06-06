@@ -120,10 +120,13 @@ public class TransactionCommand {
 			}
 
 			// 1. do inner callbacks (may cause transaction to fail)
-			if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
+			if (securityContext == null || securityContext.doInnerCallbacks()) {
 
-				cmd.transaction.failure();
-				throw new FrameworkException(422, "Unable to commit transaction, validation failed", errorBuffer);
+				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
+
+					cmd.transaction.failure();
+					throw new FrameworkException(422, "Unable to commit transaction, validation failed", errorBuffer);
+				}
 			}
 
 			// 2. fetch all types of entities modified in this tx

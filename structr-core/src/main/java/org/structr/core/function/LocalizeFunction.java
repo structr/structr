@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import org.structr.api.config.Settings;
-import org.structr.api.service.LicenseManager;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.common.AccessMode;
 import org.structr.common.error.ArgumentCountException;
@@ -34,9 +33,8 @@ import org.structr.core.entity.Localization;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class LocalizeFunction extends Function<Object, Object> {
+public class LocalizeFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_LOCALIZE    = "Usage: ${localize(key[, domain])}. Example ${localize('HELLO_WORLD', 'myDomain')}";
 	public static final String ERROR_MESSAGE_LOCALIZE_JS = "Usage: ${{Structr.localize(key[, domain])}}. Example ${{Structr.localize('HELLO_WORLD', 'myDomain')}}";
@@ -44,11 +42,6 @@ public class LocalizeFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "localize";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

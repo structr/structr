@@ -18,15 +18,13 @@
  */
 package org.structr.web.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 import org.structr.web.entity.dom.DOMNode;
 
-public class UnescapeHtmlFunction extends Function<Object, Object> {
+public class UnescapeHtmlFunction extends UiCommunityFunction {
 
 	public static final String ERROR_MESSAGE_UNESCAPE_HTML    = "Usage: ${unescape_html(text)}. Example: ${unescape_html(\"test &amp; test\")}";
 	public static final String ERROR_MESSAGE_UNESCAPE_HTML_JS = "Usage: ${{Structr.unescape_html(text)}}. Example: ${{Structr.unescape_html(\"test &amp; test\")}}";
@@ -34,11 +32,6 @@ public class UnescapeHtmlFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "unescape_html";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

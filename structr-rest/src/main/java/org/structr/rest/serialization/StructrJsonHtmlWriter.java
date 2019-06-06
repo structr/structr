@@ -20,9 +20,7 @@ package org.structr.rest.serialization;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -43,8 +41,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.graph.Tx;
 
 /**
  *
@@ -65,6 +61,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	protected Tag currentElement              = null;
 	protected GraphObject currentObject       = null;
 	protected Tag previousElement             = null;
+	protected GraphObject previousObject      = null;
 	protected boolean hasName                 = false;
 	protected String lastName                 = null;
 	protected String propertyView	        = "";
@@ -113,7 +110,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		head.inline("title").text(baseUrl);
 
 		Tag body = doc.block("body").attr(new Onload("if (document.querySelectorAll('#right > ul > li > ul > li > ul.collapsibleList > li').length > 5) { CollapsibleLists.apply(true); }"));
-		Tag top  = body.block("div").id("top");
+//		Tag top  = body.block("div").id("top");
 
 		final App app  = StructrApp.getInstance(securityContext);
 		final Tag left = body.block("div").id("left");
@@ -121,20 +118,20 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		left.inline("button").attr(new Css("collapse right")).attr(new Attr("onclick", "CollapsibleLists.closeAll()")).text(" - ");
 		left.inline("button").attr(new Css("expand right")).attr(new Attr("onclick", "CollapsibleLists.openAll()")).text(" + ");
 
-		try (final Tx tx = app.tx()) {
-
-			final List<SchemaNode> schemaNodes = app.nodeQuery(SchemaNode.class).getAsList();
-			Collections.sort(schemaNodes);
-
-			for (SchemaNode node : schemaNodes) {
-
-				final String rawType = node.getName();
-				top.inline("a").attr(new Href(restPath + "/" + rawType), new If(rawType.equals(currentType), new Css("active"))).text(rawType);
-			}
-
-		} catch (Throwable t) {
-			logger.warn("", t);
-		}
+//		try (final Tx tx = app.tx()) {
+//
+//			final List<SchemaNode> schemaNodes = app.nodeQuery(SchemaNode.class).getAsList();
+//			Collections.sort(schemaNodes);
+//
+//			for (SchemaNode node : schemaNodes) {
+//
+//				final String rawType = node.getName();
+//				top.inline("a").attr(new Href(restPath + "/" + rawType), new If(rawType.equals(currentType), new Css("active"))).text(rawType);
+//			}
+//
+//		} catch (Throwable t) {
+//			logger.warn("", t);
+//		}
 
 		for (String view : StructrApp.getConfiguration().getPropertyViews()) {
 
@@ -196,6 +193,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 		increaseSerializationDepth();
 
+		previousObject = currentObject;
 		currentObject = graphObject;
 
 		if (!hasName) {
@@ -225,6 +223,8 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		currentElement.inline("span").text("}");	// print }
 		previousElement = currentElement;
 		currentElement = currentElement.parent();	// end LI
+
+		currentObject = previousObject;
 
 		return this;
 	}

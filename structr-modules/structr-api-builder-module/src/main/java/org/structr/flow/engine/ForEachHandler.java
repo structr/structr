@@ -21,6 +21,7 @@ package org.structr.flow.engine;
 import java.util.Collection;
 
 import org.structr.flow.api.*;
+import org.structr.flow.impl.FlowAggregate;
 import org.structr.flow.impl.FlowForEach;
 import org.structr.flow.impl.FlowNode;
 
@@ -43,6 +44,15 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 
 				final Object data = dataSource.get(context);
 				Context loopContext = new Context(context);
+
+				// Special handling for FlowAggregate to ensure it's properly reset for nested loops.
+				FlowElement element = loopBody;
+				do {
+					if (element instanceof FlowAggregate) {
+						loopContext.setData(((FlowAggregate) element).getUuid(), null);
+					}
+				} while ((element = element.next()) != null);
+
 
 				if (data instanceof Iterable) {
 
@@ -67,6 +77,8 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 				}
 
 				context.deepCopy(loopContext);
+
+				context.setData(flowElement.getUuid(), data);
 
 			}
 

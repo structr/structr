@@ -19,7 +19,6 @@
 package org.structr.core.function;
 
 import java.util.Map;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -30,9 +29,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class GetOrCreateFunction extends Function<Object, Object> {
+public class GetOrCreateFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_GET_OR_CREATE     = "Usage: ${get_or_create(type, properties)}. Example: ${get_or_create(\"User\", \"email\", \"tester@test.com\"}";
 	public static final String ERROR_MESSAGE_NO_TYPE_SPECIFIED = "Error in get_or_create(): no type specified.";
@@ -41,11 +39,6 @@ public class GetOrCreateFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "get_or_create";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

@@ -22,15 +22,13 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class KeysFunction extends Function<Object, Object> {
+public class KeysFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_KEYS = "Usage: ${keys(entity [, viewName])}. Example: ${keys(this, \"ui\")}";
 	public static final String ERROR_MESSAGE_KEYS_JS = "Usage: ${{Structr.keys(entity [, viewName])}}. Example: ${{Structr.keys(this, \"ui\")}}";
@@ -38,11 +36,6 @@ public class KeysFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "keys";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

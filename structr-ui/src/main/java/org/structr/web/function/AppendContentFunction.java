@@ -20,15 +20,13 @@ package org.structr.web.function;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 import org.structr.web.entity.File;
 
-public class AppendContentFunction extends Function<Object, Object> {
+public class AppendContentFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_APPEND_CONTENT    = "Usage: ${append_content(file, content[, encoding = \"UTF-8\"])}. Example: ${append_content(first(find('File', 'name', 'test.txt')), 'additional content')}";
 	public static final String ERROR_MESSAGE_APPEND_CONTENT_JS = "Usage: ${{Structr.appendContent(file, content[, encoding = \"UTF-8\"])}}. Example: ${{Structr.appendContent(fileNode, 'additional content')}}";
@@ -36,11 +34,6 @@ public class AppendContentFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 		return "append_content";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Basic;
 	}
 
 	@Override

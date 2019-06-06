@@ -18,25 +18,18 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.service.LicenseManager;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class ModFunction extends Function<Object, Object> {
+public class ModFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_MODULO = "Usage: ${mod(value1, value2)}. Example: ${mod(17, 5)}";
 
 	@Override
 	public String getName() {
 		return "mod";
-	}
-
-	@Override
-	public int getRequiredLicense() {
-		return LicenseManager.Community;
 	}
 
 	@Override

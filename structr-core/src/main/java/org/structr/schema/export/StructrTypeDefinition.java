@@ -352,6 +352,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
+	public JsonStringProperty addEncryptedProperty(final String name, final String... views) {
+
+		final StructrEncryptedStringProperty encrypted = new StructrEncryptedStringProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(encrypted);
+
+		return encrypted;
+	}
+
+	@Override
 	public JsonStringProperty addPasswordProperty(final String name, final String... views) {
 
 		final StructrPasswordProperty passwordProperty = new StructrPasswordProperty(this, name);
@@ -1467,25 +1479,17 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 	private void handleRemovedMethod(final StructrMethodDefinition method) throws FrameworkException {
 
+		if ("java".equals(method.getCodeType())) {
 
-		/*
+			if (List.class.getName().equals(method.getReturnType())) {
 
-		don't delete anything, this is not stable
+				final SchemaMethod schemaMethod = method.getSchemaMethod();
+				if (schemaMethod != null) {
 
-
-		final SchemaMethod schemaMethod = method.getSchemaMethod();
-		if (schemaMethod != null) {
-
-			final Boolean value = schemaMethod.getProperty(SchemaMethod.isPartOfBuiltInSchema);
-			if (value != null && value) {
-
-				logger.warn("Internal schema method {}.{} was removed or renamed in the current version of the Structr schema, deleting.", getName(), method.getName());
-
-				// We can not determine yet if the type was deleted or renamed, so we need to delete it..
-				StructrApp.getInstance().delete(method.getSchemaMethod());
+					StructrApp.getInstance().delete(method.getSchemaMethod());
+				}
 			}
 		}
-		*/
 	}
 
 	private void handleRemovedProperty(final StructrPropertyDefinition property) throws FrameworkException {

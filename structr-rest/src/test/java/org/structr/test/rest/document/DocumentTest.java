@@ -27,7 +27,15 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import org.testng.annotations.Test;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.Relation.Cardinality;
+import org.structr.core.graph.Tx;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonReferenceType;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonSchema.Cascade;
 import org.structr.test.rest.common.StructrRestTestBase;
+import static org.testng.AssertJUnit.fail;
 
 /**
  *
@@ -1538,6 +1546,119 @@ public class DocumentTest extends StructrRestTestBase {
 
 			.when()
 			.get("/Project/test?sort=name");
+
+	}
+
+	@Test
+	public void testForeignPropertiesInOneToOne() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+			final JsonReferenceType rel  = project.relate(task, "HAS", Cardinality.OneToOne, "project", "task").setCascadingCreate(Cascade.sourceToTarget);
+
+			rel.addStringProperty("role", "public");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String projectId = createEntity("Project", "{ name: 'Project1' }");
+		final String taskId    = createEntity("Task",    "{ name: 'Task1' }");
+
+
+		// create data
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.body("{ task: { id: '" + taskId + "', role: 'Role1' } }")
+
+			.expect()
+				.statusCode(200)
+
+			.when()
+				.put("/Project/" + projectId);
+
+
+		// check result
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+			.expect()
+				.statusCode(200)
+				.body("result[0].role", equalTo("Role1"))
+
+			.when()
+				.get("/ProjectHASTask");
+	}
+
+	@Test
+	public void testForeignPropertiesInOneToMany() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+			final JsonReferenceType rel  = project.relate(task, "HAS", Cardinality.OneToMany, "project", "tasks").setCascadingCreate(Cascade.sourceToTarget);
+
+			rel.addStringProperty("role", "public");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String projectId = createEntity("Project", "{ name: 'Project1' }");
+		final String taskId    = createEntity("Task",    "{ name: 'Task1' }");
+
+
+		// create data
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.body("{ tasks: [ { id: '" + taskId + "', role: 'Role1' } ] }")
+
+			.expect()
+				.statusCode(200)
+
+			.when()
+				.put("/Project/" + projectId);
+
+
+		// check result
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+			.expect()
+				.statusCode(200)
+				.body("result[0].role", equalTo("Role1"))
+
+			.when()
+				.get("/ProjectHASTask");
 
 	}
 
