@@ -420,7 +420,7 @@ var Importer = {
 
 								data.result.forEach(function(res) {
 
-									Importer.schemaTypeCache[((res.type === "SchemaRelationshipNode") ? "relTypes" : "nodeTypes")].push(res.name);
+									Importer.schemaTypeCache[((res.type === "SchemaRelationshipNode") ? "relTypes" : "nodeTypes")].push(res);
 								});
 
 								Importer.updateSchemaTypeSelector(targetTypeSelector);
@@ -430,7 +430,22 @@ var Importer = {
 						targetTypeSelector.on('change', function(e, data) { Importer.updateMapping(file, data); });
 						$(".import-option", container).on('change', function(e, data) { Importer.updateMapping(file, data); });
 
+						let customOnlyCheckbox = $('input#target-type-custom-only', container);
+
 						$('input[name=import-type]', container).on('change', function() {
+							Importer.updateSchemaTypeSelector(targetTypeSelector);
+							$('#property-select').empty();
+							$('#start-import').off('click');
+
+							let importType = $('input[name=import-type]:checked').val();
+							if (importType === 'node') {
+								customOnlyCheckbox.parent().show();
+							} else {
+								customOnlyCheckbox.parent().hide();
+							}
+						});
+
+						customOnlyCheckbox.on('change', function() {
 							Importer.updateSchemaTypeSelector(targetTypeSelector);
 							$('#property-select').empty();
 							$('#start-import').off('click');
@@ -447,12 +462,27 @@ var Importer = {
 		$('option[disabled!=disabled]', typeSelect).remove();
 		typeSelect.val("");
 
-		var data = Importer.schemaTypeCache[((importType === "rel") ? "relTypes" : "nodeTypes")];
+		var onlyShowCustomTypes = $('input#target-type-custom-only').prop('checked');
+
+		var data = Importer.getSchemaTypeSelectorData(importType, onlyShowCustomTypes);
 
 		data.forEach(function(name) {
 
 			typeSelect.append('<option value="' + name + '">' + name + '</option>');
 		});
+
+	},
+	getSchemaTypeSelectorData: function(importType = "", customOnly = false) {
+
+		let allTypeData = Importer.schemaTypeCache[importType + "Types"];
+
+		if (importType === 'node' && customOnly === true) {
+			allTypeData = allTypeData.filter((t) => {
+				return t.isBuiltinType === false;
+			});
+		}
+
+		return allTypeData.map((t) => { return t.name; });
 
 	},
 	updateMapping: function(file, data) {
