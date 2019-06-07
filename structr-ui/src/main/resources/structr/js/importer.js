@@ -300,6 +300,8 @@ var Importer = {
 	},
 	importCSVDialog: function(file) {
 
+		Importer.clearSchemaTypeCache();
+
 		Structr.dialog('Import CSV from ' + file.name, function() {}, function() {});
 
 		Importer.initializeButtons(true, false, false, true);
@@ -483,6 +485,14 @@ var Importer = {
 		}
 
 		return allTypeData.map((t) => { return t.name; });
+
+	},
+	clearSchemaTypeCache: function() {
+
+		Importer.schemaTypeCache = {
+			nodeTypes: [],
+			relTypes: []
+		};
 
 	},
 	updateMapping: function(file, data) {
