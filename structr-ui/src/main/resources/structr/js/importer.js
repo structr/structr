@@ -40,7 +40,8 @@ var Importer = {
 	timeout: undefined,
 	schemaTypeCache: {
 		nodeTypes: [],
-		relTypes: []
+		relTypes: [],
+		graphTypes: []
 	},
 
 	init: function() {
@@ -354,6 +355,7 @@ var Importer = {
 						$('#commit-interval').val(config.commitInterval);
 						$('#strict-quotes').prop('checked', config.strictQuotes === true);
 						$('#ignore-invalid').prop('checked', config.ignoreInvalid === true);
+						$('#distinct').prop('checked', config.distinct === true);
 						$('#range').val(config.range);
 
 						var importType = config.importType || "node";
@@ -414,48 +416,88 @@ var Importer = {
 						var container = $(html);
 						dialog.append(container);
 
-						var targetTypeSelector = $('#target-type-select', container);
+						Importer.formatImportTypeSelectorDialog(file);
 
-						$.get(rootUrl + 'AbstractSchemaNode?sort=name', function(data) {
+						$('input[name=import-type]').off('change').on('change', function() {
 
-							if (data && data.result) {
-
-								data.result.forEach(function(res) {
-
-									Importer.schemaTypeCache[((res.type === "SchemaRelationshipNode") ? "relTypes" : "nodeTypes")].push(res);
-								});
-
-								Importer.updateSchemaTypeSelector(targetTypeSelector);
-							}
-						});
-
-						targetTypeSelector.on('change', function(e, data) { Importer.updateMapping(file, data); });
-						$(".import-option", container).on('change', function(e, data) { Importer.updateMapping(file, data); });
-
-						let customOnlyCheckbox = $('input#target-type-custom-only', container);
-
-						$('input[name=import-type]', container).on('change', function() {
-							Importer.updateSchemaTypeSelector(targetTypeSelector);
-							$('#property-select').empty();
-							$('#start-import').off('click');
-
-							let importType = $('input[name=import-type]:checked').val();
-							if (importType === 'node') {
-								customOnlyCheckbox.parent().show();
-							} else {
-								customOnlyCheckbox.parent().hide();
-							}
-						});
-
-						customOnlyCheckbox.on('change', function() {
-							Importer.updateSchemaTypeSelector(targetTypeSelector);
-							$('#property-select').empty();
-							$('#start-import').off('click');
+							// call self on change
+							Importer.formatImportTypeSelectorDialog(file);
 						});
 					});
 				}
 			});
 		});
+	},
+	formatImportTypeSelectorDialog: function(file) {
+
+		let importType = $('input[name=import-type]:checked').val();
+
+		Structr.fetchHtmlTemplate('importer/dialog.target.type.select.' + importType, { }, function(html) {
+
+			$('#import-dialog-type-container').empty();
+			$('#import-dialog-type-container').append(html);
+
+			switch (importType) {
+
+				case 'node':
+				case 'rel':
+					Importer.formatNodeOrRelImportDialog(file);
+					break;
+
+				case 'graph':
+					Importer.formatMixedImportDialog(file);
+					break;
+			}
+		});
+	},
+	formatNodeOrRelImportDialog: function(file) {
+
+		var targetTypeSelector = $('#target-type-select');
+
+		Importer.updateSchemaTypeCache(targetTypeSelector);
+
+		targetTypeSelector.off('change').on('change', function(e, data) { Importer.updateMapping(file, data); });
+		$(".import-option").off('change').on('change', function(e, data) { Importer.updateMapping(file, data); });
+
+		let customOnlyCheckbox = $('input#target-type-custom-only');
+
+		$('#property-select').empty();
+		$('#start-import').off('click');
+
+		customOnlyCheckbox.off('change').on('change', function() {
+			Importer.updateSchemaTypeSelector(targetTypeSelector);
+			$('#property-select').empty();
+			$('#start-import').off('click');
+		});
+
+		Importer.updateSchemaTypeSelector(targetTypeSelector);
+
+	},
+	updateSchemaTypeCache: function(targetTypeSelector) {
+
+		$.get(rootUrl + 'AbstractSchemaNode?sort=name', function(data) {
+
+			if (data && data.result) {
+
+				Importer.clearSchemaTypeCache();
+
+				data.result.forEach(function(res) {
+
+					if (res.type === 'SchemaRelationshipNode') {
+
+						Importer.schemaTypeCache['relTypes'].push(res);
+
+					} else {
+
+						Importer.schemaTypeCache['graphTypes'].push(res);
+						Importer.schemaTypeCache['nodeTypes'].push(res);
+					}
+				});
+
+				Importer.updateSchemaTypeSelector(targetTypeSelector);
+			}
+		});
+
 	},
 	updateSchemaTypeSelector: function(typeSelect) {
 
@@ -478,7 +520,7 @@ var Importer = {
 
 		let allTypeData = Importer.schemaTypeCache[importType + "Types"];
 
-		if (importType === 'node' && customOnly === true) {
+		if ((importType === 'node' || importType === 'graph') && customOnly === true) {
 			allTypeData = allTypeData.filter((t) => {
 				return t.isBuiltinType === false;
 			});
@@ -491,7 +533,8 @@ var Importer = {
 
 		Importer.schemaTypeCache = {
 			nodeTypes: [],
-			relTypes: []
+			relTypes: [],
+			graphTypes: []
 		};
 
 	},
@@ -610,6 +653,7 @@ var Importer = {
 			commitInterval: $('#commit-interval').val() || $('#commit-interval').attr('placeholder'),
 			strictQuotes: $('#strict-quotes').prop('checked'),
 			ignoreInvalid: $('#ignore-invalid').prop('checked'),
+			distinct: $('#distinct').prop('checked'),
 			range: $('#range').val(),
 			importType: importType,
 			mappings: mappings,
@@ -621,6 +665,23 @@ var Importer = {
 	},
 	displayImportPropertyMapping: function(type, inputProperties, rowContainer, names, displayTransformInput, typeConfig, onLoadComplete, onSelect) {
 
+		var config = {
+			type: type,
+			inputProperties: inputProperties,
+			rowContainer: rowContainer,
+			names: names,
+			displayTransformInput: displayTransformInput,
+			typeConfig: typeConfig,
+			onLoadComplete: onLoadComplete,
+			onSelect: onSelect,
+			displayMatchingPropertiesOnly: true
+		};
+
+		Importer.displayImportPropertyMappingWithConfig(config);
+	},
+	displayImportPropertyMappingWithConfig: function(config) {
+
+		var noMatches = true;
 		var blacklist = [
 			'owner', 'ownerId', 'base', 'type', 'relType', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate',
 			'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate',
@@ -631,7 +692,7 @@ var Importer = {
 			blacklist.push('id');
 		};
 
-		$.get(rootUrl + '_schema/' + type + '/all', function(typeInfo) {
+		$.get(rootUrl + '_schema/' + config.type + '/all', function(typeInfo) {
 
 			if (typeInfo && typeInfo.result) {
 
@@ -642,32 +703,14 @@ var Importer = {
 
 				var mapping = {};
 
-				inputProperties.forEach(function(inputPropertyName, i) {
+				config.inputProperties.forEach(function(inputPropertyName, i) {
 
-					rowContainer.append(
-						'<tr>' +
-							'<td class="key">' + inputPropertyName + '</td>' +
-							(displayTransformInput ?
-								'<td class="transform"><input type="text" name="' +
-								inputPropertyName +
-								'" id="transform' +
-								i +
-								'" value="' +
-								(typeConfig && typeConfig.mappings && typeConfig.mappings[inputPropertyName] ? typeConfig.mappings[inputPropertyName] : '') +
-								'" /></td>' : ''
-							) +
-							'<td>' +
-								'<select class="attr-mapping" name="' + inputPropertyName +'" id="key' + i + '">' +
-									'<option value="">-- skip --</option>' +
-								'</select>' +
-							'</td>' +
-						'</tr>'
-					);
-
+					var options        = '';
 					var selectedString = '';
 					var select         = $('select#key' + i);
 					var longestMatch   = 0;
-					names[i]           = inputPropertyName;
+					var matchFound     = false;
+					config.names[i]    = inputPropertyName;
 
 					// create drop-down list with pre-selected options
 					typeInfo.result.forEach(function(info) {
@@ -675,27 +718,54 @@ var Importer = {
 						if (blacklist.indexOf(info.jsonName) === -1) {
 
 							// match with longest target property wins
-							if (Importer.checkSelection(typeConfig, inputPropertyName, info.jsonName) && info.jsonName.length > longestMatch) {
+							if (Importer.checkSelection(config.typeConfig, inputPropertyName, info.jsonName) && info.jsonName.length > longestMatch) {
 
 								selectedString             = ' selected="selected"';
 								longestMatch               = info.jsonName.length;
 								mapping[inputPropertyName] = info.jsonName;
+								matchFound                 = true;
+								noMatches                  = false;
 
 							} else {
 								selectedString = '';
 							}
 
-							select.append('<option' + selectedString + '>' + info.jsonName + '</option>');
+							options += '<option' + selectedString + '>' + info.jsonName + '</option>';
 						}
 					});
 
-					if (onSelect && typeof onSelect === "function") {
-						select.on('change', onSelect);
+					// display selection
+					if (!config.displayMatchingPropertiesOnly || noMatches || matchFound) {
+
+						config.rowContainer.append(
+							'<tr>' +
+								'<td class="key">' + inputPropertyName + '</td>' +
+								(config.displayTransformInput ?
+									'<td class="transform"><input type="text" name="' +
+									inputPropertyName +
+									'" id="transform' +
+									i +
+									'" value="' +
+									(config.typeConfig && config.typeConfig.mappings && config.typeConfig.mappings[inputPropertyName] ? config.typeConfig.mappings[inputPropertyName] : '') +
+									'" /></td>' : ''
+								) +
+								'<td>' +
+									'<select class="attr-mapping" name="' + inputPropertyName +'" id="key' + i + '">' +
+										'<option value="">-- skip --</option>' +
+										options +
+									'</select>' +
+								'</td>' +
+							'</tr>'
+						);
+					}
+
+					if (config.onSelect && typeof config.onSelect === "function") {
+						select.on('change', config.onSelect);
 					}
 				});
 
-				if (onLoadComplete && typeof onLoadComplete === "function") {
-					onLoadComplete(mapping);
+				if (config.onLoadComplete && typeof config.onLoadComplete === "function") {
+					config.onLoadComplete(mapping);
 				}
 			}
 		});
@@ -1256,5 +1326,309 @@ var Importer = {
 		var elem = $('td.xml-mapping[data-name="' + path + '"]');
 		elem.empty();
 		elem.append('<b>' + _Icons.getHtmlForIcon(_Icons.collapsed_icon) + '&nbsp;&nbsp;' + propertyName + '</b>');
+	},
+
+
+
+
+	/***************************************************************************************************************************************************************************************/
+	/* BEGIN NEW MIXED DATA IMPORT DIALOG */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	formatMixedImportDialog: function(file) {
+
+		Structr.appendInfoTextToElement({
+			text: "Use the select box labelled &quot;Add target type..&quot; to add type mappings.",
+			element: $('#type-mapping-title'),
+			css: {
+				marginLeft: "2px"
+			}
+		});
+
+		var targetTypeSelector = $('#target-type-select');
+		let customOnlyCheckbox = $('input#target-type-custom-only');
+
+		Importer.updateSchemaTypeCache(targetTypeSelector);
+
+		$('#types-container').empty();
+		$('#start-import').off('click');
+
+		customOnlyCheckbox.off('change').on('change', function() {
+			Importer.updateSchemaTypeSelector(targetTypeSelector);
+			$('#types-container').empty();
+			$('#start-import').off('click');
+		});
+
+		Importer.updateSchemaTypeSelector(targetTypeSelector);
+
+		// collect CSV headers to use
+		$.post(rootUrl + 'File/' + file.id + '/getCSVHeaders', JSON.stringify({
+
+			delimiter: $('#delimiter').val(),
+			quoteChar: $('#quote-char').val(),
+			recordSeparator: $('#record-separator').val()
+
+		}), function(csvHeaders) {
+
+			if (csvHeaders && csvHeaders.result && csvHeaders.result.headers) {
+
+				var mixedMappingConfig = {
+					availableProperties: {},
+					mappedTypes: {}
+				};
+
+				csvHeaders.result.headers.forEach(p => mixedMappingConfig.availableProperties[p] = {
+					name: p,
+					matched: false
+				});
+
+				Importer.displayMixedMappingConfiguration(mixedMappingConfig);
+
+				// what happens when the user selects a type
+				targetTypeSelector.off('change').on('change', function(e, data) {
+
+					let selectedType = $('select[name=targetType]').val();
+
+					Importer.updateMixedMapping(selectedType, file, data, mixedMappingConfig);
+
+					targetTypeSelector.val('');
+				});
+
+			}
+		});
+	},
+	removeMixedTypeMapping: function(id, mixedMapping) {
+
+		// remove "matched" flag
+		Object.keys(mixedMapping.mappedTypes[id].properties).forEach(key => {
+			mixedMapping.availableProperties[key].matched = false;
+		});
+
+		delete mixedMapping.mappedTypes[id];
+
+		Importer.displayMixedMappingConfiguration(mixedMapping);
+	},
+	updateMixedMapping: function(id, file, data, mixedMappingConfig) {
+
+		var targetTypeSelector = $('#target-type-select');
+		var matchingContainer  = $('#matching-properties-' + id);
+		var availableContainer = $('#available-properties-' + id);
+		var type               = targetTypeSelector.val();
+
+		// dont do anything if there is no type set
+		if (!type) {
+			return;
+		};
+
+		// add type to mixed mapping config
+		mixedMappingConfig.mappedTypes[id] = {
+			name: id,
+			properties: {},
+			relationships: []
+		};
+
+		// clear current mapping list
+		availableContainer.empty();
+		matchingContainer.empty();
+
+		var typeConfig = {};
+
+		if (data) {
+			typeConfig['properties'] = data.mappings;
+			typeConfig['mappings']   = data.transforms;
+		};
+
+		var config = {
+			type: type,
+			availablePropertyContainer: availableContainer,
+			matchingPropertyContainer: matchingContainer,
+			names: [],
+			displayTransformInput: false,
+			typeConfig: typeConfig,
+			mixedMappingConfig: mixedMappingConfig,
+			displayMatchingPropertiesOnly: true,
+			onLoadComplete: function() {
+
+				$('#start-import').on('click', function() {
+
+					var configInfo = Importer.collectCSVImportConfigurationInfo();
+					var allowImport = (configInfo.errors.length === 0);
+
+					if (!allowImport) {
+
+						configInfo.errors.forEach(function(e) {
+							new MessageBuilder().title(e.title).error(e.message).show();
+						});
+
+					} else {
+
+						configInfo.config.mixedMappings = mixedMappingConfig.mappedTypes;
+
+						$.post(rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify(configInfo.config));
+					}
+				})
+			}
+		};
+
+		Importer.updateAdvancedImportPropertyMapping(config);
+	},
+	updateAdvancedImportPropertyMapping: function(config) {
+
+		var blacklist = [
+			'owner', 'ownerId', 'base', 'type', 'relType', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate',
+			'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate',
+			'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
+		];
+
+		if ($('input[name=import-type]:checked').val() === 'rel') {
+			blacklist.push('id');
+		};
+
+		$.get(rootUrl + '_schema/' + config.type + '/all', function(typeInfo) {
+
+			if (typeInfo && typeInfo.result) {
+
+				// sort by name
+				typeInfo.result.sort(function(a, b) {
+					return a.jsonName > b.jsonName ? 1 : a.jsonName < b.jsonName ? -1 : 0;
+				});
+
+				var mapping = config.mixedMappingConfig;
+
+				Object.keys(mapping.availableProperties).forEach(function(key, i) {
+
+					let inputProperty = mapping.availableProperties[key];
+
+					if (inputProperty.matched === true) {
+						return;
+					}
+
+					var inputPropertyName = inputProperty.name;
+					var longestMatch      = 0;
+					var matchFound        = false;
+					config.names[i]       = inputPropertyName;
+
+					// create drop-down list with pre-selected options
+					typeInfo.result.some(info => {
+
+						if (blacklist.indexOf(info.jsonName) === -1) {
+
+							// match with longest target property wins
+							if (Importer.checkSelection(config.typeConfig, inputPropertyName, info.jsonName) && info.jsonName.length > longestMatch) {
+
+								var mappedType = mapping.mappedTypes[config.type];
+
+								mappedType.properties[inputPropertyName] = info.jsonName;
+								longestMatch                             = info.jsonName.length;
+								matchFound                               = true;
+
+								return true;
+							}
+						}
+					});
+
+					// display selection
+					if (matchFound) {
+						inputProperty.matched = true;
+					}
+				});
+
+				// update display
+				Importer.displayMixedMappingConfiguration(mapping);
+
+				if (config.onLoadComplete && typeof config.onLoadComplete === "function") {
+					config.onLoadComplete(mapping);
+				}
+			}
+		});
+	},
+	displayMixedMappingConfiguration: function(mixedMapping) {
+
+		console.log(mixedMapping);
+
+		var availableProperties = $('#available-properties');
+		var mappedTypes         = $('#types-container');
+		var options             = '<option>Add relationship</option>';
+
+		availableProperties.empty();
+		mappedTypes.empty();
+
+		Object.keys(mixedMapping.availableProperties).forEach(key => {
+
+			let property = mixedMapping.availableProperties[key];
+
+			if (property.matched === false) {
+				availableProperties.append('<span>' + property.name + '</span>');
+			}
+		});
+
+		Object.keys(mixedMapping.mappedTypes).forEach(key => {
+
+			let mappedType = mixedMapping.mappedTypes[key];
+
+			Object.keys(mappedType.properties).forEach(propertyName => {
+
+				options += '<option>' + key + '.' + propertyName + '</option>';
+			});
+		});
+
+		Object.keys(mixedMapping.mappedTypes).forEach(key => {
+
+			let mappedType = mixedMapping.mappedTypes[key];
+
+			Structr.fetchHtmlTemplate('importer/snippet.type.container', { type: mappedType.name, id: mappedType.name }, function(html) {
+
+				mappedTypes.append(html);
+
+				var propertyContainer     = $('#matching-properties-' + mappedType.name);
+				var relationshipContainer = $('#relationships-' + mappedType.name);
+
+				Object.keys(mappedType.properties).forEach(propertyName => {
+
+					Structr.fetchHtmlTemplate('importer/snippet.mapping.row', { name: propertyName }, function(html) {
+
+						propertyContainer.append(html);
+					});
+				});
+
+				mappedType.relationships.forEach(propertyName => {
+
+					Structr.fetchHtmlTemplate('importer/snippet.mapping.row', { name: propertyName }, function(html) {
+
+						relationshipContainer.append(html);
+					});
+				});
+
+				$('#remove-button-' + mappedType.name).off('click').on('click', function(e) {
+					Importer.removeMixedTypeMapping(mappedType.name, mixedMapping);
+				});
+
+				var relationships = $('#relationships-' + mappedType.name);
+
+				relationships.append('<select class="add-selector" id="' + mappedType.name + '-related-to">' + options + '</select>');
+
+				$('#' + mappedType.name + '-related-to').off('change').on('change', function(e) {
+
+					mappedType.relationships.push($(this).val());
+					Importer.displayMixedMappingConfiguration(mixedMapping);
+				});
+
+			});
+
+		});
 	}
 };

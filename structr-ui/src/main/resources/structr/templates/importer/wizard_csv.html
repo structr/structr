@@ -7,7 +7,7 @@
 	<table id="csv-import">
 		<tbody>
 			<tr id="options-row1">
-				<td valign="top">
+				<td>
 					<label>Delimiter:</label>
 					<select id="delimiter" class="import-option">
 						<option ${(config.delim === ',' ? 'selected' : '')}>,</option>
@@ -15,7 +15,7 @@
 						<option ${(config.delim === '|' ? 'selected' : '')}>|</option>
 					</select>
 				</td>
-				<td valign="top">
+				<td>
 					<label>Quote character:</label>
 					<select id="quote-char" class="import-option">
 						<option ${(config.qc === '' ? 'selected' : '')}></option>
@@ -23,7 +23,7 @@
 						<option ${(config.qc === '\'' ? 'selected' : '')}>\'</option>
 					</select>
 				</td>
-				<td valign="top">
+				<td>
 					<label>Record separator:</label>
 					<select id="record-separator" class="import-option">
 						<option ${(config.data.result.separator ===    'LF' ? 'selected' : '')}>LF</option>
@@ -31,31 +31,41 @@
 						<option ${(config.data.result.separator === 'CR+LF' ? 'selected' : '')}>CR+LF</option>
 					</select>
 				</td>
-				<td valign="top">
+			</tr>
+			<tr id="options-row2">
+				<td>
 					<label>Commit interval:</label>
 					<input type="number" id="commit-interval" value="1000" placeholder="1000" title="Enter 0 to disable periodic commit.">
 				</td>
-			</tr>
-			<tr id="options-row2">
-				<td valign="top">
-					<label>Import type:</label><input type="radio" name="import-type" value="node" ${(config.importType === 'node' ? 'checked' : '')}> Node<br>
-					<label></label><input type="radio" name="import-type" value="rel" ${(config.importType === 'rel' ? 'checked' : '')}> Relationship<br>
-					<label></label><input type="radio" name="import-type" value="graph" ${(config.importType === 'graph' ? 'checked' : '')}> Mixed
-				</td>
-				<td valign="top">
+				<td>
 					<label>Strict Quotes:</label>
 					<input type="checkbox" id="strict-quotes" /><br>
 					<label>Ignore invalid lines:</label>
-					<input type="checkbox" id="ignore-invalid" /><br>
-					<label>Skip duplicates:</label>
-					<input type="checkbox" id="distinct" />
+					<input type="checkbox" id="ignore-invalid" />
 				</td>
-				<td colspan="2" valign="top">
+				<td>
 					<label>Line range:</label>
 					<input type="text" id="range" title="Enter range (0-100)." placeholder="e.g. 1-100 or 1,2,3-10" />
 				</td>
 			</tr>
+			<tr id="options-row3">
+				<td>
+					<label>Import type:</label><input type="radio" name="import-type" value="node" ${(config.importType === 'node' ? 'checked' : '')}> Node<br>
+					<label></label><input type="radio" name="import-type" value="rel" ${(config.importType === 'rel' ? 'checked' : '')}> Relationship
+				</td>
+				<td>
+					<label>Skip duplicates:</label>
+					<input type="checkbox" id="distinct" /><br>
+				</td>
+				<td>
+				</td>
+			</tr>
 		</tbody>
 	</table>
-	<div id="import-dialog-type-container"></div>
+	<h3>Select target type</h3>
+	<select id="target-type-select" name="targetType">
+		<option value="" disabled="disabled" selected="selected">Select target type..</option>
+	</select>
+	<span><input type="checkbox" id="target-type-custom-only" checked><label for="target-type-custom-only">Only show custom types</label></span>
+	<div id="property-select"></div>
 </div>
