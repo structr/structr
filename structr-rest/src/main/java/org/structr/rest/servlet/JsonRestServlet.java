@@ -434,7 +434,18 @@ public class JsonRestServlet extends AbstractDataServlet {
 						final RestMethodResult result = results.get(0);
 						final int resultCount         = results.size();
 
-						if (result != null) {
+						if (securityContext.returnDetailedCreationResults()) {
+
+							// remove previous results (might be string primitive which shouldn't be mixed with objects)
+							result.getContent().clear();
+
+							// return details for all objects that were created in this transaction
+							for (final Object obj : securityContext.getCreationDetails()) {
+
+								result.addContent(obj);
+							}
+
+						} else {
 
 							if (resultCount > 1) {
 
@@ -452,10 +463,9 @@ public class JsonRestServlet extends AbstractDataServlet {
 								// written because it may only contain a single URL
 								result.addHeader("Location", null);
 							}
-
-							commitResponse(securityContext, request, response, result, resource.isCollectionResource());
 						}
 
+						commitResponse(securityContext, request, response, result, resource.isCollectionResource());
 					}
 
 					tx.success();
