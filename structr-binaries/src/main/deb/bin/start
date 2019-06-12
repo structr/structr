@@ -4,7 +4,9 @@ cd /usr/lib/structr
 
 . bin/config
 
-if [ -e $PID_FILE ]; then
+PID=$(pgrep -f org.structr.Server)
+
+if [[ ! -z $PID ]]; then
 
 	echo "ERROR: server already running."
 	echo
@@ -12,7 +14,6 @@ if [ -e $PID_FILE ]; then
 	echo "new one. (Remove $PID_FILE if this message appears"
 	echo "even if no server is running.)"
 	echo
-
 	exit 0
 
 fi
