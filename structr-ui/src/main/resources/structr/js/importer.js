@@ -353,6 +353,7 @@ var Importer = {
 						$('#quote-char').val(config.quoteChar);
 						$('#record-separator').val(config.recordSeparator);
 						$('#commit-interval').val(config.commitInterval);
+						$('#rfc4180-mode').prop('checked', config.rfc4180Mode === true);
 						$('#strict-quotes').prop('checked', config.strictQuotes === true);
 						$('#ignore-invalid').prop('checked', config.ignoreInvalid === true);
 						$('#distinct').prop('checked', config.distinct === true);
@@ -651,6 +652,7 @@ var Importer = {
 			quoteChar: $('#quote-char').val(),
 			recordSeparator: $('#record-separator').val(),
 			commitInterval: $('#commit-interval').val() || $('#commit-interval').attr('placeholder'),
+			rfc4180Mode: $('#rfc4180-mode').prop('checked'),
 			strictQuotes: $('#strict-quotes').prop('checked'),
 			ignoreInvalid: $('#ignore-invalid').prop('checked'),
 			distinct: $('#distinct').prop('checked'),
