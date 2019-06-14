@@ -275,6 +275,7 @@ $(function() {
 var Structr = {
 	modules: {},
 	activeModules: {},
+	moduleAvailabilityCallbacks: [],
 	edition: '',
 	classes: [],
 	expanded: {},
@@ -1271,6 +1272,14 @@ var Structr = {
 
 				Structr.activeModules = envInfo.modules;
 				Structr.adaptUiToAvailableFeatures();
+
+				// run previously registered callbacks
+				let registeredCallbacks = Structr.moduleAvailabilityCallbacks;
+				console.log(Structr.moduleAvailabilityCallbacks);
+				Structr.moduleAvailabilityCallbacks = [];
+				registeredCallbacks.forEach((cb) => {
+					cb();
+				});
 			}
 		});
 	},
@@ -1316,6 +1325,19 @@ var Structr = {
 	},
 	isModulePresent: function(moduleName) {
 		return Structr.activeModules[moduleName] !== undefined;
+	},
+	isModuleInformationAvailable: function() {
+		return (Object.keys(Structr.activeModules).length > 0);
+	},
+	performModuleDependendAction: function(action) {
+		if (Structr.isModuleInformationAvailable()) {
+			action();
+		} else {
+			Structr.registerActionAfterModuleInformationIsAvailable(action);
+		}
+	},
+	registerActionAfterModuleInformationIsAvailable: function(cb) {
+		Structr.moduleAvailabilityCallbacks.push(cb);
 	},
 	adaptUiToEdition: function() {
 		$('.edition-dependend').each(function(idx, element) {

@@ -61,9 +61,10 @@ public class CSVFileImportJob extends FileImportJob {
 	@Override
 	public boolean runInitialChecks () throws FrameworkException {
 
-		final String targetType = getOrDefault(configuration.get("targetType"), null);
-		final String delimiter  = getOrDefault(configuration.get("delimiter"), ";");
-		final String quoteChar  = getOrDefault(configuration.get("quoteChar"), "\"");
+		final String targetType   = getOrDefault(configuration.get("targetType"), null);
+		final String delimiter    = getOrDefault(configuration.get("delimiter"), ";");
+		final String quoteChar    = getOrDefault(configuration.get("quoteChar"), "\"");
+		final boolean rfc4180Mode = getOrDefault(configuration.get("rfc4180Mode"), false);
 
 		if (targetType == null || delimiter == null || quoteChar == null) {
 
@@ -94,7 +95,9 @@ public class CSVFileImportJob extends FileImportJob {
 			final String delimiter                   = getOrDefault(configuration.get("delimiter"), ";");
 			final String quoteChar                   = getOrDefault(configuration.get("quoteChar"), "\"");
 			final String range                       = getOrDefault(configuration.get("range"), "");
+			final boolean rfc4180Mode                = getOrDefault(configuration.get("rfc4180Mode"), false);
 			final boolean strictQuotes               = getOrDefault(configuration.get("strictQuotes"), false);
+			final boolean collectValues              = getOrDefault(configuration.get("collectValues"), false);
 			final boolean distinct                   = getOrDefault(configuration.get("distinct"), false);
 			final Integer commitInterval             = parseInt(configuration.get("commitInterval"), 1000);
 
@@ -146,7 +149,7 @@ public class CSVFileImportJob extends FileImportJob {
 
 				final Character fieldSeparator     = delimiter.charAt(0);
 				final Character quoteCharacter     = StringUtils.isNotEmpty(quoteChar) ? quoteChar.charAt(0) : null;
-				final Iterable<JsonInput> iterable = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, "utf-8"), targetEntityType, fieldSeparator, quoteCharacter, range, reverse(importMappings), strictQuotes);
+				final Iterable<JsonInput> iterable = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, "utf-8"), targetEntityType, fieldSeparator, quoteCharacter, range, reverse(importMappings), rfc4180Mode, strictQuotes);
 				final Iterator<JsonInput> iterator = iterable.iterator();
 				int chunks                         = 0;
 				int ignoreCount                    = 0;
@@ -218,9 +221,7 @@ public class CSVFileImportJob extends FileImportJob {
 				importFinished(startTime, overallCount, ignoreCount);
 
 			} catch (IOException | FrameworkException fex) {
-
 				reportException(fex);
-
 			} catch (InstantiationException ex) {
 				reportException(ex);
 			} catch (IllegalAccessException ex) {

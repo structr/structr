@@ -23,16 +23,11 @@ case "$1" in
         /usr/lib/structr/bin/start
         exit 0
         ;;
-  status)
-        if [ -f $PID_FILE ]; then
-            PID=`cat $PID_FILE`
-            if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
-                printf "%s\n" "Process dead but PID_FILE exists"
-                exit 1
-            else
-                echo "Running"
-                exit 0
-            fi
+  status|info)
+		PID=$(pgrep -f org.structr.Server)
+		if [[ ! -z $PID ]]; then
+			echo "There may be a Structr instance running with pid $PID, exiting."
+			exit 1
         else
             printf "%s\n" "Service not running"
             exit 1
