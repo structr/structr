@@ -360,9 +360,28 @@ var Importer = {
 						$('#range').val(config.range);
 
 						var importType = config.importType || "node";
-						$('input[name=import-type][value=' + importType + ']').prop('checked', 'checked').trigger('change');
+						if ($('input[name=import-type][value=' + importType + ']').prop('checked') !== true) {
+							$('input[name=import-type][value=' + importType + ']').prop('checked', 'checked').trigger('change');
+						}
 
-						$('#target-type-select').val(config.targetType).trigger('change', [config]);
+						let typeInfo = Importer.schemaTypeCache[importType + 'Types'].filter((t) => {
+							return t.name === config.targetType;
+						});
+						if (typeInfo.length > 0) {
+
+							let checkbox = $('#target-type-custom-only');
+							let showOnlyCustomTypes = !typeInfo[0].isBuiltinType;
+
+							if (checkbox.prop('checked') !== showOnlyCustomTypes) {
+								checkbox.prop('checked', showOnlyCustomTypes).trigger('change');
+							}
+
+						} else {
+							new MessageBuilder().warning('Type ' + config.targetType + ' from loaded configuration does not exist. This may be due to an outdated configuration.').show();
+						}
+
+						let targetTypeSelector = $('#target-type-select');
+						targetTypeSelector.val(config.targetType).trigger('change', [config]);
 					}
 				});
 			});
