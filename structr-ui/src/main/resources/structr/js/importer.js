@@ -38,6 +38,8 @@ var Importer = {
 	appDataXMLKey: 'xml-import-config',
 	appDataCSVKey: 'csv-import-config',
 	timeout: undefined,
+	customTypesOnly: true,
+	schemaTypeCachePopulated: false,
 	schemaTypeCache: {
 		nodeTypes: [],
 		relTypes: [],
@@ -359,29 +361,26 @@ var Importer = {
 						$('#distinct').prop('checked', config.distinct === true);
 						$('#range').val(config.range);
 
-						var importType = config.importType || "node";
-						if ($('input[name=import-type][value=' + importType + ']').prop('checked') !== true) {
-							$('input[name=import-type][value=' + importType + ']').prop('checked', 'checked').trigger('change');
-						}
+						let importType = config.importType || "node";
 
 						let typeInfo = Importer.schemaTypeCache[importType + 'Types'].filter((t) => {
 							return t.name === config.targetType;
 						});
 						if (typeInfo.length > 0) {
 
-							let checkbox = $('#target-type-custom-only');
-							let showOnlyCustomTypes = !typeInfo[0].isBuiltinType;
-
-							if (checkbox.prop('checked') !== showOnlyCustomTypes) {
-								checkbox.prop('checked', showOnlyCustomTypes).trigger('change');
-							}
+							Importer.customTypesOnly = !typeInfo[0].isBuiltinType;
 
 						} else {
+
 							new MessageBuilder().warning('Type ' + config.targetType + ' from loaded configuration does not exist. This may be due to an outdated configuration.').show();
+							Importer.customTypesOnly = true;
+
 						}
 
-						let targetTypeSelector = $('#target-type-select');
-						targetTypeSelector.val(config.targetType).trigger('change', [config]);
+						$('input[name=import-type][value=' + importType + ']').prop('checked', 'checked').trigger('change');
+
+						$('#target-type-select').val(config.targetType);
+						console.log('d');
 					}
 				});
 			});
@@ -481,10 +480,15 @@ var Importer = {
 
 		let customOnlyCheckbox = $('input#target-type-custom-only');
 
+		if (Importer.customTypesOnly) {
+			customOnlyCheckbox.prop('checked', true);
+		}
+
 		$('#property-select').empty();
 		$('#start-import').off('click');
 
 		customOnlyCheckbox.off('change').on('change', function() {
+			Importer.customTypesOnly = $(this).prop('checked');
 			Importer.updateSchemaTypeSelector(targetTypeSelector);
 			$('#property-select').empty();
 			$('#start-import').off('click');
@@ -495,28 +499,33 @@ var Importer = {
 	},
 	updateSchemaTypeCache: function(targetTypeSelector) {
 
-		$.get(rootUrl + 'AbstractSchemaNode?sort=name', function(data) {
+		if (!Importer.schemaTypeCachePopulated) {
 
-			if (data && data.result) {
+			$.get(rootUrl + 'AbstractSchemaNode?sort=name', function(data) {
 
-				Importer.clearSchemaTypeCache();
+				if (data && data.result) {
 
-				data.result.forEach(function(res) {
+					Importer.clearSchemaTypeCache();
 
-					if (res.type === 'SchemaRelationshipNode') {
+					data.result.forEach(function(res) {
 
-						Importer.schemaTypeCache['relTypes'].push(res);
+						if (res.type === 'SchemaRelationshipNode') {
 
-					} else {
+							Importer.schemaTypeCache['relTypes'].push(res);
 
-						Importer.schemaTypeCache['graphTypes'].push(res);
-						Importer.schemaTypeCache['nodeTypes'].push(res);
-					}
-				});
+						} else {
 
-				Importer.updateSchemaTypeSelector(targetTypeSelector);
-			}
-		});
+							Importer.schemaTypeCache['graphTypes'].push(res);
+							Importer.schemaTypeCache['nodeTypes'].push(res);
+						}
+					});
+
+					Importer.updateSchemaTypeSelector(targetTypeSelector);
+
+					Importer.schemaTypeCachePopulated = true;
+				}
+			});
+		}
 
 	},
 	updateSchemaTypeSelector: function(typeSelect) {
@@ -526,9 +535,7 @@ var Importer = {
 		$('option[disabled!=disabled]', typeSelect).remove();
 		typeSelect.val("");
 
-		var onlyShowCustomTypes = $('input#target-type-custom-only').prop('checked');
-
-		var data = Importer.getSchemaTypeSelectorData(importType, onlyShowCustomTypes);
+		var data = Importer.getSchemaTypeSelectorData(importType);
 
 		data.forEach(function(name) {
 
@@ -536,11 +543,11 @@ var Importer = {
 		});
 
 	},
-	getSchemaTypeSelectorData: function(importType = "", customOnly = false) {
+	getSchemaTypeSelectorData: function(importType = "") {
 
 		let allTypeData = Importer.schemaTypeCache[importType + "Types"];
 
-		if ((importType === 'node' || importType === 'graph') && customOnly === true) {
+		if ((importType === 'node' || importType === 'graph') && Importer.customTypesOnly === true) {
 			allTypeData = allTypeData.filter((t) => {
 				return t.isBuiltinType === false;
 			});
@@ -1383,12 +1390,17 @@ var Importer = {
 		var targetTypeSelector = $('#target-type-select');
 		let customOnlyCheckbox = $('input#target-type-custom-only');
 
+		if (Importer.customTypesOnly) {
+			customOnlyCheckbox.prop('checked', true);
+		}
+
 		Importer.updateSchemaTypeCache(targetTypeSelector);
 
 		$('#types-container').empty();
 		$('#start-import').off('click');
 
 		customOnlyCheckbox.off('change').on('change', function() {
+			Importer.customTypesOnly = $(this).prop('checked');
 			Importer.updateSchemaTypeSelector(targetTypeSelector);
 			$('#types-container').empty();
 			$('#start-import').off('click');
