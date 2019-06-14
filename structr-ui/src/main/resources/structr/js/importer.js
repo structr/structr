@@ -70,7 +70,9 @@ var Importer = {
 
 	},
 	unload: function() {
+		Importer.schemaTypeCachePopulated = false;
 
+		Importer.restoreButtons();
 	},
 	updateJobTable: function () {
 
@@ -176,8 +178,7 @@ var Importer = {
 
 		} else {
 
-			// bind restore buttons event to existing cancel button
-			dialogCancelButton.on('click', Importer.restoreButtons);
+			dialogCancelButton.on('click', Importer.unload);
 		}
 
 	},
@@ -868,7 +869,7 @@ var Importer = {
 				$.unblockUI({
 					fadeOut: 25
 				});
-				Importer.restoreButtons();
+				Importer.unload();
 			});
 
 			$('#next-element').on('click', function() {
