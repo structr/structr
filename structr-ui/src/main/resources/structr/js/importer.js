@@ -1463,7 +1463,7 @@ var Importer = {
 			displayMatchingPropertiesOnly: true,
 			onLoadComplete: function() {
 
-				$('#start-import').on('click', function() {
+				$('#start-import').off('click').on('click', function() {
 
 					var configInfo = Importer.collectCSVImportConfigurationInfo();
 					var allowImport = (configInfo.errors.length === 0);
@@ -1512,10 +1512,6 @@ var Importer = {
 				Object.keys(mapping.availableProperties).forEach(function(key, i) {
 
 					let inputProperty = mapping.availableProperties[key];
-
-					if (inputProperty.matched === true) {
-						return;
-					}
 
 					var inputPropertyName = inputProperty.name;
 					var longestMatch      = 0;
@@ -1578,12 +1574,7 @@ var Importer = {
 
 		Object.keys(mixedMapping.mappedTypes).forEach(key => {
 
-			let mappedType = mixedMapping.mappedTypes[key];
-
-			Object.keys(mappedType.properties).forEach(propertyName => {
-
-				options += '<option>' + key + '.' + propertyName + '</option>';
-			});
+			options += '<option>' + key + '</option>';
 		});
 
 		Object.keys(mixedMapping.mappedTypes).forEach(key => {

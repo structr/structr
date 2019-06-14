@@ -61,12 +61,11 @@ public class CSVFileImportJob extends FileImportJob {
 	@Override
 	public boolean runInitialChecks () throws FrameworkException {
 
-		final Map<String, Object> mixedMappings = getOrDefault(configuration.get("mixedMappings"), null);
-		final String targetType                 = getOrDefault(configuration.get("targetType"), null);
-		final String delimiter                  = getOrDefault(configuration.get("delimiter"), ";");
-		final String quoteChar                  = getOrDefault(configuration.get("quoteChar"), "\"");
+		final String targetType = getOrDefault(configuration.get("targetType"), null);
+		final String delimiter  = getOrDefault(configuration.get("delimiter"), ";");
+		final String quoteChar  = getOrDefault(configuration.get("quoteChar"), "\"");
 
-		if (mixedMappings == null && (targetType == null || delimiter == null || quoteChar == null)) {
+		if (targetType == null || delimiter == null || quoteChar == null) {
 
 			throw new FrameworkException(400, "Cannot import CSV, please specify target type, delimiter and quote character.");
 
@@ -89,7 +88,6 @@ public class CSVFileImportJob extends FileImportJob {
 
 		return () -> {
 
-			final Map<String, Object> mixedMappings  = getOrDefault(configuration.get("mixedMappings"), null);
 			final Map<String, String> importMappings = getOrDefault(configuration.get("mappings"), Collections.EMPTY_MAP);
 			final Map<String, String> transforms     = getOrDefault(configuration.get("transforms"), Collections.EMPTY_MAP);
 			final String targetType                  = getOrDefault(configuration.get("targetType"), null);

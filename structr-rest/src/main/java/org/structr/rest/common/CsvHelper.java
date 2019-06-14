@@ -78,6 +78,40 @@ public class CsvHelper {
 		};
 	}
 
+	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final Character fieldSeparator, final Character quoteCharacter, final String range, final Map<String, String> propertyMapping, final boolean strictQuotes) throws FrameworkException, IOException {
+
+		final CSVReader reader;
+
+		if (quoteCharacter == null) {
+
+			reader = new CSVReader(input, fieldSeparator);
+
+		} else {
+
+			reader = new CSVReader(input, fieldSeparator, quoteCharacter, strictQuotes);
+		}
+
+		final String[] propertyNames = reader.readNext();
+
+		return new Iterable<JsonInput>() {
+
+			@Override
+			public Iterator<JsonInput> iterator() {
+
+				final Iterator<JsonInput> iterator = new MixedCsvIterator(reader,  propertyNames, propertyMapping, securityContext.getUser(false).getName());
+
+				if (StringUtils.isNotBlank(range)) {
+
+					return new RangesIterator<>(iterator, range);
+
+				} else {
+
+					return iterator;
+				}
+			}
+		};
+	}
+
 	// ----- private methods -----
 	private static ArrayList<String> extractArrayContentsFromArray (final String value, final String propertyName) throws IOException {
 
@@ -116,7 +150,7 @@ public class CsvHelper {
 		private CSVReader reader                    = null;
 		private String[] propertyNames              = null;
 		private String userName                     = null;
-		private String[] fields                       = null;
+		private String[] fields                     = null;
 		private Class type                          = null;
 
 		public CsvIterator(final CSVReader reader, final String[] propertyNames, final Map<String, String> propertMapping, final Class type, final String userName) {
@@ -184,6 +218,96 @@ public class CsvHelper {
 			} catch (Throwable t) {
 
 				logger.warn("Exception in CSV line: {}", fields);
+				logger.warn("", t);
+
+				final Map<String, Object> data = new LinkedHashMap();
+
+				data.put("type",     "CSV_IMPORT_ERROR");
+				data.put("title",    "CSV Import Error");
+				data.put("text",     "Error occured with dataset: " + fields);
+				data.put("username", userName);
+
+				TransactionCommand.simpleBroadcastGenericMessage(data);
+
+			} finally {
+
+				// mark line as "consumed"
+				fields = null;
+			}
+
+			return null;
+		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException("Removal not supported.");
+		}
+	}
+
+	private static class MixedCsvIterator implements Iterator<JsonInput> {
+
+		private Map<String, String> propertyMapping = null;
+		private CSVReader reader                    = null;
+		private String[] propertyNames              = null;
+		private String userName                     = null;
+		private String[] fields                     = null;
+
+		public MixedCsvIterator(final CSVReader reader, final String[] propertyNames, final Map<String, String> propertMapping, final String userName) {
+
+			this.propertyMapping = propertMapping;
+			this.propertyNames   = propertyNames;
+			this.userName        = userName;
+			this.reader          = reader;
+		}
+
+		@Override
+		public boolean hasNext() {
+
+			// return true if the line has not yet been consumed
+			// (calling hasNext() more than once may not alter the
+			// result of the next next() call!)
+			if (fields != null) {
+				return true;
+			}
+
+			try {
+
+				fields = reader.readNext();
+
+				return fields != null && fields.length > 0;
+
+			} catch (IOException ioex) {
+				logger.warn("", ioex);
+			}
+
+			return false;
+		}
+
+		@Override
+		public JsonInput next() {
+
+			try {
+				final JsonInput jsonInput = new JsonInput();
+				final int len             = fields.length;
+
+				for (int i=0; i<len; i++) {
+
+					final String key = propertyNames[i];
+					String targetKey = key;
+
+					// map key name to its transformed name
+					if (propertyMapping != null && propertyMapping.containsKey(key)) {
+						targetKey = propertyMapping.get(key);
+					}
+
+					jsonInput.add(targetKey, fields[i]);
+				}
+
+				return jsonInput;
+
+			} catch (Throwable t) {
+
+				logger.warn("Exception in CSV line: {}", (Object)fields);
 				logger.warn("", t);
 
 				final Map<String, Object> data = new LinkedHashMap();
