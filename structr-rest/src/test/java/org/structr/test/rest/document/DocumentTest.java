@@ -1836,7 +1836,7 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.header("Structr-Detailed-Creation-Results", true)
+			.header("Structr-Return-Details-For-Created-Objects", true)
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
