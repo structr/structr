@@ -414,7 +414,7 @@ var _Crud = {
 					+ '<button class="action" id="create' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Create new ' + type + '</button>'
 					+ '<button id="export' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_table_icon) + '" /> Export as CSV</button>'
 					+ '<button id="import' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_add_icon) + '" /> Import CSV</button>'
-					+ '<button id="delete' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /> Delete <b>all</b> nodes of type</button>'
+					+ '<button id="delete' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /> Delete <b>all</b> objects of this type</button>'
 					+ '</div>');
 
 			_Crud.determinePagerData(type);
@@ -446,7 +446,7 @@ var _Crud = {
 
 			$('#delete' + type, crudRight).on('click', function() {
 
-				Structr.confirmation('<h3>WARNING: Really delete all nodes of type \'' + type + '\'?</h3><p>This will delete all nodes of the type (and of all inheriting types!).</p><p>Depending on the amount of nodes this can take a while.</p>', function() {
+				Structr.confirmation('<h3>WARNING: Really delete all objects of type \'' + type + '\'?</h3><p>This will delete all objects of the type (and of all inheriting types!).</p><p>Depending on the amount of objects this can take a while.</p>', function() {
 					$.unblockUI({
 						fadeOut: 25
 					});
