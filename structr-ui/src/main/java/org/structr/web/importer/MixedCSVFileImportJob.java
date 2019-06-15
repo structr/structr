@@ -155,6 +155,7 @@ public class MixedCSVFileImportJob extends FileImportJob {
 								final String typeName                = (String)data.get("name");
 								final PropertyMap searchAttributes   = new PropertyMap();
 								final Class type                     = StructrApp.getConfiguration().getNodeEntityClass(typeName);
+								GraphObject newObject                = null;
 
 								// select only mapped propertiers
 								for (final String keyName : properties.values()) {
@@ -174,11 +175,14 @@ public class MixedCSVFileImportJob extends FileImportJob {
 								}
 
 								// search for object before creating it again
-								GraphObject newObject = app.nodeQuery(type).and(searchAttributes).getFirst();
+								if (!searchAttributes.isEmpty()) {
+									newObject = app.nodeQuery(type).and(searchAttributes).getFirst();
+								}
+
+								// create new object if it doesn't exist yet
 								if (newObject == null) {
 
 									newObject = app.create(type, transformedData);
-
 									overallCount++;
 								}
 
