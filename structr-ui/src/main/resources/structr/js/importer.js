@@ -304,6 +304,12 @@ var Importer = {
 	},
 	importCSVDialog: function(file) {
 
+		// define datastructure here to be able to use it in callbacks etc. below
+		var mixedMappingConfig = {
+			availableProperties: {},
+			mappedTypes: {}
+		};
+
 		Importer.clearSchemaTypeCache();
 
 		Structr.dialog('Import CSV from ' + file.name, function() {}, function() {});
@@ -367,28 +373,35 @@ var Importer = {
 						let typeInfo = Importer.schemaTypeCache[importType + 'Types'].filter((t) => {
 							return t.name === config.targetType;
 						});
-						if (typeInfo.length > 0) {
+						if (importType !== 'graph') {
 
-							Importer.customTypesOnly = !typeInfo[0].isBuiltinType;
+							if (typeInfo.length > 0) {
 
-						} else {
+								Importer.customTypesOnly = !typeInfo[0].isBuiltinType;
 
-							new MessageBuilder().warning('Type ' + config.targetType + ' from loaded configuration does not exist. This may be due to an outdated configuration.').show();
-							Importer.customTypesOnly = true;
+							} else {
 
+								new MessageBuilder().warning('Type ' + config.targetType + ' from loaded configuration does not exist. This may be due to an outdated configuration.').show();
+								Importer.customTypesOnly = true;
+
+							}
+						}
+
+						// update storage datastructure before triggering events..
+						if (importType === 'graph') {
+							mixedMappingConfig.mappedTypes = config.mixedMappingConfig;
 						}
 
 						$('input[name=import-type][value=' + importType + ']').prop('checked', 'checked').trigger('change');
 
-						$('#target-type-select').val(config.targetType);
-						console.log('d');
+						$('#target-type-select').val(config.targetType).trigger('change', [config]);
 					}
 				});
 			});
 
 			$('#update-csv-config-button').on('click', function() {
 
-				var configInfo = Importer.collectCSVImportConfigurationInfo();
+				var configInfo = Importer.collectCSVImportConfigurationInfo(mixedMappingConfig.mappedTypes);
 
 				if (configInfo.errors.length > 0) {
 
@@ -404,7 +417,7 @@ var Importer = {
 
 			$('#save-csv-config-button').on('click', function() {
 
-				var configInfo = Importer.collectCSVImportConfigurationInfo();
+				var configInfo = Importer.collectCSVImportConfigurationInfo(mixedMappingConfig.mappedTypes);
 
 				if (configInfo.errors.length > 0) {
 
@@ -436,19 +449,19 @@ var Importer = {
 						var container = $(html);
 						dialog.append(container);
 
-						Importer.formatImportTypeSelectorDialog(file);
+						Importer.formatImportTypeSelectorDialog(file, mixedMappingConfig);
 
 						$('input[name=import-type]').off('change').on('change', function() {
 
 							// call self on change
-							Importer.formatImportTypeSelectorDialog(file);
+							Importer.formatImportTypeSelectorDialog(file, mixedMappingConfig);
 						});
 					});
 				}
 			});
 		});
 	},
-	formatImportTypeSelectorDialog: function(file) {
+	formatImportTypeSelectorDialog: function(file, mixedMappingConfig) {
 
 		let importType = $('input[name=import-type]:checked').val();
 
@@ -465,7 +478,7 @@ var Importer = {
 					break;
 
 				case 'graph':
-					Importer.formatMixedImportDialog(file);
+					Importer.formatMixedImportDialog(file, mixedMappingConfig);
 					break;
 			}
 		});
@@ -632,7 +645,7 @@ var Importer = {
 			}
 		});
 	},
-	collectCSVImportConfigurationInfo: function () {
+	collectCSVImportConfigurationInfo: function (mixedMappings) {
 
 		var info = {
 			errors: []
@@ -685,6 +698,7 @@ var Importer = {
 			distinct: $('#distinct').prop('checked'),
 			range: $('#range').val(),
 			importType: importType,
+			mixedMappingConfig: mixedMappings,
 			mappings: mappings,
 			transforms: transforms,
 			version: 2
@@ -1378,7 +1392,7 @@ var Importer = {
 
 
 
-	formatMixedImportDialog: function(file) {
+	formatMixedImportDialog: function(file, mixedMappingConfig) {
 
 		Structr.appendInfoTextToElement({
 			text: "Use the select box labelled &quot;Add target type..&quot; to add type mappings.",
@@ -1419,11 +1433,6 @@ var Importer = {
 		}), function(csvHeaders) {
 
 			if (csvHeaders && csvHeaders.result && csvHeaders.result.headers) {
-
-				var mixedMappingConfig = {
-					availableProperties: {},
-					mappedTypes: {}
-				};
 
 				csvHeaders.result.headers.forEach(p => mixedMappingConfig.availableProperties[p] = {
 					name: p,
@@ -1588,8 +1597,6 @@ var Importer = {
 	},
 	displayMixedMappingConfiguration: function(mixedMapping) {
 
-		console.log(mixedMapping);
-
 		var availableProperties = $('#available-properties');
 		var mappedTypes         = $('#types-container');
 		var options             = '<option>Add relationship</option>';
@@ -1642,9 +1649,9 @@ var Importer = {
 					Importer.removeMixedTypeMapping(mappedType.name, mixedMapping);
 				});
 
-				var relationships = $('#relationships-' + mappedType.name);
+				var addRelationshipContainer = $('#add-relationship-' + mappedType.name);
 
-				relationships.append('<select class="add-selector" id="' + mappedType.name + '-related-to">' + options + '</select>');
+				addRelationshipContainer.append('<select class="add-selector" id="' + mappedType.name + '-related-to">' + options + '</select>');
 
 				$('#' + mappedType.name + '-related-to').off('change').on('change', function(e) {
 
