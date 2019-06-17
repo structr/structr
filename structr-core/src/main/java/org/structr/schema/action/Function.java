@@ -428,7 +428,7 @@ public abstract class Function<S, T> extends Hint {
 		return null;
 	}
 
-	protected static File getServerlogFile() throws IOException {
+	protected static File getServerlogFile() {
 
 		final String basePath = Settings.getBasePath();
 
