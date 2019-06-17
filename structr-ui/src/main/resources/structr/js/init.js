@@ -1275,7 +1275,6 @@ var Structr = {
 
 				// run previously registered callbacks
 				let registeredCallbacks = Structr.moduleAvailabilityCallbacks;
-				console.log(Structr.moduleAvailabilityCallbacks);
 				Structr.moduleAvailabilityCallbacks = [];
 				registeredCallbacks.forEach((cb) => {
 					cb();
@@ -1518,19 +1517,19 @@ var Structr = {
 
 				if (me.username === data.username) {
 
-					var titles = {
+					let titles = {
 						BEGIN: 'CSV Import started',
 						CHUNK: 'CSV Import status',
 						END:   'CSV Import finished'
 					};
 
-					var texts = {
+					let texts = {
 						BEGIN: 'Started importing CSV data',
 						CHUNK: 'Finished importing chunk ' + data.currentChunkNo + ' / ' + data.totalChunkNo,
 						END:   'Finished importing CSV data (Time: ' + data.duration + ')'
 					};
 
-					new MessageBuilder().title(titles[data.subtype]).info(texts[data.subtype]).uniqueClass('csv-import-status').updatesText().requiresConfirmation().allowConfirmAll().show();
+					new MessageBuilder().title(titles[data.subtype]).uniqueClass('csv-import-status').updatesText().requiresConfirmation().allowConfirmAll().className((data.subtype === 'END') ? 'success' : 'info').text(texts[data.subtype]).show();
 				}
 				break;
 
@@ -1576,7 +1575,8 @@ var Structr = {
 
 					var msg = new MessageBuilder()
 							.title(data.jobtype + ' ' + fileImportTitles[data.subtype])
-							.info(fileImportTexts[data.subtype])
+							.className((data.subtype === 'END') ? 'success' : 'info')
+							.text(fileImportTexts[data.subtype])
 							.uniqueClass(data.jobtype + '-import-status-' + data.filepath);
 
 					if (data.subtype !== 'QUEUED') {
@@ -1630,7 +1630,8 @@ var Structr = {
 
 					var msg = new MessageBuilder()
 							.title(scriptJobTitles[data.subtype])
-							.info(scriptJobTexts[data.subtype])
+							.className((data.subtype === 'END') ? 'success' : 'info')
+							.text(scriptJobTexts[data.subtype])
 							.uniqueClass(data.jobtype + '-status-' + data.jobId);
 
 					if (data.subtype !== 'QUEUED') {
@@ -1656,7 +1657,6 @@ var Structr = {
 					messageCssClass = 'data-deployment-import';
 				}
 
-
 				if (data.subtype === 'BEGIN') {
 
 					var text = type + ' started: ' + new Date(data.start) + '<br>'
@@ -1675,7 +1675,7 @@ var Structr = {
 							+ "<br>Total duration: " + data.duration
 							+ "<br><br>Reload the page to see the new data.";
 
-					new MessageBuilder().title(type + " finished").uniqueClass(messageCssClass).info(text).specialInteractionButton('Reload Page', function() { location.reload(); }, 'Ignore').appendsText().updatesButtons().show();
+					new MessageBuilder().title(type + " finished").uniqueClass(messageCssClass).success(text).specialInteractionButton('Reload Page', function() { location.reload(); }, 'Ignore').appendsText().updatesButtons().show();
 
 				}
 				break;
@@ -1708,7 +1708,7 @@ var Structr = {
 					var text = '<br>'+ type + ' finished: ' + new Date(data.end)
 							+ '<br>Total duration: ' + data.duration;
 
-					new MessageBuilder().title(type + ' finished').uniqueClass(messageCssClass).info(text).appendsText().requiresConfirmation().show();
+					new MessageBuilder().title(type + ' finished').uniqueClass(messageCssClass).success(text).appendsText().requiresConfirmation().show();
 
 				}
 				break;
@@ -1731,7 +1731,7 @@ var Structr = {
 					var text = "<br>Schema Analysis finished: " + new Date(data.end)
 							+ "<br>Total duration: " + data.duration;
 
-					new MessageBuilder().title("Schema Analysis finished").uniqueClass('schema-analysis').info(text).appendsText().requiresConfirmation().show();
+					new MessageBuilder().title("Schema Analysis finished").uniqueClass('schema-analysis').success(text).appendsText().requiresConfirmation().show();
 
 				}
 				break;
@@ -2042,16 +2042,22 @@ function MessageBuilder () {
 			// find existing one
 			var existingMsgBuilder = $('#info-area .message.' + this.params.uniqueClass).data('msgbuilder');
 			if (existingMsgBuilder) {
+
 				uniqueMessageAlreadyPresented = true;
 
 				if (this.params.incrementsUniqueCount) {
 					existingMsgBuilder.incrementUniqueCount();
 				}
 
+				$('#' + existingMsgBuilder.params.msgId).attr('class', this.params.classNames.join(' '));
+
 				if (this.params.updatesText) {
+
 					$('#info-area .message.' + this.params.uniqueClass + ' .title').html(this.params.title);
 					$('#info-area .message.' + this.params.uniqueClass + ' .text').html(this.params.text);
+
 				} else if (this.params.appendsText) {
+
 					$('#info-area .message.' + this.params.uniqueClass + ' .title').html(this.params.title);
 
 					var selector = '#info-area .message.' + this.params.uniqueClass + ' .text';
@@ -2059,15 +2065,15 @@ function MessageBuilder () {
 						selector += ' ' + this.params.appendSelector;
 					}
 					$(selector).append(this.params.text);
+
 				}
 
 				if (this.params.updatesButtons) {
+
 					$('#info-area .message.' + this.params.uniqueClass + ' .message-buttons').empty().html(this.getButtonHtml());
 					this.activateButtons(existingMsgBuilder, this);
 				}
-
 			}
-
 		}
 
 		if (uniqueMessageAlreadyPresented === false) {
