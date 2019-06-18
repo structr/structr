@@ -285,7 +285,17 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	public final void removeProperty(final PropertyKey key) throws FrameworkException {
 
 		if (!isGranted(Permission.write, securityContext)) {
-			throw new FrameworkException(403, "Modification of node " + this.getProperty(AbstractNode.id) + " with type " + this.getProperty(AbstractNode.type) + " by user " + securityContext.getUser(false).getProperty(AbstractNode.id) + " not permitted.");
+
+			final Principal currentUser = securityContext.getUser(false);
+			String user = null;
+
+			if (currentUser == null) {
+				user = securityContext.isSuperUser() ? "superuser" : "anonymous";
+			} else {
+				user = currentUser.getProperty(AbstractNode.id);
+			}
+
+			throw new FrameworkException(403, "Modification of node " + this.getProperty(AbstractNode.id) + " with type " + this.getProperty(AbstractNode.type) + " by user " + user + " not permitted.");
 		}
 
 		if (this.dbNode != null) {
@@ -592,6 +602,21 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
+	public final <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationshipAsSuperUser(final Class<R> type) {
+
+		final SecurityContext suContext      = SecurityContext.getSuperUserInstance();
+		final RelationshipFactory<R> factory = new RelationshipFactory<>(suContext);
+		final R template                     = getRelationshipForType(type);
+		final Relationship relationship      = template.getSource().getRawSource(suContext, dbNode, null);
+
+		if (relationship != null) {
+			return factory.adapt(relationship);
+		}
+
+		return null;
+	}
+
+	@Override
 	public final <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationships(final Class<R> type) {
 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
@@ -645,18 +670,20 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	protected final <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationshipsAsSuperUser(final Class<R> type, final Predicate<GraphObject> predicate) {
 
-		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
+		final SecurityContext suContext      = SecurityContext.getSuperUserInstance();
+		final RelationshipFactory<R> factory = new RelationshipFactory<>(suContext);
 		final R template                     = getRelationshipForType(type);
 
-		return new IterableAdapter<>(template.getSource().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, predicate), factory);
+		return new IterableAdapter<>(template.getSource().getRawSource(suContext, dbNode, predicate), factory);
 	}
 
 	@Override
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(final Class<R> type) {
 
-		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
+		final SecurityContext suContext      = SecurityContext.getSuperUserInstance();
+		final RelationshipFactory<R> factory = new RelationshipFactory<>(suContext);
 		final R template                     = getRelationshipForType(type);
-		final Relationship relationship      = template.getTarget().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, null);
+		final Relationship relationship      = template.getTarget().getRawSource(suContext, dbNode, null);
 
 		if (relationship != null) {
 			return factory.adapt(relationship);
@@ -716,19 +743,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		return getOwnerNode().getUuid();
 
-	}
-
-	protected <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationshipAsSuperUser(final Class<R> type) {
-
-		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
-		final R template                     = getRelationshipForType(type);
-		final Relationship relationship      = template.getSource().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, null);
-
-		if (relationship != null) {
-			return factory.adapt(relationship);
-		}
-
-		return null;
 	}
 
 	/**
@@ -1374,8 +1388,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				internalSystemPropertiesUnlocked = false;
 				readOnlyPropertiesUnlocked       = false;
 
-				Principal currentUser = securityContext.getUser(false);
-				String user =  null;
+				final Principal currentUser = securityContext.getUser(false);
+				String user = null;
 
 				if (currentUser == null) {
 					user = securityContext.isSuperUser() ? "superuser" : "anonymous";
@@ -1420,15 +1434,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			internalSystemPropertiesUnlocked = false;
 			readOnlyPropertiesUnlocked       = false;
 
-			Principal currentUser = securityContext.getUser(false);
-			String user =  null;
+			final Principal currentUser = securityContext.getUser(false);
+			String user = null;
 
 			if (currentUser == null) {
-
 				user = securityContext.isSuperUser() ? "superuser" : "anonymous";
-
 			} else {
-
 				user = currentUser.getProperty(AbstractNode.id);
 			}
 

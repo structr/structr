@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import org.apache.commons.io.input.ReversedLinesFileReader;
@@ -63,32 +64,36 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 	}
 
 	public static String getServerLog(final int numberOfLines) {
+
 		int lines = numberOfLines;
 
-		try (final ReversedLinesFileReader reader = new ReversedLinesFileReader(getServerlogFile(), Charset.forName("utf-8"))) {
+		final File logFile = getServerlogFile();
 
-			final StringBuilder sb = new StringBuilder();
+		if (logFile != null) {
 
-			while (lines > 0) {
-				final String line = reader.readLine();
+			try (final ReversedLinesFileReader reader = new ReversedLinesFileReader(logFile, Charset.forName("utf-8"))) {
 
-				if (line == null) {
-					lines = 0;
-				} else {
-					sb.insert(0, line.concat("\n"));
-					lines--;
+				final StringBuilder sb = new StringBuilder();
+
+				while (lines > 0) {
+					final String line = reader.readLine();
+
+					if (line == null) {
+						lines = 0;
+					} else {
+						sb.insert(0, line.concat("\n"));
+						lines--;
+					}
+
 				}
 
+				return sb.toString();
+
+			} catch (IOException ex) {
+				logger.warn("", ex);
 			}
-
-			return sb.toString();
-
-		} catch (IOException ex) {
-			logger.warn("", ex);
 		}
 
 		return "";
-
 	}
-
 }

@@ -92,11 +92,11 @@ public class SliceFunctionCall implements IdFunctionCall {
 
 		if (value == null) {
 
-			logger.warn("Invalid argument {} for Structr.batch(): expected script, got null.");
+			logger.warn("Invalid argument {} for Structr.slice(): expected script, got null.");
 
 		} else {
 
-			logger.warn("Invalid argument {} for Structr.batch(): expected script, got {}", name, value.getClass());
+			logger.warn("Invalid argument {} for Structr.slice(): expected script, got {}", name, value.getClass());
 		}
 
 		return null;

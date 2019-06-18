@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
+import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
@@ -585,6 +586,286 @@ public class SystemTest extends StructrTest {
 	}
 
 	@Test
+	public void testEnsureOneToOneCardinality() {
+
+		Principal tester1 = null;
+		Principal tester2 = null;
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			tester1 = app.create(Principal.class, "tester1");
+			tester2 = app.create(Principal.class, "tester2");
+
+			JsonSchema schema         = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Item");
+
+			type.relate(type, "NEXT", Relation.Cardinality.OneToOne, "prev", "next");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final SecurityContext tester1Context = SecurityContext.getInstance(tester1, AccessMode.Backend);
+		final SecurityContext tester2Context = SecurityContext.getInstance(tester2, AccessMode.Backend);
+		final Class<AbstractNode> type       = StructrApp.getConfiguration().getNodeEntityClass("Item");
+		final App tester1App                 = StructrApp.getInstance(tester1Context);
+		final App tester2App                 = StructrApp.getInstance(tester2Context);
+		final PropertyKey next               = StructrApp.key(type, "next");
+
+		try (final Tx tx = tester1App.tx()) {
+
+			final AbstractNode item1 = tester1App.create(type,
+				new NodeAttribute<>(AbstractNode.name, "item1"),
+				new NodeAttribute<>(next, tester1App.create(type,
+					new NodeAttribute<>(AbstractNode.name, "item2"),
+					new NodeAttribute<>(next, tester1App.create(type,
+						new NodeAttribute<>(AbstractNode.name, "item3")
+					))
+				))
+			);
+
+			// make item1 visible to tester2
+			item1.grant(Permission.read, tester2);
+			item1.grant(Permission.write, tester2);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// test setProperty with different user (should delete the previous relationship)
+		try (final Tx tx = tester2App.tx()) {
+
+			final AbstractNode item1 = tester2App.nodeQuery(type).andName("item1").getFirst();
+
+			assertNotNull("Item 1 should be visible to tester2", item1);
+
+			item1.setProperty(next, tester2App.create(type, "item4"));
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// check result
+		try (final Tx tx = app.tx()) {
+
+			final AbstractNode item1              = app.nodeQuery(type).andName("item1").getFirst();
+			final List<AbstractRelationship> rels = Iterables.toList(item1.getOutgoingRelationships());
+
+			for (final AbstractRelationship rel : rels) {
+				System.out.println(rel.getType() + ": " + rel.getSourceNodeId() + " -> " + rel.getTargetNodeId());
+			}
+
+			assertEquals("OneToOne.ensureCardinality is not wirking correctly", 1, rels.size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testEnsureOneToManyCardinality() {
+
+		Principal tester1 = null;
+		Principal tester2 = null;
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			tester1 = app.create(Principal.class, "tester1");
+			tester2 = app.create(Principal.class, "tester2");
+
+			JsonSchema schema         = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Item");
+
+			type.relate(type, "NEXT", Relation.Cardinality.OneToMany, "prev", "next");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final SecurityContext tester1Context = SecurityContext.getInstance(tester1, AccessMode.Backend);
+		final SecurityContext tester2Context = SecurityContext.getInstance(tester2, AccessMode.Backend);
+		final Class<AbstractNode> itemType   = StructrApp.getConfiguration().getNodeEntityClass("Item");
+		final App tester1App                 = StructrApp.getInstance(tester1Context);
+		final App tester2App                 = StructrApp.getInstance(tester2Context);
+		final PropertyKey prev               = StructrApp.key(itemType, "prev");
+
+		try (final Tx tx = tester1App.tx()) {
+
+			final AbstractNode item1 = tester1App.create(itemType,
+				new NodeAttribute<>(AbstractNode.name, "item1"),
+				new NodeAttribute<>(prev, tester1App.create(itemType,
+					new NodeAttribute<>(AbstractNode.name, "item2"),
+					new NodeAttribute<>(prev, tester1App.create(itemType,
+						new NodeAttribute<>(AbstractNode.name, "item3")
+					))
+				))
+			);
+
+			// make item1 visible to tester2
+			item1.grant(Permission.read, tester2);
+			item1.grant(Permission.write, tester2);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// test setProperty with different user (should delete the previous relationship)
+		try (final Tx tx = tester2App.tx()) {
+
+			final AbstractNode item1 = tester2App.nodeQuery(itemType).andName("item1").getFirst();
+
+			assertNotNull("Item 1 should be visible to tester2", item1);
+
+			item1.setProperty(prev, tester2App.create(itemType, "item4"));
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// check result
+		try (final Tx tx = app.tx()) {
+
+			final AbstractNode item1                  = app.nodeQuery(itemType).andName("item1").getFirst();
+			final List<AbstractRelationship> rels     = Iterables.toList(item1.getIncomingRelationships());
+			final List<AbstractRelationship> filtered = new LinkedList<>();
+
+			for (final AbstractRelationship rel : rels) {
+
+				if ("NEXT".equals(rel.getType())) {
+					filtered.add(rel);
+				}
+			}
+
+			assertEquals("OneToMany.ensureCardinality is not wirking correctly", 1, filtered.size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testEnsureManyToOneCardinality() {
+
+		Principal tester1 = null;
+		Principal tester2 = null;
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			tester1 = app.create(Principal.class, "tester1");
+			tester2 = app.create(Principal.class, "tester2");
+
+			JsonSchema schema         = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Item");
+
+			type.relate(type, "NEXT", Relation.Cardinality.ManyToOne, "prev", "next");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final SecurityContext tester1Context = SecurityContext.getInstance(tester1, AccessMode.Backend);
+		final SecurityContext tester2Context = SecurityContext.getInstance(tester2, AccessMode.Backend);
+		final Class<AbstractNode> type       = StructrApp.getConfiguration().getNodeEntityClass("Item");
+		final App tester1App                 = StructrApp.getInstance(tester1Context);
+		final App tester2App                 = StructrApp.getInstance(tester2Context);
+		final PropertyKey next               = StructrApp.key(type, "next");
+
+		try (final Tx tx = tester1App.tx()) {
+
+			final AbstractNode item1 = tester1App.create(type,
+				new NodeAttribute<>(AbstractNode.name, "item1"),
+				new NodeAttribute<>(next, tester1App.create(type,
+					new NodeAttribute<>(AbstractNode.name, "item2"),
+					new NodeAttribute<>(next, tester1App.create(type,
+						new NodeAttribute<>(AbstractNode.name, "item3")
+					))
+				))
+			);
+
+			// make item1 visible to tester2
+			item1.grant(Permission.read, tester2);
+			item1.grant(Permission.write, tester2);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// test setProperty with different user (should delete the previous relationship)
+		try (final Tx tx = tester2App.tx()) {
+
+			final AbstractNode item1 = tester2App.nodeQuery(type).andName("item1").getFirst();
+
+			assertNotNull("Item 1 should be visible to tester2", item1);
+
+			item1.setProperty(next, tester2App.create(type, "item4"));
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// check result
+		try (final Tx tx = app.tx()) {
+
+			final AbstractNode item1              = app.nodeQuery(type).andName("item1").getFirst();
+			final List<AbstractRelationship> rels = Iterables.toList(item1.getOutgoingRelationships());
+
+			for (final AbstractRelationship rel : rels) {
+				System.out.println(rel.getType() + ": " + rel.getSourceNodeId() + " -> " + rel.getTargetNodeId());
+			}
+
+			assertEquals("ManyToOne.ensureCardinality is not wirking correctly", 1, rels.size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
 	public void testEnsureCardinalityPerformance() {
 
 		final List<TestOne> list = new LinkedList<>();
@@ -1018,6 +1299,8 @@ public class SystemTest extends StructrTest {
 		}
 
 		tmpConfig.deleteOnExit();
+
+		Settings.LogSchemaOutput.setValue(false);
 	}
 
 	@Test

@@ -21,20 +21,15 @@ package org.structr.flow.impl;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ThrowingElement;
+import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
-import org.structr.schema.action.ActionContext;
-import org.structr.flow.api.Return;
-import org.structr.flow.engine.Context;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -42,37 +37,40 @@ import java.util.Map;
 /**
  *
  */
-public class FlowReturn extends FlowNode implements Return, DeployableEntity, ThrowingElement {
+public class FlowDataSource extends FlowBaseNode implements DataSource, DeployableEntity, ThrowingElement {
 
 	public static final Property<DataSource> dataSource = new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
-	public static final Property<String> result = new StringProperty("result");
+	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<FlowExceptionHandler> exceptionHandler = new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
+	public static final Property<String> query = new StringProperty("query");
 
-	public static final View defaultView = new View(FlowReturn.class, PropertyView.Public, result, dataSource, exceptionHandler, isStartNodeOfContainer);
-	public static final View uiView      = new View(FlowReturn.class, PropertyView.Ui,     result, dataSource, exceptionHandler, isStartNodeOfContainer);
+	public static final View defaultView = new View(FlowDataSource.class, PropertyView.Public, query, dataTarget, exceptionHandler, dataSource);
+	public static final View uiView = new View(FlowDataSource.class, PropertyView.Ui,     query, dataTarget, exceptionHandler, dataSource);
 
 	@Override
-	public Object getResult(final Context context) throws FlowException {
+	public Object get(final Context context) throws FlowException {
 
-		final DataSource ds = getProperty(dataSource);
-		final String _script = getProperty(result);
-
-		String script = _script;
-		if (script == null) {
-			script = "data";
+		final DataSource _ds = getProperty(dataSource);
+		if (_ds != null) {
+			Object data = _ds.get(context);
+			context.setData(getUuid(), data);
 		}
 
-		if (ds != null) {
-			context.setData(getUuid(), ds.get(context));
+		final String _script = getProperty(query);
+		if (_script != null) {
+
+			try {
+
+				Object result = Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + _script.trim() + "}", "FlowDataSource(" + getUuid() + ")");
+				context.setData(getUuid(), result);
+				return result;
+			} catch (FrameworkException fex) {
+
+				throw new FlowException(fex);
+			}
 		}
 
-		try {
-			return Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + script + "}", "FlowReturn(" + getUuid() + ")");
-
-		} catch (FrameworkException fex) {
-
-			throw new FlowException(fex);
-		}
+		return null;
 
 	}
 
@@ -87,7 +85,7 @@ public class FlowReturn extends FlowNode implements Return, DeployableEntity, Th
 
 		result.put("id", this.getUuid());
 		result.put("type", this.getClass().getSimpleName());
-		result.put("result", this.getProperty(FlowReturn.result));
+		result.put("query", this.getProperty(query));
 		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
 		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
 

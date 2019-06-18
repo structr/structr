@@ -27,6 +27,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -34,7 +35,7 @@ import org.structr.schema.action.ActionContext;
 
 public class JdbcFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE    = "Usage: ${jdbc(url, query)}. Example: ${jdbc(\"jdbc:mysql://localhost:3306\", \"SELECT * from Test\")}";
+	public static final String ERROR_MESSAGE    = "Usage: ${jdbc(url, query[, driver])}. Example: ${jdbc(\"jdbc:mysql://localhost:3306\", \"SELECT * from Test\")}";
 
 	@Override
 	public String getName() {
@@ -46,15 +47,20 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
 			final List<Map<String, Object>> data = new LinkedList<>();
 			final String url                     = (String)sources[0];
 			final String sql                     = (String)sources[1];
+			String driverClass                   = (String)sources[2];
 
 			try {
 
-				Class.forName("com.mysql.jdbc.Driver").newInstance();
+				if (StringUtils.isBlank(driverClass)) {
+					driverClass = "com.mysql.jdbc.Driver";
+				}
+				
+				Class.forName(driverClass).newInstance();
 
 				final Connection connection      = DriverManager.getConnection(url);
 				final Statement statement        = connection.createStatement();

@@ -93,6 +93,13 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 	protected boolean isAdvancedSearch(final SecurityContext securityContext, final Class type, final PropertyKey key, final Object value, final Query query, final boolean exact) throws FrameworkException {
 
+		if (value instanceof Map) {
+
+			handleObject(securityContext, type, query, value, exact);
+
+			return true;
+		}
+
 		if (value instanceof SearchFunctionPredicate) {
 
 			// allow predicate to modify query
@@ -240,7 +247,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 		} else if (source != null) {
 
 			throw new FrameworkException(422, "Invalid type in advanced search query: expected object, got " + source.getClass().getSimpleName().toLowerCase());
-			
+
 		} else {
 
 			throw new FrameworkException(422, "Invalid type in advanced search query: expected object, got null");

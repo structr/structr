@@ -74,7 +74,7 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 		if (targetNode != null) {
 
 			// check existing relationships
-			final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationship(clazz);
+			final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationshipAsSuperUser(clazz);
 			if (incomingRel != null && SearchCommand.isTypeAssignableFromOtherType(sourceType, incomingRel.getSourceType())) {
 
 				app.delete(incomingRel);

@@ -18,8 +18,6 @@
  */
 package org.structr.flow.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
@@ -30,48 +28,46 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ThrowingElement;
-import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
+import org.structr.schema.action.ActionContext;
+import org.structr.flow.api.Return;
+import org.structr.flow.engine.Context;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class FlowLog extends FlowActionNode implements DeployableEntity, ThrowingElement {
+/**
+ *
+ */
+public class FlowReturn extends FlowNode implements Return, DeployableEntity, ThrowingElement {
 
-	public static final Property<DataSource> dataSource 					= new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<DataSource> dataSource = new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
-	public static final Property<String> script             				= new StringProperty("script");
+	public static final Property<String> result = new StringProperty("result");
 
-	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, script, dataSource, exceptionHandler, isStartNodeOfContainer);
-	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui,     script, dataSource, exceptionHandler, isStartNodeOfContainer);
+	public static final View defaultView = new View(FlowReturn.class, PropertyView.Public, result, dataSource, exceptionHandler, isStartNodeOfContainer);
+	public static final View uiView      = new View(FlowReturn.class, PropertyView.Ui,     result, dataSource, exceptionHandler, isStartNodeOfContainer);
 
 	@Override
-	public void execute(final Context context) throws FlowException {
-		String _script = getProperty(script);
-		if (_script == null) {
-			_script = "data";
+	public Object getResult(final Context context) throws FlowException {
+
+		final DataSource ds = getProperty(dataSource);
+		final String _script = getProperty(result);
+
+		String script = _script;
+		if (script == null) {
+			script = "data";
 		}
 
-		final Logger logger = LoggerFactory.getLogger(FlowLog.class);
+		if (ds != null) {
+			context.setData(getUuid(), ds.get(context));
+		}
 
 		try {
-
-			final DataSource _dataSource = getProperty(dataSource);
-
-			// make data available to action if present
-			if (_dataSource != null) {
-				context.setData(getUuid(), _dataSource.get(context));
-			}
-
-			// Evaluate script and write result to context
-			Object result = Scripting.evaluate(context.getActionContext(securityContext, this), this, "${" + _script + "}", "FlowAction(" + getUuid() + ")");
-
-			FlowContainer container = getProperty(flowContainer);
-
-			logger.info( (container.getName() != null ? ("[" + container.getProperty(FlowContainer.effectiveName) + "]") : "") + ("([" + getType() + "]" + getUuid() + "): ") + result	);
+			return Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + script.trim() + "}", "FlowReturn(" + getUuid() + ")");
 
 		} catch (FrameworkException fex) {
 
@@ -91,12 +87,10 @@ public class FlowLog extends FlowActionNode implements DeployableEntity, Throwin
 
 		result.put("id", this.getUuid());
 		result.put("type", this.getClass().getSimpleName());
-		result.put("script", this.getProperty(script));
-
+		result.put("result", this.getProperty(FlowReturn.result));
 		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
 		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
 
 		return result;
 	}
-
 }

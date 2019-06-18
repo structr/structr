@@ -1002,13 +1002,17 @@ var _Files = {
 			}
 		}
 
-		if (Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && d.contentType === 'text/csv') {
-			_Files.appendCSVImportDialogIcon(div, d);
-		}
+		Structr.performModuleDependendAction(function() {
+			if (Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && d.contentType === 'text/csv') {
+				_Files.appendCSVImportDialogIcon(div, d);
+			}
+		});
 
-		if (Structr.isModulePresent('xml') && (d.contentType === 'text/xml' || d.contentType === 'application/xml')) {
-			_Files.appendXMLImportDialogIcon(div, d);
-		}
+		Structr.performModuleDependendAction(function() {
+			if (Structr.isModulePresent('xml') && (d.contentType === 'text/xml' || d.contentType === 'application/xml')) {
+				_Files.appendXMLImportDialogIcon(div, d);
+			}
+		});
 	},
 	appendEditImageIcon: function(parent, image) {
 

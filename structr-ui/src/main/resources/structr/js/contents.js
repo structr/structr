@@ -190,10 +190,6 @@ var _Contents = {
 
 		contentTree.on('select_node.jstree', function(evt, data) {
 
-			if (data.node.id === 'root') {
-				_Contents.deepOpen(currentContentContainer, []);
-			}
-
 			_Contents.setWorkingDirectory(data.node.id);
 			_Contents.displayContainerContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
 
@@ -657,17 +653,15 @@ var _Contents = {
 
 						} else if (prop.propertyType === 'Date' && !isReadOnly) {
 
-							$.get(rootUrl + '_schema/' + entity.type + '/ui', function(data) {
-								div.append('<div class="value-container"></div>');
-								_Entities.appendDatePicker($('.value-container', div), entity, prop.name, typeInfo.format || "yyyy-MM-dd'T'HH:mm:ssZ");
-								var valueInput = $('.value-container input', div);
-								valueInput.on('change', function(e) {
-									if (e.keyCode !== 27) {
-										Command.get(entity.id, prop.name, function(newEntity) {
-											_Contents.checkValueHasChanged(newEntity[prop.name], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
-										});
-									}
-								});
+							div.append('<div class="value-container"></div>');
+							_Entities.appendDatePicker($('.value-container', div), entity, prop.name, typeInfo.format || "yyyy-MM-dd'T'HH:mm:ssZ");
+							var valueInput = $('.value-container input', div);
+							valueInput.on('change', function(e) {
+								if (e.keyCode !== 27) {
+									Command.get(entity.id, prop.name, function(newEntity) {
+										_Contents.checkValueHasChanged(newEntity[prop.name], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
+									});
+								}
 							});
 
 						} else if (isRelated) {

@@ -112,7 +112,7 @@ abstract class FileImportJob extends ScheduledJob {
 		return jobInfo;
 	}
 
-	protected void chunkFinished(final long chunkStartTime, final int currentChunkNo, final int chunkSize, final int overallCount) {
+	protected void chunkFinished(final long chunkStartTime, final int currentChunkNo, final int chunkSize, final int overallCount, final int ignoreCount) {
 
 		processedChunks                   = currentChunkNo;
 
@@ -126,13 +126,14 @@ abstract class FileImportJob extends ScheduledJob {
 		final Map<String, Object> data = getStatusData(JobStatusMessageSubtype.CHUNK);
 		data.put("currentChunkNo",   currentChunkNo);
 		data.put("objectsCreated",   chunkSize);
+		data.put("objectsIgnored",   ignoreCount);
 		data.put("duration",         formattedDuration);
 		data.put("objectsPerSecond", objectsPerSecond);
 		TransactionCommand.simpleBroadcastGenericMessage(data);
 
 	}
 
-	protected void importFinished(final long startTime, final int objectCount) {
+	protected void importFinished(final long startTime, final int objectCount, final int ignoreCount) {
 
 		final long duration               = System.currentTimeMillis() - startTime;
 		final DecimalFormat decimalFormat = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
@@ -145,6 +146,7 @@ abstract class FileImportJob extends ScheduledJob {
 		data.put("duration",         formattedDuration);
 		data.put("objectsCreated",   objectCount);
 		data.put("objectsPerSecond", objectsPerSecond);
+		data.put("objectsIgnored",   ignoreCount);
 		TransactionCommand.simpleBroadcastGenericMessage(data);
 
 	}

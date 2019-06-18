@@ -1355,13 +1355,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (entry.containsKey("owner")) {
 
-			final String ownerName = (String) ((Map)entry.get("owner")).get("name");
-			final Principal owner = StructrApp.getInstance().nodeQuery(Principal.class).andName(ownerName).getFirst();
+			final Map ownerData = ((Map)entry.get("owner"));
+			if (ownerData != null) {
+				final String ownerName = (String) ((Map)entry.get("owner")).get("name");
+				final Principal owner = StructrApp.getInstance().nodeQuery(Principal.class).andName(ownerName).getFirst();
 
-			if (owner == null) {
-				logger.warn("Unknown owner {}, ignoring.", ownerName);
-				DeployCommand.addMissingPrincipal(ownerName);
+				if (owner == null) {
+					logger.warn("Unknown owner {}, ignoring.", ownerName);
+					DeployCommand.addMissingPrincipal(ownerName);
 
+					entry.remove("owner");
+				}
+
+			} else {
 				entry.remove("owner");
 			}
 		}

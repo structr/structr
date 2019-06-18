@@ -2786,7 +2786,6 @@ var _Schema = {
 						fadeOut: 25
 					});
 					_Schema.detach(resId);
-					_Schema.reload();
 				});
 	},
 	detach: function(relationshipId) {
