@@ -3126,6 +3126,10 @@ input.bitmask {
 	list-style: decimal;
 }
 
+#info-area .message ul li {
+	list-style: disc;
+}
+
 #info-area .message .furtherText {
 	display: block;
 	padding-top: 10px;

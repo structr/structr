@@ -378,7 +378,7 @@ var _Localization = {
 	},
 	textfieldChangeAction: function ($el, id, attr) {
 		var oldValue = $el.data('oldValue');
-		var curValue = $el.val().trim();
+		var curValue = $el.val();
 		if (oldValue !== curValue) {
 			_Localization.updateLocalization(id, attr, curValue, oldValue, $el);
 		}

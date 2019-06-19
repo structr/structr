@@ -190,10 +190,6 @@ var _Contents = {
 
 		contentTree.on('select_node.jstree', function(evt, data) {
 
-			if (data.node.id === 'root') {
-				_Contents.deepOpen(currentContentContainer, []);
-			}
-
 			_Contents.setWorkingDirectory(data.node.id);
 			_Contents.displayContainerContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
 
