@@ -724,7 +724,6 @@ var Importer = {
 	},
 	displayImportPropertyMappingWithConfig: function(config) {
 
-		var noMatches = true;
 		var blacklist = [
 			'owner', 'ownerId', 'base', 'type', 'relType', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate',
 			'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate',
@@ -752,7 +751,6 @@ var Importer = {
 					var selectedString = '';
 					var select         = $('select#key' + i);
 					var longestMatch   = 0;
-					var matchFound     = false;
 					config.names[i]    = inputPropertyName;
 
 					// create drop-down list with pre-selected options
@@ -766,8 +764,6 @@ var Importer = {
 								selectedString             = ' selected="selected"';
 								longestMatch               = info.jsonName.length;
 								mapping[inputPropertyName] = info.jsonName;
-								matchFound                 = true;
-								noMatches                  = false;
 
 							} else {
 								selectedString = '';
@@ -778,29 +774,26 @@ var Importer = {
 					});
 
 					// display selection
-					if (!config.displayMatchingPropertiesOnly || noMatches || matchFound) {
-
-						config.rowContainer.append(
-							'<tr>' +
-								'<td class="key">' + inputPropertyName + '</td>' +
-								(config.displayTransformInput ?
-									'<td class="transform"><input type="text" name="' +
-									inputPropertyName +
-									'" id="transform' +
-									i +
-									'" value="' +
-									(config.typeConfig && config.typeConfig.mappings && config.typeConfig.mappings[inputPropertyName] ? config.typeConfig.mappings[inputPropertyName] : '') +
-									'" /></td>' : ''
-								) +
-								'<td>' +
-									'<select class="attr-mapping" name="' + inputPropertyName +'" id="key' + i + '">' +
-										'<option value="">-- skip --</option>' +
-										options +
-									'</select>' +
-								'</td>' +
-							'</tr>'
-						);
-					}
+					config.rowContainer.append(
+						'<tr>' +
+							'<td class="key">' + inputPropertyName + '</td>' +
+							(config.displayTransformInput ?
+								'<td class="transform"><input type="text" name="' +
+								inputPropertyName +
+								'" id="transform' +
+								i +
+								'" value="' +
+								(config.typeConfig && config.typeConfig.mappings && config.typeConfig.mappings[inputPropertyName] ? config.typeConfig.mappings[inputPropertyName] : '') +
+								'" /></td>' : ''
+							) +
+							'<td>' +
+								'<select class="attr-mapping" name="' + inputPropertyName +'" id="key' + i + '">' +
+									'<option value="">-- skip --</option>' +
+									options +
+								'</select>' +
+							'</td>' +
+						'</tr>'
+					);
 
 					if (config.onSelect && typeof config.onSelect === "function") {
 						select.on('change', config.onSelect);
