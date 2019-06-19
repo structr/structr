@@ -24,7 +24,9 @@ var _Dashboard = {
 	_moduleName: 'dashboard',
 	dashboard: undefined,
 	logInterval: undefined,
-	activeTabPrefix: 'activeDashboardTabPrefix' + port,
+	activeTabPrefixKey: 'activeDashboardTabPrefix' + port,
+	logRefreshTimeIntervalKey: 'dashboardLogRefreshTimeInterval' + port,
+	logLinesKey: 'dashboardNumberOfLines' + port,
 
 	init: function() {},
 	unload: function() {
@@ -35,8 +37,8 @@ var _Dashboard = {
 			el.classList.remove('active');
 		});
 	},
-	activateActiveTab: function() {
-		let tabId = LSWrapper.getItem(_Dashboard.activeTabPrefix);
+	activateLastActiveTab: function() {
+		let tabId = LSWrapper.getItem(_Dashboard.activeTabPrefixKey);
 		if (tabId) {
 			let tab = document.querySelector('#dashboard .tabs-menu li a[href="' + tabId + '"]');
 			tab.click();
@@ -58,11 +60,11 @@ var _Dashboard = {
 		}).then(function(data) {
 
 			templateConfig.envInfo = data.result;
-			
+
 			templateConfig.envInfo.version = (data.result.components['structr'] || data.result.components['structr-ui']).version;
 			templateConfig.envInfo.build   = (data.result.components['structr'] || data.result.components['structr-ui']).build;
 			templateConfig.envInfo.date    = (data.result.components['structr'] || data.result.components['structr-ui']).date;
-		
+
 			// Search for newer releases and store latest version
 			data.result.availableReleases.forEach(function(version) {
 				if (version > templateConfig.envInfo.version) {
@@ -113,7 +115,7 @@ var _Dashboard = {
 
 						e.target.closest('li').classList.add('active');
 						document.querySelector(targetId).classList.add('active');
-						LSWrapper.setItem(_Dashboard.activeTabPrefix, targetId);
+						LSWrapper.setItem(_Dashboard.activeTabPrefixKey, targetId);
 					});
 				});
 
@@ -142,7 +144,7 @@ var _Dashboard = {
 				});
 
 				_Dashboard.activateLogBox();
-				_Dashboard.activateActiveTab();
+				_Dashboard.activateLastActiveTab();
 				_Dashboard.appendGlobalSchemaMethods($('#dash-global-schema-methods'));
 
 				$(window).off('resize');
@@ -172,7 +174,7 @@ var _Dashboard = {
 		});
 	},
 	checkNewVersions: function() {
-		
+
 	},
 	checkLicenseEnd: function(envInfo, element, cfg) {
 
@@ -311,12 +313,48 @@ var _Dashboard = {
 	},
     activateLogBox: function() {
 
+		let numberOfLines      = LSWrapper.getItem(_Dashboard.logLinesKey, 300);
+		let numberOfLinesInput = document.querySelector('#dash-server-log-lines');
+
+		numberOfLinesInput.value = numberOfLines;
+
+		numberOfLinesInput.addEventListener('change', () => {
+			numberOfLines = numberOfLinesInput.value;
+			LSWrapper.setItem(_Dashboard.logLinesKey, numberOfLines);
+
+			blinkGreen($(numberOfLinesInput));
+		});
+
+		let registerRefreshInterval = (timeInMs) => {
+
+			window.clearInterval(_Dashboard.logInterval);
+
+			if (timeInMs > 0) {
+				_Dashboard.logInterval = window.setInterval(() => updateLog(), timeInMs);
+			}
+		};
+
+		let logRefreshTimeInterval    = LSWrapper.getItem(_Dashboard.logRefreshTimeIntervalKey, 1000);
+		let refreshTimeIntervalSelect = document.querySelector('#dash-server-log-refresh-interval');
+
+		refreshTimeIntervalSelect.value = logRefreshTimeInterval;
+
+		registerRefreshInterval(logRefreshTimeInterval);
+
+		refreshTimeIntervalSelect.addEventListener('change', () => {
+			logRefreshTimeInterval = refreshTimeIntervalSelect.value;
+			LSWrapper.setItem(_Dashboard.logRefreshTimeIntervalKey, logRefreshTimeInterval);
+
+			registerRefreshInterval(logRefreshTimeInterval);
+			blinkGreen($(refreshTimeIntervalSelect));
+		});
+
 		let logBoxContentBox = $('#dash-server-log textarea');
 
         let scrollEnabled = true;
 
         let updateLog = function() {
-            Command.getServerLogSnapshot(300, (a) => {
+            Command.getServerLogSnapshot(numberOfLines, (a) => {
                 logBoxContentBox.text(a[0].result);
                 if (scrollEnabled) {
                     logBoxContentBox.scrollTop(logBoxContentBox[0].scrollHeight);
@@ -324,26 +362,26 @@ var _Dashboard = {
             });
 		};
 
-        let registerEventHandlers = function() {
-            _Dashboard.logInterval = window.setInterval(() => updateLog(), 1000);
+		logBoxContentBox.bind('scroll', (event) => {
+			let textarea = event.target;
 
-            logBoxContentBox.bind('scroll', (event) => {
-            	let textarea = event.target;
+			let maxScroll = textarea.scrollHeight - 4;
+			let currentScroll = (textarea.scrollTop + $(textarea).height());
 
-            	let maxScroll = textarea.scrollHeight - 4;
-            	let currentScroll = (textarea.scrollTop+$(textarea).height());
+			if (currentScroll >= maxScroll) {
+				scrollEnabled = true;
+			} else {
+				scrollEnabled = false;
+			}
+		});
 
-            	if (currentScroll >= maxScroll) {
-                    scrollEnabled = true;
-				} else {
-                    scrollEnabled = false;
-				}
-            });
-		};
+		new Clipboard('#dash-server-log-copy', {
+			target: function () {
+				return logBoxContentBox[0];
+			}
+		});
 
-        registerEventHandlers();
         updateLog();
-
     },
 	deploy: function(mode, location) {
 
