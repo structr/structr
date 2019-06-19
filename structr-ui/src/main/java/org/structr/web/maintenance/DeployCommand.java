@@ -120,6 +120,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private static final Map<String, String> deferredPageLinks = new LinkedHashMap<>();
 	protected static final Set<String> missingPrincipals       = new HashSet<>();
+	protected static final Set<String> missingSchemaFile       = new HashSet<>();
 
 	private final static String DEPLOYMENT_IMPORT_STATUS   = "DEPLOYMENT_IMPORT_STATUS";
 	private final static String DEPLOYMENT_EXPORT_STATUS   = "DEPLOYMENT_EXPORT_STATUS";
@@ -217,6 +218,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try {
 
 			missingPrincipals.clear();
+			missingSchemaFile.clear();
 
 			final long startTime = System.currentTimeMillis();
 			customHeaders.put("start", new Date(startTime).toString());
@@ -558,19 +560,39 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				final String title = "Missing Principal(s)";
 				final String text = "The following user(s) and/or group(s) are missing for grants or node ownership during <b>deployment</b>.<br>"
-						+ "Because of these missing grants/ownerships, <b>the functionality is not identical to the export you just imported</b>!<br><br>"
-						+ String.join(", ",  missingPrincipals)
-						+ "<br><br>Consider adding these principals to your <a href=\"https://support.structr.com/article/428#pre-deployconf-javascript\">pre-deploy.conf</a> and re-importing.";
+						+ "Because of these missing grants/ownerships, <b>the functionality is not identical to the export you just imported</b>!"
+						+ "<ul><li>" + String.join("</li><li>",  missingPrincipals) + "</li></ul>"
+						+ "Consider adding these principals to your <a href=\"https://support.structr.com/article/428#pre-deployconf-javascript\">pre-deploy.conf</a> and re-importing.";
 
 				logger.info("\n###############################################################################\n"
 						+ "\tWarning: " + title + "!\n"
 						+ "\tThe following user(s) and/or group(s) are missing for grants or node ownership during deployment.\n"
 						+ "\tBecause of these missing grants/ownerships, the functionality is not identical to the export you just imported!\n\n"
-						+ "\t" + String.join(", ",  missingPrincipals)
+						+ "\t" + String.join("\n\t",  missingPrincipals)
 						+ "\n\n\tConsider adding these principals to your 'pre-deploy.conf' (see https://support.structr.com/article/428#pre-deployconf-javascript) and re-importing.\n"
 						+ "###############################################################################"
 				);
 				publishWarningMessage(title, text);
+			}
+
+			if (!missingSchemaFile.isEmpty()) {
+
+				final String title = "Missing Schema file(s)";
+				final String text = "The following schema methods/functions require file(s) to be present in the tree-based schema export.<br>"
+						+ "Because those files are missing, the functionality will not be available after importing!<br>"
+						+ "The most common cause is that someone forgot to add these files to the repository."
+						+ "<ul><li>" + String.join("</li><li>",  missingSchemaFile) + "</li></ul>";
+
+				logger.info("\n###############################################################################\n"
+						+ "\tWarning: " + title + "!\n"
+						+ "\tThe following schema methods/functions require file(s) to be present in the tree-based schema export.\n"
+						+ "\tBecause those files are missing, the functionality will not be available after importing!\n"
+						+ "\tThe most common cause is that someone forgot to add these files to the repository.\n\n"
+						+ "\t" + String.join("\n\t",  missingSchemaFile)
+						+ "\n###############################################################################"
+				);
+				publishWarningMessage(title, text);
+
 			}
 
 			final long endTime = System.currentTimeMillis();
@@ -1150,16 +1172,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 								final Path readFunctionFile  = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_READ_FUNCTION_SUFFIX);
 								final String readFunction    = fp.getReadFunction();
-								fp.setReadFunction("./" + targetFolder.relativize(readFunctionFile).toString());
+
 								if (readFunction != null) {
 									writeStringToFile(readFunctionFile, readFunction);
+									fp.setReadFunction("./" + targetFolder.relativize(readFunctionFile).toString());
 								}
 
 								final Path writeFunctionFile = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX);
 								final String writeFunction   = fp.getWriteFunction();
-								fp.setWriteFunction("./" + targetFolder.relativize(writeFunctionFile).toString());
+
 								if (writeFunction != null) {
 									writeStringToFile(writeFunctionFile, writeFunction);
+									fp.setWriteFunction("./" + targetFolder.relativize(writeFunctionFile).toString());
 								}
 							}
 						}
@@ -1171,19 +1195,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 							for (final Object m : typeDef.getMethods()) {
 
 								final StructrMethodDefinition method = (StructrMethodDefinition)m;
-								final String methodSource = method.getSource();
+								final String methodSource            = method.getSource();
 
 								final Path methodFile = methodsFolder.resolve(method.getName());
-								method.setSource("./" + targetFolder.relativize(methodFile).toString());
 
 								if (methodSource != null) {
 									writeStringToFile(methodFile, methodSource);
+									method.setSource("./" + targetFolder.relativize(methodFile).toString());
 								}
 							}
 						}
 					}
 				}
-
 			}
 
 			final Path schemaJson = targetFolder.resolve("schema.json");
@@ -1762,11 +1785,29 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 										final StructrFunctionProperty fp = (StructrFunctionProperty)propDef;
 
-										final Path readFunctionFile    = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_READ_FUNCTION_SUFFIX);
-										final Path writeFunctionFile   = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX);
+										if (fp.getReadFunction() != null) {
 
-										fp.setReadFunction ((Files.exists(readFunctionFile))  ? new String(Files.readAllBytes(readFunctionFile))  : null);
-										fp.setWriteFunction((Files.exists(writeFunctionFile)) ? new String(Files.readAllBytes(writeFunctionFile)) : null);
+											final Path readFunctionSourceFile = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_READ_FUNCTION_SUFFIX);
+
+											if (Files.exists(readFunctionSourceFile)) {
+												fp.setReadFunction(new String(Files.readAllBytes(readFunctionSourceFile)));
+											} else {
+												fp.setReadFunction(null);
+												DeployCommand.addMissingSchemaFile(schemaFolder.relativize(readFunctionSourceFile).toString());
+											}
+										}
+
+										if (fp.getWriteFunction() != null) {
+
+											final Path writeFunctionSourceFile = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX);
+
+											if (Files.exists(writeFunctionSourceFile)) {
+												fp.setWriteFunction(new String(Files.readAllBytes(writeFunctionSourceFile)));
+											} else {
+												fp.setWriteFunction(null);
+												DeployCommand.addMissingSchemaFile(schemaFolder.relativize(writeFunctionSourceFile).toString());
+											}
+										}
 									}
 								}
 							}
@@ -1778,9 +1819,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 								for (final Object m : typeDef.getMethods()) {
 
 									final StructrMethodDefinition method = (StructrMethodDefinition)m;
-									final Path methodFile = methodsFolder.resolve(method.getName());
 
-									method.setSource((Files.exists(methodFile)) ? new String(Files.readAllBytes(methodFile)) : null);
+									if (method.getSource() != null) {
+
+										final Path methodSourceFile = methodsFolder.resolve(method.getName());
+
+										if (Files.exists(methodSourceFile)) {
+											method.setSource(new String(Files.readAllBytes(methodSourceFile)));
+										} else {
+											method.setSource(null);
+											DeployCommand.addMissingSchemaFile(schemaFolder.relativize(methodSourceFile).toString());
+										}
+									}
 								}
 							}
 						}
@@ -1874,6 +1924,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	public static void addMissingPrincipal (final String principalName) {
 		missingPrincipals.add(principalName);
+	}
+
+	public static void addMissingSchemaFile (final String fileName) {
+		missingSchemaFile.add(fileName);
 	}
 
 	// ----- nested helper classes -----
