@@ -313,6 +313,8 @@ var _Dashboard = {
 	},
     activateLogBox: function() {
 
+		let feedbackElement = document.querySelector('#dash-server-log-feedback');
+
 		let numberOfLines      = LSWrapper.getItem(_Dashboard.logLinesKey, 300);
 		let numberOfLinesInput = document.querySelector('#dash-server-log-lines');
 
@@ -352,14 +354,35 @@ var _Dashboard = {
 		let logBoxContentBox = $('#dash-server-log textarea');
 
         let scrollEnabled = true;
+		let textAreaHasFocus = false;
+
+		logBoxContentBox.on('focus', () => {
+			textAreaHasFocus = true;
+			feedbackElement.textContent = 'Text area has focus, refresh disabled until focus lost.';
+		});
+
+		logBoxContentBox.on('blur', () => {
+			textAreaHasFocus = false;
+			feedbackElement.textContent = '';
+		});
 
         let updateLog = function() {
-            Command.getServerLogSnapshot(numberOfLines, (a) => {
-                logBoxContentBox.text(a[0].result);
-                if (scrollEnabled) {
-                    logBoxContentBox.scrollTop(logBoxContentBox[0].scrollHeight);
-                }
-            });
+
+			if (!textAreaHasFocus) {
+
+				feedbackElement.textContent = 'Refreshing server log...';
+
+				Command.getServerLogSnapshot(numberOfLines, (a) => {
+					logBoxContentBox.text(a[0].result);
+					if (scrollEnabled) {
+						logBoxContentBox.scrollTop(logBoxContentBox[0].scrollHeight);
+					}
+
+					window.setTimeout(() => {
+						feedbackElement.textContent = '';
+					}, 250);
+				});
+			}
 		};
 
 		logBoxContentBox.bind('scroll', (event) => {
