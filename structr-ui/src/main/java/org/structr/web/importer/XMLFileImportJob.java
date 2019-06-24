@@ -136,7 +136,7 @@ public class XMLFileImportJob extends FileImportJob {
 
 						chunks++;
 
-						chunkFinished(chunkStartTime, chunks, batchSize, overallCount);
+						chunkFinished(chunkStartTime, chunks, batchSize, overallCount, 0);
 
 						// do this outside of the transaction!
 						shouldPause();
@@ -146,7 +146,7 @@ public class XMLFileImportJob extends FileImportJob {
 
 					}
 
-					importFinished(startTime, overallCount);
+					importFinished(startTime, overallCount, 0);
 
 				} catch (XMLStreamException | FrameworkException ex) {
 					reportException(ex);

@@ -72,17 +72,17 @@ public class StructrLicenseVerifier {
 
 		if (args.length < 2) {
 
-			System.out.println("Parameters: keystoreFileName password");
+			System.out.println("Parameters: keystoreFileName passwordFileName");
 			System.exit(0);
 		}
 
 		final String keystoreFileName = args[0];
-		final String password         = args[1];
+		final String passwordFileName = args[1];
 
-		new StructrLicenseVerifier(keystoreFileName, password).run();
+		new StructrLicenseVerifier(keystoreFileName, passwordFileName).run();
 	}
 
-	private StructrLicenseVerifier(final String keystoreFileName, final String password) {
+	private StructrLicenseVerifier(final String keystoreFileName, final String passwordFileName) {
 
 		logger.info("Starting license server..");
 
@@ -98,9 +98,12 @@ public class StructrLicenseVerifier {
 
 			try (final InputStream is = new FileInputStream(keystoreFileName)) {
 
-				keyStore.load(is, password.toCharArray());
+				final String password = readPasswordFromFile(passwordFileName);
+				final char[] pwd      = password.toCharArray();
 
-				this.key = keyStore.getKey("structr", password.toCharArray());
+				keyStore.load(is, pwd);
+
+				this.key = keyStore.getKey("structr", pwd);
 
 				blockCipher.init(Cipher.DECRYPT_MODE, key);
 			}
@@ -358,6 +361,21 @@ public class StructrLicenseVerifier {
 
 		return newMap;
 
+	}
+
+	private String readPasswordFromFile(final String passwordFileName) throws IOException {
+
+		try (final InputStream is = new FileInputStream(passwordFileName)) {
+
+			final List<String> lines = IOUtils.readLines(is, "utf-8");
+
+			if (!lines.isEmpty()) {
+
+				return lines.get(0);
+			}
+		}
+
+		return "";
 	}
 
 	// ----- private static members -----

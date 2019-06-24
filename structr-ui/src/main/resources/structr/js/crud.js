@@ -414,6 +414,7 @@ var _Crud = {
 					+ '<button class="action" id="create' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Create new ' + type + '</button>'
 					+ '<button id="export' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_table_icon) + '" /> Export as CSV</button>'
 					+ '<button id="import' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_add_icon) + '" /> Import CSV</button>'
+					+ '<button id="delete' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /> Delete <b>all</b> objects of this type</button>'
 					+ '</div>');
 
 			_Crud.determinePagerData(type);
@@ -441,6 +442,17 @@ var _Crud = {
 
 			$('#import' + type, crudRight).on('click', function() {
 				_Crud.crudImport(type);
+			});
+
+			$('#delete' + type, crudRight).on('click', function() {
+
+				Structr.confirmation('<h3>WARNING: Really delete all objects of type \'' + type + '\'?</h3><p>This will delete all objects of the type (and of all inheriting types!).</p><p>Depending on the amount of objects this can take a while.</p>', function() {
+					$.unblockUI({
+						fadeOut: 25
+					});
+
+					_Crud.deleteAllNodesOfType(type);
+				});
 			});
 
 			_Crud.deActivatePagerElements(pagerNode);
@@ -1194,6 +1206,22 @@ var _Crud = {
 			$('#startImport', dialogBtn).remove();
 		});
 
+	},
+	deleteAllNodesOfType: function(type) {
+
+		var url = rootUrl + '/' + type;
+
+		fetch(url, { method: 'DELETE' }).then(async (response) => {
+
+			let data = await response.json();
+
+			if (response.ok) {
+				new MessageBuilder().success('Deletion of all nodes of type \'' + type + '\' finished.').delayDuration(2000).fadeDuration(1000).show();
+				_Crud.typeSelected(type);
+			} else {
+				Structr.errorFromResponse(data, url, {statusCode: 400, requiresConfirmation: true});
+			}
+		});
 	},
 	updatePager: function(type, qt, st, ps, p, pc) {
 		var typeNode = $('#crud-right');

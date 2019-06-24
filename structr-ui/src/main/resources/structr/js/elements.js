@@ -1433,9 +1433,10 @@ var _Elements = {
 		}, function() {
 			_Logger.log(_LogType.CONTENTS, 'cancelled');
 		});
-		Command.getProperty(entity.id, 'content', function(text) {
+		Command.get(entity.id, 'content,contentType', function(data) {
             currentEntity = entity;
-			_Elements.editContent(this, entity, text, dialogText);
+			entity.contentType = data.contentType;
+			_Elements.editContent(this, entity, data.content, dialogText);
 		});
 	},
     autoComplete: function(cm, pred) {

@@ -21,6 +21,7 @@ package org.structr.core.graph;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -200,6 +201,17 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			for (Transformation<GraphObject> transformation : transformations) {
 
 				transformation.apply(securityContext, node);
+			}
+
+			// return creation details?
+			if (securityContext.returnDetailedCreationResults()) {
+
+				final Map obj = new LinkedHashMap();
+
+				obj.put("type", node.getType());
+				obj.put("id", node.getUuid());
+
+				securityContext.getCreationDetails().add(obj);
 			}
 		}
 

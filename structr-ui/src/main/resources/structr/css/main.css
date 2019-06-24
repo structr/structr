@@ -3126,6 +3126,10 @@ input.bitmask {
 	list-style: decimal;
 }
 
+#info-area .message ul li {
+	list-style: disc;
+}
+
 #info-area .message .furtherText {
 	display: block;
 	padding-top: 10px;
@@ -4810,6 +4814,13 @@ pre.csv-preview {
 	height: 100px;
 }
 
+.row-container tr:nth-child(odd) {
+	background-color: #fff;
+}
+
+.row-container tr:nth-child(even) {
+	background-color: #f7f7f7;
+}
 
 #row-container tr:nth-child(odd) {
 	background-color: #fff;
@@ -4863,6 +4874,11 @@ table#csv-import td {
 table#csv-import label {
 	display: inline-block;
 	min-width: 120px !important;
+}
+
+div#types-container div.type-mapping {
+	width: 100px;
+	float: left;
 }
 
 div#xml-import h2, div#xml-import h3 {
@@ -5141,4 +5157,62 @@ table#principals tbody td:first-of-type {
 
 table#principals tbody td {
 	text-align: center;
+}
+
+/**
+ * Advanced CSV import dialog
+ */
+#available-properties {
+}
+
+#available-properties span {
+	display: inline-block;
+	border: 1px solid rgba(0,0,0,.25);
+	background-color: #fff;
+	padding: 2px 4px;
+	margin: 0 4px 4px 0;
+	color: #666;
+}
+
+.type-mapping {
+	background-color: #fff;
+	border: 1px solid rgba(0,0,0,.25);
+	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
+	margin: 0 12px 12px 0;
+	padding: 2px 6px;
+	position: relative;
+	width: 160px;
+	min-width: 160px;
+	min-height: 200px;
+	float: left;
+	font-size: 1.2em;
+}
+
+.type-mapping h3 {
+	margin: 4px 0 0 0;
+	font-size: 1.3em;
+	font-weight: 500;
+}
+
+.type-mapping p {
+	margin: 0;
+	font-size: 1em;
+	font-weight: 300;
+	font-size: 0.8em;
+}
+
+.type-mapping p.divider {
+	border-bottom: 1px solid #eee;
+	font-weight: 600;
+	margin-top: 8px;
+}
+
+.type-mapping select {
+    width: 100%;
+    text-overflow: ellipsis;
+}
+
+.type-mapping .add-selector {
+	margin-top: 40px;
+	font-size: 8pt;
 }
