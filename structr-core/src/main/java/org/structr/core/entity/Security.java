@@ -74,7 +74,7 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 	}
 
 	public boolean isAllowed(final Permission permission) {
-		return SecurityDelegate.getPermissionSet(dbRelationship, Security.allowed).contains(permission.name());
+		return SecurityDelegate.isAllowed(this, Security.allowed, permission);
 	}
 
 	public void setAllowed(final Set<String> allowed) {
@@ -93,8 +93,16 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 		SecurityDelegate.addPermission(this, Security.allowed, permission);
 	}
 
+	public void addPermissions(final Set<Permission> permissions) {
+		SecurityDelegate.addPermissions(this, Security.allowed, permissions);
+	}
+
 	public void removePermission(final Permission permission) {
 		SecurityDelegate.removePermission(this, Security.allowed, permission);
+	}
+
+	public void removePermissions(final Set<Permission> permissions) {
+		SecurityDelegate.removePermissions(this, Security.allowed, permissions);
 	}
 
 	// ----- class Relation -----

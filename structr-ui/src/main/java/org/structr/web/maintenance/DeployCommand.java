@@ -120,6 +120,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private static final Map<String, String> deferredPageLinks = new LinkedHashMap<>();
 	protected static final Set<String> missingPrincipals       = new HashSet<>();
+	protected static final Set<String> missingSchemaFile       = new HashSet<>();
 
 	private final static String DEPLOYMENT_IMPORT_STATUS   = "DEPLOYMENT_IMPORT_STATUS";
 	private final static String DEPLOYMENT_EXPORT_STATUS   = "DEPLOYMENT_EXPORT_STATUS";
@@ -186,7 +187,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	public Gson getGson() {
-		return new GsonBuilder().setPrettyPrinting().setDateFormat(Settings.DefaultDateFormat.getValue()).create();
+		return new GsonBuilder().setPrettyPrinting().setDateFormat(Settings.DefaultDateFormat.getValue()).serializeNulls().create();
 	}
 
 	public static boolean isUuid(final String name) {
@@ -217,14 +218,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try {
 
 			missingPrincipals.clear();
+			missingSchemaFile.clear();
 
 			final long startTime = System.currentTimeMillis();
 			customHeaders.put("start", new Date(startTime).toString());
 
-			final boolean extendExistingSchema = isTrue(attributes.get("extendExistingSchema"));
-			final String path                  = (String) attributes.get("source");
-			final SecurityContext ctx          = SecurityContext.getSuperUserInstance();
-			final App app                      = StructrApp.getInstance(ctx);
+			final boolean extendExistingApp = isTrue(attributes.get("extendExistingApp"));
+			final String path               = (String) attributes.get("source");
+			final SecurityContext ctx       = SecurityContext.getSuperUserInstance();
+			final App app                   = StructrApp.getInstance(ctx);
 
 			ctx.setDoTransactionNotifications(false);
 			ctx.disableEnsureCardinality();
@@ -371,7 +373,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Importing data from schema/ directory");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing schema");
 
-					importSchema(schemaFolder, extendExistingSchema);
+					importSchema(schemaFolder, extendExistingApp);
 
 				} catch (ImportFailureException fex) {
 
@@ -428,7 +430,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// remove all DOMNodes from the database (clean webapp for import, but only
 			// if the actual import directories exist, don't delete web components if
 			// an empty directory was specified accidentially).
-			if (Files.exists(templates) && Files.exists(components) && Files.exists(pages)) {
+			if (!extendExistingApp && Files.exists(templates) && Files.exists(components) && Files.exists(pages)) {
 
 				try (final Tx tx = app.tx()) {
 
@@ -558,19 +560,39 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				final String title = "Missing Principal(s)";
 				final String text = "The following user(s) and/or group(s) are missing for grants or node ownership during <b>deployment</b>.<br>"
-						+ "Because of these missing grants/ownerships, <b>the functionality is not identical to the export you just imported</b>!<br><br>"
-						+ String.join(", ",  missingPrincipals)
-						+ "<br><br>Consider adding these principals to your <a href=\"https://support.structr.com/article/428#pre-deployconf-javascript\">pre-deploy.conf</a> and re-importing.";
+						+ "Because of these missing grants/ownerships, <b>the functionality is not identical to the export you just imported</b>!"
+						+ "<ul><li>" + String.join("</li><li>",  missingPrincipals) + "</li></ul>"
+						+ "Consider adding these principals to your <a href=\"https://support.structr.com/article/428#pre-deployconf-javascript\">pre-deploy.conf</a> and re-importing.";
 
 				logger.info("\n###############################################################################\n"
 						+ "\tWarning: " + title + "!\n"
 						+ "\tThe following user(s) and/or group(s) are missing for grants or node ownership during deployment.\n"
 						+ "\tBecause of these missing grants/ownerships, the functionality is not identical to the export you just imported!\n\n"
-						+ "\t" + String.join(", ",  missingPrincipals)
+						+ "\t" + String.join("\n\t",  missingPrincipals)
 						+ "\n\n\tConsider adding these principals to your 'pre-deploy.conf' (see https://support.structr.com/article/428#pre-deployconf-javascript) and re-importing.\n"
 						+ "###############################################################################"
 				);
 				publishWarningMessage(title, text);
+			}
+
+			if (!missingSchemaFile.isEmpty()) {
+
+				final String title = "Missing Schema file(s)";
+				final String text = "The following schema methods/functions require file(s) to be present in the tree-based schema export.<br>"
+						+ "Because those files are missing, the functionality will not be available after importing!<br>"
+						+ "The most common cause is that someone forgot to add these files to the repository."
+						+ "<ul><li>" + String.join("</li><li>",  missingSchemaFile) + "</li></ul>";
+
+				logger.info("\n###############################################################################\n"
+						+ "\tWarning: " + title + "!\n"
+						+ "\tThe following schema methods/functions require file(s) to be present in the tree-based schema export.\n"
+						+ "\tBecause those files are missing, the functionality will not be available after importing!\n"
+						+ "\tThe most common cause is that someone forgot to add these files to the repository.\n\n"
+						+ "\t" + String.join("\n\t",  missingSchemaFile)
+						+ "\n###############################################################################"
+				);
+				publishWarningMessage(title, text);
+
 			}
 
 			final long endTime = System.currentTimeMillis();
@@ -998,15 +1020,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportTemplateSource(final Path target, final DOMNode template, final Map<String, Object> configuration) throws FrameworkException {
 
+		final String content                 = template.getProperty(StructrApp.key(Template.class, "content"));
 		final Map<String, Object> properties = new TreeMap<>();
 		boolean doExport                     = true;
 
-		final String content = template.getProperty(StructrApp.key(Template.class, "content"));
 		if (content != null) {
 
 			// name with uuid or just uuid
 			String name = template.getProperty(AbstractNode.name);
-
 			if (name != null) {
 
 				name += "-" + template.getUuid();
@@ -1017,7 +1038,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 			final Path targetFile = target.resolve(name + ".html");
-
 			if (Files.exists(targetFile)) {
 
 				try {
@@ -1062,17 +1082,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
 
-			final Gson gson = new GsonBuilder().serializeNulls().create();
+			final Gson gson                = new GsonBuilder().serializeNulls().create();
+			final StringBuilder sb         = new StringBuilder("[");
+			final List<String> jsonStrings = new LinkedList();
 
-			final StringBuilder sb = new StringBuilder("[");
+			for (final Map<String, Object> grant : grants) {
 
-			List<String> jsonStrings = new LinkedList();
-
-			for (Map<String, Object> grant : grants) {
 				jsonStrings.add("\t" + gson.toJson(grant));
 			}
 
 			if (!jsonStrings.isEmpty()) {
+
 				sb.append("\n").append(String.join(",\n", jsonStrings)).append("\n");
 			}
 
@@ -1152,16 +1172,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 								final Path readFunctionFile  = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_READ_FUNCTION_SUFFIX);
 								final String readFunction    = fp.getReadFunction();
-								fp.setReadFunction("./" + targetFolder.relativize(readFunctionFile).toString());
+
 								if (readFunction != null) {
 									writeStringToFile(readFunctionFile, readFunction);
+									fp.setReadFunction("./" + targetFolder.relativize(readFunctionFile).toString());
 								}
 
 								final Path writeFunctionFile = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX);
 								final String writeFunction   = fp.getWriteFunction();
-								fp.setWriteFunction("./" + targetFolder.relativize(writeFunctionFile).toString());
+
 								if (writeFunction != null) {
 									writeStringToFile(writeFunctionFile, writeFunction);
+									fp.setWriteFunction("./" + targetFolder.relativize(writeFunctionFile).toString());
 								}
 							}
 						}
@@ -1173,19 +1195,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 							for (final Object m : typeDef.getMethods()) {
 
 								final StructrMethodDefinition method = (StructrMethodDefinition)m;
-								final String methodSource = method.getSource();
+								final String methodSource            = method.getSource();
 
 								final Path methodFile = methodsFolder.resolve(method.getName());
-								method.setSource("./" + targetFolder.relativize(methodFile).toString());
 
 								if (methodSource != null) {
 									writeStringToFile(methodFile, methodSource);
+									method.setSource("./" + targetFolder.relativize(methodFile).toString());
 								}
 							}
 						}
 					}
 				}
-
 			}
 
 			final Path schemaJson = targetFolder.resolve("schema.json");
@@ -1199,33 +1220,31 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportConfiguration(final DOMNode node, final Map<String, Object> config) throws FrameworkException {
 
-		putIfNotNull(config, "id", node.getProperty(DOMNode.id));
-
-		if (node.isVisibleToPublicUsers())        { putIfNotNull(config, "visibleToPublicUsers", true); }
-		if (node.isVisibleToAuthenticatedUsers()) { putIfNotNull(config, "visibleToAuthenticatedUsers", true); }
-
-		putIfNotNull(config, "contentType",             node.getProperty(StructrApp.key(Content.class, "contentType")));
+		putData(config, "id",                          node.getProperty(DOMNode.id));
+		putData(config, "visibleToPublicUsers",        node.isVisibleToPublicUsers());
+		putData(config, "visibleToAuthenticatedUsers", node.isVisibleToAuthenticatedUsers());
+		putData(config, "contentType",                 node.getProperty(StructrApp.key(Content.class, "contentType")));
 
 		if (node instanceof Template) {
 
 			// mark this template as being shared
-			putIfNotNull(config, "shared", Boolean.toString(node.isSharedComponent() && node.getParent() == null));
+			putData(config, "shared", Boolean.toString(node.isSharedComponent() && node.getParent() == null));
 		}
 
 		if (node instanceof Page) {
 
-			putIfNotNull(config, "path",                    node.getProperty(StructrApp.key(Page.class, "path")));
-			putIfNotNull(config, "position",                node.getProperty(StructrApp.key(Page.class, "position")));
-			putIfNotNull(config, "category",                node.getProperty(StructrApp.key(Page.class, "category")));
-			putIfNotNull(config, "showOnErrorCodes",        node.getProperty(StructrApp.key(Page.class, "showOnErrorCodes")));
-			putIfNotNull(config, "showConditions",          node.getProperty(StructrApp.key(Page.class, "showConditions")));
-			putIfNotNull(config, "hideConditions",          node.getProperty(StructrApp.key(Page.class, "hideConditions")));
-			putIfNotNull(config, "dontCache",               node.getProperty(StructrApp.key(Page.class, "dontCache")));
-			putIfNotNull(config, "cacheForSeconds",         node.getProperty(StructrApp.key(Page.class, "cacheForSeconds")));
-			putIfNotNull(config, "pageCreatesRawData",      node.getProperty(StructrApp.key(Page.class, "pageCreatesRawData")));
-			putIfNotNull(config, "basicAuthRealm",          node.getProperty(StructrApp.key(Page.class, "basicAuthRealm")));
-			putIfNotNull(config, "enableBasicAuth",         node.getProperty(StructrApp.key(Page.class, "enableBasicAuth")));
-			putIfTrue   (config, "hidden",                  node.getProperty(StructrApp.key(Page.class, "hidden")));
+			putData(config, "path",                    node.getProperty(StructrApp.key(Page.class, "path")));
+			putData(config, "position",                node.getProperty(StructrApp.key(Page.class, "position")));
+			putData(config, "category",                node.getProperty(StructrApp.key(Page.class, "category")));
+			putData(config, "showOnErrorCodes",        node.getProperty(StructrApp.key(Page.class, "showOnErrorCodes")));
+			putData(config, "showConditions",          node.getProperty(StructrApp.key(Page.class, "showConditions")));
+			putData(config, "hideConditions",          node.getProperty(StructrApp.key(Page.class, "hideConditions")));
+			putData(config, "dontCache",               node.getProperty(StructrApp.key(Page.class, "dontCache")));
+			putData(config, "cacheForSeconds",         node.getProperty(StructrApp.key(Page.class, "cacheForSeconds")));
+			putData(config, "pageCreatesRawData",      node.getProperty(StructrApp.key(Page.class, "pageCreatesRawData")));
+			putData(config, "basicAuthRealm",          node.getProperty(StructrApp.key(Page.class, "basicAuthRealm")));
+			putData(config, "enableBasicAuth",         node.getProperty(StructrApp.key(Page.class, "enableBasicAuth")));
+			putData   (config, "hidden",                  node.getProperty(StructrApp.key(Page.class, "hidden")));
 
 		}
 
@@ -1235,46 +1254,41 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// only export dynamic (=> additional) keys that are *not* remote properties
 			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null) {
 
-				putIfNotNull(config, key.jsonName(), node.getProperty(key));
+				putData(config, key.jsonName(), node.getProperty(key));
 			}
 		}
 	}
 
 	private void exportFileConfiguration(final AbstractFile abstractFile, final Map<String, Object> config) {
 
-		putIfNotNull(config, "id", abstractFile.getProperty(AbstractFile.id));
-
-		if (abstractFile.isVisibleToPublicUsers())         { putIfNotNull(config, "visibleToPublicUsers", true); }
-		if (abstractFile.isVisibleToAuthenticatedUsers())  { putIfNotNull(config, "visibleToAuthenticatedUsers", true); }
+		putData(config, "id",                          abstractFile.getProperty(AbstractFile.id));
+		putData(config, "visibleToPublicUsers",        abstractFile.isVisibleToPublicUsers());
+		putData(config, "visibleToAuthenticatedUsers", abstractFile.isVisibleToAuthenticatedUsers());
 
 		if (abstractFile instanceof File) {
 
 			final File file = (File)abstractFile;
 
-			if (file.isTemplate())                     { putIfNotNull(config, "isTemplate", true); }
-
-			final boolean dontCache = abstractFile.getProperty(StructrApp.key(File.class, "dontCache"));
-			if (dontCache) {
-				putIfNotNull(config, "dontCache", dontCache);
-			}
+			putData(config, "isTemplate", file.isTemplate());
+			putData(config, "dontCache", abstractFile.getProperty(StructrApp.key(File.class, "dontCache")));
 		}
 
-		putIfNotNull(config, "type",                        abstractFile.getProperty(File.type));
-		putIfNotNull(config, "contentType",                 abstractFile.getProperty(StructrApp.key(File.class, "contentType")));
-		putIfNotNull(config, "cacheForSeconds",             abstractFile.getProperty(StructrApp.key(File.class, "cacheForSeconds")));
-		putIfNotNull(config, "useAsJavascriptLibrary",      abstractFile.getProperty(StructrApp.key(File.class, "useAsJavascriptLibrary")));
-		putIfNotNull(config, "includeInFrontendExport",     abstractFile.getProperty(StructrApp.key(File.class, "includeInFrontendExport")));
-		putIfNotNull(config, "basicAuthRealm",              abstractFile.getProperty(StructrApp.key(File.class, "basicAuthRealm")));
-		putIfNotNull(config, "enableBasicAuth",             abstractFile.getProperty(StructrApp.key(File.class, "enableBasicAuth")));
+		putData(config, "type",                        abstractFile.getProperty(File.type));
+		putData(config, "contentType",                 abstractFile.getProperty(StructrApp.key(File.class, "contentType")));
+		putData(config, "cacheForSeconds",             abstractFile.getProperty(StructrApp.key(File.class, "cacheForSeconds")));
+		putData(config, "useAsJavascriptLibrary",      abstractFile.getProperty(StructrApp.key(File.class, "useAsJavascriptLibrary")));
+		putData(config, "includeInFrontendExport",     abstractFile.getProperty(StructrApp.key(File.class, "includeInFrontendExport")));
+		putData(config, "basicAuthRealm",              abstractFile.getProperty(StructrApp.key(File.class, "basicAuthRealm")));
+		putData(config, "enableBasicAuth",             abstractFile.getProperty(StructrApp.key(File.class, "enableBasicAuth")));
 
 		if (abstractFile instanceof Image) {
 
 			final Image image = (Image)abstractFile;
 
-			putIfNotNull(config, "isThumbnail",             image.isThumbnail());
-			putIfNotNull(config, "isImage",                 image.isImage());
-			putIfNotNull(config, "width",                   image.getWidth());
-			putIfNotNull(config, "height",                  image.getHeight());
+			putData(config, "isThumbnail",             image.isThumbnail());
+			putData(config, "isImage",                 image.isImage());
+			putData(config, "width",                   image.getWidth());
+			putData(config, "height",                  image.getHeight());
 		}
 
 		if (abstractFile instanceof AbstractMinifiedFile) {
@@ -1283,14 +1297,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				final MinifiedCssFile mcf = (MinifiedCssFile)abstractFile;
 
-				putIfNotNull(config, "lineBreak", mcf.getLineBreak());
+				putData(config, "lineBreak", mcf.getLineBreak());
 			}
 
 			if (abstractFile instanceof MinifiedJavaScriptFile) {
 
 				final MinifiedJavaScriptFile mjf = (MinifiedJavaScriptFile)abstractFile;
 
-				putIfNotNull(config, "optimizationLevel", mjf.getOptimizationLevel());
+				putData(config, "optimizationLevel", mjf.getOptimizationLevel());
 			}
 
 			final Class<Relation> relType                  = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
@@ -1303,8 +1317,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				minificationSources.put(minificationSourceRel.getProperty(positionKey), file.getPath());
 			}
-			putIfNotNull(config, "minificationSources", minificationSources);
 
+			putData(config, "minificationSources", minificationSources);
 		}
 
 		// export all dynamic properties
@@ -1313,7 +1327,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// only export dynamic (=> additional) keys that are *not* remote properties
 			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null) {
 
-				putIfNotNull(config, key.jsonName(), abstractFile.getProperty(key));
+				putData(config, key.jsonName(), abstractFile.getProperty(key));
 			}
 		}
 
@@ -1323,13 +1337,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	protected void exportOwnershipAndSecurity(final NodeInterface node, final Map<String, Object> config) {
 
 		// export owner
-		final Principal owner = node.getOwnerNode();
+		final Map<String, Object> map = new HashMap<>();
+		final Principal owner         = node.getOwnerNode();
+
 		if (owner != null) {
 
-			final Map<String, Object> map = new HashMap<>();
 			map.put("name", owner.getName());
-
 			config.put("owner", map);
+
+		} else {
+
+			// export "null" owner as well
+			config.put("owner", null);
+
 		}
 
 		// export security grants
@@ -1350,43 +1370,48 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 		}
 
-		// export non-empty collection only
-		if (!grantees.isEmpty()) {
-			config.put("grantees", grantees);
-		}
+		// export empty grantees as well
+		config.put("grantees", grantees);
 	}
 
 	protected void checkOwnerAndSecurity(final Map<String, Object> entry) throws FrameworkException {
 
 		if (entry.containsKey("owner")) {
 
-			final String ownerName = (String) ((Map)entry.get("owner")).get("name");
-			final Principal owner = StructrApp.getInstance().nodeQuery(Principal.class).andName(ownerName).getFirst();
+			final Map ownerData = ((Map)entry.get("owner"));
+			if (ownerData != null) {
+				final String ownerName = (String) ((Map)entry.get("owner")).get("name");
+				final Principal owner = StructrApp.getInstance().nodeQuery(Principal.class).andName(ownerName).getFirst();
 
-			if (owner == null) {
-				logger.warn("Unknown owner {}, ignoring.", ownerName);
-				DeployCommand.addMissingPrincipal(ownerName);
+				if (owner == null) {
+					logger.warn("Unknown owner {}, ignoring.", ownerName);
+					DeployCommand.addMissingPrincipal(ownerName);
 
+					entry.remove("owner");
+				}
+
+			} else {
 				entry.remove("owner");
 			}
 		}
 
 		if (entry.containsKey("grantees")) {
 
-			final List<Map<String, Object>> grantees = (List) entry.get("grantees");
-
+			final List<Map<String, Object>> grantees        = (List) entry.get("grantees");
 			final List<Map<String, Object>> cleanedGrantees = new LinkedList();
 
 			for (final Map<String, Object> grantee : grantees) {
 
 				final String granteeName = (String) grantee.get("name");
-				final Principal owner = StructrApp.getInstance().nodeQuery(Principal.class).andName(granteeName).getFirst();
+				final Principal owner    = StructrApp.getInstance().nodeQuery(Principal.class).andName(granteeName).getFirst();
 
 				if (owner == null) {
+
 					logger.warn("Unknown grantee {}, ignoring.", granteeName);
 					DeployCommand.addMissingPrincipal(granteeName);
 
 				} else {
+
 					cleanedGrantees.add(grantee);
 				}
 			}
@@ -1411,20 +1436,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> entry = new TreeMap<>();
 				mailTemplates.add(entry);
 
-				putIfNotNull(entry, "id",                          mailTemplate.getProperty(MailTemplate.id));
-				putIfNotNull(entry, "name",                        mailTemplate.getProperty(MailTemplate.name));
-				putIfNotNull(entry, "text",                        mailTemplate.getProperty(textKey));
-				putIfNotNull(entry, "locale",                      mailTemplate.getProperty(localeKey));
-				putIfNotNull(entry, "visibleToAuthenticatedUsers", mailTemplate.getProperty(MailTemplate.visibleToAuthenticatedUsers));
-				putIfNotNull(entry, "visibleToPublicUsers",        mailTemplate.getProperty(MailTemplate.visibleToPublicUsers));
+				putData(entry, "id",                          mailTemplate.getProperty(MailTemplate.id));
+				putData(entry, "name",                        mailTemplate.getProperty(MailTemplate.name));
+				putData(entry, "text",                        mailTemplate.getProperty(textKey));
+				putData(entry, "locale",                      mailTemplate.getProperty(localeKey));
+				putData(entry, "visibleToAuthenticatedUsers", mailTemplate.getProperty(MailTemplate.visibleToAuthenticatedUsers));
+				putData(entry, "visibleToPublicUsers",        mailTemplate.getProperty(MailTemplate.visibleToPublicUsers));
 			}
 
 			tx.success();
 		}
 
 		mailTemplates.sort(new AbstractMapComparator<Object>() {
+
 			@Override
-			public String getKey (Map<String, Object> map) {
+			public String getKey (final Map<String, Object> map) {
+
 				return ((String)map.get("name")).concat(((String)map.get("locale")));
 			}
 		});
@@ -1446,16 +1473,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> entry = new TreeMap<>();
 				widgets.add(entry);
 
-				putIfNotNull(entry, "id",                          widget.getProperty(Widget.id));
-				putIfNotNull(entry, "name",                        widget.getProperty(Widget.name));
-				putIfNotNull(entry, "visibleToAuthenticatedUsers", widget.getProperty(Widget.visibleToAuthenticatedUsers));
-				putIfNotNull(entry, "visibleToPublicUsers",        widget.getProperty(Widget.visibleToPublicUsers));
-				putIfNotNull(entry, "source",                      widget.getProperty(StructrApp.key(Widget.class, "source")));
-				putIfNotNull(entry, "description",                 widget.getProperty(StructrApp.key(Widget.class, "description")));
-				putIfNotNull(entry, "isWidget",                    widget.getProperty(StructrApp.key(Widget.class, "isWidget")));
-				putIfNotNull(entry, "treePath",                    widget.getProperty(StructrApp.key(Widget.class, "treePath")));
-				putIfNotNull(entry, "pictures",                    widget.getProperty(StructrApp.key(Widget.class, "pictures")));
-				putIfNotNull(entry, "configuration",               widget.getProperty(StructrApp.key(Widget.class, "configuration")));
+				putData(entry, "id",                          widget.getProperty(Widget.id));
+				putData(entry, "name",                        widget.getProperty(Widget.name));
+				putData(entry, "visibleToAuthenticatedUsers", widget.getProperty(Widget.visibleToAuthenticatedUsers));
+				putData(entry, "visibleToPublicUsers",        widget.getProperty(Widget.visibleToPublicUsers));
+				putData(entry, "source",                      widget.getProperty(StructrApp.key(Widget.class, "source")));
+				putData(entry, "description",                 widget.getProperty(StructrApp.key(Widget.class, "description")));
+				putData(entry, "isWidget",                    widget.getProperty(StructrApp.key(Widget.class, "isWidget")));
+				putData(entry, "treePath",                    widget.getProperty(StructrApp.key(Widget.class, "treePath")));
+				putData(entry, "pictures",                    widget.getProperty(StructrApp.key(Widget.class, "pictures")));
+				putData(entry, "configuration",               widget.getProperty(StructrApp.key(Widget.class, "configuration")));
 			}
 
 			tx.success();
@@ -1566,28 +1593,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	protected void putIfNotNull(final Map<String, Object> target, final String key, final Object value) {
+	protected void putData(final Map<String, Object> target, final String key, final Object value) {
 
-		if (value != null) {
+		if (value instanceof Iterable) {
 
-			if (value instanceof Iterable) {
+			target.put(key, Iterables.toList((Iterable)value));
 
-				final List list = Iterables.toList((Iterable)value);
-				if (!list.isEmpty()) {
-
-					target.put(key, list);
-				}
-
-			} else {
-
-				target.put(key, value);
-			}
-		}
-	}
-
-	private void putIfTrue(final Map<String, Object> target, final String key, final Object value) {
-
-		if (Boolean.TRUE.equals(value)) {
+		} else {
 
 			target.put(key, value);
 		}
@@ -1773,11 +1785,29 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 										final StructrFunctionProperty fp = (StructrFunctionProperty)propDef;
 
-										final Path readFunctionFile    = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_READ_FUNCTION_SUFFIX);
-										final Path writeFunctionFile   = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX);
+										if (fp.getReadFunction() != null) {
 
-										fp.setReadFunction ((Files.exists(readFunctionFile))  ? new String(Files.readAllBytes(readFunctionFile))  : null);
-										fp.setWriteFunction((Files.exists(writeFunctionFile)) ? new String(Files.readAllBytes(writeFunctionFile)) : null);
+											final Path readFunctionSourceFile = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_READ_FUNCTION_SUFFIX);
+
+											if (Files.exists(readFunctionSourceFile)) {
+												fp.setReadFunction(new String(Files.readAllBytes(readFunctionSourceFile)));
+											} else {
+												fp.setReadFunction(null);
+												DeployCommand.addMissingSchemaFile(schemaFolder.relativize(readFunctionSourceFile).toString());
+											}
+										}
+
+										if (fp.getWriteFunction() != null) {
+
+											final Path writeFunctionSourceFile = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX);
+
+											if (Files.exists(writeFunctionSourceFile)) {
+												fp.setWriteFunction(new String(Files.readAllBytes(writeFunctionSourceFile)));
+											} else {
+												fp.setWriteFunction(null);
+												DeployCommand.addMissingSchemaFile(schemaFolder.relativize(writeFunctionSourceFile).toString());
+											}
+										}
 									}
 								}
 							}
@@ -1789,9 +1819,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 								for (final Object m : typeDef.getMethods()) {
 
 									final StructrMethodDefinition method = (StructrMethodDefinition)m;
-									final Path methodFile = methodsFolder.resolve(method.getName());
 
-									method.setSource((Files.exists(methodFile)) ? new String(Files.readAllBytes(methodFile)) : null);
+									if (method.getSource() != null) {
+
+										final Path methodSourceFile = methodsFolder.resolve(method.getName());
+
+										if (Files.exists(methodSourceFile)) {
+											method.setSource(new String(Files.readAllBytes(methodSourceFile)));
+										} else {
+											method.setSource(null);
+											DeployCommand.addMissingSchemaFile(schemaFolder.relativize(methodSourceFile).toString());
+										}
+									}
 								}
 							}
 						}
@@ -1885,6 +1924,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	public static void addMissingPrincipal (final String principalName) {
 		missingPrincipals.add(principalName);
+	}
+
+	public static void addMissingSchemaFile (final String fileName) {
+		missingSchemaFile.add(fileName);
 	}
 
 	// ----- nested helper classes -----

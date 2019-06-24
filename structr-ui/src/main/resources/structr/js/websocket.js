@@ -182,7 +182,11 @@ function wsConnect() {
 				if (code === 403) {
 					user = null;
 					userId = null;
-					Structr.login('Wrong username or password!');
+					if (data.data.reason === 'sessionLimitExceeded') {
+						Structr.login('Max. number of sessions exceeded.');
+					} else {
+						Structr.login('Wrong username or password!');
+					}
 				} else if (code === 401) {
 					user = null;
 					userId = null;
@@ -317,10 +321,6 @@ function wsConnect() {
 				}
 
 				StructrModel.update(data);
-
-				if (command === 'SET_PERMISSION') {
-					StructrModel.callCallback(data.callback, obj);
-				}
 
 			} else if (command === 'GET' || command === 'GET_RELATIONSHIP' || command === 'GET_PROPERTIES') {
 
@@ -557,6 +557,10 @@ function wsConnect() {
 				StructrModel.callCallback(data.callback, result);
 
 			} else if (command === 'SERVER_LOG') {
+
+                StructrModel.callCallback(data.callback, result);
+
+			} else if (command === 'SAVE_LOCAL_STORAGE') {
 
                 StructrModel.callCallback(data.callback, result);
 

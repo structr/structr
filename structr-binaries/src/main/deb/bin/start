@@ -4,25 +4,23 @@ cd /usr/lib/structr
 
 . bin/config
 
-if [ -e $PID_FILE ]; then
+PID=$(pgrep -f org.structr.Server)
 
-	echo
-	echo "        ERROR: server already running."
-	echo
-	echo "        Please stop any running instances before starting a"
-	echo "        new one. (Remove $PID_FILE if this message appears"
-	echo "        even if no server is running.)"
-	echo
+if [[ ! -z $PID ]]; then
 
+	echo "ERROR: server already running."
+	echo
+	echo "Please stop any running instances before starting a"
+	echo "new one. (Remove $PID_FILE if this message appears"
+	echo "even if no server is running.)"
+	echo
 	exit 0
 
 fi
 
-echo
-
 if [ ! -e "logs" ]; then
 
-	echo "        Creating logs directory..."
+	echo "Creating logs directory..."
 
 	mkdir logs
 
@@ -31,17 +29,18 @@ fi
 
 if [ ! -e "structr" ]; then
 
-	echo "        Unarchiving static resources..."
+	echo "Unarchiving static resources..."
 
         jar -xf structr-*.jar structr
 
 fi
 
-echo -n "        Starting structr server $DISPLAY_NAME: "
+echo "Starting Structr instance '$DISPLAY_NAME' in the background."
+echo "(Takes 30-60 seconds until the server becomes available. Watch log file $LOG_FILE for 'Initialization complete' message.)"
 
-java $RUN_OPTS $JAVA_OPTS $MAIN_CLASS >$LOG_FILE 2>&1 & echo $! >$PID_FILE
+java $RUN_OPTS $JAVA_OPTS $MAIN_CLASS >>$LOG_FILE 2>&1 & echo $! >$PID_FILE
 
-sleep 1
-
-echo "OK"
-echo
+#( tail -q -n0 -F $LOG_FILE 2>/dev/null & echo $! >tail.pid ) | sed -n '/Initialization complete/q'
+#tail -q -200 $LOG_FILE 2> /dev/null | grep 'Starting'
+#
+#echo "Structr instance '$DISPLAY_NAME' started successfully (PID $!)"

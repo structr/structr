@@ -57,8 +57,12 @@ public interface LDAPUser extends User {
 		type.setExtends(schema.getType("User"));
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/LDAPUser"));
 
-		type.addStringProperty("distinguishedName", PropertyView.Public, PropertyView.Ui).setUnique(true).setIndexed(true);
+		type.addStringProperty("originId",          PropertyView.Public, PropertyView.Ui).setUnique(true).setIndexed(true);
+		type.addStringProperty("distinguishedName", PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addLongProperty("lastLDAPSync");
+
+		type.addPropertyGetter("originId", String.class);
+		type.addPropertySetter("originId", String.class);
 
 		type.addPropertyGetter("distinguishedName", String.class);
 		type.addPropertySetter("distinguishedName", String.class);
@@ -68,6 +72,7 @@ public interface LDAPUser extends User {
 		type.overrideMethod("isValidPassword", false, "return " + LDAPUser.class.getName() + ".isValidPassword(this, arg0);");
 	}}
 
+	String getOriginId();
 	String getDistinguishedName();
 
 	void initializeFrom(final Entry entry) throws FrameworkException;

@@ -111,13 +111,17 @@ var _Elements = {
 	],
 	mostUsedAttrs: [
 		{
+			elements: ['div'],
+			attrs: ['style']
+		},
+		{
 			elements: ['input', 'textarea'],
 			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'style'],
 			focus: 'type'
 		},
 		{
 			elements: ['button'],
-			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'onclick', 'style']
+			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'onclick', 'style', 'title']
 		},
 		{
 			elements: ['select', 'option'],
@@ -310,10 +314,13 @@ var _Elements = {
 		if (!componentsSlideout) return;
 		componentsSlideout.find(':not(.compTab)').remove();
 
+		componentsSlideout.append('<div class="" id="newComponentDropzone"><div class="new-component-info"><i class="active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /><i class="inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> Drop element here to create new shared component</div></div>');
+		let newComponentDropzone = $('#newComponentDropzone', componentsSlideout);
+
 		componentsSlideout.append('<div class="ver-scrollable" id="componentsArea"></div>');
 		components = $('#componentsArea', componentsSlideout);
 
-		components.droppable({
+		newComponentDropzone.droppable({
 			drop: function(e, ui) {
 				e.preventDefault();
 				e.stopPropagation();
@@ -1426,9 +1433,10 @@ var _Elements = {
 		}, function() {
 			_Logger.log(_LogType.CONTENTS, 'cancelled');
 		});
-		Command.getProperty(entity.id, 'content', function(text) {
+		Command.get(entity.id, 'content,contentType', function(data) {
             currentEntity = entity;
-			_Elements.editContent(this, entity, text, dialogText);
+			entity.contentType = data.contentType;
+			_Elements.editContent(this, entity, data.content, dialogText);
 		});
 	},
     autoComplete: function(cm, pred) {

@@ -23,7 +23,9 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -89,25 +91,28 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 		final NodeInterface actualTargetNode     = (NodeInterface)unwrap(securityContext, relation.getClass(), targetNode, properties);
 		final Set<S> toBeDeleted                 = new LinkedHashSet<>(Iterables.toList(get(securityContext, actualTargetNode, null)));
 		final Set<S> toBeCreated                 = new LinkedHashSet<>();
+		final Class relationClass                = relation.getClass();
 
 		if (collection != null) {
 			Iterables.addAll(toBeCreated, collection);
 		}
 
 		// create intersection of both sets
-		final Set<S> intersection = new LinkedHashSet<>(toBeCreated);
-		intersection.retainAll(toBeDeleted);
+		final Set<S> intersection          = intersect(toBeCreated, toBeDeleted);
+		final Map<String, GraphObject> map = intersection.stream().collect(Collectors.toMap(e -> e.getUuid(), e -> e));
 
-		// intersection needs no change
+		// remove all existing nodes from the list of to be created nodes
+		// so we don't delete and re-create the relationship
 		toBeCreated.removeAll(intersection);
-		toBeDeleted.removeAll(intersection);
 
 		if (actualTargetNode != null) {
 
 			// remove existing relationships
 			for (S sourceNode : toBeDeleted) {
 
-				for (Iterator<AbstractRelationship> it = actualTargetNode.getIncomingRelationships(relation.getClass()).iterator(); it.hasNext();) {
+				final String uuid = sourceNode.getUuid();
+
+				for (Iterator<AbstractRelationship> it = actualTargetNode.getIncomingRelationships(relationClass).iterator(); it.hasNext();) {
 
 					final AbstractRelationship rel = it.next();
 
@@ -120,7 +125,22 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 					}
 
 					if (rel.getSourceNode().equals(sourceNode)) {
-						app.delete(rel);
+
+						if (map.containsKey(uuid)) {
+
+							// only set properties
+							final PropertyMap foreignProperties = new PropertyMap();
+							final GraphObject inputObject       = map.get(uuid);
+
+							// extract and set foreign properties from input object
+							unwrap(securityContext, relationClass, inputObject, foreignProperties);
+							rel.setProperties(securityContext, foreignProperties);
+
+						} else {
+
+							// can be deleted
+							app.delete(rel);
+						}
 					}
 				}
 			}
@@ -132,8 +152,8 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 
 					properties.clear();
 
-					final S actualSourceNode           = (S)unwrap(securityContext, relation.getClass(), sourceNode, properties);
-					final PropertyMap notionProperties = getNotionProperties(securityContext, relation.getClass(), actualSourceNode.getName() + relation.name() + actualTargetNode.getName());
+					final S actualSourceNode           = (S)unwrap(securityContext, relationClass, sourceNode, properties);
+					final PropertyMap notionProperties = getNotionProperties(securityContext, relationClass, actualSourceNode.getName() + relation.name() + actualTargetNode.getName());
 
 					if (notionProperties != null) {
 
@@ -142,7 +162,7 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 
 					relation.ensureCardinality(securityContext, actualSourceNode, actualTargetNode);
 
-					createdRelationship.add(app.create(actualSourceNode, actualTargetNode, relation.getClass(), properties));
+					createdRelationship.add(app.create(actualSourceNode, actualTargetNode, relationClass, properties));
 				}
 			}
 		}

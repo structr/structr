@@ -22,7 +22,6 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -36,19 +35,22 @@ import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Cachable;
+import org.structr.api.util.ChangeAwareMap;
+import org.structr.bolt.BoltDatabaseService;
+import org.structr.bolt.SessionTransaction;
 
 
 abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cachable {
 
 	private static final Logger logger = LoggerFactory.getLogger(EntityWrapper.class.getName());
 
-	private final Map<Long, Map<String, Object>> txData = new ConcurrentHashMap<>();
-	private final Map<String, Object> entityData        = new LinkedHashMap<>();
+	private final Map<Long, ChangeAwareMap> txData = new ConcurrentHashMap<>();
+	private final ChangeAwareMap entityData        = new ChangeAwareMap();
 
-	protected BoltDatabaseService db                    = null;
-	protected boolean deleted                           = false;
-	protected boolean stale                             = false;
-	protected long id                                   = -1L;
+	protected BoltDatabaseService db               = null;
+	protected boolean deleted                      = false;
+	protected boolean stale                        = false;
+	protected long id                              = -1L;
 
 	protected EntityWrapper() {
 		// nop constructor for cache access
@@ -63,6 +65,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 	protected abstract String getQueryPrefix();
 	protected abstract boolean isNode();
+	public abstract void removeFromCache();
 	public abstract void clearCaches();
 	public abstract void onClose();
 
@@ -271,13 +274,12 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 		synchronized (this) {
 
-			final Map<String, Object> changes = txData.get(transactionId);
+			final ChangeAwareMap changes = txData.get(transactionId);
 			if (changes != null) {
 
-				for (final Entry<String, Object> entry : changes.entrySet()) {
+				for (final String key : changes.getModifiedKeys()) {
 
-					final String key   = entry.getKey();
-					final Object value = entry.getValue();
+					final Object value = changes.get(key);
 
 					if (value != null) {
 
@@ -392,7 +394,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 	}
 
 	// ----- private methods -----
-	private Map<String, Object> accessData() {
+	private ChangeAwareMap accessData() {
 
 		// read-only access does not need a transaction
 		final SessionTransaction tx = db.getCurrentTransaction(false);
@@ -403,11 +405,11 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 			}
 
 			final long transactionId = tx.getTransactionId();
-			Map<String, Object> copy = txData.get(transactionId);
+			ChangeAwareMap copy      = txData.get(transactionId);
 
 			if (copy == null) {
 
-				copy = new LinkedHashMap<>(entityData);
+				copy = new ChangeAwareMap(entityData);
 				txData.put(transactionId, copy);
 
 				tx.accessed(this);

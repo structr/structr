@@ -170,12 +170,12 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 
 	@Override
 	public String getUuid() {
-		throw new UnsupportedOperationException("Not supported by this container.");
+		return entity.getUuid();
 	}
 
 	@Override
 	public String getType() {
-		throw new UnsupportedOperationException("Not supported by this container.");
+		return entity.getType();
 	}
 
 	@Override
@@ -379,7 +379,12 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public void grant(Permission permission, Principal principal, SecurityContext ctx) throws FrameworkException {
+	public void grant(Set<Permission> permissions, Principal principal) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public void grant(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
@@ -389,7 +394,22 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public void revoke(Permission permission, Principal principal, SecurityContext ctx) throws FrameworkException {
+	public void revoke(Set<Permission> permissions, Principal principal) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public void revoke(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public void setAllowed(final Set<Permission> permissions, final Principal principal) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public void setAllowed(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
@@ -456,6 +476,11 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	@Override
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(Class<R> type) {
 		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationshipAsSuperUser(Class<R> type) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override

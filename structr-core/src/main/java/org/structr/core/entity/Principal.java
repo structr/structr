@@ -135,7 +135,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.overrideMethod("getParents",                      false, "return " + Principal.class.getName() + ".getParents(this);");
 		principal.overrideMethod("getParentsPrivileged",            false, "return " + Principal.class.getName() + ".getParentsPrivileged(this);");
 		principal.overrideMethod("isValidPassword",                 false, "return " + Principal.class.getName() + ".isValidPassword(this, arg0);");
-		principal.overrideMethod("addSessionId",                    false, Principal.class.getName() + ".addSessionId(this, arg0);");
+		principal.overrideMethod("addSessionId",                    false, "return " + Principal.class.getName() + ".addSessionId(this, arg0);");
 		principal.overrideMethod("removeSessionId",                 false, Principal.class.getName() + ".removeSessionId(this, arg0);");
 		principal.overrideMethod("onAuthenticate",                  false, "");
 
@@ -174,7 +174,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 	boolean isValidPassword(final String password);
 
-	void addSessionId(final String sessionId);
+	boolean addSessionId(final String sessionId);
 	void removeSessionId(final String sessionId);
 
 	String getSessionData();
@@ -214,7 +214,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 		}
 	}
 
-	public static void addSessionId(final Principal principal, final String sessionId) {
+	public static boolean addSessionId(final Principal principal, final String sessionId) {
 
 		try {
 
@@ -224,6 +224,14 @@ public interface Principal extends NodeInterface, AccessControllable {
 			if (ids != null) {
 
 				if (!ArrayUtils.contains(ids, sessionId)) {
+					
+					if (Settings.MaxSessionsPerUser.getValue() > 0 && ids.length >= Settings.MaxSessionsPerUser.getValue()) {
+						
+						final String errorMessage = "Not adding session id, limit " + Settings.MaxSessionsPerUser.getKey() + " exceeded.";
+						logger.warn(errorMessage);
+						
+						return false;
+					}
 
 					principal.setProperty(key, (String[]) ArrayUtils.add(principal.getProperty(key), sessionId));
 				}
@@ -233,9 +241,11 @@ public interface Principal extends NodeInterface, AccessControllable {
 				principal.setProperty(key, new String[] {  sessionId } );
 			}
 
-
+			return true;
+			
 		} catch (FrameworkException ex) {
 			logger.error("Could not add sessionId " + sessionId + " to array of sessionIds", ex);
+			return false;
 		}
 	}
 

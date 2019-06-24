@@ -18,18 +18,34 @@
  */
 package org.structr.test.web.advanced;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.AccessControllable;
+import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.Security;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.StringProperty;
+import org.structr.web.common.FileHelper;
+import org.structr.web.entity.File;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Div;
 import org.structr.web.entity.html.Head;
 import org.structr.web.entity.html.Html;
+import org.structr.web.maintenance.DeployCommand;
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
@@ -181,5 +197,234 @@ public class DeploymentTest4 extends DeploymentTestBase {
 		// test
 		compare(calculateHash(), true);
 
+	}
+
+	@Test
+	public void test46FileAttributes() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Principal p1 = app.create(Principal.class, "user1");
+			final Principal p2 = app.create(Principal.class, "user2");
+			final Principal p3 = app.create(Principal.class, "user3");
+
+			final File test1 = FileHelper.createFile(securityContext, "test1".getBytes(), "text/plain", File.class, "test1.txt", true);
+			final File test2 = FileHelper.createFile(securityContext, "test2".getBytes(), "text/plain", File.class, "test2.txt", true);
+			final File test3 = FileHelper.createFile(securityContext, "test3".getBytes(), "text/plain", File.class, "test3.txt", true);
+			final File test4 = FileHelper.createFile(securityContext, "test4".getBytes(), "text/plain", File.class, "test4.txt", true);
+
+			test1.setProperty(NodeInterface.owner, p1);
+			test1.setProperty(AbstractNode.visibleToPublicUsers,                     true);
+			test1.setProperty(AbstractNode.visibleToAuthenticatedUsers,              true);
+			test1.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), true);
+			test1.setProperty(StructrApp.key(File.class, "isTemplate"),              true);
+			test1.setProperty(StructrApp.key(File.class, "dontCache"),               false);
+
+			test2.grant(Permission.write, p1);
+			test2.setProperty(AbstractNode.visibleToPublicUsers,                     false);
+			test2.setProperty(AbstractNode.visibleToAuthenticatedUsers,              true);
+			test2.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), true);
+			test2.setProperty(StructrApp.key(File.class, "isTemplate"),              false);
+			test2.setProperty(StructrApp.key(File.class, "dontCache"),               true);
+
+			test3.setProperty(NodeInterface.owner, p2);
+			test3.setProperty(AbstractNode.visibleToPublicUsers,                     true);
+			test3.setProperty(AbstractNode.visibleToAuthenticatedUsers,              false);
+			test3.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), true);
+			test3.setProperty(StructrApp.key(File.class, "isTemplate"),              true);
+			test3.setProperty(StructrApp.key(File.class, "dontCache"),               false);
+
+			test4.grant(Permission.write, p2);
+			test4.setProperty(AbstractNode.visibleToPublicUsers,                     false);
+			test4.setProperty(AbstractNode.visibleToAuthenticatedUsers,              false);
+			test4.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), true);
+			test4.setProperty(StructrApp.key(File.class, "isTemplate"),              false);
+			test4.setProperty(StructrApp.key(File.class, "dontCache"),               true);
+
+			tx.success();
+
+		} catch (FrameworkException|IOException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final Path tmp          = Paths.get("/tmp/structr-deployment-test" + System.currentTimeMillis() + System.nanoTime());
+		final DeployCommand cmd = app.command(DeployCommand.class);
+
+		// export data
+		try (final Tx tx = app.tx()) {
+
+				// export to temp directory
+				final Map<String, Object> firstExportParams = new HashMap<>();
+				firstExportParams.put("mode", "export");
+				firstExportParams.put("target", tmp.toString());
+
+				// execute deploy command
+				cmd.execute(firstExportParams);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// modify permissions of files that were exported
+		try (final Tx tx = app.tx()) {
+
+			final Principal p1 = app.nodeQuery(Principal.class).andName("user1").getFirst();
+			final Principal p2 = app.nodeQuery(Principal.class).andName("user2").getFirst();
+			final Principal p3 = app.nodeQuery(Principal.class).andName("user3").getFirst();
+
+			for (final File test : app.nodeQuery(File.class).getResultStream()) {
+
+				// set wrong grantees, to be corrected by deployment import
+				test.grant(Permission.read,          p1);
+				test.grant(Permission.write,         p1);
+				test.grant(Permission.delete,        p1);
+				test.grant(Permission.accessControl, p1);
+
+				test.grant(Permission.read,          p2);
+				test.grant(Permission.write,         p2);
+				test.grant(Permission.delete,        p2);
+				test.grant(Permission.accessControl, p2);
+
+				test.setProperty(AbstractNode.owner,                       p3);		// set wrong owner, to be corrected by deployment import
+				test.setProperty(AbstractNode.visibleToPublicUsers,        true);
+				test.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+				test.setProperty(StructrApp.key(File.class, "isTemplate"), true);
+				test.setProperty(StructrApp.key(File.class, "dontCache"),  true);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// do import
+		try (final Tx tx = app.tx()) {
+
+				final Map<String, Object> firstImportParams = new HashMap<>();
+				firstImportParams.put("mode", "import");
+				firstImportParams.put("source", tmp.toString());
+
+				// execute deploy command
+				cmd.execute(firstImportParams);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// check files
+		try (final Tx tx = app.tx()) {
+
+			final Principal p1 = app.nodeQuery(Principal.class).andName("user1").getFirst();
+			final Principal p2 = app.nodeQuery(Principal.class).andName("user2").getFirst();
+			final File test1   = app.nodeQuery(File.class).andName("test1.txt").getFirst();
+			final File test2   = app.nodeQuery(File.class).andName("test2.txt").getFirst();
+			final File test3   = app.nodeQuery(File.class).andName("test3.txt").getFirst();
+			final File test4   = app.nodeQuery(File.class).andName("test4.txt").getFirst();
+
+			// test1
+			{
+				// test permissions
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test1, Permission.read,          p1));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test1, Permission.write,         p1));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test1, Permission.delete,        p1));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test1, Permission.accessControl, p1));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test1, Permission.read,          p2));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test1, Permission.write,         p2));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test1, Permission.delete,        p2));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test1, Permission.accessControl, p2));
+
+				// test properties
+				assertEquals("Owner is not set correctly by deployment import",         p1, test1.getProperty(AbstractNode.owner));
+				assertEquals("Visibility is not set correctly by deployment import",  true, (Object)test1.getProperty(AbstractNode.visibleToPublicUsers));
+				assertEquals("Visibility is not set correctly by deployment import",  true, (Object)test1.getProperty(AbstractNode.visibleToAuthenticatedUsers));
+				assertEquals("isTemplate is not set correctly by deployment import",  true, (Object)test1.getProperty(StructrApp.key(File.class, "isTemplate")));
+				assertEquals("dontCache is not set correctly by deployment import",  false, (Object)test1.getProperty(StructrApp.key(File.class, "dontCache")));
+			}
+
+			{
+				// test permissions
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test2, Permission.read,          p1));
+				assertTrue("Permissions are not restored by deployment import",  isAllowedByGrant(test2, Permission.write,         p1)); // true
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test2, Permission.delete,        p1));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test2, Permission.accessControl, p1));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test2, Permission.read,          p2));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test2, Permission.write,         p2));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test2, Permission.delete,        p2));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test2, Permission.accessControl, p2));
+
+				assertEquals("Owner is not set correctly by deployment import",       null, test2.getProperty(AbstractNode.owner));
+				assertEquals("Visibility is not set correctly by deployment import", false, (Object)test2.getProperty(AbstractNode.visibleToPublicUsers));
+				assertEquals("Visibility is not set correctly by deployment import",  true, (Object)test2.getProperty(AbstractNode.visibleToAuthenticatedUsers));
+				assertEquals("isTemplate is not set correctly by deployment import", false, (Object)test2.getProperty(StructrApp.key(File.class, "isTemplate")));
+				assertEquals("dontCache is not set correctly by deployment import",   true, (Object)test2.getProperty(StructrApp.key(File.class, "dontCache")));
+			}
+
+			{
+				// test permissions
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test3, Permission.read,          p1));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test3, Permission.write,         p1));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test3, Permission.delete,        p1));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test3, Permission.accessControl, p1));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test3, Permission.read,          p2));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test3, Permission.write,         p2));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test3, Permission.delete,        p2));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test3, Permission.accessControl, p2));
+
+				assertEquals("Owner is not set correctly by deployment import",         p2, test3.getProperty(AbstractNode.owner));
+				assertEquals("Visibility is not set correctly by deployment import",  true, (Object)test3.getProperty(AbstractNode.visibleToPublicUsers));
+				assertEquals("Visibility is not set correctly by deployment import", false, (Object)test3.getProperty(AbstractNode.visibleToAuthenticatedUsers));
+				assertEquals("isTemplate is not set correctly by deployment import",  true, (Object)test3.getProperty(StructrApp.key(File.class, "isTemplate")));
+				assertEquals("dontCache is not set correctly by deployment import",  false, (Object)test3.getProperty(StructrApp.key(File.class, "dontCache")));
+			}
+
+			{
+				// test permissions
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test4, Permission.read,          p1));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test4, Permission.write,         p1));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test4, Permission.delete,        p1));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test4, Permission.accessControl, p1));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test4, Permission.read,          p2));
+				assertTrue("Permissions are not restored by deployment import",  isAllowedByGrant(test4, Permission.write,         p2));	// true
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test4, Permission.delete,        p2));
+				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test4, Permission.accessControl, p2));
+
+				assertEquals("Owner is not set correctly by deployment import",       null, test4.getProperty(AbstractNode.owner));
+				assertEquals("Visibility is not set correctly by deployment import", false, (Object)test4.getProperty(AbstractNode.visibleToPublicUsers));
+				assertEquals("Visibility is not set correctly by deployment import", false, (Object)test4.getProperty(AbstractNode.visibleToAuthenticatedUsers));
+				assertEquals("isTemplate is not set correctly by deployment import", false, (Object)test4.getProperty(StructrApp.key(File.class, "isTemplate")));
+				assertEquals("dontCache is not set correctly by deployment import",   true, (Object)test4.getProperty(StructrApp.key(File.class, "dontCache")));
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		try {
+			// clean directories
+			Files.walkFileTree(tmp, new DeletingFileVisitor());
+			Files.delete(tmp);
+
+		} catch (IOException ioex) {}
+
+	}
+
+	// ----- private methods -----
+	private boolean isAllowedByGrant(final AccessControllable entity, final Permission permission, final Principal user) {
+
+		final Security security = entity.getSecurityRelationship(user);
+		if (security != null) {
+
+			return security.isAllowed(permission);
+		}
+
+		return false;
 	}
 }

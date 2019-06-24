@@ -82,7 +82,9 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relati
 
 		synchronized (relationshipCache) {
 
-			relationshipCache.removeAll(toRemove);
+			for (final Long id : toRemove) {
+				expunge(id);
+			}
 		}
 	}
 
@@ -90,12 +92,28 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relati
 
 		synchronized (relationshipCache) {
 
-			relationshipCache.remove(toRemove);
+			final RelationshipWrapper wrapper = relationshipCache.remove(toRemove);
+			if (wrapper != null) {
+
+				wrapper.clearCaches();
+			}
 		}
 	}
 
 	@Override
 	public void clearCaches() {
+
+		final NodeWrapper startNode = NodeWrapper.getCache().get(sourceNodeId);
+		if (startNode != null) {
+
+			startNode.clearCaches();
+		}
+
+		final NodeWrapper endNode = NodeWrapper.getCache().get(targetNodeId);
+		if (endNode != null) {
+
+			endNode.clearCaches();
+		}
 	}
 
 	@Override
@@ -142,20 +160,10 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relati
 
 		super.delete(deleteRelationships);
 
-		final NodeWrapper startNode = NodeWrapper.getCache().get(sourceNodeId);
-		if (startNode != null) {
-
-			startNode.clearCaches();
-		}
-
-		final NodeWrapper endNode = NodeWrapper.getCache().get(targetNodeId);
-		if (endNode != null) {
-
-			endNode.clearCaches();
-		}
-
 		final SessionTransaction tx = db.getCurrentTransaction();
 		tx.deleted(this);
+
+		clearCaches();
 	}
 
 	public Direction getDirectionForNode(final NodeWrapper node) {
@@ -165,6 +173,11 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relati
 		}
 
 		return Direction.INCOMING;
+	}
+
+	@Override
+	public void removeFromCache() {
+		RelationshipWrapper.expunge(id);
 	}
 
 	// ----- protected methods -----

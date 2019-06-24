@@ -88,8 +88,9 @@ var _Localization = {
 		_Localization.keyAndDomainPager = _Pager.addPager('localizations', $('#localizations-pager'), false, 'Localization', 'ui', _Localization.processPagerData, _Localization.customPagerTransportFunction);
 
 		_Localization.keyAndDomainPager.cleanupFunction = _Localization.clearLocalizationsList;
-		_Localization.keyAndDomainPager.pager.append('<br>Filters: <input type="text" class="filter w100 localization-key" data-attribute="name" placeholder="Key" />');
-		_Localization.keyAndDomainPager.pager.append('<input type="text" class="filter w100 localization-domain" data-attribute="domain" placeholder="Domain" />');
+		_Localization.keyAndDomainPager.pager.append('<br>Filters: <input type="text" class="filter w75 localization-key" data-attribute="name" placeholder="Key" />');
+		_Localization.keyAndDomainPager.pager.append('<input type="text" class="filter w75 localization-domain" data-attribute="domain" placeholder="Domain" />');
+		_Localization.keyAndDomainPager.pager.append('<input type="text" class="filter w75 localization-text" data-attribute="localizedName" placeholder="Content" />');
 		_Localization.keyAndDomainPager.activateFilterElements();
 
 		$('#localizations-table .sort').on('click', function () {
@@ -100,7 +101,7 @@ var _Localization = {
 		var filterString = "";
 		var presentFilters = Object.keys(filterAttrs);
 		if (presentFilters.length > 0) {
-			filterString = 'WHERE ' + presentFilters.map(function(key) { return 'n.' + key + ' =~ ".*' + filterAttrs[key] + '.*"'; }).join(' AND ');
+			filterString = 'WHERE ' + presentFilters.map(function(key) { return 'n.' + key + ' =~ "(?i).*' + filterAttrs[key] + '.*"'; }).join(' AND ');
 		}
 		Command.cypher('MATCH (n:Localization) ' + filterString + ' RETURN DISTINCT {name: n.name, domain: n.domain} as res ORDER BY res.' + sortKey[type] + ' ' + sortOrder[type], undefined, callback, pageSize, page);
 	},
@@ -377,7 +378,7 @@ var _Localization = {
 	},
 	textfieldChangeAction: function ($el, id, attr) {
 		var oldValue = $el.data('oldValue');
-		var curValue = $el.val().trim();
+		var curValue = $el.val();
 		if (oldValue !== curValue) {
 			_Localization.updateLocalization(id, attr, curValue, oldValue, $el);
 		}

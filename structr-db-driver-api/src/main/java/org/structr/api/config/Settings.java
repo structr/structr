@@ -56,10 +56,12 @@ public class Settings {
 	public static final SettingsGroup miscGroup               = new SettingsGroup("misc",        "Miscellaneous");
 
 	// general settings
+	public static final Setting<String> ReleasesIndexUrl       = new StringSetting(generalGroup,             "Application", "application.releases.index.url",   "https://structr.com/repositories/releases/org/structr/structr/index", "URL with release index (list of version strings for Structr releases)");
+	public static final Setting<String> SnapshotsIndexUrl      = new StringSetting(generalGroup,             "Application", "application.snapshots.index.url",  "https://structr.com/repositories/snapshots/org/structr/structr/index", "URL with snapshot index (list of version strings for Structr unstable builds)");
 	public static final Setting<String> ApplicationTitle       = new StringSetting(generalGroup,             "Application", "application.title",                "Structr", "The title of the application as shown in the log file. This entry exists for historical reasons and has no functional impact other than appearing in the log file.");
 	public static final Setting<String> InstanceName           = new StringSetting(generalGroup,             "Application", "application.instance.name",        "", "The name of the Structr instance (displayed in the top right corner of structr-ui)");
 	public static final Setting<String> InstanceStage          = new StringSetting(generalGroup,             "Application", "application.instance.stage",       "", "The stage of the Structr instance (displayed in the top right corner of structr-ui)");
-	public static final Setting<String> MenuEntries            = new StringSetting(generalGroup,             "Application", "application.menu.main",            "Pages,Files,Security,Schema,Data", "Comma-separated list of main menu entries in structr-ui. Everything not in this list will be moved into a sub-menu.");
+	public static final Setting<String> MenuEntries            = new StringSetting(generalGroup,             "Application", "application.menu.main",            "Dashboard,Pages,Files,Security,Schema,Data", "Comma-separated list of main menu entries in structr-ui. Everything not in this list will be moved into a sub-menu.");
 	public static final Setting<Boolean> MaintenanceModeActive = new BooleanSetting(generalGroup,            "Application", "application.maintenance.activate", false, "Causes Structr to enter maintenance mode");
 	public static final Setting<String> BasePath               = new StringSetting(generalGroup,             "Paths",       "base.path",                        ".", "Path of the Structr working directory. All files will be located relative to this directory.");
 	public static final Setting<String> TmpPath                = new StringSetting(generalGroup,             "Paths",       "tmp.path",                         System.getProperty("java.io.tmpdir"), "Path to the temporary directory. Uses <code>java.io.tmpdir</code> by default");
@@ -68,7 +70,6 @@ public class Settings {
 	public static final Setting<String> ChangelogPath          = new StringSetting(generalGroup,             "Paths",       "changelog.path",                   System.getProperty("user.dir").concat(File.separator + "changelog"), "Path to the Structr changelog storage folder");
 	public static final Setting<String> DataExchangePath       = new StringSetting(generalGroup,             "Paths",       "data.exchange.path",               "exchange" + File.separator, "IMPORTANT: Path is relative to base.path");
 	public static final Setting<String> SnapshotsPath          = new StringSetting(generalGroup,             "Paths",       "snapshot.path",                    "snapshots" + File.separator, "IMPORTANT: Path is relative to base.path");
-	public static final Setting<String> LayoutsPath            = new StringSetting(generalGroup,             "Paths",       "layouts.path",                     "layouts" + File.separator, "IMPORTANT: Path is relative to base.path");
 	public static final Setting<String> WebDataPath            = new StringSetting(generalGroup,             "Paths",       "data.webapp.path",                 "webapp-data" + File.separator, "IMPORTANT: Path is relative to base.path");
 	public static final Setting<Boolean> LogSchemaOutput       = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log",                 false, "Whether to write dynamically created Java code to the logfile, for debugging purposes.");
 	public static final Setting<Boolean> LogSchemaErrors       = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log.errors",          true);
@@ -97,20 +98,24 @@ public class Settings {
 	public static final Setting<String> BaseUrlOverride       = new StringSetting(serverGroup,  "Interfaces", "application.baseurl.override",  "", "Overrides the baseUrl that can be used to prefix links to local web resources. By default, the value is assembled from the protocol, hostname and port of the server instance Structr is running on");
 
 	// HTTP service settings
-	public static final Setting<String> ResourceHandlers      = new StringSetting(serverGroup,  "hidden",        "httpservice.resourcehandlers",    "StructrUiHandler", "This handler is needed to serve static files with the built-in Jetty container.");
-	public static final Setting<String> LifecycleListeners    = new StringSetting(serverGroup,  "hidden",        "httpservice.lifecycle.listeners", "");
-	public static final Setting<Boolean> GzipCompression      = new BooleanSetting(serverGroup, "HTTP Settings", "httpservice.gzip.enabled",        true);
-	public static final Setting<Boolean> Async                = new BooleanSetting(serverGroup, "HTTP Settings", "httpservice.async",               true, "Whether the HttpServices uses asynchronous request handling. Disable this option if you encounter problems with HTTP responses.");
-	public static final Setting<Boolean> JsonIndentation      = new BooleanSetting(serverGroup, "HTTP Settings", "json.indentation",                true, "Whether JSON output should be indented (beautified) or compacted");
-	public static final Setting<Boolean> HtmlIndentation      = new BooleanSetting(serverGroup, "HTTP Settings", "html.indentation",                true, "Whether the page source should be indented (beautified) or compacted. Note: Does not work for template/content nodes which contain raw HTML");
-	public static final Setting<Boolean> WsIndentation        = new BooleanSetting(serverGroup, "HTTP Settings", "ws.indentation",                  false, "Prettyprints websocket responses if set to true");
-	public static final Setting<Integer> SessionTimeout       = new IntegerSetting(serverGroup, "HTTP Settings", "application.session.timeout",     1800, "The session timeout for HTTP sessions. Unit is seconds");
+	public static final Setting<String> ResourceHandlers         = new StringSetting(serverGroup,  "hidden",        "httpservice.resourcehandlers",         "StructrUiHandler", "This handler is needed to serve static files with the built-in Jetty container.");
+	public static final Setting<String> LifecycleListeners       = new StringSetting(serverGroup,  "hidden",        "httpservice.lifecycle.listeners",      "");
+	public static final Setting<Boolean> GzipCompression         = new BooleanSetting(serverGroup, "HTTP Settings", "httpservice.gzip.enabled",             true);
+	public static final Setting<Boolean> Async                   = new BooleanSetting(serverGroup, "HTTP Settings", "httpservice.async",                    true,  "Whether the HttpServices uses asynchronous request handling. Disable this option if you encounter problems with HTTP responses.");
+	public static final Setting<Boolean> JsonIndentation         = new BooleanSetting(serverGroup, "HTTP Settings", "json.indentation",                     true,  "Whether JSON output should be indented (beautified) or compacted");
+	public static final Setting<Boolean> HtmlIndentation         = new BooleanSetting(serverGroup, "HTTP Settings", "html.indentation",                     true,  "Whether the page source should be indented (beautified) or compacted. Note: Does not work for template/content nodes which contain raw HTML");
+	public static final Setting<Boolean> WsIndentation           = new BooleanSetting(serverGroup, "HTTP Settings", "ws.indentation",                       false, "Prettyprints websocket responses if set to true.");
+	public static final Setting<Integer> SessionTimeout          = new IntegerSetting(serverGroup, "HTTP Settings", "application.session.timeout",          1800,  "The session timeout for HTTP sessions. Unit is seconds. Default is 1800.");
+	public static final Setting<Integer> MaxSessionsPerUser      = new IntegerSetting(serverGroup, "HTTP Settings", "application.session.max.number",       -1,    "The maximum number of active sessions per user. Default is -1 (unlimited).");
+	public static final Setting<Boolean> ClearSessionsOnStartup  = new BooleanSetting(serverGroup, "HTTP Settings", "application.session.clear.onstartup",  false, "Clear all sessions on startup if set to true.");
+	public static final Setting<Boolean> ClearSessionsOnShutdown = new BooleanSetting(serverGroup, "HTTP Settings", "application.session.clear.onshutdown", false, "Clear all sessions on shutdown if set to true.");
 
-	public static final Setting<Boolean> ForceHttps           	= new BooleanSetting(serverGroup, "HTTPS Settings", "httpservice.force.https",         		false, "Allows forcing HTTPS.");
-	public static final Setting<Boolean> dumbJettyStartupConfig = new BooleanSetting(serverGroup,     "HTTPS Settings", "httpservice.log.jetty.startupconfig",	false);
-	public static final Setting<String> excludedProtocols     	= new StringSetting(serverGroup,  "HTTPS Settings", "httpservice.ssl.protocols.excluded",       "TLSv1,TLSv1.1");
-	public static final Setting<String> includedProtocols 	  	= new StringSetting(serverGroup,  "HTTPS Settings", "httpservice.ssl.protocols.included",       "TLSv1.2");
-	public static final Setting<String> disabledCipherSuits   	= new StringSetting(serverGroup,  "HTTPS Settings", "httpservice.ssl.ciphers.excluded",    	"");
+	public static final Setting<Boolean> ForceHttps             = new BooleanSetting(serverGroup, "HTTPS Settings", "httpservice.force.https",         		false, "Allows forcing HTTPS.");
+	public static final Setting<Boolean> HttpOnly               = new BooleanSetting(serverGroup, "HTTPS Settings", "httpservice.cookies.httponly",         	false, "Set HttpOnly to true for cookies. Please note that this will disable backend access!");
+	public static final Setting<Boolean> dumpJettyStartupConfig = new BooleanSetting(serverGroup, "HTTPS Settings", "httpservice.log.jetty.startupconfig",  false);
+	public static final Setting<String> excludedProtocols       = new StringSetting(serverGroup,  "HTTPS Settings", "httpservice.ssl.protocols.excluded",   "TLSv1,TLSv1.1");
+	public static final Setting<String> includedProtocols       = new StringSetting(serverGroup,  "HTTPS Settings", "httpservice.ssl.protocols.included",   "TLSv1.2");
+	public static final Setting<String> disabledCipherSuites    = new StringSetting(serverGroup,  "HTTPS Settings", "httpservice.ssl.ciphers.excluded",    	"");
 
 	public static final Setting<String> AccessControlMaxAge           = new StringSetting(serverGroup, "CORS Settings", "access.control.max.age",           "3600", "Sets the value of the <code>Access-Control-Max-Age</code> header. Unit is seconds.");
 	public static final Setting<String> AccessControlAllowMethods     = new StringSetting(serverGroup, "CORS Settings", "access.control.allow.methods",     "", "Sets the value of the <code>Access-Control-Allow-Methods</code> header. Comma-delimited list of the allowed HTTP request methods.");
@@ -125,7 +130,8 @@ public class Settings {
 
 	// database settings
 	public static final Setting<String> DatabaseAvailableConnections = new StringSetting(databaseGroup,  "hidden",                     "database.available.connections",   null);
-	public static final Setting<String> DatabaseDriver               = new StringSetting(databaseGroup,  "Database Driver",            "database.driver",                  "org.structr.memory.MemoryDatabaseService");
+	//public static final Setting<String> DatabaseDriver               = new StringSetting(databaseGroup,  "Database Driver",            "database.driver",                  "org.structr.memory.MemoryDatabaseService");
+	public static final Setting<String> DatabaseDriver               = new StringSetting(databaseGroup,  "Database Driver",            "database.driver",                  "org.structr.bolt.BoltDatabaseService");
 	public static final Setting<String> DatabaseDriverMode           = new ChoiceSetting(databaseGroup,  "Database Driver",            "database.driver.mode",             "embedded", Settings.getStringsAsSet("embedded", "remote"));
 	public static final Setting<String> ConnectionUrl                = new StringSetting(databaseGroup,  "Database Connection",        "database.connection.url",          "bolt://localhost:7688");
 	public static final Setting<String> TestingConnectionUrl         = new StringSetting(databaseGroup,  "hidden",                     "testing.connection.url",           "bolt://localhost:7689");
@@ -315,6 +321,7 @@ public class Settings {
 	public static final Setting<String> TwoFactorWhitelistedIPs        = new StringSetting(securityGroup,        "Two Factor Authentication", "security.twofactorauthentication.whitelistedips",       "",            "A comma-separated (,) list of IPs for which two factor authentication is disabled.");
 
 	public static final Setting<Boolean> PasswordForceChange                 = new BooleanSetting(securityGroup, "Password Policy", "security.passwordpolicy.forcechange",                         false, "Indicates if a forced password change is active");
+	public static final Setting<Boolean> PasswordClearSessionsOnChange       = new BooleanSetting(securityGroup, "Password Policy", "security.passwordpolicy.onchange.clearsessions",              false, "Clear all sessions of a user on password change.");
 	public static final Setting<Integer> PasswordForceChangeDays             = new IntegerSetting(securityGroup, "Password Policy", "security.passwordpolicy.maxage",                              90,    "The number of days after which a user has to change his password");
 	public static final Setting<Integer> PasswordForceChangeReminder         = new IntegerSetting(securityGroup, "Password Policy", "security.passwordpolicy.remindtime",                          14,    "The number of days (before the user must change the password) where a warning should be issued. (Has to be handled in application code)");
 	public static final Setting<Integer> PasswordAttempts                    = new IntegerSetting(securityGroup, "Password Policy", "security.passwordpolicy.maxfailedattempts",                   4,     "The maximum number of failed login attempts before a user is blocked. (Can be disabled by setting to zero or a negative number)");
@@ -392,6 +399,7 @@ public class Settings {
 	public static final Setting<String> LDAPSecret          = new StringSetting(ldapGroup,  "General", "ldap.secret", "");
 	public static final Setting<Boolean> LDAPUseSSL         = new BooleanSetting(ldapGroup, "General", "ldap.usessl", false);
 	public static final Setting<String> LDAPScope           = new StringSetting(ldapGroup,  "General", "ldap.scope", "SUBTREE");
+	public static final Setting<String> LDAPPrimaryKey      = new StringSetting(ldapGroup,  "General", "ldap.primarykey", "dn", "Name of primary identification property of LDAP objects, must uniquely identify users and groups");
 	public static final Setting<String> LDAPPropertyMapping = new StringSetting(ldapGroup,  "General", "ldap.propertymapping", "{ sn: name, email: eMail }", "Mapping from LDAP properties to Structr properties");
 	public static final Setting<String> LDAPGroupNames      = new StringSetting(ldapGroup,  "General", "ldap.groupnames", "{ group: member, groupOfNames: member, groupOfUniqueNames: uniqueMember }", "LDAP objectclass tuples for group and member identification.");
 	public static final Setting<Integer> LDAPUpdateInterval = new IntegerSetting(ldapGroup, "General", "ldap.updateinterval", 600, "Update interval for group synchronization in seconds");

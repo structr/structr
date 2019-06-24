@@ -95,6 +95,7 @@ public class TypeProperty extends StringProperty {
 		if (tenantIdentifier != null) {
 
 			toAdd.add(tenantIdentifier);
+			labels.remove(tenantIdentifier);
 		}
 
 		// initialize type property from single label on unknown nodes

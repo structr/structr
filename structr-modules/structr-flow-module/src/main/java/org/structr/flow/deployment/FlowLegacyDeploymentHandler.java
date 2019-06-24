@@ -16,24 +16,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow;
+package org.structr.flow.deployment;
 
 import com.google.gson.Gson;
-import java.io.*;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
@@ -44,78 +35,21 @@ import org.structr.module.api.DeployableEntity;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.common.AbstractMapComparator;
 
-public abstract class FlowDeploymentHandler {
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
-	private static final Logger logger = LoggerFactory.getLogger(FlowDeploymentHandler.class.getName());
+public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler implements FlowDeploymentInterface {
 
-	private static final Class[] classesToExport = {
-			FlowAction.class,
-			FlowAnd.class,
-			FlowCall.class,
-			FlowContainer.class,
-			FlowDataSource.class,
-			FlowDecision.class,
-			FlowForEach.class,
-			FlowGetProperty.class,
-			FlowKeyValue.class,
-			FlowNot.class,
-			FlowNotNull.class,
-			FlowObjectDataSource.class,
-			FlowOr.class,
-			FlowParameterInput.class,
-			FlowParameterDataSource.class,
-			FlowReturn.class,
-			FlowScriptCondition.class,
-			FlowStore.class,
-			FlowAggregate.class,
-			FlowConstant.class,
-			FlowCollectionDataSource.class,
-			FlowExceptionHandler.class,
-			FlowTypeQuery.class,
-			FlowIsTrue.class,
-			FlowContainerPackage.class,
-			FlowLog.class,
-			FlowFirst.class,
-			FlowNotEmpty.class,
-			FlowFilter.class,
-			FlowComparison.class,
-			FlowFork.class,
-			FlowForkJoin.class
-	};
+	private static final Logger logger = LoggerFactory.getLogger(FlowLegacyDeploymentHandler.class.getName());
 
-	private static final Class[] relsToExport = {
-			FlowCallContainer.class,
-			FlowCallParameter.class,
-			FlowConditionCondition.class,
-			FlowContainerBaseNode.class,
-			FlowContainerFlowNode.class,
-			FlowDataInput.class,
-			FlowDataInputs.class,
-			FlowDataSourceForEach.class,
-			FlowDecisionCondition.class,
-			FlowDecisionFalse.class,
-			FlowDecisionTrue.class,
-			FlowForEachBody.class,
-			FlowKeySource.class,
-			FlowKeyValueObjectInput.class,
-			FlowNameDataSource.class,
-			FlowNodeDataSource.class,
-			FlowNodes.class,
-			FlowValueSource.class,
-			FlowAggregateStartValue.class,
-			FlowScriptConditionSource.class,
-			/* Do not export principal relation as the principal won't be available after an import into a clean database
-			FlowContainerConfigurationPrincipal.class,
-			*/
-			FlowExceptionHandlerNodes.class,
-			FlowContainerPackageFlow.class,
-			FlowContainerPackagePackage.class,
-			FlowConditionBaseNode.class,
-			FlowForkBody.class
-	};
-
-	public static void exportDeploymentData (final Path target, final Gson gson) throws FrameworkException {
-
+	@Override
+	public void doExport(final Path target, final Gson gson) throws FrameworkException {
 		final App app                                		= StructrApp.getInstance();
 		final Path flowEngineFile							= target.resolve("flow-engine.json");
 		final List<Map<String, ?>> flowElements 			= new LinkedList<>();
@@ -190,9 +124,8 @@ public abstract class FlowDeploymentHandler {
 		}
 	}
 
-
-	public static void importDeploymentData (final Path source, final Gson gson) throws FrameworkException {
-
+	@Override
+	public void doImport(final Path source, final Gson gson) throws FrameworkException {
 		final Path flowPath = source.resolve("flow-engine.json");
 		if (Files.exists(flowPath)) {
 
@@ -222,7 +155,7 @@ public abstract class FlowDeploymentHandler {
 					// Special handling for FlowContainerConfiguration
 					for (final FlowContainerConfiguration toDelete : app.nodeQuery(FlowContainerConfiguration.class).getAsList()) {
 
-							app.delete(toDelete);
+						app.delete(toDelete);
 					}
 
 

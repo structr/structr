@@ -32,7 +32,6 @@ import org.structr.core.entity.AbstractRelationship;
 /**
  * Sets a new UUID on each graph object of the given type. For nodes, set type,
  * for relationships relType.
- *
  */
 public class BulkSetUuidCommand extends NodeServiceCommand implements MaintenanceCommand {
 

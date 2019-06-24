@@ -259,11 +259,11 @@ public class NodeService implements SingletonService {
 		logger.info("Database contains {} nodes, {} relationships.", nodeCount, relCount);
 
 		if (nodeCacheSize < nodeCount) {
-			logger.warn("Insufficient node cache size detected, please set application.cache.node.size to at least {} for best performance.", nodeCount);
+			logger.warn("Insufficient node cache size detected, please set database.cache.node.size to at least {} for best performance.", nodeCount);
 		}
 
 		if (relCacheSize < relCount) {
-			logger.warn("Insufficient relationship cache size detected, please set application.cache.relationship.size to at least {} for best performance.", relCount);
+			logger.warn("Insufficient relationship cache size detected, please set database.cache.relationship.size to at least {} for best performance.", relCount);
 		}
 
 	}

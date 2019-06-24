@@ -35,6 +35,7 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import javax.activation.DataSource;
 import javax.xml.stream.XMLStreamException;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
@@ -46,6 +47,7 @@ import org.structr.api.util.Iterables;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISDocumentInfo;
 import org.structr.common.ConstantBooleanTrue;
+import org.structr.common.ContextStore;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -77,6 +79,7 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.web.common.ClosingFileOutputStream;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
+import org.structr.web.importer.MixedCSVFileImportJob;
 import org.structr.web.importer.CSVFileImportJob;
 import org.structr.web.importer.XMLFileImportJob;
 import org.structr.web.property.FileDataProperty;
@@ -616,9 +619,33 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	static void doCSVImport(final File thisFile, final Map<String, Object> parameters) throws FrameworkException {
 
-		CSVFileImportJob job = new CSVFileImportJob(thisFile, thisFile.getSecurityContext().getUser(false), parameters, thisFile.getSecurityContext().getContextStore());
-		JobQueueManager.getInstance().addJob(job);
+		final Map<String, Object> mixedMappings  = (Map<String, Object>)parameters.get("mixedMappings");
+		final SecurityContext securityContext    = thisFile.getSecurityContext();
+		final ContextStore contextStore          = securityContext.getContextStore();
+		final Principal user                     = securityContext.getUser(false);
 
+		if (mixedMappings != null) {
+
+			final Map<String, String> mappings = (Map<String, String>)parameters.get("mappings");
+
+			// split and duplicate configuration for each of the mapped types
+			for (final Entry<String, Object> entry : mixedMappings.entrySet()) {
+
+				final Map<String, Object> data       = (Map<String, Object>)entry.getValue();
+				final Map<String, String> properties = (Map<String, String>)data.get("properties");
+
+				mappings.putAll(properties);
+			}
+
+			// post import job
+			MixedCSVFileImportJob job = new MixedCSVFileImportJob(thisFile, user, parameters, contextStore);
+			JobQueueManager.getInstance().addJob(job);
+
+		} else {
+
+			CSVFileImportJob job = new CSVFileImportJob(thisFile, user, parameters, contextStore);
+			JobQueueManager.getInstance().addJob(job);
+		}
 	}
 
 	static String getXMLStructure(final File thisFile) throws FrameworkException {

@@ -67,19 +67,19 @@ public class StructrWebSocket implements WebSocketListener {
 	private SecurityContext securityContext = null;
 	private WebsocketController syncController = null;
 	private Map<String, FileUploadHandler> uploads = null;
-	private Authenticator authenticator = null;
-	private String pagePath = null;
-	private Console console = null;
-	private Boolean timedOut = false;
+	private Authenticator authenticator            = null;
+	private String pagePath                        = null;
+	private Console console                        = null;
+	private Boolean timedOut                       = false;
 
 	public StructrWebSocket() {}
 
 	public StructrWebSocket(final WebsocketController syncController, final Gson gson, final Authenticator authenticator) {
 
-		this.uploads = new LinkedHashMap<>();
+		this.uploads        = new LinkedHashMap<>();
 		this.syncController = syncController;
-		this.gson = gson;
-		this.authenticator = authenticator;
+		this.gson           = gson;
+		this.authenticator  = authenticator;
 
 	}
 
@@ -355,7 +355,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		} catch (Throwable t) {
 			// ignore
-			logger.warn("Unable to send websocket message to remote client: {}", t.getMessage());
+			logger.warn("Unable to send websocket message to remote client: {}", t);
 		}
 
 	}
@@ -554,7 +554,6 @@ public class StructrWebSocket implements WebSocketListener {
 		return null;
 	}
 
-	//~--- set methods ----------------------------------------------------
 	public void setAuthenticated(final String sessionId, final Principal user) {
 
 		securityContext = SecurityContext.getInstance(user, AccessMode.Backend);

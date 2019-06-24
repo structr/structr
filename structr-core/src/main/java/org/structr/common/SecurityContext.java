@@ -20,6 +20,7 @@ package org.structr.common;
 
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -62,6 +63,7 @@ public class SecurityContext {
 	private static final Map<String, Long> resourceFlags = new ConcurrentHashMap<>();
 	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,-]+)");
 	private MergeMode remoteCollectionMergeMode          = MergeMode.Replace;
+	private boolean returnDetailedCreationResults        = false;
 	private boolean uuidWasSetManually                   = false;
 	private boolean doTransactionNotifications           = false;
 	private boolean forceMergeOfNestedProperties         = false;
@@ -77,6 +79,7 @@ public class SecurityContext {
 	private final Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
 	private final Map<String, Object> attrs      = new ConcurrentHashMap<>();
 	private AccessMode accessMode                = AccessMode.Frontend;
+	private final List<Object> creationDetails   = new LinkedList<>();
 	private Authenticator authenticator          = null;
 	private Principal cachedUser                 = null;
 	private HttpServletRequest request           = null;
@@ -122,6 +125,10 @@ public class SecurityContext {
 	private void initializeHttpParameters(final HttpServletRequest request) {
 
 		if (request != null) {
+
+			if ("true".equals(request.getHeader("Structr-Return-Details-For-Created-Objects"))) {
+				this.returnDetailedCreationResults = true;
+			}
 
 			if ("disabled".equals(request.getHeader("Structr-Websocket-Broadcast"))) {
 				this.doTransactionNotifications = false;
@@ -788,6 +795,18 @@ public class SecurityContext {
 		}
 
 		return "[No request available]";
+	}
+
+	public void enableDetailedCreationResults() {
+		this.returnDetailedCreationResults = true;
+	}
+
+	public boolean returnDetailedCreationResults() {
+		return this.returnDetailedCreationResults;
+	}
+
+	public List<Object> getCreationDetails() {
+		return creationDetails;
 	}
 
 	public boolean doCascadingDelete() {

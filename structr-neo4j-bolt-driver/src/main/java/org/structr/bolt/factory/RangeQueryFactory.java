@@ -49,11 +49,46 @@ public class RangeQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 				return false;
 			}
 
-			query.addParameters(name, ">=", rangeStart, "<=", rangeEnd);
+			// range start is not set => less than
+			if (rangeStart == null && rangeEnd != null) {
+
+				query.addSimpleParameter(name, getLessThanOperator(rangeQuery.getIncludeEnd()), rangeEnd);
+				return true;
+			}
+
+			// range end is not set => greater than
+			if (rangeStart != null && rangeEnd == null) {
+
+				query.addSimpleParameter(name, getGreaterThanOperator(rangeQuery.getIncludeStart()), rangeStart);
+				return true;
+			}
+
+			// both are set => range
+			query.addParameters(name, getGreaterThanOperator(rangeQuery.getIncludeStart()), rangeStart, getLessThanOperator(rangeQuery.getIncludeEnd()), rangeEnd);
 
 			return true;
 		}
 
 		return false;
+	}
+
+	private String getLessThanOperator(final boolean includeBounds) {
+
+		if (includeBounds) {
+
+			return "<=";
+		}
+
+		return "<";
+	}
+
+	private String getGreaterThanOperator(final boolean includeBounds) {
+
+		if (includeBounds) {
+
+			return ">=";
+		}
+
+		return ">";
 	}
 }

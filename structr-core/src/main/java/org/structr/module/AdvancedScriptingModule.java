@@ -43,6 +43,7 @@ import org.structr.core.function.Functions;
 import org.structr.core.function.GeocodeFunction;
 import org.structr.core.function.GetRelationshipTypesFunction;
 import org.structr.core.function.GrantFunction;
+import org.structr.core.function.HasErrorFunction;
 import org.structr.core.function.InheritingTypesFunction;
 import org.structr.core.function.InstantiateFunction;
 import org.structr.core.function.IsAllowedFunction;
@@ -52,6 +53,7 @@ import org.structr.core.function.LocalizeFunction;
 import org.structr.core.function.PrivilegedFindFunction;
 import org.structr.core.function.PropertyInfoFunction;
 import org.structr.core.function.RInterpreterFunction;
+import org.structr.core.function.RangeFunction;
 import org.structr.core.function.ReadFunction;
 import org.structr.core.function.RemoveFromGroupFunction;
 import org.structr.core.function.RevokeFunction;
@@ -66,6 +68,14 @@ import org.structr.core.function.UserChangelogFunction;
 import org.structr.core.function.WriteFunction;
 import org.structr.core.function.XPathFunction;
 import org.structr.core.function.XmlFunction;
+import org.structr.core.function.search.FindAndFunction;
+import org.structr.core.function.search.FindEqualsFunction;
+import org.structr.core.function.search.FindContainsFunction;
+import org.structr.core.function.search.FindEmptyFunction;
+import org.structr.core.function.search.FindNotFunction;
+import org.structr.core.function.search.FindOrFunction;
+import org.structr.core.function.search.FindPageFunction;
+import org.structr.core.function.search.FindSortFunction;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
@@ -82,6 +92,7 @@ public class AdvancedScriptingModule implements StructrModule {
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
 		Functions.put(licenseManager, new ErrorFunction());
+		Functions.put(licenseManager, new HasErrorFunction());
 		Functions.put(licenseManager, new ConfigFunction());
 		Functions.put(licenseManager, new ChangelogFunction());
 		Functions.put(licenseManager, new UserChangelogFunction());
@@ -135,6 +146,16 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new SetEncryptionKeyFunction());
 		Functions.put(licenseManager, new EncryptFunction());
 		Functions.put(licenseManager, new DecryptFunction());
+
+		Functions.put(licenseManager, new RangeFunction());
+		Functions.put(licenseManager, new FindEmptyFunction());
+		Functions.put(licenseManager, new FindEqualsFunction());
+		Functions.put(licenseManager, new FindContainsFunction());
+		Functions.put(licenseManager, new FindAndFunction());
+		Functions.put(licenseManager, new FindOrFunction());
+		Functions.put(licenseManager, new FindNotFunction());
+		Functions.put(licenseManager, new FindSortFunction());
+		Functions.put(licenseManager, new FindPageFunction());
 	}
 
 	@Override

@@ -27,17 +27,13 @@ import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-import org.structr.transform.APIBuilderModule;
 
 public class FlowFunction extends Function<Object, Object> {
 
 	public static final String USAGE    = "Usage: ${flow(name)}";
 	public static final String USAGE_JS = "Usage: ${{ Structr.flow(name) }}";
 
-	private APIBuilderModule parent     = null;
-
-	public FlowFunction(final APIBuilderModule parent) {
-		this.parent = parent;
+	public FlowFunction() {
 	}
 
 	@Override
@@ -47,7 +43,7 @@ public class FlowFunction extends Function<Object, Object> {
 
 	@Override
 	public String getRequiredModule() {
-		return parent.getName();
+		return "api-builder";
 	}
 
 	@Override

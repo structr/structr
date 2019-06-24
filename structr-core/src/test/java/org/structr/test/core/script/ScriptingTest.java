@@ -23,9 +23,11 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonFunctionProperty;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
 import org.structr.common.AccessMode;
@@ -686,12 +689,20 @@ public class ScriptingTest extends StructrTest {
 			// set string array on test four
 			testFour.setProperty(TestFour.stringArrayProperty, new String[] { "one", "two", "three", "four" } );
 
+			final Calendar cal = GregorianCalendar.getInstance();
+
+			// set calendar to 2018-01-01T00:00:00+0000
+			cal.set(2018, 0, 1, 0, 0, 0);
+
+
 			for (final TestSix testSix : testSixs) {
 
 				testSix.setProperty(TestSix.name, "TestSix" + StringUtils.leftPad(Integer.toString(index), 2, "0"));
 				testSix.setProperty(TestSix.index, index);
+				testSix.setProperty(TestSix.date, cal.getTime());
 
 				index++;
+				cal.add(Calendar.DAY_OF_YEAR, 3);
 			}
 
 			// create mail template
@@ -1483,11 +1494,75 @@ public class ScriptingTest extends StructrTest {
 				Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 0, 1000)}")
 			);
 
+			// find with range
+			assertEquals("Invalid find range result",  4, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   2,    5))}", "range test")).size());
+			assertEquals("Invalid find range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   0,   20))}", "range test")).size());
+			assertEquals("Invalid find range result", 19, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   1,   20))}", "range test")).size());
+			assertEquals("Invalid find range result",  6, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(null,    5))}", "range test")).size());
+			assertEquals("Invalid find range result", 12, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   8, null))}", "range test")).size());
+			assertEquals("Invalid find range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(null, null))}", "range test")).size());
+
+			// find with range
+			assertEquals("Invalid find range result",  3, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   2,    5, true, false))}", "range test")).size());
+			assertEquals("Invalid find range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   0,   20, true, false))}", "range test")).size());
+			assertEquals("Invalid find range result", 19, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   1,   20, true, false))}", "range test")).size());
+			assertEquals("Invalid find range result",  5, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(null,    5, true, false))}", "range test")).size());
+			assertEquals("Invalid find range result", 12, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   8, null, true, false))}", "range test")).size());
+			assertEquals("Invalid find range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(null, null, true, false))}", "range test")).size());
+
+			// find with range
+			assertEquals("Invalid find range result",  3, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   2,    5, false, true))}", "range test")).size());
+			assertEquals("Invalid find range result", 19, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   0,   20, false, true))}", "range test")).size());
+			assertEquals("Invalid find range result", 18, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   1,   20, false, true))}", "range test")).size());
+			assertEquals("Invalid find range result",  6, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(null,    5, false, true))}", "range test")).size());
+			assertEquals("Invalid find range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   8, null, false, true))}", "range test")).size());
+			assertEquals("Invalid find range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(null, null, false, true))}", "range test")).size());
+
+			// find with range
+			assertEquals("Invalid find range result",  2, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   2,    5, false, false))}", "range test")).size());
+			assertEquals("Invalid find range result", 19, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   0,   20, false, false))}", "range test")).size());
+			assertEquals("Invalid find range result", 18, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   1,   20, false, false))}", "range test")).size());
+			assertEquals("Invalid find range result",  5, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(null,    5, false, false))}", "range test")).size());
+			assertEquals("Invalid find range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   8, null, false, false))}", "range test")).size());
+			assertEquals("Invalid find range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(null, null, false, false))}", "range test")).size());
+
+			// find with date range
+			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('01.01.2018', 'dd.MM.yyyy'), parse_date('01.02.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
+			assertEquals("Invalid find date range result", 15, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('01.04.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
+			assertEquals("Invalid find date range result",  6, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('03.02.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
+			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null, parse_date('03.02.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
+			assertEquals("Invalid find date range result",  8, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('06.02.2018', 'dd.MM.yyyy'),                                   null, true, true))}", "range test")).size());
+			assertEquals("Invalid find date range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null,                                   null, true, true))}", "range test")).size());
+
+			// find with date range
+			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('01.01.2018', 'dd.MM.yyyy'), parse_date('01.02.2018', 'dd.MM.yyyy'), true, false))}", "range test")).size());
+			assertEquals("Invalid find date range result", 15, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('01.04.2018', 'dd.MM.yyyy'), true, false))}", "range test")).size());
+			assertEquals("Invalid find date range result",  6, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('03.02.2018', 'dd.MM.yyyy'), true, false))}", "range test")).size());
+			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null, parse_date('03.02.2018', 'dd.MM.yyyy'), true, false))}", "range test")).size());
+			assertEquals("Invalid find date range result",  8, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('06.02.2018', 'dd.MM.yyyy'),                                   null, true, false))}", "range test")).size());
+			assertEquals("Invalid find date range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null,                                   null, true, false))}", "range test")).size());
+
+			// find with date range
+			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('01.01.2018', 'dd.MM.yyyy'), parse_date('01.02.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
+			assertEquals("Invalid find date range result", 15, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('01.04.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
+			assertEquals("Invalid find date range result",  6, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('03.02.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
+			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null, parse_date('03.02.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
+			assertEquals("Invalid find date range result",  8, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('06.02.2018', 'dd.MM.yyyy'),                                   null, false, true))}", "range test")).size());
+			assertEquals("Invalid find date range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null,                                   null, false, true))}", "range test")).size());
+
+			// find with date range
+			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('01.01.2018', 'dd.MM.yyyy'), parse_date('01.02.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
+			assertEquals("Invalid find date range result", 15, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('01.04.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
+			assertEquals("Invalid find date range result",  6, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('03.02.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
+			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null, parse_date('03.02.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
+			assertEquals("Invalid find date range result",  8, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('06.02.2018', 'dd.MM.yyyy'),                                   null, false, false))}", "range test")).size());
+			assertEquals("Invalid find date range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null,                                   null, false, false))}", "range test")).size());
+
 			// slice with find
-			final List sliceResult2 = (List)Scripting.evaluate(ctx, testOne, "${slice(find('TestSix'),  0,  5)}", "slice test");
-			final List sliceResult3 = (List)Scripting.evaluate(ctx, testOne, "${slice(find('TestSix'),  5, 10)}", "slice test");
-			final List sliceResult4 = (List)Scripting.evaluate(ctx, testOne, "${slice(find('TestSix'), 10, 15)}", "slice test");
-			final List sliceResult5 = (List)Scripting.evaluate(ctx, testOne, "${slice(find('TestSix'), 15, 20)}", "slice test");
+			final List sliceResult2 = (List)Scripting.evaluate(ctx, testOne, "${slice(sort(find('TestSix'), 'name'),  0,  5)}", "slice test");
+			final List sliceResult3 = (List)Scripting.evaluate(ctx, testOne, "${slice(sort(find('TestSix'), 'name'),  5, 10)}", "slice test");
+			final List sliceResult4 = (List)Scripting.evaluate(ctx, testOne, "${slice(sort(find('TestSix'), 'name'), 10, 15)}", "slice test");
+			final List sliceResult5 = (List)Scripting.evaluate(ctx, testOne, "${slice(sort(find('TestSix'), 'name'), 15, 20)}", "slice test");
 
 			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResult2.size());
 			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResult3.size());
@@ -3163,6 +3238,585 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testFunctionPropertyTypeHint() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType project  = schema.addType("Project");
+
+			project.addStringProperty("name1");
+			project.addStringProperty("name2");
+
+			final JsonFunctionProperty p1 = project.addFunctionProperty("functionProperty1");
+			final JsonFunctionProperty p2 = project.addFunctionProperty("functionProperty2");
+
+			p1.setTypeHint("String");
+			p2.setTypeHint("String");
+
+			p1.setWriteFunction("set(this, 'name1', concat('from StructrScript', value))");
+			p2.setWriteFunction("{ Structr.this.name2 = 'from JavaScript' + Structr.get('value'); }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class type       = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final PropertyKey key1 = StructrApp.key(type, "functionProperty1");
+                final PropertyKey key2 = StructrApp.key(type, "functionProperty2");
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			app.create(type,
+				new NodeAttribute<>(key1, "test1"),
+				new NodeAttribute<>(key2, "test2")
+			);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// check result
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject node = app.nodeQuery(type).getFirst();
+
+			assertEquals("Write function has no access to 'this' object when creating a node", "from StructrScripttest1", node.getProperty(StructrApp.key(type, "name1")));
+			assertEquals("Write function has no access to 'this' object when creating a node", "from JavaScripttest2", node.getProperty(StructrApp.key(type, "name2")));
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testStringConcatenationInJavaScript() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType project  = schema.addType("Project");
+
+			project.addFunctionProperty("test1").setFormat("{ return Structr.this.name + 'test' + 123; }");
+			project.addFunctionProperty("test2").setFormat("{ return 'test' + 123 + Structr.this.name; }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			// create some test objects
+			Scripting.evaluate(ctx, null, "${{ Structr.create('Group', { name: 'test' + 123 + 'structr' }); }}", "test");
+			Scripting.evaluate(ctx, null, "${{ var g = Structr.create('Group'); g.name = 'test' + 123 + 'structr'; }}", "test");
+			Scripting.evaluate(ctx, null, "${{ var g = Structr.create('Group'); Structr.set(g, 'name', 'test' + 123 + 'structr'); }}", "test");
+			Scripting.evaluate(ctx, null, "${{ Structr.create('Group', 'name', 'test' + 123 + 'structr'); }}", "test");
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+
+		// check result
+		try (final Tx tx = app.tx()) {
+
+			int index = 1;
+
+			for (final Group group : app.nodeQuery(Group.class).getResultStream()) {
+
+				System.out.println(group.getName());
+
+				assertEquals("Invalid JavaScript string concatenation result for script #" + index++, "test123structr", group.getName());
+			}
+
+			final NodeInterface project = app.create(projectType, "structr");
+
+			assertEquals("Invalid JavaScript string concatenation result in read function", "structrtest123", project.getProperty("test1"));
+			assertEquals("Invalid JavaScript string concatenation result in read function", "test123structr", project.getProperty("test2"));
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testNewFindSyntaxInStructrScript() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			schema.addType("Test");
+
+			final JsonType project  = schema.addType("Project");
+
+			project.addStringProperty("name1").setIndexed(true);
+			project.addStringProperty("name2").setIndexed(true);
+			project.addStringProperty("name3").setIndexed(true);
+
+			project.addIntegerProperty("age").setIndexed(true);
+			project.addIntegerProperty("count").setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class testType    = StructrApp.getConfiguration().getNodeEntityClass("Test");
+		final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final PropertyKey name1 = StructrApp.key(projectType, "name1");
+                final PropertyKey name2 = StructrApp.key(projectType, "name2");
+                final PropertyKey name3 = StructrApp.key(projectType, "name3");
+                final PropertyKey age   = StructrApp.key(projectType, "age");
+                final PropertyKey count = StructrApp.key(projectType, "count");
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			app.create(projectType,
+				new NodeAttribute<>(AbstractNode.name, "group1"),
+				new NodeAttribute<>(name1, "structr"),
+				new NodeAttribute<>(name2, "test"),
+				new NodeAttribute<>(name3, "other"),
+				new NodeAttribute<>(age,    22),
+				new NodeAttribute<>(count, 100)
+			);
+
+			app.create(projectType,
+				new NodeAttribute<>(AbstractNode.name, "group2"),
+				new NodeAttribute<>(name1, "structr"),
+				new NodeAttribute<>(name2, "test"),
+				new NodeAttribute<>(name3, "other"),
+				new NodeAttribute<>(age,    33),
+				new NodeAttribute<>(count, 102)
+			);
+
+			app.create(projectType,
+				new NodeAttribute<>(name1, "structr"),
+				new NodeAttribute<>(name2, "other"),
+				new NodeAttribute<>(name3, "other"),
+				new NodeAttribute<>(age,    44),
+				new NodeAttribute<>(count, 104)
+			);
+
+			for (int i=0; i<100; i++) {
+				createTestNode(testType, "test" + StringUtils.leftPad(Integer.toString(i), 3, "0"));
+			}
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Non-namespaced contains() returns wrong result", true, Scripting.evaluate(ctx, null, "${contains('name2', 'e')}", "testFindNewSyntax"));
+			assertEquals("Non-namespaced empty() returns wrong result", true, Scripting.evaluate(ctx, null, "${empty('')}", "testFindNewSyntax"));
+			assertEquals("Non-namespaced empty() returns wrong result", true, Scripting.evaluate(ctx, null, "${empty(null)}", "testFindNewSyntax"));
+			assertEquals("Non-namespaced contains() returns wrong result", false, Scripting.evaluate(ctx, null, "${contains('name2', 'x')}", "testFindNewSyntax"));
+			assertNull("Non-namespaced equals() returns wrong result", Scripting.evaluate(ctx, null, "${equals('name2', 'x')}", "testFindNewSyntax"));
+
+			final List<NodeInterface> page1 = (List)Scripting.evaluate(ctx, null, "${find('Test', sort('name'), page(1, 10))}", "testFindNewSyntax");
+			final List<NodeInterface> page2 = (List)Scripting.evaluate(ctx, null, "${find('Test', sort('name'), page(1, 5))}", "testFindNewSyntax");
+			final List<NodeInterface> page3 = (List)Scripting.evaluate(ctx, null, "${find('Test', sort('name'), page(3, 5))}", "testFindNewSyntax");
+
+			assertEquals("Advanced find() with sort() and page() returns wrong result", 10, page1.size());
+			assertEquals("Advanced find() with sort() and page() returns wrong result", "test000", page1.get(0).getName());
+			assertEquals("Advanced find() with sort() and page() returns wrong result", "test001", page1.get(1).getName());
+			assertEquals("Advanced find() with sort() and page() returns wrong result", "test009", page1.get(9).getName());
+
+			assertEquals("Advanced find() with sort() and page() returns wrong result", 5, page2.size());
+			assertEquals("Advanced find() with sort() and page() returns wrong result", "test000", page2.get(0).getName());
+			assertEquals("Advanced find() with sort() and page() returns wrong result", "test001", page2.get(1).getName());
+			assertEquals("Advanced find() with sort() and page() returns wrong result", "test004", page2.get(4).getName());
+
+			assertEquals("Advanced find() with sort() and page() returns wrong result", 5, page3.size());
+			assertEquals("Advanced find() with sort() and page() returns wrong result", "test010", page3.get(0).getName());
+			assertEquals("Advanced find() with sort() and page() returns wrong result", "test011", page3.get(1).getName());
+			assertEquals("Advanced find() with sort() and page() returns wrong result", "test014", page3.get(4).getName());
+
+			assertEquals("find() with namespaced contains() return wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${find('Project', contains('name2', 'e'))}", "testFindNewSyntax")).size());
+			assertEquals("find() with namespaced contains() return wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${find('Project', 'name', 'group1', 'name1', 'structr', 'name2', 'test')}", "testFindNewSyntax")).size());
+
+			try {
+
+				// test count assertion for simple parameters
+				Scripting.evaluate(ctx, null, "${find('Project', 'name', 'group1', 'name1', 'structr', 'name2')}", "testFindNewSyntax");
+
+				fail("Invalid number of parameters for find() should throw an exception.");
+
+			} catch (FrameworkException fex) { }
+
+			assertEquals("find() with namespaced predicates return wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${find('Project', empty('name'))}", "testFindNewSyntax")).size());
+			assertEquals("find() with namespaced predicates return wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${find('Project', or(empty('name'), equals('name', 'group2')))}", "testFindNewSyntax")).size());
+			assertEquals("find() with namespaced predicates return wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${find('Project', contains('name2', 'e'), contains('name2', 'e'), contains('name2', 'e'))}", "testFindNewSyntax")).size());
+			assertEquals("find() with namespaced predicates return wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${find('Project', and(equals('age', range(0, 35))))}", "testFindNewSyntax")).size());
+			assertEquals("find() with namespaced predicates return wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${find('Project', equals('age', range(0, 35)), equals('name', 'group2'))}", "testFindNewSyntax")).size());
+			assertEquals("find() with namespaced predicates return wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${find('Project', and(equals('age', range(0, 35)), equals('name', 'group2')))}", "testFindNewSyntax")).size());
+			assertEquals("find() with namespaced predicates return wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${find('Project', and(contains('name2', 'e')))}", "testFindNewSyntax")).size());
+			assertEquals("find() with namespaced predicates return wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${find('Project', and(equals('name', 'group1')))}", "testFindNewSyntax")).size());
+			assertEquals("find() with namespaced predicates return wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${find('Project', and(equals('name', 'group1'), equals('name1', 'structr')))}", "testFindNewSyntax")).size());
+			assertEquals("find() with namespaced predicates return wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${find('Project', and(equals('name1', 'structr'), equals('name2', 'test')))}", "testFindNewSyntax")).size());
+			assertEquals("find() with namespaced predicates return wrong result", 0, ((List)Scripting.evaluate(ctx, null, "${find('Project', and(equals('name1', 'structr'), equals('name2', 'structr')))}", "testFindNewSyntax")).size());
+			assertEquals("find() with namespaced predicates return wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${find('Project', or(equals('age', 22), equals('age', 44)))}", "testFindNewSyntax")).size());
+			assertEquals("find() with namespaced predicates return wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${find('Project', and(equals('name3', 'other'), or(equals('age', 22), equals('age', 44))))}", "testFindNewSyntax")).size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testNewFindSyntaxInJavaScript() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			schema.addType("Test");
+
+			final JsonType project  = schema.addType("Project");
+
+			project.addStringProperty("name1").setIndexed(true);
+			project.addStringProperty("name2").setIndexed(true);
+			project.addStringProperty("name3").setIndexed(true);
+
+			project.addIntegerProperty("age").setIndexed(true);
+			project.addIntegerProperty("count").setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		final ActionContext ctx = new ActionContext(securityContext);
+		final Class testType    = StructrApp.getConfiguration().getNodeEntityClass("Test");
+		final Class type        = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final PropertyKey name1 = StructrApp.key(type, "name1");
+                final PropertyKey name2 = StructrApp.key(type, "name2");
+                final PropertyKey name3 = StructrApp.key(type, "name3");
+                final PropertyKey age   = StructrApp.key(type, "age");
+                final PropertyKey count = StructrApp.key(type, "count");
+
+		String group1 = null;
+		String group2 = null;
+		String group3 = null;
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			group1 = app.create(type,
+				new NodeAttribute<>(AbstractNode.name, "group1"),
+				new NodeAttribute<>(name1, "structr"),
+				new NodeAttribute<>(name2, "test"),
+				new NodeAttribute<>(name3, "other"),
+				new NodeAttribute<>(age,    22),
+				new NodeAttribute<>(count, 100)
+			).getUuid();
+
+			group2 = app.create(type,
+				new NodeAttribute<>(AbstractNode.name, "group2"),
+				new NodeAttribute<>(name1, "structr"),
+				new NodeAttribute<>(name2, "test"),
+				new NodeAttribute<>(name3, "other"),
+				new NodeAttribute<>(age,    33),
+				new NodeAttribute<>(count, 102)
+			).getUuid();
+
+			group3 = app.create(type,
+				new NodeAttribute<>(name1, "structr"),
+				new NodeAttribute<>(name2, "other"),
+				new NodeAttribute<>(name3, "other"),
+				new NodeAttribute<>(age,    44),
+				new NodeAttribute<>(count, 104)
+			).getUuid();
+
+			for (int i=0; i<100; i++) {
+				createTestNode(testType, "test" + StringUtils.leftPad(Integer.toString(i), 3, "0"));
+			}
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', { 'name2': $.contains('s') }, $.sort('name', true)); }}", "testFindNewSyntax");
+			final List<NodeInterface> result2 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.sort('name', true)); }}", "testFindNewSyntax");
+			final List<NodeInterface> result3 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.sort('name')); }}", "testFindNewSyntax");
+
+			final String testFunction = "${{\n" +
+			"    let users = $.find('Project', {\n" +
+			"            $and: {\n" +
+			"                'name1': 'structr',\n" +
+			"                'age': $.range(30, 50)\n" +
+			"            }\n" +
+			"        },\n" +
+			"        $.sort('name', true),\n" +
+			"        $.page(1, 10)\n" +
+			"    );\n" +
+			"    return users;\n" +
+			"}}";
+
+			final Object result4Object        = Scripting.evaluate(ctx, null, testFunction, "testFindNewSyntax");
+			final List<NodeInterface> result4 = (List)result4Object;
+
+			assertEquals("Advanced find() does not filter correctly", 2, result1.size());
+			assertEquals("Advanced find() does not filter correctly", result1.get(0).getUuid(), group2);
+			assertEquals("Advanced find() does not filter correctly", result1.get(1).getUuid(), group1);
+
+			assertEquals("sort() in advanced find() does not sort correctly", result2.get(0).getUuid(), group3);
+			assertEquals("sort() in advanced find() does not sort correctly", result2.get(1).getUuid(), group2);
+			assertEquals("sort() in advanced find() does not sort correctly", result2.get(2).getUuid(), group1);
+
+			assertEquals("sort() in advanced find() does not sort correctly", result3.get(0).getUuid(), group1);
+			assertEquals("sort() in advanced find() does not sort correctly", result3.get(1).getUuid(), group2);
+			assertEquals("sort() in advanced find() does not sort correctly", result3.get(2).getUuid(), group3);
+
+			assertEquals("Advanced find() does not filter correctly", 2, result4.size());
+			assertEquals("Advanced find() does not filter correctly", result4.get(0).getUuid(), group3);
+			assertEquals("Advanced find() does not filter correctly", result4.get(1).getUuid(), group2);
+
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', { name: $.contains('2') }); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', { name: 'group1', name1: 'structr', name2: 'test' }); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.empty('name')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.or($.empty('name'), $.equals('name', 'group2'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.contains('name2', 'e'), $.contains('name2', 'e'), $.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('age', $.range(0, 35)))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.equals('age', $.range(0, 35)), $.equals('name', 'group2')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('age', $.range(0, 35)), $.equals('name', 'group2'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.contains('name2', 'e'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('name', 'group1'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('name', 'group1'), $.equals('name1', 'structr'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('name1', 'structr'), $.equals('name2', 'test'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 0, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('name1', 'structr'), $.equals('name2', 'structr'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.or($.equals('age', 22), $.equals('age', 44))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('name3', 'other'), $.or($.equals('age', 22), $.equals('age', 44)))); }}", "testFindNewSyntax")).size());
+
+			final List<NodeInterface> page1 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.sort('name'), $.page(1, 10)); }}", "testFindNewSyntax");
+			final List<NodeInterface> page2 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.sort('name'), $.page(1, 5)); }}", "testFindNewSyntax");
+			final List<NodeInterface> page3 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.sort('name'), $.page(3, 5)); }}", "testFindNewSyntax");
+
+			assertEquals("Advanced find() with sort() and page() returns wrong result", 10, page1.size());
+			assertEquals("Advanced find() with sort() and page() returns wrong result", "test000", page1.get(0).getName());
+			assertEquals("Advanced find() with sort() and page() returns wrong result", "test001", page1.get(1).getName());
+			assertEquals("Advanced find() with sort() and page() returns wrong result", "test009", page1.get(9).getName());
+
+			assertEquals("Advanced find() with sort() and page() returns wrong result", 5, page2.size());
+			assertEquals("Advanced find() with sort() and page() returns wrong result", "test000", page2.get(0).getName());
+			assertEquals("Advanced find() with sort() and page() returns wrong result", "test001", page2.get(1).getName());
+			assertEquals("Advanced find() with sort() and page() returns wrong result", "test004", page2.get(4).getName());
+
+			assertEquals("Advanced find() with sort() and page() returns wrong result", 5, page3.size());
+			assertEquals("Advanced find() with sort() and page() returns wrong result", "test010", page3.get(0).getName());
+			assertEquals("Advanced find() with sort() and page() returns wrong result", "test011", page3.get(1).getName());
+			assertEquals("Advanced find() with sort() and page() returns wrong result", "test014", page3.get(4).getName());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testJavascriptArrayWrapping() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType test  = schema.addType("Test");
+
+			test.addMethod("doTest", "{ let arr = []; arr.push({ name: 'test1' }); arr.push({ name: 'test2' }); arr.push({ name: 'test2' }); return arr; }", "");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final ActionContext ctx = new ActionContext(securityContext);
+		final Class testType    = StructrApp.getConfiguration().getNodeEntityClass("Test");
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			app.create(testType, "test");
+
+			final Object result = Scripting.evaluate(ctx, null, "${{ var test = $.find('Test')[0]; var arr = test.doTest(); for (e of arr) { Structr.log(e); }; return arr; }}", "test");
+
+			assertTrue("Invalid wrapping of native Javascript array", result instanceof List);
+			assertEquals("Invalid wrapping of native Javascript array", 3, ((List)result).size());
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testNamespaceHandling() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			// test that the empty() function is resolved to the non-namespaced one after exiting find()
+			assertEquals("StructrScript: namespace is not exited correctly after entering find()", "[]true", (Scripting.evaluate(ctx, null, "${(find('Group'),empty(null))}", "test")));
+			assertEquals("JavaScript: namespace is not exited correctly after entering find()", true, (Scripting.evaluate(ctx, null, "${{ $.find('Group'); return $.empty(null); }}", "test")));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testJavascriptFindDateRange() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			schema.addType("Test");
+
+			final JsonType project  = schema.addType("Project");
+
+			project.addDateProperty("date").setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		final ActionContext ctx = new ActionContext(securityContext);
+		final Class type        = StructrApp.getConfiguration().getNodeEntityClass("Project");
+                final PropertyKey date  = StructrApp.key(type, "date");
+		final Calendar calendar = GregorianCalendar.getInstance();
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			// 01.01.2019
+			calendar.set(2019, 0, 1, 0, 0, 0);
+			app.create(type, new NodeAttribute<>(AbstractNode.name, "p1"), new NodeAttribute<>(date, calendar.getTime()));
+
+			// 01.02.2019
+			calendar.set(2019, 1, 1, 0, 0, 0);
+			app.create(type, new NodeAttribute<>(AbstractNode.name, "p2"), new NodeAttribute<>(date, calendar.getTime()));
+
+			// 01.03.2019
+			calendar.set(2019, 2, 1, 0, 0, 0);
+			app.create(type, new NodeAttribute<>(AbstractNode.name, "p3"), new NodeAttribute<>(date, calendar.getTime()));
+
+			// 01.04.2019
+			calendar.set(2019, 3, 1, 0, 0, 0);
+			app.create(type, new NodeAttribute<>(AbstractNode.name, "p4"), new NodeAttribute<>(date, calendar.getTime()));
+
+			// 01.05.2019
+			calendar.set(2019, 4, 1, 0, 0, 0);
+			app.create(type, new NodeAttribute<>(AbstractNode.name, "p5"), new NodeAttribute<>(date, calendar.getTime()));
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final String errorMessage = "Advanced find() with date range returns wrong result";
+
+			assertEquals(errorMessage, 5, ((List)Scripting.evaluate(ctx, null, formatDateTestScript("new Date",   "2000-01-01", "2100-01-01", "createdDate"), "testFindNewSyntax")).size());
+			assertEquals(errorMessage, 5, ((List)Scripting.evaluate(ctx, null, formatDateTestScript("Date.parse", "2000-01-01", "2100-01-01", "createdDate"), "testFindNewSyntax")).size());
+
+			assertEquals(errorMessage, 5, ((List)Scripting.evaluate(ctx, null, formatDateTestScript("new Date",   "2018-01-01", "2020-01-01", "date"), "testFindNewSyntax")).size());
+			assertEquals(errorMessage, 5, ((List)Scripting.evaluate(ctx, null, formatDateTestScript("Date.parse", "2018-01-01", "2020-01-01", "date"), "testFindNewSyntax")).size());
+
+			assertEquals(errorMessage, 2, ((List)Scripting.evaluate(ctx, null, formatDateTestScript("new Date",   "2018-12-31", "2019-02-15", "date"), "testFindNewSyntax")).size());
+			assertEquals(errorMessage, 2, ((List)Scripting.evaluate(ctx, null, formatDateTestScript("Date.parse", "2018-12-31", "2019-02-15", "date"), "testFindNewSyntax")).size());
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource, final String comment) {
 
@@ -3236,5 +3890,24 @@ public class ScriptingTest extends StructrTest {
 
 			assertEquals("Invalid map path result for " + mapPath, value, current);
 		}
+	}
+
+	private String formatDateTestScript(final String parseMethod, final String start, final String end, final String fieldName) {
+
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append("${{ let startDate = ");
+		buf.append(parseMethod);
+		buf.append("('");
+		buf.append(start);
+		buf.append("'); let endDate = ");
+		buf.append(parseMethod);
+		buf.append("('");
+		buf.append(end);
+		buf.append("'); return $.find('Project', { ");
+		buf.append(fieldName);
+		buf.append(": $.range(startDate, endDate) }, $.sort('name')); }}");
+
+		return buf.toString();
 	}
 }

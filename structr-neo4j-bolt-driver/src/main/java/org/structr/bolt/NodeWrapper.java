@@ -42,7 +42,7 @@ import org.structr.api.util.Iterables;
 class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implements Node {
 
 	private static final Logger logger                                           = LoggerFactory.getLogger(NodeWrapper.class);
-	private static FixedSizeCache<Long, NodeWrapper> nodeCache                   = null;
+	protected static FixedSizeCache<Long, NodeWrapper> nodeCache                 = null;
 
 	private final Map<String, Map<String, RelationshipResult>> relationshipCache = new HashMap<>();
 	private boolean dontUseCache                                                 = false;
@@ -73,12 +73,14 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 
 	@Override
 	public void onRemoveFromCache() {
+
 		relationshipCache.clear();
 		this.stale = true;
 	}
 
 	@Override
 	public void clearCaches() {
+
 		relationshipCache.clear();
 	}
 
@@ -409,7 +411,10 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 
 		synchronized (nodeCache) {
 
-			nodeCache.removeAll(toRemove);
+			for (final Long id : toRemove) {
+
+				expunge(id);
+			}
 		}
 	}
 
@@ -417,7 +422,11 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 
 		synchronized (nodeCache) {
 
-			nodeCache.remove(toRemove);
+			final NodeWrapper node = nodeCache.remove(toRemove);
+			if (node != null) {
+
+				node.clearCaches();
+			}
 		}
 	}
 
@@ -457,6 +466,12 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 		}
 
 		return "";
+	}
+
+	@Override
+	public void removeFromCache() {
+		NodeWrapper.expunge(id);
+		dontUseCache = true;
 	}
 
 	// ----- nested classes -----

@@ -61,9 +61,10 @@ public class CSVFileImportJob extends FileImportJob {
 	@Override
 	public boolean runInitialChecks () throws FrameworkException {
 
-		final String targetType    = getOrDefault(configuration.get("targetType"), null);
-		final String delimiter     = getOrDefault(configuration.get("delimiter"), ";");
-		final String quoteChar     = getOrDefault(configuration.get("quoteChar"), "\"");
+		final String targetType   = getOrDefault(configuration.get("targetType"), null);
+		final String delimiter    = getOrDefault(configuration.get("delimiter"), ";");
+		final String quoteChar    = getOrDefault(configuration.get("quoteChar"), "\"");
+		final boolean rfc4180Mode = getOrDefault(configuration.get("rfc4180Mode"), false);
 
 		if (targetType == null || delimiter == null || quoteChar == null) {
 
@@ -94,7 +95,10 @@ public class CSVFileImportJob extends FileImportJob {
 			final String delimiter                   = getOrDefault(configuration.get("delimiter"), ";");
 			final String quoteChar                   = getOrDefault(configuration.get("quoteChar"), "\"");
 			final String range                       = getOrDefault(configuration.get("range"), "");
+			final boolean rfc4180Mode                = getOrDefault(configuration.get("rfc4180Mode"), false);
 			final boolean strictQuotes               = getOrDefault(configuration.get("strictQuotes"), false);
+			final boolean collectValues              = getOrDefault(configuration.get("collectValues"), false);
+			final boolean distinct                   = getOrDefault(configuration.get("distinct"), false);
 			final Integer commitInterval             = parseInt(configuration.get("commitInterval"), 1000);
 
 			logger.info("Importing CSV from {} ({}) to {} using {}", filePath, fileUuid, targetType, configuration);
@@ -145,9 +149,10 @@ public class CSVFileImportJob extends FileImportJob {
 
 				final Character fieldSeparator     = delimiter.charAt(0);
 				final Character quoteCharacter     = StringUtils.isNotEmpty(quoteChar) ? quoteChar.charAt(0) : null;
-				final Iterable<JsonInput> iterable = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, "utf-8"), targetEntityType, fieldSeparator, quoteCharacter, range, reverse(importMappings), strictQuotes);
+				final Iterable<JsonInput> iterable = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, "utf-8"), targetEntityType, fieldSeparator, quoteCharacter, range, reverse(importMappings), rfc4180Mode, strictQuotes);
 				final Iterator<JsonInput> iterator = iterable.iterator();
 				int chunks                         = 0;
+				int ignoreCount                    = 0;
 				int overallCount                   = 0;
 
 				while (iterator.hasNext()) {
@@ -166,7 +171,26 @@ public class CSVFileImportJob extends FileImportJob {
 
 							if (currentImportType.equals(IMPORT_TYPE.NODE)) {
 
-								app.create(targetEntityType, PropertyMap.inputTypeToJavaType(threadContext, targetEntityType, input));
+								final PropertyMap properties = PropertyMap.inputTypeToJavaType(threadContext, targetEntityType, input);
+
+								if (distinct) {
+
+									// check for existing object and ignore import
+									if (app.nodeQuery(targetEntityType).and(properties).getFirst() == null) {
+
+										app.create(targetEntityType, properties);
+										overallCount++;
+
+									} else {
+
+										ignoreCount++;
+									}
+
+								} else {
+
+									app.create(targetEntityType, properties);
+									overallCount++;
+								}
 
 							} else {
 
@@ -174,16 +198,15 @@ public class CSVFileImportJob extends FileImportJob {
 								final AbstractNode targetNode = (AbstractNode)app.get(relTargetType, (String)input.get("targetId"));
 
 								app.create(sourceNode, targetNode, targetEntityType, PropertyMap.inputTypeToJavaType(threadContext, targetEntityType, input));
+								overallCount++;
 							}
-
-							overallCount++;
 						}
 
 						tx.success();
 
 						chunks++;
 
-						chunkFinished(chunkStartTime, chunks, commitInterval, overallCount);
+						chunkFinished(chunkStartTime, chunks, commitInterval, overallCount, ignoreCount);
 
 					}
 
@@ -195,12 +218,10 @@ public class CSVFileImportJob extends FileImportJob {
 
 				}
 
-				importFinished(startTime, overallCount);
+				importFinished(startTime, overallCount, ignoreCount);
 
 			} catch (IOException | FrameworkException fex) {
-
 				reportException(fex);
-
 			} catch (InstantiationException ex) {
 				reportException(ex);
 			} catch (IllegalAccessException ex) {

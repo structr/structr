@@ -22,12 +22,14 @@ import ch.qos.logback.access.jetty.RequestLogImpl;
 import ch.qos.logback.access.servlet.TeeFilter;
 import java.io.File;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import javax.servlet.DispatcherType;
 import javax.servlet.http.HttpServlet;
@@ -73,6 +75,7 @@ import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.StructrServices;
 import org.structr.core.Services;
 import org.structr.rest.ResourceProvider;
+import org.structr.rest.auth.SessionHelper;
 import org.structr.schema.SchemaService;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
@@ -278,13 +281,21 @@ public class HttpService implements RunnableService {
 
 			final String hardwareId = licenseManager.getHardwareFingerprint();
 
-			DefaultSessionIdManager idManager = new DefaultSessionIdManager(server);
+			DefaultSessionIdManager idManager = new DefaultSessionIdManager(server, new SecureRandom(hardwareId.getBytes()));
 			idManager.setWorkerName(hardwareId);
 
 			sessionCache.getSessionHandler().setSessionIdManager(idManager);
+			
+			if (Settings.HttpOnly.getValue()) {
+				sessionCache.getSessionHandler().setHttpOnly(isTest);
+			}
 
 		}
 
+		if (Settings.ClearSessionsOnStartup.getValue()) {
+			SessionHelper.clearAllSessions();
+		}
+		
 		final StructrSessionDataStore sessionDataStore = new StructrSessionDataStore();
 		//final FileSessionDataStore store = new FileSessionDataStore();
 		//store.setStoreDir(baseDir.toPath().resolve("sessions").toFile());
@@ -403,14 +414,14 @@ public class HttpService implements RunnableService {
 		}
 
 		contexts.addHandler(servletContext);
+		
+		httpConfig = new HttpConfiguration();
+		httpConfig.setSecureScheme("https");
+		httpConfig.setSecurePort(httpsPort);
+		//httpConfig.setOutputBufferSize(8192);
+		httpConfig.setRequestHeaderSize(requestHeaderSize);
 
 		if (StringUtils.isNotBlank(host) && Settings.HttpPort.getValue() > -1) {
-
-			httpConfig = new HttpConfiguration();
-			httpConfig.setSecureScheme("https");
-			httpConfig.setSecurePort(httpsPort);
-			//httpConfig.setOutputBufferSize(8192);
-			httpConfig.setRequestHeaderSize(requestHeaderSize);
 
 			final ServerConnector httpConnector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
 
@@ -437,7 +448,7 @@ public class HttpService implements RunnableService {
 
 				String excludedProtocols = Settings.excludedProtocols.getValue();
 				String includedProtocols = Settings.includedProtocols.getValue();
-				String disabledCiphers = Settings.disabledCipherSuits.getValue();
+				String disabledCiphers = Settings.disabledCipherSuites.getValue();
 
 				if (disabledCiphers.length() > 0) {
 					disabledCiphers = disabledCiphers.replaceAll("\\s+", "");
@@ -454,21 +465,25 @@ public class HttpService implements RunnableService {
 					sslContextFactory.setIncludeProtocols(includedProtocols.split(","));
 				}
 
-				final ServerConnector https = new ServerConnector(server,
+				final ServerConnector httpsConnector = new ServerConnector(server,
 					new SslConnectionFactory(sslContextFactory, "http/1.1"),
 					new HttpConnectionFactory(httpsConfig));
 
-				https.setPort(httpsPort);
-				https.setIdleTimeout(500000);
+				if (Settings.ForceHttps.getValue()) {
+					sessionCache.getSessionHandler().setSecureRequestOnly(true);
+				}
+				
+				httpsConnector.setPort(httpsPort);
+				httpsConnector.setIdleTimeout(500000);
 
-				https.setHost(host);
-				https.setPort(httpsPort);
+				httpsConnector.setHost(host);
+				httpsConnector.setPort(httpsPort);
 
-				if (Settings.dumbJettyStartupConfig.getValue()) {
-					logger.info(https.dump());
+				if (Settings.dumpJettyStartupConfig.getValue()) {
+					logger.info(httpsConnector.dump());
 				}
 
-				connectors.add(https);
+				connectors.add(httpsConnector);
 
 			} else {
 
@@ -502,10 +517,15 @@ public class HttpService implements RunnableService {
 	@Override
 	public void shutdown() {
 
+		
 		if (server != null) {
 
 			try {
 				server.stop();
+
+				if (Settings.ClearSessionsOnShutdown.getValue()) {
+					SessionHelper.clearAllSessions();
+				}
 
 			} catch (Exception ex) {
 

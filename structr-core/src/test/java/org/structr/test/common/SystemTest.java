@@ -28,6 +28,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,7 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
+import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
@@ -584,6 +586,286 @@ public class SystemTest extends StructrTest {
 	}
 
 	@Test
+	public void testEnsureOneToOneCardinality() {
+
+		Principal tester1 = null;
+		Principal tester2 = null;
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			tester1 = app.create(Principal.class, "tester1");
+			tester2 = app.create(Principal.class, "tester2");
+
+			JsonSchema schema         = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Item");
+
+			type.relate(type, "NEXT", Cardinality.OneToOne, "prev", "next");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final SecurityContext tester1Context = SecurityContext.getInstance(tester1, AccessMode.Backend);
+		final SecurityContext tester2Context = SecurityContext.getInstance(tester2, AccessMode.Backend);
+		final Class<AbstractNode> type       = StructrApp.getConfiguration().getNodeEntityClass("Item");
+		final App tester1App                 = StructrApp.getInstance(tester1Context);
+		final App tester2App                 = StructrApp.getInstance(tester2Context);
+		final PropertyKey next               = StructrApp.key(type, "next");
+
+		try (final Tx tx = tester1App.tx()) {
+
+			final AbstractNode item1 = tester1App.create(type,
+				new NodeAttribute<>(AbstractNode.name, "item1"),
+				new NodeAttribute<>(next, tester1App.create(type,
+					new NodeAttribute<>(AbstractNode.name, "item2"),
+					new NodeAttribute<>(next, tester1App.create(type,
+						new NodeAttribute<>(AbstractNode.name, "item3")
+					))
+				))
+			);
+
+			// make item1 visible to tester2
+			item1.grant(Permission.read, tester2);
+			item1.grant(Permission.write, tester2);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// test setProperty with different user (should delete the previous relationship)
+		try (final Tx tx = tester2App.tx()) {
+
+			final AbstractNode item1 = tester2App.nodeQuery(type).andName("item1").getFirst();
+
+			assertNotNull("Item 1 should be visible to tester2", item1);
+
+			item1.setProperty(next, tester2App.create(type, "item4"));
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// check result
+		try (final Tx tx = app.tx()) {
+
+			final AbstractNode item1              = app.nodeQuery(type).andName("item1").getFirst();
+			final List<AbstractRelationship> rels = Iterables.toList(item1.getOutgoingRelationships());
+
+			for (final AbstractRelationship rel : rels) {
+				System.out.println(rel.getType() + ": " + rel.getSourceNodeId() + " -> " + rel.getTargetNodeId());
+			}
+
+			assertEquals("OneToOne.ensureCardinality is not wirking correctly", 1, rels.size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testEnsureOneToManyCardinality() {
+
+		Principal tester1 = null;
+		Principal tester2 = null;
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			tester1 = app.create(Principal.class, "tester1");
+			tester2 = app.create(Principal.class, "tester2");
+
+			JsonSchema schema         = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Item");
+
+			type.relate(type, "NEXT", Cardinality.OneToMany, "prev", "next");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final SecurityContext tester1Context = SecurityContext.getInstance(tester1, AccessMode.Backend);
+		final SecurityContext tester2Context = SecurityContext.getInstance(tester2, AccessMode.Backend);
+		final Class<AbstractNode> itemType   = StructrApp.getConfiguration().getNodeEntityClass("Item");
+		final App tester1App                 = StructrApp.getInstance(tester1Context);
+		final App tester2App                 = StructrApp.getInstance(tester2Context);
+		final PropertyKey prev               = StructrApp.key(itemType, "prev");
+
+		try (final Tx tx = tester1App.tx()) {
+
+			final AbstractNode item1 = tester1App.create(itemType,
+				new NodeAttribute<>(AbstractNode.name, "item1"),
+				new NodeAttribute<>(prev, tester1App.create(itemType,
+					new NodeAttribute<>(AbstractNode.name, "item2"),
+					new NodeAttribute<>(prev, tester1App.create(itemType,
+						new NodeAttribute<>(AbstractNode.name, "item3")
+					))
+				))
+			);
+
+			// make item1 visible to tester2
+			item1.grant(Permission.read, tester2);
+			item1.grant(Permission.write, tester2);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// test setProperty with different user (should delete the previous relationship)
+		try (final Tx tx = tester2App.tx()) {
+
+			final AbstractNode item1 = tester2App.nodeQuery(itemType).andName("item1").getFirst();
+
+			assertNotNull("Item 1 should be visible to tester2", item1);
+
+			item1.setProperty(prev, tester2App.create(itemType, "item4"));
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// check result
+		try (final Tx tx = app.tx()) {
+
+			final AbstractNode item1                  = app.nodeQuery(itemType).andName("item1").getFirst();
+			final List<AbstractRelationship> rels     = Iterables.toList(item1.getIncomingRelationships());
+			final List<AbstractRelationship> filtered = new LinkedList<>();
+
+			for (final AbstractRelationship rel : rels) {
+
+				if ("NEXT".equals(rel.getType())) {
+					filtered.add(rel);
+				}
+			}
+
+			assertEquals("OneToMany.ensureCardinality is not wirking correctly", 1, filtered.size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testEnsureManyToOneCardinality() {
+
+		Principal tester1 = null;
+		Principal tester2 = null;
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			tester1 = app.create(Principal.class, "tester1");
+			tester2 = app.create(Principal.class, "tester2");
+
+			JsonSchema schema         = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Item");
+
+			type.relate(type, "NEXT", Cardinality.ManyToOne, "prev", "next");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final SecurityContext tester1Context = SecurityContext.getInstance(tester1, AccessMode.Backend);
+		final SecurityContext tester2Context = SecurityContext.getInstance(tester2, AccessMode.Backend);
+		final Class<AbstractNode> type       = StructrApp.getConfiguration().getNodeEntityClass("Item");
+		final App tester1App                 = StructrApp.getInstance(tester1Context);
+		final App tester2App                 = StructrApp.getInstance(tester2Context);
+		final PropertyKey next               = StructrApp.key(type, "next");
+
+		try (final Tx tx = tester1App.tx()) {
+
+			final AbstractNode item1 = tester1App.create(type,
+				new NodeAttribute<>(AbstractNode.name, "item1"),
+				new NodeAttribute<>(next, tester1App.create(type,
+					new NodeAttribute<>(AbstractNode.name, "item2"),
+					new NodeAttribute<>(next, tester1App.create(type,
+						new NodeAttribute<>(AbstractNode.name, "item3")
+					))
+				))
+			);
+
+			// make item1 visible to tester2
+			item1.grant(Permission.read, tester2);
+			item1.grant(Permission.write, tester2);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// test setProperty with different user (should delete the previous relationship)
+		try (final Tx tx = tester2App.tx()) {
+
+			final AbstractNode item1 = tester2App.nodeQuery(type).andName("item1").getFirst();
+
+			assertNotNull("Item 1 should be visible to tester2", item1);
+
+			item1.setProperty(next, tester2App.create(type, "item4"));
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// check result
+		try (final Tx tx = app.tx()) {
+
+			final AbstractNode item1              = app.nodeQuery(type).andName("item1").getFirst();
+			final List<AbstractRelationship> rels = Iterables.toList(item1.getOutgoingRelationships());
+
+			for (final AbstractRelationship rel : rels) {
+				System.out.println(rel.getType() + ": " + rel.getSourceNodeId() + " -> " + rel.getTargetNodeId());
+			}
+
+			assertEquals("ManyToOne.ensureCardinality is not wirking correctly", 1, rels.size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
 	public void testEnsureCardinalityPerformance() {
 
 		final List<TestOne> list = new LinkedList<>();
@@ -1021,6 +1303,106 @@ public class SystemTest extends StructrTest {
 		}
 
 		tmpConfig.deleteOnExit();
+
+		Settings.LogSchemaOutput.setValue(false);
+	}
+
+	@Test
+	public void testOverlappingTransactions() {
+
+		final ExecutorService service = Executors.newCachedThreadPool();
+
+		// setup
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType test = sourceSchema.addType("Test");
+
+			test.addStringProperty("test1");
+			test.addStringProperty("test2");
+
+			StructrSchema.extendDatabaseSchema(app, sourceSchema);
+
+			tx.success();
+
+		} catch (Exception t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class type       = StructrApp.getConfiguration().getNodeEntityClass("Test");
+		final PropertyKey key1 = StructrApp.key(type, "test1");
+		final PropertyKey key2 = StructrApp.key(type, "test2");
+
+		// setup
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			app.create(type, new NodeAttribute<>(AbstractNode.name, "Test"), new NodeAttribute<>(key1, "test.key1"), new NodeAttribute<>(key2, "test.key2"));
+
+			tx.success();
+
+		} catch (Exception t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// create two parallel transactions, on that starts first but takes longer
+		// and a second one that starts later but finishes first.
+		service.submit(() -> {
+
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				final GraphObject node1 = app.nodeQuery(type).andName("Test").getFirst();
+
+				node1.setProperty(key1, "key1.value after thread1");
+
+				// wait before committing transaction
+				Thread.sleep(2000);
+
+				tx.success();
+
+			} catch (Exception t) { t.printStackTrace(); }
+		});
+
+		service.submit(() -> {
+
+			// wait before executing transaction
+			try { Thread.sleep(200); } catch (Throwable t) {}
+
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				final GraphObject node1 = app.nodeQuery(type).andName("Test").getFirst();
+
+				node1.setProperty(key2, "key2.value after thread2");
+
+				tx.success();
+
+			} catch (Exception t) { t.printStackTrace(); }
+		});
+
+		try {
+
+			service.awaitTermination(10, TimeUnit.SECONDS);
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+		service.shutdown();
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			final GraphObject node1 = app.nodeQuery(type).andName("Test").getFirst();
+
+			assertEquals("Invalid result for interleaving transactions, transaction isolation violated.", "key1.value after thread1", node1.getProperty(key1));
+			assertEquals("Invalid result for interleaving transactions, transaction isolation violated.", "key2.value after thread2", node1.getProperty(key2));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
 	}
 
 	// ----- nested classes -----

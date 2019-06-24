@@ -93,7 +93,9 @@ class SessionTransaction implements org.structr.api.Transaction {
 		if (!success) {
 
 			for (final EntityWrapper entity : accessedEntities) {
+
 				entity.rollback(transactionId);
+				entity.removeFromCache();
 			}
 
 			for (final EntityWrapper entity : modifiedEntities) {
@@ -102,8 +104,8 @@ class SessionTransaction implements org.structr.api.Transaction {
 
 		} else {
 
-			NodeWrapper.expunge(deletedNodes);
 			RelationshipWrapper.expunge(deletedRels);
+			NodeWrapper.expunge(deletedNodes);
 
 			for (final EntityWrapper entity : accessedEntities) {
 				entity.commit(transactionId);

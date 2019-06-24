@@ -22,11 +22,13 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import jdk.nashorn.api.scripting.ScriptUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +61,7 @@ public class StructrScriptable extends ScriptableObject {
 	private static final Logger logger = LoggerFactory.getLogger(StructrScriptable.class.getName());
 	private static final Object[] IDs  = { "id", "type" };
 
+	protected Set<String> namespace           = new LinkedHashSet<>();
 	protected ActionContext actionContext     = null;
 	protected FrameworkException exception    = null;
 	protected GraphObject entity              = null;
@@ -310,10 +313,16 @@ public class StructrScriptable extends ScriptableObject {
 		}
 
 		// execute builtin function?
-		final Function<Object, Object> function = Functions.get(CaseHelper.toUnderscore(name, false));
+		final Function<Object, Object> function = getNamespacedFunction(name);
 		if (function != null) {
 
-			return new IdFunctionObject(new FunctionWrapper(function), null, 0, 0);
+			final String namespaceIdentifier = function.getNamespaceIdentifier();
+			if (namespaceIdentifier != null) {
+
+				namespace.add(name);
+			}
+
+			return new IdFunctionObject(new FunctionWrapper(function), "Function", 0, 0);
 		}
 
 		return null;
@@ -331,8 +340,16 @@ public class StructrScriptable extends ScriptableObject {
 		exception = null;
 	}
 
+	public IdFunctionObject wrapFunction(final Function<Object, Object> function) {
+		return new IdFunctionObject(new FunctionWrapper(function), "Function", 0, 0);
+	}
+
 	// ----- private methods -----
 	private Object wrap(final Context context, final Scriptable scope, final String key, final Object value) {
+
+		if (value instanceof NativeObject /* || value instanceof NativeArray*/ ) {
+			return value;
+		}
 
 		if (value instanceof Iterable) {
 			return new StructrArray(scope, key, wrapIterable(context, scope, key, (Iterable)value));
@@ -357,11 +374,6 @@ public class StructrScriptable extends ScriptableObject {
 		if (value != null && value.getClass().isEnum()) {
 
 			return ((Enum)value).name();
-		}
-
-		if (value instanceof NativeObject) {
-
-			return (NativeObject)value;
 		}
 
 		if (value instanceof Map && !(value instanceof PropertyMap)) {
@@ -397,7 +409,11 @@ public class StructrScriptable extends ScriptableObject {
 
 		if (source != null) {
 
-			if (source instanceof Wrapper) {
+			if (source instanceof ConsString) {
+
+				return source.toString();
+
+			} else if (source instanceof Wrapper) {
 
 				return unwrap(((Wrapper)source).unwrap());
 
@@ -436,6 +452,30 @@ public class StructrScriptable extends ScriptableObject {
 		return source;
 	}
 
+	private String getNamespacedKeyword(final String keyword) {
+
+		final StringBuilder buf = new StringBuilder(StringUtils.join(namespace, "."));
+
+		if (buf.length() > 0) {
+			buf.append(".");
+		}
+
+		buf.append(keyword);
+
+		return buf.toString();
+	}
+
+	private Function<Object, Object> getNamespacedFunction(final String word) {
+
+		final Function<Object, Object> function = Functions.get(getNamespacedKeyword(CaseHelper.toUnderscore(word, false)));
+		if (function != null) {
+
+			return function;
+		}
+
+		return Functions.get(word);
+	}
+
 	// ----- nested classes -----
 	public class FunctionWrapper implements IdFunctionCall {
 
@@ -458,7 +498,14 @@ public class StructrScriptable extends ScriptableObject {
 					unwrappedParameters[i++] = unwrap(param);
 				}
 
-				return wrap(context, scope, null, function.apply(actionContext, entity, unwrappedParameters));
+				final Object value = function.apply(actionContext, entity, unwrappedParameters);
+
+				// remove namespace identifier
+				if (function.getNamespaceIdentifier() != null) {
+					namespace.remove(function.getNamespaceIdentifier());
+				}
+
+				return wrap(context, scope, null, value);
 
 			} catch (final UnlicensedScriptException uex) {
 				uex.log(logger);
@@ -556,7 +603,7 @@ public class StructrScriptable extends ScriptableObject {
 		}
 	}
 
-	public class GraphObjectWrapper implements Scriptable, Wrapper {
+	public class GraphObjectWrapper extends ScriptableObject implements Wrapper {
 
 		private Context context      = null;
 		private Scriptable prototype = null;
@@ -564,6 +611,10 @@ public class StructrScriptable extends ScriptableObject {
 		private GraphObject obj      = null;
 
 		public GraphObjectWrapper(final Context context, final Scriptable scope, final GraphObject obj) {
+
+			super(scope, null);
+
+			ScriptRuntime.setBuiltinProtoAndParent(this, scope, TopLevel.Builtins.Object);
 
 			this.context = context;
 			this.scope = scope;
@@ -601,26 +652,8 @@ public class StructrScriptable extends ScriptableObject {
 			final Method method = StructrApp.getConfiguration().getAnnotatedMethods(obj.getClass(), Export.class).get(name);
 			if (method != null) {
 
-				return new NativeJavaMethod(method, name) {
-
-					@Override
-					public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
-
-						if (method.getParameterCount() == 0) {
-
-							return wrap(context, this, null, super.call(cx, scope, thisObj, new Object[]{}));
-						} else if (args.length == 0) {
-
-							return wrap(context, this, null, super.call(cx, scope, thisObj, new Object[]{ new NativeObject() }));
-						} else {
-
-							return wrap(context, this, null, super.call(cx, scope, thisObj, args));
-						}
-
-					}
-				};
+				return new MethodWrapper(s, method, name);
 			}
-
 
 			// default: direct evaluation of object
 			try {
@@ -1023,6 +1056,37 @@ public class StructrScriptable extends ScriptableObject {
 		@Override
 		public Set entrySet() {
 			return map.entrySet();
+		}
+	}
+
+	public class MethodWrapper extends NativeJavaMethod {
+
+		private int parameterCount = 0;
+
+		public MethodWrapper(final Scriptable scope, final Method method, final String name) {
+
+			super(method, name);
+
+			ScriptRuntime.setBuiltinProtoAndParent(this, scope, TopLevel.Builtins.Function);
+
+			this.parameterCount = method.getParameterCount();
+		}
+
+		@Override
+		public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
+
+			if (parameterCount == 0) {
+
+				return wrap(cx, this, null, super.call(cx, scope, thisObj, new Object[]{}));
+
+			} else if (args.length == 0) {
+
+				return wrap(cx, this, null, super.call(cx, scope, thisObj, new Object[]{ new NativeObject() }));
+
+			} else {
+
+				return wrap(cx, this, null, super.call(cx, scope, thisObj, args));
+			}
 		}
 	}
 

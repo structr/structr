@@ -79,7 +79,7 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public T getProperty(final SecurityContext securityContext, final GraphObject target, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		try {
 
@@ -87,28 +87,34 @@ public class FunctionProperty<T> extends Property<T> {
 				return null;
 			}
 
+			final GraphObject obj     = PropertyMap.unwrap(target);
 			final String readFunction = getReadFunction();
-			if (obj != null && readFunction != null) {
 
-				if (cachingEnabled) {
+			if (obj != null) {
 
-					Object cachedValue = securityContext.getContextStore().retrieveFunctionPropertyResult(obj.getUuid(), jsonName);
+				// ignore empty read function, don't log error message (it's not an error)
+				if (readFunction != null) {
 
-					if (cachedValue != null) {
-						return (T) cachedValue;
+					if (cachingEnabled) {
+
+						Object cachedValue = securityContext.getContextStore().retrieveFunctionPropertyResult(obj.getUuid(), jsonName);
+
+						if (cachedValue != null) {
+							return (T) cachedValue;
+						}
 					}
+
+					final ActionContext actionContext = new ActionContext(securityContext);
+
+					// don't ignore predicate
+					actionContext.setPredicate(predicate);
+
+					Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction).concat("}"), "getProperty(" + jsonName + ")");
+
+					securityContext.getContextStore().storeFunctionPropertyResult(obj.getUuid(), jsonName, result);
+
+					return (T)result;
 				}
-
-				final ActionContext actionContext = new ActionContext(securityContext);
-
-				// don't ignore predicate
-				actionContext.setPredicate(predicate);
-
-				Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction).concat("}"), "getProperty(" + jsonName + ")");
-
-				securityContext.getContextStore().storeFunctionPropertyResult(obj.getUuid(), jsonName, result);
-
-				return (T)result;
 
 			} else {
 

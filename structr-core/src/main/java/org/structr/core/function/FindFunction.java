@@ -18,16 +18,11 @@
  */
 package org.structr.core.function;
 
-import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
-import org.structr.core.converter.PropertyConverter;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
@@ -39,6 +34,11 @@ public class FindFunction extends AbstractQueryFunction {
 
 	@Override
 	public String getName() {
+		return "find";
+	}
+
+	@Override
+	public String getNamespaceIdentifier() {
 		return "find";
 	}
 
@@ -88,58 +88,7 @@ public class FindFunction extends AbstractQueryFunction {
 			// apply sorting and pagination by surrounding sort() and slice() expressions
 			applyQueryParameters(securityContext, query);
 
-			// extension for native javascript objects
-			if (sources.length == 2 && sources[1] instanceof Map) {
-
-				query.and(PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]));
-
-			} else if (sources.length == 2) {
-
-				if (sources[1] == null) {
-
-					throw new IllegalArgumentException();
-				}
-
-				// special case: second parameter is a UUID
-				final PropertyKey key = StructrApp.key(type, "id");
-
-				query.and(key, sources[1].toString());
-
-				return query.getFirst();
-
-			} else {
-
-				final int parameter_count = sources.length;
-
-				if (parameter_count % 2 == 0) {
-
-					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_FIND);
-				}
-
-				for (int c = 1; c < parameter_count; c += 2) {
-
-					if (sources[c] == null) {
-						throw new IllegalArgumentException();
-					}
-
-					final PropertyKey key = StructrApp.key(type, sources[c].toString());
-
-					if (key != null) {
-
-						final PropertyConverter inputConverter = key.inputConverter(securityContext);
-						Object value = sources[c + 1];
-
-						if (inputConverter != null) {
-
-							value = inputConverter.convert(value);
-						}
-
-						query.and(key, value);
-					}
-				}
-			}
-
-			return query.getAsList();
+			return handleQuerySources(securityContext, type, query, sources, true);
 
 		} catch (final IllegalArgumentException e) {
 
@@ -148,7 +97,7 @@ public class FindFunction extends AbstractQueryFunction {
 			return usage(ctx.isJavaScriptContext());
 
 		} finally {
-			
+
 			resetQueryParameters(securityContext);
 			securityContext.ignoreResultCount(ignoreResultCount);
 		}

@@ -21,6 +21,7 @@ package org.structr.api;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang.StringUtils;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.RelationshipType;
 
 /**
@@ -30,8 +31,6 @@ public abstract class AbstractDatabaseService implements DatabaseService {
 
 	private static final Map<String, RelationshipType> relTypeCache   = new ConcurrentHashMap<>();
 	private static final long nanoEpoch                               = System.nanoTime();
-
-	protected String tenantId                                         = null;
 
 	@Override
 	public <T> T forName(final Class<T> type, final String name) {
@@ -46,6 +45,14 @@ public abstract class AbstractDatabaseService implements DatabaseService {
 
 	@Override
 	public String getTenantIdentifier() {
+
+		final String tenantId = Settings.TenantIdentifier.getValue();
+
+		if (StringUtils.isBlank(tenantId)) {
+
+			return null;
+		}
+
 		return tenantId;
 	}
 

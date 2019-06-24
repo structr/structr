@@ -21,6 +21,9 @@ package org.structr.test.schema;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.net.URI;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,6 +31,8 @@ import org.apache.commons.lang.StringUtils;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseFeature;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.InvalidSchemaException;
 import org.structr.api.schema.JsonObjectType;
@@ -41,12 +46,17 @@ import org.structr.common.PropertyView;
 import org.structr.test.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SchemaView;
+import org.structr.core.graph.BulkCreateLabelsCommand;
+import org.structr.core.graph.BulkRebuildIndexCommand;
+import org.structr.core.graph.BulkSetUuidCommand;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.Actions;
@@ -823,6 +833,156 @@ public class SchemaTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testInitializationOfNonStructrNodesWithTenantIdentifier() {
+
+		// don't run tests that depend on Cypher being available in the backend
+		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+
+			cleanDatabaseAndSchema();
+
+			final String tenantId = Services.getInstance().getDatabaseService().getTenantIdentifier();
+
+			try (final Tx tx = app.tx()) {
+
+				final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+				schema.addType("PERSON");
+
+				StructrSchema.extendDatabaseSchema(app, schema);
+
+				tx.success();
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				fail("Unexpected exception.");
+			}
+
+			final Class type = StructrApp.getConfiguration().getNodeEntityClass("PERSON");
+
+			try (final Tx tx = app.tx()) {
+
+				app.query("CREATE (p:PERSON:" + tenantId + " { name: \"p1\" } )", new HashMap<>());
+				app.query("CREATE (p:PERSON:" + tenantId + " { name: \"p2\" } )", new HashMap<>());
+				app.query("CREATE (p:PERSON:" + tenantId + " { name: \"p3\" } )", new HashMap<>());
+
+				tx.success();
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				fail("Unexpected exception.");
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				app.command(BulkCreateLabelsCommand.class).execute(Collections.emptyMap());
+				app.command(BulkSetUuidCommand.class).execute(map("allNodes", true));
+				app.command(BulkRebuildIndexCommand.class).execute(Collections.emptyMap());
+
+				tx.success();
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				fail("Unexpected exception.");
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				final List<NodeInterface> nodes = app.nodeQuery(type).getAsList();
+
+				assertEquals("Non-Structr nodes not initialized correctly", 3, nodes.size());
+				assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(0).getType());
+				assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(1).getType());
+				assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(2).getType());
+
+				tx.success();
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				fail("Unexpected exception.");
+			}
+		}
+	}
+
+	@Test
+	public void testInitializationOfNonStructrNodesWithoutTenantIdentifier() {
+
+		// don't run tests that depend on Cypher being available in the backend
+		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+
+			Settings.TenantIdentifier.setValue(null);
+
+			cleanDatabaseAndSchema();
+
+			try (final Tx tx = app.tx()) {
+
+				final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+				schema.addType("PERSON");
+
+				StructrSchema.extendDatabaseSchema(app, schema);
+
+				tx.success();
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				fail("Unexpected exception.");
+			}
+
+			final Class type = StructrApp.getConfiguration().getNodeEntityClass("PERSON");
+
+			try (final Tx tx = app.tx()) {
+
+				app.query("CREATE (p:PERSON { name: \"p1\" } )", new HashMap<>());
+				app.query("CREATE (p:PERSON { name: \"p2\" } )", new HashMap<>());
+				app.query("CREATE (p:PERSON { name: \"p3\" } )", new HashMap<>());
+
+				tx.success();
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				fail("Unexpected exception.");
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				app.command(BulkCreateLabelsCommand.class).execute(Collections.emptyMap());
+				app.command(BulkSetUuidCommand.class).execute(map("allNodes", true));
+				app.command(BulkRebuildIndexCommand.class).execute(Collections.emptyMap());
+
+				tx.success();
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				fail("Unexpected exception.");
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				final List<NodeInterface> nodes = app.nodeQuery(type).getAsList();
+
+				assertEquals("Non-Structr nodes not initialized correctly", 3, nodes.size());
+				assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(0).getType());
+				assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(1).getType());
+				assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(2).getType());
+
+				tx.success();
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				fail("Unexpected exception.");
+			}
+		}
+	}
+
 	// ----- private methods -----
 	private void checkSchemaString(final String source) {
 
@@ -898,5 +1058,14 @@ public class SchemaTest extends StructrTest {
 		final String replaced = replacedSchema.toString();
 
 		assertEquals("Invalid schema replacement result", source, replaced);
+	}
+
+	private Map<String, Object> map(final String key, final Object value) {
+
+		final Map<String, Object> map = new LinkedHashMap<>();
+
+		map.put(key, value);
+
+		return map;
 	}
 }

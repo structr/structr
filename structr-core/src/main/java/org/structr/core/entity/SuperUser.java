@@ -58,13 +58,25 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	public void grant(Permission permission, Principal obj) {}
 
 	@Override
-	public void grant(Permission permission, Principal obj, SecurityContext ctx) {}
+	public void grant(final Set<Permission> permissions, final Principal principal) {};
+
+	@Override
+	public void grant(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) {}
 
 	@Override
 	public void revoke(Permission permission, Principal obj) {}
 
 	@Override
-	public void revoke(Permission permission, Principal obj, SecurityContext ctx) {}
+	public void revoke(final Set<Permission> permissions, final Principal principal) {}
+
+	@Override
+	public void revoke(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) {}
+
+	@Override
+	public void setAllowed(final Set<Permission> permissions, final Principal principal) throws FrameworkException {}
+
+	@Override
+	public void setAllowed(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) {}
 
 	@Override
 	public void unlockSystemPropertiesOnce() {}
@@ -369,7 +381,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public void addSessionId(String sessionId) {
+	public boolean addSessionId(String sessionId) {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
@@ -509,6 +521,11 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	@Override
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(Class<R> type) {
+		return null;
+	}
+
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationshipAsSuperUser(Class<R> type) {
 		return null;
 	}
 

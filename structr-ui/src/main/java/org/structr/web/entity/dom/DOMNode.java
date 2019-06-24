@@ -1155,7 +1155,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			instructions.add("@structr:content(" + escapeForHtmlAttributes(_contentType) + ")");
 		}
 
-		if (thisNode.getType().equals("Content")) {
+		if (!thisNode.getType().equals("Template")) {
 
 			final String _name = thisNode.getProperty(AbstractNode.name);
 			if (StringUtils.isNotEmpty(_name)) {
@@ -1163,18 +1163,29 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 				instructions.add("@structr:name(" + escapeForHtmlAttributes(_name) + ")");
 			}
 
-		}
+			final String _showConditions = thisNode.getShowConditions();
+			if (StringUtils.isNotEmpty(_showConditions)) {
 
-		final String _showConditions = thisNode.getShowConditions();
-		if (StringUtils.isNotEmpty(_showConditions)) {
+				instructions.add("@structr:show(" + escapeForHtmlAttributes(_showConditions) + ")");
+			}
 
-			instructions.add("@structr:show(" + escapeForHtmlAttributes(_showConditions) + ")");
-		}
+			final String _hideConditions = thisNode.getHideConditions();
+			if (StringUtils.isNotEmpty(_hideConditions)) {
 
-		final String _hideConditions = thisNode.getHideConditions();
-		if (StringUtils.isNotEmpty(_hideConditions)) {
+				instructions.add("@structr:hide(" + escapeForHtmlAttributes(_hideConditions) + ")");
+			}
 
-			instructions.add("@structr:hide(" + escapeForHtmlAttributes(_hideConditions) + ")");
+			final String _showForLocales = thisNode.getProperty(StructrApp.key(DOMNode.class, "showForLocales"));
+			if (StringUtils.isNotEmpty(_showForLocales)) {
+
+				instructions.add("@structr:show-for-locales(" + escapeForHtmlAttributes(_showForLocales) + ")");
+			}
+
+			final String _hideForLocales = thisNode.getProperty(StructrApp.key(DOMNode.class, "hideForLocales"));
+			if (StringUtils.isNotEmpty(_hideForLocales)) {
+
+				instructions.add("@structr:hide-for-locales(" + escapeForHtmlAttributes(_hideForLocales) + ")");
+			}
 		}
 	}
 

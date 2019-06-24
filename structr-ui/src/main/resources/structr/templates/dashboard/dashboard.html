@@ -45,8 +45,9 @@
 		<div class="tab-content" id="dash-about-structr">
 
 			<table class="props">
-
+				<tr><td class="key">Version</td><td>${config.envInfo.version} ${config.envInfo.build} ${config.envInfo.date} (${(config.envInfo.newReleaseAvailable ? 'newer release available: ' +  config.envInfo.newReleaseAvailable : 'no new release available')} | ${(config.envInfo.newSnapshotAvailable ? 'newer snapshot available: ' +  config.envInfo.newSnapshotAvailable : 'no new snapshot available')})</td></tr>
 				<tr><td class="key">Edition</td><td><i title="Structr ${config.envInfo.edition} Edition" class="${_Icons.getFullSpriteClass(_Icons.getIconForEdition(config.envInfo.edition))}"></i> (Structr ${config.envInfo.edition} Edition)</td></tr>
+				<tr><td class="key">Modules</td><td>${Object.keys(config.envInfo.modules).join(', ')}</td></tr>
 				<tr><td class="key">Licensee</td><td>${config.envInfo.licensee || 'Unlicensed'}</td></tr>
 				<tr><td class="key">Host ID</td><td>${config.envInfo.hostId || ''}</td></tr>
 				<tr><td class="key">License Start Date</td><td>${config.envInfo.startDate || '-'}</td></tr>
@@ -82,6 +83,32 @@
 		</div>
 
 		<div class="tab-content" id="dash-server-log">
+
+			<div id="dash-server-log-controls">
+
+				<label>Refresh Interval:</label>
+				<select id="dash-server-log-refresh-interval">
+					<option value="10000">10s</option>
+					<option value="5000">5s</option>
+					<option value="2000">2s</option>
+					<option value="1000">1s</option>
+					<option value="-1">off</option>
+				</select>
+
+				<span class="dash-spacer"></span>
+
+				<label>Number of lines: </label>
+				<input id="dash-server-log-lines" type="number">
+
+				<span class="dash-spacer"></span>
+
+				<button id="dash-server-log-copy" class="action">Copy</button>
+
+				<span class="dash-spacer"></span>
+
+				<span id="dash-server-log-feedback"></span>
+			</div>
+
 			<textarea readonly="readonly" rows=25></textarea>
 		</div>
 
@@ -170,10 +197,24 @@
 			height: calc(100% - 34px);
 		}
 
+		#dash-server-log-controls {
+			height: 30px;
+		}
+
+		#dash-server-log-lines {
+			width: 64px;
+		}
+
 		#dash-server-log textarea {
-			height: 100%;
+			height: calc(100% - 30px);
 			width: 100%;
 			resize: none;
+			font-family: monospace ! important;
+		}
+
+		#dash-server-log .dash-spacer {
+			display: inline-block;
+			width: 30px;
 		}
 	</style>
 </div>

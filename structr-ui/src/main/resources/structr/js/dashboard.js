@@ -24,6 +24,9 @@ var _Dashboard = {
 	_moduleName: 'dashboard',
 	dashboard: undefined,
 	logInterval: undefined,
+	activeTabPrefixKey: 'activeDashboardTabPrefix' + port,
+	logRefreshTimeIntervalKey: 'dashboardLogRefreshTimeInterval' + port,
+	logLinesKey: 'dashboardNumberOfLines' + port,
 
 	init: function () {},
 	unload: function () {
@@ -34,14 +37,23 @@ var _Dashboard = {
 			el.classList.remove('active');
 		});
 	},
-	onload: function () {
+	activateLastActiveTab: function() {
+		let tabId = LSWrapper.getItem(_Dashboard.activeTabPrefixKey);
+		if (tabId) {
+			let tab = document.querySelector('#dashboard .tabs-menu li a[href="' + tabId + '"]');
+			tab.click();
+		}
+	},
+	onload: function() {
 
 		_Dashboard.init();
 		Structr.updateMainHelpLink('https://support.structr.com/article/202');
 
 		let templateConfig = {};
 
-		fetch(rootUrl + '/_env').then(function (response) {
+		fetch(rootUrl + '_env', {
+			credentials: 'same-origin'
+		}).then(function(response) {
 
 			return response.json();
 
@@ -49,7 +61,25 @@ var _Dashboard = {
 
 			templateConfig.envInfo = data.result;
 
-			if (templateConfig.envInfo.startDate) {
+			templateConfig.envInfo.version = (data.result.components['structr'] || data.result.components['structr-ui']).version;
+			templateConfig.envInfo.build   = (data.result.components['structr'] || data.result.components['structr-ui']).build;
+			templateConfig.envInfo.date    = (data.result.components['structr'] || data.result.components['structr-ui']).date;
+
+			// Search for newer releases and store latest version
+			data.result.availableReleases.forEach(function(version) {
+				if (version > templateConfig.envInfo.version) {
+					templateConfig.envInfo.newReleaseAvailable = version;
+				}
+			});
+
+			// Search for newer snapshots and store latest version
+			data.result.availableSnapshots.forEach(function(version) {
+				if (version > templateConfig.envInfo.version) {
+					templateConfig.envInfo.newSnapshotAvailable = version;
+				}
+			});
+
+		if (templateConfig.envInfo.startDate) {
 				templateConfig.envInfo.startDate = _Dashboard.dateToIsoString(templateConfig.envInfo.startDate);
 			}
 
@@ -57,7 +87,9 @@ var _Dashboard = {
 				templateConfig.envInfo.endDate = _Dashboard.dateToIsoString(templateConfig.envInfo.endDate);
 			}
 
-			return fetch(rootUrl + '/me/ui');
+			return fetch(rootUrl + 'me/ui', {
+				credentials: 'same-origin'
+			});
 
 		}).then(function (response) {
 
@@ -83,6 +115,7 @@ var _Dashboard = {
 
 						e.target.closest('li').classList.add('active');
 						document.querySelector(targetId).classList.add('active');
+						LSWrapper.setItem(_Dashboard.activeTabPrefixKey, targetId);
 					});
 				});
 
@@ -111,7 +144,7 @@ var _Dashboard = {
 				});
 
 				_Dashboard.activateLogBox();
-
+				_Dashboard.activateLastActiveTab();
 				_Dashboard.appendGlobalSchemaMethods($('#dash-global-schema-methods'));
 				_Dashboard.appendDatabaseSelectionBox();
 
@@ -228,7 +261,7 @@ var _Dashboard = {
 
 		}
 	},
-	appendGlobalSchemaMethods: function (container) {
+	appendGlobalSchemaMethods: function(container) {
 
 		var maintenanceList = $('<div></div>').appendTo(container);
 

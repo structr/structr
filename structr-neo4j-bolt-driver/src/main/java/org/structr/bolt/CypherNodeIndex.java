@@ -26,28 +26,20 @@ import org.structr.api.util.Iterables;
  */
 class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
-	private String tenantIdentifier = null;
-
 	public CypherNodeIndex(final BoltDatabaseService db) {
-		this(db, null);
-	}
-
-	public CypherNodeIndex(final BoltDatabaseService db, final String tenantIdentifier) {
-
 		super(db);
-
-		this.tenantIdentifier = tenantIdentifier;
 	}
 
 	@Override
 	public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel) {
 
 		final StringBuilder buf = new StringBuilder("MATCH (n:NodeInterface");
+		final String tenantId   = db.getTenantIdentifier();
 
-		if (tenantIdentifier != null) {
+		if (tenantId != null) {
 
 			buf.append(":");
-			buf.append(tenantIdentifier);
+			buf.append(tenantId);
 		}
 
 		if (typeLabel != null) {

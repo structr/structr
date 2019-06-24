@@ -89,13 +89,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			serviceName = name;
 		}
 
-		this.databasePath             = Settings.DatabasePath.getPrefixedValue(serviceName);
-		this.tenantId                 = Settings.TenantIdentifier.getPrefixedValue(serviceName);
-
-		if (StringUtils.isBlank(this.tenantId)) {
-			this.tenantId = null;
-		}
-
+		this.databasePath        = Settings.DatabasePath.getPrefixedValue(serviceName);
 		databaseUrl              = Settings.ConnectionUrl.getPrefixedValue(serviceName);
 		final String username    = Settings.ConnectionUser.getPrefixedValue(serviceName);
 		final String password    = Settings.ConnectionPassword.getPrefixedValue(serviceName);
@@ -188,6 +182,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 		final StringBuilder buf       = new StringBuilder("CREATE (n");
 		final Map<String, Object> map = new HashMap<>();
+		final String tenantId         = getTenantIdentifier();
 
 		if (tenantId != null) {
 
@@ -218,6 +213,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 		final Map<String, Object> parameters = new HashMap<>();
 		final StringBuilder buf              = new StringBuilder();
+		final String tenantId         = getTenantIdentifier();
 
 		buf.append("MATCH (u:NodeInterface:Principal");
 
@@ -295,6 +291,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	public Iterable<Node> getAllNodes() {
 
 		final StringBuilder buf = new StringBuilder();
+		final String tenantId   = getTenantIdentifier();
 
 		buf.append("MATCH (n");
 
@@ -316,6 +313,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		final StringBuilder buf = new StringBuilder();
+		final String tenantId   = getTenantIdentifier();
 
 		buf.append("MATCH (n");
 
@@ -339,6 +337,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		final StringBuilder buf = new StringBuilder();
+		final String tenantId   = getTenantIdentifier();
 
 		buf.append("MATCH (n");
 
@@ -360,6 +359,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	public void deleteNodesByLabel(final String label) {
 
 		final StringBuilder buf = new StringBuilder();
+		final String tenantId   = getTenantIdentifier();
 
 		buf.append("MATCH (n");
 
@@ -379,6 +379,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	public Iterable<Relationship> getAllRelationships() {
 
 		final StringBuilder buf = new StringBuilder();
+		final String tenantId   = getTenantIdentifier();
 
 		buf.append("MATCH (");
 
@@ -407,6 +408,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		final StringBuilder buf = new StringBuilder();
+		final String tenantId   = getTenantIdentifier();
 
 		buf.append("MATCH (");
 
@@ -438,7 +440,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	public Index<Node> nodeIndex() {
 
 		if (nodeIndex == null) {
-			nodeIndex = new CypherNodeIndex(this, tenantId);
+			nodeIndex = new CypherNodeIndex(this);
 		}
 
 		return nodeIndex;
@@ -640,7 +642,16 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 	@Override
 	public void cleanDatabase() {
-		execute("MATCH (n:" + tenantId + ") DETACH DELETE n", Collections.emptyMap());
+
+		final String tenantId = getTenantIdentifier();
+		if (tenantId != null) {
+
+			execute("MATCH (n:" + tenantId + ") DETACH DELETE n", Collections.emptyMap());
+
+		} else {
+
+			execute("MATCH (n) DETACH DELETE n", Collections.emptyMap());
+		}
 	}
 
 	public SessionTransaction getCurrentTransaction() {
@@ -736,9 +747,10 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	@Override
 	public CountResult getNodeAndRelationshipCount() {
 
-		final String part    = tenantId != null ? ":" + tenantId : "";
-		final long nodeCount = getCount("MATCH (n" + part + ":NodeInterface) RETURN COUNT(n) AS count", "count");
-		final long relCount  = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN count(r) AS count", "count");
+		final String tenantId = getTenantIdentifier();
+		final String part     = tenantId != null ? ":" + tenantId : "";
+		final long nodeCount  = getCount("MATCH (n" + part + ":NodeInterface) RETURN COUNT(n) AS count", "count");
+		final long relCount   = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN count(r) AS count", "count");
 
 		return new CountResult(nodeCount, relCount);
 	}
