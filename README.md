@@ -1,4 +1,5 @@
 [![Build Status](http://ci.structr.org:59398/job/Structr/badge/icon)](http://ci.structr.org:59398/job/Structr)
+[![Hits-of-Code](https://hitsofcode.com/github/structr/structr)](https://hitsofcode.com/view/github/structr/structr)
 
 # What is Structr?
 
