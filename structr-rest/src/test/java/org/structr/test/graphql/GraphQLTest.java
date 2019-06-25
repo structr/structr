@@ -1427,31 +1427,35 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final PropertyKey testInt     = StructrApp.getConfiguration().getPropertyKeyForJSONName(projectType, "testInt");
 
 			app.create(projectType,
-				new NodeAttribute<>(testBoolean, true),
-				new NodeAttribute<>(testDouble,  252.52),
-				new NodeAttribute<>(testLong,    234532L),
-				new NodeAttribute<>(testInt,     4563332)
+				new NodeAttribute<>(AbstractNode.name, "Project1"),
+				new NodeAttribute<>(testBoolean,       true),
+				new NodeAttribute<>(testDouble,        252.52),
+				new NodeAttribute<>(testLong,          234532L),
+				new NodeAttribute<>(testInt,           4563332)
 			);
 
 			app.create(projectType,
-				new NodeAttribute<>(testBoolean, false),
-				new NodeAttribute<>(testDouble,  124.52),
-				new NodeAttribute<>(testLong,    563L),
-				new NodeAttribute<>(testInt,     2345)
+				new NodeAttribute<>(AbstractNode.name, "Project2"),
+				new NodeAttribute<>(testBoolean,       false),
+				new NodeAttribute<>(testDouble,        124.52),
+				new NodeAttribute<>(testLong,          563L),
+				new NodeAttribute<>(testInt,           2345)
 			);
 
 			app.create(projectType,
-				new NodeAttribute<>(testBoolean, true),
-				new NodeAttribute<>(testDouble,  323.22),
-				new NodeAttribute<>(testLong,    22L),
-				new NodeAttribute<>(testInt,     452)
+				new NodeAttribute<>(AbstractNode.name, "Project3"),
+				new NodeAttribute<>(testBoolean,       true),
+				new NodeAttribute<>(testDouble,        323.22),
+				new NodeAttribute<>(testLong,          22L),
+				new NodeAttribute<>(testInt,           452)
 			);
 
 			app.create(projectType,
-				new NodeAttribute<>(testBoolean, false),
-				new NodeAttribute<>(testDouble,  334.32),
-				new NodeAttribute<>(testLong,    5L),
-				new NodeAttribute<>(testInt,     235)
+				new NodeAttribute<>(AbstractNode.name, "Project4"),
+				new NodeAttribute<>(testBoolean,       false),
+				new NodeAttribute<>(testDouble,        334.32),
+				new NodeAttribute<>(testLong,          5L),
+				new NodeAttribute<>(testInt,           235)
 			);
 
 			tx.success();
