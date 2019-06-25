@@ -362,6 +362,36 @@ public class ActionContext {
 		return value;
 	}
 
+	public String getRequestInfoForVerboseJavaScriptExceptionLog() {
+
+		final HttpServletRequest request = securityContext.getRequest();
+
+		if (request != null) {
+
+			final StringBuilder sb = new StringBuilder("Path = ");
+			sb.append(request.getPathInfo());
+
+			final String qs = request.getQueryString();
+			final Map pm    = request.getParameterMap();
+
+			if (qs != null) {
+
+				sb.append("?");
+				sb.append(qs);
+			}
+
+			if (!pm.isEmpty()) {
+
+				sb.append(" –– Parameter Map = ");
+				sb.append(pm.toString());
+			}
+
+			return sb.toString();
+		}
+
+		return null;
+	}
+
 	public static String getBaseUrl () {
 		return getBaseUrl(null);
 	}
