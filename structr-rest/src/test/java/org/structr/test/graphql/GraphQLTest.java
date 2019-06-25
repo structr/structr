@@ -2555,13 +2555,13 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			baseType.addBooleanProperty("isChecked").setIndexed(true);
 
-			project.relate(task, "TASK",  Relation.Cardinality.OneToMany, "project",   "tasks");
+			project.relate(task, "TASK",  Cardinality.OneToMany, "project",   "tasks");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 

@@ -47,7 +47,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.memory.MemoryDatabaseService;
 import org.structr.schema.SchemaService;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -63,10 +62,10 @@ public class StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrTest.class.getName());
 
-	protected static SecurityContext securityContext = null;
-	protected static String basePath                 = null;
-	protected static App app                         = null;
-	protected static String randomTenantId           = RandomStringUtils.randomAlphabetic(10).toUpperCase();
+	protected static SecurityContext securityContext   = null;
+	protected static String basePath                   = null;
+	protected static App app                           = null;
+	protected static String randomTenantId             = RandomStringUtils.randomAlphabetic(10).toUpperCase();
 
 	@BeforeMethod
 	protected void starting(Method method) {
@@ -363,7 +362,7 @@ public class StructrTest {
 	protected void setupDatabaseConnection() {
 
 		// use database driver from system property, default to MemoryDatabaseService
-		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", MemoryDatabaseService.class.getName()));
+		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
 		Settings.DatabaseDriverMode.setValue("remote");
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");

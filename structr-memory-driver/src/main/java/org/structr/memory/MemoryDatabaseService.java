@@ -105,11 +105,18 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 	public Node createNode(final String type, final Set<String> labels, final Map<String, Object> properties) {
 
 		final MemoryTransaction tx = getCurrentTransaction();
-		final MemoryIdentity id   = new MemoryIdentity(type);
-		final MemoryNode newNode  = new MemoryNode(this, id);
+		final MemoryIdentity id    = new MemoryIdentity(type);
+		final MemoryNode newNode   = new MemoryNode(this, id);
+		final String tenantId      = getTenantIdentifier();
 
 		// base type is always a label
 		newNode.addLabel(type, false);
+
+		// add tenant identifier here
+		if (tenantId != null) {
+
+			newNode.addLabel(tenantId, false);
+		}
 
 		// add labels
 		if (labels != null) {

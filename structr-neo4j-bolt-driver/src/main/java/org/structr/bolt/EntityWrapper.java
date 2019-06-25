@@ -36,8 +36,6 @@ import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Cachable;
 import org.structr.api.util.ChangeAwareMap;
-import org.structr.bolt.BoltDatabaseService;
-import org.structr.bolt.SessionTransaction;
 
 
 abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cachable {
@@ -248,6 +246,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 		return deleted;
 	}
 
+	@Override
 	public boolean isStale() {
 		return this.stale;
 	}

@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
@@ -755,7 +756,7 @@ public class CypherTest extends StructrTest {
 			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN nodes(path), relationships(path)", "[[[\"Project\",\"Task\"],[\"has\"]],[[\"Project\",\"Task\"],[\"has\"]]]");
 			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN n, r, m",                          "[[\"Project\",\"has\",\"Task\"],[\"Project\",\"has\",\"Task\"]]");
 			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN n, m",                             "[[\"Project\",\"Task\"],[\"Project\",\"Task\"]]");
-			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN { n: n, r: r }",                   "[{\"r\":\"has\",\"n\":\"Project\"},{\"r\":\"has\",\"n\":\"Project\"}]");
+			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN { n: n, r: r }",                   "[{\"n\":\"Project\",\"r\":\"has\"},{\"n\":\"Project\",\"r\":\"has\"}]");
 			tests.put("MATCH (true) RETURN { a: 1, b: 2, c: 3 } LIMIT 1",                                                                             "[{\"a\":1,\"b\":2,\"c\":3}]");
 
 			try (final Tx tx = app.tx()) {
@@ -806,7 +807,7 @@ public class CypherTest extends StructrTest {
 
 		if (src instanceof Map) {
 
-			final Map map = new LinkedHashMap<>();
+			final Map map = new TreeMap<>();
 
 			for (final Entry<String, Object> entry : ((Map<String, Object>)src).entrySet()) {
 

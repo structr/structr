@@ -51,7 +51,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.memory.MemoryDatabaseService;
 import org.structr.schema.SchemaService;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
@@ -620,7 +619,7 @@ public abstract class StructrUiTest {
 	protected void setupDatabaseConnection() {
 
 		// use database driver from system property, default to MemoryDatabaseService
-		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", MemoryDatabaseService.class.getName()));
+		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
 		Settings.DatabaseDriverMode.setValue("remote");
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");

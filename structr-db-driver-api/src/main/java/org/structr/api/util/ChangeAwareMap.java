@@ -79,4 +79,12 @@ public class ChangeAwareMap {
 	public Object remove(final String key) {
 		return data.remove(key);
 	}
+
+	public int size() {
+		return data.size();
+	}
+
+	public Set<Entry<String, Object>> entrySet() {
+		return data.entrySet();
+	}
 }

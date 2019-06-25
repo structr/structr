@@ -39,6 +39,8 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class Settings {
 
+	public static final String DEFAULT_DATABASE_DRIVER        = "org.structr.bolt.BoltDatabaseService";
+
 	private static final Map<String, Setting> settings        = new LinkedHashMap<>();
 	private static final Map<String, SettingsGroup> groups    = new LinkedHashMap<>();
 

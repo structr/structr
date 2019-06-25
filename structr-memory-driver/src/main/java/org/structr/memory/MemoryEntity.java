@@ -30,17 +30,18 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.structr.api.NotFoundException;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
+import org.structr.api.util.ChangeAwareMap;
 
 /**
  */
 public abstract class MemoryEntity implements PropertyContainer {
 
-	private final Map<Long, Map<String, Object>> txData = new LinkedHashMap<>();
-	private final Map<String, Object> data              = new LinkedHashMap<>();
-	private final Set<String> labels                    = new LinkedHashSet<>();
-	private ReentrantLock lock                          = new ReentrantLock();
-	protected MemoryDatabaseService db                  = null;
-	private MemoryIdentity id                           = null;
+	private final Map<Long, ChangeAwareMap> txData = new LinkedHashMap<>();
+	private final ChangeAwareMap data              = new ChangeAwareMap();
+	private final Set<String> labels               = new LinkedHashSet<>();
+	private ReentrantLock lock                     = new ReentrantLock();
+	protected MemoryDatabaseService db             = null;
+	private MemoryIdentity id                      = null;
 
 	protected MemoryEntity(final MemoryDatabaseService db) {
 		this.db = db;
@@ -159,14 +160,12 @@ public abstract class MemoryEntity implements PropertyContainer {
 	// ----- package-private methods -----
 	void commit(final long transactionId) {
 
-		final Map<String, Object> changes = txData.get(transactionId);
+		final ChangeAwareMap changes = txData.get(transactionId);
 		if (changes != null) {
 
-			for (final Entry<String, Object> entry : changes.entrySet()) {
+			for (final String key : changes.getModifiedKeys()) {
 
-				final String key   = entry.getKey();
-				final Object value = entry.getValue();
-
+				final Object value = changes.get(key);
 				if (value != null) {
 
 					data.put(key, value);
@@ -258,7 +257,7 @@ public abstract class MemoryEntity implements PropertyContainer {
 
 
 	// ----- private methods -----
-	private Map<String, Object> getData(final boolean read) {
+	private ChangeAwareMap getData(final boolean read) {
 
 		// read-only access does not need a transaction
 		final MemoryTransaction tx = db.getCurrentTransaction(!read);
@@ -268,11 +267,11 @@ public abstract class MemoryEntity implements PropertyContainer {
 				throw new NotFoundException("Entity with ID " + id + " not found.");
 			}
 
-			final long transactionId   = tx.getTransactionId();
-			Map<String, Object> copy   = txData.get(transactionId);
+			final long transactionId = tx.getTransactionId();
+			ChangeAwareMap copy      = txData.get(transactionId);
 			if (copy == null) {
 
-				copy = new LinkedHashMap<>(data);
+				copy = new ChangeAwareMap(data);
 				txData.put(transactionId, copy);
 
 				tx.modify(this);

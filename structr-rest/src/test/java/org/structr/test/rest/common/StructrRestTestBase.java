@@ -45,7 +45,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.memory.MemoryDatabaseService;
 import org.structr.rest.DefaultResourceProvider;
 import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
@@ -206,7 +205,7 @@ public abstract class StructrRestTestBase {
 	protected void setupDatabaseConnection() {
 
 		// use database driver from system property, default to MemoryDatabaseService
-		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", MemoryDatabaseService.class.getName()));
+		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
 		Settings.DatabaseDriverMode.setValue("remote");
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");
