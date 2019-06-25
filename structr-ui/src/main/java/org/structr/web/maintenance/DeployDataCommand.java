@@ -495,7 +495,7 @@ public class DeployDataCommand extends DeployCommand {
 			final Map propInfo        = propertyInfo.toMap();
 			final String propertyName = (String) propInfo.get("jsonName");
 
-			if (propInfo.get("relatedType") != null) {
+			if (propInfo.get("relatedType") != null && !propInfo.get("className").equals("org.structr.core.property.EntityNotionProperty")) {
 
 				if (Boolean.TRUE.equals(propInfo.get("isCollection"))) {
 
