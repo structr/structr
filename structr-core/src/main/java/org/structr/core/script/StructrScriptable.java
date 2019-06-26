@@ -1075,17 +1075,19 @@ public class StructrScriptable extends ScriptableObject {
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
 
+			final SecurityContext securityContext = StructrScriptable.this.actionContext.getSecurityContext();
+
 			if (parameterCount == 0) {
 
-				return wrap(cx, this, null, super.call(cx, scope, thisObj, new Object[]{}));
+				return wrap(cx, this, null, super.call(cx, scope, thisObj, new Object[]{ securityContext, new NativeObject() }));
 
 			} else if (args.length == 0) {
 
-				return wrap(cx, this, null, super.call(cx, scope, thisObj, new Object[]{ new NativeObject() }));
+				return wrap(cx, this, null, super.call(cx, scope, thisObj, new Object[]{ securityContext, new NativeObject() }));
 
 			} else {
 
-				return wrap(cx, this, null, super.call(cx, scope, thisObj, args));
+				return wrap(cx, this, null, super.call(cx, scope, thisObj, new Object[]{ securityContext, args }));
 			}
 		}
 	}
