@@ -1599,7 +1599,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 					}
 				}
 
-				final Object value = invokeMethod(key, Collections.EMPTY_MAP, false);
+				final HashMap paramMap = new HashMap();
+				paramMap.put("arg0", actionContext.getSecurityContext());
+				paramMap.put("parameters", Collections.EMPTY_MAP);
+
+				final Object value = invokeMethod(key, paramMap, false);
 				if (value != null) {
 
 					return value;
@@ -1680,6 +1684,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	 * of String for the conversion.
 	 */
 	private Object convert(Object value, Class type) {
+
+		// short-circuit
+		if (value.getClass() == type) {
+			return value;
+		}
 
 		Object convertedObject = null;
 

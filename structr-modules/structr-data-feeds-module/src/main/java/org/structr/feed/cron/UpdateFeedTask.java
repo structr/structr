@@ -40,7 +40,7 @@ public class UpdateFeedTask<T extends DataFeed> extends AbstractTask<T> {
 	public List<T> getWorkObjects() {
 
 		try {
-			Iterable workObjects =  StructrApp.getInstance().get(DataFeed.class);
+			final Iterable workObjects =  StructrApp.getInstance().get(DataFeed.class);
 			return Iterables.toList(workObjects);
 
 		} catch (FrameworkException ex) {
