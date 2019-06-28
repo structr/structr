@@ -51,9 +51,7 @@ var _Dashboard = {
 
 		let templateConfig = {};
 
-		fetch(rootUrl + '_env', {
-			credentials: 'same-origin'
-		}).then(function(response) {
+		fetch(rootUrl + '/_env').then(function(response) {
 
 			return response.json();
 
@@ -87,9 +85,7 @@ var _Dashboard = {
 				templateConfig.envInfo.endDate = _Dashboard.dateToIsoString(templateConfig.envInfo.endDate);
 			}
 
-			return fetch(rootUrl + 'me/ui', {
-				credentials: 'same-origin'
-			});
+			return fetch(rootUrl + '/me/ui');
 
 		}).then(function(response) {
 

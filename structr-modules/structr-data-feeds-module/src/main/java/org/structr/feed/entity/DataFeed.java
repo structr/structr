@@ -235,7 +235,9 @@ public interface DataFeed extends NodeInterface {
 							props.put(StructrApp.key(FeedItem.class, "name"),        entry.getTitle());
 							props.put(StructrApp.key(FeedItem.class, "author"),      entry.getAuthor());
 							props.put(StructrApp.key(FeedItem.class, "comments"),    entry.getComments());
-							props.put(StructrApp.key(FeedItem.class, "description"), entry.getDescription().getValue());
+                                                        if(entry.getDescription() != null) {
+                                                            props.put(StructrApp.key(FeedItem.class, "description"), entry.getDescription().getValue());
+                                                        }
 
 							final FeedItem item = app.create(FeedItem.class, props);
 							item.setProperty(dateKey, entry.getPublishedDate());

@@ -23,6 +23,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.AbstractTask;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.feed.entity.DataFeed;
@@ -39,8 +40,8 @@ public class UpdateFeedTask<T extends DataFeed> extends AbstractTask<T> {
 	public List<T> getWorkObjects() {
 
 		try {
-
-			return (List<T>) StructrApp.getInstance().get(DataFeed.class);
+			final Iterable workObjects =  StructrApp.getInstance().get(DataFeed.class);
+			return Iterables.toList(workObjects);
 
 		} catch (FrameworkException ex) {
 

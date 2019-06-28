@@ -50,7 +50,7 @@ public interface FeedItem extends NodeInterface, Indexable {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/FeedItem"));
 		type.setImplements(URI.create("#/definitions/Indexable"));
 
-		type.addStringProperty("url",              PropertyView.Public, PropertyView.Ui).setRequired(true).setUnique(true).setIndexed(true);
+		type.addStringProperty("url",              PropertyView.Public, PropertyView.Ui).setRequired(true).setIndexed(true);
 		type.addStringProperty("author",           PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("comments",         PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("description",      PropertyView.Public, PropertyView.Ui);

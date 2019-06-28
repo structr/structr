@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 
 public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements ComparisonQuery {
@@ -39,16 +40,23 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 		this.searchKey = searchKey;
 		this.operation = operation;
 
-		PropertyConverter converter = searchKey.inputConverter(SecurityContext.getSuperUserInstance());
+		if (!(searchKey instanceof FunctionProperty)) {
 
-		try {
+			PropertyConverter converter = searchKey.inputConverter(SecurityContext.getSuperUserInstance());
 
-			if (converter != null) {
-				this.searchValue = (T) converter.convert(value);
+			try {
+
+				if (converter != null) {
+					this.searchValue = (T) converter.convert(value);
+				}
+			} catch (FrameworkException ex) {
+
+				LoggerFactory.getLogger(ComparisonSearchAttribute.class).warn("Could not convert given value. " + ex.getMessage());
 			}
-		} catch (FrameworkException ex) {
 
-			LoggerFactory.getLogger(ComparisonSearchAttribute.class).warn("Could not convert given value. " + ex.getMessage());
+		} else {
+
+			this.searchValue = (T)value;
 		}
 	}
 
