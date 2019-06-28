@@ -78,6 +78,7 @@ public interface DatabaseService {
 
 	String getTenantIdentifier();
 	String getInternalTimestamp();
+	String getErrorMessage();
 
 	// ----- index -----
 	Index<Node> nodeIndex();

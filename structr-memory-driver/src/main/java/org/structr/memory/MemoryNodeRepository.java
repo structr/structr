@@ -58,9 +58,24 @@ public class MemoryNodeRepository extends EntityRepository {
 			if (filter instanceof MemoryLabelFilter) {
 
 				final MemoryLabelFilter<MemoryNode> mt = (MemoryLabelFilter<MemoryNode>)filter;
-				final String label                     = mt.getLabel();
+				final Set<MemoryIdentity> cache        = new LinkedHashSet<>();
+				boolean first                          = true;
 
-				return Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(getCacheForLabel(label)));
+				for (final String label : mt.getLabels()) {
+
+					if (first) {
+
+						cache.addAll(getCacheForLabel(label));
+
+					} else {
+
+						cache.retainAll(getCacheForLabel(label));
+					}
+
+					first = false;
+				}
+
+				return Iterables.map(i -> masterData.get(i), cache);
 			}
 
 			if (filter instanceof MemoryTypeFilter) {

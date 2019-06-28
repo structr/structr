@@ -908,7 +908,7 @@ public class SchemaTest extends StructrTest {
 		}
 	}
 
-	@Test
+	//@Test
 	public void testInitializationOfNonStructrNodesWithoutTenantIdentifier() {
 
 		// don't run tests that depend on Cypher being available in the backend

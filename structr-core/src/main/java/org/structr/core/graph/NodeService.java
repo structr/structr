@@ -19,7 +19,6 @@
 package org.structr.core.graph;
 
 import java.io.File;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,8 +73,6 @@ public class NodeService implements SingletonService {
 
 		databaseService = (DatabaseService)Class.forName(databaseDriver).newInstance();
 		if (databaseService != null) {
-
-			Map<String, Map<String, PropertyKey>> map = StructrApp.getConfiguration().getTypeAndPropertyMapping();
 
 			if (databaseService.initialize(serviceName)) {
 

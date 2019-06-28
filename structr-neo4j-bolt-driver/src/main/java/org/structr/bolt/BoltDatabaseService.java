@@ -75,6 +75,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	private Properties globalGraphProperties                          = null;
 	private CypherRelationshipIndex relationshipIndex                 = null;
 	private CypherNodeIndex nodeIndex                                 = null;
+	private String errorMessage                                       = null;
 	private String databaseUrl                                        = null;
 	private String databasePath                                       = null;
 	private Driver driver                                             = null;
@@ -93,7 +94,6 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		databaseUrl              = Settings.ConnectionUrl.getPrefixedValue(serviceName);
 		final String username    = Settings.ConnectionUser.getPrefixedValue(serviceName);
 		final String password    = Settings.ConnectionPassword.getPrefixedValue(serviceName);
-		final String driverMode  = Settings.DatabaseDriverMode.getPrefixedValue(serviceName);
 		String databaseDriverUrl = "bolt://" + databaseUrl;
 
 		// build list of supported query languages
@@ -112,11 +112,6 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 		// create db directory if it does not exist
 		new File(databasePath).mkdirs();
-
-		if (!"remote".equals(driverMode)) {
-
-			throw new IllegalStateException("This driver supports remote Neo4j databases via the Bolt protocol only.");
-		}
 
 		try {
 
@@ -142,8 +137,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			return true;
 
 		} catch (ServiceUnavailableException ex) {
-			ex.printStackTrace();
-			logger.error("Neo4j service is not available.");
+			errorMessage = ex.getMessage();
 		}
 
 		// service failed to initialize
@@ -776,6 +770,11 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		return false;
+	}
+
+	@Override
+	public String getErrorMessage() {
+		return errorMessage;
 	}
 
 	// ----- private methods -----

@@ -18,6 +18,7 @@
  */
 package org.structr.memory.index;
 
+import java.util.Set;
 import org.structr.api.graph.Node;
 import org.structr.api.search.QueryContext;
 import org.structr.api.util.Iterables;
@@ -39,17 +40,16 @@ public class MemoryNodeIndex extends AbstractMemoryIndex<Node> {
 	public Iterable<Node> getResult(final MemoryQuery query) {
 
 		final QueryContext queryContext = query.getQueryContext();
-		final String mainType           = query.getMainType();
+		final Set<String> labels        = query.getTypeLabels();
 		Iterable<Node> result           = null;
 
-		if (mainType != null) {
+		if (labels.isEmpty()) {
 
-			result = Iterables.filter(query, query.sort(db.getFilteredNodes(new MemoryLabelFilter<>(mainType))));
+			result = Iterables.filter(query, query.sort(db.getAllNodes()));
 
 		} else {
 
-			// fallback: unfiltered
-			result =  Iterables.filter(query, query.sort(db.getAllNodes()));
+			result = Iterables.filter(query, query.sort(db.getFilteredNodes(new MemoryLabelFilter<>(labels))));
 		}
 
 		if (queryContext.isSliced()) {

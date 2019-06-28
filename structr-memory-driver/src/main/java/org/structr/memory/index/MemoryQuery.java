@@ -20,7 +20,9 @@ package org.structr.memory.index;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.search.QueryContext;
@@ -35,24 +37,25 @@ import org.structr.memory.index.predicate.NotPredicate;
  */
 public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, Predicate<T> {
 
-	private QueryContext queryContext          = new QueryContext();
-	private GroupPredicate<T> rootPredicate    = new GroupPredicate<>(null);
-	private GroupPredicate<T> currentPredicate = rootPredicate;
-	private String sortKey                     = null;
-	private String mainType                    = null;
-	private boolean sortDescending             = false;
-	private boolean negateNextPredicate        = false;
+	private final GroupPredicate<T> rootPredicate = new GroupPredicate<>(null);
+	private final Set<String> labels              = new LinkedHashSet<>();
+	private QueryContext queryContext             = null;
+	private GroupPredicate<T> currentPredicate    = rootPredicate;
+	private String sortKey                        = null;
+	private boolean sortDescending                = false;
+	private boolean negateNextPredicate           = false;
 
 	public MemoryQuery(final QueryContext queryContext) {
 		this.queryContext = queryContext;
 	}
 
-	public void setMainType(final String mainType) {
-		this.mainType = mainType;
+	public void addTypeLabel(final String typeLabel) {
+
+		labels.add(typeLabel);
 	}
 
-	public String getMainType() {
-		return mainType;
+	public Set<String> getTypeLabels() {
+		return labels;
 	}
 
 	public void addPredicate(final Predicate<T> predicate) {

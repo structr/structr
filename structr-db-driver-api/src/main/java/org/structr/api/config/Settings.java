@@ -39,7 +39,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class Settings {
 
-	public static final String DEFAULT_DATABASE_DRIVER        = "org.structr.bolt.BoltDatabaseService";
+	public static final String DEFAULT_DATABASE_DRIVER        = "org.structr.memory.MemoryDatabaseService";
 
 	private static final Map<String, Setting> settings        = new LinkedHashMap<>();
 	private static final Map<String, SettingsGroup> groups    = new LinkedHashMap<>();
@@ -133,9 +133,7 @@ public class Settings {
 
 	// database settings
 	public static final Setting<String> DatabaseAvailableConnections = new StringSetting(databaseGroup,  "hidden",                     "database.available.connections",   null);
-	//public static final Setting<String> DatabaseDriver               = new StringSetting(databaseGroup,  "Database Driver",            "database.driver",                  "org.structr.memory.MemoryDatabaseService");
-	public static final Setting<String> DatabaseDriver               = new StringSetting(databaseGroup,  "Database Driver",            "database.driver",                  "org.structr.bolt.BoltDatabaseService");
-	public static final Setting<String> DatabaseDriverMode           = new ChoiceSetting(databaseGroup,  "Database Driver",            "database.driver.mode",             "embedded", Settings.getStringsAsSet("embedded", "remote"));
+	public static final Setting<String> DatabaseDriver               = new StringSetting(databaseGroup,  "Database Driver",            "database.driver",                  "org.structr.memory.MemoryDatabaseService");
 	public static final Setting<String> ConnectionUrl                = new StringSetting(databaseGroup,  "Database Connection",        "database.connection.url",          "bolt://localhost:7688");
 	public static final Setting<String> TestingConnectionUrl         = new StringSetting(databaseGroup,  "hidden",                     "testing.connection.url",           "bolt://localhost:7689");
 	public static final Setting<String> ConnectionUser               = new StringSetting(databaseGroup,  "Database Connection",        "database.connection.username",     "neo4j");

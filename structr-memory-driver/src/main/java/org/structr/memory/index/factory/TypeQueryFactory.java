@@ -18,7 +18,6 @@
  */
 package org.structr.memory.index.factory;
 
-import org.structr.api.DatabaseService;
 import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.QueryPredicate;
@@ -35,7 +34,6 @@ public class TypeQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 	@Override
 	public boolean createQuery(final QueryPredicate predicate, final MemoryQuery query, final boolean isFirst) {
 
-		final DatabaseService db  = index.getDatabaseService();
 		final TypeQuery typeQuery = (TypeQuery)predicate;
 		final Class sourceType    = typeQuery.getSourceType();
 		final Class targetType    = typeQuery.getTargetType();
@@ -56,28 +54,8 @@ public class TypeQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 		}
 
 		// allow caching
-		query.setMainType(mainType.toString());
+		query.addTypeLabel(mainType.toString());
 
 		return true;
-
-		/*
-
-
-		if (mainType != null && mainType instanceof String) {
-
-			query.typeLabel((String)mainType);
-		}
-
-		if (sourceType != null && targetType != null) {
-
-			// relationship type, include source
-			// and target type labels
-			query.setSourceType(sourceType.getSimpleName());
-			query.setTargetType(targetType.getSimpleName());
-		}
-
-		// setting the label does not result in a modified WHERE clause
-		return false;
-		*/
 	}
 }

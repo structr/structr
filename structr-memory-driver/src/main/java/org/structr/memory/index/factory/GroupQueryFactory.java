@@ -18,15 +18,14 @@
  */
 package org.structr.memory.index.factory;
 
-import org.structr.api.search.GroupQuery;
-import org.structr.api.search.QueryPredicate;
-import org.structr.api.search.TypeQuery;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.structr.api.search.GroupQuery;
+import org.structr.api.search.QueryPredicate;
 import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.AbstractQueryFactory;
+import org.structr.api.search.TypeQuery;
 import org.structr.memory.index.MemoryQuery;
 
 /**

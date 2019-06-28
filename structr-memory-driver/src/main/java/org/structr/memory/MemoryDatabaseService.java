@@ -308,6 +308,11 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 		return false;
 	}
 
+	@Override
+	public String getErrorMessage() {
+		return null;
+	}
+
 	// ----- graph repository methods -----
 	public Relationship createRelationship(final MemoryNode sourceNode, final MemoryNode targetNode, final RelationshipType relType) {
 

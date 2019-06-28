@@ -103,6 +103,7 @@ var _Dashboard = {
 
 			Structr.fetchHtmlTemplate('dashboard/dashboard', templateConfig, function (html) {
 
+				main.empty();
 				main.append(html);
 
 				document.querySelectorAll('#dashboard .tabs-menu li a').forEach(function (tabLink) {
@@ -201,7 +202,7 @@ var _Dashboard = {
 
 						body.append(html);
 
-						$('button#button_' + result.name).on('click', function (btn) {
+						$('button#connect-button_' + result.name).on('click', function (btn) {
 
 							Structr.showLoadingMessage(
 								'Changing database connection to ' + result.name,
@@ -209,10 +210,39 @@ var _Dashboard = {
 								200
 								);
 
+							$.ajax({
+								url: rootUrl + '/maintenance/manageDatabases',
+								type: 'post',
+								data: JSON.stringify({
+									command: 'activate',
+									name: result.name
+								}),
+								statusCode: {
+									200: function(response) {
+
+										Structr.hideLoadingMessage();
+										_Dashboard.onload();
+									},
+									503: function(response) {
+
+										var message = new MessageBuilder().title("Service Unavailable").error(response.responseJSON.message);
+
+										message.delayDuration(5000).fadeDuration(1000);
+										message.show();
+
+										Structr.hideLoadingMessage();
+										_Dashboard.onload();
+									}
+								}
+							});
+						});
+
+						$('button#delete-button_' + result.name).on('click', function (btn) {
+
 							$.post(
 								rootUrl + '/maintenance/manageDatabases',
 								JSON.stringify({
-									command: 'activate',
+									command: 'remove',
 									name: result.name
 								}),
 								function () {
@@ -221,6 +251,31 @@ var _Dashboard = {
 								}
 							);
 						});
+					});
+				});
+
+				Structr.fetchHtmlTemplate('dashboard/new-connection.row', {}, function (html) {
+
+					body.append(html);
+
+					$('button#new-database-connection-button').on('click', function (btn) {
+
+						$.post(
+							rootUrl + '/maintenance/manageDatabases',
+							JSON.stringify({
+								command: 'add',
+								driver: 'org.structr.bolt.BoltDatabaseService',
+								mode: 'remote',
+								name: $('#connection-name').val(),
+								url: $('#connection-url').val(),
+								username: $('#connection-username').val(),
+								password: $('#connection-password').val()
+							}),
+							function () {
+								Structr.hideLoadingMessage();
+								_Dashboard.onload();
+							}
+						);
 					});
 				});
 			}
@@ -419,7 +474,13 @@ var _Dashboard = {
 	mapConnectionResult: function (result) {
 
 		var activeString = result.active ? '<b>active</b>' : '-';
-		var button = result.active ? '' : '<button class="action" id="button_' + result.name + '">Connect</button>';
+		var button = '';
+
+		if (!result.active) {
+
+			button += '<button class="action" id="connect-button_' + result.name + '">Connect</button>';
+			button += '<button class="" id="delete-button_' + result.name + '">Delete</button>';
+		}
 
 		if (result.driver === 'org.structr.memory.MemoryDatabaseService') {
 
@@ -448,22 +509,3 @@ var _Dashboard = {
 		}
 	}
 };
-
-/*
- <td style="text-align: left;">${config.name}</td>
- <td style="text-align: left;">${config.type}</td>
- <td style="text-align: left;">${config.url}</td>
- <td style="text-align: left;">${config.username}</td>
- <td style="text-align: right;">${config.active}</td>
- settings.put("name",                  name);
- settings.put("driver",                Settings.DatabaseDriver.getPrefixedValue(prefix));
- settings.put("mode",                  Settings.DatabaseDriverMode.getPrefixedValue(prefix));
- settings.put("url",                   Settings.ConnectionUrl.getPrefixedValue(prefix));
- settings.put("username",              Settings.ConnectionUser.getPrefixedValue(prefix));
- settings.put("password",              Settings.ConnectionPassword.getPrefixedValue(prefix));
- settings.put("tenantIdentifier",      Settings.TenantIdentifier.getPrefixedValue(prefix));
- settings.put("relationshipCacheSize", Settings.RelationshipCacheSize.getPrefixedValue(prefix));
- settings.put("nodeCacheSize",         Settings.NodeCacheSize.getPrefixedValue(prefix));
- settings.put("uuidCachesize",         Settings.UuidCacheSize.getPrefixedValue(prefix));
- settings.put("forceStreaming",        Settings.ForceResultStreaming.getPrefixedValue(prefix));
- */

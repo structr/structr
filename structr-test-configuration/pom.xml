@@ -17,6 +17,7 @@
 		<profile>
 			<id>test-in-memory-database</id>
 			<activation>
+				<activeByDefault>true</activeByDefault>
 				<property>
 					<name>database</name>
 					<value>in-memory</value>
@@ -47,7 +48,6 @@
 		<profile>
 			<id>test-neo4j</id>
 			<activation>
-				<activeByDefault>true</activeByDefault>
 				<property>
 					<name>database</name>
 					<value>neo4j</value>
@@ -75,7 +75,7 @@
 							</includes>
 							<argLine>-Xms1g -Xmx1g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
 							<reuseForks>false</reuseForks>
-							<forkCount>1</forkCount>
+							<forkCount>${test.forkCount}</forkCount>
 							<skipTests>${skipTests}</skipTests>
 							<systemPropertyVariables>
 								<testDatabaseDriver>org.structr.bolt.BoltDatabaseService</testDatabaseDriver>
@@ -93,7 +93,7 @@
 					<plugin>
 						<groupId>io.fabric8</groupId>
 						<artifactId>docker-maven-plugin</artifactId>
-						<version>0.28.0</version>
+						<version>0.30.0</version>
 						<executions>
 							<execution>
 								<id>prepare-database</id>

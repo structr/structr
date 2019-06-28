@@ -18,6 +18,7 @@
  */
 package org.structr.memory.index;
 
+import java.util.Set;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
 import org.structr.memory.MemoryDatabaseService;
@@ -35,12 +36,15 @@ public class MemoryRelationshipIndex extends AbstractMemoryIndex<Relationship> {
 	@Override
 	public Iterable<Relationship> getResult(final MemoryQuery query) {
 
-		final String mainType = query.getMainType();
-		if (mainType != null) {
+		final Set<String> labels = query.getTypeLabels();
 
-			return Iterables.filter(query, query.sort(db.getFilteredRelationships(new MemoryLabelFilter<>(mainType))));
+		if (labels.isEmpty()) {
+
+			return Iterables.filter(query, query.sort(db.getAllRelationships()));
+
+		} else {
+
+			return Iterables.filter(query, query.sort(db.getFilteredRelationships(new MemoryLabelFilter<>(labels))));
 		}
-
-		return Iterables.filter(query, db.getAllRelationships());
 	}
 }

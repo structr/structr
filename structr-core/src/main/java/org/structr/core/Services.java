@@ -56,6 +56,7 @@ import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
 import org.structr.common.VersionHelper;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeService;
@@ -141,8 +142,10 @@ public class Services implements StructrServices {
 				Service service = getService(serviceClass, serviceName);
 				if (service == null) {
 
+					final String activeServiceName = getNameOfActiveService(serviceClass);
+
 					// start service
-					startService(serviceClass);
+					startService(serviceClass, activeServiceName, false);
 
 					// reload service
 					service = getService(serviceClass, serviceName);
@@ -238,7 +241,15 @@ public class Services implements StructrServices {
 		// initialize other services
 		for (final Class serviceClass : configuredServiceClasses) {
 
-			startService(serviceClass);
+			try {
+
+				final String activeServiceName = getNameOfActiveService(serviceClass);
+
+				startService(serviceClass, activeServiceName, false);
+
+			} catch (FrameworkException ex) {
+				logger.warn("Service {} failed to start: {}", serviceClass.getSimpleName(), ex.getMessage());
+			}
 		}
 
 		logger.info("{} service(s) processed", serviceCache.size());
@@ -471,39 +482,38 @@ public class Services implements StructrServices {
 		attributes.remove(name);
 	}
 
-	public void startService(final Class serviceClass) {
+	public boolean startService(final Class serviceClass, final String serviceName, final boolean disableRetry) throws FrameworkException {
 
 		boolean waitAndRetry = true;
 		boolean isVital      = false;
 
-		if (!getCongfiguredServiceClasses().contains(serviceClass)) {
-
-			logger.warn("Service {} is not listed in {}, will not be started.", serviceClass.getName(), "configured.services");
-			return;
-		}
-
-		logger.info("Creating {}..", serviceClass.getSimpleName());
-
 		try {
+
+			reloading.readLock().lock();
+
+			if (!getCongfiguredServiceClasses().contains(serviceClass)) {
+
+				logger.warn("Service {} is not listed in {}, will not be started.", serviceClass.getName(), "configured.services");
+				return false;
+			}
+
+			logger.info("Creating {}..", serviceClass.getSimpleName());
 
 			final Service service = (Service) serviceClass.newInstance();
 
 			if (licenseManager != null && !licenseManager.isValid(service)) {
 
 				logger.error("Configured service {} is not part of the currently licensed Structr Edition.", serviceClass.getSimpleName());
-				return;
+				return false;
 			}
 
-			final String serviceName = Settings.getOrCreateStringSetting(serviceClass.getSimpleName(), "active").getValue("default");
 			final int retryDelay     = service.getRetryDelay();
 			int retryCount           = service.getRetryCount();
 			isVital                  = service.isVital();
 
-			setActiveServiceName(serviceClass, serviceName);
-
 			while (waitAndRetry && retryCount-- > 0) {
 
-				waitAndRetry = service.waitAndRetry();
+				waitAndRetry = service.waitAndRetry() && !disableRetry;
 
 				try {
 
@@ -526,13 +536,19 @@ public class Services implements StructrServices {
 							addService(serviceClass, service, serviceName);
 						}
 
+						// store service name after successful activation
+						setActiveServiceName(serviceClass, serviceName);
+
 						// initialization callback
 						service.initialized();
 
 						// abort wait and retry loop
 						waitAndRetry = false;
 
-					} else if (isVital && !waitAndRetry) {
+						// success
+						return true;
+
+					} else if (!disableRetry && isVital && !waitAndRetry) {
 
 						checkVitalService(serviceClass, null);
 					}
@@ -541,8 +557,10 @@ public class Services implements StructrServices {
 
 					logger.warn("Service {} failed to start: {}", serviceClass.getSimpleName(), t.getMessage());
 
-					if (isVital && !waitAndRetry) {
+					if (!disableRetry && isVital && !waitAndRetry) {
 						checkVitalService(serviceClass, t);
+					} else {
+						throw new FrameworkException(503, t.getMessage());
 					}
 				}
 
@@ -562,12 +580,24 @@ public class Services implements StructrServices {
 				}
 			}
 
+		} catch (FrameworkException fex) {
+
+			throw fex;
+
 		} catch (Throwable t) {
 
-			if (isVital) {
+			if (!disableRetry && isVital) {
 				checkVitalService(serviceClass, t);
+			} else {
+				throw new FrameworkException(503, t.getMessage());
 			}
+
+		} finally {
+
+			reloading.readLock().unlock();
 		}
+
+		return false;
 	}
 
 	private <T extends Service> void shutdownServices(final Class<T> serviceClass) {
@@ -617,8 +647,14 @@ public class Services implements StructrServices {
 		final T service = getServices(type).get(name);
 		if (service == null) {
 
-			// try to start service
-			startService(type);
+			try {
+
+				// try to start service
+				startService(type, name, false);
+
+			} catch (FrameworkException ex) {
+				logger.warn("Service {} failed to start: {}", type.getSimpleName(), ex.getMessage());
+			}
 		}
 
 		return service;
@@ -831,10 +867,21 @@ public class Services implements StructrServices {
 	}
 
 	public void setActiveServiceName(final Class type, final String name) {
+
+		if ("default".equals(name)) {
+
+			Settings.getOrCreateStringSetting(type.getSimpleName(), "active").setValue(null);
+
+		} else {
+
+			Settings.getOrCreateStringSetting(type.getSimpleName(), "active").setValue(name);
+
+		}
+
 		activeServiceNames.put(type, name);
 	}
 
-	public void activateService(final Class type, final String name) {
+	public boolean activateService(final Class type, final String name) throws FrameworkException {
 
 		try {
 
@@ -844,17 +891,20 @@ public class Services implements StructrServices {
 
 			shutdownServices(type);
 
-			setActiveServiceName(type, name);
+			if (startService(type, name, true)) {
 
-			startService(type);
+				// reload schema..
+				SchemaService.reloadSchema(new ErrorBuffer(), null);
 
-			// reload schema..
-			SchemaService.reloadSchema(new ErrorBuffer(), null);
+				return true;
+			}
 
 		} finally {
 
 			reloading.writeLock().unlock();
 		}
+
+		return false;
 	}
 
 	public <T extends Service> String getNameOfActiveService(final Class<T> type) {

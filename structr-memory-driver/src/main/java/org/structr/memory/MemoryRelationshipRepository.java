@@ -61,9 +61,14 @@ public class MemoryRelationshipRepository extends EntityRepository {
 			if (filter instanceof MemoryLabelFilter) {
 
 				final MemoryLabelFilter<MemoryRelationship> mt = (MemoryLabelFilter<MemoryRelationship>)filter;
-				final String label            = mt.getLabel();
+				final Set<MemoryIdentity> cache                = new LinkedHashSet<>();
 
-				return Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(getCacheForType(label)));
+				for (final String label : mt.getLabels()) {
+
+					cache.addAll(getCacheForType(label));
+				}
+
+				return Iterables.map(i -> masterData.get(i), cache);
 			}
 
 			if (filter instanceof SourceNodeFilter) {

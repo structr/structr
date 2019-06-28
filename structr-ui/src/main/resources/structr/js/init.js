@@ -856,6 +856,7 @@ var Structr = {
 			case 404: return 'Not found';
 			case 422: return 'Unprocessable entity';
 			case 500: return 'Internal Error';
+			case 503: return 'Service Unavailable';
 		}
 	},
 	loaderIcon: function(element, css) {

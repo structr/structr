@@ -5216,3 +5216,18 @@ table#principals tbody td {
 	margin-top: 40px;
 	font-size: 8pt;
 }
+
+
+/**
+ * Database connections dialog
+ */
+div#database-connections form label {
+	width: 160px;
+	display: inline-block;
+}
+
+div#database-connections form input {
+	font-size: 8pt;
+	height: 16px;
+	width: 200px;
+}

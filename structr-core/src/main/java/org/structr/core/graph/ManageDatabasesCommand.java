@@ -38,7 +38,6 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 	private static final String KEY_ACTIVE                  = "active";
 	private static final String KEY_NAME                    = "name";
 	private static final String KEY_DRIVER                  = "driver";
-	private static final String KEY_MODE                    = "mode";
 	private static final String KEY_URL                     = "url";
 	private static final String KEY_USERNAME                = "username";
 	private static final String KEY_PASSWORD                = "password";
@@ -108,13 +107,10 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 			if ("default".equals(name)) {
 
-				// activate default connection..
-				Settings.getOrCreateStringSetting("NodeService.active").setValue(null);
 				Services.getInstance().activateService(NodeService.class, "");
 
 			} else if (getConnectionNames().contains(name)) {
 
-				Settings.getOrCreateStringSetting("NodeService.active").setValue(name);
 				Services.getInstance().activateService(NodeService.class, name);
 
 			} else {
@@ -142,7 +138,6 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 			if (!connectionNames.contains(prefix)) {
 
 				setOrDefault(Settings.DatabaseDriver,        prefix, data, KEY_DRIVER);
-				setOrDefault(Settings.DatabaseDriverMode,    prefix, data, KEY_MODE);
 				setOrDefault(Settings.ConnectionUrl,         prefix, data, KEY_URL);
 				setOrDefault(Settings.ConnectionUser,        prefix, data, KEY_USERNAME);
 				setOrDefault(Settings.ConnectionPassword,    prefix, data, KEY_PASSWORD);
@@ -181,7 +176,6 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 			if (connectionNames.contains(prefix)) {
 
 				Settings.DatabaseDriver.getPrefixedSetting(prefix).unregister();
-				Settings.DatabaseDriverMode.getPrefixedSetting(prefix).unregister();
 				Settings.ConnectionUrl.getPrefixedSetting(prefix).unregister();
 				Settings.ConnectionUser.getPrefixedSetting(prefix).unregister();
 				Settings.ConnectionPassword.getPrefixedSetting(prefix).unregister();
@@ -228,7 +222,6 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 		settings.put(KEY_NAME,                    name);
 		settings.put(KEY_DRIVER,                  Settings.DatabaseDriver.getPrefixedValue(prefix));
-		settings.put(KEY_MODE,                    Settings.DatabaseDriverMode.getPrefixedValue(prefix));
 		settings.put(KEY_URL,                     Settings.ConnectionUrl.getPrefixedValue(prefix));
 		settings.put(KEY_USERNAME,                Settings.ConnectionUser.getPrefixedValue(prefix));
 		settings.put(KEY_PASSWORD,                Settings.ConnectionPassword.getPrefixedValue(prefix));

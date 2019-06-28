@@ -21,6 +21,8 @@ package org.structr.web.entity;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
@@ -249,7 +251,9 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		final String uuid       = fileBase.getUuid();
 		final String filePath   = Settings.FilesPath.getValue();
 		final String uuidPath   = AbstractFile.getDirectoryPath(uuid);
-		final java.io.File file = new java.io.File(filePath + "/" + uuidPath + "/" + uuid);
+		final String finalPath  = filePath + "/" + uuidPath + "/" + uuid;
+		final Path path         = Paths.get(URI.create("file://" + finalPath));
+		final java.io.File file = path.toFile();
 
 		// create parent directory tree
 		file.getParentFile().mkdirs();

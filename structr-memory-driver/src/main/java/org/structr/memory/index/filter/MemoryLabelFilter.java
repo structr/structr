@@ -18,19 +18,25 @@
  */
 package org.structr.memory.index.filter;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.structr.memory.MemoryEntity;
 
 /**
  */
 public class MemoryLabelFilter<T extends MemoryEntity> implements Filter<T> {
 
-	private String label = null;
+	private final Set<String> labels = new LinkedHashSet<>();
 
 	public MemoryLabelFilter(final String label) {
-		this.label = label;
+		this.labels.add(label);
 	}
 
-	public String getLabel() {
-		return label;
+	public MemoryLabelFilter(final Set<String> labels) {
+		this.labels.addAll(labels);
+	}
+
+	public Set<String> getLabels() {
+		return labels;
 	}
 }
