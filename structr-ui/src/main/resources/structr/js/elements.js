@@ -1474,6 +1474,20 @@ var _Elements = {
         });
 
     },
+	activateEditorMode: function(contentType) {
+		let modeObj = CodeMirror.findModeByMIME(contentType);
+		let mode = contentType; // default
+		
+		if (modeObj) {
+			mode = modeObj.mode;
+			if (mode && mode !== "null") { // findModeMIME function above returns "null" string :(
+				let existingScript = $('head script[data-codemirror-mode="' + mode + '"]');
+				if (!existingScript.length) {
+					$('head').append('<script data-codemirror-mode="' + mode + '" src="codemirror/mode/' + mode + '/' + mode + '.js"></script>');
+				}
+			}
+		}
+	},
 	editContent: function(button, entity, text, element) {
 
 		if (Structr.isButtonDisabled(button)) {
@@ -1484,6 +1498,9 @@ var _Elements = {
 		_Logger.log(_LogType.CONTENTS, div);
 		var contentBox = $('.editor', element);
 		contentType = entity.contentType || 'text/plain';
+		
+		_Elements.activateEditorMode(contentType);
+		
 		var text1, text2;
 
 		var lineWrapping = LSWrapper.getItem(lineWrappingKey);
@@ -1491,7 +1508,7 @@ var _Elements = {
 		// Intitialize editor
 		editor = CodeMirror(contentBox.get(0), {
 			value: text,
-			mode: contentType,
+			mode: mode || contentType,
 			lineNumbers: true,
 			lineWrapping: lineWrapping,
 			extraKeys: {
@@ -1659,6 +1676,9 @@ var _Elements = {
 		});
 		select.on('change', function() {
 			contentType = select.val();
+			_Elements.activateEditorMode(contentType);
+			editor.setOption('mode', contentType);
+			
 			entity.setProperty('contentType', contentType, false, function() {
 				blinkGreen(select);
 				_Pages.reloadPreviews();
