@@ -57,7 +57,7 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 			final Group group    = (Group)sources[0];
 			final Principal user = (Principal)sources[1];
 
-			group.removeMember(user);
+			group.removeMember(ctx.getSecurityContext(), user);
 
 		} catch (ArgumentNullException pe) {
 

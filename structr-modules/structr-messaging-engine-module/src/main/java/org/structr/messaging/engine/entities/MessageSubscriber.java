@@ -18,6 +18,9 @@
  */
 package org.structr.messaging.engine.entities;
 
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.cxf.common.util.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -32,10 +35,6 @@ import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
-
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 
 public interface MessageSubscriber extends NodeInterface {
 
@@ -60,9 +59,10 @@ public interface MessageSubscriber extends NodeInterface {
 
 			type.addMethod("onMessage")
 				.setReturnType(RestMethodResult.class.getName())
+				.addParameter("ctx", SecurityContext.class.getName())
 				.addParameter("topic", String.class.getName())
 				.addParameter("message", String.class.getName())
-				.setSource("return " + MessageSubscriber.class.getName() + ".onMessage(this, topic, message, securityContext);")
+				.setSource("return " + MessageSubscriber.class.getName() + ".onMessage(this, topic, message, ctx);")
 				.addException(FrameworkException.class.getName())
 				.setDoExport(true);
 
@@ -108,7 +108,7 @@ public interface MessageSubscriber extends NodeInterface {
 
 	}
 
-	static RestMethodResult onMessage(MessageSubscriber thisSubscriber, final String topic, final String message, SecurityContext securityContext) throws FrameworkException {
+	static RestMethodResult onMessage(MessageSubscriber thisSubscriber, final String topic, final String message, final SecurityContext securityContext) throws FrameworkException {
 
 		if (!StringUtils.isEmpty(thisSubscriber.getCallback())) {
 

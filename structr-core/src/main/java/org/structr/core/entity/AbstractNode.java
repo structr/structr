@@ -1686,7 +1686,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	private Object convert(Object value, Class type) {
 
 		// short-circuit
-		if (value.getClass() == type) {
+		if (type.isAssignableFrom(value.getClass())) {
 			return value;
 		}
 

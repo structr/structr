@@ -61,8 +61,9 @@ public interface ODSExporter extends ODFExporter {
 		type.setExtends(URI.create("#/definitions/ODFExporter"));
 
 		type.addMethod("exportAttributes")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("uuid", String.class.getName())
-			.setSource(ODSExporter.class.getName() + ".exportAttributes(this, uuid);")
+			.setSource(ODSExporter.class.getName() + ".exportAttributes(this, uuid, ctx);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 	}}
@@ -140,9 +141,8 @@ public interface ODSExporter extends ODFExporter {
 		}
 	}
 
-	public static void exportAttributes(final ODSExporter thisNode, final String uuid) throws FrameworkException {
+	public static void exportAttributes(final ODSExporter thisNode, final String uuid, final SecurityContext securityContext) throws FrameworkException {
 
-		final SecurityContext securityContext = thisNode.getSecurityContext();
 		final File output                     = thisNode.getResultDocument();
 		final VirtualType transformation      = thisNode.getTransformationProvider();
 

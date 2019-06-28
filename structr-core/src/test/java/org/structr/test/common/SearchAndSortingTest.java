@@ -36,10 +36,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
-import org.structr.test.core.entity.SixOneManyToMany;
-import org.structr.test.core.entity.TestOne;
-import org.structr.test.core.entity.TestSeven;
-import org.structr.test.core.entity.TestSix;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -53,6 +49,10 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.test.core.entity.SixOneManyToMany;
+import org.structr.test.core.entity.TestOne;
+import org.structr.test.core.entity.TestSeven;
+import org.structr.test.core.entity.TestSix;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
@@ -1849,10 +1849,10 @@ public class SearchAndSortingTest extends StructrTest {
 			final Group group4 = groups.get(3);
 			final Group group5 = groups.get(4);
 
-			group1.addMember(group2);
-			group2.addMember(group3);
-			group2.addMember(group4);
-			group3.addMember(group5);
+			group1.addMember(securityContext, group2);
+			group2.addMember(securityContext, group3);
+			group2.addMember(securityContext, group4);
+			group3.addMember(securityContext, group5);
 
 			tx.success();
 

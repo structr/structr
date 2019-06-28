@@ -74,6 +74,7 @@ import org.structr.schema.compiler.MigrationHandler;
 import org.structr.schema.compiler.NodeExtender;
 import org.structr.schema.compiler.RemoveClassesWithUnknownSymbols;
 import org.structr.schema.compiler.RemoveDuplicateClasses;
+import org.structr.schema.compiler.RemoveExportedMethodsWithoutSecurityContext;
 import org.structr.schema.compiler.RemoveMethodsWithUnusedSignature;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.JsonSchema;
@@ -101,6 +102,7 @@ public class SchemaService implements Service {
 		migrationHandlers.add(new BlacklistUnlicensedTypes());
 		migrationHandlers.add(new RemoveDuplicateClasses());
 		migrationHandlers.add(new RemoveClassesWithUnknownSymbols());
+		migrationHandlers.add(new RemoveExportedMethodsWithoutSecurityContext());
 	}
 
 	@Override

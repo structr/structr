@@ -54,7 +54,7 @@ public interface RemoteDocument extends NodeInterface, Indexable {
 
 		// methods shared with FeedItemContent
 		type.overrideMethod("afterCreation",    false,             FeedItemContent.class.getName() + ".updateIndex(this, arg0);");
-		type.overrideMethod("getSearchContext", false, "return " + FeedItemContent.class.getName() + ".getSearchContext(this, arg0, arg1);").setDoExport(true);
+		type.overrideMethod("getSearchContext", false, "return " + FeedItemContent.class.getName() + ".getSearchContext(this, arg0, arg1, arg2);").setDoExport(true);
 		type.overrideMethod("getInputStream",   false, "return " + RemoteDocument.class.getName() + ".getInputStream(this);");
 
 		// view configuration

@@ -25,6 +25,7 @@ package org.structr.payment.entity;
 
 import java.net.URI;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -130,6 +131,7 @@ public interface PaymentNode extends NodeInterface, Payment {
 
 		type.addMethod("beginCheckout")
 			.setReturnType(GraphObject.class.getName())
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("arg0", String.class.getName())
 			.addParameter("arg1", String.class.getName())
 			.addParameter("arg2", String.class.getName())
@@ -138,6 +140,7 @@ public interface PaymentNode extends NodeInterface, Payment {
 			.setDoExport(true);
 
 		type.addMethod("cancelCheckout")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("arg0", String.class.getName())
 			.addParameter("arg1", String.class.getName())
 			.setSource(PaymentNode.class.getName() + ".cancelCheckout(this, arg0, arg1);")
@@ -146,6 +149,7 @@ public interface PaymentNode extends NodeInterface, Payment {
 
 		type.addMethod("confirmCheckout")
 			.setReturnType(GraphObject.class.getName())
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("arg0", String.class.getName())
 			.addParameter("arg1", String.class.getName())
 			.addParameter("arg2", String.class.getName())

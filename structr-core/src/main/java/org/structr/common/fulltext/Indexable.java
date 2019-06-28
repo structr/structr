@@ -21,6 +21,7 @@ package org.structr.common.fulltext;
 import java.io.InputStream;
 import java.net.URI;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
@@ -56,5 +57,5 @@ public interface Indexable extends NodeInterface {
 	InputStream getInputStream();
 
 	@Export
-	GraphObject getSearchContext(final String searchTerm, final int contextLength);
+	GraphObject getSearchContext(final SecurityContext ctx, final String searchTerm, final int contextLength);
 }
