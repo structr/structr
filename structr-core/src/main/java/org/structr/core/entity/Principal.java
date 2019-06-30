@@ -224,12 +224,12 @@ public interface Principal extends NodeInterface, AccessControllable {
 			if (ids != null) {
 
 				if (!ArrayUtils.contains(ids, sessionId)) {
-					
+
 					if (Settings.MaxSessionsPerUser.getValue() > 0 && ids.length >= Settings.MaxSessionsPerUser.getValue()) {
-						
+
 						final String errorMessage = "Not adding session id, limit " + Settings.MaxSessionsPerUser.getKey() + " exceeded.";
 						logger.warn(errorMessage);
-						
+
 						return false;
 					}
 
@@ -242,7 +242,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 			}
 
 			return true;
-			
+
 		} catch (FrameworkException ex) {
 			logger.error("Could not add sessionId " + sessionId + " to array of sessionIds", ex);
 			return false;

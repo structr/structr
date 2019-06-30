@@ -581,7 +581,11 @@ var _Schema = {
 
 				return fetch(rootUrl + 'SchemaNode/ui?sort=hierarchyLevel&order=asc').then(function(response) {
 
-					return response.json();
+					if (response.ok) {
+						return response.json();
+					} else {
+						throw new Error("Loading of Schema nodes failed");
+					}
 
 				}).then(handleSchemaNodeData).then(function(data) {
 					if (typeof callback === 'function') {

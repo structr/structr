@@ -73,6 +73,7 @@ public interface ODFExporter extends NodeInterface {
 			.setDoExport(true);
 
 		type.addMethod("exportImage")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("uuid", String.class.getName())
 			.setSource(ODFExporter.class.getName() + ".exportImage(this, uuid);")
 			.addException(FrameworkException.class.getName())

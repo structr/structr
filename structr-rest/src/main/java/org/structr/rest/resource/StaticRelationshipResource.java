@@ -20,6 +20,7 @@ package org.structr.rest.resource;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -344,20 +345,24 @@ public class StaticRelationshipResource extends WrappingResource {
 			 */
 			this.isCollectionResource = false;
 
+			final HashMap paramMap = new HashMap();
+			paramMap.put("arg0", securityContext);
+			paramMap.put("parameters", propertySet);
+
 
 			final Class entityType  = typedIdResource.getTypeResource().getEntityClass();
 			final String methodName = typeResource.getRawType();
 
 			try {
 				final String source = SchemaMethodResource.findMethodSource(entityType, methodName);
-				result = SchemaMethodResource.invoke(securityContext, typedIdResource.getEntity(), source, propertySet, methodName);
+				result = SchemaMethodResource.invoke(securityContext, typedIdResource.getEntity(), source, paramMap, methodName);
 
 			} catch (IllegalPathException ex) {
 
 				// try direct invocation of the schema method on the node type
 				try {
 
-					result = SchemaMethodResource.wrapInResult(typedIdResource.getEntity().invokeMethod(methodName, propertySet, true));
+					result = SchemaMethodResource.wrapInResult(typedIdResource.getEntity().invokeMethod(methodName, paramMap, true));
 
 				} catch (Throwable t) {
 					logger.warn("Unable to execute {}.{}: {}", entityType.getSimpleName(), methodName, t.getMessage());

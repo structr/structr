@@ -59,8 +59,9 @@ public interface ODTExporter extends ODFExporter {
 		type.setExtends(URI.create("#/definitions/ODFExporter"));
 
 		type.addMethod("exportAttributes")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("uuid", String.class.getName())
-			.setSource(ODTExporter.class.getName() + ".exportAttributes(this, uuid);")
+			.setSource(ODTExporter.class.getName() + ".exportAttributes(this, uuid, ctx);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 	}}
@@ -69,15 +70,14 @@ public interface ODTExporter extends ODFExporter {
 	static final String ODT_FIELD_ATTRIBUTE_NAME  = "text:name";
 	static final String ODT_FIELD_ATTRIBUTE_VALUE = "office:string-value";
 
-	static void exportAttributes(final ODTExporter thisNode, final String uuid) throws FrameworkException {
+	static void exportAttributes(final ODTExporter thisNode, final String uuid, final SecurityContext securityContext) throws FrameworkException {
 
-		final SecurityContext securityContext = thisNode.getSecurityContext();
 		final File output                     = thisNode.getResultDocument();
 		final VirtualType transformation      = thisNode.getTransformationProvider();
 
 		try {
 
-			final App app = StructrApp.getInstance();
+			final App app = StructrApp.getInstance(securityContext);
 			final ResultStream result = app.nodeQuery(AbstractNode.class).and(GraphObject.id, uuid).getResultStream();
 			final ResultStream transformedResult = transformation.transformOutput(securityContext, AbstractNode.class, result);
 

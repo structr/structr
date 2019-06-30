@@ -77,17 +77,19 @@ public interface VideoFile extends File {
 			.setDoExport(true);
 
 		type.addMethod("convert")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("scriptName", String.class.getName())
 			.addParameter("newFileName", String.class.getName())
-			.setSource(AVConv.class.getName() + ".newInstance(securityContext, this, newFileName).doConversion(scriptName);")
+			.setSource(AVConv.class.getName() + ".newInstance(ctx, this, newFileName).doConversion(scriptName);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
 		type.addMethod("grab")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("scriptName", String.class.getName())
 			.addParameter("imageFileName", String.class.getName())
 			.addParameter("timeIndex", "long")
-			.setSource(AVConv.class.getName() + ".newInstance(securityContext, this, imageFileName).grabFrame(scriptName, imageFileName, timeIndex);")
+			.setSource(AVConv.class.getName() + ".newInstance(ctx, this, imageFileName).grabFrame(scriptName, imageFileName, timeIndex);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
@@ -98,15 +100,17 @@ public interface VideoFile extends File {
 			.setDoExport(true);
 
 		type.addMethod("setMetadata")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("key", String.class.getName())
 			.addParameter("value", String.class.getName())
-			.setSource(AVConv.class.getName() + ".newInstance(securityContext, this).setMetadata(key, value);")
+			.setSource(AVConv.class.getName() + ".newInstance(ctx, this).setMetadata(key, value);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
 		type.addMethod("setMetadata")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("metadata", JsonInput.class.getName())
-			.setSource(VideoFile.class.getName() + ".setMetadata(this, metadata);")
+			.setSource(VideoFile.class.getName() + ".setMetadata(this, metadata, ctx);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
@@ -205,7 +209,7 @@ public interface VideoFile extends File {
 		return result;
 	}
 
-	static void setMetadata(final VideoFile thisVideo, final JsonInput metadata) throws FrameworkException {
+	static void setMetadata(final VideoFile thisVideo, final JsonInput metadata, final SecurityContext ctx) throws FrameworkException {
 
 		final Map<String, String> map = new LinkedHashMap<>();
 
@@ -213,7 +217,7 @@ public interface VideoFile extends File {
 			map.put(entry.getKey(), entry.getValue().toString());
 		}
 
-		AVConv.newInstance(thisVideo.getSecurityContext(), thisVideo).setMetadata(map);
+		AVConv.newInstance(ctx, thisVideo).setMetadata(map);
 	}
 
 	static void updateVideoInfo(final VideoFile thisVideo) {

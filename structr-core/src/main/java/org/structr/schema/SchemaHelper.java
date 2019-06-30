@@ -1401,7 +1401,7 @@ public class SchemaHelper {
 
 					final SourceLine line = src.begin(codeSource, "public java.lang.Object ");
 					line.append(action.getName());
-					line.append("(final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {");
+					line.append("(final SecurityContext arg0, final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {");
 				}
 
 				if (action.callSuper()) {
@@ -1428,7 +1428,7 @@ public class SchemaHelper {
 
 		final SourceLine line = src.begin(codeSource, "public java.lang.Object ");
 		line.append(action.getName());
-		line.append("(final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {");
+		line.append("(final SecurityContext arg0, final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {");
 
 		src.line(codeSource, "return");
 

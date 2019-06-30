@@ -255,7 +255,7 @@ public interface KafkaClient extends MessageClient {
 	}
 
 	static void forwardReceivedMessage(KafkaClient thisClient, String topic, String message) throws FrameworkException {
-		MessageClient.sendMessage(thisClient, topic, message);
+		MessageClient.sendMessage(thisClient, topic, message, thisClient.getSecurityContext());
 	}
 
 	class ConsumerWorker implements Runnable {

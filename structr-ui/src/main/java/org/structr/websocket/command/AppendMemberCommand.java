@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -84,15 +83,15 @@ public class AppendMemberCommand extends AbstractCommand {
 
 			Principal principal = (Principal) getNode(id);
 			if (principal != null) {
-				
+
 				try {
-					group.addMember(principal);
+					group.addMember(getWebSocket().getSecurityContext(), principal);
 				} catch (final FrameworkException ex) {
-					
+
 					if (ex.getStatus() == 403) {
 						getWebSocket().send(MessageBuilder.status().code(403).message("Client is not allowed to add member " + principal.getName() + " to group " + group.getName()).build(), true);
 					}
-					
+
 				}
 			}
 

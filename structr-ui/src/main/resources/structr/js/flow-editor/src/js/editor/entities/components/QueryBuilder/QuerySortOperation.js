@@ -1,6 +1,5 @@
 import {StructrRest} from "../../../../rest/StructrRest.js";
 import {QueryStringValue} from "./QueryStringValue.js";
-import {QueryBooleanValue} from "./QueryBooleanValue.js";
 
 export class QuerySortOperation {
 

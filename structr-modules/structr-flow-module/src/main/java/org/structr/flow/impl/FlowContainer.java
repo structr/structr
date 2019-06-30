@@ -80,7 +80,9 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 		final FlowResult result       = engine.execute(context, entry);
 		final Map<String, Object> map = new LinkedHashMap<>();
 
-		map.put("error",  result.getError());
+		if (result.getError() != null) {
+			map.put("error", result.getError());
+		}
 		map.put("result", result.getResult());
 
 		return map;

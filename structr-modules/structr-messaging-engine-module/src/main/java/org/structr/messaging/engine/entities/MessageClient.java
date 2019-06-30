@@ -18,7 +18,14 @@
  */
 package org.structr.messaging.engine.entities;
 
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -27,16 +34,10 @@ import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
 
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-
 public interface MessageClient extends NodeInterface {
 
     class Impl {
+
         static {
 
 			final JsonSchema schema     = SchemaService.getDynamicSchema();
@@ -55,36 +56,36 @@ public interface MessageClient extends NodeInterface {
 
 			type.addMethod("sendMessage")
 				.setReturnType(RestMethodResult.class.getName())
+				.addParameter("ctx", SecurityContext.class.getName())
 				.addParameter("topic", String.class.getName())
 				.addParameter("message", String.class.getName())
-				.setSource("return " + MessageClient.class.getName() + ".sendMessage(this, topic, message);")
+				.setSource("return " + MessageClient.class.getName() + ".sendMessage(this, topic, message, ctx);")
 				.addException(FrameworkException.class.getName())
 				.setDoExport(true);
 
 
 			type.addMethod("subscribeTopic")
 					.setReturnType(RestMethodResult.class.getName())
+					.addParameter("ctx", SecurityContext.class.getName())
 					.addParameter("topic", String.class.getName())
-					.setSource("return " + MessageClient.class.getName() + ".subscribeTopic(this, topic);")
+					.setSource("return " + MessageClient.class.getName() + ".subscribeTopic(this, topic, ctx);")
 					.addException(FrameworkException.class.getName())
 					.setDoExport(true);
 
 			type.addMethod("unsubscribeTopic")
 					.setReturnType(RestMethodResult.class.getName())
+					.addParameter("ctx", SecurityContext.class.getName())
 					.addParameter("topic", String.class.getName())
-					.setSource("return " + MessageClient.class.getName() + ".unsubscribeTopic(this, topic);")
+					.setSource("return " + MessageClient.class.getName() + ".unsubscribeTopic(this, topic, ctx);")
 					.addException(FrameworkException.class.getName())
 					.setDoExport(true);
-
-
-
         }
     }
 
     Iterable<MessageSubscriber> getSubscribers();
     void setSubscribers(Iterable<MessageSubscriber> subs) throws FrameworkException;
 
-    static RestMethodResult sendMessage(MessageClient thisClient, final String topic, final String message) throws FrameworkException {
+    static RestMethodResult sendMessage(MessageClient thisClient, final String topic, final String message, final SecurityContext securityContext) throws FrameworkException {
 
         final App app = StructrApp.getInstance();
         try (final Tx tx = app.tx()) {
@@ -95,6 +96,7 @@ public interface MessageClient extends NodeInterface {
 					String subTopic = sub.getProperty(StructrApp.key(MessageSubscriber.class,"topic"));
                     if ( subTopic != null && (subTopic.equals(topic) || subTopic.equals("*"))) {
                         Map<String, Object> params = new HashMap<>();
+                        params.put("ctx", securityContext);
                         params.put("topic", topic);
                         params.put("message", message);
                         try {
@@ -112,12 +114,12 @@ public interface MessageClient extends NodeInterface {
         return new RestMethodResult(200);
     }
 
-    static RestMethodResult subscribeTopic(MessageClient client, final String topic) throws FrameworkException {
+    static RestMethodResult subscribeTopic(MessageClient client, final String topic, final SecurityContext securityContext) throws FrameworkException {
 
         return new RestMethodResult(200);
     }
 
-    static RestMethodResult unsubscribeTopic(MessageClient client, final String topic) throws FrameworkException {
+    static RestMethodResult unsubscribeTopic(MessageClient client, final String topic, final SecurityContext securityContext) throws FrameworkException {
 
         return new RestMethodResult(200);
     }

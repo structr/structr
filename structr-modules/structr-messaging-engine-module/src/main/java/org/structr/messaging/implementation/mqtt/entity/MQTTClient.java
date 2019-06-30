@@ -18,6 +18,11 @@
  */
 package org.structr.messaging.implementation.mqtt.entity;
 
+import java.net.URI;
+import java.util.List;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -34,12 +39,6 @@ import org.structr.messaging.implementation.mqtt.MQTTContext;
 import org.structr.messaging.implementation.mqtt.MQTTInfo;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
-
-import java.net.URI;
-import java.util.List;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.util.Iterables;
 
 public interface MQTTClient extends MessageClient, MQTTInfo {
 
@@ -74,15 +73,15 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 			type.overrideMethod("onModification", true, MQTTClient.class.getName() + ".onModification(this, arg0, arg1, arg2);");
 			type.overrideMethod("onDeletion",     true, MQTTClient.class.getName() + ".onDeletion(this, arg0, arg1, arg2);");
 
-			type.overrideMethod("messageCallback",          false, MessageClient.class.getName() + ".sendMessage(this,arg0,arg1);");
+			type.overrideMethod("messageCallback",          false, MessageClient.class.getName() + ".sendMessage(this, arg0, arg1, this.getSecurityContext());");
 			type.overrideMethod("connectionStatusCallback", false, MQTTClient.class.getName() + ".connectionStatusCallback(this, arg0);");
 			type.overrideMethod("getTopics",                false, "return " + MQTTClient.class.getName() + ".getTopics(this);");
 
 			type.overrideMethod("getQoS", false, "return getQos();");
 
-			type.overrideMethod("sendMessage", true, "return " + MQTTClient.class.getName() + ".sendMessage(this,topic,message);");
-			type.overrideMethod("subscribeTopic", false, "return " + MQTTClient.class.getName() + ".subscribeTopic(this,topic);");
-			type.overrideMethod("unsubscribeTopic", false, "return " + MQTTClient.class.getName() + ".unsubscribeTopic(this,topic);");
+			type.overrideMethod("sendMessage", true, "return " + MQTTClient.class.getName() + ".sendMessage(this, topic, message, this.getSecurityContext());");
+			type.overrideMethod("subscribeTopic", false, "return " + MQTTClient.class.getName() + ".subscribeTopic(this, topic);");
+			type.overrideMethod("unsubscribeTopic", false, "return " + MQTTClient.class.getName() + ".unsubscribeTopic(this, topic);");
 
 
 		}
@@ -202,7 +201,7 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 
 	}
 
-	static RestMethodResult sendMessage(MQTTClient thisClient, final String topic, final String message) throws FrameworkException {
+	static RestMethodResult sendMessage(MQTTClient thisClient, final String topic, final String message, final SecurityContext ctx) throws FrameworkException {
 
 		if (thisClient.getIsEnabled()) {
 

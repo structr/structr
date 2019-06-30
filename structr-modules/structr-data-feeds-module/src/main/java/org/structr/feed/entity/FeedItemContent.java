@@ -60,7 +60,7 @@ public interface FeedItemContent extends NodeInterface, Indexable {
 
 		// methods shared with FeedItem
 		type.overrideMethod("afterCreation",    false,             FeedItemContent.class.getName() + ".updateIndex(this, arg0);");
-		type.overrideMethod("getSearchContext", false, "return " + FeedItemContent.class.getName() + ".getSearchContext(this, arg0, arg1);").setDoExport(true);
+		type.overrideMethod("getSearchContext", false, "return " + FeedItemContent.class.getName() + ".getSearchContext(this, arg0, arg1, arg2);").setDoExport(true);
 		type.overrideMethod("getInputStream",   false, "return " + FeedItemContent.class.getName() + ".getInputStream(this);");
 
 		// view configuration
@@ -83,12 +83,12 @@ public interface FeedItemContent extends NodeInterface, Indexable {
 		}
 	}
 
-	static GraphObject getSearchContext(final Indexable thisIndexable, final String searchTerm, final int contextLength) {
+	static GraphObject getSearchContext(final Indexable thisIndexable, final SecurityContext ctx, final String searchTerm, final int contextLength) {
 
 		final String text = thisIndexable.getExtractedContent();
 		if (StringUtils.isNotBlank(text)) {
 
-			final FulltextIndexer indexer = StructrApp.getInstance(thisIndexable.getSecurityContext()).getFulltextIndexer();
+			final FulltextIndexer indexer = StructrApp.getInstance(ctx).getFulltextIndexer();
 			return indexer.getContextObject(searchTerm, text, contextLength);
 		}
 

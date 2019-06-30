@@ -57,7 +57,7 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 			final Group group    = (Group)sources[0];
 			final Principal user = (Principal)sources[1];
 
-			group.addMember(user);
+			group.addMember(ctx.getSecurityContext(), user);
 
 		} catch (ArgumentNullException pe) {
 

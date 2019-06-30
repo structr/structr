@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -101,6 +102,15 @@ import org.testng.annotations.Test;
 public class ScriptingTest extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(ScriptingTest.class.getName());
+
+	private HashMap getDefaultMethodInvocationParameters () {
+
+		final HashMap paramMap = new HashMap();
+		paramMap.put("arg0", securityContext);
+		paramMap.put("parameters", Collections.EMPTY_MAP);
+
+		return paramMap;
+	}
 
 	@Test
 	public void testSetPropertyWithDynamicNodes() {
@@ -229,27 +239,27 @@ public class ScriptingTest extends StructrTest {
 			final GraphObject sourceNode = app.nodeQuery(sourceType).getFirst();
 
 			// set testEnum property to OPEN via doTest01 function call, check result
-			sourceNode.invokeMethod("doTest01", Collections.EMPTY_MAP, true);
+			sourceNode.invokeMethod("doTest01", getDefaultMethodInvocationParameters(), true);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[0], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to CLOSED via doTest02 function call, check result
-			sourceNode.invokeMethod("doTest02", Collections.EMPTY_MAP, true);
+			sourceNode.invokeMethod("doTest02", getDefaultMethodInvocationParameters(), true);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[1], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to TEST via doTest03 function call, check result
-			sourceNode.invokeMethod("doTest03", Collections.EMPTY_MAP, true);
+			sourceNode.invokeMethod("doTest03", getDefaultMethodInvocationParameters(), true);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to INVALID via doTest03 function call, expect previous value & error
 			try {
-				sourceNode.invokeMethod("doTest04", Collections.EMPTY_MAP, true);
+				sourceNode.invokeMethod("doTest04", getDefaultMethodInvocationParameters(), true);
 				assertEquals("Invalid setProperty result for EnumProperty",    testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
 				fail("Setting EnumProperty to invalid value should result in an Exception!");
 
 			} catch (FrameworkException fx) {}
 
 			// test other property types
-			sourceNode.invokeMethod("doTest05", Collections.EMPTY_MAP, true);
+			sourceNode.invokeMethod("doTest05", getDefaultMethodInvocationParameters(), true);
 			assertEquals("Invalid setProperty result for BooleanProperty",                         true, sourceNode.getProperty(testBooleanProperty));
 			assertEquals("Invalid setProperty result for IntegerProperty",                          123, sourceNode.getProperty(testIntegerProperty));
 			assertEquals("Invalid setProperty result for StringProperty",                   "testing..", sourceNode.getProperty(testStringProperty));
@@ -328,7 +338,7 @@ public class ScriptingTest extends StructrTest {
 		// grant read access to test user
 		try (final Tx tx = app.tx()) {
 
-			app.nodeQuery(sourceType).getFirst().invokeMethod("doTest01", Collections.EMPTY_MAP, true);
+			app.nodeQuery(sourceType).getFirst().invokeMethod("doTest01", getDefaultMethodInvocationParameters(), true);
 			tx.success();
 
 		} catch(FrameworkException fex) {

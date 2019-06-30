@@ -24,6 +24,7 @@ import org.structr.api.graph.Cardinality;
 import org.structr.api.util.Iterables;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
@@ -49,13 +50,15 @@ public interface Group extends Principal {
 		group.addPropertyGetter("members", Iterable.class);
 
 		group.addMethod("addMember")
-				.setSource(Group.class.getName() + ".addMember(this, member);")
+				.setSource(Group.class.getName() + ".addMember(this, member, ctx);")
+				.addParameter("ctx", SecurityContext.class.getName())
 				.addParameter("member", Principal.class.getName())
 				.addException(FrameworkException.class.getName())
 				.setDoExport(true);
 
 		group.addMethod("removeMember")
-				.setSource(Group.class.getName() + ".removeMember(this, member);")
+				.setSource(Group.class.getName() + ".removeMember(this, member, ctx);")
+				.addParameter("ctx", SecurityContext.class.getName())
 				.addParameter("member", Principal.class.getName())
 				.addException(FrameworkException.class.getName())
 				.setDoExport(true);
@@ -75,12 +78,12 @@ public interface Group extends Principal {
 		group.addViewProperty(PropertyView.Public, "name");
 	}}
 
-	void addMember(final Principal member) throws FrameworkException;
-	void removeMember(final Principal member) throws FrameworkException;
+	void addMember(final SecurityContext ctx, final Principal member) throws FrameworkException;
+	void removeMember(final SecurityContext ctx, final Principal member) throws FrameworkException;
 	Iterable<Principal> getMembers();
 
 
-	public static void addMember(final Group group, final Principal user) throws FrameworkException {
+	public static void addMember(final Group group, final Principal user, final SecurityContext ctx) throws FrameworkException {
 
 		if (user == null) {
 			throw new FrameworkException(422, "Unable to add user " + user + " to group " + group);
@@ -94,7 +97,7 @@ public interface Group extends Principal {
 		group.setProperty(key, _users);
 	}
 
-	public static void removeMember(final Group group, final Principal member) throws FrameworkException {
+	public static void removeMember(final Group group, final Principal member, final SecurityContext ctx) throws FrameworkException {
 
 		if (member == null) {
 			throw new FrameworkException(422, "Unable to remove member " + member + " from group " + group);

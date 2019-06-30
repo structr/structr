@@ -79,8 +79,8 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.web.common.ClosingFileOutputStream;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
-import org.structr.web.importer.MixedCSVFileImportJob;
 import org.structr.web.importer.CSVFileImportJob;
+import org.structr.web.importer.MixedCSVFileImportJob;
 import org.structr.web.importer.XMLFileImportJob;
 import org.structr.web.property.FileDataProperty;
 
@@ -150,7 +150,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.overrideMethod("triggerMinificationIfNeeded", false, File.class.getName() + ".triggerMinificationIfNeeded(this, arg0);");
 
 		type.overrideMethod("getInputStream",              false, "return " + File.class.getName() + ".getInputStream(this);");
-		type.overrideMethod("getSearchContext",            false, "return " + File.class.getName() + ".getSearchContext(this, arg0, arg1);");
+		type.overrideMethod("getSearchContext",            false, "return " + File.class.getName() + ".getSearchContext(this, arg0, arg1, arg2);");
 		type.overrideMethod("getJavascriptLibraryCode",    false, "return " + File.class.getName() + ".getJavascriptLibraryCode(this);");
 		type.overrideMethod("getEnableBasicAuth",          false, "return getProperty(enableBasicAuthProperty);");
 
@@ -196,27 +196,31 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			.setSource("return " + File.class.getName() + ".getFileOnDisk(this, doCreate);");
 
 		type.addMethod("doCSVImport")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setSource(File.class.getName() + ".doCSVImport(this, parameters);")
+			.setSource(File.class.getName() + ".doCSVImport(this, parameters, ctx);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
 		type.addMethod("doXMLImport")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setSource(File.class.getName() + ".doXMLImport(this, parameters);")
+			.setSource(File.class.getName() + ".doXMLImport(this, parameters, ctx);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
 		type.addMethod("getFirstLines")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
 			.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
-			.setSource("return " + File.class.getName() + ".getFirstLines(this, parameters);")
+			.setSource("return " + File.class.getName() + ".getFirstLines(this, parameters, ctx);")
 			.setDoExport(true);
 
 		type.addMethod("getCSVHeaders")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
 			.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
-			.setSource("return " + File.class.getName() + ".getCSVHeaders(this, parameters);")
+			.setSource("return " + File.class.getName() + ".getCSVHeaders(this, parameters, ctx);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
@@ -238,10 +242,10 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	Iterable<AbstractMinifiedFile> getMinificationTargets();
 
 	String getXMLStructure() throws FrameworkException;
-	void doCSVImport(final Map<String, Object> parameters) throws FrameworkException;
-	void doXMLImport(final Map<String, Object> parameters) throws FrameworkException;
-	Map<String, Object> getCSVHeaders(final Map<String, Object> parameters) throws FrameworkException;
-	Map<String, Object> getFirstLines(final Map<String, Object> parameters);
+	void doCSVImport(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
+	void doXMLImport(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
+	Map<String, Object> getCSVHeaders(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
+	Map<String, Object> getFirstLines(final SecurityContext securityContext, final Map<String, Object> parameters);
 
 	FileOutputStream getOutputStream(final boolean notifyIndexerAfterClosing, final boolean append);
 
@@ -330,12 +334,12 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	}
 
-	static GraphObject getSearchContext(final File thisFile, final String searchTerm, final int contextLength) {
+	static GraphObject getSearchContext(final File thisFile, final SecurityContext ctx, final String searchTerm, final int contextLength) {
 
 		final String text = thisFile.getExtractedContent();
 		if (text != null) {
 
-			final FulltextIndexer indexer = StructrApp.getInstance(thisFile.getSecurityContext()).getFulltextIndexer();
+			final FulltextIndexer indexer = StructrApp.getInstance(ctx).getFulltextIndexer();
 			return indexer.getContextObject(searchTerm, text, contextLength);
 		}
 
@@ -526,11 +530,11 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		}
 	}
 
-	static Map<String, Object> getFirstLines(final File thisFile, final Map<String, Object> parameters) {
+	static Map<String, Object> getFirstLines(final File thisFile, final Map<String, Object> parameters, final SecurityContext securityContext) {
 
 		final Map<String, Object> result = new LinkedHashMap<>();
 		final int num                    = File.getNumberOrDefault(parameters, "num", 3);
-		final LineAndSeparator ls        = File.getFirstLines(thisFile, num);
+		final LineAndSeparator ls        = File.getFirstLines(thisFile, num, securityContext);
 		final String separator           = ls.getSeparator();
 
 		switch (separator) {
@@ -553,7 +557,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		return result;
 	}
 
-	static Map<String, Object> getCSVHeaders(final File thisFile, final Map<String, Object> parameters) throws FrameworkException {
+	static Map<String, Object> getCSVHeaders(final File thisFile, final Map<String, Object> parameters, final SecurityContext securityContext) throws FrameworkException {
 
 		if ("text/csv".equals(thisFile.getContentType())) {
 
@@ -596,12 +600,12 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 							break;
 					}
 
-					sources[0] = File.getFirstLines(thisFile, 1).getLine();
+					sources[0] = File.getFirstLines(thisFile, 1, securityContext).getLine();
 					sources[1] = delimiter;
 					sources[2] = quoteChar;
 					sources[3] = recordSeparator;
 
-					map.put("headers", func.apply(new ActionContext(thisFile.getSecurityContext()), null, sources));
+					map.put("headers", func.apply(new ActionContext(securityContext), null, sources));
 
 				} catch (UnlicensedScriptException ex) {
 
@@ -617,10 +621,9 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		}
 	}
 
-	static void doCSVImport(final File thisFile, final Map<String, Object> parameters) throws FrameworkException {
+	static void doCSVImport(final File thisFile, final Map<String, Object> parameters, final SecurityContext securityContext) throws FrameworkException {
 
 		final Map<String, Object> mixedMappings  = (Map<String, Object>)parameters.get("mixedMappings");
-		final SecurityContext securityContext    = thisFile.getSecurityContext();
 		final ContextStore contextStore          = securityContext.getContextStore();
 		final Principal user                     = securityContext.getUser(false);
 
@@ -669,9 +672,9 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		return null;
 	}
 
-	static void doXMLImport(final File thisFile, final Map<String, Object> config) throws FrameworkException {
+	static void doXMLImport(final File thisFile, final Map<String, Object> config, final SecurityContext securityContext) throws FrameworkException {
 
-		XMLFileImportJob job = new XMLFileImportJob(thisFile, thisFile.getSecurityContext().getUser(false), config, thisFile.getSecurityContext().getContextStore());
+		XMLFileImportJob job = new XMLFileImportJob(thisFile, securityContext.getUser(false), config, securityContext.getContextStore());
 		JobQueueManager.getInstance().addJob(job);
 
 	}
@@ -720,7 +723,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		return defaultValue;
 	}
 
-	static LineAndSeparator getFirstLines(final File thisFile, final int num) {
+	static LineAndSeparator getFirstLines(final File thisFile, final int num, final SecurityContext securityContext) {
 
 		final StringBuilder lines = new StringBuilder();
 		int separator[]           = new int[10];
