@@ -49,10 +49,31 @@ public class GroupQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 			final List<QueryPredicate> typePredicates              = predicateList.stream().filter((p) -> { return p instanceof TypeQuery; }).collect(Collectors.toList());
 			final List<QueryPredicate> attributeAndGroupPredicates = predicateList.stream().filter((p) -> { return !(p instanceof TypeQuery); }).collect(Collectors.toList());
 
-			// Apply all type queries first as they affect as different part of the query expression
-			for (final QueryPredicate p : typePredicates) {
+			if (!typePredicates.isEmpty()) {
 
-				index.createQuery(p, query, isFirst);
+				query.beginGroup();
+
+				switch (group.getOccurrence()) {
+
+					case REQUIRED:
+						query.and();
+						break;
+
+					case OPTIONAL:
+						query.or();
+						break;
+
+					case FORBIDDEN:
+						query.not();
+						break;
+				}
+
+				for (final QueryPredicate p : group.getQueryPredicates()) {
+
+					index.createQuery(p, query, isFirst);
+				}
+
+				query.endGroup();
 			}
 
 			// Apply any group and attribute predicates, if existent
@@ -113,4 +134,41 @@ public class GroupQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 		return false;
 	}
+
+	/*
+	@Override
+	public boolean createQuery(final QueryPredicate predicate, final MemoryQuery query, final boolean isFirst) {
+
+		if (predicate instanceof GroupQuery) {
+
+			final GroupQuery group = (GroupQuery)predicate;
+
+			query.beginGroup();
+
+			switch (group.getOccurrence()) {
+
+				case REQUIRED:
+					query.and();
+					break;
+
+				case OPTIONAL:
+					query.or();
+					break;
+
+				case FORBIDDEN:
+					query.not();
+					break;
+			}
+
+			for (final QueryPredicate p : group.getQueryPredicates()) {
+
+				index.createQuery(p, query, isFirst);
+			}
+
+			query.endGroup();
+		}
+
+		return false;
+	}
+*/
 }

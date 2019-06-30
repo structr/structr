@@ -120,10 +120,7 @@ public abstract class Setting<T> {
 		Setting<T> prefixedSetting = Settings.getSetting(prefix, key);
 		if (prefixedSetting == null) {
 
-			// value is not set => display copy notice
 			prefixedSetting = copy(prefix + "." + key);
-
-			logger.warn("Configuration value {} is not set, using value {} from non-prefixed key {}", prefixedSetting.key, prefixedSetting.value, key);
 		}
 
 		return prefixedSetting;

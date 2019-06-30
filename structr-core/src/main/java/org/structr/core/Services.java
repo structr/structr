@@ -243,7 +243,7 @@ public class Services implements StructrServices {
 
 			try {
 
-				final String activeServiceName = getNameOfActiveService(serviceClass);
+				final String activeServiceName = Settings.getOrCreateStringSetting(serviceClass.getSimpleName(), "active").getValue("default");
 
 				startService(serviceClass, activeServiceName, false);
 

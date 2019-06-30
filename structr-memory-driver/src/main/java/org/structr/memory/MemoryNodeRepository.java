@@ -59,20 +59,11 @@ public class MemoryNodeRepository extends EntityRepository {
 
 				final MemoryLabelFilter<MemoryNode> mt = (MemoryLabelFilter<MemoryNode>)filter;
 				final Set<MemoryIdentity> cache        = new LinkedHashSet<>();
-				boolean first                          = true;
 
+				// multiple labels result in OR not AND query
 				for (final String label : mt.getLabels()) {
 
-					if (first) {
-
-						cache.addAll(getCacheForLabel(label));
-
-					} else {
-
-						cache.retainAll(getCacheForLabel(label));
-					}
-
-					first = false;
+					cache.addAll(getCacheForLabel(label));
 				}
 
 				return Iterables.map(i -> masterData.get(i), cache);

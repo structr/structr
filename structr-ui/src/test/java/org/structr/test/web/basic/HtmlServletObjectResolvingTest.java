@@ -183,8 +183,13 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 
 			final Query query = StructrApp.getInstance(securityContext).nodeQuery();
 
-			query.and(GraphObject.id, uuid);
-			query.and().orType(Page.class).orTypes(File.class);
+			query
+				.and()
+					.or()
+					.andTypes(Page.class)
+					.andTypes(File.class)
+					.parent()
+				.and(GraphObject.id, uuid);
 
 			// Searching for pages needs super user context anyway
 			List<Linkable> results = query.getAsList();
