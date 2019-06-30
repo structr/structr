@@ -47,7 +47,6 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 
-import java.awt.*;
 import java.net.URI;
 import java.util.*;
 import java.util.List;
@@ -256,7 +255,7 @@ public interface KafkaClient extends MessageClient {
 	}
 
 	static void forwardReceivedMessage(KafkaClient thisClient, String topic, String message) throws FrameworkException {
-		MessageClient.sendMessage(thisClient, topic, message);
+		MessageClient.sendMessage(thisClient, topic, message, thisClient.getSecurityContext());
 	}
 
 	class ConsumerWorker implements Runnable {

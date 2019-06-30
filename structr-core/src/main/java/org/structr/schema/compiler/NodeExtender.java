@@ -208,19 +208,32 @@ public class NodeExtender {
 					if (source != null) {
 						System.out.println("Code source: " + source.getUuid() + " of type " + source.getClass().getSimpleName() + " name " + source.getName());
 					}
-					
-					System.out.println("Line with error:");
-					System.out.println(line);
 					System.out.println("Error: " + diagnostic.getMessage(Locale.ENGLISH));
+
+					if (errorLineNumber - 3 >= 0) {
+						System.out.println("  " + StringUtils.leftPad("" + (errorLineNumber-3), 4) + ": " + code.get(errorLineNumber - 3));
+					}
+					if (errorLineNumber - 2 >= 0) {
+						System.out.println("  " + StringUtils.leftPad("" + (errorLineNumber-2), 4) + ": " + code.get(errorLineNumber - 2));
+					}
+
+					System.out.println("> " + StringUtils.leftPad("" + (errorLineNumber-1), 4) + ": " + line);
+
+					if (errorLineNumber <= code.size()) {
+						System.out.println("  " + StringUtils.leftPad("" + (errorLineNumber), 4) + ": " + code.get(errorLineNumber));
+					}
+					if (errorLineNumber + 1 <= code.size()) {
+						System.out.println("  " + StringUtils.leftPad("" + (errorLineNumber+1), 4) + ": " + code.get(errorLineNumber));
+					}
 
 					/*
 					final String src = ((JavaFileObject) diagnostic.getSource()).getCharContent(true).toString();
-					
+
 					// Add line numbers
 					final AtomicInteger index = new AtomicInteger();
 					final List<String> code   = Arrays.asList(src.split("\\R")).stream().map(line -> (index.getAndIncrement()+1) + ": " + line).collect(Collectors.toList());
 					final String context      = StringUtils.join(code.subList(Math.max(0, errorLineNumber - errorContext), Math.min(code.size(), errorLineNumber + errorContext)), "\n");
-					
+
 					// log also to log file
 					logger.error("Unable to compile dynamic entity {}:{}: {}\n{}", name, diagnostic.getLineNumber(), diagnostic.getMessage(Locale.ENGLISH), context);
 					*/

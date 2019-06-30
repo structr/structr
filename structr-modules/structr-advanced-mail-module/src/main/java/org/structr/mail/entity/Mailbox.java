@@ -57,9 +57,11 @@ public interface Mailbox extends NodeInterface {
 		type.addPropertyGetter("overrideMailEntityType",   String.class);
 		type.addPropertyGetter("mailProtocol",             Object.class);
 		type.addPropertyGetter("port",      		       Integer.class);
+
 		type.addMethod("getFolders")
 				.setReturnType("String[]")
 				.setSource("return getProperty(foldersProperty);");
+
 		type.addMethod("getAvailableFoldersOnServer")
 				.setReturnType("List<String>")
 				.setSource("return org.structr.mail.entity.Mailbox.getAvailableFoldersOnServerImpl(this, securityContext);")

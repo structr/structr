@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import jdk.nashorn.api.scripting.ScriptUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.*;
 import org.slf4j.Logger;
@@ -1079,7 +1080,7 @@ public class StructrScriptable extends ScriptableObject {
 
 			if (parameterCount == 0) {
 
-				return wrap(cx, this, null, super.call(cx, scope, thisObj, new Object[]{ securityContext, new NativeObject() }));
+				return wrap(cx, this, null, super.call(cx, scope, thisObj, new Object[]{ }));
 
 			} else if (args.length == 0) {
 
@@ -1087,7 +1088,7 @@ public class StructrScriptable extends ScriptableObject {
 
 			} else {
 
-				return wrap(cx, this, null, super.call(cx, scope, thisObj, new Object[]{ securityContext, args }));
+				return wrap(cx, this, null, super.call(cx, scope, thisObj, ArrayUtils.add(args, 0, securityContext)));
 			}
 		}
 	}
