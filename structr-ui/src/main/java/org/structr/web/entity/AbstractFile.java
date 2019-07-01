@@ -83,7 +83,9 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		type.overrideMethod("getSiblingLinkType",          false, "return AbstractFileCONTAINS_NEXT_SIBLINGAbstractFile.class;");
 		type.overrideMethod("getChildLinkType",            false, "return FolderCONTAINSAbstractFile.class;");
 		type.overrideMethod("isExternal",                  false, "return getProperty(isExternalProperty);");
-		type.overrideMethod("isBinaryDataAccessible",      false, "return !isExternal() || isMounted();").setDoExport(true);
+		type.overrideMethod("isBinaryDataAccessible",      false, "return !isExternal() || isMounted();")
+//			.addParameter("ctx", SecurityContext.class.getName())
+			.setDoExport(true);
 		type.overrideMethod("isMounted",                   false, "return " + AbstractFile.class.getName() + ".isMounted(this);");
 		type.overrideMethod("getFolderPath",               false, "return " + AbstractFile.class.getName() + ".getFolderPath(this);");
 		type.overrideMethod("includeInFrontendExport",     false, "return " + AbstractFile.class.getName() + ".includeInFrontendExport(this);");
@@ -119,7 +121,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 	boolean isMounted();
 	boolean isExternal();
 	boolean getHasParent();
-	boolean isBinaryDataAccessible();
+	boolean isBinaryDataAccessible(final SecurityContext securityContext);
 	boolean includeInFrontendExport();
 
 	static void onCreation(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {

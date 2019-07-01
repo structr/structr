@@ -324,10 +324,10 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 			cell.setCellValue(cellValue.substring(0, maxCellLength));
 
-			if (!overflowMode.equals("t")) {
+			if (!"t".equals(overflowMode)) {
 				final Comment comment = drawing.createCellComment(factory.createClientAnchor());
 
-				if (overflowMode.equals("o")) {
+				if ("o".equals(overflowMode)) {
 					final String overflow = cellValue.substring(maxCellLength, Math.min(maxCellLength + 32767, cellValue.length()));
 					comment.setString(factory.createRichTextString(overflow));
 				} else {

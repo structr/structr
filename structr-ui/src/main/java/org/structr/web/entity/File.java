@@ -225,6 +225,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			.setDoExport(true);
 
 		type.addMethod("getXMLStructure")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.setReturnType("java.lang.String")
 			.setSource("return " + File.class.getName() + ".getXMLStructure(this);")
 			.addException(FrameworkException.class.getName())
@@ -241,7 +242,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	Iterable<AbstractMinifiedFile> getMinificationTargets();
 
-	String getXMLStructure() throws FrameworkException;
+	String getXMLStructure(final SecurityContext securityContext) throws FrameworkException;
 	void doCSVImport(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
 	void doXMLImport(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
 	Map<String, Object> getCSVHeaders(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
