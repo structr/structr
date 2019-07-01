@@ -18,30 +18,15 @@
  */
 package org.structr.flow.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StartNode;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowNodeDataSource;
-import org.structr.flow.impl.rels.FlowNameDataSource;
-
-import java.util.Collection;
 import java.util.Iterator;
 
 /**
  *
  */
 public class FlowFirst extends FlowDataSource {
-
-	private static final Logger logger = LoggerFactory.getLogger(FlowFirst.class);
 
 	@Override
 	public Object get(final Context context) throws FlowException {
