@@ -123,47 +123,34 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	public String getRealName() {
-
 		return "Super User";
-
 	}
 
 	public String getPassword() {
-
 		return null;
-
 	}
 
 	public String getConfirmationKey() {
-
 		return null;
-
 	}
 
 	public String getSessionId() {
-
 		return null;
-
 	}
 
 	@Override
 	public String getType() {
-
 		return null;
-
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys(String propertyView) {
-
 		return null;
 	}
 
 	@Override
 	public <T> T getProperty(PropertyKey<T> key) {
-
 		return null;
-
 	}
 
 	@Override
@@ -181,28 +168,22 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	@Override
 	public <T> Comparable getComparableProperty(PropertyKey<T> key) {
-
 		return null;
 	}
 
 	@Override
 	public List<Principal> getParents() {
-
 		return Collections.emptyList();
-
 	}
 
 	@Override
 	public List<Principal> getParentsPrivileged() {
-
 		return Collections.emptyList();
-
 	}
 
 	@Override
 	public String getUuid() {
 		return Principal.SUPERUSER_ID;
-
 	}
 
 	@Override
@@ -211,12 +192,10 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	public void setPassword(final String passwordValue) {
-
 		// not supported
 	}
 
 	public void setRealName(final String realName) {
-
 		// not supported
 	}
 
@@ -442,6 +421,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	@Override
 	public void setRawPathSegmentId(final Identity rawSegmentId) {
+		// nothing to do for SuperUser
 	}
 
 	@Override
@@ -471,6 +451,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	@Override
 	public void setSessionData(String sessionData) throws FrameworkException {
+		// nothing to do for SuperUser
 	}
 
 	@Override
@@ -480,14 +461,17 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	@Override
 	public void setIsAdmin(boolean isAdmin) throws FrameworkException {
+		// nothing to do
 	}
 
 	@Override
 	public void setEMail(String eMail) throws FrameworkException {
+		// nothing to do
 	}
 
 	@Override
 	public void setSalt(String salt) throws FrameworkException {
+		// nothing to do
 	}
 
 	@Override
@@ -502,6 +486,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	@Override
 	public void setFavorites(final Iterable<Favoritable> favorites) throws FrameworkException {
+		// nothing to do
 	}
 
 	@Override

@@ -79,10 +79,12 @@ public class MessageEngineModule implements StructrModule {
 
     @Override
     public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
+	    // nothing to do
     }
 
     @Override
     public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
+	    // nothing to do
     }
 
     @Override
@@ -92,6 +94,7 @@ public class MessageEngineModule implements StructrModule {
 
     @Override
     public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
+	    // nothing to do
     }
 
     @Override
@@ -232,7 +235,7 @@ public class MessageEngineModule implements StructrModule {
 						app.delete(toDelete);
 					}
 
-					for (Map<String, Object> entry : entities) {
+					for (final Map<String, Object> entry : entities) {
 
 						List<String> subIds = null;
 						if (entry.containsKey("subscribers")) {
@@ -278,17 +281,19 @@ public class MessageEngineModule implements StructrModule {
 
 	private List<MessageSubscriber> getSubscribersByIds(List<String> ids) {
 
-    	List<MessageSubscriber> result = new ArrayList<>();
+		final List<MessageSubscriber> result = new ArrayList<>();
 
-    	if (ids != null && ids.size() > 0) {
+		if (ids != null && ids.size() > 0) {
 
 			final App app = StructrApp.getInstance();
 			try (Tx tx = app.tx()) {
 
-				for (String id : ids) {
+				for (final String id : ids) {
 					MessageSubscriber sub = (MessageSubscriber) app.getNodeById(MessageSubscriber.class, id);
 					result.add(sub);
 				}
+
+				tx.success();
 
 			} catch (FrameworkException ex) {
 
