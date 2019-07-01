@@ -169,34 +169,39 @@ public class FunctionProperty<T> extends Property<T> {
 		return valueType().getSimpleName();
 	}
 
+
+	private PropertyConverter getDatabaseConverter(final SecurityContext securityContext) {
+		if (typeHint != null) {
+
+			PropertyConverter converter = null;
+
+			switch (typeHint.toLowerCase()) {
+
+				case "boolean": converter = pBoolean.databaseConverter(securityContext); break;
+				case "int":     converter = pInt.databaseConverter(securityContext); break;
+				case "long":    converter = pLong.databaseConverter(securityContext); break;
+				case "double":  converter = pDouble.databaseConverter(securityContext); break;
+				case "date":    converter = pDate.databaseConverter(securityContext); break;
+			}
+
+			return converter;
+		}
+		return null;
+	}
+
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
-		return databaseConverter(securityContext, null);
+		return getDatabaseConverter(securityContext);
 	}
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-
-		PropertyConverter converter = null;
-
-		if (typeHint != null) {
-
-			switch (typeHint.toLowerCase()) {
-
-				case "boolean": converter = pBoolean.inputConverter(securityContext); break;
-				case "int":     converter = pInt.inputConverter(securityContext); break;
-				case "long":    converter = pLong.inputConverter(securityContext); break;
-				case "double":  converter = pDouble.inputConverter(securityContext); break;
-				case "date":    converter = pDate.inputConverter(securityContext); break;
-			}
-		}
-
-		return converter;
+		return getDatabaseConverter(securityContext);
 	}
 
 	@Override
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
-		return null;
+		return getDatabaseConverter(securityContext);
 	}
 
 	@Override
@@ -246,7 +251,6 @@ public class FunctionProperty<T> extends Property<T> {
 
 	@Override
 	public T convertSearchValue(final SecurityContext securityContext, final String requestParameter) throws FrameworkException {
-
 		if (typeHint != null) {
 
 			PropertyConverter converter = null;

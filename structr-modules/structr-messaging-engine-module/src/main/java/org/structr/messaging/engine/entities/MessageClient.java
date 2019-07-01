@@ -96,11 +96,10 @@ public interface MessageClient extends NodeInterface {
 					String subTopic = sub.getProperty(StructrApp.key(MessageSubscriber.class,"topic"));
                     if ( subTopic != null && (subTopic.equals(topic) || subTopic.equals("*"))) {
                         Map<String, Object> params = new HashMap<>();
-                        params.put("ctx", securityContext);
                         params.put("topic", topic);
                         params.put("message", message);
                         try {
-                            sub.invokeMethod("onMessage", params, false);
+                            sub.invokeMethod(securityContext, "onMessage", params, false);
                         } catch (FrameworkException e) {
                             logger.warn("Could not invoke 'onMessage' method on MessageSubscriber: " + e.getMessage());
                         }

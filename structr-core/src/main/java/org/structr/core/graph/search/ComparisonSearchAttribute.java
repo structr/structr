@@ -40,23 +40,24 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 		this.searchKey = searchKey;
 		this.operation = operation;
 
-		if (!(searchKey instanceof FunctionProperty)) {
+		try {
 
-			PropertyConverter converter = searchKey.inputConverter(SecurityContext.getSuperUserInstance());
+			if (!(searchKey instanceof FunctionProperty)) {
 
-			try {
+				PropertyConverter converter = searchKey.inputConverter(SecurityContext.getSuperUserInstance());
 
 				if (converter != null) {
 					this.searchValue = (T) converter.convert(value);
 				}
-			} catch (FrameworkException ex) {
 
-				LoggerFactory.getLogger(ComparisonSearchAttribute.class).warn("Could not convert given value. " + ex.getMessage());
+			} else {
+
+				this.searchValue = this.searchKey.convertSearchValue(SecurityContext.getSuperUserInstance(), value.toString());
 			}
 
-		} else {
+		} catch (FrameworkException ex) {
 
-			this.searchValue = (T)value;
+			LoggerFactory.getLogger(ComparisonSearchAttribute.class).warn("Could not convert given value. " + ex.getMessage());
 		}
 	}
 

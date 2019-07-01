@@ -21,6 +21,7 @@ export class FlowTypeQuery extends FlowNode {
             template: FlowTypeQuery._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();
+				let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));
                 let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'), true);
 
                 if (scopedDbNode !== undefined && scopedDbNode.isStartNodeOfContainer !== undefined && scopedDbNode.isStartNodeOfContainer !== null) {
@@ -116,6 +117,7 @@ export class FlowTypeQuery extends FlowNode {
 
 
                 return node
+                    .addInput(dataSource)
                     .addOutput(dataTarget)
                     .addControl(dataType)
                     .addControl(queryBuilder);

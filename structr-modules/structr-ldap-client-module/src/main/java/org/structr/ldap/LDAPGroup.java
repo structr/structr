@@ -22,7 +22,6 @@ import java.net.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
@@ -63,9 +62,10 @@ public interface LDAPGroup extends Group {
 		type.addPropertyGetter("scope",             String.class);
 		type.addPropertySetter("scope",             String.class);
 
-		final JsonMethod updateMethod = type.addMethod("update");
-		updateMethod.setSource(LDAPGroup.class.getName() + ".update(getSecurityContext(), this);");
-		updateMethod.setDoExport(true);
+		type.addMethod("update")
+			.addParameter("ctx", SecurityContext.class.getName())
+			.setSource(LDAPGroup.class.getName() + ".update(ctx, this);")
+			.setDoExport(true);
 
 		type.overrideMethod("onCreation",     true,  LDAPGroup.class.getName() + ".onCreation(this, arg0, arg1);");
 		type.overrideMethod("onModification", true,  LDAPGroup.class.getName() + ".onModification(this, arg0, arg1, arg2);");

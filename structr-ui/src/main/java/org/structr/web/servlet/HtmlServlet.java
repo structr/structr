@@ -1461,7 +1461,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		return notModified;
 	}
 
-	private void streamFile(SecurityContext securityContext, final File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit) throws IOException {
+	private void streamFile(final SecurityContext securityContext, final File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit) throws IOException {
 
 		if (!securityContext.isVisible(file)) {
 
@@ -1605,7 +1605,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			// call onDownload callback
 			try {
 
-				file.invokeMethod("onDownload", callbackMap, false);
+				file.invokeMethod(securityContext, "onDownload", callbackMap, false);
 
 			} catch (FrameworkException fex) {
 				logger.warn("", fex);

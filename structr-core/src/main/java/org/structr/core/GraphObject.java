@@ -268,6 +268,7 @@ public interface GraphObject extends CodeSource {
 		for (PropertyKey key : indexKeys) {
 
 			final PropertyConverter converter = key.databaseConverter(getSecurityContext(), this);
+
 			if (converter != null) {
 
 				try {
@@ -283,6 +284,7 @@ public interface GraphObject extends CodeSource {
 					logger.warn("Unable to convert property {} of type {}: {}", key.dbName(), getClass().getSimpleName(), ex.getMessage());
 					logger.warn("Exception", ex);
 				}
+
 
 			} else {
 
@@ -503,7 +505,7 @@ public interface GraphObject extends CodeSource {
 
 	public String getPropertyWithVariableReplacement(final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException;
 	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue) throws FrameworkException;
-	public Object invokeMethod(final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException;
+	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException;
 
 	Class getEntityType();
 

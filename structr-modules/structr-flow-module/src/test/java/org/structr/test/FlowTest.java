@@ -18,6 +18,7 @@
  */
 package org.structr.test;
 
+import com.drew.lang.StreamUtil;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.util.Arrays;
@@ -31,6 +32,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
@@ -59,16 +63,15 @@ public class FlowTest extends StructrUiTest {
 	public void testFlowWithIterablesAndScripting() {
 
 		final Map<String, Object> flowParameters         = new HashMap<>();
-		Map<String,Object> resultMap                     = null;
+		Iterable<Object> result                          = null;
 
 		try (final Tx tx = app.tx()) {
 
 			FlowContainer container = app.create(FlowContainer.class, "testFlow");
 
-			resultMap = container.evaluate(flowParameters);
+			result = container.evaluate(flowParameters);
 
-			assertNotNull(resultMap);
-			assertNull(resultMap.get("result"));
+			assertNotNull(result);
 
 			FlowAction action = app.create(FlowAction.class, "createAction");
 			action.setProperty(FlowAction.script, "{ ['a','b','c'].forEach( data => Structr.create('User','name',data)) }");
@@ -86,15 +89,13 @@ public class FlowTest extends StructrUiTest {
 
 			container.setProperty(FlowContainer.startNode, action);
 
-			resultMap = container.evaluate(flowParameters);
-			assertNotNull(resultMap);
-			assertNotNull(resultMap.get("result"));
+			result = container.evaluate(flowParameters);
+			assertNotNull(result);
 
 			ds.setProperty(FlowDataSource.query, "size(find('User'))");
 
-			resultMap = container.evaluate(flowParameters);
-			assertNotNull(resultMap);
-			assertNotNull(resultMap.get("result"));
+			result = container.evaluate(flowParameters);
+			assertNotNull(result);
 
 		} catch (Throwable ex) {
 
@@ -138,9 +139,8 @@ public class FlowTest extends StructrUiTest {
 			flowContainer.setProperty(FlowContainer.startNode, ret);
 
 			// evaluate flow
-			final Map<String, Object> map = flowContainer.evaluate(new LinkedHashMap<>());
-			final Iterable result         = (Iterable)map.get("result");
-			final List<Group> groups      = Iterables.toList(result);
+			final Iterable<Object> result = flowContainer.evaluate(new LinkedHashMap<>());
+			final List<Group> groups      = StreamSupport.stream(result.spliterator(), false).map((o) -> (Group)o).collect(Collectors.toList());
 
 			assertEquals("Invalid number of groups in flow result", 4, groups.size());
 

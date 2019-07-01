@@ -57,7 +57,7 @@ public interface ODFExporter extends NodeInterface {
 		type.setIsAbstract();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ODFExporter"));
 
-		type.addPropertyGetter("resultDocument",        File.class);
+		type.addPropertyGetter("resultDocument",         File.class);
 		type.addPropertyGetter("documentTemplate",       File.class);
 		type.addPropertyGetter("transformationProvider", VirtualType.class);
 
@@ -68,7 +68,8 @@ public interface ODFExporter extends NodeInterface {
 
 
 		type.addMethod("createDocumentFromTemplate")
-			.setSource(ODFExporter.class.getName() + ".createDocumentFromTemplate(this);")
+			.addParameter("ctx", SecurityContext.class.getName())
+			.setSource(ODFExporter.class.getName() + ".createDocumentFromTemplate(this, ctx);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
@@ -120,9 +121,8 @@ public interface ODFExporter extends NodeInterface {
 	);
 	*/
 
-	public static void createDocumentFromTemplate(final ODFExporter thisNode) throws FrameworkException {
+	public static void createDocumentFromTemplate(final ODFExporter thisNode, final SecurityContext securityContext) throws FrameworkException {
 
-		final SecurityContext securityContext = thisNode.getSecurityContext();
 		final File template                   = thisNode.getDocumentTemplate();
 		File output                           = thisNode.getResultDocument();
 		OdfDocument templateOdt;

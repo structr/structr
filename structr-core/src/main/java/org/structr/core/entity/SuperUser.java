@@ -385,7 +385,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public Object invokeMethod(String methodName, Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
+	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
 		return null;
 	}
 

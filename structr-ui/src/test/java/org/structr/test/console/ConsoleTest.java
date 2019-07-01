@@ -19,7 +19,6 @@
 package org.structr.test.console;
 
 import java.util.Collections;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -35,6 +34,7 @@ import org.structr.web.entity.User;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
 public class ConsoleTest extends StructrUiTest {
 
@@ -147,8 +147,8 @@ public class ConsoleTest extends StructrUiTest {
 	public void testRebuildCommand() {
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
-		final int nodeCount   = 2120;
-		final int relCount    = 1925;
+		final int nodeCount   = 2127;
+		final int relCount    = 1932;
 
 		final String fullIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +

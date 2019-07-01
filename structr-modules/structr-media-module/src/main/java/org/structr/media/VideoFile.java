@@ -68,12 +68,13 @@ public interface VideoFile extends File {
 		type.addIntegerProperty("width",         PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addIntegerProperty("height",        PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
-		type.overrideMethod("onCreation",      true,  "updateVideoInfo();");
-		type.overrideMethod("onModification",  true,  "updateVideoInfo();");
+		type.overrideMethod("onCreation",      true,  "updateVideoInfo(arg0);");
+		type.overrideMethod("onModification",  true,  "updateVideoInfo(arg0);");
 		type.overrideMethod("getDiskFilePath", false, "return " + VideoFile.class.getName() + ".getDiskFilePath(this, arg0);");
 
 		type.addMethod("updateVideoInfo")
-			.setSource(VideoFile.class.getName() + ".updateVideoInfo(this);")
+			.addParameter("ctx", SecurityContext.class.getName())
+			.setSource(VideoFile.class.getName() + ".updateVideoInfo(this, ctx);")
 			.setDoExport(true);
 
 		type.addMethod("convert")
@@ -94,8 +95,9 @@ public interface VideoFile extends File {
 			.setDoExport(true);
 
 		type.addMethod("getMetadata")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.setReturnType(RestMethodResult.class.getName())
-			.setSource("return " + VideoFile.class.getName() + ".getMetadata(this);")
+			.setSource("return " + VideoFile.class.getName() + ".getMetadata(this, ctx);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
@@ -193,15 +195,18 @@ public interface VideoFile extends File {
 		return null;
 	}
 
-	static RestMethodResult getMetadata(final VideoFile thisVideo) throws FrameworkException {
+	static RestMethodResult getMetadata(final VideoFile thisVideo, final SecurityContext ctx) throws FrameworkException {
 
 		final SecurityContext securityContext = thisVideo.getSecurityContext();
 		final Map<String, String> metadata    = AVConv.newInstance(securityContext, thisVideo).getMetadata();
 		final RestMethodResult result         = new RestMethodResult(200);
 		final GraphObjectMap map              = new GraphObjectMap();
 
-		for (final Entry<String, String> entry : metadata.entrySet()) {
-			map.setProperty(new StringProperty(entry.getKey()), entry.getValue());
+		if (metadata != null) {
+
+			for (final Entry<String, String> entry : metadata.entrySet()) {
+				map.setProperty(new StringProperty(entry.getKey()), entry.getValue());
+			}
 		}
 
 		result.addContent(map);
@@ -220,13 +225,11 @@ public interface VideoFile extends File {
 		AVConv.newInstance(ctx, thisVideo).setMetadata(map);
 	}
 
-	static void updateVideoInfo(final VideoFile thisVideo) {
+	static void updateVideoInfo(final VideoFile thisVideo, final SecurityContext ctx) {
 
-		final SecurityContext securityContext = thisVideo.getSecurityContext();
+		try (final Tx tx = StructrApp.getInstance(ctx).tx()) {
 
-		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
-
-			final Map<String, Object> info = AVConv.newInstance(securityContext, thisVideo).getVideoInfo();
+			final Map<String, Object> info = AVConv.newInstance(ctx, thisVideo).getVideoInfo();
 			if (info != null && info.containsKey("streams")) {
 
 				final List<Map<String, Object>> streams = (List<Map<String, Object>>)info.get("streams");

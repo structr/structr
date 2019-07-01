@@ -75,7 +75,7 @@ public interface MessageSubscriber extends NodeInterface {
 	String getCallback();
 	Iterable<MessageClient> getClients();
 
-	static void subscribeOnAllClients(MessageSubscriber thisSubscriber) {
+	static void subscribeOnAllClients(MessageSubscriber thisSubscriber, final SecurityContext securityContext) {
 
 		if (!StringUtils.isEmpty(thisSubscriber.getTopic()) && (thisSubscriber.getTopic() != null)) {
 			Map<String, Object> params = new HashMap<>();
@@ -84,7 +84,7 @@ public interface MessageSubscriber extends NodeInterface {
 			Iterable<MessageClient> clientsList = thisSubscriber.getClients();
 			clientsList.forEach(client -> {
 				try {
-					client.invokeMethod("subscribeTopic", params, false);
+					client.invokeMethod(securityContext, "subscribeTopic", params, false);
 				} catch (FrameworkException e) {
 					logger.error("Could not invoke subscribeTopic on MessageClient: " + e.getMessage());
 				}
@@ -95,7 +95,7 @@ public interface MessageSubscriber extends NodeInterface {
 	static void onCreation(MessageSubscriber thisSubscriber, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		if (thisSubscriber.getProperty(StructrApp.key(MessageSubscriber.class, "topic")) != null) {
-			subscribeOnAllClients(thisSubscriber);
+			subscribeOnAllClients(thisSubscriber, securityContext);
 		}
 
 	}
@@ -103,7 +103,7 @@ public interface MessageSubscriber extends NodeInterface {
 	static void onModification(MessageSubscriber thisSubscriber, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		if (modificationQueue.isPropertyModified(thisSubscriber, StructrApp.key(MessageSubscriber.class, "topic")) || modificationQueue.isPropertyModified(thisSubscriber, StructrApp.key(MessageSubscriber.class, "topic"))) {
-			subscribeOnAllClients(thisSubscriber);
+			subscribeOnAllClients(thisSubscriber, securityContext);
 		}
 
 	}
