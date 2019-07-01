@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
+import org.structr.api.config.Settings;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Occurrence;
 import org.structr.api.util.Iterables;
@@ -918,7 +919,11 @@ public class SearchAndSortingTest extends StructrTest {
 				int pageSize        = 10;
 				int page            = 1;
 
+				Settings.CypherDebugLogging.setValue(true);
+
 				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getAsList();
+
+				Settings.CypherDebugLogging.setValue(false);
 
 				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
 				assertTrue(result.size() == Math.min(number, pageSize));
@@ -932,6 +937,10 @@ public class SearchAndSortingTest extends StructrTest {
 					assertEquals(expectedName, gotName);
 
 				}
+
+				// allow visual inspection of test results
+				final List<AbstractNode> list = app.nodeQuery(type).sort(sortKey).order(sortDesc).getAsList();
+				list.stream().forEach(n -> System.out.println(n.getName() + ": " + n.getProperty(TestOne.aDate)));
 
 				tx.success();
 			}

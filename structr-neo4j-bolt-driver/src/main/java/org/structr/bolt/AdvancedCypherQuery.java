@@ -130,8 +130,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 				case Default:
 					// default is "String"
-					// no COALESCE needed => much faster
-					buf.append(" ORDER BY sortKey");
+					buf.append(" ORDER BY COALESCE(sortKey, \"\")");
 
 					break;
 
@@ -143,7 +142,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 					// so we need to supply a value based on the sort
 					// type.
 
-					buf.append("-1");
+					buf.append(Long.MIN_VALUE);
 					buf.append(")");
 			}
 

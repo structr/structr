@@ -71,19 +71,19 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 					break;
 
 				case greater:
-					query.addPredicate(new RangePredicate<>(name, value, null).setStartInclusive(false));
+					query.addPredicate(new RangePredicate<>(name, value, null, predicate.getType()).setStartInclusive(false));
 					break;
 
 				case greaterOrEqual:
-					query.addPredicate(new RangePredicate<>(name, value, null));
+					query.addPredicate(new RangePredicate<>(name, value, null, predicate.getType()));
 					break;
 
 				case less:
-					query.addPredicate(new RangePredicate<>(name, null, value).setEndInclusive(false));
+					query.addPredicate(new RangePredicate<>(name, null, value, predicate.getType()).setEndInclusive(false));
 					break;
 
 				case lessOrEqual:
-					query.addPredicate(new RangePredicate<>(name, null, value));
+					query.addPredicate(new RangePredicate<>(name, null, value, predicate.getType()));
 					break;
 
 				case isNull:

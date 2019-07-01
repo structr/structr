@@ -32,8 +32,32 @@ public class GroupPredicate<T> implements Predicate<T> {
 	private Conjunction conjunction             = Conjunction.And;
 	private GroupPredicate<T> parent            = null;
 
-	public GroupPredicate(final GroupPredicate<T> parent) {
-		this.parent = parent;
+	public GroupPredicate(final GroupPredicate<T> parent, final Conjunction conj) {
+
+		this.conjunction = conj;
+		this.parent      = parent;
+	}
+
+	@Override
+	public String toString() {
+
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append(conjunction.name());
+		buf.append("(");
+
+		for (final Predicate<T> predicate : predicates) {
+			buf.append(predicate.toString());
+			buf.append(", ");
+		}
+
+		// remove last ","
+		buf.setLength(buf.length() - 2);
+
+		buf.append(")");
+
+		return buf.toString();
+
 	}
 
 	public GroupPredicate<T> getParent() {

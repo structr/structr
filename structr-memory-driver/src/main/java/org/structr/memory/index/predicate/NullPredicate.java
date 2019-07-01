@@ -18,6 +18,7 @@
  */
 package org.structr.memory.index.predicate;
 
+import org.apache.commons.lang.StringUtils;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
 
@@ -32,7 +33,20 @@ public class NullPredicate<T extends PropertyContainer, V> implements Predicate<
 	}
 
 	@Override
+	public String toString() {
+		return "NULL(" + key + ")";
+	}
+
+	@Override
 	public boolean accept(final T entity) {
-		return entity.getProperty(key) == null;
+
+		final Object value = entity.getProperty(key);
+
+		if (value instanceof String) {
+
+			return StringUtils.isEmpty((String)value);
+		}
+
+		return value == null;
 	}
 }

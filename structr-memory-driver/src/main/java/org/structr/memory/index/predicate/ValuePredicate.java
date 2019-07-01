@@ -36,6 +36,12 @@ public class ValuePredicate<T extends PropertyContainer, V> implements Predicate
 	}
 
 	@Override
+	public String toString() {
+
+		return "VALUE(" + key + " = " + desiredValue + ")";
+	}
+
+	@Override
 	public boolean accept(final T entity) {
 
 		final Object value = entity.getProperty(key);

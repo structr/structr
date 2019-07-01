@@ -37,10 +37,10 @@ import org.structr.memory.index.predicate.NotPredicate;
  */
 public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, Predicate<T> {
 
-	private final GroupPredicate<T> rootPredicate = new GroupPredicate<>(null);
+	private final GroupPredicate<T> rootPredicate = new GroupPredicate<>(null, Conjunction.And);
 	private final Set<String> labels              = new LinkedHashSet<>();
-	private QueryContext queryContext             = null;
 	private GroupPredicate<T> currentPredicate    = rootPredicate;
+	private QueryContext queryContext             = null;
 	private String sortKey                        = null;
 	private boolean sortDescending                = false;
 	private boolean negateNextPredicate           = false;
@@ -99,9 +99,9 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 		this.sortKey        = sortKey;
 	}
 
-	public void beginGroup() {
+	public void beginGroup(final Conjunction conj) {
 
-		final GroupPredicate<T> group = new GroupPredicate<>(currentPredicate);
+		final GroupPredicate<T> group = new GroupPredicate<>(currentPredicate, conj);
 
 		currentPredicate.add(group);
 

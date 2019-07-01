@@ -43,6 +43,11 @@ public class LabelPredicate<T extends PropertyContainer> implements Predicate<T>
 	}
 
 	@Override
+	public String toString() {
+		return "LABEL(" + label + ")";
+	}
+
+	@Override
 	public boolean accept(final T entity) {
 
 		if (entity instanceof MemoryNode) {

@@ -18,6 +18,7 @@
  */
 package org.structr.memory.index.predicate;
 
+import java.util.Date;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
 
@@ -25,17 +26,19 @@ import org.structr.api.graph.PropertyContainer;
  */
 public class RangePredicate<T extends PropertyContainer, V extends Comparable> implements Predicate<T> {
 
+	private Class typeHint         = null;
 	private String key             = null;
 	private Comparable rangeStart  = null;
 	private Comparable rangeEnd    = null;
 	private boolean startInclusive = true;
 	private boolean endInclusive   = true;
 
-	public RangePredicate(final String key, final V rangeStart, final V rangeEnd) {
+	public RangePredicate(final String key, final V rangeStart, final V rangeEnd, final Class typeHint) {
 
 		this.key        = key;
 		this.rangeStart = rangeStart;
 		this.rangeEnd   = rangeEnd;
+		this.typeHint   = typeHint;
 	}
 
 	public RangePredicate<T, V> setStartInclusive(final boolean startInclusive) {
@@ -51,7 +54,9 @@ public class RangePredicate<T extends PropertyContainer, V extends Comparable> i
 	@Override
 	public boolean accept(final T entity) {
 
-		final Object value = entity.getProperty(key);
+		final Comparable value = convertWithTypeHint(entity.getProperty(key));
+		final Comparable start = convertWithTypeHint(rangeStart);
+		final Comparable end   = convertWithTypeHint(rangeEnd);
 
 		if (value != null && value instanceof Comparable) {
 
@@ -63,19 +68,19 @@ public class RangePredicate<T extends PropertyContainer, V extends Comparable> i
 
 			} else {
 
-				if (rangeStart == null && rangeEnd != null) {
+				if (start == null && end != null) {
 
 					// all values <= rangeEnd
-					return lessThan(actual, rangeEnd);
+					return lessThan(actual, end);
 				}
 
-				if (rangeStart != null && rangeEnd == null) {
+				if (start != null && end == null) {
 
 					// all values >= rangeStart
-					return greaterThan(actual, rangeStart);
+					return greaterThan(actual, start);
 				}
 
-				return greaterThan(actual, rangeStart) && lessThan(actual, rangeEnd);
+				return greaterThan(actual, start) && lessThan(actual, end);
 			}
 		}
 
@@ -101,5 +106,38 @@ public class RangePredicate<T extends PropertyContainer, V extends Comparable> i
 		}
 
 		return actual.compareTo(expected) < 0;
+	}
+
+	private Comparable convertWithTypeHint(final Object value) {
+
+		if (value != null && typeHint != null) {
+
+			if (value.getClass().isAssignableFrom(typeHint)) {
+				return (Comparable)value;
+			}
+
+			if (value instanceof Number) {
+
+				final Number number = (Number)value;
+
+				if (Long.class.equals(typeHint)) {
+					return number.longValue();
+				}
+
+				if (Integer.class.equals(typeHint)) {
+					return number.intValue();
+				}
+
+				if (Double.class.equals(typeHint)) {
+					return number.doubleValue();
+				}
+
+				if (Date.class.equals(typeHint)) {
+					return number.longValue();
+				}
+			}
+		}
+
+		return (Comparable)value;
 	}
 }

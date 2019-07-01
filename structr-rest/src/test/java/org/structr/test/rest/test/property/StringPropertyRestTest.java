@@ -22,6 +22,8 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.RequestLoggingFilter;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.*;
+import org.structr.api.DatabaseFeature;
+import org.structr.core.Services;
 import org.testng.annotations.Test;
 import org.structr.test.rest.common.IndexingTest;
 
@@ -149,7 +151,7 @@ public class StringPropertyRestTest extends IndexingTest {
 	@Test
 	public void testLargeStrings() {
 
-		final boolean supportsLargeStrings = true; //Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.LargeStringIndexing);
+		final boolean supportsLargeStrings = Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.LargeStringIndexing);
 
 		testLargeString(4000, 201);
 		testLargeString(4039, supportsLargeStrings ? 201 : 422);

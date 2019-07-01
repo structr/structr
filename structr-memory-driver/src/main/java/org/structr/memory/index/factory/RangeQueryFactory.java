@@ -50,7 +50,12 @@ public class RangeQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 				return false;
 			}
 
-			query.addPredicate(new RangePredicate<>(name, rangeStart, rangeEnd));
+			final RangePredicate rangePredicate = new RangePredicate<>(name, rangeStart, rangeEnd, predicate.getType());
+
+			rangePredicate.setStartInclusive(rangeQuery.getIncludeStart());
+			rangePredicate.setEndInclusive(rangeQuery.getIncludeEnd());
+
+			query.addPredicate(rangePredicate);
 
 			return true;
 		}

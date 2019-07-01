@@ -25,6 +25,7 @@ import org.structr.api.index.AbstractQueryFactory;
 
 import org.structr.api.search.QueryPredicate;
 import org.structr.memory.index.MemoryQuery;
+import org.structr.memory.index.predicate.Conjunction;
 import org.structr.memory.index.predicate.NullPredicate;
 import org.structr.memory.index.predicate.ValuePredicate;
 import org.structr.memory.index.predicate.StringContainsPredicate;
@@ -73,9 +74,8 @@ public class KeywordQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 				// special handling for string attributes
 				// (empty string is equal to null)
-				query.beginGroup();
+				query.beginGroup(Conjunction.Or);
 				query.addPredicate(new NullPredicate(name));
-				query.or();
 				query.addPredicate(new ValuePredicate(name, ""));
 				query.endGroup();
 
@@ -92,9 +92,8 @@ public class KeywordQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 			} else {
 
-				query.beginGroup();
+				query.beginGroup(Conjunction.Or);
 				query.addPredicate(new NullPredicate(name));
-				query.or();
 				query.addPredicate(new ValuePredicate(name, ""));
 				query.endGroup();
 			}

@@ -27,6 +27,7 @@ import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.TypeQuery;
 import org.structr.memory.index.MemoryQuery;
+import org.structr.memory.index.predicate.Conjunction;
 
 /**
  *
@@ -51,24 +52,23 @@ public class GroupQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 			if (!typePredicates.isEmpty()) {
 
-				query.beginGroup();
 
 				switch (group.getOccurrence()) {
 
 					case REQUIRED:
-						query.and();
+						query.beginGroup(Conjunction.And);
 						break;
 
 					case OPTIONAL:
-						query.or();
+						query.beginGroup(Conjunction.Or);
 						break;
 
 					case FORBIDDEN:
-						query.not();
+						query.beginGroup(Conjunction.Not);
 						break;
 				}
 
-				for (final QueryPredicate p : group.getQueryPredicates()) {
+				for (final QueryPredicate p : typePredicates) {
 
 					index.createQuery(p, query, isFirst);
 				}
@@ -102,7 +102,7 @@ public class GroupQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 				}
 
 				if (attributeAndGroupPredicates.size() > 1 && !(allChildrenAreGroups && !nonEmptyGroup)) {
-					query.beginGroup();
+					query.beginGroup(Conjunction.And);
 				}
 
 				boolean firstWithinGroup = true;
