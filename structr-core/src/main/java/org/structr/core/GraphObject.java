@@ -268,6 +268,7 @@ public interface GraphObject extends CodeSource {
 		for (PropertyKey key : indexKeys) {
 
 			final PropertyConverter converter = key.databaseConverter(getSecurityContext(), this);
+
 			if (converter != null) {
 
 				try {
@@ -283,6 +284,7 @@ public interface GraphObject extends CodeSource {
 					logger.warn("Unable to convert property {} of type {}: {}", key.dbName(), getClass().getSimpleName(), ex.getMessage());
 					logger.warn("Exception", ex);
 				}
+
 
 			} else {
 

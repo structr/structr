@@ -126,7 +126,11 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 				} else {
 
 					final Object nonGraphObjectResult = result.getNonGraphObjectResult();
-					writeJson(securityContext, response, new PagingIterable(Arrays.asList(nonGraphObjectResult)), baseUrl, outputDepth, wrapSingleResultInArray);
+					if (nonGraphObjectResult != null && nonGraphObjectResult instanceof Iterable) {
+						writeJson(securityContext, response, new PagingIterable((Iterable) (nonGraphObjectResult)), baseUrl, outputDepth, wrapSingleResultInArray);
+					} else if (nonGraphObjectResult != null) {
+						writeJson(securityContext, response, new PagingIterable(Arrays.asList(nonGraphObjectResult)), baseUrl, outputDepth, wrapSingleResultInArray);
+					}
 				}
 
 			}

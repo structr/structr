@@ -39,7 +39,7 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 	public void testFlowDeploymentRoundtrip() {
 
 		final Map<String, Object> flowParameters         = new HashMap<>();
-		Map<String,Object> resultMap                     = null;
+		Iterable<Object> result                          = null;
 		FlowContainer container                          = null;
 		String containerUuid                             = null;
 
@@ -68,9 +68,8 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 				container.setProperty(FlowContainer.startNode, action);
 
 				ds.setProperty(FlowDataSource.query, "find('User')");
-				resultMap = container.evaluate(flowParameters);
-				assertNotNull(resultMap);
-				assertNotNull(resultMap.get("result"));
+				result = container.evaluate(flowParameters);
+				assertNotNull(result);
 
 				tx.success();
 			}
@@ -90,9 +89,8 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 				container = app.nodeQuery(FlowContainer.class).and(FlowContainer.effectiveName, "flow.deployment.test").getFirst();
 
 				assertNotNull(container);
-				resultMap = container.evaluate(flowParameters);
-				assertNotNull(resultMap);
-				assertNotNull(resultMap.get("result"));
+				result = container.evaluate(flowParameters);
+				assertNotNull(result);
 			}
 
 		} catch (FrameworkException ex) {
