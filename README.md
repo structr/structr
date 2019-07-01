@@ -1,5 +1,4 @@
 [![Build Status](http://ci.structr.org:59398/job/Structr/badge/icon)](http://ci.structr.org:59398/job/Structr)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/4ccb203e529748aa80c68b617e62cd5c)](https://www.codacy.com/app/cmorgner/structr)
 [![Hits-of-Code](https://hitsofcode.com/github/structr/structr)](https://hitsofcode.com/view/github/structr/structr)
 ![Docker Pulls](https://img.shields.io/docker/pulls/structr/structr.svg)
 
