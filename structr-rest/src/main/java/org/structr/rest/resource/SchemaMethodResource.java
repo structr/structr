@@ -21,6 +21,8 @@ package org.structr.rest.resource;
 import java.util.Collection;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang3.ClassUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ScriptRuntime;
 import org.slf4j.Logger;
@@ -187,6 +189,11 @@ public class SchemaMethodResource extends WrappingResource {
 	public static boolean unwrapTo(final Object source, final RestMethodResult result) {
 
 		if (source != null) {
+
+			if (ClassUtils.isPrimitiveOrWrapper(source.getClass())) {
+				result.setNonGraphObjectResult(source);
+				return false;
+			}
 
 			final Object unwrapped = Context.jsToJava(source, ScriptRuntime.ObjectClass);
 			if (unwrapped.getClass().isArray()) {
