@@ -1082,6 +1082,10 @@ public class StructrScriptable extends ScriptableObject {
 
 				return wrap(cx, this, null, super.call(cx, scope, thisObj, new Object[]{ }));
 
+			} else if (parameterCount == 1) {
+
+				return wrap(cx, this, null, super.call(cx, scope, thisObj, new Object[]{ securityContext }));
+
 			} else if (args.length == 0) {
 
 				return wrap(cx, this, null, super.call(cx, scope, thisObj, new Object[]{ securityContext, new NativeObject() }));

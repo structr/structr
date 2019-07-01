@@ -39,6 +39,7 @@ import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1599,11 +1600,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 					}
 				}
 
-				final HashMap paramMap = new HashMap();
-				paramMap.put("arg0", actionContext.getSecurityContext());
-				paramMap.put("parameters", Collections.EMPTY_MAP);
-
-				final Object value = invokeMethod(key, paramMap, false);
+				final Object value = invokeMethod(actionContext.getSecurityContext(), key, Collections.EMPTY_MAP, false);
 				if (value != null) {
 
 					return value;
@@ -1614,20 +1611,23 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public final Object invokeMethod(final String methodName, final Map<String, Object> propertySet, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
+	public final Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> propertySet, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
 
 		final Method method = StructrApp.getConfiguration().getExportedMethodsForType(entityType).get(methodName);
 		if (method != null) {
 
 			try {
 
-				// First, try if single parameter is a map, then directly invoke method
-				if (method.getParameterTypes().length == 1 && method.getParameterTypes()[0].equals(Map.class)) {
-					return method.invoke(this, propertySet);
+				// new structure: first parameter is always securityContext and second parameter can be Map (for dynamically defined methods)
+				if (method.getParameterTypes().length == 2 && method.getParameterTypes()[0].isAssignableFrom(SecurityContext.class) && method.getParameterTypes()[1].equals(Map.class)) {
+					final Object[] args = new Object[] { securityContext };
+					return method.invoke(this, ArrayUtils.add(args, propertySet));
 				}
 
 				// second try: extracted parameter list
-				return method.invoke(this, extractParameters(propertySet, method.getParameterTypes()));
+				final Object[] args = extractParameters(propertySet, method.getParameterTypes());
+
+				return method.invoke(this, ArrayUtils.add(args, 0, securityContext));
 
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException t) {
 
@@ -1663,14 +1663,19 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		int index = 0;
 
 		// only try to convert when both lists have equal size
-		if (values.size() == parameterTypes.length) {
+		// subtract one because securityContext is default and not provided by user
+		if (values.size() == (parameterTypes.length - 1)) {
 
 			for (final Class parameterType : parameterTypes) {
 
-				final Object value = convert(values.get(index++), parameterType);
-				if (value != null) {
+				// skip securityContext
+				if (!parameterType.isAssignableFrom(SecurityContext.class)) {
 
-					parameters.add(value);
+					final Object value = convert(values.get(index++), parameterType);
+					if (value != null) {
+
+						parameters.add(value);
+					}
 				}
 			}
 		}
@@ -1726,7 +1731,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			return value;
 
 		} else if (value instanceof Map) {
+
 			return value;
+
+		} else if (value instanceof Boolean) {
+
+			return value;
+
 		}
 
 		// fallback

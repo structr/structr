@@ -1125,7 +1125,7 @@ public class SchemaHelper {
 		sourceFile.importLine(View.class.getName());
 		sourceFile.importLine(List.class.getName());
 		sourceFile.importLine(Set.class.getName());
-                sourceFile.importLine(Date.class.getName());
+		sourceFile.importLine(Date.class.getName());
 
 		if (hasRestClasses()) {
 			sourceFile.importLine("org.structr.rest.RestMethodResult");

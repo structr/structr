@@ -330,7 +330,7 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 				properties.put("sender", message.getFrom());
 				properties.put("message", message.getBody());
 
-				client.invokeMethod(callbackName, properties, false);
+				client.invokeMethod(SecurityContext.getSuperUserInstance(), callbackName, properties, false);
 			}
 
 			tx.success();

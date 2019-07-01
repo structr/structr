@@ -66,6 +66,10 @@ public class RemoveExportedMethodsWithoutSecurityContext implements MigrationHan
 						deleteSchemaMethodWithSignature(app, "void doXMLImport(java.util.Map<java.lang.String, java.lang.Object> parameters) throws org.structr.common.error.FrameworkException");
 						deleteSchemaMethodWithSignature(app, "java.util.Map<java.lang.String, java.lang.Object> getFirstLines(java.util.Map<java.lang.String, java.lang.Object> parameters)");
 						deleteSchemaMethodWithSignature(app, "java.util.Map<java.lang.String, java.lang.Object> getCSVHeaders(java.util.Map<java.lang.String, java.lang.Object> parameters) throws org.structr.common.error.FrameworkException");
+						deleteSchemaMethodWithSignature(app, "java.lang.String getXMLStructure() throws org.structr.common.error.FrameworkException");
+
+						// AbstractFile
+						deleteSchemaMethodWithSignature(app, "void isBinaryDataAccessible()");
 
 						// DataFeed
 						deleteSchemaMethodWithSignature(app, "void cleanUp()");
@@ -103,11 +107,8 @@ public class RemoveExportedMethodsWithoutSecurityContext implements MigrationHan
 						// Indexable, File, FeedItem, FeedItemContent, FeedItemEnclosure, RemoteDocument
 						deleteSchemaMethodWithSignature(app, "void getSearchContext()");
 
-//						deleteSchemaMethodWithSignature(app, "");
-//						deleteSchemaMethodWithSignature(app, "");
-//						deleteSchemaMethodWithSignature(app, "");
-//						deleteSchemaMethodWithSignature(app, "");
-//						deleteSchemaMethodWithSignature(app, "");
+						// LDAPGroup
+						deleteSchemaMethodWithSignature(app, "void update()");
 
 						tx.success();
 
@@ -133,16 +134,14 @@ public class RemoveExportedMethodsWithoutSecurityContext implements MigrationHan
 							// ODTExporter / ODSExporter
 							deleteSchemaMethodWithSignature(app, "void exportAttributes(java.lang.String uuid) throws org.structr.common.error.FrameworkException");
 
+							// ODFExporter
+							deleteSchemaMethodWithSignature(app, "void createDocumentFromTemplate() throws org.structr.common.error.FrameworkException");
+
 							// VideoFile
 							deleteSchemaMethodWithSignature(app, "void setMetadata(java.lang.String key, java.lang.String value) throws org.structr.common.error.FrameworkException");
 							deleteSchemaMethodWithSignature(app, "void setMetadata(org.structr.core.JsonInput metadata) throws org.structr.common.error.FrameworkException");
-
-	//						deleteSchemaMethodWithSignature(app, "");
-	//						deleteSchemaMethodWithSignature(app, "");
-	//						deleteSchemaMethodWithSignature(app, "");
-	//						deleteSchemaMethodWithSignature(app, "");
-	//						deleteSchemaMethodWithSignature(app, "");
-	//						deleteSchemaMethodWithSignature(app, "");
+							deleteSchemaMethodWithSignature(app, "org.structr.rest.RestMethodResult getMetadata() throws org.structr.common.error.FrameworkException");
+							deleteSchemaMethodWithSignature(app, "void updateVideoInfo()");
 
 							tx.success();
 
