@@ -983,6 +983,40 @@ public class SchemaTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testRelatedTypeOnNotionProperty() {
+
+		cleanDatabaseAndSchema();
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType project    = schema.addType("Project");
+			final JsonObjectType task       = schema.addType("Task");
+			final JsonReferenceType rel     = project.relate(task, "TASK", Cardinality.OneToMany, "project", "tasks");
+			final JsonReferenceProperty ref = rel.getSourceProperty();
+
+			project.addStringProperty("blah").setUnique(true);
+
+			task.addReferenceProperty("projectBlah", ref).setProperties("blah", "true");
+
+			Settings.LogSchemaOutput.setValue(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("NotionProperty setup failed.");
+		}
+
+		Settings.LogSchemaOutput.setValue(true);
+	}
+
+
 	// ----- private methods -----
 	private void checkSchemaString(final String source) {
 
