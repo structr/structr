@@ -27,7 +27,6 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLType;
 import static graphql.schema.GraphQLTypeReference.typeRef;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -498,7 +497,7 @@ public class SchemaNode extends AbstractSchemaNode {
 	}
 
 	@Export
-	public String getGeneratedSourceCode() throws FrameworkException, UnlicensedTypeException {
+	public String getGeneratedSourceCode(final SecurityContext securityContext) throws FrameworkException, UnlicensedTypeException {
 
 		final SourceFile sourceFile               = new SourceFile("");
 		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
