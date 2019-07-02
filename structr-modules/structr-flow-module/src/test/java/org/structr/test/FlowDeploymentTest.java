@@ -68,7 +68,7 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 				container.setProperty(FlowContainer.startNode, action);
 
 				ds.setProperty(FlowDataSource.query, "find('User')");
-				result = container.evaluate(flowParameters);
+				result = container.evaluate(securityContext, flowParameters);
 				assertNotNull(result);
 
 				tx.success();
@@ -89,7 +89,7 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 				container = app.nodeQuery(FlowContainer.class).and(FlowContainer.effectiveName, "flow.deployment.test").getFirst();
 
 				assertNotNull(container);
-				result = container.evaluate(flowParameters);
+				result = container.evaluate(securityContext, flowParameters);
 				assertNotNull(result);
 			}
 

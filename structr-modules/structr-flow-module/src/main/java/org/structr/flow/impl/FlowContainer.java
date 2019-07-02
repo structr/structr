@@ -67,7 +67,7 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 	private static final Logger logger = LoggerFactory.getLogger(FlowContainer.class);
 
 	@Export
-	public Iterable<Object> evaluate(final Map<String, Object> parameters) throws FrameworkException {
+	public Iterable<Object> evaluate(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException {
 
 		final FlowEngine engine       = new FlowEngine();
 		final Context context         = new Context();
@@ -96,7 +96,7 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 	}
 
 	@Export
-	public Iterable<FlowBaseNode> getFlowNodes() {
+	public Iterable<FlowBaseNode> getFlowNodes(final SecurityContext securityContext) {
 
 		App app = StructrApp.getInstance(securityContext);
 
@@ -114,7 +114,7 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 	}
 
 	@Export
-	public Iterable<AbstractRelationship> getFlowRelationships() {
+	public Iterable<AbstractRelationship> getFlowRelationships(final SecurityContext securityContext) {
 
 		App app = StructrApp.getInstance(securityContext);
 

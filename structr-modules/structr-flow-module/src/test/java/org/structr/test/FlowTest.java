@@ -69,7 +69,7 @@ public class FlowTest extends StructrUiTest {
 
 			FlowContainer container = app.create(FlowContainer.class, "testFlow");
 
-			result = container.evaluate(flowParameters);
+			result = container.evaluate(securityContext, flowParameters);
 
 			assertNotNull(result);
 
@@ -89,12 +89,12 @@ public class FlowTest extends StructrUiTest {
 
 			container.setProperty(FlowContainer.startNode, action);
 
-			result = container.evaluate(flowParameters);
+			result = container.evaluate(securityContext, flowParameters);
 			assertNotNull(result);
 
 			ds.setProperty(FlowDataSource.query, "size(find('User'))");
 
-			result = container.evaluate(flowParameters);
+			result = container.evaluate(securityContext, flowParameters);
 			assertNotNull(result);
 
 		} catch (Throwable ex) {
@@ -139,7 +139,7 @@ public class FlowTest extends StructrUiTest {
 			flowContainer.setProperty(FlowContainer.startNode, ret);
 
 			// evaluate flow
-			final Iterable<Object> result = flowContainer.evaluate(new LinkedHashMap<>());
+			final Iterable<Object> result = flowContainer.evaluate(securityContext, new LinkedHashMap<>());
 			final List<Group> groups      = StreamSupport.stream(result.spliterator(), false).map((o) -> (Group)o).collect(Collectors.toList());
 
 			assertEquals("Invalid number of groups in flow result", 4, groups.size());

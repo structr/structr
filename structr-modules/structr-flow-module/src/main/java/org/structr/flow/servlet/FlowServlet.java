@@ -101,7 +101,7 @@ public class FlowServlet extends JsonRestServlet {
 
 				if (!source.isEmpty() && source.size() == 1 && source.get(0) instanceof FlowContainer) {
 
-					flowResult = ((FlowContainer)source.get(0)).evaluate(flowParameters);
+					flowResult = ((FlowContainer)source.get(0)).evaluate(securityContext, flowParameters);
 
 					result = new PagingIterable<>(flowResult);
 
