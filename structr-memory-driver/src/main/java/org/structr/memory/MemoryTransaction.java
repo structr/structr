@@ -183,10 +183,22 @@ public class MemoryTransaction implements Transaction {
 	}
 
 	boolean isDeleted(final MemoryIdentity id) {
-		return deletedNodes.contains(id) || deletedRelationships.containsKey(id);
+
+		if (id.isNode()) {
+
+			return deletedNodes.contains(id);
+		}
+
+		return deletedRelationships.containsKey(id);
 	}
 
 	boolean exists(final MemoryIdentity id) {
-		return createdNodes.containsKey(id) || createdRelationships.containsKey(id) || db.exists(id);
+
+		if (id.isNode()) {
+
+			return createdNodes.containsKey(id) || db.exists(id);
+		}
+
+		return createdRelationships.containsKey(id) || db.exists(id);
 	}
 }

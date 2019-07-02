@@ -2282,7 +2282,7 @@ public class PropertyTest extends StructrTest {
 	}
 
 	@Test
-	public void testEncryptesStringProperty() {
+	public void testEncryptedStringProperty() {
 
 		cleanDatabaseAndSchema();
 

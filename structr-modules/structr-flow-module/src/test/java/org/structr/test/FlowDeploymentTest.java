@@ -76,13 +76,15 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 
 			try (final Tx tx = app.tx()) {
 
-				container = app.nodeQuery(FlowContainer.class).uuid(containerUuid).getFirst();
+				app.nodeQuery(FlowContainer.class).uuid(containerUuid).getFirst();
 
 				doImportExportRoundtrip(true);
 
 				tx.success();
 			}
 
+			// this is correct
+			//doImportExportRoundtrip(true);
 
 			try (final Tx tx = app.tx()) {
 
@@ -91,6 +93,8 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 				assertNotNull(container);
 				result = container.evaluate(securityContext, flowParameters);
 				assertNotNull(result);
+
+				tx.success();
 			}
 
 		} catch (FrameworkException ex) {

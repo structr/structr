@@ -29,16 +29,18 @@ import org.structr.api.graph.Identity;
 public class MemoryIdentity implements Identity {
 
 	private static final AtomicLong idCounter = new AtomicLong();
+	private boolean isNode                    = false;
 	private String type                       = null;
 	private long id                           = -1L;
 
 	private MemoryIdentity() throws IOException {
 	}
 
-	public MemoryIdentity(final String type) {
+	public MemoryIdentity(final boolean isNode, final String type) {
 
-		this.type = type;
-		this.id   = idCounter.getAndIncrement();
+		this.id     = idCounter.getAndIncrement();
+		this.isNode = isNode;
+		this.type   = type;
 	}
 
 	@Override
@@ -80,19 +82,26 @@ public class MemoryIdentity implements Identity {
 		return type;
 	}
 
+	public boolean isNode() {
+		return isNode;
+	}
+
+
 	// ----- package-private methods -----
 	static MemoryIdentity loadFromStorage(final ObjectInputStream in) throws IOException {
 
 		final MemoryIdentity identity = new MemoryIdentity();
 
-		identity.type = in.readUTF();
-		identity.id   = in.readLong();
+		identity.isNode = in.readBoolean();
+		identity.type   = in.readUTF();
+		identity.id     = in.readLong();
 
 		return identity;
 	}
 
 	void writeToStorage(final ObjectOutputStream out) throws IOException {
 
+		out.writeBoolean(isNode);
 		out.writeUTF(type);
 		out.writeLong(id);
 	}

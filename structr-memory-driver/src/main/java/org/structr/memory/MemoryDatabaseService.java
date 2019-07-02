@@ -105,7 +105,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 	public Node createNode(final String type, final Set<String> labels, final Map<String, Object> properties) {
 
 		final MemoryTransaction tx = getCurrentTransaction();
-		final MemoryIdentity id    = new MemoryIdentity(type);
+		final MemoryIdentity id    = new MemoryIdentity(true, type);
 		final MemoryNode newNode   = new MemoryNode(this, id);
 		final String tenantId      = getTenantIdentifier();
 
@@ -320,7 +320,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 		targetNode.lock();
 
 		final MemoryTransaction tx               = getCurrentTransaction();
-		final MemoryIdentity id                  = new MemoryIdentity(relType.name());
+		final MemoryIdentity id                  = new MemoryIdentity(false, relType.name());
 		final MemoryRelationship newRelationship = new MemoryRelationship(this, id, relType, (MemoryIdentity)sourceNode.getId(), (MemoryIdentity)targetNode.getId());
 
 		// base type is always a label
@@ -454,7 +454,13 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 	}
 
 	boolean exists(final MemoryIdentity id) {
-		return nodes.contains(id) || relationships.contains(id);
+
+		if (id.isNode()) {
+
+			return nodes.contains(id);
+		}
+
+		return relationships.contains(id);
 	}
 
 	void updateCache(final MemoryNode node) {
