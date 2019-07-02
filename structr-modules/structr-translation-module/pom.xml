@@ -20,7 +20,6 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>structr-ui</artifactId>
 			<version>${project.version}</version>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>com.google.cloud</groupId>

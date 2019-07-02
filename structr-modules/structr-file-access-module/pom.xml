@@ -21,7 +21,6 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>structr-ui</artifactId>
 			<version>${project.version}</version>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
@@ -38,37 +37,31 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>com.jayway.restassured</groupId>
 			<artifactId>rest-assured</artifactId>
 			<scope>test</scope>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.sshd</groupId>
 			<artifactId>sshd-core</artifactId>
 			<version>1.2.0</version>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.ftpserver</groupId>
 			<artifactId>ftpserver-core</artifactId>
 			<version>1.1.1</version>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>commons-net</groupId>
 			<artifactId>commons-net</artifactId>
 			<version>3.5</version>
 			<scope>test</scope>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>com.jcraft</groupId>
@@ -80,7 +73,6 @@
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-core</artifactId>
 			<scope>test</scope>
-			<optional>true</optional>
 		</dependency>
 	</dependencies>
 

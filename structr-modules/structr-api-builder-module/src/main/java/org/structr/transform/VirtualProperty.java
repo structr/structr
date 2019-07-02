@@ -57,7 +57,7 @@ public interface VirtualProperty extends NodeInterface {
 		type.addViewProperty(PropertyView.Ui, "virtualType");
 	}}
 
-	Transformation getTransformation(final Class type) throws FrameworkException;
+	Transformation getTransformation(final Class arg0) throws FrameworkException;
 	Integer getPosition();
 	String getSourceName();
 	String getInputFunction();

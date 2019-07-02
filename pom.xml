@@ -153,7 +153,6 @@
 				<groupId>org.apache.tika</groupId>
 				<artifactId>tika-core</artifactId>
 				<version>1.20</version>
-				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.tika</groupId>
@@ -214,7 +213,6 @@
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
 				<version>1.7.25</version>
-				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>xerces</groupId>
@@ -236,7 +234,6 @@
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-classic</artifactId>
 				<version>1.1.7</version>
-				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>commons-io</groupId>
@@ -272,13 +269,11 @@
 				<groupId>com.rometools</groupId>
 				<artifactId>rome</artifactId>
 				<version>1.7.3</version>
-				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>com.rometools</groupId>
 				<artifactId>rome-utils</artifactId>
 				<version>1.7.3</version>
-				<optional>true</optional>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

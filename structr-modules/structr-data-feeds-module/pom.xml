@@ -18,7 +18,6 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>structr-ui</artifactId>
 			<version>${project.version}</version>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
@@ -31,28 +30,23 @@
 			<groupId>org.structr</groupId>
 			<artifactId>structr-text-search-module</artifactId>
 			<version>${project.version}</version>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>com.rometools</groupId>
 			<artifactId>rome</artifactId>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>com.rometools</groupId>
 			<artifactId>rome-utils	</artifactId>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.jdom</groupId>
 			<artifactId>jdom2</artifactId>
 			<version>2.0.6</version>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>

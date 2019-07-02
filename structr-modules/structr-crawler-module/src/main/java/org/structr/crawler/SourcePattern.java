@@ -31,6 +31,7 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
+import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
@@ -195,13 +196,13 @@ public class SourcePattern extends AbstractNode {
 				params.put("document", subDoc);
 				params.put("object", obj);
 
-				subPagePattern.extract(params);
+				subPagePattern.extract(securityContext, params);
 			}
 		}
 	}
 
 	@Export
-	public void extract(final Map<String, Object> parameters) throws FrameworkException {
+	public void extract(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException {
 
 		final SourcePage page = getProperty(sourcePageProperty);
 

@@ -20,18 +20,15 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>structr-core</artifactId>
 			<version>${project.version}</version>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.structr</groupId>
 			<artifactId>structr-net</artifactId>
 			<version>${project.version}</version>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<optional>true</optional>
 		</dependency>
 	</dependencies>
 
