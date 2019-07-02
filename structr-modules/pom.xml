@@ -42,38 +42,8 @@
 		<module>structr-messaging-engine-module</module>
 		<module>structr-excel-module</module>
 		<module>structr-advanced-mail-module</module>
-	        <module>structr-pdf-module</module>
-    </modules>
-
-	<profiles>
-		<profile>
-			<id>release-sign-artifacts</id>
-			<activation>
-				<property>
-					<name>performRelease</name>
-					<value>true</value>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.4</version>
-						<executions>
-							<execution>
-								<id>sign-artifacts</id>
-								<phase>verify</phase>
-								<goals>
-									<goal>sign</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
+		<module>structr-pdf-module</module>
+	</modules>
 
 	<licenses>
 		<license>

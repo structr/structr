@@ -26,10 +26,6 @@
 		</developer>
 	</developers>
 
-	<prerequisites>
-		<maven>3.0.4</maven>
-	</prerequisites>
-
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
@@ -351,6 +347,7 @@
 		</plugins>
 	</build>
 	<profiles>
+
 		<profile>
 			<id>with-sources</id>
 			<build>
@@ -394,6 +391,41 @@
 
 			</build>
 		</profile>
+
+		<profile>
+			<id>sign-structr-artifacts</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jarsigner-plugin</artifactId>
+						<version>1.2</version>
+						<executions>
+							<execution>
+								<id>sign</id>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<keystore>${user.home}/.structr/structr.keystore</keystore>
+							<alias>structr</alias>
+							<storepass>${structrKeystorePassword}</storepass>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>doclint-java8-disable</id>
+			<activation>
+				<jdk>[1.8,)</jdk>
+			</activation>
+			<properties>
+				<javadoc.opts>-Xdoclint:none</javadoc.opts>
+			</properties>
+		</profile>
 		<profile>
 			<id>release-sign-artifacts</id>
 			<activation>
@@ -421,7 +453,9 @@
 				</plugins>
 			</build>
 		</profile>
+
 	</profiles>
+
 	<licenses>
 		<license>
 			<name>GNU General Public License, Version 3</name>

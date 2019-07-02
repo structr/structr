@@ -221,7 +221,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			tester = app.create(testUserType, new Name("tester"), new NodeAttribute<>(passwordKey, "test"));
+			tester = (Principal)app.create(testUserType, new Name("tester"), new NodeAttribute<>(passwordKey, "test"));
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -270,7 +270,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			tester = app.create(testUserType, new Name("tester"), new NodeAttribute<>(passwordKey, "test"));
+			tester = (Principal)app.create(testUserType, new Name("tester"), new NodeAttribute<>(passwordKey, "test"));
 			tx.success();
 
 		} catch (FrameworkException fex) {
