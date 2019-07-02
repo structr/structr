@@ -637,6 +637,8 @@ public class CsvImportTest extends StructrUiTest {
 			fail("Unexpected exception.");
 		}
 
+		// wait for async import..
+		try { Thread.sleep(4000); } catch (Throwable t) {}
 
 		// check imported data for correct import
 		try (final Tx tx = app.tx()) {
