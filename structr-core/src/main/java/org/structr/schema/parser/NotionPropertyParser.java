@@ -158,21 +158,21 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 
 					String propertyName     = parts[i];
 					String fullPropertyName = propertyName;
+					final boolean isFlag    = "true".equalsIgnoreCase(propertyName) || "false".equalsIgnoreCase(propertyName);
 
-					if (!isBoolean && !propertyName.contains(".")) {
+					if (!isFlag && !propertyName.contains(".")) {
 
 						buf.append(relatedType);
 						buf.append(".");
 
 						fullPropertyName = relatedType + "." + fullPropertyName;
-						
 					}
-					
-					fullPropertyName = extendPropertyName(fullPropertyName, isBoolean);
+
+					fullPropertyName = extendPropertyName(fullPropertyName, isFlag);
 
 					properties.add(fullPropertyName);
 
-					propertyName = extendPropertyName(propertyName, isBoolean);
+					propertyName = extendPropertyName(propertyName, isFlag);
 
 					buf.append(propertyName);
 
@@ -200,36 +200,36 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 	private String extendPropertyName(final String propertyName, final Boolean isBoolean) throws FrameworkException {
 
 		String extendedPropertyName = propertyName;
-		
+
 		// remove exactly one leading underscore if property name starts with one
 		if (StringUtils.contains(extendedPropertyName, ".")) {
-			
+
 			String[] parts = StringUtils.split(extendedPropertyName, ".");
-			
+
 			if (StringUtils.startsWith(parts[1], "_")) {
-			
+
 				extendedPropertyName = parts[0] + "." + parts[1].substring(1);
-			
+
 			}
-			
+
 		} else {
-			
+
 			if (StringUtils.startsWith(extendedPropertyName, "_")) {
-	
+
 				extendedPropertyName = extendedPropertyName.substring(1);
 			}
-			
+
 		}
 
 		final PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractNode.class, StringUtils.contains(extendedPropertyName, ".") ? StringUtils.substringAfterLast(extendedPropertyName, ".") : extendedPropertyName, false);
-		
+
 		if (propertyKey != null) {
 			return extendedPropertyName;
 		}
-		
+
 		return (isBoolean || StringUtils.endsWith(extendedPropertyName, "Property")) ? extendedPropertyName : extendedPropertyName + "Property";
 	}
-	
+
 	public boolean isPropertySet() {
 		return isPropertySet;
 	}
