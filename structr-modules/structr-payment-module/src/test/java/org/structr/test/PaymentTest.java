@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.payment;
+package org.structr.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.RequestLoggingFilter;
