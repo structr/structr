@@ -897,11 +897,11 @@ var _Pages = {
 			getComments(element).forEach(function(c) {
 
 				var inner = $(getNonCommentSiblings(c.node));
-				$(c.node).replaceWith('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
-				var el = $(element).children('[data-structr-id="' + c.id + '"]');
-				el.append(inner);
+				let newDiv = $('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
+				$(c.node).replaceWith(newDiv);
+				newDiv.append(inner);
 
-				$(el).on({
+				$(newDiv).on({
 					mouseover: function(e) {
 						e.stopPropagation();
 						var self = $(this);

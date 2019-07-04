@@ -166,11 +166,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		return false;
 	}
 
-	public Map<String, Object> readConfigMap(final Path pagesConf) {
+	public Map<String, Object> readMetadataFileIntoMap(final Path metadataFile) {
 
-		if (Files.exists(pagesConf)) {
+		if (Files.exists(metadataFile)) {
 
-			try (final Reader reader = Files.newBufferedReader(pagesConf, Charset.forName("utf-8"))) {
+			try (final Reader reader = Files.newBufferedReader(metadataFile, Charset.forName("utf-8"))) {
 
 				return new HashMap<>(getGson().fromJson(reader, Map.class));
 
@@ -232,10 +232,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			ctx.disableEnsureCardinality();
 			ctx.disableModificationOfAccessTime();
 
-			final Map<String, Object> componentsConf = new HashMap<>();
-			final Map<String, Object> templatesConf  = new HashMap<>();
-			final Map<String, Object> pagesConf      = new HashMap<>();
-			final Map<String, Object> filesConf      = new HashMap<>();
+			final Map<String, Object> componentsMetadata = new HashMap<>();
+			final Map<String, Object> templatesMetadata  = new HashMap<>();
+			final Map<String, Object> pagesMetadata      = new HashMap<>();
+			final Map<String, Object> filesMetadata      = new HashMap<>();
 
 			if (StringUtils.isBlank(path)) {
 
@@ -262,52 +262,52 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			applyConfigurationFile(ctx, source.resolve("pre-deploy.conf"), DEPLOYMENT_IMPORT_STATUS);
 
 			// read grants.json
-			final Path grantsConf = source.resolve("security/grants.json");
-			if (Files.exists(grantsConf)) {
+			final Path grantsMetadataFile = source.resolve("security/grants.json");
+			if (Files.exists(grantsMetadataFile)) {
 
-				logger.info("Reading {}", grantsConf);
+				logger.info("Reading {}", grantsMetadataFile);
 				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing resource access grants");
 
-				importListData(ResourceAccess.class, readConfigList(grantsConf));
+				importListData(ResourceAccess.class, readConfigList(grantsMetadataFile));
 			}
 
 			// read schema-methods.json
-			final Path schemaMethodsConf = source.resolve("schema-methods.json");
-			if (Files.exists(schemaMethodsConf)) {
+			final Path schemaMethodsMetadataFile = source.resolve("schema-methods.json");
+			if (Files.exists(schemaMethodsMetadataFile)) {
 
-				logger.info("Reading {}", schemaMethodsConf);
+				logger.info("Reading {}", schemaMethodsMetadataFile);
 				final String title = "Deprecation warning";
 				final String text = "Found file 'schema-methods.json'. Newer versions store global schema methods in the schema snapshot file. Recreate the export with the current version to avoid compatibility issues. Support for importing this file will be dropped in future versions.";
 
 				logger.info(title + ": " + text);
 				publishWarningMessage(title, text);
 
-				importListData(SchemaMethod.class, readConfigList(schemaMethodsConf));
+				importListData(SchemaMethod.class, readConfigList(schemaMethodsMetadataFile));
 			}
 
 			// read mail-templates.json
-			final Path mailTemplatesConf = source.resolve("mail-templates.json");
-			if (Files.exists(mailTemplatesConf)) {
+			final Path mailTemplatesMetadataFile = source.resolve("mail-templates.json");
+			if (Files.exists(mailTemplatesMetadataFile)) {
 
-				logger.info("Reading {}", mailTemplatesConf);
+				logger.info("Reading {}", mailTemplatesMetadataFile);
 				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing mail templates");
 
-				importListData(MailTemplate.class, readConfigList(mailTemplatesConf));
+				importListData(MailTemplate.class, readConfigList(mailTemplatesMetadataFile));
 			}
 
 			// read widgets.json
-			final Path widgetsConf = source.resolve("widgets.json");
-			if (Files.exists(widgetsConf)) {
+			final Path widgetsMetadataFile = source.resolve("widgets.json");
+			if (Files.exists(widgetsMetadataFile)) {
 
-				logger.info("Reading {}", widgetsConf);
+				logger.info("Reading {}", widgetsMetadataFile);
 				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing widgets");
 
-				importListData(Widget.class, readConfigList(widgetsConf));
+				importListData(Widget.class, readConfigList(widgetsMetadataFile));
 			}
 
 			// read localizations.json
-			final Path localizationsConf = source.resolve("localizations.json");
-			if (Files.exists(localizationsConf)) {
+			final Path localizationsMetadataFile = source.resolve("localizations.json");
+			if (Files.exists(localizationsMetadataFile)) {
 
 				final PropertyMap additionalData = new PropertyMap();
 
@@ -316,52 +316,52 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				// it is a way to differentiate between new and old localization strings
 				additionalData.put(StructrApp.key(Localization.class, "imported"), false);
 
-				logger.info("Reading {}", localizationsConf);
+				logger.info("Reading {}", localizationsMetadataFile);
 				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing localizations");
 
-				importListData(Localization.class, readConfigList(localizationsConf), additionalData);
+				importListData(Localization.class, readConfigList(localizationsMetadataFile), additionalData);
 			}
 
 			// read widgets.json
-			final Path applicationConfigurationDataConf = source.resolve("application-configuration-data.json");
-			if (Files.exists(applicationConfigurationDataConf)) {
+			final Path applicationConfigurationDataMetadataFile = source.resolve("application-configuration-data.json");
+			if (Files.exists(applicationConfigurationDataMetadataFile)) {
 
-				logger.info("Reading {}", applicationConfigurationDataConf);
+				logger.info("Reading {}", applicationConfigurationDataMetadataFile);
 				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing application configuration data");
 
-				importListData(ApplicationConfigurationDataNode.class, readConfigList(applicationConfigurationDataConf));
+				importListData(ApplicationConfigurationDataNode.class, readConfigList(applicationConfigurationDataMetadataFile));
 			}
 
-			// read files.conf
-			final Path filesConfFile = source.resolve("files.json");
-			if (Files.exists(filesConfFile)) {
+			// read files.json
+			final Path filesMetadataFile = source.resolve("files.json");
+			if (Files.exists(filesMetadataFile)) {
 
-				logger.info("Reading {}", filesConfFile);
-				filesConf.putAll(readConfigMap(filesConfFile));
+				logger.info("Reading {}", filesMetadataFile);
+				filesMetadata.putAll(readMetadataFileIntoMap(filesMetadataFile));
 			}
 
-			// read pages.conf
-			final Path pagesConfFile = source.resolve("pages.json");
-			if (Files.exists(pagesConfFile)) {
+			// read pages.json
+			final Path pagesMetadataFile = source.resolve("pages.json");
+			if (Files.exists(pagesMetadataFile)) {
 
-				logger.info("Reading {}", pagesConfFile);
-				pagesConf.putAll(readConfigMap(pagesConfFile));
+				logger.info("Reading {}", pagesMetadataFile);
+				pagesMetadata.putAll(readMetadataFileIntoMap(pagesMetadataFile));
 			}
 
-			// read components.conf
-			final Path componentsConfFile = source.resolve("components.json");
-			if (Files.exists(componentsConfFile)) {
+			// read components.json
+			final Path componentsMetadataFile = source.resolve("components.json");
+			if (Files.exists(componentsMetadataFile)) {
 
-				logger.info("Reading {}", componentsConfFile);
-				componentsConf.putAll(readConfigMap(componentsConfFile));
+				logger.info("Reading {}", componentsMetadataFile);
+				componentsMetadata.putAll(readMetadataFileIntoMap(componentsMetadataFile));
 			}
 
-			// read templates.conf
-			final Path templatesConfFile = source.resolve("templates.json");
-			if (Files.exists(templatesConfFile)) {
+			// read templates.json
+			final Path templatesMetadataFile = source.resolve("templates.json");
+			if (Files.exists(templatesMetadataFile)) {
 
-				logger.info("Reading {}", templatesConfFile);
-				templatesConf.putAll(readConfigMap(templatesConfFile));
+				logger.info("Reading {}", templatesMetadataFile);
+				templatesMetadata.putAll(readMetadataFileIntoMap(templatesMetadataFile));
 			}
 
 			// import schema
@@ -394,7 +394,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Importing files (unchanged files will be skipped)");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing files");
 
-					FileImportVisitor fiv = new FileImportVisitor(files, filesConf);
+					FileImportVisitor fiv = new FileImportVisitor(files, filesMetadata);
 					Files.walkFileTree(files, fiv);
 					fiv.handleDeferredFiles();
 
@@ -467,7 +467,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Importing templates");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing templates");
 
-					Files.walkFileTree(templates, new TemplateImportVisitor(templatesConf));
+					Files.walkFileTree(templates, new TemplateImportVisitor(templatesMetadata));
 
 				} catch (IOException ioex) {
 					logger.warn("Exception while importing templates", ioex);
@@ -485,7 +485,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Importing shared components");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing shared components");
 
-					Files.walkFileTree(components, new ComponentImportVisitor(componentsConf));
+					Files.walkFileTree(components, new ComponentImportVisitor(componentsMetadata));
 
 				} catch (IOException ioex) {
 					logger.warn("Exception while importing shared components", ioex);
@@ -500,7 +500,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Importing pages");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing pages");
 
-					Files.walkFileTree(pages, new PageImportVisitor(pages, pagesConf));
+					Files.walkFileTree(pages, new PageImportVisitor(pages, pagesMetadata));
 
 				} catch (IOException ioex) {
 					logger.warn("Exception while importing pages", ioex);

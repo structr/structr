@@ -2981,6 +2981,11 @@ input.bitmask {
  * Apps
  */
 
+#apps {
+	height: 100%;
+	overflow-y: scroll;
+}
+
 .app-category {
 	margin: 12px;
 	padding: 2px 12px 6px 12px;
@@ -3006,8 +3011,9 @@ input.bitmask {
 	width: 120px;
 	min-width: 120px;
 	min-height: 200px;
-	float: left;
 	font-size: 1.2em;
+	display: inline-block;
+	vertical-align: text-top;
 }
 
 .app-tile h4 {

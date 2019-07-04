@@ -64,10 +64,11 @@
 			</div>
 
 			<h3>Import application from URL</h3>
+			${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Deployment via URL is not possible because <code>DeployServlet</code> is not running.</span>')}
 			<form action="/structr/deploy" method="POST" enctype="multipart/form-data">
 				<input type="hidden" name="redirectUrl" value="${window.location.href}">
-				<input type="text" id="deployment-url-input" size="60" placeholder="Enter download URL..." name="downloadUrl">
-				<button type="submit" class="action">Import from URL</button>
+				<input type="text" id="deployment-url-input" size="60" placeholder="Enter download URL..." name="downloadUrl" ${(config.deployServletAvailable ? '' : 'disabled')}>
+				<button type="submit" class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')}>Import from URL</button>
 			</form>
 
 			<h3>Export application to local directory</h3>
@@ -186,6 +187,12 @@
 			width: 47.5%;
 			margin-left: 2.5%;
 			vertical-align: top;
+		}
+
+		#dash-deployment .deployment-warning {
+			color: red;
+			margin-bottom: 6px;
+			display: inline-block;
 		}
 
 		#deployment-source-input, #deployment-url-input, #deployment-target-input {

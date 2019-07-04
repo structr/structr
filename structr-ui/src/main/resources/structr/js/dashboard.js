@@ -77,7 +77,7 @@ var _Dashboard = {
 				}
 			});
 
-		if (templateConfig.envInfo.startDate) {
+			if (templateConfig.envInfo.startDate) {
 				templateConfig.envInfo.startDate = _Dashboard.dateToIsoString(templateConfig.envInfo.startDate);
 			}
 
@@ -95,7 +95,13 @@ var _Dashboard = {
 
 			templateConfig.meObj = data.result;
 
-		}).then(function () {
+			return fetch('/structr/deploy');
+
+		}).then((result) => {
+
+			templateConfig.deployServletAvailable = (result.status !== 404);
+
+		}).then(function() {
 
 			Structr.fetchHtmlTemplate('dashboard/dashboard', templateConfig, function (html) {
 

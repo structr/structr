@@ -58,19 +58,19 @@ import org.structr.web.entity.Image;
 public class FileImportVisitor implements FileVisitor<Path> {
 
 	private static final Logger logger      = LoggerFactory.getLogger(FileImportVisitor.class.getName());
-	private Map<String, Object> config      = null;
+	private Map<String, Object> metadata    = null;
 	private SecurityContext securityContext = null;
 	private Path basePath                   = null;
 	private App app                         = null;
 	private List<File> deferredFiles        = null;
 	private Map<String, Folder> folderCache = null;
 
-	public FileImportVisitor(final Path basePath, final Map<String, Object> config) {
+	public FileImportVisitor(final Path basePath, final Map<String, Object> metadata) {
 
 		this.securityContext = SecurityContext.getSuperUserInstance();
 		this.securityContext.setDoTransactionNotifications(false);
 		this.basePath        = basePath;
-		this.config          = config;
+		this.metadata        = metadata;
 		this.app             = StructrApp.getInstance(this.securityContext);
 		this.deferredFiles   = new ArrayList<>();
 		this.folderCache     = new HashMap<>();
@@ -227,9 +227,11 @@ public class FileImportVisitor implements FileVisitor<Path> {
 				if (!fileName.startsWith(".")) {
 					logger.info("Ignoring {} (not in files.json)", fullPath);
 				}
-
+				
 			} else {
 
+				final PropertyKey isThumbnailKey = StructrApp.key(Image.class, "isThumbnail");
+				
 				Folder parent = null;
 
 				if (!basePath.equals(path.getParent())) {
@@ -238,6 +240,12 @@ public class FileImportVisitor implements FileVisitor<Path> {
 				}
 
 				boolean skipFile         = false;
+
+				if (fileProperties.containsKey(isThumbnailKey) && (boolean) fileProperties.get(isThumbnailKey)) {
+
+					logger.info("Thumbnail image found: {}, ignoring. Please delete file in files directory and entry in files.json.", fullPath);
+					skipFile = true;
+				}
 
 				File file = app.nodeQuery(File.class).and(StructrApp.key(File.class, "parent"), parent).and(File.name, fileName).getFirst();
 
@@ -357,7 +365,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 	private PropertyMap getPropertiesForFileOrFolder(final String path) throws FrameworkException {
 
-		final Object data = config.get(path);
+		final Object data = metadata.get(path);
 		if (data != null && data instanceof Map) {
 
 			return getPropertiesForFileOrFolder((Map<String, Object>)data);
