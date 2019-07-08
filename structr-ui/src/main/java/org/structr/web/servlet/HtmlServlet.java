@@ -320,7 +320,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 							// clear possible entry points
 							request.removeAttribute(POSSIBLE_ENTRY_POINTS_KEY);
 
-							rootElement = findPage(securityContext, pages, StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP), edit);
+							final String pagePart = StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP);
+							
+							// Search for a page only when page part is non-empty
+							if (StringUtils.isNotBlank(pagePart)) {
+							
+								rootElement = findPage(securityContext, pages, pagePart, edit);
+							}
 
 							renderContext.setDetailsDataObject(dataNode);
 
