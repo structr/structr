@@ -69,7 +69,7 @@ public class ContentPathProperty extends AbstractReadOnlyProperty<String> {
 			containerPath = obj.getProperty(GraphObject.id);
 		}
 
-		while (parentContainer != null && !parentContainer.equals(obj)) {
+		while (parentContainer != null && !parentContainer.equals(obj) && !parentContainer.equals(parentContainer.getParent())) {
 
 			containerPath = parentContainer.getName().concat("/").concat(containerPath);
 			parentContainer = parentContainer.getParent();
