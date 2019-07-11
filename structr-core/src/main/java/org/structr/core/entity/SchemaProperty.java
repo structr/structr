@@ -331,6 +331,23 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 		super.onNodeDeletion();
 
+		final String thisName = getName();
+
+		// remove property from the sortOrder of views it is used in (directly)
+		for (SchemaView view : getProperty(SchemaProperty.schemaViews)) {
+
+			final String sortOrder = view.getProperty(SchemaView.sortOrder);
+
+			if (sortOrder != null) {
+
+				try {
+					view.setProperty(SchemaView.sortOrder, StringUtils.join(Arrays.stream(sortOrder.split(",")).filter(propertyName -> !thisName.equals(propertyName)).toArray(), ","));
+				} catch (FrameworkException ex) {
+					logger.error("Unable to remove property '{}' from view '{}'", thisName, view.getUuid());
+				}
+			}
+		}
+
 		final AbstractSchemaNode parent = getProperty(SchemaProperty.schemaNode);
 
 		if (parent != null) {
