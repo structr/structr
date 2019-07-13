@@ -18,11 +18,18 @@
  */
 package org.structr.core.function;
 
+import java.util.Map;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
+import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
 public class CreateRelationshipFunction extends CoreFunction {
@@ -40,7 +47,7 @@ public class CreateRelationshipFunction extends CoreFunction {
 
 		try {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 3);
 
 			final Object source = sources[0];
 			final Object target = sources[1];
@@ -64,7 +71,49 @@ public class CreateRelationshipFunction extends CoreFunction {
 
 			if (relClass != null) {
 
-				return StructrApp.getInstance(sourceNode.getSecurityContext()).create(sourceNode, targetNode, relClass);
+				final SecurityContext securityContext = ctx.getSecurityContext();
+				final ConfigurationProvider config = StructrApp.getConfiguration();
+				PropertyMap propertyMap;
+
+				// extension for native javascript objects
+				if (sources.length == 4 && sources[3] instanceof Map) {
+
+					propertyMap = PropertyMap.inputTypeToJavaType(securityContext, relClass, (Map)sources[3]);
+
+				} else if (sources.length == 4 && sources[3] instanceof GraphObjectMap) {
+
+					propertyMap = PropertyMap.inputTypeToJavaType(securityContext, relClass, ((GraphObjectMap)sources[3]).toMap());
+
+				} else {
+
+					propertyMap               = new PropertyMap();
+					final int parameter_count = sources.length;
+
+					if (parameter_count % 2 == 0) {
+
+						throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+					}
+
+					for (int c = 3; c < parameter_count; c += 2) {
+
+						final PropertyKey key = StructrApp.key(relClass, sources[c].toString());
+
+						if (key != null) {
+
+							final PropertyConverter inputConverter = key.inputConverter(securityContext);
+							Object value = sources[c + 1];
+
+							if (inputConverter != null) {
+
+								value = inputConverter.convert(value);
+							}
+
+							propertyMap.put(key, value);
+						}
+					}
+				}
+
+				return StructrApp.getInstance(sourceNode.getSecurityContext()).create(sourceNode, targetNode, relClass, propertyMap);
 
 			} else {
 

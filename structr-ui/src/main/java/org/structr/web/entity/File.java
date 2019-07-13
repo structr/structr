@@ -441,7 +441,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 					final String editParameter = securityContext.getRequest().getParameter("edit");
 					if (editParameter != null) {
 
-						editModeActive = !RenderContext.EditMode.NONE.equals(RenderContext.editMode(editParameter));
+						editModeActive = !RenderContext.EditMode.NONE.equals(RenderContext.getValidatedEditMode(securityContext.getUser(false), editParameter));
 					}
 				}
 
