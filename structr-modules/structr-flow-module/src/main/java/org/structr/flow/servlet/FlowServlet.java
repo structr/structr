@@ -65,7 +65,7 @@ public class FlowServlet extends JsonRestServlet {
 		try {
 
 			final Map<String, Object> flowParameters = new HashMap<>();
-			final Map<String, Object> flowResult;
+			final Iterable<Object> flowResult;
 			final int depth = Services.parseInt(request.getParameter(REQUEST_PARAMTER_OUTPUT_DEPTH), config.getOutputNestingDepth());
 
 			// set default value for property view
@@ -101,29 +101,9 @@ public class FlowServlet extends JsonRestServlet {
 
 				if (!source.isEmpty() && source.size() == 1 && source.get(0) instanceof FlowContainer) {
 
-					flowResult = ((FlowContainer)source.get(0)).evaluate(flowParameters);
+					flowResult = ((FlowContainer)source.get(0)).evaluate(securityContext, flowParameters);
 
-					final Object resultObject = flowResult.get("result");
-
-					if (resultObject instanceof Iterable) {
-
-						final List list = Iterables.toList((Iterable)resultObject);
-						boolean isPrimitiveArray = false;
-
-						if (!list.isEmpty() && !(list.get(0) instanceof GraphObject)) {
-							isPrimitiveArray = true;
-						}
-
-						result = new PagingIterable<>(list);
-
-					} else if (resultObject instanceof GraphObject) {
-
-						result = new PagingIterable(Arrays.asList((GraphObject) resultObject));
-
-					} else {
-
-						result = new PagingIterable(Arrays.asList((GraphObject)UiFunction.toGraphObject(resultObject, 1)));
-					}
+					result = new PagingIterable<>(flowResult);
 
 					if (returnContent) {
 

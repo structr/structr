@@ -93,7 +93,7 @@ public class GenericRelationship extends ManyToMany<NodeInterface, NodeInterface
 	}
 
 	@Override
-	public Object invokeMethod(final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
+	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

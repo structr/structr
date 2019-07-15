@@ -2273,7 +2273,7 @@ var _Crud = {
 			searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox"><h3>' + type.capitalize() + '</h3></div>');
 		}
 		var displayName = _Crud.displayName(node);
-		$('#resultsFor' + type, searchResults).append('<div title="' + displayName + '" " class="_' + node.id + ' node">' + fitStringToWidth(displayName, 120) + '</div>');
+		$('#resultsFor' + type, searchResults).append('<div title="name: ' + node.name + '\nid: ' + node.id  + '' + ' \ntype: ' + node.type + '' + '" class="_' + node.id + ' node">' + fitStringToWidth(displayName, 120) + '</div>');
 
 		var nodeEl = $('#resultsFor' + type + ' ._' + node.id, searchResults);
 		if (node.isImage) {

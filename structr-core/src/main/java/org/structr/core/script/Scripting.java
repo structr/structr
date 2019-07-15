@@ -153,7 +153,7 @@ public class Scripting {
 	 */
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName) throws FrameworkException, UnlicensedScriptException {
 
-		final String expression = input.trim();
+		final String expression = StringUtils.strip(input);
 		boolean isJavascript    = expression.startsWith("${{") && expression.endsWith("}}");
 		final int prefixOffset  = isJavascript ? 1 : 0;
 		String source           = expression.substring(2 + prefixOffset, expression.length() - (1 + prefixOffset));

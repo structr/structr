@@ -32,7 +32,6 @@ var _Apps = {
 		_Apps.init();
 
 		fetch('/structr/deploy').then((result) => {
-			console.log(result.status);
 			_Apps.deployServletAvailable = (result.status !== 404);
 		}).then(() => {
 

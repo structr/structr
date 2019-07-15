@@ -18,11 +18,7 @@
  */
 package org.structr.flow.impl;
 
-import java.util.*;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
+import org.mozilla.javascript.NativeArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
@@ -42,13 +38,13 @@ import org.structr.core.property.*;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
-import org.structr.flow.impl.rels.DOMNodeFLOWFlowContainer;
-import org.structr.flow.impl.rels.FlowContainerBaseNode;
-import org.structr.flow.impl.rels.FlowContainerConfigurationFlow;
-import org.structr.flow.impl.rels.FlowContainerFlowNode;
-import org.structr.flow.impl.rels.FlowContainerPackageFlow;
+import org.structr.flow.impl.rels.*;
 import org.structr.module.api.DeployableEntity;
 import org.structr.web.entity.dom.DOMNode;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  *
@@ -71,23 +67,36 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 	private static final Logger logger = LoggerFactory.getLogger(FlowContainer.class);
 
 	@Export
-	public Map<String, Object> evaluate(final Map<String, Object> parameters) {
+	public Iterable<Object> evaluate(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException {
 
 		final FlowEngine engine       = new FlowEngine();
 		final Context context         = new Context();
 		context.setParameters(parameters);
 		final FlowNode entry          = getProperty(startNode);
-		final FlowResult result       = engine.execute(context, entry);
-		final Map<String, Object> map = new LinkedHashMap<>();
+		final FlowResult flowResult       = engine.execute(context, entry);
 
-		map.put("error",  result.getError());
-		map.put("result", result.getResult());
+		if (flowResult.getError() != null) {
 
-		return map;
+			final List<Object> result = new ArrayList<>();
+			result.add(flowResult.getError());
+			logger.error("Error while evaluating flow: {}",  flowResult.getError().getMessage());
+			return result;
+		}
+
+		if (flowResult.getResult() instanceof Iterable) {
+
+			return (Iterable)flowResult.getResult();
+		} else {
+
+			final List<Object> result = new ArrayList<>();
+			result.add(flowResult.getResult());
+			return result;
+		}
+
 	}
 
 	@Export
-	public Iterable<FlowBaseNode> getFlowNodes() {
+	public Iterable<FlowBaseNode> getFlowNodes(final SecurityContext securityContext) {
 
 		App app = StructrApp.getInstance(securityContext);
 
@@ -105,7 +114,7 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 	}
 
 	@Export
-	public Iterable<AbstractRelationship> getFlowRelationships() {
+	public Iterable<AbstractRelationship> getFlowRelationships(final SecurityContext securityContext) {
 
 		App app = StructrApp.getInstance(securityContext);
 

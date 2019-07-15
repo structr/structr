@@ -739,7 +739,7 @@ var _Entities = {
 			});
 
 			$.ajax({
-				url: rootUrl + entity.type + '/' + entity.id + '/all',
+				url: rootUrl + entity.type + '/' + entity.id + '/all?edit=2',
 				dataType: 'json',
 				headers: {
 					Accept: 'application/json; charset=utf-8; properties=' + filteredProperties.join(',')

@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
-import static org.structr.core.entity.SchemaMethod.source;
 import org.structr.schema.CodeSource;
 import org.structr.schema.SourceFile;
 import org.structr.schema.SourceLine;
@@ -192,7 +191,7 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 	public void getSource(final SourceFile sourceFile, final String objVariable, final boolean includeParameters, final boolean includeModifications) {
 
-		getSource(sourceFile, objVariable, "securityContext", includeParameters, includeModifications);
+		getSource(sourceFile, objVariable, "arg0", includeParameters, includeModifications);
 	}
 
 	public void getSource(final SourceFile sourceFile, final String objVariable, final String securityContextVariable, final boolean includeParameters, final boolean includeModifications) {
@@ -202,7 +201,7 @@ public class ActionEntry implements Comparable<ActionEntry> {
 			if (StringUtils.isNotBlank(call)) {
 
 				final SourceLine line = sourceFile.line(codeSource, call);
-			
+
 				final String trimmed = call.trim();
 				if (!trimmed.endsWith(";") &&  !trimmed.endsWith("}")) {
 

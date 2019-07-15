@@ -31,13 +31,11 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.ComparisonSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
 import org.structr.schema.action.ActionContext;
@@ -49,13 +47,13 @@ import java.util.Map;
 
 public class FlowTypeQuery extends FlowBaseNode implements DataSource, DeployableEntity {
 
-	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<String> dataType = new StringProperty("dataType");
-	public static final Property<String> query = new StringProperty("query");
+	public static final Property<DataSource> dataSource                 = new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<Iterable<FlowBaseNode>> dataTarget     = new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<String> dataType                       = new StringProperty("dataType");
+	public static final Property<String> query                          = new StringProperty("query");
 
-	public static final View defaultView = new View(FlowAction.class, PropertyView.Public, dataTarget, dataType, query);
-	public static final View uiView = new View(FlowAction.class, PropertyView.Ui, dataTarget, dataType, query);
-
+	public static final View defaultView                                = new View(FlowAction.class, PropertyView.Public, dataTarget, dataType, query);
+	public static final View uiView                                     = new View(FlowAction.class, PropertyView.Ui, dataTarget, dataType, query);
 
 	@Override
 	public Object get(Context context) {
@@ -76,7 +74,7 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 			Query query = app.nodeQuery(clazz);
 
 			if (jsonObject != null && jsonObject.getJSONArray("operations").length() > 0) {
-				resolveQueryObject(jsonObject, query);
+				resolveQueryObject(context, jsonObject, query);
 			}
 
 			return query.getAsList();
@@ -103,13 +101,13 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 		return result;
 	}
 
-	private Query resolveQueryObject(final JSONObject object, final Query query) {
+	private Query resolveQueryObject(final Context context, final JSONObject object, final Query query) {
 		final String type = object.getString("type");
 		switch(type) {
 			case "group":
-				return resolveGroup(object, query);
+				return resolveGroup(context, object, query);
 			case "operation":
-				return resolveOperation(object, query);
+				return resolveOperation(context, object, query);
 			case "sort":
 				return resolveSortOperation(object, query);
 		}
@@ -146,7 +144,7 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 		return query;
 	}
 
-	private Query resolveGroup(final JSONObject object, final Query query) {
+	private Query resolveGroup(final Context context, final JSONObject object, final Query query) {
 		final String op = object.getString("op");
 		final JSONArray operations = object.getJSONArray("operations");
 
@@ -165,7 +163,7 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 
 		// Resolve nested elements
 		for (int i = 0; i < operations.length(); i++) {
-			resolveQueryObject(operations.getJSONObject(i), query);
+			resolveQueryObject(context, operations.getJSONObject(i), query);
 		}
 
 		query.parent();
@@ -173,7 +171,7 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 		return query;
 	}
 
-	private Query resolveOperation(final JSONObject object, final Query query) {
+	private Query resolveOperation(final Context context, final JSONObject object, final Query query) {
 		final String key = object.getString("key");
 		final String op = object.getString("op");
 		Object value = object.get("value");
@@ -192,11 +190,20 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 		}
 
 		if (value != null) {
-			ActionContext actionContext = new ActionContext(securityContext);
 			try {
-				value = Scripting.replaceVariables(actionContext, null, value.toString());
-			} catch (FrameworkException ex) {
-				logger.warn("FlowTypeQuery: Could not evaluate given operation." + ex.getMessage());
+
+				DataSource ds = getProperty(FlowTypeQuery.dataSource);
+
+				if (ds != null) {
+
+					Object data = ds.get(context);
+
+					context.setData(getUuid(), data);
+				}
+
+				value = Scripting.replaceVariables(context.getActionContext(securityContext, this), null, value.toString());
+			} catch (FrameworkException | FlowException ex) {
+				logger.warn("FlowTypeQuery: Could not evaluate given operation.", ex);
 			}
 		}
 

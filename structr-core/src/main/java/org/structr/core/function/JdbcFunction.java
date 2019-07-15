@@ -27,7 +27,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -52,13 +51,14 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 			final List<Map<String, Object>> data = new LinkedList<>();
 			final String url                     = (String)sources[0];
 			final String sql                     = (String)sources[1];
-			String driverClass                   = (String)sources[2];
+
+			String driverClass = "com.mysql.jdbc.Driver";
+			
+			if (sources.length == 3) {
+				driverClass = (String)sources[2];
+			}
 
 			try {
-
-				if (StringUtils.isBlank(driverClass)) {
-					driverClass = "com.mysql.jdbc.Driver";
-				}
 				
 				Class.forName(driverClass).newInstance();
 
@@ -84,7 +84,11 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 				}
 
 			} catch (Throwable t) {
-				throw new FrameworkException(503, t.getMessage());
+				if (t instanceof ClassNotFoundException) {
+					logException((ClassNotFoundException) t, "{}: Driver class \"{}\" not found. Make sure the jar containing the class is located in the lib directory.", new Object[] { getReplacement(), driverClass, caller, getParametersAsString(sources) });
+				} else {
+					logException(t, t.getMessage(), sources);
+				}
 			}
 
 			return data;

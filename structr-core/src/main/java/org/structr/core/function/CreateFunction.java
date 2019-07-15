@@ -75,7 +75,7 @@ public class CreateFunction extends CoreFunction {
 
 				if (parameter_count % 2 == 0) {
 
-					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + (ctx.isJavaScriptContext() ? ERROR_MESSAGE_CREATE_JS : ERROR_MESSAGE_CREATE));
+					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
 				}
 
 				for (int c = 1; c < parameter_count; c += 2) {

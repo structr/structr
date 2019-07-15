@@ -324,7 +324,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public Object invokeMethod(String methodName, Map<String, Object> parameters, boolean throwExceptionForUnknownMethods) throws FrameworkException {
+	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, boolean throwExceptionForUnknownMethods) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 

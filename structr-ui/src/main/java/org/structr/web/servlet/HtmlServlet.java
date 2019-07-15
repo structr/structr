@@ -320,7 +320,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 							// clear possible entry points
 							request.removeAttribute(POSSIBLE_ENTRY_POINTS_KEY);
 
-							rootElement = findPage(securityContext, pages, StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP), edit);
+							final String pagePart = StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP);
+							
+							// Search for a page only when page part is non-empty
+							if (StringUtils.isNotBlank(pagePart)) {
+							
+								rootElement = findPage(securityContext, pages, pagePart, edit);
+							}
 
 							renderContext.setDetailsDataObject(dataNode);
 
@@ -1456,7 +1462,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		return notModified;
 	}
 
-	private void streamFile(SecurityContext securityContext, final File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit) throws IOException {
+	private void streamFile(final SecurityContext securityContext, final File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit) throws IOException {
 
 		if (!securityContext.isVisible(file)) {
 
@@ -1600,7 +1606,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			// call onDownload callback
 			try {
 
-				file.invokeMethod("onDownload", callbackMap, false);
+				file.invokeMethod(securityContext, "onDownload", callbackMap, false);
 
 			} catch (FrameworkException fex) {
 				logger.warn("", fex);

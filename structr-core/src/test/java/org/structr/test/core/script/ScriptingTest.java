@@ -229,27 +229,27 @@ public class ScriptingTest extends StructrTest {
 			final GraphObject sourceNode = app.nodeQuery(sourceType).getFirst();
 
 			// set testEnum property to OPEN via doTest01 function call, check result
-			sourceNode.invokeMethod("doTest01", Collections.EMPTY_MAP, true);
+			sourceNode.invokeMethod(securityContext, "doTest01", Collections.EMPTY_MAP, true);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[0], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to CLOSED via doTest02 function call, check result
-			sourceNode.invokeMethod("doTest02", Collections.EMPTY_MAP, true);
+			sourceNode.invokeMethod(securityContext, "doTest02", Collections.EMPTY_MAP, true);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[1], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to TEST via doTest03 function call, check result
-			sourceNode.invokeMethod("doTest03", Collections.EMPTY_MAP, true);
+			sourceNode.invokeMethod(securityContext, "doTest03", Collections.EMPTY_MAP, true);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to INVALID via doTest03 function call, expect previous value & error
 			try {
-				sourceNode.invokeMethod("doTest04", Collections.EMPTY_MAP, true);
+				sourceNode.invokeMethod(securityContext, "doTest04", Collections.EMPTY_MAP, true);
 				assertEquals("Invalid setProperty result for EnumProperty",    testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
 				fail("Setting EnumProperty to invalid value should result in an Exception!");
 
 			} catch (FrameworkException fx) {}
 
 			// test other property types
-			sourceNode.invokeMethod("doTest05", Collections.EMPTY_MAP, true);
+			sourceNode.invokeMethod(securityContext, "doTest05", Collections.EMPTY_MAP, true);
 			assertEquals("Invalid setProperty result for BooleanProperty",                         true, sourceNode.getProperty(testBooleanProperty));
 			assertEquals("Invalid setProperty result for IntegerProperty",                          123, sourceNode.getProperty(testIntegerProperty));
 			assertEquals("Invalid setProperty result for StringProperty",                   "testing..", sourceNode.getProperty(testStringProperty));
@@ -328,7 +328,7 @@ public class ScriptingTest extends StructrTest {
 		// grant read access to test user
 		try (final Tx tx = app.tx()) {
 
-			app.nodeQuery(sourceType).getFirst().invokeMethod("doTest01", Collections.EMPTY_MAP, true);
+			app.nodeQuery(sourceType).getFirst().invokeMethod(securityContext, "doTest01", Collections.EMPTY_MAP, true);
 			tx.success();
 
 		} catch(FrameworkException fex) {

@@ -118,10 +118,10 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 
 					if (actualSourceNode.equals(targetNode)) {
 
-						logger.warn("Preventing deletion of self relationship {}-[{}]->{}. If you experience issue with this, please report to team@structr.com.", new Object[] { actualSourceNode, rel.getRelType(), targetNode } );
+						logger.debug("Deleted a self relationship {}-[{}]->{}. Versions before 3.3.3/3.4 blocked deletion of self-relationships. If you experience issues, please report to support@structr.com.", new Object[] { actualSourceNode, rel.getRelType(), targetNode } );
 
 						// skip self relationships
-						continue;
+						//continue;
 					}
 
 					if (rel.getTargetNode().equals(targetNode)) {

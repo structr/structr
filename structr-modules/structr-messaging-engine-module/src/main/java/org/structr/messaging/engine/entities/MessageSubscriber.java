@@ -18,6 +18,9 @@
  */
 package org.structr.messaging.engine.entities;
 
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.cxf.common.util.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -32,10 +35,6 @@ import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
-
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 
 public interface MessageSubscriber extends NodeInterface {
 
@@ -60,9 +59,10 @@ public interface MessageSubscriber extends NodeInterface {
 
 			type.addMethod("onMessage")
 				.setReturnType(RestMethodResult.class.getName())
+				.addParameter("ctx", SecurityContext.class.getName())
 				.addParameter("topic", String.class.getName())
 				.addParameter("message", String.class.getName())
-				.setSource("return " + MessageSubscriber.class.getName() + ".onMessage(this, topic, message, securityContext);")
+				.setSource("return " + MessageSubscriber.class.getName() + ".onMessage(this, topic, message, ctx);")
 				.addException(FrameworkException.class.getName())
 				.setDoExport(true);
 
@@ -75,7 +75,7 @@ public interface MessageSubscriber extends NodeInterface {
 	String getCallback();
 	Iterable<MessageClient> getClients();
 
-	static void subscribeOnAllClients(MessageSubscriber thisSubscriber) {
+	static void subscribeOnAllClients(MessageSubscriber thisSubscriber, final SecurityContext securityContext) {
 
 		if (!StringUtils.isEmpty(thisSubscriber.getTopic()) && (thisSubscriber.getTopic() != null)) {
 			Map<String, Object> params = new HashMap<>();
@@ -84,7 +84,7 @@ public interface MessageSubscriber extends NodeInterface {
 			Iterable<MessageClient> clientsList = thisSubscriber.getClients();
 			clientsList.forEach(client -> {
 				try {
-					client.invokeMethod("subscribeTopic", params, false);
+					client.invokeMethod(securityContext, "subscribeTopic", params, false);
 				} catch (FrameworkException e) {
 					logger.error("Could not invoke subscribeTopic on MessageClient: " + e.getMessage());
 				}
@@ -95,7 +95,7 @@ public interface MessageSubscriber extends NodeInterface {
 	static void onCreation(MessageSubscriber thisSubscriber, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		if (thisSubscriber.getProperty(StructrApp.key(MessageSubscriber.class, "topic")) != null) {
-			subscribeOnAllClients(thisSubscriber);
+			subscribeOnAllClients(thisSubscriber, securityContext);
 		}
 
 	}
@@ -103,12 +103,12 @@ public interface MessageSubscriber extends NodeInterface {
 	static void onModification(MessageSubscriber thisSubscriber, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		if (modificationQueue.isPropertyModified(thisSubscriber, StructrApp.key(MessageSubscriber.class, "topic")) || modificationQueue.isPropertyModified(thisSubscriber, StructrApp.key(MessageSubscriber.class, "topic"))) {
-			subscribeOnAllClients(thisSubscriber);
+			subscribeOnAllClients(thisSubscriber, securityContext);
 		}
 
 	}
 
-	static RestMethodResult onMessage(MessageSubscriber thisSubscriber, final String topic, final String message, SecurityContext securityContext) throws FrameworkException {
+	static RestMethodResult onMessage(MessageSubscriber thisSubscriber, final String topic, final String message, final SecurityContext securityContext) throws FrameworkException {
 
 		if (!StringUtils.isEmpty(thisSubscriber.getCallback())) {
 
