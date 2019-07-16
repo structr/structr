@@ -124,4 +124,9 @@ public class BooleanSetting extends Setting<Boolean> {
 			setValue(false);
 		}
 	}
+
+	@Override
+	protected Setting<Boolean> copy(final String key) {
+		return new BooleanSetting(group, category, key, value);
+	}
 }
