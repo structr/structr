@@ -80,12 +80,7 @@ public class IntegerSetting extends Setting<Integer> {
 
 		final Tag group = parent.block("div").css("form-group");
 
-		final Tag label = group.block("label").text(getKey());
-
-		if (getComment() != null) {
-			label.attr(new Attr("class", "has-comment"));
-			label.attr(new Attr("data-comment", getComment()));
-		}
+		renderLabel(group);
 
 		final Tag input     = group.empty("input").attr(new Attr("type", "text"), new Attr("name", getKey()));
 		final Integer value = getValue();
@@ -120,5 +115,10 @@ public class IntegerSetting extends Setting<Integer> {
 			// this is the "empty" value
 			setValue(-1);
 		}
+	}
+
+	@Override
+	protected Setting<Integer> copy(final String key) {
+		return new IntegerSetting(group, category, key, value);
 	}
 }
