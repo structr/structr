@@ -44,6 +44,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -62,10 +63,14 @@ import org.structr.websocket.message.WebSocketMessage;
 public class WebsocketController implements StructrTransactionListener {
 
 	private static final Logger logger                 = LoggerFactory.getLogger(WebsocketController.class.getName());
-	private static final Set<String> BroadcastCommands = new HashSet<>(Arrays.asList(new String[] { "UPDATE", "ADD", "CREATE" } ));
+	private static final Set<String> BroadcastCommands = new HashSet<>(Arrays.asList("UPDATE", "ADD", "CREATE"));
 
 	private final Set<StructrWebSocket> clients = ConcurrentHashMap.newKeySet();
 	private Gson gson                           = null;
+
+	private static final Set<String> BroadcastBlacklistForNodeTypes           = new HashSet<>(Arrays.asList("IndexedWord"));
+	private static final Set<PropertyKey> BroadcastBlacklistForNodeProperties = new HashSet<>(Arrays.asList(Principal.grantedNodes, Principal.ownedNodes));
+	private static final Set<String> BroadcastBlacklistForRelTypes            = new HashSet<>(Arrays.asList("INDEXED_WORD"));
 
 	public WebsocketController(final Gson gson) {
 
@@ -210,6 +215,13 @@ public class WebsocketController implements StructrTransactionListener {
 				return message;
 			}
 
+			if (BroadcastBlacklistForNodeTypes.contains(node.getType())) {
+				return null;
+			}
+			if (modificationEvent.getModifiedProperties().keySet().stream().anyMatch((property) -> { return BroadcastBlacklistForNodeProperties.contains(property); })) {
+				return null;
+			}
+
 			if (modificationEvent.isCreated()) {
 
 				final WebSocketMessage message = createMessage("CREATE", callbackId);
@@ -278,6 +290,10 @@ public class WebsocketController implements StructrTransactionListener {
 			// handle relationship
 			final RelationshipInterface relationship = (RelationshipInterface) modificationEvent.getGraphObject();
 			final RelationshipType relType = modificationEvent.getRelationshipType();
+
+			if (BroadcastBlacklistForRelTypes.contains(relType.name())) {
+				return null;
+			}
 
 			// special treatment of CONTAINS relationships
 			if ("CONTAINS".equals(relType.name())) {
