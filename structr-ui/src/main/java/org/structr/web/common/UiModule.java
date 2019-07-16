@@ -24,6 +24,7 @@ import org.structr.core.datasources.DataSources;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.module.StructrModule;
+import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 import org.structr.web.datasource.CypherGraphDataSource;
 import org.structr.web.datasource.FunctionDataSource;
@@ -75,62 +76,56 @@ public class UiModule implements StructrModule {
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
 
-		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
-		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
-		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
+		DataSources.put(true, "ui", "idRequestParameterDataSource", new IdRequestParameterGraphDataSource("nodeId"));
+		DataSources.put(true, "ui", "restDataSource",               new RestDataSource());
+		DataSources.put(true, "ui", "cypherDataSource",             new CypherGraphDataSource());
+		DataSources.put(true, "ui", "functionDataSource",           new FunctionDataSource());
+		DataSources.put(true, "ui", "xpathDataSource",              new XPathGraphDataSource());
+	}
 
-		// Community Edition
-		Functions.put(true, LicenseManager.Community, new EscapeHtmlFunction());
-		Functions.put(true, LicenseManager.Community, new UnescapeHtmlFunction());
-		Functions.put(true, LicenseManager.Community, new StripHtmlFunction());
-		Functions.put(true, LicenseManager.Community, new FromJsonFunction());
-		Functions.put(true, LicenseManager.Community, new ToJsonFunction());
-		Functions.put(true, LicenseManager.Community, new ToGraphObjectFunction());
-		Functions.put(true, LicenseManager.Community, new IncludeFunction());
-		Functions.put(true, LicenseManager.Community, new IncludeChildFunction());
-		Functions.put(true, LicenseManager.Community, new RenderFunction());
-		Functions.put(true, LicenseManager.Community, new SetDetailsObjectFunction());
-		Functions.put(true, LicenseManager.Community, new ConfirmationKeyFunction());
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
-		DataSources.put(true, LicenseManager.Community, "idRequestParameterDataSource", new IdRequestParameterGraphDataSource("nodeId"));
-		DataSources.put(true, LicenseManager.Community, "restDataSource",               new RestDataSource());
-		DataSources.put(true, LicenseManager.Community, "cypherDataSource",             new CypherGraphDataSource());
-		DataSources.put(true, LicenseManager.Community, "functionDataSource",           new FunctionDataSource());
-		DataSources.put(true, LicenseManager.Community, "xpathDataSource",              new XPathGraphDataSource());
+		Functions.put(licenseManager, new EscapeHtmlFunction());
+		Functions.put(licenseManager, new UnescapeHtmlFunction());
+		Functions.put(licenseManager, new StripHtmlFunction());
+		Functions.put(licenseManager, new FromJsonFunction());
+		Functions.put(licenseManager, new ToJsonFunction());
+		Functions.put(licenseManager, new ToGraphObjectFunction());
+		Functions.put(licenseManager, new IncludeFunction());
+		Functions.put(licenseManager, new IncludeChildFunction());
+		Functions.put(licenseManager, new RenderFunction());
+		Functions.put(licenseManager, new SetDetailsObjectFunction());
+		Functions.put(licenseManager, new ConfirmationKeyFunction());
 
+		Functions.put(licenseManager, new SendHtmlMailFunction());
+		Functions.put(licenseManager, new SendPlaintextMailFunction());
+		Functions.put(licenseManager, new GetContentFunction());
+		Functions.put(licenseManager, new SetContentFunction());
+		Functions.put(licenseManager, new AppendContentFunction());
+		Functions.put(licenseManager, new CopyFileContentsFunction());
+		Functions.put(licenseManager, new SetSessionAttributeFunction());
+		Functions.put(licenseManager, new GetSessionAttributeFunction());
+		Functions.put(licenseManager, new RemoveSessionAttributeFunction());
+		Functions.put(licenseManager, new IsLocaleFunction());
 
-		// Basic Edition and up
-		Functions.put(basicEdition, LicenseManager.Basic, new SendHtmlMailFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, new SendPlaintextMailFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, new GetContentFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, new SetContentFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, new AppendContentFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, new CopyFileContentsFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, new SetSessionAttributeFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, new GetSessionAttributeFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, new RemoveSessionAttributeFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, new IsLocaleFunction());
+		Functions.put(licenseManager, new LogEventFunction());
 
-		// Small Business and up
-		Functions.put(smallBusinessEdition, LicenseManager.SmallBusiness, new LogEventFunction());
-
-		// Enterprise only
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new HttpGetFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new HttpHeadFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new HttpPostFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new HttpPutFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new HttpDeleteFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new AddHeaderFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new SetResponseHeaderFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new SetResponseCodeFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new GetRequestHeaderFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new FromXmlFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new ParseFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new CreateArchiveFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new ScheduleFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MaintenanceFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new BarcodeFunction());
-
+		Functions.put(licenseManager, new HttpGetFunction());
+		Functions.put(licenseManager, new HttpHeadFunction());
+		Functions.put(licenseManager, new HttpPostFunction());
+		Functions.put(licenseManager, new HttpPutFunction());
+		Functions.put(licenseManager, new HttpDeleteFunction());
+		Functions.put(licenseManager, new AddHeaderFunction());
+		Functions.put(licenseManager, new SetResponseHeaderFunction());
+		Functions.put(licenseManager, new SetResponseCodeFunction());
+		Functions.put(licenseManager, new GetRequestHeaderFunction());
+		Functions.put(licenseManager, new FromXmlFunction());
+		Functions.put(licenseManager, new ParseFunction());
+		Functions.put(licenseManager, new CreateArchiveFunction());
+		Functions.put(licenseManager, new ScheduleFunction());
+		Functions.put(licenseManager, new MaintenanceFunction());
+		Functions.put(licenseManager, new BarcodeFunction());
 	}
 
 	@Override
@@ -149,15 +144,15 @@ public class UiModule implements StructrModule {
 	}
 
 	@Override
-	public void insertImportStatements(final AbstractSchemaNode schemaNode, final StringBuilder buf) {
+	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
 	}
 
 	@Override
-	public void insertSourceCode(final AbstractSchemaNode schemaNode, final StringBuilder buf) {
+	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
 	}
 
 	@Override
-	public void insertSaveAction(final AbstractSchemaNode schemaNode, final StringBuilder buf, final Actions.Type type) {
+	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
 	}
 
 	@Override

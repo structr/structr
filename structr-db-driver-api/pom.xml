@@ -5,13 +5,13 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr</artifactId>
-		<version>3.2-SNAPSHOT</version>
+		<version>3.4-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.structr</groupId>
 	<artifactId>structr-db-driver-api</artifactId>
 	<packaging>jar</packaging>
-	<version>3.2-SNAPSHOT</version>
+	<version>3.4-SNAPSHOT</version>
 	<name>Structr Database Driver API</name>
 	<url>http://structr.org</url>
 	<description>Structr is an open source framework based on the popular Neo4j graph database.</description>
@@ -33,6 +33,10 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
 			<version>1.10</version>
@@ -40,7 +44,6 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>
@@ -55,92 +58,8 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<optional>true</optional>
 		</dependency>
 	</dependencies>
-
-	<profiles>
-		<profile>
-			<id>sign-structr-artifacts</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-jarsigner-plugin</artifactId>
-						<version>1.2</version>
-						<executions>
-							<execution>
-								<id>sign</id>
-								<goals>
-									<goal>sign</goal>
-								</goals>
-							</execution>
-						</executions>
-						<configuration>
-							<keystore>${user.home}/.structr/structr.keystore</keystore>
-							<alias>structr</alias>
-							<storepass>${structrKeystorePassword}</storepass>
-						</configuration>
-					</plugin>
-					<plugin>
-						<groupId>com.mycila</groupId>
-						<artifactId>license-maven-plugin</artifactId>
-						<version>2.11</version>
-						<configuration>
-							<header>header.txt</header>
-							<includes>
-								<include>src/**</include>
-							</includes>
-							<excludes>
-								<exclude>**/README</exclude>
-								<exclude>src/**/.directory</exclude>
-								<exclude>src/**/*.sh</exclude>
-								<exclude>src/**/*.properties</exclude>
-							</excludes>
-							<properties>
-								<year>2019</year>
-								<owner>Structr GmbH</owner>
-							</properties>
-						</configuration>
-						<executions>
-							<execution>
-								<goals>
-									<goal>check</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>release-sign-artifacts</id>
-			<activation>
-				<property>
-					<name>performRelease</name>
-					<value>true</value>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.4</version>
-						<executions>
-							<execution>
-								<id>sign-artifacts</id>
-								<phase>verify</phase>
-								<goals>
-									<goal>sign</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
 
 	<licenses>
 		<license>

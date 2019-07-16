@@ -24,24 +24,32 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.RequestLoggingFilter;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.testng.annotations.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.script.Scripting;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.User;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
 /**
  */
@@ -422,7 +430,6 @@ public class CsvImportTest extends StructrUiTest {
 
 	}
 
-
 	@Test
 	public void testCsvFileImportSingleQuotesLineBreakInCell() {
 
@@ -545,6 +552,123 @@ public class CsvImportTest extends StructrUiTest {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
+	}
 
+	@Test
+	public void testProperSecurityContextUsageWhenCallingExportMethods() {
+
+		final String storeKey1 = "importFileName";
+		String csvFileId = null;
+		final String csvFileName = "dummyData.csv";
+		final String storeKey2 = "dummyKey";
+		final String valueForStoreKey2 = "dummyValue";
+
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode customType = createTestNode(SchemaNode.class, new NodeAttribute(SchemaMethod.name, "DummyType"));
+
+			final List<SchemaProperty> properties = new LinkedList<>();
+			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "testDataString"),     new NodeAttribute(SchemaProperty.propertyType, "String")));
+			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "retrievedImportSourceFileName"), new NodeAttribute(SchemaProperty.propertyType, "String")));
+			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "retrievedCustomString"), new NodeAttribute(SchemaProperty.propertyType, "String")));
+			customType.setProperty(SchemaNode.schemaProperties, properties);
+
+			final List<SchemaMethod> methods = new LinkedList<>();
+			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "onCreate"),    new NodeAttribute(SchemaMethod.source, "{ var self = Structr.get('this'); self.retrievedImportSourceFileName = Structr.retrieve('" + storeKey1 + "') }")));
+			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "afterCreate"), new NodeAttribute(SchemaMethod.source, "{ var self = Structr.get('this'); self.retrievedCustomString = Structr.retrieve('" + storeKey2 + "') }")));
+			customType.setProperty(SchemaNode.schemaMethods, methods);
+
+			final String csvData =
+				"col1,col2,col3\n" +
+				"row1val1,row1val2,row1val3\n" +
+				"row2val1,row2val2,row2val3\n";
+
+			final byte[] fileData = csvData.getBytes("utf-8");
+			final File file = FileHelper.createFile(securityContext, fileData, "text/csv", File.class, csvFileName, true);
+
+			// extract UUID for later use
+			csvFileId = file.getUuid();
+
+			tx.success();
+
+		} catch(Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final String callCSVImportScript =  "${{\n" +
+			"\n" +
+			"	var csvFile = $.find('File', '" + csvFileId +"');\n" +
+			"\n" +
+			"	Structr.store('" + storeKey1 + "', csvFile.name);\n" +
+			"	Structr.store('" + storeKey2 + "', '" + valueForStoreKey2 + "');\n" +
+			"\n" +
+			"	csvFile.doCSVImport({\n" +
+			"		\"targetType\":\"DummyType\",\n" +
+			"		 \"delimiter\":\",\",\n" +
+			"		 \"quoteChar\":\"\",\n" +
+			"		 \"recordSeparator\":\"LF\",\n" +
+			"		 \"commitInterval\":\"1000\",\n" +
+			"		 \"rfc4180Mode\":false,\n" +
+			"		 \"strictQuotes\":false,\n" +
+			"		 \"ignoreInvalid\":false,\n" +
+			"		 \"distinct\":false,\n" +
+			"		 \"range\":\"\",\n" +
+			"		 \"importType\":\"node\",\n" +
+			"		 \"mixedMappingConfig\":{},\n" +
+			"		 \"mappings\":{\"testDataString\":\"col2\"},\n" +
+			"		 \"transforms\":{},\n" +
+			"		 \"version\":2\n" +
+			"	}); \n" +
+			"\n" +
+			"}}";
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext, null);
+			Scripting.evaluate(ctx, null, callCSVImportScript, "test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// wait for async import..
+		try { Thread.sleep(4000); } catch (Throwable t) {}
+
+		// check imported data for correct import
+		try (final Tx tx = app.tx()) {
+
+			final ConfigurationProvider conf = StructrApp.getConfiguration();
+			final Class type                 = conf.getNodeEntityClass("DummyType");
+			final PropertyKey dataKey        = conf.getPropertyKeyForJSONName(type, "testDataString");
+			final PropertyKey fileNameKey    = conf.getPropertyKeyForJSONName(type, "retrievedImportSourceFileName");
+			final PropertyKey customStrKey   = conf.getPropertyKeyForJSONName(type, "retrievedCustomString");
+			final List<NodeInterface> items  = app.nodeQuery(type).sort(dataKey).getAsList();
+
+			assertEquals("Wrong number of imported nodes", 2, items.size());
+
+			final NodeInterface node1 = items.get(0);
+			final NodeInterface node2 = items.get(1);
+
+			assertEquals("wrong imported value form CSV", "row1val2", node1.getProperty(dataKey));
+			assertEquals("wrong retrieved filename", csvFileName, node1.getProperty(fileNameKey));
+			assertEquals("wrong retrieved key", valueForStoreKey2, node1.getProperty(customStrKey));
+
+			assertEquals("imported value form CSV faulty", "row2val2", node2.getProperty(dataKey));
+			assertEquals("wrong retrieved filename", csvFileName, node2.getProperty(fileNameKey));
+			assertEquals("wrong retrieved key", valueForStoreKey2, node2.getProperty(customStrKey));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
 	}
 }

@@ -31,10 +31,7 @@ import org.structr.core.Value;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.schema.action.ActionContext;
 
-/**
- *
- */
-public class ToJsonFunction extends UiFunction {
+public class ToJsonFunction extends UiCommunityFunction {
 
 	public static final String ERROR_MESSAGE_TO_JSON    = "Usage: ${to_json(obj [, view[, depth = 3]])}. Example: ${to_json(this, 'public', 4)}";
 	public static final String ERROR_MESSAGE_TO_JSON_JS = "Usage: ${{Structr.to_json(obj [, view[, depth = 3]])}}. Example: ${{Structr.to_json(Structr.get('this'), 'public', 4)}}";

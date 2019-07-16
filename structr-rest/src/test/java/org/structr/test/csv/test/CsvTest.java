@@ -281,7 +281,7 @@ public class CsvTest extends StructrCsvTest {
 		try (final Tx tx = app.tx()) {
 
 
-			final List<TestOne> result = app.nodeQuery(TestOne.class).getAsList();
+			final List<TestOne> result = app.nodeQuery(TestOne.class).sort(AbstractNode.name).getAsList();
 
 			assertEquals(2, result.size());
 			assertEquals("a3e07672b1064c28a1093b7024c7087d", result.get(0).getUuid());

@@ -26,14 +26,18 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 
-public class CopyFileContentsFunction extends Function<Object, Object> {
+public class CopyFileContentsFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_COPY_FILE_CONTENTS = "Usage: ${ copy_file_contents(sourceFile, targetFile) }";
 	public static final String ERROR_MESSAGE_COPY_FILE_CONTENTS_JS = "Usage: ${{ Structr.copy_file_contents(sourceFile, targetFile); }}";
+
+	@Override
+	public String getName() {
+		return "copy_file_contents";
+	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, Object[] sources) throws FrameworkException {
@@ -116,10 +120,5 @@ public class CopyFileContentsFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Creates a copy of the file content linked to the given File entity and links it to the other File entity.";
-	}
-
-	@Override
-	public String getName() {
-		return "copy_file_contents";
 	}
 }

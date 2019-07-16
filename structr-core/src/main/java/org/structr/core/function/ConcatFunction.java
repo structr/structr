@@ -25,12 +25,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 /**
  *
  */
-public class ConcatFunction extends Function<Object, Object> {
+public class ConcatFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_CONCAT = "Usage: ${concat(values...)}. Example: ${concat(this.firstName, this.lastName)}";
 

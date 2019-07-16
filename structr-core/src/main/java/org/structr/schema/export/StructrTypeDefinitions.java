@@ -25,20 +25,25 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 
 /**
  *
  *
  */
 public class StructrTypeDefinitions implements StructrDefinition {
+
+	private static final Logger logger = LoggerFactory.getLogger(StructrTypeDefinitions.class);
 
 	private final Set<StructrRelationshipTypeDefinition> relationships = new TreeSet<>();
 	private final Set<StructrTypeDefinition> typeDefinitions           = new TreeSet<>();
@@ -223,4 +228,68 @@ public class StructrTypeDefinitions implements StructrDefinition {
 	Set<StructrRelationshipTypeDefinition> getRelationships() {
 		return relationships;
 	}
+
+	void diff(final StructrTypeDefinitions other) throws FrameworkException {
+
+		final Map<String, StructrTypeDefinition> databaseTypes = getMappedTypes();
+		final Map<String, StructrTypeDefinition> structrTypes  = other.getMappedTypes();
+		final Set<String> typesOnlyInDatabase                  = new TreeSet<>(databaseTypes.keySet());
+		final Set<String> typesOnlyInStructrSchema             = new TreeSet<>(structrTypes.keySet());
+		final Set<String> bothTypes                            = new TreeSet<>(databaseTypes.keySet());
+
+		typesOnlyInDatabase.removeAll(structrTypes.keySet());
+		typesOnlyInStructrSchema.removeAll(databaseTypes.keySet());
+		bothTypes.retainAll(structrTypes.keySet());
+
+		// types that exist in the only database
+		for (final String key : typesOnlyInDatabase) {
+
+			final StructrTypeDefinition type = databaseTypes.get(key);
+			if (type.isBuiltinType()) {
+
+				handleRemovedBuiltInType(type);
+
+			} else {
+
+				// type should be ok, probably created by user
+			}
+		}
+
+		// nothing to do for this set, these types can simply be created without problems
+		//System.out.println(typesOnlyInStructrSchema);
+
+
+		// find detailed differences in the intersection of both schemas
+		for (final String name : bothTypes) {
+
+			final StructrTypeDefinition localType = databaseTypes.get(name);
+			final StructrTypeDefinition otherType = structrTypes.get(name);
+
+			// compare types
+			localType.diff(otherType);
+		}
+
+		// the same must be done for global methods and relationships!
+	}
+
+	private Map<String, StructrTypeDefinition> getMappedTypes() {
+
+		final LinkedHashMap<String, StructrTypeDefinition> mapped = new LinkedHashMap<>();
+
+		for (final StructrTypeDefinition def : getTypes()) {
+
+			mapped.put(def.getName(), def);
+		}
+
+		return mapped;
+	}
+
+	private void handleRemovedBuiltInType(final StructrTypeDefinition type) throws FrameworkException {
+
+		logger.warn("Built-in type {} was removed or renamed in the current version of the Structr schema, deleting.", type.getName());
+
+		// We can not determine yet if the type was deleted or renamed, so we need to delete it..
+		StructrApp.getInstance().delete(type.getSchemaNode());
+	}
+
 }

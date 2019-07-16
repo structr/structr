@@ -34,6 +34,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.auth.exception.PasswordChangeRequiredException;
+import org.structr.core.auth.exception.SessionLimitExceededException;
 import org.structr.core.auth.exception.TooManyFailedLoginAttemptsException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationFailedException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationRequiredException;
@@ -204,9 +205,17 @@ public class AuthHelper {
 			final String sessionId = request.getSession(false).getId();
 
 			SessionHelper.clearSession(sessionId);
-			user.addSessionId(sessionId);
-
-			AuthHelper.sendLoginNotification(user);
+			
+			if (user.addSessionId(sessionId)) {
+				
+				AuthHelper.sendLoginNotification(user);
+				
+			} else {
+				
+				SessionHelper.clearSession(sessionId);
+				SessionHelper.invalidateSession(sessionId);
+				throw new SessionLimitExceededException();
+			}
 		}
 	}
 
@@ -439,7 +448,7 @@ public class AuthHelper {
 
 					try {
 
-						final String currentKey = TimeBasedOneTimePasswordHelper.generateCurrentNumberString(Principal.getTwoFactorSecret(principal), Settings.TwoFactorDigits.getValue());
+						final String currentKey = TimeBasedOneTimePasswordHelper.generateCurrentNumberString(Principal.getTwoFactorSecret(principal), AuthHelper.getCryptoAlgorithm(), Settings.TwoFactorPeriod.getValue(), Settings.TwoFactorDigits.getValue());
 
 						// check two factor authentication
 						if (currentKey.equals(twoFactorCode)) {
@@ -475,5 +484,11 @@ public class AuthHelper {
 
 	public static String getIdentificationTokenForPrincipal () {
 		return UUID.randomUUID().toString() + "!" + new Date().getTime();
+	}
+
+	// The StandardName for the given SHA algorithm.
+	// see https://docs.oracle.com/javase/7/docs/technotes/guides/security/StandardNames.html#Mac
+	private static String getCryptoAlgorithm() {
+		return "Hmac" + Settings.TwoFactorAlgorithm.getValue();
 	}
 }

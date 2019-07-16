@@ -152,10 +152,13 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public <T extends NodeInterface> void delete(final Class<T> type) {
-		getDatabaseService().clearCaches();
-		getDatabaseService().deleteNodesByLabel(type.getSimpleName());
+	public <T extends NodeInterface> void delete(final Class<T> type) throws FrameworkException {
+
+		for (final T node : nodeQuery(type).getResultStream()) {
+			delete(node);
+		}
 	}
+
 	@Override
 	public void delete(final NodeInterface node) {
 		removeNodeFromCache(node);
@@ -378,8 +381,8 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public <T extends Service> T getService(Class<T> serviceClass) {
-		return Services.getInstance().getService(serviceClass);
+	public <T extends Service> T getService(final Class<T> serviceClass) {
+		return Services.getInstance().getService(serviceClass, "default");
 	}
 
 	@Override
@@ -533,6 +536,12 @@ public class StructrApp implements App {
 
 					key = config.getPropertyKeyForJSONName(iface, name, false);
 				}
+			}
+
+			// store key in cache
+			if (key != null) {
+
+				config.setPropertyKeyForJSONName(type, name, key);
 			}
 		}
 

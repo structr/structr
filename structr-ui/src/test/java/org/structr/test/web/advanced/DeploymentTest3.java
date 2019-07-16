@@ -19,7 +19,6 @@
 package org.structr.test.web.advanced;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -38,8 +37,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -386,7 +385,7 @@ public class DeploymentTest3 extends DeploymentTestBase {
 
 			tx.success();
 
-		} catch (FrameworkException | URISyntaxException fex) {
+		} catch (FrameworkException fex) {
 			fail("Unexpected exception.");
 		}
 

@@ -46,21 +46,14 @@ import org.structr.api.RetryException;
 import org.structr.api.UnknownClientException;
 import org.structr.api.UnknownDatabaseException;
 import org.structr.api.util.Iterables;
-import org.structr.bolt.mapper.RecordNodeMapper;
-import org.structr.bolt.mapper.RecordNodeIdMapper;
-import org.structr.bolt.mapper.RecordRelationshipMapper;
-import org.structr.bolt.mapper.NodeId;
-import org.structr.bolt.mapper.RecordMapMapper;
-import org.structr.bolt.wrapper.EntityWrapper;
-import org.structr.bolt.wrapper.NodeWrapper;
-import org.structr.bolt.wrapper.RelationshipWrapper;
 
 /**
  *
  */
-public class SessionTransaction implements org.structr.api.Transaction {
+class SessionTransaction implements org.structr.api.Transaction {
 
 	private static final AtomicLong idSource          = new AtomicLong();
+	private final Set<EntityWrapper> accessedEntities = new HashSet<>();
 	private final Set<EntityWrapper> modifiedEntities = new HashSet<>();
 	private final Set<Long> deletedNodes              = new HashSet<>();
 	private final Set<Long> deletedRels               = new HashSet<>();
@@ -99,25 +92,25 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		if (!success) {
 
-			// We need to invalidate all existing references because we cannot
-			// be sure that they contain the correct values after a rollback.
+			for (final EntityWrapper entity : accessedEntities) {
+
+				entity.rollback(transactionId);
+				entity.removeFromCache();
+			}
+
 			for (final EntityWrapper entity : modifiedEntities) {
 				entity.stale();
 			}
 
 		} else {
 
-			// Notify all nodes that are modified in this transaction
-			// so that the relationship caches are rebuilt.
-			for (final EntityWrapper entity : modifiedEntities) {
-				entity.clearCaches();
+			RelationshipWrapper.expunge(deletedRels);
+			NodeWrapper.expunge(deletedNodes);
+
+			for (final EntityWrapper entity : accessedEntities) {
+				entity.commit(transactionId);
 			}
 
-			NodeWrapper.expunge(deletedNodes);
-			RelationshipWrapper.expunge(deletedRels);
-
-			// Notify all nodes that are modified in this transaction
-			// so that the relationship caches are rebuilt.
 			for (final EntityWrapper entity : modifiedEntities) {
 				entity.clearCaches();
 			}
@@ -503,14 +496,14 @@ public class SessionTransaction implements org.structr.api.Transaction {
 				if (map != null && map.size() > 0) {
 
 					if (statement.contains("extractedContent")) {
-						System.out.println(statement + "\t\t SET on extractedContent - value suppressed");
+						System.out.println(Thread.currentThread().getId() + ": " + statement + "\t\t SET on extractedContent - value suppressed");
 					} else {
-						System.out.println(statement + "\t\t Parameters: " + map.toString());
+						System.out.println(Thread.currentThread().getId() + ": " + statement + "\t\t Parameters: " + map.toString());
 					}
 
 				} else {
 
-					System.out.println(statement);
+					System.out.println(Thread.currentThread().getId() + ": " + statement);
 				}
 			}
 		}
@@ -524,8 +517,25 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		deletedRels.add(wrapper.getDatabaseId());
 	}
 
+	public boolean isDeleted(final EntityWrapper wrapper) {
+
+		if (wrapper instanceof NodeWrapper) {
+			return deletedNodes.contains(wrapper.getDatabaseId());
+		}
+
+		if (wrapper instanceof RelationshipWrapper) {
+			return deletedRels.contains(wrapper.getDatabaseId());
+		}
+
+		return false;
+	}
+
 	public void modified(final EntityWrapper wrapper) {
 		modifiedEntities.add(wrapper);
+	}
+
+	public void accessed(final EntityWrapper wrapper) {
+		accessedEntities.add(wrapper);
 	}
 
 	public void setIsPing(final boolean isPing) {

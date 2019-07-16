@@ -21,13 +21,13 @@ package org.structr.web.function;
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class HttpPostFunction extends Function<Object, Object> {
+public class HttpPostFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_POST    = "Usage: ${POST(URL, body [, contentType, charset])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'utf-8')}";
 	public static final String ERROR_MESSAGE_POST_JS = "Usage: ${{Structr.POST(URL, body [, contentType, charset])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'utf-8')}}";
@@ -72,7 +72,7 @@ public class HttpPostFunction extends Function<Object, Object> {
 			if ("application/json".equals(contentType)) {
 
 				final FromJsonFunction fromJsonFunction = new FromJsonFunction();
-				response.setProperty(new StringProperty("body"), fromJsonFunction.apply(ctx, caller, new Object[]{responseBody}));
+				response.setProperty(new GenericProperty<>("body"), fromJsonFunction.apply(ctx, caller, new Object[]{responseBody}));
 
 			} else {
 

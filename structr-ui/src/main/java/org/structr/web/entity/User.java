@@ -20,22 +20,25 @@ package org.structr.web.entity;
 
 import java.net.URI;
 import org.structr.api.config.Settings;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.service.LicenseManager;
+import org.structr.api.util.Iterables;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.auth.TimeBasedOneTimePasswordHelper;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 
 public interface User extends Principal {
 
@@ -128,6 +131,20 @@ public interface User extends Principal {
 		final SecurityContext previousSecurityContext = user.getSecurityContext();
 
 		try {
+
+			// check per-user licensing count
+			final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
+			if (licenseManager != null) {
+
+				final int userCount         = Iterables.count(StructrApp.getInstance().nodeQuery(User.class).getResultStream());
+				final int licensedUserCount = licenseManager.getNumberOfUsers();
+
+				// -1 means no limit
+				if (licensedUserCount >= 0 && userCount > licensedUserCount) {
+
+					throw new FrameworkException(422, "The number of users on this instance may not exceed " + licensedUserCount);
+				}
+			}
 
 			user.setSecurityContext(SecurityContext.getSuperUserInstance());
 

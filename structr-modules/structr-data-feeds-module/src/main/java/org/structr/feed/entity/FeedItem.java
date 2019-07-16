@@ -21,18 +21,18 @@ package org.structr.feed.entity;
 import java.io.InputStream;
 import java.net.URI;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonSchema.Cascade;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.Indexable;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonSchema.Cascade;
 
 /**
  * Represents a single item of a data feed.
@@ -50,7 +50,7 @@ public interface FeedItem extends NodeInterface, Indexable {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/FeedItem"));
 		type.setImplements(URI.create("#/definitions/Indexable"));
 
-		type.addStringProperty("url",              PropertyView.Public, PropertyView.Ui).setRequired(true).setUnique(true).setIndexed(true);
+		type.addStringProperty("url",              PropertyView.Public, PropertyView.Ui).setRequired(true).setIndexed(true);
 		type.addStringProperty("author",           PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("comments",         PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("description",      PropertyView.Public, PropertyView.Ui);
@@ -68,7 +68,7 @@ public interface FeedItem extends NodeInterface, Indexable {
 		// methods shared with FeedItemContent
 		type.overrideMethod("onCreation",       true,              FeedItemContent.class.getName() + ".updateIndex(this, arg0);");
 		type.overrideMethod("afterCreation",    false,             FeedItemContent.class.getName() + ".updateIndex(this, arg0);");
-		type.overrideMethod("getSearchContext", false, "return " + FeedItemContent.class.getName() + ".getSearchContext(this, arg0, arg1);").setDoExport(true);
+		type.overrideMethod("getSearchContext", false, "return " + FeedItemContent.class.getName() + ".getSearchContext(this, arg0, arg1, arg2);").setDoExport(true);
 
 		type.relate(content,   "FEED_ITEM_CONTENTS",   Cardinality.OneToMany, "item", "contents").setCascadingDelete(Cascade.sourceToTarget);
 		type.relate(enclosure, "FEED_ITEM_ENCLOSURES", Cardinality.OneToMany, "item", "enclosures").setCascadingDelete(Cascade.sourceToTarget);

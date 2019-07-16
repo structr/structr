@@ -42,13 +42,14 @@ import org.structr.core.property.PropertyKey;
  */
 public class NodeService implements SingletonService {
 
-	private static final Logger logger   = LoggerFactory.getLogger(NodeService.class.getName());
-	private DatabaseService databaseService      = null;
-	private Index<Node> nodeIndex        = null;
-	private Index<Relationship> relIndex = null;
-	private String filesPath             = null;
-	private boolean isInitialized        = false;
-	private CountResult initialCount     = null;
+	private static final Logger logger      = LoggerFactory.getLogger(NodeService.class.getName());
+	private DatabaseService databaseService = null;
+	private Index<Node> nodeIndex           = null;
+	private Index<Relationship> relIndex    = null;
+	private String filesPath                = null;
+	private boolean isInitialized           = false;
+	private CountResult initialCount        = null;
+	private String serviceName              = null;
 
 	@Override
 	public void injectArguments(Command command) {
@@ -63,13 +64,17 @@ public class NodeService implements SingletonService {
 	}
 
 	@Override
-	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		final String databaseDriver = Settings.DatabaseDriver.getValue();
+		// initialize service name from the outside
+		this.serviceName = serviceName;
+
+		final String databaseDriver = Settings.DatabaseDriver.getPrefixedValue(serviceName);
+
 		databaseService = (DatabaseService)Class.forName(databaseDriver).newInstance();
 		if (databaseService != null) {
 
-			if (databaseService.initialize()) {
+			if (databaseService.initialize(serviceName)) {
 
 				filesPath = Settings.FilesPath.getValue();
 
@@ -119,6 +124,8 @@ public class NodeService implements SingletonService {
 		if (!Services.isTesting()) {
 			checkCacheSizes();
 		}
+
+		createAdminUser();
 	}
 
 	@Override
@@ -230,7 +237,7 @@ public class NodeService implements SingletonService {
 						tx.success();
 
 					} catch (Throwable t) {
-						logger.warn("Unable to count number of nodes and relationships: {}", t.getMessage());
+						logger.warn("Unable to create initial user: {}", t.getMessage());
 					}
 				}
 			}
@@ -240,20 +247,20 @@ public class NodeService implements SingletonService {
 	// ----- private methods -----
 	private void checkCacheSizes() {
 
-		final CountResult counts = getInitialCounts();
-		final long nodeCacheSize = Settings.NodeCacheSize.getValue();
-		final long relCacheSize  = Settings.RelationshipCacheSize.getValue();
-		final long nodeCount     = counts.getNodeCount();
-		final long relCount      = counts.getRelationshipCount();
+		final CountResult counts      = getInitialCounts();
+		final long nodeCacheSize      = Settings.NodeCacheSize.getPrefixedValue(serviceName);
+		final long relCacheSize       = Settings.RelationshipCacheSize.getPrefixedValue(serviceName);
+		final long nodeCount          = counts.getNodeCount();
+		final long relCount           = counts.getRelationshipCount();
 
 		logger.info("Database contains {} nodes, {} relationships.", nodeCount, relCount);
 
 		if (nodeCacheSize < nodeCount) {
-			logger.warn("Insufficient node cache size detected, please set application.cache.node.size to at least {} for best performance.", nodeCount);
+			logger.warn("Insufficient node cache size detected, please set database.cache.node.size to at least {} for best performance.", nodeCount);
 		}
 
 		if (relCacheSize < relCount) {
-			logger.warn("Insufficient relationship cache size detected, please set application.cache.relationship.size to at least {} for best performance.", relCount);
+			logger.warn("Insufficient relationship cache size detected, please set database.cache.relationship.size to at least {} for best performance.", relCount);
 		}
 
 	}

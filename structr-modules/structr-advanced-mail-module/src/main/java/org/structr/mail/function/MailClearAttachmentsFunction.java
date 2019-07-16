@@ -19,13 +19,17 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class MailClearAttachmentsFunction extends Function<Object, Object> {
+public class MailClearAttachmentsFunction extends AdvancedMailModuleFunction {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_clear_attachments()}";
 	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_clear_attachments() }}";
+
+	public MailClearAttachmentsFunction(final AdvancedMailModule parent) {
+		super(parent);
+	}
 
 	@Override
 	public String getName() {

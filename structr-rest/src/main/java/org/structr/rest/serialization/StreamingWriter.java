@@ -319,7 +319,7 @@ public abstract class StreamingWriter {
 				final PropertyConverter converter = key.inputConverter(securityContext);
 				if (converter != null) {
 
-					Object convertedValue = null;
+					Object convertedValue = value;
 
 					// ignore conversion errors
 					try { convertedValue = converter.revert(value); } catch (Throwable t) {}
@@ -580,7 +580,7 @@ public abstract class StreamingWriter {
 	}
 
 	private String getString(final Object value) {
-		
+
 		if (value != null) {
 			return value.toString();
 		}

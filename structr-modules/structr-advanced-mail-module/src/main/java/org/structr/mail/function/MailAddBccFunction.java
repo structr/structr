@@ -19,13 +19,17 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class MailAddBccFunction extends Function<Object, Object> {
+public class MailAddBccFunction extends AdvancedMailModuleFunction {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_add_bcc(bccAddress[, bccName])}";
 	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_add_bcc(bccAddress[, bccName]) }}";
+
+	public MailAddBccFunction(final AdvancedMailModule parent) {
+		super(parent);
+	}
 
 	@Override
 	public String getName() {

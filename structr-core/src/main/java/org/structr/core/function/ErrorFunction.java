@@ -24,12 +24,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-/**
- *
- */
-public class ErrorFunction extends Function<Object, Object> {
+public class ErrorFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_ERROR = "Usage: ${error(property, token[, detail])}. Example: ${error(\"name\", \"already_taken\"[, \"Another node with that name already exists\"])}";
 

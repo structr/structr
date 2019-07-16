@@ -27,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.ResourceAccess;
+import org.structr.core.function.LocalizeFunction;
 import org.structr.schema.action.Actions;
 
 public class FlushCachesCommand extends NodeServiceCommand implements MaintenanceCommand {
@@ -45,16 +46,20 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 
 	public static void flushAll() {
 
-		final NodeService nodeService = Services.getInstance().getService(NodeService.class);
-		if (nodeService != null) {
+		final Map<String, NodeService> services = Services.getInstance().getServices(NodeService.class);
+		if (services != null) {
 
-			final DatabaseService db = nodeService.getDatabaseService();
-			db.clearCaches();
+			for (final NodeService service : services.values()) {
+
+				final DatabaseService db = service.getDatabaseService();
+				db.clearCaches();
+			}
 		}
 
 		ResourceAccess.clearCache();
 		Actions.clearCache();
 		AccessPathCache.invalidate();
+		LocalizeFunction.invalidateCache();
 
 		StructrApp.getInstance().invalidateCache();
 	}

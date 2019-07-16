@@ -20,10 +20,9 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 
-public class CoalesceFunction extends Function<Object, Object> {
+public class CoalesceFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_COALESCE = "Usage: ${coalesce(string1, string2...)}. Example: ${coalesce(node.name, node.title, node.id)}";
 	public static final String ERROR_MESSAGE_COALESCE_JS = "Usage: ${{Structr.coalesce(string1, string2...)}}. Example: ${{Structr.coalesce(node.name, node.title, node.id)}}";
@@ -45,7 +44,6 @@ public class CoalesceFunction extends Function<Object, Object> {
 				if (sources[i] != null) {
 					return sources[i].toString();
 				}
-
 			}
 
 			// no non-null value was supplied
@@ -55,7 +53,6 @@ public class CoalesceFunction extends Function<Object, Object> {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 	}
 

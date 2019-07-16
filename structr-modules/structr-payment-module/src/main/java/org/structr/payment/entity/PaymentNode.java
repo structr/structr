@@ -24,14 +24,17 @@
 package org.structr.payment.entity;
 
 import java.net.URI;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeInterface;
 import org.structr.payment.api.APIError;
 import org.structr.payment.api.APIResponse;
@@ -47,8 +50,6 @@ import org.structr.payment.impl.paypal.PayPalPaymentProvider;
 import org.structr.payment.impl.stripe.StripePaymentProvider;
 import org.structr.payment.impl.test.TestPaymentProvider;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 
 /**
  *
@@ -130,6 +131,7 @@ public interface PaymentNode extends NodeInterface, Payment {
 
 		type.addMethod("beginCheckout")
 			.setReturnType(GraphObject.class.getName())
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("arg0", String.class.getName())
 			.addParameter("arg1", String.class.getName())
 			.addParameter("arg2", String.class.getName())
@@ -138,6 +140,7 @@ public interface PaymentNode extends NodeInterface, Payment {
 			.setDoExport(true);
 
 		type.addMethod("cancelCheckout")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("arg0", String.class.getName())
 			.addParameter("arg1", String.class.getName())
 			.setSource(PaymentNode.class.getName() + ".cancelCheckout(this, arg0, arg1);")
@@ -146,6 +149,7 @@ public interface PaymentNode extends NodeInterface, Payment {
 
 		type.addMethod("confirmCheckout")
 			.setReturnType(GraphObject.class.getName())
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("arg0", String.class.getName())
 			.addParameter("arg1", String.class.getName())
 			.addParameter("arg2", String.class.getName())

@@ -41,6 +41,11 @@ public class TranslateFunction extends UiFunction {
 	}
 
 	@Override
+	public String getRequiredModule() {
+		return "translation";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		try {

@@ -22,9 +22,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class UpperFunction extends Function<Object, Object> {
+public class UpperFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_UPPER = "Usage: ${upper(string)}. Example: ${upper(this.nickName)}";
 

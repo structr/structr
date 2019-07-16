@@ -19,6 +19,7 @@
 package org.structr.common;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import org.structr.api.graph.PropertyContainer;
@@ -78,15 +79,27 @@ public class SecurityDelegate {
 
 	public static void addPermission(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Permission permission) {
 
-		Set<String> permissionSet = getPermissions(graphObject, key);
+		addPermissions(graphObject, key, Collections.singleton(permission));
+	}
 
-		if (permissionSet.contains(permission.name())) {
+	public static void addPermissions(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Set<Permission> permissions) {
 
-			return;
+		final Set<String> permissionSet = getPermissions(graphObject, key);
+
+		boolean change = false;
+
+		for (final Permission p : permissions) {
+
+			if (!permissionSet.contains(p.name())) {
+
+				change = true;
+				permissionSet.add(p.name());
+			}
+		};
+
+		if (change) {
+			setAllowed(graphObject, key, permissionSet);
 		}
-
-		permissionSet.add(permission.name());
-		setAllowed(graphObject, key, permissionSet);
 	}
 
 	public static void removePermission(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Permission permission) {
@@ -100,6 +113,26 @@ public class SecurityDelegate {
 
 		permissionSet.remove(permission.name());
 		setAllowed(graphObject, key, permissionSet);
+	}
+
+	public static void removePermissions(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Set<Permission> permissions) {
+
+		final Set<String> permissionSet = getPermissions(graphObject, key);
+
+		boolean change = false;
+
+		for (final Permission p : permissions) {
+
+			if (permissionSet.contains(p.name())) {
+
+				change = true;
+				permissionSet.remove(p.name());
+			}
+		};
+
+		if (change) {
+			setAllowed(graphObject, key, permissionSet);
+		}
 	}
 
 	public static Set<String> getPermissionSet(final PropertyContainer propertyContainer, final PropertyKey<String[]> key) {
@@ -117,4 +150,8 @@ public class SecurityDelegate {
 
 		return permissionSet;
 	}
+
+//	public static Set<String> permissionSetToStringSet() {}
+//	public static Set<Permission> stringSetToPermissionSet() {}
+
 }

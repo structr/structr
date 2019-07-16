@@ -44,7 +44,6 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -63,10 +62,10 @@ public class StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrTest.class.getName());
 
-	protected static SecurityContext securityContext = null;
-	protected static String basePath                 = null;
-	protected static App app                         = null;
-	protected static String randomTenantId           = RandomStringUtils.randomAlphabetic(10).toUpperCase();
+	protected static SecurityContext securityContext   = null;
+	protected static String basePath                   = null;
+	protected static App app                           = null;
+	protected static String randomTenantId             = RandomStringUtils.randomAlphabetic(10).toUpperCase();
 
 	@BeforeMethod
 	protected void starting(Method method) {
@@ -90,7 +89,7 @@ public class StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// delete everything
-			Services.getInstance().getService(NodeService.class).getDatabaseService().cleanDatabase();
+			Services.getInstance().getDatabaseService().cleanDatabase();
 
 			FlushCachesCommand.flushAll();
 
@@ -123,11 +122,8 @@ public class StructrTest {
 		basePath = "/tmp/structr-test-" + timestamp;
 
 		Settings.Services.setValue("NodeService SchemaService");
-		Settings.DatabaseDriverMode.setValue("remote");
-		Settings.ConnectionUser.setValue("neo4j");
-		Settings.ConnectionPassword.setValue("admin");
-		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
-		Settings.TenantIdentifier.setValue(randomTenantId);
+
+		setupDatabaseConnection();
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
@@ -361,5 +357,15 @@ public class StructrTest {
 		}
 
 		return null;
+	}
+
+	protected void setupDatabaseConnection() {
+
+		// use database driver from system property, default to MemoryDatabaseService
+		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
+		Settings.ConnectionUser.setValue("neo4j");
+		Settings.ConnectionPassword.setValue("admin");
+		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+		Settings.TenantIdentifier.setValue(randomTenantId);
 	}
 }

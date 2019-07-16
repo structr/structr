@@ -62,7 +62,7 @@ import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
 /**
  * Implements the structr REST API.
  */
-public class JsonRestServlet extends AbstractServletBase {
+public class JsonRestServlet extends AbstractDataServlet {
 
 	public static final int DEFAULT_VALUE_PAGE_SIZE                     = 20;
 	public static final String DEFAULT_VALUE_SORT_ORDER                 = "asc";
@@ -130,6 +130,8 @@ public class JsonRestServlet extends AbstractServletBase {
 		Authenticator authenticator     = null;
 		RestMethodResult result         = null;
 		Resource resource               = null;
+
+		setCustomResponseHeaders(response);
 
 		try {
 
@@ -248,6 +250,8 @@ public class JsonRestServlet extends AbstractServletBase {
 
 		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
 
+		setCustomResponseHeaders(response);
+
 		try {
 
 			assertInitialized();
@@ -349,6 +353,8 @@ public class JsonRestServlet extends AbstractServletBase {
 		final Authenticator authenticator;
 		final Resource resource;
 
+		setCustomResponseHeaders(response);
+
 		try {
 
 			assertInitialized();
@@ -428,7 +434,18 @@ public class JsonRestServlet extends AbstractServletBase {
 						final RestMethodResult result = results.get(0);
 						final int resultCount         = results.size();
 
-						if (result != null) {
+						if (securityContext.returnDetailedCreationResults()) {
+
+							// remove previous results (might be string primitive which shouldn't be mixed with objects)
+							result.getContent().clear();
+
+							// return details for all objects that were created in this transaction
+							for (final Object obj : securityContext.getCreationDetails()) {
+
+								result.addContent(obj);
+							}
+
+						} else {
 
 							if (resultCount > 1) {
 
@@ -446,10 +463,9 @@ public class JsonRestServlet extends AbstractServletBase {
 								// written because it may only contain a single URL
 								result.addHeader("Location", null);
 							}
-
-							commitResponse(securityContext, request, response, result, resource.isCollectionResource());
 						}
 
+						commitResponse(securityContext, request, response, result, resource.isCollectionResource());
 					}
 
 					tx.success();
@@ -531,6 +547,8 @@ public class JsonRestServlet extends AbstractServletBase {
 		final Authenticator authenticator;
 		final Resource resource;
 
+		setCustomResponseHeaders(response);
+
 		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
 
 		try {
@@ -571,6 +589,7 @@ public class JsonRestServlet extends AbstractServletBase {
 				while (retry) {
 
 					try (final Tx tx = app.tx()) {
+
 						result = resource.doPut(convertPropertySetToMap(jsonInput.getJsonInputs().get(0)));
 						tx.success();
 						retry = false;
@@ -649,6 +668,8 @@ public class JsonRestServlet extends AbstractServletBase {
 	@Override
 	protected void doTrace(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+		setCustomResponseHeaders(response);
+
 		response.setContentType("application/json; charset=UTF-8");
 		response.setCharacterEncoding("UTF-8");
 
@@ -664,6 +685,8 @@ public class JsonRestServlet extends AbstractServletBase {
 		final SecurityContext securityContext;
 		final Authenticator authenticator;
 		final Resource resource;
+
+		setCustomResponseHeaders(response);
 
 		try {
 
@@ -838,6 +861,8 @@ public class JsonRestServlet extends AbstractServletBase {
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
 		Resource resource               = null;
+
+		setCustomResponseHeaders(response);
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 

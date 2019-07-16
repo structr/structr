@@ -39,9 +39,9 @@ import static org.structr.schema.SchemaHelper.Type.Count;
 import static org.structr.schema.SchemaHelper.Type.Cypher;
 import static org.structr.schema.SchemaHelper.Type.Double;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonProperty;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
+import org.structr.api.schema.JsonProperty;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 
 /**
  *
@@ -450,6 +450,9 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	void initializeReferences() {
 	}
 
+	void diff(final StructrPropertyDefinition other) {
+	}
+
 	// ----- static methods -----
 	static StructrPropertyDefinition deserialize(final StructrTypeDefinition parent, final String name, final Map<String, Object> source) {
 
@@ -517,6 +520,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 				case "custom":
 					newProperty = new StructrCustomProperty(parent, name);
+					break;
+
+				case "encrypted":
+					newProperty = new StructrEncryptedStringProperty(parent, name);
 					break;
 
 				case "object":
@@ -765,6 +772,11 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 				final StructrCustomProperty custom = new StructrCustomProperty(parent, name);
 				custom.deserialize(schemaNodes, property);
 				return custom;
+
+			case Encrypted:
+				final StructrEncryptedStringProperty encrypted = new StructrEncryptedStringProperty(parent, name);
+				encrypted.deserialize(schemaNodes, property);
+				return encrypted;
 		}
 
 		throw new IllegalStateException("Unknown type " + type);

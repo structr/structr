@@ -20,12 +20,8 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-/**
- *
- */
-public class OrFunction extends Function<Object, Object> {
+public class OrFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_OR = "Usage: ${or(bool1, bool2)}. Example: ${or(\"true\", \"true\")}";
 
@@ -56,7 +52,6 @@ public class OrFunction extends Function<Object, Object> {
 					} catch (Throwable t) {
 
 						return t.getMessage();
-
 					}
 
 				} else {
@@ -65,12 +60,10 @@ public class OrFunction extends Function<Object, Object> {
 					result |= false;
 				}
 			}
-
 		}
 
 		return result;
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -81,5 +74,4 @@ public class OrFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Returns the disjunction of the given arguments";
 	}
-
 }

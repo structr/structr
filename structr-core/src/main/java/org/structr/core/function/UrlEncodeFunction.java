@@ -22,9 +22,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class UrlEncodeFunction extends Function<Object, Object> {
+public class UrlEncodeFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_URLENCODE = "Usage: ${urlencode(string)}. Example: ${urlencode(this.email)}";
 

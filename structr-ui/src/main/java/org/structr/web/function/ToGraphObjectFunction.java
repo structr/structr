@@ -23,7 +23,7 @@ import org.structr.core.StaticValue;
 import org.structr.core.Value;
 import org.structr.schema.action.ActionContext;
 
-public class ToGraphObjectFunction extends UiFunction {
+public class ToGraphObjectFunction extends UiCommunityFunction {
 
 	public static final String ERROR_MESSAGE_TO_GRAPH_OBJECT    = "Usage: ${to_graph_object(obj [, view[, depth = 3]])}. Example: ${to_graph_object(this, 'public', 4)}";
 	public static final String ERROR_MESSAGE_TO_GRAPH_OBJECT_JS = "Usage: ${{Structr.to_graph_object(obj [, view[, depth = 3]])}}. Example: ${{Structr.to_graph_object(Structr.get('this'), 'public', 4)}}";

@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-modules</artifactId>
-		<version>3.2-SNAPSHOT</version>
+		<version>3.4-SNAPSHOT</version>
 	</parent>
 	<artifactId>structr-excel-module</artifactId>
 	<packaging>jar</packaging>
@@ -20,28 +20,16 @@
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
 			<version>3.16</version>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>structr-ui</artifactId>
 			<version>${project.version}</version>
-			<optional>true</optional>
 		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.19.1</version>
-				<configuration>
-					<argLine>-Xmx1g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
-					<reuseForks>false</reuseForks>
-					<forkCount>1</forkCount>
-				</configuration>
-			</plugin>
 			<plugin>
 				<artifactId>maven-jar-plugin</artifactId>
 				<version>3.0.2</version>
@@ -54,7 +42,7 @@
 							</manifestEntries>
 						</manifestSection>
 					</archive>
-					<outputDirectory>${project.parent.parent.basedir}/structr-ui/target/lib</outputDirectory>
+					<outputDirectory>${structr.lib.directory}</outputDirectory>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -81,7 +69,7 @@
 							<goal>copy-dependencies</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${project.parent.parent.basedir}/structr-ui/target/lib</outputDirectory>
+							<outputDirectory>${structr.lib.directory}</outputDirectory>
 						</configuration>
 					</execution>
 				</executions>
@@ -115,61 +103,6 @@
 			</plugin>
 		</plugins>
 	</build>
-
-	<profiles>
-		<profile>
-			<id>sign-structr-artifacts</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-jarsigner-plugin</artifactId>
-						<version>1.2</version>
-						<executions>
-							<execution>
-								<id>sign</id>
-								<goals>
-									<goal>sign</goal>
-								</goals>
-							</execution>
-						</executions>
-						<configuration>
-							<keystore>${user.home}/.structr/structr.keystore</keystore>
-							<alias>structr</alias>
-							<storepass>${structrKeystorePassword}</storepass>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>release-sign-artifacts</id>
-			<activation>
-				<property>
-					<name>performRelease</name>
-					<value>true</value>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.4</version>
-						<executions>
-							<execution>
-								<id>sign-artifacts</id>
-								<phase>verify</phase>
-								<goals>
-									<goal>sign</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
 
 	<licenses>
 		<license>

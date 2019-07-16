@@ -23,12 +23,8 @@ import java.util.LinkedList;
 import java.util.Set;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-/**
- *
- */
-public class MergeUniqueFunction extends Function<Object, Object> {
+public class MergeUniqueFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_MERGE_UNIQUE = "Usage: ${merge_unique(list1, list2, list3, ...)}. Example: ${merge_unique(this.children, this.siblings)}";
 

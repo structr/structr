@@ -373,13 +373,13 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public boolean isPropertyTypeIndexable() {
-		return propertyKey.isPropertyTypeIndexable();
+	public boolean isPropertyTypeIndexable(final SecurityContext securityContext) {
+		return propertyKey.isPropertyTypeIndexable(securityContext);
 	}
 
 	@Override
-	public boolean isPropertyValueIndexable(Object value) {
-		return propertyKey.isPropertyValueIndexable(value);
+	public boolean isPropertyValueIndexable(final SecurityContext securityContext, Object value) {
+		return propertyKey.isPropertyValueIndexable(securityContext, value);
 	}
 
 	@Override

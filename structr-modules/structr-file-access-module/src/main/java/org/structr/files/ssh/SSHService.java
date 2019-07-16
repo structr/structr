@@ -86,7 +86,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	}
 
 	@Override
-	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		logger.info("Setting up SSH server..");
 
@@ -142,6 +142,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 	@Override
 	public void initialized() {
+		// nothing to do
 	}
 
 	@Override
@@ -326,10 +327,12 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	// ----- interface SftpEventListener -----
 	@Override
 	public void initialized(ServerSession session, int version) {
+		// nothing to do
 	}
 
 	@Override
 	public void destroying(ServerSession session) {
+		// nothing to do
 	}
 
 	@Override
@@ -339,30 +342,37 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 	@Override
 	public void read(ServerSession session, String remoteHandle, DirectoryHandle localHandle, Map<String, Path> entries) {
+		// nothing to do
 	}
 
 	@Override
 	public void read(ServerSession session, String remoteHandle, FileHandle localHandle, long offset, byte[] data, int dataOffset, int dataLen, int readLen) {
+		// nothing to do
 	}
 
 	@Override
 	public void write(ServerSession session, String remoteHandle, FileHandle localHandle, long offset, byte[] data, int dataOffset, int dataLen) {
+		// nothing to do
 	}
 
 	@Override
 	public void blocking(ServerSession session, String remoteHandle, FileHandle localHandle, long offset, long length, int mask) {
+		// nothing to do
 	}
 
 	@Override
 	public void blocked(ServerSession session, String remoteHandle, FileHandle localHandle, long offset, long length, int mask, Throwable thrown) {
+		// nothing to do
 	}
 
 	@Override
 	public void unblocking(ServerSession session, String remoteHandle, FileHandle localHandle, long offset, long length) {
+		// nothing to do
 	}
 
 	@Override
 	public void unblocked(ServerSession session, String remoteHandle, FileHandle localHandle, long offset, long length, Boolean result, Throwable thrown) {
+		// nothing to do
 	}
 
 	@Override
@@ -412,10 +422,12 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 	@Override
 	public void modifyingAttributes(ServerSession session, Path path, Map<String, ?> attrs) {
+		// nothing to do
 	}
 
 	@Override
 	public void modifiedAttributes(ServerSession session, Path path, Map<String, ?> attrs, Throwable thrown) {
+		// nothing to do
 	}
 
 	// ----- interface CommandFactory -----

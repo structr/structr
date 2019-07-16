@@ -28,9 +28,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class IsAllowedFunction extends Function<Object, Object> {
+public class IsAllowedFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_IS_ALLOWED    = "Usage: ${is_allowed(principal, node, permissions)}. Example: ${is_allowed(me, this, 'write, delete'))}";
 	public static final String ERROR_MESSAGE_IS_ALLOWED_JS = "Usage: ${{Structr.is_allowed(principal, node, permissions)}}. Example: ${{Structr.is_allowed(Structr.('me'), Structr.this, 'write, delete'))}}";

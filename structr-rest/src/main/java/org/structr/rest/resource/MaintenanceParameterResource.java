@@ -37,6 +37,7 @@ import org.structr.core.graph.BulkSetRelationshipPropertiesCommand;
 import org.structr.core.graph.BulkSetUuidCommand;
 import org.structr.core.graph.ClearDatabase;
 import org.structr.core.graph.FlushCachesCommand;
+import org.structr.core.graph.ManageDatabasesCommand;
 import org.structr.core.graph.SyncCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
@@ -74,6 +75,7 @@ public class MaintenanceParameterResource extends Resource {
 		maintenanceCommandMap.put("flushCaches", FlushCachesCommand.class);
 		maintenanceCommandMap.put("analyzeSchema", SchemaAnalyzer.class);
 		maintenanceCommandMap.put("migrateChangelog", BulkMigrateChangelogCommand.class);
+		maintenanceCommandMap.put("manageDatabases", ManageDatabasesCommand.class);
 
 	}
 

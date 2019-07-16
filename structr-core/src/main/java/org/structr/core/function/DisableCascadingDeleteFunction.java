@@ -20,12 +20,11 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 /**
  *
  */
-public class DisableCascadingDeleteFunction extends Function<Object, Object> {
+public class DisableCascadingDeleteFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_DISABLE_CASCADING_DELETE    = "Usage: ${disable_cascading_delete()}";
 	public static final String ERROR_MESSAGE_DISABLE_CASCADING_DELETE_JS = "Usage: ${Structr.disableCascadingDelete()}";

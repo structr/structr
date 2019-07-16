@@ -200,7 +200,11 @@ public class RenderContext extends ActionContext {
 	 * @return edit mode
 	 */
 	public EditMode getEditMode(final Principal user) {
-		return user == null ? EditMode.NONE : editMode;
+		return (user == null || Boolean.FALSE.equals(user.isAdmin())) ? EditMode.NONE : editMode;
+	}
+
+	public static EditMode getValidatedEditMode(final Principal user, final String editModeString) {
+		return (user == null || Boolean.FALSE.equals(user.isAdmin())) ? EditMode.NONE : editMode(editModeString);
 	}
 
 	public void setEditMode(final EditMode edit) {

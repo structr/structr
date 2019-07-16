@@ -24,9 +24,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class LastFunction extends Function<Object, Object> {
+public class LastFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_LAST = "Usage: ${last(collection)}. Example: ${last(this.children)}";
 

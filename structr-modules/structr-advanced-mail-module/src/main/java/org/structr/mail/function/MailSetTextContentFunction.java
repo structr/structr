@@ -19,13 +19,17 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class MailSetTextContentFunction extends Function<Object, Object> {
+public class MailSetTextContentFunction extends AdvancedMailModuleFunction {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_set_text_content(textContent)}";
 	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_set_text_content(textContent) }}";
+
+	public MailSetTextContentFunction(final AdvancedMailModule parent) {
+		super(parent);
+	}
 
 	@Override
 	public String getName() {

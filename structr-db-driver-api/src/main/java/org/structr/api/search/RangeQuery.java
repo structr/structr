@@ -23,4 +23,7 @@ public interface RangeQuery<T> extends QueryPredicate {
 
 	T getRangeStart();
 	T getRangeEnd();
+	
+	boolean getIncludeStart();
+	boolean getIncludeEnd();
 }

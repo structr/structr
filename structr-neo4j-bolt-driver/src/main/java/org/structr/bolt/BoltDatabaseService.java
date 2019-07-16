@@ -27,6 +27,7 @@ import java.io.Writer;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -42,21 +43,17 @@ import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.exceptions.ClientException;
 import org.neo4j.driver.v1.exceptions.DatabaseException;
 import org.neo4j.driver.v1.exceptions.ServiceUnavailableException;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
-import org.neo4j.graphdb.factory.GraphDatabaseFactory;
-import org.neo4j.graphdb.factory.GraphDatabaseSettings;
-import org.neo4j.kernel.configuration.BoltConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.AbstractDatabaseService;
+import org.structr.api.DatabaseFeature;
+import org.structr.api.NativeQuery;
 import org.structr.api.NetworkException;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.Transaction;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.GraphProperties;
 import org.structr.api.graph.Identity;
-import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
@@ -64,16 +61,6 @@ import org.structr.api.index.Index;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
-import org.structr.bolt.index.CypherNodeIndex;
-import org.structr.bolt.index.CypherRelationshipIndex;
-import org.structr.bolt.index.NodeResultStream;
-import org.structr.bolt.index.RelationshipResultStream;
-import org.structr.bolt.index.SimpleCypherQuery;
-import org.structr.bolt.mapper.NodeNodeMapper;
-import org.structr.bolt.mapper.RelationshipRelationshipMapper;
-import org.structr.bolt.wrapper.BoltIdentity;
-import org.structr.bolt.wrapper.NodeWrapper;
-import org.structr.bolt.wrapper.RelationshipWrapper;
 
 /**
  *
@@ -82,68 +69,49 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 	private static final Logger logger                                = LoggerFactory.getLogger(BoltDatabaseService.class.getName());
 	private static final Map<String, RelationshipType> relTypeCache   = new ConcurrentHashMap<>();
-	private static final Map<String, Label> labelCache                = new ConcurrentHashMap<>();
 	private static final ThreadLocal<SessionTransaction> sessions     = new ThreadLocal<>();
 	private static final long nanoEpoch                               = System.nanoTime();
+	private final Set<String> supportedQueryLanguages                 = new LinkedHashSet<>();
 	private Properties globalGraphProperties                          = null;
 	private CypherRelationshipIndex relationshipIndex                 = null;
 	private CypherNodeIndex nodeIndex                                 = null;
-	private GraphDatabaseService graphDb                              = null;
+	private String errorMessage                                       = null;
 	private String databaseUrl                                        = null;
 	private String databasePath                                       = null;
 	private Driver driver                                             = null;
 
 	@Override
-	public boolean initialize() {
+	public boolean initialize(final String name) {
 
-		this.databasePath = Settings.DatabasePath.getValue();
-		this.tenantId     = Settings.TenantIdentifier.getValue();
+		String serviceName = null;
 
-		if (StringUtils.isBlank(this.tenantId)) {
-			this.tenantId = null;
+		if (!"default".equals(name)) {
+
+			serviceName = name;
 		}
 
-		final BoltConnector bolt = new BoltConnector("0");
-		databaseUrl              = Settings.ConnectionUrl.getValue();
-		final String username    = Settings.ConnectionUser.getValue();
-		final String password    = Settings.ConnectionPassword.getValue();
-		final String driverMode  = Settings.DatabaseDriverMode.getValue();
-		final String confPath    = databasePath + "/neo4j.conf";
-		final File confFile      = new File(confPath);
+		this.databasePath        = Settings.DatabasePath.getPrefixedValue(serviceName);
+		databaseUrl              = Settings.ConnectionUrl.getPrefixedValue(serviceName);
+		final String username    = Settings.ConnectionUser.getPrefixedValue(serviceName);
+		final String password    = Settings.ConnectionPassword.getPrefixedValue(serviceName);
+		String databaseDriverUrl = "bolt://" + databaseUrl;
 
-		// see https://github.com/neo4j/neo4j-java-driver/issues/364 for an explanation
-		final String databaseServerUrl;
-		final String databaseDriverUrl;
+		// build list of supported query languages
+		supportedQueryLanguages.add("application/x-cypher-query");
+		supportedQueryLanguages.add("application/cypher");
+		supportedQueryLanguages.add("text/cypher");
 
 		if (databaseUrl.length() >= 7 && databaseUrl.substring(0, 7).equalsIgnoreCase("bolt://")) {
-			databaseServerUrl = databaseUrl.substring(7);
+
 			databaseDriverUrl = databaseUrl;
+
 		} else if (databaseUrl.length() >= 15 && databaseUrl.substring(0, 15).equalsIgnoreCase("bolt+routing://")) {
-			databaseServerUrl = databaseUrl.substring(15);
+
 			databaseDriverUrl = databaseUrl;
-		} else {
-			databaseServerUrl = databaseUrl;
-			databaseDriverUrl = "bolt://" + databaseUrl;
 		}
 
 		// create db directory if it does not exist
 		new File(databasePath).mkdirs();
-
-		if (!"remote".equals(driverMode)) {
-
-			final GraphDatabaseBuilder builder = new GraphDatabaseFactory()
-				.newEmbeddedDatabaseBuilder(new File(databasePath))
-				.setConfig( GraphDatabaseSettings.allow_upgrade, "true")
-				.setConfig( bolt.type, "BOLT" )
-				.setConfig( bolt.enabled, "true" )
-				.setConfig( bolt.listen_address, databaseServerUrl);
-
-			if (confFile.exists()) {
-				builder.loadPropertiesFromFile(confPath);
-			}
-
-			graphDb  = builder.newGraphDatabase();
-		}
 
 		try {
 
@@ -152,8 +120,8 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 				Config.build().withEncryption().toConfig()
 			);
 
-			final int relCacheSize  = Settings.RelationshipCacheSize.getValue();
-			final int nodeCacheSize = Settings.NodeCacheSize.getValue();
+			final int relCacheSize  = Settings.RelationshipCacheSize.getPrefixedValue(serviceName);
+			final int nodeCacheSize = Settings.NodeCacheSize.getPrefixedValue(serviceName);
 
 			NodeWrapper.initialize(nodeCacheSize);
 			logger.info("Node cache size set to {}", nodeCacheSize);
@@ -169,7 +137,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			return true;
 
 		} catch (ServiceUnavailableException ex) {
-			logger.error("Neo4j service is not available.");
+			errorMessage = ex.getMessage();
 		}
 
 		// service failed to initialize
@@ -181,10 +149,6 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 		clearCaches();
 		driver.close();
-
-		if (graphDb != null) {
-			graphDb.shutdown();
-		}
 	}
 
 	@Override
@@ -212,6 +176,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 		final StringBuilder buf       = new StringBuilder("CREATE (n");
 		final Map<String, Object> map = new HashMap<>();
+		final String tenantId         = getTenantIdentifier();
 
 		if (tenantId != null) {
 
@@ -242,6 +207,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 		final Map<String, Object> parameters = new HashMap<>();
 		final StringBuilder buf              = new StringBuilder();
+		final String tenantId         = getTenantIdentifier();
 
 		buf.append("MATCH (u:NodeInterface:Principal");
 
@@ -319,6 +285,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	public Iterable<Node> getAllNodes() {
 
 		final StringBuilder buf = new StringBuilder();
+		final String tenantId   = getTenantIdentifier();
 
 		buf.append("MATCH (n");
 
@@ -340,6 +307,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		final StringBuilder buf = new StringBuilder();
+		final String tenantId   = getTenantIdentifier();
 
 		buf.append("MATCH (n");
 
@@ -363,6 +331,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		final StringBuilder buf = new StringBuilder();
+		final String tenantId   = getTenantIdentifier();
 
 		buf.append("MATCH (n");
 
@@ -384,6 +353,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	public void deleteNodesByLabel(final String label) {
 
 		final StringBuilder buf = new StringBuilder();
+		final String tenantId   = getTenantIdentifier();
 
 		buf.append("MATCH (n");
 
@@ -403,6 +373,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	public Iterable<Relationship> getAllRelationships() {
 
 		final StringBuilder buf = new StringBuilder();
+		final String tenantId   = getTenantIdentifier();
 
 		buf.append("MATCH (");
 
@@ -431,6 +402,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		final StringBuilder buf = new StringBuilder();
+		final String tenantId   = getTenantIdentifier();
 
 		buf.append("MATCH (");
 
@@ -462,7 +434,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	public Index<Node> nodeIndex() {
 
 		if (nodeIndex == null) {
-			nodeIndex = new CypherNodeIndex(this, tenantId);
+			nodeIndex = new CypherNodeIndex(this);
 		}
 
 		return nodeIndex;
@@ -635,31 +607,55 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	}
 
 	@Override
-	public Iterable<Map<String, Object>> execute(final String nativeQuery) {
-		return execute(nativeQuery, Collections.EMPTY_MAP);
+	public <T> T execute(final NativeQuery<T> nativeQuery) {
+
+		if (nativeQuery instanceof AbstractNativeQuery) {
+
+			return (T)((AbstractNativeQuery)nativeQuery).execute(getCurrentTransaction());
+		}
+
+		throw new IllegalArgumentException("Unsupported query type " + nativeQuery.getClass().getName() + ".");
 	}
 
 	@Override
-	public Iterable<Map<String, Object>> execute(final String nativeQuery, final Map<String, Object> parameters) {
-		return getCurrentTransaction().run(nativeQuery, parameters);
+	public <T> NativeQuery<T> query(final Object query, final Class<T> resultType) {
+
+		if (!(query instanceof String)) {
+			throw new IllegalArgumentException("Unsupported query type " + query.getClass().getName() + ", expected String.");
+		}
+
+		return createQuery((String)query, resultType);
 	}
 
 	@Override
 	public void clearCaches() {
 
-		NodeCacheAccess.clearAllCaches();
-		RelationshipCacheAccess.clearAllCaches();
+		NodeWrapper.clearCache();
+		RelationshipWrapper.clearCache();
 	}
 
 	@Override
 	public void cleanDatabase() {
-		execute("MATCH (n:" + tenantId + ") DETACH DELETE n", Collections.emptyMap());
+
+		final String tenantId = getTenantIdentifier();
+		if (tenantId != null) {
+
+			execute("MATCH (n:" + tenantId + ") DETACH DELETE n", Collections.emptyMap());
+
+		} else {
+
+			execute("MATCH (n) DETACH DELETE n", Collections.emptyMap());
+		}
 	}
 
 	public SessionTransaction getCurrentTransaction() {
+		return getCurrentTransaction(true);
+	}
+
+	public SessionTransaction getCurrentTransaction(final boolean throwNotInTransactionException) {
 
 		final SessionTransaction tx = sessions.get();
-		if (tx == null || tx.isClosed()) {
+		if (throwNotInTransactionException && (tx == null || tx.isClosed())) {
 
 			throw new NotInTransactionException("Not in transaction");
 		}
@@ -667,15 +663,15 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		return tx;
 	}
 
-	public boolean logQueries() {
+	boolean logQueries() {
 		return Settings.CypherDebugLogging.getValue();
 	}
 
-	public boolean logPingQueries() {
+	boolean logPingQueries() {
 		return Settings.CypherDebugLoggingPing.getValue();
 	}
 
-	public long unwrap(final Identity identity) {
+	long unwrap(final Identity identity) {
 
 		if (identity instanceof BoltIdentity) {
 
@@ -685,12 +681,20 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		throw new IllegalArgumentException("This implementation cannot handle Identity objects of type " + identity.getClass().getName() + ".");
 	}
 
-	public Node getNodeById(final long id) {
+	Node getNodeById(final long id) {
 		return NodeWrapper.newInstance(this, id);
 	}
 
-	public Relationship getRelationshipById(final long id) {
+	Relationship getRelationshipById(final long id) {
 		return RelationshipWrapper.newInstance(this, id);
+	}
+
+	Iterable<Map<String, Object>> execute(final String nativeQuery) {
+		return execute(nativeQuery, Collections.EMPTY_MAP);
+	}
+
+	Iterable<Map<String, Object>> execute(final String nativeQuery, final Map<String, Object> parameters) {
+		return getCurrentTransaction().run(nativeQuery, parameters);
 	}
 
 	// ----- interface GraphProperties -----
@@ -737,11 +741,40 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	@Override
 	public CountResult getNodeAndRelationshipCount() {
 
-		final String part    = tenantId != null ? ":" + tenantId : "";
-		final long nodeCount = getCount("MATCH (n" + part + ":NodeInterface) RETURN COUNT(n) AS count", "count");
-		final long relCount  = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN count(r) AS count", "count");
+		final String tenantId = getTenantIdentifier();
+		final String part     = tenantId != null ? ":" + tenantId : "";
+		final long nodeCount  = getCount("MATCH (n" + part + ":NodeInterface) RETURN COUNT(n) AS count", "count");
+		final long relCount   = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN count(r) AS count", "count");
 
 		return new CountResult(nodeCount, relCount);
+	}
+
+	@Override
+	public boolean supportsFeature(final DatabaseFeature feature, final Object... parameters) {
+
+		switch (feature) {
+
+			case LargeStringIndexing:
+				return false;
+
+			case QueryLanguage:
+
+				final String param = getStringParameter(parameters);
+				if (param != null) {
+
+					return supportedQueryLanguages.contains(param.toLowerCase());
+				}
+
+			case SpatialQueries:
+				return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public String getErrorMessage() {
+		return errorMessage;
 	}
 
 	// ----- private methods -----
@@ -800,5 +833,36 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		return 0;
+	}
+
+	private <T> NativeQuery<T> createQuery(final String query, final Class<T> type) {
+
+		if (Iterable.class.equals(type)) {
+			return (NativeQuery<T>)new IterableQuery(query);
+		}
+
+		if (Boolean.class.equals(type)) {
+			return (NativeQuery<T>)new BooleanQuery(query);
+		}
+
+		if (Long.class.equals(type)) {
+			return (NativeQuery<T>)new LongQuery(query);
+		}
+
+		return null;
+	}
+
+	private String getStringParameter(final Object[] parameters) {
+
+		if (parameters != null && parameters.length > 0) {
+
+			final Object param = parameters[0];
+			if (param instanceof String) {
+
+				return (String)param;
+			}
+		}
+
+		return null;
 	}
 }

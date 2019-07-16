@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import org.apache.commons.io.input.ReversedLinesFileReader;
@@ -25,15 +26,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class ServerLogFunction extends Function<Object, Object> {
+public class ServerLogFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_SERVERLOG = "Usage: ${serverlog([lines=50])}. Example: ${serverlog(200)}";
 	public static final String ERROR_MESSAGE_SERVERLOG_JS = "Usage: ${{Structr.serverlog([n=50])}}. Example: ${{Structr.serverlog(200)}}";
 
 	private static final Logger logger = LoggerFactory.getLogger(ServerLogFunction.class.getName());
-
 
 	@Override
 	public String getName() {
@@ -51,30 +50,7 @@ public class ServerLogFunction extends Function<Object, Object> {
 
 		}
 
-		try (final ReversedLinesFileReader reader = new ReversedLinesFileReader(getServerlogFile(), Charset.forName("utf-8"))) {
-
-			final StringBuilder sb = new StringBuilder();
-
-			while (lines > 0) {
-				final String line = reader.readLine();
-
-				if (line == null) {
-					lines = 0;
-				} else {
-					sb.insert(0, line.concat("\n"));
-					lines--;
-				}
-
-			}
-
-			return sb.toString();
-
-		} catch (IOException ex) {
-			logger.warn("", ex);
-		}
-
-		return "";
-
+		return getServerLog(lines);
 	}
 
 	@Override
@@ -85,5 +61,39 @@ public class ServerLogFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Returns the last n lines from the server log file";
+	}
+
+	public static String getServerLog(final int numberOfLines) {
+
+		int lines = numberOfLines;
+
+		final File logFile = getServerlogFile();
+
+		if (logFile != null) {
+
+			try (final ReversedLinesFileReader reader = new ReversedLinesFileReader(logFile, Charset.forName("utf-8"))) {
+
+				final StringBuilder sb = new StringBuilder();
+
+				while (lines > 0) {
+					final String line = reader.readLine();
+
+					if (line == null) {
+						lines = 0;
+					} else {
+						sb.insert(0, line.concat("\n"));
+						lines--;
+					}
+
+				}
+
+				return sb.toString();
+
+			} catch (IOException ex) {
+				logger.warn("", ex);
+			}
+		}
+
+		return "";
 	}
 }

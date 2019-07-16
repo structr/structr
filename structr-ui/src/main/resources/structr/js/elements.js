@@ -111,13 +111,17 @@ var _Elements = {
 	],
 	mostUsedAttrs: [
 		{
+			elements: ['div'],
+			attrs: ['style']
+		},
+		{
 			elements: ['input', 'textarea'],
 			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'style'],
 			focus: 'type'
 		},
 		{
 			elements: ['button'],
-			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'onclick', 'style']
+			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'onclick', 'style', 'title']
 		},
 		{
 			elements: ['select', 'option'],
@@ -310,10 +314,13 @@ var _Elements = {
 		if (!componentsSlideout) return;
 		componentsSlideout.find(':not(.compTab)').remove();
 
+		componentsSlideout.append('<div class="" id="newComponentDropzone"><div class="new-component-info"><i class="active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /><i class="inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> Drop element here to create new shared component</div></div>');
+		let newComponentDropzone = $('#newComponentDropzone', componentsSlideout);
+
 		componentsSlideout.append('<div class="ver-scrollable" id="componentsArea"></div>');
 		components = $('#componentsArea', componentsSlideout);
 
-		components.droppable({
+		newComponentDropzone.droppable({
 			drop: function(e, ui) {
 				e.preventDefault();
 				e.stopPropagation();
@@ -363,45 +370,48 @@ var _Elements = {
 	},
 	reloadUnattachedNodes: function() {
 
-		_Elements.clearUnattachedNodes();
+		if (elementsSlideout.hasClass('open')) {
 
-		elementsSlideout.append('<div class="ver-scrollable" id="elementsArea"></div>');
-		elements = $('#elementsArea', elementsSlideout);
+			_Elements.clearUnattachedNodes();
 
-		elements.append('<button class="btn action disabled" id="delete-all-unattached-nodes" disabled>Loading </button>');
+			elementsSlideout.append('<div class="ver-scrollable" id="elementsArea"></div>');
+			elements = $('#elementsArea', elementsSlideout);
 
-		var btn = $('#delete-all-unattached-nodes');
-		Structr.loaderIcon(btn, {
-			"max-height": "100%",
-			"height": "initial",
-			"width": "initial"
-		});
-		btn.on('click', function() {
-			Structr.confirmation('<p>Delete all DOM elements without parent?</p>',
-					function() {
-						Command.deleteUnattachedNodes();
-						$.unblockUI({
-							fadeOut: 25
+			elements.append('<button class="btn action disabled" id="delete-all-unattached-nodes" disabled>Loading </button>');
+
+			var btn = $('#delete-all-unattached-nodes');
+			Structr.loaderIcon(btn, {
+				"max-height": "100%",
+				"height": "initial",
+				"width": "initial"
+			});
+			btn.on('click', function() {
+				Structr.confirmation('<p>Delete all DOM elements without parent?</p>',
+						function() {
+							Command.deleteUnattachedNodes();
+							$.unblockUI({
+								fadeOut: 25
+							});
+							Structr.closeSlideOuts([elementsSlideout]);
 						});
-						Structr.closeSlideOuts([elementsSlideout]);
-					});
-		});
+			});
 
-		_Dragndrop.makeSortable(elements);
+			_Dragndrop.makeSortable(elements);
 
-		Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(result) {
+			Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(result) {
 
-			var count = result.length;
-			if (count > 0) {
-				btn.text('Delete all (' + count + ')');
-				btn.removeClass('disabled');
-				btn.prop('disabled', false);
-			} else {
-				btn.text('No unused elements');
-			}
+				var count = result.length;
+				if (count > 0) {
+					btn.text('Delete all (' + count + ')');
+					btn.removeClass('disabled');
+					btn.prop('disabled', false);
+				} else {
+					btn.text('No unused elements');
+				}
 
-			_Elements.appendEntitiesToDOMElement(result, elements);
-		});
+				_Elements.appendEntitiesToDOMElement(result, elements);
+			});
+		}
 
 	},
 	appendEntitiesToDOMElement: function (entities, domElement) {
@@ -809,7 +819,7 @@ var _Elements = {
 		var leftOrRight = 'left';
 		var topOrBottom = 'top';
 		var x = (e.clientX - 8);
-		var y = (div.offset().top - 58);
+		var y = div.offset().top;
 
 		if (e.pageX > ($(window).width() / 2)) {
 			leftOrRight = 'right';
@@ -1423,9 +1433,10 @@ var _Elements = {
 		}, function() {
 			_Logger.log(_LogType.CONTENTS, 'cancelled');
 		});
-		Command.getProperty(entity.id, 'content', function(text) {
+		Command.get(entity.id, 'content,contentType', function(data) {
             currentEntity = entity;
-			_Elements.editContent(this, entity, text, dialogText);
+			entity.contentType = data.contentType;
+			_Elements.editContent(this, entity, data.content, dialogText);
 		});
 	},
     autoComplete: function(cm, pred) {
@@ -1463,6 +1474,20 @@ var _Elements = {
         });
 
     },
+	activateEditorMode: function(contentType) {
+		let modeObj = CodeMirror.findModeByMIME(contentType);
+		let mode = contentType; // default
+		
+		if (modeObj) {
+			mode = modeObj.mode;
+			if (mode && mode !== "null") { // findModeMIME function above returns "null" string :(
+				let existingScript = $('head script[data-codemirror-mode="' + mode + '"]');
+				if (!existingScript.length) {
+					$('head').append('<script data-codemirror-mode="' + mode + '" src="codemirror/mode/' + mode + '/' + mode + '.js"></script>');
+				}
+			}
+		}
+	},
 	editContent: function(button, entity, text, element) {
 
 		if (Structr.isButtonDisabled(button)) {
@@ -1473,6 +1498,9 @@ var _Elements = {
 		_Logger.log(_LogType.CONTENTS, div);
 		var contentBox = $('.editor', element);
 		contentType = entity.contentType || 'text/plain';
+		
+		_Elements.activateEditorMode(contentType);
+		
 		var text1, text2;
 
 		var lineWrapping = LSWrapper.getItem(lineWrappingKey);
@@ -1480,7 +1508,7 @@ var _Elements = {
 		// Intitialize editor
 		editor = CodeMirror(contentBox.get(0), {
 			value: text,
-			mode: contentType,
+			mode: mode || contentType,
 			lineNumbers: true,
 			lineWrapping: lineWrapping,
 			extraKeys: {
@@ -1648,6 +1676,9 @@ var _Elements = {
 		});
 		select.on('change', function() {
 			contentType = select.val();
+			_Elements.activateEditorMode(contentType);
+			editor.setOption('mode', contentType);
+			
 			entity.setProperty('contentType', contentType, false, function() {
 				blinkGreen(select);
 				_Pages.reloadPreviews();

@@ -28,9 +28,11 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
@@ -65,19 +67,21 @@ public class Functions {
 	protected static final Logger logger = LoggerFactory.getLogger(Functions.class.getName());
 	private static final Map<String, Function<Object, Object>> functions = new LinkedHashMap<>();
 
-	public static void put(final boolean licensed, final int edition, final Function<Object, Object> function) {
+	public static void put(final LicenseManager licenseManager, final Function<Object, Object> function) {
 
-		registerFunction(licensed, edition, function.getName(), function);
+		final boolean licensed = (licenseManager == null || licenseManager.isModuleLicensed(function.getRequiredModule()));
+
+		registerFunction(licensed, function.getName(), function);
 
 		function.aliases().forEach(alias -> {
-			registerFunction(licensed, edition, alias, function);
+			registerFunction(licensed, alias, function);
 		});
 	}
 
-	private static void registerFunction(final boolean licensed, final int edition, final String name, final Function<Object, Object> function) {
+	private static void registerFunction(final boolean licensed, final String name, final Function<Object, Object> function) {
 
 		if (functions.containsKey(name)) {
-			logger.warn("A Function named '{}' is already registered, previous function will be overwritten with this one.", name);
+			logger.warn("A function named '{}' is already registered! The previous function will be overwritten with this one.", name);
 		}
 
 		if (licensed) {
@@ -86,7 +90,7 @@ public class Functions {
 
 		} else {
 
-			functions.put(name, new UnlicensedFunction(name, edition));
+			functions.put(name, new UnlicensedFunction(name, function.getRequiredModule()));
 		}
 	}
 
@@ -104,8 +108,10 @@ public class Functions {
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String expression) throws FrameworkException, UnlicensedScriptException {
 
-		final String expressionWithoutNewlines = expression.replace('\n', ' ').replace('\r', ' ');
-		final StreamTokenizer tokenizer = new StreamTokenizer(new StringReader(expressionWithoutNewlines));
+		final Map<Integer, String> namespaceMap = new TreeMap<>();
+		final String expressionWithoutNewlines  = expression.replace('\n', ' ').replace('\r', ' ');
+		final StreamTokenizer tokenizer         = new StreamTokenizer(new StringReader(expressionWithoutNewlines));
+
 		tokenizer.eolIsSignificant(true);
 		tokenizer.ordinaryChar('.');
 		tokenizer.wordChars('_', '_');
@@ -144,7 +150,7 @@ public class Functions {
 					if (current == null) {
 						throw new FrameworkException(422, "Invalid expression: mismatched opening bracket before " + tokenizer.sval);
 					}
-					next = checkReservedWords(tokenizer.sval);
+					next = checkReservedWords(tokenizer.sval, level, namespaceMap);
 					Expression previousExpression = current.getPrevious();
 					if (tokenizer.sval.startsWith(".") && previousExpression != null && previousExpression instanceof FunctionExpression && next instanceof ValueExpression) {
 
@@ -182,6 +188,7 @@ public class Functions {
 					}
 					lastToken += ")";
 					level--;
+					namespaceMap.remove(level);
 					break;
 
 				case '[':
@@ -272,7 +279,7 @@ public class Functions {
 	}
 
 	// ----- private methods -----
-	private static Expression checkReservedWords(final String word) throws FrameworkException {
+	private static Expression checkReservedWords(final String word, final int level, final Map<Integer, String> namespace) throws FrameworkException {
 
 		if (word == null) {
 			return new NullExpression();
@@ -325,8 +332,14 @@ public class Functions {
 		}
 
 		// no match, try functions
-		final Function<Object, Object> function = Functions.get(word);
+		final Function<Object, Object> function = getNamespacedFunction(word, namespace.values());
 		if (function != null) {
+
+			final String namespaceIdentifier = function.getNamespaceIdentifier();
+			if (namespaceIdentifier != null) {
+
+				namespace.put(level, word);
+			}
 
 			return new FunctionExpression(word, function);
 
@@ -346,5 +359,29 @@ public class Functions {
 		}
 
 		return StreamTokenizer.TT_EOF;
+	}
+
+	private static String getNamespacedKeyword(final String keyword, final Collection<String> namespace) {
+
+		final StringBuilder buf = new StringBuilder(StringUtils.join(namespace, "."));
+
+		if (buf.length() > 0) {
+			buf.append(".");
+		}
+
+		buf.append(keyword);
+
+		return buf.toString();
+	}
+
+	private static Function<Object, Object> getNamespacedFunction(final String word, final Collection<String> namespace) {
+
+		final Function<Object, Object> function = Functions.get(getNamespacedKeyword(word, namespace));
+		if (function != null) {
+
+			return function;
+		}
+
+		return Functions.get(word);
 	}
 }

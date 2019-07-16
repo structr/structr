@@ -19,13 +19,17 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class MailSetSubjectFunction extends Function<Object, Object> {
+public class MailSetSubjectFunction extends AdvancedMailModuleFunction {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_set_subject(subject)}";
 	public final String ERROR_MESSAGE_JS = "Usage: ${Structr.mail_set_subject(subject)}";
+
+	public MailSetSubjectFunction(final AdvancedMailModule parent) {
+		super(parent);
+	}
 
 	@Override
 	public String getName() {

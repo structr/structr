@@ -31,13 +31,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.ldap.codec.osgi.DefaultLdapCodecService;
 import org.apache.directory.api.ldap.codec.standalone.CodecFactoryUtil;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
+import org.apache.directory.api.ldap.model.cursor.CursorLdapReferralException;
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.entry.Value;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.message.SearchScope;
-import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.slf4j.Logger;
@@ -99,9 +99,9 @@ public class LDAPService extends Thread implements SingletonService {
 			return;
 		}
 
-		if (connection != null) {
+		connection.setTimeOut(connectionTimeout);
 
-			connection.setTimeOut(connectionTimeout);
+		try {
 
 			if (connection.connect()) {
 
@@ -119,17 +119,27 @@ public class LDAPService extends Thread implements SingletonService {
 
 					logger.info("Updating LDAPGroup {} ({}) with DN {} on LDAP server {}:{}..", groupName, group.getUuid(), groupDn, host, port);
 
-					// use filter + scope
+					// use dn
 					updateWithGroupDn(group, connection, groupDn, scope);
 
 				} else if (useFilterAndScope) {
 
-					// use dn
+					// use filter + scope
 					logger.info("Updating LDAPGroup {} ({}) with path {}, filter {} and scope {} on LDAP server {}:{}..", groupName, group.getUuid(), groupPath, groupFilter, groupScope, host, port);
 
 					updateWithFilterAndScope(group, connection, groupPath, groupFilter, groupScope);
 				}
+
+				connection.unBind();
 			}
+
+		} catch (Throwable t) {
+
+			logger.warn("Unable to sync group {}: {}", group.getName(), t.getMessage());
+
+		} finally {
+
+			connection.close();
 		}
 	}
 
@@ -139,24 +149,22 @@ public class LDAPService extends Thread implements SingletonService {
 		final int port                  = getPort();
 		final boolean useSsl            = getUseSSL();
 		final LdapConnection connection = new LdapNetworkConnection(host, port, useSsl);
-		if (connection != null) {
 
-			connection.setTimeOut(connectionTimeout);
+		connection.setTimeOut(connectionTimeout);
 
-			try {
-				if (connection.connect()) {
+		try {
+			if (connection.connect()) {
 
-					connection.bind(dn, secret);
-					connection.unBind();
-				}
-
-				connection.close();
-
-				return true;
-
-			} catch (LdapException | IOException ex) {
-				logger.warn("Cannot bind {} on LDAP server {}: {}", dn, (host + ":" + port), ex.getMessage());
+				connection.bind(dn, secret);
+				connection.unBind();
 			}
+
+			connection.close();
+
+			return true;
+
+		} catch (LdapException | IOException ex) {
+			logger.warn("Cannot bind {} on LDAP server {}: {}", dn, (host + ":" + port), ex.getMessage());
 		}
 
 		return false;
@@ -199,25 +207,26 @@ public class LDAPService extends Thread implements SingletonService {
 
 		final App app                = StructrApp.getInstance();
 		final PropertyMap attributes = new PropertyMap();
-		final Dn dn                  = userEntry.getDn();
-		Dn parent                    = dn;
+		final String originId        = getOriginId(userEntry);
 
-		// remove all non-structural rdns (cn / sn / uid etc.)
-		while (!structuralTypes.contains(parent.getRdn().getNormType())) {
+		if (originId != null) {
 
-			parent = parent.getParent();
+			attributes.put(StructrApp.key(LDAPUser.class, "originId"), originId);
+
+			LDAPUser user = app.nodeQuery(LDAPUser.class).and(attributes).getFirst();
+			if (user == null) {
+
+				user = app.create(LDAPUser.class, attributes);
+				if (user != null) {
+
+					user.initializeFrom(userEntry);
+				}
+			}
+
+			return user;
 		}
 
-		attributes.put(StructrApp.key(LDAPUser.class, "distinguishedName"), dn.getNormName());
-
-		LDAPUser user = app.nodeQuery(LDAPUser.class).and(attributes).getFirst();
-		if (user == null) {
-
-			user = app.create(LDAPUser.class, attributes);
-			user.initializeFrom(userEntry);
-		}
-
-		return user;
+		return null;
 	}
 
 	// ----- private methods -----
@@ -285,26 +294,32 @@ public class LDAPService extends Thread implements SingletonService {
 
 			while (cursor.next()) {
 
-				final Entry entry           = cursor.get();
-				final Attribute objectClass = entry.get("objectclass");
+				try {
+					final Entry entry           = cursor.get();
+					final Attribute objectClass = entry.get("objectclass");
 
-				for (final java.util.Map.Entry<String, String> groupEntry : possibleGroupNames.entrySet()) {
+					for (final java.util.Map.Entry<String, String> groupEntry : possibleGroupNames.entrySet()) {
 
-					final String possibleGroupName  = groupEntry.getKey();
-					final String possibleMemberName = groupEntry.getValue();
+						final String possibleGroupName  = groupEntry.getKey();
+						final String possibleMemberName = groupEntry.getValue();
 
-					if (objectClass.contains(possibleGroupName)) {
+						if (objectClass.contains(possibleGroupName)) {
 
-						// add group members
-						final Attribute groupMembers = entry.get(possibleMemberName);
-						if (groupMembers != null) {
+							// add group members
+							final Attribute groupMembers = entry.get(possibleMemberName);
+							if (groupMembers != null) {
 
-							for (final Value value : groupMembers) {
+								for (final Value value : groupMembers) {
 
-								memberDNs.add(value.getString());
+									memberDNs.add(value.getString());
+								}
 							}
 						}
 					}
+
+				} catch (CursorLdapReferralException e) {
+
+					logger.info("CursorLdapReferralException caught, info: {}, remaining DN: {}, resolved object: {}, result code: {}", e.getReferralInfo(), e.getRemainingDn(), e.getResolvedObject(), e.getResultCode());
 				}
 			}
 		}
@@ -338,7 +353,7 @@ public class LDAPService extends Thread implements SingletonService {
 	}
 
 	@Override
-	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		logger.info("host:    {}", Settings.LDAPHost.getValue("localhost"));
 		logger.info("port:    {}", Settings.LDAPPort.getValue(389));
@@ -373,6 +388,37 @@ public class LDAPService extends Thread implements SingletonService {
 	@Override
 	public String getModuleName() {
 		return "ldap-client";
+	}
+
+	// ----- private methods -----
+	private String getOriginId(final Entry userEntry) {
+
+		final String originIdName = Settings.LDAPPrimaryKey.getValue("dn");
+		if (StringUtils.isNotBlank(originIdName)) {
+
+			if ("dn".equalsIgnoreCase(originIdName) || "distinguishedName".equalsIgnoreCase(originIdName)) {
+
+				return userEntry.getDn().getNormName();
+
+			} else {
+
+				final Attribute originAttr = userEntry.get(originIdName);
+				if (originAttr != null) {
+
+					return originAttr.get().getString();
+
+				} else {
+
+					logger.warn("Cannot find attribute {} in user entry {} but configured to be used as origin ID in structr.conf.", originIdName, userEntry.toString());
+				}
+			}
+
+		} else {
+
+			logger.warn("Invalid (empty) origin ID attribute configured in structr.conf.");
+		}
+
+		return null;
 	}
 }
 

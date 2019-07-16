@@ -30,15 +30,14 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class PrivilegedFindFunction extends Function<Object, Object> {
+public class PrivilegedFindFunction extends AdvancedScriptingFunction {
 
     public static final String ERROR_MESSAGE_PRIVILEGEDFIND = "Usage: ${find_privileged(type, key, value)}. Example: ${find_privileged(\"User\", \"email\", \"tester@test.com\"}";
 
     @Override
     public String getName() {
-        return("find_privileged()");
+        return "find_privileged";
     }
 
     @Override

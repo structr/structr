@@ -30,9 +30,8 @@ import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class EnumInfoFunction extends Function<Object, Object> {
+public class EnumInfoFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_ENUM_INFO    = "Usage: ${enum_info(type, enumProperty[, raw])}. Example ${enum_info('Document', 'documentType')}";
 	public static final String ERROR_MESSAGE_ENUM_INFO_JS = "Usage: ${Structr.enum_info(type, enumProperty[, raw])}. Example ${Structr.enum_info('Document', 'documentType')}";

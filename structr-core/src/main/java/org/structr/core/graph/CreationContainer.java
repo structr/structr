@@ -238,7 +238,7 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	}
 
 	@Override
-	public Object invokeMethod(String methodName, Map<String, Object> parameters, boolean throwExceptionForUnknownMethods) throws FrameworkException {
+	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, boolean throwExceptionForUnknownMethods) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -321,7 +321,7 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	}
 
 	@Override
-	public boolean isSpatialEntity() {
+	public boolean isStale() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 

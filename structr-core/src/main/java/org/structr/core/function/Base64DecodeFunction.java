@@ -25,16 +25,15 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class Base64DecodeFunction extends Function<Object, Object> {
+public class Base64DecodeFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_BASE64DECODE = "Usage: ${base64decode(text[, scheme[, charset]])}. Example: ${base64decode(\"Q2hlY2sgb3V0IGh0dHA6Ly9zdHJ1Y3RyLmNvbQ==\")}";
 	public static final String ERROR_MESSAGE_BASE64DECODE_JS = "Usage: ${{Structr.base64decode(text[, scheme[, charset]])}}. Example: ${{Structr.base64decode(\"Q2hlY2sgb3V0IGh0dHA6Ly9zdHJ1Y3RyLmNvbQ==\")}}";
 
 	@Override
 	public String getName() {
-		return "base64decode()";
+		return "base64decode";
 	}
 
 	@Override

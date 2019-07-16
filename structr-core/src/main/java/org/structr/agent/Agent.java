@@ -61,6 +61,14 @@ public abstract class Agent<T> extends Thread implements StatusInfo {
 
 		do {
 
+			if (!Services.getInstance().isInitialized()) {
+
+				try { Thread.sleep(100); } catch (InterruptedException i) {}
+
+				// loop until we are stopped
+				continue;
+			}
+
 			while (suspended.get()) {
 
 				Thread.yield();

@@ -23,9 +23,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class RintFunction extends Function<Object, Object> {
+public class RintFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_RINT = "Usage: ${rint(range)}. Example: ${rint(1000)}";
 

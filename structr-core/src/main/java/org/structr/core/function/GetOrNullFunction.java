@@ -28,9 +28,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class GetOrNullFunction extends Function<Object, Object> {
+public class GetOrNullFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_GET_OR_NULL    = "Usage: ${get_or_null(entity, propertyKey)}. Example: ${get_or_null(this, \"children\")}";
 	public static final String ERROR_MESSAGE_GET_OR_NULL_JS = "Usage: ${{Structr.getOrNull(entity, propertyKey)}}. Example: ${{Structr.getOrNull(this, \"children\")}}";

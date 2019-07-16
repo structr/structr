@@ -145,7 +145,6 @@ function wsConnect() {
 				}
 
 				me = data.data;
-				_Dashboard.checkAdmin();
 				isAdmin = data.data.isAdmin;
 
 				_Logger.log(_LogType.WS[command], code, 'user:', user, 'session valid:', sessionValid, 'isAdmin', isAdmin);
@@ -170,7 +169,7 @@ function wsConnect() {
 					LSWrapper.setAsJSON(data.data.localStorageString);
 				}
 
-				StructrModel.callCallback(data.callback, data.data[data.data['key']]);
+				StructrModel.callCallback(data.callback, data.data);
 
 			} else if (command === 'CONSOLE') {
 
@@ -183,7 +182,11 @@ function wsConnect() {
 				if (code === 403) {
 					user = null;
 					userId = null;
-					Structr.login('Wrong username or password!');
+					if (data.data.reason === 'sessionLimitExceeded') {
+						Structr.login('Max. number of sessions exceeded.');
+					} else {
+						Structr.login('Wrong username or password!');
+					}
 				} else if (code === 401) {
 					user = null;
 					userId = null;
@@ -319,10 +322,6 @@ function wsConnect() {
 
 				StructrModel.update(data);
 
-				if (command === 'SET_PERMISSION') {
-					StructrModel.callCallback(data.callback, obj);
-				}
-
 			} else if (command === 'GET' || command === 'GET_RELATIONSHIP' || command === 'GET_PROPERTIES') {
 
 				_Logger.log(_LogType.WS[command], data);
@@ -429,7 +428,7 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, result, data.rawResultCount);
 
-			} else if (command.startsWith('CLONE') || command === 'REPLACE_TEMPLATE') { console.log(command, data.callback)
+			} else if (command.startsWith('CLONE') || command === 'REPLACE_TEMPLATE') {
 
 				_Logger.log(_LogType.WS[command], result, data);
 
@@ -557,7 +556,15 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, result);
 
-			} else {
+			} else if (command === 'SERVER_LOG') {
+
+                StructrModel.callCallback(data.callback, result);
+
+			} else if (command === 'SAVE_LOCAL_STORAGE') {
+
+                StructrModel.callCallback(data.callback, result);
+
+            } else {
 				console.log('Received unknown command: ' + command);
 
 				if (sessionValid === false) {

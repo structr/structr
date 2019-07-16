@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.agent.Agent;
 import org.structr.agent.ReturnValue;
 import org.structr.agent.Task;
+import org.structr.common.SecurityContext;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -47,7 +48,7 @@ public class UpdateFeedAgent<T extends DataFeed> extends Agent<T> {
 
 				logger.debug("Updating data feed {} if due", feed.getProperty(DataFeed.name));
 
-				feed.updateIfDue();
+				feed.updateIfDue(SecurityContext.getSuperUserInstance());
 			}
 
 			tx.success();

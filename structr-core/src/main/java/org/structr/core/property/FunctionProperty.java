@@ -49,6 +49,10 @@ public class FunctionProperty<T> extends Property<T> {
 		super(name);
 	}
 
+	public FunctionProperty(final String name, final String dbName) {
+		super(name, dbName);
+	}
+
 	@Override
 	public Property<T> indexed() {
 
@@ -75,34 +79,42 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public T getProperty(final SecurityContext securityContext, final GraphObject target, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		try {
 
+			if (!securityContext.doInnerCallbacks()) {
+				return null;
+			}
+
+			final GraphObject obj     = PropertyMap.unwrap(target);
 			final String readFunction = getReadFunction();
-			if (obj != null && readFunction != null) {
 
-				if (cachingEnabled) {
+			if (obj != null) {
 
-					Object cachedValue = securityContext.getContextStore().retrieveFunctionPropertyResult(obj.getUuid(), jsonName);
+				// ignore empty read function, don't log error message (it's not an error)
+				if (readFunction != null) {
 
-					if (cachedValue != null) {
-						return (T) cachedValue;
+					if (cachingEnabled) {
+
+						Object cachedValue = securityContext.getContextStore().retrieveFunctionPropertyResult(obj.getUuid(), jsonName);
+
+						if (cachedValue != null) {
+							return (T) cachedValue;
+						}
 					}
 
+					final ActionContext actionContext = new ActionContext(securityContext);
+
+					// don't ignore predicate
+					actionContext.setPredicate(predicate);
+
+					Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction).concat("}"), "getProperty(" + jsonName + ")");
+
+					securityContext.getContextStore().storeFunctionPropertyResult(obj.getUuid(), jsonName, result);
+
+					return (T)result;
 				}
-
-
-				final ActionContext actionContext = new ActionContext(securityContext);
-
-				// don't ignore predicate
-				actionContext.setPredicate(predicate);
-
-				Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction).concat("}"), "getProperty(" + jsonName + ")");
-
-				securityContext.getContextStore().storeFunctionPropertyResult(obj.getUuid(), jsonName, result);
-
-				return (T)result;
 
 			} else {
 
@@ -113,7 +125,6 @@ public class FunctionProperty<T> extends Property<T> {
 
 			t.printStackTrace();
 			logger.warn("Exception while evaluating read function in Function property \"{}\"", jsonName());
-
 		}
 
 		return null;
@@ -158,19 +169,39 @@ public class FunctionProperty<T> extends Property<T> {
 		return valueType().getSimpleName();
 	}
 
+
+	private PropertyConverter getDatabaseConverter(final SecurityContext securityContext) {
+		if (typeHint != null) {
+
+			PropertyConverter converter = null;
+
+			switch (typeHint.toLowerCase()) {
+
+				case "boolean": converter = pBoolean.databaseConverter(securityContext); break;
+				case "int":     converter = pInt.databaseConverter(securityContext); break;
+				case "long":    converter = pLong.databaseConverter(securityContext); break;
+				case "double":  converter = pDouble.databaseConverter(securityContext); break;
+				case "date":    converter = pDate.databaseConverter(securityContext); break;
+			}
+
+			return converter;
+		}
+		return null;
+	}
+
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
-		return null;
+		return getDatabaseConverter(securityContext);
 	}
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-		return null;
+		return getDatabaseConverter(securityContext);
 	}
 
 	@Override
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
-		return null;
+		return getDatabaseConverter(securityContext);
 	}
 
 	@Override
@@ -184,6 +215,10 @@ public class FunctionProperty<T> extends Property<T> {
 		if (func != null) {
 
 			try {
+
+				if (!securityContext.doInnerCallbacks()) {
+					return null;
+				}
 
 				ctx.setConstant("value", value);
 
@@ -216,7 +251,6 @@ public class FunctionProperty<T> extends Property<T> {
 
 	@Override
 	public T convertSearchValue(final SecurityContext securityContext, final String requestParameter) throws FrameworkException {
-
 		if (typeHint != null) {
 
 			PropertyConverter converter = null;

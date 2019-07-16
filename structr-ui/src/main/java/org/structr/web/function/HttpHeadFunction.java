@@ -23,7 +23,7 @@ import org.structr.schema.action.ActionContext;
 /**
  *
  */
-public class HttpHeadFunction extends UiFunction {
+public class HttpHeadFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_HEAD    = "Usage: ${HEAD(URL[, username, password])}. Example: ${HEAD('http://structr.org', 'foo', 'bar')}";
 	public static final String ERROR_MESSAGE_HEAD_JS = "Usage: ${{Structr.HEAD(URL[, username, password]])}}. Example: ${{Structr.HEAD('http://structr.org', 'foo', 'bar')}}";

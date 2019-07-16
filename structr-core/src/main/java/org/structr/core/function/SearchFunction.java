@@ -18,20 +18,13 @@
  */
 package org.structr.core.function;
 
-import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
-import org.structr.core.converter.PropertyConverter;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
-/**
- *
- */
 public class SearchFunction extends AbstractQueryFunction {
 
 	public static final String ERROR_MESSAGE_SEARCH    = "Usage: ${search(type, key, value)}. Example: ${search(\"User\", \"name\", \"abc\")}";
@@ -43,7 +36,15 @@ public class SearchFunction extends AbstractQueryFunction {
 	}
 
 	@Override
+	public String getNamespaceIdentifier() {
+		return "find";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
+
+		final SecurityContext securityContext = ctx.getSecurityContext();
+		final boolean ignoreResultCount       = securityContext.ignoreResultCount();
 
 		try {
 
@@ -52,11 +53,10 @@ public class SearchFunction extends AbstractQueryFunction {
 				throw new IllegalArgumentException();
 			}
 
-			final SecurityContext securityContext = ctx.getSecurityContext();
 			final ConfigurationProvider config    = StructrApp.getConfiguration();
 			final Query query                     = StructrApp.getInstance(securityContext).nodeQuery();
 
-			applyRange(securityContext, query);
+			applyQueryParameters(securityContext, query);
 
 			Class type = null;
 
@@ -83,57 +83,20 @@ public class SearchFunction extends AbstractQueryFunction {
 				return "Error in search(): no type specified.";
 			}
 
-			// experimental: disable result count, prevents instantiation
-			// of large collections just for counting all the objects..
-			securityContext.ignoreResultCount(true);
+			// apply sorting and pagination by surrounding sort() and slice() expressions
+			applyQueryParameters(securityContext, query);
 
-			// extension for native javascript objects
-			if (sources.length == 2 && sources[1] instanceof Map) {
-
-				final PropertyMap map = PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]);
-				for (final Map.Entry<PropertyKey, Object> entry : map.entrySet()) {
-
-					query.and(entry.getKey(), entry.getValue(), false);
-				}
-
-			} else {
-
-				final int parameter_count = sources.length;
-
-				if (parameter_count % 2 == 0) {
-
-					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_SEARCH);
-				}
-
-				for (int c = 1; c < parameter_count; c += 2) {
-
-					final PropertyKey key = StructrApp.key(type, sources[c].toString());
-
-					if (key != null) {
-
-						final PropertyConverter inputConverter = key.inputConverter(securityContext);
-						Object value = sources[c + 1];
-
-						if (inputConverter != null) {
-
-							value = inputConverter.convert(value);
-						}
-
-						query.and(key, value, false);
-					}
-
-				}
-			}
-
-			// return search results
-			return query.getAsList();
+			return handleQuerySources(securityContext, type, query, sources, false);
 
 		} catch (final IllegalArgumentException e) {
+
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 
 		} finally {
-			resetRange();
+
+			resetQueryParameters(securityContext);
+			securityContext.ignoreResultCount(ignoreResultCount);
 		}
 	}
 
@@ -146,5 +109,4 @@ public class SearchFunction extends AbstractQueryFunction {
 	public String shortDescription() {
 		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs. Searches case-insensitve / inexact.";
 	}
-
 }

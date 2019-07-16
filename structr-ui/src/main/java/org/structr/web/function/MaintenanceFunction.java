@@ -34,7 +34,7 @@ import org.structr.core.graph.Tx;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.action.ActionContext;
 
-public class MaintenanceFunction extends UiFunction {
+public class MaintenanceFunction extends UiAdvancedFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(MaintenanceFunction.class);
 

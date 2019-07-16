@@ -344,7 +344,6 @@ public class StaticRelationshipResource extends WrappingResource {
 			 */
 			this.isCollectionResource = false;
 
-
 			final Class entityType  = typedIdResource.getTypeResource().getEntityClass();
 			final String methodName = typeResource.getRawType();
 
@@ -357,7 +356,7 @@ public class StaticRelationshipResource extends WrappingResource {
 				// try direct invocation of the schema method on the node type
 				try {
 
-					result = SchemaMethodResource.wrapInResult(typedIdResource.getEntity().invokeMethod(methodName, propertySet, true));
+					result = SchemaMethodResource.wrapInResult(typedIdResource.getEntity().invokeMethod(securityContext, methodName, propertySet, true));
 
 				} catch (Throwable t) {
 					logger.warn("Unable to execute {}.{}: {}", entityType.getSimpleName(), methodName, t.getMessage());

@@ -27,12 +27,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-/**
- *
- */
-public class SortFunction extends Function<Object, Object> {
+public class SortFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_SORT = "Usage: ${sort(list1, [key [, descending=false]])}. Example: ${sort(this.children, \"name\")}";
 

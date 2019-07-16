@@ -18,6 +18,8 @@ export class QueryGroup {
             QueryGroup._getProxyHandler(this)
         );
 
+        this.sortOp = undefined;
+
         this.domNodes = this._constructDOMElements();
         this._bindEvents();
     }
@@ -37,6 +39,7 @@ export class QueryGroup {
         for(let op of this.model.operations) {
             op.setQueryType(type);
         }
+        this.sortOp.setQueryType(type);
     }
 
     loadConfiguration(config) {
@@ -184,6 +187,8 @@ export class QueryGroup {
     _addOperation() {
         const operation = new QueryOperation();
 
+        operation.setQueryType(this.model.queryType);
+
         //Add listener for deletion event fired by QueryOperation delete button
         operation.getDOMNodes().addEventListener("query.operation.delete", (event) => {
             const toBeDeleted = event.detail;
@@ -222,6 +227,8 @@ export class QueryGroup {
 
             const operation = new QuerySortOperation();
 
+            this.sortOp = operation;
+
             //Add listener for deletion event fired by QueryOperation delete button
             operation.getDOMNodes().addEventListener("query.operation.delete", (event) => {
                 const toBeDeleted = event.detail;
@@ -234,7 +241,8 @@ export class QueryGroup {
                 this._dispatchChangeEvent();
             });
 
-            operation.getModel().queryType = this.model.queryType;
+            operation.setQueryType(this.model.queryType);
+
             this.model.operations.push(operation);
             this._sortOperations();
 

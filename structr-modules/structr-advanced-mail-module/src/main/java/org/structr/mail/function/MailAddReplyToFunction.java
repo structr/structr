@@ -19,13 +19,17 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class MailAddReplyToFunction extends Function<Object, Object> {
+public class MailAddReplyToFunction extends AdvancedMailModuleFunction {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_add_reply_to(replyToAddress[, replyToName])}";
 	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_add_reply_to(replyToAddress[, replyToName]) }}";
+
+	public MailAddReplyToFunction(final AdvancedMailModule parent) {
+		super(parent);
+	}
 
 	@Override
 	public String getName() {

@@ -32,12 +32,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Script;
-import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Undefined;
 import org.mozilla.javascript.WrappedException;
 import org.renjin.script.RenjinScriptEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -152,7 +153,7 @@ public class Scripting {
 	 */
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName) throws FrameworkException, UnlicensedScriptException {
 
-		final String expression = input.trim();
+		final String expression = StringUtils.strip(input);
 		boolean isJavascript    = expression.startsWith("${{") && expression.endsWith("}}");
 		final int prefixOffset  = isJavascript ? 1 : 0;
 		String source           = expression.substring(2 + prefixOffset, expression.length() - (1 + prefixOffset));
@@ -234,7 +235,7 @@ public class Scripting {
 
 		try {
 
-			final Scriptable scope = scriptingContext.initStandardObjects();
+			final ScriptableObject scope = scriptingContext.initStandardObjects();
 			final StructrScriptable scriptable = new StructrScriptable(actionContext, entity, scriptingContext);
 
 			// don't wrap Java primitives
@@ -244,6 +245,7 @@ public class Scripting {
 
 			// register Structr scriptable
 			scope.put("Structr", scope, scriptable);
+			scope.put("$",       scope, scriptable); // shortcut for "Structr"
 
 			// clear output buffer
 			actionContext.clear();
@@ -283,7 +285,7 @@ public class Scripting {
 		} catch (final FrameworkException fex) {
 
 			if (!actionContext.getDisableVerboseExceptionLogging()) {
-				logger.warn("Exception in Scripting context", fex);
+				logger.warn(getExceptionMessage(actionContext), fex);
 			}
 
 			// just throw the FrameworkException so we dont lose the information contained
@@ -296,7 +298,7 @@ public class Scripting {
 			}
 
 			if (!actionContext.getDisableVerboseExceptionLogging()) {
-				logger.warn("Exception in Scripting context", w);
+				logger.warn(getExceptionMessage(actionContext), w);
 			}
 
 			// if any other kind of Throwable is encountered throw a new FrameworkException and be done with it
@@ -305,7 +307,7 @@ public class Scripting {
 		} catch (final NullPointerException npe) {
 
 			if (!actionContext.getDisableVerboseExceptionLogging()) {
-				logger.warn("Exception in Scripting context", npe);
+				logger.warn(getExceptionMessage(actionContext), npe);
 			}
 
 			final String message = "NullPointerException in " + npe.getStackTrace()[0].toString();
@@ -315,7 +317,7 @@ public class Scripting {
 		} catch (final Throwable t) {
 
 			if (!actionContext.getDisableVerboseExceptionLogging()) {
-				logger.warn("Exception in Scripting context", t);
+				logger.warn(getExceptionMessage(actionContext), t);
 			}
 
 			// if any other kind of Throwable is encountered throw a new FrameworkException and be done with it
@@ -325,6 +327,31 @@ public class Scripting {
 
 			Scripting.destroyJavascriptContext();
 		}
+	}
+
+	private static String getExceptionMessage (final ActionContext actionContext) {
+
+		final StringBuilder sb = new StringBuilder("Exception in Scripting context");
+
+		if (Settings.LogJSExcpetionRequest.getValue()) {
+
+			sb.append(" (");
+
+			final String requestInfo = actionContext.getRequestInfoForVerboseJavaScriptExceptionLog();
+
+			if (requestInfo != null) {
+
+				sb.append(requestInfo);
+
+			} else {
+
+				sb.append("no request information available for this scripting error");
+			}
+
+			sb.append(")");
+		}
+
+		return sb.toString();
 	}
 
 	// ----- private methods -----

@@ -18,13 +18,10 @@
  */
 package org.structr.schema.parser;
 
+import org.structr.schema.CodeSource;
 import org.structr.schema.SchemaHelper.Type;
 
-/**
- *
- *
- */
-public interface PropertyDefinition {
+public interface PropertyDefinition extends CodeSource {
 
 	String getPropertyName();
 	Type getPropertyType();
@@ -49,5 +46,4 @@ public interface PropertyDefinition {
 	String getWriteFunction();
 	String[] getTransformators();
 	String[] getValidators();
-	String getUuid();
 }

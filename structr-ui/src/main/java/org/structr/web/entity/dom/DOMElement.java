@@ -42,8 +42,8 @@ import org.structr.core.script.Scripting;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
@@ -264,7 +264,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addViewProperty(PropertyView.Ui, "restQuery");
 		type.addViewProperty(PropertyView.Ui, "functionQuery");
 
-		if (Services.getInstance().getLicenseManager().isEdition(LicenseManager.Enterprise)) {
+		final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
+		if (licenseManager == null || licenseManager.isModuleLicensed("api-builder")) {
+
 			type.addViewProperty(PropertyView.Public, "flow");
 			type.addViewProperty(PropertyView.Ui, "flow");
 		}
@@ -481,7 +483,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			out
 				.append("<!--")
 				.append(DOMNode.indent(depth, renderContext))
-				.append("--><script>if (!window.jQuery) { document.write('<script src=\"/structr/js/lib/jquery-1.11.1.min.js\"><\\/script>'); }</script><!--")
+				.append("--><script>if (!window.jQuery) { document.write('<script src=\"/structr/js/lib/jquery-3.3.1.min.js\"><\\/script>'); }</script><!--")
 				.append(DOMNode.indent(depth, renderContext))
 				.append("--><script>if (!window.jQuery.ui) { document.write('<script src=\"/structr/js/lib/jquery-ui-1.11.0.custom.min.js\"><\\/script>'); }</script><!--")
 				.append(DOMNode.indent(depth, renderContext))

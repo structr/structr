@@ -207,7 +207,7 @@ public class UiAuthenticator implements Authenticator {
 		// no grants => no access rights
 		if (resourceAccess == null) {
 
-			logger.info("No resource access grant found for signature {}. (URI: {})", new Object[] { rawResourceSignature, securityContext.getCompoundRequestURI() } );
+			logger.info("No resource access grant found for signature {} (URI: {})", new Object[] { rawResourceSignature, securityContext.getCompoundRequestURI() } );
 
 			throw new UnauthorizedException("Forbidden");
 

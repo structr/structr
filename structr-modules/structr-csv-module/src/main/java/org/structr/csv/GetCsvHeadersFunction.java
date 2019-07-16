@@ -23,9 +23,8 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.QuoteMode;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.function.UiFunction;
 
-public class GetCsvHeadersFunction extends UiFunction {
+public class GetCsvHeadersFunction extends CsvFunction {
 
 	public static final String ERROR_MESSAGE_FROM_CSV    = "Usage: ${get_csv_headers(source[, delimiter[, quoteChar[, recordSeparator]]])}. Example: ${get_csv_headers('COL1;COL2;COL3\none;two;three')}";
 	public static final String ERROR_MESSAGE_FROM_CSV_JS = "Usage: ${{Structr.getCsvHeaders(source[, delimiter[, quoteChar[, recordSeparator]]])}}. Example: ${{Structr.getCsvHeaders('COL1;COL2;COL3\none;two;three')}}";

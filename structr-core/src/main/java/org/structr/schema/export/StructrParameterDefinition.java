@@ -30,9 +30,9 @@ import org.structr.core.app.App;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.json.JsonMethod;
-import org.structr.schema.json.JsonParameter;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonMethod;
+import org.structr.api.schema.JsonParameter;
+import org.structr.api.schema.JsonSchema;
 
 /**
  *

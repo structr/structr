@@ -34,7 +34,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.entity.File;
@@ -44,7 +43,7 @@ import org.structr.web.entity.dom.DOMNode;
  * Convenience method to render named nodes. If more than one node is found, an error message is returned that informs the user that this is not allowed and can result in unexpected
  * behavior (instead of including the node).
  */
-public class IncludeFunction extends Function<Object, Object> {
+public class IncludeFunction extends UiCommunityFunction {
 
 	public static final String ERROR_MESSAGE_INCLUDE    = "Usage: ${include(name)}. Example: ${include(\"Main Template\")}";
 	public static final String ERROR_MESSAGE_INCLUDE_JS = "Usage: ${{Structr.include(name)}}. Example: ${{Structr.include(\"Main Template\")}}";
@@ -135,7 +134,7 @@ public class IncludeFunction extends Function<Object, Object> {
 	}
 
 	protected String renderNode(final SecurityContext securityContext, final ActionContext ctx, final RenderContext innerCtx, final Object[] sources, final App app, final DOMNode node) throws FrameworkException {
-		
+
 		if (node != null) {
 
 			if (sources.length == 3 && sources[1] instanceof Iterable && sources[2] instanceof String ) {
@@ -213,7 +212,7 @@ public class IncludeFunction extends Function<Object, Object> {
 
 		}
 
-		return StringUtils.join(innerCtx.getBuffer().getQueue(), "");		
+		return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
 	}
-	
+
 }

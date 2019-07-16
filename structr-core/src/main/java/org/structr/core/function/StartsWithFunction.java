@@ -20,9 +20,8 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class StartsWithFunction extends Function<Object, Object> {
+public class StartsWithFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_STARTS_WITH = "Usage: ${starts_with(string, prefix)}. Example: ${starts_with(locale, \"de\")}";
 

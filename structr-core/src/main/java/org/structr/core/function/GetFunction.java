@@ -33,9 +33,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class GetFunction extends Function<Object, Object> {
+public class GetFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_GET        = "Usage: ${get(entity, propertyKey)}. Example: ${get(this, \"children\")}";
 	public static final String ERROR_MESSAGE_GET_ENTITY = "Cannot evaluate first argument to entity, must be entity or single element list of entities.";

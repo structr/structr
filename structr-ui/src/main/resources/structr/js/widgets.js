@@ -253,6 +253,7 @@ var _Widgets = {
 		if (!url.startsWith(document.location.origin)) {
 
 			_Widgets.remoteWidgetsEl.empty();
+			_Widgets.remoteWidgetData = [];
 
 			fetch(url + '?sort=treePath').then(function(response) {
 
@@ -271,7 +272,7 @@ var _Widgets = {
 				_Widgets.repaintRemoteWidgets(_Widgets.remoteWidgetFilter);
 
 			}).catch(function(e) {
-				new MessageBuilder().error().text('Could not fetch data from server. Make sure that the resource loads correctly and check CORS settings.').requiresConfirmation().show();
+				new MessageBuilder().error().text('Could not fetch data from server. Make sure that the resource loads correctly and check CORS settings.<br>Also check your adblocker settings for possible conflicts.').requiresConfirmation().show();
 			});
 
 		} else {
@@ -281,6 +282,7 @@ var _Widgets = {
 	repaintRemoteWidgets: function (search) {
 
 		_Widgets.remoteWidgetFilter = search;
+		_Widgets.remoteWidgetsEl.empty();
 
 		if (search && search.length > 0) {
 
@@ -298,6 +300,8 @@ var _Widgets = {
 				_Widgets.appendWidgetElement(obj, true, _Widgets.remoteWidgetsEl);
 			});
 		}
+
+		_Pages.resize();
 	},
 	getTreeParent: function(element, treePath, suffix) {
 
@@ -318,7 +322,7 @@ var _Widgets = {
 					var idString = lowerPart + suffix;
 					var newParent = $('#' + idString);
 
-					if (newParent.size() === 0) {
+					if (newParent.length === 0) {
 						_Widgets.appendFolderElement(parent, idString, _Icons.folder_icon, part);
 						newParent = $('#' + idString);
 					}
@@ -332,7 +336,7 @@ var _Widgets = {
 			var idString = 'other' + suffix;
 			var newParent = $('#' + idString);
 
-			if (newParent.size() === 0) {
+			if (newParent.length === 0) {
 				_Widgets.appendFolderElement(parent, idString, _Icons.folder_icon, 'Uncategorized');
 				newParent = $('#' + idString);
 			}

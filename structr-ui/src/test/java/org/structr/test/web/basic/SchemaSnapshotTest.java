@@ -22,18 +22,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import org.apache.tika.io.IOUtils;
+import org.structr.api.graph.Cardinality;
 import org.testng.annotations.Test;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Relation;
 import org.structr.rest.maintenance.SnapshotCommand;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.InvalidSchemaException;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonReferenceType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonReferenceType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.test.web.StructrUiTest;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
@@ -75,12 +73,13 @@ public class SchemaSnapshotTest extends StructrUiTest {
 			customer.addDoubleArrayProperty("doubleArray", "public", "ui").setMinimum(2.0, true).setMaximum(102.0, true);
 			customer.addBooleanArrayProperty("booleanArray", "public", "ui");
 			customer.addDateArrayProperty("birthdayArray", "public", "ui");
+			customer.addEncryptedProperty("secret", "public", "ui");
 
 			// a project
 			final JsonObjectType project  = sourceSchema.addType("Project");
 			final JsonReferenceType rel   = customer.relate(project);
 
-			rel.setCardinality(Relation.Cardinality.OneToMany);
+			rel.setCardinality(Cardinality.OneToMany);
 			rel.setCascadingDelete(JsonSchema.Cascade.sourceToTarget);
 			rel.setRelationship("hasProject");
 			rel.setSourcePropertyName("customer");
@@ -143,7 +142,7 @@ public class SchemaSnapshotTest extends StructrUiTest {
 
 			StructrSchema.replaceDatabaseSchema(app, StructrSchema.createEmptySchema());
 
-		} catch (FrameworkException | InvalidSchemaException | URISyntaxException ex) {
+		} catch (FrameworkException ex) {
 			fail("Unexpected exception");
 		}
 

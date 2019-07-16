@@ -20,17 +20,16 @@ package org.structr.core.function;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class MergePropertiesFunction extends Function<Object, Object> {
+public class MergePropertiesFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_MERGE_PROPERTIES = "Usage: ${merge_properties(source, target , mergeKeys...)}. Example: ${merge_properties(this, parent, \"eMail\")}";
 

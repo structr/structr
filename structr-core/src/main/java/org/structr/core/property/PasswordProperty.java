@@ -20,6 +20,7 @@ package org.structr.core.property;
 
 import java.util.Date;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TooShortToken;
@@ -67,6 +68,9 @@ public class PasswordProperty extends StringProperty {
 	@Override
 	public Object setProperty(SecurityContext securityContext, GraphObject obj, String clearTextPassword) throws FrameworkException {
 
+		final Object returnValue;
+		GraphObject wrappedObject = null;
+
 		if (clearTextPassword != null) {
 
 			if (validationInfo != null) {
@@ -80,10 +84,11 @@ public class PasswordProperty extends StringProperty {
 					throw new FrameworkException(422, "Validation of entity with ID " + obj.getUuid() + " failed", new TooShortToken(errorType, errorKey, minLength));
 				}
 			}
-
+			
+					
 			if (obj instanceof CreationContainer) {
 
-				final GraphObject wrappedObject = ((CreationContainer)obj).getWrappedObject();
+				wrappedObject = ((CreationContainer)obj).getWrappedObject();
 
 				if (wrappedObject != null && wrappedObject instanceof Principal) {
 
@@ -103,11 +108,22 @@ public class PasswordProperty extends StringProperty {
 
 			obj.setProperty(StructrApp.key(Principal.class, "salt"), salt);
 
-			return super.setProperty(securityContext, obj, HashHelper.getHash(clearTextPassword, salt));
+			returnValue = super.setProperty(securityContext, obj, HashHelper.getHash(clearTextPassword, salt));
+			
+			if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject instanceof Principal) {
+				wrappedObject.removeProperty(StructrApp.key(Principal.class, "sessionIds"));
+			}
 
 		} else {
 
-			return super.setProperty(securityContext, obj, null);
+			returnValue = super.setProperty(securityContext, obj, null);
 		}
+		
+		if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject instanceof Principal) {
+			wrappedObject.removeProperty(StructrApp.key(Principal.class, "sessionIds"));
+		}
+
+		return returnValue;
+		
 	}
 }

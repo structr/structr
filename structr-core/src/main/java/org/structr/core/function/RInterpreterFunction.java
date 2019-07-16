@@ -25,12 +25,11 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 /**
  * Interpretes R code
  */
-public class RInterpreterFunction extends Function<Object, Object> {
+public class RInterpreterFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_R    = "Usage: ${r(<R code>)}";
 	public static final String ERROR_MESSAGE_R_JS = "Usage: ${{Structr.r(<R code>)}}";

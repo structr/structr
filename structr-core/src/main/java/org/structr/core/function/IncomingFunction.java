@@ -20,15 +20,14 @@ package org.structr.core.function;
 
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.RelationshipType;
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class IncomingFunction extends Function<Object, Object> {
+public class IncomingFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_INCOMING    = "Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}";
 	public static final String ERROR_MESSAGE_INCOMING_JS = "Usage: ${{Structr.incoming(entity [, relType])}}. Example: ${{Structr.incoming(Structr.this, 'PARENT_OF')}}";

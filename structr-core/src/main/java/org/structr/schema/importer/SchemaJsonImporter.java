@@ -21,7 +21,6 @@ package org.structr.schema.importer;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Map;
 import org.apache.chemistry.opencmis.commons.impl.IOUtils;
@@ -32,18 +31,16 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.MaintenanceCommand;
+import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.InvalidSchemaException;
-import org.structr.schema.json.JsonSchema;
 
 /**
  * This class can handle Schema JSON documents
  */
-public class SchemaJsonImporter implements MaintenanceCommand {
+public class SchemaJsonImporter extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaJsonImporter.class.getName());
-
 
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
@@ -108,22 +105,7 @@ public class SchemaJsonImporter implements MaintenanceCommand {
 		// isolate write output
 		try (final Tx tx = app.tx()) {
 
-			final JsonSchema schema;
-
-			try {
-				schema = StructrSchema.createFromSource(source);
-
-			} catch (InvalidSchemaException | URISyntaxException ex) {
-				throw new FrameworkException(422, ex.getMessage());
-			}
-
-			try {
-				StructrSchema.extendDatabaseSchema(app, schema);
-
-			} catch (URISyntaxException ex) {
-				throw new FrameworkException(422, ex.getMessage());
-			}
-
+			StructrSchema.extendDatabaseSchema(app, StructrSchema.createFromSource(source));
 
 			tx.success();
 		}

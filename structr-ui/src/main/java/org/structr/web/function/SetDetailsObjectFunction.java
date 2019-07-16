@@ -22,10 +22,7 @@ import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 
-/**
- *
- */
-public class SetDetailsObjectFunction extends UiFunction {
+public class SetDetailsObjectFunction extends UiCommunityFunction {
 
 	public static final String ERROR_MESSAGE_SET_DETAILS_OBJECT    = "Usage: ${set_details_object(obj)}. Example: ${set_details_object(this)}";
 	public static final String ERROR_MESSAGE_SET_DETAILS_OBJECT_JS = "Usage: ${{Structr.setDetailsObject(obj)}}. Example: ${{Structr.setDetailsObject(Structr.this)}}";
@@ -47,7 +44,6 @@ public class SetDetailsObjectFunction extends UiFunction {
 			} else {
 
 				logger.warn("Error: Parameter 1 is not a graph object. Parameters: {}", getParametersAsString(sources));
-
 			}
 
 			return "";
@@ -57,9 +53,7 @@ public class SetDetailsObjectFunction extends UiFunction {
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
-
 		}
-
 	}
 
 	@Override
@@ -71,5 +65,4 @@ public class SetDetailsObjectFunction extends UiFunction {
 	public String shortDescription() {
 		return "Sets the given object as the detail object";
 	}
-
 }

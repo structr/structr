@@ -22,14 +22,18 @@ import java.net.MalformedURLException;
 import java.util.List;
 import org.structr.common.AdvancedMailContainer;
 import org.structr.common.error.FrameworkException;
+import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 import org.structr.web.entity.File;
 
-public class MailBeginFunction extends Function<Object, Object> {
+public class MailBeginFunction extends AdvancedMailModuleFunction {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_begin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]])}";
 	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_begin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]]) }}";
+
+	public MailBeginFunction(final AdvancedMailModule parent) {
+		super(parent);
+	}
 
 	@Override
 	public String getName() {

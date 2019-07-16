@@ -58,13 +58,25 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	public void grant(Permission permission, Principal obj) {}
 
 	@Override
-	public void grant(Permission permission, Principal obj, SecurityContext ctx) {}
+	public void grant(final Set<Permission> permissions, final Principal principal) {};
+
+	@Override
+	public void grant(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) {}
 
 	@Override
 	public void revoke(Permission permission, Principal obj) {}
 
 	@Override
-	public void revoke(Permission permission, Principal obj, SecurityContext ctx) {}
+	public void revoke(final Set<Permission> permissions, final Principal principal) {}
+
+	@Override
+	public void revoke(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) {}
+
+	@Override
+	public void setAllowed(final Set<Permission> permissions, final Principal principal) throws FrameworkException {}
+
+	@Override
+	public void setAllowed(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) {}
 
 	@Override
 	public void unlockSystemPropertiesOnce() {}
@@ -111,47 +123,34 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	public String getRealName() {
-
 		return "Super User";
-
 	}
 
 	public String getPassword() {
-
 		return null;
-
 	}
 
 	public String getConfirmationKey() {
-
 		return null;
-
 	}
 
 	public String getSessionId() {
-
 		return null;
-
 	}
 
 	@Override
 	public String getType() {
-
 		return null;
-
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys(String propertyView) {
-
 		return null;
 	}
 
 	@Override
 	public <T> T getProperty(PropertyKey<T> key) {
-
 		return null;
-
 	}
 
 	@Override
@@ -169,28 +168,22 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	@Override
 	public <T> Comparable getComparableProperty(PropertyKey<T> key) {
-
 		return null;
 	}
 
 	@Override
 	public List<Principal> getParents() {
-
 		return Collections.emptyList();
-
 	}
 
 	@Override
 	public List<Principal> getParentsPrivileged() {
-
 		return Collections.emptyList();
-
 	}
 
 	@Override
 	public String getUuid() {
 		return Principal.SUPERUSER_ID;
-
 	}
 
 	@Override
@@ -199,12 +192,10 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	public void setPassword(final String passwordValue) {
-
 		// not supported
 	}
 
 	public void setRealName(final String realName) {
-
 		// not supported
 	}
 
@@ -369,7 +360,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public void addSessionId(String sessionId) {
+	public boolean addSessionId(String sessionId) {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
@@ -394,7 +385,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public Object invokeMethod(String methodName, Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
+	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
 		return null;
 	}
 
@@ -430,6 +421,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	@Override
 	public void setRawPathSegmentId(final Identity rawSegmentId) {
+		// nothing to do for SuperUser
 	}
 
 	@Override
@@ -459,6 +451,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	@Override
 	public void setSessionData(String sessionData) throws FrameworkException {
+		// nothing to do for SuperUser
 	}
 
 	@Override
@@ -468,14 +461,17 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	@Override
 	public void setIsAdmin(boolean isAdmin) throws FrameworkException {
+		// nothing to do
 	}
 
 	@Override
 	public void setEMail(String eMail) throws FrameworkException {
+		// nothing to do
 	}
 
 	@Override
 	public void setSalt(String salt) throws FrameworkException {
+		// nothing to do
 	}
 
 	@Override
@@ -490,6 +486,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	@Override
 	public void setFavorites(final Iterable<Favoritable> favorites) throws FrameworkException {
+		// nothing to do
 	}
 
 	@Override
@@ -509,6 +506,11 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	@Override
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(Class<R> type) {
+		return null;
+	}
+
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationshipAsSuperUser(Class<R> type) {
 		return null;
 	}
 

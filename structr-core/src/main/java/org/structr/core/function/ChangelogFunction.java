@@ -47,9 +47,8 @@ import org.structr.core.property.EndNodeProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class ChangelogFunction extends Function<Object, Object> {
+public class ChangelogFunction extends AdvancedScriptingFunction {
 
 	protected static final Pattern uuidPattern = Pattern.compile("[a-f0-9]{32}");
 

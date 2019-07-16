@@ -35,7 +35,7 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
-public class CreateArchiveFunction extends UiFunction {
+public class CreateArchiveFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_CREATE_ARCHIVE    = "Usage: ${create_archive(archiveFileName, files [, CustomFileType])}. Example: ${create_archive(\"archive\", find(\"File\"))}";
 	public static final String ERROR_MESSAGE_CREATE_ARCHIVE_JS = "Usage: ${{Structr.createArchive(archiveFileName, files [, CustomFileType])}}. Example: ${{Structr.createArchive(\"archive\", Structr.find(\"File\"))}}";

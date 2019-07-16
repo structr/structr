@@ -26,12 +26,11 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 /**
  *
  */
-public class ExtractFunction extends Function<Object, Object> {
+public class ExtractFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_EXTRACT = "Usage: ${extract(list, propertyName)}. Example: ${extract(this.children, \"amount\")}";
 

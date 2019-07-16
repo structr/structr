@@ -23,9 +23,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class EscapeJavascriptFunction extends Function<Object, Object> {
+public class EscapeJavascriptFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_ESCAPE_JS = "Usage: ${escape_javascript(string)}. Example: ${escape_javascript(this.name)}";
 

@@ -28,12 +28,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-/**
- *
- */
-public class CreateFunction extends Function<Object, Object> {
+public class CreateFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_CREATE    = "Usage: ${create(type, key, value)}. Example: ${create(\"Feedback\", \"text\", this.text)}";
 	public static final String ERROR_MESSAGE_CREATE_JS = "Usage: ${{Structr.create(type, {key: value})}}. Example: ${{Structr.create(\"Feedback\", {text: \"Structr is awesome.\"})}}";
@@ -79,7 +75,7 @@ public class CreateFunction extends Function<Object, Object> {
 
 				if (parameter_count % 2 == 0) {
 
-					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + (ctx.isJavaScriptContext() ? ERROR_MESSAGE_CREATE_JS : ERROR_MESSAGE_CREATE));
+					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
 				}
 
 				for (int c = 1; c < parameter_count; c += 2) {

@@ -19,11 +19,12 @@
 package org.structr.test.common;
 
 import java.util.List;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Relationship;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
@@ -38,7 +39,6 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
-import org.structr.test.core.entity.TestOne;
 import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
@@ -46,14 +46,14 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
+import org.structr.test.core.entity.TestOne;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
 /**
  * Test access control with different permission levels.
@@ -606,7 +606,7 @@ public class AccessControlTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final App user1App = StructrApp.getInstance(user1Context);
+		App user1App = StructrApp.getInstance(user1Context);
 
 		// ################################################################################################################
 		// create a group and a test object that becomes accessible for the second user by group membership
@@ -654,12 +654,12 @@ public class AccessControlTest extends StructrTest {
 		// user2 is not yet member of the group, so
 		// it should not be possible to access the object
 
-		final App user2App = StructrApp.getInstance(user2Context);
+		App user2App = StructrApp.getInstance(user2Context);
 
 		try (final Tx tx = user2App.tx()) {
 
 			final TestOne test = user2App.nodeQuery(TestOne.class).getFirst();
-			assertNull(test);
+			assertNull("TestOne instance should not be visible to user2", test);
 
 			tx.success();
 
@@ -679,7 +679,7 @@ public class AccessControlTest extends StructrTest {
 			Principal user2 = user1App.get(Principal.class, user2Id);
 			assertNotNull(user2);
 
-			group.addMember(user2);
+			group.addMember(user1Context, user2);
 			tx.success();
 
 		} catch (FrameworkException t) {
@@ -712,7 +712,7 @@ public class AccessControlTest extends StructrTest {
 		try (final Tx tx = user2App.tx()) {
 
 			final TestOne test = user2App.nodeQuery(TestOne.class).getFirst();
-			assertNotNull("Group should be readable for members", test);
+			assertNotNull("TestOne instance should be readable for members", test);
 
 			tx.success();
 
@@ -790,7 +790,7 @@ public class AccessControlTest extends StructrTest {
 			Group group     = user1App.get(Group.class, groupId);
 			Principal user2 = user1App.get(Principal.class, user2Id);
 
-			group.removeMember(user2);
+			group.removeMember(user1Context, user2);
 			tx.success();
 
 		} catch (FrameworkException t) {
@@ -819,10 +819,22 @@ public class AccessControlTest extends StructrTest {
 		// user2 is not member of the group anymore, so
 		// it should not be possible to access the object
 
+		/*
+		try (final Tx tx = app.tx()) {
+
+			user2App = StructrApp.getInstance(SecurityContext.getInstance(app.get(Principal.class, user2Id), AccessMode.Backend));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+		*/
+
 		try (final Tx tx = user2App.tx()) {
 
 			final TestOne test = user2App.nodeQuery(TestOne.class).getFirst();
-			assertNull(test);
+			assertNull("TestOne instance should not be visible to user2", test);
 
 			tx.success();
 
@@ -842,12 +854,12 @@ public class AccessControlTest extends StructrTest {
 			Principal user2 = user1App.get(Principal.class, user2Id);
 			assertNotNull(user2);
 
-			group.addMember(user2);
+			group.addMember(user1Context, user2);
 			assertTrue("User should be in group", Iterables.toList(user2.getGroups()).contains(group));
 
 			assertNotNull(user2App.nodeQuery(TestOne.class).getFirst());
 
-			group.removeMember(user2);
+			group.removeMember(user1Context, user2);
 			assertFalse("User should not be in group", Iterables.toList(user2.getGroups()).contains(group));
 
 			assertNull(user2App.nodeQuery(TestOne.class).getFirst());
@@ -912,7 +924,7 @@ public class AccessControlTest extends StructrTest {
 			Group group2 = user1App.create(Group.class, "group2");
 			group2Id = group2.getUuid();
 
-			group1.addMember(group2);
+			group1.addMember(user1Context, group2);
 
 			user1App.create(TestOne.class, "testone");
 
@@ -977,7 +989,7 @@ public class AccessControlTest extends StructrTest {
 			Principal user2 = user1App.get(Principal.class, user2Id);
 			assertNotNull(user2);
 
-			group2.addMember(user2);
+			group2.addMember(user1Context, user2);
 			tx.success();
 
 		} catch (FrameworkException t) {
@@ -1028,7 +1040,7 @@ public class AccessControlTest extends StructrTest {
 			Group group1 = user1App.get(Group.class, group1Id);
 			Group group2 = user1App.get(Group.class, group2Id);
 
-			group1.removeMember(group2);
+			group1.removeMember(user1Context, group2);
 
 			assertNull(user2App.nodeQuery(TestOne.class).getFirst());
 
@@ -1095,7 +1107,7 @@ public class AccessControlTest extends StructrTest {
 			assertNotNull("User should be readable", user2);
 
 			// add user2 to group
-			group.addMember(user2);
+			group.addMember(user1Context, user2);
 
 			tx.success();
 
@@ -1471,7 +1483,7 @@ public class AccessControlTest extends StructrTest {
 			assertNotNull(group);
 
 			// Add user1 to group
-			group.addMember(user1);
+			group.addMember(user1Context, user1);
 
 			tx.success();
 
@@ -1509,7 +1521,7 @@ public class AccessControlTest extends StructrTest {
 			Group group = user1App.get(Group.class, groupId);
 
 			// Add user1 to group
-			group.addMember(user1);
+			group.addMember(user1Context, user1);
 
 			assertEquals(user1, Iterables.toList(group.getMembers()).get(0));
 
@@ -1565,7 +1577,7 @@ public class AccessControlTest extends StructrTest {
 
 			test.grant(Permission.delete, deleter);
 
-			read.addMember(deleter);
+			read.addMember(securityContext, deleter);
 
 			tx.success();
 

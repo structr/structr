@@ -24,9 +24,8 @@ import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class AncestorTypesFunction extends Function<Object, Object> {
+public class AncestorTypesFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_ANCESTOR_TYPES    = "Usage: ${ancestor_types(type[, blacklist])}. Example ${ancestor_types('User')}";
 	public static final String ERROR_MESSAGE_ANCESTOR_TYPES_JS = "Usage: ${Structr.ancestor_types(type[, blacklist])}. Example ${Structr.ancestor_types('User')}";

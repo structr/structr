@@ -16,10 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 
 package org.structr.schema;
 
@@ -78,9 +74,10 @@ import org.structr.schema.compiler.MigrationHandler;
 import org.structr.schema.compiler.NodeExtender;
 import org.structr.schema.compiler.RemoveClassesWithUnknownSymbols;
 import org.structr.schema.compiler.RemoveDuplicateClasses;
+import org.structr.schema.compiler.RemoveExportedMethodsWithoutSecurityContext;
 import org.structr.schema.compiler.RemoveMethodsWithUnusedSignature;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonSchema;
 
 /**
  * Structr Schema Service for dynamic class support at runtime.
@@ -105,6 +102,7 @@ public class SchemaService implements Service {
 		migrationHandlers.add(new BlacklistUnlicensedTypes());
 		migrationHandlers.add(new RemoveDuplicateClasses());
 		migrationHandlers.add(new RemoveClassesWithUnknownSymbols());
+		migrationHandlers.add(new RemoveExportedMethodsWithoutSecurityContext());
 	}
 
 	@Override
@@ -112,7 +110,7 @@ public class SchemaService implements Service {
 	}
 
 	@Override
-	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 		return reloadSchema(new ErrorBuffer(), null);
 	}
 
@@ -139,6 +137,22 @@ public class SchemaService implements Service {
 			final long t0 = System.currentTimeMillis();
 
 			try {
+
+
+				try (final Tx tx = app.tx()) {
+
+					final JsonSchema currentSchema = StructrSchema.createFromDatabase(app);
+
+					// diff and merge
+					currentSchema.diff(dynamicSchema);
+
+					// commit changes before trying to build the schema
+					tx.success();
+
+				} catch (Throwable t) {
+					t.printStackTrace();
+				}
+
 
 				try (final Tx tx = app.tx()) {
 
@@ -172,19 +186,18 @@ public class SchemaService implements Service {
 
 							schemaInfo.handleMigration();
 
-							final String sourceCode = SchemaHelper.getSource(schemaInfo, schemaNodes, blacklist, errorBuffer);
-							if (sourceCode != null) {
+							final String className      = schemaInfo.getClassName();
+							final SourceFile sourceFile = new SourceFile(className);
 
-								final String className = schemaInfo.getClassName();
+							// generate source code
+							SchemaHelper.getSource(sourceFile, schemaInfo, schemaNodes, blacklist, errorBuffer);
 
-								// only load dynamic node if there were no errors while generating
-								// the source code (missing modules etc.)
-								nodeExtender.addClass(className, sourceCode);
-								dynamicViews.addAll(schemaInfo.getDynamicViews());
+							// only load dynamic node if there were no errors while generating the source code (missing modules etc.)
+							nodeExtender.addClass(className, sourceFile);
+							dynamicViews.addAll(schemaInfo.getDynamicViews());
 
-								// initialize GraphQL engine as well
-								schemaInfo.initializeGraphQL(schemaNodes, graphQLTypes, blacklist);
-							}
+							// initialize GraphQL engine as well
+							schemaInfo.initializeGraphQL(schemaNodes, graphQLTypes, blacklist);
 						}
 
 						// collect relationship classes
@@ -195,7 +208,12 @@ public class SchemaService implements Service {
 
 							if (!blacklist.contains(sourceType) && !blacklist.contains(targetType)) {
 
-								nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(schemaNodes, errorBuffer));
+								final SourceFile relationshipSource = new SourceFile(schemaRelationship.getClassName());
+
+								// generate source code
+								schemaRelationship.getSource(relationshipSource, schemaNodes, errorBuffer);
+
+								nodeExtender.addClass(schemaRelationship.getClassName(), relationshipSource);
 								dynamicViews.addAll(schemaRelationship.getDynamicViews());
 
 								// initialize GraphQL engine as well
@@ -241,7 +259,7 @@ public class SchemaService implements Service {
 
 							if (errorBuffer.hasError()) {
 
-								if (Settings.SchemAutoMigration.getValue()) {
+								if (Settings.SchemaAutoMigration.getValue()) {
 
 									logger.info("Attempting auto-migration of built-in schema..");
 
@@ -337,7 +355,7 @@ public class SchemaService implements Service {
 										.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
 										.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
 										.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
-										.argument(SchemaHelper.getGraphQLQueryArgumentsForType(schemaNodes, selectionTypes, existingQueryTypeNames, className))
+										.arguments(SchemaHelper.getGraphQLQueryArgumentsForType(schemaNodes, selectionTypes, existingQueryTypeNames, className))
 									);
 
 								} catch (Throwable t) {
@@ -353,9 +371,11 @@ public class SchemaService implements Service {
 									graphQLSchema = GraphQLSchema
 										.newSchema()
 										.query(queryTypeBuilder.name("Query").build())
-										.build(new LinkedHashSet<>(graphQLTypes.values()));
+										.additionalTypes(new LinkedHashSet<>(graphQLTypes.values()))
+										.build();
 
 								} catch (Throwable t) {
+									t.printStackTrace();
 									logger.warn("Unable to build GraphQL schema: {}", t.getMessage());
 								}
 							}
@@ -430,15 +450,7 @@ public class SchemaService implements Service {
 	}
 
 	public static void ensureBuiltinTypesExist(final App app) throws FrameworkException {
-
-		try {
-
-			StructrSchema.extendDatabaseSchema(app, dynamicSchema);
-
-		} catch (Exception ex) {
-
-			ex.printStackTrace();
-		}
+		StructrSchema.extendDatabaseSchema(app, dynamicSchema);
 	}
 
 	@Override

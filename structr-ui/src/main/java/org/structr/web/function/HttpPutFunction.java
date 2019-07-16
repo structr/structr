@@ -25,10 +25,8 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-
-public class HttpPutFunction extends Function<Object, Object> {
+public class HttpPutFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_PUT    = "Usage: ${PUT(URL, body [, contentType, charset])}. Example: ${PUT('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', '{name:\"Test\"}', 'application/json', 'utf-8')}";
 	public static final String ERROR_MESSAGE_PUT_JS = "Usage: ${{Structr.PUT(URL, body [, contentType, charset])}}. Example: ${{Structr.PUT('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', '{name:\"Test\"}', 'application/json', 'utf-8')}}";

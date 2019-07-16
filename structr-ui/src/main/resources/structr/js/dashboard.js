@@ -16,166 +16,274 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-$(document).ready(function() {
+$(document).ready(function () {
 	Structr.registerModule(_Dashboard);
 });
 
 var _Dashboard = {
 	_moduleName: 'dashboard',
 	dashboard: undefined,
-	aboutMe: undefined,
-	meObj: undefined,
+	logInterval: undefined,
+	activeTabPrefixKey: 'activeDashboardTabPrefix' + port,
+	logRefreshTimeIntervalKey: 'dashboardLogRefreshTimeInterval' + port,
+	logLinesKey: 'dashboardNumberOfLines' + port,
 
-	init: function() {},
-	unload: function() {},
+	init: function () {},
+	unload: function () {
+		window.clearInterval(_Dashboard.logInterval);
+	},
+	removeActiveClass: function (nodelist) {
+		nodelist.forEach(function (el) {
+			el.classList.remove('active');
+		});
+	},
+	activateLastActiveTab: function() {
+		let tabId = LSWrapper.getItem(_Dashboard.activeTabPrefixKey);
+		if (tabId) {
+			let tab = document.querySelector('#dashboard .tabs-menu li a[href="' + tabId + '"]');
+			tab.click();
+		}
+	},
 	onload: function() {
+
 		_Dashboard.init();
 		Structr.updateMainHelpLink('https://support.structr.com/article/202');
 
-		main.append('<div id="dashboard"></div>');
-		_Dashboard.dashboard = $('#dashboard', main);
+		let templateConfig = {};
 
-		_Dashboard.aboutMe = _Dashboard.appendBox('About Me', 'about-me');
-		_Dashboard.aboutMe.append('<div class="dashboard-info">You are currently logged in as <b>' + me.username + '<b>.</div>');
-		_Dashboard.aboutMe.append('<div class="dashboard-info admin red"></div>');
-		_Dashboard.aboutMe.append('<table class="props"></table>');
+		fetch(rootUrl + '/_env').then(function(response) {
 
-		$.get(rootUrl + '/me/ui', function(data) {
-			_Dashboard.meObj = data.result;
-			var t = $('table', _Dashboard.aboutMe);
-			t.append('<tr><td class="key">ID</td><td>' + _Dashboard.meObj.id + '</td></tr>');
-			t.append('<tr><td class="key">E-Mail</td><td>' + (_Dashboard.meObj.eMail || '') + '</td></tr>');
-			t.append('<tr><td class="key">Working Directory</td><td>' + (_Dashboard.meObj.workingDirectory ? _Dashboard.meObj.workingDirectory.name : '') + '</td></tr>');
-			t.append('<tr><td class="key">Session ID(s)</td><td>' + _Dashboard.meObj.sessionIds.join('<br>') + '</td></tr>');
-			t.append('<tr><td class="key">Groups</td><td>' + _Dashboard.meObj.groups.map(function(g) { return g.name; }).join(', ') + '</td></tr>');
+			return response.json();
 
-			if (_Dashboard.meObj.isAdmin) {
-				_Dashboard.appendDeploymentBox();
-				_Dashboard.appendMaintenanceBox();
+		}).then(function (data) {
+
+			templateConfig.envInfo = data.result;
+
+			templateConfig.envInfo.version = (data.result.components['structr'] || data.result.components['structr-ui']).version;
+			templateConfig.envInfo.build   = (data.result.components['structr'] || data.result.components['structr-ui']).build;
+			templateConfig.envInfo.date    = (data.result.components['structr'] || data.result.components['structr-ui']).date;
+
+			// Search for newer releases and store latest version
+			data.result.availableReleases.forEach(function(version) {
+				if (version > templateConfig.envInfo.version) {
+					templateConfig.envInfo.newReleaseAvailable = version;
+				}
+			});
+
+			// Search for newer snapshots and store latest version
+			data.result.availableSnapshots.forEach(function(version) {
+				if (version > templateConfig.envInfo.version) {
+					templateConfig.envInfo.newSnapshotAvailable = version;
+				}
+			});
+
+			if (templateConfig.envInfo.startDate) {
+				templateConfig.envInfo.startDate = _Dashboard.dateToIsoString(templateConfig.envInfo.startDate);
 			}
-		});
-		_Dashboard.checkAdmin();
 
-		_Dashboard.aboutMe.append('<button class="action" id="clear-local-storage-on-server">Reset stored UI settings</button>');
-		$('#clear-local-storage-on-server').on('click', function() {
-			_Dashboard.clearLocalStorageOnServer();
-		});
+			if (templateConfig.envInfo.endDate) {
+				templateConfig.envInfo.endDate = _Dashboard.dateToIsoString(templateConfig.envInfo.endDate);
+			}
 
-		_Dashboard.appendAboutBox();
+			return fetch(rootUrl + '/me/ui');
 
-		/*
-		var myPages = _Dashboard.appendBox('My Pages', 'my-pages');
-		myPages.append('<div class="dashboard-info">You own the following <a class="internal-link" href="javascript:void(0)">pages</a>:</div>');
-		Command.getByType('Page', 5, 1, 'version', 'desc', null, false, function(pages) {
-			pages.forEach(function(p) {
-				myPages.append('<div class="dashboard-info"><a href="/' + p.name + '" target="_blank"><i class="icon sprite sprite-page" /></a> <a href="/' + p.name + '" target="_blank">' + _Dashboard.displayName(p) + '</a>' + _Dashboard.displayVersion(p) + '</div>');
-			});
-		});
+		}).then(function (response) {
 
-		var myContents = _Dashboard.appendBox('My Contents', 'my-content');
-		myContents.append('<div class="dashboard-info">Your most edited <a class="internal-link" href="javascript:void(0)">contents</a> are:</div>');
-		Command.getByType('ContentItem', 5, 1, 'version', 'desc', null, false, function(items) {
-			items.forEach(function(i) {
-				myContents.append('<div class="dashboard-info"><a href="/' + i.name + '" target="_blank"><i class="fa ' + _Contents.getIcon(i) + '" /></a> <a class="contents-link" id="open-' + i.id + '" href="javascript:void(0)">' + _Dashboard.displayName(i) + '</a>' + _Dashboard.displayVersion(i) + '</div>');
-			});
+			return response.json();
 
-			$('.contents-link', myContents).on('click', function(e) {
-				e.preventDefault();
-				var id = $(this).prop('id').slice(5);
-				window.setTimeout(function() {
-					Command.get(id, "id,name", function(entity) {
-						_Contents.editItem(entity);
+		}).then(function (data) {
+
+			templateConfig.meObj = data.result;
+
+			return fetch('/structr/deploy');
+
+		}).then((result) => {
+
+			templateConfig.deployServletAvailable = (result.status !== 404);
+
+		}).then(function() {
+
+			Structr.fetchHtmlTemplate('dashboard/dashboard', templateConfig, function (html) {
+
+				main.empty();
+				main.append(html);
+
+				document.querySelectorAll('#dashboard .tabs-menu li a').forEach(function (tabLink) {
+					tabLink.addEventListener('click', function (e) {
+						e.preventDefault();
+						let targetId = e.target.getAttribute('href');
+
+						_Dashboard.removeActiveClass(document.querySelectorAll('#dashboard .tabs-contents .tab-content'));
+						_Dashboard.removeActiveClass(document.querySelectorAll('#dashboard .tabs-menu li'));
+
+						e.target.closest('li').classList.add('active');
+						document.querySelector(targetId).classList.add('active');
+						LSWrapper.setItem(_Dashboard.activeTabPrefixKey, targetId);
 					});
-				}, 250);
-				$('#contents_').click();
+				});
+
+				document.querySelector('#clear-local-storage-on-server').addEventListener('click', function () {
+					_Dashboard.clearLocalStorageOnServer(templateConfig.meObj.id);
+				});
+
+				_Dashboard.checkLicenseEnd(templateConfig.envInfo, $('#dash-about-structr .end-date'));
+
+				$('button#do-import').on('click', function () {
+					var location = $('#deployment-source-input').val();
+					if (location && location.length) {
+						_Dashboard.deploy('import', location);
+					} else {
+						// show error message
+					}
+				});
+
+				$('button#do-export').on('click', function () {
+					var location = $('#deployment-target-input').val();
+					if (location && location.length) {
+						_Dashboard.deploy('export', location);
+					} else {
+						// show error message
+					}
+				});
+
+				_Dashboard.activateLogBox();
+				_Dashboard.activateLastActiveTab();
+				_Dashboard.appendGlobalSchemaMethods($('#dash-global-schema-methods'));
+				_Dashboard.appendDatabaseSelectionBox();
+
+				$(window).off('resize');
+				$(window).on('resize', function () {
+					Structr.resize();
+				});
+
+				Structr.unblockMenu(100);
 			});
 		});
-
-		var myFiles = _Dashboard.appendBox('My Files', 'my-files');
-		myFiles.append('<div class="dashboard-info">Your most edited <a class="internal-link" href="javascript:void(0)">files</a> are:</div>');
-		Command.getByType('File', 5, 1, 'version', 'desc', null, false, function(files) {
-			files.forEach(function(f) {
-				myFiles.append('<div class="dashboard-info"><a href="/' + f.name + '" target="_blank"><i class="fa ' + _Icons.getFileIconClass(f) + '" /></a> <a href="/' + f.id + '" target="_blank">' + _Dashboard.displayName(f) + '</a>' + _Dashboard.displayVersion(f) + '</div>');
-			});
-		});
-
-		var myImages = _Dashboard.appendBox('My Images', 'my-images');
-		myImages.append('<div class="dashboard-info">Your most edited <a class="internal-link" href="javascript:void(0)">images</a> are:</div>');
-		Command.getByType('Image', 5, 1, 'version', 'desc', null, false, function(images) {
-			images.forEach(function(i) {
-				myImages.append('<div class="dashboard-info"><a href="/' + i.name + '" target="_blank">' + _Icons.getImageOrIcon(i) + '</a> <a href="/' + i.id + '" target="_blank">' + _Dashboard.displayName(i) + '</a>' + _Dashboard.displayVersion(i) + '</div>');
-			});
-		});
-		*/
-
-		$('.dashboard-info a.internal-link').on('click', function() {
-			$('#' + $(this).text() + '_').click();
-		});
-
-		$(window).off('resize');
-		$(window).on('resize', function() {
-			Structr.resize();
-		});
-
-		Structr.unblockMenu(100);
-
 	},
-	appendBox: function(heading, id) {
-		_Dashboard.dashboard.append('<div id="' + id + '" class="dashboard-box"><div class="dashboard-header"><h2>' + heading + '</h2></div></div>');
-		return $('#' + id, main);
+	dateToIsoString: function (dateString) {
+		let date = new Date(dateString);
+		return date.getFullYear() + '-' + ('' + (date.getMonth() + 1)).padStart(2, '0') + '-' + ('' + date.getDate()).padStart(2, '0');
 	},
-	checkAdmin: function() {
-		if (me.isAdmin && _Dashboard.aboutMe && _Dashboard.aboutMe.length && _Dashboard.aboutMe.find('admin').length === 0) {
-			$('.dashboard-info.admin', _Dashboard.aboutMe).text('You have admin rights.');
-		}
+	displayVersion: function (obj) {
+		return (obj.version ? ' (v' + obj.version + ')' : '');
 	},
-	displayVersion: function(obj) {
-		return (obj.version ? ' (v' + obj.version + ')': '');
-	},
-	displayName: function(obj) {
+	displayName: function (obj) {
 		return fitStringToWidth(obj.name, 160);
 	},
-	clearLocalStorageOnServer: function() {
+	clearLocalStorageOnServer: function (userId) {
 
-		var clear = function (userId) {
-			Command.setProperty(userId, 'localStorage', null, false, function() {
-				blinkGreen($('#clear-local-storage-on-server'));
-				LSWrapper.clear();
-			});
-		};
-
-		if (!_Dashboard.meObj) {
-			Command.rest("/me/ui", function (result) {
-				clear(result[0].id);
-			});
-		} else {
-			clear(_Dashboard.meObj.id);
-		}
-	},
-	appendAboutBox: function () {
-
-		var aboutStructrBox = _Dashboard.appendBox('About Structr', 'about-structr');
-		var aboutStructrTable = $('<table class="props"></table>').appendTo(aboutStructrBox);
-
-		$.get(rootUrl + '/_env', function(data) {
-			var envInfo = data.result;
-
-			if (envInfo.edition) {
-				var tooltipText = 'Structr ' + envInfo.edition + ' Edition';
-				var versionInfo = '<i title="' + tooltipText + '" class="' + _Icons.getFullSpriteClass(_Icons.getIconForEdition(envInfo.edition)) + '"></i> (' + tooltipText + ')';
-
-				aboutStructrTable.append('<tr><td class="key">Edition</td><td>' + versionInfo + '</td></tr>');
-				aboutStructrTable.append('<tr><td class="key">Licensee</td><td>' + (envInfo.licensee || 'Unlicensed') + '</td></tr>');
-				aboutStructrTable.append('<tr><td class="key">Host ID</td><td>' + (envInfo.hostId || '') + '</td></tr>');
-				aboutStructrTable.append('<tr><td class="key">License Start Date</td><td>' + (envInfo.startDate || '-') + '</td></tr>');
-				aboutStructrTable.append('<tr><td class="key">License End Date</td><td class="end-date">' + (envInfo.endDate || '-') + '</td></tr>');
-
-				_Dashboard.checkLicenseEnd(envInfo, $('.end-date', aboutStructrTable));
-			}
+		Command.setProperty(userId, 'localStorage', null, false, function () {
+			blinkGreen($('#clear-local-storage-on-server'));
+			LSWrapper.clear();
 		});
-
 	},
-	checkLicenseEnd:function (envInfo, element, cfg) {
+	appendDatabaseSelectionBox: function () {
+
+		Structr.fetchHtmlTemplate('dashboard/database.connections', {}, function (html) {
+
+			var parent = $('#dash-connections');
+
+			parent.append(html);
+
+			_Dashboard.loadDatabaseSelectionBox();
+		});
+	},
+	loadDatabaseSelectionBox: function () {
+
+		$.post(
+			rootUrl + '/maintenance/manageDatabases',
+			JSON.stringify({command: "list"}),
+			function (data) {
+
+				var body = $('#database-connection-table-body');
+				body.empty();
+
+				data.result.forEach(function (result) {
+
+					Structr.fetchHtmlTemplate('dashboard/connection.row', _Dashboard.mapConnectionResult(result), function (html) {
+
+						body.append(html);
+
+						$('button#connect-button_' + result.name).on('click', function (btn) {
+
+							Structr.showLoadingMessage(
+								'Changing database connection to ' + result.name,
+								'Please wait until the change has been applied. If you don\'t have a valid session ID in the other database, you will need to re-login after the change.',
+								200
+								);
+
+							$.ajax({
+								url: rootUrl + '/maintenance/manageDatabases',
+								type: 'post',
+								data: JSON.stringify({
+									command: 'activate',
+									name: result.name
+								}),
+								statusCode: {
+									200: function(response) {
+
+										Structr.hideLoadingMessage();
+										_Dashboard.onload();
+									},
+									503: function(response) {
+
+										var message = new MessageBuilder().title("Service Unavailable").error(response.responseJSON.message);
+
+										message.delayDuration(5000).fadeDuration(1000);
+										message.show();
+
+										Structr.hideLoadingMessage();
+										_Dashboard.onload();
+									}
+								}
+							});
+						});
+
+						$('button#delete-button_' + result.name).on('click', function (btn) {
+
+							$.post(
+								rootUrl + '/maintenance/manageDatabases',
+								JSON.stringify({
+									command: 'remove',
+									name: result.name
+								}),
+								function () {
+									Structr.hideLoadingMessage();
+									_Dashboard.onload();
+								}
+							);
+						});
+					});
+				});
+
+				Structr.fetchHtmlTemplate('dashboard/new-connection.row', {}, function (html) {
+
+					body.append(html);
+
+					$('button#new-database-connection-button').on('click', function (btn) {
+
+						$.post(
+							rootUrl + '/maintenance/manageDatabases',
+							JSON.stringify({
+								command: 'add',
+								driver: 'org.structr.bolt.BoltDatabaseService',
+								mode: 'remote',
+								name: $('#connection-name').val(),
+								url: $('#connection-url').val(),
+								username: $('#connection-username').val(),
+								password: $('#connection-password').val()
+							}),
+							function () {
+								Structr.hideLoadingMessage();
+								_Dashboard.onload();
+							}
+						);
+					});
+				});
+			}
+		);
+	},
+	checkLicenseEnd: function (envInfo, element, cfg) {
 
 		if (envInfo && envInfo.endDate && element) {
 
@@ -210,19 +318,18 @@ var _Dashboard = {
 
 		}
 	},
-	appendMaintenanceBox: function () {
+	appendGlobalSchemaMethods: function(container) {
 
-		var maintenanceBox  = _Dashboard.appendBox('Global schema methods', 'maintenance');
-		var maintenanceList = $('<div></div>').appendTo(maintenanceBox);
+		var maintenanceList = $('<div></div>').appendTo(container);
 
-		$.get(rootUrl + '/SchemaMethod?schemaNode=&sort=name', function(data) {
+		$.get(rootUrl + '/SchemaMethod?schemaNode=&sort=name', function (data) {
 
-			data.result.forEach(function(result) {
+			data.result.forEach(function (result) {
 
-				var methodRow = $('<div class="dashboard-info" style="border-bottom: 1px solid #ddd; padding-bottom: 2px;"></div>');
-				var methodName = $('<span style="line-height: 2em;">' + result.name + ' </span>');
+				var methodRow = $('<div class="global-method" style=""></div>');
+				var methodName = $('<span>' + result.name + '</span>');
 
-				methodRow.append(methodName).append('<button id="run-' + result.id + '" class="pull-right" style="margin-left: 1em;">Run now</button>');
+				methodRow.append('<button id="run-' + result.id + '" class="action button">Run now</button>').append(methodName);
 				maintenanceList.append(methodRow);
 
 				var cleanedComment = (result.comment && result.comment.trim() !== '') ? result.comment.replaceAll("\n", "<br>") : '';
@@ -237,9 +344,9 @@ var _Dashboard = {
 					});
 				}
 
-				$('button#run-' + result.id).on('click', function() {
+				$('button#run-' + result.id).on('click', function () {
 
-					Structr.dialog('Run global schema method ' + result.name, function() {}, function() {
+					Structr.dialog('Run global schema method ' + result.name, function () {}, function () {
 						$('#run-method').remove();
 						$('#clear-log').remove();
 					});
@@ -261,16 +368,16 @@ var _Dashboard = {
 					Structr.appendInfoTextToElement({
 						element: $('#params h3'),
 						text: "Parameters can be accessed by using the <code>retrieve()</code> function.",
-						css: { marginLeft: "5px" },
-						helpElementCss: { fontSize: "12px" }
+						css: {marginLeft: "5px"},
+						helpElementCss: {fontSize: "12px"}
 					});
 
-					addParamBtn.on('click', function() {
+					addParamBtn.on('click', function () {
 						var newParam = $('<div class="param"><input class="param-name" placeholder="Parameter name"> : <input class="param-value" placeholder="Parameter value"></div>');
 						var removeParam = $('<i class="button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" alt="Remove parameter" title="Remove parameter"/>');
 
 						newParam.append(removeParam);
-						removeParam.on('click', function() {
+						removeParam.on('click', function () {
 							newParam.remove();
 						});
 						paramsBox.append(newParam);
@@ -279,7 +386,7 @@ var _Dashboard = {
 					dialog.append('<h3>Method output</h3>');
 					dialog.append('<pre id="log-output"></pre>');
 
-					$('#run-method').on('click', function() {
+					$('#run-method').on('click', function () {
 
 						$('#log-output').empty();
 						$('#log-output').append('Running method..\n');
@@ -297,54 +404,57 @@ var _Dashboard = {
 							url: rootUrl + '/maintenance/globalSchemaMethods/' + result.name,
 							data: JSON.stringify(params),
 							method: 'POST',
-							complete: function(data) {
+							complete: function (data) {
 								$('#log-output').append(data.responseText);
 								$('#log-output').append('Done.');
 							}
 						});
 					});
 
-					$('#clear-log').on('click', function() {
+					$('#clear-log').on('click', function () {
 						$('#log-output').empty();
 					});
 				});
 			});
 		});
+	},
+	activateLogBox: function () {
+
+		let logBoxContentBox = $('#dash-server-log textarea');
+
+		let scrollEnabled = true;
+
+		let updateLog = function () {
+			Command.getServerLogSnapshot(300, (a) => {
+				logBoxContentBox.html(a[0].result);
+				if (scrollEnabled) {
+					logBoxContentBox.scrollTop(logBoxContentBox[0].scrollHeight);
+				}
+			});
+		};
+
+		let registerEventHandlers = function () {
+			_Dashboard.logInterval = window.setInterval(() => updateLog(), 1000);
+
+			logBoxContentBox.bind('scroll', (event) => {
+				let textarea = event.target;
+
+				let maxScroll = textarea.scrollHeight - 4;
+				let currentScroll = (textarea.scrollTop + $(textarea).height());
+
+				if (currentScroll >= maxScroll) {
+					scrollEnabled = true;
+				} else {
+					scrollEnabled = false;
+				}
+			});
+		};
+
+		registerEventHandlers();
+		updateLog();
 
 	},
-	appendDeploymentBox: function () {
-
-		var deploymentBox  = _Dashboard.appendBox('Deployment', 'deployment');
-		var container      = $('<div></div>').appendTo(deploymentBox);
-
-		container.append('<h3>Import application from local directory</h3>');
-		container.append('<div><input type="text" id="deployment-source-input" size="60" placeholder="Enter directory path..."> <button class="action" id="do-import">Import from local directory</button></div>');
-
-		container.append('<h3>Import application from URL</h3>');
-		container.append('<form action="/structr/deploy" method="POST" enctype="multipart/form-data"><input type="hidden" name="redirectUrl" value="' + window.location.href + '"><input type="text" id="deployment-url-input" size="60" placeholder="Enter download URL..." name="downloadUrl"> <button type="submit" class="action">Import from URL</button></form>');
-
-		container.append('<h3>Export application to local directory</h3>');
-		container.append('<div><input type="text" id="deployment-target-input" size="60" placeholder="Enter directory path..."> <button class="action" id="do-export">Export to local directory</button></div>');
-
-		$('button#do-import').on('click', function() {
-			var location = $('#deployment-source-input').val();
-			if (location && location.length) {
-				_Dashboard.deploy('import', location);
-			} else {
-				// show error message
-			}
-		});
-
-		$('button#do-export').on('click', function() {
-			var location = $('#deployment-target-input').val();
-			if (location && location.length) {
-				_Dashboard.deploy('export', location);
-			} else {
-				// show error message
-			}
-		});
-	},
-	deploy: function(mode, location) {
+	deploy: function (mode, location) {
 
 		var data = {
 			mode: mode
@@ -362,5 +472,42 @@ var _Dashboard = {
 			method: 'POST'
 		});
 
+	},
+	mapConnectionResult: function (result) {
+
+		var activeString = result.active ? '<b>active</b>' : '-';
+		var button = '';
+
+		if (!result.active) {
+
+			button += '<button class="action" id="connect-button_' + result.name + '">Connect</button>';
+			button += '<button class="" id="delete-button_' + result.name + '">Delete</button>';
+		}
+
+		if (result.driver === 'org.structr.memory.MemoryDatabaseService') {
+
+			return {
+
+				name: result.name,
+				type: 'in-memory',
+				url: '-',
+				username: '-',
+				active: activeString,
+				button: button
+
+			};
+
+		} else {
+
+			return {
+
+				name: result.name,
+				type: 'neo4j',
+				url: result.url,
+				username: result.username,
+				active: activeString,
+				button: button
+			};
+		}
 	}
 };

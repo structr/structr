@@ -23,9 +23,8 @@ import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class ComplementFunction extends Function<Object, Object> {
+public class ComplementFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_COMPLEMENT = "Usage: ${complement(list1, list2, list3, ...)}. (The resulting list contains no duplicates) Example: ${complement(allUsers, me)} => List of all users except myself";
 

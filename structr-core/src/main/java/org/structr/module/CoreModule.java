@@ -23,23 +23,16 @@ import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.AbbrFunction;
 import org.structr.core.function.AddFunction;
-import org.structr.core.function.AddToGroupFunction;
-import org.structr.core.function.AncestorTypesFunction;
 import org.structr.core.function.AndFunction;
-import org.structr.core.function.AppendFunction;
 import org.structr.core.function.Base64DecodeFunction;
 import org.structr.core.function.Base64EncodeFunction;
-import org.structr.core.function.CallFunction;
-import org.structr.core.function.CallPrivilegedFunction;
 import org.structr.core.function.CapitalizeFunction;
 import org.structr.core.function.CeilFunction;
-import org.structr.core.function.ChangelogFunction;
 import org.structr.core.function.CleanFunction;
 import org.structr.core.function.CoalesceFunction;
 import org.structr.core.function.CoalesceObjectsFunction;
 import org.structr.core.function.ComplementFunction;
 import org.structr.core.function.ConcatFunction;
-import org.structr.core.function.ConfigFunction;
 import org.structr.core.function.ContainsFunction;
 import org.structr.core.function.CopyPermissionsFunction;
 import org.structr.core.function.CreateFunction;
@@ -47,61 +40,46 @@ import org.structr.core.function.CreateRelationshipFunction;
 import org.structr.core.function.CypherFunction;
 import org.structr.core.function.DateFormatFunction;
 import org.structr.core.function.DebugFunction;
+import org.structr.core.function.DeleteCacheValueFunction;
 import org.structr.core.function.DeleteFunction;
-import org.structr.core.function.DisableCascadingDeleteFunction;
-import org.structr.core.function.DisableNotificationsFunction;
 import org.structr.core.function.DivFunction;
 import org.structr.core.function.DoubleSumFunction;
 import org.structr.core.function.EmptyFunction;
-import org.structr.core.function.EnableCascadingDeleteFunction;
-import org.structr.core.function.EnableNotificationsFunction;
 import org.structr.core.function.EndsWithFunction;
-import org.structr.core.function.EnumInfoFunction;
 import org.structr.core.function.EqualFunction;
-import org.structr.core.function.ErrorFunction;
 import org.structr.core.function.EscapeJavascriptFunction;
 import org.structr.core.function.EscapeJsonFunction;
-import org.structr.core.function.EvaluateScriptFunction;
-import org.structr.core.function.ExecBinaryFunction;
-import org.structr.core.function.ExecFunction;
 import org.structr.core.function.ExtractFunction;
 import org.structr.core.function.FindFunction;
 import org.structr.core.function.FindRelationshipFunction;
 import org.structr.core.function.FirstFunction;
 import org.structr.core.function.FloorFunction;
 import org.structr.core.function.Functions;
-import org.structr.core.function.GeocodeFunction;
+import org.structr.core.function.GetCacheValueFunction;
 import org.structr.core.function.GetCounterFunction;
 import org.structr.core.function.GetFunction;
 import org.structr.core.function.GetIncomingRelationshipsFunction;
 import org.structr.core.function.GetOrCreateFunction;
 import org.structr.core.function.GetOrNullFunction;
 import org.structr.core.function.GetOutgoingRelationshipsFunction;
-import org.structr.core.function.GetRelationshipTypesFunction;
 import org.structr.core.function.GetRelationshipsFunction;
-import org.structr.core.function.GrantFunction;
 import org.structr.core.function.GtFunction;
 import org.structr.core.function.GteFunction;
+import org.structr.core.function.HasCacheValueFunction;
 import org.structr.core.function.HasIncomingRelationshipFunction;
 import org.structr.core.function.HasOutgoingRelationshipFunction;
 import org.structr.core.function.HasRelationshipFunction;
 import org.structr.core.function.IncCounterFunction;
 import org.structr.core.function.IncomingFunction;
 import org.structr.core.function.IndexOfFunction;
-import org.structr.core.function.InheritingTypesFunction;
-import org.structr.core.function.InstantiateFunction;
 import org.structr.core.function.IntFunction;
 import org.structr.core.function.IntSumFunction;
-import org.structr.core.function.IsAllowedFunction;
 import org.structr.core.function.IsCollectionFunction;
 import org.structr.core.function.IsEntityFunction;
-import org.structr.core.function.IsInGroupFunction;
-import org.structr.core.function.JdbcFunction;
 import org.structr.core.function.JoinFunction;
 import org.structr.core.function.KeysFunction;
 import org.structr.core.function.LastFunction;
 import org.structr.core.function.LengthFunction;
-import org.structr.core.function.LocalizeFunction;
 import org.structr.core.function.LogFunction;
 import org.structr.core.function.LowerFunction;
 import org.structr.core.function.LtFunction;
@@ -123,24 +101,16 @@ import org.structr.core.function.OutgoingFunction;
 import org.structr.core.function.ParseDateFunction;
 import org.structr.core.function.ParseNumberFunction;
 import org.structr.core.function.PrintFunction;
-import org.structr.core.function.PrivilegedFindFunction;
-import org.structr.core.function.PropertyInfoFunction;
 import org.structr.core.function.QuotFunction;
-import org.structr.core.function.RInterpreterFunction;
 import org.structr.core.function.RandomFunction;
-import org.structr.core.function.ReadFunction;
-import org.structr.core.function.RemoveFromGroupFunction;
 import org.structr.core.function.ReplaceFunction;
 import org.structr.core.function.ResetCounterFunction;
 import org.structr.core.function.RetrieveFunction;
-import org.structr.core.function.RevokeFunction;
 import org.structr.core.function.RintFunction;
 import org.structr.core.function.RoundFunction;
 import org.structr.core.function.SearchFunction;
-import org.structr.core.function.ServerLogFunction;
 import org.structr.core.function.SetFunction;
 import org.structr.core.function.SetLocaleFunction;
-import org.structr.core.function.SetPrivilegedFunction;
 import org.structr.core.function.SizeFunction;
 import org.structr.core.function.SortFunction;
 import org.structr.core.function.SplitFunction;
@@ -150,23 +120,16 @@ import org.structr.core.function.StoreFunction;
 import org.structr.core.function.StrReplaceFunction;
 import org.structr.core.function.SubstringFunction;
 import org.structr.core.function.SubtFunction;
-import org.structr.core.function.TemplateFunction;
 import org.structr.core.function.TimerFunction;
 import org.structr.core.function.TitleizeFunction;
 import org.structr.core.function.ToDateFunction;
 import org.structr.core.function.TrimFunction;
-import org.structr.core.function.TypeInfoFunction;
-import org.structr.core.function.UnlockReadonlyPropertiesFunction;
-import org.structr.core.function.UnlockSystemPropertiesFunction;
 import org.structr.core.function.UnwindFunction;
 import org.structr.core.function.UpperFunction;
 import org.structr.core.function.UrlEncodeFunction;
-import org.structr.core.function.UserChangelogFunction;
 import org.structr.core.function.ValuesFunction;
 import org.structr.core.function.WeekDaysFunction;
-import org.structr.core.function.WriteFunction;
-import org.structr.core.function.XPathFunction;
-import org.structr.core.function.XmlFunction;
+import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
 /**
@@ -176,168 +139,121 @@ public class CoreModule implements StructrModule {
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+	}
 
-		final boolean licensed = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
-		// Basic Edition
-		Functions.put(licensed, LicenseManager.Basic, new ErrorFunction());
-		Functions.put(licensed, LicenseManager.Basic, new ConfigFunction());
-		Functions.put(licensed, LicenseManager.Basic, new ChangelogFunction());
-		Functions.put(licensed, LicenseManager.Basic, new UserChangelogFunction());
-		Functions.put(licensed, LicenseManager.Basic, new ServerLogFunction());
+		Functions.put(licenseManager, new CypherFunction());
+		Functions.put(licenseManager, new MD5Function());
+		Functions.put(licenseManager, new UpperFunction());
+		Functions.put(licenseManager, new LowerFunction());
+		Functions.put(licenseManager, new JoinFunction());
+		Functions.put(licenseManager, new ConcatFunction());
+		Functions.put(licenseManager, new SplitFunction());
+		Functions.put(licenseManager, new SplitRegexFunction());
+		Functions.put(licenseManager, new AbbrFunction());
+		Functions.put(licenseManager, new CapitalizeFunction());
+		Functions.put(licenseManager, new TitleizeFunction());
+		Functions.put(licenseManager, new NumFunction());
+		Functions.put(licenseManager, new IntFunction());
+		Functions.put(licenseManager, new RandomFunction());
+		Functions.put(licenseManager, new RintFunction());
+		Functions.put(licenseManager, new IndexOfFunction());
+		Functions.put(licenseManager, new ContainsFunction());
+		Functions.put(licenseManager, new CopyPermissionsFunction());
+		Functions.put(licenseManager, new SubstringFunction());
+		Functions.put(licenseManager, new LengthFunction());
+		Functions.put(licenseManager, new ReplaceFunction());
+		Functions.put(licenseManager, new TrimFunction());
+		Functions.put(licenseManager, new CleanFunction());
+		Functions.put(licenseManager, new CoalesceFunction());
+		Functions.put(licenseManager, new CoalesceObjectsFunction());
+		Functions.put(licenseManager, new UrlEncodeFunction());
+		Functions.put(licenseManager, new EscapeJavascriptFunction());
+		Functions.put(licenseManager, new EscapeJsonFunction());
+		Functions.put(licenseManager, new EmptyFunction());
+		Functions.put(licenseManager, new EqualFunction());
+		Functions.put(licenseManager, new AddFunction());
+		Functions.put(licenseManager, new DoubleSumFunction());
+		Functions.put(licenseManager, new IntSumFunction());
+		Functions.put(licenseManager, new IsCollectionFunction());
+		Functions.put(licenseManager, new IsEntityFunction());
+		Functions.put(licenseManager, new ExtractFunction());
+		Functions.put(licenseManager, new MergeFunction());
+		Functions.put(licenseManager, new MergeUniqueFunction());
+		Functions.put(licenseManager, new ComplementFunction());
+		Functions.put(licenseManager, new UnwindFunction());
+		Functions.put(licenseManager, new SortFunction());
+		Functions.put(licenseManager, new LtFunction());
+		Functions.put(licenseManager, new GtFunction());
+		Functions.put(licenseManager, new LteFunction());
+		Functions.put(licenseManager, new GteFunction());
+		Functions.put(licenseManager, new SubtFunction());
+		Functions.put(licenseManager, new MultFunction());
+		Functions.put(licenseManager, new QuotFunction());
+		Functions.put(licenseManager, new DivFunction());
+		Functions.put(licenseManager, new ModFunction());
+		Functions.put(licenseManager, new FloorFunction());
+		Functions.put(licenseManager, new CeilFunction());
+		Functions.put(licenseManager, new RoundFunction());
+		Functions.put(licenseManager, new MaxFunction());
+		Functions.put(licenseManager, new MinFunction());
+		Functions.put(licenseManager, new SetLocaleFunction());
+		Functions.put(licenseManager, new DateFormatFunction());
+		Functions.put(licenseManager, new ParseDateFunction());
+		Functions.put(licenseManager, new WeekDaysFunction());
+		Functions.put(licenseManager, new ToDateFunction());
+		Functions.put(licenseManager, new NumberFormatFunction());
+		Functions.put(licenseManager, new ParseNumberFunction());
+		Functions.put(licenseManager, new NotFunction());
+		Functions.put(licenseManager, new AndFunction());
+		Functions.put(licenseManager, new OrFunction());
+		Functions.put(licenseManager, new GetFunction());
+		Functions.put(licenseManager, new GetOrNullFunction());
+		Functions.put(licenseManager, new SizeFunction());
+		Functions.put(licenseManager, new FirstFunction());
+		Functions.put(licenseManager, new LastFunction());
+		Functions.put(licenseManager, new NthFunction());
+		Functions.put(licenseManager, new GetCounterFunction());
+		Functions.put(licenseManager, new IncCounterFunction());
+		Functions.put(licenseManager, new ResetCounterFunction());
+		Functions.put(licenseManager, new MergePropertiesFunction());
+		Functions.put(licenseManager, new KeysFunction());
+		Functions.put(licenseManager, new ValuesFunction());
+		Functions.put(licenseManager, new TimerFunction());
+		Functions.put(licenseManager, new StrReplaceFunction());
+		Functions.put(licenseManager, new SearchFunction());
+		Functions.put(licenseManager, new IncomingFunction());
+		Functions.put(licenseManager, new OutgoingFunction());
+		Functions.put(licenseManager, new HasRelationshipFunction());
+		Functions.put(licenseManager, new HasOutgoingRelationshipFunction());
+		Functions.put(licenseManager, new HasIncomingRelationshipFunction());
+		Functions.put(licenseManager, new GetRelationshipsFunction());
+		Functions.put(licenseManager, new GetOutgoingRelationshipsFunction());
+		Functions.put(licenseManager, new GetIncomingRelationshipsFunction());
+		Functions.put(licenseManager, new RetrieveFunction());
+		Functions.put(licenseManager, new StoreFunction());
+		Functions.put(licenseManager, new PrintFunction());
+		Functions.put(licenseManager, new LogFunction());
+		Functions.put(licenseManager, new DebugFunction());
+		Functions.put(licenseManager, new FindFunction());
+		Functions.put(licenseManager, new GetOrCreateFunction());
+		Functions.put(licenseManager, new FindRelationshipFunction());
+		Functions.put(licenseManager, new StartsWithFunction());
+		Functions.put(licenseManager, new EndsWithFunction());
+		Functions.put(licenseManager, new Base64EncodeFunction());
+		Functions.put(licenseManager, new Base64DecodeFunction());
 
-		Functions.put(licensed, LicenseManager.Basic, new GrantFunction());
-		Functions.put(licensed, LicenseManager.Basic, new RevokeFunction());
-		Functions.put(licensed, LicenseManager.Basic, new IsAllowedFunction());
-		Functions.put(licensed, LicenseManager.Basic, new AddToGroupFunction());
-		Functions.put(licensed, LicenseManager.Basic, new RemoveFromGroupFunction());
-		Functions.put(licensed, LicenseManager.Basic, new IsInGroupFunction());
-
-		Functions.put(licensed, LicenseManager.Basic, new LocalizeFunction());
-
-		Functions.put(licensed, LicenseManager.Basic, new CallFunction());
-		Functions.put(licensed, LicenseManager.Basic, new CallPrivilegedFunction());
-		Functions.put(licensed, LicenseManager.Basic, new ExecFunction());
-		Functions.put(licensed, LicenseManager.Basic, new ExecBinaryFunction());
-
-		Functions.put(licensed, LicenseManager.Basic, new UnlockReadonlyPropertiesFunction());
-		Functions.put(licensed, LicenseManager.Basic, new UnlockSystemPropertiesFunction());
-		Functions.put(licensed, LicenseManager.Basic, new SetPrivilegedFunction());
-		Functions.put(licensed, LicenseManager.Basic, new PrivilegedFindFunction());
-
-		Functions.put(licensed, LicenseManager.Basic, new ReadFunction());
-		Functions.put(licensed, LicenseManager.Basic, new WriteFunction());
-		Functions.put(licensed, LicenseManager.Basic, new AppendFunction());
-		Functions.put(licensed, LicenseManager.Basic, new XmlFunction());
-		Functions.put(licensed, LicenseManager.Basic, new XPathFunction());
-		Functions.put(licensed, LicenseManager.Basic, new GeocodeFunction());
-
-		Functions.put(licensed, LicenseManager.Basic, new InstantiateFunction());
-
-		Functions.put(licensed, LicenseManager.Basic, new PropertyInfoFunction());
-		Functions.put(licensed, LicenseManager.Basic, new TypeInfoFunction());
-		Functions.put(licensed, LicenseManager.Basic, new EnumInfoFunction());
-		Functions.put(licensed, LicenseManager.Basic, new DisableCascadingDeleteFunction());
-		Functions.put(licensed, LicenseManager.Basic, new EnableCascadingDeleteFunction());
-		Functions.put(licensed, LicenseManager.Basic, new DisableNotificationsFunction());
-		Functions.put(licensed, LicenseManager.Basic, new EnableNotificationsFunction());
-		Functions.put(licensed, LicenseManager.Basic, new RInterpreterFunction());
-		Functions.put(licensed, LicenseManager.Basic, new EvaluateScriptFunction());
-		Functions.put(licensed, LicenseManager.Basic, new AncestorTypesFunction());
-		Functions.put(licensed, LicenseManager.Basic, new InheritingTypesFunction());
-
-		Functions.put(licensed, LicenseManager.Basic, new TemplateFunction());
-		Functions.put(licensed, LicenseManager.Basic, new JdbcFunction());
-
-		Functions.put(licensed, LicenseManager.Enterprise, new GetRelationshipTypesFunction());
-
-		// Community Edition
-		Functions.put(true, LicenseManager.Community, new CypherFunction());
-		Functions.put(true, LicenseManager.Community, new MD5Function());
-		Functions.put(true, LicenseManager.Community, new UpperFunction());
-		Functions.put(true, LicenseManager.Community, new LowerFunction());
-		Functions.put(true, LicenseManager.Community, new JoinFunction());
-		Functions.put(true, LicenseManager.Community, new ConcatFunction());
-		Functions.put(true, LicenseManager.Community, new SplitFunction());
-		Functions.put(true, LicenseManager.Community, new SplitRegexFunction());
-		Functions.put(true, LicenseManager.Community, new AbbrFunction());
-		Functions.put(true, LicenseManager.Community, new CapitalizeFunction());
-		Functions.put(true, LicenseManager.Community, new TitleizeFunction());
-		Functions.put(true, LicenseManager.Community, new NumFunction());
-		Functions.put(true, LicenseManager.Community, new IntFunction());
-		Functions.put(true, LicenseManager.Community, new RandomFunction());
-		Functions.put(true, LicenseManager.Community, new RintFunction());
-		Functions.put(true, LicenseManager.Community, new IndexOfFunction());
-		Functions.put(true, LicenseManager.Community, new ContainsFunction());
-		Functions.put(true, LicenseManager.Community, new CopyPermissionsFunction());
-		Functions.put(true, LicenseManager.Community, new SubstringFunction());
-		Functions.put(true, LicenseManager.Community, new LengthFunction());
-		Functions.put(true, LicenseManager.Community, new ReplaceFunction());
-		Functions.put(true, LicenseManager.Community, new TrimFunction());
-		Functions.put(true, LicenseManager.Community, new CleanFunction());
-		Functions.put(true, LicenseManager.Community, new CoalesceFunction());
-		Functions.put(true, LicenseManager.Community, new CoalesceObjectsFunction());
-		Functions.put(true, LicenseManager.Community, new UrlEncodeFunction());
-		Functions.put(true, LicenseManager.Community, new EscapeJavascriptFunction());
-		Functions.put(true, LicenseManager.Community, new EscapeJsonFunction());
-		Functions.put(true, LicenseManager.Community, new EmptyFunction());
-		Functions.put(true, LicenseManager.Community, new EqualFunction());
-		Functions.put(true, LicenseManager.Community, new AddFunction());
-		Functions.put(true, LicenseManager.Community, new DoubleSumFunction());
-		Functions.put(true, LicenseManager.Community, new IntSumFunction());
-		Functions.put(true, LicenseManager.Community, new IsCollectionFunction());
-		Functions.put(true, LicenseManager.Community, new IsEntityFunction());
-		Functions.put(true, LicenseManager.Community, new ExtractFunction());
-		Functions.put(true, LicenseManager.Community, new MergeFunction());
-		Functions.put(true, LicenseManager.Community, new MergeUniqueFunction());
-		Functions.put(true, LicenseManager.Community, new ComplementFunction());
-		Functions.put(true, LicenseManager.Community, new UnwindFunction());
-		Functions.put(true, LicenseManager.Community, new SortFunction());
-		Functions.put(true, LicenseManager.Community, new LtFunction());
-		Functions.put(true, LicenseManager.Community, new GtFunction());
-		Functions.put(true, LicenseManager.Community, new LteFunction());
-		Functions.put(true, LicenseManager.Community, new GteFunction());
-		Functions.put(true, LicenseManager.Community, new SubtFunction());
-		Functions.put(true, LicenseManager.Community, new MultFunction());
-		Functions.put(true, LicenseManager.Community, new QuotFunction());
-		Functions.put(true, LicenseManager.Community, new DivFunction());
-		Functions.put(true, LicenseManager.Community, new ModFunction());
-		Functions.put(true, LicenseManager.Community, new FloorFunction());
-		Functions.put(true, LicenseManager.Community, new CeilFunction());
-		Functions.put(true, LicenseManager.Community, new RoundFunction());
-		Functions.put(true, LicenseManager.Community, new MaxFunction());
-		Functions.put(true, LicenseManager.Community, new MinFunction());
-		Functions.put(true, LicenseManager.Community, new SetLocaleFunction());
-		Functions.put(true, LicenseManager.Community, new DateFormatFunction());
-		Functions.put(true, LicenseManager.Community, new ParseDateFunction());
-		Functions.put(true, LicenseManager.Community, new WeekDaysFunction());
-		Functions.put(true, LicenseManager.Community, new ToDateFunction());
-		Functions.put(true, LicenseManager.Community, new NumberFormatFunction());
-		Functions.put(true, LicenseManager.Community, new ParseNumberFunction());
-		Functions.put(true, LicenseManager.Community, new NotFunction());
-		Functions.put(true, LicenseManager.Community, new AndFunction());
-		Functions.put(true, LicenseManager.Community, new OrFunction());
-		Functions.put(true, LicenseManager.Community, new GetFunction());
-		Functions.put(true, LicenseManager.Community, new GetOrNullFunction());
-		Functions.put(true, LicenseManager.Community, new SizeFunction());
-		Functions.put(true, LicenseManager.Community, new FirstFunction());
-		Functions.put(true, LicenseManager.Community, new LastFunction());
-		Functions.put(true, LicenseManager.Community, new NthFunction());
-		Functions.put(true, LicenseManager.Community, new GetCounterFunction());
-		Functions.put(true, LicenseManager.Community, new IncCounterFunction());
-		Functions.put(true, LicenseManager.Community, new ResetCounterFunction());
-		Functions.put(true, LicenseManager.Community, new MergePropertiesFunction());
-		Functions.put(true, LicenseManager.Community, new KeysFunction());
-		Functions.put(true, LicenseManager.Community, new ValuesFunction());
-		Functions.put(true, LicenseManager.Community, new TimerFunction());
-		Functions.put(true, LicenseManager.Community, new StrReplaceFunction());
-		Functions.put(true, LicenseManager.Community, new SearchFunction());
-		Functions.put(true, LicenseManager.Community, new IncomingFunction());
-		Functions.put(true, LicenseManager.Community, new OutgoingFunction());
-		Functions.put(true, LicenseManager.Community, new HasRelationshipFunction());
-		Functions.put(true, LicenseManager.Community, new HasOutgoingRelationshipFunction());
-		Functions.put(true, LicenseManager.Community, new HasIncomingRelationshipFunction());
-		Functions.put(true, LicenseManager.Community, new GetRelationshipsFunction());
-		Functions.put(true, LicenseManager.Community, new GetOutgoingRelationshipsFunction());
-		Functions.put(true, LicenseManager.Community, new GetIncomingRelationshipsFunction());
-		Functions.put(true, LicenseManager.Community, new RetrieveFunction());
-		Functions.put(true, LicenseManager.Community, new StoreFunction());
-		Functions.put(true, LicenseManager.Community, new PrintFunction());
-		Functions.put(true, LicenseManager.Community, new LogFunction());
-		Functions.put(true, LicenseManager.Community, new DebugFunction());
-		Functions.put(true, LicenseManager.Community, new FindFunction());
-		Functions.put(true, LicenseManager.Community, new GetOrCreateFunction());
-		Functions.put(true, LicenseManager.Community, new FindRelationshipFunction());
-		Functions.put(true, LicenseManager.Community, new StartsWithFunction());
-		Functions.put(true, LicenseManager.Community, new EndsWithFunction());
-		Functions.put(true, LicenseManager.Community, new Base64EncodeFunction());
-		Functions.put(true, LicenseManager.Community, new Base64DecodeFunction());
+		Functions.put(licenseManager, new HasCacheValueFunction());
+		Functions.put(licenseManager, new GetCacheValueFunction());
+		Functions.put(licenseManager, new DeleteCacheValueFunction());
 
 		// ----- BEGIN functions with side effects -----
-		Functions.put(true, LicenseManager.Community, new SetFunction());
-		Functions.put(true, LicenseManager.Community, new CreateFunction());
-		Functions.put(true, LicenseManager.Community, new DeleteFunction());
-		Functions.put(true, LicenseManager.Community, new CreateRelationshipFunction());
+		Functions.put(licenseManager, new SetFunction());
+		Functions.put(licenseManager, new CreateFunction());
+		Functions.put(licenseManager, new DeleteFunction());
+		Functions.put(licenseManager, new CreateRelationshipFunction());
 	}
 
 	@Override
@@ -356,15 +272,15 @@ public class CoreModule implements StructrModule {
 	}
 
 	@Override
-	public void insertImportStatements(final AbstractSchemaNode schemaNode, final StringBuilder buf) {
+	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
 	}
 
 	@Override
-	public void insertSourceCode(final AbstractSchemaNode schemaNode, final StringBuilder buf) {
+	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
 	}
 
 	@Override
-	public void insertSaveAction(final AbstractSchemaNode schemaNode, final StringBuilder buf, final Actions.Type type) {
+	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
 	}
 
 	@Override

@@ -22,10 +22,9 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 import static org.structr.web.function.SetSessionAttributeFunction.SESSION_ATTRIBUTE_PREFIX;
 
-public class GetSessionAttributeFunction extends Function<Object, Object> {
+public class GetSessionAttributeFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_GET_SESSION_ATTRIBUTE    = "Usage: ${get_session_attribute(key, object)}. Example: ${get_session_attribute(\"do_no_track\")}";
 	public static final String ERROR_MESSAGE_GET_SESSION_ATTRIBUTE_JS = "Usage: ${{Structr.get_session_attribute(key, object)}}. Example: ${{Structr.get_session_attribute(\"do_not_track\")}}";

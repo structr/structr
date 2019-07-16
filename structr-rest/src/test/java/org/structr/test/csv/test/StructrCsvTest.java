@@ -48,7 +48,7 @@ public class StructrCsvTest extends StructrRestTestBase {
 
 		Settings.Services.setValue("NodeService SchemaService HttpService");
 
-		setupNeo4jConnection();
+		setupDatabaseConnection();
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);

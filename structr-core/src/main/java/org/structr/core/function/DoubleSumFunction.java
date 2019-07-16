@@ -22,9 +22,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class DoubleSumFunction extends Function<Object, Object> {
+public class DoubleSumFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_DOUBLE_SUM = "Usage: ${double_sum(list)}. Example: ${double_sum(extract(this.children, \"amount\"))}";
 

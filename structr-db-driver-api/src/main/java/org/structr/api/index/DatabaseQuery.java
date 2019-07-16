@@ -18,14 +18,31 @@
  */
 package org.structr.api.index;
 
+import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortType;
 
 public interface DatabaseQuery {
 
+	/**
+	 * Indicates AND conjunction with the next predicate.
+	 */
 	public void and();
+
+	/**
+	 * Indicates OR conjunction with the next predicate.
+	 */
 	public void or();
+
+	/**
+	 * Indicates negation of the next predicate.
+	 */
 	public void not();
+
+	/**
+	 * Indicates AND conjunction and negation of the next predicate.
+	 */
 	public void andNot();
 
 	void sort(final SortType sortType, final String sortKey, final boolean sortDescending);
+	QueryContext getQueryContext();
 }

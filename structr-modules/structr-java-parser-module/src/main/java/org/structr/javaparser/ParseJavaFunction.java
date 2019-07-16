@@ -27,9 +27,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class ParseJavaFunction extends Function<Object, Object> {
+public class ParseJavaFunction extends ParserModuleFunction {
 
 	public static final String ERROR_MESSAGE_PARSE_JAVA = "Usage: ${parse_java(javaSource)}";
 

@@ -21,6 +21,7 @@ package org.structr.test.rest.entity;
 import java.util.Date;
 import java.util.Map;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.core.Export;
 import org.structr.core.entity.AbstractNode;
@@ -46,20 +47,20 @@ public class TestOne extends AbstractNode {
 	);
 
 	@Export
-	public RestMethodResult test01(final Map<String, Object> params) {
+	public RestMethodResult test01(final SecurityContext securityContext, final Map<String, Object> params) {
 		return null;
 	}
 
 	@Export
-	public void test02(final Map<String, Object> params) {
+	public void test02(final SecurityContext securityContext, final Map<String, Object> params) {
 	}
 
 	@Export
-	public RestMethodResult test03() {
+	public RestMethodResult test03(final SecurityContext securityContext) {
 		return null;
 	}
 
 	@Export
-	public void test04() {
+	public void test04(final SecurityContext securityContext) {
 	}
 }

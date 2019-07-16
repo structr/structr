@@ -18,18 +18,20 @@
  */
 package org.structr.core.function;
 
+import java.util.HashSet;
+import java.util.Set;
+import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class CopyPermissionsFunction extends Function<Object, Object> {
+public class CopyPermissionsFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE    = "Usage: copy_permissions(this, this.child)";
-	public static final String ERROR_MESSAGE_JS = "Usage: Structr.copyPermissions(Structr.this, other);";
+	public static final String ERROR_MESSAGE    = "Usage: ${copy_permissions(source, target[, overwrite])}. Example: ${copy_permissions(this, this.child)}";
+	public static final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.copy_permissions(source, target[, overwrite]); }}. Example: ${{ Structr.copy_permissions(Structr.this, Structr.this.child); }}";
 
 	@Override
 	public String getName() {
@@ -41,10 +43,11 @@ public class CopyPermissionsFunction extends Function<Object, Object> {
 
 		try {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 3);
 
 			final Object source = sources[0];
 			final Object target = sources[1];
+			final Boolean overwrite = (sources.length == 3 && Boolean.TRUE.equals(sources[2]));
 
 			if (source instanceof NodeInterface && target instanceof NodeInterface) {
 
@@ -53,21 +56,28 @@ public class CopyPermissionsFunction extends Function<Object, Object> {
 
 				for (final Security security : sourceNode.getIncomingRelationships(Security.class)) {
 
+					final Set<Permission> permissions = new HashSet();
 					final Principal principal = security.getSourceNode();
 
 					for (final String perm : security.getPermissions()) {
+						permissions.add(Permissions.valueOf(perm));
+					}
 
-						targetNode.grant(Permissions.valueOf(perm), principal);
+					if (overwrite) {
+
+						targetNode.setAllowed(permissions, principal, ctx.getSecurityContext());
+
+					} else {
+
+						targetNode.grant(permissions, principal, ctx.getSecurityContext());
 					}
 				}
-
 			} else {
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
 			}
 
 			return null;
-
 
 		} catch (IllegalArgumentException e) {
 

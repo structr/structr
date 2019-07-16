@@ -25,7 +25,7 @@ import org.structr.core.entity.OneToOne;
  *
  */
 public class OneTwoOneToOne extends OneToOne<TestOne, TestTwo> {
-	
+
 	@Override
 	public Class<TestOne> getSourceType() {
 		return TestOne.class;

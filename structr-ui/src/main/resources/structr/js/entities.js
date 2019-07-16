@@ -604,13 +604,21 @@ var _Entities = {
 
 				if (entity.isDOMNode) {
 
-					_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', !hasCustomDialog, function(c) {
-						_Entities.queryDialog(entity, c, typeInfo);
-					});
+					if (entity.isContent !== true || entity.type === 'Template') {
 
-					_Entities.appendPropTab(entity, mainTabs, contentEl, 'editBinding', 'Edit Mode Binding', false, function(c) {
-						_Entities.dataBindingDialog(entity, c, typeInfo);
-					});
+						_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', !hasCustomDialog, function(c) {
+							_Entities.queryDialog(entity, c, typeInfo);
+						});
+
+					}
+
+					if (entity.isContent !== true) {
+
+						_Entities.appendPropTab(entity, mainTabs, contentEl, 'editBinding', 'Edit Mode Binding', false, function(c) {
+							_Entities.dataBindingDialog(entity, c, typeInfo);
+						});
+
+					}
 
 				}
 
@@ -707,15 +715,18 @@ var _Entities = {
 				tabView.show();
 				LSWrapper.setItem(_Entities.activeEditTabPrefix  + '_' + entity.id, view);
 
-				_Entities.listProperties(entity, view, tabView, typeInfo);
+				_Entities.listProperties(entity, view, tabView, typeInfo, function() {
+					$('input.dateField', tabView).each(function(i, input) {
+						_Entities.activateDatePicker($(input));
+					});
+				});
 			});
 		});
-
 	},
 	getNullIconForKey: function(key) {
 		return '<i id="' + _Entities.null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />';
 	},
-	listProperties: function(entity, view, tabView, typeInfo) {
+	listProperties: function(entity, view, tabView, typeInfo, callback) {
 
 		_Entities.getSchemaProperties(entity.type, view, function(properties) {
 
@@ -728,7 +739,7 @@ var _Entities = {
 			});
 
 			$.ajax({
-				url: rootUrl + entity.type + '/' + entity.id + '/all',
+				url: rootUrl + entity.type + '/' + entity.id + '/all?edit=2',
 				dataType: 'json',
 				headers: {
 					Accept: 'application/json; charset=utf-8; properties=' + filteredProperties.join(',')
@@ -790,11 +801,13 @@ var _Entities = {
 						collectionProperties.forEach(function(key) {
 							_Entities.displayCollectionPager(tempNodeCache, entity, key, 1);
 						});
-
 					});
+
+					if (typeof callback === 'function') {
+						callback();
+					}
 				}
 			});
-
 		});
 	},
 	displayCollectionPager: function(tempNodeCache, entity, key, page) {
@@ -827,7 +840,6 @@ var _Entities = {
 
 					// display result count
 					cell.prev('td.key').append(' <span></span>');
-
 				}
 
 				// update result count
@@ -884,14 +896,10 @@ var _Entities = {
 								});
 							});
 						});
-
 					});
 				}
-
 			}
 		});
-
-
 	},
 	createPropertyTable: function(heading, keys, res, entity, view, tabView, typeInfo, tempNodeCache) {
 
@@ -1001,7 +1009,7 @@ var _Entities = {
 
 						} else if (isDate && !isReadOnly) {
 
-							_Entities.appendDatePicker(cell, res, key, typeInfo[key].format);
+							cell.append('<input class="dateField" name="' + key + '" type="text" value="' + (res[key] || '') + '" data-date-format="' + typeInfo[key].format + '">');
 
 						} else if (isRelated) {
 
@@ -1066,8 +1074,13 @@ var _Entities = {
 				var textarea = $('.' + key + '_').find('textarea');
 				_Entities.setProperty(id, key, null, false, function(newVal) {
 					if (!newVal) {
-						blinkGreen(cell);
-						Structr.showAndHideInfoBoxMessage('Property "' + key + '" has been set to null.', 'success', 2000, 1000);
+						if (key.indexOf('_custom_html_') === -1) {
+							blinkGreen(cell);
+							Structr.showAndHideInfoBoxMessage('Property "' + key + '" has been set to null.', 'success', 2000, 1000);
+						} else {
+							nullIcon.closest('tr').remove();
+							Structr.showAndHideInfoBoxMessage('Custom HTML property "' + key + '" has been removed', 'success', 2000, 1000);
+						}
 
 						if (key === 'name') {
 							var entity = StructrModel.objects[id];
@@ -1093,32 +1106,95 @@ var _Entities = {
 			});
 		});
 
-
-		propsTable.append('<tr class="hidden"><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
 		$('.props tr td.value input',    dialog).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId, typeInfo); });
 		$('.props tr td.value textarea', dialog).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId, typeInfo); });
 
-		Structr.appendInfoTextToElement({
-			element: $('.newKey', propsTable),
-			text: "Any attribute name is allowed but 'data-' attributes are recommended. (data-structr is reserved for internal use)",
-			insertAfter: true,
-			css: {
-				marginLeft: "3px",
-				top: "-5px",
-				position: "relative"
-			}
-		});
 
 		if (view === '_html_') {
 			$('input[name="_html_' + focusAttr + '"]', propsTable).focus();
 
 			tabView.append('<button class="show-all">Show all attributes</button>');
 			$('.show-all', tabView).on('click', function() {
-				$('tr.hidden').toggle(0, function() {
-					$('tr:visible:odd').css({'background-color': '#f6f6f6'});
-					$('tr:visible:even').css({'background-color': '#fff'});
+
+				propsTable.addClass('show-all');
+
+				$('tr:visible:odd').css({'background-color': '#f6f6f6'});
+				$('tr:visible:even').css({'background-color': '#fff'});
+				$(this).attr('disabled', 'disabled').addClass('disabled');
+			});
+
+			let addCustomAttributeButton = $('<button class="add-custom-attribute">Add custom attribute</button>');
+			tabView.append(addCustomAttributeButton);
+
+			Structr.appendInfoTextToElement({
+				element: addCustomAttributeButton,
+				text: "Any attribute name is allowed but 'data-' attributes are recommended. (data-structr is reserved for internal use!)",
+				insertAfter: true,
+				css: {
+					marginLeft: "3px",
+					top: "-5px",
+					position: "relative"
+				}
+			});
+
+			let saveCustomHTMLAttribute = function(row, exitedInput) {
+
+				let keyInput = $('td.key input', row);
+				let valInput = $('td.value input', row);
+
+				let key = keyInput.val().trim();
+				let val = valInput.val().trim();
+
+				// only run save action if we have a key and we just left the value input
+				if (key !== '' && exitedInput[0] === valInput[0]) {
+
+					var regexAllowed = new RegExp("^[a-zA-Z0-9_\-]*$");
+
+					if (key.indexOf('data-structr') === 0) {
+
+						blinkRed(keyInput);
+						new MessageBuilder().error('Key can not start with "data-structr" as it is reserved for internal use.').show();
+
+					} else if (!regexAllowed.test(key)) {
+
+						blinkRed(keyInput);
+						new MessageBuilder().error('Key contains forbidden characters. Allowed: "a-z", "A-Z", "-" and "_".').show();
+
+					} else {
+
+						var newKey = '_custom_html_' + key;
+
+						Command.setProperty(id, newKey, val, false, function() {
+							blinkGreen(exitedInput);
+							Structr.showAndHideInfoBoxMessage('New property "' + newKey + '" has been added and saved with value "' + val + '".', 'success', 2000, 1000);
+
+							keyInput.replaceWith(key);
+							valInput.attr('name', newKey);
+
+							let nullIcon = $(_Entities.getNullIconForKey(newKey));
+							$('td:last', row).append(nullIcon);
+							nullIcon.on('click', function() {
+								var key = $(this).prop('id').substring(_Entities.null_prefix.length);
+								_Entities.setProperty(id, key, null, false, function(newVal) {
+									row.remove();
+									Structr.showAndHideInfoBoxMessage('Custom HTML property "' + key + '" has been removed', 'success', 2000, 1000);
+								});
+							});
+
+							// deactivate this function and resume regular save-actions
+							_Entities.activateInput(valInput, id, entity.pageId, typeInfo);
+						});
+					}
+				}
+			};
+
+			addCustomAttributeButton.on('click', function(e) {
+				let newAttributeRow = $('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
+				propsTable.append(newAttributeRow);
+
+				$('input', newAttributeRow).on('focusout', function(e) {
+					saveCustomHTMLAttribute(newAttributeRow, $(this));
 				});
-				$(this).remove();
 			});
 		}
 
@@ -1267,8 +1343,15 @@ var _Entities = {
 		}
 		el.append('<input class="dateField" name="' + key + '" type="text" value="' + entity[key] + '">');
 		var dateField = $(el.find('.dateField'));
+		_Entities.activateDatePicker(dateField, format);
+	},
+	activateDatePicker: function(input, format) {
+		if (!format) {
+			format = input.data('dateFormat');
+		}
+
 		var dateTimePickerFormat = getDateTimePickerFormat(format);
-		dateField.datetimepicker({
+		input.datetimepicker({
 			dateFormat: dateTimePickerFormat.dateFormat,
 			timeFormat: dateTimePickerFormat.timeFormat,
 			separator: dateTimePickerFormat.separator
@@ -1322,34 +1405,8 @@ var _Entities = {
 				_Logger.log(_LogType.ENTITIES, 'relId', relId);
 				_Logger.log(_LogType.ENTITIES, 'set properties of obj', objId);
 
-				var keyInput = input.parent().parent().children('td').first().children('input');
-				_Logger.log(_LogType.ENTITIES, keyInput);
-				if (keyInput && keyInput.length) {
+				_Entities.saveValue(input, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback);
 
-					var userInput = keyInput.val();
-					var regexAllowed = new RegExp("^[a-zA-Z0-9_\-]*$");
-
-					if (userInput.indexOf('data-structr') === 0) {
-						blinkRed(keyInput);
-						new MessageBuilder().error('Key can not start with "data-structr" as it is reserved for internal use.').show();
-					} else if (!regexAllowed.test(userInput)) {
-						blinkRed(keyInput);
-						new MessageBuilder().error('Key contains forbidden characters. Allowed: "a-z", "A-Z", "-" and "_".').show();
-					} else {
-						var newKey = '_custom_html_' + userInput;
-						var val = input.val();
-
-						// new key
-						_Logger.log(_LogType.ENTITIES, 'new key: Command.setProperty(', objId, newKey, val);
-						Command.setProperty(objId, newKey, val, false, function() {
-							blinkGreen(input);
-							Structr.showAndHideInfoBoxMessage('New property "' + newKey + '" has been added and saved with value "' + val + '".', 'success', 2000, 1000);
-						});
-					}
-
-				} else {
-					_Entities.saveValue(input, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback);
-				}
 				input.removeClass('active');
 				input.parent().children('.icon').each(function(i, icon) {
 					$(icon).remove();
@@ -1514,7 +1571,9 @@ var _Entities = {
 
 			el.append('<h3>Visibility</h3>');
 
-			if (entity.type === 'Template' || entity.isFolder || (Structr.isModuleActive(_Pages) && !(entity.isContent))) {
+			let allowRecursive = (entity.type === 'Template' || entity.isFolder || (Structr.isModuleActive(_Pages) && !(entity.isContent)));
+
+			if (allowRecursive) {
 				el.append('<div>Apply visibility switches recursively? <input id="recursive" type="checkbox" name="recursive"></div><br>');
 			}
 
@@ -1522,10 +1581,10 @@ var _Entities = {
 			_Entities.appendBooleanSwitch(el, entity, 'visibleToAuthenticatedUsers', ['Visible to auth. users', 'Not visible to auth. users'], 'Click to toggle visibility to logged-in users', '#recursive');
 
 			el.append('<h3>Access Rights</h3>');
-			el.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th></tr></thead><tbody></tbody></table');
+			el.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th>' + (allowRecursive ? '<th></th>' : '') + '</tr></thead><tbody></tbody></table');
 
 			var tb = $('#principals tbody', el);
-			tb.append('<tr id="new"><td><select style="width: 300px;z-index: 999" id="newPrincipal"><option>Select Group/User</option></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td></tr>');
+			tb.append('<tr id="new"><td><select style="z-index: 999" id="newPrincipal"></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td>' + (allowRecursive ? '<td></td>' : '') + '</tr>');
 
 			$.ajax({
 				url: rootUrl + '/' + entity.id + '/in',
@@ -1545,7 +1604,7 @@ var _Entities = {
 						var principalId = result.principalId;
 						if (principalId) {
 							Command.get(principalId, 'id,name,isGroup', function(p) {
-								_Entities.addPrincipal(entity, p, permissions);
+								_Entities.addPrincipal(entity, p, permissions, allowRecursive);
 							});
 						}
 					});
@@ -1555,15 +1614,13 @@ var _Entities = {
 			var select = $('#newPrincipal');
 
 			select.select2({
-				placeholder: 'Search user',
+				placeholder: 'Select Group/User',
 				minimumInputLength: 2,
-				width: '90%',
-				style:"text-align:left;",
+				width: '100%',
 				ajax: {
 					url: '/structr/rest/Principal',
 					dataType: 'json',
 					data: function (params) {
-						//console.log(params);
 						return {
 							name: params.term,
 							loose: 1
@@ -1588,7 +1645,7 @@ var _Entities = {
 				Command.setPermission(entity.id, pId, 'grant', 'read', rec);
 
 				Command.get(pId, 'id,name,isGroup', function(p) {
-					_Entities.addPrincipal(entity, p, {'read': true});
+					_Entities.addPrincipal(entity, p, {'read': true}, allowRecursive);
 				});
 			});
 		};
@@ -1633,16 +1690,22 @@ var _Entities = {
 		_Entities.accessControlDialog(entity, dialogText);
 
 	},
-	addPrincipal: function (entity, principal, permissions) {
+	addPrincipal: function (entity, principal, permissions, allowRecursive) {
+
 		$('#newPrincipal option[value="' + principal.id + '"]').remove();
 		$('#newPrincipal').trigger('chosen:updated');
+
+		if ($('#principals ._' + principal.id, dialogText).length > 0) {
+			return;
+		}
+
 		$('#new').after('<tr class="_' + principal.id + '"><td><i class="typeIcon ' + _Icons.getFullSpriteClass((principal.isGroup ? _Icons.group_icon : _Icons.user_icon)) + '" /> <span class="name">' + principal.name + '</span></td><tr>');
 
 		var row = $('#principals ._' + principal.id, dialogText);
 
 		['read', 'write', 'delete', 'accessControl'].forEach(function(perm) {
 
-			row.append('<td><input class="' + perm + '" type="checkbox"' + (permissions[perm] ? ' checked="checked"' : '') + '"></td>');
+			row.append('<td><input class="' + perm + '" type="checkbox" data-permission="' + perm + '"' + (permissions[perm] ? ' checked="checked"' : '') + '"></td>');
 
 			$('.' + perm, row).on('dblclick', function() {
 				return false;
@@ -1655,7 +1718,6 @@ var _Entities = {
 				checkbox.prop('disabled', true);
 
 				if (!$('input:checked', row).length) {
-					$('#newPrincipal').append('<option value="' + row.attr('class').substring(1) + '">' + $('.name', row).text() + '</option>').trigger('chosen:updated');
 					row.remove();
 				}
 				var recursive = $('#recursive', dialogText).is(':checked');
@@ -1665,13 +1727,34 @@ var _Entities = {
 					checkbox.prop('checked', permissions[perm]);
 					_Logger.log(_LogType.ENTITIES, 'Permission successfully updated!');
 
-					disabled = false;
 					checkbox.prop('disabled', false);
 
 					blinkGreen(checkbox.parent());
 				});
 			});
 		});
+
+		if (allowRecursive) {
+			row.append('<td><button class="action apply-to-child-nodes">Apply to child nodes</button></td>');
+
+			let button = row[0].querySelector('button.apply-to-child-nodes');
+
+			button.addEventListener('click', (e) => {
+
+				button.setAttribute('disabled', 'disabled');
+
+				let permissions = [].map.call(row[0].querySelectorAll('input:checked'), (i) => {
+					return i.dataset.permission;
+				}).join(',');
+
+				Command.setPermission(entity.id, principal.id, 'setAllowed', permissions, true, function() {
+
+					button.removeAttribute('disabled');
+
+					blinkGreen(row);
+				});
+			});
+		}
 	},
 	appendInput: function(el, entity, key, label, desc) {
 		if (!el || !entity) {

@@ -24,10 +24,9 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 import org.structr.web.entity.File;
 
-public class SetContentFunction extends Function<Object, Object> {
+public class SetContentFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_SET_CONTENT    = "Usage: ${set_content(file, content[, encoding = \"UTF-8\"])}. Example: ${set_content(first(find('File', 'name', 'test.txt')), 'Overwritten content')}";
 	public static final String ERROR_MESSAGE_SET_CONTENT_JS = "Usage: ${{Structr.setContent(file, content[, encoding = \"UTF-8\"])}}. Example: ${{Structr.setContent(fileNode, 'Overwritten content')}}";

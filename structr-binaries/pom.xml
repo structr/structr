@@ -4,12 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.structr</groupId>
 	<artifactId>structr-binaries</artifactId>
-	<version>3.2-SNAPSHOT</version>
+	<version>3.4-SNAPSHOT</version>
 
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr</artifactId>
-		<version>3.2-SNAPSHOT</version>
+		<version>3.4-SNAPSHOT</version>
 	</parent>
 
 	<properties>
@@ -177,18 +177,6 @@
 							<goal>push</goal>
 						</goals>
 					</execution>
-					<execution>
-						<id>tag-latest</id>
-						<phase>install</phase>
-						<goals>
-							<goal>build</goal>
-							<goal>tag</goal>
-							<goal>push</goal>
-						</goals>
-						<configuration>
-							<tag>latest</tag>
-						</configuration>
-					</execution>					
 				</executions>
 				<configuration>
 					<repository>structr/structr</repository>
@@ -328,18 +316,5 @@
 		<connection>scm:git:https://github.com:structr/structr.git</connection>
 		<developerConnection>scm:git:git@github.com:structr/structr.git</developerConnection>
 	</scm>
-
-	<!--	<distributionManagement>
-		<repository>
-			<id>sonatype-nexus-staging</id>
-			<name>Maven Central Staging</name>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-		</repository>
-		<snapshotRepository>
-			<id>sonatype-nexus-snapshots</id>
-			<name>Maven Central Snapshots</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
-	</distributionManagement>-->
 
 </project>

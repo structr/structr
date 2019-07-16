@@ -39,20 +39,28 @@ import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseService;
+import org.structr.api.NativeQuery;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
+import org.structr.api.graph.PropagationDirection;
+import static org.structr.api.graph.PropagationDirection.In;
+import static org.structr.api.graph.PropagationDirection.Out;
+import static org.structr.api.graph.PropagationMode.Add;
+import static org.structr.api.graph.PropagationMode.Keep;
+import static org.structr.api.graph.PropagationMode.Remove;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.api.util.Iterables;
-import org.structr.bolt.wrapper.NodeWrapper;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.common.CMISExtensionsData;
 import org.structr.cmis.common.StructrItemActions;
@@ -285,7 +293,17 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	public final void removeProperty(final PropertyKey key) throws FrameworkException {
 
 		if (!isGranted(Permission.write, securityContext)) {
-			throw new FrameworkException(403, "Modification of node " + this.getProperty(AbstractNode.id) + " with type " + this.getProperty(AbstractNode.type) + " by user " + securityContext.getUser(false).getProperty(AbstractNode.id) + " not permitted.");
+
+			final Principal currentUser = securityContext.getUser(false);
+			String user = null;
+
+			if (currentUser == null) {
+				user = securityContext.isSuperUser() ? "superuser" : "anonymous";
+			} else {
+				user = currentUser.getProperty(AbstractNode.id);
+			}
+
+			throw new FrameworkException(403, "Modification of node " + this.getProperty(AbstractNode.id) + " with type " + this.getProperty(AbstractNode.type) + " by user " + user + " not permitted.");
 		}
 
 		if (this.dbNode != null) {
@@ -592,6 +610,21 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
+	public final <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationshipAsSuperUser(final Class<R> type) {
+
+		final SecurityContext suContext      = SecurityContext.getSuperUserInstance();
+		final RelationshipFactory<R> factory = new RelationshipFactory<>(suContext);
+		final R template                     = getRelationshipForType(type);
+		final Relationship relationship      = template.getSource().getRawSource(suContext, dbNode, null);
+
+		if (relationship != null) {
+			return factory.adapt(relationship);
+		}
+
+		return null;
+	}
+
+	@Override
 	public final <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationships(final Class<R> type) {
 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
@@ -645,18 +678,20 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	protected final <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationshipsAsSuperUser(final Class<R> type, final Predicate<GraphObject> predicate) {
 
-		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
+		final SecurityContext suContext      = SecurityContext.getSuperUserInstance();
+		final RelationshipFactory<R> factory = new RelationshipFactory<>(suContext);
 		final R template                     = getRelationshipForType(type);
 
-		return new IterableAdapter<>(template.getSource().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, predicate), factory);
+		return new IterableAdapter<>(template.getSource().getRawSource(suContext, dbNode, predicate), factory);
 	}
 
 	@Override
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(final Class<R> type) {
 
-		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
+		final SecurityContext suContext      = SecurityContext.getSuperUserInstance();
+		final RelationshipFactory<R> factory = new RelationshipFactory<>(suContext);
 		final R template                     = getRelationshipForType(type);
-		final Relationship relationship      = template.getTarget().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, null);
+		final Relationship relationship      = template.getTarget().getRawSource(suContext, dbNode, null);
 
 		if (relationship != null) {
 			return factory.adapt(relationship);
@@ -716,19 +751,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		return getOwnerNode().getUuid();
 
-	}
-
-	protected <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationshipAsSuperUser(final Class<R> type) {
-
-		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
-		final R template                     = getRelationshipForType(type);
-		final Relationship relationship      = template.getSource().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, null);
-
-		if (relationship != null) {
-			return factory.adapt(relationship);
-		}
-
-		return null;
 	}
 
 	/**
@@ -853,8 +875,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			}
 
 			// new experimental custom permission resultion based on query
-			PropertyKey<String> permissionPropertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "customPermissionQuery" + StringUtils.capitalise(permission.name()));
-			final String customPermissionQuery = accessingUser.getProperty(permissionPropertyKey);
+			final PropertyKey<String> permissionPropertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "customPermissionQuery" + StringUtils.capitalise(permission.name()));
+			final String customPermissionQuery              = accessingUser.getProperty(permissionPropertyKey);
 
 			if (StringUtils.isNotEmpty(customPermissionQuery)) {
 
@@ -870,7 +892,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				boolean result = false;
 				try {
 
-					result = ((NodeWrapper) getNode()).evaluateCustomQuery(customPermissionQuery, params);
+					final DatabaseService db       = Services.getInstance().getDatabaseService();
+					final NativeQuery<Boolean> cpq = db.query(customPermissionQuery, Boolean.class);
+
+					cpq.configure(params);
+
+					result = db.execute(cpq);
 
 				} catch (final Exception ex) {
 					logger.error("Error in custom permission resolution", ex);
@@ -1042,15 +1069,15 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	 *
 	 * @return whether permission resolution can continue along this relationship
 	 */
-	private boolean propagationAllowed(final AbstractNode thisNode, final RelationshipInterface rel, final SchemaRelationshipNode.Direction propagationDirection, final boolean doLog) {
+	private boolean propagationAllowed(final AbstractNode thisNode, final RelationshipInterface rel, final PropagationDirection propagationDirection, final boolean doLog) {
 
 		// early exit
-		if (propagationDirection.equals(SchemaRelationshipNode.Direction.Both)) {
+		if (propagationDirection.equals(PropagationDirection.Both)) {
 			return true;
 		}
 
 		// early exit
-		if (propagationDirection.equals(SchemaRelationshipNode.Direction.None)) {
+		if (propagationDirection.equals(PropagationDirection.None)) {
 			return false;
 		}
 
@@ -1374,8 +1401,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				internalSystemPropertiesUnlocked = false;
 				readOnlyPropertiesUnlocked       = false;
 
-				Principal currentUser = securityContext.getUser(false);
-				String user =  null;
+				final Principal currentUser = securityContext.getUser(false);
+				String user = null;
 
 				if (currentUser == null) {
 					user = securityContext.isSuperUser() ? "superuser" : "anonymous";
@@ -1420,15 +1447,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			internalSystemPropertiesUnlocked = false;
 			readOnlyPropertiesUnlocked       = false;
 
-			Principal currentUser = securityContext.getUser(false);
-			String user =  null;
+			final Principal currentUser = securityContext.getUser(false);
+			String user = null;
 
 			if (currentUser == null) {
-
 				user = securityContext.isSuperUser() ? "superuser" : "anonymous";
-
 			} else {
-
 				user = currentUser.getProperty(AbstractNode.id);
 			}
 
@@ -1588,7 +1612,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 					}
 				}
 
-				final Object value = invokeMethod(key, Collections.EMPTY_MAP, false);
+				final Object value = invokeMethod(actionContext.getSecurityContext(), key, Collections.EMPTY_MAP, false);
 				if (value != null) {
 
 					return value;
@@ -1599,20 +1623,23 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public final Object invokeMethod(final String methodName, final Map<String, Object> propertySet, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
+	public final Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> propertySet, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
 
 		final Method method = StructrApp.getConfiguration().getExportedMethodsForType(entityType).get(methodName);
 		if (method != null) {
 
 			try {
 
-				// First, try if single parameter is a map, then directly invoke method
-				if (method.getParameterTypes().length == 1 && method.getParameterTypes()[0].equals(Map.class)) {
-					return method.invoke(this, propertySet);
+				// new structure: first parameter is always securityContext and second parameter can be Map (for dynamically defined methods)
+				if (method.getParameterTypes().length == 2 && method.getParameterTypes()[0].isAssignableFrom(SecurityContext.class) && method.getParameterTypes()[1].equals(Map.class)) {
+					final Object[] args = new Object[] { securityContext };
+					return method.invoke(this, ArrayUtils.add(args, propertySet));
 				}
 
 				// second try: extracted parameter list
-				return method.invoke(this, extractParameters(propertySet, method.getParameterTypes()));
+				final Object[] args = extractParameters(propertySet, method.getParameterTypes());
+
+				return method.invoke(this, ArrayUtils.add(args, 0, securityContext));
 
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException t) {
 
@@ -1648,14 +1675,19 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		int index = 0;
 
 		// only try to convert when both lists have equal size
-		if (values.size() == parameterTypes.length) {
+		// subtract one because securityContext is default and not provided by user
+		if (values.size() == (parameterTypes.length - 1)) {
 
 			for (final Class parameterType : parameterTypes) {
 
-				final Object value = convert(values.get(index++), parameterType);
-				if (value != null) {
+				// skip securityContext
+				if (!parameterType.isAssignableFrom(SecurityContext.class)) {
 
-					parameters.add(value);
+					final Object value = convert(values.get(index++), parameterType);
+					if (value != null) {
+
+						parameters.add(value);
+					}
 				}
 			}
 		}
@@ -1669,6 +1701,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	 * of String for the conversion.
 	 */
 	private Object convert(Object value, Class type) {
+
+		// short-circuit
+		if (type.isAssignableFrom(value.getClass())) {
+			return value;
+		}
 
 		Object convertedObject = null;
 
@@ -1706,7 +1743,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			return value;
 
 		} else if (value instanceof Map) {
+
 			return value;
+
+		} else if (value instanceof Boolean) {
+
+			return value;
+
 		}
 
 		// fallback
@@ -1744,11 +1787,16 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	@Override
 	public final void grant(Permission permission, Principal principal) throws FrameworkException {
-		grant(permission, principal, securityContext);
+		grant(Collections.singleton(permission), principal, securityContext);
 	}
 
 	@Override
-	public final void grant(Permission permission, Principal principal, SecurityContext ctx) throws FrameworkException {
+	public final void grant(final Set<Permission> permissions, Principal principal) throws FrameworkException {
+		grant(permissions, principal, securityContext);
+	}
+
+	@Override
+	public final void grant(final Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
 
 		if (!isGranted(Permission.accessControl, ctx)) {
 			throw new FrameworkException(403, "Access control not permitted");
@@ -1761,42 +1809,49 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 			try {
 
+				Set<String> permissionSet = new HashSet<>();
+
+				for (Permission permission : permissions) {
+
+					permissionSet.add(permission.name());
+				}
+
 				// ensureCardinality is not neccessary here
-				final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-				final PropertyMap properties          = new PropertyMap();
-				securityContext.disableEnsureCardinality();
+				final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+				final PropertyMap properties           = new PropertyMap();
+				superUserContext.disableEnsureCardinality();
 
 				// performance improvement for grant(): add properties to the CREATE call that would
 				// otherwise be set in separate calls later in the transaction.
 				properties.put(Security.principalId,                    principal.getUuid());
 				properties.put(Security.accessControllableId,           getUuid());
-				properties.put(Security.allowed,                        new String[]{ permission.name() });
+				properties.put(Security.allowed,                        permissionSet.toArray(new String[permissionSet.size()]));
 
-				secRel = StructrApp.getInstance(securityContext).create(principal, (NodeInterface)this, Security.class, properties);
+				StructrApp.getInstance(superUserContext).create(principal, (NodeInterface)this, Security.class, properties);
 
 			} catch (FrameworkException ex) {
 
 				logger.error("Could not create security relationship!", ex);
-
 			}
-		}
 
-		// only access rel if it exists or was created successfully
-		if (secRel != null) {
+		} else {
 
-			secRel.addPermission(permission);
+			secRel.addPermissions(permissions);
 		}
 	}
-
 
 	@Override
 	public final void revoke(Permission permission, Principal principal) throws FrameworkException {
-
-		revoke(permission, principal, securityContext);
+		revoke(Collections.singleton(permission), principal, securityContext);
 	}
 
 	@Override
-	public final void revoke(Permission permission, Principal principal, SecurityContext ctx) throws FrameworkException {
+	public final void revoke(final Set<Permission> permissions, Principal principal) throws FrameworkException {
+		revoke(permissions, principal, securityContext);
+	}
+
+	@Override
+	public final void revoke(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
 
 		if (!isGranted(Permission.accessControl, ctx)) {
 			throw new FrameworkException(403, "Access control not permitted");
@@ -1807,7 +1862,60 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		Security secRel = getSecurityRelationship(principal);
 		if (secRel != null) {
 
-			secRel.removePermission(permission);
+			secRel.removePermissions(permissions);
+		}
+	}
+
+
+	@Override
+	public final void setAllowed(Set<Permission> permissions, Principal principal) throws FrameworkException {
+		setAllowed(permissions, principal, securityContext);
+	}
+
+	@Override
+	public final void setAllowed(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
+
+		if (!isGranted(Permission.accessControl, ctx)) {
+			throw new FrameworkException(403, "Access control not permitted");
+		}
+
+		clearCaches();
+
+		final Set<String> permissionSet = new HashSet<>();
+
+		for (Permission permission : permissions) {
+
+			permissionSet.add(permission.name());
+		}
+
+		Security secRel = getSecurityRelationship(principal);
+		if (secRel == null) {
+
+			if (permissions.size() > 0) {
+
+				try {
+
+					// ensureCardinality is not neccessary here
+					final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+					final PropertyMap properties           = new PropertyMap();
+					superUserContext.disableEnsureCardinality();
+
+					// performance improvement for grant(): add properties to the CREATE call that would
+					// otherwise be set in separate calls later in the transaction.
+					properties.put(Security.principalId,                    principal.getUuid());
+					properties.put(Security.accessControllableId,           getUuid());
+					properties.put(Security.allowed,                        permissionSet.toArray(new String[permissionSet.size()]));
+
+					StructrApp.getInstance(superUserContext).create(principal, (NodeInterface)this, Security.class, properties);
+
+				} catch (FrameworkException ex) {
+
+					logger.error("Could not create security relationship!", ex);
+				}
+			}
+
+		} else {
+			secRel.setAllowed(permissionSet);
 		}
 	}
 

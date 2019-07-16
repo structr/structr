@@ -86,6 +86,7 @@ import org.structr.javaparser.entity.Method;
 import org.structr.javaparser.entity.Module;
 import org.structr.javaparser.entity.Package;
 import org.structr.module.StructrModule;
+import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -117,18 +118,17 @@ public class JavaParserModule implements StructrModule {
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+	}
 
-//		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
-//		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
-		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
-		// Enterprise only
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new IndexSourceTreeFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new ParseSourceTreeFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new AnalyzeSourceTreeFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new ParseJavaFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new AnalyzeJavaFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new AddJarsToIndexFunction());
+		Functions.put(licenseManager, new IndexSourceTreeFunction());
+		Functions.put(licenseManager, new ParseSourceTreeFunction());
+		Functions.put(licenseManager, new AnalyzeSourceTreeFunction());
+		Functions.put(licenseManager, new ParseJavaFunction());
+		Functions.put(licenseManager, new AnalyzeJavaFunction());
+		Functions.put(licenseManager, new AddJarsToIndexFunction());
 	}
 
 	/**
@@ -815,11 +815,11 @@ public class JavaParserModule implements StructrModule {
 	}
 
 	@Override
-	public void insertImportStatements(final AbstractSchemaNode schemaNode, final StringBuilder buf) {
+	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
 	}
 
 	@Override
-	public void insertSourceCode(final AbstractSchemaNode schemaNode, final StringBuilder buf) {
+	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
 	}
 
 	@Override
@@ -828,7 +828,7 @@ public class JavaParserModule implements StructrModule {
 	}
 
 	@Override
-	public void insertSaveAction(final AbstractSchemaNode schemaNode, final StringBuilder buf, final Actions.Type type) {
+	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
 	}
 
 

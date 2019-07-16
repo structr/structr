@@ -22,6 +22,8 @@ import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseFeature;
+import org.structr.api.config.Settings;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Occurrence;
 import org.structr.api.util.Iterables;
@@ -30,17 +32,14 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
-import org.structr.test.core.entity.SixOneManyToMany;
-import org.structr.test.core.entity.TestOne;
-import org.structr.test.core.entity.TestSeven;
-import org.structr.test.core.entity.TestSix;
-import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -53,6 +52,10 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.test.core.entity.SixOneManyToMany;
+import org.structr.test.core.entity.TestOne;
+import org.structr.test.core.entity.TestSeven;
+import org.structr.test.core.entity.TestSix;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
@@ -916,7 +919,11 @@ public class SearchAndSortingTest extends StructrTest {
 				int pageSize        = 10;
 				int page            = 1;
 
+				Settings.CypherDebugLogging.setValue(true);
+
 				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getAsList();
+
+				Settings.CypherDebugLogging.setValue(false);
 
 				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
 				assertTrue(result.size() == Math.min(number, pageSize));
@@ -930,6 +937,10 @@ public class SearchAndSortingTest extends StructrTest {
 					assertEquals(expectedName, gotName);
 
 				}
+
+				// allow visual inspection of test results
+				final List<AbstractNode> list = app.nodeQuery(type).sort(sortKey).order(sortDesc).getAsList();
+				list.stream().forEach(n -> System.out.println(n.getName() + ": " + n.getProperty(TestOne.aDate)));
 
 				tx.success();
 			}
@@ -1113,10 +1124,10 @@ public class SearchAndSortingTest extends StructrTest {
 
 		try {
 
-			final NodeHasLocation rel = createTestRelationships(NodeHasLocation.class, 1).get(0);
-			final PropertyKey key1    = new StringProperty("jghsdkhgshdhgsdjkfgh").indexed();
-			final Class type          = NodeHasLocation.class;
-			final String val1         = "54354354546806849870";
+			final GenericRelationship rel = createTestRelationships(GenericRelationship.class, 1).get(0);
+			final PropertyKey key1        = new StringProperty("jghsdkhgshdhgsdjkfgh").indexed();
+			final Class type              = GenericRelationship.class;
+			final String val1             = "54354354546806849870";
 
 			final List<RelationshipInterface> result;
 
@@ -1849,10 +1860,10 @@ public class SearchAndSortingTest extends StructrTest {
 			final Group group4 = groups.get(3);
 			final Group group5 = groups.get(4);
 
-			group1.addMember(group2);
-			group2.addMember(group3);
-			group2.addMember(group4);
-			group3.addMember(group5);
+			group1.addMember(securityContext, group2);
+			group2.addMember(securityContext, group3);
+			group2.addMember(securityContext, group4);
+			group3.addMember(securityContext, group5);
 
 			tx.success();
 
@@ -1884,39 +1895,43 @@ public class SearchAndSortingTest extends StructrTest {
 	@Test
 	public void testSortFunctionForGraphObjectMaps() {
 
-		final Class<Group> groupType      = StructrApp.getConfiguration().getNodeEntityClass("Group");
-		final PropertyKey<String> nameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");
+		// don't run tests that depend on Cypher being available in the backend
+		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
-		try (final Tx tx = app.tx()) {
+			final Class<Group> groupType      = StructrApp.getConfiguration().getNodeEntityClass("Group");
+			final PropertyKey<String> nameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");
 
-			createTestNode(groupType, "zzz");
-			createTestNode(groupType, "aaa");
-			createTestNode(groupType, "ttt");
-			createTestNode(groupType, "xxx");
-			createTestNode(groupType, "bbb");
+			try (final Tx tx = app.tx()) {
 
-			tx.success();
+				createTestNode(groupType, "zzz");
+				createTestNode(groupType, "aaa");
+				createTestNode(groupType, "ttt");
+				createTestNode(groupType, "xxx");
+				createTestNode(groupType, "bbb");
 
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
+				tx.success();
 
-		try (final Tx tx = app.tx()) {
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
 
-			final List<GraphObject> list = (List<GraphObject>)Scripting.evaluate(new ActionContext(securityContext), null, "${sort(cypher('MATCH (n:Group:" + randomTenantId + ") RETURN { id: n.id, type: n.type, name: n.name }'), 'name')}", "test");
+			try (final Tx tx = app.tx()) {
 
-			assertEquals("Invalid sort() result", "aaa", list.get(0).getProperty(nameKey));
-			assertEquals("Invalid sort() result", "bbb", list.get(1).getProperty(nameKey));
-			assertEquals("Invalid sort() result", "ttt", list.get(2).getProperty(nameKey));
-			assertEquals("Invalid sort() result", "xxx", list.get(3).getProperty(nameKey));
-			assertEquals("Invalid sort() result", "zzz", list.get(4).getProperty(nameKey));
+				final List<GraphObject> list = (List<GraphObject>)Scripting.evaluate(new ActionContext(securityContext), null, "${sort(cypher('MATCH (n:Group:" + randomTenantId + ") RETURN { id: n.id, type: n.type, name: n.name }'), 'name')}", "test");
 
-			tx.success();
+				assertEquals("Invalid sort() result", "aaa", list.get(0).getProperty(nameKey));
+				assertEquals("Invalid sort() result", "bbb", list.get(1).getProperty(nameKey));
+				assertEquals("Invalid sort() result", "ttt", list.get(2).getProperty(nameKey));
+				assertEquals("Invalid sort() result", "xxx", list.get(3).getProperty(nameKey));
+				assertEquals("Invalid sort() result", "zzz", list.get(4).getProperty(nameKey));
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			System.out.println(fex.getMessage());
-			fail("Unexpected exception.");
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				System.out.println(fex.getMessage());
+				fail("Unexpected exception.");
+			}
 		}
 	}
 
@@ -1976,17 +1991,17 @@ public class SearchAndSortingTest extends StructrTest {
 	@Test
 	public void testComparisonSearchAttributes() {
 
-		final Class<Group> groupType      = StructrApp.getConfiguration().getNodeEntityClass("Group");
-		final PropertyKey<String> nameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");
+		final Class<Group> groupType          = StructrApp.getConfiguration().getNodeEntityClass("Group");
+		final PropertyKey<String> nameKey     = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");
 		final PropertyKey<Principal> ownerKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "owner");
 
 		try (final Tx tx = app.tx()) {
 
-			Group a = createTestNode(groupType, "a");
-			Group b = createTestNode(groupType, "b");
-			Group c = createTestNode(groupType, "c");
-			Group d = createTestNode(groupType, "d");
-			Group e = createTestNode(groupType, "e");
+			createTestNode(groupType, "a");
+			createTestNode(groupType, "b");
+			createTestNode(groupType, "c");
+			createTestNode(groupType, "d");
+			createTestNode(groupType, "e");
 
 			tx.success();
 
@@ -1996,21 +2011,20 @@ public class SearchAndSortingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			List<SearchAttribute> attributes = new ArrayList<>();
-
-			SearchAttributeGroup rootGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
-
-			SearchAttributeGroup mainMatchingGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
+			final List<SearchAttribute> attributes       = new ArrayList<>();
+			final SearchAttributeGroup rootGroup         = new SearchAttributeGroup(Occurrence.REQUIRED);
+			final SearchAttributeGroup mainMatchingGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
 
 			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "a", Occurrence.OPTIONAL));
 			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "b", Occurrence.OPTIONAL));
 			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "c", Occurrence.OPTIONAL));
 			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "d", Occurrence.OPTIONAL));
 
-			SearchAttributeGroup secondaryMatchingGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
+			final SearchAttributeGroup secondaryMatchingGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
 
 			secondaryMatchingGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Operation.isNull, null, Occurrence.REQUIRED));
 			secondaryMatchingGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Operation.isNotNull, null, Occurrence.FORBIDDEN));
+
 			// Test Greater/Less with ASCII chars
 			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.greater, "_", Occurrence.REQUIRED));
 			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.greaterOrEqual, "a", Occurrence.REQUIRED));
@@ -2022,7 +2036,7 @@ public class SearchAndSortingTest extends StructrTest {
 			rootGroup.add(secondaryMatchingGroup);
 			attributes.add(rootGroup);
 
-			List<Group> list = app.nodeQuery(Group.class)
+			final List<Group> list = app.nodeQuery(Group.class)
 					.attributes(attributes)
 					.sort(AbstractNode.name)
 					.order(false)

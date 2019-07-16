@@ -20,15 +20,14 @@ package org.structr.core.function;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class GetRelationshipsFunction extends Function<Object, Object> {
+public class GetRelationshipsFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_GET_RELATIONSHIPS    = "Usage: ${get_relationships(entity1, entity2 [, relType])}. Example: ${get_relationships(me, user, 'FOLLOWS')}  (ignores direction of the relationship)";
 	public static final String ERROR_MESSAGE_GET_RELATIONSHIPS_JS = "Usage: ${{Structr.get_relationships(entity1, entity2 [, relType])}}. Example: ${{Structr.get_relationships(Structr.get('me'), user, 'FOLLOWS')}}  (ignores direction of the relationship)";

@@ -21,6 +21,9 @@ package org.structr.odf.entity;
 import java.net.URI;
 import org.odftoolkit.odfdom.doc.OdfDocument;
 import org.odftoolkit.odfdom.pkg.OdfPackage;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -28,12 +31,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 import org.structr.transform.VirtualType;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -57,7 +57,7 @@ public interface ODFExporter extends NodeInterface {
 		type.setIsAbstract();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ODFExporter"));
 
-		type.addPropertyGetter("resultDocument",        File.class);
+		type.addPropertyGetter("resultDocument",         File.class);
 		type.addPropertyGetter("documentTemplate",       File.class);
 		type.addPropertyGetter("transformationProvider", VirtualType.class);
 
@@ -68,19 +68,21 @@ public interface ODFExporter extends NodeInterface {
 
 
 		type.addMethod("createDocumentFromTemplate")
-			.setSource(ODFExporter.class.getName() + ".createDocumentFromTemplate(this);")
+			.addParameter("ctx", SecurityContext.class.getName())
+			.setSource(ODFExporter.class.getName() + ".createDocumentFromTemplate(this, ctx);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
 		type.addMethod("exportImage")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("uuid", String.class.getName())
 			.setSource(ODFExporter.class.getName() + ".exportImage(this, uuid);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
-		type.relate(file, "EXPORTS_TO",               Relation.Cardinality.OneToOne, "resultDocumentForExporter", "resultDocument");
-		type.relate(file, "USES_TEMPLATE",            Relation.Cardinality.OneToOne, "documentTemplateForExporter", "documentTemplate");
-		type.relate(virt, "GETS_TRANSFORMATION_FROM", Relation.Cardinality.OneToOne, "odfExporter", "transformationProvider");
+		type.relate(file, "EXPORTS_TO",               Cardinality.OneToOne, "resultDocumentForExporter", "resultDocument");
+		type.relate(file, "USES_TEMPLATE",            Cardinality.OneToOne, "documentTemplateForExporter", "documentTemplate");
+		type.relate(virt, "GETS_TRANSFORMATION_FROM", Cardinality.OneToOne, "odfExporter", "transformationProvider");
 
 		type.addViewProperty(PropertyView.Public, "transformationProvider");
 		type.addViewProperty(PropertyView.Public, "documentTemplate");
@@ -119,9 +121,8 @@ public interface ODFExporter extends NodeInterface {
 	);
 	*/
 
-	public static void createDocumentFromTemplate(final ODFExporter thisNode) throws FrameworkException {
+	public static void createDocumentFromTemplate(final ODFExporter thisNode, final SecurityContext securityContext) throws FrameworkException {
 
-		final SecurityContext securityContext = thisNode.getSecurityContext();
 		final File template                   = thisNode.getDocumentTemplate();
 		File output                           = thisNode.getResultDocument();
 		OdfDocument templateOdt;

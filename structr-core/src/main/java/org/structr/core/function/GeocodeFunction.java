@@ -27,9 +27,8 @@ import org.structr.common.geo.AddressComponent;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class GeocodeFunction extends Function<Object, Object> {
+public class GeocodeFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_GEOCODE = "Usage: ${geocode(street, city, country)}. Example: ${set(this, geocode(this.street, this.city, this.country))}";
 

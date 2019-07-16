@@ -44,14 +44,13 @@ import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 
-import java.awt.*;
 import java.net.URI;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 
 public interface KafkaClient extends MessageClient {
 
@@ -256,7 +255,7 @@ public interface KafkaClient extends MessageClient {
 	}
 
 	static void forwardReceivedMessage(KafkaClient thisClient, String topic, String message) throws FrameworkException {
-		MessageClient.sendMessage(thisClient, topic, message);
+		MessageClient.sendMessage(thisClient, topic, message, thisClient.getSecurityContext());
 	}
 
 	class ConsumerWorker implements Runnable {

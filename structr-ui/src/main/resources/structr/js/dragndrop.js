@@ -186,6 +186,7 @@ var _Dragndrop = {
 				sortParent = $(ui.item).parent();
 				_Logger.log(_LogType.DND, '### sortable start: sorting?', sorting, Structr.getId(el), Structr.getId(self), Structr.getId(sortParent));
 				Structr.currentlyActiveSortable = el;
+				$('#newComponentDropzone').addClass("allow-drop");
 			},
 			update: function(event, ui) {
 				var el = $(ui.item);
@@ -214,6 +215,7 @@ var _Dragndrop = {
 				Structr.currentlyActiveSortable = undefined;
 			},
 			stop: function(event, ui) {
+				$('#newComponentDropzone').removeClass("allow-drop");
 				sorting = false;
 				_Entities.resetMouseOverState(ui.item);
 				$(event.toElement).one('click', function(e) {

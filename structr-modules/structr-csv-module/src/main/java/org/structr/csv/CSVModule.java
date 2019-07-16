@@ -25,6 +25,7 @@ import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.module.StructrModule;
+import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
 /**
@@ -34,14 +35,14 @@ public class CSVModule implements StructrModule {
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+	}
 
-		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
-//		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
-//		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
-		Functions.put(basicEdition, LicenseManager.Basic, new FromCsvFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, new ToCsvFunction());
-		Functions.put(basicEdition, LicenseManager.Basic, new GetCsvHeadersFunction());
+		Functions.put(licenseManager, new FromCsvFunction());
+		Functions.put(licenseManager, new ToCsvFunction());
+		Functions.put(licenseManager, new GetCsvHeadersFunction());
 	}
 
 	@Override
@@ -61,11 +62,11 @@ public class CSVModule implements StructrModule {
 	}
 
 	@Override
-	public void insertImportStatements(final AbstractSchemaNode schemaNode, final StringBuilder buf) {
+	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
 	}
 
 	@Override
-	public void insertSourceCode(final AbstractSchemaNode schemaNode, final StringBuilder buf) {
+	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
 	}
 
 	@Override
@@ -74,6 +75,6 @@ public class CSVModule implements StructrModule {
 	}
 
 	@Override
-	public void insertSaveAction(final AbstractSchemaNode schemaNode, final StringBuilder buf, final Actions.Type type) {
+	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
 	}
 }

@@ -31,9 +31,8 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class BarcodeFunction extends Function<Object, Object> {
+public class BarcodeFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_BARCODE = "Usage: ${ barcode(type, data[, width, height[, hintKey, hintValue]]) }";
 	public static final String ERROR_MESSAGE_BARCODE_JS = "Usage: ${{ Structr.barcode(type, data[, width, height[, hintsMap]]); }}";

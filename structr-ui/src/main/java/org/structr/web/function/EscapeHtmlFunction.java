@@ -18,14 +18,13 @@
  */
 package org.structr.web.function;
 
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 import org.structr.web.entity.dom.DOMNode;
 
-public class EscapeHtmlFunction extends Function<Object, Object> {
+public class EscapeHtmlFunction extends UiCommunityFunction {
 
 	public static final String ERROR_MESSAGE_ESCAPE_HTML    = "Usage: ${escape_html(text)}. Example: ${escape_html(\"test & test\")}";
 	public static final String ERROR_MESSAGE_ESCAPE_HTML_JS = "Usage: ${{Structr.escape_html(text)}}. Example: ${{Structr.escape_html(\"test & test\")}}";

@@ -4,14 +4,15 @@
 
 	<parent>
 		<groupId>org.structr</groupId>
-		<artifactId>structr</artifactId>
-		<version>3.2-SNAPSHOT</version>
+		<artifactId>structr-test-configuration</artifactId>
+		<version>3.4-SNAPSHOT</version>
+		<relativePath>../structr-test-configuration</relativePath>
 	</parent>
 
 	<groupId>org.structr</groupId>
 	<artifactId>structr-ui</artifactId>
 	<packaging>jar</packaging>
-	<version>3.2-SNAPSHOT</version>
+	<version>3.4-SNAPSHOT</version>
 	<name>Structr UI</name>
 	<description>Structr is an open source framework based on the popular Neo4j graph database.</description>
 	<developers>
@@ -39,19 +40,21 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>structr-memory-driver</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>com.jayway.restassured</groupId>
 			<artifactId>rest-assured</artifactId>
-			<optional>false</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-core</artifactId>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parsers</artifactId>
-			<optional>true</optional>
 			<exclusions>
 				<exclusion>
 					<groupId>com.google.guava</groupId>
@@ -121,7 +124,7 @@
 		<dependency>
 			<groupId>commons-fileupload</groupId>
 			<artifactId>commons-fileupload</artifactId>
-			<version>1.3.2</version>
+			<version>1.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.oltu.oauth2</groupId>
@@ -203,127 +206,6 @@
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.22.1</version>
-				<configuration>
-					<excludes>
-						<exclude>**/*.java</exclude>
-					</excludes>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-failsafe-plugin</artifactId>
-				<version>3.0.0-M3</version>
-				<configuration>
-					<includes>
-						<include>**/*.java</include>
-					</includes>
-					<argLine>-Xms1g -Xmx2g -server -d64 -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
-					<reuseForks>false</reuseForks>
-					<forkCount>1</forkCount>
-					<skipTests>${skipTests}</skipTests>
-				</configuration>
-				<executions>
-					<execution>
-						<id>integration-test</id>
-						<phase>integration-test</phase>
-						<goals>
-							<goal>integration-test</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>verify</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>verify</goal>
-						</goals>
-						<configuration>
-							<summaryFiles>
-								<summaryFile>${project.build.directory}/failsafe-reports/failsafe-summary.xml</summaryFile>
-								<summaryFile>${project.build.directory}/failsafe-reports/selenium-summary.xml</summaryFile>
-							</summaryFiles>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>io.fabric8</groupId>
-				<artifactId>docker-maven-plugin</artifactId>
-				<version>0.28.0</version>
-				<executions>
-					<execution>
-						<id>prepare-database</id>
-						<phase>pre-integration-test</phase>
-						<goals>
-							<goal>start</goal>
-						</goals>
-						<configuration>
-							<images>
-								<image>
-									<name>${test.neo4j.version}</name>
-									<alias>database</alias>
-									<run>
-										<ports>
-											<port>7689:7687</port>
-										</ports>
-										<wait>
-											<log>(.?)Bolt enabled on 0.0.0.0:7687.</log>
-											<time>20000</time>
-										</wait>
-										<env>
-											<NEO4J_AUTH>neo4j/admin</NEO4J_AUTH>
-											<NEO4J_ACCEPT_LICENSE_AGREEMENT>yes</NEO4J_ACCEPT_LICENSE_AGREEMENT>
-											<NEO4J_dbms_memory_heap_max__size>4G</NEO4J_dbms_memory_heap_max__size>
-										</env>
-									</run>
-								</image>
-							</images>
-							<skip>${skipTests}</skip>
-						</configuration>
-					</execution>
-					<execution>
-						<id>remove-database</id>
-						<phase>post-integration-test</phase>
-						<goals>
-							<goal>stop</goal>
-						</goals>
-						<configuration>
-							<skip>${skipTests}</skip>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.6.0</version>
-				<executions>
-					<execution>
-						<id>selenium-docker-tests</id>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<phase>integration-test</phase>
-					</execution>
-				</executions>
-				<configuration>
-					<executable>${seleniumTestDir}/test.sh</executable>
-					<arguments>
-						<argument>-s</argument>
-						<argument>${project.build.directory}/failsafe-reports/selenium-summary.xml</argument>
-						<argument>-t</argument>
-						<argument>${basedir}/src/test/selenium</argument>
-						<argument>-u</argument>
-						<argument>-v</argument>
-						<argument>${project.version}</argument>
-					</arguments>
-					<workingDirectory>${seleniumTestDir}</workingDirectory>
-					<skip>${skipTests}</skip>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.1</version>
 				<configuration>
@@ -356,6 +238,7 @@
 				<executions>
 					<execution>
 						<goals>
+							<goal>jar</goal>
 							<goal>test-jar</goal>
 						</goals>
 					</execution>
@@ -475,69 +358,7 @@
 			</plugins>
 		</pluginManagement>
 	</build>
-	<profiles>
-		<profile>
-			<id>sign-structr-artifacts</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-jarsigner-plugin</artifactId>
-						<version>1.2</version>
-						<executions>
-							<execution>
-								<id>sign</id>
-								<goals>
-									<goal>sign</goal>
-								</goals>
-							</execution>
-						</executions>
-						<configuration>
-							<keystore>${user.home}/.structr/structr.keystore</keystore>
-							<alias>structr</alias>
-							<storepass>${structrKeystorePassword}</storepass>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>doclint-java8-disable</id>
-			<activation>
-				<jdk>[1.8,)</jdk>
-			</activation>
-			<properties>
-				<javadoc.opts>-Xdoclint:none</javadoc.opts>
-			</properties>
-		</profile>
-		<profile>
-			<id>release-sign-artifacts</id>
-			<activation>
-				<property>
-					<name>performRelease</name>
-					<value>true</value>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.4</version>
-						<executions>
-							<execution>
-								<id>sign-artifacts</id>
-								<phase>verify</phase>
-								<goals>
-									<goal>sign</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
+
 	<licenses>
 		<license>
 			<name>GNU Affero General Public License, Version 3</name>

@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.odftoolkit.simple.TextDocument;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
@@ -36,8 +38,6 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 import org.structr.transform.VirtualType;
 import org.structr.web.entity.File;
 import org.w3c.dom.NamedNodeMap;
@@ -59,8 +59,9 @@ public interface ODTExporter extends ODFExporter {
 		type.setExtends(URI.create("#/definitions/ODFExporter"));
 
 		type.addMethod("exportAttributes")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("uuid", String.class.getName())
-			.setSource(ODTExporter.class.getName() + ".exportAttributes(this, uuid);")
+			.setSource(ODTExporter.class.getName() + ".exportAttributes(this, uuid, ctx);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 	}}
@@ -69,15 +70,14 @@ public interface ODTExporter extends ODFExporter {
 	static final String ODT_FIELD_ATTRIBUTE_NAME  = "text:name";
 	static final String ODT_FIELD_ATTRIBUTE_VALUE = "office:string-value";
 
-	static void exportAttributes(final ODTExporter thisNode, final String uuid) throws FrameworkException {
+	static void exportAttributes(final ODTExporter thisNode, final String uuid, final SecurityContext securityContext) throws FrameworkException {
 
-		final SecurityContext securityContext = thisNode.getSecurityContext();
 		final File output                     = thisNode.getResultDocument();
 		final VirtualType transformation      = thisNode.getTransformationProvider();
 
 		try {
 
-			final App app = StructrApp.getInstance();
+			final App app = StructrApp.getInstance(securityContext);
 			final ResultStream result = app.nodeQuery(AbstractNode.class).and(GraphObject.id, uuid).getResultStream();
 			final ResultStream transformedResult = transformation.transformOutput(securityContext, AbstractNode.class, result);
 

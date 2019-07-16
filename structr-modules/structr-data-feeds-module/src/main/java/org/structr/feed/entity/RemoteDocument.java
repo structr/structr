@@ -21,13 +21,13 @@ package org.structr.feed.entity;
 import java.io.InputStream;
 import java.net.URI;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.fulltext.Indexable;
 import org.structr.core.graph.NodeInterface;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 
 /**
  *
@@ -54,7 +54,7 @@ public interface RemoteDocument extends NodeInterface, Indexable {
 
 		// methods shared with FeedItemContent
 		type.overrideMethod("afterCreation",    false,             FeedItemContent.class.getName() + ".updateIndex(this, arg0);");
-		type.overrideMethod("getSearchContext", false, "return " + FeedItemContent.class.getName() + ".getSearchContext(this, arg0, arg1);").setDoExport(true);
+		type.overrideMethod("getSearchContext", false, "return " + FeedItemContent.class.getName() + ".getSearchContext(this, arg0, arg1, arg2);").setDoExport(true);
 		type.overrideMethod("getInputStream",   false, "return " + RemoteDocument.class.getName() + ".getInputStream(this);");
 
 		// view configuration

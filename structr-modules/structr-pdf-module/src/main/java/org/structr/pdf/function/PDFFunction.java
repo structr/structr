@@ -45,6 +45,11 @@ public class PDFFunction extends Function<Object, Object> {
 	}
 
 	@Override
+	public String getRequiredModule() {
+		return "pdf";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);

@@ -23,9 +23,8 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeFactory;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class InstantiateFunction extends Function<Object, Object> {
+public class InstantiateFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_INSTANTIATE = "Usage: ${instantiate(node)}. Example: ${instantiate(result.node)}";
 

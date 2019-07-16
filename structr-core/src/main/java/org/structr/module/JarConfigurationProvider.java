@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -77,6 +78,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(JarConfigurationProvider.class.getName());
 
+	public static final URI StaticSchemaRootURI      = URI.create("https://structr.org/v2.0/#");
 	public static final String DYNAMIC_TYPES_PACKAGE = "org.structr.dynamic";
 
 	private static final Set<String> coreModules                                                   = new HashSet<>(Arrays.asList("core", "rest", "ui"));
@@ -667,13 +669,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			for (Class iface : type.getInterfaces()) {
 
-				/*
-				if (GraphObject.class.isAssignableFrom(iface)) {
-
-					reverseInterfaceMap.put(iface.getSimpleName(), iface);
-				}
-				*/
-
 				interfaces.add(iface);
 			}
 		}
@@ -930,6 +925,14 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
+	public void setPropertyKeyForJSONName(final Class type, final String jsonName, final PropertyKey key) {
+
+		final Map<String, PropertyKey> classJSNamePropertyMap = getClassJSNamePropertyMapForType(type);
+
+		classJSNamePropertyMap.put(jsonName, key);
+	}
+
+	@Override
 	public Set<PropertyValidator> getPropertyValidators(final SecurityContext securityContext, Class type, PropertyKey propertyKey) {
 
 		Set<PropertyValidator> validators = new LinkedHashSet<>();
@@ -1133,6 +1136,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 						if (!modules.containsKey(moduleName)) {
 
+							structrModule.registerModuleFunctions(licenseManager);
+
 							if (coreModules.contains(moduleName) || licenseManager == null || licenseManager.isModuleLicensed(moduleName)) {
 
 								modules.put(moduleName, structrModule);
@@ -1177,30 +1182,75 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 						final String name = attrs.getValue("Structr-Module-Name");
 
 						// only scan and load modules that are licensed
-						if (name != null && (licenseManager == null || licenseManager.isModuleLicensed(name))) {
+						if (name != null) {
 
-							for (final Enumeration<? extends JarEntry> entries = jarFile.entries(); entries.hasMoreElements();) {
+							if (licenseManager == null || licenseManager.isModuleLicensed(name)) {
 
-								final JarEntry entry = entries.nextElement();
-								final String entryName = entry.getName();
+								for (final Enumeration<? extends JarEntry> entries = jarFile.entries(); entries.hasMoreElements();) {
 
-								if (entryName.endsWith(".class")) {
+									final JarEntry entry = entries.nextElement();
+									final String entryName = entry.getName();
 
-									// cat entry > /dev/null (necessary to get signers below)
-									IOUtils.copy(jarFile.getInputStream(entry), new ByteArrayOutputStream(65535));
+									if (entryName.endsWith(".class")) {
 
-									// verify module
-									if (licenseManager == null || licenseManager.isValid(entry.getCodeSigners())) {
+										// cat entry > /dev/null (necessary to get signers below)
+										IOUtils.copy(jarFile.getInputStream(entry), new ByteArrayOutputStream(65535));
 
-										final String fileEntry = entry.getName().replaceAll("[/]+", ".");
-										final String fqcn      = fileEntry.substring(0, fileEntry.length() - 6);
+										// verify module
+										if (licenseManager == null || licenseManager.isValid(entry.getCodeSigners())) {
 
-										// add class entry to Module
-										classes.add(fqcn);
+											final String fileEntry = entry.getName().replaceAll("[/]+", ".");
+											final String fqcn      = fileEntry.substring(0, fileEntry.length() - 6);
 
-										if (licenseManager != null) {
-											// store licensing information
-											licenseManager.addLicensedClass(fqcn);
+											// add class entry to Module
+											classes.add(fqcn);
+
+											if (licenseManager != null) {
+												// store licensing information
+												licenseManager.addLicensedClass(fqcn);
+											}
+										}
+									}
+								}
+
+							} else {
+
+								// module is not licensed, only load functions as unlicensed
+
+								for (final Enumeration<? extends JarEntry> entries = jarFile.entries(); entries.hasMoreElements();) {
+
+									final JarEntry entry = entries.nextElement();
+									final String entryName = entry.getName();
+
+									if (entryName.endsWith(".class")) {
+
+										// cat entry > /dev/null (necessary to get signers below)
+										IOUtils.copy(jarFile.getInputStream(entry), new ByteArrayOutputStream(65535));
+
+										// verify module
+										if (licenseManager == null || licenseManager.isValid(entry.getCodeSigners())) {
+
+											final String fileEntry = entry.getName().replaceAll("[/]+", ".");
+											final String fqcn      = fileEntry.substring(0, fileEntry.length() - 6);
+
+											try {
+
+												final Class clazz   = Class.forName(fqcn);
+												final int modifiers = clazz.getModifiers();
+
+												// register entity classes
+												if (StructrModule.class.isAssignableFrom(clazz) && !(Modifier.isAbstract(modifiers))) {
+
+													// we need to make sure that a module is initialized exactly once
+													final StructrModule structrModule = (StructrModule) clazz.newInstance();
+
+													structrModule.registerModuleFunctions(licenseManager);
+
+												}
+
+											} catch (Throwable t) {
+												logger.warn("Error trying to load class {}: {}",  fqcn, t.getMessage());
+											}
 										}
 									}
 								}

@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
+import org.structr.api.graph.Cardinality;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.common.CaseHelper;
@@ -52,7 +53,6 @@ import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
@@ -66,9 +66,9 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.Function;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonReferenceType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonReferenceType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -272,9 +272,18 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		synced.getSourceProperty().setCategory(PAGE_CATEGORY);
 		synced.getTargetProperty().setCategory(PAGE_CATEGORY);
 
-		if (Services.getInstance().getLicenseManager().isEdition(LicenseManager.Enterprise)) {
+		final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
+		if (licenseManager == null || licenseManager.isModuleLicensed("api-builder")) {
 
-			type.addCustomProperty("flow", EndNode.class.getName()).setFormat("org.structr.flow.impl.rels.DOMNodeFLOWFlowContainer");
+			try {
+
+				final String name = "org.structr.flow.impl.rels.DOMNodeFLOWFlowContainer";
+				Class.forName(name);
+
+				// register flow only if the above class exists
+				type.addCustomProperty("flow", EndNode.class.getName()).setFormat(name);
+
+			} catch (Throwable ignore) {}
 		}
 	}}
 
@@ -1146,7 +1155,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			instructions.add("@structr:content(" + escapeForHtmlAttributes(_contentType) + ")");
 		}
 
-		if (thisNode.getType().equals("Content")) {
+		if (!thisNode.getType().equals("Template")) {
 
 			final String _name = thisNode.getProperty(AbstractNode.name);
 			if (StringUtils.isNotEmpty(_name)) {
@@ -1154,18 +1163,29 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 				instructions.add("@structr:name(" + escapeForHtmlAttributes(_name) + ")");
 			}
 
-		}
+			final String _showConditions = thisNode.getShowConditions();
+			if (StringUtils.isNotEmpty(_showConditions)) {
 
-		final String _showConditions = thisNode.getShowConditions();
-		if (StringUtils.isNotEmpty(_showConditions)) {
+				instructions.add("@structr:show(" + escapeForHtmlAttributes(_showConditions) + ")");
+			}
 
-			instructions.add("@structr:show(" + escapeForHtmlAttributes(_showConditions) + ")");
-		}
+			final String _hideConditions = thisNode.getHideConditions();
+			if (StringUtils.isNotEmpty(_hideConditions)) {
 
-		final String _hideConditions = thisNode.getHideConditions();
-		if (StringUtils.isNotEmpty(_hideConditions)) {
+				instructions.add("@structr:hide(" + escapeForHtmlAttributes(_hideConditions) + ")");
+			}
 
-			instructions.add("@structr:hide(" + escapeForHtmlAttributes(_hideConditions) + ")");
+			final String _showForLocales = thisNode.getProperty(StructrApp.key(DOMNode.class, "showForLocales"));
+			if (StringUtils.isNotEmpty(_showForLocales)) {
+
+				instructions.add("@structr:show-for-locales(" + escapeForHtmlAttributes(_showForLocales) + ")");
+			}
+
+			final String _hideForLocales = thisNode.getProperty(StructrApp.key(DOMNode.class, "hideForLocales"));
+			if (StringUtils.isNotEmpty(_hideForLocales)) {
+
+				instructions.add("@structr:hide-for-locales(" + escapeForHtmlAttributes(_hideForLocales) + ")");
+			}
 		}
 	}
 

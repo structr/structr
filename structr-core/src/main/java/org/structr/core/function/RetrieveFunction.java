@@ -22,9 +22,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class RetrieveFunction extends Function<Object, Object> {
+public class RetrieveFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_RETRIEVE    = "Usage: ${retrieve(key)}. Example: ${retrieve('tmpUser')}";
 	public static final String ERROR_MESSAGE_RETRIEVE_JS = "Usage: ${{Structr.retrieve(key)}}. Example: ${{Structr.retrieve('tmpUser')}}";

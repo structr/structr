@@ -124,6 +124,37 @@ public class CacheExpression extends Expression {
 		return cachedValue.getValue();
 	}
 
+	public static boolean hasCachedValue(final String key) {
+
+		final CachedValue cachedValue = (CachedValue)Services.getInstance().getAttribute(key);
+
+		if (cachedValue == null) {
+
+			return false;
+
+		} else {
+
+			return !cachedValue.isExpired();
+		}
+	}
+
+	public static Object getCachedValue(final String key) {
+
+		final CachedValue cachedValue = (CachedValue)Services.getInstance().getAttribute(key);
+
+		if (cachedValue == null) {
+
+			return null;
+		}
+
+		return cachedValue.getValue();
+	}
+
+	public static void deleteCachedValue(final String key) {
+
+		Services.getInstance().removeAttribute(key);
+	}
+
 	private static final class CachedValue {
 
 		private Random random       = new Random(System.currentTimeMillis());

@@ -25,9 +25,8 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class CypherFunction extends Function<Object, Object> {
+public class CypherFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_CYPHER    = "Usage: ${cypher(query)}. Example ${cypher('MATCH (n) RETURN n')}";
 	public static final String ERROR_MESSAGE_CYPHER_JS = "Usage: ${{Structr.cypher(query)}}. Example ${{Structr.cypher('MATCH (n) RETURN n')}}";

@@ -40,12 +40,9 @@ import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.parser.DatePropertyParser;
-import org.structr.web.function.UiFunction;
 
-/**
- *
- */
-public class ToCsvFunction extends UiFunction {
+public class ToCsvFunction extends CsvFunction {
+
 	public static final String ERROR_MESSAGE_TO_CSV    = "Usage: ${to_csv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}. Example: ${to_csv(find('Page'), 'ui')}";
 	public static final String ERROR_MESSAGE_TO_CSV_JS = "Usage: ${{Structr.to_csv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}}. Example: ${{Structr.to_csv(Structr.find('Page'), 'ui'))}}";
 
@@ -53,6 +50,7 @@ public class ToCsvFunction extends UiFunction {
 	public String getName() {
 		return "to_csv";
 	}
+
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 

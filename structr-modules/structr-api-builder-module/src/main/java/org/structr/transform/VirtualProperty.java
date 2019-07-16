@@ -23,8 +23,8 @@ import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 
 /**
  *
@@ -57,7 +57,7 @@ public interface VirtualProperty extends NodeInterface {
 		type.addViewProperty(PropertyView.Ui, "virtualType");
 	}}
 
-	Transformation getTransformation(final Class type) throws FrameworkException;
+	Transformation getTransformation(final Class arg0) throws FrameworkException;
 	Integer getPosition();
 	String getSourceName();
 	String getInputFunction();

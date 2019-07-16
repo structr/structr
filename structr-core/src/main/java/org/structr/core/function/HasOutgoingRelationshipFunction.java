@@ -18,16 +18,15 @@
  */
 package org.structr.core.function;
 
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class HasOutgoingRelationshipFunction extends Function<Object, Object> {
+public class HasOutgoingRelationshipFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP    = "Usage: ${has_outgoing_relationship(from, to [, relType])}. Example: ${has_outgoing_relationship(me, user, 'FOLLOWS')}";
 	public static final String ERROR_MESSAGE_HAS_OUTGOING_RELATIONSHIP_JS = "Usage: ${{Structr.has_outgoing_relationship(from, to [, relType])}}. Example: ${{Structr.has_outgoing_relationship(Structr.get('me'), user, 'FOLLOWS')}}";

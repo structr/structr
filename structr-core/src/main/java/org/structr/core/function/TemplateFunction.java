@@ -27,9 +27,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class TemplateFunction extends Function<Object, Object> {
+public class TemplateFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_TEMPLATE    = "Usage: ${template(name, locale, source)}. Example: ${template(\"TEXT_TEMPLATE_1\", \"en_EN\", this)}";
 	public static final String ERROR_MESSAGE_TEMPLATE_JS = "Usage: ${{Structr.template(name, locale, source)}}. Example: ${{Structr.template(\"TEXT_TEMPLATE_1\", \"en_EN\", Structr.get('this'))}}";

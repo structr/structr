@@ -22,9 +22,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class QuotFunction extends Function<Object, Object> {
+public class QuotFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_QUOT = "Usage: ${quot(value1, value2)}. Example: ${quot(5, 2)}";
 

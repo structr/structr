@@ -23,9 +23,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class EvaluateScriptFunction extends Function<Object, Object> {
+public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 
 	private static final org.slf4j.Logger logger = LoggerFactory.getLogger(EvaluateScriptFunction.class.getName());
 

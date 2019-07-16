@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,9 +61,14 @@ public abstract class Function<S, T> extends Hint {
 
 	public abstract T apply(ActionContext ctx, Object caller, S[] sources) throws FrameworkException;
 	public abstract String usage(boolean inJavaScriptContext);
+	public abstract String getRequiredModule();
 
 	public List<String> aliases() {
 		return Collections.EMPTY_LIST;
+	}
+
+	public String getNamespaceIdentifier() {
+		return null;
 	}
 
 	/**
@@ -81,6 +87,7 @@ public abstract class Function<S, T> extends Hint {
 	 *
 	 * @param caller The element that caused the error
 	 * @param parameters The function parameters
+	 * @param message The message to be printed
 	 * @param inJavaScriptContext Has the function been called from a JavaScript context?
 	 */
 	protected void logParameterError(final Object caller, final Object[] parameters, final String message, final boolean inJavaScriptContext) {
@@ -91,7 +98,7 @@ public abstract class Function<S, T> extends Hint {
 	 * Logging of an Exception in a function with a simple message outputting the name and call parameters of the function
 	 *
 	 * @param caller The element that caused the error
-	 * @param t The thrown Exception
+	 * @param t The exception thrown
 	 * @param parameters The method parameters
 	 */
 	protected void logException (final Object caller, final Throwable t, final Object[] parameters) {
@@ -101,12 +108,16 @@ public abstract class Function<S, T> extends Hint {
 	/**
 	 * Logging of an Exception in a function with custom message and message parameters.
 	 *
-	 * @param t The thrown Exception
+	 * @param t The exception thrown, only logged if log.functions.stacktrace setting is true
 	 * @param msg The message to be printed
 	 * @param messageParams The parameters for the message
 	 */
 	protected void logException (final Throwable t, final String msg, final Object[] messageParams) {
-		logger.error(msg, messageParams, t);
+		if (Settings.LogFunctionsStackTrace.getValue()) {
+			logger.error(msg, ArrayUtils.add(messageParams, t));
+		} else {
+			logger.error(msg, messageParams);
+		}
 	}
 
 	protected static String getParametersAsString (final Object[] sources) {
@@ -423,7 +434,7 @@ public abstract class Function<S, T> extends Hint {
 		return null;
 	}
 
-	protected File getServerlogFile() throws IOException {
+	protected static File getServerlogFile() {
 
 		final String basePath = Settings.getBasePath();
 

@@ -24,9 +24,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class AddToGroupFunction extends Function<Object, Object> {
+public class AddToGroupFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE    = "Usage: ${add_to_group(group, principal)}";
 	public static final String ERROR_MESSAGE_JS = "Usage: ${{Structr.addToGroup(group, principal);}}";
@@ -58,7 +57,7 @@ public class AddToGroupFunction extends Function<Object, Object> {
 			final Group group    = (Group)sources[0];
 			final Principal user = (Principal)sources[1];
 
-			group.addMember(user);
+			group.addMember(ctx.getSecurityContext(), user);
 
 		} catch (ArgumentNullException pe) {
 

@@ -27,9 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class LatLonToUTMFunction extends Function<Object, Object> {
+public class LatLonToUTMFunction extends GeoFunction {
 
 	private static final String ERROR_MESSAGE = "Usage: ${lat_lon_to_utm(latitude, longitude)}. Example: ${lat_lon_to_utm(41.3445, 7.35)}";
 	private static final Logger logger        = LoggerFactory.getLogger(LatLonToUTMFunction.class.getName());

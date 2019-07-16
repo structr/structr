@@ -47,6 +47,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -54,6 +55,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.property.TypeProperty;
 import org.structr.core.property.UuidProperty;
+import org.structr.schema.CodeSource;
 import org.structr.schema.action.ActionContext;
 
 
@@ -62,7 +64,7 @@ import org.structr.schema.action.ActionContext;
  *
  *
  */
-public interface GraphObject {
+public interface GraphObject extends CodeSource {
 
 	static final Logger logger = LoggerFactory.getLogger(GraphObject.class);
 
@@ -83,13 +85,6 @@ public interface GraphObject {
 	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema().category(SYSTEM_CATEGORY);
 
 	// ----- methods common to both types -----
-	/**
-	 * Returns the UUID of this graph object.
-	 *
-	 * @return the UUID
-	 */
-	public String getUuid();
-
 	/**
 	 * Returns the type of this graph object.
 	 *
@@ -164,7 +159,7 @@ public interface GraphObject {
 			final PropertyKey key = attr.getKey();
 			final Object value    = attr.getValue();
 
-			if (value != null && key.isPropertyTypeIndexable() && key.relatedType() == null) {
+			if (value != null && key.isPropertyTypeIndexable(securityContext) && key.relatedType() == null) {
 
 				final Object oldValue = getProperty(key);
 				if (!value.equals(oldValue)) {
@@ -273,12 +268,13 @@ public interface GraphObject {
 		for (PropertyKey key : indexKeys) {
 
 			final PropertyConverter converter = key.databaseConverter(getSecurityContext(), this);
+
 			if (converter != null) {
 
 				try {
 
 					final Object value = converter.convert(this.getProperty(key));
-					if (key.isPropertyValueIndexable(value)) {
+					if (key.isPropertyValueIndexable(getSecurityContext(), value)) {
 
 						values.put(key.dbName(), value);
 					}
@@ -289,10 +285,11 @@ public interface GraphObject {
 					logger.warn("Exception", ex);
 				}
 
+
 			} else {
 
 				final Object value = this.getProperty(key);
-				if (key.isPropertyValueIndexable(value)) {
+				if (key.isPropertyValueIndexable(getSecurityContext(), value)) {
 
 					// index unconverted value
 					values.put(key.dbName(), value);
@@ -320,7 +317,11 @@ public interface GraphObject {
 			final PropertyKey key                 = attr.getKey();
 			final Object value                    = attr.getValue();
 
-			if (key.isPropertyTypeIndexable() && !key.isReadOnly() && !key.isSystemInternal() && !key.isUnvalidated()) {
+			if (key instanceof FunctionProperty) {
+				continue;
+			}
+
+			if (key.isPropertyTypeIndexable(securityContext) && !key.isReadOnly() && !key.isSystemInternal() && !key.isUnvalidated()) {
 
 				// value can be set directly, move to creation container
 				key.setProperty(securityContext, indexable, value);
@@ -504,7 +505,7 @@ public interface GraphObject {
 
 	public String getPropertyWithVariableReplacement(final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException;
 	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue) throws FrameworkException;
-	public Object invokeMethod(final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException;
+	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException;
 
 	Class getEntityType();
 

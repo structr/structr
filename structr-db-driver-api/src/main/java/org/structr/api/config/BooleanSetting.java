@@ -81,12 +81,7 @@ public class BooleanSetting extends Setting<Boolean> {
 
 		final Tag group = parent.block("div").css("form-group");
 
-		final Tag label = group.block("label").text(getKey());
-
-		if (getComment() != null) {
-			label.attr(new Attr("class", "has-comment"));
-			label.attr(new Attr("data-comment", getComment()));
-		}
+		renderLabel(group);
 
 		final Tag trueInput  = group.empty("input").attr(new Attr("type", "radio"), new Attr("name", getKey()), new Attr("value",  "true"));
 		group.block("span").text("Enabled");
@@ -128,5 +123,10 @@ public class BooleanSetting extends Setting<Boolean> {
 			// this is the "empty" value
 			setValue(false);
 		}
+	}
+
+	@Override
+	protected Setting<Boolean> copy(final String key) {
+		return new BooleanSetting(group, category, key, value);
 	}
 }

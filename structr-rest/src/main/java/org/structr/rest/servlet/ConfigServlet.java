@@ -23,11 +23,12 @@ import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeSet;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Setting;
@@ -43,7 +44,7 @@ import org.structr.core.Services;
 /**
  *
  */
-public class ConfigServlet extends HttpServlet {
+public class ConfigServlet extends AbstractServletBase {
 
 	private static final Logger logger                     = LoggerFactory.getLogger(ConfigServlet.class);
 	private static final Set<String> authenticatedSessions = new HashSet<>();
@@ -53,6 +54,8 @@ public class ConfigServlet extends HttpServlet {
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+
+		setCustomResponseHeaders(response);
 
 		if (!isAuthenticated(request)) {
 
@@ -84,7 +87,11 @@ public class ConfigServlet extends HttpServlet {
 			} else if (request.getParameter("reset") != null) {
 
 				final String key      = request.getParameter("reset");
-				final Setting setting = Settings.getSetting(key);
+				Setting setting = Settings.getSetting(key);
+
+				if (setting == null) {
+					setting = Settings.getCaseSensitiveSetting(key);
+				}
 
 				if (setting != null) {
 
@@ -111,7 +118,7 @@ public class ConfigServlet extends HttpServlet {
 				final String serviceName = request.getParameter("start");
 				if (serviceName != null && isAuthenticated(request)) {
 
-					Services.getInstance().startService(serviceName);
+					//Services.getInstance().startService(serviceName);
 				}
 
 				// redirect
@@ -122,7 +129,7 @@ public class ConfigServlet extends HttpServlet {
 				final String serviceName = request.getParameter("stop");
 				if (serviceName != null && isAuthenticated(request)) {
 
-					Services.getInstance().shutdownService(serviceName);
+					//Services.getInstance().shutdownService(serviceName, "default");
 				}
 
 				// redirect
@@ -140,8 +147,8 @@ public class ConfigServlet extends HttpServlet {
 
 							try { Thread.sleep(1000); } catch (Throwable t) {}
 
-							Services.getInstance().shutdownService(serviceName);
-							Services.getInstance().startService(serviceName);
+							//Services.getInstance().shutdownService(serviceName, "default");
+							//Services.getInstance().startService(serviceName);
 						}
 
 					}).start();
@@ -174,6 +181,8 @@ public class ConfigServlet extends HttpServlet {
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
+		setCustomResponseHeaders(response);
+
 		final String action   = request.getParameter("action");
 		String redirectTarget = "";
 
@@ -182,7 +191,8 @@ public class ConfigServlet extends HttpServlet {
 			switch (action) {
 
 				case "login":
-					if (Settings.SuperUserPassword.getValue().equals(request.getParameter("password"))) {
+					
+					if (StringUtils.isNoneBlank(Settings.SuperUserPassword.getValue(), request.getParameter("password")) && Settings.SuperUserPassword.getValue().equals(request.getParameter("password"))) {
 						authenticateSession(request);
 					}
 					break;
@@ -214,23 +224,38 @@ public class ConfigServlet extends HttpServlet {
 				}
 
 				Setting<?> setting = Settings.getSetting(key);
+
+				if (setting != null && setting.isDynamic()) {
+
+					// unregister dynamic settings so the type can change
+					setting.unregister();
+					setting = null;
+				}
+
 				if (setting == null) {
 
-					// group specified?
-					final String group = request.getParameter(key + "._settings_group");
-					if (group != null) {
+					if (key.contains(".cronExpression")) {
 
-						parent = Settings.getGroup(group);
-						if (parent == null) {
-
-							// default to misc group
-							parent = Settings.miscGroup;
-						}
+						parent = Settings.cronGroup;
 
 					} else {
 
-						// fallback to misc group
-						parent = Settings.miscGroup;
+						// group specified?
+						final String group = request.getParameter(key + "._settings_group");
+						if (group != null) {
+
+							parent = Settings.getGroup(group);
+							if (parent == null) {
+
+								// default to misc group
+								parent = Settings.miscGroup;
+							}
+
+						} else {
+
+							// fallback to misc group
+							parent = Settings.miscGroup;
+						}
 					}
 
 					setting = Settings.createSettingForValue(parent, key, value);
@@ -287,36 +312,43 @@ public class ConfigServlet extends HttpServlet {
 		header.block("th").text("Service Name");
 		header.block("th").attr(new Attr("colspan", "2"));
 
+		for (final Class serviceClass : services.getRegisteredServiceClasses()) {
 
-		for (final Class serviceClass : services.getServices()) {
+			final Set<String> serviceNames = new TreeSet<>();
 
-			final boolean running         = serviceClass != null ? services.isReady(serviceClass) : false;
-			final String serviceClassName = serviceClass.getSimpleName();
+			serviceNames.addAll(services.getServices(serviceClass).keySet());
+			serviceNames.add("default");
 
-			final Tag row  = table.block("tr");
+			for (final String name : serviceNames) {
 
-			row.block("td").text(serviceClassName);
+				final boolean running         = serviceClass != null ? services.isReady(serviceClass, name) : false;
+				final String serviceClassName = serviceClass.getSimpleName() + "." + name;
 
-			if (running) {
+				final Tag row  = table.block("tr");
 
-				row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?restart=" + serviceClassName + "';")).text("Restart");
+				row.block("td").text(serviceClassName);
 
-				if ("HttpService".equals(serviceClassName)) {
+				if (running) {
+
+					row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?restart=" + serviceClassName + "';")).text("Restart");
+
+					if ("HttpService".equals(serviceClassName)) {
+
+						row.block("td");
+
+					} else {
+
+						row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?stop=" + serviceClassName + "';")).text("Stop");
+					}
 
 					row.block("td");
 
 				} else {
 
-					row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?stop=" + serviceClassName + "';")).text("Stop");
+					row.block("td");
+					row.block("td");
+					row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?start=" + serviceClassName + "';")).text("Start");
 				}
-
-				row.block("td");
-
-			} else {
-
-				row.block("td");
-				row.block("td");
-				row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?start=" + serviceClassName + "';")).text("Start");
 			}
 		}
 
@@ -330,10 +362,8 @@ public class ConfigServlet extends HttpServlet {
 		final Tag buttons = form.block("div").css("buttons");
 
 		buttons.block("button").attr(new Type("button")).id("new-entry-button").text("Add entry");
-		buttons.block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "' + $('#active_section').val() + '" +  "?reload';")).text("Reload configuration file");
+		buttons.block("button").attr(new Type("button")).id("reload-config-button").text("Reload configuration file");
 		buttons.empty("input").attr(new Type("submit"), new Value("Save to structr.conf"));
-
-		body.block("script").text("$('#new-entry-button').on('click', createNewEntry);");
 
 		return doc;
 	}
@@ -380,7 +410,7 @@ public class ConfigServlet extends HttpServlet {
 		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/sprites.css"));
 		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/config.css"));
 		head.empty("link").attr(new Rel("icon"), new Href("favicon.ico"), new Type("image/x-icon"));
-		head.block("script").attr(new Src("/structr/js/lib/jquery-1.11.1.min.js"));
+		head.block("script").attr(new Src("/structr/js/lib/jquery-3.3.1.min.js"));
 		head.block("script").attr(new Src("/structr/js/icons.js"));
 		head.block("script").attr(new Src("/structr/js/config.js"));
 

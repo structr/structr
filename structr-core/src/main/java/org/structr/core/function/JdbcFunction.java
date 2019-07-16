@@ -31,11 +31,10 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class JdbcFunction extends Function<Object, Object> {
+public class JdbcFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE    = "Usage: ${jdbc(url, query)}. Example: ${jdbc(\"jdbc:mysql://localhost:3306\", \"SELECT * from Test\")}";
+	public static final String ERROR_MESSAGE    = "Usage: ${jdbc(url, query[, driver])}. Example: ${jdbc(\"jdbc:mysql://localhost:3306\", \"SELECT * from Test\")}";
 
 	@Override
 	public String getName() {
@@ -47,15 +46,21 @@ public class JdbcFunction extends Function<Object, Object> {
 
 		try {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
 			final List<Map<String, Object>> data = new LinkedList<>();
 			final String url                     = (String)sources[0];
 			final String sql                     = (String)sources[1];
 
-			try {
+			String driverClass = "com.mysql.jdbc.Driver";
+			
+			if (sources.length == 3) {
+				driverClass = (String)sources[2];
+			}
 
-				Class.forName("com.mysql.jdbc.Driver").newInstance();
+			try {
+				
+				Class.forName(driverClass).newInstance();
 
 				final Connection connection      = DriverManager.getConnection(url);
 				final Statement statement        = connection.createStatement();
@@ -79,7 +84,11 @@ public class JdbcFunction extends Function<Object, Object> {
 				}
 
 			} catch (Throwable t) {
-				throw new FrameworkException(503, t.getMessage());
+				if (t instanceof ClassNotFoundException) {
+					logException((ClassNotFoundException) t, "{}: Driver class \"{}\" not found. Make sure the jar containing the class is located in the lib directory.", new Object[] { getReplacement(), driverClass, caller, getParametersAsString(sources) });
+				} else {
+					logException(t, t.getMessage(), sources);
+				}
 			}
 
 			return data;

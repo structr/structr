@@ -24,9 +24,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class RemoveFromGroupFunction extends Function<Object, Object> {
+public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE    = "Usage: ${remove_from_group(group, principal)}";
 	public static final String ERROR_MESSAGE_JS = "Usage: ${{Structr.removeFromGroup(group, principal);}}";
@@ -58,7 +57,7 @@ public class RemoveFromGroupFunction extends Function<Object, Object> {
 			final Group group    = (Group)sources[0];
 			final Principal user = (Principal)sources[1];
 
-			group.removeMember(user);
+			group.removeMember(ctx.getSecurityContext(), user);
 
 		} catch (ArgumentNullException pe) {
 

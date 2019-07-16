@@ -20,12 +20,8 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-/**
- *
- */
-public class LtFunction extends Function<Object, Object> {
+public class LtFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_LT = "Usage: ${lt(value1, value2)}. Example: ${if(lt(this.children, 2), \"Less than two\", \"Equal to or more than two\")}";
 
@@ -49,5 +45,4 @@ public class LtFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Returns true if the first argument is less than the second argument";
 	}
-
 }

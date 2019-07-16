@@ -22,10 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.schema.action.ActionContext;
 
-/**
- *
- */
-public class SetResponseHeaderFunction extends UiFunction {
+public class SetResponseHeaderFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_SET_RESPONSE_HEADER    = "Usage: ${set_response_header(field, value)}. Example: ${set_response_header('X-User', 'johndoe')}";
 	public static final String ERROR_MESSAGE_SET_RESPONSE_HEADER_JS = "Usage: ${{Structr.setResponseHeader(field, value)}}. Example: ${{Structr.setResponseHeader('X-User', 'johndoe')}}";

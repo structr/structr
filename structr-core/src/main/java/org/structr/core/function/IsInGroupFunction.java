@@ -26,9 +26,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class IsInGroupFunction extends Function<Object, Object> {
+public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE    = "Usage: ${is_in_group(group, principal)}";
 	public static final String ERROR_MESSAGE_JS = "Usage: ${{Structr.isInGroup(group, principal);}}";

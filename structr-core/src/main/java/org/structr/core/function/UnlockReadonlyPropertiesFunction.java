@@ -23,9 +23,8 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class UnlockReadonlyPropertiesFunction extends Function<Object, Object> {
+public class UnlockReadonlyPropertiesFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE    = "Usage: ${unlock_readonly_properties_once(node)}. Example ${unlock_readonly_properties_once(this)}";
 	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS = "Usage: ${{Structr.unlock_readonly_properties_once(node)}}. Example ${{Structr.unlock_readonly_properties_once(Structr.get('this'))}}";

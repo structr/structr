@@ -31,6 +31,8 @@ import java.util.StringJoiner;
 import org.odftoolkit.odfdom.doc.OdfSpreadsheetDocument;
 import org.odftoolkit.odfdom.doc.table.OdfTable;
 import org.odftoolkit.odfdom.doc.table.OdfTableCell;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
@@ -42,8 +44,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 import org.structr.transform.VirtualType;
 import org.structr.web.entity.File;
 
@@ -61,8 +61,9 @@ public interface ODSExporter extends ODFExporter {
 		type.setExtends(URI.create("#/definitions/ODFExporter"));
 
 		type.addMethod("exportAttributes")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("uuid", String.class.getName())
-			.setSource(ODSExporter.class.getName() + ".exportAttributes(this, uuid);")
+			.setSource(ODSExporter.class.getName() + ".exportAttributes(this, uuid, ctx);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 	}}
@@ -140,9 +141,8 @@ public interface ODSExporter extends ODFExporter {
 		}
 	}
 
-	public static void exportAttributes(final ODSExporter thisNode, final String uuid) throws FrameworkException {
+	public static void exportAttributes(final ODSExporter thisNode, final String uuid, final SecurityContext securityContext) throws FrameworkException {
 
-		final SecurityContext securityContext = thisNode.getSecurityContext();
 		final File output                     = thisNode.getResultDocument();
 		final VirtualType transformation      = thisNode.getTransformationProvider();
 

@@ -28,7 +28,7 @@ import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.graph.Label;
+import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
 import org.structr.test.common.StructrTest;
@@ -41,6 +41,7 @@ import org.structr.test.core.entity.OneFourOneToOne;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.function.CryptFunction;
 import org.structr.test.core.entity.TestEnum;
 import org.structr.test.core.entity.TestFive;
 import org.structr.test.core.entity.TestFour;
@@ -54,6 +55,9 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.export.StructrSchema;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -492,7 +496,7 @@ public class PropertyTest extends StructrTest {
 			fail("Unable to store array");
 		}
 	}
-	
+
 	@Test
 	public void testDateArrayProperty() {
 
@@ -1837,15 +1841,15 @@ public class PropertyTest extends StructrTest {
 	public void testModifyType() {
 
 		final DatabaseService db      = StructrApp.getInstance().getDatabaseService();
-		final Set<Label> labelsBefore = new LinkedHashSet<>();
-		final Set<Label> labelsAfter  = new LinkedHashSet<>();
+		final Set<String> labelsBefore = new LinkedHashSet<>();
+		final Set<String> labelsAfter  = new LinkedHashSet<>();
 		String id                     = null;
 
-		labelsBefore.add(db.forName(Label.class, AccessControllable.class.getSimpleName()));
-		labelsBefore.add(db.forName(Label.class, TestFour.class.getSimpleName()));
+		labelsBefore.add(AccessControllable.class.getSimpleName());
+		labelsBefore.add(TestFour.class.getSimpleName());
 
-		labelsAfter.add(db.forName(Label.class, AccessControllable.class.getSimpleName()));
-		labelsAfter.add(db.forName(Label.class, TestFive.class.getSimpleName()));
+		labelsAfter.add(AccessControllable.class.getSimpleName());
+		labelsAfter.add(TestFive.class.getSimpleName());
 
 		// create a new node, check labels, modify typeProperty, check labels again
 
@@ -2274,6 +2278,183 @@ public class PropertyTest extends StructrTest {
 
 			logger.warn("", fex);
 			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testEncryptedStringProperty() {
+
+		cleanDatabaseAndSchema();
+
+		// schema setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Project");
+
+			type.addEncryptedProperty("encrypted");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception");
+		}
+
+		final Class<AbstractNode> projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final PropertyKey<String> encrypted         = StructrApp.key(projectType, "encrypted");
+
+		// test initial error when no key is set
+		try (final Tx tx = app.tx()) {
+
+			app.create(projectType,
+				new NodeAttribute<>(AbstractNode.name, "test"),
+				new NodeAttribute<>(encrypted, "plaintext")
+			);
+
+			tx.success();
+
+			fail("Encrypted string property should throw an exception when no initial encryption key is set.");
+
+		} catch (FrameworkException fex) {
+
+			assertEquals("Invalid error code", 422, fex.getStatus());
+		}
+
+		// set encryption key
+		CryptFunction.setEncryptionKey("structr");
+
+		// test success
+		try (final Tx tx = app.tx()) {
+
+			app.create(projectType,
+				new NodeAttribute<>(AbstractNode.name, "test"),
+				new NodeAttribute<>(encrypted, "plaintext")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+
+		// test encryption
+		try (final Tx tx = app.tx()) {
+
+			final AbstractNode node = app.nodeQuery(projectType).getFirst();
+
+			assertEquals("Invalid getProperty() result of encrypted string property with correct key", "plaintext", node.getProperty(encrypted));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+
+		// set wrong encryption key
+		CryptFunction.setEncryptionKey("wrong");
+
+		// test encryption
+		try (final Tx tx = app.tx()) {
+
+			final AbstractNode node = app.nodeQuery(projectType).getFirst();
+
+			assertNull("Invalid getProperty() result of encrypted string property with wrong key", node.getProperty(encrypted));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+
+		// reset encryption key
+		CryptFunction.setEncryptionKey(null);
+
+		// compare result (decrypt does not throw an exception, it only returns null)
+		try (final Tx tx = app.tx()) {
+
+			final AbstractNode node = app.nodeQuery(projectType).getFirst();
+
+			assertNull("Invalid getProperty() result of encrypted string property with no key", node.getProperty(encrypted));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+
+		// set key via configuration setting
+		Settings.GlobalSecret.setValue("global");
+
+		// test encryption with wrong key (global)
+		try (final Tx tx = app.tx()) {
+
+			final AbstractNode node = app.nodeQuery(projectType).getFirst();
+
+			assertNull("Invalid getProperty() result of encrypted string property with wrong key", node.getProperty(encrypted));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+
+		// delete test object
+		try (final Tx tx = app.tx()) {
+
+			// delete all nodes of given type
+			app.delete(projectType);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+
+		// test success
+		try (final Tx tx = app.tx()) {
+
+			app.create(projectType,
+				new NodeAttribute<>(AbstractNode.name, "test"),
+				new NodeAttribute<>(encrypted, "structrtest")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+
+		// test encryption
+		try (final Tx tx = app.tx()) {
+
+			final AbstractNode node = app.nodeQuery(projectType).getFirst();
+
+			assertEquals("Invalid getProperty() result of encrypted string property with correct key", "structrtest", node.getProperty(encrypted));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
 		}
 	}
 }

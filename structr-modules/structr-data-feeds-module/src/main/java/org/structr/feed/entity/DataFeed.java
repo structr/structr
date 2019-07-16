@@ -34,6 +34,9 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
@@ -41,13 +44,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 
 
 
@@ -79,19 +79,28 @@ public interface DataFeed extends NodeInterface {
 		type.addPropertyGetter("maxAge",           Long.class);
 		type.addPropertyGetter("maxItems",         Integer.class);
 
-		type.overrideMethod("onCreation", true,  "updateFeed(true);");
+		type.overrideMethod("onCreation", true,  "updateFeed(arg0, true);");
 
 		type.addMethod("updateFeed")
-			.setSource("updateFeed(true);")
+			.addParameter("ctx", SecurityContext.class.getName())
+			.setSource("updateFeed(ctx, true);")
 			.setDoExport(true);
 
 		type.addMethod("updateFeed")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("cleanUp", "boolean")
-			.setSource(DataFeed.class.getName() + ".updateFeed(this, cleanUp);")
+			.setSource(DataFeed.class.getName() + ".updateFeed(this, cleanUp, ctx);")
 			.setDoExport(true);
 
-		type.addMethod("cleanUp").setSource(DataFeed.class.getName() + ".cleanUp(this);").setDoExport(true);
-		type.addMethod("updateIfDue").setSource(DataFeed.class.getName() + ".updateIfDue(this);").setDoExport(true);
+		type.addMethod("cleanUp")
+			.addParameter("ctx", SecurityContext.class.getName())
+			.setSource(DataFeed.class.getName() + ".cleanUp(this, ctx);")
+			.setDoExport(true);
+
+		type.addMethod("updateIfDue")
+			.addParameter("ctx", SecurityContext.class.getName())
+			.setSource(DataFeed.class.getName() + ".updateIfDue(this, ctx);")
+			.setDoExport(true);
 
 		type.relate(item, "HAS_FEED_ITEMS", Cardinality.OneToMany, "feed", "items");
 
@@ -100,10 +109,10 @@ public interface DataFeed extends NodeInterface {
 		type.addViewProperty(PropertyView.Ui, "items");
 	}}
 
-	void cleanUp();
-	void updateIfDue();
-	void updateFeed();
-	void updateFeed(final boolean cleanItems);
+	void cleanUp(final SecurityContext ctx);
+	void updateIfDue(final SecurityContext ctx);
+	void updateFeed(final SecurityContext ctx);
+	void updateFeed(final SecurityContext ctx, final boolean cleanItems);
 
 	String getUrl();
 	String getFeedType();
@@ -115,39 +124,7 @@ public interface DataFeed extends NodeInterface {
 
 	Iterable<FeedItem> getItems();
 
-	/*
-	private static final Logger logger = LoggerFactory.getLogger(DataFeed.class.getName());
-
-	public static final Property<List<FeedItem>> items          = new EndNodes<>("items", FeedItems.class);
-	public static final Property<String>         url            = new StringProperty("url").indexed();
-	public static final Property<String>         feedType       = new StringProperty("feedType").indexed();
-	public static final Property<String>         description    = new StringProperty("description").indexed();
-	public static final Property<Long>           updateInterval = new LongProperty("updateInterval"); // update interval in milliseconds
-	public static final Property<Date>           lastUpdated    = new ISO8601DateProperty("lastUpdated");
-	public static final Property<Long>           maxAge         = new LongProperty("maxAge"); // maximum age of the oldest feed entry in milliseconds
-	public static final Property<Integer>        maxItems       = new IntProperty("maxItems"); // maximum number of feed entries to retain
-
-	public static final View defaultView = new View(DataFeed.class, PropertyView.Public, id, type, url, items, feedType, description);
-
-	public static final View uiView = new View(DataFeed.class, PropertyView.Ui,
-		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate,
-                url, items, feedType, description, lastUpdated, maxAge, maxItems, updateInterval
-	);
-
-        static {
-
-            SchemaService.registerBuiltinTypeOverride("DataFeed", DataFeed.class.getName());
-        }
-
-
-	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		updateFeed(true);
-		return super.onCreation(securityContext, errorBuffer);
-	}
-	*/
-
-	static void cleanUp(final DataFeed thisFeed) {
+	static void cleanUp(final DataFeed thisFeed, final SecurityContext ctx) {
 
 		final Integer maxItemsToRetain = thisFeed.getMaxItems();
 		final Long    maxItemAge       = thisFeed.getMaxAge();
@@ -172,19 +149,18 @@ public interface DataFeed extends NodeInterface {
 				if ((maxItemsToRetain != null && i > maxItemsToRetain) || (maxItemAge != null && itemDate.before(new Date(new Date().getTime() - maxItemAge)))) {
 
 					try {
-						StructrApp.getInstance().delete(item);
+
+						StructrApp.getInstance(ctx).delete(item);
 
 					} catch (FrameworkException ex) {
 						logger.error("Error while deleting old/surplus feed item " + item, ex);
 					}
 				}
 			}
-
 		}
-
 	}
 
-	static void updateIfDue(final DataFeed thisFeed) {
+	static void updateIfDue(final DataFeed thisFeed, final SecurityContext ctx) {
 
 		final Date lastUpdate = thisFeed.getLastUpdated();
 		final Long interval   = thisFeed.getUpdateInterval();
@@ -192,18 +168,17 @@ public interface DataFeed extends NodeInterface {
 		if (lastUpdate == null || (interval != null && new Date().after(new Date(lastUpdate.getTime() + interval)))) {
 
 			// Update feed and clean-up afterwards
-			thisFeed.updateFeed(true);
+			thisFeed.updateFeed(ctx, true);
 		}
 
 	}
 
-	static void updateFeed(final DataFeed thisFeed, final boolean cleanUp) {
+	static void updateFeed(final DataFeed thisFeed, final boolean cleanUp, final SecurityContext ctx) {
 
 		final String remoteUrl = thisFeed.getUrl();
 		if (StringUtils.isNotBlank(remoteUrl)) {
 
-			final SecurityContext securityContext = thisFeed.getSecurityContext();
-			final App app                         = StructrApp.getInstance(securityContext);
+			final App app = StructrApp.getInstance(ctx);
 
 			try {
 
@@ -235,7 +210,10 @@ public interface DataFeed extends NodeInterface {
 							props.put(StructrApp.key(FeedItem.class, "name"),        entry.getTitle());
 							props.put(StructrApp.key(FeedItem.class, "author"),      entry.getAuthor());
 							props.put(StructrApp.key(FeedItem.class, "comments"),    entry.getComments());
-							props.put(StructrApp.key(FeedItem.class, "description"), entry.getDescription().getValue());
+
+							if(entry.getDescription() != null) {
+								props.put(StructrApp.key(FeedItem.class, "description"), entry.getDescription().getValue());
+							}
 
 							final FeedItem item = app.create(FeedItem.class, props);
 							item.setProperty(dateKey, entry.getPublishedDate());
@@ -285,7 +263,7 @@ public interface DataFeed extends NodeInterface {
 		}
 
 		if (cleanUp) {
-			thisFeed.cleanUp();
+			thisFeed.cleanUp(ctx);
 		}
 	}
 }

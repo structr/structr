@@ -25,10 +25,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.microformat.MicroformatParser;
 
-/**
- *
- */
-public class ParseFunction extends UiFunction {
+public class ParseFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_PARSE    = "Usage: ${parse(URL, selector)}. Example: ${parse('http://structr.org', 'li.data')}";
 	public static final String ERROR_MESSAGE_PARSE_JS = "Usage: ${{Structr.parse(URL, selector)}}. Example: ${{Structr.parse('http://structr.org', 'li.data')}}";
@@ -63,7 +60,6 @@ public class ParseFunction extends UiFunction {
 			} catch (Throwable t) {
 
 				logException(caller, t, sources);
-
 			}
 
 			return "";
@@ -71,7 +67,6 @@ public class ParseFunction extends UiFunction {
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
 		}
 
 		return usage(ctx.isJavaScriptContext());
@@ -86,5 +81,4 @@ public class ParseFunction extends UiFunction {
 	public String shortDescription() {
 		return "Parses the given string and returns an object";
 	}
-
 }

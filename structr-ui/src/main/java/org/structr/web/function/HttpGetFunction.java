@@ -24,13 +24,13 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.structr.schema.action.ActionContext;
 import org.structr.rest.common.HttpHelper;
+import org.structr.schema.action.ActionContext;
 
 /**
  *
  */
-public class HttpGetFunction extends UiFunction {
+public class HttpGetFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_GET    = "Usage: ${GET(URL[, contentType[, selector]])}. Example: ${GET('http://structr.org', 'text/html')}";
 	public static final String ERROR_MESSAGE_GET_JS = "Usage: ${{Structr.GET(URL[, contentType[, selector]])}}. Example: ${{Structr.HEAD('http://structr.org', 'text/html')}}";

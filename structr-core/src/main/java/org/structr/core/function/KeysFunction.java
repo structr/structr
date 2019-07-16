@@ -27,12 +27,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-/**
- *
- */
-public class KeysFunction extends Function<Object, Object> {
+public class KeysFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_KEYS = "Usage: ${keys(entity [, viewName])}. Example: ${keys(this, \"ui\")}";
 	public static final String ERROR_MESSAGE_KEYS_JS = "Usage: ${{Structr.keys(entity [, viewName])}}. Example: ${{Structr.keys(this, \"ui\")}}";
@@ -70,7 +66,7 @@ public class KeysFunction extends Function<Object, Object> {
 
 				return new LinkedList<>(((Map)sources[0]).keySet());
 			} else {
-				
+
 				return null;
 			}
 

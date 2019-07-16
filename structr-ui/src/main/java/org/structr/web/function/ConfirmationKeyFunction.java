@@ -21,8 +21,7 @@ package org.structr.web.function;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.action.ActionContext;
 
-
-public class ConfirmationKeyFunction extends UiFunction {
+public class ConfirmationKeyFunction extends UiCommunityFunction {
 
 	public static final String ERROR_MESSAGE_CONFIRMATION_KEY    = "Usage: ${confirmation_key()}. Example: ${confirmation_key()}";
 	public static final String ERROR_MESSAGE_CONFIRMATION_KEY_JS = "Usage: ${{Structr.confirmation_key()}}. Example: ${{Structr.confirmation_key()}}";

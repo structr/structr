@@ -24,9 +24,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class InheritingTypesFunction extends Function<Object, Object> {
+public class InheritingTypesFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_INHERITING_TYPES    = "Usage: ${inheriting_types(type[, blacklist])}. Example ${inheriting_types('User')}";
 	public static final String ERROR_MESSAGE_INHERITING_TYPES_JS = "Usage: ${Structr.inheriting_types(type[, blacklist])}. Example ${Structr.inheriting_types('User')}";

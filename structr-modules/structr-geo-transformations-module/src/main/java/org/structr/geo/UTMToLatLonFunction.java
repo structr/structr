@@ -31,9 +31,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.DoubleProperty;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class UTMToLatLonFunction extends Function<Object, Object> {
+public class UTMToLatLonFunction extends GeoFunction {
 
 	private static final String ERROR_MESSAGE            = "Usage: ${utm_to_lat_lon(utmString)}. Example: ${utm_to_lat_lon('32U 395473 5686479')}";
 	private static final Logger logger                   = LoggerFactory.getLogger(UTMToLatLonFunction.class.getName());

@@ -34,15 +34,23 @@ import org.structr.mail.function.MailClearBccFunction;
 import org.structr.mail.function.MailClearBounceAddressFunction;
 import org.structr.mail.function.MailClearCcFunction;
 import org.structr.mail.function.MailClearHeadersFunction;
+import org.structr.mail.function.MailClearInReplyTo;
 import org.structr.mail.function.MailClearReplyToFunction;
 import org.structr.mail.function.MailClearToFunction;
+import org.structr.mail.function.MailDecodeTextFunction;
+import org.structr.mail.function.MailEncodeTextFunction;
+import org.structr.mail.function.MailGetLastOutgoingMessageFunction;
+import org.structr.mail.function.MailRemoveHeaderFunction;
+import org.structr.mail.function.MailSaveOutgoingMessageFunction;
 import org.structr.mail.function.MailSendFunction;
 import org.structr.mail.function.MailSetBounceAddressFunction;
 import org.structr.mail.function.MailSetFromFunction;
 import org.structr.mail.function.MailSetHtmlContentFunction;
+import org.structr.mail.function.MailSetInReplyTo;
 import org.structr.mail.function.MailSetSubjectFunction;
 import org.structr.mail.function.MailSetTextContentFunction;
 import org.structr.module.StructrModule;
+import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
 
@@ -50,31 +58,38 @@ public class AdvancedMailModule implements StructrModule {
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+	}
 
-//		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
-//		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
-		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailBeginFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailSetFromFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailSetSubjectFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailSetHtmlContentFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailSetTextContentFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailAddToFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearToFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailAddCcFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearCcFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailAddBccFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearBccFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailSetBounceAddressFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearBounceAddressFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailAddReplyToFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearReplyToFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailAddAttachmentFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearAttachmentsFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailAddHeaderFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailClearHeadersFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MailSendFunction());
+		Functions.put(licenseManager, new MailBeginFunction(this));
+		Functions.put(licenseManager, new MailSetFromFunction(this));
+		Functions.put(licenseManager, new MailSetSubjectFunction(this));
+		Functions.put(licenseManager, new MailSetHtmlContentFunction(this));
+		Functions.put(licenseManager, new MailSetTextContentFunction(this));
+		Functions.put(licenseManager, new MailAddToFunction(this));
+		Functions.put(licenseManager, new MailClearToFunction(this));
+		Functions.put(licenseManager, new MailAddCcFunction(this));
+		Functions.put(licenseManager, new MailClearCcFunction(this));
+		Functions.put(licenseManager, new MailAddBccFunction(this));
+		Functions.put(licenseManager, new MailClearBccFunction(this));
+		Functions.put(licenseManager, new MailSetBounceAddressFunction(this));
+		Functions.put(licenseManager, new MailClearBounceAddressFunction(this));
+		Functions.put(licenseManager, new MailAddReplyToFunction(this));
+		Functions.put(licenseManager, new MailClearReplyToFunction(this));
+		Functions.put(licenseManager, new MailAddAttachmentFunction(this));
+		Functions.put(licenseManager, new MailClearAttachmentsFunction(this));
+		Functions.put(licenseManager, new MailAddHeaderFunction(this));
+		Functions.put(licenseManager, new MailRemoveHeaderFunction(this));
+		Functions.put(licenseManager, new MailClearHeadersFunction(this));
+		Functions.put(licenseManager, new MailSetInReplyTo(this));
+		Functions.put(licenseManager, new MailClearInReplyTo(this));
+		Functions.put(licenseManager, new MailSaveOutgoingMessageFunction(this));
+		Functions.put(licenseManager, new MailGetLastOutgoingMessageFunction(this));
+		Functions.put(licenseManager, new MailSendFunction(this));
+		Functions.put(licenseManager, new MailDecodeTextFunction(this));
+		Functions.put(licenseManager, new MailEncodeTextFunction(this));
 	}
 
 	@Override
@@ -93,11 +108,11 @@ public class AdvancedMailModule implements StructrModule {
 	}
 
 	@Override
-	public void insertImportStatements(final AbstractSchemaNode schemaNode, final StringBuilder buf) {
+	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
 	}
 
 	@Override
-	public void insertSourceCode(final AbstractSchemaNode schemaNode, final StringBuilder buf) {
+	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
 	}
 
 	@Override
@@ -106,6 +121,6 @@ public class AdvancedMailModule implements StructrModule {
 	}
 
 	@Override
-	public void insertSaveAction(final AbstractSchemaNode schemaNode, final StringBuilder buf, final Actions.Type type) {
+	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
 	}
 }

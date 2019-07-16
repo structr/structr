@@ -21,7 +21,6 @@ package org.structr.test.graphql;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.RequestLoggingFilter;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,6 +30,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Cardinality;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -38,7 +38,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
@@ -49,11 +48,11 @@ import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonBooleanProperty;
-import org.structr.schema.json.JsonEnumProperty;
-import org.structr.schema.json.JsonFunctionProperty;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonBooleanProperty;
+import org.structr.api.schema.JsonEnumProperty;
+import org.structr.api.schema.JsonFunctionProperty;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.test.rest.common.StructrGraphQLTest;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
@@ -128,7 +127,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			.expect()
 				.statusCode(422)
-				.body("message", equalTo("Parse error at } in line 1, column 36"))
+				.body("message", equalTo("Invalid Syntax : offending token '}' at line 1 column 36"))
 				.body("code",    equalTo(422))
 				.body("query",   equalTo(query2))
 
@@ -423,14 +422,14 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType project = schema.addType("Project");
 			final JsonObjectType task    = schema.addType("Task");
 
-			project.relate(task, "HAS", Relation.Cardinality.ManyToMany, "projects", "tasks");
+			project.relate(task, "HAS", Cardinality.ManyToMany, "projects", "tasks");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -540,14 +539,14 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType project = schema.addType("Project");
 			final JsonObjectType task    = schema.addType("Task");
 
-			project.relate(task, "HAS", Relation.Cardinality.OneToMany, "project", "tasks");
+			project.relate(task, "HAS", Cardinality.OneToMany, "project", "tasks");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -694,14 +693,14 @@ public class GraphQLTest extends StructrGraphQLTest {
 		// test data setup
 		try (final Tx tx = app.tx()) {
 
-			final Principal p1 = app.create(Principal.class, "First Tester");
 			final Principal p2 = app.create(Principal.class, "Second Tester");
-			final MailTemplate m1 = app.create(MailTemplate.class, "First Template");
-			final MailTemplate m2 = app.create(MailTemplate.class, "Second Template");
+			final Principal p1 = app.create(Principal.class, "First Tester");
 			final MailTemplate m3 = app.create(MailTemplate.class, "Third Template");
-			final MailTemplate m4 = app.create(MailTemplate.class, "Fourth Template");
+			final MailTemplate m2 = app.create(MailTemplate.class, "Second Template");
 			final MailTemplate m5 = app.create(MailTemplate.class, "Fifth Template");
+			final MailTemplate m1 = app.create(MailTemplate.class, "First Template");
 			final MailTemplate m6 = app.create(MailTemplate.class, "Sixth Template");
+			final MailTemplate m4 = app.create(MailTemplate.class, "Fourth Template");
 
 			m1.setProperty(MailTemplate.owner, p1);
 			m2.setProperty(MailTemplate.owner, p1);
@@ -805,7 +804,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -814,8 +813,8 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			final Class type = StructrApp.getConfiguration().getNodeEntityClass("FunctionTest");
 
-			app.create(type, "test1");
 			app.create(type, "test2");
+			app.create(type, "test1");
 
 			tx.success();
 
@@ -842,7 +841,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		}
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ FunctionTest(stringTest: {_contains: \"e\"}) { id, type, name, stringTest, boolTest }}");
+			final Map<String, Object> result = fetchGraphQL("{ FunctionTest(stringTest: {_contains: \"e\"}, _sort: \"name\") { id, type, name, stringTest, boolTest }}");
 			assertMapPathValueIs(result, "FunctionTest.#",            2);
 			assertMapPathValueIs(result, "FunctionTest.0.name",       "test1");
 			assertMapPathValueIs(result, "FunctionTest.0.stringTest", "true");
@@ -947,7 +946,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			.expect()
 				.statusCode(422)
-				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Principal of field members"))
+				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Principal of field members @ 'Group/members'"))
 				.body("errors[0].locations[0].line",   equalTo(1))
 				.body("errors[0].locations[0].column", equalTo(27))
 				.body("errors[0].description",         equalTo("Sub selection required for type Principal of field members"))
@@ -964,7 +963,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			.expect()
 				.statusCode(422)
-				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Principal of field owner"))
+				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Principal of field owner @ 'Group/owner'"))
 				.body("errors[0].locations[0].line",   equalTo(1))
 				.body("errors[0].locations[0].column", equalTo(27))
 				.body("errors[0].description",         equalTo("Sub selection required for type Principal of field owner"))
@@ -988,7 +987,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType type           = schema.addType("Test");
 			final JsonObjectType tmpType        = schema.addType("Tmp");
 
-			type.relate(tmpType, "TMP", Relation.Cardinality.OneToMany, "parent", "children");
+			type.relate(tmpType, "TMP", Cardinality.OneToMany, "parent", "children");
 
 			type.addFunctionProperty("test1").setReadFunction("'test'").setTypeHint("String");
 			type.addFunctionProperty("test2").setReadFunction("false").setTypeHint("Boolean");
@@ -1002,7 +1001,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			tx.success();
 
-		} catch (URISyntaxException | FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1060,12 +1059,12 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			.expect()
 				.statusCode(422)
-				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Principal of field test6"))
+				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Principal of field test6 @ 'Test/test6'"))
 				.body("errors[0].locations[0].line",   equalTo(1))
 				.body("errors[0].locations[0].column", equalTo(10))
 				.body("errors[0].description",         equalTo("Sub selection required for type Principal of field test6"))
 				.body("errors[0].validationErrorType", equalTo("SubSelectionRequired"))
-				.body("errors[1].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Tmp of field test7"))
+				.body("errors[1].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Tmp of field test7 @ 'Test/test7'"))
 				.body("errors[1].locations[0].line",   equalTo(1))
 				.body("errors[1].locations[0].column", equalTo(17))
 				.body("errors[1].description",         equalTo("Sub selection required for type Tmp of field test7"))
@@ -1090,13 +1089,13 @@ public class GraphQLTest extends StructrGraphQLTest {
 			extProject1.setExtends(project);
 			extProject2.setExtends(project);
 
-			project.relate(task, "HAS", Relation.Cardinality.OneToMany, "project", "tasks");
+			project.relate(task, "HAS", Cardinality.OneToMany, "project", "tasks");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -1219,7 +1218,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType project     = schema.addType("Project");
 			final JsonObjectType task        = schema.addType("Task");
 
-			project.relate(task, "HAS", Relation.Cardinality.OneToMany, "project", "tasks");
+			project.relate(task, "HAS", Cardinality.OneToMany, "project", "tasks");
 
 			final JsonFunctionProperty p1 = task.addFunctionProperty("projectId");
 			p1.setIndexed(true);
@@ -1239,7 +1238,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -1428,31 +1427,35 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final PropertyKey testInt     = StructrApp.getConfiguration().getPropertyKeyForJSONName(projectType, "testInt");
 
 			app.create(projectType,
-				new NodeAttribute<>(testBoolean, true),
-				new NodeAttribute<>(testDouble,  252.52),
-				new NodeAttribute<>(testLong,    234532L),
-				new NodeAttribute<>(testInt,     4563332)
+				new NodeAttribute<>(AbstractNode.name, "Project1"),
+				new NodeAttribute<>(testBoolean,       true),
+				new NodeAttribute<>(testDouble,        252.52),
+				new NodeAttribute<>(testLong,          234532L),
+				new NodeAttribute<>(testInt,           4563332)
 			);
 
 			app.create(projectType,
-				new NodeAttribute<>(testBoolean, false),
-				new NodeAttribute<>(testDouble,  124.52),
-				new NodeAttribute<>(testLong,    563L),
-				new NodeAttribute<>(testInt,     2345)
+				new NodeAttribute<>(AbstractNode.name, "Project2"),
+				new NodeAttribute<>(testBoolean,       false),
+				new NodeAttribute<>(testDouble,        124.52),
+				new NodeAttribute<>(testLong,          563L),
+				new NodeAttribute<>(testInt,           2345)
 			);
 
 			app.create(projectType,
-				new NodeAttribute<>(testBoolean, true),
-				new NodeAttribute<>(testDouble,  323.22),
-				new NodeAttribute<>(testLong,    22L),
-				new NodeAttribute<>(testInt,     452)
+				new NodeAttribute<>(AbstractNode.name, "Project3"),
+				new NodeAttribute<>(testBoolean,       true),
+				new NodeAttribute<>(testDouble,        323.22),
+				new NodeAttribute<>(testLong,          22L),
+				new NodeAttribute<>(testInt,           452)
 			);
 
 			app.create(projectType,
-				new NodeAttribute<>(testBoolean, false),
-				new NodeAttribute<>(testDouble,  334.32),
-				new NodeAttribute<>(testLong,    5L),
-				new NodeAttribute<>(testInt,     235)
+				new NodeAttribute<>(AbstractNode.name, "Project4"),
+				new NodeAttribute<>(testBoolean,       false),
+				new NodeAttribute<>(testDouble,        334.32),
+				new NodeAttribute<>(testLong,          5L),
+				new NodeAttribute<>(testInt,           235)
 			);
 
 			tx.success();
@@ -1464,7 +1467,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		RestAssured.basePath = "/structr/graphql";
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Project(testBoolean: { _equals: true}) { testBoolean, testDouble, testLong, testInt } }");
+			final Map<String, Object> result = fetchGraphQL("{ Project(testBoolean: { _equals: true}, _sort: \"name\") { testBoolean, testDouble, testLong, testInt } }");
 			assertMapPathValueIs(result, "Project.#",           2);
 			assertMapPathValueIs(result, "Project.0.testBoolean", true);
 			assertMapPathValueIs(result, "Project.0.testDouble",  252.52);
@@ -1516,7 +1519,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType project = schema.addType("Project");
 			final JsonObjectType task    = schema.addType("Task");
 
-			project.relate(task, "HAS", Relation.Cardinality.OneToMany, "project", "tasks");
+			project.relate(task, "HAS", Cardinality.OneToMany, "project", "tasks");
 
 			task.addBooleanProperty("testBoolean").setIndexed(true);
 			task.addLongProperty("testLong").setIndexed(true);
@@ -1640,7 +1643,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType project = schema.addType("Project");
 			final JsonObjectType task    = schema.addType("Task");
 
-			project.relate(task, "HAS", Relation.Cardinality.OneToOne, "project", "task");
+			project.relate(task, "HAS", Cardinality.OneToOne, "project", "task");
 
 			task.addBooleanProperty("testBoolean").setIndexed(true);
 
@@ -1708,7 +1711,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType project    = schema.addType("Project");
 			final JsonObjectType identifier = schema.addType("Identifier");
 
-			project.relate(identifier, "HAS",    Relation.Cardinality.OneToOne, "project", "identifier");
+			project.relate(identifier, "HAS",    Cardinality.OneToOne, "project", "identifier");
 
 			identifier.addStringProperty("test1").setIndexed(true);
 			identifier.addStringProperty("test2").setIndexed(true);
@@ -1718,7 +1721,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -1801,16 +1804,16 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType manyToOne = schema.addType("ManyToOneTest");
 			final JsonObjectType manyToMany = schema.addType("ManyToManyTest");
 
-			root.relate(oneToOne,   "oneToOne",   Relation.Cardinality.OneToOne,   "rootOneToOne",   "oneToOne");
-			root.relate(oneToMany,  "oneToMany",  Relation.Cardinality.OneToMany,  "rootOneToMany",  "oneToMany");
-			root.relate(manyToOne,  "manyToOne",  Relation.Cardinality.ManyToOne,  "rootManyToOne",  "manyToOne");
-			root.relate(manyToMany, "manyToMany", Relation.Cardinality.ManyToMany, "rootManyToMany", "manyToMany");
+			root.relate(oneToOne,   "oneToOne",   Cardinality.OneToOne,   "rootOneToOne",   "oneToOne");
+			root.relate(oneToMany,  "oneToMany",  Cardinality.OneToMany,  "rootOneToMany",  "oneToMany");
+			root.relate(manyToOne,  "manyToOne",  Cardinality.ManyToOne,  "rootManyToOne",  "manyToOne");
+			root.relate(manyToMany, "manyToMany", Cardinality.ManyToMany, "rootManyToMany", "manyToMany");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -2099,7 +2102,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType project = schema.addType("Project");
 			final JsonObjectType task    = schema.addType("Task");
 
-			project.relate(task, "TASK", Relation.Cardinality.OneToMany, "project", "tasks");
+			project.relate(task, "TASK", Cardinality.OneToMany, "project", "tasks");
 
 			// add function property that extracts the project ID
 			final JsonFunctionProperty projectId = task.addFunctionProperty("projectId");
@@ -2112,7 +2115,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -2260,8 +2263,8 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType project   = schema.addType("Project");
 			final JsonObjectType task      = schema.addType("Task");
 
-			project.relate(task,   "TASK",    Relation.Cardinality.OneToMany, "project",   "tasks");
-			taskGroup.relate(task, "PART_OF", Relation.Cardinality.OneToMany, "taskGroup", "tasks");
+			project.relate(task,   "TASK",    Cardinality.OneToMany, "project",   "tasks");
+			taskGroup.relate(task, "PART_OF", Cardinality.OneToMany, "taskGroup", "tasks");
 
 			// add function property that extracts the project ID
 			final JsonFunctionProperty projectId = task.addFunctionProperty("projectId");
@@ -2281,7 +2284,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -2403,7 +2406,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -2447,7 +2450,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType project   = schema.addType("Project");
 			final JsonObjectType task      = schema.addType("Task");
 
-			project.relate(task,   "TASK",    Relation.Cardinality.OneToMany, "project",   "tasks");
+			project.relate(task,   "TASK",    Cardinality.OneToMany, "project",   "tasks");
 
 			// add function property that extracts the project ID
 			final JsonFunctionProperty hasProject = task.addFunctionProperty("hasProject");
@@ -2460,7 +2463,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -2537,6 +2540,127 @@ public class GraphQLTest extends StructrGraphQLTest {
 			assertMapPathValueIs(result, "Task.5.name",            "Task1.6");
 			assertMapPathValueIs(result, "Task.6.name",            "Task1.7");
 		}
+	}
+
+	@Test
+	public void testInheritance() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType baseType = schema.addType("BaseType");
+			final JsonObjectType project  = schema.addType("Project");
+			final JsonObjectType task     = schema.addType("Task");
+
+			project.setExtends(baseType);
+			task.setExtends(baseType);
+
+			baseType.addBooleanProperty("isChecked").setIndexed(true);
+
+			project.relate(task, "TASK",  Cardinality.OneToMany, "project",   "tasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final Class<NodeInterface> baseType    = StructrApp.getConfiguration().getNodeEntityClass("BaseType");
+		final Class<NodeInterface> projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final Class<NodeInterface> taskType    = StructrApp.getConfiguration().getNodeEntityClass("Task");
+		final PropertyKey checkedKey           = StructrApp.getConfiguration().getPropertyKeyForJSONName(baseType, "isChecked");
+		final PropertyKey projectTasksKey      = StructrApp.getConfiguration().getPropertyKeyForJSONName(projectType, "tasks");
+
+		try (final Tx tx = app.tx()) {
+
+			final List<NodeInterface> tasks1 = new LinkedList<>();
+			final List<NodeInterface> tasks2 = new LinkedList<>();
+			final List<NodeInterface> tasks3 = new LinkedList<>();
+			final List<NodeInterface> tasks4 = new LinkedList<>();
+			final List<NodeInterface> tasks5 = new LinkedList<>();
+
+			final NodeInterface project1     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project1"), new NodeAttribute<>(checkedKey, true));
+			final NodeInterface project2     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project2"), new NodeAttribute<>(checkedKey, false));
+			final NodeInterface project3     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project3"), new NodeAttribute<>(checkedKey, true));
+			final NodeInterface project4     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project4"), new NodeAttribute<>(checkedKey, false));
+			final NodeInterface project5     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project5"), new NodeAttribute<>(checkedKey, true));
+
+			tasks1.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task1.1"), new NodeAttribute<>(checkedKey, false)));
+			tasks1.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task1.3"), new NodeAttribute<>(checkedKey, true)));
+			tasks1.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task1.5"), new NodeAttribute<>(checkedKey, false)));
+			tasks1.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task1.6"), new NodeAttribute<>(checkedKey, true)));
+
+			tasks2.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task2.1"), new NodeAttribute<>(checkedKey, false)));
+			tasks2.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task2.2"), new NodeAttribute<>(checkedKey, true)));
+			tasks2.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task2.3"), new NodeAttribute<>(checkedKey, false)));
+			tasks2.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task2.4"), new NodeAttribute<>(checkedKey, true)));
+
+			tasks3.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task3.1"), new NodeAttribute<>(checkedKey, false)));
+			tasks3.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task3.2"), new NodeAttribute<>(checkedKey, true)));
+			tasks3.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task3.3"), new NodeAttribute<>(checkedKey, false)));
+			tasks3.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task3.4"), new NodeAttribute<>(checkedKey, true)));
+
+			tasks4.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task4.1"), new NodeAttribute<>(checkedKey, false)));
+			tasks4.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task4.2"), new NodeAttribute<>(checkedKey, true)));
+			tasks4.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task4.3"), new NodeAttribute<>(checkedKey, false)));
+			tasks4.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task4.4"), new NodeAttribute<>(checkedKey, true)));
+
+			tasks5.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task5.1"), new NodeAttribute<>(checkedKey, false)));
+			tasks5.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task5.2"), new NodeAttribute<>(checkedKey, false)));
+			tasks5.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task5.3"), new NodeAttribute<>(checkedKey, false)));
+			tasks5.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task5.4"), new NodeAttribute<>(checkedKey, false)));
+
+			project1.setProperty(projectTasksKey, tasks1);
+			project2.setProperty(projectTasksKey, tasks2);
+			project3.setProperty(projectTasksKey, tasks3);
+			project4.setProperty(projectTasksKey, tasks4);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(_sort: \"name\", isChecked: { _equals: true}, tasks: { isChecked: { _equals: true }}) { id, type, name, isChecked, tasks { id, type, name, isChecked }}}");
+
+			assertMapPathValueIs(result, "Project.#",                  2);
+			assertMapPathValueIs(result, "Project.0.name",            "Project1");
+			assertMapPathValueIs(result, "Project.0.isChecked",       true);
+			assertMapPathValueIs(result, "Project.0.tasks.0.name",    "Task1.1");
+			assertMapPathValueIs(result, "Project.0.tasks.1.name",    "Task1.3");
+			assertMapPathValueIs(result, "Project.0.tasks.2.name",    "Task1.5");
+			assertMapPathValueIs(result, "Project.0.tasks.3.name",    "Task1.6");
+			assertMapPathValueIs(result, "Project.1.name",            "Project3");
+			assertMapPathValueIs(result, "Project.1.isChecked",       true);
+			assertMapPathValueIs(result, "Project.1.tasks.0.name",    "Task3.1");
+			assertMapPathValueIs(result, "Project.1.tasks.1.name",    "Task3.2");
+			assertMapPathValueIs(result, "Project.1.tasks.2.name",    "Task3.3");
+			assertMapPathValueIs(result, "Project.1.tasks.3.name",    "Task3.4");
+		}
+
+		/* failing test, to be implemented...
+		{
+			//final Map<String, Object> result = fetchGraphQL("{ Project(_sort: \"name\", isChecked: { _equals: true}) { id, type, name, isChecked, tasks( isChecked: { _equals: true }, _sort: \"name\", _desc: true ) { id, type, name, isChecked }}}");
+			final Map<String, Object> result = fetchGraphQL("{ Project(_sort: \"name\", isChecked: { _equals: true}) { id, type, name, isChecked, tasks(_sort: \"name\", _desc: true ) { id, type, name, isChecked( _equals: true) }}}");
+
+			assertMapPathValueIs(result, "Project.#",                  2);
+			assertMapPathValueIs(result, "Project.0.name",            "Project1");
+			assertMapPathValueIs(result, "Project.0.isChecked",       true);
+			assertMapPathValueIs(result, "Project.0.tasks.0.name",    "Task1.6");
+			assertMapPathValueIs(result, "Project.0.tasks.1.name",    "Task1.3");
+			assertMapPathValueIs(result, "Project.1.name",            "Project3");
+			assertMapPathValueIs(result, "Project.1.isChecked",       true);
+			assertMapPathValueIs(result, "Project.1.tasks.0.name",    "Task3.4");
+			assertMapPathValueIs(result, "Project.1.tasks.1.name",    "Task3.2");
+		}
+		*/
 
 	}
 

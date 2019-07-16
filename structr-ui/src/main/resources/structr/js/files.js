@@ -1002,13 +1002,17 @@ var _Files = {
 			}
 		}
 
-		if (Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && d.contentType === 'text/csv') {
-			_Files.appendCSVImportDialogIcon(div, d);
-		}
+		Structr.performModuleDependendAction(function() {
+			if (Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && d.contentType === 'text/csv') {
+				_Files.appendCSVImportDialogIcon(div, d);
+			}
+		});
 
-		if (Structr.isModulePresent('xml') && (d.contentType === 'text/xml' || d.contentType === 'application/xml')) {
-			_Files.appendXMLImportDialogIcon(div, d);
-		}
+		Structr.performModuleDependendAction(function() {
+			if (Structr.isModulePresent('xml') && (d.contentType === 'text/xml' || d.contentType === 'application/xml')) {
+				_Files.appendXMLImportDialogIcon(div, d);
+			}
+		});
 	},
 	appendEditImageIcon: function(parent, image) {
 
@@ -1288,13 +1292,13 @@ var _Files = {
 			}
 		});
 	},
-	updateTextFile: function(file, text) {
+	updateTextFile: function(file, text, callback) {
 		var chunks = Math.ceil(text.length / chunkSize);
 		for (var c = 0; c < chunks; c++) {
 			var start = c * chunkSize;
 			var end = (c + 1) * chunkSize;
 			var chunk = utf8_to_b64(text.substring(start, end));
-			Command.chunk(file.id, c, chunkSize, chunk, chunks);
+			Command.chunk(file.id, c, chunkSize, chunk, chunks, ((c+1 === chunks) ? callback : undefined));
 		}
 	},
 	editContent: function(button, file, element) {
@@ -1355,17 +1359,34 @@ var _Files = {
 				dialogBtn.children('#saveAndClose').remove();
 
 				var h = '<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '>&nbsp;&nbsp;'
-				+ '<label for="isTemplate">Replace template expressions:</label> <input id="isTemplate" type="checkbox"' + (file.isTemplate ? ' checked="checked" ' : '') + '></span>';
+				+ '<label for="isTemplate">Replace template expressions:</label> <input id="isTemplate" type="checkbox"><label for="showTemplatePreview">Show preview:</label> <input id="showTemplatePreview" type="checkbox"></span>';
 				dialogMeta.html(h);
+
+				let lineWrappingCheckbox = $('#lineWrapping');
+				let isTemplateCheckbox   = $('#isTemplate').prop('checked', file.isTemplate);
+				let showPreviewCheckbox  = $('#showTemplatePreview');
 
 				Structr.appendInfoTextToElement({
 					text: "Expressions like <pre>Hello ${print(me.name)} !</pre> will be evaluated. To see a preview, tick this checkbox.",
-					element: dialogMeta
+					element: isTemplateCheckbox,
+					insertAfter: true,
+					css: {
+						"margin-right": "4px"
+					}
 				});
 
-				$('#lineWrapping').on('change', function() {
-					var inp = $(this);
-					if (inp.is(':checked')) {
+
+				let isTemplateCheckboxChangeFunction = function(isTemplate) {
+					if (isTemplate) {
+						showPreviewCheckbox.attr('disabled', null);
+					} else {
+						showPreviewCheckbox.attr('disabled', 'disabled');
+					}
+				};
+				isTemplateCheckboxChangeFunction(file.isTemplate);
+
+				lineWrappingCheckbox.on('change', function() {
+					if ($(this).is(':checked')) {
 						LSWrapper.setItem(lineWrappingKey, "1");
 						editor.setOption('lineWrapping', true);
 					} else {
@@ -1375,20 +1396,23 @@ var _Files = {
 					editor.refresh();
 				});
 
-				$('#isTemplate').on('change', function() {
-					var inp = $(this);
-					var active = inp.is(':checked');
+				isTemplateCheckbox.on('change', function() {
+					var active = isTemplateCheckbox.is(':checked');
 					_Entities.setProperty(file.id, 'isTemplate', active, false, function() {
-						if (active) {
-							_Files.updateTemplatePreview(element, url, dataType, contentType);
-						} else {
-							var previewArea = $('#template-preview');
-							previewArea.hide();
-							$('textarea', previewArea).val('');
-							var contentBox = $('.editor', element);
-							contentBox.width('inherit');
-						}
+						isTemplateCheckboxChangeFunction(active);
 					});
+				});
+
+				showPreviewCheckbox.on('change', function() {
+					var active = showPreviewCheckbox.is(':checked');
+					if (active) {
+						_Files.updateTemplatePreview(element, url, dataType, contentType);
+					} else {
+						var previewArea = $('#template-preview');
+						previewArea.hide();
+						$('textarea', previewArea).val('');
+						$('.editor', element).width('inherit');
+					}
 				});
 
 				dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled">Save</button>');
@@ -1406,45 +1430,40 @@ var _Files = {
 						dialogSaveButton.prop("disabled", false).removeClass('disabled');
 						saveAndClose.prop("disabled", false).removeClass('disabled');
 					}
-
 				});
 
 				$('button#saveFile', dialogBtn).on('click', function(e) {
 
-					var isTemplate = $('#isTemplate').is(':checked');
+					e.preventDefault();
+					e.stopPropagation();
 
-					if (isTemplate) {
-						$('#isTemplate').prop('checked', false);
-						_Entities.setProperty(file.id, 'isTemplate', false, false, function() {
+					var newText = editor.getValue();
+					if (text === newText) {
+						return;
+					}
 
-							e.preventDefault();
-							e.stopPropagation();
-							var newText = editor.getValue();
-							if (text === newText) {
-								return;
-							}
-							_Files.updateTextFile(file, newText);
-							text = newText;
-							dialogSaveButton.prop("disabled", true).addClass('disabled');
-							saveAndClose.prop("disabled", true).addClass('disabled');
+					let saveFileAction = function (callback) {
 
-							$('#isTemplate').click();
-
-						});
-
-					} else {
-						e.preventDefault();
-						e.stopPropagation();
-						var newText = editor.getValue();
-						if (text === newText) {
-							return;
-						}
-						_Files.updateTextFile(file, newText);
+						_Files.updateTextFile(file, newText, callback);
 						text = newText;
 						dialogSaveButton.prop("disabled", true).addClass('disabled');
 						saveAndClose.prop("disabled", true).addClass('disabled');
-					}
+					};
 
+					if ($('#isTemplate').is(':checked')) {
+
+						_Entities.setProperty(file.id, 'isTemplate', false, false, function() {
+
+							saveFileAction(function() {
+
+								_Entities.setProperty(file.id, 'isTemplate', true);
+							});
+						});
+
+					} else {
+
+						saveFileAction();
+					}
 				});
 
 				saveAndClose.on('click', function(e) {
@@ -1458,10 +1477,6 @@ var _Files = {
 				});
 
 				_Files.resize();
-
-				if (file.isTemplate) {
-					_Files.updateTemplatePreview(element, url, dataType, contentType);
-				}
 			},
 			error: function(xhr, statusText, error) {
 				console.log(xhr, statusText, error);

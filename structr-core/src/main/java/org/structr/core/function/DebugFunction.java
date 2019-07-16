@@ -24,9 +24,6 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
-/**
- *
- */
 public class DebugFunction extends LogFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(LogFunction.class.getName());
@@ -60,5 +57,4 @@ public class DebugFunction extends LogFunction {
 	public String shortDescription() {
 		return "Logs the given string to the logfile if the debug mode is enabled in the configuration";
 	}
-
 }

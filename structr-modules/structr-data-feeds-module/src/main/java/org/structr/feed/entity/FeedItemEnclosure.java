@@ -22,12 +22,12 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
 import org.apache.commons.io.IOUtils;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.fulltext.Indexable;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 
 /**
  * Represents feed enclosures
@@ -52,7 +52,7 @@ public interface FeedItemEnclosure extends NodeInterface, Indexable {
 
 		// methods shared with FeedItemContent
 		type.overrideMethod("afterCreation",    false,             FeedItemContent.class.getName() + ".updateIndex(this, arg0);");
-		type.overrideMethod("getSearchContext", false, "return " + FeedItemContent.class.getName() + ".getSearchContext(this, arg0, arg1);").setDoExport(true);
+		type.overrideMethod("getSearchContext", false, "return " + FeedItemContent.class.getName() + ".getSearchContext(this, arg0, arg1, arg2);").setDoExport(true);
 
 		type.overrideMethod("getInputStream",   false, "return " + FeedItemEnclosure.class.getName() + ".getInputStream(this);");
 

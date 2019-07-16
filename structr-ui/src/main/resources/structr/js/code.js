@@ -878,6 +878,7 @@ var _Code = {
 			case 'Integer':      icon = 'calculator'; break;
 			case "Long":         icon = 'calculator'; break;
 			case 'String':       icon = 'pencil-square-o'; break;
+			case 'Encrypted':    icon = 'lock'; break;
 			default:             icon = 'chain'; break;
 		}
 
@@ -1236,6 +1237,7 @@ var _Code = {
 
 		// create buttons
 		_Code.displayCreatePropertyButton(id, 'String',   data);
+		_Code.displayCreatePropertyButton(id, 'Encrypted', data);
 		_Code.displayCreatePropertyButton(id, 'Boolean',  data);
 		_Code.displayCreatePropertyButton(id, 'Integer',  data);
 		_Code.displayCreatePropertyButton(id, 'Long',     data);
@@ -1737,6 +1739,8 @@ var _Code = {
 	updateRecentlyUsed: function(entity, updateLocationStack) {
 
 		_Code.addRecentlyUsedElement(entity);
+
+		var path = _Code.getPathForEntity(entity);
 
 		if (updateLocationStack) {
 			_Code.updatePathLocationStack(path);

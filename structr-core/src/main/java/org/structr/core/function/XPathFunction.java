@@ -27,10 +27,9 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 import org.w3c.dom.Document;
 
-public class XPathFunction extends Function<Object, Object> {
+public class XPathFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_XPATH = "Usage: ${xpath(xmlDocument, expression)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\" [, \"STRING\"])}";
 

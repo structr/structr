@@ -21,6 +21,7 @@ package org.structr.schema.export;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,27 +48,27 @@ import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonBooleanArrayProperty;
-import org.structr.schema.json.JsonBooleanProperty;
-import org.structr.schema.json.JsonDateArrayProperty;
-import org.structr.schema.json.JsonDateProperty;
-import org.structr.schema.json.JsonDynamicProperty;
-import org.structr.schema.json.JsonEnumProperty;
-import org.structr.schema.json.JsonFunctionProperty;
-import org.structr.schema.json.JsonIntegerArrayProperty;
-import org.structr.schema.json.JsonIntegerProperty;
-import org.structr.schema.json.JsonLongArrayProperty;
-import org.structr.schema.json.JsonLongProperty;
-import org.structr.schema.json.JsonMethod;
-import org.structr.schema.json.JsonNumberArrayProperty;
-import org.structr.schema.json.JsonNumberProperty;
-import org.structr.schema.json.JsonProperty;
-import org.structr.schema.json.JsonReferenceProperty;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonScriptProperty;
-import org.structr.schema.json.JsonStringArrayProperty;
-import org.structr.schema.json.JsonStringProperty;
-import org.structr.schema.json.JsonType;
+import org.structr.api.schema.JsonBooleanArrayProperty;
+import org.structr.api.schema.JsonBooleanProperty;
+import org.structr.api.schema.JsonDateArrayProperty;
+import org.structr.api.schema.JsonDateProperty;
+import org.structr.api.schema.JsonDynamicProperty;
+import org.structr.api.schema.JsonEnumProperty;
+import org.structr.api.schema.JsonFunctionProperty;
+import org.structr.api.schema.JsonIntegerArrayProperty;
+import org.structr.api.schema.JsonIntegerProperty;
+import org.structr.api.schema.JsonLongArrayProperty;
+import org.structr.api.schema.JsonLongProperty;
+import org.structr.api.schema.JsonMethod;
+import org.structr.api.schema.JsonNumberArrayProperty;
+import org.structr.api.schema.JsonNumberProperty;
+import org.structr.api.schema.JsonProperty;
+import org.structr.api.schema.JsonReferenceProperty;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonScriptProperty;
+import org.structr.api.schema.JsonStringArrayProperty;
+import org.structr.api.schema.JsonStringProperty;
+import org.structr.api.schema.JsonType;
 
 /**
  * @param <T>
@@ -111,7 +112,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	@Override
 	public boolean equals(final Object other) {
 
-		if (other instanceof StructrPropertyDefinition) {
+		if (other instanceof StructrTypeDefinition) {
 
 			return other.hashCode() == hashCode();
 		}
@@ -348,6 +349,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		properties.add(stringProperty);
 
 		return stringProperty;
+	}
+
+	@Override
+	public JsonStringProperty addEncryptedProperty(final String name, final String... views) {
+
+		final StructrEncryptedStringProperty encrypted = new StructrEncryptedStringProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(encrypted);
+
+		return encrypted;
 	}
 
 	@Override
@@ -867,10 +880,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 		}
 
-		this.isInterface    = schemaNode.getProperty(SchemaNode.isInterface);
-		this.isAbstract     = schemaNode.getProperty(SchemaNode.isAbstract);
-		this.isBuiltinType  = schemaNode.getProperty(SchemaNode.isBuiltinType);
-		this.category       = schemaNode.getProperty(SchemaNode.category);
+		this.isInterface   = schemaNode.getProperty(SchemaNode.isInterface);
+		this.isAbstract    = schemaNode.getProperty(SchemaNode.isAbstract);
+		this.isBuiltinType = schemaNode.getProperty(SchemaNode.isBuiltinType);
+		this.category      = schemaNode.getProperty(SchemaNode.category);
+		this.schemaNode    = schemaNode;
 
 		if (this.category == null && getClass().equals(StructrNodeTypeDefinition.class)) {
 
@@ -1093,6 +1107,82 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		for (final StructrPropertyDefinition property : properties) {
 			property.initializeReferences();
+		}
+	}
+
+	void diff(final StructrTypeDefinition other) throws FrameworkException {
+
+		diffMethods(other);
+		diffProperties(other);
+	}
+
+	void diffProperties(final StructrTypeDefinition other) throws FrameworkException {
+
+		final Map<String, StructrPropertyDefinition> databaseProperties = getMappedProperties();
+		final Map<String, StructrPropertyDefinition> structrProperties  = other.getMappedProperties();
+		final Set<String> propertiesOnlyInDatabase                      = new TreeSet<>(databaseProperties.keySet());
+		final Set<String> propertiesOnlyInStructrSchema                 = new TreeSet<>(structrProperties.keySet());
+		final Set<String> bothPropertys                                 = new TreeSet<>(databaseProperties.keySet());
+
+		propertiesOnlyInDatabase.removeAll(structrProperties.keySet());
+		propertiesOnlyInStructrSchema.removeAll(databaseProperties.keySet());
+		bothPropertys.retainAll(structrProperties.keySet());
+
+		// properties that exist in the database only
+		for (final String key : propertiesOnlyInDatabase) {
+
+			final StructrPropertyDefinition property = databaseProperties.get(key);
+
+			handleRemovedProperty(property);
+		}
+
+		// nothing to do for this set, these properties can simply be created without problems
+		//System.out.println(propertiesOnlyInStructrSchema);
+
+
+		// find detailed differences in the intersection of both schemas
+		for (final String name : bothPropertys) {
+
+			final StructrPropertyDefinition localProperty = databaseProperties.get(name);
+			final StructrPropertyDefinition otherProperty = structrProperties.get(name);
+
+			// compare properties in detail
+			localProperty.diff(otherProperty);
+		}
+	}
+
+	void diffMethods(final StructrTypeDefinition other) throws FrameworkException {
+
+		final Map<String, StructrMethodDefinition> databaseMethods = getMappedMethodsBySignature();
+		final Map<String, StructrMethodDefinition> structrMethods  = other.getMappedMethodsBySignature();
+		final Set<String> methodsOnlyInDatabase                    = new TreeSet<>(databaseMethods.keySet());
+		final Set<String> methodsOnlyInStructrSchema               = new TreeSet<>(structrMethods.keySet());
+		final Set<String> bothMethods                              = new TreeSet<>(databaseMethods.keySet());
+
+		methodsOnlyInDatabase.removeAll(structrMethods.keySet());
+		methodsOnlyInStructrSchema.removeAll(databaseMethods.keySet());
+		bothMethods.retainAll(structrMethods.keySet());
+
+		// methods that exist in the database only
+		for (final String key : methodsOnlyInDatabase) {
+
+			final StructrMethodDefinition method = databaseMethods.get(key);
+
+			handleRemovedMethod(method);
+		}
+
+		// nothing to do for this set, these methods can simply be created without problems
+		//System.out.println(methodsOnlyInStructrSchema);
+
+
+		// find detailed differences in the intersection of both schemas
+		for (final String name : bothMethods) {
+
+			final StructrMethodDefinition localMethod = databaseMethods.get(name);
+			final StructrMethodDefinition otherMethod = structrMethods.get(name);
+
+			// compare methods in detail
+			localMethod.diff(otherMethod);
 		}
 	}
 
@@ -1361,5 +1451,48 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 
 		return parameterizedType.substring(parameterizedType.lastIndexOf(".") + 1);
+	}
+
+	private Map<String, StructrPropertyDefinition> getMappedProperties() {
+
+		final LinkedHashMap<String, StructrPropertyDefinition> mapped = new LinkedHashMap<>();
+
+		for (final StructrPropertyDefinition def : this.properties) {
+
+			mapped.put(def.getName(), def);
+		}
+
+		return mapped;
+	}
+
+	private Map<String, StructrMethodDefinition> getMappedMethodsBySignature() {
+
+		final LinkedHashMap<String, StructrMethodDefinition> mapped = new LinkedHashMap<>();
+
+		for (final StructrMethodDefinition def : this.methods) {
+
+			mapped.put(def.getSignature(), def);
+		}
+
+		return mapped;
+	}
+
+	private void handleRemovedMethod(final StructrMethodDefinition method) throws FrameworkException {
+
+		if ("java".equals(method.getCodeType())) {
+
+			if (List.class.getName().equals(method.getReturnType())) {
+
+				final SchemaMethod schemaMethod = method.getSchemaMethod();
+				if (schemaMethod != null) {
+
+					StructrApp.getInstance().delete(method.getSchemaMethod());
+				}
+			}
+		}
+	}
+
+	private void handleRemovedProperty(final StructrPropertyDefinition property) throws FrameworkException {
+		//logger.warn("Property {}.{} was removed or renamed in the current version of the Structr schema, no action taken.", getName(), property.getName());
 	}
 }

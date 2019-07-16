@@ -22,9 +22,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class DivFunction extends Function<Object, Object> {
+public class DivFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_DIV = "Usage: ${div(value1, value2)}. Example: ${div(5, 2)}";
 
@@ -50,7 +49,6 @@ public class DivFunction extends Function<Object, Object> {
 				return nfe.getMessage();
 
 			}
-
 
 		} catch (ArgumentNullException pe) {
 

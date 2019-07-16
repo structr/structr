@@ -22,12 +22,11 @@ import java.util.Arrays;
 import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 /**
  *
  */
-public class EqualFunction extends Function<Object, Object> {
+public class EqualFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_EQUAL = "Usage: ${equal(value1, value2)}. Example: ${equal(this.children.size, 0)}";
 

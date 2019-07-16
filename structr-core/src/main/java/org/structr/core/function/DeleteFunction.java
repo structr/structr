@@ -28,12 +28,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-/**
- *
- */
-public class DeleteFunction extends Function<Object, Object> implements BatchableFunction {
+public class DeleteFunction extends CoreFunction implements BatchableFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeleteFunction.class);
 

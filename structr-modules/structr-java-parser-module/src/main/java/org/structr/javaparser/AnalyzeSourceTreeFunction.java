@@ -25,10 +25,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 import org.structr.web.entity.Folder;
 
-public class AnalyzeSourceTreeFunction extends Function<Object, Object> {
+public class AnalyzeSourceTreeFunction extends ParserModuleFunction {
 
 	public static final String ERROR_MESSAGE_ANALYZE_SOURCE_TREE = "Usage: ${analyze_source_tree(path)}";
 

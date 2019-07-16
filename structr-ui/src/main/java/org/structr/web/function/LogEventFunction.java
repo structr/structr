@@ -28,7 +28,7 @@ import org.structr.rest.logging.entity.LogEvent;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
 
-public class LogEventFunction extends UiFunction {
+public class LogEventFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_LOG_EVENT    = "Usage: ${log_event(action, message)}. Example: ${log_event('read', 'Book has been read')}";
 	public static final String ERROR_MESSAGE_LOG_EVENT_JS = "Usage: ${{Structr.logEvent(action, message)}}. Example: ${{Structr.logEvent('read', 'Book has been read')}}";

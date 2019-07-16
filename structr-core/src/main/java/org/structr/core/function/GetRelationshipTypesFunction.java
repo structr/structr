@@ -31,10 +31,9 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 
-public class GetRelationshipTypesFunction extends Function<Object, Object> {
+public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_GET_RELATIONSHIP_TYPES    = "Usage: ${get_relationship_types(node, lookupType [, direction])}. Example: ${get_relationship_types(me, 'existing', 'both')}";
 	public static final String ERROR_MESSAGE_GET_RELATIONSHIP_TYPES_JS = "Usage: ${{Structr.get_relationship_types(node, lookupType [, direction ])}}. Example: ${{Structr.get_relationship_types(me, 'existing', 'both')}}";

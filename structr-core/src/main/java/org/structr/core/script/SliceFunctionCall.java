@@ -26,6 +26,7 @@ import org.mozilla.javascript.Scriptable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
+import org.structr.common.ContextStore;
 import org.structr.core.GraphObject;
 import org.structr.core.function.Functions;
 import org.structr.core.function.QueryFunction;
@@ -91,11 +92,11 @@ public class SliceFunctionCall implements IdFunctionCall {
 
 		if (value == null) {
 
-			logger.warn("Invalid argument {} for Structr.batch(): expected script, got null.");
+			logger.warn("Invalid argument {} for Structr.slice(): expected script, got null.");
 
 		} else {
 
-			logger.warn("Invalid argument {} for Structr.batch(): expected script, got {}", name, value.getClass());
+			logger.warn("Invalid argument {} for Structr.slice(): expected script, got {}", name, value.getClass());
 		}
 
 		return null;
@@ -143,8 +144,10 @@ public class SliceFunctionCall implements IdFunctionCall {
 
 			if (function != null && function instanceof QueryFunction) {
 
-				((QueryFunction)function).setRangeStart(this.start);
-				((QueryFunction)function).setRangeEnd(this.end);
+				final ContextStore contextStore = actionContext.getContextStore();
+
+				contextStore.setRangeStart(this.start);
+				contextStore.setRangeEnd(this.end);
 
 				return new IdFunctionObject(new FunctionWrapper(function), null, 0, 0);
 			}

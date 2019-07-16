@@ -24,8 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.schema.CodeSource;
+import org.structr.schema.SourceFile;
+import org.structr.schema.SourceLine;
 
 /**
  *
@@ -39,7 +41,7 @@ public class ActionEntry implements Comparable<ActionEntry> {
 	private boolean doExport                     = false;
 	private boolean overrides                    = false;
 	private boolean callSuper                    = false;
-	private String sourceUuid                    = null;
+	private CodeSource codeSource                = null;
 	private String returnType                    = null;
 	private String call                          = null;
 	private String name                          = null;
@@ -131,8 +133,8 @@ public class ActionEntry implements Comparable<ActionEntry> {
 		this.call = value;
 	}
 
-	public void setSourceUuid(final String uuid) {
-		this.sourceUuid = uuid;
+	public void setCodeSource(final CodeSource codeSource) {
+		this.codeSource = codeSource;
 	}
 
 	public void setReturnType(final String returnType) {
@@ -183,49 +185,58 @@ public class ActionEntry implements Comparable<ActionEntry> {
 		return doExport;
 	}
 
-	public String getSource(final String objVariable, final String securityContextVariable, final boolean includeModifications) {
-		return getSource(objVariable, securityContextVariable, false, includeModifications);
+	public void getSource(final SourceFile sourceFile, final String objVariable, final String securityContextVariable, final boolean includeModifications) {
+		getSource(sourceFile, objVariable, securityContextVariable, false, includeModifications);
 	}
 
-	public String getSource(final String objVariable, final boolean includeParameters, final boolean includeModifications) {
+	public void getSource(final SourceFile sourceFile, final String objVariable, final boolean includeParameters, final boolean includeModifications) {
 
-		return getSource(objVariable, "securityContext", includeParameters, includeModifications);
+		getSource(sourceFile, objVariable, "arg0", includeParameters, includeModifications);
 	}
 
-	public String getSource(final String objVariable, final String securityContextVariable, final boolean includeParameters, final boolean includeModifications) {
-
-		final StringBuilder buf = new StringBuilder();
+	public void getSource(final SourceFile sourceFile, final String objVariable, final String securityContextVariable, final boolean includeParameters, final boolean includeModifications) {
 
 		if (Actions.Type.Java.equals(type)) {
 
-			buf.append(this.call);
+			if (StringUtils.isNotBlank(call)) {
+
+				final SourceLine line = sourceFile.line(codeSource, call);
+
+				final String trimmed = call.trim();
+				if (!trimmed.endsWith(";") &&  !trimmed.endsWith("}")) {
+
+					line.append(";");
+				}
+			}
+
+			if (!"void".equals(returnType) && (StringUtils.isBlank(call) || Actions.Type.Custom.equals(getType()))) {
+
+				sourceFile.line(codeSource, "return null;");
+			}
 
 		} else {
 
 			final String methodName = this.type.equals(Actions.Type.Custom) ? this.name : this.type.getLogName();
-
-			buf.append(Actions.class.getSimpleName());
-			buf.append(".execute(").append(securityContextVariable).append(", ").append(objVariable).append(", ");
-			buf.append("SchemaMethod.getCachedSourceCode(\"");
-			buf.append(sourceUuid);
-			buf.append("\")");
+			final SourceLine line   = sourceFile.line(codeSource, Actions.class.getSimpleName());
+			line.append(".execute(").append(securityContextVariable).append(", ").append(objVariable).append(", ");
+			line.append("SchemaMethod.getCachedSourceCode(\"");
+			line.append(codeSource.getUuid());
+			line.append("\")");
 
 			if (includeParameters) {
-				buf.append(", parameters");
+				line.append(", parameters");
 			}
 
-			buf.append(", \"");
-			buf.append(methodName);
-			buf.append("\"");
+			line.append(", \"");
+			line.append(methodName);
+			line.append("\"");
 
 			if (includeModifications) {
-				buf.append(", arg2");
+				line.append(", arg2");
 			}
 
-			buf.append(")");
+			line.append(");");
 		}
-
-		return buf.toString();
 	}
 
 	@Override

@@ -43,6 +43,7 @@ import org.structr.messaging.implementation.mqtt.function.MQTTPublishFunction;
 import org.structr.messaging.implementation.mqtt.function.MQTTSubscribeTopicFunction;
 import org.structr.messaging.implementation.mqtt.function.MQTTUnsubscribeTopicFunction;
 import org.structr.module.StructrModule;
+import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
 public class MessageEngineModule implements StructrModule {
@@ -51,13 +52,14 @@ public class MessageEngineModule implements StructrModule {
 
     @Override
     public void onLoad(LicenseManager licenseManager) {
+	}
 
-		final boolean enterpriseEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MQTTPublishFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MQTTSubscribeTopicFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, new MQTTUnsubscribeTopicFunction());
-
+		Functions.put(licenseManager, new MQTTPublishFunction());
+		Functions.put(licenseManager, new MQTTSubscribeTopicFunction());
+		Functions.put(licenseManager, new MQTTUnsubscribeTopicFunction());
     }
 
     @Override
@@ -76,11 +78,13 @@ public class MessageEngineModule implements StructrModule {
     }
 
     @Override
-    public void insertImportStatements(final AbstractSchemaNode schemaNode, final StringBuilder buf) {
+    public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
+	    // nothing to do
     }
 
     @Override
-    public void insertSourceCode(final AbstractSchemaNode schemaNode, final StringBuilder buf) {
+    public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
+	    // nothing to do
     }
 
     @Override
@@ -89,7 +93,8 @@ public class MessageEngineModule implements StructrModule {
     }
 
     @Override
-    public void insertSaveAction(final AbstractSchemaNode schemaNode, final StringBuilder buf, final Actions.Type type) {
+    public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
+	    // nothing to do
     }
 
     @Override
@@ -230,7 +235,7 @@ public class MessageEngineModule implements StructrModule {
 						app.delete(toDelete);
 					}
 
-					for (Map<String, Object> entry : entities) {
+					for (final Map<String, Object> entry : entities) {
 
 						List<String> subIds = null;
 						if (entry.containsKey("subscribers")) {
@@ -276,17 +281,19 @@ public class MessageEngineModule implements StructrModule {
 
 	private List<MessageSubscriber> getSubscribersByIds(List<String> ids) {
 
-    	List<MessageSubscriber> result = new ArrayList<>();
+		final List<MessageSubscriber> result = new ArrayList<>();
 
-    	if (ids != null && ids.size() > 0) {
+		if (ids != null && ids.size() > 0) {
 
 			final App app = StructrApp.getInstance();
 			try (Tx tx = app.tx()) {
 
-				for (String id : ids) {
+				for (final String id : ids) {
 					MessageSubscriber sub = (MessageSubscriber) app.getNodeById(MessageSubscriber.class, id);
 					result.add(sub);
 				}
+
+				tx.success();
 
 			} catch (FrameworkException ex) {
 

@@ -45,7 +45,7 @@ public abstract class IndexingTest extends StructrRestTestBase {
 		basePath = "/tmp/structr-test-" + timestamp;
 
 		Settings.Services.setValue("NodeService SchemaService HttpService");
-		setupNeo4jConnection();
+		setupDatabaseConnection();
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);

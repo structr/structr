@@ -23,6 +23,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonSchema.Cascade;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -30,15 +34,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.JsonInput;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonSchema.Cascade;
 import org.structr.web.entity.File;
 
 /**
@@ -68,45 +68,51 @@ public interface VideoFile extends File {
 		type.addIntegerProperty("width",         PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addIntegerProperty("height",        PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
-		type.overrideMethod("onCreation",      true,  "updateVideoInfo();");
-		type.overrideMethod("onModification",  true,  "updateVideoInfo();");
+		type.overrideMethod("onCreation",      true,  "updateVideoInfo(arg0);");
+		type.overrideMethod("onModification",  true,  "updateVideoInfo(arg0);");
 		type.overrideMethod("getDiskFilePath", false, "return " + VideoFile.class.getName() + ".getDiskFilePath(this, arg0);");
 
 		type.addMethod("updateVideoInfo")
-			.setSource(VideoFile.class.getName() + ".updateVideoInfo(this);")
+			.addParameter("ctx", SecurityContext.class.getName())
+			.setSource(VideoFile.class.getName() + ".updateVideoInfo(this, ctx);")
 			.setDoExport(true);
 
 		type.addMethod("convert")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("scriptName", String.class.getName())
 			.addParameter("newFileName", String.class.getName())
-			.setSource(AVConv.class.getName() + ".newInstance(securityContext, this, newFileName).doConversion(scriptName);")
+			.setSource(AVConv.class.getName() + ".newInstance(ctx, this, newFileName).doConversion(scriptName);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
 		type.addMethod("grab")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("scriptName", String.class.getName())
 			.addParameter("imageFileName", String.class.getName())
 			.addParameter("timeIndex", "long")
-			.setSource(AVConv.class.getName() + ".newInstance(securityContext, this, imageFileName).grabFrame(scriptName, imageFileName, timeIndex);")
+			.setSource(AVConv.class.getName() + ".newInstance(ctx, this, imageFileName).grabFrame(scriptName, imageFileName, timeIndex);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
 		type.addMethod("getMetadata")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.setReturnType(RestMethodResult.class.getName())
-			.setSource("return " + VideoFile.class.getName() + ".getMetadata(this);")
+			.setSource("return " + VideoFile.class.getName() + ".getMetadata(this, ctx);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
 		type.addMethod("setMetadata")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("key", String.class.getName())
 			.addParameter("value", String.class.getName())
-			.setSource(AVConv.class.getName() + ".newInstance(securityContext, this).setMetadata(key, value);")
+			.setSource(AVConv.class.getName() + ".newInstance(ctx, this).setMetadata(key, value);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
 		type.addMethod("setMetadata")
+			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("metadata", JsonInput.class.getName())
-			.setSource(VideoFile.class.getName() + ".setMetadata(this, metadata);")
+			.setSource(VideoFile.class.getName() + ".setMetadata(this, metadata, ctx);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
@@ -189,15 +195,18 @@ public interface VideoFile extends File {
 		return null;
 	}
 
-	static RestMethodResult getMetadata(final VideoFile thisVideo) throws FrameworkException {
+	static RestMethodResult getMetadata(final VideoFile thisVideo, final SecurityContext ctx) throws FrameworkException {
 
 		final SecurityContext securityContext = thisVideo.getSecurityContext();
 		final Map<String, String> metadata    = AVConv.newInstance(securityContext, thisVideo).getMetadata();
 		final RestMethodResult result         = new RestMethodResult(200);
 		final GraphObjectMap map              = new GraphObjectMap();
 
-		for (final Entry<String, String> entry : metadata.entrySet()) {
-			map.setProperty(new StringProperty(entry.getKey()), entry.getValue());
+		if (metadata != null) {
+
+			for (final Entry<String, String> entry : metadata.entrySet()) {
+				map.setProperty(new StringProperty(entry.getKey()), entry.getValue());
+			}
 		}
 
 		result.addContent(map);
@@ -205,7 +214,7 @@ public interface VideoFile extends File {
 		return result;
 	}
 
-	static void setMetadata(final VideoFile thisVideo, final JsonInput metadata) throws FrameworkException {
+	static void setMetadata(final VideoFile thisVideo, final JsonInput metadata, final SecurityContext ctx) throws FrameworkException {
 
 		final Map<String, String> map = new LinkedHashMap<>();
 
@@ -213,16 +222,14 @@ public interface VideoFile extends File {
 			map.put(entry.getKey(), entry.getValue().toString());
 		}
 
-		AVConv.newInstance(thisVideo.getSecurityContext(), thisVideo).setMetadata(map);
+		AVConv.newInstance(ctx, thisVideo).setMetadata(map);
 	}
 
-	static void updateVideoInfo(final VideoFile thisVideo) {
+	static void updateVideoInfo(final VideoFile thisVideo, final SecurityContext ctx) {
 
-		final SecurityContext securityContext = thisVideo.getSecurityContext();
+		try (final Tx tx = StructrApp.getInstance(ctx).tx()) {
 
-		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
-
-			final Map<String, Object> info = AVConv.newInstance(securityContext, thisVideo).getVideoInfo();
+			final Map<String, Object> info = AVConv.newInstance(ctx, thisVideo).getVideoInfo();
 			if (info != null && info.containsKey("streams")) {
 
 				final List<Map<String, Object>> streams = (List<Map<String, Object>>)info.get("streams");

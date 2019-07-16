@@ -27,9 +27,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class WeekDaysFunction extends Function<Object, Object> {
+public class WeekDaysFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_WEEK_DAYS    = "Usage: ${week_days(from, to)}. Example: ${week_days(parse_date(\"2014-01-01\", \"yyyy-MM-dd\"), parse_date(\"2014-01-15\", \"yyyy-MM-dd\"))}";
 	public static final String ERROR_MESSAGE_WEEK_DAYS_JS = "Usage: ${{Structr.weekDays(from, to)}}. Example: ${{Structr.weekDays(Structr.parseDate(\"2014-01-01\", \"yyyy-MM-dd\"), Structr.parseDate(\"2014-01-15\", \"yyyy-MM-dd\"))}}";

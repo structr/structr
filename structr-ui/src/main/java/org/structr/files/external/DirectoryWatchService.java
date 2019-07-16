@@ -285,7 +285,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		this.listener = new FileSyncWatchEventListener();
 

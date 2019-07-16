@@ -110,8 +110,13 @@ var _Pages = {
 			height: windowHeight - headerOffsetHeight - 42 + 'px'
 		});
 
-		$('.ver-scrollable').css({
-			height: windowHeight - headerOffsetHeight - 42 + 'px'
+		$('.ver-scrollable').each(function(i, el) {
+
+			let topOffset = ($(this).parent().hasClass('slideOut')) ? $(this).position().top : 0;
+
+			$(this).css({
+				height: windowHeight - headerOffsetHeight - topOffset - 42 + 'px'
+			});
 		});
 	},
 	onload: function() {
@@ -260,10 +265,12 @@ var _Pages = {
 		pagesSlideout.find(':not(.compTab)').remove();
 		previewTabs.empty();
 
+		pagesSlideout.append('<div id="pagesPager"></div>');
 		pagesSlideout.append('<div class="ver-scrollable" id="pagesTree"></div>');
+		let pagesPager = $('#pagesPager', pagesSlideout);
 		pages = $('#pagesTree', pagesSlideout);
 
-		var pPager = _Pager.addPager('pages', pages, true, 'Page', null, function(pages) {
+		var pPager = _Pager.addPager('pages', pagesPager, true, 'Page', null, function(pages) {
 			pages.forEach(function(page) {
 				StructrModel.create(page);
 			});
@@ -271,7 +278,7 @@ var _Pages = {
 		});
 		pPager.cleanupFunction = function () {
 			_Pages.clearPreviews();
-			$('.node', pPager.el).remove();
+			$('.node', pages).remove();
 		};
 		pPager.pager.append('Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" title="Here you can filter the pages list by page name"/>');
 		var categoryFilter = $('<input type="text" class="filter page-label" data-attribute="category" placeholder="Category" />');
@@ -714,8 +721,10 @@ var _Pages = {
 			e.stopPropagation();
 		});
 
+		let pageName = (entity.name ? entity.name : '[' + entity.type + ']');
+
 		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.page_icon) + '" />'
-				+ '<b title="' + entity.name + '" class="name_">' + fitStringToWidth(entity.name, 200) + '</b> <span class="id">' + entity.id + '</span>' + (entity.position ? ' <span class="position">' + entity.position + '</span>' : ''));
+				+ '<b title="' + entity.name + '" class="name_">' + fitStringToWidth(pageName, 200) + '</b> <span class="id">' + entity.id + '</span>' + (entity.position ? ' <span class="position">' + entity.position + '</span>' : ''));
 
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 		_Entities.appendAccessControlIcon(div, entity);
@@ -764,7 +773,7 @@ var _Pages = {
 			} catch (e) {}
 		});
 
-		$('#preview_' + entity.id).load(function() {
+		$('#preview_' + entity.id).on('load', function() {
 			try {
 				var doc = $(this).contents();
 				var head = $(doc).find('head');
@@ -788,13 +797,13 @@ var _Pages = {
 							+ '.navbar-fixed-top { -webkit-transform: none ! important; }'
 							+ '</style>');
 				}
-//				_Pages.findDroppablesInIframe(doc, entity.id).each(function(i, element) {
-//					var el = $(element);
-//
+				_Pages.findDroppablesInIframe(doc, entity.id).each(function(i, element) {
+					var el = $(element);
+
 //					_Dragndrop.makeDroppable(el, entity.id);
-//
-//					var structrId = el.attr('data-structr-id');
-//					if (structrId) {
+
+					var structrId = el.attr('data-structr-id');
+					if (structrId) {
 //
 //						$('.move_icon', el).on('mousedown', function(e) {
 //							e.stopPropagation();
@@ -821,56 +830,55 @@ var _Pages = {
 //							Command.removeSourceFromTarget(entity.id, parentId);
 //							_Entities.deleteNode(this, entity);
 //						});
-//						var offsetTop = -30;
-//						var offsetLeft = 0;
-//						el.on({
-//							click: function(e) {
-//								e.stopPropagation();
-//								var self = $(this);
-//								var selected = self.hasClass('structr-element-container-selected');
-//								self.closest('body').find('.structr-element-container-selected').removeClass('structr-element-container-selected');
-//								if (!selected) {
-//									self.toggleClass('structr-element-container-selected');
-//								}
-//								_Entities.deselectAllElements();
-//								_Pages.displayDataBinding(structrId);
-//								if (!Structr.node(structrId)) {
-//									_Pages.expandTreeNode(structrId);
-//								} else {
-//									var treeEl = Structr.node(structrId);
-//									if (treeEl && !selected) {
-//										_Entities.highlightElement(treeEl);
-//									}
-//								}
-//								return false;
-//							},
-//							mouseover: function(e) {
-//								e.stopPropagation();
-//								var self = $(this);
-//								self.addClass('structr-element-container-active');
-//								_Pages.highlight(structrId);
-//								var pos = self.position();
-//								var header = self.children('.structr-element-container-header');
-//								header.css({
-//									position: "absolute",
-//									top: pos.top + offsetTop + 'px',
-//									left: pos.left + offsetLeft + 'px',
-//									cursor: 'pointer'
-//								}).show();
-//								_Logger.log(_LogType.PAGES, header);
-//							},
-//							mouseout: function(e) {
-//								e.stopPropagation();
-//								var self = $(this);
-//								self.removeClass('.structr-element-container');
-//								var header = self.children('.structr-element-container-header');
-//								header.remove();
-//								_Pages.unhighlight(structrId);
-//							}
-//						});
-//
-//					}
-//				});
+						var offsetTop = -30;
+						var offsetLeft = 0;
+						el.on({
+							click: function(e) {
+								e.stopPropagation();
+								var self = $(this);
+								var selected = self.hasClass('structr-element-container-selected');
+								self.closest('body').find('.structr-element-container-selected').removeClass('structr-element-container-selected');
+								if (!selected) {
+									self.toggleClass('structr-element-container-selected');
+								}
+								_Entities.deselectAllElements();
+								_Pages.displayDataBinding(structrId);
+								if (!Structr.node(structrId)) {
+									_Pages.expandTreeNode(structrId);
+								} else {
+									var treeEl = Structr.node(structrId);
+									if (treeEl && !selected) {
+										_Entities.highlightElement(treeEl);
+									}
+								}
+								return false;
+							},
+							mouseover: function(e) {
+								e.stopPropagation();
+								var self = $(this);
+								self.addClass('structr-element-container-active');
+								_Pages.highlight(structrId);
+								var pos = self.position();
+								var header = self.children('.structr-element-container-header');
+								header.css({
+									position: "absolute",
+									top: pos.top + offsetTop + 'px',
+									left: pos.left + offsetLeft + 'px',
+									cursor: 'pointer'
+								}).show();
+								_Logger.log(_LogType.PAGES, header);
+							},
+							mouseout: function(e) {
+								e.stopPropagation();
+								var self = $(this);
+								self.removeClass('.structr-element-container');
+								var header = self.children('.structr-element-container-header');
+								header.remove();
+								_Pages.unhighlight(structrId);
+							}
+						});
+					}
+				});
 
 			} catch (e) {}
 
@@ -889,11 +897,11 @@ var _Pages = {
 			getComments(element).forEach(function(c) {
 
 				var inner = $(getNonCommentSiblings(c.node));
-				$(c.node).replaceWith('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
-				var el = $(element).children('[data-structr-id="' + c.id + '"]');
-				el.append(inner);
+				let newDiv = $('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
+				$(c.node).replaceWith(newDiv);
+				newDiv.append(inner);
 
-				$(el).on({
+				$(newDiv).on({
 					mouseover: function(e) {
 						e.stopPropagation();
 						var self = $(this);
@@ -997,41 +1005,18 @@ var _Pages = {
 
 		return div;
 	},
-//	zoomPreviews: function(value) {
-//		$('.previewBox', previews).each(function() {
-//			var val = value / 100;
-//			var box = $(this);
-//
-//			box.css('-moz-transform', 'scale(' + val + ')');
-//			box.css('-o-transform', 'scale(' + val + ')');
-//			box.css('-webkit-transform', 'scale(' + val + ')');
-//
-//			var w = origWidth * val;
-//			var h = origHeight * val;
-//
-//			box.width(w);
-//			box.height(h);
-//
-//			$('iframe', box).width(w);
-//			$('iframe', box).height(h);
-//
-//			_Logger.log(_LogType.PAGES, "box,w,h", box, w, h);
-//
-//		});
-//
-//	},
-//	displayDataBinding: function(id) {
-//		dataBindingSlideout.children('#data-binding-inputs').remove();
-//		dataBindingSlideout.append('<div class="inner" id="data-binding-inputs"></div>');
-//
-//		var el = $('#data-binding-inputs');
-//		var entity = StructrModel.obj(id);
-//
-//		if (entity) {
-//			_Entities.repeaterConfig(entity, el);
-//		}
-//
-//	},
+	displayDataBinding: function(id) {
+		dataBindingSlideout.children('#data-binding-inputs').remove();
+		dataBindingSlideout.append('<div class="inner" id="data-binding-inputs"></div>');
+
+		var el = $('#data-binding-inputs');
+		var entity = StructrModel.obj(id);
+
+		if (entity) {
+			_Entities.repeaterConfig(entity, el);
+		}
+
+	},
 	reloadDataBindingWizard: function() {
 		dataBindingSlideout.children('#wizard').remove();
 		dataBindingSlideout.prepend('<div class="inner" id="wizard"><select id="type-selector"><option>--- Select type ---</option></select><div id="data-wizard-attributes"></div></div>');

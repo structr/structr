@@ -20,10 +20,9 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 
-public class CoalesceObjectsFunction extends Function<Object, Object> {
+public class CoalesceObjectsFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_COALESCE = "Usage: ${coalesce_objects(obj1, obj2...)}. Example: ${coalesce(node1, node2, node3)}";
 	public static final String ERROR_MESSAGE_COALESCE_JS = "Usage: ${{Structr.coalesceObjects(obj1, obj2...)}}. Example: ${{Structr.coalesceObjects(node1, node2, node3)}}";

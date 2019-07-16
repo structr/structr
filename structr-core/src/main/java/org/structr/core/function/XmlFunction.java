@@ -27,11 +27,10 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-public class XmlFunction extends Function<Object, Object> {
+public class XmlFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_XML = "Usage: ${xml(xmlSource)}. Example: ${xml(xml(this.xmlSource), \"/test/testValue\")}";
 

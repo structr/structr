@@ -23,12 +23,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-/**
- *
- */
-public class LogFunction extends Function<Object, Object> {
+public class LogFunction extends CoreFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(LogFunction.class.getName());
 
@@ -63,7 +59,6 @@ public class LogFunction extends Function<Object, Object> {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 	}
 
@@ -76,5 +71,4 @@ public class LogFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Logs the given string to the logfile";
 	}
-
 }

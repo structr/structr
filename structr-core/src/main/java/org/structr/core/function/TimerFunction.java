@@ -23,9 +23,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class TimerFunction extends Function<Object, Object>{
+public class TimerFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_TIMER = "Usage: ${timer(name, action)}. Example: ${timer('benchmark1', 'start')}";
 	public static final String ERROR_MESSAGE_TIMER_JS = "Usage: ${{Structr.timer(name, action)}}. Example: ${{Structr.timer('benchmark1', 'start')}}";

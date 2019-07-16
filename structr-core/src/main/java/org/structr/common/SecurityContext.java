@@ -20,6 +20,7 @@ package org.structr.common;
 
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -61,7 +62,8 @@ public class SecurityContext {
 	private static final Logger logger                   = LoggerFactory.getLogger(SecurityContext.class.getName());
 	private static final Map<String, Long> resourceFlags = new ConcurrentHashMap<>();
 	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,-]+)");
-	private MergeMode remoteCollectionMergeMode  = MergeMode.Replace;
+	private MergeMode remoteCollectionMergeMode          = MergeMode.Replace;
+	private boolean returnDetailedCreationResults        = false;
 	private boolean uuidWasSetManually                   = false;
 	private boolean doTransactionNotifications           = false;
 	private boolean forceMergeOfNestedProperties         = false;
@@ -69,6 +71,7 @@ public class SecurityContext {
 	private boolean modifyAccessTime                     = true;
 	private boolean ignoreResultCount                    = false;
 	private boolean ensureCardinality                    = true;
+	private boolean doInnerCallbacks                     = true;
 	private boolean isReadOnlyTransaction                = false;
 	private boolean doMultiThreadedJsonOutput            = false;
 	private int serializationDepth                       = -1;
@@ -76,6 +79,7 @@ public class SecurityContext {
 	private final Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
 	private final Map<String, Object> attrs      = new ConcurrentHashMap<>();
 	private AccessMode accessMode                = AccessMode.Frontend;
+	private final List<Object> creationDetails   = new LinkedList<>();
 	private Authenticator authenticator          = null;
 	private Principal cachedUser                 = null;
 	private HttpServletRequest request           = null;
@@ -121,6 +125,10 @@ public class SecurityContext {
 	private void initializeHttpParameters(final HttpServletRequest request) {
 
 		if (request != null) {
+
+			if ("true".equals(request.getHeader("Structr-Return-Details-For-Created-Objects"))) {
+				this.returnDetailedCreationResults = true;
+			}
 
 			if ("disabled".equals(request.getHeader("Structr-Websocket-Broadcast"))) {
 				this.doTransactionNotifications = false;
@@ -256,6 +264,22 @@ public class SecurityContext {
 
 	}
 
+	public static SecurityContext getSuperUserInstance(HttpServletRequest request) {
+		return new SuperUserSecurityContext(request);
+	}
+
+	public static SecurityContext getSuperUserInstance() {
+		return new SuperUserSecurityContext();
+	}
+
+	public static SecurityContext getInstance(Principal user, AccessMode accessMode) {
+		return new SecurityContext(user, accessMode);
+	}
+
+	public static SecurityContext getInstance(Principal user, HttpServletRequest request, AccessMode accessMode) {
+		return new SecurityContext(user, request, accessMode);
+	}
+
 	public void removeForbiddenNodes(List<? extends GraphObject> nodes, final boolean includeHidden, final boolean publicOnly) {
 
 		boolean readableByUser = false;
@@ -278,25 +302,6 @@ public class SecurityContext {
 			}
 
 		}
-
-	}
-
-	public static SecurityContext getSuperUserInstance(HttpServletRequest request) {
-		return new SuperUserSecurityContext(request);
-	}
-
-	public static SecurityContext getSuperUserInstance() {
-		return new SuperUserSecurityContext();
-
-	}
-
-	public static SecurityContext getInstance(Principal user, AccessMode accessMode) {
-		return new SecurityContext(user, accessMode);
-
-	}
-
-	public static SecurityContext getInstance(Principal user, HttpServletRequest request, AccessMode accessMode) {
-		return new SecurityContext(user, request, accessMode);
 
 	}
 
@@ -792,6 +797,18 @@ public class SecurityContext {
 		return "[No request available]";
 	}
 
+	public void enableDetailedCreationResults() {
+		this.returnDetailedCreationResults = true;
+	}
+
+	public boolean returnDetailedCreationResults() {
+		return this.returnDetailedCreationResults;
+	}
+
+	public List<Object> getCreationDetails() {
+		return creationDetails;
+	}
+
 	public boolean doCascadingDelete() {
 		return doCascadingDelete;
 	}
@@ -838,6 +855,18 @@ public class SecurityContext {
 
 	public void enableEnsureCardinality() {
 		ensureCardinality = false;
+	}
+
+	public void disableInnerCallbacks() {
+		doInnerCallbacks = false;
+	}
+
+	public void enableInnerCallbacks() {
+		doInnerCallbacks = false;
+	}
+
+	public boolean doInnerCallbacks() {
+		return doInnerCallbacks;
 	}
 
 	public boolean forceMergeOfNestedProperties() {

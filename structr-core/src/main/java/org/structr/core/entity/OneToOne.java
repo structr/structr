@@ -78,11 +78,9 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 		if (sourceNode != null) {
 
 			// check existing relationships
-			final Relation<S, ?, ?, ?> outgoingRel = sourceNode.getOutgoingRelationship(clazz);
+			final Relation<S, ?, ?, ?> outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(clazz);
 
 			// remove relationship if exists
-//			if (outgoingRel != null && targetType.isAssignableFrom(outgoingRel.getTargetType())) {
-//			if (outgoingRel != null && targetType.isInstance(outgoingRel.getTargetNode())) {
 			if (outgoingRel != null && SearchCommand.isTypeAssignableFromOtherType(targetType, outgoingRel.getTargetType())) {
 				app.delete(outgoingRel);
 			}
@@ -91,10 +89,8 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 		if (targetNode != null) {
 
 			// check existing relationships
-			final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationship(clazz);
+			final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationshipAsSuperUser(clazz);
 
-//			if (incomingRel != null && sourceType.isAssignableFrom(incomingRel.getSourceType())) {
-//			if (incomingRel != null && sourceType.isInstance(incomingRel.getSourceNode())) {
 			if (incomingRel != null && SearchCommand.isTypeAssignableFromOtherType(sourceType, incomingRel.getSourceType())) {
 				app.delete(incomingRel);
 			}

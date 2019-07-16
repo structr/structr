@@ -25,9 +25,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class ParseDateFunction extends Function<Object, Object> {
+public class ParseDateFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_PARSE_DATE    = "Usage: ${parse_date(value, pattern)}. Example: ${parse_date(\"2014-01-01\", \"yyyy-MM-dd\")}";
 	public static final String ERROR_MESSAGE_PARSE_DATE_JS = "Usage: ${{Structr.parseDate(value, pattern)}}. Example: ${{Structr.parseDate(\"2014-01-01\", \"yyyy-MM-dd\")}}";

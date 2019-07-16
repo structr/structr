@@ -113,16 +113,8 @@ public abstract class MailHelper {
 			mail.setTextMsg(amc.getTextContent());
 		}
 
-		final List<DynamicMailAttachment> attachments = amc.getAttachments();
-		if (attachments != null) {
-
-			for (final DynamicMailAttachment attachment : attachments) {
-				if (attachment.isDynamic()) {
-					mail.attach(attachment.getDataSource(), attachment.getName(), attachment.getDescription(), attachment.getDisposition());
-				} else {
-					mail.attach(attachment);
-				}
-			}
+		for (final DynamicMailAttachment attachment : amc.getAttachments()) {
+			mail.attach(attachment.getDataSource(), attachment.getName(), attachment.getDescription(), attachment.getDisposition());
 		}
 
 		return mail.send();
@@ -143,11 +135,7 @@ public abstract class MailHelper {
 		if (attachments != null) {
 
 			for (final DynamicMailAttachment attachment : attachments) {
-				if(attachment.isDynamic()) {
-					mail.attach(attachment.getDataSource(), attachment.getName(), attachment.getDescription(), attachment.getDisposition());
-				} else {
-					mail.attach(attachment);
-				}
+				mail.attach(attachment.getDataSource(), attachment.getName(), attachment.getDescription(), attachment.getDisposition());
 			}
 		}
 

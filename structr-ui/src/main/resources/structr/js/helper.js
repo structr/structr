@@ -757,8 +757,7 @@ var _Console = new (function() {
 				},
 				completion: function(lineToBeCompleted, callback) {
 					Command.console(lineToBeCompleted, mode, function(data) {
-						var commands = JSON.parse(data.data.commands);
-						callback(commands);
+						callback(data.data.commands);
 					}, true);
 				}
 			});

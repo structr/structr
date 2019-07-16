@@ -20,15 +20,16 @@ package org.structr.common.fulltext;
 
 import java.io.InputStream;
 import java.net.URI;
+import org.structr.api.graph.Cardinality;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonReferenceType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonReferenceType;
+import org.structr.api.schema.JsonSchema;
 
 /**
  */
@@ -43,7 +44,7 @@ public interface Indexable extends NodeInterface {
 		type.setIsInterface();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Indexable"));
 
-		final JsonReferenceType rel = type.relate(word, "INDEXED_WORD", Relation.Cardinality.ManyToMany, "indexables", "words").setCascadingCreate(JsonSchema.Cascade.sourceToTarget);
+		final JsonReferenceType rel = type.relate(word, "INDEXED_WORD", Cardinality.ManyToMany, "indexables", "words").setCascadingCreate(JsonSchema.Cascade.sourceToTarget);
 
 		type.addReferenceProperty("indexedWords", rel.getTargetProperty()).setProperties("name", "true");
 
@@ -56,5 +57,5 @@ public interface Indexable extends NodeInterface {
 	InputStream getInputStream();
 
 	@Export
-	GraphObject getSearchContext(final String searchTerm, final int contextLength);
+	GraphObject getSearchContext(final SecurityContext ctx, final String searchTerm, final int contextLength);
 }

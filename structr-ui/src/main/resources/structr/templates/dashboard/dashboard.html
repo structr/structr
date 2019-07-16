@@ -1,0 +1,227 @@
+<div id="dashboard">
+
+	<ul class="tabs-menu">
+		<li class="active">
+			<a href="#dash-connections">Database Connections</a>
+		</li>
+		<li>
+			<a href="#dash-about-me">About Me</a>
+		</li>
+		<li>
+			<a href="#dash-about-structr">About Structr</a>
+		</li>
+		<li>
+			<a href="#dash-deployment">Deployment</a>
+		</li>
+		<li>
+			<a href="#dash-global-schema-methods">Global schema methods</a>
+		</li>
+		<li>
+			<a href="#dash-server-log">Server Log</a>
+		</li>
+<!--		<li>
+			<a href="#dash-sysinfo">System Information</a>
+		</li>-->
+	</ul>
+
+	<div class="tabs-contents">
+
+		<div class="tab-content active" id="dash-connections">
+		</div>
+
+		<div class="tab-content" id="dash-about-me">
+			<p>You are currently logged in as <b>${config.meObj.name}</b></p>
+			<table class="props">
+				<tr><td class="key">ID</td><td>${config.meObj.id}</td></tr>
+				<tr><td class="key">E-Mail</td><td>${config.meObj.eMail || ''}</td></tr>
+				<tr><td class="key">Working Directory</td><td>${config.meObj.workingDirectory ? config.meObj.workingDirectory.name : ''}</td></tr>
+				<tr><td class="key">Session ID(s)</td><td>${config.meObj.sessionIds.join('<br>')}</td></tr>
+				<tr><td class="key">Groups</td><td>${config.meObj.groups.map(function(g) { return g.name; }).join(', ')}</td></tr>
+			</table>
+
+			<button class="action" id="clear-local-storage-on-server">Reset stored UI settings</button>
+		</div>
+
+		<div class="tab-content" id="dash-about-structr">
+
+			<table class="props">
+				<tr><td class="key">Version</td><td>${config.envInfo.version} ${config.envInfo.build} ${config.envInfo.date} (${(config.envInfo.newReleaseAvailable ? 'newer release available: ' +  config.envInfo.newReleaseAvailable : 'no new release available')} | ${(config.envInfo.newSnapshotAvailable ? 'newer snapshot available: ' +  config.envInfo.newSnapshotAvailable : 'no new snapshot available')})</td></tr>
+				<tr><td class="key">Edition</td><td><i title="Structr ${config.envInfo.edition} Edition" class="${_Icons.getFullSpriteClass(_Icons.getIconForEdition(config.envInfo.edition))}"></i> (Structr ${config.envInfo.edition} Edition)</td></tr>
+				<tr><td class="key">Modules</td><td>${Object.keys(config.envInfo.modules).join(', ')}</td></tr>
+				<tr><td class="key">Licensee</td><td>${config.envInfo.licensee || 'Unlicensed'}</td></tr>
+				<tr><td class="key">Host ID</td><td>${config.envInfo.hostId || ''}</td></tr>
+				<tr><td class="key">License Start Date</td><td>${config.envInfo.startDate || '-'}</td></tr>
+				<tr><td class="key">License End Date</td><td class="end-date">${config.envInfo.endDate || '-'}</td></tr>
+			</table>
+		</div>
+
+		<div class="tab-content" id="dash-deployment">
+
+			<h3>Import application from local directory</h3>
+			<div>
+				<input type="text" id="deployment-source-input" size="60" placeholder="Enter directory path...">
+				<button class="action" id="do-import">Import from local directory</button>
+			</div>
+
+			<h3>Import application from URL</h3>
+			${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Deployment via URL is not possible because <code>DeployServlet</code> is not running.</span>')}
+			<form action="/structr/deploy" method="POST" enctype="multipart/form-data">
+				<input type="hidden" name="redirectUrl" value="${window.location.href}">
+				<input type="text" id="deployment-url-input" size="60" placeholder="Enter download URL..." name="downloadUrl" ${(config.deployServletAvailable ? '' : 'disabled')}>
+				<button type="submit" class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')}>Import from URL</button>
+			</form>
+
+			<h3>Export application to local directory</h3>
+			<div>
+				<input type="text" id="deployment-target-input" size="60" placeholder="Enter directory path...">
+				<button class="action" id="do-export">Export to local directory</button>
+			</div>
+
+		</div>
+
+		<div class="tab-content" id="dash-global-schema-methods">
+
+		</div>
+
+		<div class="tab-content" id="dash-server-log">
+
+			<div id="dash-server-log-controls">
+
+				<label>Refresh Interval:</label>
+				<select id="dash-server-log-refresh-interval">
+					<option value="10000">10s</option>
+					<option value="5000">5s</option>
+					<option value="2000">2s</option>
+					<option value="1000">1s</option>
+					<option value="-1">off</option>
+				</select>
+
+				<span class="dash-spacer"></span>
+
+				<label>Number of lines: </label>
+				<input id="dash-server-log-lines" type="number">
+
+				<span class="dash-spacer"></span>
+
+				<button id="dash-server-log-copy" class="action">Copy</button>
+
+				<span class="dash-spacer"></span>
+
+				<span id="dash-server-log-feedback"></span>
+			</div>
+
+			<textarea readonly="readonly" rows=25></textarea>
+		</div>
+
+		<div class="tab-content" id="dash-sysinfo">
+
+		</div>
+	</div>
+
+	<style type="text/css">
+
+		div#dashboard {
+			margin: 12px;
+			height: calc(100% - 12px);
+		}
+
+		div#dashboard .tab-content {
+			padding: 12px;
+		}
+
+		div#dashboard .tab-content.active {
+			display: block;
+		}
+
+		div#dashboard .tabs-contents {
+			height: calc(100% - 14px);
+		}
+
+		#about-structr .props {
+			margin-top: 10px;
+		}
+
+		#about-structr .props i {
+			cursor: default;
+		}
+
+		.heading-narrow {
+			margin: 4px 0;
+		}
+
+		#params {
+			display: inline-block;
+			width: 50%;
+			vertical-align: top;
+		}
+
+		#params i.button.sprite-delete {
+			margin-left: 2px;
+			vertical-align: sub;
+		}
+
+		.global-method {
+			padding: 12px 8px;
+			border: 1px solid #ddd;
+			border-bottom: 0;
+			line-height: 2em;
+		}
+
+		.global-method button.action {
+			margin-left: 1em;
+			margin-right: 1em;
+		}
+
+		.global-method:last-of-type {
+			border-bottom: 1px solid #ddd;
+		}
+
+		.global-method img.icon, .global-method i.icon {
+			vertical-align: bottom;
+			width: 16px;
+			max-height: 16px;
+		}
+
+		#global-method-comment {
+			display: inline-block;
+			width: 47.5%;
+			margin-left: 2.5%;
+			vertical-align: top;
+		}
+
+		#dash-deployment .deployment-warning {
+			color: red;
+			margin-bottom: 6px;
+			display: inline-block;
+		}
+
+		#deployment-source-input, #deployment-url-input, #deployment-target-input {
+			height: 14px;
+			margin: 0 4px 12px 0;
+		}
+
+		#dash-server-log {
+			height: calc(100% - 34px);
+		}
+
+		#dash-server-log-controls {
+			height: 30px;
+		}
+
+		#dash-server-log-lines {
+			width: 64px;
+		}
+
+		#dash-server-log textarea {
+			height: calc(100% - 30px);
+			width: 100%;
+			resize: none;
+			font-family: monospace ! important;
+		}
+
+		#dash-server-log .dash-spacer {
+			display: inline-block;
+			width: 30px;
+		}
+	</style>
+</div>

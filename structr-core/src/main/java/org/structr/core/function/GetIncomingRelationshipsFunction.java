@@ -20,16 +20,15 @@ package org.structr.core.function;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class GetIncomingRelationshipsFunction extends Function<Object, Object> {
+public class GetIncomingRelationshipsFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS    = "Usage: ${get_incoming_relationships(from, to [, relType])}. Example: ${get_incoming_relationships(me, user, 'FOLLOWS')}";
 	public static final String ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS_JS = "Usage: ${{Structr.get_incoming_relationships(from, to [, relType])}}. Example: ${{Structr.get_incoming_relationships(Structr.get('me'), user, 'FOLLOWS')}}";

@@ -33,6 +33,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.service.HttpService;
 
@@ -78,7 +79,7 @@ public class SessionHelper {
 
 		try {
 
-			return Services.getInstance().getService(HttpService.class).getSessionCache().get(sessionId);
+			return Services.getInstance().getService(HttpService.class, "default").getSessionCache().get(sessionId);
 
 		} catch (final Exception ex) {
 			logger.debug("Unable to retrieve session " + sessionId + " from session cache:", ex);
@@ -137,7 +138,7 @@ public class SessionHelper {
 	}
 
 	/**
-	 * Remove old sessionIds of the given user
+	 * Remove old sessionIds of the given user.
 	 *
 	 * @param user
 	 */
@@ -150,7 +151,7 @@ public class SessionHelper {
 
 		if (sessionIds != null && sessionIds.length > 0) {
 
-			final SessionCache sessionCache = Services.getInstance().getService(HttpService.class).getSessionCache();
+			final SessionCache sessionCache = Services.getInstance().getService(HttpService.class, "default").getSessionCache();
 
 			for (final String sessionId : sessionIds) {
 
@@ -169,12 +170,69 @@ public class SessionHelper {
 		}
 	}
 
+	/**
+	 * Remove all sessionIds of the given user.
+	 *
+	 * @param user
+	 */
+	public static void clearAllSessions(final Principal user) {
+
+		logger.info("Clearing all sessions for user {} ({})", user.getName(), user.getUuid());
+
+		final PropertyKey<String[]> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
+		final String[] sessionIds                = user.getProperty(sessionIdKey);
+
+		if (sessionIds != null && sessionIds.length > 0) {
+
+			final SessionCache sessionCache = Services.getInstance().getService(HttpService.class, "default").getSessionCache();
+
+			for (final String sessionId : sessionIds) {
+
+				HttpSession session = null;
+				try {
+					session = sessionCache.get(sessionId);
+
+				} catch (Exception ex) {
+					logger.warn("Unable to retrieve session " + sessionId + " from session cache:", ex);
+				}
+
+				if (session == null) {
+					SessionHelper.clearSession(sessionId);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Remove all sessionIds for all users.
+	 *
+	 */
+	public static void clearAllSessions() {
+
+		logger.info("Clearing all session ids for all users");
+
+		final PropertyKey<String[]> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
+
+		try (final Tx tx = StructrApp.getInstance().tx(false, false, false)) {
+
+			for (final Principal user : StructrApp.getInstance().get(Principal.class)) {
+				clearAllSessions(user);
+			}
+
+			tx.success();
+
+		} catch (final FrameworkException ex) {
+			logger.warn("Removing all session ids failed: {}", ex);
+		}
+
+	}
+
 	public static void invalidateSession(final String sessionId) {
 
 		if (sessionId != null) {
 
 			try {
-				Services.getInstance().getService(HttpService.class).getSessionCache().delete(sessionId);
+				Services.getInstance().getService(HttpService.class, "default").getSessionCache().delete(sessionId);
 
 			} catch (final Exception ex) {
 
@@ -281,16 +339,15 @@ public class SessionHelper {
 				}
 			}
 
+			final Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
+
 			if (isNotTimedOut) {
 
-				final Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
 				//logger.debug("Valid session found: {}, last accessed {}, authenticated with user {}", new Object[]{session, session.getLastAccessedTime(), user});
-
 				return user;
 
 			} else {
 
-				final Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
 				if (user != null) {
 
 					//logger.info("Timed-out session: {}, last accessed {}, authenticated with user {}", new Object[]{session, (session != null ? session.getLastAccessedTime() : ""), user});

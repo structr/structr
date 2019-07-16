@@ -84,13 +84,13 @@ public class MaintenanceResource extends Resource {
 
 					if (Task.class.isAssignableFrom(taskOrCommand)) {
 
-						Task task = (Task) taskOrCommand.newInstance();
+						final Task task = (Task) taskOrCommand.newInstance();
 
 						app.processTasks(task);
 
 					} else if (MaintenanceCommand.class.isAssignableFrom(taskOrCommand)) {
 
-						MaintenanceCommand cmd = (MaintenanceCommand)StructrApp.getInstance(securityContext).command(taskOrCommand);
+						final MaintenanceCommand cmd = (MaintenanceCommand)StructrApp.getInstance(securityContext).command(taskOrCommand);
 
 						// flush caches if required
 						if (cmd.requiresFlushingOfCaches()) {
@@ -113,10 +113,11 @@ public class MaintenanceResource extends Resource {
 						}
 
 						final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_OK);
-						cmd.getCustomHeaders().forEach((final String headerName, final String headerValue) -> {
-							result.addHeader(headerName, headerValue);
-						});
+
+						cmd.getPayload().forEach(result::addContent);
+						cmd.getCustomHeaders().forEach(result::addHeader);
 						cmd.getCustomHeaders().clear();
+
 						return result;
 
 					} else {
@@ -193,7 +194,7 @@ public class MaintenanceResource extends Resource {
 
 	@Override
 	public boolean isCollectionResource() {
-		return false;
+		return true;
 	}
 
         @Override

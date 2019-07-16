@@ -22,9 +22,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
-public class MaxFunction extends Function<Object, Object> {
+public class MaxFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_MAX = "Usage: ${max(value1, value2)}. Example: ${max(this.children, 10)}";
 
