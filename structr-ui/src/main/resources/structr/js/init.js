@@ -327,6 +327,10 @@ var Structr = {
 
 		if (sessionId) {
 			Command.ping(callback);
+		} else {
+			Structr.renewSessionId(function() {
+				Command.ping(callback);
+			});
 		}
 	},
 	refreshUi: function() {
