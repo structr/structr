@@ -42,6 +42,7 @@ import org.structr.mail.function.MailEncodeTextFunction;
 import org.structr.mail.function.MailGetLastOutgoingMessageFunction;
 import org.structr.mail.function.MailRemoveHeaderFunction;
 import org.structr.mail.function.MailSaveOutgoingMessageFunction;
+import org.structr.mail.function.MailSelectConfigFunction;
 import org.structr.mail.function.MailSendFunction;
 import org.structr.mail.function.MailSetBounceAddressFunction;
 import org.structr.mail.function.MailSetFromFunction;
@@ -90,6 +91,7 @@ public class AdvancedMailModule implements StructrModule {
 		Functions.put(licenseManager, new MailSendFunction(this));
 		Functions.put(licenseManager, new MailDecodeTextFunction(this));
 		Functions.put(licenseManager, new MailEncodeTextFunction(this));
+		Functions.put(licenseManager, new MailSelectConfigFunction(this));
 	}
 
 	@Override

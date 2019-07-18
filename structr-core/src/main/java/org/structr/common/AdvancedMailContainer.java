@@ -52,6 +52,8 @@ public class AdvancedMailContainer {
 	private boolean saveOutgoingMessage = false;
 	private Object lastOutgoingMessage = null;
 
+	private String configurationPrefix = null;
+
 	public String getFromName() {
 		return fromName;
 	}
@@ -221,6 +223,14 @@ public class AdvancedMailContainer {
 		}
 	}
 
+	public String getConfigurationPrefix() {
+		return configurationPrefix;
+	}
+
+	public void setConfigurationPrefix(final String configurationPrefix) {
+		this.configurationPrefix = configurationPrefix;
+	}
+
 	public void clearMailContainer() {
 
 		setFromName(null);
@@ -234,6 +244,8 @@ public class AdvancedMailContainer {
 
 		setSaveOutgoingMessage(false);
 		this.lastOutgoingMessage = null;
+
+		setConfigurationPrefix(null);
 
 		clearTo();
 		clearCc();
