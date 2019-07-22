@@ -318,11 +318,6 @@ public class SchemaService implements Service {
 							// inject views in configuration provider
 							config.registerDynamicViews(dynamicViews);
 
-							if (Services.calculateHierarchy() || !Services.isTesting()) {
-
-								calculateHierarchy(schemaNodes);
-							}
-
 							if (Services.updateIndexConfiguration() || !Services.isTesting()) {
 
 								updateIndexConfiguration(removedClasses);
@@ -488,29 +483,6 @@ public class SchemaService implements Service {
 	}
 
 	// ----- private methods -----
-	private static void calculateHierarchy(final Map<String, SchemaNode> schemaNodes) {
-
-		try (final Tx tx = StructrApp.getInstance().tx()) {
-
-			final Set<String> alreadyCalculated = new HashSet<>();
-
-			// calc hierarchy
-			for (final SchemaNode schemaNode : schemaNodes.values()) {
-
-				final int relCount = Iterables.count(schemaNode.getProperty(SchemaNode.relatedFrom)) + Iterables.count(schemaNode.getProperty(SchemaNode.relatedTo));
-				final int level     = recursiveGetHierarchyLevel(schemaNodes, alreadyCalculated, schemaNode, 0);
-
-				schemaNode.setProperty(SchemaNode.hierarchyLevel, level);
-				schemaNode.setProperty(SchemaNode.relCount, relCount);
-			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.warn("", fex);
-		}
-	}
-
 	private static int recursiveGetHierarchyLevel(final Map<String, SchemaNode> map, final Set<String> alreadyCalculated, final SchemaNode schemaNode, final int depth) {
 
 		// stop at level 20
@@ -575,7 +547,8 @@ public class SchemaService implements Service {
 									boolean createIndex = key.isIndexed() || key.isIndexedWhenEmpty();
 
 									createIndex &= !NonIndexed.class.isAssignableFrom(type);
-									createIndex &= NodeInterface.class.equals(type) || !GraphObject.id.equals(key);
+									//createIndex &= NodeInterface.class.equals(type) || !GraphObject.id.equals(key);
+									createIndex &= NodeInterface.class.equals(type) || !key.isPartOfBuiltInSchema();
 
 									typeConfig.put(key.dbName(), createIndex);
 								}
