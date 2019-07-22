@@ -1,17 +1,23 @@
 <div id="mail-templates-main">
-	<div id="mail-templates-list" class="resourceBox full-height-box">
-		<div id="mail-templates-pager"></div>
-		<button id="create-mail-template"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}" /> New Mail Template</button>
-		<table id="mail-templates-table">
-			<thead><tr>
-				<th><a class="sort" data-sort="name">Name</a></th>
-				<th class="narrow"><a class="sort" data-sort="sourceType">Locale</a></th>
-				<th class="narrow">Actions</th>
-			</tr></thead>
-			<tbody></tbody>
-		</table>
+
+	<div class="column-resizer"></div>
+
+	<div id="mail-templates-list-container" class="fit-to-height">
+		<div id="mail-templates-list" class="resourceBox">
+			<div id="mail-templates-pager"></div>
+			<button id="create-mail-template"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}" /> New Mail Template</button>
+			<table id="mail-templates-table">
+				<thead><tr>
+					<th><a class="sort" data-sort="name">Name</a></th>
+					<th class="narrow"><a class="sort" data-sort="sourceType">Locale</a></th>
+					<th id="mail-templates-list-th-actions" class="narrow">Actions</th>
+				</tr></thead>
+				<tbody></tbody>
+			</table>
+		</div>
 	</div>
-	<div id="mail-template-detail" class="resourceBox full-height-box">
+
+	<div id="mail-template-detail" class="resourceBox">
 		<h2><span class="show-in-modes" data-modes="create">New </span>Mail Template<span class="show-in-modes" data-modes="preview"> Preview</span></h2>
 		<iframe id="mail-template-preview" class="show-in-modes" data-modes="preview"></iframe>
 		<div class="actions">

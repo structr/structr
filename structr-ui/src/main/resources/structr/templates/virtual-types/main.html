@@ -1,22 +1,28 @@
 <div id="virtual-types-main">
-	<div id="virtual-types-list" class="resourceBox full-height-box">
-		<div id="virtual-types-pager"></div>
-		<button id="create-virtual-type"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}" /> New Virtual Type</button>
-		<table id="virtual-types-table">
-			<thead>
-				<tr>
-					<th class="narrow"><a class="sort" data-sort="position">Pos.</a></th>
-					<th><a class="sort" data-sort="name">Name</a></th>
-					<th><a class="sort" data-sort="sourceType">Source Type</a></th>
-					<th class="narrow">Actions</th>
-				</tr>
-			</thead>
-			<tbody>
 
-			</tbody>
-		</table>
+	<div class="column-resizer"></div>
+
+	<div id="virtual-types-list-container" class="fit-to-height">
+		<div id="virtual-types-list" class="resourceBox">
+			<div id="virtual-types-pager"></div>
+			<button id="create-virtual-type"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}" /> New Virtual Type</button>
+			<table id="virtual-types-table">
+				<thead>
+					<tr>
+						<th class="narrow"><a class="sort" data-sort="position">Pos.</a></th>
+						<th><a class="sort" data-sort="name">Name</a></th>
+						<th><a class="sort" data-sort="sourceType">Source Type</a></th>
+						<th id="virtual-types-list-th-actions" class="narrow">Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+
+				</tbody>
+			</table>
+		</div>
 	</div>
-	<div id="virtual-type-detail" class="resourceBox full-height-box">
+
+	<div id="virtual-type-detail" class="resourceBox">
 		<div class="resource-link hide-in-create-mode"><a target="_blank" href="">/</a></div>
 		<h2><span class="show-in-create-mode">New </span>Virtual Type</h2>
 		<table id="virtual-type-detail-table">
@@ -55,7 +61,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					
+
 				</tbody>
 			</table>
 		</div>

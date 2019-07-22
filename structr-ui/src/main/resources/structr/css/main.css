@@ -4268,15 +4268,10 @@ i.fa.ps {
  * L10N Styles
  */
 
-#localizations-pager {
-	height: 42px;
-}
-
 .pager input.filter.w75[type="text"] {
 	width: 75px;
 	font-size: 9pt;
 }
-
 
 .pager input.filter.w100[type="text"] {
 	width: 100px;
@@ -4284,11 +4279,16 @@ i.fa.ps {
 }
 
 #localizations-table {
-	height: calc(100% - 100px);
+	display: table;
 }
 
 #localizations-table a {
 	text-decoration: underline;
+}
+
+#localization-list-th-actions {
+	width: 50px;
+	min-width: initial;
 }
 
 .full-height-box {
@@ -4299,14 +4299,25 @@ i.fa.ps {
 	overflow: auto;
 }
 
-#localizations-list {
-	width: 310px;
+#localizations-list-container {
+	display: table-cell;
+	padding-right: 12px;
+}
+
+#localization-main {
 	margin: 12px;
 }
 
+#localizations-list {
+	vertical-align: top;
+	height: 100%;
+	padding: 6px;
+}
+
 #localization-detail {
-	width: calc(100vw - 410px);
-	margin: 12px 12px 12px 0;
+	padding: 12px;
+	display: table-cell;
+	vertical-align: top;
 }
 
 #localization-detail input.invalid {
@@ -4338,18 +4349,33 @@ i.fa.ps {
  * Virtual Types/Mail Templates
  */
 
-#virtual-types-list, #mail-templates-list {
-	width: 310px;
+#mail-templates-main, #virtual-types-main {
 	margin: 12px;
+}
+#mail-templates-list-container, #virtual-types-list-container {
+	display: table-cell;
+	padding-right: 12px;
+}
+
+#virtual-types-list, #mail-templates-list {
+	vertical-align: top;
+	height: 100%;
+	padding: 6px;
 }
 
 #virtual-type-detail, #mail-template-detail {
-	width: calc(100vw - 410px);
-	margin: 12px 12px 12px 0;
+	padding: 12px;
+	display: table-cell;
+	vertical-align: top;
 }
 
-#mail-templates-table {
+#mail-templates-table, #virtual-types-table {
 	display: table;
+}
+
+#mail-templates-list-th-actions, #virtual-types-list-th-actions {
+	width: 50px;
+	min-width: initial;
 }
 
 #mail-template-detail-wrapper {

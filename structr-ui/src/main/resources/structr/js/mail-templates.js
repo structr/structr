@@ -28,6 +28,9 @@ var _MailTemplates = {
 	mailTemplateDetail: undefined,
 	mailTemplateDetailTable: undefined,
 	previewElement: undefined,
+
+	mailTemplatesResizerLeftKey: 'structrMailTemplatesResizerLeftKey_' + port,
+
 	modes: {
 		edit: 'edit',
 		create: 'create',
@@ -88,13 +91,24 @@ var _MailTemplates = {
 				_MailTemplates.switchMode(_MailTemplates.modes.edit);
 			});
 
-			$(window).off('resize');
-			$(window).on('resize', function() {
-				Structr.resize();
-			});
-
 			Structr.unblockMenu(100);
+
+			_MailTemplates.moveResizer();
+			Structr.initVerticalSlider($('.column-resizer', main), _MailTemplates.mailTemplatesResizerLeftKey, 204, _MailTemplates.moveResizer);
+
+			_MailTemplates.resize();
 		});
+	},
+	resize: function() {
+		_MailTemplates.moveResizer();
+		Structr.resize();
+	},
+	moveResizer: function(left) {
+		left = left || LSWrapper.getItem(_MailTemplates.mailTemplatesResizerLeftKey) || 300;
+		$('.column-resizer', main).css({ left: left });
+
+		$('#mail-templates-list').css({width: left - 24 + 'px'});
+		$('#mail-template-detail').css({width: $(window).width() - left - 47 + 'px'});
 	},
 	switchMode: function(mode) {
 
@@ -128,9 +142,12 @@ var _MailTemplates = {
 		});
 	},
 	listMailTemplates: function () {
+
+		let pagerEl = $('#mail-templates-pager');
+
 		_Pager.initPager('mail-templates', 'MailTemplate', 1, 25, 'name', 'asc');
 
-		_MailTemplates.mailTemplatesPager = _Pager.addPager('mail-templates', $('#mail-templates-pager'), false, 'MailTemplate', 'ui', _MailTemplates.processPagerData);
+		_MailTemplates.mailTemplatesPager = _Pager.addPager('mail-templates', pagerEl, false, 'MailTemplate', 'ui', _MailTemplates.processPagerData);
 
 		_MailTemplates.mailTemplatesPager.cleanupFunction = function () {
 			fastRemoveAllChildren(_MailTemplates.mailTemplatesList[0]);
@@ -138,6 +155,8 @@ var _MailTemplates = {
 		_MailTemplates.mailTemplatesPager.pager.append('<br>Filters: <input type="text" class="filter w100 mail-template-name" data-attribute="name" placeholder="Name" />');
 		_MailTemplates.mailTemplatesPager.pager.append('<input type="text" class="filter w100 mail-template-locale" data-attribute="locale" placeholder="Locale" />');
 		_MailTemplates.mailTemplatesPager.activateFilterElements();
+
+		pagerEl.append('<div style="clear:both;"></div>');
 
 		$('#mail-templates-table .sort').on('click', function () {
 			_MailTemplates.mailTemplatesPager.setSortKey($(this).data('sort'));
