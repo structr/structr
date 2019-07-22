@@ -4369,6 +4369,10 @@ i.fa.ps {
 	vertical-align: top;
 }
 
+#mail-template-detail-inner {
+	height: 50vh;
+}
+
 #mail-templates-table, #virtual-types-table {
 	display: table;
 }
@@ -4405,7 +4409,7 @@ i.fa.ps {
 
 #mail-template-preview {
 	width: 100%;
-	height: 50%;
+	height: 100%;
 }
 
 /**
