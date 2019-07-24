@@ -30,9 +30,12 @@ var _VirtualTypes = {
 	virtualPropertiesTableBody: undefined,
 	resourceLink: undefined,
 
+	virtualTypesResizerLeftKey: 'structrVirtualTypesResizerLeftKey_' + port,
+
 	init: function() {},
 	unload: function() {},
 	onload: function() {
+
 		Structr.updateMainHelpLink('https://support.structr.com/article/233');
 
 		Structr.fetchHtmlTemplate('virtual-types/main', {}, function (html) {
@@ -93,13 +96,24 @@ var _VirtualTypes = {
 
 			_VirtualTypes.activateInfoTextsInColumnHeaders();
 
-			$(window).off('resize');
-			$(window).on('resize', function() {
-				Structr.resize();
-			});
-
 			Structr.unblockMenu(100);
+
+			_VirtualTypes.moveResizer();
+			Structr.initVerticalSlider($('.column-resizer', main), _VirtualTypes.virtualTypesResizerLeftKey, 204, _VirtualTypes.moveResizer);
+
+			_VirtualTypes.resize();
 		});
+	},
+	resize: function() {
+		_VirtualTypes.moveResizer();
+		Structr.resize();
+	},
+	moveResizer: function(left) {
+		left = left || LSWrapper.getItem(_VirtualTypes.virtualTypesResizerLeftKey) || 300;
+		$('.column-resizer', main).css({ left: left });
+
+		$('#virtual-types-list').css({width: left - 24 + 'px'});
+		$('#virtual-type-detail').css({width: $(window).width() - left - 47 + 'px'});
 	},
 	activateInfoTextsInColumnHeaders: function() {
 		$('th[data-info-text]').each(function(i, el) {
@@ -145,9 +159,12 @@ var _VirtualTypes = {
 		});
 	},
 	listVirtualTypes: function () {
+
+		let pagerEl = $('#virtual-types-pager');
+
 		_Pager.initPager('virtual-types', 'VirtualType', 1, 25, 'name', 'asc');
 
-		_VirtualTypes.virtualTypesPager = _Pager.addPager('virtual-types', $('#virtual-types-pager'), false, 'VirtualType', 'ui', _VirtualTypes.processPagerData);
+		_VirtualTypes.virtualTypesPager = _Pager.addPager('virtual-types', pagerEl, false, 'VirtualType', 'ui', _VirtualTypes.processPagerData);
 
 		_VirtualTypes.virtualTypesPager.cleanupFunction = function () {
 			fastRemoveAllChildren(_VirtualTypes.virtualTypesList[0]);
@@ -155,6 +172,8 @@ var _VirtualTypes = {
 		_VirtualTypes.virtualTypesPager.pager.append('<br>Filters: <input type="text" class="filter w100 virtual-type-name" data-attribute="name" placeholder="Name" />');
 		_VirtualTypes.virtualTypesPager.pager.append('<input type="text" class="filter w100 virtual-type-sourceType" data-attribute="sourceType" placeholder="Source Type" />');
 		_VirtualTypes.virtualTypesPager.activateFilterElements();
+
+		pagerEl.append('<div style="clear:both;"></div>');
 
 		$('#virtual-types-table .sort').on('click', function () {
 			_VirtualTypes.virtualTypesPager.setSortKey($(this).data('sort'));

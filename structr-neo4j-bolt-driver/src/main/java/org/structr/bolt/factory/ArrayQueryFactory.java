@@ -36,6 +36,13 @@ public class ArrayQueryFactory extends KeywordQueryFactory {
 
 		checkOccur(query, predicate.getOccurrence(), isFirst);
 
+		// add label of declaring class for the given property name
+		// to select the correct index
+		final String label = predicate.getLabel();
+		if (label != null) {
+			query.indexLabel(label);
+		}
+
 		if (value == null) {
 
 			query.addSimpleParameter(name, "is", null);

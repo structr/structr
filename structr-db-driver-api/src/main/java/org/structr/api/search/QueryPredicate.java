@@ -32,6 +32,7 @@ public interface QueryPredicate {
 	String getName();
 	Class getType();
 	Object getValue();
+	String getLabel();
 
 	Occurrence getOccurrence();
 	boolean isExactMatch();

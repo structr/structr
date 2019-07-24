@@ -63,6 +63,13 @@ public class KeywordQueryFactory extends AbstractQueryFactory<AdvancedCypherQuer
 
 		checkOccur(query, predicate.getOccurrence(), isFirst);
 
+		// add label of declaring class for the given property name
+		// to select the correct index
+		final String label = predicate.getLabel();
+		if (label != null) {
+			query.indexLabel(label);
+		}
+
 		// only String properties can be used for inexact search
 		if (predicate.isExactMatch() || !isString) {
 
