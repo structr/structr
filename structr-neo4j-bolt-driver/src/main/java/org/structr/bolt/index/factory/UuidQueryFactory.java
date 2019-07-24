@@ -38,6 +38,13 @@ public class UuidQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> 
 
 		checkOccur(query, predicate.getOccurrence(), isFirst);
 
+		// add label of declaring class for the given property name
+		// to select the correct index
+		final String label = predicate.getLabel();
+		if (label != null) {
+			query.indexLabel(label);
+		}
+
 		final String uuid = ((UuidQuery)predicate).getUuid();
 		if (StringUtils.isNotBlank(uuid) && uuid.length() == 32) {
 

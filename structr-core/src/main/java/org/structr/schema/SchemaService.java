@@ -29,8 +29,8 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import java.lang.reflect.Modifier;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -48,7 +48,6 @@ import org.structr.api.service.Command;
 import org.structr.api.service.Service;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.StructrServices;
-import org.structr.api.util.Iterables;
 import org.structr.common.AccessPathCache;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
@@ -318,10 +317,7 @@ public class SchemaService implements Service {
 							// inject views in configuration provider
 							config.registerDynamicViews(dynamicViews);
 
-							if (Services.updateIndexConfiguration() || !Services.isTesting()) {
-
-								updateIndexConfiguration(removedClasses);
-							}
+							updateIndexConfiguration(removedClasses);
 
 							tx.success();
 
@@ -523,6 +519,7 @@ public class SchemaService implements Service {
 
 					try {
 
+						final Set<Class> whitelist    = new LinkedHashSet<>(Arrays.asList(GraphObject.class, NodeInterface.class));
 						final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
 
 						final Map<String, Map<String, Boolean>> schemaIndexConfig    = new HashMap();
@@ -533,22 +530,22 @@ public class SchemaService implements Service {
 							final Class type = getType(entry.getKey());
 							if (type != null) {
 
-								final String typeName = type.getSimpleName();
+								final String typeName           = getIndexingTypeName(type.getSimpleName());
+								Map<String, Boolean> typeConfig = schemaIndexConfig.get(typeName);
 
-								final Boolean alreadySeenType = schemaIndexConfig.containsKey(typeName);
-								final Map<String, Boolean> typeConfig = (alreadySeenType ? schemaIndexConfig.get(typeName) : new HashMap());
-
-								if (!alreadySeenType) {
+								if (typeConfig == null) {
+									
+									typeConfig = new LinkedHashMap<>();
 									schemaIndexConfig.put(typeName, typeConfig);
 								}
 
 								for (final PropertyKey key : entry.getValue().values()) {
 
-									boolean createIndex = key.isIndexed() || key.isIndexedWhenEmpty();
+									boolean createIndex        = key.isIndexed() || key.isIndexedWhenEmpty();
+									final Class declaringClass = key.getDeclaringClass();
 
+									createIndex &= declaringClass == null || whitelist.contains(type) || type.equals(declaringClass);
 									createIndex &= !NonIndexed.class.isAssignableFrom(type);
-									//createIndex &= NodeInterface.class.equals(type) || !GraphObject.id.equals(key);
-									createIndex &= NodeInterface.class.equals(type) || !key.isPartOfBuiltInSchema();
 
 									typeConfig.put(key.dbName(), createIndex);
 								}
@@ -605,5 +602,14 @@ public class SchemaService implements Service {
 			}
 		}
 
+	}
+
+	private static String getIndexingTypeName(final String typeName) {
+
+		if ("GraphObject".equals(typeName)) {
+			return "NodeInterface";
+		}
+
+		return typeName;
 	}
 }
