@@ -21,9 +21,11 @@ package org.structr.web.importer;
 import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.ContextStore;
@@ -45,7 +47,8 @@ abstract class FileImportJob extends ScheduledJob {
 	protected String filePath;
 	protected String fileName;
 	protected Long fileSize;
-	protected Integer processedChunks = 0;
+	protected Integer processedChunks  = 0;
+	protected Integer processedObjects = 0;
 
 	public FileImportJob (final File file, final Principal user, final Map<String, Object> configuration, final ContextStore ctxStore) {
 
@@ -77,6 +80,10 @@ abstract class FileImportJob extends ScheduledJob {
 		return processedChunks;
 	}
 
+	public Integer getProcessedObjects () {
+		return processedObjects;
+	}
+
 	@Override
 	public Map<String, Object> getStatusData (final JobStatusMessageSubtype subtype) {
 
@@ -99,15 +106,25 @@ abstract class FileImportJob extends ScheduledJob {
 
 		final LinkedHashMap<String, Object> jobInfo = new LinkedHashMap<>();
 
-		jobInfo.put("jobId",           jobId());
-		jobInfo.put("jobtype",         getJobType());
-		jobInfo.put("username",        getUsername());
-		jobInfo.put("status",          getCurrentStatus());
+		jobInfo.put("jobId",            jobId());
+		jobInfo.put("jobtype",          getJobType());
+		jobInfo.put("username",         getUsername());
+		jobInfo.put("status",           getCurrentStatus());
 
-		jobInfo.put("fileUuid",        getFileUuid());
-		jobInfo.put("filepath",        getFilePath());
-		jobInfo.put("filesize",        getFileSize());
-		jobInfo.put("processedChunks", getProcessedChunks());
+		jobInfo.put("fileUuid",         getFileUuid());
+		jobInfo.put("filepath",         getFilePath());
+		jobInfo.put("filesize",         getFileSize());
+		jobInfo.put("processedChunks",  getProcessedChunks());
+		jobInfo.put("processedObjects", getProcessedObjects());
+
+		if (getEncounteredException() != null) {
+
+			final HashMap exceptionMap = new HashMap();
+			exceptionMap.put("message", getEncounteredException().getMessage());
+			exceptionMap.put("cause", getEncounteredException().getCause());
+			exceptionMap.put("stacktrace", ExceptionUtils.getStackTrace(getEncounteredException()));
+			jobInfo.put("exception", exceptionMap);
+		}
 
 		return jobInfo;
 	}
@@ -115,6 +132,7 @@ abstract class FileImportJob extends ScheduledJob {
 	protected void chunkFinished(final long chunkStartTime, final int currentChunkNo, final int chunkSize, final int overallCount, final int ignoreCount) {
 
 		processedChunks                   = currentChunkNo;
+		processedObjects                  = overallCount;
 
 		final long duration               = System.currentTimeMillis() - chunkStartTime;
 		final DecimalFormat decimalFormat = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
@@ -135,6 +153,8 @@ abstract class FileImportJob extends ScheduledJob {
 
 	protected void importFinished(final long startTime, final int objectCount, final int ignoreCount) {
 
+		processedObjects                  = objectCount;
+
 		final long duration               = System.currentTimeMillis() - startTime;
 		final DecimalFormat decimalFormat = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 		final String formattedDuration    = decimalFormat.format((duration / 1000.0)) + "s";
@@ -151,7 +171,10 @@ abstract class FileImportJob extends ScheduledJob {
 
 	}
 
-	protected void reportException(Exception ex) {
+	@Override
+	public void reportException(Exception ex) {
+
+		setEncounteredException(ex);
 
 		final Map<String, Object> data = new LinkedHashMap();
 		data.put("type",       getJobExceptionMessageType());

@@ -198,14 +198,16 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addMethod("doCSVImport")
 			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setSource(File.class.getName() + ".doCSVImport(this, parameters, ctx);")
+			.setReturnType(java.lang.Long.class.getName())
+			.setSource("return " + File.class.getName() + ".doCSVImport(this, parameters, ctx);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
 		type.addMethod("doXMLImport")
 			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setSource(File.class.getName() + ".doXMLImport(this, parameters, ctx);")
+			.setReturnType(java.lang.Long.class.getName())
+			.setSource("return " + File.class.getName() + ".doXMLImport(this, parameters, ctx);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
@@ -243,8 +245,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	Iterable<AbstractMinifiedFile> getMinificationTargets();
 
 	String getXMLStructure(final SecurityContext securityContext) throws FrameworkException;
-	void doCSVImport(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
-	void doXMLImport(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
+	Long doCSVImport(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
+	Long doXMLImport(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
 	Map<String, Object> getCSVHeaders(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
 	Map<String, Object> getFirstLines(final SecurityContext securityContext, final Map<String, Object> parameters);
 
@@ -622,11 +624,12 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		}
 	}
 
-	static void doCSVImport(final File thisFile, final Map<String, Object> parameters, final SecurityContext securityContext) throws FrameworkException {
+	static Long doCSVImport(final File thisFile, final Map<String, Object> parameters, final SecurityContext securityContext) throws FrameworkException {
 
 		final Map<String, Object> mixedMappings  = (Map<String, Object>)parameters.get("mixedMappings");
 		final ContextStore contextStore          = securityContext.getContextStore();
 		final Principal user                     = securityContext.getUser(false);
+		final Object onFinishScript              = parameters.get("onFinish");
 
 		if (mixedMappings != null) {
 
@@ -641,14 +644,19 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				mappings.putAll(properties);
 			}
 
-			// post import job
 			MixedCSVFileImportJob job = new MixedCSVFileImportJob(thisFile, user, parameters, contextStore);
+			job.setOnFinishScript(onFinishScript);
 			JobQueueManager.getInstance().addJob(job);
+
+			return job.jobId();
 
 		} else {
 
 			CSVFileImportJob job = new CSVFileImportJob(thisFile, user, parameters, contextStore);
+			job.setOnFinishScript(onFinishScript);
 			JobQueueManager.getInstance().addJob(job);
+
+			return job.jobId();
 		}
 	}
 
@@ -673,11 +681,13 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		return null;
 	}
 
-	static void doXMLImport(final File thisFile, final Map<String, Object> config, final SecurityContext securityContext) throws FrameworkException {
+	static Long doXMLImport(final File thisFile, final Map<String, Object> config, final SecurityContext securityContext) throws FrameworkException {
 
 		XMLFileImportJob job = new XMLFileImportJob(thisFile, securityContext.getUser(false), config, securityContext.getContextStore());
+		job.setOnFinishScript(config.get("onFinish"));
 		JobQueueManager.getInstance().addJob(job);
 
+		return job.jobId();
 	}
 
 	/**

@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
+import org.mozilla.javascript.NativeObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
@@ -44,6 +45,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
 import org.structr.rest.common.CsvHelper;
+import org.structr.schema.action.Function;
 import org.structr.web.entity.File;
 
 public class CSVFileImportJob extends FileImportJob {
@@ -101,7 +103,11 @@ public class CSVFileImportJob extends FileImportJob {
 			final boolean distinct                   = getOrDefault(configuration.get("distinct"), false);
 			final Integer commitInterval             = parseInt(configuration.get("commitInterval"), 1000);
 
-			logger.info("Importing CSV from {} ({}) to {} using {}", filePath, fileUuid, targetType, configuration);
+			if (configuration instanceof NativeObject) {
+				logger.info("Importing CSV from {} ({}) to {} using {}", filePath, fileUuid, targetType, Function.toGraphObjectMap(configuration));
+			} else {
+				logger.info("Importing CSV from {} ({}) to {} using {}", filePath, fileUuid, targetType, configuration);
+			}
 
 			final APIBuilder builder       = (APIBuilder) StructrApp.getConfiguration().getModules().get("api-builder");
 			final SimpleDateFormat df      = new SimpleDateFormat("yyyyMMddHHMM");

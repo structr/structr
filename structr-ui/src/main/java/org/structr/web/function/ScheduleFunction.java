@@ -38,11 +38,13 @@ public class ScheduleFunction extends UiAdvancedFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		try {
-			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 3);
 
-			final String jobName = (sources.length == 2) ? sources[1].toString() : "Untitled script job";
+			final String jobName           = (sources.length >= 2) ? sources[1].toString() : "Untitled script job";
+			final Object jobFinishedScript = (sources.length == 3) ? sources[2] : null;
 
 			final ScriptJob job = new ScriptJob(ctx.getSecurityContext().getCachedUser(), Collections.EMPTY_MAP, sources[0], ctx.getSecurityContext().getContextStore(), jobName);
+			job.setOnFinishScript(jobFinishedScript);
 
 			try {
 
@@ -52,7 +54,7 @@ public class ScheduleFunction extends UiAdvancedFunction {
 				logException(ex, ex.getMessage(), null);
 			}
 
-			return "";
+			return job.jobId();
 
 		} catch (IllegalArgumentException e) {
 

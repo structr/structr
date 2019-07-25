@@ -139,11 +139,17 @@ public class ScriptJob extends ScheduledJob {
 		jobInfo.put("status",          getCurrentStatus());
 		jobInfo.put("jobName",         jobName);
 
+		if (getEncounteredException() != null) {
+			jobInfo.put("exception", getEncounteredException().getMessage());
+		}
+
 		return jobInfo;
 	}
 
-	// ----- private methods -----
-	private void reportException(Exception ex) {
+	@Override
+	public void reportException(Exception ex) {
+
+		setEncounteredException(ex);
 
 		final Map<String, Object> data = new LinkedHashMap<>();
 
