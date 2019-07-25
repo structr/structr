@@ -34,6 +34,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Collections;
@@ -485,7 +486,21 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Importing shared components");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing shared components");
 
-					Files.walkFileTree(components, new ComponentImportVisitor(componentsMetadata));
+					final ComponentImportVisitor visitor = new ComponentImportVisitor(componentsMetadata);
+
+					Files.walkFileTree(components, visitor);
+
+					final List<Path> deferredPaths = visitor.getDeferredPaths();
+					if (!deferredPaths.isEmpty()) {
+
+						logger.info("Attempting to import deferred components..");
+
+						for (final Path deferred : deferredPaths) {
+
+							visitor.visitFile(deferred, Files.readAttributes(deferred, BasicFileAttributes.class));
+						}
+					}
+
 
 				} catch (IOException ioex) {
 					logger.warn("Exception while importing shared components", ioex);

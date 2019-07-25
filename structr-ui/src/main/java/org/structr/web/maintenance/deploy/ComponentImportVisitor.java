@@ -25,6 +25,8 @@ import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -52,6 +54,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 	private static final Logger logger       = LoggerFactory.getLogger(ComponentImportVisitor.class.getName());
 
+	private final List<Path> deferredPaths    = new LinkedList<>();
 	private Map<String, Object> configuration = null;
 	private SecurityContext securityContext   = null;
 	private App app                           = null;
@@ -103,6 +106,10 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 	@Override
 	public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
 		return FileVisitResult.CONTINUE;
+	}
+
+	public List<Path> getDeferredPaths() {
+		return deferredPaths;
 	}
 
 	// ----- private methods -----
@@ -272,6 +279,15 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 						// store properties from components.json if present
 						rootElement.setProperties(securityContext, properties);
 					}
+
+					final List<String> missingComponentNames = importer.getMissingComponentNames();
+					if (!missingComponentNames.isEmpty()) {
+
+						// there are missing components => defer import for this file
+						deferredPaths.add(file);
+					}
+
+
 				}
 			}
 

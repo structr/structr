@@ -122,7 +122,8 @@ public class Importer {
 
 	}
 
-	private final StringBuilder commentSource = new StringBuilder();
+	private final List<String> missingComponentNames = new LinkedList<>();
+	private final StringBuilder commentSource    = new StringBuilder();
 	private final SecurityContext securityContext;
 	private final boolean includeInExport;
 	private final boolean publicVisible;
@@ -333,6 +334,10 @@ public class Importer {
 
 	public void setIsDeployment(final boolean isDeployment) {
 		this.isDeployment = isDeployment;
+	}
+
+	public List<String> getMissingComponentNames() {
+		return missingComponentNames;
 	}
 
 	// ----- public static methods -----
@@ -778,7 +783,9 @@ public class Importer {
 
 					} else {
 
-						logger.warn("Unable to find shared component {} - ignored!", src);
+						logger.warn("Unable to find shared component {} - ignored! Import will be re-tried after all other components are imported. ", src);
+
+						missingComponentNames.add(src);
 					}
 
 				} else {
