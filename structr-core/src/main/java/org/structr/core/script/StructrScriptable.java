@@ -164,7 +164,7 @@ public class StructrScriptable extends ScriptableObject {
 			return nobj;
 		}
 
-		if ("include".equals(name) || "render".equals(name)) {
+		if ("include".equals(name) || "render".equals(name) || "include_child".equals(name) || "includeChild".equals(name)) {
 
 			return new IdFunctionObject(new IdFunctionCall() {
 
