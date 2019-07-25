@@ -137,15 +137,6 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 		return result;
 	}
 
-	private void deleteComponent(final App app, final String name) throws FrameworkException {
-
-		final DOMNode node = getExistingComponent(name);
-		if (node != null) {
-
-			deleteRecursively(app, node);
-		}
-	}
-
 	private void deleteRecursively(final App app, final DOMNode node) throws FrameworkException {
 
 		for (DOMNode child : node.getChildren()) {
@@ -228,7 +219,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 					} else {
 
-						deleteComponent(app, componentName);
+						deleteRecursively(app, existingComponent);
 					}
 				}
 
