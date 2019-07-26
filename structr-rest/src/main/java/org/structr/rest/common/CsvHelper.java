@@ -226,15 +226,15 @@ public class CsvHelper {
 
 			} catch (Throwable t) {
 
-				final String last100Characters = Arrays.toString(fields).substring(100);
-				logger.warn("Exception in CSV line: {}", last100Characters);
+				final String first100Characters = Arrays.toString(fields).substring(0, 100);
+				logger.warn("Exception in CSV line: {}", first100Characters);
 				logger.warn("", t);
 
 				final Map<String, Object> data = new LinkedHashMap();
 
 				data.put("type",     "CSV_IMPORT_ERROR");
 				data.put("title",    "CSV Import Error");
-				data.put("text",     "Error occured with dataset: " + last100Characters);
+				data.put("text",     "Error occured with dataset: " + first100Characters);
 				data.put("username", userName);
 
 				TransactionCommand.simpleBroadcastGenericMessage(data);
