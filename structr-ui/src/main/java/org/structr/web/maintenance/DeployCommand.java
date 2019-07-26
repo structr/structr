@@ -499,6 +499,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 							visitor.visitFile(deferred, Files.readAttributes(deferred, BasicFileAttributes.class));
 						}
+
+						FlushCachesCommand.flushAll();
 					}
 
 

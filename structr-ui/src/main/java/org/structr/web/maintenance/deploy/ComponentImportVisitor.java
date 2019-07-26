@@ -37,6 +37,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -149,6 +150,8 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 		}
 
 		app.delete(node);
+
+		FlushCachesCommand.flushAll();
 	}
 
 	private PropertyMap getPropertiesForComponent(final String name) {

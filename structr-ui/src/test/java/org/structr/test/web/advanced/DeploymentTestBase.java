@@ -69,11 +69,6 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 		final String roundtripHash = calculateHash();
 
-			System.out.println("Expected: " + sourceHash);
-			System.out.println("Actual:   " + roundtripHash);
-
-			System.out.println(StringUtils.difference(sourceHash, roundtripHash));
-
 		if (!sourceHash.equals(roundtripHash)) {
 
 			System.out.println("Expected: " + sourceHash);
