@@ -216,14 +216,26 @@ public class LDAPService extends Thread implements SingletonService {
 			LDAPUser user = app.nodeQuery(LDAPUser.class).and(attributes).getFirst();
 			if (user == null) {
 
+				logger.info("Creating new user for originId {}", originId);
+
 				user = app.create(LDAPUser.class, attributes);
 				if (user != null) {
 
+					logger.info("User created: {}", user.getUuid());
+
 					user.initializeFrom(userEntry);
 				}
+
+			} else {
+
+				logger.info("Existing user {} found for originId {}", user.getUuid(), originId);
 			}
 
 			return user;
+
+		} else {
+
+			logger.warn("No origin ID from user entry: {}", userEntry);
 		}
 
 		return null;
@@ -272,12 +284,15 @@ public class LDAPService extends Thread implements SingletonService {
 
 				while (cursor.next()) {
 
-					members.add(getOrCreateUser(cursor.get()));
+					final Entry entry   = cursor.get();
+					final LDAPUser user = getOrCreateUser(entry);
+
+					members.add(user);
 				}
 			}
 		}
 
-		logger.info("{} users updated", members.size());
+		logger.info("{} users updated: {}", members.size(), members);
 
 		// update members of group to new state (will remove all members that are not part of the group, as expected)
 		group.setProperty(StructrApp.key(Group.class, "members"), members);
@@ -331,12 +346,15 @@ public class LDAPService extends Thread implements SingletonService {
 
 				while (cursor.next()) {
 
-					members.add(getOrCreateUser(cursor.get()));
+					final Entry entry   = cursor.get();
+					final LDAPUser user = getOrCreateUser(entry);
+
+					members.add(user);
 				}
 			}
 		}
 
-		logger.info("{} users updated", members.size());
+		logger.info("{} users updated: {}", members.size(), members);
 
 		// update members of group to new state (will remove all members that are not part of the group, as expected)
 		group.setProperty(StructrApp.key(Group.class, "members"), members);

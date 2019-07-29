@@ -18,9 +18,6 @@
  */
 package org.structr.test.web.advanced;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.RequestLoggingFilter;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -454,15 +451,21 @@ public class DeploymentTest4 extends DeploymentTestBase {
 			final Div div2        = createElement(page, div1, "div");
 			final Div div3        = createElement(page, div2, "div");
 			final Div div4        = createElement(page, div3, "div");
+			final Div div5        = createElement(page, div4, "div");
+			final Div div6        = createElement(page, div5, "div");
 
-			final Content c1      = createContent(page, div2, "content1");
-			final Content c2      = createContent(page, div4, "content2");
+			div1.setIdAttribute("div1", true);
+			div2.setIdAttribute("div2", true);
+			div3.setIdAttribute("div3", true);
+			div4.setIdAttribute("div4", true);
+			div5.setIdAttribute("div5", true);
+			div6.setIdAttribute("div6", true);
 
 			final DOMNode comp1   = createComponent(div1);
 			final DOMNode comp2   = createComponent(div3);
 
-			comp1.setProperty(AbstractNode.name, "abc-component");
-			comp2.setProperty(AbstractNode.name, "xyz-component");
+			comp1.setProperty(AbstractNode.name, "xyz-component");
+			comp2.setProperty(AbstractNode.name, "abc-component");
 
 			tx.success();
 
@@ -470,31 +473,8 @@ public class DeploymentTest4 extends DeploymentTestBase {
 			fail("Unexpected exception.");
 		}
 
-		// switch to HTML servlet
-		RestAssured.basePath = htmlUrl;
-
-		RestAssured.given()
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
-			.filter(RequestLoggingFilter.logRequestTo(System.out))
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
-			.when()
-			.get("/test47?edit=4");
-
 		// test
 		compare(calculateHash(), true);
-
-		RestAssured.given()
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
-			.filter(RequestLoggingFilter.logRequestTo(System.out))
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
-			.when()
-			.get("/test47?edit=4");
-
-		// switch to REST servlet
-		RestAssured.basePath = restUrl;
-
 	}
 
 	// ----- private methods -----

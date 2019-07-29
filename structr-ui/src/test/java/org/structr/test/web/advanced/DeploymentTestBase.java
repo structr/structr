@@ -71,9 +71,13 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 		if (!sourceHash.equals(roundtripHash)) {
 
-			System.out.println("Expected: " + sourceHash);
-			System.out.println("Actual:   " + roundtripHash);
+			System.out.println("########## Expected:");
+			System.out.println(sourceHash);
 
+			System.out.println("########## Actual:");
+			System.out.println(roundtripHash);
+
+			System.out.println("########## Difference:");
 			System.out.println(StringUtils.difference(sourceHash, roundtripHash));
 
 			fail("Invalid deployment roundtrip result");
@@ -149,16 +153,22 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 					continue;
 				}
 
-				System.out.print("############################# ");
-				calculateHash(page, buf, 0);
+				buf.append("Page ");
+				buf.append(page.getName());
+				buf.append("\n");
+
+				calculateHash(page, buf, 1);
 			}
 
 			for (final Folder folder : app.nodeQuery(Folder.class).sort(AbstractNode.name).getAsList()) {
 
 				if (folder.includeInFrontendExport()) {
 
-					System.out.print("############################# ");
-					calculateHash(folder, buf, 0);
+					buf.append("Folder ");
+					buf.append(folder.getName());
+					buf.append("\n");
+
+					calculateHash(folder, buf, 1);
 				}
 			}
 
@@ -166,8 +176,11 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 				if (file.includeInFrontendExport()) {
 
-					System.out.print("############################# ");
-					calculateHash(file, buf, 0);
+					buf.append("File ");
+					buf.append(file.getName());
+					buf.append("\n");
+
+					calculateHash(file, buf, 1);
 				}
 			}
 
@@ -183,16 +196,13 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 	protected void calculateHash(final NodeInterface start, final StringBuilder buf, final int depth) {
 
-		buf.append(start.getType()).append("{");
+		final int indent = depth + 1;
 
+		buf.append(StringUtils.leftPad("", depth*4));
+		buf.append(start.getType()).append(" {\n");
+
+		buf.append(StringUtils.leftPad("", indent*4));
 		hash(start, buf);
-
-		// indent
-		for (int i=0; i<depth; i++) {
-			System.out.print("    ");
-		}
-
-		System.out.println(start.getType() + ": " + start.getUuid().substring(0, 5));
 
 		if (start instanceof ShadowDocument) {
 
@@ -213,7 +223,9 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 			}
 		}
 
-		buf.append("}");
+		buf.append("\n");
+		buf.append(StringUtils.leftPad("", depth*4));
+		buf.append("}\n");
 	}
 
 	protected void hash(final NodeInterface node, final StringBuilder buf) {
@@ -303,6 +315,8 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 				buf.append(valueOrEmpty(node, key));
 			}
 		}
+
+		buf.append("\n");
 	}
 
 	protected String valueOrEmpty(final GraphObject obj, final PropertyKey key) {
@@ -310,7 +324,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		final Object value = obj.getProperty(key);
 		if (value != null) {
 
-			return key.jsonName() + "=" + value.toString() + ";";
+			return key.jsonName() + ": \"" + value.toString() + "\";";
 		}
 
 		return "";

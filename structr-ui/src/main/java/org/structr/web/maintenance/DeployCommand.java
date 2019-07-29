@@ -1261,7 +1261,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, "pageCreatesRawData",      node.getProperty(StructrApp.key(Page.class, "pageCreatesRawData")));
 			putData(config, "basicAuthRealm",          node.getProperty(StructrApp.key(Page.class, "basicAuthRealm")));
 			putData(config, "enableBasicAuth",         node.getProperty(StructrApp.key(Page.class, "enableBasicAuth")));
-			putData   (config, "hidden",                  node.getProperty(StructrApp.key(Page.class, "hidden")));
+			putData(config, "hidden",                  node.getProperty(StructrApp.key(Page.class, "hidden")));
 
 		}
 

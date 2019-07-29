@@ -399,12 +399,14 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	static void onCreation(final DOMNode thisNode, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		DOMNode.checkName(thisNode, errorBuffer);
+		DOMNode.syncName(thisNode, errorBuffer);
 	}
 
 	static void onModification(final DOMNode thisNode, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		DOMNode.increasePageVersion(thisNode);
 		DOMNode.checkName(thisNode, errorBuffer);
+		DOMNode.syncName(thisNode, errorBuffer);
 	}
 
 	public static String escapeForHtml(final String raw) {
@@ -1897,6 +1899,19 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		if (_name != null && _name.contains("/")) {
 
 			errorBuffer.add(new SemanticErrorToken(thisNode.getType(), AbstractNode.name, "may_not_contain_slashes", _name));
+		}
+	}
+
+	static void syncName(final DOMNode thisNode, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		// sync name only
+		final String name = thisNode.getProperty(DOMNode.name);
+		if (name!= null) {
+
+			for (final DOMNode syncedNode : thisNode.getSyncedNodes()) {
+
+				syncedNode.setProperty(DOMNode.name, name);
+			}
 		}
 	}
 
