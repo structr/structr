@@ -43,6 +43,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Iterables;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISDocumentInfo;
@@ -107,6 +108,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		type.addBooleanProperty("isFile",            PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 		type.addBooleanProperty("isTemplate",        PropertyView.Public, PropertyView.Ui);
+		type.addBooleanProperty("indexed",           PropertyView.Public, PropertyView.Ui);
 		type.addLongProperty("size",                 PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addLongProperty("fileModificationDate", PropertyView.Public);
 
@@ -364,8 +366,12 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				}
 			}
 
-			final FulltextIndexer indexer = StructrApp.getInstance(thisFile.getSecurityContext()).getFulltextIndexer();
-			indexer.addToFulltextIndex(thisFile);
+			// indexing can be controlled for each file separately
+			if (File.doIndexing(thisFile)) {
+
+				final FulltextIndexer indexer = StructrApp.getInstance().getFulltextIndexer();
+				indexer.addToFulltextIndex(thisFile);
+			}
 
 		} catch (FrameworkException fex) {
 
@@ -855,6 +861,26 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				ioex.printStackTrace();
 			}
 		}
+	}
+
+	static boolean doIndexing(final File thisFile) {
+
+		// we need to use the low-level API here because BooleanProperty returns false if no value is set
+		final PropertyContainer container = thisFile.getPropertyContainer();
+		if (container != null) {
+
+			if (container.hasProperty("indexed")) {
+
+				return Boolean.TRUE.equals(container.getProperty("indexed"));
+
+			} else {
+
+
+			}
+		}
+
+		// default to setting in security context
+		return thisFile.getSecurityContext().doIndexing();
 	}
 
 	// ----- interface JavaScriptSource -----

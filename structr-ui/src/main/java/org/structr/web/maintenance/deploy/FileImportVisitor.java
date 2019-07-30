@@ -65,10 +65,9 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	private List<File> deferredFiles        = null;
 	private Map<String, Folder> folderCache = null;
 
-	public FileImportVisitor(final Path basePath, final Map<String, Object> metadata) {
+	public FileImportVisitor(final SecurityContext securityContext, final Path basePath, final Map<String, Object> metadata) {
 
-		this.securityContext = SecurityContext.getSuperUserInstance();
-		this.securityContext.setDoTransactionNotifications(false);
+		this.securityContext = securityContext;
 		this.basePath        = basePath;
 		this.metadata        = metadata;
 		this.app             = StructrApp.getInstance(this.securityContext);
@@ -227,11 +226,11 @@ public class FileImportVisitor implements FileVisitor<Path> {
 				if (!fileName.startsWith(".")) {
 					logger.info("Ignoring {} (not in files.json)", fullPath);
 				}
-				
+
 			} else {
 
 				final PropertyKey isThumbnailKey = StructrApp.key(Image.class, "isThumbnail");
-				
+
 				Folder parent = null;
 
 				if (!basePath.equals(path.getParent())) {
@@ -274,19 +273,19 @@ public class FileImportVisitor implements FileVisitor<Path> {
 						final PropertyMap props = new PropertyMap();
 
 						props.put(StructrApp.key(AbstractFile.class, "name"), fileName);
-						
+
 						if (parent != null) {
-							
+
 							props.put(StructrApp.key(File.class, "hasParent"), true);
 							props.put(StructrApp.key(File.class, "parent"), parent);
 						}
-						
+
 						newFileUuid = fileProperties.get(GraphObject.id);
-						
+
 						if (newFileUuid != null) {
 							props.put(StructrApp.key(GraphObject.class, "id"), newFileUuid);
 						}
-						
+
 						// create file in folder structure
 						file                     = FileHelper.createFile(securityContext, fis, File.class, props);
 						final String contentType = file.getContentType();

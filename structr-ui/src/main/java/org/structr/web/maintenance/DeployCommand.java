@@ -232,6 +232,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			ctx.setDoTransactionNotifications(false);
 			ctx.disableEnsureCardinality();
 			ctx.disableModificationOfAccessTime();
+			ctx.setDoIndexing(false);
 
 			final Map<String, Object> componentsMetadata = new HashMap<>();
 			final Map<String, Object> templatesMetadata  = new HashMap<>();
@@ -395,7 +396,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Importing files (unchanged files will be skipped)");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing files");
 
-					FileImportVisitor fiv = new FileImportVisitor(files, filesMetadata);
+					FileImportVisitor fiv = new FileImportVisitor(ctx, files, filesMetadata);
 					Files.walkFileTree(files, fiv);
 					fiv.handleDeferredFiles();
 
