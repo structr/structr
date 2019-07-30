@@ -1735,7 +1735,7 @@ var _Code = {
 		_Code.displayCreateButton(targetId, 'magic', 'create-type', 'Create new type', '', { type: 'SchemaNode'});
 	},
 	getEditorModeForContent: function(content) {
-		if (content.indexOf('{') === 0) {
+		if (content && content.indexOf('{') === 0) {
 			return 'text/javascript';
 		}
 		return 'text';
