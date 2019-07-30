@@ -22,6 +22,7 @@ import ch.qos.logback.classic.Level;
 import com.google.gson.GsonBuilder;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,6 +38,7 @@ import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.entry.Value;
 import org.apache.directory.api.ldap.model.exception.LdapException;
+import org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueException;
 import org.apache.directory.api.ldap.model.message.SearchScope;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
@@ -423,7 +425,28 @@ public class LDAPService extends Thread implements SingletonService {
 				final Attribute originAttr = userEntry.get(originIdName);
 				if (originAttr != null) {
 
-					return originAttr.get().getString();
+					if (originAttr.isHumanReadable()) {
+
+						try {
+
+							return originAttr.getString();
+
+						} catch (LdapInvalidAttributeValueException lex) {
+							logger.warn("Invalid LDAP value, expected string: {}", originAttr);
+						}
+
+					} else {
+
+						try {
+
+							final byte[] bytes = originAttr.getBytes();
+							return Base64.getEncoder().encodeToString(bytes);
+
+						} catch (LdapInvalidAttributeValueException lex) {
+							logger.warn("Invalid LDAP value, expected binary: {}", originAttr);
+						}
+
+					}
 
 				} else {
 
