@@ -764,8 +764,7 @@ public class DeployDataCommand extends DeployCommand {
 	private void correctNumberFormats(final SecurityContext context, final Map<String, Object> map, final Class type) throws FrameworkException {
 
 		final List<GraphObjectMap> allProperties = SchemaHelper.getSchemaTypeInfo(context, type.getSimpleName(), type, "all");
-
-		final Map<String, DataType> props = new HashMap();
+		final Map<String, DataType> props        = new HashMap();
 
 		for (final GraphObjectMap propertyInfo : allProperties) {
 
@@ -774,10 +773,15 @@ public class DeployDataCommand extends DeployCommand {
 			final String propertyType = (String) propInfo.get("type");
 
 			if ("Double".equals(propertyType)) {
+
 				props.put(propertyName, DataType.Double);
+
 			} else if ("Date".equals(propertyType) || "Long".equals(propertyType)) {
+
 				props.put(propertyName, DataType.Long);
+
 			} else if ("Integer".equals(propertyType)) {
+
 				props.put(propertyName, DataType.Integer);
 			}
 		}
@@ -785,21 +789,30 @@ public class DeployDataCommand extends DeployCommand {
 		for (Map.Entry<String, Object> entry : map.entrySet()) {
 
 			final DataType propertyType = props.get(entry.getKey());
+			final Object value          = entry.getValue();
 
-			if (propertyType != null) {
-				switch (propertyType) {
+			if (propertyType != null && value != null) {
 
-					case Double:
-						// do nothing, GSON imports every Number as double
-						break;
+				try {
 
-					case Integer:
-						map.put(entry.getKey(), ((Double)entry.getValue()).intValue());
-						break;
+					switch (propertyType) {
 
-					case Long:
-						map.put(entry.getKey(), ((Double)entry.getValue()).longValue());
-						break;
+						case Double:
+							// do nothing, GSON imports every Number as double
+							break;
+
+						case Integer:
+							map.put(entry.getKey(), ((Double)value).intValue());
+							break;
+
+						case Long:
+							map.put(entry.getKey(), ((Double)value).longValue());
+							break;
+					}
+
+				} catch (ClassCastException cex) {
+
+					logger.warn("Wrong data type for key {}, expected {}, got {}, ignoring.", entry.getKey(), propertyType.name(), value.getClass().getSimpleName());
 				}
 			}
 		}
