@@ -24,6 +24,7 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.AddToGroupFunction;
 import org.structr.core.function.AncestorTypesFunction;
 import org.structr.core.function.AppendFunction;
+import org.structr.core.function.AssertFunction;
 import org.structr.core.function.CallFunction;
 import org.structr.core.function.CallPrivilegedFunction;
 import org.structr.core.function.ChangelogFunction;
@@ -91,6 +92,7 @@ public class AdvancedScriptingModule implements StructrModule {
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
+		Functions.put(licenseManager, new AssertFunction());
 		Functions.put(licenseManager, new ErrorFunction());
 		Functions.put(licenseManager, new HasErrorFunction());
 		Functions.put(licenseManager, new ConfigFunction());

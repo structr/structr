@@ -59,7 +59,7 @@ public class StructrScriptEngine extends AbstractScriptEngine {
 
 			return Functions.evaluate(actionContext, entity, script);
 
-		} catch (UnlicensedScriptException |FrameworkException fex) {
+		} catch (UnlicensedScriptException | FrameworkException fex) {
 
 			// wrap FrameworkException in ScriptException and re-throw
 			throw new ScriptException(fex);
