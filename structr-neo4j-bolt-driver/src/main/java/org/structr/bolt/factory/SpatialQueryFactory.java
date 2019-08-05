@@ -40,6 +40,13 @@ public class SpatialQueryFactory extends AbstractQueryFactory<AdvancedCypherQuer
 
 			checkOccur(query, predicate.getOccurrence(), isFirst);
 
+			// add label of declaring class for the given property name
+			// to select the correct index
+			final String label = predicate.getLabel();
+			if (label != null) {
+				query.indexLabel(label);
+			}
+
 			final SpatialQuery spatial = (SpatialQuery)predicate;
 			final StringBuilder buf    = new StringBuilder();
 			final Double[] coords      = spatial.getCoords();

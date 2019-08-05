@@ -51,6 +51,7 @@ import org.structr.web.function.HttpPutFunction;
 import org.structr.web.function.IncludeChildFunction;
 import org.structr.web.function.IncludeFunction;
 import org.structr.web.function.IsLocaleFunction;
+import org.structr.web.function.JobInfoFunction;
 import org.structr.web.function.LogEventFunction;
 import org.structr.web.function.MaintenanceFunction;
 import org.structr.web.function.ParseFunction;
@@ -126,6 +127,7 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new ScheduleFunction());
 		Functions.put(licenseManager, new MaintenanceFunction());
 		Functions.put(licenseManager, new BarcodeFunction());
+		Functions.put(licenseManager, new JobInfoFunction());
 	}
 
 	@Override

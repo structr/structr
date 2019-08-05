@@ -33,12 +33,15 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
+import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Div;
@@ -414,6 +417,64 @@ public class DeploymentTest4 extends DeploymentTestBase {
 
 		} catch (IOException ioex) {}
 
+	}
+
+	@Test
+	public void test47NestedSharedComponents() {
+
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			app.create(User.class,
+				new NodeAttribute<>(StructrApp.key(Principal.class,     "name"), "admin"),
+				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(Principal.class,  "isAdmin"),    true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext, "test47");
+			final Html html = createElement(page, page, "html");
+			final Head head = createElement(page, html, "head");
+			createElement(page, head, "title", "test47");
+
+			final Body body       = createElement(page, html, "body");
+			final Div div1        = createElement(page, body, "div");
+			final Div div2        = createElement(page, div1, "div");
+			final Div div3        = createElement(page, div2, "div");
+			final Div div4        = createElement(page, div3, "div");
+			final Div div5        = createElement(page, div4, "div");
+			final Div div6        = createElement(page, div5, "div");
+
+			div1.setIdAttribute("div1", true);
+			div2.setIdAttribute("div2", true);
+			div3.setIdAttribute("div3", true);
+			div4.setIdAttribute("div4", true);
+			div5.setIdAttribute("div5", true);
+			div6.setIdAttribute("div6", true);
+
+			final DOMNode comp1   = createComponent(div1);
+			final DOMNode comp2   = createComponent(div3);
+
+			comp1.setProperty(AbstractNode.name, "xyz-component");
+			comp2.setProperty(AbstractNode.name, "abc-component");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
 	}
 
 	// ----- private methods -----

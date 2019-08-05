@@ -23,12 +23,20 @@ import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.mozilla.javascript.Script;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.AccessMode;
 import org.structr.common.ContextStore;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
+import org.structr.core.script.Scripting;
+import org.structr.core.script.Snippet;
+import org.structr.schema.action.ActionContext;
 
 public abstract class ScheduledJob {
 
@@ -57,6 +65,8 @@ public abstract class ScheduledJob {
 	protected JobStatus currentStatus;
 	protected ContextStore ctxStore = null;
 
+	private Object onFinishScript = null;
+
 	public ScheduledJob (final String jobName, final Principal user, final Map<String, Object> configuration, final ContextStore ctxStore) {
 
 		this.user          = user;
@@ -73,6 +83,9 @@ public abstract class ScheduledJob {
 	public abstract String getJobType();
 	public abstract String getJobStatusType();
 	public abstract String getJobExceptionMessageType();
+
+	protected Exception encounteredException = null;
+	public abstract void reportException(Exception ex);
 
 	public abstract Map<String, Object> getStatusData (final JobStatusMessageSubtype subtype);
 	public abstract Map<String, Object> getJobInfo ();
@@ -145,6 +158,9 @@ public abstract class ScheduledJob {
 	}
 
 	protected void jobFinished() {
+
+		runOnFinishScript();
+
 		JobQueueManager.getInstance().jobFinished(this);
 	}
 
@@ -277,4 +293,55 @@ public abstract class ScheduledJob {
 		return output;
 	}
 
+	public Object getOnFinishScript() {
+		return onFinishScript;
+	}
+
+	public void setOnFinishScript(final Object onFinishScript) {
+		this.onFinishScript = onFinishScript;
+	}
+
+	public void runOnFinishScript() {
+
+		if (onFinishScript != null) {
+
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				final SecurityContext securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
+				securityContext.setContextStore(ctxStore);
+
+				ctxStore.setConstant("jobInfo", getJobInfo());
+
+				final ActionContext actionContext = new ActionContext(securityContext);
+
+				// called from JavaScript?
+				if (onFinishScript instanceof Script) {
+
+					Scripting.evaluateJavascript(actionContext, null, new Snippet((Script)onFinishScript));
+
+				} else if (onFinishScript instanceof String) {
+
+					Scripting.evaluate(actionContext, null, (String)onFinishScript, jobName);
+
+				} else if (onFinishScript != null) {
+
+					logger.warn("Unable to run jobFinishedScript of type {}, ignoring", onFinishScript.getClass().getName());
+				}
+
+				tx.success();
+
+			} catch (Exception e) {
+
+				reportException(e);
+			}
+		}
+	}
+
+	public Exception getEncounteredException () {
+		return encounteredException;
+	}
+
+	public void setEncounteredException (final Exception ex) {
+		this.encounteredException = ex;
+	}
 }

@@ -600,7 +600,7 @@ var _Code = {
 				var contentBox = $('.editor', element);
 				var editor = CodeMirror(contentBox.get(0), {
 					value: text,
-					mode: 'text/javascript',
+					mode: _Code.getEditorModeForContent(entity.source),
 					lineNumbers: true,
 					lineWrapping: false,
 					indentUnit: 4,
@@ -627,13 +627,20 @@ var _Code = {
 					LSWrapper.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
 				});
 
-				editor.on('change', function() {
-					var type = _Code.getEditorModeForContent(editor.getValue());
-					var prev = editor.getOption('mode');
-					if (prev !== type) {
-						editor.setOption('mode', type);
-					}
-				});
+				if (entity.codeType === 'java') {
+
+					editor.setOption('mode', 'text/x-java');
+
+				} else {
+
+					editor.on('change', function() {
+						var type = _Code.getEditorModeForContent(editor.getValue());
+						var prev = editor.getOption('mode');
+						if (prev !== type) {
+							editor.setOption('mode', type);
+						}
+					});
+				}
 
 				editor.id = entity.id;
 
@@ -654,7 +661,6 @@ var _Code = {
 						codeSaveButton.prop("disabled", false).removeClass('disabled');
 						codeResetButton.prop("disabled", false).removeClass('disabled');
 					}
-
 				});
 
 				codeResetButton.on('click', function(e) {
@@ -664,7 +670,6 @@ var _Code = {
 					editor.setValue(text);
 					codeSaveButton.prop("disabled", true).addClass('disabled');
 					codeResetButton.prop("disabled", true).addClass('disabled');
-
 				});
 
 				codeSaveButton.on('click', function(e) {
@@ -679,7 +684,6 @@ var _Code = {
 					text = newText;
 					codeSaveButton.prop("disabled", true).addClass('disabled');
 					codeResetButton.prop("disabled", true).addClass('disabled');
-
 				});
 
 				if (canDelete) {
@@ -1731,7 +1735,7 @@ var _Code = {
 		_Code.displayCreateButton(targetId, 'magic', 'create-type', 'Create new type', '', { type: 'SchemaNode'});
 	},
 	getEditorModeForContent: function(content) {
-		if (content.indexOf('{') === 0) {
+		if (content && content.indexOf('{') === 0) {
 			return 'text/javascript';
 		}
 		return 'text';

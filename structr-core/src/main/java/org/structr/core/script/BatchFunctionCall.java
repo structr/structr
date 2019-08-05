@@ -50,12 +50,13 @@ public class BatchFunctionCall implements IdFunctionCall {
 
 		if (args.length < 1) {
 
-			logger.warn("Invalid number of arguments for Structr.batch(): expected at least 1, got " + args.length + ". Usage: Structr.batch(function, [runInBackground]);");
+			logger.warn("Invalid number of arguments for Structr.batch(): expected at least 1, got " + args.length + ". Usage: Structr.batch(function, [errorHandler, runInBackground]);");
 			return null;
 		}
 
-		final Script mainCall     = toScript("function", args, 0);
-		final boolean background  = toBoolean(args, 1);
+		final Script mainCall     = toScript("function",     args, 0, false);
+		final Script errorHandler = toScript("errorHandler", args, 1, true);
+		final boolean background  = toBoolean(args, 2);
 		final Thread workerThread = new Thread(() -> {
 
 			Scripting.setupJavascriptContext();
@@ -68,6 +69,8 @@ public class BatchFunctionCall implements IdFunctionCall {
 				boolean runAgain = true;
 
 				while (runAgain) {
+
+					boolean hasError = false;
 
 					try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
@@ -82,7 +85,27 @@ public class BatchFunctionCall implements IdFunctionCall {
 
 					} catch (FrameworkException fex) {
 
-						fex.printStackTrace();
+						hasError = true;
+
+						if (errorHandler == null) {
+
+							logger.warn("Error in batch function: {}", fex.getMessage());
+							fex.printStackTrace();
+						}
+					}
+
+					if (actionContext.hasError() || hasError) {
+
+						try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
+
+							errorHandler.exec(cx, scope);
+
+							tx.success();
+
+						} catch (FrameworkException fex) {
+							logger.warn("Error in batch error handler: {}", fex.getMessage());
+							fex.printStackTrace();
+						}
 					}
 				}
 
@@ -105,7 +128,7 @@ public class BatchFunctionCall implements IdFunctionCall {
 
 
 	// ----- private methods -----
-	private Script toScript(final String name, final Object[] args, final int index) {
+	private Script toScript(final String name, final Object[] args, final int index, final boolean optional) {
 
 		if (index >= args.length) {
 			return null;
@@ -118,13 +141,16 @@ public class BatchFunctionCall implements IdFunctionCall {
 			return (Script)value;
 		}
 
-		if (value == null) {
+		if (!optional) {
 
-			logger.warn("Invalid argument {} for Structr.batch(): expected script, got null.");
+			if (value == null) {
 
-		} else {
+				logger.warn("Invalid argument {} for Structr.batch(): expected script, got null.");
 
-			logger.warn("Invalid argument {} for Structr.batch(): expected script, got {}", name, value.getClass());
+			} else {
+
+				logger.warn("Invalid argument {} for Structr.batch(): expected script, got {}", name, value.getClass());
+			}
 		}
 
 		return null;

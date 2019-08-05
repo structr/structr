@@ -43,6 +43,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Iterables;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISDocumentInfo;
@@ -107,6 +108,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		type.addBooleanProperty("isFile",            PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 		type.addBooleanProperty("isTemplate",        PropertyView.Public, PropertyView.Ui);
+		type.addBooleanProperty("indexed",           PropertyView.Public, PropertyView.Ui);
 		type.addLongProperty("size",                 PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addLongProperty("fileModificationDate", PropertyView.Public);
 
@@ -198,14 +200,16 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addMethod("doCSVImport")
 			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setSource(File.class.getName() + ".doCSVImport(this, parameters, ctx);")
+			.setReturnType(java.lang.Long.class.getName())
+			.setSource("return " + File.class.getName() + ".doCSVImport(this, parameters, ctx);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
 		type.addMethod("doXMLImport")
 			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setSource(File.class.getName() + ".doXMLImport(this, parameters, ctx);")
+			.setReturnType(java.lang.Long.class.getName())
+			.setSource("return " + File.class.getName() + ".doXMLImport(this, parameters, ctx);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
@@ -243,8 +247,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	Iterable<AbstractMinifiedFile> getMinificationTargets();
 
 	String getXMLStructure(final SecurityContext securityContext) throws FrameworkException;
-	void doCSVImport(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
-	void doXMLImport(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
+	Long doCSVImport(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
+	Long doXMLImport(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
 	Map<String, Object> getCSVHeaders(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
 	Map<String, Object> getFirstLines(final SecurityContext securityContext, final Map<String, Object> parameters);
 
@@ -362,8 +366,12 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				}
 			}
 
-			final FulltextIndexer indexer = StructrApp.getInstance(thisFile.getSecurityContext()).getFulltextIndexer();
-			indexer.addToFulltextIndex(thisFile);
+			// indexing can be controlled for each file separately
+			if (File.doIndexing(thisFile)) {
+
+				final FulltextIndexer indexer = StructrApp.getInstance().getFulltextIndexer();
+				indexer.addToFulltextIndex(thisFile);
+			}
 
 		} catch (FrameworkException fex) {
 
@@ -622,11 +630,12 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		}
 	}
 
-	static void doCSVImport(final File thisFile, final Map<String, Object> parameters, final SecurityContext securityContext) throws FrameworkException {
+	static Long doCSVImport(final File thisFile, final Map<String, Object> parameters, final SecurityContext securityContext) throws FrameworkException {
 
 		final Map<String, Object> mixedMappings  = (Map<String, Object>)parameters.get("mixedMappings");
 		final ContextStore contextStore          = securityContext.getContextStore();
 		final Principal user                     = securityContext.getUser(false);
+		final Object onFinishScript              = parameters.get("onFinish");
 
 		if (mixedMappings != null) {
 
@@ -641,14 +650,19 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				mappings.putAll(properties);
 			}
 
-			// post import job
 			MixedCSVFileImportJob job = new MixedCSVFileImportJob(thisFile, user, parameters, contextStore);
+			job.setOnFinishScript(onFinishScript);
 			JobQueueManager.getInstance().addJob(job);
+
+			return job.jobId();
 
 		} else {
 
 			CSVFileImportJob job = new CSVFileImportJob(thisFile, user, parameters, contextStore);
+			job.setOnFinishScript(onFinishScript);
 			JobQueueManager.getInstance().addJob(job);
+
+			return job.jobId();
 		}
 	}
 
@@ -673,11 +687,13 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		return null;
 	}
 
-	static void doXMLImport(final File thisFile, final Map<String, Object> config, final SecurityContext securityContext) throws FrameworkException {
+	static Long doXMLImport(final File thisFile, final Map<String, Object> config, final SecurityContext securityContext) throws FrameworkException {
 
 		XMLFileImportJob job = new XMLFileImportJob(thisFile, securityContext.getUser(false), config, securityContext.getContextStore());
+		job.setOnFinishScript(config.get("onFinish"));
 		JobQueueManager.getInstance().addJob(job);
 
+		return job.jobId();
 	}
 
 	/**
@@ -845,6 +861,26 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				ioex.printStackTrace();
 			}
 		}
+	}
+
+	static boolean doIndexing(final File thisFile) {
+
+		// we need to use the low-level API here because BooleanProperty returns false if no value is set
+		final PropertyContainer container = thisFile.getPropertyContainer();
+		if (container != null) {
+
+			if (container.hasProperty("indexed")) {
+
+				return Boolean.TRUE.equals(container.getProperty("indexed"));
+
+			} else {
+
+
+			}
+		}
+
+		// default to setting in security context
+		return thisFile.getSecurityContext().doIndexing();
 	}
 
 	// ----- interface JavaScriptSource -----

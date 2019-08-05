@@ -625,7 +625,7 @@ var Importer = {
 
 				Importer.displayImportPropertyMapping(type, csvHeaders.result.headers, $('#row-container'), names, true, typeConfig, function() {
 
-					$('#start-import').on('click', function() {
+					$('#start-import').off('click').on('click', function() {
 
 						var configInfo = Importer.collectCSVImportConfigurationInfo();
 						var allowImport = (configInfo.errors.length === 0);
@@ -895,7 +895,7 @@ var Importer = {
 				}
 			});
 
-			$('#start-import').on('click', function() {
+			$('#start-import').off('click').on('click', function() {
 
 				$.post(rootUrl + 'File/' + file.id + '/doXMLImport', JSON.stringify(configuration), function(data) {});
 			});

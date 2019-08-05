@@ -22,6 +22,7 @@ import ch.qos.logback.classic.Level;
 import com.google.gson.GsonBuilder;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,6 +38,7 @@ import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.entry.Value;
 import org.apache.directory.api.ldap.model.exception.LdapException;
+import org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueException;
 import org.apache.directory.api.ldap.model.message.SearchScope;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
@@ -216,14 +218,26 @@ public class LDAPService extends Thread implements SingletonService {
 			LDAPUser user = app.nodeQuery(LDAPUser.class).and(attributes).getFirst();
 			if (user == null) {
 
+				logger.info("Creating new user for originId {}", originId);
+
 				user = app.create(LDAPUser.class, attributes);
 				if (user != null) {
 
+					logger.info("User created: {}", user.getUuid());
+
 					user.initializeFrom(userEntry);
 				}
+
+			} else {
+
+				logger.info("Existing user {} found for originId {}", user.getUuid(), originId);
 			}
 
 			return user;
+
+		} else {
+
+			logger.warn("No origin ID from user entry: {}", userEntry);
 		}
 
 		return null;
@@ -272,12 +286,15 @@ public class LDAPService extends Thread implements SingletonService {
 
 				while (cursor.next()) {
 
-					members.add(getOrCreateUser(cursor.get()));
+					final Entry entry   = cursor.get();
+					final LDAPUser user = getOrCreateUser(entry);
+
+					members.add(user);
 				}
 			}
 		}
 
-		logger.info("{} users updated", members.size());
+		logger.info("{} users updated: {}", members.size(), members);
 
 		// update members of group to new state (will remove all members that are not part of the group, as expected)
 		group.setProperty(StructrApp.key(Group.class, "members"), members);
@@ -331,12 +348,15 @@ public class LDAPService extends Thread implements SingletonService {
 
 				while (cursor.next()) {
 
-					members.add(getOrCreateUser(cursor.get()));
+					final Entry entry   = cursor.get();
+					final LDAPUser user = getOrCreateUser(entry);
+
+					members.add(user);
 				}
 			}
 		}
 
-		logger.info("{} users updated", members.size());
+		logger.info("{} users updated: {}", members.size(), members);
 
 		// update members of group to new state (will remove all members that are not part of the group, as expected)
 		group.setProperty(StructrApp.key(Group.class, "members"), members);
@@ -405,7 +425,28 @@ public class LDAPService extends Thread implements SingletonService {
 				final Attribute originAttr = userEntry.get(originIdName);
 				if (originAttr != null) {
 
-					return originAttr.get().getString();
+					if (originAttr.isHumanReadable()) {
+
+						try {
+
+							return originAttr.getString();
+
+						} catch (LdapInvalidAttributeValueException lex) {
+							logger.warn("Invalid LDAP value, expected string: {}", originAttr);
+						}
+
+					} else {
+
+						try {
+
+							final byte[] bytes = originAttr.getBytes();
+							return Base64.getEncoder().encodeToString(bytes);
+
+						} catch (LdapInvalidAttributeValueException lex) {
+							logger.warn("Invalid LDAP value, expected binary: {}", originAttr);
+						}
+
+					}
 
 				} else {
 

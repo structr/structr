@@ -36,6 +36,7 @@ import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.core.GraphObject;
 import org.structr.core.auth.Authenticator;
@@ -74,6 +75,7 @@ public class SecurityContext {
 	private boolean doInnerCallbacks                     = true;
 	private boolean isReadOnlyTransaction                = false;
 	private boolean doMultiThreadedJsonOutput            = false;
+	private boolean doIndexing                           = Settings.IndexingEnabled.getValue(true);
 	private int serializationDepth                       = -1;
 
 	private final Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
@@ -932,6 +934,14 @@ public class SecurityContext {
 
 	public boolean doMultiThreadedJsonOutput() {
 		return doMultiThreadedJsonOutput;
+	}
+
+	public void setDoIndexing(final boolean doIndexing) {
+		this.doIndexing = doIndexing;
+	}
+
+	public boolean doIndexing() {
+		return doIndexing;
 	}
 
 	// ----- nested classes -----

@@ -16,28 +16,23 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.search;
+package org.structr.common.error;
 
+/**
+ * Exception to be thrown when an unlicensed scripting function is encountered.
+ */
+public class AssertException extends RuntimeException {
 
-public interface QueryPredicate {
+	private int statusCode = 422;
 
-	/**
-	 * The desired query type for this predicate. Return null here if the
-	 * predicate should be ignored by the indexing system.
-	 *
-	 * @return the query type or null
-	 */
-	Class getQueryType();
+	public AssertException(final String message, final int statusCode) {
 
-	String getName();
-	Class getType();
-	Object getValue();
-	String getLabel();
+		super(message);
 
-	Occurrence getOccurrence();
-	boolean isExactMatch();
+		this.statusCode = statusCode;
+	}
 
-	String getSortKey();
-	SortType getSortType();
-	boolean sortDescending();
+	public int getStatusCode() {
+		return statusCode;
+	}
 }

@@ -27,6 +27,7 @@ import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.SortType;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -128,6 +129,22 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 		if (key != null) {
 
 			return key.valueType();
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getLabel() {
+
+		final PropertyKey key = getKey();
+		if (key != null) {
+
+			final Class declaringClass = key.getDeclaringClass();
+			if (declaringClass != null && !GraphObject.class.equals(declaringClass) && !RelationshipInterface.class.isAssignableFrom(declaringClass)) {
+
+				return declaringClass.getSimpleName();
+			}
 		}
 
 		return null;

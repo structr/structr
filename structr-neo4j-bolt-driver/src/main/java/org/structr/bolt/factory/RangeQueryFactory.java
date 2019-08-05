@@ -40,6 +40,13 @@ public class RangeQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 
 			checkOccur(query, predicate.getOccurrence(), isFirst);
 
+			// add label of declaring class for the given property name
+			// to select the correct index
+			final String label = predicate.getLabel();
+			if (label != null) {
+				query.indexLabel(label);
+			}
+
 			final RangeQuery rangeQuery = (RangeQuery)predicate;
 			final Object rangeStart     = getReadValue(rangeQuery.getRangeStart());
 			final Object rangeEnd       = getReadValue(rangeQuery.getRangeEnd());
