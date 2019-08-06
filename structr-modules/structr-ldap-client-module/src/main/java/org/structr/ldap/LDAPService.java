@@ -221,9 +221,12 @@ public class LDAPService extends Thread implements SingletonService {
 				user = app.create(LDAPUser.class, attributes);
 				if (user != null) {
 
-					user.initializeFrom(userEntry);
+					logger.info("User created: {}", user.getUuid());
 				}
 			}
+
+			// update user
+			user.initializeFrom(userEntry);
 
 			return user;
 		}
