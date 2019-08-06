@@ -99,6 +99,9 @@ public interface LDAPUser extends User {
 				thisUser.setProperty(StructrApp.key(LDAPUser.class, structrName), LDAPUser.getString(entry, ldapName));
 			}
 
+			// store DN
+			thisUser.setProperty(StructrApp.key(LDAPUser.class, "distinguishedName"), entry.getDn().getNormName());
+			
 			// update lastUpdate timestamp
 			thisUser.setProperty(StructrApp.key(LDAPUser.class, "lastLDAPSync"), System.currentTimeMillis());
 
@@ -157,10 +160,10 @@ public interface LDAPUser extends User {
 				final LDAPService service = Services.getInstance().getService(LDAPService.class);
 				if (service != null) {
 
-						for (final LDAPGroup group : StructrApp.getInstance().nodeQuery(LDAPGroup.class).getAsList()) {
+					for (final LDAPGroup group : StructrApp.getInstance().nodeQuery(LDAPGroup.class).getAsList()) {
 
-							service.synchronizeGroup(group);
-						}
+						service.synchronizeGroup(group);
+					}
 				}
 
 				thisUser.setProperty(lastUpdateKey, System.currentTimeMillis());
