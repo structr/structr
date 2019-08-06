@@ -41,6 +41,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-app</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parsers</artifactId>
 			<optional>true</optional>
 			<exclusions>
