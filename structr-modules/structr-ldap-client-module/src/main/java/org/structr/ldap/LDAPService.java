@@ -21,7 +21,6 @@ package org.structr.ldap;
 import ch.qos.logback.classic.Level;
 import com.google.gson.GsonBuilder;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -63,9 +62,7 @@ import org.structr.schema.SchemaService;
 @ServiceDependency(SchemaService.class)
 public class LDAPService extends Thread implements SingletonService {
 
-	private static final Logger logger               = LoggerFactory.getLogger(LDAPService.class.getName());
-	private static final Set<String> structuralTypes = new LinkedHashSet<>(Arrays.asList("ou", "dc"));
-
+	private static final Logger logger   = LoggerFactory.getLogger(LDAPService.class.getName());
 	private final long connectionTimeout = 1000;
 
 	public LDAPService() {
@@ -337,7 +334,8 @@ public class LDAPService extends Thread implements SingletonService {
 
 				} catch (CursorLdapReferralException e) {
 
-					logger.info("CursorLdapReferralException caught, info: {}, remaining DN: {}, resolved object: {}, result code: {}", e.getReferralInfo(), e.getRemainingDn(), e.getResolvedObject(), e.getResultCode());
+					// ignore, cannot be handled here yet
+					//logger.info("CursorLdapReferralException caught, info: {}, remaining DN: {}, resolved object: {}, result code: {}", e.getReferralInfo(), e.getRemainingDn(), e.getResolvedObject(), e.getResultCode());
 				}
 			}
 		}

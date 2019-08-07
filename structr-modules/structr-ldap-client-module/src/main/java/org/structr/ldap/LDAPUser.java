@@ -29,7 +29,6 @@ import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
@@ -101,7 +100,7 @@ public interface LDAPUser extends User {
 
 			// store DN
 			thisUser.setProperty(StructrApp.key(LDAPUser.class, "distinguishedName"), entry.getDn().getNormName());
-			
+
 			// update lastUpdate timestamp
 			thisUser.setProperty(StructrApp.key(LDAPUser.class, "lastLDAPSync"), System.currentTimeMillis());
 
@@ -114,10 +113,12 @@ public interface LDAPUser extends User {
 	static boolean isValidPassword(final LDAPUser thisUser, final String password) {
 
 		final LDAPService ldapService = Services.getInstance().getService(LDAPService.class);
-		final String dn               = thisUser.getDistinguishedName();
 		boolean hasLDAPGroups         = false;
 
 		if (ldapService != null) {
+
+			// update user..
+			updateUser(thisUser);
 
 			// delete this user if there is no group association left
 			for (final Group group : Iterables.toList(thisUser.getGroups())) {
@@ -135,11 +136,11 @@ public interface LDAPUser extends User {
 				return false;
 			}
 
-			return ldapService.canSuccessfullyBind(dn, password);
+			return ldapService.canSuccessfullyBind(thisUser.getDistinguishedName(), password);
 
 		} else {
 
-			logger.warn("Unable to reach LDAP server for authentication of {}", dn);
+			logger.warn("Unable to reach LDAP server for authentication of {}", thisUser.getDistinguishedName());
 		}
 
 		return false;
@@ -147,30 +148,28 @@ public interface LDAPUser extends User {
 
 	static void onAuthenticate(final LDAPUser thisUser) {
 
+		// do nothing, update is done before login
+	}
+
+	static void updateUser(final LDAPUser thisUser) {
+
 		final PropertyKey<Long> lastUpdateKey = StructrApp.key(LDAPUser.class, "lastLDAPSync");
-		final Long lastUpdate = thisUser.getProperty(lastUpdateKey);
 
-		if ((lastUpdate == null || System.currentTimeMillis() > (lastUpdate + (Settings.LDAPUpdateInterval.getValue(600) * 1000)))) {
+		try {
 
-			try {
+			final LDAPService service = Services.getInstance().getService(LDAPService.class);
+			if (service != null) {
 
-				// update all LDAP groups..
-				logger.info("Updating LDAP information for {} ({})", thisUser.getName(), thisUser.getProperty(StructrApp.key(LDAPUser.class, "distinguishedName")));
+				for (final LDAPGroup group : StructrApp.getInstance().nodeQuery(LDAPGroup.class).getAsList()) {
 
-				final LDAPService service = Services.getInstance().getService(LDAPService.class);
-				if (service != null) {
-
-					for (final LDAPGroup group : StructrApp.getInstance().nodeQuery(LDAPGroup.class).getAsList()) {
-
-						service.synchronizeGroup(group);
-					}
+					service.synchronizeGroup(group);
 				}
-
-				thisUser.setProperty(lastUpdateKey, System.currentTimeMillis());
-
-			} catch (CursorException | LdapException | IOException | FrameworkException fex) {
-				logger.warn("Unable to update LDAP information for user {}: {}", thisUser.getName(), fex.getMessage());
 			}
+
+			thisUser.setProperty(lastUpdateKey, System.currentTimeMillis());
+
+		} catch (CursorException | LdapException | IOException | FrameworkException fex) {
+			logger.warn("Unable to update LDAP information for user {}: {}", thisUser.getName(), fex.getMessage());
 		}
 	}
 
