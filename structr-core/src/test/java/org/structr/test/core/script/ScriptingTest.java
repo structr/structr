@@ -3834,6 +3834,50 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testNotEqual() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			app.create(Group.class, "group1");
+			app.create(Group.class, "group2");
+			app.create(Group.class, "group3");
+			app.create(Group.class, "group4");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Group group1   = app.nodeQuery(Group.class).andName("group1").getFirst();
+			final Group group2   = app.nodeQuery(Group.class).andName("group2").getFirst();
+			final String script1 = "${{ return $.find('Group', { $and: { name: 'group1', id: $.not($.equals('" + group1.getUuid() + "')) }}); }}";
+			final String script2 = "${{ return $.find('Group', { $and: { name: 'group1', id: $.not($.equals('" + group2.getUuid() + "')) }}); }}";
+
+			// test that not(equal()) works for the id property
+			final Object result1 = Scripting.evaluate(ctx, null, script1, "test1");
+			final Object result2 = Scripting.evaluate(ctx, null, script2, "test2");
+
+			assertEquals("Invalid advanced find result for not(equals)) with ID", 0, ((List)result1).size());
+			assertEquals("Invalid advanced find result for not(equals)) with ID", 1, ((List)result2).size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource, final String comment) {
 
