@@ -262,6 +262,7 @@ var _Elements = {
 		dir      : [ "li" ],
 		dl       : [ "dt", "dd" ],
 		select   : [ "option", "optgroup" ],
+		optgroup : [ "option" ],
 		form     : [ "input", "textarea", "select", "button", "label", "fieldset" ],
 		fieldset : [ "legend", "input", "textarea", "select", "button", "label", "fieldset" ],
 		figure   : [ "img", "figcaption" ],
@@ -1477,7 +1478,7 @@ var _Elements = {
 	activateEditorMode: function(contentType) {
 		let modeObj = CodeMirror.findModeByMIME(contentType);
 		let mode = contentType; // default
-		
+
 		if (modeObj) {
 			mode = modeObj.mode;
 			if (mode && mode !== "null") { // findModeMIME function above returns "null" string :(
@@ -1498,9 +1499,9 @@ var _Elements = {
 		_Logger.log(_LogType.CONTENTS, div);
 		var contentBox = $('.editor', element);
 		contentType = entity.contentType || 'text/plain';
-		
+
 		_Elements.activateEditorMode(contentType);
-		
+
 		var text1, text2;
 
 		var lineWrapping = LSWrapper.getItem(lineWrappingKey);
@@ -1678,7 +1679,7 @@ var _Elements = {
 			contentType = select.val();
 			_Elements.activateEditorMode(contentType);
 			editor.setOption('mode', contentType);
-			
+
 			entity.setProperty('contentType', contentType, false, function() {
 				blinkGreen(select);
 				_Pages.reloadPreviews();
