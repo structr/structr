@@ -3758,7 +3758,7 @@ public class ScriptingTest extends StructrTest {
 
 		final ActionContext ctx = new ActionContext(securityContext);
 		final Class type        = StructrApp.getConfiguration().getNodeEntityClass("Project");
-                final PropertyKey date  = StructrApp.key(type, "date");
+		final PropertyKey date  = StructrApp.key(type, "date");
 		final Calendar calendar = GregorianCalendar.getInstance();
 
 		// setup
@@ -3812,6 +3812,61 @@ public class ScriptingTest extends StructrTest {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testDatePropertyWithNonStandardFormatInScripting() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			schema.addType("Test");
+
+			final JsonType project  = schema.addType("Project");
+			project.addDateProperty("date").setIndexed(true).setFormat("yyyy");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final ActionContext ctx = new ActionContext(securityContext);
+		final Class type        = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final PropertyKey date  = StructrApp.key(type, "date");
+		final Calendar calendar = GregorianCalendar.getInstance();
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			calendar.set(2019, 0, 1, 10, 20, 30);
+			app.create(type, new NodeAttribute<>(AbstractNode.name, "p1"), new NodeAttribute<>(date, calendar.getTime()));
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("dot notation should yield unformatted date object", "", Scripting.evaluate(ctx, null, "${{ $.assert(\"Date\" === ($.find('Project', 'name', 'p1')[0].date).constructor.name, 422, \"dot notation does not yield a Date object!\") }}", ""));
+			assertEquals("get function should yield unformatted date object", "", Scripting.evaluate(ctx, null, "${{ $.assert(\"Date\" === ($.get($.find('Project', 'name', 'p1')[0], 'date')).constructor.name, 422, \"get() does not yield a Date object!\") }}", ""));
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 	}
 
