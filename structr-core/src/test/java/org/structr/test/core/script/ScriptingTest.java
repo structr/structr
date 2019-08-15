@@ -3858,8 +3858,16 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("dot notation should yield unformatted date object", "", Scripting.evaluate(ctx, null, "${{ $.assert(\"Date\" === ($.find('Project', 'name', 'p1')[0].date).constructor.name, 422, \"dot notation does not yield a Date object!\") }}", ""));
-			assertEquals("get function should yield unformatted date object", "", Scripting.evaluate(ctx, null, "${{ $.assert(\"Date\" === ($.get($.find('Project', 'name', 'p1')[0], 'date')).constructor.name, 422, \"get() does not yield a Date object!\") }}", ""));
+			final Object value1 = Scripting.evaluate(ctx, null, "${{ return $.find('Project', 'name', 'p1')[0].date; }}", "");
+			final Object value2 = Scripting.evaluate(ctx, null, "${{ return $.get($.find('Project', 'name', 'p1')[0], 'date'); }}", "");
+
+			final Object value3 = Scripting.evaluate(ctx, null, "${find('Project', 'name', 'p1')[0].date}", "");
+			final Object value4 = Scripting.evaluate(ctx, null, "${get(first(find('Project', 'name', 'p1')), 'date')}", "");
+
+			assertTrue("dot notation should yield unformatted date object", value1 instanceof Date);
+			assertTrue("get function should yield formatted date string", value2 instanceof String);
+			assertTrue("dot notation should yield unformatted date object", value3 instanceof Date);
+			assertTrue("get function should yield formatted date string", value4 instanceof String);
 
 			tx.success();
 
