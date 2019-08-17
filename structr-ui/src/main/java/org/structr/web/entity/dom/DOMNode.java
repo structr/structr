@@ -1495,7 +1495,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		// admin-only edit modes ==> visibility check not necessary
 		final boolean isAdminOnlyEditMode = (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode) || EditMode.DEPLOYMENT.equals(editMode));
-
+		final boolean isPartial           = renderContext.getPage() == null;
+		
 		if (!isAdminOnlyEditMode && !securityContext.isVisible(thisNode)) {
 			return;
 		}
@@ -1528,10 +1529,21 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 				final PropertyKey propertyKey;
 
-				if (thisNode.renderDetails() && detailMode) {
+				// Make sure the closest 'page' keyword is always set on deeper levels.
+				if (depth == 0 && isPartial && thisNode.equals(details) && detailMode) {
+					
+					renderContext.setPage(thisNode.getClosestPage());
 
-					renderContext.setDataObject(details);
-					renderContext.putDataObject(subKey, details);
+				}
+				
+				final GraphObject sourceDataObject = renderContext.getSourceDataObject();
+				
+				// Render partial with possible top-level repeater limited to a single data object
+				if (depth == 0 && isPartial && sourceDataObject != null) {
+				//if (thisNode.renderDetails() && detailMode) {
+
+					renderContext.putDataObject(subKey, renderContext.getSourceDataObject());
+					renderContext.setPage(thisNode.getClosestPage());
 
 					thisNode.renderContent(renderContext, depth);
 
