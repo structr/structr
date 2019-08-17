@@ -347,7 +347,7 @@ public abstract class ImageHelper extends FileHelper {
 			final long end  = System.nanoTime();
 			final long time = (end - start) / 1000000;
 
-			logger.debug("Thumbnail created. Reading, scaling and writing took {} ms", time);
+			logger.info("Thumbnail created for image {} ({}). Reading, scaling and writing took {} ms", new Object[] { originalImage.getName(), originalImage.getUuid(), time });
 
 			tn.setBytes(baos.toByteArray());
 
