@@ -1529,8 +1529,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 				final PropertyKey propertyKey;
 
-				// Make sure the closest 'page' keyword is always set on deeper levels.
-				if (depth == 0 && isPartial && thisNode.equals(details) && detailMode) {
+				// Make sure the closest 'page' keyword is always set also for partials
+				if (depth == 0 && isPartial) {
 					
 					renderContext.setPage(thisNode.getClosestPage());
 
