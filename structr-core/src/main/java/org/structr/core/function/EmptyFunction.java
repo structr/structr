@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
+import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.Undefined;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
@@ -38,7 +39,6 @@ public class EmptyFunction extends CoreFunction {
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
-
 
 		if (sources == null) {
 
@@ -62,12 +62,14 @@ public class EmptyFunction extends CoreFunction {
 
 			return (((Object[]) sources[0]).length == 0);
 
+		} else if (sources[0] instanceof NativeObject) {
+
+			return (((NativeObject) sources[0]).size() == 0);
+
 		} else {
 
 			return false;
-
 		}
-
 	}
 
 
