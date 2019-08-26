@@ -3986,10 +3986,10 @@ public class ScriptingTest extends StructrTest {
 
 			final Group group1    = groups.get(0);
 			final Group group2    = groups.get(1);
-			final String expected = "[Group(group1, " + group1.getUuid() + "), Group(" + group2.getUuid() + ")]";
+			final String expected = "[" + group1.getUuid() + ", " + group2.getUuid() + "]";
 
-			assertEquals("Invalid print output", expected, Scripting.evaluate(ctx, group1, "${print(find('Group'))}", "test1"));
-			assertEquals("Invalid print output", "Group(group1, " + group1.getUuid() + ")", Scripting.evaluate(ctx, group1, "${print(this)}", "test1"));
+			assertEquals("Invalid print output", expected,         Scripting.evaluate(ctx, group1, "${print(find('Group'))}", "test1"));
+			assertEquals("Invalid print output", group1.getUuid(), Scripting.evaluate(ctx, group1, "${print(this)}", "test1"));
 			assertEquals("Invalid print output", "", Scripting.evaluate(ctx, group2, "${log(this)}", "test2"));
 
 			tx.success();

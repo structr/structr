@@ -40,6 +40,7 @@ import org.renjin.script.RenjinScriptEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
@@ -569,7 +570,25 @@ public class Scripting {
 		return expressions;
 	}
 
+
 	public static String formatToDefaultDateOrString(final Object value) {
+
+		if (value instanceof Date) {
+
+			return DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
+
+		} else if (value instanceof Iterable) {
+
+			return Iterables.toList((Iterable)value).toString();
+
+		} else {
+
+			return value.toString();
+
+		}
+	}
+
+	public static String formatForLogging(final Object value) {
 
 		if (value instanceof Date) {
 
