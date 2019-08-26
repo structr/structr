@@ -21,6 +21,7 @@ package org.structr.core.script;
 import java.io.StringWriter;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +40,6 @@ import org.renjin.script.RenjinScriptEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
@@ -577,28 +577,49 @@ public class Scripting {
 
 		} else if (value instanceof Iterable) {
 
-			return Iterables.toList((Iterable)value).toString();
+			final StringBuilder buf = new StringBuilder();
+			final Iterable iterable = (Iterable)value;
+
+			buf.append("[");
+
+			for (final Iterator it = iterable.iterator(); it.hasNext();) {
+
+				buf.append(Scripting.formatToDefaultDateOrString(it.next()));
+
+				if (it.hasNext()) {
+					buf.append(", ");
+				}
+			}
+
+			buf.append("]");
+
+			return buf.toString();
+
+		} else if (value instanceof GraphObject) {
+
+			final StringBuilder buf = new StringBuilder();
+			final GraphObject obj   = (GraphObject)value;
+			final String name       = obj.getProperty(AbstractNode.name);
+
+			buf.append(obj.getType());
+			buf.append("(");
+
+			if (StringUtils.isNotBlank(name)) {
+
+				buf.append(name);
+				buf.append(", ");
+			}
+
+			buf.append(obj.getUuid());
+			buf.append(")");
+
+			return buf.toString();
 
 		} else {
 
 			return value.toString();
 
 		}
-	}
-
-	// ----- private methods -----
-	private static String toString(final Object obj) {
-
-		if (obj instanceof Iterable) {
-
-			return Iterables.toList((Iterable)obj).toString();
-		}
-
-		if (obj != null) {
-			return obj.toString();
-		}
-
-		return "";
 	}
 
 	// ----- nested classes -----

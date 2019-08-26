@@ -3959,6 +3959,48 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testLoggingOfGraphObjects() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			app.create(Group.class, "group1");
+			app.create(Group.class);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final List<Group> groups = app.nodeQuery(Group.class).getAsList();
+
+			assertEquals("Invalid number of groups in test setup", 2, groups.size());
+
+			final Group group1    = groups.get(0);
+			final Group group2    = groups.get(1);
+			final String expected = "[Group(group1, " + group1.getUuid() + "), Group(" + group2.getUuid() + ")]";
+
+			assertEquals("Invalid print output", expected, Scripting.evaluate(ctx, group1, "${print(find('Group'))}", "test1"));
+			assertEquals("Invalid print output", "Group(group1, " + group1.getUuid() + ")", Scripting.evaluate(ctx, group1, "${print(this)}", "test1"));
+			assertEquals("Invalid print output", "", Scripting.evaluate(ctx, group2, "${log(this)}", "test2"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource, final String comment) {
 
