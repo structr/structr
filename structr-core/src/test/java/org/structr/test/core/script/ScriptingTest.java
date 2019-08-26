@@ -669,6 +669,7 @@ public class ScriptingTest extends StructrTest {
 		final String numberString1        = numberFormat1.format(2.234);
 		final String numberString2        = numberFormat2.format(2.234);
 		final String numberString3        = numberFormat3.format(2.234);
+		final List<String> testSixNames   = new LinkedList<>();
 		NodeInterface template            = null;
 		NodeInterface template2           = null;
 		TestOne testOne                   = null;
@@ -697,12 +698,17 @@ public class ScriptingTest extends StructrTest {
 
 			for (final TestSix testSix : testSixs) {
 
-				testSix.setProperty(TestSix.name, "TestSix" + StringUtils.leftPad(Integer.toString(index), 2, "0"));
+				final String name = "TestSix" + StringUtils.leftPad(Integer.toString(index), 2, "0");
+
+				testSix.setProperty(TestSix.name, name);
 				testSix.setProperty(TestSix.index, index);
 				testSix.setProperty(TestSix.date, cal.getTime());
 
 				index++;
 				cal.add(Calendar.DAY_OF_YEAR, 3);
+
+				// build list of names
+				testSixNames.add(name);
 			}
 
 			// create mail template
@@ -994,6 +1000,14 @@ public class ScriptingTest extends StructrTest {
 
 			// functions CAN handle variable values with newlines!
 			assertEquals("Invalid if(empty()) result", "false",  Scripting.replaceVariables(ctx, testOne,  "${if(empty(this.anotherString), \"true\", \"false\")}"));
+
+			// empty in JavaScript
+			assertEquals("Invalid empty() result", "true",  Scripting.replaceVariables(ctx, testOne, "${{return $.empty(\"\")}}"));
+			assertEquals("Invalid empty() result", "false", Scripting.replaceVariables(ctx, testOne, "${{return $.empty(\" \")}}"));
+			assertEquals("Invalid empty() result", "false", Scripting.replaceVariables(ctx, testOne, "${{return $.empty(\"   \")}}"));
+			assertEquals("Invalid empty() result", "false", Scripting.replaceVariables(ctx, testOne, "${{return $.empty(\"xyz\")}}"));
+			assertEquals("Invalid empty() result", "true",  Scripting.replaceVariables(ctx, testOne, "${{return $.empty([])}}"));
+			assertEquals("Invalid empty() result", "true",  Scripting.replaceVariables(ctx, testOne, "${{return $.empty({})}}"));
 
 			// equal
 			assertEquals("Invalid equal() result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(this.id, this.id)}"));
@@ -1731,7 +1745,7 @@ public class ScriptingTest extends StructrTest {
 			// test multiple nested dot-separated properties (this.parent.parent.parent)
 			assertEquals("Invalid multilevel property expression result", "false", Scripting.replaceVariables(ctx, testOne, "${empty(this.testThree.testOne.testThree)}"));
 
-			// test extract() with additional evaluation function
+			// test filter() with additional evaluation function
 			assertEquals("Invalid filter() result", "1",  Scripting.replaceVariables(ctx, testOne, "${size(filter(this.manyToManyTestSixs, equal(data.index, 4)))}"));
 			assertEquals("Invalid filter() result", "9",  Scripting.replaceVariables(ctx, testOne, "${size(filter(this.manyToManyTestSixs, gt(data.index, 10)))}"));
 			assertEquals("Invalid filter() result", "10", Scripting.replaceVariables(ctx, testOne, "${size(filter(this.manyToManyTestSixs, gte(data.index, 10)))}"));
@@ -1926,7 +1940,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid string array access result with contains()", "true", Scripting.replaceVariables(ctx, testFour, "${contains(this.stringArrayProperty, 'two')}"));
 			assertEquals("Invalid string array access result with contains()", "false", Scripting.replaceVariables(ctx, testFour, "${contains(this.stringArrayProperty, 'five')}"));
 
-			// sort
+			// sort with extract
 			assertEquals("Invalid sort result", "[b, a, c]", Scripting.replaceVariables(ctx, null, "${merge('b', 'a', 'c')}"));
 			assertEquals("Invalid sort result", "[a, b, c]", Scripting.replaceVariables(ctx, null, "${sort(merge('b', 'a', 'c'))}"));
 			assertEquals("Invalid sort result", "",          Scripting.replaceVariables(ctx, null, "${sort()}"));
@@ -1934,6 +1948,10 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this, this.testTwo, this.testThree), 'name'), 'name')}"));
 			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this.testTwo, this, this.testThree), 'name'), 'name')}"));
 			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this.testTwo, this.testThree, this), 'name'), 'name')}"));
+
+			// extract
+			assertEquals("Invalid extract() result for relationship property", "[[" + StringUtils.join(testSixs, ", ") +  "]]", Scripting.replaceVariables(ctx, testOne, "${extract(find('TestOne'), 'manyToManyTestSixs')}"));
+			assertEquals("Invalid extract() result for relationship property", "[" + StringUtils.join(testSixNames, ", ") +  "]", Scripting.replaceVariables(ctx, testOne, "${extract(unwind(extract(find('TestOne'), 'manyToManyTestSixs')), 'name')}"));
 
 			// find
 			assertEquals("Invalid find() result for empty values", testThree.getUuid(), Scripting.replaceVariables(ctx, testOne, "${first(find('TestThree', 'oneToOneTestSix', this.alwaysNull))}"));
