@@ -18,11 +18,17 @@
  */
 package org.structr.text;
 
+import java.io.InputStream;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.parser.ParseContext;
+import org.apache.tika.parser.ocr.TesseractOCRConfig;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.fulltext.ContentAnalyzer;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.common.fulltext.Indexable;
 import org.structr.core.GraphObjectMap;
@@ -32,11 +38,12 @@ import org.structr.core.property.GenericProperty;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
+import org.xml.sax.ContentHandler;
 
 /**
  *
  */
-public class FulltextIndexerModule implements FulltextIndexer, StructrModule {
+public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, StructrModule {
 
 	private static final GenericProperty contextKey = new GenericProperty("context");
 
@@ -188,7 +195,30 @@ public class FulltextIndexerModule implements FulltextIndexer, StructrModule {
 		contextObject.put(contextKey, contextValues);
 
 		return contextObject;
+	}
 
+	// ----- interface ContentAnalyzer -----
+	@Override
+	public void analyzeContent(final Indexable indexable) throws FrameworkException {
+
+		try (final InputStream is = indexable.getInputStream()) {
+
+			final AutoDetectParser parser      = new AutoDetectParser();
+			final Metadata metadata            = new Metadata();
+			final ParseContext context         = new ParseContext();
+			final TesseractOCRConfig ocrConfig = new TesseractOCRConfig();
+			final ContentHandler handler       = new DocumentContentHandler(indexable.getSecurityContext(), indexable.getName());
+
+			ocrConfig.setLanguage("eng+deu");
+
+			context.set(TesseractOCRConfig.class, ocrConfig);
+
+			parser.parse(is, handler, metadata, context);
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+		}
 	}
 
 	// ----- interface StructrModule -----
