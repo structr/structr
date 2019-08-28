@@ -134,7 +134,7 @@ public interface KafkaClient extends MessageClient {
 
 	static void onModification(final KafkaClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		if(modificationQueue.isPropertyModified(thisClient,StructrApp.key(KafkaClient.class,"servers"))) {
+		if(modificationQueue.isPropertyModified(thisClient,StructrApp.key(KafkaClient.class,"servers")) || modificationQueue.isPropertyModified(thisClient,StructrApp.key(KafkaClient.class,"groupId"))) {
 			refreshConfiguration(thisClient);
 		}
 
