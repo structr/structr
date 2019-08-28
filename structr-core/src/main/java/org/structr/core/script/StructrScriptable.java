@@ -715,7 +715,6 @@ public class StructrScriptable extends ScriptableObject {
 								value = inputConverter.convert(value);
 							}
 
-
 						} else {
 
 							final Class valueType   = key.valueType();
@@ -724,7 +723,15 @@ public class StructrScriptable extends ScriptableObject {
 							// do not convert entity / collection properties
 							if (valueType != null && relatedType == null) {
 
-								value = Context.jsToJava(value, valueType);
+								if (valueType.isArray() && value instanceof ArrayList) {
+
+									// we need to convert the wrapped array so the converter can handle it ( StructrArray -> ArrayList -> Object[])
+									value = ((ArrayList)value).toArray();
+
+								} else {
+
+									value = Context.jsToJava(value, valueType);
+								}
 							}
 						}
 
