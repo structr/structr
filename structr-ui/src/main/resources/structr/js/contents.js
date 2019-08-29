@@ -282,7 +282,7 @@ var _Contents = {
 	},
 	load: function(id, callback) {
 
-		Command.query('ContentContainer', containerPageSize, containerPage, 'name', 'asc', {parent: id}, function(folders) {
+		Command.query('ContentContainer', containerPageSize, containerPage, 'position', 'asc', {parent: id}, function(folders) {
 
 			var list = [];
 
@@ -335,14 +335,14 @@ var _Contents = {
 		};
 
 		if (id === 'root') {
-			Command.list('ContentContainer', true, 1000, 1, 'name', 'asc', null, handleChildren);
+			Command.list('ContentContainer', true, 1000, 1, 'position', 'asc', null, handleChildren);
 		} else {
-			Command.query('ContentContainer', 1000, 1, 'name', 'asc', {parent: id}, handleChildren, true, 'ui');
+			Command.query('ContentContainer', 1000, 1, 'position', 'asc', {parent: id}, handleChildren, true, 'ui');
 		}
 
-		_Pager.initPager('contents-items', 'ContentItem', 1, 25, 'name', 'asc');
+		_Pager.initPager('contents-items', 'ContentItem', 1, 25, 'position', 'asc');
 		page['ContentItem'] = 1;
-		_Pager.initFilters('contents-items', 'ContentItem', id === 'root' ? {} : { containers: [id] });
+		_Pager.initFilters('contents-items', 'ContentItem', id === 'root' ? { containers: [] } : { containers: [id] });
 
 		var itemsPager = _Pager.addPager('contents-items', contentsContents, false, 'ContentItem', 'ui', handleChildren);
 

@@ -82,10 +82,43 @@ var _Dialogs = {
 			$('input#ldap-group-dn').val(el.distinguishedName);
 		}
 	},
+	fileDialog: function(el, entity) {
+
+		if (el && entity) {
+
+			Structr.fetchHtmlTemplate('dialogs/file.options', { file: entity }, function (html) {
+
+				el.append(html);
+
+				$('button#extract-structure-button').on('click', function() {
+								
+					Structr.showAndHideInfoBoxMessage('Extracting structure..', 'info', 2000, 200);
+
+					$.ajax({
+						url: '/structr/rest/' + entity.type + '/' + entity.id + '/extractStructure',
+						method: 'post',
+						statusCode: {
+							200: function() {
+								Structr.showAndHideInfoBoxMessage('Structure extracted, see Contents area.', 'success', 2000, 200);
+							}
+						}
+					});
+				});
+
+			});
+
+		} else if (el) {
+
+			// update call
+			$('input#ldap-group-dn').val(el.distinguishedName);
+		}
+	},
 }
 
 var registeredDialogs = {
-	'LDAPGroup':  { id: 'ldapgroup', title: 'LDAP configuration', callback: _Dialogs.ldapGroupDialog }
+	'LDAPGroup':  { id: 'ldapgroup', title: 'LDAP configuration', callback: _Dialogs.ldapGroupDialog },
+	'Image':  { id: 'file', title: 'Advanced options', callback: _Dialogs.fileDialog },
+	'File':  { id: 'file', title: 'Advanced options', callback: _Dialogs.fileDialog }
 
 }
 
