@@ -52,9 +52,7 @@ import org.structr.core.script.StructrScriptable;
 import org.structr.schema.action.ActionContext;
 import org.structr.util.Writable;
 
-/**
- *
- */
+
 public class Console {
 
 	public enum ConsoleMode {
@@ -285,6 +283,8 @@ public class Console {
 
 		} catch (UnlicensedScriptException ex) {
 			ex.log(LoggerFactory.getLogger(Console.class));
+		} catch (Throwable t) {
+			throw new FrameworkException(422, t.getMessage());
 		}
 	}
 
