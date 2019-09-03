@@ -40,7 +40,7 @@ public class RenderFunction extends UiCommunityFunction {
 
 		if (sources != null && sources.length == 1) {
 
-			RenderContext innerCtx = new RenderContext((RenderContext)ctx);
+			final RenderContext innerCtx = (ctx instanceof RenderContext) ? new RenderContext((RenderContext)ctx) : new RenderContext(ctx.getSecurityContext());
 
 			if (sources[0] == null) {
 

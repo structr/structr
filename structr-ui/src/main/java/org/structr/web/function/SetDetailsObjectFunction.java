@@ -37,13 +37,19 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 
 		if (sources != null && sources.length == 1) {
 
-			if (sources[0] instanceof GraphObject) {
+			if (ctx instanceof RenderContext) {
 
-				((RenderContext) ctx).setDetailsDataObject((GraphObject)sources[0]);
+				if (sources[0] instanceof GraphObject) {
 
+					((RenderContext) ctx).setDetailsDataObject((GraphObject)sources[0]);
+
+				} else {
+
+					logger.warn("Error: Parameter 1 is not a graph object. Parameters: {}", getParametersAsString(sources));
+				}
 			} else {
 
-				logger.warn("Error: Parameter 1 is not a graph object. Parameters: {}", getParametersAsString(sources));
+				logger.warn("Error: set_details_object() can only be called in a page-rendering context! Parameters: {}", getParametersAsString(sources));
 			}
 
 			return "";

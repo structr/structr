@@ -68,7 +68,7 @@ public class IncludeFunction extends UiCommunityFunction {
 			final PropertyKey<DOMNode> sharedCompKey = StructrApp.key(DOMNode.class, "sharedComponent");
 			final SecurityContext securityContext    = ctx.getSecurityContext();
 			final App app                            = StructrApp.getInstance(securityContext);
-			final RenderContext innerCtx             = new RenderContext((RenderContext)ctx);
+			final RenderContext innerCtx             = (ctx instanceof RenderContext) ? new RenderContext((RenderContext)ctx) : new RenderContext(ctx.getSecurityContext());
 			final List<DOMNode> nodeList             = app.nodeQuery(DOMNode.class).andName((String)sources[0]).getAsList();
 
 			DOMNode node = null;
