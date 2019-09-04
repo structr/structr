@@ -23,6 +23,9 @@ import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.*;
 import org.testng.annotations.Test;
 import org.structr.test.rest.common.StructrRestTestBase;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  *
@@ -50,7 +53,7 @@ public class CollectionPropertyTest extends StructrRestTestBase {
 
 		}
 
-		// POST to create a TestOne object with relationships to the three TestOnes
+		// POST to create a TestFive object with relationships to the three TestOnes
 		String location = RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.body(" { 'manyToManyTestOnes' : ['" + testOneIds[0] + "', '" + testOneIds[1] + "', '" + testOneIds[2] + "'] } ")
@@ -77,6 +80,68 @@ public class CollectionPropertyTest extends StructrRestTestBase {
 
 	}
 
+	
+
+	
+	/**
+	 * Test the creation of a test object with a non-existing collection
+	 * property.
+	 * 
+	 * It should fail with a 422 status and an error message indicating that
+	 * the collection property doesn't exist.
+	 */
+	@Test
+	public void test010CreateTestObjectWithUnknownCollectionProperty() {
+
+		String testOneId;
+		
+		String location = RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			//.body(" { 'name' : 'TestOne-'" + i + "' } ")
+		.expect()
+			.statusCode(201)
+		.when()
+			.post("/TestOne")
+			.getHeader("Location");
+
+		// POST must return a Location header
+		assertNotNull(location);
+
+		testOneId = getUuidFromLocation(location);
+
+		// POST must create a UUID
+		assertNotNull(testOneId);
+		assertFalse(testOneId.isEmpty());
+		assertTrue(testOneId.matches("[a-f0-9]{32}"));
+
+		// POST to create a TestFour object with relationship to the TestOne object
+		location = RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.body(" { 'manyToManyTestOnes' : [ {'id': '" + testOneId + "'}] } ")
+		.expect()
+			.statusCode(201)
+		.when()
+			.post("/TestFour")
+			.getHeader("Location");
+
+		String testFiveId = getUuidFromLocation(location);
+		assertNotNull(testFiveId);
+		assertFalse(testFiveId.isEmpty());
+		assertTrue(testFiveId.matches("[a-f0-9]{32}"));
+		
+		// Now almost same POST but with wrong (=unknown) attribute name
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.body(" { 'foo' : [ {'id': '" + testOneId + "'}] } ")
+		.expect()
+			.statusCode(422)
+		.when()
+			.post("/TestFour")
+			.getHeader("Location");
+
+
+	}	
+	
 	@Test
 	public void testOneToMany() throws Exception {
 
