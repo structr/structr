@@ -1115,7 +1115,6 @@ var Structr = {
 		LSWrapper.setItem(activeTabKey, t.prop('id'));
 		slideoutElement.width(rsw);
 		slideoutElement.animate({right: 0 + 'px'}, 100, function() {
-			console.log(callback);
 			if (typeof callback === 'function') {
 				callback({sw: slideoutWidth, isOpenAction: true});
 			}
