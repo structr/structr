@@ -40,11 +40,23 @@ public class RenderFunction extends UiCommunityFunction {
 
 		if (sources != null && sources.length == 1) {
 
-			final RenderContext innerCtx = (ctx instanceof RenderContext) ? new RenderContext((RenderContext)ctx) : new RenderContext(ctx.getSecurityContext());
-
 			if (sources[0] == null) {
 
 				return "";
+			}
+
+			boolean useBuffer      = false;
+			RenderContext innerCtx = null;
+
+			if (ctx instanceof RenderContext) {
+
+				innerCtx  = new RenderContext((RenderContext)ctx);
+				useBuffer = true;
+
+			} else {
+
+				innerCtx  = new RenderContext(ctx.getSecurityContext());
+				useBuffer = false;
 			}
 
 			if (sources[0] instanceof DOMNode) {
@@ -65,7 +77,16 @@ public class RenderFunction extends UiCommunityFunction {
 				logger.warn("Error: Parameter 1 is neither node nor collection. Parameters: {}", getParametersAsString(sources));
 			}
 
-			return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
+			if (useBuffer) {
+
+				// output was written to RenderContext async buffer
+				return null;
+
+			} else {
+
+				// output needs to be returned as a function result
+				return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
+			}
 
 		} else {
 

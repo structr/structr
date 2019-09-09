@@ -442,7 +442,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				out.append("Error while rendering node ").append(thisElement.getUuid()).append(": ").append(t.getMessage());
 
 				logger.warn("", t);
-
 			}
 
 			// render end tag, if needed (= if not singleton tags)
@@ -470,7 +469,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					out.append("</").append(_tag).append(">");
 				}
 			}
-
 		}
 	}
 

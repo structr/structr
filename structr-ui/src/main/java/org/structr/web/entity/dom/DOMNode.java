@@ -1496,7 +1496,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		// admin-only edit modes ==> visibility check not necessary
 		final boolean isAdminOnlyEditMode = (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode) || EditMode.DEPLOYMENT.equals(editMode));
 		final boolean isPartial           = renderContext.getPage() == null;
-		
+
 		if (!isAdminOnlyEditMode && !securityContext.isVisible(thisNode)) {
 			return;
 		}
@@ -1531,13 +1531,13 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 				// Make sure the closest 'page' keyword is always set also for partials
 				if (depth == 0 && isPartial) {
-					
+
 					renderContext.setPage(thisNode.getClosestPage());
 
 				}
-				
+
 				final GraphObject sourceDataObject = renderContext.getSourceDataObject();
-				
+
 				// Render partial with possible top-level repeater limited to a single data object
 				if (depth == 0 && isPartial && sourceDataObject != null) {
 				//if (thisNode.renderDetails() && detailMode) {
@@ -1613,7 +1613,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 						thisNode.renderNodeList(securityContext, renderContext, depth, subKey);
 
 					}
-
 				}
 
 			} else {
@@ -1626,20 +1625,19 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	public static Iterable<GraphObject> checkListSources(final DOMNode thisNode, final SecurityContext securityContext, final RenderContext renderContext) {
 
 		// try registered data sources first
-		for (GraphDataSource<Iterable<GraphObject>> source : DataSources.getDataSources()) {
+		for (final GraphDataSource<Iterable<GraphObject>> source : DataSources.getDataSources()) {
 
 			try {
 
-				Iterable<GraphObject> graphData = source.getData(renderContext, thisNode);
+				final Iterable<GraphObject> graphData = source.getData(renderContext, thisNode);
 				if (graphData != null && !Iterables.isEmpty(graphData)) {
+
 					return graphData;
 				}
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("", fex);
-
-				logger.warn("Could not retrieve data from graph data source {}: {}", new Object[]{source, fex});
+				logger.warn("Could not retrieve data from graph data source {}: {}", source, fex);
 			}
 		}
 

@@ -54,7 +54,6 @@ import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InstantiationErrorToken;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -534,7 +533,7 @@ public class SchemaService implements Service {
 								Map<String, Boolean> typeConfig = schemaIndexConfig.get(typeName);
 
 								if (typeConfig == null) {
-									
+
 									typeConfig = new LinkedHashMap<>();
 									schemaIndexConfig.put(typeName, typeConfig);
 								}

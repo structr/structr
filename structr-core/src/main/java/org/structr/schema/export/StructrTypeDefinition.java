@@ -1490,6 +1490,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 				}
 			}
 		}
+
+		if ("getQoS".equals(method.getName())) {
+
+			StructrApp.getInstance().delete(method.getSchemaMethod());
+		}
 	}
 
 	private void handleRemovedProperty(final StructrPropertyDefinition property) throws FrameworkException {

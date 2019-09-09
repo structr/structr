@@ -40,7 +40,6 @@ import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.AsyncContext;
@@ -251,12 +250,12 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				AbstractNode dataNode = null;
 
 				final String[] uriParts = PathHelper.getParts(path);
-				
+
 				if (uriParts == null) {
 					logger.error("URI parts array is null, shouldn't happen.");
 					throw new FrameworkException(500, "URI parts array is null, shouldn't happen.");
 				}
-				
+
 				if (uriParts.length == 0) {
 
 					logger.debug("No path supplied, trying to find index page");
@@ -313,14 +312,14 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								rootElement = findPage(securityContext, pages, path, edit);
 
 							} else {
-								
+
 								final AbstractNode possibleRootNode = findNodeByUuid(securityContext, PathHelper.getName(path));
 
 								if (possibleRootNode instanceof DOMNode) {
 									rootElement = (DOMNode) possibleRootNode;
 								}
 							}
-	
+
 						} else if (uriParts.length == 2) {
 
 							final String pagePart = StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP);
@@ -346,13 +345,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								renderContext.setDetailsDataObject(dataNode);
 
 							} else {
-								
+
 								if (requestUriContainsUuids) {
 
 									dataNode = findNodeByUuid(securityContext, PathHelper.getName(path));
-								
+
 								} else {
-									
+
 									dataNode = findFirstNodeByName(securityContext, request, path);
 								}
 
@@ -361,7 +360,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						}
 
 						setLimitingDataObject(securityContext, request, renderContext);
-						
+
 //						//if (dataNode != null && !(dataNode instanceof Linkable)) {
 //						if (dataNode != null) {
 //
@@ -371,10 +370,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 //							request.removeAttribute(POSSIBLE_ENTRY_POINTS_KEY);
 //
 //							final String pagePart = StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP);
-//							
+//
 //							// Search for a page only when page part is non-empty
 //							if (StringUtils.isNotBlank(pagePart)) {
-//							
+//
 //								rootElement = findPage(securityContext, pages, pagePart, edit);
 //							}
 //
@@ -388,17 +387,17 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 //
 //									rootElement = ((DOMNode) dataNode);
 //								}
-//								
+//
 //							// Allow rendering of a partial with a data node (accessible via the 'current' keyword)
 //							} else if (rootElement == null) {
-//								
+//
 //								final AbstractNode possibleRootNode = findNodeByUuid(securityContext, PathHelper.getName(pagePart));
-//								
+//
 //								if (possibleRootNode instanceof DOMNode) {
 //									rootElement = (DOMNode) possibleRootNode;
 //								}
 //							}
-//							
+//
 //							setDetailsObject(securityContext, request, renderContext);
 //						}
 					}
@@ -1461,20 +1460,20 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	}
 
 	private void setLimitingDataObject(final SecurityContext securityContext, final HttpServletRequest request, final RenderContext renderContext) {
-		
+
 		// check special parameter for details object
 		final String detailsObjectId = StringUtils.substringAfterLast(request.getRequestURI(), ";");
 
 		if (StringUtils.isNotBlank(detailsObjectId)) {
 
 			AbstractNode detailsObject = null;
-			
+
 			try {
-				
+
 				detailsObject = findNodeByUuid(securityContext, detailsObjectId);
-				
+
 			} catch (FrameworkException ex) {
-				
+
 				logger.debug("No details object found for id {}.", detailsObjectId);
 			}
 
@@ -1485,7 +1484,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			}
 		}
 	}
-	
+
 	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final NodeInterface node, final boolean dontCache) {
 
 		boolean notModified = false;
