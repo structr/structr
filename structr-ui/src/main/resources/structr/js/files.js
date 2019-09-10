@@ -1333,6 +1333,7 @@ var _Files = {
 				element.append('<div class="editor"></div><div id="template-preview"><textarea readonly></textarea></div>');
 				var contentBox = $('.editor', element);
 				var lineWrapping = LSWrapper.getItem(lineWrappingKey);
+				CodeMirror.defineMIME("text/html", "htmlmixed-structr");
 				editor = CodeMirror(contentBox.get(0), {
 					value: text,
 					mode: contentType,

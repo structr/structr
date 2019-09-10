@@ -1511,6 +1511,7 @@ var _Elements = {
 		var lineWrapping = LSWrapper.getItem(lineWrappingKey);
 
 		// Intitialize editor
+		CodeMirror.defineMIME("text/html", "htmlmixed-structr");
 		editor = CodeMirror(contentBox.get(0), {
 			value: text,
 			mode: mode || contentType,
