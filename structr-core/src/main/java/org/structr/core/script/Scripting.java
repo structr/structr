@@ -85,6 +85,7 @@ public class Scripting {
 
 			value = (String) rawValue;
 
+			// this is a very important check here, the ActionContext can be set to "raw" mode
 			if (!actionContext.returnRawValue()) {
 
 				final List<Tuple> replacements = new LinkedList<>();
@@ -370,13 +371,9 @@ public class Scripting {
 
 					engine = factory.getScriptEngine();
 					break;
-
 				}
-
 			}
-
 		}
-
 
 		if (engine == null) {
 			throw new RuntimeException(engineName + " script engine could not be initialized. Check class path.");
@@ -464,7 +461,9 @@ public class Scripting {
 	// this is only public to be testable :(
 	public static List<String> extractScripts(final String source) {
 
+		final List<String> otherParts  = new LinkedList<>();
 		final List<String> expressions = new LinkedList<>();
+		final StringBuilder buffer     = new StringBuilder();
 		final int length               = source.length();
 		boolean inComment              = false;
 		boolean inSingleQuotes         = false;
@@ -480,6 +479,8 @@ public class Scripting {
 		for (int i=0; i<length; i++) {
 
 			final char c = source.charAt(i);
+
+			buffer.append(c);
 
 			switch (c) {
 
@@ -534,6 +535,11 @@ public class Scripting {
 						expressions.add(source.substring(start, end));
 
 						level = 0;
+
+					} else {
+
+						otherParts.add(buffer.toString());
+						buffer.setLength(0);
 					}
 					hasDollar = false;
 					hasBackslash = false;
@@ -569,7 +575,6 @@ public class Scripting {
 
 		return expressions;
 	}
-
 
 	public static String formatToDefaultDateOrString(final Object value) {
 
@@ -652,4 +657,10 @@ public class Scripting {
 			this.value = value;
 		}
 	}
+
+	public static void main(final String[] args) {
+
+		extractScripts("blah${'blah'}test");
+	}
+
 }

@@ -324,7 +324,7 @@ img.disabled {
 
 #widgets,
 #remoteWidgets {
-	width: 385px;
+	width: calc(100% - 10px)
 }
 
 #remoteWidgets input:first-of-type  {
@@ -565,7 +565,7 @@ img.disabled {
 }
 
 .ver-scrollable > .node, #widgets > .node, #remoteWidgets > .node {
-	width: 374px;
+	width: calc(100% - 10px);
 }
 
 .slideOutRight {

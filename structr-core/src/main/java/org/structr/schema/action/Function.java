@@ -116,7 +116,7 @@ public abstract class Function<S, T> extends Hint {
 		if (Settings.LogFunctionsStackTrace.getValue()) {
 			logger.error(msg, ArrayUtils.add(messageParams, t));
 		} else {
-			logger.error(msg, messageParams);
+			logger.error(msg + " (Stacktrace suppressed - see setting " + Settings.LogFunctionsStackTrace.getKey() + ")", messageParams);
 		}
 	}
 

@@ -100,7 +100,7 @@ public class IncludeChildFunction extends IncludeFunction {
 				}
 			}
 
-			return renderNode(securityContext, ctx, innerCtx, sources, app, node);
+			return renderNode(securityContext, ctx, innerCtx, sources, app, node, true);
 
 		} catch (ArgumentNullException pe) {
 

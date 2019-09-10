@@ -77,7 +77,7 @@ var _Widgets = {
 								dropBlocked = false;
 							});
 						}
-					} else {
+					} else if (sourceId) {
 						$.ajax({
 							url: viewRootUrl + sourceId + '?edit=1',
 							contentType: 'text/html',
