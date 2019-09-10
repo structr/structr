@@ -308,11 +308,17 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 							if (!requestUriContainsUuids) {
 
-								// Try to find a data node by name
+								// Try to find a page by path
 								rootElement = findPage(securityContext, pages, path, edit);
+								
+								if (rootElement == null) {
+								
+									// Try to find a DOMNode node by name
+									rootElement = findDOMNodeByName(securityContext, PathHelper.getName(path));
+								}
 
 							} else {
-
+								
 								final AbstractNode possibleRootNode = findNodeByUuid(securityContext, PathHelper.getName(path));
 
 								if (possibleRootNode instanceof DOMNode) {
@@ -1113,6 +1119,19 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	/**
 	 * Find a page with matching path.
+	 *
+	 * @param securityContext
+	 * @param name
+	 * @return
+	 * @throws FrameworkException 
+	 */
+	private DOMNode findDOMNodeByName(final SecurityContext securityContext, final String name) throws FrameworkException {
+
+		return StructrApp.getInstance(securityContext).nodeQuery(DOMNode.class).andName(name).getFirst();
+	}
+	
+	/**
+	 * Find a page by matching path.
 	 *
 	 * To be compatible with older versions, fallback to name-only lookup.
 	 *
