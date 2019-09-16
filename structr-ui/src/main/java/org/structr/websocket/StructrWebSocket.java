@@ -350,7 +350,7 @@ public class StructrWebSocket implements WebSocketListener {
 				securityContext.clearCustomView();
 			}
 
-			session.getRemote().sendString(msg);
+			session.getRemote().sendStringByFuture(msg);
 
 			tx.success();
 
