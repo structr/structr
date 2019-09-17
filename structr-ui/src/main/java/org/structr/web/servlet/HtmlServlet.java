@@ -53,6 +53,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.eclipse.jetty.io.EofException;
+import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -310,15 +311,15 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 								// Try to find a page by path
 								rootElement = findPage(securityContext, pages, path, edit);
-								
+
 								if (rootElement == null) {
-								
+
 									// Try to find a DOMNode node by name
 									rootElement = findDOMNodeByName(securityContext, PathHelper.getName(path));
 								}
 
 							} else {
-								
+
 								final AbstractNode possibleRootNode = findNodeByUuid(securityContext, PathHelper.getName(path));
 
 								if (possibleRootNode instanceof DOMNode) {
@@ -957,12 +958,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				} catch (EofException ee) {
 
-					final SecurityContext sc = renderContext.getSecurityContext();
-					final Principal user     = sc.getUser(false);
-					final String username    = (user != null) ? user.getName() : "anonymous";
-
-					logger.warn("Could not flush the response body content to the client, probably because the network connection was terminated.");
-					logger.warn(" -> From: {} | URI: {} | Query: {} | User: {}", request.getRemoteAddr(), request.getRequestURI(), request.getQueryString(), username);
+					// ignore EofException which (by jettys standards) should be handled less verbosely
 
 				} catch (IOException | InterruptedException t) {
 					//logger.warn("Unexpected exception", t);
@@ -971,7 +967,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			@Override
 			public void onError(Throwable t) {
-				if (t instanceof EofException) {
+				if (t instanceof QuietException) {
+					// ignore exceptions which (by jettys standards) should be handled less verbosely
+				} else {
 
 					final SecurityContext sc = renderContext.getSecurityContext();
 					final Principal user     = sc.getUser(false);
@@ -979,9 +977,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					logger.warn("Could not flush the response body content to the client, probably because the network connection was terminated.");
 					logger.warn(" -> From: {} | URI: {} | Query: {} | User: {}", request.getRemoteAddr(), request.getRequestURI(), request.getQueryString(), username);
-
-				} else {
-					//logger.warn("Unexpected exception", t);
 				}
 			}
 		});
@@ -1123,13 +1118,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 * @param securityContext
 	 * @param name
 	 * @return
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	private DOMNode findDOMNodeByName(final SecurityContext securityContext, final String name) throws FrameworkException {
 
 		return StructrApp.getInstance(securityContext).nodeQuery(DOMNode.class).andName(name).getFirst();
 	}
-	
+
 	/**
 	 * Find a page by matching path.
 	 *
