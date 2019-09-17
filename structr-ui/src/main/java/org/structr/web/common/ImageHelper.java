@@ -361,7 +361,6 @@ public abstract class ImageHelper extends FileHelper {
 		return null;
 	}
 
-
 	public static Thumbnail createCroppedImage(final Image originalImage, final int maxWidth, final int maxHeight, final Integer reqOffsetX, final Integer reqOffsetY, final String formatString) {
 
 		final String imageFormatString = getImageFormatString(originalImage);
