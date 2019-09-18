@@ -159,6 +159,7 @@ var _Crud = {
 		if (type === null) {
 			return;
 		}
+
 		let properties = {};
 		_Crud.addSchemaProperties(type, 'public', properties, function() {
 			_Crud.addSchemaProperties(type, 'custom', properties, function() {
@@ -1328,7 +1329,7 @@ var _Crud = {
 		var t = type || _Crud.type;
 
 		$.ajax({
-			url: rootUrl + id + (_Crud.view[t] ? '/' + _Crud.view[t] : ''),
+			url: rootUrl + id + '/public',
 			type: 'GET',
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
@@ -2591,7 +2592,8 @@ var _Crud = {
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8;',
 			headers: {
-				Range: _Crud.ranges(type)
+				Range: _Crud.ranges(type),
+				Accept: 'application/json; charset=utf-8;' + ((_Crud.keys[type]) ? 'properties=' + _Crud.filterKeys(type, Object.keys(_Crud.keys[type])).join(',') : '')
 			},
 			success: function(data) {
 				if (!data)

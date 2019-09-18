@@ -21,7 +21,6 @@ package org.structr.rest.servlet;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
-
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -36,6 +35,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
@@ -998,8 +998,12 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		} catch (Throwable t) {
 
-			logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
-			logger.warn(" => Error thrown: ", t);
+			if (t instanceof QuietException || t.getCause() instanceof QuietException) {
+				// ignore exceptions which (by jettys standards) should be handled less verbosely
+			} else {
+				logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
+				logger.warn(" => Error thrown: ", t);
+			}
 
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 

@@ -284,7 +284,7 @@ var Structr = {
 	loadingSpinnerTimeout: undefined,
 	templateCache: new AsyncObjectCache(function(templateName) {
 
-		Promise.resolve($.ajax('templates/' + templateName + '.html')).then(function(templateHtml) {
+		Promise.resolve($.ajax('templates/' + templateName + '.html?t=' + (new Date().getTime()))).then(function(templateHtml) {
 			Structr.templateCache.addObject(templateHtml, templateName);
 		}).catch(function(e) {
 			console.log(e.statusText, templateName, e);

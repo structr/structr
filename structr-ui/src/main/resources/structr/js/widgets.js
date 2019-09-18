@@ -529,6 +529,7 @@ var _Widgets = {
 	},
 	appendWidgetPropertyEditor: function (container, value, mode, allowEdit) {
 
+		CodeMirror.defineMIME("text/html", "htmlmixed-structr");
 		return CodeMirror(container.get(0), {
 			value: value,
 			mode: mode,

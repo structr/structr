@@ -881,6 +881,7 @@ var _Favorites = new (function () {
 
 							var lineWrapping = LSWrapper.getItem(lineWrappingKey);
 
+							CodeMirror.defineMIME("text/html", "htmlmixed-structr");
 							var editor = CodeMirror($('#editor-' + id).get(0), {
 								value: favorite.favoriteContent || '',
 								mode: favorite.favoriteContentType || 'text/plain',
