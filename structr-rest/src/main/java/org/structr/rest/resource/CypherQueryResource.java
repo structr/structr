@@ -100,7 +100,7 @@ public class CypherQueryResource extends Resource {
 				String query                     = queryObject.toString();
 				Iterable<GraphObject> resultList = StructrApp.getInstance(securityContext).command(NativeQueryCommand.class).execute(query, propertySet);
 
-				for (GraphObject obj : resultList) {
+				for (Object obj : resultList) {
 
 					result.addContent(obj);
 				}
