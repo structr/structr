@@ -19,8 +19,8 @@
 package org.structr.text;
 
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.Map.Entry;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.metadata.Metadata;
@@ -37,13 +37,13 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.property.EnumProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
-import org.structr.web.entity.ContentContainer;
-import org.structr.web.entity.ContentItem;
+import org.structr.text.model.MetadataNode;
+import org.structr.text.model.StructuredDocument;
+import org.structr.text.model.StructuredTextNode;
 
 /**
  *
@@ -208,6 +208,7 @@ public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, Struc
 
 		try (final InputStream is = indexable.getInputStream()) {
 
+			final App app                      = StructrApp.getInstance(indexable.getSecurityContext());
 			final AutoDetectParser parser      = new AutoDetectParser();
 			final Metadata metadata            = new Metadata();
 			final ParseContext context         = new ParseContext();
@@ -223,23 +224,39 @@ public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, Struc
 			// try to obtain structure information
 			handler.analyze();
 
-			final App app                    = StructrApp.getInstance(indexable.getSecurityContext());
-			final ContentContainer container = app.create(ContentContainer.class, indexable.getName());
-			final EnumProperty kind          = (EnumProperty)StructrApp.key(ContentItem.class, "kind");
-			final Class enumType             = kind.getEnumType();
-			int position                     = 0;
+			final StructuredDocument document = app.create(StructuredDocument.class, indexable.getName());
 
-			for (final AnnotatedLine line : handler.getLines()) {
+			// store document metadata separately
+			for (final Entry<String, String> meta : handler.getMetadata().entrySet()) {
 
-				final String content = line.getContent();
-
-				app.create(ContentItem.class,
-					new NodeAttribute<>(StructrApp.key(ContentItem.class, "name"),       StringUtils.abbreviate(content, 80)),
-					new NodeAttribute<>(StructrApp.key(ContentItem.class, "kind"),       Enum.valueOf(enumType, line.getType())),
-					new NodeAttribute<>(StructrApp.key(ContentItem.class, "containers"), Arrays.asList(container)),
-					new NodeAttribute<>(StructrApp.key(ContentItem.class, "content"),    content),
-					new NodeAttribute<>(StructrApp.key(ContentItem.class, "position"),   position++)
+				app.create(MetadataNode.class,
+					new NodeAttribute<>(StructrApp.key(MetadataNode.class, "name"),     meta.getKey()),
+					new NodeAttribute<>(StructrApp.key(MetadataNode.class, "content"),  meta.getValue()),
+					new NodeAttribute<>(StructrApp.key(MetadataNode.class, "document"), document)
 				);
+			}
+
+			int pageNumber = 1;
+
+			for (final AnnotatedPage sourcePage : handler.getPages()) {
+
+				final StructuredTextNode page = app.create(StructuredTextNode.class,
+					new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "name"),     "Page " + pageNumber++),
+					new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "kind"),     "page"),
+					new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "parent"),   document)
+				);
+
+				for (final AnnotatedLine sourceLine : sourcePage.getLines()) {
+
+					final String content = sourceLine.getContent();
+
+					app.create(StructuredTextNode.class,
+						new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "name"),     StringUtils.abbreviate(content, 80)),
+						new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "kind"),     sourceLine.getType()),
+						new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "parent"),   page),
+						new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "content"),  content)
+					);
+				}
 			}
 
 		} catch (Throwable t) {

@@ -21,14 +21,21 @@ package org.structr.text;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.ocr.TesseractOCRConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.text.model.StructuredDocument;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
@@ -41,9 +48,13 @@ public class TextContentHandler implements ContentHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(TextContentHandler.class);
 
+	private final Map<String, String> meta  = new LinkedHashMap<>();
+	private final Deque<String> path        = new LinkedList<>();
 	private final StringBuilder lineBuffer  = new StringBuilder();
-	private final List<AnnotatedLine> lines = new ArrayList<>();
+	private final List<AnnotatedPage> pages = new ArrayList<>();
 	private final Context context           = new Context();
+	private StructuredDocument document     = null;
+	private AnnotatedPage page              = null;
 
 	@Override
 	public void setDocumentLocator(final Locator locator) {
@@ -51,7 +62,6 @@ public class TextContentHandler implements ContentHandler {
 
 	@Override
 	public void startDocument() throws SAXException {
-
 	}
 
 	@Override
@@ -68,16 +78,59 @@ public class TextContentHandler implements ContentHandler {
 
 	@Override
 	public void startElement(final String uri, final String localName, final String qName, final Attributes atts) throws SAXException {
+
+		path.add(localName);
+
+		switch (getPath()) {
+
+			case "/html/body/div":
+
+				if ("page".equals(atts.getValue("class"))) {
+					nextPage();
+				}
+				break;
+
+			case "/html/head/meta":
+
+				String name  = null;
+				String value = null;
+
+				for (int i=0; i<atts.getLength(); i++) {
+
+					final String metaKey = atts.getLocalName(i);
+
+					switch (metaKey) {
+
+						case "name":
+							name = atts.getValue(i);
+							break;
+
+						case "content":
+							value = atts.getValue(i);
+							break;
+
+						default:
+							System.out.println("Unknown meta key " + metaKey);
+					}
+				}
+
+				if (name != null && value != null) {
+
+					meta.put(name, value);
+				}
+		}
 	}
 
 	@Override
 	public void endElement(final String uri, final String localName, final String qName) throws SAXException {
 		nextLine();
+
+		path.removeLast();
 	}
 
 	@Override
 	public void characters(final char[] ch, final int start, final int length) throws SAXException {
-			
+
 		int newline = 0;
 
 		for (int i=0; i<length; i++) {
@@ -115,8 +168,12 @@ public class TextContentHandler implements ContentHandler {
 	public void skippedEntity(final String name) throws SAXException {
 	}
 
-	public List<AnnotatedLine> getLines() {
-		return lines;
+	public StructuredDocument getDocument() {
+		return document;
+	}
+
+	public List<AnnotatedPage> getPages() {
+		return pages;
 	}
 
 	public void analyze() {
@@ -124,72 +181,84 @@ public class TextContentHandler implements ContentHandler {
 		final Pattern chapterPattern1 = Pattern.compile("[0-9\\.]* *[\\wöäüÖÄÜß -]+");
 		final Pattern chapterPattern2 = Pattern.compile("[\\wöäüÖÄÜß -]+ *[0-9\\.]*");
 		final Pattern wordPattern     = Pattern.compile("[\\wöäüÖÄÜß-]+");
-		
-		// iterate lines and try to obtain structural information
-		for (final AnnotatedLine line : lines) {
 
-			double headingProbability = 0.0;
+		for (final AnnotatedPage page : pages) {
+			// iterate lines and try to obtain structural information
+			for (final AnnotatedLine line : page.getLines()) {
 
-			final String content = line.getContent();
+				double headingProbability = 0.0;
 
-			// line is probably a title if it is a single word
-			if (wordPattern.matcher(content).matches()) {
+				final String content = line.getContent();
 
-				headingProbability += 0.2;
-			}
+				// line is probably a title if it is a single word
+				if (wordPattern.matcher(content).matches()) {
 
-			// line is probably a title if does not end with a full stop
-			if (!content.endsWith(".")) {
-
-				headingProbability += 0.2;
-			}
-
-			// line is probably a title if matches a "chapter heading" pattern
-			if (chapterPattern1.matcher(content).matches()) {
-
-				headingProbability += 0.2;
-			}
-
-			// line is probably a title if matches a "chapter heading" pattern
-			if (chapterPattern2.matcher(content).matches()) {
-
-				headingProbability += 0.2;
-			}
-
-			final String[] words   = content.split("[ ]+");
-			int uppercaseWordCount = 0;
-			int wordCount          = 0;
-
-			// most words start with an uppercase letter
-			for (final String word : words) {
-				
-				if (Character.isUpperCase(word.charAt(0))) {
-					
-					uppercaseWordCount++;
+					headingProbability += 0.2;
 				}
 
-				if (wordPattern.matcher(word).matches()) {
-					wordCount++;
+				// line is probably a title if does not end with a full stop
+				if (!content.endsWith(".")) {
+
+					headingProbability += 0.2;
 				}
-			}
 
-			if (uppercaseWordCount >= wordCount / 1.5) {
-				headingProbability += 0.2;
-			}
+				// line is probably a title if matches a "chapter heading" pattern
+				if (chapterPattern1.matcher(content).matches()) {
 
-			// very simple heuristic approach
-			if (headingProbability > 0.5) {
-				line.setType("heading");
+					headingProbability += 0.2;
+				}
+
+				// line is probably a title if matches a "chapter heading" pattern
+				if (chapterPattern2.matcher(content).matches()) {
+
+					headingProbability += 0.2;
+				}
+
+				final String[] words   = content.split("[ ]+");
+				int uppercaseWordCount = 0;
+				int wordCount          = 0;
+
+				// most words start with an uppercase letter
+				for (final String word : words) {
+
+					if (Character.isUpperCase(word.charAt(0))) {
+
+						uppercaseWordCount++;
+					}
+
+					if (wordPattern.matcher(word).matches()) {
+						wordCount++;
+					}
+				}
+
+				if (uppercaseWordCount >= wordCount / 1.5) {
+					headingProbability += 0.2;
+				}
+
+				// very simple heuristic approach
+				if (headingProbability > 0.5) {
+					line.setType("heading");
+				}
 			}
 		}
 	}
 
+	public Map<String, String> getMetadata() {
+		return meta;
+	}
+
 
 	// ----- private methods -----
+	private void nextPage() {
+
+		page = new AnnotatedPage();
+		pages.add(page);
+	}
+
 	private void nextLine() {
-		
+
 		if (lineBuffer.length() > 0) {
-			
+
 			final String line                 = lineBuffer.toString();
 			final AnnotatedLine annotatedLine = new AnnotatedLine(line);
 
@@ -197,17 +266,27 @@ public class TextContentHandler implements ContentHandler {
 
 				annotatedLine.transformAndAnalyze();
 
-				lines.add(annotatedLine);
+				if (page != null) {
+
+					page.addLine(annotatedLine);
+
+				} else {
+
+					System.out.println("NO PAGE FOR content " + line);
+				}
 			}
 
 			lineBuffer.setLength(0);
 		}
 	}
 
+	private String getPath() {
+		return "/" + StringUtils.join(path, "/");
+	}
+
 	public static void main(final String[] args) {
 
-		//try (final InputStream is = new FileInputStream("/home/chrisi/Structr/Projekte/Ralf Stolper/_SupplierAudit_Definitionen/Def-9 Assurance.png")) {
-		try (final InputStream is = new FileInputStream("/home/chrisi/Structr/Projekte/Gemeinde Winterswijk/dummy-test-data/Ausarbeitung_Christian_Kramp_729276.pdf")) {
+		try (final InputStream is = new FileInputStream("/home/chrisi/Structr/Projekte/Gemeinde Winterswijk/d_NL.IMRO.0294.OV1907BGOMGEVVISIE-OW01.pdf")) {
 
 			final AutoDetectParser parser      = new AutoDetectParser();
 			final Metadata metadata            = new Metadata();
@@ -223,8 +302,21 @@ public class TextContentHandler implements ContentHandler {
 
 			handler.analyze();
 
-			for (final AnnotatedLine line : handler.getLines()) {
-				System.out.println(line.getType() + ": " + line.getContent());
+			for (final Entry<String, String> meta : handler.getMetadata().entrySet()) {
+
+				System.out.println(meta.getKey() + " = " + meta.getValue());
+			}
+
+			int number = 1;
+
+			for (final AnnotatedPage page : handler.getPages()) {
+
+				System.out.println("##################################################################################### PAGE " + number++);
+
+				for (final AnnotatedLine line : page.getLines()) {
+
+					System.out.println(line.getType() + ": " + line.getContent());
+				}
 			}
 
 		} catch (Throwable t) {
