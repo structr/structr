@@ -182,25 +182,31 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			tx.disableChangelog();
 
-			if (getExistingFolder(folderPath) == null) {
+			final Folder existingFolder        = getExistingFolder(folderPath);
+			final PropertyMap folderProperties = new PropertyMap(AbstractNode.name, folderObj.getFileName().toString());
 
-				final PropertyMap folderProperties = new PropertyMap(AbstractNode.name, folderObj.getFileName().toString());
+			if (!basePath.equals(folderObj.getParent())) {
 
-				if (!basePath.equals(folderObj.getParent())) {
+				final String parentPath = harmonizeFileSeparators("/", basePath.relativize(folderObj.getParent()).toString());
+				folderProperties.put(StructrApp.key(Folder.class, "parent"), getExistingFolder(parentPath));
+			}
 
-					final String parentPath = harmonizeFileSeparators("/", basePath.relativize(folderObj.getParent()).toString());
-					folderProperties.put(StructrApp.key(Folder.class, "parent"), getExistingFolder(parentPath));
-				}
+			// load properties from files.json
+			final PropertyMap properties = getPropertiesForFileOrFolder(folderPath);
+			if (properties != null) {
+				folderProperties.putAll(properties);
+			}
 
-				// set properties from files.json
-				final PropertyMap properties = getPropertiesForFileOrFolder(folderPath);
-				if (properties != null) {
-					folderProperties.putAll(properties);
-				}
+			if (existingFolder == null) {
 
 				final Folder newFolder = app.create(Folder.class, folderProperties);
 
 				this.folderCache.put(folderPath, newFolder);
+
+			} else {
+
+				existingFolder.unlockSystemPropertiesOnce();
+				existingFolder.setProperties(securityContext, folderProperties);
 			}
 
 			tx.success();
