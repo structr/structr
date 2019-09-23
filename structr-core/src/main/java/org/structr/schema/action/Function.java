@@ -573,9 +573,9 @@ public abstract class Function<S, T> extends Hint {
 
 					res.add((GraphObject)o);
 
-				} else if (o instanceof String) {
+				} else if (o instanceof CharSequence) {
 
-					res.add(Function.wrapStringInGraphObjectMap((String)o));
+					res.add(Function.wrapStringInGraphObjectMap(o.toString()));
 
 				} else if (o instanceof Number) {
 
@@ -609,9 +609,9 @@ public abstract class Function<S, T> extends Hint {
 
 			return res;
 
-		} else if (sourceObject instanceof String) {
+		} else if (sourceObject instanceof CharSequence) {
 
-			return Function.wrapStringInGraphObjectMap((String)sourceObject);
+			return Function.wrapStringInGraphObjectMap(sourceObject.toString());
 
 		} else if (sourceObject instanceof Number) {
 
