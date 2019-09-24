@@ -199,6 +199,14 @@ let doSearch = (q) => {
 				}
 			});
 
+			// textarea
+			formGroup.querySelectorAll('textarea').forEach((textarea) => {
+				if (textarea.value && containsIgnoreCase(textarea.value, q)) {
+					hitInFormGroup = true;
+					textarea.classList.add(hitClass);
+				}
+			});
+
 			// select
 			formGroup.querySelectorAll('select option').forEach((option) => {
 				if (containsIgnoreCase(option.textContent, q)) {
