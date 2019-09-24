@@ -22,6 +22,7 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Map;
 import org.mozilla.javascript.Wrapper;
+import org.structr.api.config.Settings;
 import org.structr.api.util.PagingIterable;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -57,7 +58,7 @@ public class ToJsonFunction extends UiCommunityFunction {
 					view.set(securityContext, sources[1].toString());
 				}
 
-				int outputDepth = 3;
+				int outputDepth = Settings.RestOutputDepth.getValue();
 				if (sources.length > 2 && sources[2] instanceof Number) {
 					outputDepth = ((Number)sources[2]).intValue();
 				}
