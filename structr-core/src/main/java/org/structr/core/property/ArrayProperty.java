@@ -187,7 +187,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		public T[] revert(Object source) throws FrameworkException {
 
 			if (source == null) {
-				return null;
+				return (T[])Array.newInstance(componentType, 0);
 			}
 
 			if (source instanceof List) {
