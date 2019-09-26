@@ -314,8 +314,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 								if (rootElement == null) {
 
-									// Try to find a DOMNode node by name
-									rootElement = findDOMNodeByName(securityContext, PathHelper.getName(path));
+									// Try to find a partial by name
+									rootElement = findPartialByName(securityContext, PathHelper.getName(path));
 								}
 
 							} else {
@@ -1113,16 +1113,16 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	}
 
 	/**
-	 * Find a page with matching path.
+	 * Find a partial by name (meaning a DOMNode which can not be a page - otherwise a check for Sites has to be applied)
 	 *
 	 * @param securityContext
 	 * @param name
 	 * @return
 	 * @throws FrameworkException
 	 */
-	private DOMNode findDOMNodeByName(final SecurityContext securityContext, final String name) throws FrameworkException {
+	private DOMNode findPartialByName(final SecurityContext securityContext, final String name) throws FrameworkException {
 
-		return StructrApp.getInstance(securityContext).nodeQuery(DOMNode.class).andName(name).getFirst();
+		return StructrApp.getInstance(securityContext).nodeQuery(DOMNode.class).andName(name).not().and(DOMNode.type, "Page").getFirst();
 	}
 
 	/**

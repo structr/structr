@@ -367,9 +367,10 @@ public class Console {
 
 	private void init(final Context scriptingContext) {
 
-		// Set version to JavaScript1.2 so that we get object-literal style
-		// printing instead of "[object Object]"
-		scriptingContext.setLanguageVersion(Context.VERSION_1_2);
+		scriptingContext.setLanguageVersion(Context.VERSION_ES6);
+		scriptingContext.setInstructionObserverThreshold(0);
+		scriptingContext.setGenerateObserverCount(false);
+		scriptingContext.setGeneratingDebug(true);
 
 		// Initialize the standard objects (Object, Function, etc.)
 		// This must be done before scripts can be executed.

@@ -19,6 +19,9 @@
 package org.structr.test.core.script;
 
 import com.google.gson.GsonBuilder;
+
+import java.awt.*;
+import java.net.URISyntaxException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -91,6 +94,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
+
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 
@@ -4062,6 +4067,49 @@ public class ScriptingTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
+	}
+
+	@Test
+	public void testEmptyArrayProperty() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonType testType = schema.addType("TestEmptyArrayPropertyType");
+			testType.addStringArrayProperty("arr");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException | URISyntaxException ex) {
+
+			fail();
+		}
+
+
+		try (final Tx tx = app.tx()) {
+
+			final Class clazz = StructrApp.getConfiguration().getNodeEntityClass("TestEmptyArrayPropertyType");
+
+			NodeInterface node = app.create(clazz);
+
+			final ActionContext ac = new ActionContext(securityContext);
+
+			Scripting.evaluate(ac, node, "${{Structr.get('this').arr.push('test');}}", null);
+
+			String[] arr = (String[])node.getProperty(StructrApp.getConfiguration().getPropertyKeyForDatabaseName(clazz, "arr"));
+
+			Assert.assertEquals(1, arr.length);
+
+		} catch (FrameworkException ex) {
+
+			fail();
+		}
+
+
+
 	}
 
 	// ----- private methods ----
