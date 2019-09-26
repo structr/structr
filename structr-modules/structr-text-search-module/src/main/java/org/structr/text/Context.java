@@ -21,8 +21,6 @@ package org.structr.text;
 /**
  */
 public class Context {
-	
-	int blankLines = 0;
 
-	
+	int blankLines = 0;
 }

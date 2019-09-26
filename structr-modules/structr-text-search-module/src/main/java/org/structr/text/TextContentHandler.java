@@ -18,24 +18,16 @@
  */
 package org.structr.text;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.parser.AutoDetectParser;
-import org.apache.tika.parser.ParseContext;
-import org.apache.tika.parser.ocr.TesseractOCRConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.text.model.StructuredDocument;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
@@ -53,7 +45,6 @@ public class TextContentHandler implements ContentHandler {
 	private final StringBuilder lineBuffer  = new StringBuilder();
 	private final List<AnnotatedPage> pages = new ArrayList<>();
 	private final Context context           = new Context();
-	private StructuredDocument document     = null;
 	private AnnotatedPage page              = null;
 
 	@Override
@@ -168,10 +159,6 @@ public class TextContentHandler implements ContentHandler {
 	public void skippedEntity(final String name) throws SAXException {
 	}
 
-	public StructuredDocument getDocument() {
-		return document;
-	}
-
 	public List<AnnotatedPage> getPages() {
 		return pages;
 	}
@@ -282,47 +269,5 @@ public class TextContentHandler implements ContentHandler {
 
 	private String getPath() {
 		return "/" + StringUtils.join(path, "/");
-	}
-
-	public static void main(final String[] args) {
-
-		try (final InputStream is = new FileInputStream("/home/chrisi/Structr/Projekte/Gemeinde Winterswijk/d_NL.IMRO.0294.OV1907BGOMGEVVISIE-OW01.pdf")) {
-
-			final AutoDetectParser parser      = new AutoDetectParser();
-			final Metadata metadata            = new Metadata();
-			final ParseContext context         = new ParseContext();
-			final TesseractOCRConfig ocrConfig = new TesseractOCRConfig();
-			final TextContentHandler handler   = new TextContentHandler();
-
-			ocrConfig.setLanguage("eng+deu");
-
-			context.set(TesseractOCRConfig.class, ocrConfig);
-
-			parser.parse(is, handler, metadata, context);
-
-			handler.analyze();
-
-			for (final Entry<String, String> meta : handler.getMetadata().entrySet()) {
-
-				System.out.println(meta.getKey() + " = " + meta.getValue());
-			}
-
-			int number = 1;
-
-			for (final AnnotatedPage page : handler.getPages()) {
-
-				System.out.println("##################################################################################### PAGE " + number++);
-
-				for (final AnnotatedLine line : page.getLines()) {
-
-					System.out.println(line.getType() + ": " + line.getContent());
-				}
-			}
-
-		} catch (Throwable t) {
-
-			t.printStackTrace();
-		}
-
 	}
 }

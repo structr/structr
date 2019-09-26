@@ -91,7 +91,7 @@ var _Dialogs = {
 				el.append(html);
 
 				$('button#extract-structure-button').on('click', function() {
-								
+
 					Structr.showAndHideInfoBoxMessage('Extracting structure..', 'info', 2000, 200);
 
 					$.ajax({

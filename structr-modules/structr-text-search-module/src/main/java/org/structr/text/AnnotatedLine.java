@@ -27,7 +27,7 @@ import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
 public class AnnotatedLine {
 
 	private static final Pattern numberPattern = Pattern.compile("[0-9]+");
-	
+
 	private String line = null;
 	private String type = null;
 
@@ -55,13 +55,13 @@ public class AnnotatedLine {
 			context.blankLines++;
 
 			return false;
-			
+
 		} else {
 
 			this.type = "paragraph";
 
 			context.blankLines = 0;
-		
+
 			return !isNumeric() && line.length() > 3;
 		}
 	}
