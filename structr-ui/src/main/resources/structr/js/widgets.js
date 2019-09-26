@@ -412,7 +412,7 @@ var _Widgets = {
 			$('.edit_icon', div).on('click', function(e) {
 				e.stopPropagation();
 
-				Command.get(widget.id, 'id,name,source,configuration,description', function(entity) {
+				Command.get(widget.id, 'id,type,name,source,configuration,description', function(entity) {
 					_Widgets.editWidget(entity, true);
 				});
 			});
@@ -434,7 +434,7 @@ var _Widgets = {
 		var contentDiv = $('#' + id + '_content', dialogText);
 
 		var ul = mainTabs.children('ul');
-		ul.append('<li data-name="source">Source</li><li data-name="config">Configuration</li><li data-name="description">Description</li><li data-name="help">Help</li>');
+		ul.append('<li data-name="source">Source</li><li data-name="config">Configuration</li><li data-name="description">Description</li><li data-name="selectors">Options</li><li data-name="help">Help</li>');
 
 		var activateTab = function (tabName) {
 			$('.widget-tab-content', contentDiv).hide();
@@ -448,11 +448,17 @@ var _Widgets = {
 			activateTab($(this).data('name'));
 		});
 
-		contentDiv.append('<div class="tab widget-tab-content" id="tabView-source"></div><div class="tab widget-tab-content" id="tabView-config"></div><div class="tab widget-tab-content" id="tabView-description"></div><div class="tab widget-tab-content" id="tabView-help"></div>');
+		contentDiv.append('<div class="tab widget-tab-content" id="tabView-source"></div><div class="tab widget-tab-content" id="tabView-config"></div><div class="tab widget-tab-content" id="tabView-description"></div><div class="tab widget-tab-content" id="tabView-selectors"></div><div class="tab widget-tab-content" id="tabView-help"></div>');
 
-		var sourceEditor = _Widgets.appendWidgetPropertyEditor($('#tabView-source', contentDiv), (entity.source || ''), 'text/html', allowEdit);
-		var configEditor = _Widgets.appendWidgetPropertyEditor($('#tabView-config', contentDiv), (entity.configuration || ''), 'application/json', allowEdit);
+		var sourceEditor      = _Widgets.appendWidgetPropertyEditor($('#tabView-source', contentDiv), (entity.source || ''), 'text/html', allowEdit);
+		var configEditor      = _Widgets.appendWidgetPropertyEditor($('#tabView-config', contentDiv), (entity.configuration || ''), 'application/json', allowEdit);
 		var descriptionEditor = _Widgets.appendWidgetPropertyEditor($('#tabView-description', contentDiv), (entity.description || ''), 'text/html', allowEdit);
+
+		// allow editing of selectors property
+		_Schema.getTypeInfo(entity.type, function(typeInfo) {
+			_Entities.listProperties(entity, 'editWidget', $('#tabView-selectors'), typeInfo);
+		});
+
 		_Widgets.appendWidgetHelpText($('#tabView-help', contentDiv));
 
 		if (allowEdit) {
@@ -503,9 +509,12 @@ var _Widgets = {
 							dialogCancelButton.click();
 						} else {
 							var modelObj = StructrModel.obj(entity.id);
-							modelObj.source = widgetData.source;
+							modelObj.source        = widgetData.source;
 							modelObj.configuration = widgetData.configuration;
-							modelObj.description = widgetData.description;
+							modelObj.description   = widgetData.description;
+							entity.source          = widgetData.source;
+							entity.configuration   = widgetData.configuration;
+							entity.description     = widgetData.description;
 							updateButtonStatus();
 						}
 					});
@@ -539,6 +548,16 @@ var _Widgets = {
 			indentWithTabs: true,
 			readOnly: !allowEdit
 		});
+	},
+	appendWidgetSelectorEditor: function (container, entity, allowEdit) {
+
+		Structr.fetchHtmlTemplate('widgets/edit-selectors', {}, function(html) {
+
+			container.append(html);
+
+
+		});
+
 	},
 	appendWidgetHelpText: function(container) {
 

@@ -556,6 +556,12 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, result);
 
+			} else if (command === 'GET_SUGGESTIONS') {
+
+				console.log(result);
+
+				StructrModel.callCallback(data.callback, result);
+
 			} else if (command === 'SERVER_LOG') {
 
                 StructrModel.callCallback(data.callback, result);

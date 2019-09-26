@@ -208,7 +208,12 @@ public class Importer {
 		if (StringUtils.isNotBlank(code)) {
 
 			if (!isDeployment) {
-				logger.info("##### Start parsing code for page {} #####", new Object[]{name});
+
+				// do we need this?
+				if (name != null) {
+					logger.info("##### Start parsing code for page {} #####", name);
+				}
+				
 			} else {
 
 				// a trailing slash to all void/self-closing tags so the XML parser can parse it correctly

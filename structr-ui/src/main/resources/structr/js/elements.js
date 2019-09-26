@@ -853,7 +853,7 @@ var _Elements = {
 				var preventClose = true;
 
 				if (contextMenuItem.clickHandler && (typeof contextMenuItem.clickHandler === 'function')) {
-					preventClose = contextMenuItem.clickHandler($(this));
+					preventClose = contextMenuItem.clickHandler($(this), contextMenuItem);
 				}
 
 				if (!preventClose) {
@@ -882,7 +882,7 @@ var _Elements = {
 
 		};
 
-		var addContextMenuElements = function (ul, element, hidden, forcedClickHandler) {
+		var addContextMenuElements = function (ul, element, hidden, forcedClickHandler, prepend) {
 
 			if (hidden) {
 				ul.addClass('hidden');
@@ -891,7 +891,7 @@ var _Elements = {
 			if (Object.prototype.toString.call(element) === '[object Array]') {
 
 				element.forEach(function (el) {
-					addContextMenuElements(ul, el, hidden, forcedClickHandler);
+					addContextMenuElements(ul, el, hidden, forcedClickHandler, prepend);
 				});
 
 			} else if (Object.prototype.toString.call(element) === '[object Object]') {
@@ -902,32 +902,53 @@ var _Elements = {
 
 				var menuEntry = $('<li class="element-group-switch">' + element.name + '</li>');
 				registerContextMenuItemClickHandler(menuEntry, element);
-				ul.append(menuEntry);
+				if (prepend) {
+					ul.prepend(menuEntry);
+				} else {
+					ul.append(menuEntry);
+				}
 
 				if (element.elements) {
 					menuEntry.append('<i class="fa fa-caret-right pull-right"></i>');
 
 					var subListElement = $('<ul class="element-group ' + cssPositionClasses + '"></ul>');
 					menuEntry.append(subListElement);
-					addContextMenuElements(subListElement, element.elements, true, (forcedClickHandler ? forcedClickHandler : element.forcedClickHandler) );
+					addContextMenuElements(subListElement, element.elements, true, (forcedClickHandler ? forcedClickHandler : element.forcedClickHandler), prepend);
 				}
 
 			} else if (Object.prototype.toString.call(element) === '[object String]') {
 
 				if (element === '|') {
 
-					ul.append('<hr />');
+					if (prepend) {
+						ul.prepend('<hr />');
+					} else {
+						ul.append('<hr />');
+					}
 
 				} else {
 
 					var listElement = $('<li>' + element + '</li>');
-					registerPlaintextContextMenuItemHandler(listElement, element, forcedClickHandler);
-					ul.append(listElement);
+					registerPlaintextContextMenuItemHandler(listElement, element, forcedClickHandler, prepend);
+
+					if (prepend) {
+						ul.prepend(listElement);
+					} else {
+						ul.append(listElement);
+					}
 
 				}
 
 			}
+		};
 
+		var updateMenuGroupVisibility = function() {
+
+			$('.element-group-switch').hover(function() {
+				$(this).children('.element-group').removeClass('hidden');
+			}, function() {
+				$(this).children('.element-group').addClass('hidden');
+			});
 		};
 
 		var mainMenuList = $('<ul class="element-group ' + cssPositionClasses + '"></ul>');
@@ -936,14 +957,18 @@ var _Elements = {
 			addContextMenuElements(mainMenuList, mainEl, false);
 		});
 
-		_Elements.updateVisibilityInheritanceCheckbox();
+		// prepend suggested elements if present
+		_Elements.getSuggestedWidgets(entity, function(data) {
 
-		$('.element-group-switch').hover(function() {
-			$(this).children('.element-group').removeClass('hidden');
-		}, function() {
-			$(this).children('.element-group').addClass('hidden');
+			if (data && data.length) {
+
+				addContextMenuElements(mainMenuList, [ '|', { name: 'Suggested Widgets', elements: data } ], false, undefined, true);
+				updateMenuGroupVisibility();
+			}
 		});
 
+		_Elements.updateVisibilityInheritanceCheckbox();
+		updateMenuGroupVisibility();
 	},
 	updateVisibilityInheritanceCheckbox: function() {
 		var checked = LSWrapper.getItem(_Elements.inheritVisibilityFlagsKey) || false;
@@ -1712,5 +1737,37 @@ var _Elements = {
 
 		editor.focus();
 
+	},
+	getSuggestedWidgets: function(entity, callback) {
+
+		if (entity.isPage) {
+
+			// no-op
+
+		} else {
+
+			var clickHandler = function(element, item) {
+				Command.get(item.id, undefined, function(result) {
+					_Widgets.insertWidgetIntoPage(result, entity, entity.pageId);
+				});
+			};
+
+			var classes = entity._html_class && entity._html_class.length ? entity._html_class.split(' ') : [];
+			var htmlId  = entity._html_id;
+			var tag     = entity.tag;
+
+			Command.getSuggestions(htmlId, entity.name, tag, classes, function(result) {
+				var data = [];
+				result.forEach(function(r) {
+					data.push({
+						id: r.id,
+						name: r.name,
+						source: r.source,
+						clickHandler: clickHandler
+					});
+				});
+				callback(data);
+			});
+		}
 	}
 };

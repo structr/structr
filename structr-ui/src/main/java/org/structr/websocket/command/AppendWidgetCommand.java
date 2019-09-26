@@ -86,7 +86,7 @@ public class AppendWidgetCommand extends AbstractCommand {
 				try {
 					Widget.expandWidget(getWebSocket().getSecurityContext(), page, parentDOMNode, baseUrl, webSocketData.getNodeData(), processDeploymentInfo);
 
-				} catch (FrameworkException fex) {
+				} catch (Throwable fex) {
 
 					logger.warn(fex.toString());
 
