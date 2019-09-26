@@ -969,7 +969,7 @@ var _Elements = {
 			var pageId = isPage ? entity.id : entity.pageId;
 			var tagName = (itemText === 'content') ? null : itemText;
 
-			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName), _Elements.isInheritVisibililtyFlagsChecked());
+			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), _Elements.isInheritVisibililtyFlagsChecked());
 		};
 
 		var handleWrapInHTMLAction = function (itemText) {
