@@ -149,6 +149,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addStringProperty("data-structr-edit-class",           PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Custom CSS class in edit mode");
 		type.addStringProperty("data-structr-return",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Return URI after successful action");
 		type.addStringProperty("data-structr-format",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Custom format for Date or Enum properties. (Example: Date: dd.MM.yyyy - Enum: Value1,Value2,Value3");
+		type.addBooleanProperty("data-structr-insert",              PropertyView.Ui);
 
 		// Core attributes
 		type.addStringProperty("_html_accesskey", PropertyView.Html);
@@ -170,6 +171,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		// new properties for Polymer support
 		type.addStringProperty("_html_is", PropertyView.Html);
 		type.addStringProperty("_html_properties", PropertyView.Html);
+		type.addBooleanProperty("fromWidget");
 
 		// The role attribute, see http://www.w3.org/TR/role-attribute/
 		type.addStringProperty("_html_role", PropertyView.Html);
@@ -569,6 +571,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			// include special mode attributes
 			switch (editMode) {
+
+				case SHAPES:
+				case SHAPES_MINIATURES:
+
+					if (thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-insert"))) {
+						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
+					}
+					break;
 
 				case CONTENT:
 

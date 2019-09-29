@@ -581,7 +581,7 @@ var Command = {
 	 * to the new one.
 	 *
 	 */
-	appendWidget: function(source, parentId, pageId, widgetHostBaseUrl, attributes, processDeploymentInfo) {
+	appendWidget: function(source, parentId, pageId, widgetHostBaseUrl, attributes, processDeploymentInfo, callback) {
 		var obj = {
 			command: 'APPEND_WIDGET',
 			pageId: pageId,
@@ -596,7 +596,7 @@ var Command = {
 			$.extend(obj.data, attributes);
 		}
 		_Logger.log(_LogType.WS[obj.command], 'appendWidget()', obj);
-		return sendObj(obj);
+		return sendObj(obj, callback);
 	},
 	/**
 	 * Send a SAVE_NODE command to the server.
