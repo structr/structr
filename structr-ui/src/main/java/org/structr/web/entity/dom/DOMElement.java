@@ -150,6 +150,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addStringProperty("data-structr-return",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Return URI after successful action");
 		type.addStringProperty("data-structr-format",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Custom format for Date or Enum properties. (Example: Date: dd.MM.yyyy - Enum: Value1,Value2,Value3");
 		type.addBooleanProperty("data-structr-insert",              PropertyView.Ui);
+		type.addBooleanProperty("data-structr-from-widget",         PropertyView.Ui);
 
 		// Core attributes
 		type.addStringProperty("_html_accesskey", PropertyView.Html);
@@ -575,7 +576,10 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				case SHAPES:
 				case SHAPES_MINIATURES:
 
-					if (thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-insert"))) {
+					final boolean isInsertable = thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-insert"));
+					final boolean isFromWidget = thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-from-widget"));
+
+					if (isInsertable || isFromWidget) {
 						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
 					}
 					break;

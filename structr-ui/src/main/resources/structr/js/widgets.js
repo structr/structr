@@ -125,7 +125,10 @@ var _Widgets = {
 		});
 	},
 	getWidgetServerUrl: function() {
-		return _Widgets.widgetServerSelector.value;
+
+		if (_Widgets.widgetServerSelector) {
+			return _Widgets.widgetServerSelector.value;
+		}
 	},
 	getConfiguredWidgetServers: function (callback) {
 
@@ -610,7 +613,7 @@ var _Widgets = {
 			});
 		}
 	},
-	insertWidgetIntoPage: function(widget, target, pageId) {
+	insertWidgetIntoPage: function(widget, target, pageId, callback) {
 
 		let url = _Widgets.getWidgetServerUrl();
 		var widgetSource = widget.source;
@@ -737,14 +740,15 @@ var _Widgets = {
 					});
 
 					e.stopPropagation();
-					Command.appendWidget(widgetSource, target.id, pageId, url, attrs, widgetConfig.processDeploymentInfo);
+					Command.appendWidget(widgetSource, target.id, pageId, url, attrs, widgetConfig.processDeploymentInfo, callback);
 
 					dialogCancelButton.click();
 					return false;
 				});
 
 			} else {
-				Command.appendWidget(widgetSource, target.id, pageId, url, {}, (widgetConfig ? widgetConfig.processDeploymentInfo : false));
+
+				Command.appendWidget(widgetSource, target.id, pageId, url, {}, (widgetConfig ? widgetConfig.processDeploymentInfo : false), callback);
 			}
 		} else {
 			new MessageBuilder().warning("Ignoring empty Widget").show();

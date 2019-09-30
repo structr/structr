@@ -37,11 +37,10 @@ var _SimplePages = {
 
 			main.append(html);
 
-			_SimplePages.components.main                  = document.querySelector('#simple-pages-main');
-
-			_SimplePages.components.tree                  = document.querySelector('#simple-pages-tree');
-			_SimplePages.components.contents              = document.querySelector('#simple-pages-contents');
-			_SimplePages.components.context               = document.querySelector('#simple-pages-context');
+			_SimplePages.components.main      = document.querySelector('#simple-pages-main');
+			_SimplePages.components.tree      = document.querySelector('#simple-pages-tree');
+			_SimplePages.components.contents  = document.querySelector('#simple-pages-contents');
+			_SimplePages.components.context   = document.querySelector('#simple-pages-context');
 
 			_SimplePages.moveResizer();
 			Structr.initVerticalSlider(document.querySelector('.column-resizer', _SimplePages.components.main), _SimplePages.resizerLeftKey, 204, _SimplePages.moveResizer);
@@ -62,10 +61,15 @@ var _SimplePages = {
 	},
 	init: function() {
 		_SimplePages.refreshPageList();
+		_SimplePages.refreshWidgetList();
 	},
 	refreshPageList: function() {
 		fastRemoveAllChildren(_SimplePages.components.tree);
 		_SimplePages.listPages();
+	},
+	refreshWidgetList: function() {
+		fastRemoveAllChildren(_SimplePages.components.context);
+		_SimplePages.listWidgets();
 	},
 	showAddPageTemplateButton: function(callback) {
 		Structr.fetchHtmlTemplate('simple-pages/add-page-template-button', null, function(html) {
@@ -159,12 +163,12 @@ var _SimplePages = {
 
 						// attach event listener
 						live('.delete_icon', 'click', function() {
-							let id = this.getAttribute('data-structr-id');
-							Command.get(id, null, function(t) {
-								_SimplePages.removeTemplateFromParent(t);
-							}, doc);
+							let id = this.closest('[data-structr-from-widget]').getAttribute('data-structr-id');
+							Command.removeChild(id, function() {
+								_SimplePages.refreshCurrentPage();
+							});
 
-						});
+						}, doc);
 
 						live('.edit_props_icon', 'click', function() {
 							let id = this.closest('[data-structr-id]').getAttribute('data-structr-id');
@@ -174,15 +178,17 @@ var _SimplePages = {
 							});
 						}, doc);
 
+						/*
 						live('.replace_icon', 'click', function() {
 							let id = this.closest('[data-structr-id]').getAttribute('data-structr-id');
 							Command.get(id, null, function(t) {
 								_SimplePages.replaceTemplate(t);
 							});
 						}, doc);
+						*/
 
 						live('.add_icon', 'click', function() {
-							let id = this.closest('[data-structr-id]').getAttribute('data-structr-id');
+							let id = this.closest('[data-structr-insert]').getAttribute('data-structr-id');
 							Command.get(id, null, function(t) {
 								_SimplePages.addTemplate(t, function() {
 									dialogCancelButton.click();
@@ -192,21 +198,84 @@ var _SimplePages = {
 						}, doc);
 
 						let x,y;
-//						doc.addEventListener('mousemove', function(e) {
-//							x = e.clientX, y = e.clientY;
-//							//console.log(x,y);
-//						});
-//						live('[data-structr-id]', 'mouseenter', function(e) {
-//							e.preventDefault();
-//							e.stopPropagation();
-//							let templateElement = this;
-//							templateElement.classList.remove('hover');
-//						});
 
 						_SimplePages.resize();
 
-						let templates = doc.querySelectorAll('[data-structr-id]');
-						templates.forEach(function(templateElement) {
+						doc.querySelectorAll('[data-structr-insert]').forEach(function(templateElement) {
+
+							let id = templateElement.getAttribute('data-structr-id');
+
+							live('[data-structr-id="' + id + '"]', 'mouseenter', function(e) {
+								e.preventDefault();
+								e.stopPropagation();
+								let templateElement = this;
+
+								let children = doc.querySelectorAll('.edit-header');
+								children.forEach(function(childNode) {
+									childNode.style.zIndex = '9999999';
+									//childNode.style.position = 'absolute';
+								});
+								templateElement.setAttribute('x-enter', x);
+								templateElement.setAttribute('y-enter', y);
+								templateElement.classList.add('hover');
+								x = e.screenX, y = e.screenY;
+							}, templateElement);
+
+							live('[data-structr-id="' + id + '"]', 'mouseleave', function(e) {
+								e.preventDefault();
+								e.stopPropagation();
+
+								let templateElement = this;
+								let xEnter = parseInt(templateElement.getAttribute('x-enter'));
+								let yEnter = parseInt(templateElement.getAttribute('y-enter'));
+								let distance = Math.sqrt(Math.pow(e.screenX - xEnter, 2) + Math.pow(e.screenY - yEnter, 2));
+								if (distance > 15) {
+
+									templateElement.removeAttribute('x-enter');
+									templateElement.removeAttribute('y-enter');
+
+									let children = doc.querySelectorAll('.edit-header');
+									children.forEach(function(childNode) {
+										childNode.style.zIndex = '';
+										//childNode.style.position = '';
+									});
+
+									templateElement.classList.remove('hover');
+								}
+							}, templateElement);
+
+							if (!_SimplePages.objectCache.hasOwnProperty(id)) {
+
+								Command.get(id, null, function(t) {
+
+									_SimplePages.objectCache[id] = t;
+
+									Structr.fetchHtmlTemplate('simple-pages/template-edit-elements', { template: t }, function(html) {
+
+										templateElement.insertAdjacentHTML('afterBegin', html);
+
+										//alert(html);
+										//$(templateElement).append(html);
+
+										// bind actions
+										// make draggable (HTML5 drag'n drop)
+										templateElement.setAttribute('draggable', 'true');
+										templateElement.setAttribute('ondragover', 'return false');
+										templateElement.addEventListener('dragstart', _SimplePages.dragStart, false);
+										templateElement.addEventListener('dragenter', _SimplePages.dragEnter, false);
+										templateElement.addEventListener('dragleave', _SimplePages.dragLeave, false);
+										templateElement.addEventListener('dragover', _SimplePages.dragOver, false);
+										//el.addEventListener('dragend', _SimplePages.dragEnd, false);
+										templateElement.addEventListener('drop', _SimplePages.drop, false);
+
+									});
+								});
+
+							}
+						});
+
+						// all widgets already inserted into this template
+						doc.querySelectorAll('[data-structr-from-widget]').forEach(function(templateElement) {
 
 							let id = templateElement.getAttribute('data-structr-id');
 
@@ -237,7 +306,6 @@ var _SimplePages = {
 								let xEnter = parseInt(templateElement.getAttribute('x-enter'));
 								let yEnter = parseInt(templateElement.getAttribute('y-enter'));
 								let distance = Math.sqrt(Math.pow(e.screenX - xEnter, 2) + Math.pow(e.screenY - yEnter, 2));
-								console.log(distance);
 								if (distance > 15) {
 
 									templateElement.removeAttribute('x-enter');
@@ -253,60 +321,15 @@ var _SimplePages = {
 								}
 							}, templateElement);
 
-//							doc.removeEventListener('mouseleave', null, false);
-//							doc.addEventListener('mouseleave', function() {
-//								let children = this.querySelectorAll(':not([data-structr-id]):not(.edit-header)');
-//								children.forEach(function(childNode) {
-//									childNode.style.display = '';
-//								});
-//							});
-
-							//doc.find('[data-structr-id]').on('mouseenter', function() {
-//							t.removeEventListener('mouseenter', null, false);
-//							t.removeEventListener('mouseleave', null, false);
-
-//							templateElement.addEventListener('mouseleave', function(e) {
-//								e.preventDefault();
-//								e.stopPropagation();
-//								templateElement.classList.remove('hover');
-//							});
-
-//							templateElement.addEventListener('mouseenter', function(e) {
-//								e.preventDefault();
-//								e.stopPropagation();
-//								let templateElement = this;
-////
-////								let children = this.querySelectorAll(':not([data-structr-id]):not(.edit-header)');
-////								children.forEach(function(childNode) {
-////									childNode.style.display = 'none';
-////								});
-//								templateElement.classList.add('hover');
-//							});
-
 							if (!_SimplePages.objectCache.hasOwnProperty(id)) {
 
 								Command.get(id, null, function(t) {
 
 									_SimplePages.objectCache[id] = t;
 
-									Structr.fetchHtmlTemplate('simple-pages/template-edit-elements', { template: t }, function(html) {
+									Structr.fetchHtmlTemplate('simple-pages/widget-edit-elements', { widget: t }, function(html) {
 
 										templateElement.insertAdjacentHTML('afterBegin', html);
-
-										//alert(html);
-										//$(templateElement).append(html);
-
-										// bind actions
-										// make draggable (HTML5 drag'n drop)
-										templateElement.setAttribute('draggable', 'true');
-										templateElement.setAttribute('ondragover', 'return false');
-										templateElement.addEventListener('dragstart', _SimplePages.dragStart, false);
-										templateElement.addEventListener('dragenter', _SimplePages.dragEnter, false);
-										templateElement.addEventListener('dragleave', _SimplePages.dragLeave, false);
-										templateElement.addEventListener('dragover', _SimplePages.dragOver, false);
-										//el.addEventListener('dragend', _SimplePages.dragEnd, false);
-										templateElement.addEventListener('drop', _SimplePages.drop, false);
-
 									});
 								});
 
@@ -389,30 +412,17 @@ var _SimplePages = {
 			result.forEach(function(widget) {
 
 				var id = 'create-from-' + widget.id;
-				dialogText.append('<div class="app-tile"><h4>' + widget.name + '</h4><p>' + widget.description + '</p><button class="action" id="' + id + '">Insert</button></div>');
+				dialogText.append('<div class="app-tile"><h4>' + widget.name + '</h4><p>' + widget.description + '</p><button class="action" id="insert-' + id + '">Insert</button></div>');
 
-				$('#' + id).on('click', function() {
-					Command.appendWidget(widget.source, parent.id, parent.pageId, null, {}, true, function() {
+				$('#insert-' + id).on('click', function() {
+
+					_Widgets.insertWidgetIntoPage(widget, parent, parent.pageId, function() {
 						_SimplePages.refreshCurrentPage();
 					});
 				});
 			});
 
 		});
-
-		/*
-		Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
-
-			let shadowPage = entities[0];
-
-			Command.query('Template', 1000, 1, 'name', 'desc', { hidden: false, pageId: shadowPage.id }, function(templates) {
-
-				templates.forEach(function(template) {
-					_SimplePages.appendTemplate(template, parent, callback);
-				});
-			});
-		});
-		*/
 	},
 	replaceTemplate: function(t) {
 		Structr.dialog('Replace template ' + t.name, function() {
@@ -531,16 +541,52 @@ var _SimplePages = {
 				_SimplePages.refreshCurrentPage();
 			});
 		}
-	}
+	},
+	listWidgets: function() {
+
+		Command.query('Widget', 1000, 1, 'name', 'desc', { hidden: false }, function(widgets) {
+
+			widgets.forEach(function(widget) {
+
+				Structr.fetchHtmlTemplate('simple-pages/widget-list-node', { widget: widget }, function(html) {
+
+					_SimplePages.components.context.insertAdjacentHTML('beforeEnd', html);
+
+				});
+			});
+
+		});
+	},
 };
 
 function addEvent(el, type, handler) {
-    if (el.attachEvent) el.attachEvent('on'+type, handler); else el.addEventListener(type, handler);
+
+	if (el.attachEvent) {
+
+		el.attachEvent('on'+type, handler);
+
+	} else {
+
+		el.addEventListener(type, handler);
+	}
 }
 
 function live(selector, event, callback, context) {
-    addEvent(context || document, event, function(e) {
-        let el = (e.target || e.srcElement).closest(selector);
-        if (el) callback.call(el, e);
-    });
+
+	addEvent(context || document, event, function(e) {
+
+		let el = (e.target || e.srcElement).closest(selector);
+
+		/*
+		console.log({
+			selector: selector,
+			event: event,
+			callback: callback,
+			context: context,
+			el: el
+		});
+		*/
+
+		if (el) callback.call(el, e);
+	});
 }
