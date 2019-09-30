@@ -163,3 +163,11 @@
 [data-structr-id].hover .sprite.button {
 	display: block ! important;
 }
+
+/**
+ * widgets
+ */
+
+[data-structr-from-widget] .delete_icon {
+	right: 4px;
+}

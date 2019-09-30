@@ -581,7 +581,7 @@ var Command = {
 	 * to the new one.
 	 *
 	 */
-	appendWidget: function(source, parentId, pageId, widgetHostBaseUrl, attributes, processDeploymentInfo) {
+	appendWidget: function(source, parentId, pageId, widgetHostBaseUrl, attributes, processDeploymentInfo, callback) {
 		var obj = {
 			command: 'APPEND_WIDGET',
 			pageId: pageId,
@@ -596,7 +596,7 @@ var Command = {
 			$.extend(obj.data, attributes);
 		}
 		_Logger.log(_LogType.WS[obj.command], 'appendWidget()', obj);
-		return sendObj(obj);
+		return sendObj(obj, callback);
 	},
 	/**
 	 * Send a SAVE_NODE command to the server.
@@ -1362,6 +1362,26 @@ var Command = {
 	 */
 	getApplicationConfigurationDataNode: function(id, callback) {
 		return Command.get(id, 'content', callback);
+	},
+	/**
+	 * Send a GET_SUGGESTIONS command to the server.
+	 *
+	 * This command send id, name, tag and a list of
+	 * CSS classes to the server to obtain a list of widget-like
+	 * templates that the user can choose from.
+	 *
+	 */
+	getSuggestions: function(id, name, tag, classes, callback) {
+		var obj  = {
+			command: 'GET_SUGGESTIONS',
+			data: {
+				htmlId: id,
+				name: name,
+				tag: tag,
+				classes: classes
+			}
+		};
+		return sendObj(obj, callback);
 	},
 	/**
      * Requests log snapshot from the server.

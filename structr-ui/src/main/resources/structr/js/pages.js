@@ -333,6 +333,7 @@ var _Pages = {
 
 		previewTabs.append('<li id="import_page" title="Import Template" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.pull_file_icon) + '" /></li>');
 		previewTabs.append('<li id="add_page" title="Add page" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /></li>');
+		previewTabs.append('<li id="add_template" title="Add Template" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" /></li>');
 
 		$('#import_page', previewTabs).on('click', function(e) {
 			e.stopPropagation();
@@ -392,6 +393,44 @@ var _Pages = {
 			e.stopPropagation();
 			Command.createSimplePage();
 		});
+
+		// page template widgets present? Display special create page dialog
+		Command.query('Widget', 10, 1, 'name', 'asc', { isPageTemplate: true }, function(result) {
+
+			if (result && result.length) {
+
+				$('#add_template').on('click', function(e) {
+
+					e.stopPropagation();
+
+					Structr.dialog('Select Template to Create New Page', function() {}, function() {});
+
+					dialog.empty();
+					dialogMsg.empty();
+					dialog.append('<div id="template-tiles"></div>');
+
+					var container = $('#template-tiles');
+
+					result.forEach(function(widget) {
+						var id = 'create-from-' + widget.id;
+						container.append('<div class="app-tile"><h4>' + widget.name + '</h4><p>' + widget.description + '</p><button class="action" id="' + id + '">Create Page</button></div>');
+						$('#' + id).on('click', function() {
+							Command.create({ type: 'Page' }, function(page) {
+								Structr.removeExpandedNode(page.id);
+								Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
+							});
+						});
+
+					});
+
+				});
+
+			} else {
+
+				// remove wizard button if no page templates exist (can be changed later when the dialog includes some hints etc.)
+				$('#add_template').remove();
+			}
+		}, true);
 
 		Structr.adaptUiToAvailableFeatures();
 
