@@ -18,6 +18,7 @@
  */
 package org.structr.core.script;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,10 +47,7 @@ import org.structr.core.function.Functions;
 import org.structr.core.function.GrantFunction;
 import org.structr.core.parser.CacheExpression;
 import org.structr.core.parser.ConstantExpression;
-import org.structr.core.property.EnumProperty;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.property.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -347,6 +345,18 @@ public class StructrScriptable extends ScriptableObject {
 
 	// ----- private methods -----
 	private Object wrap(final Context context, final Scriptable scope, final String key, final Object value) {
+
+		// Special case of array properties. Synthesize empty array value for null values in db.
+		if (scope.getClassName() != null && value == null && key != null) {
+			Class clazz = StructrApp.getConfiguration().getNodeEntityClass(scope.getClassName());
+			if (clazz == null) {
+				clazz = StructrApp.getConfiguration().getRelationshipEntityClass(scope.getClassName());
+			}
+
+			if (StructrApp.getConfiguration().getPropertyKeyForJSONName(clazz, key) instanceof ArrayProperty) {
+				return new StructrArray(scope, key, (Object[]) Array.newInstance(Object.class, 0));
+			}
+		}
 
 		if (value instanceof NativeObject /* || value instanceof NativeArray*/ ) {
 			return value;
