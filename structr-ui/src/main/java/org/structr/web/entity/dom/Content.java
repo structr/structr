@@ -549,7 +549,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 				switch (c) {
 
 					case '\\':
-						hasBackslash = true;
+						hasBackslash  = !hasBackslash;
 						break;
 
 					case '\'':
