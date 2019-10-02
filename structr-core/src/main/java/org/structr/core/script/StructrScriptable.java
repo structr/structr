@@ -353,8 +353,11 @@ public class StructrScriptable extends ScriptableObject {
 				clazz = StructrApp.getConfiguration().getRelationshipEntityClass(scope.getClassName());
 			}
 
-			if (StructrApp.getConfiguration().getPropertyKeyForJSONName(clazz, key) instanceof ArrayProperty) {
-				return new StructrArray(scope, key, (Object[]) Array.newInstance(Object.class, 0));
+			if (clazz != null) {
+
+				if (StructrApp.getConfiguration().getPropertyKeyForJSONName(clazz, key) instanceof ArrayProperty) {
+					return new StructrArray(scope, key, (Object[]) Array.newInstance(Object.class, 0));
+				}
 			}
 		}
 
