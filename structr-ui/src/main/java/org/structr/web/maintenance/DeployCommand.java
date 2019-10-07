@@ -294,7 +294,26 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				logger.info("Reading {}", mailTemplatesMetadataFile);
 				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing mail templates");
 
-				importListData(MailTemplate.class, readConfigList(mailTemplatesMetadataFile));
+				List<Map<String, Object>> mailTemplatesConf = readConfigList(mailTemplatesMetadataFile);
+
+				final Path mailTemplatesFolder = source.resolve("mail-templates");
+
+				if (Files.exists(mailTemplatesFolder)) {
+
+					for (Map<String, Object> mailTpl : mailTemplatesConf) {
+
+						final String filename = (String)mailTpl.remove("filename");
+						final Path tplFile    = mailTemplatesFolder.resolve(filename);
+
+						try {
+							mailTpl.put("text", (Files.exists(tplFile)) ? new String(Files.readAllBytes(tplFile)) : null);
+						} catch (IOException ioe) {
+							logger.warn("Failed reading mail-tempalte file '{}'", filename);
+						}
+					}
+				}
+
+				importListData(MailTemplate.class, mailTemplatesConf);
 			}
 
 			// read widgets.json
@@ -656,22 +675,23 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			Files.createDirectories(target);
 
-			final Path components     = Files.createDirectories(target.resolve("components"));
-			final Path files          = Files.createDirectories(target.resolve("files"));
-			final Path pages          = Files.createDirectories(target.resolve("pages"));
-			final Path schemaFolder   = Files.createDirectories(target.resolve("schema"));
-			final Path security       = Files.createDirectories(target.resolve("security"));
-			final Path templates      = Files.createDirectories(target.resolve("templates"));
-			final Path modules        = Files.createDirectories(target.resolve("modules"));
-			final Path grants         = security.resolve("grants.json");
-			final Path filesConf      = target.resolve("files.json");
-			final Path sitesConf      = target.resolve("sites.json");
-			final Path pagesConf      = target.resolve("pages.json");
-			final Path componentsConf = target.resolve("components.json");
-			final Path templatesConf  = target.resolve("templates.json");
-			final Path mailTemplates  = target.resolve("mail-templates.json");
-			final Path localizations  = target.resolve("localizations.json");
-			final Path widgets        = target.resolve("widgets.json");
+			final Path components          = Files.createDirectories(target.resolve("components"));
+			final Path files               = Files.createDirectories(target.resolve("files"));
+			final Path pages               = Files.createDirectories(target.resolve("pages"));
+			final Path schemaFolder        = Files.createDirectories(target.resolve("schema"));
+			final Path security            = Files.createDirectories(target.resolve("security"));
+			final Path templates           = Files.createDirectories(target.resolve("templates"));
+			final Path modules             = Files.createDirectories(target.resolve("modules"));
+			final Path mailTemplatesFolder = Files.createDirectories(target.resolve("mail-templates"));
+			final Path grantsConf          = security.resolve("grants.json");
+			final Path filesConf           = target.resolve("files.json");
+			final Path sitesConf           = target.resolve("sites.json");
+			final Path pagesConf           = target.resolve("pages.json");
+			final Path componentsConf      = target.resolve("components.json");
+			final Path templatesConf       = target.resolve("templates.json");
+			final Path mailTemplatesConf   = target.resolve("mail-templates.json");
+			final Path localizationsConf   = target.resolve("localizations.json");
+			final Path widgetsConf         = target.resolve("widgets.json");
 
 			final Path applicationConfigurationData = target.resolve("application-configuration-data.json");
 
@@ -691,19 +711,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			exportTemplates(templates, templatesConf);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Resource Access Grants");
-			exportResourceAccessGrants(grants);
+			exportResourceAccessGrants(grantsConf);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Schema");
 			exportSchema(schemaFolder);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Mail Templates");
-			exportMailTemplates(mailTemplates);
+			exportMailTemplates(mailTemplatesConf, mailTemplatesFolder);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Localizations");
-			exportLocalizations(localizations);
+			exportLocalizations(localizationsConf);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Widgets");
-			exportWidgets(widgets);
+			exportWidgets(widgetsConf);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Application Configuration Data");
 			exportApplicationConfigurationData(applicationConfigurationData);
@@ -1134,7 +1154,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final StructrSchemaDefinition schema = (StructrSchemaDefinition)StructrSchema.createFromDatabase(StructrApp.getInstance());
 
-
 			if (Settings.SchemaDeploymentFormat.getValue().equals("tree")) {
 
 				// move global schema methods to files
@@ -1438,7 +1457,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void exportMailTemplates(final Path target) throws FrameworkException {
+	private void exportMailTemplates(final Path targetConf, final Path targetFolder) throws FrameworkException {
 
 		logger.info("Exporting mail templates");
 
@@ -1447,22 +1466,42 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final List<Map<String, Object>> mailTemplates = new LinkedList<>();
 		final App app                                 = StructrApp.getInstance();
 
-		try (final Tx tx = app.tx()) {
+		try {
 
-			for (final MailTemplate mailTemplate : app.nodeQuery(MailTemplate.class).sort(MailTemplate.name).getAsList()) {
+			// first delete all contents of the schema directory
+			deleteDirectoryContentsRecursively(targetFolder);
 
-				final Map<String, Object> entry = new TreeMap<>();
-				mailTemplates.add(entry);
 
-				putData(entry, "id",                          mailTemplate.getProperty(MailTemplate.id));
-				putData(entry, "name",                        mailTemplate.getProperty(MailTemplate.name));
-				putData(entry, "text",                        mailTemplate.getProperty(textKey));
-				putData(entry, "locale",                      mailTemplate.getProperty(localeKey));
-				putData(entry, "visibleToAuthenticatedUsers", mailTemplate.getProperty(MailTemplate.visibleToAuthenticatedUsers));
-				putData(entry, "visibleToPublicUsers",        mailTemplate.getProperty(MailTemplate.visibleToPublicUsers));
+			try (final Tx tx = app.tx()) {
+
+				for (final MailTemplate mailTemplate : app.nodeQuery(MailTemplate.class).sort(MailTemplate.name).getAsList()) {
+
+					// generate filename for output file
+					String filename = mailTemplate.getProperty(MailTemplate.name) + "_-_" + mailTemplate.getProperty(localeKey) + ".html";
+
+					if (Files.exists(targetFolder.resolve(filename))) {
+						filename = mailTemplate.getProperty(MailTemplate.name) + "_-_" + mailTemplate.getProperty(localeKey) + "_-_" + mailTemplate.getProperty(MailTemplate.id) + ".html";
+					}
+
+					final Map<String, Object> entry = new TreeMap<>();
+					mailTemplates.add(entry);
+
+					putData(entry, "id",                          mailTemplate.getProperty(MailTemplate.id));
+					putData(entry, "name",                        mailTemplate.getProperty(MailTemplate.name));
+					putData(entry, "filename",                    filename);
+					putData(entry, "locale",                      mailTemplate.getProperty(localeKey));
+					putData(entry, "visibleToAuthenticatedUsers", mailTemplate.getProperty(MailTemplate.visibleToAuthenticatedUsers));
+					putData(entry, "visibleToPublicUsers",        mailTemplate.getProperty(MailTemplate.visibleToPublicUsers));
+
+					final Path mailTemplateFile = targetFolder.resolve(filename);
+					writeStringToFile(mailTemplateFile, mailTemplate.getProperty(textKey));
+				}
+
+				tx.success();
 			}
 
-			tx.success();
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 
 		mailTemplates.sort(new AbstractMapComparator<Object>() {
@@ -1474,7 +1513,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 		});
 
-		writeJsonToFile(target, mailTemplates);
+		writeJsonToFile(targetConf, mailTemplates);
 	}
 
 	private void exportWidgets(final Path target) throws FrameworkException {
