@@ -58,43 +58,51 @@ public class GetSuggestionsCommand extends AbstractCommand {
 		final String tag                      = webSocketData.getNodeDataStringValue("tag");
 		final App app                         = StructrApp.getInstance(securityContext);
 
-		try {
+		if (tag != null) {
 
-			final List<Widget> result    = new LinkedList<>();
-			final Element element        = new Element(tag);
+			try {
 
-			for (final String css : classes) {
-				element.addClass(css);
-			}
+				final List<Widget> result    = new LinkedList<>();
+				final Element element        = new Element(tag);
 
-			if (name != null) {   element.attr("name", name); }
-			if (htmlId != null) { element.attr("id",   htmlId); }
+				for (final String css : classes) {
+					element.addClass(css);
+				}
 
-			for (final Widget widget : app.nodeQuery(Widget.class).getResultStream()) {
+				if (name != null) {   element.attr("name", name); }
+				if (htmlId != null) { element.attr("id",   htmlId); }
 
-				final String[] selectors = getSelectors(widget, selectorsKey);
-				if (selectors != null) {
+				for (final Widget widget : app.nodeQuery(Widget.class).getResultStream()) {
 
-					for (final String selector : selectors) {
+					final String[] selectors = getSelectors(widget, selectorsKey);
+					if (selectors != null) {
 
-						if (element.select(selector).first() != null) {
+						for (final String selector : selectors) {
 
-							result.add(widget);
-							break;
+							if (element.select(selector).first() != null) {
+
+								result.add(widget);
+								break;
+							}
 						}
 					}
 				}
+
+				webSocketData.setResult(result);
+
+				// send only over local connection (no broadcast)
+				getWebSocket().send(webSocketData, true);
+
+			} catch (Throwable t) {
+
+				logger.error("", t);
+				getWebSocket().send(MessageBuilder.status().code(422).build(), true);
 			}
 
-			webSocketData.setResult(result);
+		} else {
 
-			// send only over local connection (no broadcast)
+			// send empty result
 			getWebSocket().send(webSocketData, true);
-
-		} catch (Throwable t) {
-
-			logger.error("", t);
-			getWebSocket().send(MessageBuilder.status().code(422).build(), true);
 		}
 	}
 
