@@ -238,7 +238,11 @@ var _Pages = {
 		};
 		$('#componentsTab').on('click', componentsTabSlideoutAction).droppable({
 			tolerance: 'touch',
-			over: componentsTabSlideoutAction
+			over: function() {
+				if (!componentsSlideout.hasClass('open')) {
+					componentsTabSlideoutAction();
+				}
+			}
 		});
 
 		$('#elementsTab').on('click', function() {
