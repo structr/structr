@@ -36,6 +36,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.GenericProperty;
 import org.structr.module.StructrModule;
@@ -58,6 +59,7 @@ public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, Struc
 
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
+		Functions.put(licenseManager, new StopWordsFunction());
 	}
 
 	@Override
@@ -263,6 +265,11 @@ public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, Struc
 
 			t.printStackTrace();
 		}
+	}
+
+	@Override
+	public Set<String> getStopWords(final String language) {
+		return FulltextIndexingAgent.languageStopwordMap.get(language);
 	}
 
 	// ----- interface StructrModule -----

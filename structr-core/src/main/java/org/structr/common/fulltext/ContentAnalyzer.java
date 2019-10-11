@@ -18,6 +18,7 @@
  */
 package org.structr.common.fulltext;
 
+import java.util.Set;
 import org.structr.common.error.FrameworkException;
 
 /**
@@ -25,4 +26,5 @@ import org.structr.common.error.FrameworkException;
 public interface ContentAnalyzer {
 
 	void analyzeContent(final Indexable indexable) throws FrameworkException;
+	Set<String> getStopWords(final String language);
 }

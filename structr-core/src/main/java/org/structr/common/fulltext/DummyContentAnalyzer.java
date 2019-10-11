@@ -18,6 +18,8 @@
  */
 package org.structr.common.fulltext;
 
+import java.util.Collections;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -32,5 +34,10 @@ public class DummyContentAnalyzer implements ContentAnalyzer {
 	@Override
 	public void analyzeContent(final Indexable indexable) throws FrameworkException {
 		logger.warn("No content analyzer installed, this is a dummy implementation that does nothing.");
+	}
+
+	@Override
+	public Set<String> getStopWords(final String language) {
+		return Collections.EMPTY_SET;
 	}
 }
