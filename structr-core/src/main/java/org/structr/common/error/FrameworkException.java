@@ -20,6 +20,7 @@ package org.structr.common.error;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import java.util.Iterator;
@@ -104,7 +105,7 @@ public class FrameworkException extends Exception {
 			}
 		}
 
-		container.add("message", new JsonPrimitive(getMessage()));
+		container.add("message", (getMessage() != null) ? new JsonPrimitive(getMessage()) : JsonNull.INSTANCE);
 
 		// add errors if there are any
 		if (errorBuffer != null) {
