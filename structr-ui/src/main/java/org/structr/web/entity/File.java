@@ -431,7 +431,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				for (AbstractMinifiedFile minifiedFile : targets) {
 
 					try {
-						minifiedFile.minify();
+						minifiedFile.minify(thisFile.getSecurityContext());
 					} catch (IOException ex) {
 						logger.warn("Could not automatically update minification target: ".concat(minifiedFile.getName()), ex);
 					}

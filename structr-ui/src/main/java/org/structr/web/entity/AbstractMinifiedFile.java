@@ -36,6 +36,7 @@ import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonReferenceType;
@@ -71,20 +72,30 @@ public interface AbstractMinifiedFile extends File {
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "minificationSources");
 		type.addViewProperty(PropertyView.Ui,     "minificationSources");
+
+		type.addMethod("moveMinificationSource")
+			.addParameter("ctx", SecurityContext.class.getName())
+			.addParameter("from", "int")
+			.addParameter("to", "int")
+			.setSource(AbstractMinifiedFile.class.getName() + ".moveMinificationSource(this, from, to, ctx);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
 	}}
 
 	int getMaxPosition();
-	void minify() throws FrameworkException, IOException;
+	void minify(final SecurityContext securityContext) throws FrameworkException, IOException;
 	boolean shouldModificationTriggerMinifcation(final ModificationEvent modState);
 
 	public static int getMaxPosition (final AbstractMinifiedFile thisFile) {
 
-		final Class<Relation> type     = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
-		final PropertyKey<Integer> key = StructrApp.key(type, "position");
-		int max                        = -1;
+		final Class<Relation> relType  = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
+		final PropertyKey<Integer> key = StructrApp.key(relType, "position");
+		int max                        = 0;
 
-		for (final Relation neighbor : AbstractMinifiedFile.getSortedRelationships(thisFile)) {
-			max = Math.max(max, neighbor.getProperty(key));
+		for (final Relation neighbor : AbstractMinifiedFile.getMinificationRelationships(thisFile, false)) {
+			if (neighbor.getProperty(key) != null) {
+				max = Math.max(max, neighbor.getProperty(key));
+			}
 		}
 
 		return max;
@@ -108,7 +119,7 @@ public interface AbstractMinifiedFile extends File {
 
 			try {
 
-				thisFile.minify();
+				thisFile.minify(securityContext);
 
 			} catch (IOException ex) {
 				logger.warn("Could not automatically minify file", ex);
@@ -118,12 +129,12 @@ public interface AbstractMinifiedFile extends File {
 
 	public static String getConcatenatedSource(final AbstractMinifiedFile thisFile) throws FrameworkException, IOException {
 
-		final Class<Relation> type             = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
-		final PropertyKey<Integer> key         = StructrApp.key(type, "position");
+		final Class<Relation> relType          = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
+		final PropertyKey<Integer> key         = StructrApp.key(relType, "position");
 		final StringBuilder concatenatedSource = new StringBuilder();
 		int cnt = 0;
 
-		for (Relation rel : AbstractMinifiedFile.getSortedRelationships(thisFile)) {
+		for (Relation rel : AbstractMinifiedFile.getSortedMinificationRelationships(thisFile)) {
 
 			final File src = (File)rel.getTargetNode();
 
@@ -141,17 +152,27 @@ public interface AbstractMinifiedFile extends File {
 		return concatenatedSource.toString();
 	}
 
-	public static List<Relation> getSortedRelationships(final AbstractMinifiedFile thisFile) {
+	public static List<Relation> getMinificationRelationships(final AbstractMinifiedFile thisFile, final boolean sort) {
 
-		final Class<Relation> type     = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
-		final PropertyKey<Integer> key = StructrApp.key(type, "position");
+		final Class<Relation> relType  = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
+		final PropertyKey<Integer> key = StructrApp.key(relType, "position");
 		final List<Relation> rels      = new ArrayList<>();
 
-		rels.addAll(Iterables.toList(thisFile.getOutgoingRelationships(type)));
+		rels.addAll(Iterables.toList(thisFile.getOutgoingRelationships(relType)));
 
-		Collections.sort(rels, (arg0, arg1) -> (arg0.getProperty(key).compareTo(arg1.getProperty(key))));
+		if (Boolean.TRUE.equals(sort)) {
+
+			Collections.sort(rels, (arg0, arg1) -> {
+				return arg0.getProperty(key).compareTo(arg1.getProperty(key));
+			});
+		}
 
 		return rels;
+	}
+
+	public static List<Relation> getSortedMinificationRelationships(final AbstractMinifiedFile thisFile) {
+
+		return AbstractMinifiedFile.getMinificationRelationships(thisFile, true);
 	}
 
 	/**
@@ -161,12 +182,15 @@ public interface AbstractMinifiedFile extends File {
 	 * @param from The position from where the minification source is moved
 	 * @param to The position where to move the minification source
 	 * @throws FrameworkException
-	@Export
-	public void moveMinificationSource(final int from, final int to) throws FrameworkException {
+	 */
+	public static void moveMinificationSource(final AbstractMinifiedFile thisFile, final int from, final int to, final SecurityContext securityContext) throws FrameworkException {
 
-		for (MinificationSource rel : getOutgoingRelationships(MinificationSource.class)) {
+		final Class<Relation> relType  = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
+		final PropertyKey<Integer> key = StructrApp.key(relType, "position");
 
-			int currentPosition = rel.getProperty(MinificationSource.position);
+		for (Relation rel : AbstractMinifiedFile.getMinificationRelationships(thisFile, false)) {
+
+			int currentPosition = rel.getProperty(key);
 
 			int change = 0;
 			if (from < to) {
@@ -177,21 +201,16 @@ public interface AbstractMinifiedFile extends File {
 
 			if (currentPosition > from && currentPosition <= to) {
 
-				rel.setProperties(securityContext, new PropertyMap(MinificationSource.position, currentPosition + change));
+				rel.setProperties(securityContext, new PropertyMap(key, currentPosition + change));
 
 			} else if (currentPosition >= to && currentPosition < from) {
 
-				rel.setProperties(securityContext, new PropertyMap(MinificationSource.position, currentPosition + change));
+				rel.setProperties(securityContext, new PropertyMap(key, currentPosition + change));
 
 			} else if (currentPosition == from) {
 
-				rel.setProperties(securityContext, new PropertyMap(MinificationSource.position, to));
-
+				rel.setProperties(securityContext, new PropertyMap(key, to));
 			}
-
 		}
-
 	}
-
-	*/
 }

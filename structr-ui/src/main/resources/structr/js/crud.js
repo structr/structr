@@ -2161,7 +2161,7 @@ var _Crud = {
 	 *
 	 * If an optional type is given, restrict search to this type.
 	 */
-	search: function(searchString, el, type, onClickCallback, optionalPageSize) {
+	search: function(searchString, el, type, onClickCallback, optionalPageSize, blacklistedIds = []) {
 
 		_Crud.clearSearchResults(el);
 
@@ -2224,7 +2224,9 @@ var _Crud = {
 							if (Array.isArray(result)) {
 								if (result.length) {
 									$.each(result, function(i, node) {
-										_Crud.searchResult(searchResults, type, node, onClickCallback);
+										if (!blacklistedIds.includes(node.id)) {
+											_Crud.searchResult(searchResults, type, node, onClickCallback);
+										}
 									});
 								} else {
 									_Crud.noResults(searchResults, type);
@@ -2260,7 +2262,6 @@ var _Crud = {
 					}
 				}
 			});
-
 		});
 	},
 	noResults: function(searchResults, type) {

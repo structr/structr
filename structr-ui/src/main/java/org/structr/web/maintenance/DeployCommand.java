@@ -1348,7 +1348,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final PropertyKey<Integer> positionKey         = StructrApp.key(relType, "position");
 			final Map<Integer, String> minificationSources = new TreeMap<>();
 
-			for(Relation minificationSourceRel : AbstractMinifiedFile.getSortedRelationships((AbstractMinifiedFile)abstractFile)) {
+			for(Relation minificationSourceRel : AbstractMinifiedFile.getSortedMinificationRelationships((AbstractMinifiedFile)abstractFile)) {
 
 				final File file = (File) minificationSourceRel.getTargetNode();
 
