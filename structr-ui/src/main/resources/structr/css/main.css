@@ -2579,6 +2579,10 @@ input.property-name:disabled {
 #dataBinding .draggable {
 }
 
+#dataBinding #flow-selector {
+	width: 100%;
+}
+
 .data-binding-type {
 	padding: 12px;
 	margin-top: 12px;
