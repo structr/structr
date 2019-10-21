@@ -107,8 +107,12 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 			response.setHeader(header.getKey(), header.getValue());
 		}
 
-		// set  response code
-		response.setStatus(result.getResponseCode());
+		// set response code
+		if (response.getStatus() != 200) {
+			response.setStatus(response.getStatus());
+		} else {
+			response.setStatus(result.getResponseCode());
+		}
 
 		try {
 
