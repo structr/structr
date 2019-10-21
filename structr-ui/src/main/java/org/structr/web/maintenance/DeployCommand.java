@@ -1509,7 +1509,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			@Override
 			public String getKey (final Map<String, Object> map) {
 
-				return ((String)map.get("name")).concat(((String)map.get("locale")));
+				// null values are auto-casted to "null" string
+				return "" + map.get("name") + map.get("locale");
 			}
 		});
 
