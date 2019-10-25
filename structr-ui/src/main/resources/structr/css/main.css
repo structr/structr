@@ -2353,6 +2353,10 @@ input.property-name:disabled {
 	box-shadow: 0 0 5px #888;
 }
 
+.schema-props td, .schema-props th {
+	border: 1px solid #f0f0f0;
+}
+
 .schema-props > tr:hover {
 	background-color: #ffe;
 }

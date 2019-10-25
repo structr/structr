@@ -941,9 +941,8 @@ var _Schema = {
 						});
 						relTypeOverlay.parent().addClass('schema-reltype-warning');
 
-
 						Structr.appendInfoTextToElement({
-							text: "It is highly advisable to set a relationship type on the relationship! To do this, click the pencil icon to open the edit mode.<br><br><strong>Note: </strong>Any existing relationships of this type have to be migrated manually.",
+							text: "It is highly advisable to set a relationship type on the relationship! To do this, click the pencil icon to open the edit dialog.<br><br><strong>Note: </strong>Any existing relationships of this type have to be migrated manually.",
 							element: $('span', relTypeOverlay),
 							customToggleIcon: _Icons.error_icon,
 							appendToElement: $('body')
@@ -992,36 +991,34 @@ var _Schema = {
 
 			$("#edit-parent-class", headContentDiv).click(function() {
 
-				if ($(this).hasClass('disabled')) {
-					return;
+				if (!$(this).hasClass('disabled')) {
+
+					var typeName = $('.extends-class-select', headContentDiv).val().split('.').pop();
+
+					Command.search(typeName, 'SchemaNode', true, function(results) {
+						if (results.length === 1) {
+
+							_Schema.openEditDialog(results[0].id, undefined, function() {
+
+								window.setTimeout(function() {
+
+									_Schema.openEditDialog(entity.id);
+
+								}, 250);
+
+							});
+
+						} else if (results.length === 0) {
+
+							new MessageBuilder().warning("Can not open entity edit dialog for class '" + typeName + "' - <b>no corresponding</b> schema node found").show();
+
+						} else {
+
+							new MessageBuilder().warning("Can not open entity edit dialog for class '" + typeName + "' - <b>multiple corresponding</b> schema node found").show();
+
+						}
+					});
 				}
-
-				var typeName = $('.extends-class-select', headContentDiv).val().split('.').pop();
-
-				Command.search(typeName, 'SchemaNode', true, function(results) {
-					if (results.length === 1) {
-
-						_Schema.openEditDialog(results[0].id, undefined, function() {
-
-							window.setTimeout(function() {
-
-								_Schema.openEditDialog(entity.id);
-
-							}, 250);
-
-						});
-
-					} else if (results.length === 0) {
-
-						new MessageBuilder().warning("Can not open entity edit dialog for class '" + typeName + "' - <b>no corresponding</b> schema node found").show();
-
-					} else {
-
-						new MessageBuilder().warning("Can not open entity edit dialog for class '" + typeName + "' - <b>multiple corresponding</b> schema node found").show();
-
-					}
-				});
-
 			});
 
 			if (entity.extendsClass && entity.extendsClass.indexOf('org.structr.dynamic.') === 0) {
@@ -1467,11 +1464,8 @@ var _Schema = {
 						blinkGreen(tr);
 						_Schema.updateViewPreviewLink(tr, reloadedEntity.name, name);
 
-						var oldName           = view.name;
 						view.schemaProperties = obj.schemaProperties;
 						view.name             = obj.name;
-
-						tr.removeClass(oldName).addClass(view.name);
 
 						_Schema.deactivateEditModeForViewRow(tr);
 
@@ -1492,13 +1486,10 @@ var _Schema = {
 									200: function(data) {
 
 										var view = data.result;
-										var name = view.name;
 
 										blinkGreen(tr);
 
 										_Schema.reload();
-
-										tr.addClass(name);
 
 										_Schema.initViewRow(tr, reloadedEntity, view);
 									}
@@ -1592,7 +1583,7 @@ var _Schema = {
 		// row containing method
 		var tr = resizeHandlerRow.prev('tr');
 
-		tr.addClass(method.name).data('type-name', (entity ? entity.name : 'global_schema_method')).data('method-name', method.name);
+		tr.data('type-name', (entity ? entity.name : 'global_schema_method')).data('method-name', method.name);
 		$('.property-name', tr).val(method.name);
 		$('.property-code', tr).text(method.source);
 		$('.property-comment', tr).text(method.comment || '');
@@ -1731,12 +1722,11 @@ var _Schema = {
 
 					blinkGreen(tr);
 
-					tr.removeClass(method.name).addClass(obj.name);
+					method.name    = obj.name;
+					method.source  = obj.source;
+					method.comment = obj.comment;
 
-					$('.save-action', tr).addClass('hidden');
-					$('.cancel-action', tr).addClass('hidden');
-					$('.remove-action', tr).removeClass('hidden');
-					$('.add-to-favorites', tr).removeClass('hidden');
+					_Schema.initMethodRow(tr, entity, method);
 
 				} else {
 
@@ -2030,10 +2020,6 @@ var _Schema = {
 			action(el, html);
 
 			_Schema.bindEvents(property);
-
-			if (property.isBuiltinProperty) {
-				_Schema.disable(property);
-			}
 		});
 	},
 	appendBuiltinProperty: function(el, property) {
@@ -2042,38 +2028,14 @@ var _Schema = {
 			el.append(html);
 		});
 	},
-	disable: function(property) {
-
-		var key = property.name;
-		var el  = $('.local.schema-props');
-
-		$('.' + key + ' .property-type option[value="' + property.propertyType + '"]', el).prop('disabled', true);
-
-		if (property.propertyType && property.propertyType !== '') {
-			$('.' + key + ' .property-name', el).prop('disabled', true);
-			$('.' + key + ' .property-dbname', el).prop('disabled', true);
-		}
-
-		$('.' + key + ' .property-type', el).prop('disabled', true);
-		$('.' + key + ' .property-format', el).prop('disabled', true);
-		$('.' + key + ' button', el).prop('disabled', true);
-		$('.' + key + ' .not-null', el).prop('disabled', true);
-		$('.' + key + ' .compound', el).prop('disabled', true);
-		$('.' + key + ' .unique', el).prop('disabled', true);
-		$('.' + key + ' .indexed', el).prop('disabled', true);
-		$('.' + key + ' .property-default', el).prop('disabled', true);
-		$('.' + key + ' .remove-property', el).prop('disabled', true);
-
-		$('.local .' + key).css('background-color', '#eee');
-	},
 	bindEvents: function(property) {
 
 		var key = property.name;
-		var el  = $('.local.schema-props');
+		var propertyRow  = $('.local.schema-props tr[data-property-name="' + key + '"]');
 
 		var protected = false;
 
-		var propertyTypeOption = $('.' + key + ' .property-type option[value="' + property.propertyType + '"]', el);
+		var propertyTypeOption = $('.property-type option[value="' + property.propertyType + '"]', propertyRow);
 		if (propertyTypeOption) {
 			propertyTypeOption.attr('selected', true);
 			if (propertyTypeOption.data('protected')) {
@@ -2087,95 +2049,96 @@ var _Schema = {
 			console.log(property.propertyType, property);
 		}
 
-		var typeField = $('.' + key + ' .property-type', el);
-		$('.' + key + ' .property-type option[value=""]', el).remove();
+		var typeField = $('.property-type', propertyRow);
+		$('.property-type option[value=""]', propertyRow).remove();
 
 		if (property.propertyType === 'String' && !property.isBuiltinProperty) {
 			if (!$('input.content-type', typeField.parent()).length) {
 				typeField.after('<input type="text" size="5" class="content-type">');
 			}
-			$('.' + key + ' .content-type', el).off('change').on('change', function() {
+			$('.content-type', propertyRow).off('change').on('change', function() {
 				_Schema.savePropertyDefinition(property);
 			}).prop('disabled', null).val(property.contentType);
 		}
 
 		if (property.propertyType && property.propertyType !== '') {
-			$('.' + key + ' .property-name', el).off('change').on('change', function() {
+			$('.property-name', propertyRow).off('change').on('change', function() {
+				console.log('nameChange!')
 				_Schema.savePropertyDefinition(property);
 			}).prop('disabled', protected).val(property.name);
-			$('.' + key + ' .property-dbname', el).off('change').on('change', function() {
+			$('.property-dbname', propertyRow).off('change').on('change', function() {
 				_Schema.savePropertyDefinition(property);
 			}).prop('disabled', protected).val(property.dbName);
 		}
 
-		$('.' + key + ' .caching-enabled', el).off('change').on('change', function() {
+		$('.caching-enabled', propertyRow).off('change').on('change', function() {
 			_Schema.savePropertyDefinition(property);
 		}).prop('disabled', protected).val(property.isCachingEnabled);
 
-		$('.' + key + ' .type-hint', el).off('change').on('change', function() {
+		$('.type-hint', propertyRow).off('change').on('change', function() {
 			_Schema.savePropertyDefinition(property);
 		}).prop('disabled', protected).val("" + property.typeHint);
 
-		$('.' + key + ' .property-type', el).off('change').on('change', function() {
+		$('.property-type', propertyRow).off('change').on('change', function() {
 			_Schema.savePropertyDefinition(property);
 		}).prop('disabled', protected).val(property.propertyType);
 
-		$('.' + key + ' .property-format', el).off('change').on('change', function() {
+		$('.property-format', propertyRow).off('change').on('change', function() {
 			_Schema.savePropertyDefinition(property);
 		}).prop('disabled', protected).val(property.format);
 
-		$('.' + key + ' .edit-read-function', el).off('click').on('click', function() {
+		$('.edit-read-function', propertyRow).off('click').on('click', function() {
 			_Schema.openCodeEditor($(this), property.id, 'readFunction', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
 		}).prop('disabled', protected);
 
-		$('.' + key + ' .edit-write-function', el).off('click').on('click', function() {
+		$('.edit-write-function', propertyRow).off('click').on('click', function() {
 			_Schema.openCodeEditor($(this), property.id, 'writeFunction', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
 		}).prop('disabled', protected);
 
-		$('.' + key + ' .not-null', el).off('change').on('change', function() {
+		$('.not-null', propertyRow).off('change').on('change', function() {
 			_Schema.savePropertyDefinition(property);
 		}).prop('disabled', protected).val(property.notNull);
 
-		$('.' + key + ' .compound', el).off('change').on('change', function() {
+		$('.compound', propertyRow).off('change').on('change', function() {
 			_Schema.savePropertyDefinition(property);
 		}).prop('disabled', protected).val(property.compound);
 
-		$('.' + key + ' .unique', el).off('change').on('change', function() {
+		$('.unique', propertyRow).off('change').on('change', function() {
 			_Schema.savePropertyDefinition(property);
 		}).prop('disabled', protected).val(property.unique);
 
-		$('.' + key + ' .indexed', el).off('change').on('change', function() {
+		$('.indexed', propertyRow).off('change').on('change', function() {
 			_Schema.savePropertyDefinition(property);
 		}).prop('disabled', protected).val(property.indexed);
 
-		$('.' + key + ' .property-default', el).off('change').on('change', function() {
+		$('.property-default', propertyRow).off('change').on('change', function() {
 			_Schema.savePropertyDefinition(property);
 		}).prop('disabled', protected).val(property.defaultValue);
 
 		if (!protected) {
-			$('.' + key + ' .remove-property', el).off('click').on('click', function() {
+			$('.remove-property', propertyRow).off('click').on('click', function() {
 				_Schema.confirmRemoveSchemaEntity(property, 'Delete property', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); }, 'Property values will not be removed from data nodes.');
 			}).prop('disabled', null);
 		} else {
-			$('.' + key + ' .remove-property', el).hide();
+			$('.remove-property', propertyRow).hide();
 		}
 	},
 	unbindEvents: function(key) {
 
-		var el = $('.local.schema-props');
+		var propertyRow  = $('.local.schema-props tr[data-property-name="' + key + '"]');
 
-		$('.' + key + ' .property-type', el).off('change').prop('disabled', 'disabled');
-		$('.' + key + ' .content-type', el).off('change').prop('disabled', 'disabled');
-		$('.' + key + ' .property-format', el).off('change').prop('disabled', 'disabled');
-		$('.' + key + ' .caching-enabled', el).off('change').prop('disabled', 'disabled');
-		$('.' + key + ' .type-hint', el).off('change').prop('disabled', 'disabled');
-		$('.' + key + ' .not-null', el).off('change').prop('disabled', 'disabled');
-		$('.' + key + ' .compound', el).off('change').prop('disabled', 'disabled');
-		$('.' + key + ' .unique', el).off('change').prop('disabled', 'disabled');
-		$('.' + key + ' .indexed', el).off('change').prop('disabled', 'disabled');
-		$('.' + key + ' .property-default', el).off('change').prop('disabled', 'disabled');
-		$('.' + key + ' .remove-property', el).off('click').prop('disabled', 'disabled');
-		$('.' + key + ' button', el).off('click').prop('disabled', 'disabled');
+		$('.property-type', propertyRow).off('change').prop('disabled', 'disabled');
+		$('.content-type', propertyRow).off('change').prop('disabled', 'disabled');
+		$('.property-format', propertyRow).off('change').prop('disabled', 'disabled');
+		$('.caching-enabled', propertyRow).off('change').prop('disabled', 'disabled');
+		$('.type-hint', propertyRow).off('change').prop('disabled', 'disabled');
+		$('.not-null', propertyRow).off('change').prop('disabled', 'disabled');
+		$('.compound', propertyRow).off('change').prop('disabled', 'disabled');
+		$('.unique', propertyRow).off('change').prop('disabled', 'disabled');
+		$('.indexed', propertyRow).off('change').prop('disabled', 'disabled');
+		$('.property-default', propertyRow).off('change').prop('disabled', 'disabled');
+		$('.remove-property', propertyRow).off('click').prop('disabled', 'disabled');
+		$('.utton', propertyRow).off('click').prop('disabled', 'disabled');
 	},
 	openCodeEditor: function(btn, id, key, callback) {
 
@@ -2408,19 +2371,21 @@ var _Schema = {
 	},
 	savePropertyDefinition: function(property) {
 
+		var propertyRow  = $('.local.schema-props tr[data-property-name="' + property.name + '"]');
+
 		var obj = {
-			name:         			$('.' + property.name + ' .property-name').val(),
-			dbName:       			$('.' + property.name + ' .property-dbname').val(),
-			propertyType: 			$('.' + property.name + ' .property-type').val(),
-			contentType:  			$('.' + property.name + ' .content-type').val(),
-			format:       			$('.' + property.name + ' .property-format').val(),
-			notNull:      			$('.' + property.name + ' .not-null').is(':checked'),
-			compound:     			$('.' + property.name + ' .compound').is(':checked'),
-			unique:       			$('.' + property.name + ' .unique').is(':checked'),
-			indexed:      			$('.' + property.name + ' .indexed').is(':checked'),
-			defaultValue: 			$('.' + property.name + ' .property-default').val(),
-            isCachingEnabled:      	$('.' + property.name + ' .caching-enabled').is(':checked'),
-			typeHint:				$('.' + property.name + ' .type-hint').val()
+			name:         			$('.property-name', propertyRow).val(),
+			dbName:       			$('.property-dbname', propertyRow).val(),
+			propertyType: 			$('.property-type', propertyRow).val(),
+			contentType:  			$('.content-type', propertyRow).val(),
+			format:       			$('.property-format', propertyRow).val(),
+			notNull:      			$('.not-null', propertyRow).is(':checked'),
+			compound:     			$('.compound', propertyRow).is(':checked'),
+			unique:       			$('.unique', propertyRow).is(':checked'),
+			indexed:      			$('.indexed', propertyRow).is(':checked'),
+			defaultValue: 			$('.property-default', propertyRow).val(),
+			isCachingEnabled:      	$('.caching-enabled', propertyRow).is(':checked'),
+			typeHint:				$('.type-hint', propertyRow).val()
 		};
 
 		if (obj.typeHint === "null") {
@@ -2439,10 +2404,10 @@ var _Schema = {
 			_Schema.storeSchemaEntity('schema_properties', property, JSON.stringify(obj), function() {
 
 				if (property.name !== obj.name) {
-					$('.local .' + property.name).removeClass(property.name).addClass(obj.name);
+					propertyRow.attr('data-property-name', obj.name);
 				}
 
-				blinkGreen($('.local .' + property.name));
+				blinkGreen(propertyRow);
 
 				// accept values into property object
 				property.name = obj.name;
@@ -2473,7 +2438,7 @@ var _Schema = {
 
 				Structr.errorFromResponse(data.responseJSON, null, additionalInformation);
 
-				blinkRed($('.local .' + property.name));
+				blinkRed(propertyRow);
 				_Schema.bindEvents(property);
 
 			}, function() {
