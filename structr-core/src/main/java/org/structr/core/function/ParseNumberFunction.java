@@ -45,7 +45,7 @@ public class ParseNumberFunction extends CoreFunction {
 
 		try {
 
-			final String numberString = sources[0].toString().replaceAll("[^\\d.,]", "");;
+			final String numberString = sources[0].toString().replaceAll("[^\\d.,-]", "");
 
 			if (StringUtils.isBlank(numberString)) {
 				return "";
