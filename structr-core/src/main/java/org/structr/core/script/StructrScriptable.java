@@ -514,17 +514,19 @@ public class StructrScriptable extends ScriptableObject {
 
 				final Object value = function.apply(actionContext, entity, unwrappedParameters);
 
-				// remove namespace identifier
-				if (function.getNamespaceIdentifier() != null) {
-					namespace.remove(function.getNamespaceIdentifier());
-				}
-
 				return wrap(context, scope, null, value);
 
 			} catch (final UnlicensedScriptException uex) {
 				uex.log(logger);
 			} catch (final FrameworkException fex) {
 				exception = fex;
+			} finally {
+
+				// remove namespace identifier
+				if (function.getNamespaceIdentifier() != null) {
+					namespace.remove(function.getNamespaceIdentifier());
+				}
+
 			}
 
 			return null;

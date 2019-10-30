@@ -20,7 +20,6 @@ package org.structr.test.core.script;
 
 import com.google.gson.GsonBuilder;
 
-import java.awt.*;
 import java.net.URISyntaxException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -4107,8 +4106,51 @@ public class ScriptingTest extends StructrTest {
 
 			fail();
 		}
+	}
 
+	@Test
+	public void testAdvancedFindNamespaceHandlingWithException() {
 
+		/*
+		 * This test verifies that the find() namespace is correctly exited even when an exception
+		 * occurs inside of a find() function call (e.g. caused by a wrongly typed search parameter).
+		 */
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addIntegerProperty("test");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			Scripting.evaluate(ctx, null, "${{ var source = $.find('Test', { test: 'error' }); let test = $.empty(source); $.store('result', test); }}", "test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			assertEquals("Wrong error code for exception inside of advanced find() context.",   422, fex.getStatus());
+			assertEquals("Wrong error message for exception inside of advanced find() context", "Cannot parse input error for property test", fex.getMessage());
+		}
+
+		// expected result is boolean "true" since the empty() function call checks the result of the erroneous find()
+		assertEquals("Advanced find() namespace not exited correctly", true, securityContext.getContextStore().retrieve("result"));
 
 	}
 
