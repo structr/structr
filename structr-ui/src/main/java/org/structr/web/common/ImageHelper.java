@@ -814,7 +814,7 @@ public abstract class ImageHelper extends FileHelper {
 
 			return exifDataJson;
 
-		} catch (final JSONException | FrameworkException ex) {
+		} catch (final Exception ex) {
 			logger.warn("Unable to extract EXIF metadata.", ex);
 		}
 
