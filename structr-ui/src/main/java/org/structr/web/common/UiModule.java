@@ -31,44 +31,7 @@ import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.datasource.IdRequestParameterGraphDataSource;
 import org.structr.web.datasource.RestDataSource;
 import org.structr.web.datasource.XPathGraphDataSource;
-import org.structr.web.function.AddHeaderFunction;
-import org.structr.web.function.AppendContentFunction;
-import org.structr.web.function.BarcodeFunction;
-import org.structr.web.function.ConfirmationKeyFunction;
-import org.structr.web.function.CopyFileContentsFunction;
-import org.structr.web.function.CreateArchiveFunction;
-import org.structr.web.function.EscapeHtmlFunction;
-import org.structr.web.function.FromJsonFunction;
-import org.structr.web.function.FromXmlFunction;
-import org.structr.web.function.GetContentFunction;
-import org.structr.web.function.GetRequestHeaderFunction;
-import org.structr.web.function.GetSessionAttributeFunction;
-import org.structr.web.function.HttpDeleteFunction;
-import org.structr.web.function.HttpGetFunction;
-import org.structr.web.function.HttpHeadFunction;
-import org.structr.web.function.HttpPostFunction;
-import org.structr.web.function.HttpPutFunction;
-import org.structr.web.function.IncludeChildFunction;
-import org.structr.web.function.IncludeFunction;
-import org.structr.web.function.IsLocaleFunction;
-import org.structr.web.function.JobInfoFunction;
-import org.structr.web.function.LogEventFunction;
-import org.structr.web.function.MaintenanceFunction;
-import org.structr.web.function.ParseFunction;
-import org.structr.web.function.RemoveSessionAttributeFunction;
-import org.structr.web.function.RenderFunction;
-import org.structr.web.function.ScheduleFunction;
-import org.structr.web.function.SendHtmlMailFunction;
-import org.structr.web.function.SendPlaintextMailFunction;
-import org.structr.web.function.SetContentFunction;
-import org.structr.web.function.SetDetailsObjectFunction;
-import org.structr.web.function.SetResponseCodeFunction;
-import org.structr.web.function.SetResponseHeaderFunction;
-import org.structr.web.function.SetSessionAttributeFunction;
-import org.structr.web.function.StripHtmlFunction;
-import org.structr.web.function.ToGraphObjectFunction;
-import org.structr.web.function.ToJsonFunction;
-import org.structr.web.function.UnescapeHtmlFunction;
+import org.structr.web.function.*;
 
 /**
  */
@@ -128,6 +91,7 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new MaintenanceFunction());
 		Functions.put(licenseManager, new BarcodeFunction());
 		Functions.put(licenseManager, new JobInfoFunction());
+		Functions.put(licenseManager, new JobListFunction());
 	}
 
 	@Override
