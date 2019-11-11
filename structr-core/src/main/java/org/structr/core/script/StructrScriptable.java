@@ -318,7 +318,7 @@ public class StructrScriptable extends ScriptableObject {
 			final String namespaceIdentifier = function.getNamespaceIdentifier();
 			if (namespaceIdentifier != null) {
 
-				namespace.add(name);
+				namespace.add(namespaceIdentifier);
 			}
 
 			return new IdFunctionObject(new FunctionWrapper(function), "Function", 0, 0);

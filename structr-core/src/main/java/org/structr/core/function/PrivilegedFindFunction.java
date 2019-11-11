@@ -23,22 +23,27 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import static org.structr.core.function.FindFunction.ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED;
+import static org.structr.core.function.FindFunction.ERROR_MESSAGE_FIND_TYPE_NOT_FOUND;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
 public class PrivilegedFindFunction extends AbstractQueryFunction {
 
-    public static final String ERROR_MESSAGE_PRIVILEGEDFIND                       = "Usage: ${find_privileged(type, key, value)}. Example: ${find_privileged(\"User\", \"email\", \"tester@test.com\"}";
-	public static final String ERROR_MESSAGE_PRIVILEGEDFIND_NO_TYPE_SPECIFIED = "Error in find_privileged(): no type specified.";
-	public static final String ERROR_MESSAGE_PRIVILEGEDFIND_TYPE_NOT_FOUND    = "Error in find_privileged(): type not found: ";
+	public static final String ERROR_MESSAGE_PRIVILEGEDFIND = "Usage: ${find_privileged(type, key, value)}. Example: ${find_privileged(\"User\", \"email\", \"tester@test.com\"}";
 
-    @Override
-    public String getName() {
-        return "find_privileged";
-    }
+	@Override
+	public String getName() {
+		return "find_privileged";
+	}
 
-    @Override
-    public Object apply(final ActionContext ctx, final Object caller, Object[] sources) throws FrameworkException {
+	@Override
+	public String getNamespaceIdentifier() {
+		return "find";
+	}
+
+	@Override
+	public Object apply(final ActionContext ctx, final Object caller, Object[] sources) throws FrameworkException {
 
 		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 		final boolean ignoreResultCount       = securityContext.ignoreResultCount();
@@ -50,9 +55,9 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 				throw new IllegalArgumentException();
 			}
 
-			final ConfigurationProvider config    = StructrApp.getConfiguration();
-			final App app                         = StructrApp.getInstance(securityContext);
-			final Query query                     = app.nodeQuery();
+			final ConfigurationProvider config = StructrApp.getConfiguration();
+			final App app                      = StructrApp.getInstance(securityContext);
+			final Query query                  = app.nodeQuery();
 
 			// the type to query for
 			Class type = null;
@@ -68,16 +73,16 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 
 				} else {
 
-					logger.warn("Error in find_privileged(): type \"{}\" not found.", typeString);
-					return ERROR_MESSAGE_PRIVILEGEDFIND_TYPE_NOT_FOUND + typeString;
+					logger.warn("Error in find(): type \"{}\" not found.", typeString);
+					return ERROR_MESSAGE_FIND_TYPE_NOT_FOUND + typeString;
 
 				}
 			}
 
 			// exit gracefully instead of crashing..
 			if (type == null) {
-				logger.warn("Error in find_privileged(): no type specified. Parameters: {}", getParametersAsString(sources));
-				return ERROR_MESSAGE_PRIVILEGEDFIND_NO_TYPE_SPECIFIED;
+				logger.warn("Error in find(): no type specified. Parameters: {}", getParametersAsString(sources));
+				return ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED;
 			}
 
 			// apply sorting and pagination by surrounding sort() and slice() expressions
@@ -96,15 +101,15 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 			resetQueryParameters(securityContext);
 			securityContext.ignoreResultCount(ignoreResultCount);
 		}
-    }
+	}
 
-    @Override
-    public String usage(boolean inJavaScriptContext) {
-        return ERROR_MESSAGE_PRIVILEGEDFIND;
-    }
+	@Override
+	public String usage(boolean inJavaScriptContext) {
+		return ERROR_MESSAGE_PRIVILEGEDFIND;
+	}
 
-    @Override
-    public String shortDescription() {
-        return "Returns a collection of entities of the given type from the database, takes optional key/value pairs. Executed in a super user context.";
-    }
+	@Override
+	public String shortDescription() {
+		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs. Executed in a super user context.";
+	}
 }
