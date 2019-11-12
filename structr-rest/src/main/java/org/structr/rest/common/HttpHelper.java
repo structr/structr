@@ -239,6 +239,44 @@ public class HttpHelper {
 		return responseHeaders;
 	}
 
+	public static Map<String, String> patch(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers, final String charset) {
+		return patch(address, requestBody, username, password, null, null, null, null, headers, charset);
+	}
+
+	public static Map<String, String> patch(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset) {
+
+		final Map<String, String> responseData = new HashMap<>();
+
+		try {
+
+			final URI url     = URI.create(address);
+			final HttpPut req = new HttpPatch(url);
+
+			configure(req, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
+
+			req.setEntity(new StringEntity(requestBody, charset));
+
+			final CloseableHttpResponse response = client.execute(req);
+
+			String content = IOUtils.toString(response.getEntity().getContent(), charset(response));
+
+			content = skipBOMIfPresent(content);
+
+			responseData.put("body", content);
+
+			responseData.put("status", Integer.toString(response.getStatusLine().getStatusCode()));
+			for (final Header header : response.getAllHeaders()) {
+
+				responseData.put(header.getName(), header.getValue());
+			}
+
+		} catch (final Throwable t) {
+
+			logger.error("Unable to fetch content from address {}, {}", new Object[] { address, t.getMessage() });
+		}
+
+		return responseData;
+	}
 	public static Map<String, String> post(final String address, final String requestBody) {
 		return post(address, requestBody, null, null, null, null, Collections.EMPTY_MAP);
 	}
@@ -494,5 +532,22 @@ public class HttpHelper {
 			throw new FrameworkException(422, "Unable to fetch file content from address " + address + ": " + t.getMessage());
 		}
 
+	}
+
+	// ----- nested classes -----
+	public static class HttpPatch extends HttpPut {
+
+		public HttpPatch() {
+			super();
+		}
+
+		public HttpPatch(final URI uri) {
+			super(uri);
+		}
+
+		@Override
+		public String getMethod() {
+			return "PATCH";
+		}
 	}
 }
