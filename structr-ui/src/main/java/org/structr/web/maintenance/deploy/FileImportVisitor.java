@@ -222,22 +222,24 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			tx.disableChangelog();
 
-			final String fullPath            = harmonizeFileSeparators("/", basePath.relativize(path).toString());
+			final String fullPath                   = harmonizeFileSeparators("/", basePath.relativize(path).toString());
 			final Map<String, Object> rawProperties = getRawPropertiesForFileOrFolder(fullPath);
-			Object minificationSources = null;
-			if (rawProperties.containsKey("minificationSources")) {
-				deferFile = true;
-				minificationSources = rawProperties.remove("minificationSources");
-			}
-			final PropertyMap fileProperties = convertRawPropertiesForFileOrFolder(rawProperties);
 
-			if (fileProperties == null) {
+			if (rawProperties == null) {
 
 				if (!fileName.startsWith(".")) {
 					logger.info("Ignoring {} (not in files.json)", fullPath);
 				}
 
 			} else {
+
+				Object minificationSources = null;
+				if (rawProperties.containsKey("minificationSources")) {
+					deferFile = true;
+					minificationSources = rawProperties.remove("minificationSources");
+				}
+
+				final PropertyMap fileProperties = convertRawPropertiesForFileOrFolder(rawProperties);
 
 				final PropertyKey isThumbnailKey = StructrApp.key(Image.class, "isThumbnail");
 
