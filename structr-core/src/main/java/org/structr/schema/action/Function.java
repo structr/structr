@@ -72,7 +72,7 @@ public abstract class Function<S, T> extends Hint {
 	}
 
 	/**
-	 * Basic logging for functions called with wrong parameter count
+	 * Basic logging for functions called with wrong parameter combination/count
 	 *
 	 * @param caller The element that caused the error
 	 * @param parameters The function parameters
