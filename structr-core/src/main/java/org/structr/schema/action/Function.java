@@ -113,22 +113,7 @@ public abstract class Function<S, T> extends Hint {
 	 * @param messageParams The parameters for the message
 	 */
 	protected void logException (final Throwable t, final String msg, final Object[] messageParams) {
-		logException (t, msg, messageParams, Settings.LogFunctionsStackTrace.getValue());
-	}
-
-	/**
-	 * Logging of an Exception in a function with custom message and message parameters.<br><br>
-	 *
-	 * Attention: This function should only be called directly if it is 100% known if a stacktrace should always be shown or hidden.<br>
-	 * Otherwise `logException (final Throwable t, final String msg, final Object[] messageParams)` should be used!
-	 *
-	 * @param t The exception thrown, only logged if log.functions.stacktrace setting is true
-	 * @param msg The message to be printed
-	 * @param messageParams The parameters for the message
-	 * @param showStacktrace flag which either shows or hides the stacktrace
-	 */
-	protected void logException (final Throwable t, final String msg, final Object[] messageParams, final boolean showStacktrace) {
-		if (showStacktrace) {
+		if (Settings.LogFunctionsStackTrace.getValue()) {
 			logger.error(msg, ArrayUtils.add(messageParams, t));
 		} else {
 			logger.error(msg + " (Stacktrace suppressed - see setting " + Settings.LogFunctionsStackTrace.getKey() + ")", messageParams);
@@ -232,7 +217,7 @@ public abstract class Function<S, T> extends Hint {
 
 		} catch (NumberFormatException nfe) {
 
-			logException(nfe, "{}: Exception parsing '{}'", new Object[] { getReplacement(), obj }, false);
+			logger.error("{}: Exception parsing '{}'", new Object[] { getReplacement(), obj });
 
 		} catch (Throwable t) {
 
