@@ -157,7 +157,6 @@ public class TransactionCommand {
 
 			try {
 				cmd.transaction.success();
-				cmd.postProcessQueue.applyProcessQueue();
 
 			} catch (Throwable t) {
 				logger.error("Unable to commit transaction", t);
@@ -188,6 +187,7 @@ public class TransactionCommand {
 
 					// release semaphores as the transaction is now finished
 					semaphore.release(synchronizationKeys);	// careful: this can be null
+					cmd.postProcessQueue.applyProcessQueue();
 				}
 
 			} else {
