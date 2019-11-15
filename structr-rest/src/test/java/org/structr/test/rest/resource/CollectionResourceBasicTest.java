@@ -19,6 +19,7 @@
 package org.structr.test.rest.resource;
 
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.response.ResponseBody;
 import static org.hamcrest.Matchers.*;
 import org.testng.annotations.Test;
 import org.structr.test.rest.common.StructrRestTestBase;
@@ -159,4 +160,51 @@ public class CollectionResourceBasicTest extends StructrRestTestBase {
 
 	}
 
+	@Test
+	public void testOrderOfIDsWhenPostingMultipleObjects() {
+
+		// make sure that the order of UUIDs returned by a POST
+		// request matches the order of posted objects
+
+		final ResponseBody response = RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("[ { name: group1 }, { name: group2 }, { name: group3 }, { name: group4 }, { name: group5 } ]")
+
+			.expect()
+				.statusCode(201)
+
+			.when()
+				.post("/Group")
+				.getBody();
+
+		final String id1 = response.jsonPath().getString("result[0]");
+		final String id2 = response.jsonPath().getString("result[1]");
+		final String id3 = response.jsonPath().getString("result[2]");
+		final String id4 = response.jsonPath().getString("result[3]");
+		final String id5 = response.jsonPath().getString("result[4]");
+
+		// check for exactly one object
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result_count",   equalTo(5))
+				.body("result[0].name", equalTo("group1"))
+				.body("result[0].id",   equalTo(id1))
+				.body("result[1].name", equalTo("group2"))
+				.body("result[1].id",   equalTo(id2))
+				.body("result[2].name", equalTo("group3"))
+				.body("result[2].id",   equalTo(id3))
+				.body("result[3].name", equalTo("group4"))
+				.body("result[3].id",   equalTo(id4))
+				.body("result[4].name", equalTo("group5"))
+				.body("result[4].id",   equalTo(id5))
+
+			.when()
+				.get("/Group");
+	}
 }
