@@ -72,7 +72,7 @@ public abstract class Function<S, T> extends Hint {
 	}
 
 	/**
-	 * Basic logging for functions called with wrong parameter count
+	 * Basic logging for functions called with wrong parameter combination/count
 	 *
 	 * @param caller The element that caused the error
 	 * @param parameters The function parameters
@@ -214,6 +214,10 @@ public abstract class Function<S, T> extends Hint {
 				return Double.parseDouble(obj.toString());
 
 			}
+
+		} catch (NumberFormatException nfe) {
+
+			logger.error("{}: Exception parsing '{}'", new Object[] { getReplacement(), obj });
 
 		} catch (Throwable t) {
 
