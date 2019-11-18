@@ -18,11 +18,11 @@
  */
 package org.structr.web.function;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.entity.dom.DOMNode;
 
 public class EscapeHtmlFunction extends UiCommunityFunction {
 
@@ -41,7 +41,7 @@ public class EscapeHtmlFunction extends UiCommunityFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			return DOMNode.escapeForHtmlAttributes(sources[0].toString());
+			return StringEscapeUtils.escapeHtml(sources[0].toString());
 
 		} catch (ArgumentNullException pe) {
 
