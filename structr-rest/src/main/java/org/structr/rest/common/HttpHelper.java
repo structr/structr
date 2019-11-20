@@ -28,6 +28,7 @@ import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
@@ -257,8 +258,18 @@ public class HttpHelper {
 			req.setEntity(new StringEntity(requestBody, charset));
 
 			final CloseableHttpResponse response = client.execute(req);
+			final HttpEntity entity = response.getEntity();
+			String content = null;
 
-			String content = IOUtils.toString(response.getEntity().getContent(), charset(response));
+			if (entity != null) {
+
+				final InputStream responseContent = entity.getContent();
+
+				if (responseContent != null) {
+					
+					content = IOUtils.toString(responseContent, charset(response));
+				}
+			}
 
 			content = skipBOMIfPresent(content);
 
