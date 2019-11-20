@@ -58,7 +58,7 @@ public class HttpPatchFunction extends UiAdvancedFunction {
 				charset = sources[3].toString();
 			}
 
-			final Map<String, String> responseData = HttpHelper.put(uri, body, null, null, ctx.getHeaders(), charset);
+			final Map<String, String> responseData = HttpHelper.patch(uri, body, null, null, ctx.getHeaders(), charset);
 
 			final int statusCode = Integer.parseInt(responseData.get("status"));
 			responseData.remove("status");
