@@ -19,6 +19,7 @@
 package org.structr.flow.engine;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.structr.flow.api.*;
@@ -60,9 +61,7 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 					for (final Object o : ((Iterable) data)) {
 
 						// Provide current element data for loop context and write evaluation result into main context data for this loop element
-						Map<String,Object> aggregations = loopContext.getAggregations();
-						loopContext = new Context(context);
-						loopContext.setAggregations(aggregations);
+						openNewContext(context, loopContext, flowElement);
 						loopContext.setData(flowElement.getUuid(), o);
 						context.setData(flowElement.getUuid(), engine.execute(loopContext, loopBody));
 
@@ -89,6 +88,27 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 		}
 
 		return flowElement.next();
+	}
+
+	private void openNewContext(final Context context, Context loopContext, final FlowElement flowElement) {
+		Map<String,Object> aggregateData = new HashMap<>();
+
+		FlowElement currentElement = flowElement;
+
+		while (currentElement.next() != null) {
+			if (currentElement instanceof FlowAggregate) {
+
+				aggregateData.put(((FlowAggregate) currentElement).getUuid(), loopContext.getData(((FlowAggregate) currentElement).getUuid()));
+			}
+			currentElement = currentElement.next();
+		}
+
+		loopContext = new Context(context);
+
+		for (Map.Entry<String,Object> entry : aggregateData.entrySet()) {
+			loopContext.setData(entry.getKey(), entry.getValue());
+		}
+
 	}
 
 }
