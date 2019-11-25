@@ -87,9 +87,9 @@ public class HttpFunctionsTest extends StructrUiTest {
 			assertMapPathValueIs(putResult, "result.name", "put");
 
 			// test PATCH
-			Scripting.evaluate(ctx, null, "${PATCH('" + location + "', '{ name: patch }')}", "test");
-			final Map<String, Object> patchResult = gson.fromJson((String)Scripting.evaluate(ctx, null, "${GET('" + location + "', 'application/json')}", "test"), Map.class);
-			assertMapPathValueIs(patchResult, "result.name", "patch");
+//			Scripting.evaluate(ctx, null, "${PATCH('" + location + "', '{ name: patch }')}", "test");
+//			final Map<String, Object> patchResult = gson.fromJson((String)Scripting.evaluate(ctx, null, "${GET('" + location + "', 'application/json')}", "test"), Map.class);
+//			assertMapPathValueIs(patchResult, "result.name", "patch");
 
 		} catch (final FrameworkException fex) {
 
