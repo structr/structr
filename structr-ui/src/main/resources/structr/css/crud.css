@@ -284,6 +284,13 @@ input.readonly {
 	margin-bottom: 5px;
 }
 
+#crud-buttons .exact-type-checkbox {
+	vertical-align: initial;
+}
+#crud-buttons .exact-type-checkbox-label {
+	font-size: 8pt;
+}
+
 #query-info {
 	position: absolute;
 	bottom: 4px;
