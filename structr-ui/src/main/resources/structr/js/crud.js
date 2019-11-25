@@ -18,14 +18,7 @@
  */
 var defaultType, defaultView, defaultSort, defaultOrder, defaultPage, defaultPageSize;
 var searchField;
-var defaultCollectionPageSize = 10;
-var hiddenTabs = [];
 var browser = (typeof document === 'object');
-var crudPagerDataKey = 'structrCrudPagerData_' + port + '_';
-var crudTypeKey = 'structrCrudType_' + port;
-var crudHiddenColumnsKey = 'structrCrudHiddenColumns_' + port;
-var crudRecentTypesKey = 'structrCrudRecentTypes_' + port;
-var crudResizerLeftKey = 'structrCrudResizerLeft_' + port;
 
 if (browser) {
 
@@ -74,7 +67,6 @@ if (browser) {
 				_Crud.hideTypeVisibilityConfig();
 			}
 		});
-
 	});
 
 } else {
@@ -83,7 +75,14 @@ if (browser) {
 
 var _Crud = {
 	_moduleName: 'crud',
+	defaultCollectionPageSize: 10,
 	displayTypeConfigKey: 'structrCrudDisplayTypes_' + port,
+	crudPagerDataKey: 'structrCrudPagerData_' + port + '_',
+	crudTypeKey: 'structrCrudType_' + port,
+	crudHiddenColumnsKey: 'structrCrudHiddenColumns_' + port,
+	crudRecentTypesKey: 'structrCrudRecentTypes_' + port,
+	crudResizerLeftKey: 'structrCrudResizerLeft_' + port,
+	crudExactTypeKey: 'structrCrudExactType_' + port,
 	types: {},
 	relInfo: {},
 	keys: {},
@@ -184,6 +183,7 @@ var _Crud = {
 	sort: {},
 	order: {},
 	page: {},
+	exact: {},
 	pageSize: {},
 	typeCategories: {
 		rels: 'Relationship Types',
@@ -208,7 +208,7 @@ var _Crud = {
 		other: true
 	},
 	moveResizer: function(left) {
-		left = left || LSWrapper.getItem(crudResizerLeftKey) || 210;
+		left = left || LSWrapper.getItem(_Crud.crudResizerLeftKey) || 210;
 		$('.column-resizer', main).css({ left: left });
 
 		$('#crud-types').css({width: left - 12 + 'px'});
@@ -227,10 +227,12 @@ var _Crud = {
 				+ '<div id="crud-right" class="resourceBox full-height-box"></div></div>');
 
 		_Crud.moveResizer();
-		Structr.initVerticalSlider($('.column-resizer', main), crudResizerLeftKey, 204, _Crud.moveResizer);
+		Structr.initVerticalSlider($('.column-resizer', main), _Crud.crudResizerLeftKey, 204, _Crud.moveResizer);
 
 		let filterSettings = $('#crudTypeFilterSettings');
 		var savedTypeVisibility = LSWrapper.getItem(_Crud.displayTypeConfigKey) || {};
+
+		_Crud.exact = LSWrapper.getItem(_Crud.crudExactTypeKey) || {};
 
 		Object.keys(_Crud.typeCategories).forEach(function(k) {
 			let elId = 'crudTypeToggle' + k;
@@ -416,6 +418,7 @@ var _Crud = {
 					+ '<button id="export' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_table_icon) + '" /> Export as CSV</button>'
 					+ '<button id="import' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_add_icon) + '" /> Import CSV</button>'
 					+ '<button id="delete' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /> Delete <b>all</b> objects of this type</button>'
+					+ '<input id="exact_type_' + type + '" class="exact-type-checkbox" type="checkbox"><label for="exact_type_' + type + '" class="exact-type-checkbox-label" title="Show only exact matches - exclude subtypes."> Exact type</label>'
 					+ '</div>');
 
 			_Crud.determinePagerData(type);
@@ -437,6 +440,7 @@ var _Crud = {
 			$('#create' + type, crudRight).on('click', function() {
 				_Crud.crudCreate(type);
 			});
+
 			$('#export' + type, crudRight).on('click', function() {
 				_Crud.crudExport(type);
 			});
@@ -454,6 +458,16 @@ var _Crud = {
 
 					_Crud.deleteAllNodesOfType(type);
 				});
+			});
+
+			let exactTypeCheckbox = $('#exact_type_' + type, crudRight);
+			if (_Crud.exact[type] === true) {
+				exactTypeCheckbox.prop('checked', true);
+			}
+			exactTypeCheckbox.on('change', function() {
+				_Crud.exact[type] = exactTypeCheckbox.prop('checked');
+				LSWrapper.setItem(_Crud.crudExactTypeKey, _Crud.exact);
+				_Crud.refreshList(type, properties);
 			});
 
 			_Crud.deActivatePagerElements(pagerNode);
@@ -501,7 +515,7 @@ var _Crud = {
 	},
 	updateRecentTypeList: function (selectedType) {
 
-		var recentTypes = LSWrapper.getItem(crudRecentTypesKey);
+		var recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
 
 		if (recentTypes && selectedType) {
 
@@ -529,17 +543,17 @@ var _Crud = {
 
 		}
 
-		LSWrapper.setItem(crudRecentTypesKey, recentTypes);
+		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
 
 	},
 	removeRecentType: function (typeToRemove) {
 
-		var currentType = LSWrapper.getItem(crudTypeKey);
+		var currentType = LSWrapper.getItem(_Crud.crudTypeKey);
 		if (typeToRemove === currentType) {
-			LSWrapper.removeItem(crudTypeKey);
+			LSWrapper.removeItem(_Crud.crudTypeKey);
 		}
 
-		var recentTypes = LSWrapper.getItem(crudRecentTypesKey);
+		var recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
 
 		if (recentTypes) {
 			recentTypes = recentTypes.filter(function(type) {
@@ -547,7 +561,7 @@ var _Crud = {
 			});
 		}
 
-		LSWrapper.setItem(crudRecentTypesKey, recentTypes);
+		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
 
 		_Crud.updateRecentTypeList();
 	},
@@ -685,10 +699,10 @@ var _Crud = {
 
 	},
 	storeType: function() {
-		LSWrapper.setItem(crudTypeKey, _Crud.type);
+		LSWrapper.setItem(_Crud.crudTypeKey, _Crud.type);
 	},
 	restoreType: function() {
-		var val = LSWrapper.getItem(crudTypeKey);
+		var val = LSWrapper.getItem(_Crud.crudTypeKey);
 		if (val) {
 			_Crud.type = val;
 		}
@@ -696,11 +710,11 @@ var _Crud = {
 	storePagerData: function() {
 		var type = _Crud.type;
 		var pagerData = _Crud.view[type] + ',' + _Crud.sort[type] + ',' + _Crud.order[type] + ',' + _Crud.page[type] + ',' + _Crud.pageSize[type];
-		LSWrapper.setItem(crudPagerDataKey + type, pagerData);
+		LSWrapper.setItem(_Crud.crudPagerDataKey + type, pagerData);
 	},
 	restorePagerData: function() {
 		var type = _Crud.type;
-		var val = LSWrapper.getItem(crudPagerDataKey + type);
+		var val = LSWrapper.getItem(_Crud.crudPagerDataKey + type);
 
 		if (val) {
 			var pagerData = val.split(',');
@@ -712,16 +726,16 @@ var _Crud = {
 		}
 	},
 	setCollectionPageSize: function(type, key, value) {
-		LSWrapper.setItem(crudPagerDataKey + '_collectionPageSize_' + type + '.___' + key, value);
+		LSWrapper.setItem(_Crud.crudPagerDataKey + '_collectionPageSize_' + type + '.___' + key, value);
 	},
 	getCollectionPageSize: function(type, key) {
-		return LSWrapper.getItem(crudPagerDataKey + '_collectionPageSize_' + type + '.___' + key);
+		return LSWrapper.getItem(_Crud.crudPagerDataKey + '_collectionPageSize_' + type + '.___' + key);
 	},
 	setCollectionPage: function(type, key, value) {
-		LSWrapper.setItem(crudPagerDataKey + '_collectionPage_' + type + '.___' + key, value);
+		LSWrapper.setItem(_Crud.crudPagerDataKey + '_collectionPage_' + type + '.___' + key, value);
 	},
 	getCollectionPage: function(type, key) {
-		return LSWrapper.getItem(crudPagerDataKey + '_collectionPage_' + type + '.___' + key);
+		return LSWrapper.getItem(_Crud.crudPagerDataKey + '_collectionPage_' + type + '.___' + key);
 	},
 	replaceSortHeader: function(type) {
 		var table = $('#crud-right table');
@@ -826,7 +840,7 @@ var _Crud = {
 		});
 	},
 	appendPerCollectionPager: function(el, type, key, callback) {
-		el.append('<input type="text" class="collection-page-size" size="1" value="' + (_Crud.getCollectionPageSize(type, key) || defaultCollectionPageSize) + '">');
+		el.append('<input type="text" class="collection-page-size" size="1" value="' + (_Crud.getCollectionPageSize(type, key) || _Crud.defaultCollectionPageSize) + '">');
 
 		$('.collection-page-size', el).on('blur', function() {
 			var newPageSize = $(this).val();
@@ -890,7 +904,7 @@ var _Crud = {
 	},
 	appendCellPager: function(el, id, type, key) {
 
-		var pageSize = _Crud.getCollectionPageSize(type, key) || defaultCollectionPageSize;
+		var pageSize = _Crud.getCollectionPageSize(type, key) || _Crud.defaultCollectionPageSize;
 
 		// use public view for cell pager - we should not need more information than this!
 		$.ajax({
@@ -965,19 +979,27 @@ var _Crud = {
 		});
 
 	},
-	sortAndPagingParameters: function(t, s, o, ps, p) {
-		var sortParam = (s ? 'sort=' + s : '');
-		var orderParam = (o ? 'order=' + o : '');
-		var pageSizeParam = (ps ? 'pageSize=' + ps : '');
-		var pageParam = (p ? 'page=' + p : '');
+	sortAndPagingParameters: function(t, s, o, ps, p, exact = false) {
 
-		var params = '';
-		params = params + (sortParam ? (params.length ? '&' : '?') + sortParam : '');
-		params = params + (orderParam ? (params.length ? '&' : '?') + orderParam : '');
-		params = params + (pageSizeParam ? (params.length ? '&' : '?') + pageSizeParam : '');
-		params = params + (pageParam ? (params.length ? '&' : '?') + pageParam : '');
+		let paramsArray = [];
 
-		return params;
+		if (s) {
+			paramsArray.push('sort=' + s);
+		}
+		if (o) {
+			paramsArray.push('order=' + o);
+		}
+		if (ps) {
+			paramsArray.push('pageSize=' + ps);
+		}
+		if (p) {
+			paramsArray.push('page=' + p);
+		}
+		if (exact === true) {
+			paramsArray.push('type=' + t);
+		}
+
+		return '?' + paramsArray.join('&');
 	},
 	refreshList: function(type, properties) {
 		_Crud.clearList(type);
@@ -985,7 +1007,7 @@ var _Crud = {
 	},
 	activateList: function(type, properties) {
 		properties = properties || _Crud.keys[type];
-		var url = rootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
+		var url = rootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type], _Crud.exact[type]);
 		_Crud.list(type, properties, url);
 	},
 	clearList: function(type) {
@@ -1066,7 +1088,7 @@ var _Crud = {
 			keys.forEach(function(key) {
 				if ( _Crud.isCollection(key, type)) {
 					var page = _Crud.getCollectionPage(type, key) || 1;
-					var pageSize = _Crud.getCollectionPageSize(type, key) || defaultCollectionPageSize;
+					var pageSize = _Crud.getCollectionPageSize(type, key) || _Crud.defaultCollectionPageSize;
 					var start = (page-1)*pageSize;
 					var end = page*pageSize;
 					ranges += key + '=' + start + '-' + end + ';';
@@ -2706,7 +2728,7 @@ var _Crud = {
 
 	},
 	getHiddenKeys: function(type) {
-		var hiddenKeysSource = LSWrapper.getItem(crudHiddenColumnsKey + type);
+		var hiddenKeysSource = LSWrapper.getItem(_Crud.crudHiddenColumnsKey + type);
 		var hiddenKeys = [];
 		if (hiddenKeysSource) {
 
@@ -2888,7 +2910,7 @@ var _Crud = {
 			});
 		}
 
-		LSWrapper.setItem(crudHiddenColumnsKey + type, JSON.stringify(hiddenKeys));
+		LSWrapper.setItem(_Crud.crudHiddenColumnsKey + type, JSON.stringify(hiddenKeys));
 	},
 	serializeObject: function(obj) {
 		var o = {};
