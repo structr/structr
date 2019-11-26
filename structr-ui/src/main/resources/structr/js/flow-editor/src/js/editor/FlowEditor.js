@@ -213,9 +213,9 @@ export class FlowEditor {
 							self._editor.selected.list.map((node) => console.log(node.data.dbNode.type + '[' + node.data.dbNode.id + "]"));
 							event.stopPropagation();
 
-						} else if (event.key === "c" && event.ctrlKey) {
+						} else if (event.key === "c" && event.ctrlKey && event.altKey) {
 							self._copyElementsForCloning();
-						} else if (event.key === "v" && event.ctrlKey) {
+						} else if (event.key === "v" && event.ctrlKey && event.altKey) {
 							self._pasteClonedElements();
 						}
 
