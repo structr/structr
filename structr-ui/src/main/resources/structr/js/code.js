@@ -510,9 +510,10 @@ var _Code = {
 									&& p.declaringClass !== 'NodeInterface'
 									&& p.declaringClass !== 'AbstractNode';
 							});
+
 							displayFunction(filtered.map(function(s) {
 								return {
-									id: s.declaringUuid || s.name,
+									id: s.declaringClass + '-' + s.declaringUuid + '-' + s.name,
 									type: 'SchemaProperty',
 									name: s.name,
 									propertyType: s.declaringPropertyType ? s.declaringPropertyType : s.propertyType,
@@ -1338,24 +1339,36 @@ var _Code = {
 
 			_Code.updateRecentlyUsed(result, selection.updateLocationStack);
 
-			switch (result.propertyType) {
-				case 'Cypher':
-					_Code.displayCypherPropertyDetails(result);
-					break;
-				case 'Function':
-					_Code.displayFunctionPropertyDetails(result);
-					break;
-				case 'String':
-					_Code.displayStringPropertyDetails(result);
-					break;
-				case 'Boolean':
-					_Code.displayBooleanPropertyDetails(result);
-					break;
-				default:
-					if (result.propertyType) {
+			if (result.propertyType) {
+
+				switch (result.propertyType) {
+					case 'Cypher':
+						_Code.displayCypherPropertyDetails(result);
+						break;
+
+					case 'Function':
+						_Code.displayFunctionPropertyDetails(result);
+						break;
+
+					case 'String':
+						_Code.displayStringPropertyDetails(result);
+						break;
+
+					case 'Boolean':
+						_Code.displayBooleanPropertyDetails(result);
+						break;
+
+					default:
 						_Code.displayDefaultPropertyDetails(result);
-					}
-					break;
+						break;
+				}
+
+			} else {
+
+				if (result.type === 'SchemaRelationshipNode') {
+					// this is a remote property/adjacent type
+					// _Code.displayRelationshipPropertyDetails(result);
+				}
 			}
 		});
 	},
