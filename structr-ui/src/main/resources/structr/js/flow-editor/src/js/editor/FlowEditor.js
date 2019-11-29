@@ -188,11 +188,7 @@ export class FlowEditor {
 							event.stopPropagation();
 							// Save layout on alt+s
 							if (confirm('Save layout?')) {
-								if (confirm('Save as public layout?')) {
-									self.saveLayout(true);
-								} else {
-									self.saveLayout(false);
-								}
+								self.saveLayout(true, false);
 							}
 
 						} else if (event.which === 27) {
@@ -213,9 +209,9 @@ export class FlowEditor {
 							self._editor.selected.list.map((node) => console.log(node.data.dbNode.type + '[' + node.data.dbNode.id + "]"));
 							event.stopPropagation();
 
-						} else if (event.key === "c" && event.ctrlKey) {
+						} else if (event.key === "c" && event.ctrlKey && event.altKey) {
 							self._copyElementsForCloning();
-						} else if (event.key === "v" && event.ctrlKey) {
+						} else if (event.key === "v" && event.ctrlKey && event.altKey) {
 							self._pasteClonedElements();
 						}
 
@@ -546,19 +542,19 @@ export class FlowEditor {
 
 	}
 
-	async saveLayout(visibleForPublic) {
+	async saveLayout(visibleForPublic, saveAsNewLayout) {
 
 		let pub = visibleForPublic !== undefined ? visibleForPublic : false;
 
 		let layoutManager = new LayoutManager(this);
-		await layoutManager.saveLayout(pub);
+		await layoutManager.saveLayout(pub, saveAsNewLayout);
 
 	}
 
 	async applySavedLayout() {
 
 		let layoutManager = new LayoutManager(this);
-		let layout = await layoutManager.getOwnSavedLayout();
+		let layout = await layoutManager.getActiveSavedLayout();
 
 		if (layout === null) {
 			let layouts = await layoutManager.getSavedLayouts();
