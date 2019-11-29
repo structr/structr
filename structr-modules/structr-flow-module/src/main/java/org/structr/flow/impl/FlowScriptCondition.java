@@ -49,29 +49,30 @@ public class FlowScriptCondition extends FlowCondition implements 	DeployableEnt
 	@Override
 	public Object get(final Context context) throws FlowException {
 
-		final DataSource _ds = getProperty(dataSource);
-		final DataSource _sc = getProperty(scriptSource);
-		final String _script = getProperty(script);
-		final String _dynamicScript = _sc != null ? (String)_sc.get(context) : null;
+		try {
+
+			final DataSource _ds = getProperty(dataSource);
+			final DataSource _sc = getProperty(scriptSource);
+			final String _script = getProperty(script);
+			final String _dynamicScript = _sc != null ? (String)_sc.get(context) : null;
 
 
-		if (_script != null || _dynamicScript != null) {
+			if (_script != null || _dynamicScript != null) {
 
-			if (_ds != null) {
-				context.setData(getUuid(), _ds.get(context));
+					if (_ds != null) {
+						context.setData(getUuid(), _ds.get(context));
+					}
+
+					final String finalScript = _dynamicScript != null ? _dynamicScript : _script;
+
+					Object result =  Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + finalScript.trim() + "}", "FlowDataSource(" + getUuid() + ")");
+					context.setData(getUuid(), result);
+					return result;
 			}
 
-			final String finalScript = _dynamicScript != null ? _dynamicScript : _script;
+		} catch (FrameworkException fex) {
 
-			try {
-
-				Object result =  Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + finalScript.trim() + "}", "FlowDataSource(" + getUuid() + ")");
-				context.setData(getUuid(), result);
-				return result;
-			} catch (FrameworkException fex) {
-
-				throw new FlowException(fex);
-			}
+			throw new FlowException(fex);
 		}
 
 		return null;
