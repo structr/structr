@@ -734,9 +734,12 @@ var _Flows = {
 
 						let result = res.result;
 
-						for (let rel of result) {
+						if (result !== null && res !== undefined && res.length > 0) {
 
-							flowEditor.connectNodes(rel);
+							for (let rel of result) {
+
+								flowEditor.connectNodes(rel);
+							}
 						}
 
 					}).then(() => {
