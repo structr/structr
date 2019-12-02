@@ -247,6 +247,46 @@ public abstract class Function<S, T> extends Hint {
 		return null;
 	}
 
+	protected int parseInt(final Object source, final int defaultValue) {
+
+		if (source instanceof Integer) {
+
+			return ((Integer)source);
+		}
+
+		if (source instanceof Number) {
+
+			return ((Number)source).intValue();
+		}
+
+		if (source instanceof String) {
+
+			return Integer.parseInt((String)source);
+		}
+
+		return defaultValue;
+	}
+
+	protected double parseDouble(final Object source, final double defaultValue) {
+
+		if (source instanceof Double) {
+
+			return ((Double)source);
+		}
+
+		if (source instanceof Number) {
+
+			return ((Number)source).doubleValue();
+		}
+
+		if (source instanceof String) {
+
+			return Double.parseDouble((String)source);
+		}
+
+		return defaultValue;
+	}
+
 	protected String encodeURL(final String source) {
 
 		try {

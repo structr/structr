@@ -41,6 +41,23 @@ public class GeoTransformationsModule implements StructrModule {
 		Functions.put(licenseManager, new LatLonToUTMFunction());
 		Functions.put(licenseManager, new UTMToLatLonFunction());
 		Functions.put(licenseManager, new ImportGPXFunction());
+		Functions.put(licenseManager, new ReadShapefileFunction());
+		Functions.put(licenseManager, new WKTToPolygonsFunction());
+		Functions.put(licenseManager, new WKTToGeometryFunction());
+		Functions.put(licenseManager, new MakePolygonValidFunction());
+		Functions.put(licenseManager, new GetWCSDataFunction());
+		Functions.put(licenseManager, new GetWCSHistogramFunction());
+
+		Functions.put(licenseManager, new CoordsToPointFunction());
+		Functions.put(licenseManager, new CoordsToMultipointFunction());
+		Functions.put(licenseManager, new CoordsToLineStringFunction());
+		Functions.put(licenseManager, new CoordsToPolygonFunction());
+
+		Functions.put(licenseManager, new GeoAzimuthFunction());
+		Functions.put(licenseManager, new GeoDistanceFunction());
+		Functions.put(licenseManager, new LineSegmentFunction());
+		Functions.put(licenseManager, new LineStringsToPolygonsFunction());
+		Functions.put(licenseManager, new CoordsFunction());
 	}
 
 	@Override

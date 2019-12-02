@@ -18,11 +18,13 @@
  */
 package org.structr.web.common;
 
+import java.net.URL;
 import java.util.Set;
 import org.structr.api.service.LicenseManager;
 import org.structr.core.datasources.DataSources;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
+import org.structr.files.url.StructrURLStreamHandlerFactory;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
@@ -36,6 +38,11 @@ import org.structr.web.function.*;
 /**
  */
 public class UiModule implements StructrModule {
+
+	static {
+
+		URL.setURLStreamHandlerFactory(new StructrURLStreamHandlerFactory());
+	}
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {

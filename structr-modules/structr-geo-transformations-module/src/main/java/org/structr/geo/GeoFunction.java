@@ -18,6 +18,22 @@
  */
 package org.structr.geo;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Point;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.util.List;
+import java.util.Map;
+import javax.swing.JFrame;
+import org.geotools.data.DataUtilities;
+import org.geotools.feature.DefaultFeatureCollection;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.geotools.map.FeatureLayer;
+import org.geotools.map.MapContent;
+import org.geotools.styling.SLD;
+import org.geotools.swing.JMapFrame;
+import org.opengis.feature.simple.SimpleFeatureType;
 import org.structr.schema.action.Function;
 
 public abstract class GeoFunction extends Function<Object, Object> {
@@ -25,5 +41,108 @@ public abstract class GeoFunction extends Function<Object, Object> {
 	@Override
 	public String getRequiredModule() {
 		return "geo-transformations";
+	}
+
+	protected Coordinate getCoordinate(final Object source) {
+
+		if (source instanceof Point) {
+
+			return ((Point)source).getCoordinate();
+
+		} else if (source instanceof Geometry) {
+
+			return ((Geometry)source).getCoordinate();
+
+		} else if (source instanceof Coordinate) {
+
+			return (Coordinate)source;
+
+		} else if (source instanceof List) {
+
+			final List point = (List)source;
+			final Object x   = point.get(0);
+			final Object y   = point.get(1);
+
+			final Double px  = this.getDoubleOrNull(x);
+			final Double py  = this.getDoubleOrNull(y);
+
+			if (px != null && py != null) {
+
+				return new Coordinate(px, py);
+			}
+
+		} else if (source instanceof Map) {
+
+			final Map point = (Map)source;
+
+			if (point.containsKey("x") && point.containsKey("y")) {
+
+				final Double px = this.getDoubleOrNull(point.get("x"));
+				final Double py = this.getDoubleOrNull(point.get("y"));
+
+				if (px != null && py != null) {
+
+					return new Coordinate(px, py);
+				}
+
+			} else if (point.containsKey("latitude") && point.containsKey("longitude")) {
+
+				final Double plat = this.getDoubleOrNull(point.get("latitude"));
+				final Double plon = this.getDoubleOrNull(point.get("longitude"));
+
+				if (plat != null && plon != null) {
+
+					return new Coordinate(plat, plon);
+				}
+
+			} else if (point.containsKey("lat") && point.containsKey("lon")) {
+
+				final Double plat = this.getDoubleOrNull(point.get("lat"));
+				final Double plon = this.getDoubleOrNull(point.get("lon"));
+
+				if (plat != null && plon != null) {
+
+					return new Coordinate(plat, plon);
+				}
+
+			} else {
+
+				logger.warn("Unknown coordinate object, don't know how to handle {}, ignoring", source);
+			}
+
+		} else {
+
+			logger.warn("Unknown coordinate object, don't know how to handle {}, ignoring", source);
+		}
+
+		return null;
+	}
+
+	protected void showGeometries(final int frameWidth, final int frameHeight, final Geometry... geometries) {
+
+		try {
+
+			final MapContent content = new MapContent();
+			final JMapFrame frame    = new JMapFrame(content);
+			int index                = 0;
+
+			for (final Geometry geometry : geometries) {
+
+				final SimpleFeatureType TYPE = DataUtilities.createType("test" + index, "geom:" + geometry.getClass().getSimpleName());
+				final DefaultFeatureCollection featureCollection = new DefaultFeatureCollection("internal" + index, TYPE);
+
+				featureCollection.add(SimpleFeatureBuilder.build(TYPE, new Object[] { geometry }, null));
+
+				content.addLayer(new FeatureLayer(featureCollection, SLD.createLineStyle(Color.BLACK, 1)));
+			}
+
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frame.setPreferredSize(new Dimension(frameWidth, frameHeight));
+			frame.pack();
+			frame.setVisible(true);
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 	}
 }

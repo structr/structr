@@ -60,23 +60,24 @@ public class SecurityContext {
 		Add, Remove, Toggle, Replace
 	}
 
-	private static final Logger logger                   = LoggerFactory.getLogger(SecurityContext.class.getName());
-	private static final Map<String, Long> resourceFlags = new ConcurrentHashMap<>();
-	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([0-9a-zA-Z_,-]+)");
-	private MergeMode remoteCollectionMergeMode          = MergeMode.Replace;
-	private boolean returnDetailedCreationResults        = false;
-	private boolean uuidWasSetManually                   = false;
-	private boolean doTransactionNotifications           = false;
-	private boolean forceMergeOfNestedProperties         = false;
-	private boolean doCascadingDelete                    = true;
-	private boolean modifyAccessTime                     = true;
-	private boolean ignoreResultCount                    = false;
-	private boolean ensureCardinality                    = true;
-	private boolean doInnerCallbacks                     = true;
-	private boolean isReadOnlyTransaction                = false;
-	private boolean doMultiThreadedJsonOutput            = false;
-	private boolean doIndexing                           = Settings.IndexingEnabled.getValue(true);
-	private int serializationDepth                       = -1;
+	private static final Logger logger                    = LoggerFactory.getLogger(SecurityContext.class.getName());
+	private static final Map<String, SecurityContext> tmp = new ConcurrentHashMap<>();
+	private static final Map<String, Long> resourceFlags  = new ConcurrentHashMap<>();
+	private static final Pattern customViewPattern        = Pattern.compile(".*properties=([0-9a-zA-Z_,-]+)");
+	private MergeMode remoteCollectionMergeMode           = MergeMode.Replace;
+	private boolean returnDetailedCreationResults         = false;
+	private boolean uuidWasSetManually                    = false;
+	private boolean doTransactionNotifications            = false;
+	private boolean forceMergeOfNestedProperties          = false;
+	private boolean doCascadingDelete                     = true;
+	private boolean modifyAccessTime                      = true;
+	private boolean ignoreResultCount                     = false;
+	private boolean ensureCardinality                     = true;
+	private boolean doInnerCallbacks                      = true;
+	private boolean isReadOnlyTransaction                 = false;
+	private boolean doMultiThreadedJsonOutput             = false;
+	private boolean doIndexing                            = Settings.IndexingEnabled.getValue(true);
+	private int serializationDepth                        = -1;
 
 	private final Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
 	private final Map<String, Object> attrs      = new ConcurrentHashMap<>();
@@ -945,6 +946,19 @@ public class SecurityContext {
 
 	public boolean doIndexing() {
 		return doIndexing;
+	}
+
+	public void storeTemporary(final String uuid) {
+		tmp.put(uuid, this);
+	}
+
+	public void clearTemporary(final String uuid) {
+		tmp.remove(uuid);
+	}
+
+	// ----- static methods -----
+	public static SecurityContext getTemporaryStoredContext(final String uuid) {
+		return tmp.get(uuid);
 	}
 
 	// ----- nested classes -----
