@@ -734,7 +734,7 @@ var _Flows = {
 
 						let result = res.result;
 
-						if (result !== null && res !== undefined && res.length > 0) {
+						if (result !== null && result !== undefined && result.length > 0) {
 
 							for (let rel of result) {
 
