@@ -60,7 +60,7 @@ public class ExtractFunction extends CoreFunction {
 
 						if (obj instanceof Iterable) {
 
-							Iterables.addAll(extraction, (Iterable)obj);
+							Iterables.addAll(extraction, Iterables.toList((Iterable)obj));
 						}
 					}
 
@@ -89,7 +89,14 @@ public class ExtractFunction extends CoreFunction {
 							final Object value = ((GraphObject)obj).getProperty(key);
 							if (value != null) {
 
-								extraction.add(value);
+								if (value instanceof Iterable) {
+
+									extraction.add(Iterables.toList((Iterable)value));
+
+								} else {
+
+									extraction.add(value);
+								}
 							}
 						}
 					}

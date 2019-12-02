@@ -36,10 +36,13 @@ var _Localization = {
 	localizationDetailDiscardButton: undefined,
 	localizationDetailList: undefined,
 
+	localizationsResizerLeftKey: 'structrLocalizationsResizerLeftKey_' + port,
+
 	init: function() {
 		main = $('#main');
 	},
 	resize: function() {
+		_Localization.moveResizer();
 		Structr.resize();
 	},
 	onload: function() {
@@ -75,23 +78,39 @@ var _Localization = {
 
 			Structr.unblockMenu(100);
 
-			_Localization.resize();
+			_Localization.moveResizer();
+			Structr.initVerticalSlider($('.column-resizer', main), _Localization.localizationsResizerLeftKey, 204, _Localization.moveResizer);
 
+			_Localization.resize();
 		});
 	},
 	unload: function() {
 
 	},
+	moveResizer: function(left) {
+
+		left = left || LSWrapper.getItem(_Localization.localizationsResizerLeftKey) || 300;
+		$('.column-resizer', main).css({ left: left });
+
+		$('#localizations-list').css({width: left - 24 + 'px'});
+		$('#localization-detail').css({width: $(window).width() - left - 47 + 'px'});
+
+	},
 	listKeysAndDomains: function () {
+
+		let pagerEl = $('#localizations-pager');
+
 		_Pager.initPager('localizations', 'Localization', 1, 25, 'name', 'asc');
 
-		_Localization.keyAndDomainPager = _Pager.addPager('localizations', $('#localizations-pager'), false, 'Localization', 'ui', _Localization.processPagerData, _Localization.customPagerTransportFunction);
+		_Localization.keyAndDomainPager = _Pager.addPager('localizations', pagerEl, false, 'Localization', 'ui', _Localization.processPagerData, _Localization.customPagerTransportFunction);
 
 		_Localization.keyAndDomainPager.cleanupFunction = _Localization.clearLocalizationsList;
 		_Localization.keyAndDomainPager.pager.append('<br>Filters: <input type="text" class="filter w75 localization-key" data-attribute="name" placeholder="Key" />');
 		_Localization.keyAndDomainPager.pager.append('<input type="text" class="filter w75 localization-domain" data-attribute="domain" placeholder="Domain" />');
 		_Localization.keyAndDomainPager.pager.append('<input type="text" class="filter w75 localization-text" data-attribute="localizedName" placeholder="Content" />');
 		_Localization.keyAndDomainPager.activateFilterElements();
+
+		pagerEl.append('<div style="clear:both;"></div>');
 
 		$('#localizations-table .sort').on('click', function () {
 			_Localization.keyAndDomainPager.setSortKey($(this).data('sort'));

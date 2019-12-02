@@ -160,7 +160,7 @@ var _Pages = {
 			_Pages.leftSlideoutTrigger(this, pagesSlideout, [activeElementsSlideout, dataBindingSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function (params) {
 				_Pages.resize(params.sw, 0);
 				_Pages.pagesTabResizeContent();
-			}, _Pages.leftSlideoutClosedCallback);
+			}, _Pages.slideoutClosedCallback);
 		};
 		$('#pagesTab').on('click', pagesTabSlideoutAction).droppable({
 			tolerance: 'touch',
@@ -169,22 +169,26 @@ var _Pages = {
 
 		$('#activeElementsTab').on('click', function() {
 			_Pages.leftSlideoutTrigger(this, activeElementsSlideout, [pagesSlideout, dataBindingSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function(params) {
-				_Pages.refreshActiveElements();
+				if (params.isOpenAction) {
+					_Pages.refreshActiveElements();
+				}
 				_Pages.resize(params.sw, 0);
-			}, _Pages.leftSlideoutClosedCallback);
+			}, _Pages.slideoutClosedCallback);
 		});
 
 		$('#dataBindingTab').on('click', function() {
 			_Pages.leftSlideoutTrigger(this, dataBindingSlideout, [pagesSlideout, activeElementsSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function(params) {
-				_Pages.reloadDataBindingWizard();
+				if (params.isOpenAction) {
+					_Pages.reloadDataBindingWizard();
+				}
 				_Pages.resize(params.sw, 0);
-			}, _Pages.leftSlideoutClosedCallback);
+			}, _Pages.slideoutClosedCallback);
 		});
 
 		$('#localizationsTab').on('click', function() {
 			_Pages.leftSlideoutTrigger(this, localizationsSlideout, [pagesSlideout, activeElementsSlideout, dataBindingSlideout], _Pages.activeTabLeftKey, function(params) {
 				_Pages.resize(params.sw, 0);
-			}, _Pages.leftSlideoutClosedCallback);
+			}, _Pages.slideoutClosedCallback);
 		});
 
 		$('#localizations button.refresh').on('click', function () {
@@ -206,24 +210,49 @@ var _Pages = {
 		});
 
 		$('#widgetsTab').on('click', function() {
-			_Pages.rightSlideoutClickTrigger(this, widgetsSlideout, [paletteSlideout, componentsSlideout, elementsSlideout], false, _Widgets.reloadWidgets);
+			_Pages.rightSlideoutClickTrigger(this, widgetsSlideout, [paletteSlideout, componentsSlideout, elementsSlideout], _Pages.activeTabRightKey, function(params) {
+				if (params.isOpenAction) {
+					_Widgets.reloadWidgets();
+				}
+				_Pages.resize(0, params.sw);
+			}, _Pages.slideoutClosedCallback);
 		});
 
 		$('#paletteTab').on('click', function() {
-			_Pages.rightSlideoutClickTrigger(this, paletteSlideout, [widgetsSlideout, componentsSlideout, elementsSlideout], false, _Elements.reloadPalette);
+			_Pages.rightSlideoutClickTrigger(this, paletteSlideout, [widgetsSlideout, componentsSlideout, elementsSlideout], _Pages.activeTabRightKey, function(params) {
+				if (params.isOpenAction) {
+					_Elements.reloadPalette();
+				}
+				_Pages.resize(0, params.sw);
+			}, _Pages.slideoutClosedCallback);
 		});
 
-		$('#componentsTab').on('click', function() {
-			_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], false, _Elements.reloadComponents);
-		}).droppable({
+		var componentsTabSlideoutAction = function() {
+			_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], _Pages.activeTabRightKey, function(params) {
+				if (params.isOpenAction) {
+					_Elements.reloadComponents();
+				}
+				_Pages.resize(0, params.sw);
+				_Pages.componentsTabResizeContent();
+			}, _Pages.slideoutClosedCallback);
+		};
+		$('#componentsTab').on('click', componentsTabSlideoutAction).droppable({
 			tolerance: 'touch',
-			over: function(e, ui) {
-				_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], true, _Elements.reloadComponents);
+			over: function() {
+				if (!componentsSlideout.hasClass('open')) {
+					componentsTabSlideoutAction();
+				}
 			}
 		});
 
 		$('#elementsTab').on('click', function() {
-			_Pages.rightSlideoutClickTrigger(this, elementsSlideout, [widgetsSlideout, paletteSlideout, componentsSlideout], false, _Elements.reloadUnattachedNodes);
+			_Pages.rightSlideoutClickTrigger(this, elementsSlideout, [widgetsSlideout, paletteSlideout, componentsSlideout], _Pages.activeTabRightKey, function(params) {
+				if (params.isOpenAction) {
+					_Elements.reloadUnattachedNodes();
+				}
+				_Pages.resize(0, params.sw);
+				_Pages.unattachedNodesTabResizeContent();
+			}, _Pages.slideoutClosedCallback);
 		});
 
 		previewTabs = $('<ul id="previewTabs"></ul>');
@@ -308,6 +337,7 @@ var _Pages = {
 
 		previewTabs.append('<li id="import_page" title="Import Template" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.pull_file_icon) + '" /></li>');
 		previewTabs.append('<li id="add_page" title="Add page" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /></li>');
+		previewTabs.append('<li id="add_template" title="Add Template" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" /></li>');
 
 		$('#import_page', previewTabs).on('click', function(e) {
 			e.stopPropagation();
@@ -367,6 +397,44 @@ var _Pages = {
 			e.stopPropagation();
 			Command.createSimplePage();
 		});
+
+		// page template widgets present? Display special create page dialog
+		Command.query('Widget', 10, 1, 'name', 'asc', { isPageTemplate: true }, function(result) {
+
+			if (result && result.length) {
+
+				$('#add_template').on('click', function(e) {
+
+					e.stopPropagation();
+
+					Structr.dialog('Select Template to Create New Page', function() {}, function() {});
+
+					dialog.empty();
+					dialogMsg.empty();
+					dialog.append('<div id="template-tiles"></div>');
+
+					var container = $('#template-tiles');
+
+					result.forEach(function(widget) {
+						var id = 'create-from-' + widget.id;
+						container.append('<div class="app-tile"><h4>' + widget.name + '</h4><p>' + widget.description + '</p><button class="action" id="' + id + '">Create Page</button></div>');
+						$('#' + id).on('click', function() {
+							Command.create({ type: 'Page' }, function(page) {
+								Structr.removeExpandedNode(page.id);
+								Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
+							});
+						});
+
+					});
+
+				});
+
+			} else {
+
+				// remove wizard button if no page templates exist (can be changed later when the dialog includes some hints etc.)
+				$('#add_template').remove();
+			}
+		}, true);
 
 		Structr.adaptUiToAvailableFeatures();
 
@@ -1123,10 +1191,18 @@ var _Pages = {
 		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (pagesSlideout.width() + 12);
 		$('.node.page', pagesSlideout).width(psw - 35);
 	},
+	componentsTabResizeContent: function () {
+		var storedRightSlideoutWidth = LSWrapper.getItem(_Pages.rightSlideoutWidthKey);
+		var csw = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (componentsSlideout.width() + 12);
+		$('#componentsArea > .node').width(csw - 35);
+	},
+	unattachedNodesTabResizeContent: function () {
+		var storedRightSlideoutWidth = LSWrapper.getItem(_Pages.rightSlideoutWidthKey);
+		var csw = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (componentsSlideout.width() + 12);
+		$('#elementsArea > .node').width(csw - 35);
+	},
 	leftSlideoutTrigger: function (triggerEl, slideoutElement, otherSlideouts, activeTabKey, openCallback, closeCallback) {
-		if ($(triggerEl).hasClass('noclick')) {
-			$(triggerEl).removeClass('noclick');
-		} else {
+		if (!$(triggerEl).hasClass('noclick')) {
 			if (Math.abs(slideoutElement.position().left + slideoutElement.width() + 12) <= 3) {
 				Structr.closeLeftSlideOuts(otherSlideouts, activeTabKey, closeCallback);
 				Structr.openLeftSlideOut(triggerEl, slideoutElement, activeTabKey, openCallback);
@@ -1135,15 +1211,17 @@ var _Pages = {
 			}
 		}
 	},
-	rightSlideoutClickTrigger: function (triggerEl, slideoutElement, otherSlideouts, isDrag, callback) {
-		if (Math.abs(slideoutElement.position().left - $(window).width()) <= 3) {
-			Structr.closeSlideOuts(otherSlideouts, _Pages.activeTabRightKey);
-			Structr.openSlideOut(slideoutElement, triggerEl, _Pages.activeTabRightKey, callback);
-		} else if (!isDrag) {
-			Structr.closeSlideOuts([slideoutElement], _Pages.activeTabRightKey);
+	rightSlideoutClickTrigger: function (triggerEl, slideoutElement, otherSlideouts, activeTabKey, openCallback, closeCallback) {
+		if (!$(triggerEl).hasClass('noclick')) {
+			if (Math.abs(slideoutElement.position().left - $(window).width()) <= 3) {
+				Structr.closeSlideOuts(otherSlideouts, activeTabKey, closeCallback);
+				Structr.openSlideOut(triggerEl, slideoutElement, activeTabKey, openCallback);
+			} else {
+				Structr.closeSlideOuts([slideoutElement], activeTabKey, closeCallback);
+			}
 		}
 	},
-	leftSlideoutClosedCallback: function(wasOpen, offsetLeft, offsetRight) {
+	slideoutClosedCallback: function(wasOpen, offsetLeft, offsetRight) {
 		if (wasOpen) {
 			_Pages.resize(offsetLeft, offsetRight);
 		}

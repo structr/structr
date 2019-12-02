@@ -36,6 +36,7 @@ import java.util.regex.Pattern;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.io.QuietException;
 import org.structr.api.config.Settings;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -106,8 +107,12 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 			response.setHeader(header.getKey(), header.getValue());
 		}
 
-		// set  response code
-		response.setStatus(result.getResponseCode());
+		// set response code
+		if (response.getStatus() != 200) {
+			response.setStatus(response.getStatus());
+		} else {
+			response.setStatus(result.getResponseCode());
+		}
 
 		try {
 
@@ -184,8 +189,14 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 		} catch (Throwable t) {
 
-			logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
-			logger.warn(" => Error thrown: ", t);
+			if (t instanceof QuietException || t.getCause() instanceof QuietException) {
+				// ignore exceptions which (by jettys standards) should be handled less verbosely
+			} else if (t instanceof IllegalStateException && t.getCause() == null && t.getMessage() == null) {
+				// ignore exception. it is probably caused by a canceled request/closed connection which caused the JsonWriter to tilt
+			} else {
+				logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
+				logger.warn(" => Error thrown: ", t);
+			}
 
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 

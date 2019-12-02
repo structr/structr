@@ -718,9 +718,14 @@ var _Flows = {
 
 					let result = res.result;
 
-					for (let node of result) {
+					if (Array.isArray(result)) {
+						for (let node of result) {
 
-						flowEditor.renderNode(persistence._wrapObject(node,node));
+							flowEditor.renderNode(persistence._wrapObject(node, node));
+						}
+					} else {
+
+						flowEditor.renderNode(persistence._wrapObject(result, result));
 					}
 
 				}).then(() => {
@@ -729,9 +734,12 @@ var _Flows = {
 
 						let result = res.result;
 
-						for (let rel of result) {
+						if (result !== null && result !== undefined && result.length > 0) {
 
-							flowEditor.connectNodes(rel);
+							for (let rel of result) {
+
+								flowEditor.connectNodes(rel);
+							}
 						}
 
 					}).then(() => {

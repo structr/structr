@@ -99,7 +99,7 @@ public abstract class StructrUiTest {
 		Settings.ApplicationHost.setValue(host);
 		Settings.HttpPort.setValue(httpPort);
 
-		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet GraphQLServlet");
+		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet GraphQLServlet UploadServlet");
 
 		final Services services = Services.getInstance();
 

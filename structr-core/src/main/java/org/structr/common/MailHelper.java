@@ -56,7 +56,7 @@ public abstract class MailHelper {
 		}
 
 		HtmlEmail mail = new HtmlEmail();
-		configureMail(mail);
+		configureMail(mail, amc.getConfigurationPrefix());
 
 		if (StringUtils.isNotBlank(amc.getFromName())) {
 			mail.setFrom(amc.getFromAddress(), amc.getFromName());
@@ -176,13 +176,17 @@ public abstract class MailHelper {
 	}
 
 	private static void configureMail(final Email mail) {
+		configureMail(mail, null);
+	}
 
-		final String smtpHost        = Settings.SmtpHost.getValue();
-		final int smtpPort           = Settings.SmtpPort.getValue();
-		final String smtpUser        = Settings.SmtpUser.getValue();
-		final String smtpPassword    = Settings.SmtpPassword.getValue();
-		final boolean smtpUseTLS     = Settings.SmtpTlsEnabled.getValue();
-		final boolean smtpRequireTLS = Settings.SmtpTlsRequired.getValue();
+	private static void configureMail(final Email mail, final String configurationPrefix) {
+
+		final String smtpHost        = Settings.SmtpHost.getPrefixedValue(configurationPrefix);
+		final int smtpPort           = Settings.SmtpPort.getPrefixedValue(configurationPrefix);
+		final String smtpUser        = Settings.SmtpUser.getPrefixedValue(configurationPrefix);
+		final String smtpPassword    = Settings.SmtpPassword.getPrefixedValue(configurationPrefix);
+		final boolean smtpUseTLS     = Settings.SmtpTlsEnabled.getPrefixedValue(configurationPrefix);
+		final boolean smtpRequireTLS = Settings.SmtpTlsRequired.getPrefixedValue(configurationPrefix);
 
 		mail.setCharset(charset);
 		mail.setHostName(smtpHost);

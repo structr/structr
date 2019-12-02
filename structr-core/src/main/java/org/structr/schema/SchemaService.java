@@ -29,8 +29,8 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import java.lang.reflect.Modifier;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -48,14 +48,12 @@ import org.structr.api.service.Command;
 import org.structr.api.service.Service;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.StructrServices;
-import org.structr.api.util.Iterables;
 import org.structr.common.AccessPathCache;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InstantiationErrorToken;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -318,15 +316,7 @@ public class SchemaService implements Service {
 							// inject views in configuration provider
 							config.registerDynamicViews(dynamicViews);
 
-							if (Services.calculateHierarchy() || !Services.isTesting()) {
-
-								calculateHierarchy(schemaNodes);
-							}
-
-							if (Services.updateIndexConfiguration() || !Services.isTesting()) {
-
-								updateIndexConfiguration(removedClasses);
-							}
+							updateIndexConfiguration(removedClasses);
 
 							tx.success();
 
@@ -488,29 +478,6 @@ public class SchemaService implements Service {
 	}
 
 	// ----- private methods -----
-	private static void calculateHierarchy(final Map<String, SchemaNode> schemaNodes) {
-
-		try (final Tx tx = StructrApp.getInstance().tx()) {
-
-			final Set<String> alreadyCalculated = new HashSet<>();
-
-			// calc hierarchy
-			for (final SchemaNode schemaNode : schemaNodes.values()) {
-
-				final int relCount = Iterables.count(schemaNode.getProperty(SchemaNode.relatedFrom)) + Iterables.count(schemaNode.getProperty(SchemaNode.relatedTo));
-				final int level     = recursiveGetHierarchyLevel(schemaNodes, alreadyCalculated, schemaNode, 0);
-
-				schemaNode.setProperty(SchemaNode.hierarchyLevel, level);
-				schemaNode.setProperty(SchemaNode.relCount, relCount);
-			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.warn("", fex);
-		}
-	}
-
 	private static int recursiveGetHierarchyLevel(final Map<String, SchemaNode> map, final Set<String> alreadyCalculated, final SchemaNode schemaNode, final int depth) {
 
 		// stop at level 20
@@ -551,6 +518,7 @@ public class SchemaService implements Service {
 
 					try {
 
+						final Set<Class> whitelist    = new LinkedHashSet<>(Arrays.asList(GraphObject.class, NodeInterface.class));
 						final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
 
 						final Map<String, Map<String, Boolean>> schemaIndexConfig    = new HashMap();
@@ -561,21 +529,22 @@ public class SchemaService implements Service {
 							final Class type = getType(entry.getKey());
 							if (type != null) {
 
-								final String typeName = type.getSimpleName();
+								final String typeName           = getIndexingTypeName(type.getSimpleName());
+								Map<String, Boolean> typeConfig = schemaIndexConfig.get(typeName);
 
-								final Boolean alreadySeenType = schemaIndexConfig.containsKey(typeName);
-								final Map<String, Boolean> typeConfig = (alreadySeenType ? schemaIndexConfig.get(typeName) : new HashMap());
+								if (typeConfig == null) {
 
-								if (!alreadySeenType) {
+									typeConfig = new LinkedHashMap<>();
 									schemaIndexConfig.put(typeName, typeConfig);
 								}
 
 								for (final PropertyKey key : entry.getValue().values()) {
 
-									boolean createIndex = key.isIndexed() || key.isIndexedWhenEmpty();
+									boolean createIndex        = key.isIndexed() || key.isIndexedWhenEmpty();
+									final Class declaringClass = key.getDeclaringClass();
 
+									createIndex &= declaringClass == null || whitelist.contains(type) || type.equals(declaringClass);
 									createIndex &= !NonIndexed.class.isAssignableFrom(type);
-									createIndex &= NodeInterface.class.equals(type) || !GraphObject.id.equals(key);
 
 									typeConfig.put(key.dbName(), createIndex);
 								}
@@ -632,5 +601,14 @@ public class SchemaService implements Service {
 			}
 		}
 
+	}
+
+	private static String getIndexingTypeName(final String typeName) {
+
+		if ("GraphObject".equals(typeName)) {
+			return "NodeInterface";
+		}
+
+		return typeName;
 	}
 }

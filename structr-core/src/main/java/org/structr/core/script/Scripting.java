@@ -21,6 +21,7 @@ package org.structr.core.script;
 import java.io.StringWriter;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -84,6 +85,7 @@ public class Scripting {
 
 			value = (String) rawValue;
 
+			// this is a very important check here, the ActionContext can be set to "raw" mode
 			if (!actionContext.returnRawValue()) {
 
 				final List<Tuple> replacements = new LinkedList<>();
@@ -369,13 +371,9 @@ public class Scripting {
 
 					engine = factory.getScriptEngine();
 					break;
-
 				}
-
 			}
-
 		}
-
 
 		if (engine == null) {
 			throw new RuntimeException(engineName + " script engine could not be initialized. Check class path.");
@@ -463,7 +461,9 @@ public class Scripting {
 	// this is only public to be testable :(
 	public static List<String> extractScripts(final String source) {
 
+		final List<String> otherParts  = new LinkedList<>();
 		final List<String> expressions = new LinkedList<>();
+		final StringBuilder buffer     = new StringBuilder();
 		final int length               = source.length();
 		boolean inComment              = false;
 		boolean inSingleQuotes         = false;
@@ -479,6 +479,8 @@ public class Scripting {
 		for (int i=0; i<length; i++) {
 
 			final char c = source.charAt(i);
+
+			buffer.append(c);
 
 			switch (c) {
 
@@ -533,6 +535,11 @@ public class Scripting {
 						expressions.add(source.substring(start, end));
 
 						level = 0;
+
+					} else {
+
+						otherParts.add(buffer.toString());
+						buffer.setLength(0);
 					}
 					hasDollar = false;
 					hasBackslash = false;
@@ -586,19 +593,57 @@ public class Scripting {
 		}
 	}
 
-	// ----- private methods -----
-	private static String toString(final Object obj) {
+	public static String formatForLogging(final Object value) {
 
-		if (obj instanceof Iterable) {
+		if (value instanceof Date) {
 
-			return Iterables.toList((Iterable)obj).toString();
+			return DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
+
+		} else if (value instanceof Iterable) {
+
+			final StringBuilder buf = new StringBuilder();
+			final Iterable iterable = (Iterable)value;
+
+			buf.append("[");
+
+			for (final Iterator it = iterable.iterator(); it.hasNext();) {
+
+				buf.append(Scripting.formatToDefaultDateOrString(it.next()));
+
+				if (it.hasNext()) {
+					buf.append(", ");
+				}
+			}
+
+			buf.append("]");
+
+			return buf.toString();
+
+		} else if (value instanceof GraphObject) {
+
+			final StringBuilder buf = new StringBuilder();
+			final GraphObject obj   = (GraphObject)value;
+			final String name       = obj.getProperty(AbstractNode.name);
+
+			buf.append(obj.getType());
+			buf.append("(");
+
+			if (StringUtils.isNotBlank(name)) {
+
+				buf.append(name);
+				buf.append(", ");
+			}
+
+			buf.append(obj.getUuid());
+			buf.append(")");
+
+			return buf.toString();
+
+		} else {
+
+			return value.toString();
+
 		}
-
-		if (obj != null) {
-			return obj.toString();
-		}
-
-		return "";
 	}
 
 	// ----- nested classes -----
@@ -612,4 +657,10 @@ public class Scripting {
 			this.value = value;
 		}
 	}
+
+	public static void main(final String[] args) {
+
+		extractScripts("blah${'blah'}test");
+	}
+
 }

@@ -28,6 +28,7 @@ import java.util.concurrent.Future;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.test.common.StructrTest;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
@@ -674,30 +675,39 @@ public class ValidationTest extends StructrTest {
 		// The goal of this test is to ensure that validation
 		// only includes actual derived classes.
 
-		// override name property
-		try (final Tx tx = app.tx()) {
+		Settings.CypherDebugLogging.setValue(true);
 
-			// create some nodes with identical names
-			app.create(Group.class,   "unique");
-			app.create(TestOne.class, "unique");
+		try {
 
-			tx.success();
+			// override name property
+			try (final Tx tx = app.tx()) {
 
-		} catch (FrameworkException fex) {
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
+				// create some nodes with identical names
+				app.create(Group.class,   "unique");
+				app.create(TestOne.class, "unique");
 
-		try (final Tx tx = app.tx()) {
+				tx.success();
 
-			// should succeed
-			app.create(TestTwelve.class, new NodeAttribute<>(AbstractNode.name, "unique"));
+			} catch (FrameworkException fex) {
+				logger.warn("", fex);
+				fail("Unexpected exception.");
+			}
 
-			tx.success();
+			try (final Tx tx = app.tx()) {
 
-		} catch (FrameworkException fex) {
+				// should succeed
+				app.create(TestTwelve.class, new NodeAttribute<>(AbstractNode.name, "unique"));
 
-			fail("Uniqueness constraint includes wrong type(s)!");
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fail("Uniqueness constraint includes wrong type(s)!");
+			}
+
+		} finally {
+
+			Settings.CypherDebugLogging.setValue(false);
 		}
 	}
 

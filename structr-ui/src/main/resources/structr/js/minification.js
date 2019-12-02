@@ -25,7 +25,7 @@ var _Minification = {
 		dialogText.append('<div id="minification-source-search"></div>');
 
 		var $minificationSourceSearch = $('#minification-source-search', dialogText);
-		_Minification.displaySearch(file.type, file.id, "minificationSources", "FileBase", $minificationSourceSearch);
+		_Minification.displaySearch(file.type, file.id, "minificationSources", "AbstractFile", $minificationSourceSearch);
 
 		_Minification.reloadHeadAndFiles(file.id);
 	},
@@ -119,7 +119,7 @@ var _Minification = {
 		var maxPos = -1;
 
 		$.ajax({
-			url: '/structr/rest/AbstractMinifiedFile/' + file.id + '/out/ui?relType=MINIFICATION&sort=position&order=asc',
+			url: '/structr/rest/AbstractMinifiedFile/' + file.id + '/out/all?relType=MINIFICATION&sort=position&order=asc',
 			success: function (data) {
 				var files = {};
 				file.minificationSources.forEach(function (f) {
@@ -197,6 +197,7 @@ var _Minification = {
 		window.setTimeout(function() {
 			search.focus();
 		}, 250);
+
 		search.keyup(function(e) {
 			e.preventDefault();
 
@@ -219,7 +220,7 @@ var _Minification = {
 						});
 					});
 					return false;
-				});
+				}, 1000, [id]);
 
 				_Files.resize();
 
@@ -232,11 +233,9 @@ var _Minification = {
 				} else {
 					search.val('');
 				}
-
 			}
 
 			return false;
-
 		});
 	},
 
@@ -252,8 +251,9 @@ var _Minification = {
 				if (!isIn(relatedObj.id, objects)) {
 					objects.push({'id': relatedObj.id});
 				}
-				var json = '{"' + key + '":' + JSON.stringify(objects) + '}';
-				_Crud.crudUpdateObj(id, json, function() {
+				let body = {};
+				body[key] = objects;
+				_Crud.crudUpdateObj(id, JSON.stringify(body), function() {
 					if (callback) {
 						callback();
 					}
@@ -261,5 +261,4 @@ var _Minification = {
 			}
 		});
 	}
-
 };

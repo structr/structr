@@ -37,6 +37,13 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<AdvancedCypherQ
 
 			checkOccur(query, predicate.getOccurrence(), isFirst);
 
+			// add label of declaring class for the given property name
+			// to select the correct index
+			final String label = predicate.getLabel();
+			if (label != null) {
+				query.indexLabel(label);
+			}
+
 			final ComparisonQuery comparisonQuery     = (ComparisonQuery)predicate;
 			final Object value                        = getReadValue(comparisonQuery.getSearchValue());
 			final ComparisonQuery.Operation operation = comparisonQuery.getOperation();

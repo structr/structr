@@ -27,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.flow.api.FlowElement;
 import org.structr.flow.api.FlowHandler;
@@ -57,10 +58,11 @@ public class ForkHandler implements FlowHandler<FlowFork> {
 			Context forkContext = new Context(context);
 			ForkTask task = new ForkTask(forkContext, flowElement.getSecurityContext().getCachedUserId(), forkBody.getUuid(), flowElement.getUuid());
 
-			// Could be written into context for future additions like a FlowJoin element
-			Future<Object> future = threadExecutor.submit(task);
-			
-			context.queueForkFuture(future);
+			TransactionCommand.queuePostProcessProcedure(() -> {
+				// Could be written into context for future additions like a FlowJoin element
+				Future<Object> future = threadExecutor.submit(task);
+				context.queueForkFuture(future);
+			});
 
 		}
 

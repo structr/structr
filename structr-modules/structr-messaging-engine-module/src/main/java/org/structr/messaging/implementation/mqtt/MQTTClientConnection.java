@@ -90,7 +90,7 @@ public class MQTTClientConnection implements MqttCallback {
 
 				MqttMessage msg = new MqttMessage(message.getBytes());
 
-				msg.setQos(info.getQoS());
+				msg.setQos(info.getQos());
 
 				client.publish(topic, msg);
 			}
@@ -107,7 +107,7 @@ public class MQTTClientConnection implements MqttCallback {
 
 			if(client.isConnected()){
 
-				client.subscribe(topic, info.getQoS());
+				client.subscribe(topic, info.getQos());
 
 			}
 		} catch (MqttException ex) {

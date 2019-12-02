@@ -284,7 +284,7 @@ var Structr = {
 	loadingSpinnerTimeout: undefined,
 	templateCache: new AsyncObjectCache(function(templateName) {
 
-		Promise.resolve($.ajax('templates/' + templateName + '.html')).then(function(templateHtml) {
+		Promise.resolve($.ajax('templates/' + templateName + '.html?t=' + (new Date().getTime()))).then(function(templateHtml) {
 			Structr.templateCache.addObject(templateHtml, templateName);
 		}).catch(function(e) {
 			console.log(e.statusText, templateName, e);
@@ -327,6 +327,10 @@ var Structr = {
 
 		if (sessionId) {
 			Command.ping(callback);
+		} else {
+			Structr.renewSessionId(function() {
+				Command.ping(callback);
+			});
 		}
 	},
 	refreshUi: function() {
@@ -1100,53 +1104,55 @@ var Structr = {
 
 		});
 	},
-	openSlideOut: function(slideout, tab, activeTabKey, callback) {
+	openSlideOut: function(triggerEl, slideoutElement, activeTabKey, callback) {
 
 		var storedRightSlideoutWidth = LSWrapper.getItem(_Pages.rightSlideoutWidthKey);
-		var rsw = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (slideout.width() + 12);
+		var rsw = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (slideoutElement.width() + 12);
 
-		slideout.css({
-			width: rsw - 12 + 'px'
-		});
-
-		slideout.addClass('open');
-		var t = $(tab);
+		var t = $(triggerEl);
 		t.addClass('active');
-		slideout.animate({right: 0 + 'px'}, {duration: 100}).zIndex(1);
-
-		$('.node', slideout).width(rsw - 25);
-
+		var slideoutWidth = rsw + 12;
 		LSWrapper.setItem(activeTabKey, t.prop('id'));
-		if (callback) {
-			callback();
-		}
-		_Pages.resize(0, rsw);
-	},
-	closeSlideOuts: function(slideouts, activeTabKey) {
-		var storedRightSlideoutWidth = LSWrapper.getItem(_Pages.rightSlideoutWidthKey);
-		var rsw = 0;
+		slideoutElement.width(rsw);
+		slideoutElement.animate({right: 0 + 'px'}, 100, function() {
+			if (typeof callback === 'function') {
+				callback({sw: slideoutWidth, isOpenAction: true});
+			}
+		}).zIndex(1);
+		slideoutElement.addClass('open');
 
-		var wasOpen = false;
-		slideouts.forEach(function(slideout) {
-			slideout.removeClass('open');
-			var l = slideout.position().left;
-			if (Math.abs(l - $(window).width()) >= 3) {
-				wasOpen = true;
-				rsw = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (slideout.width() + 12);
-				slideout.animate({right: '-=' + rsw + 'px'}, {duration: 100}).zIndex(2);
-				$('.compTab.active', slideout).removeClass('active');
+		t.draggable({
+			axis: 'x',
+			start: function(e, ui) {
+				t.addClass('noclick');
+			},
+			drag: function(e, ui) {
+				var w = $(window).width() - ui.offset.left - 20;
+				slideoutElement.css({
+					width: w + 'px'
+				});
+				ui.position.top += (ui.helper.width() / 2 - 6);
+				ui.position.left = - t.width() / 2 - 20;
+				var oldRightSlideoutWidth = slideoutWidth;
+				slideoutWidth = w + 12;
 
-				var openSlideoutCallback = slideout.data('closeCallback');
-				if (typeof openSlideoutCallback === "function") {
-					openSlideoutCallback();
+				if (typeof callback === 'function') {
+					LSWrapper.setItem(_Pages.rightSlideoutWidthKey, slideoutElement.width());
+					callback({sw: (slideoutWidth - oldRightSlideoutWidth)});
 				}
+			},
+			stop: function(e, ui) {
+				// remove noclick class after 200ms in case the mouseup event is not triggered while over the element (which leads to noclick remaining)
+				window.setTimeout(function() {
+					t.removeClass('noclick');
+				}, 200);
+				LSWrapper.setItem(_Pages.rightSlideoutWidthKey, slideoutElement.width());
+				t.css({
+					left: "",
+					top: ""
+				});
 			}
 		});
-		if (wasOpen) {
-			_Pages.resize(0, -rsw);
-		}
-
-		LSWrapper.removeItem(activeTabKey);
 	},
 	openLeftSlideOut: function(triggerEl, slideoutElement, activeTabKey, callback) {
 		var storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.leftSlideoutWidthKey);
@@ -1159,10 +1165,11 @@ var Structr = {
 		slideoutElement.width(psw);
 		slideoutElement.animate({left: 0 + 'px'}, 100, function() {
 			if (typeof callback === 'function') {
-				callback({sw: slideoutWidth});
+				callback({sw: slideoutWidth, isOpenAction: true});
 			}
 		}).zIndex(1);
 		slideoutElement.addClass('open');
+
 		t.draggable({
 			axis: 'x',
 			start: function(e, ui) {
@@ -1177,7 +1184,6 @@ var Structr = {
 				ui.position.left -= (ui.helper.width() / 2 - 6);
 				var oldLeftSlideoutWidth = slideoutWidth;
 				slideoutWidth = w + 12;
-				$('.node.page', slideoutElement).width(w - 25);
 
 				if (typeof callback === 'function') {
 					LSWrapper.setItem(_Pages.leftSlideoutWidthKey, slideoutElement.width());
@@ -1185,6 +1191,10 @@ var Structr = {
 				}
 			},
 			stop: function(e, ui) {
+				// remove noclick class after 200ms in case the mouseup event is not triggered while over the element (which leads to noclick remaining)
+				window.setTimeout(function() {
+					t.removeClass('noclick');
+				}, 200);
 				LSWrapper.setItem(_Pages.leftSlideoutWidthKey, slideoutElement.width());
 				t.css({
 					left: "",
@@ -1193,25 +1203,56 @@ var Structr = {
 			}
 		});
 	},
+	closeSlideOuts: function(slideouts, activeTabKey, callback) {
+		var wasOpen = false;
+		var rsw = 0;
+
+		slideouts.forEach(function(slideout) {
+			slideout.removeClass('open');
+			var left = slideout.position().left;
+			var sw = slideout.width() + 12;
+
+			if (Math.abs($(window).width() - left) >= 3) {
+				wasOpen = true;
+				rsw = sw;
+				slideout.animate({right: '-=' + sw + 'px'}, 100, function() {
+					if (typeof callback === 'function') {
+						callback(wasOpen, 0, -rsw);
+					}
+				}).zIndex(2);
+				$('.compTab.active', slideout).removeClass('active').draggable("destroy");
+
+				var openSlideoutCallback = slideout.data('closeCallback');
+				if (typeof openSlideoutCallback === "function") {
+					console.log(openSlideoutCallback)
+					openSlideoutCallback();
+				}
+			}
+		});
+
+		LSWrapper.removeItem(activeTabKey);
+	},
 	closeLeftSlideOuts: function(slideouts, activeTabKey, callback) {
 		var wasOpen = false;
 		var osw;
-		slideouts.forEach(function(w) {
-			var s = $(w);
-			s.removeClass('open');
-			var l = s.position().left;
-			var sw = s.width() + 12;
-			if (Math.abs(l) <= 3) {
+
+		slideouts.forEach(function(slideout) {
+			slideout.removeClass('open');
+			var left = slideout.position().left;
+			var sw = slideout.width() + 12;
+
+			if (Math.abs(left) <= 3) {
 				wasOpen = true;
 				osw = sw;
-				s.animate({left: - sw -1 + 'px'}, 100, function() {
+				slideout.animate({left: - sw -1 + 'px'}, 100, function() {
 					if (typeof callback === 'function') {
 						callback(wasOpen, -osw, 0);
 					}
 				}).zIndex(2);
-				$('.compTab.active', s).removeClass('active').draggable("destroy");
+				$('.compTab.active', slideout).removeClass('active').draggable("destroy");
 			}
 		});
+
 		LSWrapper.removeItem(activeTabKey);
 	},
 	updateVersionInfo: function() {

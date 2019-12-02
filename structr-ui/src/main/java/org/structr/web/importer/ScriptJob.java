@@ -18,8 +18,10 @@
  */
 package org.structr.web.importer;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.mozilla.javascript.Script;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,11 +141,22 @@ public class ScriptJob extends ScheduledJob {
 		jobInfo.put("status",          getCurrentStatus());
 		jobInfo.put("jobName",         jobName);
 
+		if (getEncounteredException() != null) {
+
+			final HashMap exceptionMap = new HashMap();
+			exceptionMap.put("message", getEncounteredException().getMessage());
+			exceptionMap.put("cause", getEncounteredException().getCause());
+			exceptionMap.put("stacktrace", ExceptionUtils.getStackTrace(getEncounteredException()));
+			jobInfo.put("exception", exceptionMap);
+		}
+
 		return jobInfo;
 	}
 
-	// ----- private methods -----
-	private void reportException(Exception ex) {
+	@Override
+	public void reportException(Exception ex) {
+
+		setEncounteredException(ex);
 
 		final Map<String, Object> data = new LinkedHashMap<>();
 

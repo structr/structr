@@ -119,6 +119,10 @@ public class Context {
 
 	public Object getAggregation(final String key) { return this.currentData.get(key); }
 
+	public Map<String,Object> getAggregations() { return deepCopyMap(this.currentData); }
+
+	public void setAggregations(final Map<String,Object> aggregations) { this.currentData = aggregations; }
+
 	public void putIntoStore(final String key, final Object value) { store.put(key,value); }
 
 	public Set<String> getStoreKeySet() {
@@ -170,9 +174,25 @@ public class Context {
 		Map<String,Object> result = new HashMap<>();
 
 		for(Map.Entry<String, Object> entry : map.entrySet()) {
-			result.put(entry.getKey(), entry.getValue());
+			if (entry.getValue() instanceof Map) {
+				result.put(entry.getKey(), deepCopyMap((Map)entry.getValue()));
+			} else if (entry.getValue() instanceof List) {
+				result.put(entry.getKey(), deepCopyList((List)entry.getValue()));
+			} else {
+				result.put(entry.getKey(), entry.getValue());
+			}
+
 		}
 
+		return result;
+	}
+
+	private List<Object> deepCopyList(List<Object> list) {
+		List<Object> result = new ArrayList<>();
+
+		for (Object o : list) {
+			result.add(o);
+		}
 		return result;
 	}
 

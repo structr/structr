@@ -90,19 +90,24 @@ public class ToExcelFunction extends Function<Object, Object> {
 			}
 
 			switch (sources.length) {
-				case 7: overflowMode = (String)sources[6];
+				case 7: overflowMode = sources[6].toString();
 				case 6: maxCellLength = Math.min(maxCellLength, (Integer)sources[5]);
-				case 5: headerLocalizationDomain = (String)sources[4];
+				case 5: headerLocalizationDomain = sources[4].toString();
 				case 4: localizeHeader = (Boolean)sources[3];
 				case 3: includeHeader = (Boolean)sources[2];
 				case 2: {
-					if (sources[1] instanceof String) {
+
+					if (sources[1] instanceof CharSequence) {
 						// view is given
-						propertyView = (String)sources[1];
+						propertyView = sources[1].toString();
 
 					} else if (sources[1] instanceof List) {
 						// named properties are given
-						properties = (List)sources[1];
+						properties = new ArrayList<>();
+
+						for (CharSequence prop : ((List<CharSequence>)sources[1])) {
+							properties.add(prop.toString());
+						}
 
 						// we are using size() instead of isEmpty() because NativeArray.isEmpty() always returns true
 						if (properties.size() == 0) {

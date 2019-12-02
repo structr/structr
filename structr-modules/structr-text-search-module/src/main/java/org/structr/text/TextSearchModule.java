@@ -18,25 +18,38 @@
  */
 package org.structr.text;
 
+import java.io.InputStream;
 import java.util.LinkedHashSet;
+import java.util.Map.Entry;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.parser.ParseContext;
+import org.apache.tika.parser.ocr.TesseractOCRConfig;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.fulltext.ContentAnalyzer;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.common.fulltext.Indexable;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.function.Functions;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.GenericProperty;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
+import org.structr.text.model.MetadataNode;
+import org.structr.text.model.StructuredDocument;
+import org.structr.text.model.StructuredTextNode;
 
 /**
  *
  */
-public class FulltextIndexerModule implements FulltextIndexer, StructrModule {
+public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, StructrModule {
 
 	private static final GenericProperty contextKey = new GenericProperty("context");
 
@@ -46,6 +59,7 @@ public class FulltextIndexerModule implements FulltextIndexer, StructrModule {
 
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
+		Functions.put(licenseManager, new StopWordsFunction());
 	}
 
 	@Override
@@ -188,7 +202,74 @@ public class FulltextIndexerModule implements FulltextIndexer, StructrModule {
 		contextObject.put(contextKey, contextValues);
 
 		return contextObject;
+	}
 
+	// ----- interface ContentAnalyzer -----
+	@Override
+	public void analyzeContent(final Indexable indexable) throws FrameworkException {
+
+		try (final InputStream is = indexable.getInputStream()) {
+
+			final App app                      = StructrApp.getInstance(indexable.getSecurityContext());
+			final AutoDetectParser parser      = new AutoDetectParser();
+			final Metadata metadata            = new Metadata();
+			final ParseContext context         = new ParseContext();
+			final TesseractOCRConfig ocrConfig = new TesseractOCRConfig();
+			final TextContentHandler handler   = new TextContentHandler();
+
+			ocrConfig.setLanguage("eng+deu");
+
+			context.set(TesseractOCRConfig.class, ocrConfig);
+
+			parser.parse(is, handler, metadata, context);
+
+			// try to obtain structure information
+			handler.analyze();
+
+			final StructuredDocument document = app.create(StructuredDocument.class, indexable.getName());
+
+			// store document metadata separately
+			for (final Entry<String, String> meta : handler.getMetadata().entrySet()) {
+
+				app.create(MetadataNode.class,
+					new NodeAttribute<>(StructrApp.key(MetadataNode.class, "name"),     meta.getKey()),
+					new NodeAttribute<>(StructrApp.key(MetadataNode.class, "content"),  meta.getValue()),
+					new NodeAttribute<>(StructrApp.key(MetadataNode.class, "document"), document)
+				);
+			}
+
+			int pageNumber = 1;
+
+			for (final AnnotatedPage sourcePage : handler.getPages()) {
+
+				final StructuredTextNode page = app.create(StructuredTextNode.class,
+					new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "name"),     "Page " + pageNumber++),
+					new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "kind"),     "page"),
+					new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "parent"),   document)
+				);
+
+				for (final AnnotatedLine sourceLine : sourcePage.getLines()) {
+
+					final String content = sourceLine.getContent();
+
+					app.create(StructuredTextNode.class,
+						new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "name"),     StringUtils.abbreviate(content, 80)),
+						new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "kind"),     sourceLine.getType()),
+						new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "parent"),   page),
+						new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "content"),  content)
+					);
+				}
+			}
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+		}
+	}
+
+	@Override
+	public Set<String> getStopWords(final String language) {
+		return FulltextIndexingAgent.languageStopwordMap.get(language);
 	}
 
 	// ----- interface StructrModule -----

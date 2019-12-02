@@ -50,24 +50,31 @@ public class FlowDataSource extends FlowBaseNode implements DataSource, Deployab
 	@Override
 	public Object get(final Context context) throws FlowException {
 
-		final DataSource _ds = getProperty(dataSource);
-		if (_ds != null) {
-			Object data = _ds.get(context);
-			context.setData(getUuid(), data);
-		}
+		if (!context.hasData(getUuid())) {
 
-		final String _script = getProperty(query);
-		if (_script != null) {
-
-			try {
-
-				Object result = Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + _script.trim() + "}", "FlowDataSource(" + getUuid() + ")");
-				context.setData(getUuid(), result);
-				return result;
-			} catch (FrameworkException fex) {
-
-				throw new FlowException(fex);
+			final DataSource _ds = getProperty(dataSource);
+			if (_ds != null) {
+				Object data = _ds.get(context);
+				context.setData(getUuid(), data);
 			}
+
+			final String _script = getProperty(query);
+			if (_script != null) {
+
+				try {
+
+					Object result = Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + _script.trim() + "}", "FlowDataSource(" + getUuid() + ")");
+					context.setData(getUuid(), result);
+					return result;
+				} catch (FrameworkException fex) {
+
+					throw new FlowException(fex);
+				}
+			}
+
+		} else {
+
+			return context.getData(getUuid());
 		}
 
 		return null;

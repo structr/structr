@@ -48,7 +48,7 @@ public class LogFunction extends CoreFunction {
 			for (final Object obj : sources) {
 
 				if (obj != null) {
-					buf.append(Scripting.formatToDefaultDateOrString(obj));
+					buf.append(Scripting.formatForLogging(obj));
 				}
 			}
 

@@ -41,6 +41,8 @@ import org.structr.api.service.Service;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.fulltext.ContentAnalyzer;
+import org.structr.common.fulltext.DummyContentAnalyzer;
 import org.structr.common.fulltext.DummyFulltextIndexer;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
@@ -459,6 +461,19 @@ public class StructrApp implements App {
 		}
 
 		return new DummyFulltextIndexer();
+	}
+
+	@Override
+	public ContentAnalyzer getContentAnalyzer(final Object... params) {
+
+		final Map<String, StructrModule> modules = StructrApp.getConfiguration().getModules();
+		final StructrModule module               = modules.get("text-search");
+
+		if (module != null && module instanceof ContentAnalyzer) {
+			return (ContentAnalyzer)module;
+		}
+
+		return new DummyContentAnalyzer();
 	}
 
 	// ----- public static methods ----

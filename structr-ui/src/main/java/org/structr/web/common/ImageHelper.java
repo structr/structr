@@ -347,7 +347,7 @@ public abstract class ImageHelper extends FileHelper {
 			final long end  = System.nanoTime();
 			final long time = (end - start) / 1000000;
 
-			logger.debug("Thumbnail created. Reading, scaling and writing took {} ms", time);
+			logger.info("Thumbnail created for image {} ({}). Reading, scaling and writing took {} ms", new Object[] { originalImage.getName(), originalImage.getUuid(), time });
 
 			tn.setBytes(baos.toByteArray());
 
@@ -360,7 +360,6 @@ public abstract class ImageHelper extends FileHelper {
 
 		return null;
 	}
-
 
 	public static Thumbnail createCroppedImage(final Image originalImage, final int maxWidth, final int maxHeight, final Integer reqOffsetX, final Integer reqOffsetY, final String formatString) {
 
@@ -764,11 +763,13 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static JSONObject getExifData(final File originalImage) {
 
-		final JSONObject exifDataJson = new JSONObject();
-
 		try {
 
-			final Metadata metadata = getMetadata(originalImage);
+			// Get new instance with superuser context to be able to update EXIF data
+			final File image = StructrApp.getInstance().get(File.class, originalImage.getUuid());
+
+			final JSONObject exifDataJson = new JSONObject();
+			final Metadata metadata = getMetadata(image);
 
 			final ExifIFD0Directory   exifIFD0Directory   = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
 			final ExifSubIFDDirectory exifSubIFDDirectory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
@@ -783,7 +784,7 @@ public abstract class ImageHelper extends FileHelper {
 					exifIFD0DataJson.put(tag.getTagName(), exifIFD0Directory.getDescription(tag.getTagType()));
 				});
 
-				originalImage.setProperty(StructrApp.key(Image.class, "exifIFD0Data"), exifIFD0DataJson.toString());
+				image.setProperty(StructrApp.key(Image.class, "exifIFD0Data"), exifIFD0DataJson.toString());
 				exifDataJson.putOnce("exifIFD0Data", exifIFD0DataJson);
 			}
 
@@ -795,7 +796,7 @@ public abstract class ImageHelper extends FileHelper {
 					exifSubIFDDataJson.put(tag.getTagName(), exifSubIFDDirectory.getDescription(tag.getTagType()));
 				});
 
-				originalImage.setProperty(StructrApp.key(Image.class, "exifSubIFDData"), exifSubIFDDataJson.toString());
+				image.setProperty(StructrApp.key(Image.class, "exifSubIFDData"), exifSubIFDDataJson.toString());
 				exifDataJson.putOnce("exifSubIFDData", exifSubIFDDataJson);
 			}
 
@@ -807,13 +808,13 @@ public abstract class ImageHelper extends FileHelper {
 					exifGpsDataJson.put(tag.getTagName(), gpsDirectory.getDescription(tag.getTagType()));
 				});
 
-				originalImage.setProperty(StructrApp.key(Image.class, "gpsData"), exifGpsDataJson.toString());
+				image.setProperty(StructrApp.key(Image.class, "gpsData"), exifGpsDataJson.toString());
 				exifDataJson.putOnce("gpsData", exifGpsDataJson);
 			}
 
 			return exifDataJson;
 
-		} catch (Exception ex) {
+		} catch (final Exception ex) {
 			logger.warn("Unable to extract EXIF metadata.", ex);
 		}
 

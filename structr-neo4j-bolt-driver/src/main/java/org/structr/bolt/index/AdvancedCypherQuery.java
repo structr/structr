@@ -20,9 +20,10 @@ package org.structr.bolt.index;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
+import org.neo4j.helpers.collection.Iterables;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortType;
 
@@ -32,7 +33,8 @@ import org.structr.api.search.SortType;
 public class AdvancedCypherQuery implements CypherQuery {
 
 	private final Map<String, Object> parameters    = new HashMap<>();
-	private final List<String> typeLabels           = new LinkedList<>();
+	private final Set<String> indexLabels           = new LinkedHashSet<>();
+	private final Set<String> typeLabels            = new LinkedHashSet<>();
 	private final StringBuilder buffer              = new StringBuilder();
 	private String sourceTypeLabel                  = null;
 	private String targetTypeLabel                  = null;
@@ -81,7 +83,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 			case 0:
 
-				buf.append(index.getQueryPrefix(null, sourceTypeLabel, targetTypeLabel));
+				buf.append(index.getQueryPrefix(getTypeQueryLabel(null), sourceTypeLabel, targetTypeLabel));
 
 				if (buffer.length() > 0) {
 					buf.append(" WHERE ");
@@ -93,7 +95,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 			case 1:
 
-				buf.append(index.getQueryPrefix(typeLabels.get(0), sourceTypeLabel, targetTypeLabel));
+				buf.append(index.getQueryPrefix(getTypeQueryLabel(Iterables.first(typeLabels)), sourceTypeLabel, targetTypeLabel));
 
 				if (buffer.length() > 0) {
 					buf.append(" WHERE ");
@@ -108,7 +110,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 				// create UNION query
 				for (final Iterator<String> it = typeLabels.iterator(); it.hasNext();) {
 
-					buf.append(index.getQueryPrefix(it.next(), sourceTypeLabel, targetTypeLabel));
+					buf.append(index.getQueryPrefix(getTypeQueryLabel(it.next()), sourceTypeLabel, targetTypeLabel));
 
 					if (buffer.length() > 0) {
 						buf.append(" WHERE ");
@@ -194,6 +196,10 @@ public class AdvancedCypherQuery implements CypherQuery {
 	@Override
 	public void or() {
 		buffer.append(" OR ");
+	}
+
+	public void indexLabel(final String indexLabel) {
+		this.indexLabels.add(indexLabel);
 	}
 
 	public void typeLabel(final String typeLabel) {
@@ -332,5 +338,25 @@ public class AdvancedCypherQuery implements CypherQuery {
 	@Override
 	public QueryContext getQueryContext() {
 		return queryContext;
+	}
+
+	// ----- private methods -----
+	private String getTypeQueryLabel(final String mainType) {
+
+		if (mainType != null) {
+
+			final StringBuilder buf = new StringBuilder(mainType);
+
+			for (final String indexLabel : indexLabels) {
+
+				buf.append(":");
+				buf.append(indexLabel);
+			}
+		
+			return buf.toString();
+		}
+
+		// null indicates "no main type"
+		return null;
 	}
 }

@@ -79,9 +79,7 @@ public abstract class FlowAbstractDeploymentHandler implements FlowDeploymentInt
 			FlowValueSource.class,
 			FlowAggregateStartValue.class,
 			FlowScriptConditionSource.class,
-			/* Do not export principal relation as the principal won't be available after an import into a clean database
-			FlowContainerConfigurationPrincipal.class,
-			*/
+			FlowActiveContainerConfiguration.class,
 			FlowExceptionHandlerNodes.class,
 			FlowContainerPackageFlow.class,
 			FlowContainerPackagePackage.class,

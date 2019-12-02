@@ -23,8 +23,10 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.eclipse.jetty.io.QuietException;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
 import org.slf4j.Logger;
@@ -348,15 +350,19 @@ public class StructrWebSocket implements WebSocketListener {
 				securityContext.clearCustomView();
 			}
 
-			session.getRemote().sendString(msg);
+			session.getRemote().sendStringByFuture(msg);
 
 			tx.success();
 
 		} catch (Throwable t) {
-			// ignore
-			logger.warn("Unable to send websocket message to remote client: {}", t);
-		}
 
+			if (t instanceof QuietException || t.getCause() instanceof TimeoutException) {
+				// ignore exceptions which (by jettys standards) should be handled less verbosely
+				// also ignore timeoutexceptions
+			} else {
+				logger.warn("Unable to send websocket message to remote client: {}", t);
+			}
+		}
 	}
 
 	// ----- file handling -----

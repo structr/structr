@@ -556,15 +556,26 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, result);
 
+			} else if (command === 'GET_SUGGESTIONS') {
+
+				console.log(result);
+
+				StructrModel.callCallback(data.callback, result);
+
 			} else if (command === 'SERVER_LOG') {
 
-                StructrModel.callCallback(data.callback, result);
+                		StructrModel.callCallback(data.callback, result);
 
 			} else if (command === 'SAVE_LOCAL_STORAGE') {
 
-                StructrModel.callCallback(data.callback, result);
+		                StructrModel.callCallback(data.callback, result);
 
-            } else {
+			} else if (command === 'APPEND_WIDGET') {
+
+		                StructrModel.callCallback(data.callback, result);
+
+			} else {
+
 				console.log('Received unknown command: ' + command);
 
 				if (sessionValid === false) {

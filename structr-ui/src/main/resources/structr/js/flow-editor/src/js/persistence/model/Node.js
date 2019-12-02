@@ -20,7 +20,7 @@ export class Node {
 
     static getProxyHandler(persistence) {
         return {
-            set: function(obj, prop, value){
+            set: async function(obj, prop, value){
                 if (prop !=='id' && prop !== 'type') {
                     obj[prop] = value;
                     // Build a new object that just contains id, type and the changed value
@@ -29,7 +29,7 @@ export class Node {
                         type: obj.type
                     };
                     persistenceObj[prop] = value;
-                    persistence._persistObject(persistenceObj);
+                    await persistence._persistObject(persistenceObj);
                 }
                 return true;
             }

@@ -21,7 +21,6 @@ package org.structr.rest.servlet;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
-
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -36,11 +35,13 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.IJsonInput;
@@ -200,7 +201,17 @@ public class JsonRestServlet extends AbstractDataServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in DELETE: " + jpex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonParseException in DELETE: " + jpex.getMessage()));
+
+		} catch (AssertException aex) {
+
+			logger.warn("Assertion error in DELETE", aex.getMessage());
+			aex.printStackTrace();
+
+			int code = aex.getStatusCode();
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "Assertion error in DELETE: " + aex.getMessage()));
 
 		} catch (Throwable t) {
 
@@ -209,7 +220,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in DELETE: " + t.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, t.getClass().getSimpleName() + " in DELETE: " + t.getMessage()));
 
 		} finally {
 
@@ -320,7 +331,17 @@ public class JsonRestServlet extends AbstractDataServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in OPTIONS: " + jpex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonParseException in OPTIONS: " + jpex.getMessage()));
+
+		} catch (AssertException aex) {
+
+			logger.warn("Assertion error in OPTIONS", aex.getMessage());
+			aex.printStackTrace();
+
+			int code = aex.getStatusCode();
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "Assertion error in OPTIONS: " + aex.getMessage()));
 
 		} catch (Throwable t) {
 
@@ -329,7 +350,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in OPTIONS: " + t.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, t.getClass().getSimpleName() + " in OPTIONS: " + t.getMessage()));
 
 		} finally {
 
@@ -517,6 +538,16 @@ public class JsonRestServlet extends AbstractDataServlet {
 			response.setStatus(code);
 			response.getWriter().append(RestMethodResult.jsonError(code, "Unsupported operation in POST: " + uoe.getMessage()));
 
+		} catch (AssertException aex) {
+
+			logger.warn("Assertion error in POST", aex.getMessage());
+			aex.printStackTrace();
+
+			int code = aex.getStatusCode();
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "Assertion error in POST: " + aex.getMessage()));
+
 		} catch (Throwable t) {
 
 			logger.warn("Exception in POST", t);
@@ -524,7 +555,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in POST: " + t.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, t.getClass().getSimpleName() + " in POST: " + t.getMessage()));
 
 		} finally {
 
@@ -639,7 +670,17 @@ public class JsonRestServlet extends AbstractDataServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in PUT: " + jpex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonParseException in PUT: " + jpex.getMessage()));
+
+		} catch (AssertException aex) {
+
+			logger.warn("Assertion error in PUT", aex.getMessage());
+			aex.printStackTrace();
+
+			int code = aex.getStatusCode();
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "Assertion error in PUT: " + aex.getMessage()));
 
 		} catch (Throwable t) {
 
@@ -649,7 +690,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in PUT: " + t.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, t.getClass().getSimpleName() + " in PUT: " + t.getMessage()));
 
 		} finally {
 
@@ -787,6 +828,16 @@ public class JsonRestServlet extends AbstractDataServlet {
 			response.setStatus(code);
 			response.getWriter().append(RestMethodResult.jsonError(code, "Unsupported operation in PATCH: " + uoe.getMessage()));
 
+		} catch (AssertException aex) {
+
+			logger.warn("Assertion error in PATCH", aex.getMessage());
+			aex.printStackTrace();
+
+			int code = aex.getStatusCode();
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "Assertion error in PATCH: " + aex.getMessage()));
+
 		} catch (Throwable t) {
 
 			logger.warn("Exception in PATCH", t);
@@ -794,7 +845,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in PATCH: " + t.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, t.getClass().getSimpleName() + " in PATCH: " + t.getMessage()));
 
 		} finally {
 
@@ -935,10 +986,24 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			writeException(response, frameworkException);
 
+		} catch (AssertException aex) {
+
+			logger.warn("Assertion error in GET", aex.getMessage());
+			aex.printStackTrace();
+
+			int code = aex.getStatusCode();
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "Assertion error in GET: " + aex.getMessage()));
+
 		} catch (Throwable t) {
 
-			logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
-			logger.warn(" => Error thrown: ", t);
+			if (t instanceof QuietException || t.getCause() instanceof QuietException) {
+				// ignore exceptions which (by jettys standards) should be handled less verbosely
+			} else {
+				logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
+				logger.warn(" => Error thrown: ", t);
+			}
 
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 

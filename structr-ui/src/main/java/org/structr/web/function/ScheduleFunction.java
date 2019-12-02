@@ -20,6 +20,7 @@ package org.structr.web.function;
 
 import java.util.Collections;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.importer.ScriptJob;
@@ -38,21 +39,26 @@ public class ScheduleFunction extends UiAdvancedFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		try {
-			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 3);
 
-			final String jobName = (sources.length == 2) ? sources[1].toString() : "Untitled script job";
+			final String jobName           = (sources.length >= 2) ? sources[1].toString() : "Untitled script job";
+			final Object jobFinishedScript = (sources.length == 3) ? sources[2] : null;
 
 			final ScriptJob job = new ScriptJob(ctx.getSecurityContext().getCachedUser(), Collections.EMPTY_MAP, sources[0], ctx.getSecurityContext().getContextStore(), jobName);
+			job.setOnFinishScript(jobFinishedScript);
 
-			try {
 
-				JobQueueManager.getInstance().addJob(job);
+			TransactionCommand.queuePostProcessProcedure(() -> {
+				try {
 
-			} catch (FrameworkException ex) {
-				logException(ex, ex.getMessage(), null);
-			}
+					JobQueueManager.getInstance().addJob(job);
+				} catch (FrameworkException ex) {
 
-			return "";
+					logException(ex, ex.getMessage(), null);
+				}
+			});
+
+			return job.jobId();
 
 		} catch (IllegalArgumentException e) {
 

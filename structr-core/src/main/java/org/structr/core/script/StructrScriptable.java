@@ -18,6 +18,7 @@
  */
 package org.structr.core.script;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,10 +47,7 @@ import org.structr.core.function.Functions;
 import org.structr.core.function.GrantFunction;
 import org.structr.core.parser.CacheExpression;
 import org.structr.core.parser.ConstantExpression;
-import org.structr.core.property.EnumProperty;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.property.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -164,7 +162,7 @@ public class StructrScriptable extends ScriptableObject {
 			return nobj;
 		}
 
-		if ("include".equals(name) || "render".equals(name)) {
+		if ("include".equals(name) || "render".equals(name) || "include_child".equals(name) || "includeChild".equals(name)) {
 
 			return new IdFunctionObject(new IdFunctionCall() {
 
@@ -320,7 +318,7 @@ public class StructrScriptable extends ScriptableObject {
 			final String namespaceIdentifier = function.getNamespaceIdentifier();
 			if (namespaceIdentifier != null) {
 
-				namespace.add(name);
+				namespace.add(namespaceIdentifier);
 			}
 
 			return new IdFunctionObject(new FunctionWrapper(function), "Function", 0, 0);
@@ -347,6 +345,21 @@ public class StructrScriptable extends ScriptableObject {
 
 	// ----- private methods -----
 	private Object wrap(final Context context, final Scriptable scope, final String key, final Object value) {
+
+		// Special case of array properties. Synthesize empty array value for null values in db.
+		if (scope.getClassName() != null && value == null && key != null) {
+			Class clazz = StructrApp.getConfiguration().getNodeEntityClass(scope.getClassName());
+			if (clazz == null) {
+				clazz = StructrApp.getConfiguration().getRelationshipEntityClass(scope.getClassName());
+			}
+
+			if (clazz != null) {
+
+				if (StructrApp.getConfiguration().getPropertyKeyForJSONName(clazz, key) instanceof ArrayProperty) {
+					return new StructrArray(scope, key, (Object[]) Array.newInstance(Object.class, 0));
+				}
+			}
+		}
 
 		if (value instanceof NativeObject /* || value instanceof NativeArray*/ ) {
 			return value;
@@ -501,17 +514,19 @@ public class StructrScriptable extends ScriptableObject {
 
 				final Object value = function.apply(actionContext, entity, unwrappedParameters);
 
-				// remove namespace identifier
-				if (function.getNamespaceIdentifier() != null) {
-					namespace.remove(function.getNamespaceIdentifier());
-				}
-
 				return wrap(context, scope, null, value);
 
 			} catch (final UnlicensedScriptException uex) {
 				uex.log(logger);
 			} catch (final FrameworkException fex) {
 				exception = fex;
+			} finally {
+
+				// remove namespace identifier
+				if (function.getNamespaceIdentifier() != null) {
+					namespace.remove(function.getNamespaceIdentifier());
+				}
+
 			}
 
 			return null;
@@ -715,7 +730,6 @@ public class StructrScriptable extends ScriptableObject {
 								value = inputConverter.convert(value);
 							}
 
-
 						} else {
 
 							final Class valueType   = key.valueType();
@@ -724,7 +738,15 @@ public class StructrScriptable extends ScriptableObject {
 							// do not convert entity / collection properties
 							if (valueType != null && relatedType == null) {
 
-								value = Context.jsToJava(value, valueType);
+								if (valueType.isArray() && value instanceof ArrayList) {
+
+									// we need to convert the wrapped array so the converter can handle it ( StructrArray -> ArrayList -> Object[])
+									value = ((ArrayList)value).toArray();
+
+								} else {
+
+									value = Context.jsToJava(value, valueType);
+								}
 							}
 						}
 

@@ -18,7 +18,6 @@
  */
 package org.structr.web.importer;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
@@ -244,9 +243,9 @@ public class MixedCSVFileImportJob extends FileImportJob {
 
 				importFinished(startTime, overallCount, ignoreCount);
 
-			} catch (IOException | FrameworkException fex) {
+			} catch (Exception ex) {
 
-				reportException(fex);
+				reportException(ex);
 
 			} finally {
 

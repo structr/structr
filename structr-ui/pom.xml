@@ -73,6 +73,10 @@
 					<groupId>org.opengis</groupId>
 					<artifactId>geoapi</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>com.github.jai-imageio</groupId>
+					<artifactId>jai-imageio-core</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -186,7 +190,37 @@
 			<groupId>com.google.zxing</groupId>
 			<artifactId>javase</artifactId>
 			<version>3.3.3</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.github.jai-imageio</groupId>
+					<artifactId>jai-imageio-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
+	 <dependency>
+	  <groupId>org.seleniumhq.selenium</groupId>
+	  <artifactId>selenium-java</artifactId>
+	  <scope>test</scope>
+	  <version>2.44.0</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>com.opera</groupId>
+	  <artifactId>operadriver</artifactId>
+	  <scope>test</scope>
+	  <version>1.5</version>
+	  <exclusions>
+	   <exclusion>
+	    <groupId>org.seleniumhq.selenium</groupId>
+	    <artifactId>selenium-remote-driver</artifactId>
+	   </exclusion>
+	  </exclusions>
+	 </dependency>
+	 <dependency>
+	  <groupId>junit</groupId>
+	  <artifactId>junit</artifactId>
+	  <scope>test</scope>
+	  <version>4.11</version>
+	 </dependency>
 	</dependencies>
 	<build>
 		<resources>

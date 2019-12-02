@@ -36,6 +36,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.apache.commons.collections4.ListUtils;
+import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -333,14 +334,20 @@ public abstract class StreamingWriter {
 
 			} catch(Throwable t) {
 
-				logger.warn("Exception while serializing property {} ({}) declared in {} with valuetype {} (value = {}) : {}", new Object[] {
-					key.jsonName(),
-					key.getClass(),
-					key.getClass().getDeclaringClass(),
-					value.getClass().getName(),
-					value,
-					t.getMessage()
-				});
+				if (t instanceof QuietException || t.getCause() instanceof QuietException) {
+					// ignore exceptions which (by jettys standards) should be handled less verbosely
+				} else if (t instanceof IllegalStateException && t.getCause() == null && (t.getMessage() == null || t.getMessage().equals("Nesting problem."))) {
+					// ignore exception. it is probably caused by a canceled request/closed connection which caused the JsonWriter to tilt
+				} else {
+					logger.warn("Exception while serializing property {} ({}) declared in {} with valuetype {} (value = {}) : {}", new Object[] {
+						key.jsonName(),
+						key.getClass(),
+						key.getClass().getDeclaringClass(),
+						value.getClass().getName(),
+						value,
+						t.getMessage()
+					});
+				}
 			}
 		}
 	}
@@ -580,7 +587,7 @@ public abstract class StreamingWriter {
 	}
 
 	private String getString(final Object value) {
-		
+
 		if (value != null) {
 			return value.toString();
 		}

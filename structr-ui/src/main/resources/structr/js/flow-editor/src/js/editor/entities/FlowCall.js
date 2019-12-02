@@ -33,6 +33,10 @@ export class FlowCall extends FlowNode {
 
                     let persistence = new Persistence();
                     persistence.getNodesByClass(new FlowContainer()).then(result => {
+                        
+                        result = result.sort((a,b) => {
+                            return a.effectiveName.toLowerCase() > b.effectiveName.toLowerCase() ? 1 : a.effectiveName.toLowerCase() < b.effectiveName.toLowerCase() ? -1 : 0;
+                        });
 
                         for (let container of result) {
                             if (container.id !== scopedDbNode.flowContainer.id) {

@@ -49,7 +49,7 @@ public interface Indexable extends NodeInterface {
 		type.addReferenceProperty("indexedWords", rel.getTargetProperty()).setProperties("name", "true");
 
 		type.addStringProperty("contentType",       PropertyView.Ui, PropertyView.Public);
-		type.addStringProperty("extractedContent",  PropertyView.Ui);
+		type.addStringProperty("extractedContent");
 	}}
 
 	String getContentType();

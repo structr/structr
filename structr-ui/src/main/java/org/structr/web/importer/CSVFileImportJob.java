@@ -18,7 +18,6 @@
  */
 package org.structr.web.importer;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
@@ -26,6 +25,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
+import org.mozilla.javascript.NativeObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
@@ -44,6 +44,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
 import org.structr.rest.common.CsvHelper;
+import org.structr.schema.action.Function;
 import org.structr.web.entity.File;
 
 public class CSVFileImportJob extends FileImportJob {
@@ -64,7 +65,6 @@ public class CSVFileImportJob extends FileImportJob {
 		final String targetType   = getOrDefault(configuration.get("targetType"), null);
 		final String delimiter    = getOrDefault(configuration.get("delimiter"), ";");
 		final String quoteChar    = getOrDefault(configuration.get("quoteChar"), "\"");
-		final boolean rfc4180Mode = getOrDefault(configuration.get("rfc4180Mode"), false);
 
 		if (targetType == null || delimiter == null || quoteChar == null) {
 
@@ -99,9 +99,14 @@ public class CSVFileImportJob extends FileImportJob {
 			final boolean strictQuotes               = getOrDefault(configuration.get("strictQuotes"), false);
 			final boolean collectValues              = getOrDefault(configuration.get("collectValues"), false);
 			final boolean distinct                   = getOrDefault(configuration.get("distinct"), false);
+			final boolean ignoreInvalid              = getOrDefault(configuration.get("ignoreInvalid"), false);
 			final Integer commitInterval             = parseInt(configuration.get("commitInterval"), 1000);
 
-			logger.info("Importing CSV from {} ({}) to {} using {}", filePath, fileUuid, targetType, configuration);
+			if (configuration instanceof NativeObject) {
+				logger.info("Importing CSV from {} ({}) to {} using {}", filePath, fileUuid, targetType, Function.toGraphObjectMap(configuration));
+			} else {
+				logger.info("Importing CSV from {} ({}) to {} using {}", filePath, fileUuid, targetType, configuration);
+			}
 
 			final APIBuilder builder       = (APIBuilder) StructrApp.getConfiguration().getModules().get("api-builder");
 			final SimpleDateFormat df      = new SimpleDateFormat("yyyyMMddHHMM");
@@ -167,38 +172,52 @@ public class CSVFileImportJob extends FileImportJob {
 
 							final JsonInput input = iterator.next();
 
-							mapper.transformInput(threadContext, targetEntityType, input);
+							if (input == null) {
 
-							if (currentImportType.equals(IMPORT_TYPE.NODE)) {
+								if (ignoreInvalid) {
 
-								final PropertyMap properties = PropertyMap.inputTypeToJavaType(threadContext, targetEntityType, input);
-
-								if (distinct) {
-
-									// check for existing object and ignore import
-									if (app.nodeQuery(targetEntityType).and(properties).getFirst() == null) {
-
-										app.create(targetEntityType, properties);
-										overallCount++;
-
-									} else {
-
-										ignoreCount++;
-									}
+									ignoreCount++;
 
 								} else {
 
-									app.create(targetEntityType, properties);
-									overallCount++;
+									throw new FrameworkException(422, "Error in CSV after " + (overallCount + ignoreCount) + " lines.");
 								}
 
 							} else {
 
-								final AbstractNode sourceNode = (AbstractNode)app.get(relSourceType, (String)input.get("sourceId"));
-								final AbstractNode targetNode = (AbstractNode)app.get(relTargetType, (String)input.get("targetId"));
+								mapper.transformInput(threadContext, targetEntityType, input);
 
-								app.create(sourceNode, targetNode, targetEntityType, PropertyMap.inputTypeToJavaType(threadContext, targetEntityType, input));
-								overallCount++;
+								if (currentImportType.equals(IMPORT_TYPE.NODE)) {
+
+									final PropertyMap properties = PropertyMap.inputTypeToJavaType(threadContext, targetEntityType, input);
+
+									if (distinct) {
+
+										// check for existing object and ignore import
+										if (app.nodeQuery(targetEntityType).and(properties).getFirst() == null) {
+
+											app.create(targetEntityType, properties);
+											overallCount++;
+
+										} else {
+
+											ignoreCount++;
+										}
+
+									} else {
+
+										app.create(targetEntityType, properties);
+										overallCount++;
+									}
+
+								} else {
+
+									final AbstractNode sourceNode = (AbstractNode)app.get(relSourceType, (String)input.get("sourceId"));
+									final AbstractNode targetNode = (AbstractNode)app.get(relTargetType, (String)input.get("targetId"));
+
+									app.create(sourceNode, targetNode, targetEntityType, PropertyMap.inputTypeToJavaType(threadContext, targetEntityType, input));
+									overallCount++;
+								}
 							}
 						}
 
@@ -207,7 +226,6 @@ public class CSVFileImportJob extends FileImportJob {
 						chunks++;
 
 						chunkFinished(chunkStartTime, chunks, commitInterval, overallCount, ignoreCount);
-
 					}
 
 					// do this outside of the transaction!
@@ -215,17 +233,14 @@ public class CSVFileImportJob extends FileImportJob {
 					if (shouldAbort()) {
 						return;
 					}
-
 				}
 
 				importFinished(startTime, overallCount, ignoreCount);
 
-			} catch (IOException | FrameworkException fex) {
-				reportException(fex);
-			} catch (InstantiationException ex) {
+			} catch (Exception ex) {
+
 				reportException(ex);
-			} catch (IllegalAccessException ex) {
-				reportException(ex);
+
 			} finally {
 
 				try {

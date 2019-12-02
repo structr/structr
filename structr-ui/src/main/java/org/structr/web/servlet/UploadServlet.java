@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.fileupload.FileItemIterator;
@@ -39,7 +38,6 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
@@ -200,9 +198,9 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			response.setContentType("text/html");
 
-			FileItemIterator fileItemsIterator = uploader.getItemIterator(request);
-
-			final Map<String, Object> params = new HashMap<>();
+			final FileItemIterator fileItemsIterator = uploader.getItemIterator(request);
+			final Map<String, Object> params         = new HashMap<>();
+			String uuid                              = null;
 
 			while (fileItemsIterator.hasNext()) {
 
@@ -228,12 +226,12 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 					} else {
 
 						try {
-							
+
 							final IJsonInput jsonInput = cleanAndParseJsonString(app, "{" + fieldName + ":" + fieldValue + "}");
 							for (final JsonInput input : jsonInput.getJsonInputs()) {
 								params.put(fieldName, convertPropertySetToMap(input).get(fieldName));
 							}
-							
+
 						} catch (final FrameworkException fex) {
 							params.put(fieldName, fieldValue);
 						}
@@ -241,130 +239,129 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 				} else {
 
-					try {
+					final String contentType = item.getContentType();
+					boolean isImage = (contentType != null && contentType.startsWith("image"));
+					boolean isVideo = (contentType != null && contentType.startsWith("video"));
 
-						final String contentType = item.getContentType();
-						boolean isImage = (contentType != null && contentType.startsWith("image"));
-						boolean isVideo = (contentType != null && contentType.startsWith("video"));
+					// Override type from path info
+					if (params.containsKey(NodeInterface.type.jsonName())) {
+						type = (String) params.get(NodeInterface.type.jsonName());
+					}
 
-						// Override type from path info
-						if (params.containsKey(NodeInterface.type.jsonName())) {
-							type = (String) params.get(NodeInterface.type.jsonName());
-						}
+					Class cls = null;
+					if (type != null) {
 
-						Class cls = null;
-						if (type != null) {
+						cls = SchemaHelper.getEntityClassForRawType(type);
 
-							cls = SchemaHelper.getEntityClassForRawType(type);
+					}
 
-						}
+					if (cls == null) {
 
-						if (cls == null) {
+						if (isImage) {
 
-							if (isImage) {
+							cls = Image.class;
 
-								cls = Image.class;
+						} else if (isVideo) {
 
-							} else if (isVideo) {
+							cls = SchemaHelper.getEntityClassForRawType("VideoFile");
+							if (cls == null) {
 
-								cls = SchemaHelper.getEntityClassForRawType("VideoFile");
-								if (cls == null) {
-
-									logger.warn("Unable to create entity of type VideoFile, class is not defined.");
-								}
-
-							} else {
-
-								cls = File.class;
-							}
-						}
-
-						if (cls != null) {
-							type = cls.getSimpleName();
-						}
-
-						final String name = item.getName().replaceAll("\\\\", "/");
-						File newFile  = null;
-						String uuid       = null;
-						boolean retry     = true;
-
-						while (retry) {
-
-							retry = false;
-
-							Folder uploadFolder = null;
-							final String defaultUploadFolderConfigValue = Settings.DefaultUploadFolder.getValue();
-
-							// If a path attribute was sent, create all folders on the fly.
-							if (path != null) {
-
-								uploadFolder = getOrCreateFolderPath(securityContext, path);
-
-							} else if (StringUtils.isNotBlank(defaultUploadFolderConfigValue)) {
-
-								uploadFolder = getOrCreateFolderPath(SecurityContext.getSuperUserInstance(), defaultUploadFolderConfigValue);
-
+								logger.warn("Unable to create entity of type VideoFile, class is not defined.");
 							}
 
-							try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+						} else {
 
-								try (final InputStream is = item.openStream()) {
-
-									newFile = FileHelper.createFile(securityContext, is, contentType, cls, name, uploadFolder);
-									AbstractFile.validateAndRenameFileOnce(newFile, securityContext, null);
-
-									final PropertyMap changedProperties = new PropertyMap();
-
-									changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, cls, params));
-
-									// Update type as it could have changed
-									changedProperties.put(AbstractNode.type, type);
-
-									newFile.unlockSystemPropertiesOnce();
-									newFile.setProperties(securityContext, changedProperties);
-
-									uuid = newFile.getUuid();
-								}
-
-								tx.success();
-
-							} catch (RetryException rex) {
-								retry = true;
-							}
+							cls = File.class;
 						}
+					}
 
-						// since the transaction can be repeated, we need to make sure that
-						// only the actual existing file creates a UUID output
-						if (newFile != null) {
+					if (cls != null) {
+						type = cls.getSimpleName();
+					}
 
-							// upload trigger
-							newFile.notifyUploadCompletion();
+					final String name = item.getName().replaceAll("\\\\", "/");
+					File newFile      = null;
+					boolean retry     = true;
 
-							// send redirect to allow form-based file upload without JavaScript..
-							if (StringUtils.isNotBlank(redirectUrl)) {
+					while (retry) {
 
-								if (appendUuidOnRedirect) {
+						retry = false;
 
-									response.sendRedirect(redirectUrl + uuid);
+						final String defaultUploadFolderConfigValue = Settings.DefaultUploadFolder.getValue();
+						Folder uploadFolder                         = null;
 
-								} else {
+						// If a path attribute was sent, create all folders on the fly.
+						if (path != null) {
 
-									response.sendRedirect(redirectUrl);
-								}
+							uploadFolder = getOrCreateFolderPath(securityContext, path);
 
-							} else {
+						} else if (StringUtils.isNotBlank(defaultUploadFolderConfigValue)) {
 
-								// Just write out the uuids of the new files
-								response.getWriter().write(uuid);
-							}
+							uploadFolder = getOrCreateFolderPath(SecurityContext.getSuperUserInstance(), defaultUploadFolderConfigValue);
 
 						}
 
-					} catch (IOException ex) {
-						logger.warn("Could not upload file", ex);
+						try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
+							try (final InputStream is = item.openStream()) {
+
+								newFile = FileHelper.createFile(securityContext, is, contentType, cls, name, uploadFolder);
+								AbstractFile.validateAndRenameFileOnce(newFile, securityContext, null);
+
+								final PropertyMap changedProperties = new PropertyMap();
+
+								changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, cls, params));
+
+								// Update type as it could have changed
+								changedProperties.put(AbstractNode.type, type);
+
+								newFile.unlockSystemPropertiesOnce();
+								newFile.setProperties(securityContext, changedProperties);
+
+								uuid = newFile.getUuid();
+
+							} catch (IOException ex) {
+								logger.warn("Could not store file: {}", ex.getMessage());
+							}
+
+							tx.success();
+
+						} catch (RetryException rex) {
+							retry = true;
+						}
+					}
+
+					// since the transaction can be repeated, we need to make sure that
+					// only the actual existing file creates a UUID output
+					if (newFile != null) {
+
+						// upload trigger
+						newFile.notifyUploadCompletion();
+
+						// store uuid
+						uuid = newFile.getUuid();
 					}
 				}
 			}
+
+			// send redirect to allow form-based file upload without JavaScript..
+			if (StringUtils.isNotBlank(redirectUrl)) {
+
+				if (appendUuidOnRedirect) {
+
+					response.sendRedirect(redirectUrl + uuid);
+
+				} else {
+
+					response.sendRedirect(redirectUrl);
+				}
+
+			} else {
+
+				// Just write out the uuids of the new files
+				response.getWriter().write(uuid);
+			}
+
 
 		} catch (Throwable t) {
 
@@ -376,19 +373,26 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 				logger.error(fex.toString());
 				content = errorPage(fex);
 
+				// set response status accordingly
+				response.setStatus(fex.getStatus());
+
 			} else {
 
 				logger.error("Exception while processing upload request", t);
 				content = errorPage(t);
+
+				// set response status to 500
+				response.setStatus(500);
 			}
 
 			try {
 				final ServletOutputStream out = response.getOutputStream();
-				IOUtils.write(content, out);
+				IOUtils.write(content, out, "utf-8");
+
 			} catch (IOException ex) {
 				logger.error("Could not write to response", ex);
+			}
 		}
-	}
 	}
 
 	@Override
@@ -542,7 +546,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		return jsonInput;
 
 	}
-	
+
 	private Map<String, Object> convertPropertySetToMap(JsonInput propertySet) {
 
 		if (propertySet != null) {
@@ -568,7 +572,11 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		return null;
 	}
 
+	private String errorPage(final FrameworkException t) {
+		return "<html><head><title>Error in Upload</title></head><body><h1>Error in Upload</h1><p>" + t.toJSON() + "</p>\n</body></html>";
+	}
+
 	private String errorPage(final Throwable t) {
-		return "<html><head><title>Error in Upload</title></head><body><h1>Error in Upload</h1><p>" + t.toString() + "</p>\n<!--" + ExceptionUtils.getStackTrace(t) + "--></body></html>";
+		return "<html><head><title>Error in Upload</title></head><body><h1>Error in Upload</h1><p>" + t.getMessage() + "</p>\n</body></html>";
 	}
 }

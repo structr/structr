@@ -116,7 +116,7 @@ var _Elements = {
 		},
 		{
 			elements: ['input', 'textarea'],
-			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'style'],
+			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'style', 'rows', 'cols'],
 			focus: 'type'
 		},
 		{
@@ -262,6 +262,7 @@ var _Elements = {
 		dir      : [ "li" ],
 		dl       : [ "dt", "dd" ],
 		select   : [ "option", "optgroup" ],
+		optgroup : [ "option" ],
 		form     : [ "input", "textarea", "select", "button", "label", "fieldset" ],
 		fieldset : [ "legend", "input", "textarea", "select", "button", "label", "fieldset" ],
 		figure   : [ "img", "figcaption" ],
@@ -348,6 +349,8 @@ var _Elements = {
 
 			_Elements.appendEntitiesToDOMElement(result, components);
 			Structr.refreshPositionsForCurrentlyActiveSortable();
+
+			_Pages.componentsTabResizeContent();
 		});
 	},
 	createComponent: function(el) {
@@ -392,7 +395,7 @@ var _Elements = {
 							$.unblockUI({
 								fadeOut: 25
 							});
-							Structr.closeSlideOuts([elementsSlideout]);
+							Structr.closeSlideOuts([elementsSlideout], _Pages.activeTabRightKey, _Pages.slideoutClosedCallback);
 						});
 			});
 
@@ -410,6 +413,8 @@ var _Elements = {
 				}
 
 				_Elements.appendEntitiesToDOMElement(result, elements);
+
+				_Pages.unattachedNodesTabResizeContent();
 			});
 		}
 
@@ -848,7 +853,7 @@ var _Elements = {
 				var preventClose = true;
 
 				if (contextMenuItem.clickHandler && (typeof contextMenuItem.clickHandler === 'function')) {
-					preventClose = contextMenuItem.clickHandler($(this));
+					preventClose = contextMenuItem.clickHandler($(this), contextMenuItem);
 				}
 
 				if (!preventClose) {
@@ -877,7 +882,7 @@ var _Elements = {
 
 		};
 
-		var addContextMenuElements = function (ul, element, hidden, forcedClickHandler) {
+		var addContextMenuElements = function (ul, element, hidden, forcedClickHandler, prepend) {
 
 			if (hidden) {
 				ul.addClass('hidden');
@@ -886,7 +891,7 @@ var _Elements = {
 			if (Object.prototype.toString.call(element) === '[object Array]') {
 
 				element.forEach(function (el) {
-					addContextMenuElements(ul, el, hidden, forcedClickHandler);
+					addContextMenuElements(ul, el, hidden, forcedClickHandler, prepend);
 				});
 
 			} else if (Object.prototype.toString.call(element) === '[object Object]') {
@@ -897,32 +902,53 @@ var _Elements = {
 
 				var menuEntry = $('<li class="element-group-switch">' + element.name + '</li>');
 				registerContextMenuItemClickHandler(menuEntry, element);
-				ul.append(menuEntry);
+				if (prepend) {
+					ul.prepend(menuEntry);
+				} else {
+					ul.append(menuEntry);
+				}
 
 				if (element.elements) {
 					menuEntry.append('<i class="fa fa-caret-right pull-right"></i>');
 
 					var subListElement = $('<ul class="element-group ' + cssPositionClasses + '"></ul>');
 					menuEntry.append(subListElement);
-					addContextMenuElements(subListElement, element.elements, true, (forcedClickHandler ? forcedClickHandler : element.forcedClickHandler) );
+					addContextMenuElements(subListElement, element.elements, true, (forcedClickHandler ? forcedClickHandler : element.forcedClickHandler), prepend);
 				}
 
 			} else if (Object.prototype.toString.call(element) === '[object String]') {
 
 				if (element === '|') {
 
-					ul.append('<hr />');
+					if (prepend) {
+						ul.prepend('<hr />');
+					} else {
+						ul.append('<hr />');
+					}
 
 				} else {
 
 					var listElement = $('<li>' + element + '</li>');
-					registerPlaintextContextMenuItemHandler(listElement, element, forcedClickHandler);
-					ul.append(listElement);
+					registerPlaintextContextMenuItemHandler(listElement, element, forcedClickHandler, prepend);
+
+					if (prepend) {
+						ul.prepend(listElement);
+					} else {
+						ul.append(listElement);
+					}
 
 				}
 
 			}
+		};
 
+		var updateMenuGroupVisibility = function() {
+
+			$('.element-group-switch').hover(function() {
+				$(this).children('.element-group').removeClass('hidden');
+			}, function() {
+				$(this).children('.element-group').addClass('hidden');
+			});
 		};
 
 		var mainMenuList = $('<ul class="element-group ' + cssPositionClasses + '"></ul>');
@@ -931,14 +957,18 @@ var _Elements = {
 			addContextMenuElements(mainMenuList, mainEl, false);
 		});
 
-		_Elements.updateVisibilityInheritanceCheckbox();
+		// prepend suggested elements if present
+		_Elements.getSuggestedWidgets(entity, function(data) {
 
-		$('.element-group-switch').hover(function() {
-			$(this).children('.element-group').removeClass('hidden');
-		}, function() {
-			$(this).children('.element-group').addClass('hidden');
+			if (data && data.length) {
+
+				addContextMenuElements(mainMenuList, [ '|', { name: 'Suggested Widgets', elements: data } ], false, undefined, true);
+				updateMenuGroupVisibility();
+			}
 		});
 
+		_Elements.updateVisibilityInheritanceCheckbox();
+		updateMenuGroupVisibility();
 	},
 	updateVisibilityInheritanceCheckbox: function() {
 		var checked = LSWrapper.getItem(_Elements.inheritVisibilityFlagsKey) || false;
@@ -964,7 +994,7 @@ var _Elements = {
 			var pageId = isPage ? entity.id : entity.pageId;
 			var tagName = (itemText === 'content') ? null : itemText;
 
-			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName), _Elements.isInheritVisibililtyFlagsChecked());
+			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), _Elements.isInheritVisibililtyFlagsChecked());
 		};
 
 		var handleWrapInHTMLAction = function (itemText) {
@@ -1477,7 +1507,7 @@ var _Elements = {
 	activateEditorMode: function(contentType) {
 		let modeObj = CodeMirror.findModeByMIME(contentType);
 		let mode = contentType; // default
-		
+
 		if (modeObj) {
 			mode = modeObj.mode;
 			if (mode && mode !== "null") { // findModeMIME function above returns "null" string :(
@@ -1498,14 +1528,15 @@ var _Elements = {
 		_Logger.log(_LogType.CONTENTS, div);
 		var contentBox = $('.editor', element);
 		contentType = entity.contentType || 'text/plain';
-		
+
 		_Elements.activateEditorMode(contentType);
-		
+
 		var text1, text2;
 
 		var lineWrapping = LSWrapper.getItem(lineWrappingKey);
 
 		// Intitialize editor
+		CodeMirror.defineMIME("text/html", "htmlmixed-structr");
 		editor = CodeMirror(contentBox.get(0), {
 			value: text,
 			mode: mode || contentType,
@@ -1678,7 +1709,7 @@ var _Elements = {
 			contentType = select.val();
 			_Elements.activateEditorMode(contentType);
 			editor.setOption('mode', contentType);
-			
+
 			entity.setProperty('contentType', contentType, false, function() {
 				blinkGreen(select);
 				_Pages.reloadPreviews();
@@ -1706,5 +1737,37 @@ var _Elements = {
 
 		editor.focus();
 
+	},
+	getSuggestedWidgets: function(entity, callback) {
+
+		if (entity.isPage) {
+
+			// no-op
+
+		} else {
+
+			var clickHandler = function(element, item) {
+				Command.get(item.id, undefined, function(result) {
+					_Widgets.insertWidgetIntoPage(result, entity, entity.pageId);
+				});
+			};
+
+			var classes = entity._html_class && entity._html_class.length ? entity._html_class.split(' ') : [];
+			var htmlId  = entity._html_id;
+			var tag     = entity.tag;
+
+			Command.getSuggestions(htmlId, entity.name, tag, classes, function(result) {
+				var data = [];
+				result.forEach(function(r) {
+					data.push({
+						id: r.id,
+						name: r.name,
+						source: r.source,
+						clickHandler: clickHandler
+					});
+				});
+				callback(data);
+			});
+		}
 	}
 };

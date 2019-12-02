@@ -22,12 +22,11 @@ import com.drew.lang.StreamUtil;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.util.Arrays;
+
+import org.structr.flow.impl.*;
 import org.testng.annotations.Test;
 import org.structr.core.graph.Tx;
-import org.structr.flow.impl.FlowAction;
-import org.structr.flow.impl.FlowContainer;
-import org.structr.flow.impl.FlowDataSource;
-import org.structr.flow.impl.FlowReturn;
+
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -41,7 +40,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.flow.impl.FlowTypeQuery;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
@@ -96,6 +94,45 @@ public class FlowTest extends StructrUiTest {
 
 			result = container.evaluate(securityContext, flowParameters);
 			assertNotNull(result);
+
+		} catch (Throwable ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+	}
+
+	@Test
+	public void testFlowForEach() {
+
+		Iterable<Object> result = null;
+
+		try (final Tx tx = app.tx()) {
+
+			FlowContainer container = app.create(FlowContainer.class, "testFlowForEach");
+
+			FlowForEach forEach = app.create(FlowForEach.class);
+			forEach.setProperty(FlowForEach.flowContainer, container);
+			container.setProperty(FlowContainer.startNode, forEach);
+
+			FlowDataSource ds = app.create(FlowDataSource.class);
+			ds.setProperty(FlowDataSource.query, "{return [1,2,3,4,5];}");
+			ds.setProperty(FlowDataSource.flowContainer, container);
+			forEach.setProperty(FlowForEach.dataSource, ds);
+
+			FlowDataSource ds2 = app.create(FlowDataSource.class);
+			ds2.setProperty(FlowDataSource.query, "now");
+			ds2.setProperty(FlowDataSource.flowContainer, container);
+
+			FlowAggregate agg = app.create(FlowAggregate.class);
+			agg.setProperty(FlowAggregate.flowContainer, container);
+			agg.setProperty(FlowAggregate.dataSource, ds2);
+			agg.setProperty(FlowAggregate.script, "{let data = $.get('data'); let currentData = $.get('currentData'); if (data === currentData || $.empty(currentData)) { throw 'ForEach scoping problem! Values should not be the same.' } }");
+			forEach.setProperty(FlowForEach.loopBody, agg);
+
+			container.evaluate(securityContext, new HashMap<>());
 
 		} catch (Throwable ex) {
 

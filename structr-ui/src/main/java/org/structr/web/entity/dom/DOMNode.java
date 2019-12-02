@@ -399,12 +399,14 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	static void onCreation(final DOMNode thisNode, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		DOMNode.checkName(thisNode, errorBuffer);
+		DOMNode.syncName(thisNode, errorBuffer);
 	}
 
 	static void onModification(final DOMNode thisNode, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		DOMNode.increasePageVersion(thisNode);
 		DOMNode.checkName(thisNode, errorBuffer);
+		DOMNode.syncName(thisNode, errorBuffer);
 	}
 
 	public static String escapeForHtml(final String raw) {
@@ -1493,6 +1495,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		// admin-only edit modes ==> visibility check not necessary
 		final boolean isAdminOnlyEditMode = (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode) || EditMode.DEPLOYMENT.equals(editMode));
+		final boolean isPartial           = renderContext.getPage() == null;
 
 		if (!isAdminOnlyEditMode && !securityContext.isVisible(thisNode)) {
 			return;
@@ -1526,10 +1529,21 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 				final PropertyKey propertyKey;
 
-				if (thisNode.renderDetails() && detailMode) {
+				// Make sure the closest 'page' keyword is always set also for partials
+				if (depth == 0 && isPartial) {
 
-					renderContext.setDataObject(details);
-					renderContext.putDataObject(subKey, details);
+					renderContext.setPage(thisNode.getClosestPage());
+
+				}
+
+				final GraphObject sourceDataObject = renderContext.getSourceDataObject();
+
+				// Render partial with possible top-level repeater limited to a single data object
+				if (depth == 0 && isPartial && sourceDataObject != null) {
+				//if (thisNode.renderDetails() && detailMode) {
+
+					renderContext.putDataObject(subKey, renderContext.getSourceDataObject());
+					renderContext.setPage(thisNode.getClosestPage());
 
 					thisNode.renderContent(renderContext, depth);
 
@@ -1599,7 +1613,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 						thisNode.renderNodeList(securityContext, renderContext, depth, subKey);
 
 					}
-
 				}
 
 			} else {
@@ -1612,20 +1625,19 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	public static Iterable<GraphObject> checkListSources(final DOMNode thisNode, final SecurityContext securityContext, final RenderContext renderContext) {
 
 		// try registered data sources first
-		for (GraphDataSource<Iterable<GraphObject>> source : DataSources.getDataSources()) {
+		for (final GraphDataSource<Iterable<GraphObject>> source : DataSources.getDataSources()) {
 
 			try {
 
-				Iterable<GraphObject> graphData = source.getData(renderContext, thisNode);
+				final Iterable<GraphObject> graphData = source.getData(renderContext, thisNode);
 				if (graphData != null && !Iterables.isEmpty(graphData)) {
+
 					return graphData;
 				}
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("", fex);
-
-				logger.warn("Could not retrieve data from graph data source {}: {}", new Object[]{source, fex});
+				logger.warn("Could not retrieve data from graph data source {}: {}", source, fex);
 			}
 		}
 
@@ -1897,6 +1909,19 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		if (_name != null && _name.contains("/")) {
 
 			errorBuffer.add(new SemanticErrorToken(thisNode.getType(), AbstractNode.name, "may_not_contain_slashes", _name));
+		}
+	}
+
+	static void syncName(final DOMNode thisNode, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		// sync name only
+		final String name = thisNode.getProperty(DOMNode.name);
+		if (name!= null) {
+
+			for (final DOMNode syncedNode : thisNode.getSyncedNodes()) {
+
+				syncedNode.setProperty(DOMNode.name, name);
+			}
 		}
 	}
 

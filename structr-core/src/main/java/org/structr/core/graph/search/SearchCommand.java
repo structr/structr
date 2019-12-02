@@ -19,6 +19,7 @@
 package org.structr.core.graph.search;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -47,6 +48,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.Factory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
@@ -67,6 +70,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	protected static final boolean INCLUDE_DELETED_AND_HIDDEN = true;
 	protected static final boolean PUBLIC_ONLY		  = false;
 
+	private static final Set<PropertyKey> indexedWarningDisabled    = new LinkedHashSet<>(Arrays.asList(SchemaMethod.source, SchemaProperty.readFunction, SchemaProperty.writeFunction));
 	private static final Map<String, Set<String>> subtypeMapForType = new LinkedHashMap<>();
 	private static final Set<String> baseTypes                      = new LinkedHashSet<>();
 
@@ -865,7 +869,12 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				className = declaringClass.getSimpleName() + ".";
 			}
 
-			logger.warn("Non-indexed property key {}{} is used in query. This can lead to performance problems in large databases.", className, key.jsonName());
+			// disable warning for keys we know are not indexed and cannot
+			// easily be indexed because of the character limit of 4000..
+			if (!indexedWarningDisabled.contains(key)) {
+
+				logger.warn("Non-indexed property key {}{} is used in query. This can lead to performance problems in large databases.", className, key.jsonName());
+			}
 		}
 	}
 

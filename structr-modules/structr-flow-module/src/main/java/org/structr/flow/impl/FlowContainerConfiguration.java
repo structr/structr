@@ -28,6 +28,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+import org.structr.flow.impl.rels.FlowActiveContainerConfiguration;
 import org.structr.flow.impl.rels.FlowContainerConfigurationFlow;
 import org.structr.flow.impl.rels.FlowContainerConfigurationPrincipal;
 import org.structr.module.api.DeployableEntity;
@@ -37,13 +38,13 @@ import java.util.Map;
 
 public class FlowContainerConfiguration extends AbstractNode implements DeployableEntity {
 
-	public static final Property<Principal> principal 				= new EndNode<>("principal", FlowContainerConfigurationPrincipal.class);
 	public static final Property<FlowContainer> flow				= new EndNode<>("flow", FlowContainerConfigurationFlow.class);
+	public static final Property<FlowContainer> activeForFlow       = new EndNode<>("activeForFlow", FlowActiveContainerConfiguration.class);
 	public static final Property<String> validForEditor				= new StringProperty("validForEditor").indexed();
 	public static final Property<String> configJson            		= new StringProperty("configJson");
 
-	public static final View defaultView 							= new View(FlowAction.class, PropertyView.Public, principal, flow, validForEditor, configJson);
-	public static final View uiView      							= new View(FlowAction.class, PropertyView.Ui, principal, flow, validForEditor, configJson);
+	public static final View defaultView 							= new View(FlowAction.class, PropertyView.Public, flow, activeForFlow, validForEditor, configJson);
+	public static final View uiView      							= new View(FlowAction.class, PropertyView.Ui, flow, activeForFlow, validForEditor, configJson);
 
 	@Override
 	public Map<String, Object> exportData() {
@@ -51,6 +52,7 @@ public class FlowContainerConfiguration extends AbstractNode implements Deployab
 
 		result.put("id", this.getUuid());
 		result.put("type", this.getClass().getSimpleName());
+		result.put("name", this.getName());
 		result.put("validForEditor", this.getProperty(validForEditor));
 		result.put("configJson", this.getProperty(configJson));
 		result.put("visibleToPublicUsers", true);

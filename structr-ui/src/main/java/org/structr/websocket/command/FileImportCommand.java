@@ -93,10 +93,9 @@ public class FileImportCommand extends AbstractCommand {
 				result.add(importsContainer);
 		}
 
-			webSocketData.setResult(result);
-			webSocketData.setRawResultCount(1);
-			getWebSocket().send(webSocketData, true);
-
+		webSocketData.setResult(result);
+		webSocketData.setRawResultCount(1);
+		getWebSocket().send(webSocketData, true);
 	}
 
 	//~--- get methods ----------------------------------------------------

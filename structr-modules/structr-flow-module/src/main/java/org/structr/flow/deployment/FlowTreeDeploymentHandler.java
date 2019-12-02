@@ -40,10 +40,7 @@ import org.structr.flow.impl.rels.FlowContainerConfigurationFlow;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler implements FlowDeploymentInterface{
 
@@ -194,64 +191,79 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 			// 3. Create flow nodes
 			final File nodesDir = new File(flowRootDir.resolve(FLOW_DEPLOYMENT_TREE_NODE_FOLDER).toAbsolutePath().toString());
 
-			for (final File nodeDir : nodesDir.listFiles()) {
 
-				// Import node with it's base data
-				final Map<String,Object> nodePropsData = readData(nodeDir.toPath().resolve(FLOW_DEPLOYMENT_NODE_FILE));
-				final Class clazz = StructrApp.getConfiguration().getNodeEntityClass(nodePropsData.get("type").toString()).getClass();
-				final NodeInterface node = app.create(clazz, convertMapToPropertyMap(clazz, nodePropsData));
+			try {
+				for (final File nodeDir : Objects.requireNonNull(nodesDir.listFiles())) {
 
-				// Import node scripts
-				final Path nodeScriptPath = nodeDir.toPath().resolve(FLOW_DEPLOYMENT_TREE_NODE_SCRIPTS_FOLDER);
-				if (nodeScriptPath.toFile() != null && nodeScriptPath.toFile().isDirectory()) {
+					// Import node with it's base data
+					final Map<String, Object> nodePropsData = readData(nodeDir.toPath().resolve(FLOW_DEPLOYMENT_NODE_FILE));
+					final Class clazz = StructrApp.getConfiguration().getNodeEntityClass(nodePropsData.get("type").toString()).getClass();
+					final NodeInterface node = app.create(clazz, convertMapToPropertyMap(clazz, nodePropsData));
 
-					final File nodeScriptsDir = new File(nodeScriptPath.toAbsolutePath().toString());
+					// Import node scripts
+					final Path nodeScriptPath = nodeDir.toPath().resolve(FLOW_DEPLOYMENT_TREE_NODE_SCRIPTS_FOLDER);
+					if (nodeScriptPath.toFile() != null && nodeScriptPath.toFile().isDirectory()) {
 
-					for (final File nodeScript : nodeScriptsDir.listFiles()) {
+						final File nodeScriptsDir = new File(nodeScriptPath.toAbsolutePath().toString());
 
-						// Read the script file and write it's content with it's name as property key
-						final String attrName = nodeScript.getName();
-						final String content = new String(Files.readAllBytes(nodeScript.toPath()));
+						for (final File nodeScript : Objects.requireNonNull(nodeScriptsDir.listFiles())) {
 
-						final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), attrName);
-						node.setProperty(propKey, content);
+							// Read the script file and write it's content with it's name as property key
+							final String attrName = nodeScript.getName();
+							final String content = new String(Files.readAllBytes(nodeScript.toPath()));
+
+							final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), attrName);
+							node.setProperty(propKey, content);
+						}
+
 					}
 
 				}
-
+			} catch (NullPointerException npe) {
+				logger.warn("Traversed empty node directory during tree based flow import: " + nodesDir.toPath() + "\n This warning can be safely ignored, in case of an empty flow.");
 			}
 
 			// 4. Create flow container configuration
 			final File configsDir = new File(flowRootDir.resolve(FLOW_DEPLOYMENT_TREE_CONFIG_FOLDER).toAbsolutePath().toString());
 
-			for (final File configDir : configsDir.listFiles()) {
+			try {
 
-				final Map<String,Object> configPropsData = readData(configDir.toPath().resolve(FLOW_DEPLOYMENT_CONFIG_FILE));
-				final NodeInterface flowContainerConfiguration = app.create(FlowContainerConfiguration.class, convertMapToPropertyMap(FlowContainerConfiguration.class, configPropsData));
+				for (final File configDir : Objects.requireNonNull(configsDir.listFiles())) {
+
+					final Map<String, Object> configPropsData = readData(configDir.toPath().resolve(FLOW_DEPLOYMENT_CONFIG_FILE));
+					final NodeInterface flowContainerConfiguration = app.create(FlowContainerConfiguration.class, convertMapToPropertyMap(FlowContainerConfiguration.class, configPropsData));
+				}
+
+			} catch (NullPointerException npe) {
+				logger.warn("Traversed empty  config directory during tree based flow import: " + nodesDir.toPath());
 			}
 
 			// 5. Create rels
 
 			final File relsDir = new File(flowRootDir.resolve(FLOW_DEPLOYMENT_TREE_REL_FOLDER).toAbsolutePath().toString());
 
-			for (final File relDir : relsDir.listFiles()) {
+			try {
+				for (final File relDir : Objects.requireNonNull(relsDir.listFiles())) {
 
-				// Import rels
-				final Map<String,Object> relPropsData = readData(relDir.toPath().resolve(FLOW_DEPLOYMENT_REL_FILE));
-				final Class clazz = StructrApp.getConfiguration().getRelationshipEntityClass(relPropsData.get("type").toString());
+					// Import rels
+					final Map<String, Object> relPropsData = readData(relDir.toPath().resolve(FLOW_DEPLOYMENT_REL_FILE));
+					final Class clazz = StructrApp.getConfiguration().getRelationshipEntityClass(relPropsData.get("type").toString());
 
-				final NodeInterface fromNode = app.getNodeById(relPropsData.get("sourceId").toString());
-				final NodeInterface toNode = app.getNodeById(relPropsData.get("targetId").toString());
+					final NodeInterface fromNode = app.getNodeById(relPropsData.get("sourceId").toString());
+					final NodeInterface toNode = app.getNodeById(relPropsData.get("targetId").toString());
 
-				if (fromNode != null && toNode != null) {
-					RelationshipInterface rel = app.create(fromNode, toNode, clazz);
-					rel.unlockSystemPropertiesOnce();
-					rel.setProperty(AbstractRelationship.id, relPropsData.get("id").toString());
-				} else if (!Arrays.asList(FLOW_IGNORE_WARNING_FOR_RELS).contains(clazz.getSimpleName())) {
+					if (fromNode != null && toNode != null) {
+						RelationshipInterface rel = app.create(fromNode, toNode, clazz);
+						rel.unlockSystemPropertiesOnce();
+						rel.setProperty(AbstractRelationship.id, relPropsData.get("id").toString());
+					} else if (!Arrays.asList(FLOW_IGNORE_WARNING_FOR_RELS).contains(clazz.getSimpleName())) {
 
-					logger.warn("Could not import rel data for: " + gson.toJson(relPropsData));
+						logger.warn("Could not import rel data for: " + gson.toJson(relPropsData));
+					}
+
 				}
-
+			} catch (NullPointerException npe) {
+				logger.warn("Traversed empty rels directory during tree based flow import: " + nodesDir.toPath());
 			}
 
 		} catch (IOException ex) {

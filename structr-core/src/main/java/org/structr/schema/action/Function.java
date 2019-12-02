@@ -72,7 +72,7 @@ public abstract class Function<S, T> extends Hint {
 	}
 
 	/**
-	 * Basic logging for functions called with wrong parameter count
+	 * Basic logging for functions called with wrong parameter combination/count
 	 *
 	 * @param caller The element that caused the error
 	 * @param parameters The function parameters
@@ -116,7 +116,7 @@ public abstract class Function<S, T> extends Hint {
 		if (Settings.LogFunctionsStackTrace.getValue()) {
 			logger.error(msg, ArrayUtils.add(messageParams, t));
 		} else {
-			logger.error(msg, messageParams);
+			logger.error(msg + " (Stacktrace suppressed - see setting " + Settings.LogFunctionsStackTrace.getKey() + ")", messageParams);
 		}
 	}
 
@@ -214,6 +214,10 @@ public abstract class Function<S, T> extends Hint {
 				return Double.parseDouble(obj.toString());
 
 			}
+
+		} catch (NumberFormatException nfe) {
+
+			logger.error("{}: Exception parsing '{}'", new Object[] { getReplacement(), obj });
 
 		} catch (Throwable t) {
 
@@ -573,9 +577,9 @@ public abstract class Function<S, T> extends Hint {
 
 					res.add((GraphObject)o);
 
-				} else if (o instanceof String) {
+				} else if (o instanceof CharSequence) {
 
-					res.add(Function.wrapStringInGraphObjectMap((String)o));
+					res.add(Function.wrapStringInGraphObjectMap(o.toString()));
 
 				} else if (o instanceof Number) {
 
@@ -609,9 +613,9 @@ public abstract class Function<S, T> extends Hint {
 
 			return res;
 
-		} else if (sourceObject instanceof String) {
+		} else if (sourceObject instanceof CharSequence) {
 
-			return Function.wrapStringInGraphObjectMap((String)sourceObject);
+			return Function.wrapStringInGraphObjectMap(sourceObject.toString());
 
 		} else if (sourceObject instanceof Number) {
 

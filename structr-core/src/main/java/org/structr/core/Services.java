@@ -69,8 +69,7 @@ public class Services implements StructrServices {
 	private static final long licenseCheckInterval     = TimeUnit.HOURS.toMillis(2);
 	private static Services singletonInstance          = null;
 	private static boolean testingModeDisabled         = false;
-	private static boolean calculateHierarchy          = false;
-	private static boolean updateIndexConfiguration    = false;
+	private static boolean updateIndexConfiguration    = true;
 	private static Boolean cachedTestingFlag           = null;
 	private static long lastLicenseCheck               = 0L;
 
@@ -801,22 +800,13 @@ public class Services implements StructrServices {
 		return "Community";
 	}
 
-	public static void enableCalculateHierarchy() {
-		calculateHierarchy = true;
-	}
-
 	public static void enableUpdateIndexConfiguration() {
 		updateIndexConfiguration = true;
 	}
 
 	public static void disableTestingMode() {
 		testingModeDisabled      = true;
-		calculateHierarchy       = true;
 		updateIndexConfiguration = true;
-	}
-
-	public static boolean calculateHierarchy() {
-		return calculateHierarchy;
 	}
 
 	public static boolean updateIndexConfiguration() {
