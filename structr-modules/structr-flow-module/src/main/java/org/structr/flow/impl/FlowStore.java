@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.property.*;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Store;
@@ -80,6 +81,19 @@ public class FlowStore extends FlowNode implements Store, DataSource, Deployable
 
 	@Override
 	public Object get(Context context) {
+
+		Operation op = getProperty(operation);
+
+		try {
+
+			if (op != null && op.equals(Operation.retrieve)) {
+
+				this.handleStorage(context);
+			}
+		} catch (FlowException ex) {
+			
+			logger.error("Exception in FlowStore get: ", ex);
+		}
 		return context.getData(getUuid());
 	}
 
