@@ -24,6 +24,7 @@ import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -722,12 +723,13 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 	protected void doPatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		final RestMethodResult result;
 		final SecurityContext securityContext;
 		final Authenticator authenticator;
 		final Resource resource;
 
 		setCustomResponseHeaders(response);
+
+		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
 
 		try {
 
@@ -763,24 +765,58 @@ public class JsonRestServlet extends AbstractDataServlet {
 					tx.success();
 				}
 
-				final List<Map<String, Object>> inputs = new LinkedList<>();
+				if (resource.isCollectionResource()) {
 
-				for (JsonInput propertySet : jsonInput.getJsonInputs()) {
+					final List<Map<String, Object>> inputs = new LinkedList<>();
 
-					inputs.add(convertPropertySetToMap(propertySet));
-				}
+					for (JsonInput propertySet : jsonInput.getJsonInputs()) {
 
-				result = resource.doPatch(inputs);
-
-				// isolate write output
-				try (final Tx tx = app.tx()) {
-
-					if (result != null) {
-
-						commitResponse(securityContext, request, response, result, resource.isCollectionResource());
+						inputs.add(convertPropertySetToMap(propertySet));
 					}
 
-					tx.success();
+					result = resource.doPatch(inputs);
+
+					// isolate write output
+					try (final Tx tx = app.tx()) {
+
+						if (result != null) {
+
+							commitResponse(securityContext, request, response, result, resource.isCollectionResource());
+						}
+
+						tx.success();
+					}
+
+				} else {
+
+					final Map<String, Object> flattenedInputs = new HashMap<>();
+
+					for (JsonInput propertySet : jsonInput.getJsonInputs()) {
+
+						flattenedInputs.putAll(convertPropertySetToMap(propertySet));
+					}
+
+					// isolate doPatch (redirect to doPut)
+					boolean retry = true;
+					while (retry) {
+
+						try (final Tx tx = app.tx()) {
+
+							result = resource.doPut(flattenedInputs);
+							tx.success();
+							retry = false;
+
+						} catch (RetryException ddex) {
+							retry = true;
+						}
+					}
+
+					// isolate write output
+					try (final Tx tx = app.tx()) {
+
+						commitResponse(securityContext, request, response, result, resource.isCollectionResource());
+						tx.success();
+					}
 				}
 
 			} else {
