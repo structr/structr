@@ -206,7 +206,7 @@ var _Entities = {
 			{ title: 'Function Query', propertyName: 'functionQuery' }
 		];
 
-		if (Structr.isModulePresent('api-builder')) {
+		if (Structr.isModulePresent('flows')) {
 			queryTypes.unshift({ title: 'Flow', propertyName: 'flow' });
 		}
 
@@ -321,7 +321,7 @@ var _Entities = {
 			_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-rest');
 		};
 
-		if (Structr.isModulePresent('api-builder') && !flowSelector.length) {
+		if (Structr.isModulePresent('flows') && !flowSelector.length) {
 			flowSelector = $('<select class="hidden" id="flow-selector"></select>').insertBefore(textArea);
 
 			flowSelector.append('<option>--- Select Flow ---</option>');
