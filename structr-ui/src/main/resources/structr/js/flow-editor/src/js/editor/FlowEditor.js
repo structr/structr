@@ -210,8 +210,10 @@ export class FlowEditor {
 							event.stopPropagation();
 
 						} else if (event.key === "c" && event.ctrlKey && event.altKey) {
+							event.stopPropagation();
 							self._copyElementsForCloning();
 						} else if (event.key === "v" && event.ctrlKey && event.altKey) {
+							event.stopPropagation();
 							self._pasteClonedElements();
 						}
 

@@ -167,7 +167,8 @@ public class FlowTest extends StructrUiTest {
 			final FlowReturn    ret           = app.create(FlowReturn.class, "return");
 
 			query.setProperty(StructrApp.key(FlowTypeQuery.class, "dataType"), "Group");
-			query.setProperty(StructrApp.key(FlowTypeQuery.class, "query"),    "{\"type\":\"group\",\"op\":\"and\",\"operations\":[],\"queryType\":\"Group\"}");
+			query.setProperty(StructrApp.key(FlowTypeQuery.class, "query"), "{\"type\":\"group\",\"op\":\"and\",\"operations\":[{\"type\":\"sort\",\"key\":\"name\",\"order\":\"desc\",\"queryType\":\"Group\"}],\"queryType\":\"Group\"}");
+
 			query.setProperty(FlowAction.flowContainer, flowContainer);
 
 			ret.setProperty(FlowReturn.dataSource, query);
@@ -214,7 +215,7 @@ public class FlowTest extends StructrUiTest {
 			.statusCode(200)
 			.contentType("text/html;charset=utf-8")
 
-			.body("html.body.div[0]", equalTo("group1"))
+			.body("html.body.div[0]", equalTo("group4"))
 
 		.when()
 			.get("/flowRepeaterTestPage");
