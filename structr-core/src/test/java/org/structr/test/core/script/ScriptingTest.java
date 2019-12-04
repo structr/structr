@@ -922,6 +922,16 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid contains() result", "true", Scripting.replaceVariables(ctx, testOne, "${contains(this.manyToManyTestSixs, first(find('TestSix')))}"));
 			assertEquals("Invalid contains() result", "false", Scripting.replaceVariables(ctx, testOne, "${contains(this.manyToManyTestSixs, first(find('TestFive')))}"));
 
+			// starts_with
+			assertEquals("Invalid starts_with() result", "true", Scripting.replaceVariables(ctx, testOne, "${starts_with(null, null)}"));
+			assertEquals("Invalid starts_with() result", "false", Scripting.replaceVariables(ctx, testOne, "${starts_with(null, 'abc')}"));
+			assertEquals("Invalid starts_with() result", "false", Scripting.replaceVariables(ctx, testOne, "${starts_with('abcdef', null)}"));
+			assertEquals("Invalid starts_with() result", "true", Scripting.replaceVariables(ctx, testOne, "${starts_with('abcdef', 'abc')}"));
+			assertEquals("Invalid starts_with() result", "false", Scripting.replaceVariables(ctx, testOne, "${starts_with('ABCDEF', 'abc')}"));
+			assertEquals("Invalid starts_with() result", "true", Scripting.replaceVariables(ctx, testOne, "${starts_with(merge('a', 'b'), 'a')}"));
+			assertEquals("Invalid starts_with() result", "false", Scripting.replaceVariables(ctx, testOne, "${starts_with(merge('c', 'a', 'b'), 'a')}"));
+			assertEquals("Invalid starts_with() result", "false", Scripting.replaceVariables(ctx, testOne, "${starts_with(merge('abc', 'b'), 'a')}"));
+			
 			// substring
 			assertEquals("Invalid substring() result", "for", Scripting.replaceVariables(ctx, testOne, "${substring(this.name, 19, 3)}"));
 			assertEquals("Invalid substring() result", "", Scripting.replaceVariables(ctx, testOne, "${substring(this.name, -1, -1)}"));
