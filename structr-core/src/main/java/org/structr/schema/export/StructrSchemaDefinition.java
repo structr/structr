@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
@@ -195,7 +196,6 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 
 		map.put(JsonSchema.KEY_DEFINITIONS, typeDefinitions.serialize());
 		map.put(JsonSchema.KEY_METHODS, globalMethods.serialize());
-		map.put(JsonSchema.KEY_ID, getId());
 
 		return map;
 	}
@@ -324,7 +324,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 	}
 
 	// ----- static methods -----
-	static JsonSchema initializeFromSource(final Map<String, Object> source) {
+	static JsonSchema initializeFromSource(final Map<String, Object> source) throws FrameworkException {
 
 		final Object idValue = source.get(JsonSchema.KEY_ID);
 		URI id               = null;
@@ -338,6 +338,11 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 			} catch (URISyntaxException ex) {
 				logger.warn("", ex);
 			}
+
+		} else {
+
+			id = getInstanceBasedSchemaURI(StructrApp.getInstance());
+
 		}
 
 		final StructrSchemaDefinition schema = new StructrSchemaDefinition(id);
@@ -346,11 +351,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 		return schema;
 	}
 
-	static JsonSchema initializeFromDatabase(final App app) throws FrameworkException {
-		return initializeFromDatabase(app, null);
-	}
-
-	static JsonSchema initializeFromDatabase(final App app, final List<String> types) throws FrameworkException {
+	private static URI getInstanceBasedSchemaURI (final App app) throws FrameworkException {
 
 		URI id = null;
 
@@ -362,8 +363,16 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 			logger.warn("", ex);
 		}
 
+		return id;
+	}
 
-		final StructrSchemaDefinition schema = new StructrSchemaDefinition(id);
+	static JsonSchema initializeFromDatabase(final App app) throws FrameworkException {
+		return initializeFromDatabase(app, null);
+	}
+
+	static JsonSchema initializeFromDatabase(final App app, final List<String> types) throws FrameworkException {
+
+		final StructrSchemaDefinition schema = new StructrSchemaDefinition(getInstanceBasedSchemaURI(app));
 		schema.deserialize(app);
 
 		if (types != null && !types.isEmpty()) {
