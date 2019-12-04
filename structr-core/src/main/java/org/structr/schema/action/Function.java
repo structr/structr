@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.ArgumentTypeException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -186,6 +187,29 @@ public abstract class Function<S, T> extends Hint {
 
 			if (element == null) {
 				throw new ArgumentNullException();
+			}
+		}
+	}
+	protected void assertArrayHasMinLengthAndTypes(final Object[] array, final int minimum, final Class... types) throws ArgumentCountException, ArgumentNullException {
+
+		if (array.length < minimum) {
+			throw ArgumentTypeException.wrongTypes(array, minimum, types);
+		}
+
+		for (int i=0; i<array.length; i++) {
+
+			final Object element = array[i];
+			final Class type     = types[i];
+
+			if (element != null) {
+
+				if (!type.isAssignableFrom(element.getClass())) {
+					throw ArgumentTypeException.wrongTypes(array, minimum, types);
+				}
+
+			} else {
+
+				throw ArgumentTypeException.wrongTypes(array, minimum, types);
 			}
 		}
 	}

@@ -18,19 +18,21 @@
  */
 package org.structr.geo;
 
+import com.vividsolutions.jts.geom.Geometry;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.ArgumentTypeException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
 public class GetWCSDataFunction extends AbstractWCSDataFunction {
 
 	private static final Logger logger       = LoggerFactory.getLogger(GetWCSDataFunction.class.getName());
-	public static final String ERROR_MESSAGE = "";
+	public static final String ERROR_MESSAGE = "usage: get_wcs_data(baseUrl, coverageId, min, max)";
 
 	@Override
 	public String getName() {
@@ -42,29 +44,21 @@ public class GetWCSDataFunction extends AbstractWCSDataFunction {
 
 		try {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
+			assertArrayHasMinLengthAndTypes(sources, 5, String.class, String.class, Geometry.class, Number.class, Number.class);
 
-			if (sources[0] instanceof String) {
+			final Map<String, Object> data = new LinkedHashMap<>();
+			final String baseUrl           = (String)sources[0];
+			final String coverageId        = (String)sources[1];
+			final Geometry boundingBox     = (Geometry)sources[2];
+			final Number min               = (Number)sources[3];
+			final Number max               = (Number)sources[4];
 
-				final Map<String, Object> data = new LinkedHashMap<>();
-				final String baseUrl           = "http://geodata.rivm.nl/geoserver/wcs?";
-				final String coverageId        = (String)sources[0];
-				final Number min               = (Number)sources[1];
-				final Number max               = (Number)sources[2];
+			data.put("data", getFilteredCoveragePoints(baseUrl, coverageId, boundingBox, min.doubleValue(), max.doubleValue()));
 
-				data.put("data", getFilteredCoveragePoints(baseUrl, coverageId, min.doubleValue(), max.doubleValue()));
-
-				// we need to return a single object that contains all the data since Structr returns a
-				// list with a single element in a different format that a list with multiple elements
-				// when the enclosing resource endpoint is not a collection endpoint.. :(
-				return data;
-
-			} else {
-
-				logger.warn("Invalid parameter for shapefile import, expected string, got {}", sources[0].getClass().getSimpleName() );
-			}
-
-			return "Invalid parameters";
+			// we need to return a single object that contains all the data since Structr returns a
+			// list with a single element in a different format that a list with multiple elements
+			// when the enclosing resource endpoint is not a collection endpoint.. :(
+			return data;
 
 		} catch (ArgumentNullException pe) {
 
@@ -74,6 +68,11 @@ public class GetWCSDataFunction extends AbstractWCSDataFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
+
+		} catch (ArgumentTypeException te) {
+
+			logParameterError(caller, sources, te.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
