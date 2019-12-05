@@ -18,10 +18,13 @@
  */
 package org.structr.files.url;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -36,6 +39,7 @@ import org.structr.web.entity.File;
  */
 public class StructrURLConnection extends URLConnection {
 
+	private static final Logger logger = LoggerFactory.getLogger(StructrURLConnection.class);
 	private SecurityContext securityContext = null;
 
 	protected StructrURLConnection(final SecurityContext securityContext, final URL url) {
@@ -50,7 +54,7 @@ public class StructrURLConnection extends URLConnection {
 	}
 
 	@Override
-	public InputStream getInputStream() {
+	public InputStream getInputStream() throws IOException {
 
 		if (securityContext != null) {
 
@@ -73,6 +77,6 @@ public class StructrURLConnection extends URLConnection {
 			}
 		}
 
-		return null;
+		throw new FileNotFoundException(url.toString());
 	}
 }

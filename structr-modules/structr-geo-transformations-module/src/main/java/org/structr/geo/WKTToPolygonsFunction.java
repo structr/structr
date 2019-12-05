@@ -112,20 +112,19 @@ public class WKTToPolygonsFunction extends GeoFunction {
 
 			final GeometryCollection collection = (GeometryCollection)source;
 			final int count                     = collection.getNumGeometries();
-			final List nestedList               = new LinkedList<>();
 
 			for (int i=0; i<count; i++) {
 
 				final Geometry geometry = collection.getGeometryN(i);
+				final List nestedList   = new LinkedList<>();
 
 				// recurse
 				handleGeometry(geometry, nestedList);
+
+				result.add(nestedList);
 			}
 
-			result.add(nestedList);
-
 			return;
-
 		}
 
 		if (source instanceof Polygon) {
@@ -137,14 +136,13 @@ public class WKTToPolygonsFunction extends GeoFunction {
 
 				if (valid.size() > 1) {
 
-					final List nestedList = new LinkedList<>();
-
 					for (final Polygon p : valid) {
 
+						final List nestedList = new LinkedList<>();
 						handleGeometry(p, nestedList);
+						result.add(nestedList);
 					}
 
-					result.add(nestedList);
 
 				} else {
 

@@ -20,25 +20,17 @@ package org.structr.geo;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Polygon;
-import java.awt.BorderLayout;
-import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
-import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
+import com.vividsolutions.jts.geom.GeometryFactory;
 import java.io.File;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import org.apache.commons.io.IOUtils;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
@@ -58,9 +50,13 @@ import org.opengis.coverage.Coverage;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
+import org.structr.common.error.FrameworkException;
 import org.structr.rest.common.HttpHelper;
+import org.structr.schema.action.ActionContext;
 
 public abstract class AbstractWCSDataFunction extends GeoFunction {
+
+	private static final int GEOSERVER_ERROR_STATUS = 502;
 
 	protected URL getWCSDescriptionUrl(final String baseUrl, final String coverageId) throws MalformedURLException {
 
@@ -118,37 +114,11 @@ public abstract class AbstractWCSDataFunction extends GeoFunction {
 		return new URL(buf.toString());
 	}
 
-	protected List<List<List<Double>>> getFilteredCoveragePoints(final String baseUrl, final String coverageId, final Geometry boundingBox, final double min, final double max) {
-
-		final List<List<List<Double>>> result = new LinkedList<>();
-
-		for (final Geometry geometry : getFilteredCoverageGeometries(baseUrl, coverageId, boundingBox, min, max)) {
-
-			if (geometry instanceof Polygon) {
-
-				for (final Polygon polygon : JTS.makeValid((Polygon)geometry, true)) {
-
-					final List<List<Double>> list = new LinkedList<>();
-
-					for (final Coordinate c : polygon.getCoordinates()) {
-
-						list.add(Arrays.asList(c.x, c.y));
-					}
-
-					result.add(list);
-				}
-			}
-		}
-
-		return result;
-	}
-
-	protected List<Geometry> getFilteredCoverageGeometries(final String baseUrl, final String coverageId, final Geometry boundingBox, final double min, final double max) {
-
-		final List<Geometry> result = new LinkedList<>();
+	protected List<Geometry> getFilteredCoverageGeometries(final String baseUrl, final String coverageId, final Geometry boundingBox, final double min, final double max) throws FrameworkException {
 
 		try {
 
+			final List<Geometry> result            = new LinkedList<>();
 			final GridCoverage2D coverage          = getWCSCoverage(baseUrl, coverageId, boundingBox);
 			final CoordinateReferenceSystem crs    = coverage.getCoordinateReferenceSystem();
 			final CoordinateReferenceSystem wgs    = CRS.decode("EPSG:4326");
@@ -173,12 +143,16 @@ public abstract class AbstractWCSDataFunction extends GeoFunction {
 				}
 			}
 
+			return result;
+
+		} catch (FrameworkException fex) {
+
+			throw fex;
+
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			throw new FrameworkException(422, t.getMessage());
 		}
-
-		return result;
 	}
 
 	protected Map<String, Object> getWCSCoverageDescription(final String baseUrl, final String coverageId) {
@@ -187,58 +161,85 @@ public abstract class AbstractWCSDataFunction extends GeoFunction {
 
 		try {
 
-			final URL url = getWCSDescriptionUrl(baseUrl, coverageId);
+			final URL url                      = getWCSDescriptionUrl(baseUrl, coverageId);
+			final HttpURLConnection connection = (HttpURLConnection)url.openConnection();
 
-			try (final InputStream is = url.openStream()) {
+			connection.connect();
 
-				final String content           = IOUtils.toString(is, "utf-8");
-				final JSONObject obj           = XML.toJSONObject(content);
+			final int statusCode = connection.getResponseCode();
 
-				if (obj != null) {
+			data.put("status", statusCode);
 
-					data.put("id",         getString(obj, "wcs:CoverageDescriptions.wcs:CoverageDescription.wcs:CoverageId"));
-					data.put("fieldName",  getString(obj, "wcs:CoverageDescriptions.wcs:CoverageDescription.gmlcov:rangeType.swe:DataRecord.swe:field.name"));
-					data.put("nilValue",   getDouble(obj, "wcs:CoverageDescriptions.wcs:CoverageDescription.gmlcov:rangeType.swe:DataRecord.swe:field.swe:Quantity.swe:nilValues.swe:NilValues.swe:nilValue.content"));
-					data.put("axisLabels", getString(obj, "wcs:CoverageDescriptions.wcs:CoverageDescription.gml:boundedBy.gml:Envelope.axisLabels"));
+			if (statusCode == 200) {
+
+				try (final InputStream is = connection.getInputStream()) {
+
+					final String content = IOUtils.toString(is, "utf-8");
+					final JSONObject obj = XML.toJSONObject(content);
+					if (obj != null) {
+
+						data.put("id",         getString(obj, "wcs:CoverageDescriptions.wcs:CoverageDescription.wcs:CoverageId"));
+						data.put("fieldName",  getString(obj, "wcs:CoverageDescriptions.wcs:CoverageDescription.gmlcov:rangeType.swe:DataRecord.swe:field.name"));
+						data.put("nilValue",   getDouble(obj, "wcs:CoverageDescriptions.wcs:CoverageDescription.gmlcov:rangeType.swe:DataRecord.swe:field.swe:Quantity.swe:nilValues.swe:NilValues.swe:nilValue.content"));
+						data.put("axisLabels", getString(obj, "wcs:CoverageDescriptions.wcs:CoverageDescription.gml:boundedBy.gml:Envelope.axisLabels"));
+					}
+				}
+
+			} else {
+
+				try (final InputStream is = connection.getErrorStream()) {
+
+					final String content = IOUtils.toString(is, "utf-8");
+					final JSONObject obj = XML.toJSONObject(content);
+					if (obj != null) {
+
+						data.put("message",  getString(obj, "ows:ExceptionReport.ows:Exception.ows:ExceptionText"));
+					}
 				}
 			}
 
 		} catch (Throwable t) {
-			// ignore
+			data.put("message", t.getMessage());
 		}
 
 		return data;
 	}
 
-	protected GridCoverage2D getWCSCoverage(final String baseUrl, final String coverageId, final Geometry subset) {
+	protected GridCoverage2D getWCSCoverage(final String baseUrl, final String coverageId, final Geometry subset) throws FrameworkException {
 
 		try {
 
 			final Map<String, Object> coverageDescription = getWCSCoverageDescription(baseUrl, coverageId);
-			final File tmpFile                            = File.createTempFile("structr", ".tiff");
-			final URL url                                 = getWCSCoverageUrl(baseUrl, coverageId, subset, get(coverageDescription, "axisLabels", "X Y"));
+			final int statusCode                          = get(coverageDescription, "status", 500);
 
-			try {
+			if (statusCode == 200) {
 
-				HttpHelper.streamURLToFile(url.toString(), tmpFile);
+				final File tmpFile = File.createTempFile("structr", ".tiff");
+				final URL url      = getWCSCoverageUrl(baseUrl, coverageId, subset, get(coverageDescription, "axisLabels", "X Y"));
 
-				final AbstractGridFormat format   = GridFormatFinder.findFormat(tmpFile);
-				final GridCoverage2DReader reader = format.getReader(tmpFile, new Hints(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, Boolean.TRUE));
+				try {
 
-				return (GridCoverage2D) reader.read(null);
+					HttpHelper.streamURLToFile(url.toString(), tmpFile);
 
-			} finally {
+					final AbstractGridFormat format   = GridFormatFinder.findFormat(tmpFile);
+					final GridCoverage2DReader reader = format.getReader(tmpFile, new Hints(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, Boolean.TRUE));
 
-				// remove tmp file after fetching the data
-				tmpFile.delete();
+					return (GridCoverage2D) reader.read(null);
+
+				} finally {
+
+					// remove tmp file after fetching the data
+					tmpFile.delete();
+				}
+
+			} else {
+
+				throw new FrameworkException(statusCode, get(coverageDescription, "message", "Error"));
 			}
 
 		} catch (Throwable t) {
-
-			t.printStackTrace();
+			throw new FrameworkException(GEOSERVER_ERROR_STATUS, t.getMessage());
 		}
-
-		return null;
 	}
 
 	protected double[] getExtrema(final Coverage coverage, final int sampleDimensionIndex) {
@@ -249,30 +250,6 @@ public abstract class AbstractWCSDataFunction extends GeoFunction {
 		final double[] max = (double[])extrema.getProperty("maximum");
 
 		return new double[] { min[0], max[0] };
-	}
-
-	protected void showJFrame(final GridCoverage2D coverage) {
-
-		final RenderedImage image           = coverage.getRenderedImage();
-		final int type                      = BufferedImage.TYPE_BYTE_INDEXED;
-
-		final BufferedImage src = new BufferedImage(image.getWidth(), image.getHeight(), type);
-		src.setData(image.getData());
-
-		final AffineTransform at = new AffineTransform();
-		at.scale(20.0, 20.0);
-
-		final AffineTransformOp scaleOp = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
-		final BufferedImage dst         = scaleOp.filter(src, null);
-		final JFrame frame              = new JFrame();
-
-		frame.getContentPane().setLayout(new BorderLayout());
-		frame.getContentPane().add(new JLabel(new ImageIcon(dst)));
-
-		frame.pack();
-		frame.setVisible(true);
-
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 
 	protected Double getDouble(final JSONObject root, final String path) {
@@ -326,6 +303,49 @@ public abstract class AbstractWCSDataFunction extends GeoFunction {
 		}
 
 		return defaultValue;
+	}
+
+	public static void main(final String[] args) {
+
+		try {
+			final AbstractWCSDataFunction func = new AbstractWCSDataFunction() {
+				@Override
+				public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
+					throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+				}
+
+				@Override
+				public String usage(boolean inJavaScriptContext) {
+					throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+				}
+
+				@Override
+				public String shortDescription() {
+					throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+				}
+
+				@Override
+				public String getName() {
+					throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+				}
+			};
+
+			final GeometryFactory factory = new GeometryFactory();
+			final String baseUrl          = "http://geodata.rivm.nl/geoserver";
+			final String coverageId       = "dmg__licht_20150315_gm_hhnachtonbew";
+			final Geometry boundingBox    = factory.createLineString(new Coordinate[] { new Coordinate(240373.6329517475, 254330.02993994422), new Coordinate(435015.8480670558,451025.2900452074) }).getEnvelope();
+			final double min              = -10000.0;
+			final double max              = 0.23;
+
+			final List<Geometry> geometries = func.getFilteredCoverageGeometries(baseUrl, coverageId, boundingBox, min, max);
+
+			System.out.println(geometries.size() + " geometries");
+
+			func.showGeometries(1000, 1000, geometries.toArray(new Geometry[0]));
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 	}
 
 }

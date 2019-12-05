@@ -53,7 +53,7 @@ public class GetWCSDataFunction extends AbstractWCSDataFunction {
 			final Number min               = (Number)sources[3];
 			final Number max               = (Number)sources[4];
 
-			data.put("data", getFilteredCoveragePoints(baseUrl, coverageId, boundingBox, min.doubleValue(), max.doubleValue()));
+			data.put("data", getFilteredCoverageGeometries(baseUrl, coverageId, boundingBox, min.doubleValue(), max.doubleValue()));
 
 			// we need to return a single object that contains all the data since Structr returns a
 			// list with a single element in a different format that a list with multiple elements

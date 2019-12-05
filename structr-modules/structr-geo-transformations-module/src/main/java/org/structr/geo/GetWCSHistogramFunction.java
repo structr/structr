@@ -53,7 +53,7 @@ public class GetWCSHistogramFunction extends AbstractWCSDataFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndTypes(sources, 3, String.class, String.class, Geometry.class, Number.class, Number.class);
+			assertArrayHasMinLengthAndTypes(sources, 3, String.class, String.class, Geometry.class, Number.class, Number.class, Number.class);
 
 			final String baseUrl              = (String)sources[0];
 			final String coverageId           = (String)sources[1];
@@ -64,6 +64,7 @@ public class GetWCSHistogramFunction extends AbstractWCSDataFunction {
 			final ParameterValueGroup params  = operation.getParameters();
 			final int numBins                 = sources.length > 3 ? parseInt(sources[3], 256) : 256;
 			final double lowValue             = sources.length > 4 ? parseDouble(sources[4], 0.0) : 0.0;
+			final double cutoffPercentage     = sources.length > 5 ? parseDouble(sources[5], 0.005) : 0.005;
 			final double[] extrema            = getExtrema(coverage, 0);
 
 			params.parameter("source0").setValue(coverage);
@@ -82,10 +83,9 @@ public class GetWCSHistogramFunction extends AbstractWCSDataFunction {
 			List<String> binNames    = new LinkedList<>();
 			List<Integer> binData    = new LinkedList<>();
 
-			// threshold for "all the rest" bin is 2% of max value
-			int threshold = Double.valueOf(extrema[1] / 50.0).intValue();
-			int lastIndex = 0;
-			int restBin   = 0;
+			int lastIndex    = 0;
+			int restBin      = 0;
+			double maxCount  = 0;
 
 			for (int i=0; i<bins.length; i++) {
 
@@ -93,6 +93,15 @@ public class GetWCSHistogramFunction extends AbstractWCSDataFunction {
 
 				binNames.add(format.format(binWidth * d));
 				binData.add(bins[i]);
+
+				if (bins[i] > maxCount) {
+					maxCount = bins[i];
+				}
+			}
+
+			// combine all bins whose value is below a given threshold (maxCount * cutoffPercentage)
+			int threshold = Double.valueOf(maxCount * cutoffPercentage).intValue();
+			for (int i=0; i<bins.length; i++) {
 
 				// find index of last bin with more than x elements
 				if (bins[i] > threshold) {

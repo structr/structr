@@ -21,18 +21,29 @@ package org.structr.geo;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.util.List;
 import java.util.Map;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.DefaultFeatureCollection;
+import org.geotools.feature.FeatureCollection;
+import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.map.FeatureLayer;
 import org.geotools.map.MapContent;
 import org.geotools.styling.SLD;
 import org.geotools.swing.JMapFrame;
+import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.structr.schema.action.Function;
 
@@ -118,10 +129,36 @@ public abstract class GeoFunction extends Function<Object, Object> {
 		return null;
 	}
 
+	protected void showCoverage(final int frameWidth, final int frameHeight, final GridCoverage2D coverage) {
+
+		final RenderedImage image           = coverage.getRenderedImage();
+		final int type                      = BufferedImage.TYPE_BYTE_INDEXED;
+
+		final BufferedImage src = new BufferedImage(image.getWidth(), image.getHeight(), type);
+		src.setData(image.getData());
+
+		final AffineTransform at = new AffineTransform();
+		at.scale(20.0, 20.0);
+
+		final AffineTransformOp scaleOp = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
+		final BufferedImage dst         = scaleOp.filter(src, null);
+		final JFrame frame              = new JFrame();
+
+		frame.getContentPane().setLayout(new BorderLayout());
+		frame.getContentPane().add(new JLabel(new ImageIcon(dst)));
+
+		frame.setPreferredSize(new Dimension(frameWidth, frameHeight));
+		frame.pack();
+		frame.setVisible(true);
+
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	}
+
 	protected void showGeometries(final int frameWidth, final int frameHeight, final Geometry... geometries) {
 
 		try {
 
+			final Color[] colors     = new Color[] { Color.RED, Color.BLUE, Color.GREEN, Color.BLACK, Color.GRAY, Color.PINK };
 			final MapContent content = new MapContent();
 			final JMapFrame frame    = new JMapFrame(content);
 			int index                = 0;
@@ -133,7 +170,38 @@ public abstract class GeoFunction extends Function<Object, Object> {
 
 				featureCollection.add(SimpleFeatureBuilder.build(TYPE, new Object[] { geometry }, null));
 
-				content.addLayer(new FeatureLayer(featureCollection, SLD.createLineStyle(Color.BLACK, 1)));
+				content.addLayer(new FeatureLayer(featureCollection, SLD.createLineStyle(colors[index], 1)));
+
+				index++;
+			}
+
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frame.setPreferredSize(new Dimension(frameWidth, frameHeight));
+			frame.pack();
+			frame.setVisible(true);
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
+
+	protected void showFeatures(final int frameWidth, final int frameHeight, final FeatureCollection features) {
+
+		try {
+
+			final Color[] colors     = new Color[] { Color.RED, Color.BLUE, Color.GREEN, Color.BLACK, Color.GRAY, Color.PINK };
+			final MapContent content = new MapContent();
+			final JMapFrame frame    = new JMapFrame(content);
+			int index                = 0;
+
+			final FeatureIterator it = features.features();
+			while (it.hasNext()) {
+
+				final SimpleFeature feature      = (SimpleFeature)it.next();
+				final DefaultFeatureCollection c = new DefaultFeatureCollection();
+				c.add(feature);
+
+				content.addLayer(new FeatureLayer(c, SLD.createLineStyle(colors[index++], 1)));
 			}
 
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

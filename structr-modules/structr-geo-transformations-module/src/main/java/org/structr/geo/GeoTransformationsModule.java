@@ -57,6 +57,7 @@ public class GeoTransformationsModule implements StructrModule {
 		Functions.put(licenseManager, new GeoDistanceFunction());
 		Functions.put(licenseManager, new LineSegmentFunction());
 		Functions.put(licenseManager, new LineStringsToPolygonsFunction());
+		Functions.put(licenseManager, new ConvertGeometryFunction());
 		Functions.put(licenseManager, new CoordsFunction());
 	}
 
