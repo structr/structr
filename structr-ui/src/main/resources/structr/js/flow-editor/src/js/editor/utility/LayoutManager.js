@@ -1,8 +1,8 @@
 'use strict';
 
-import {Persistence} from "../../persistence/Persistence.js";
-import {Rest} from "../../rest/Rest.js";
-import {StructrRest} from "../../rest/StructrRest.js";
+import {Persistence} from "../../../../../lib/structr/persistence/Persistence.js";
+import {Rest} from "../../../../../lib/structr/rest/Rest.js";
+import {StructrRest} from "../../../../../lib/structr/rest/StructrRest.js";
 
 export class LayoutManager {
 
