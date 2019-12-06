@@ -74,7 +74,8 @@ export class Persistence {
 
         if (object.id !== undefined && object.id !== null && object.type !== undefined && object.type !== null) {
             // Object exists in db
-            result = await this._structrRest.put(object.type, object.id, Persistence._toSerializable(object));
+            await this._structrRest.put(object.type, object.id, Persistence._toSerializable(object));
+			result = await this._structrRest.getById(object.type, object.id);
 
         } else if (object.type !== undefined && object.type !== null) {
             // Object has to be created
@@ -104,7 +105,11 @@ export class Persistence {
 
         if(result.result_count === 1) {
             if(Array.isArray(result.result)) {
-                containers.push(this._wrapObject(result.result[0], model));
+                if  (result.result.length > 0) {
+					containers.push(this._wrapObject(result.result[0], model));
+				} else {
+					return containers;
+                }
             } else {
                 containers.push(this._wrapObject(result.result, model));
             }

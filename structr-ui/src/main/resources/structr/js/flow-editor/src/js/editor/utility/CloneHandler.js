@@ -1,6 +1,5 @@
-import {Persistence} from "../../persistence/Persistence.js";
-import {FlowConnectionTypes} from "../FlowConnectionTypes.js";
-import {Rest} from "../../rest/Rest.js";
+import {Persistence} from "../../../../../lib/structr/persistence/Persistence.js";
+import {Rest} from "../../../../../lib/structr/rest/Rest.js";
 
 export class CloneHandler {
 

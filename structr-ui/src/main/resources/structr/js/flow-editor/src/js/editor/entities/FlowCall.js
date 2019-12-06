@@ -2,7 +2,7 @@
 
 import {FlowNode} from "./FlowNode.js";
 import {FlowSockets} from "../FlowSockets.js";
-import {Persistence} from "../../persistence/Persistence.js";
+import {Persistence} from "../../../../../lib/structr/persistence/Persistence.js";
 import {FlowContainer} from "./FlowContainer.js";
 
 export class FlowCall extends FlowNode {

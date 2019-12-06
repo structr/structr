@@ -16,15 +16,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Persistence }         from "./flow-editor/src/js/persistence/Persistence.js";
+import { Persistence }         from "./lib/structr/persistence/Persistence.js";
 import { FlowContainer }       from "./flow-editor/src/js/editor/entities/FlowContainer.js";
 import { FlowEditor }          from "./flow-editor/src/js/editor/FlowEditor.js";
-import { FlowConnectionTypes } from "./flow-editor/src/js/editor/FlowConnectionTypes.js";
 import { LayoutModal }         from "./flow-editor/src/js/editor/utility/LayoutModal.js";
-
-import { Component }           from "./lib/structr/Component.js";
-import {StructrRest} from "./flow-editor/src/js/rest/StructrRest.js";
-import {Rest} from "./flow-editor/src/js/rest/Rest.js";
+import {Rest} from "./lib/structr/rest/Rest.js";
 
 let main, flowsMain, flowsTree, flowsCanvas;
 let flowEditor, flowId;

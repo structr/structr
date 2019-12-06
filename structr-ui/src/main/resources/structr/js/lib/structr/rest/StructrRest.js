@@ -66,3 +66,4 @@ export class StructrRest {
 if (debug === true) {
     window._structrRest = new StructrRest();
 }
+
