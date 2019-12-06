@@ -46,11 +46,11 @@ import org.structr.api.RetryException;
 import org.structr.api.UnknownClientException;
 import org.structr.api.UnknownDatabaseException;
 import org.structr.api.util.Iterables;
-import org.structr.bolt.mapper.RecordNodeMapper;
-import org.structr.bolt.mapper.RecordNodeIdMapper;
-import org.structr.bolt.mapper.RecordRelationshipMapper;
 import org.structr.bolt.mapper.NodeId;
 import org.structr.bolt.mapper.RecordMapMapper;
+import org.structr.bolt.mapper.RecordNodeIdMapper;
+import org.structr.bolt.mapper.RecordNodeMapper;
+import org.structr.bolt.mapper.RecordRelationshipMapper;
 import org.structr.bolt.wrapper.EntityWrapper;
 import org.structr.bolt.wrapper.NodeWrapper;
 import org.structr.bolt.wrapper.RelationshipWrapper;
@@ -184,8 +184,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 	public boolean getBoolean(final String statement, final Map<String, Object> map) {
 
-		final long t0 = System.currentTimeMillis();
-
 		try {
 
 			logQuery(statement, map);
@@ -206,8 +204,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	public long getLong(final String statement) {
-
-		final long t0 = System.currentTimeMillis();
 
 		try {
 
@@ -230,8 +226,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 	public long getLong(final String statement, final Map<String, Object> map) {
 
-		final long t0 = System.currentTimeMillis();
-
 		try {
 
 			logQuery(statement, map);
@@ -252,8 +246,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	public Object getObject(final String statement, final Map<String, Object> map) {
-
-		final long t0 = System.currentTimeMillis();
 
 		try {
 
@@ -282,8 +274,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 	public Entity getEntity(final String statement, final Map<String, Object> map) {
 
-		final long t0 = System.currentTimeMillis();
-
 		try {
 
 			logQuery(statement, map);
@@ -304,8 +294,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	public Node getNode(final String statement, final Map<String, Object> map) {
-
-		final long t0 = System.currentTimeMillis();
 
 		try {
 
@@ -328,8 +316,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 	public Relationship getRelationship(final String statement, final Map<String, Object> map) {
 
-		final long t0 = System.currentTimeMillis();
-
 		try {
 
 			logQuery(statement, map);
@@ -350,8 +336,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	public Iterable<Node> getNodes(final String statement, final Map<String, Object> map) {
-
-		final long t0 = System.currentTimeMillis();
 
 		try {
 
@@ -374,8 +358,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 	public Iterable<Relationship> getRelationships(final String statement, final Map<String, Object> map) {
 
-		final long t0 = System.currentTimeMillis();
-
 		try {
 
 			logQuery(statement, map);
@@ -397,8 +379,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 	public Iterable<NodeId> getNodeIds(final String statement, final Map<String, Object> map) {
 
-		final long t0 = System.currentTimeMillis();
-
 		try {
 
 			logQuery(statement, map);
@@ -419,8 +399,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	public Iterable<String> getStrings(final String statement, final Map<String, Object> map) {
-
-		final long t0 = System.currentTimeMillis();
 
 		try {
 
@@ -447,8 +425,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 	public Iterable<Map<String, Object>> run(final String statement, final Map<String, Object> map) {
 
-		final long t0 = System.currentTimeMillis();
-
 		try {
 
 			logQuery(statement, map);
@@ -469,8 +445,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	public void set(final String statement, final Map<String, Object> map) {
-
-		final long t0 = System.currentTimeMillis();
 
 		try {
 
