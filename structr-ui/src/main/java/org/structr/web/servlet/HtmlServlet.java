@@ -367,46 +367,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						}
 
 						setLimitingDataObject(securityContext, request, renderContext);
-
-//						//if (dataNode != null && !(dataNode instanceof Linkable)) {
-//						if (dataNode != null) {
-//
-//							// Last path part matches a data node
-//							// Remove last path part and try again searching for a page
-//							// clear possible entry points
-//							request.removeAttribute(POSSIBLE_ENTRY_POINTS_KEY);
-//
-//							final String pagePart = StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP);
-//
-//							// Search for a page only when page part is non-empty
-//							if (StringUtils.isNotBlank(pagePart)) {
-//
-//								rootElement = findPage(securityContext, pages, pagePart, edit);
-//							}
-//
-//							//renderContext.setDetailsDataObject(dataNode);
-//
-//							// Start rendering on data node (partial)
-//							if (rootElement == null && dataNode instanceof DOMNode) {
-//
-//								// check visibleForSite here as well
-//								if (!(dataNode instanceof Page) || isVisibleForSite(request, (Page)dataNode)) {
-//
-//									rootElement = ((DOMNode) dataNode);
-//								}
-//
-//							// Allow rendering of a partial with a data node (accessible via the 'current' keyword)
-//							} else if (rootElement == null) {
-//
-//								final AbstractNode possibleRootNode = findNodeByUuid(securityContext, PathHelper.getName(pagePart));
-//
-//								if (possibleRootNode instanceof DOMNode) {
-//									rootElement = (DOMNode) possibleRootNode;
-//								}
-//							}
-//
-//							setDetailsObject(securityContext, request, renderContext);
-//						}
 					}
 				}
 
@@ -1722,7 +1682,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 * @param page
 	 * @return
 	 */
-	private boolean isVisibleForSite(final HttpServletRequest request, final Page page) {
+	public static boolean isVisibleForSite(final HttpServletRequest request, final Page page) {
 
 		final Site site = page.getSite();
 		if (site == null) {
@@ -1923,7 +1883,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		}
 	}
 
-	private String filterMaliciousRedirects(final String source) {
+	public static String filterMaliciousRedirects(final String source) {
 
 		if (source != null) {
 

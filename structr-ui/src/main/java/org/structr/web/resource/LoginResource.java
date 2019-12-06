@@ -69,7 +69,7 @@ public class LoginResource extends FilterableResource {
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
+	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
 		final String username       = (String) propertySet.get("name");
 		final String email          = (String) propertySet.get("eMail");

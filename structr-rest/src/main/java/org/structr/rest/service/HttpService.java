@@ -296,8 +296,6 @@ public class HttpService implements RunnableService {
 		}
 
 		final StructrSessionDataStore sessionDataStore = new StructrSessionDataStore();
-		//final FileSessionDataStore store = new FileSessionDataStore();
-		//store.setStoreDir(baseDir.toPath().resolve("sessions").toFile());
 
 		sessionCache.setSessionDataStore(sessionDataStore);
 		sessionCache.setSaveOnInactiveEviction(false);

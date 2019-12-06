@@ -192,7 +192,7 @@ public class Settings {
 	public static final Setting<Boolean> CmisEnabled             = new BooleanSetting(advancedGroup, "hidden",      "cmis.enabled",                  false);
 
 	// servlets
-	public static final StringMultiChoiceSetting Servlets     = new StringMultiChoiceSetting(servletsGroup, "General", "httpservice.servlets", "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet", Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet"), "Servlets that are listed in this configuration key will be available in the HttpService. Changes to this setting require a restart of the HttpService in the 'Services' tab.");
+	public static final StringMultiChoiceSetting Servlets     = new StringMultiChoiceSetting(servletsGroup, "General", "httpservice.servlets", "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet LoginServlet LogoutServlet", Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet", "LoginServlet", "LogoutServlet"), "Servlets that are listed in this configuration key will be available in the HttpService. Changes to this setting require a restart of the HttpService in the 'Services' tab.");
 
 	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "configservlet.enabled",             true, "Enables the config servlet (available under <code>http(s)://<your-server>/structr/config</code>)");
 
@@ -277,6 +277,20 @@ public class Settings {
 	public static final Setting<String> GraphQLResourceProvider  = new StringSetting(servletsGroup,  "GraphQLServlet", "graphqlservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
 	public static final Setting<String> GraphQLDefaultView       = new StringSetting(servletsGroup,  "GraphQLServlet", "graphqlservlet.defaultview",           "public");
 	public static final Setting<Integer> GraphQLOutputDepth      = new IntegerSetting(servletsGroup, "GraphQLServlet", "graphqlservlet.outputdepth",	   3);
+
+	public static final Setting<String> LoginServletPath       = new StringSetting(servletsGroup,  "LoginServlet", "loginservlet.path",                  "/structr/login");
+	public static final Setting<String> LoginServletClass      = new StringSetting(servletsGroup,  "LoginServlet", "loginservlet.class",                 "org.structr.web.servlet.LoginServlet");
+	public static final Setting<String> LoginAuthenticator     = new StringSetting(servletsGroup,  "LoginServlet", "loginservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> LoginResourceProvider  = new StringSetting(servletsGroup,  "LoginServlet", "loginservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
+	public static final Setting<String> LoginDefaultView       = new StringSetting(servletsGroup,  "LoginServlet", "loginservlet.defaultview",           "public");
+	public static final Setting<Integer> LoginOutputDepth      = new IntegerSetting(servletsGroup, "LoginServlet", "loginservlet.outputdepth",	   3);
+
+	public static final Setting<String> LogoutServletPath       = new StringSetting(servletsGroup,  "LogoutServlet", "logoutservlet.path",                  "/structr/logout");
+	public static final Setting<String> LogoutServletClass      = new StringSetting(servletsGroup,  "LogoutServlet", "logoutservlet.class",                 "org.structr.web.servlet.LogoutServlet");
+	public static final Setting<String> LogoutAuthenticator     = new StringSetting(servletsGroup,  "LogoutServlet", "logoutservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> LogoutResourceProvider  = new StringSetting(servletsGroup,  "LogoutServlet", "logoutservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
+	public static final Setting<String> LogoutDefaultView       = new StringSetting(servletsGroup,  "LogoutServlet", "logoutservlet.defaultview",           "public");
+	public static final Setting<Integer> LogoutOutputDepth      = new IntegerSetting(servletsGroup, "LogoutServlet", "logoutservlet.outputdepth",	   3);
 
 	public static final Setting<String> DeploymentServletPath                = new StringSetting(servletsGroup,  "DeploymentServlet", "deploymentservlet.path",                      "/structr/deploy");
 	public static final Setting<String> DeploymentServletClass               = new StringSetting(servletsGroup,  "DeploymentServlet", "deploymentservlet.class",                     "org.structr.web.servlet.DeploymentServlet");
