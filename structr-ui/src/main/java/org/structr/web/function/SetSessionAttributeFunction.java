@@ -18,6 +18,7 @@
  */
 package org.structr.web.function;
 
+import javax.servlet.http.HttpSession;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -41,7 +42,13 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
-			ctx.getSecurityContext().getSession().setAttribute(SESSION_ATTRIBUTE_PREFIX.concat(sources[0].toString()), sources[1]);
+			final HttpSession session = ctx.getSecurityContext().getSession();
+
+			if (session != null) {
+				session.setAttribute(SESSION_ATTRIBUTE_PREFIX.concat(sources[0].toString()), sources[1]);
+			} else {
+				logger.warn("{}: No session available to set session attribute! (this can happen in onStructrLogin/onStructrLogout)", getReplacement());
+			}
 
 			return "";
 
