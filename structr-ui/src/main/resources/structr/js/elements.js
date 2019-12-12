@@ -1740,7 +1740,7 @@ var _Elements = {
 	},
 	getSuggestedWidgets: function(entity, callback) {
 
-		if (entity.isPage) {
+		if (entity.isPage || entity.isContent) {
 
 			// no-op
 
