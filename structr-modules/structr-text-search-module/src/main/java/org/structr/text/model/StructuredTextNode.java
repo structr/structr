@@ -64,13 +64,29 @@ public interface StructuredTextNode extends NodeInterface, LinkedTreeNode<Struct
 		parent.addIntegerProperty("position");
 		parent.setCascadingDelete(JsonSchema.Cascade.sourceToTarget);
 
-		// combine method
+		type.addMethod("getChildren")
+			.addParameter("ctx", SecurityContext.class.getName())
+			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+			.setReturnType("java.util.List<org.structr.text.model.StructuredTextNode>")
+			.setSource("return this.treeGetChildren();")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
 
+		// combine method
 		type.addMethod("combine")
 			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
 			.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
 			.setSource("return " + StructuredTextNode.class.getName() + ".combine(this, parameters);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
+		// split method
+		type.addMethod("split")
+			.addParameter("ctx", SecurityContext.class.getName())
+			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+			.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
+			.setSource("return " + StructuredTextNode.class.getName() + ".split(this, parameters);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 	}}
@@ -112,7 +128,52 @@ public interface StructuredTextNode extends NodeInterface, LinkedTreeNode<Struct
 
 		} else {
 
-			throw new FrameworkException(422, "Invalid parameter for combine() method, missing parameter 'id'");
+			throw new FrameworkException(422, "Invalid parameters for combine() method, missing parameter 'id'. Usage: combine(id, [separator=' ', delete=false]");
+		}
+
+		return null;
+	}
+
+	static Map<String, Object> split(final StructuredTextNode thisNode, final Map<String, Object> parameters) throws FrameworkException {
+
+		final App app = StructrApp.getInstance(thisNode.getSecurityContext());
+		final Integer pos = integerOrDefault(parameters.get("position"), null);
+
+		if (pos != null) {
+
+			final String content = thisNode.getContent();
+			if (pos <= 0 || pos >= content.length()) {
+
+				throw new FrameworkException(422, "Invalid parameters for split() method, parameter 'position' is out of range.");
+
+			} else {
+
+				String part1 = content.substring(0, pos);
+				String part2 = content.substring(pos);
+
+				if (booleanOrDefault(parameters.get("trim"), true)) {
+
+					part1 = part1.trim();
+					part2 = part2.trim();
+				}
+
+				thisNode.setContent(part1);
+
+				// create new node
+				final StructuredTextNode newNode = app.create(thisNode.getClass());
+				newNode.setContent(part2);
+
+				// link into parent/child structure
+				final StructuredTextNode parent = thisNode.treeGetParent();
+				if (parent != null) {
+
+					parent.treeInsertAfter(newNode, thisNode);
+				}
+			}
+
+		} else {
+
+			throw new FrameworkException(422, "Invalid parameters for split() method, missing parameter 'position'. Usage: split(position, [trim=true])");
 		}
 
 		return null;
@@ -124,6 +185,24 @@ public interface StructuredTextNode extends NodeInterface, LinkedTreeNode<Struct
 		if (value != null && value instanceof String) {
 
 			return (String)value;
+		}
+
+		return defaultValue;
+	}
+
+	static Integer integerOrDefault(final Object value, final Integer defaultValue) {
+
+		if (value != null) {
+
+			if (value instanceof Integer) {
+
+				return (Integer)value;
+			}
+
+			if (value instanceof String) {
+
+				try { return Double.valueOf((String)value).intValue(); } catch (Throwable t) {}
+			}
 		}
 
 		return defaultValue;
