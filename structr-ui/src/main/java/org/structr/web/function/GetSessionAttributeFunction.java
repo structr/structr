@@ -18,6 +18,7 @@
  */
 package org.structr.web.function;
 
+import javax.servlet.http.HttpSession;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -41,7 +42,15 @@ public class GetSessionAttributeFunction extends UiAdvancedFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			return ctx.getSecurityContext().getSession().getAttribute(SESSION_ATTRIBUTE_PREFIX.concat(sources[0].toString()));
+			final HttpSession session = ctx.getSecurityContext().getSession();
+
+			if (session != null) {
+				return session.getAttribute(SESSION_ATTRIBUTE_PREFIX.concat(sources[0].toString()));
+			} else {
+				logger.warn("{}: No session available to get session attribute from! (this can happen in onStructrLogin/onStructrLogout)", getReplacement());
+			}
+
+			return null;
 
 		} catch (ArgumentNullException pe) {
 

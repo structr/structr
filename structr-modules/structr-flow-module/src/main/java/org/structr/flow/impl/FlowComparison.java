@@ -74,6 +74,11 @@ public class FlowComparison extends FlowCondition implements DataSource, Deploya
 
 			if (data == null || data instanceof Comparable) {
 
+				if (data != null && data.getClass().isEnum()) {
+
+					data = ((Enum)data).name();
+				}
+
 				Comparable c = (Comparable) data;
 
 				switch (op) {

@@ -84,7 +84,8 @@ public abstract class FlowAbstractDeploymentHandler implements FlowDeploymentInt
 			FlowContainerPackageFlow.class,
 			FlowContainerPackagePackage.class,
 			FlowConditionBaseNode.class,
-			FlowForkBody.class
+			FlowForkBody.class,
+			DOMNodeFLOWFlowContainer.class
 	};
 
 }

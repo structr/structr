@@ -169,6 +169,12 @@ export class FlowEditor {
 							self.selectAllNodes();
 							event.preventDefault();
 							event.stopPropagation();
+						} else if (event.key === "c" && event.ctrlKey && event.altKey) {
+							event.stopPropagation();
+							self._copyElementsForCloning();
+						} else if (event.key === "v" && event.ctrlKey && event.altKey) {
+							event.stopPropagation();
+							self._pasteClonedElements();
 						}
 					}
 				},
@@ -209,12 +215,6 @@ export class FlowEditor {
 							self._editor.selected.list.map((node) => console.log(node.data.dbNode.type + '[' + node.data.dbNode.id + "]"));
 							event.stopPropagation();
 
-						} else if (event.key === "c" && event.ctrlKey && event.altKey) {
-							event.stopPropagation();
-							self._copyElementsForCloning();
-						} else if (event.key === "v" && event.ctrlKey && event.altKey) {
-							event.stopPropagation();
-							self._pasteClonedElements();
 						}
 
 					},
