@@ -49,6 +49,7 @@ public interface StructuredTextNode extends NodeInterface, LinkedTreeNode<Struct
 		type.overrideMethod("getSiblingLinkType",          false, "return StructuredTextNodeNEXTStructuredTextNode.class;");
 		type.overrideMethod("getChildLinkType",            false, "return StructuredTextNodeCONTAINSStructuredTextNode.class;");
 		type.overrideMethod("getPositionProperty",         false, "return StructuredTextNodeCONTAINSStructuredTextNode.positionProperty;");
+		type.overrideMethod("onNodeDeletion",              true,  "try { final org.structr.text.model.StructuredTextNode parent = this.treeGetParent(); if (parent != null) { parent.treeRemoveChild(this); } } catch (FrameworkException fex) { fex.printStackTrace(); }");
 
 		type.addPropertyGetter("content", String.class);
 		type.addPropertySetter("content", String.class);
@@ -93,6 +94,13 @@ public interface StructuredTextNode extends NodeInterface, LinkedTreeNode<Struct
 				thisNode.setContent(thisNode.getContent() + separator + otherNode.getContent());
 
 				if (delete) {
+
+					// remove from parent
+					final StructuredTextNode parent = thisNode.treeGetParent();
+					if (parent != null) {
+
+						parent.treeRemoveChild(otherNode);
+					}
 
 					app.delete(otherNode);
 				}

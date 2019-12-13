@@ -244,20 +244,22 @@ public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, Struc
 
 				final StructuredTextNode page = app.create(StructuredTextNode.class,
 					new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "name"),     "Page " + pageNumber++),
-					new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "kind"),     "page"),
-					new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "parent"),   document)
+					new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "kind"),     "page")
 				);
+
+				document.treeAppendChild(page);
 
 				for (final AnnotatedLine sourceLine : sourcePage.getLines()) {
 
 					final String content = sourceLine.getContent();
 
-					app.create(StructuredTextNode.class,
+					final StructuredTextNode paragraph = app.create(StructuredTextNode.class,
 						new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "name"),     StringUtils.abbreviate(content, 80)),
 						new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "kind"),     sourceLine.getType()),
-						new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "parent"),   page),
 						new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "content"),  content)
 					);
+
+					page.treeAppendChild(paragraph);
 				}
 			}
 
