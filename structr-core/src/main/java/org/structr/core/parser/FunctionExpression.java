@@ -19,6 +19,8 @@
 package org.structr.core.parser;
 
 import java.util.ArrayList;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
@@ -41,11 +43,14 @@ public class FunctionExpression extends Expression {
 
 		final StringBuilder buf = new StringBuilder();
 
-		buf.append("function(");
-
-		for (final Expression expr : expressions) {
-			buf.append(expr.toString());
+		if (this.function != null) {
+			buf.append(function.getName());
+			buf.append("(");
+		} else {
+			buf.append("function(");
 		}
+
+		buf.append(StringUtils.join(expressions.stream().map(Expression::toString).collect(Collectors.toList()), ", "));
 		buf.append(")");
 
 		return buf.toString();

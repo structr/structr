@@ -18,6 +18,7 @@
  */
 package org.structr.web.datasource;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
@@ -44,7 +45,7 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 	public Iterable<GraphObject> getData(final ActionContext actionContext, final NodeInterface referenceNode) throws FrameworkException {
 
 		final RenderContext renderContext = (RenderContext) actionContext;
-		
+
 		final String functionQuery = ((DOMNode) referenceNode).getFunctionQuery();
 		if (StringUtils.isBlank(functionQuery)) {
 
@@ -61,6 +62,15 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 			} else if (result instanceof Object[]) {
 
 				return (List<GraphObject>) UiFunction.toGraphObject(result, 1);
+
+			} else if (result instanceof GraphObject) {
+
+				// allow single-element results to be evaluated
+				final List<GraphObject> wrapped = new LinkedList<>();
+
+				wrapped.add((GraphObject)result);
+
+				return wrapped;
 			}
 
 		} catch (UnlicensedScriptException ex) {

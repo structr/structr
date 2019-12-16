@@ -251,7 +251,7 @@ public abstract class Function<S, T> extends Hint {
 		return null;
 	}
 
-	protected Integer parseInt(final Object source) {
+	public static Integer parseInt(final Object source) {
 
 		if (source instanceof Integer) {
 

@@ -931,7 +931,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid starts_with() result", "true", Scripting.replaceVariables(ctx, testOne, "${starts_with(merge('a', 'b'), 'a')}"));
 			assertEquals("Invalid starts_with() result", "false", Scripting.replaceVariables(ctx, testOne, "${starts_with(merge('c', 'a', 'b'), 'a')}"));
 			assertEquals("Invalid starts_with() result", "false", Scripting.replaceVariables(ctx, testOne, "${starts_with(merge('abc', 'b'), 'a')}"));
-			
+
 			// substring
 			assertEquals("Invalid substring() result", "for", Scripting.replaceVariables(ctx, testOne, "${substring(this.name, 19, 3)}"));
 			assertEquals("Invalid substring() result", "", Scripting.replaceVariables(ctx, testOne, "${substring(this.name, -1, -1)}"));
@@ -4328,6 +4328,59 @@ public class ScriptingTest extends StructrTest {
 		assertEquals("Advanced find() namespace not exited correctly", true, securityContext.getContextStore().retrieve("result"));
 
 	}
+
+	@Test
+	public void testStructrScriptArrayIndexingWithVariable() {
+
+		final ActionContext ctx  = new ActionContext(securityContext);
+		final List<Group> groups = new LinkedList<>();
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			groups.add(app.create(Group.class, "group4"));
+			groups.add(app.create(Group.class, "group2"));
+			groups.add(app.create(Group.class, "group1"));
+			groups.add(app.create(Group.class, "group5"));
+			groups.add(app.create(Group.class, "group7"));
+			groups.add(app.create(Group.class, "group6"));
+			groups.add(app.create(Group.class, "group3"));
+			groups.add(app.create(Group.class, "group8"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Group group1 = groups.get(2);
+
+			ctx.setConstant("index1", 3);
+			ctx.setConstant("index2", "3");
+
+
+			assertEquals("StructrScript array indexing returns wrong result",   group1, Scripting.evaluate(ctx, null, "${find('Group', sort('name'))[0]}", "test1"));
+			assertEquals("StructrScript array indexing returns wrong result", "group2", Scripting.evaluate(ctx, null, "${find('Group', sort('name'))[1].name}", "test1"));
+			assertEquals("StructrScript array indexing returns wrong result", "group4", Scripting.evaluate(ctx, null, "${find('Group', sort('name'))[index1].name}", "test1"));
+			assertEquals("StructrScript array indexing returns wrong result", "group4", Scripting.evaluate(ctx, null, "${find('Group', sort('name'))[index2].name}", "test1"));
+
+			// FIXME: this test fails because [] binds to the wrong expression
+			//final List<Group> check1 = groups.subList(3, 4);
+			//assertEquals("StructrScript array indexing returns wrong result",   check1, Scripting.evaluate(ctx, null, "${merge(find('Group', sort('name'))[index2])}", "test1"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
 
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource, final String comment) {
