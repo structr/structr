@@ -1520,6 +1520,10 @@ button.action.disabled:hover {
 	min-width: 200px;
 }
 
+.schema-props td.centered {
+	text-align: center;
+}
+
 .schema-props td label {
 	min-width: 100px;
 }

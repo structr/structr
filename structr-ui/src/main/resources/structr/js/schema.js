@@ -2317,7 +2317,7 @@ var _Schema = {
 					(out ? '' : '&lt;') + '&mdash;' + cardinalityTag(out ? rel.sourceMultiplicity : rel.targetMultiplicity) + '&mdash;[:<span class="edit-schema-object" data-object-id="' + rel.id + '">' + relType + '</span>]&mdash;' + cardinalityTag(out ? rel.targetMultiplicity : rel.sourceMultiplicity) + '&mdash;' + (out ? '&gt;' : '') +
 					' <span class="edit-schema-object" data-object-id="' + relatedNodeId + '">'+ nodes[relatedNodeId].name + '</span>' +
 				'</td>' +
-				'<td><i title="Reset name to default" class="remove-icon reset-action ' + _Icons.getFullSpriteClass(_Icons.arrow_undo_icon) + '" /></td>' +
+				'<td class="centered"><i title="Reset name to default" class="remove-icon reset-action ' + _Icons.getFullSpriteClass(_Icons.arrow_undo_icon) + '" /></td>' +
 			'</tr>');
 		el.append(row);
 
