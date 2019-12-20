@@ -113,13 +113,24 @@ var _Dialogs = {
 			$('input#ldap-group-dn').val(el.distinguishedName);
 		}
 	},
+	divDialog: function(el, entity) {
+
+		if (el && entity) {
+
+			Structr.fetchHtmlTemplate('dialogs/div.options', { div: entity }, function (html) {
+
+				el.append(html);
+			});
+		}
+
+	},
 }
 
 var registeredDialogs = {
 	'LDAPGroup':  { id: 'ldapgroup', title: 'LDAP configuration', callback: _Dialogs.ldapGroupDialog },
 	'Image':  { id: 'file', title: 'Advanced options', callback: _Dialogs.fileDialog },
-	'File':  { id: 'file', title: 'Advanced options', callback: _Dialogs.fileDialog }
-
+	'File':  { id: 'file', title: 'Advanced options', callback: _Dialogs.fileDialog },
+	//'Div': { id: 'div', title : '&#x2605;', callback: _Dialogs.divDialog }
 }
 
 function setNull(id, key, input) {

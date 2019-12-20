@@ -5075,7 +5075,7 @@ div#xml-configurations button {
  */
 input.refactoring-helper {
 	box-sizing: border-box;
-	width: 25%;
+	width: 33%;
 }
 
 table.refactoring-helper {
@@ -5259,4 +5259,10 @@ table#principals tbody td {
 .type-mapping .add-selector {
 	margin-top: 40px;
 	font-size: 8pt;
+}
+
+div.option-tile {
+	float: left;
+	width: 260px;
+	margin-right: 20px;
 }
