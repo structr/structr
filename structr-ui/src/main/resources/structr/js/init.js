@@ -212,20 +212,20 @@ $(function() {
 				}
 			}
 		}
-        // Ctrl-Alt-g
-        if (k === 71 && altKey && ctrlKey) {
-            e.preventDefault();
-            var uuid = prompt('Enter the UUID for which you want to open the access control dialog');
-            if (uuid) {
-                if (uuid.length === 32) {
-                    Command.get(uuid, null, function(obj) {
-                        _Entities.showAccessControlDialog(obj);
-                    });
-                } else {
-                    alert('That does not look like a UUID! length != 32');
-                }
-            }
-        }
+		// Ctrl-Alt-g
+		if (k === 71 && altKey && ctrlKey) {
+		    e.preventDefault();
+		    var uuid = prompt('Enter the UUID for which you want to open the access control dialog');
+		    if (uuid) {
+			if (uuid.length === 32) {
+			    Command.get(uuid, null, function(obj) {
+				_Entities.showAccessControlDialog(obj);
+			    });
+			} else {
+			    alert('That does not look like a UUID! length != 32');
+			}
+		    }
+		}
 		// Ctrl-Alt-h
 		if (k === 72 && altKey && ctrlKey) {
 			e.preventDefault();
@@ -234,9 +234,9 @@ $(function() {
 			}
 		}
 		// Ctrl-Alt-s
-		if (k === 83 && altKey && ctrlKey) {
+		if (k === 69 && altKey && ctrlKey) {
 			e.preventDefault();
-			Structr.dialog('Refactoring helper');
+			Structr.dialog('Bulk Editing Helper (Ctrl-Alt-E)');
 			new RefactoringHelper(dialog).show();
 		}
 

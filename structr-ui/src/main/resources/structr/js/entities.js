@@ -643,7 +643,7 @@ var _Entities = {
 		if (obj.relType) {
 			Command.getRelationship(obj.id, obj.target, null, function(entity) { handleGraphObject(entity); });
 		} else {
-			Command.get(obj.id, null, function(entity) { handleGraphObject(entity); });
+			Command.get(obj.id, null, function(entity) { handleGraphObject(entity); }, 'ui');
 		}
 	},
 	appendPropTab: function(entity, tabsEl, contentEl, name, label, active, callback, initCallback, showCallback) {

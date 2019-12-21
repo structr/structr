@@ -5263,6 +5263,47 @@ table#principals tbody td {
 
 div.option-tile {
 	float: left;
-	width: 260px;
+	width: 415px;
 	margin-right: 20px;
+	padding-bottom: 10px;
+}
+
+div.option-tile.double {
+	width: 850px;
+}
+
+
+div.quick-access-options h3 {
+	margin-bottom: 0;
+}
+
+div.quick-access-options p {
+	margin: 0;
+}
+
+div.option-tile select, div.option-tile input {
+	width: 100%;
+	box-sizing: border-box;
+}
+
+div.option-tile select {
+	font-family: "Liberation Mono", "DejaVu Sans Mono", Consolas, Monaco, "Vera Sans Mono", "Lucida Console", "Courier New", Courier, monospace !important;
+}
+
+div.option-tile h4 {
+	margin: 0;
+}
+
+div.option-tile label {
+	color: #000;
+	font-size: 8pt;
+}
+
+button.icon-button {
+	background-color: transparent;
+	padding: 1px 4px 2px 4px;
+}
+
+button.icon-button i {
+	margin: 0;
 }

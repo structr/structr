@@ -308,15 +308,27 @@ function blink (element, color, bgColor) {
 		element.prop('data-bg-color', oldBg);
 	}
 
-	element.animate({
-		color: color,
-		backgroundColor: bgColor
-	}, 50, function() {
-		$(this).animate({
-			color: oldFg,
-			backgroundColor: oldBg
-		}, 1000);
-	});
+	if (element[0].nodeName === 'SELECT') {
+
+		element.animate({
+			color: color
+		}, 50, function() {
+			$(this).animate({
+				color: oldFg
+			}, 1000);
+		});
+	} else {
+
+		element.animate({
+			color: color,
+			backgroundColor: bgColor
+		}, 50, function() {
+			$(this).animate({
+				color: oldFg,
+				backgroundColor: oldBg
+			}, 1000);
+		});
+	}
 }
 
 function getComments(el) {

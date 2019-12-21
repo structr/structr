@@ -34,14 +34,16 @@ class RefactoringHelper {
 
 		selectContainer.append('<input class="refactoring-helper" id="selector-input" placeholder="HTML tag, e.g. div, button" />');
 		selectContainer.append('<input class="refactoring-helper" id="property-input" placeholder="Property keys to display, e.g. id, class, name, onclick" />');
-		selectContainer.append('<input type="checkbox" id="empty-checkbox" /> Show empty results');
+		selectContainer.append('<input type="checkbox" id="empty-checkbox" /><label for="empty-checkbox"> Show empty results</label>');
 		selectContainer.append('<div id="result-container"></div>');
 		selectContainer.append('<div><pre id="error-container"></pre></div>');
 
 		window.setTimeout(() => { $('#selector-input').focus(); }, 100);
 
-		$('#property-input').on('blur', () => { this.loadResults(); });
-		$('#empty-checkbox').on('click', () => { this.loadResults(); });
+		var loadFunction = this.debounce(this.loadResults, 300);
+
+		$('#property-input').on('keyup', loadFunction);
+		$('#empty-checkbox').on('click', loadFunction);
 	}
 
 	loadResults() {
@@ -175,5 +177,20 @@ class RefactoringHelper {
 				}
 			});
 		}
+	}
+
+	debounce(func, wait, immediate) {
+		var timeout;
+		return function() {
+			var context = this, args = arguments;
+			var later = function() {
+				timeout = null;
+				if (!immediate) func.apply(context, args);
+			};
+			var callNow = immediate && !timeout;
+			clearTimeout(timeout);
+			timeout = setTimeout(later, wait);
+			if (callNow) func.apply(context, args);
+		};
 	}
 }

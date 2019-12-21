@@ -113,14 +113,120 @@ var _Dialogs = {
 			$('input#ldap-group-dn').val(el.distinguishedName);
 		}
 	},
+	aDialog: function(el, entity) {
+
+		if (el && entity) {
+
+			Command.get(entity.id, null, function(a) {
+
+				Structr.fetchHtmlTemplate('dialogs/a.options', { entity: entity, a: a }, function (html) {
+
+					el.append(html);
+
+					[ 'id', 'class', 'href', 'style' ].forEach(p => {
+						let input = $('input#' + p + '-input');
+						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, '_html_' + p, input.val(), input); });
+					});
+
+					[ 'function-query', 'data-key' ].forEach(p => {
+						let input = $('input#' + p + '-input');
+						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val(), input); });
+					});
+
+					var showConditionsSelect = $('select#show-conditions');
+					var hideConditionsSelect = $('select#hide-conditions');
+
+					// dialog logic here..
+					showConditionsSelect.on('change', function() { _Entities.setPropertyWithFeedback(entity, 'showConditions', showConditionsSelect.val(), showConditionsSelect); });
+					hideConditionsSelect.on('change', function() { _Entities.setPropertyWithFeedback(entity, 'hideConditions', hideConditionsSelect.val(), hideConditionsSelect); });
+
+					showConditionsSelect.val(entity.showConditions);
+					hideConditionsSelect.val(entity.hideConditions);
+
+					// focus on first input field
+					$('input#class-input').focus();
+					$('input#class-input').select();
+				});
+
+			}, '_html_');
+		}
+
+	},
+	buttonDialog: function(el, entity) {
+
+		if (el && entity) {
+
+			Command.get(entity.id, null, function(button) {
+
+				Structr.fetchHtmlTemplate('dialogs/button.options', { entity: entity, button: button }, function (html) {
+
+					el.append(html);
+
+					[ 'id', 'class', 'onclick', 'style' ].forEach(p => {
+						let input = $('input#' + p + '-input');
+						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, '_html_' + p, input.val(), input); });
+					});
+
+					[ 'function-query', 'data-key' ].forEach(p => {
+						let input = $('input#' + p + '-input');
+						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val(), input); });
+					});
+
+					var showConditionsSelect = $('select#show-conditions');
+					var hideConditionsSelect = $('select#hide-conditions');
+
+					// dialog logic here..
+					showConditionsSelect.on('change', function() { _Entities.setPropertyWithFeedback(entity, 'showConditions', showConditionsSelect.val(), showConditionsSelect); });
+					hideConditionsSelect.on('change', function() { _Entities.setPropertyWithFeedback(entity, 'hideConditions', hideConditionsSelect.val(), hideConditionsSelect); });
+
+					showConditionsSelect.val(entity.showConditions);
+					hideConditionsSelect.val(entity.hideConditions);
+
+					// focus on first input field
+					$('input#class-input').focus();
+					$('input#class-input').select();
+				});
+
+			}, '_html_');
+		}
+
+	},
 	divDialog: function(el, entity) {
 
 		if (el && entity) {
 
-			Structr.fetchHtmlTemplate('dialogs/div.options', { div: entity }, function (html) {
+			Command.get(entity.id, null, function(div) {
 
-				el.append(html);
-			});
+				Structr.fetchHtmlTemplate('dialogs/div.options', { entity: entity, div: div }, function (html) {
+
+					el.append(html);
+
+					[ 'id', 'class', 'style' ].forEach(p => {
+						let input = $('input#' + p + '-input');
+						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, '_html_' + p, input.val(), input); });
+					});
+
+					[ 'function-query', 'data-key' ].forEach(p => {
+						let input = $('input#' + p + '-input');
+						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val(), input); });
+					});
+
+					var showConditionsSelect = $('select#show-conditions');
+					var hideConditionsSelect = $('select#hide-conditions');
+
+					// dialog logic here..
+					showConditionsSelect.on('change', function() { _Entities.setPropertyWithFeedback(entity, 'showConditions', showConditionsSelect.val(), showConditionsSelect); });
+					hideConditionsSelect.on('change', function() { _Entities.setPropertyWithFeedback(entity, 'hideConditions', hideConditionsSelect.val(), hideConditionsSelect); });
+
+					showConditionsSelect.val(entity.showConditions);
+					hideConditionsSelect.val(entity.hideConditions);
+
+					// focus on first input field
+					$('input#class-input').focus();
+					$('input#class-input').select();
+				});
+
+			}, '_html_');
 		}
 
 	},
@@ -130,7 +236,9 @@ var registeredDialogs = {
 	'LDAPGroup':  { id: 'ldapgroup', title: 'LDAP configuration', callback: _Dialogs.ldapGroupDialog },
 	'Image':  { id: 'file', title: 'Advanced options', callback: _Dialogs.fileDialog },
 	'File':  { id: 'file', title: 'Advanced options', callback: _Dialogs.fileDialog },
-	//'Div': { id: 'div', title : '&#x2605;', callback: _Dialogs.divDialog }
+	'A': { id: 'a', title : '&#x2605;', callback: _Dialogs.aDialog },
+	'Button': { id: 'button', title : '&#x2605;', callback: _Dialogs.buttonDialog },
+	'Div': { id: 'div', title : '&#x2605;', callback: _Dialogs.divDialog },
 }
 
 function setNull(id, key, input) {
