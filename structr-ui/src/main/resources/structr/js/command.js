@@ -1198,15 +1198,14 @@ var Command = {
 	 *
 	 * No broadcast.
 	 */
-	autocomplete: function(id, type, currentToken, previousToken, thirdToken, line, cursorPosition, contentType, callback) {
+	autocomplete: function(id, type, before, after, line, cursorPosition, contentType, callback) {
 		var obj  = {
 			command: 'AUTOCOMPLETE',
 			id: id,
 			data: {
 				type: type,
-				currentToken: currentToken,
-				previousToken: previousToken,
-				thirdToken: thirdToken,
+				before: before,
+				after: after,
 				contentType: contentType,
 				line: line,
 				cursorPosition: cursorPosition

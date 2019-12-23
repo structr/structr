@@ -612,11 +612,7 @@ var _Code = {
 					}
 				});
 
-				CodeMirror.registerHelper('hint', 'ajax', _Code.getAutocompleteHint);
-				CodeMirror.hint.ajax.async = true;
-				CodeMirror.commands.autocomplete = function(mirror) {
-					mirror.showHint({ hint: CodeMirror.hint.ajax });
-				};
+				_Code.setupAutocompletion(editor, id);
 
 				var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
 				if (scrollInfo) {
@@ -1654,15 +1650,20 @@ var _Code = {
 			}
 		})
 	},
-	getAutocompleteHint: function(editor, callback) {
+	setupAutocompletion: function(editor, id) {
+
+		CodeMirror.registerHelper('hint', 'ajax', (editor, callback) => _Code.getAutocompleteHint(editor, id, callback));
+		CodeMirror.hint.ajax.async = true;
+		CodeMirror.commands.autocomplete = function(mirror) { mirror.showHint({ hint: CodeMirror.hint.ajax }); };
+		editor.on('keyup', (instance, event) => { if (event.key === '.') { CodeMirror.commands.autocomplete(instance, null, {completeSingle: false}); }});
+	},
+	getAutocompleteHint: function(editor, id, callback) {
 
 		var cursor = editor.getCursor();
-		var word   = editor.findWordAt(cursor);
-		var prev   = editor.findWordAt({ line: word.anchor.line, ch: word.anchor.ch - 2 });
-		var range1 = editor.getRange(prev.anchor, prev.head);
-		var range2 = editor.getRange(word.anchor, word.head);
+		var before = editor.getRange({ line: 0, ch: 0 }, cursor);
+		var after  = editor.getRange(cursor, { line: cursor.line + 1, ch: 0 });
 		var type   = _Code.getEditorModeForContent(editor.getValue());
-		Command.autocomplete('', '', range2, range1, '', cursor.line, cursor.ch, type, function(result) {
+		Command.autocomplete(id, '', before, after, cursor.line, cursor.ch, type, function(result) {
 			var inner  = { from: cursor, to: cursor, list: result };
 			callback(inner);
 		});
@@ -1748,7 +1749,7 @@ var _Code = {
 		_Code.displayCreateButton(targetId, 'magic', 'create-type', 'Create new type', '', { type: 'SchemaNode'});
 	},
 	getEditorModeForContent: function(content) {
-		if (content && content.indexOf('{') === 0) {
+		if (content && (content.indexOf('{') === 0 || content.indexOf("${{") === 0)) {
 			return 'text/javascript';
 		}
 		return 'text';

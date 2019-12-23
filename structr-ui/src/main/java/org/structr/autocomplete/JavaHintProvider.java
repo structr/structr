@@ -21,6 +21,7 @@ package org.structr.autocomplete;
 import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.CaseHelper;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.Hint;
 
@@ -30,7 +31,7 @@ import org.structr.schema.action.Hint;
 public class JavaHintProvider extends AbstractHintProvider {
 
 	@Override
-	protected List<Hint> getAllHints(final GraphObject currentNode, final String currentToken, final String previousToken, final String thirdToken) {
+	protected List<Hint> getAllHints(final SecurityContext securityContext, final GraphObject currentNode, final String editorText, final ParseResult parseResult) {
 		return new LinkedList<>();
 	}
 

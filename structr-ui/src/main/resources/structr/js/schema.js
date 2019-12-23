@@ -2179,13 +2179,13 @@ var _Schema = {
 			lineNumbers: true,
 			lineWrapping: lineWrapping,
 			extraKeys: {
-				"'.'":        _Contents.autoComplete,
 				"Ctrl-Space": _Contents.autoComplete
 			},
 			indentUnit: 4,
 			tabSize:4,
 			indentWithTabs: true
 		});
+		_Code.setupAutocompletion(editor, entity.id);
 
 		Structr.resize();
 

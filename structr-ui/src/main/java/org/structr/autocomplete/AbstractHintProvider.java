@@ -18,27 +18,29 @@
  */
 package org.structr.autocomplete;
 
-import java.util.Arrays;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.Hint;
+import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.Content.ContentHandler;
 
 
 
 public abstract class AbstractHintProvider {
-
-	private static final Set<String> startChars = new HashSet<>(Arrays.asList(new String[] { ".", ",", "(", "((", "(((", "((((", "(((((", "((((((", "${" } ));
 
 	private enum QueryType {
 		REST, Cypher, XPath, Function
@@ -51,23 +53,76 @@ public abstract class AbstractHintProvider {
 	public static final Property<Integer> line       = new IntProperty("line");
 	public static final Property<Integer> ch         = new IntProperty("ch");
 
-	protected abstract List<Hint> getAllHints(final GraphObject currentNode, final String currentToken, final String previousToken, final String thirdToken);
+	protected abstract List<Hint> getAllHints(final SecurityContext securityContext, final GraphObject currentNode, final String editorText, final ParseResult parseResult);
 	protected abstract String getFunctionName(final String sourceName);
 
-	protected final Comparator comparator = new HintComparator();
+	protected final Comparator comparator     = new HintComparator();
 
-	public List<GraphObject> getHints(final GraphObject currentEntity, final String type, final String currentToken, final String previousToken, final String thirdToken, final int cursorLine, final int cursorPosition) {
+	public static List<GraphObject> getHints(final SecurityContext securityContext, final GraphObject currentEntity, final String type, final String textBefore, final String textAfter, final int cursorLine, final int cursorPosition) {
 
-		final List<Hint> allHints     = getAllHints(currentEntity, currentToken, previousToken, thirdToken);
+		String text = null;
+
+		if (currentEntity instanceof SchemaMethod) {
+
+			// we can use the whole text here, the method will always contain script code and nothing else
+			// add ${ to be able to reuse code below
+			text = "${" + textBefore;
+
+		} else {
+
+			try {
+
+				final AutocompleteContentHandler handler = new AutocompleteContentHandler();
+				Content.renderContentWithScripts(textBefore, handler);
+
+				if (handler.inScript()) {
+
+					// we are inside of a scripting context
+					text = handler.getScript();
+				}
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+		}
+
+		// handle text for autocompletion
+		if (text != null) {
+
+			if (text.startsWith("${{")) {
+
+				final JavascriptHintProvider provider = new JavascriptHintProvider();
+				final String source                   = text.substring(3);
+
+				return provider.getHints(securityContext, currentEntity, type, source, cursorLine, cursorPosition);
+
+			} else if (text.startsWith("${")) {
+
+				final PlaintextHintProvider provider = new PlaintextHintProvider();
+				final String source                   = text.substring(2);
+
+				return provider.getHints(securityContext, currentEntity, type, source, cursorLine, cursorPosition);
+			}
+		}
+
+		return Collections.EMPTY_LIST;
+	}
+
+	public List<GraphObject> getHints(final SecurityContext securityContext, final GraphObject currentEntity, final String type, final String script, final int cursorLine, final int cursorPosition) {
+
+		final ParseResult parseResult = new ParseResult();
+		final List<Hint> allHints     = getAllHints(securityContext, currentEntity, script, parseResult);
 		final List<GraphObject> hints = new LinkedList<>();
+		final String currentToken     = parseResult.getLastToken();
 		int maxNameLength             = 0;
 
-		if (StringUtils.isBlank(currentToken) || startChars.contains(currentToken)) {
+		if (parseResult.isUnrestricted()) {
 
 			// display all possible hints
 			for (final Hint hint : allHints) {
 
 				final GraphObjectMap item = new GraphObjectMap();
+				final String displayName  = getFunctionName(hint.getDisplayName());
 				final String functionName = getFunctionName(hint.getReplacement());
 
 				if (hint.mayModify()) {
@@ -79,7 +134,7 @@ public abstract class AbstractHintProvider {
 					item.put(text, functionName);
 				}
 
-				item.put(displayText, functionName + " - " + textOrPlaceholder(hint.shortDescription()));
+				item.put(displayText, displayName + " - " + textOrPlaceholder(hint.shortDescription()));
 				addPosition(item, hint, cursorLine, cursorPosition, cursorPosition);
 
 				if (functionName.length() > maxNameLength) {
@@ -96,6 +151,7 @@ public abstract class AbstractHintProvider {
 			for (final Hint hint : allHints) {
 
 				final String functionName = getFunctionName(hint.getReplacement());
+				final String displayName  = getFunctionName(hint.getDisplayName());
 
 				if (functionName.startsWith(currentToken)) {
 
@@ -110,7 +166,7 @@ public abstract class AbstractHintProvider {
 						item.put(text, functionName);
 					}
 
-					item.put(displayText, functionName + " - " + textOrPlaceholder(hint.shortDescription()));
+					item.put(displayText, displayName + " - " + textOrPlaceholder(hint.shortDescription()));
 
 					addPosition(item, hint, cursorLine, cursorPosition - currentTokenLength, cursorPosition);
 
@@ -187,6 +243,13 @@ public abstract class AbstractHintProvider {
 		return source;
 	}
 
+	protected void addNonempty(final List<String> list, final String string) {
+
+		if (StringUtils.isNotBlank(string)) {
+			list.add(string);
+		}
+	}
+
 	// ----- private methods -----
 	private void addPosition(final GraphObjectMap item, final Hint hint, final int cursorLine, final int replaceFrom, final int replaceTo) {
 
@@ -222,5 +285,76 @@ public abstract class AbstractHintProvider {
 
 			return o1.getName().compareTo(o2.getName());
 		}
+	}
+
+	protected static class ParseResult {
+
+		private List<String> tokens  = new ArrayList<>();
+		private String expression    = null;
+		private boolean unrestricted = false;
+
+		public List<String> getTokens() {
+			return tokens;
+		}
+
+		public void setExpression(final String expression) {
+			this.expression = expression;
+		}
+
+		public String getExpression() {
+			return expression;
+		}
+
+		public String getLastToken() {
+
+			if (tokens.isEmpty()) {
+				return "";
+			}
+
+			return tokens.get(tokens.size() - 1);
+		}
+
+		public void setUnrestricted(final boolean unrestricted) {
+			this.unrestricted = unrestricted;
+		}
+
+		public boolean isUnrestricted() {
+			return unrestricted;
+		}
+	}
+
+	protected static class AutocompleteContentHandler implements ContentHandler {
+
+		private boolean inScript  = false;
+		private String scriptText = null;
+
+		@Override
+		public void handleScript(String script) throws FrameworkException, IOException {
+			inScript = false;
+		}
+
+		@Override
+		public void handleText(String text) throws FrameworkException {
+		}
+
+		@Override
+		public void handleIncompleteScript(String script) throws FrameworkException, IOException {
+			scriptText = script;
+		}
+
+		@Override
+		public void possibleStartOfScript(int row, int column) {
+			inScript = true;
+		}
+
+		public boolean inScript() {
+			return inScript;
+		}
+
+		public String getScript() {
+			return scriptText;
+		}
+
+
 	}
 }

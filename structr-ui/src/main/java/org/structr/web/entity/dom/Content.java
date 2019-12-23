@@ -157,18 +157,6 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 	void setContent(final String content) throws FrameworkException;
 	void setContentType(final String contentType) throws FrameworkException;
 
-	/*
-	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui,
-		content, contentType, parent, pageId, syncedNodes, sharedComponent, sharedComponentConfiguration, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
-		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent, isDOMNode, isFavoritable
-	);
-
-	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public,
-		content, contentType, parent, pageId, syncedNodes, sharedComponent, sharedComponentConfiguration, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
-		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent, isDOMNode, isFavoritable
-	);
-	*/
-
 	static void onModification(final Content thisContent, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		final PropertyMap map = new PropertyMap();
@@ -246,11 +234,11 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 				return;
 			}
 
-			final ContentHandler handler = new RenderContextContentHandler(thisNode, renderContext);
-			final String id              = thisNode.getUuid();
-			final boolean inBody         = renderContext.inBody();
-			final AsyncBuffer out        = renderContext.getBuffer();
-			final String _contentType    = thisNode.getContentType();
+			final RenderContextContentHandler handler = new RenderContextContentHandler(thisNode, renderContext);
+			final String id                           = thisNode.getUuid();
+			final boolean inBody                      = renderContext.inBody();
+			final AsyncBuffer out                     = renderContext.getBuffer();
+			final String _contentType                 = thisNode.getContentType();
 
 			// apply configuration for shared component if present
 			final String _sharedComponentConfiguration = thisNode.getSharedComponentConfiguration();
@@ -541,6 +529,8 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 			boolean hasBackslash             = false;
 			boolean hasDollar                = false;
 			int level                        = 0;
+			int row                          = 0;
+			int column                       = 0;
 
 			for (int i=0; i<length; i++) {
 
@@ -594,6 +584,8 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 							textBuffer.setLength(0);
 							scriptBuffer.append("$");
 
+							handler.possibleStartOfScript(row, column-1);
+
 						} else if (inTemplate && !inSingleQuotes && !inDoubleQuotes && !inComment) {
 							level++;
 						}
@@ -643,6 +635,8 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 					case '\r':
 					case '\n':
 						inComment = false;
+						column = 0;
+						row++;
 						break;
 
 					default:
@@ -666,11 +660,14 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 						textBuffer.append(c);
 					}
 				}
+
+				column++;
 			}
 
 			if (scriptBuffer.length() > 0) {
 
 				// something's wrong, content ended inside of script template block
+				handler.handleIncompleteScript(scriptBuffer.toString());
 			}
 
 			if (textBuffer.length() > 0) {
@@ -683,12 +680,10 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
 	static interface ContentHandler {
 
-		void setConverter(final Adapter<String, String> converter);
-		void setReplaceNewlines(final boolean replaceNewlines);
-		void setEscapeForHtml(final boolean escapeForHtml);
 		void handleScript(final String script) throws FrameworkException, IOException;
+		void handleIncompleteScript(final String script) throws FrameworkException, IOException;
 		void handleText(final String text) throws FrameworkException;
-		boolean isEmpty();
+		void possibleStartOfScript(final int row, final int column);
 	}
 
 	static class RenderContextContentHandler implements ContentHandler {
@@ -706,22 +701,24 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 			this.node          = node;
 		}
 
-		@Override
 		public void setConverter(final Adapter<String, String> converter) {
-
 			this.converter = converter;
 		}
 
-		@Override
 		public void setReplaceNewlines(final boolean replaceNewlines) {
-
 			this.replaceNewlines = replaceNewlines;
 		}
 
-		@Override
 		public void setEscapeForHtml(final boolean escapeForHtml) {
-
 			this.escapeForHtml = escapeForHtml;
+		}
+
+		public boolean isEmpty() {
+			return isEmpty;
+		}
+
+		@Override
+		public void handleIncompleteScript(final String script) throws FrameworkException, IOException {
 		}
 
 		@Override
@@ -761,8 +758,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		}
 
 		@Override
-		public boolean isEmpty() {
-			return isEmpty;
+		public void possibleStartOfScript(final int row, final int column) {
 		}
 
 		private String transform(final String src) throws FrameworkException {

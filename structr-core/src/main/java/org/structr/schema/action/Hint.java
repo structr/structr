@@ -30,8 +30,12 @@ public abstract class Hint {
 	public abstract String shortDescription();
 	public abstract String getName();
 
-	public String getReplacement() {
+	public String getDisplayName() {
 		return getName().concat("()");
+	}
+
+	public String getReplacement() {
+		return getName();
 	}
 
 	public void allowNameModification(final boolean allowModification) {

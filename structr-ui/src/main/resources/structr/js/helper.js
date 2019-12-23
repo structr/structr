@@ -904,6 +904,7 @@ var _Favorites = new (function () {
 								tabSize:4,
 								indentWithTabs: true
 							});
+							_Code.setupAutocompletion(editor, id);
 
 							var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + id));
 							if (scrollInfo) {

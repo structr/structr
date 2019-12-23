@@ -29,6 +29,11 @@ public abstract class NonFunctionHint extends Hint {
 	private String replacement = null;
 
 	@Override
+	public String getDisplayName() {
+		return getName();
+	}
+
+	@Override
 	public String getReplacement() {
 
 		if (replacement != null) {

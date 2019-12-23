@@ -1469,41 +1469,6 @@ var _Elements = {
 			_Elements.editContent(this, entity, data.content, dialogText);
 		});
 	},
-    autoComplete: function(cm, pred) {
-      if (!pred || pred()) setTimeout(function() {
-        if (!cm.state.completionActive)
-			CodeMirror.showHint(cm, _Elements.hint, {
-				async: true,
-				extraKeys: {
-				   "Esc": function(cm, e) {
-					   if (cm.state.completionActive) {
-						   cm.state.completionActive.close();
-						   ignoreKeyUp = true;
-					   }
-				   }
-				}
-
-			});
-      }, 100);
-      return CodeMirror.Pass;
-    },
-    hint: function(cm, callback) {
-
-        var cursor        = cm.getCursor();
-        var currentToken  = cm.getTokenAt(cursor);
-        var previousToken = cm.getTokenAt( { line: cursor.line, ch: currentToken.start - 1 } );
-        var thirdToken    = cm.getTokenAt( { line: cursor.line, ch: previousToken.start - 1 } );
-        var id            = "";
-
-        if (currentEntity && currentEntity.id) {
-            id = currentEntity.id;
-        }
-
-		Command.autocomplete(id, currentToken.type, currentToken.string, previousToken.string, thirdToken.string, cursor.line, cursor.ch, function(data) {
-            callback( { from: { line: cursor.line, ch: currentToken.end } , to: { line: cursor.line, ch: currentToken.end } , list: data } );
-        });
-
-    },
 	activateEditorMode: function(contentType) {
 		let modeObj = CodeMirror.findModeByMIME(contentType);
 		let mode = contentType; // default
@@ -1543,13 +1508,14 @@ var _Elements = {
 			lineNumbers: true,
 			lineWrapping: lineWrapping,
 			extraKeys: {
-				"'.'":        _Elements.autoComplete,
-				"Ctrl-Space": _Elements.autoComplete
+				"Ctrl-Space": "autocomplete"
 			},
 			indentUnit: 4,
 			tabSize:4,
 			indentWithTabs: true
 		});
+
+		_Code.setupAutocompletion(editor, entity.id);
 
 		Structr.resize();
 
