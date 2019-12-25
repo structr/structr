@@ -18,6 +18,7 @@
  */
 package org.structr.autocomplete;
 
+import org.structr.core.function.ParseResult;
 import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.CaseHelper;

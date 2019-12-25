@@ -18,15 +18,20 @@
  */
 package org.structr.autocomplete;
 
-import java.util.Collections;
+import org.structr.core.function.ParseResult;
 import java.util.LinkedList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.function.Functions;
-import org.structr.schema.action.Function;
+import org.structr.core.parser.Expression;
+import org.structr.core.parser.FunctionExpression;
+import org.structr.core.parser.RootExpression;
+import org.structr.core.parser.ValueExpression;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Hint;
 
 /**
@@ -38,9 +43,61 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 	private static final Logger logger = LoggerFactory.getLogger(PlaintextHintProvider.class);
 
 	@Override
-	protected List<Hint> getAllHints(final SecurityContext securityContext, final GraphObject currentNode, final String editorText, final ParseResult parseResult) {
+	protected List<Hint> getAllHints(final SecurityContext securityContext, final GraphObject currentNode, final String editorText, final ParseResult result) {
 
-		final List<String> tokens = parseResult.getTokens();
+		final List<Hint> hints    = new LinkedList<>();
+		final ActionContext ctx   = new ActionContext(securityContext);
+
+		try {
+
+			// parse function but ignore exceptions, we're only interested in the expression structure
+			Functions.parse(ctx, currentNode, editorText, result);
+
+		} catch (FrameworkException ignore) { }
+
+		final Expression root = result.getRootExpression();
+		Expression last       = root;
+		boolean found         = true;
+
+		while (found) {
+
+			found = false;
+
+			final List<Expression> children = last.getChildren();
+			if (children != null && !children.isEmpty()) {
+
+				last = children.get(children.size() - 1);
+				found = true;
+			}
+		}
+
+		if (last instanceof RootExpression) {
+
+			addAllHints(hints);
+			result.setUnrestricted(true);
+		}
+
+		if (last instanceof ValueExpression) {
+
+			addAllHints(hints);
+			result.setUnrestricted(false);
+		}
+
+		if (last instanceof FunctionExpression) {
+
+			// what to do?
+			addAllHints(hints);
+			result.setUnrestricted(true);
+		}
+
+		return hints;
+	}
+
+	/*
+	@Override
+	protected List<Hint> getAllHints(final SecurityContext securityContext, final GraphObject currentNode, final String editorText, final ParseResult result) {
+
+		final List<String> tokens = result.getTokens();
 		final StringBuilder buf   = new StringBuilder();
 		final List<Hint> hints    = new LinkedList<>();
 		final String[] lines      = editorText.split("\n");
@@ -57,7 +114,6 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 				case '"':
 				case ')':
 				case '(':
-				case '$':
 				case '.':
 					addNonempty(tokens, buf.toString());
 					buf.setLength(0);
@@ -74,25 +130,32 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 
 		Collections.reverse(tokens);
 
-		// add functions
-		for (final Function<Object, Object> func : Functions.getFunctions()) {
-			hints.add(func);
+		final int tokenCount    = tokens.size();
+		int startTokenIndex     = 0;
+
+		for (int i=tokenCount-1; i>=0; i--) {
+
+			final String token = tokens.get(i);
+
+			if (".".equals(token) || "(".equals(token)) {
+				startTokenIndex = i;
+				break;
+			}
 		}
 
-		// sort hints before prepending keywords
-		Collections.sort(hints, comparator);
+		if (startTokenIndex >= 0) {
 
-		// add keywords
-		hints.add(0, createHint("this",     "", "The current object",         "this"));
-		hints.add(0, createHint("response", "", "The current response",       "response"));
-		hints.add(0, createHint("request",  "", "The current request",        "request"));
-		hints.add(0, createHint("page",     "", "The current page",           "page"));
-		hints.add(0, createHint("me",       "", "The current user",           "me"));
-		hints.add(0, createHint("locale",   "", "The current locale",         "locale"));
-		hints.add(0, createHint("current",  "", "The current details object", "current"));
+			final String expression = StringUtils.join(tokens.subList(startTokenIndex, tokenCount), "");
+
+			System.out.println("##### expression: " + expression);
+			System.out.println("##### tokens:     '" + StringUtils.join(tokens, "', '") + "'");
+
+			handleSSExpression(securityContext, currentNode, expression, hints, result);
+		}
 
 		return hints;
 	}
+	*/
 
 	@Override
 	protected String getFunctionName(String sourceName) {
