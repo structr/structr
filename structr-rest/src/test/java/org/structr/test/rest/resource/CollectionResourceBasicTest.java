@@ -170,7 +170,7 @@ public class CollectionResourceBasicTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.body("[ { name: group1 }, { name: group2 }, { name: group3 }, { name: group4 }, { name: group5 } ]")
+				.body("[ { name: group4 }, { name: group2 }, { name: group3 }, { name: group5 }, { name: group1 } ]")
 
 			.expect()
 				.statusCode(201)
@@ -179,32 +179,23 @@ public class CollectionResourceBasicTest extends StructrRestTestBase {
 				.post("/Group")
 				.getBody();
 
-		final String id1 = response.jsonPath().getString("result[0]");
+		// collect results exactly as ordered in POST data (4, 2, 3, 5, 1)
+		final String id4 = response.jsonPath().getString("result[0]");
 		final String id2 = response.jsonPath().getString("result[1]");
 		final String id3 = response.jsonPath().getString("result[2]");
-		final String id4 = response.jsonPath().getString("result[3]");
-		final String id5 = response.jsonPath().getString("result[4]");
+		final String id5 = response.jsonPath().getString("result[3]");
+		final String id1 = response.jsonPath().getString("result[4]");
 
-		// check for exactly one object
-		RestAssured
+		final String ct  = "application/json; charset=UTF-8";
+		final String rc  = "result_count";
+		final String rn  = "result.name";
+		final String ri  = "result.id";
 
-			.given()
-				.contentType("application/json; charset=UTF-8")
-			.expect()
-				.statusCode(200)
-				.body("result_count",   equalTo(5))
-				.body("result[0].name", equalTo("group1"))
-				.body("result[0].id",   equalTo(id1))
-				.body("result[1].name", equalTo("group2"))
-				.body("result[1].id",   equalTo(id2))
-				.body("result[2].name", equalTo("group3"))
-				.body("result[2].id",   equalTo(id3))
-				.body("result[3].name", equalTo("group4"))
-				.body("result[3].id",   equalTo(id4))
-				.body("result[4].name", equalTo("group5"))
-				.body("result[4].id",   equalTo(id5))
-
-			.when()
-				.get("/Group");
+		// check for correct assignment of id and name
+		RestAssured.given().contentType(ct).expect().statusCode(200).body(rc, equalTo(1)).body(rn, equalTo("group1")).body(ri, equalTo(id1)).when().get("/Group/" + id1);
+		RestAssured.given().contentType(ct).expect().statusCode(200).body(rc, equalTo(1)).body(rn, equalTo("group2")).body(ri, equalTo(id2)).when().get("/Group/" + id2);
+		RestAssured.given().contentType(ct).expect().statusCode(200).body(rc, equalTo(1)).body(rn, equalTo("group3")).body(ri, equalTo(id3)).when().get("/Group/" + id3);
+		RestAssured.given().contentType(ct).expect().statusCode(200).body(rc, equalTo(1)).body(rn, equalTo("group4")).body(ri, equalTo(id4)).when().get("/Group/" + id4);
+		RestAssured.given().contentType(ct).expect().statusCode(200).body(rc, equalTo(1)).body(rn, equalTo("group5")).body(ri, equalTo(id5)).when().get("/Group/" + id5);
 	}
 }
