@@ -18,6 +18,7 @@
  */
 package org.structr.autocomplete;
 
+import java.util.Arrays;
 import org.structr.core.function.ParseResult;
 import java.util.LinkedList;
 import java.util.List;
@@ -79,8 +80,7 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 
 		if (last instanceof ValueExpression) {
 
-			addAllHints(hints);
-			result.setUnrestricted(false);
+			handleValueExpression(securityContext, (ValueExpression)last, currentNode, hints, result);
 		}
 
 		if (last instanceof FunctionExpression) {
@@ -93,72 +93,39 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 		return hints;
 	}
 
-	/*
-	@Override
-	protected List<Hint> getAllHints(final SecurityContext securityContext, final GraphObject currentNode, final String editorText, final ParseResult result) {
-
-		final List<String> tokens = result.getTokens();
-		final StringBuilder buf   = new StringBuilder();
-		final List<Hint> hints    = new LinkedList<>();
-		final String[] lines      = editorText.split("\n");
-		final String lastLine     = lines[lines.length - 1];
-		final String trimmed      = lastLine.trim();
-		final int length          = trimmed.length();
-
-		for (int i=length-1; i>=0; i--) {
-
-			final char c = trimmed.charAt(i);
-			switch (c) {
-
-				case '\'':
-				case '"':
-				case ')':
-				case '(':
-				case '.':
-					addNonempty(tokens, buf.toString());
-					buf.setLength(0);
-					buf.append(c);
-					break;
-
-				default:
-					buf.insert(0, c);
-					break;
-			}
-		}
-
-		addNonempty(tokens, buf.toString());
-
-		Collections.reverse(tokens);
-
-		final int tokenCount    = tokens.size();
-		int startTokenIndex     = 0;
-
-		for (int i=tokenCount-1; i>=0; i--) {
-
-			final String token = tokens.get(i);
-
-			if (".".equals(token) || "(".equals(token)) {
-				startTokenIndex = i;
-				break;
-			}
-		}
-
-		if (startTokenIndex >= 0) {
-
-			final String expression = StringUtils.join(tokens.subList(startTokenIndex, tokenCount), "");
-
-			System.out.println("##### expression: " + expression);
-			System.out.println("##### tokens:     '" + StringUtils.join(tokens, "', '") + "'");
-
-			handleSSExpression(securityContext, currentNode, expression, hints, result);
-		}
-
-		return hints;
-	}
-	*/
-
 	@Override
 	protected String getFunctionName(String sourceName) {
 		return sourceName;
 	}
+
+	// ----- private methods -----
+	private void handleValueExpression(final SecurityContext securityContext, final ValueExpression expression, final GraphObject currentNode, final List<Hint> hints, final ParseResult result) {
+
+		final String keyword = expression.getKeyword();
+
+		// keyword can consist of multiple keywords, separated by ".", so we need to
+		// split the list and resolve the path
+		final String[] parts = keyword.split("[\\.]+", -1);
+		final int length     = parts.length;
+
+		if (length > 1) {
+
+			// replace tokens in result (must be split by ".")
+			result.getTokens().clear();
+			result.getTokens().addAll(Arrays.asList(parts));
+
+			// evaluate first part only for now..
+			if (handleToken(securityContext, parts[0], currentNode, hints, result)) {
+
+				// odd number of parts?
+				result.setUnrestricted(length % 2 == 1);
+			}
+
+		} else {
+
+			addAllHints(hints);
+			result.setUnrestricted(keyword.endsWith("."));
+		}
+	}
+
 }

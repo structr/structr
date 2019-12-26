@@ -116,13 +116,23 @@ public class AutocompleteTest extends StructrUiTest {
 	}
 
 	@Test
-	public void testJavascriptAutocompleteForPage() {
+	public void testJavascriptAutocompleteForKeywords() {
 
 		assertFirstResult("text", "cacheForSeconds", AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.page.",  "", 0, 0));
 		assertFirstResult("text", "name",            AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.page.n", "", 0, 0));
 
 		assertFirstResult("text", "blocked",         AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.me.",   "", 0, 0));
 		assertFirstResult("text", "isAdmin",         AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.me.isA", "", 0, 0));
+	}
+
+	@Test
+	public void testStructrscriptAutocompleteForKeywords() {
+
+		assertFirstResult("text", "cacheForSeconds", AbstractHintProvider.getHints(securityContext, null, null, "${page.",  "", 0, 0));
+		assertFirstResult("text", "name",            AbstractHintProvider.getHints(securityContext, null, null, "${page.n", "", 0, 0));
+
+		assertFirstResult("text", "blocked",         AbstractHintProvider.getHints(securityContext, null, null, "${me.",   "", 0, 0));
+		assertFirstResult("text", "isAdmin",         AbstractHintProvider.getHints(securityContext, null, null, "${me.isA", "", 0, 0));
 	}
 
 	@Test
