@@ -27,12 +27,17 @@ import static org.structr.web.function.SetSessionAttributeFunction.SESSION_ATTRI
 
 public class GetSessionAttributeFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_GET_SESSION_ATTRIBUTE    = "Usage: ${get_session_attribute(key, object)}. Example: ${get_session_attribute(\"do_no_track\")}";
-	public static final String ERROR_MESSAGE_GET_SESSION_ATTRIBUTE_JS = "Usage: ${{Structr.get_session_attribute(key, object)}}. Example: ${{Structr.get_session_attribute(\"do_not_track\")}}";
+	public static final String ERROR_MESSAGE_GET_SESSION_ATTRIBUTE    = "Usage: ${get_session_attribute(key)}. Example: ${get_session_attribute(\"do_no_track\")}";
+	public static final String ERROR_MESSAGE_GET_SESSION_ATTRIBUTE_JS = "Usage: ${{Structr.get_session_attribute(key)}}. Example: ${{Structr.get_session_attribute(\"do_not_track\")}}";
 
 	@Override
 	public String getName() {
 		return "get_session_attribute";
+	}
+
+	@Override
+	public String getSignature() {
+		return "key";
 	}
 
 	@Override

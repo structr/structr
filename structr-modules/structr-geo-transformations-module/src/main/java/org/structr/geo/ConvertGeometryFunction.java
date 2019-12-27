@@ -39,6 +39,11 @@ public class ConvertGeometryFunction extends GeoFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "sourceCRS, destCRS, geometry";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -80,6 +85,6 @@ public class ConvertGeometryFunction extends GeoFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Converts the given geometry from source CRS to destination CRS.";
+		return "Converts the given geometry from source CRS to destination CRS";
 	}
 }

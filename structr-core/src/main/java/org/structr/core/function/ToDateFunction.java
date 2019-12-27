@@ -33,6 +33,11 @@ public class ToDateFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "number";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		// if source is a number, try to convert from millis

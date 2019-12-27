@@ -35,6 +35,11 @@ public class UnlockSystemPropertiesFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return null;
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -72,5 +77,11 @@ public class UnlockSystemPropertiesFunction extends AdvancedScriptingFunction {
 	@Override
 	public String shortDescription() {
 		return "Unlocks any system property for a single access";
+	}
+
+	@Override
+	public boolean isHidden() {
+		// internal function, should not be used..
+		return true;
 	}
 }

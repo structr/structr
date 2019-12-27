@@ -37,6 +37,11 @@ public class WKTToGeometryFunction extends GeoFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "wktString";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

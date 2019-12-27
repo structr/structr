@@ -38,6 +38,11 @@ public class FindFunction extends AbstractQueryFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "type, options...";
+	}
+
+	@Override
 	public String getNamespaceIdentifier() {
 		return "find";
 	}

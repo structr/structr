@@ -39,6 +39,11 @@ public class WeekDaysFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "from, to";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources == null || sources.length != 2) {

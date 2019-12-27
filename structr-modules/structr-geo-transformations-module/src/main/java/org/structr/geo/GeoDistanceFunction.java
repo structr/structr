@@ -38,6 +38,11 @@ public class GeoDistanceFunction extends GeoFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "point1, point2";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

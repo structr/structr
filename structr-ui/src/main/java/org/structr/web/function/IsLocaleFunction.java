@@ -33,6 +33,11 @@ public class IsLocaleFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "locales...";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final Locale locale = ctx.getLocale();

@@ -37,6 +37,11 @@ public class MailAddHeaderFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "name, value";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
@@ -64,6 +69,6 @@ public class MailAddHeaderFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Sets a SMTP header in the current mail";
 	}
 }

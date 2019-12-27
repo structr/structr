@@ -36,6 +36,11 @@ public class UserChangelogFunction extends ChangelogFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "user [, resolve=false [, filterKey, filterValue ]... ]";
+	}
+
+	@Override
 	public String usage(boolean inJavaScriptContext) {
 		return (inJavaScriptContext ? ERROR_MESSAGE_USER_CHANGELOG_JS : ERROR_MESSAGE_USER_CHANGELOG);
 	}

@@ -56,6 +56,7 @@ public abstract class AbstractHintProvider {
 	}
 
 	public static final Property<String> displayText = new StringProperty("displayText");
+	public static final Property<String> className   = new StringProperty("className");
 	public static final Property<String> text        = new StringProperty("text");
 	public static final Property<GraphObject> from   = new GenericProperty("from");
 	public static final Property<GraphObject> to     = new GenericProperty("to");
@@ -133,41 +134,21 @@ public abstract class AbstractHintProvider {
 			// display all possible hints
 			for (final Hint hint : allHints) {
 
-				final GraphObjectMap item = new GraphObjectMap();
-				final String displayName  = getFunctionName(hint.getDisplayName());
-				final String functionName = getFunctionName(hint.getReplacement());
-
-				if (hint.mayModify()) {
-
-					item.put(text, visitReplacement(functionName));
-
-				} else {
-
-					item.put(text, functionName);
-				}
-
-				item.put(displayText, displayName + " - " + textOrPlaceholder(hint.shortDescription()));
-				addPosition(item, hint, cursorLine, cursorPosition, cursorPosition);
-
-				if (functionName.length() > maxNameLength) {
-					maxNameLength = functionName.length();
-				}
-
-				hints.add(item);
-			}
-
-		} else {
-
-			final int currentTokenLength = currentToken.length();
-
-			for (final Hint hint : allHints) {
-
-				final String functionName = getFunctionName(hint.getReplacement());
-				final String displayName  = getFunctionName(hint.getDisplayName());
-
-				if (functionName.startsWith(currentToken)) {
+				if (hint instanceof SeparatorHint) {
 
 					final GraphObjectMap item = new GraphObjectMap();
+
+					item.put(displayText, "");
+					item.put(className  , "separator");
+					item.put(text,        "");
+
+					hints.add(item);
+
+				} else if (!hint.isHidden()) {
+
+					final GraphObjectMap item = new GraphObjectMap();
+					final String displayName  = getFunctionName(hint.getDisplayName());
+					final String functionName = getFunctionName(hint.getReplacement());
 
 					if (hint.mayModify()) {
 
@@ -179,19 +160,65 @@ public abstract class AbstractHintProvider {
 					}
 
 					item.put(displayText, displayName + " - " + textOrPlaceholder(hint.shortDescription()));
+					addPosition(item, hint, cursorLine, cursorPosition, cursorPosition);
 
-					addPosition(item, hint, cursorLine, cursorPosition - currentTokenLength, cursorPosition);
-
-					if (functionName.length() > maxNameLength) {
-						maxNameLength = functionName.length();
+					if (displayName.length() > maxNameLength) {
+						maxNameLength = displayName.length();
 					}
 
 					hints.add(item);
 				}
 			}
+
+		} else {
+
+			final int currentTokenLength = currentToken.length();
+
+			for (final Hint hint : allHints) {
+
+				if (hint instanceof SeparatorHint) {
+
+					final GraphObjectMap item = new GraphObjectMap();
+
+					item.put(displayText, "");
+					item.put(className  , "separator");
+					item.put(text,        "");
+
+					hints.add(item);
+
+				} else if (!hint.isHidden()) {
+
+					final String functionName = getFunctionName(hint.getReplacement());
+					final String displayName  = getFunctionName(hint.getDisplayName());
+
+					if (functionName.startsWith(currentToken)) {
+
+						final GraphObjectMap item = new GraphObjectMap();
+
+						if (hint.mayModify()) {
+
+							item.put(text, visitReplacement(functionName));
+
+						} else {
+
+							item.put(text, functionName);
+						}
+
+						item.put(displayText, displayName + " - " + textOrPlaceholder(hint.shortDescription()));
+
+						addPosition(item, hint, cursorLine, cursorPosition - currentTokenLength, cursorPosition);
+
+						if (displayName.length() > maxNameLength) {
+							maxNameLength = displayName.length();
+						}
+
+						hints.add(item);
+					}
+				}
+			}
 		}
 
-		alignHintDescriptions(hints, maxNameLength);
+		alignHintDescriptions(hints, maxNameLength + 1);
 
 		return hints;
 	}
@@ -217,6 +244,11 @@ public abstract class AbstractHintProvider {
 			public String getName() {
 				return name;
 			}
+
+			@Override
+			public String getSignature() {
+				return null;
+			}
 		};
 
 		if (replacement != null) {
@@ -234,7 +266,7 @@ public abstract class AbstractHintProvider {
 			final String text = item.getProperty(displayText);
 			final int pos     = text.indexOf(" - ");
 
-			if (pos < maxNameLength) {
+			if (pos >= 0 && pos < maxNameLength) {
 
 				final StringBuilder buf = new StringBuilder(text);
 				buf.insert(pos, StringUtils.leftPad("", maxNameLength - pos));

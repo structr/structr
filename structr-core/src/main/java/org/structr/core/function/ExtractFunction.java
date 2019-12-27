@@ -40,6 +40,11 @@ public class ExtractFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "list, propertyName";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

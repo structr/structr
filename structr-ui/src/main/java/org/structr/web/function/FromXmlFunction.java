@@ -32,6 +32,11 @@ public class FromXmlFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "source";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, Object[] sources) throws FrameworkException {
 
 		if (sources != null && sources.length > 0) {
@@ -67,6 +72,6 @@ public class FromXmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Parses the given XML and returns a list of objects.";
+		return "Parses the given XML and returns a list of objects";
 	}
 }

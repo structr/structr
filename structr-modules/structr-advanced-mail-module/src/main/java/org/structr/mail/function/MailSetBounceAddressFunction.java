@@ -38,6 +38,11 @@ public class MailSetBounceAddressFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "bounceAddress";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
@@ -63,6 +68,6 @@ public class MailSetBounceAddressFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Sets the bounce address of the current mail";
 	}
 }

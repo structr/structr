@@ -41,6 +41,11 @@ public class HttpGetFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "url, [ contentType, username, password ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		if (sources != null && sources.length >= 1 && sources.length <= 4 && sources[0] != null) {

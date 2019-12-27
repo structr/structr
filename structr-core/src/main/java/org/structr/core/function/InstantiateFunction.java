@@ -34,6 +34,11 @@ public class InstantiateFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "node";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -66,6 +71,6 @@ public class InstantiateFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Instantiates the given Neo4j nodes into Structr nodes";
+		return "Instantiates the given Neo4j node into a Structr node";
 	}
 }

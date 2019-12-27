@@ -47,6 +47,11 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "command, parameterMap";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		try {

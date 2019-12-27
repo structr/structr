@@ -18,7 +18,6 @@
  */
 package org.structr.web.function;
 
-import java.util.Map;
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.schema.action.ActionContext;
 
@@ -30,6 +29,11 @@ public class JobListFunction extends UiAdvancedFunction {
 	@Override
 	public String getName() {
 		return "job_list";
+	}
+
+	@Override
+	public String getSignature() {
+		return null;
 	}
 
 	@Override
@@ -52,6 +56,6 @@ public class JobListFunction extends UiAdvancedFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Returns a list of running jobs.";
+		return "Returns a list of running jobs";
 	}
 }

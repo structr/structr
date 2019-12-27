@@ -28,10 +28,25 @@ public abstract class Hint {
 	private boolean isDynamic      = false;
 
 	public abstract String shortDescription();
+	public abstract String getSignature();
 	public abstract String getName();
 
 	public String getDisplayName() {
-		return getName().concat("()");
+
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append(getName());
+		buf.append("(");
+
+		final String signature = getSignature();
+		if (signature != null) {
+
+			buf.append(signature);
+		}
+
+		buf.append(")");
+
+		return buf.toString();
 	}
 
 	public String getReplacement() {
@@ -52,5 +67,9 @@ public abstract class Hint {
 
 	public boolean isDynamic() {
 		return isDynamic;
+	}
+
+	public boolean isHidden() {
+		return false;
 	}
 }

@@ -35,6 +35,11 @@ public class UnlockReadonlyPropertiesFunction extends AdvancedScriptingFunction 
 	}
 
 	@Override
+	public String getSignature() {
+		return null;
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -72,5 +77,10 @@ public class UnlockReadonlyPropertiesFunction extends AdvancedScriptingFunction 
 	@Override
 	public String shortDescription() {
 		return "Unlocks any read-only property for a single access";
+	}
+
+	@Override
+	public boolean isHidden() {
+		return true;
 	}
 }

@@ -36,6 +36,11 @@ public class RenderFunction extends UiCommunityFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "list";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources != null && sources.length == 1) {

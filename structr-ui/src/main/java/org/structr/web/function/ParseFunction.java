@@ -36,6 +36,11 @@ public class ParseFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "url, selector";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		if (sources != null && sources.length == 2) {
@@ -79,6 +84,6 @@ public class ParseFunction extends UiAdvancedFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Parses the given string and returns an object";
+		return "Fetches content from an URL, parses it and returns data based on the given CSS selector";
 	}
 }

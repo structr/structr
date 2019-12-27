@@ -43,6 +43,11 @@ public class ToJsonFunction extends UiCommunityFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "obj [, view, depth = 3 ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		if (sources != null && sources.length >= 1 && sources.length <= 3) {

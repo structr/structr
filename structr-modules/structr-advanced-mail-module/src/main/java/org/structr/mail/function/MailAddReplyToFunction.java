@@ -37,6 +37,11 @@ public class MailAddReplyToFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "replyToAddress [, replyToName ]";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
@@ -64,6 +69,6 @@ public class MailAddReplyToFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Sets replyTo address and optional replyName of the current mail";
 	}
 }

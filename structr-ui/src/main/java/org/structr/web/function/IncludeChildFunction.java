@@ -46,6 +46,11 @@ public class IncludeChildFunction extends IncludeFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "name";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

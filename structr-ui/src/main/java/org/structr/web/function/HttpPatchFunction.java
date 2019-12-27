@@ -37,6 +37,11 @@ public class HttpPatchFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "url, body [, contentType, charset ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

@@ -38,6 +38,11 @@ public class EmptyFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "value";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources == null) {
@@ -80,7 +85,7 @@ public class EmptyFunction extends CoreFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Returns true if the given string or collection is null or empty";
+		return "Returns true if the given value is null or empty";
 	}
 
 }

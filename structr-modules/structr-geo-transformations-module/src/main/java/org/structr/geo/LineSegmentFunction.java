@@ -40,6 +40,11 @@ public class LineSegmentFunction extends GeoFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "point, azimuth, length";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -92,6 +97,6 @@ public class LineSegmentFunction extends GeoFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Returns a line segment with start point, azimuth and length.";
+		return "Returns a line segment with start point, azimuth and length";
 	}
 }

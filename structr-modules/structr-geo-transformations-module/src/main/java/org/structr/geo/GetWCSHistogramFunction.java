@@ -49,6 +49,11 @@ public class GetWCSHistogramFunction extends AbstractWCSDataFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "baseUrl, coverageId, bBox [, bins, lowValue ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

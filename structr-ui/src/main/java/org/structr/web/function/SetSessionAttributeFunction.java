@@ -36,6 +36,11 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "key, value";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

@@ -38,6 +38,11 @@ public class MailSaveOutgoingMessageFunction extends AdvancedMailModuleFunction 
 	}
 
 	@Override
+	public String getSignature() {
+		return "bool";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {

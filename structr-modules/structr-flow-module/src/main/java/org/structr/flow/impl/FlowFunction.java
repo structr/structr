@@ -42,6 +42,11 @@ public class FlowFunction extends Function<Object, Object> {
 	}
 
 	@Override
+	public String getSignature() {
+		return "name";
+	}
+
+	@Override
 	public String getRequiredModule() {
 		return "api-builder";
 	}
@@ -120,6 +125,6 @@ public class FlowFunction extends Function<Object, Object> {
 
 	@Override
 	public String shortDescription() {
-		return "Returns the evaluation result of the Flow with the given name.";
+		return "Returns the evaluation result of the Flow with the given name";
 	}
 }

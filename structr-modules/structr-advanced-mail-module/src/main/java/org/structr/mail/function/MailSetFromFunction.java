@@ -37,6 +37,11 @@ public class MailSetFromFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "fromAddress [, fromName ]";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
@@ -64,6 +69,6 @@ public class MailSetFromFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Sets fromAddress and optional fromName of the current mail";
 	}
 }

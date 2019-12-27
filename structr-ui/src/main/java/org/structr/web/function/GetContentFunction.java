@@ -38,6 +38,11 @@ public class GetContentFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "file [, encoding=UTF-8 ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

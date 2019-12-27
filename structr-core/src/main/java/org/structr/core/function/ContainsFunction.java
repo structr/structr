@@ -36,6 +36,11 @@ public class ContainsFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "stringOrList, wordOrObject";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

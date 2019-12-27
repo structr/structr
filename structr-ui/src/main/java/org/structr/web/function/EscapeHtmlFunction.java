@@ -35,6 +35,11 @@ public class EscapeHtmlFunction extends UiCommunityFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "text";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -62,6 +67,6 @@ public class EscapeHtmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Replaces HTML characters with their corresponding HTML entities";
 	}
 }

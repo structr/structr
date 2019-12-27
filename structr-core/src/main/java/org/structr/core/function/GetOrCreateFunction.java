@@ -42,6 +42,11 @@ public class GetOrCreateFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "type, propertyMap";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

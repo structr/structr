@@ -52,6 +52,11 @@ public class ToCsvFunction extends CsvFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "nodes, propertiesOrView [, d, qc, rs, i, l, ld ]";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {

@@ -45,6 +45,11 @@ public class GetFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "entity, propertyName";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final SecurityContext securityContext    = ctx.getSecurityContext();

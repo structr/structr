@@ -3238,14 +3238,13 @@ td#cascading-options, td#propagation-options {
 	cursor: pointer;
 }
 
-
 .CodeMirror-hints {
 	z-index: 10000 !important;
 	font-size: 100%;
 }
 
 .CodeMirror-hint {
-	max-width: 600px;
+	max-width: 800px;
 }
 
 #fruchterman-controlElement {

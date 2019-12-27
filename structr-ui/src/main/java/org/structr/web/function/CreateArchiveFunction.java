@@ -46,6 +46,11 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "fileName, files [, customFileTypeName ]";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		if (!(sources[1] instanceof File || sources[1] instanceof Folder || sources[1] instanceof Collection || sources.length < 2)) {

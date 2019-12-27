@@ -34,6 +34,11 @@ public class SetResponseCodeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "code";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		try {

@@ -36,6 +36,11 @@ public class ScheduleFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "script [, title ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		try {

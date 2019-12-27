@@ -57,6 +57,11 @@ public class ToExcelFunction extends Function<Object, Object> {
 	}
 
 	@Override
+	public String getSignature() {
+		return "nodes, propertiesOrView [, ih, lh, ld, ml, om ]";
+	}
+
+	@Override
 	public String getRequiredModule() {
 		return "excel";
 	}

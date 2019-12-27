@@ -33,6 +33,11 @@ public class MQTTUnsubscribeTopicFunction extends MessagingModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "client, topic";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 		if (sources != null && sources.length == 2 && sources[0] != null && sources[1] != null) {
 
