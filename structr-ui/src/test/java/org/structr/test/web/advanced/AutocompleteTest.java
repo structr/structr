@@ -96,8 +96,8 @@ public class AutocompleteTest extends StructrUiTest {
 		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\tlet test = $.", "", 0, 0));
 		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.contains($.", "", 0, 0));
 		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.contains($.", " ", 0, 0));
-;		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.contains($.", ";", 0, 0));
-;		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.contains($.", ")", 0, 0));
+		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.contains($.", ";", 0, 0));
+		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.contains($.", ")", 0, 0));
 
 		// patterns that should not produce any autocomplete results
 		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.cu.", "", 0, 0));
@@ -136,32 +136,35 @@ public class AutocompleteTest extends StructrUiTest {
 	}
 
 	@Test
-	public void testJavascriptAutocompleteForRetrieve() {
-		securityContext.getContextStore().setConstant("abc",                "abc");
-		securityContext.getContextStore().setConstant("test",               "abc");
-		securityContext.getContextStore().setConstant("my-string-property", "abc");
-		securityContext.getContextStore().setConstant("camelCaseProperty",  "abc");
-		securityContext.getContextStore().setConstant("string with spaces", "abc");
+	public void testJavascriptAutocompleteFunctionContextHints() {
 
-		final List<GraphObject> result1 = AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.retrieve('", "", 0, 0);
+		assertFirstResult("text", "'A'", AbstractHintProvider.getHints(securityContext, null, null, "${{ $.find(",  "", 0, 0));
+		assertFirstResult("text", "'A'", AbstractHintProvider.getHints(securityContext, null, null, "${{ $.find('",  "", 0, 0));
+		assertFirstResult("text", "\"A\"", AbstractHintProvider.getHints(securityContext, null, null, "${{ $.find(\"",  "", 0, 0));
+		assertFirstResult("text", "'User'", AbstractHintProvider.getHints(securityContext, null, null, "${{ $.find('Us",  "", 0, 0));
+		assertFirstResult("text", "\"User\"", AbstractHintProvider.getHints(securityContext, null, null, "${{ $.find(\"Us",  "", 0, 0));
 
-		final Map<String, Object> key1 = ((GraphObjectMap)result1.get(0)).toMap();
-		final Map<String, Object> key2 = ((GraphObjectMap)result1.get(1)).toMap();
-		final Map<String, Object> key3 = ((GraphObjectMap)result1.get(2)).toMap();
-		final Map<String, Object> key4 = ((GraphObjectMap)result1.get(3)).toMap();
-		final Map<String, Object> key5 = ((GraphObjectMap)result1.get(4)).toMap();
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${{ $.find('User'",  "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${{ $.find(\"User\"",  "", 0, 0));
+	}
 
-		assertEquals("Invalid autocomplete result", "abc",                key1.get("text"));
-		assertEquals("Invalid autocomplete result", "camelCaseProperty",  key2.get("text"));
-		assertEquals("Invalid autocomplete result", "my-string-property", key3.get("text"));
-		assertEquals("Invalid autocomplete result", "string with spaces", key4.get("text"));
-		assertEquals("Invalid autocomplete result", "test",               key5.get("text"));
+	@Test
+	public void testStructrscriptAutocompleteFunctionContextHints() {
 
-		final List<GraphObject> result2 = AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.retrieve('a", "", 0, 0);
-		final Map<String, Object> key21 = ((GraphObjectMap)result2.get(0)).toMap();
+		assertFirstResult("text", "'A'", AbstractHintProvider.getHints(securityContext, null, null, "${find(",  "", 0, 0));
+		assertFirstResult("text", "'A'", AbstractHintProvider.getHints(securityContext, null, null, "${find('",  "", 0, 0));
+		assertFirstResult("text", "\"A\"", AbstractHintProvider.getHints(securityContext, null, null, "${find(\"",  "", 0, 0));
+		assertFirstResult("text", "'User'", AbstractHintProvider.getHints(securityContext, null, null, "${find('Us",  "", 0, 0));
+		assertFirstResult("text", "\"User\"", AbstractHintProvider.getHints(securityContext, null, null, "${find(\"Us",  "", 0, 0));
+		assertFirstResult("text", "'User'", AbstractHintProvider.getHints(securityContext, null, null, "${find('User",  "", 0, 0));
+		assertFirstResult("text", "\"User\"", AbstractHintProvider.getHints(securityContext, null, null, "${find(\"User",  "", 0, 0));
 
-		assertEquals("Invalid autocomplete result", 1,     result2.size());
-		assertEquals("Invalid autocomplete result", "abc", key21.get("text"));
+		// no results, but no error either!
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${find(\"User\"",  "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${find(\"User\"\"",  "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${find('User'",  "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${find('User''", "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${find('User', { ", "", 0, 0));
 	}
 
 	@Test

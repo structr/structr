@@ -19,6 +19,7 @@
 package org.structr.core.parser;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
@@ -29,6 +30,7 @@ import org.structr.core.function.BatchableFunction;
 import org.structr.core.graph.Tx;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
+import org.structr.schema.action.Hint;
 
 /**
  *
@@ -113,5 +115,28 @@ public class FunctionExpression extends Expression {
 
 	public Function<Object, Object> getFunction() {
 		return function;
+	}
+
+	public List<Hint> getContextHints() {
+
+		if (this.function != null) {
+
+			if (this.expressions.isEmpty()) {
+
+				return function.getContextHints("'");
+
+			} else {
+
+				final Expression last = expressions.get(expressions.size() - 1);
+				if (last instanceof ConstantExpression) {
+
+					final ConstantExpression c = (ConstantExpression)last;
+
+					return function.getContextHints(c.getQuoteChar());
+				}
+			}
+		}
+
+		return null;
 	}
 }

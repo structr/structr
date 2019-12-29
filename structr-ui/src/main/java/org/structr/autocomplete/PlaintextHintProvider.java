@@ -19,6 +19,7 @@
 package org.structr.autocomplete;
 
 import java.util.Arrays;
+import java.util.Collections;
 import org.structr.core.function.ParseResult;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,6 +29,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.function.Functions;
+import org.structr.core.parser.ConstantExpression;
 import org.structr.core.parser.Expression;
 import org.structr.core.parser.FunctionExpression;
 import org.structr.core.parser.RootExpression;
@@ -45,6 +47,11 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 
 	@Override
 	protected List<Hint> getAllHints(final SecurityContext securityContext, final GraphObject currentNode, final String editorText, final ParseResult result) {
+
+		// don't interpret invalid strings
+		if (editorText != null && (editorText.endsWith("''") || editorText.endsWith("\"\""))) {
+			return Collections.EMPTY_LIST;
+		}
 
 		final List<Hint> hints    = new LinkedList<>();
 		final ActionContext ctx   = new ActionContext(securityContext);
@@ -67,15 +74,19 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 			final List<Expression> children = last.getChildren();
 			if (children != null && !children.isEmpty()) {
 
-				last = children.get(children.size() - 1);
-				found = true;
+				final Expression child = children.get(children.size() - 1);
+				if (!(child instanceof ConstantExpression)) {
+
+					// ignore constants
+					last = children.get(children.size() - 1);
+					found = true;
+				}
 			}
 		}
 
 		if (last instanceof RootExpression) {
 
 			addAllHints(hints);
-			result.setUnrestricted(true);
 		}
 
 		if (last instanceof ValueExpression) {
@@ -85,9 +96,19 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 
 		if (last instanceof FunctionExpression) {
 
-			// what to do?
-			addAllHints(hints);
-			result.setUnrestricted(true);
+			final FunctionExpression fe   = (FunctionExpression)last;
+			final List<Hint> contextHints = fe.getContextHints();
+
+			if (contextHints != null) {
+
+				hints.addAll(contextHints);
+
+				Collections.sort(hints, comparator);
+
+			} else {
+
+				addAllHints(hints);
+			}
 		}
 
 		return hints;
@@ -115,16 +136,11 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 			result.getTokens().addAll(Arrays.asList(parts));
 
 			// evaluate first part only for now..
-			if (handleToken(securityContext, parts[0], currentNode, hints, result)) {
-
-				// odd number of parts?
-				result.setUnrestricted(length % 2 == 1);
-			}
+			handleToken(securityContext, parts[0], currentNode, hints, result);
 
 		} else {
 
 			addAllHints(hints);
-			result.setUnrestricted(keyword.endsWith("."));
 		}
 	}
 

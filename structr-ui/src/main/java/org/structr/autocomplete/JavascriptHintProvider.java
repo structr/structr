@@ -64,8 +64,6 @@ public class JavascriptHintProvider extends AbstractHintProvider {
 				case ';':
 				case ':':
 				case '=':
-				case '\'':
-				case '"':
 				case ')':
 				case '(':
 				case '?':

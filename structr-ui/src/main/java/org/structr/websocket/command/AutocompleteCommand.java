@@ -66,14 +66,8 @@ public class AutocompleteCommand extends AbstractCommand {
 
 			try {
 
-				final long t0 = System.currentTimeMillis();
-
 				final List<GraphObject> hints = AbstractHintProvider.getHints(securityContext, StructrApp.getInstance().get(AbstractNode.class, id), type, before, after, line, cursorPosition);
 				result.addAll(hints);
-
-				final long t1 = System.currentTimeMillis();
-
-				System.out.println("Autocompletion took " + (t1-t0) + " ms");
 
 			} catch(FrameworkException fex) {
 				logger.warn("", fex);

@@ -4,19 +4,19 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.autocomplete;
+package org.structr.core.function;
 
 import org.structr.schema.action.Hint;
 
@@ -24,9 +24,16 @@ import org.structr.schema.action.Hint;
  *
  *
  */
-public abstract class NonFunctionHint extends Hint {
+public class KeywordHint extends Hint {
 
 	private String replacement = null;
+	private String name        = null;
+	private String desc        = null;
+
+	public KeywordHint(final String name, final String desc) {
+		this.name = name;
+		this.desc = desc;
+	}
 
 	@Override
 	public String getDisplayName() {
@@ -49,5 +56,20 @@ public abstract class NonFunctionHint extends Hint {
 
 	public boolean hasComplexReplacement() {
 		return !getName().equals(getReplacement());
+	}
+
+	@Override
+	public String shortDescription() {
+		return desc;
+	}
+
+	@Override
+	public String getSignature() {
+		return null;
+	}
+
+	@Override
+	public String getName() {
+		return name;
 	}
 }

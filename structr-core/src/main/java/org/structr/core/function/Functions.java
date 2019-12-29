@@ -238,8 +238,15 @@ public class Functions {
 					if (current == null) {
 						throw new FrameworkException(422, "Invalid expression: mismatched opening bracket before " + tokenizer.sval);
 					}
-					current.add(new ConstantExpression(tokenizer.sval));
-					tokens.add(tokenizer.sval);
+					final ConstantExpression constantExpression = new ConstantExpression(tokenizer.sval);
+					final String quoteChar                      = new String(new int[] { tokenizer.ttype }, 0, 1);
+					current.add(constantExpression);
+					constantExpression.setQuoteChar(quoteChar);
+					if (StringUtils.isEmpty(tokenizer.sval)) {
+						tokens.add(quoteChar);
+					} else {
+						tokens.add(quoteChar + tokenizer.sval + quoteChar);
+					}
 					lastToken = tokenizer.sval;
 
 			}

@@ -24,10 +24,9 @@ import org.structr.core.parser.Expression;
 
 public class ParseResult {
 
-	private List<String> tokens  = new ArrayList<>();
-	private Expression root      = null;
-	private String expression    = null;
-	private boolean unrestricted = false;
+	private final List<String> tokens = new ArrayList<>();
+	private Expression root           = null;
+	private String expression         = null;
 
 	public List<String> getTokens() {
 		return tokens;
@@ -55,14 +54,18 @@ public class ParseResult {
 			return "";
 		}
 
-		return tokens.get(tokens.size() - 1);
-	}
+		final String lastToken = tokens.get(tokens.size() - 1);
+		final int length       = lastToken.length();
 
-	public void setUnrestricted(final boolean unrestricted) {
-		this.unrestricted = unrestricted;
-	}
+		// We need to ignore trailing quotes here, because the tokenizer
+		// does not provide the information whether there was a trailing
+		// quote or not. :(
 
-	public boolean isUnrestricted() {
-		return unrestricted;
+		if (length > 1 && (lastToken.endsWith("'") || lastToken.endsWith("\""))) {
+
+			return lastToken.substring(0, length - 1);
+		}
+
+		return lastToken;
 	}
 }

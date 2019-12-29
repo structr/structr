@@ -36,6 +36,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.function.Functions;
+import org.structr.core.function.KeywordHint;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
@@ -71,6 +72,11 @@ public abstract class AbstractHintProvider {
 	public static List<GraphObject> getHints(final SecurityContext securityContext, final GraphObject currentEntity, final String type, final String textBefore, final String textAfter, final int cursorLine, final int cursorPosition) {
 
 		String text = null;
+
+		// don't interpret invalid strings
+		if (text != null && (text.endsWith("''") || text.endsWith("\"\""))) {
+			return Collections.EMPTY_LIST;
+		}
 
 		if (StringUtils.isBlank(textAfter) || textAfter.startsWith(" ") || textAfter.startsWith("\t") || textAfter.startsWith("\n") || textAfter.startsWith(";") || textAfter.startsWith(")")) {
 
@@ -126,29 +132,31 @@ public abstract class AbstractHintProvider {
 		final ParseResult parseResult = new ParseResult();
 		final List<Hint> allHints     = getAllHints(securityContext, currentEntity, script, parseResult);
 		final List<GraphObject> hints = new LinkedList<>();
-		final String currentToken     = parseResult.getLastToken();
+		final String lastToken        = parseResult.getLastToken();
+		final boolean unrestricted    = lastToken.endsWith("(") || lastToken.endsWith(("."));
+		final int lastTokenLength     = unrestricted ? 0 : lastToken.length();
 		int maxNameLength             = 0;
 
-		if (parseResult.isUnrestricted()) {
+		for (final Hint hint : allHints) {
 
-			// display all possible hints
-			for (final Hint hint : allHints) {
+			if (hint instanceof SeparatorHint) {
 
-				if (hint instanceof SeparatorHint) {
+				final GraphObjectMap item = new GraphObjectMap();
+
+				item.put(displayText, "");
+				item.put(className  , "separator");
+				item.put(text,        "");
+
+				hints.add(item);
+
+			} else if (!hint.isHidden()) {
+
+				final String functionName = getFunctionName(hint.getReplacement());
+				final String displayName  = getFunctionName(hint.getDisplayName());
+
+				if ((unrestricted || displayName.startsWith(lastToken)) && !script.endsWith(functionName)) {
 
 					final GraphObjectMap item = new GraphObjectMap();
-
-					item.put(displayText, "");
-					item.put(className  , "separator");
-					item.put(text,        "");
-
-					hints.add(item);
-
-				} else if (!hint.isHidden()) {
-
-					final GraphObjectMap item = new GraphObjectMap();
-					final String displayName  = getFunctionName(hint.getDisplayName());
-					final String functionName = getFunctionName(hint.getReplacement());
 
 					if (hint.mayModify()) {
 
@@ -160,60 +168,14 @@ public abstract class AbstractHintProvider {
 					}
 
 					item.put(displayText, displayName + " - " + textOrPlaceholder(hint.shortDescription()));
-					addPosition(item, hint, cursorLine, cursorPosition, cursorPosition);
+
+					addPosition(item, hint, cursorLine, cursorPosition - lastTokenLength, cursorPosition);
 
 					if (displayName.length() > maxNameLength) {
 						maxNameLength = displayName.length();
 					}
 
 					hints.add(item);
-				}
-			}
-
-		} else {
-
-			final int currentTokenLength = currentToken.length();
-
-			for (final Hint hint : allHints) {
-
-				if (hint instanceof SeparatorHint) {
-
-					final GraphObjectMap item = new GraphObjectMap();
-
-					item.put(displayText, "");
-					item.put(className  , "separator");
-					item.put(text,        "");
-
-					hints.add(item);
-
-				} else if (!hint.isHidden()) {
-
-					final String functionName = getFunctionName(hint.getReplacement());
-					final String displayName  = getFunctionName(hint.getDisplayName());
-
-					if (functionName.startsWith(currentToken)) {
-
-						final GraphObjectMap item = new GraphObjectMap();
-
-						if (hint.mayModify()) {
-
-							item.put(text, visitReplacement(functionName));
-
-						} else {
-
-							item.put(text, functionName);
-						}
-
-						item.put(displayText, displayName + " - " + textOrPlaceholder(hint.shortDescription()));
-
-						addPosition(item, hint, cursorLine, cursorPosition - currentTokenLength, cursorPosition);
-
-						if (displayName.length() > maxNameLength) {
-							maxNameLength = displayName.length();
-						}
-
-						hints.add(item);
-					}
 				}
 			}
 		}
@@ -227,29 +189,9 @@ public abstract class AbstractHintProvider {
 		return replacement;
 	}
 
-	protected Hint createHint(final String name, final String signature, final String description) {
-		return createHint(name, signature, description, null);
-	}
+	protected Hint createHint(final String name, final String description, final String replacement) {
 
-	protected Hint createHint(final String name, final String signature, final String description, final String replacement) {
-
-		final NonFunctionHint hint = new NonFunctionHint() {
-
-			@Override
-			public String shortDescription() {
-				return description;
-			}
-
-			@Override
-			public String getName() {
-				return name;
-			}
-
-			@Override
-			public String getSignature() {
-				return null;
-			}
-		};
+		final KeywordHint hint = new KeywordHint(name, description);
 
 		if (replacement != null) {
 			hint.setReplacement(replacement);
@@ -289,54 +231,27 @@ public abstract class AbstractHintProvider {
 
 	protected void handleJSExpression(final SecurityContext securityContext, final GraphObject currentNode, final String expression, final List<Hint> hints, final ParseResult result) {
 
-		final String[] expressionParts = expression.split("[\\.'\"\\(]+");
+		final String[] expressionParts = expression.split("[\\.\\(]+");
+		final int length               = expressionParts.length;
 
-		System.out.println("##### parts:      '" + StringUtils.join(expressionParts, "', '") + "'");
+		if (expression.endsWith(".") || expression.endsWith("(")) {
 
-		// just a single $. or Structr.
-		if (expressionParts.length <= 1) {
-
-			addAllHints(hints);
-
-			result.setUnrestricted(true);
-
-		}
-
-		// $. with incomplete or complete selection of a keyword or function
-		if (expressionParts.length == 2) {
-
-			if (expression.endsWith(".")) {
-
-				final String token = expressionParts[1];
-
-				if (handleToken(securityContext, token, currentNode, hints, result)) {
-
-					result.setUnrestricted(true);
-				}
-
-			} else if ("retrieve".equals(expressionParts[1]) || "retrieve".equals(expressionParts[1])) {
-
-				addHintsForRetrieve(securityContext, hints, result);
-
-				result.setUnrestricted(true);
-
-			} else {
-
-				// part is not complete, use full list and filter in postprocessing
-				// add functions
-				addAllHints(hints);
-			}
-
-		}
-
-		if (expressionParts.length == 3) {
-
-			// third token is incomplete, we're interested in the second token only
-			final String token = expressionParts[1];
+			// we're interested in the last part
+			final String token = expressionParts[length - 1];
 
 			handleToken(securityContext, token, currentNode, hints, result);
-		}
 
+		} else if (length > 1) {
+
+			// we're interested in the second last part
+			final String token = expressionParts[length - 2];
+
+			handleToken(securityContext, token, currentNode, hints, result);
+
+		} else {
+
+			addAllHints(hints);
+		}
 
 		result.setExpression(expression);
 	}
@@ -351,13 +266,13 @@ public abstract class AbstractHintProvider {
 		Collections.sort(hints, comparator);
 
 		// add keywords
-		hints.add(0, createHint("this",     "", "The current object",         "this"));
-		hints.add(0, createHint("response", "", "The current response",       "response"));
-		hints.add(0, createHint("request",  "", "The current request",        "request"));
-		hints.add(0, createHint("page",     "", "The current page",           "page"));
-		hints.add(0, createHint("me",       "", "The current user",           "me"));
-		hints.add(0, createHint("locale",   "", "The current locale",         "locale"));
-		hints.add(0, createHint("current",  "", "The current details object", "current"));
+		hints.add(0, createHint("this",     "The current object",         "this"));
+		hints.add(0, createHint("response", "The current response",       "response"));
+		hints.add(0, createHint("request",  "The current request",        "request"));
+		hints.add(0, createHint("page",     "The current page",           "page"));
+		hints.add(0, createHint("me",       "The current user",           "me"));
+		hints.add(0, createHint("locale",   "The current locale",         "locale"));
+		hints.add(0, createHint("current",  "The current details object", "current"));
 	}
 
 	protected void addNonempty(final List<String> list, final String string) {
@@ -391,7 +306,7 @@ public abstract class AbstractHintProvider {
 					continue;
 				}
 
-				hints.add(createHint(name, className, propertyType));
+				hints.add(createHint(name, propertyType, name));
 			}
 
 		} catch (FrameworkException ex) {
@@ -427,7 +342,7 @@ public abstract class AbstractHintProvider {
 						continue;
 					}
 
-					hints.add(createHint(name, className, propertyType));
+					hints.add(createHint(name, propertyType, name));
 				}
 
 			} catch (FrameworkException ex) {
@@ -450,6 +365,13 @@ public abstract class AbstractHintProvider {
 	}
 
 	protected boolean handleToken(final SecurityContext securityContext, final String token, final GraphObject currentNode, final List<Hint> hints, final ParseResult result) {
+
+		if ("$".equals(token) || "Structr".equals(token)) {
+
+			addAllHints(hints);
+
+			return true;
+		}
 
 		if ("this".equals(token) && currentNode instanceof SchemaMethod) {
 
@@ -475,6 +397,20 @@ public abstract class AbstractHintProvider {
 		if ("me".equals(token)) {
 
 			addHintsForType(securityContext, StructrApp.getConfiguration().getNodeEntityClass("Principal"), hints, result);
+
+			return true;
+		}
+
+		final Function func = Functions.get(token);
+		if (func != null) {
+
+			final List<Hint> contextHints = func.getContextHints(result.getLastToken());
+			if (contextHints != null) {
+
+				hints.addAll(contextHints);
+
+				Collections.sort(hints, comparator);
+			}
 
 			return true;
 		}

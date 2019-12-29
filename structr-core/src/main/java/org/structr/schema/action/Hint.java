@@ -18,6 +18,8 @@
  */
 package org.structr.schema.action;
 
+import java.util.List;
+
 /**
  *
  *
@@ -71,5 +73,9 @@ public abstract class Hint {
 
 	public boolean isHidden() {
 		return false;
+	}
+
+	public List<Hint> getContextHints(final String lastToken) {
+		return null;
 	}
 }

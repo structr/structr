@@ -1655,7 +1655,16 @@ var _Code = {
 		CodeMirror.registerHelper('hint', 'ajax', (editor, callback) => _Code.getAutocompleteHint(editor, id, callback));
 		CodeMirror.hint.ajax.async = true;
 		CodeMirror.commands.autocomplete = function(mirror) { mirror.showHint({ hint: CodeMirror.hint.ajax }); };
-		editor.on('keyup', (instance, event) => { if (event.key === '.') { CodeMirror.commands.autocomplete(instance, null, {completeSingle: false}); }});
+		editor.on('keyup', (instance, event) => {
+			switch (event.key) {
+
+				case "'":
+				case '"':
+				case '.':
+				case '(':
+					CodeMirror.commands.autocomplete(instance, null, {completeSingle: false});
+			}
+		});
 	},
 	getAutocompleteHint: function(editor, id, callback) {
 
