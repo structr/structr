@@ -5280,7 +5280,7 @@ div.quick-access-options p {
 	margin: 0;
 }
 
-div.option-tile select, div.option-tile input {
+div.option-tile select, div.option-tile input[type="text"], div.option-tile select, div.option-tile input[type="password"] {
 	width: 100%;
 	box-sizing: border-box;
 }

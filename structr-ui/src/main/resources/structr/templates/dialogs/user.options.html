@@ -1,0 +1,29 @@
+<div id="div-options" class="quick-access-options">
+	<h3>${config.title}</h3>
+	<div class="row">
+		<div class="option-tile">
+			<label>Name</label>
+			<input type="text" id="name-input" value="${config.entity.name || ''}" />
+		</div>
+		<div class="option-tile">
+			<label>eMail</label>
+			<input type="text" id="e-mail-input" value="${config.entity.eMail || ''}" />
+		</div>
+		<div class="option-tile">
+			<label style="display: block;">Password</label>
+			<input type="password" id="password-input" value="" style="width: 315px;"/>
+			<button class="action" type="button" id="set-password-button" style="width: 95px; margin-right: 0;">Set Password</button>
+		</div>
+		<div class="option-tile">
+			<label style="display:block;">Options</label>
+			<div style="padding-top: 2px;">
+				<input type="checkbox" id="is-admin-checkbox" />
+				<label for="is-admin-checkbox">Is Admin User</label>
+			</div>
+			<div style="padding-top: 2px;">
+				<input type="checkbox" id="is-two-factor-user-checkbox" />
+				<label for="is-two-factor-user-checkbox">Enable Two-Factor Authentication for this User</label>
+			</div>
+		</div>
+	</div>
+</div>

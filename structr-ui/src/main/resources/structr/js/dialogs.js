@@ -119,7 +119,7 @@ var _Dialogs = {
 
 			Command.get(entity.id, null, function(a) {
 
-				Structr.fetchHtmlTemplate('dialogs/a.options', { entity: entity, a: a }, function (html) {
+				Structr.fetchHtmlTemplate('dialogs/a.options', { entity: entity, a: a, title: 'Main Options' }, function (html) {
 
 					el.append(html);
 
@@ -158,11 +158,11 @@ var _Dialogs = {
 
 			Command.get(entity.id, null, function(button) {
 
-				Structr.fetchHtmlTemplate('dialogs/button.options', { entity: entity, button: button }, function (html) {
+				Structr.fetchHtmlTemplate('dialogs/button.options', { entity: entity, button: button, title: 'Main Options' }, function (html) {
 
 					el.append(html);
 
-					[ 'id', 'class', 'onclick', 'style' ].forEach(p => {
+					[ 'id', 'class', 'onclick', 'title', 'type', 'style' ].forEach(p => {
 						let input = $('input#' + p + '-input');
 						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, '_html_' + p, input.val(), input); });
 					});
@@ -189,7 +189,29 @@ var _Dialogs = {
 
 			}, '_html_');
 		}
+	},
+	inputDialog: function(el, entity) {
 
+		if (el && entity) {
+
+			Command.get(entity.id, null, function(input) {
+
+				Structr.fetchHtmlTemplate('dialogs/input.options', { entity: entity, input: input, title: 'Main Options' }, function (html) {
+
+					el.append(html);
+
+					[ 'id', 'class', 'title', 'placeholder', 'type', 'style' ].forEach(p => {
+						let input = $('input#' + p + '-input');
+						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, '_html_' + p, input.val(), input); });
+					});
+
+					// focus on first input field
+					$('input#class-input').focus();
+					$('input#class-input').select();
+				});
+
+			}, '_html_');
+		}
 	},
 	divDialog: function(el, entity) {
 
@@ -197,7 +219,7 @@ var _Dialogs = {
 
 			Command.get(entity.id, null, function(div) {
 
-				Structr.fetchHtmlTemplate('dialogs/div.options', { entity: entity, div: div }, function (html) {
+				Structr.fetchHtmlTemplate('dialogs/div.options', { entity: entity, div: div, title: 'Main Options' }, function (html) {
 
 					el.append(html);
 
@@ -228,17 +250,89 @@ var _Dialogs = {
 
 			}, '_html_');
 		}
+	},
+	userDialog: function(el, entity) {
 
+		if (el && entity) {
+
+			Command.get(entity.id, null, function(div) {
+
+				Structr.fetchHtmlTemplate('dialogs/user.options', { entity: entity, user: entity, title: 'Main Options' }, function (html) {
+
+					el.append(html);
+
+					[ 'name', 'e-mail' ].forEach(p => {
+						let input = $('input#' + p + '-input');
+						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val() || null, input); });
+					});
+
+					[ 'is-admin', 'is-two-factor-user' ].forEach(p => {
+						let name  = p.toCamel();
+						let input = $('input#' + p + '-checkbox');
+						input.prop('checked', entity[name]);
+						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, name, input.is(':checked'), input); });
+					});
+
+					$('button#set-password-button').on('click', function(e) {
+						let input = $('input#password-input');
+						_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
+					});
+
+					// focus on first input field
+					$('input#name-input').focus();
+					$('input#name-input').select();
+				});
+
+			}, '_html_');
+		}
+	},
+	pageDialog: function(el, entity) {
+
+		if (el && entity) {
+
+			Command.get(entity.id, null, function(page) {
+
+				Structr.fetchHtmlTemplate('dialogs/page.options', { entity: entity, page: entity, title: 'Main Options' }, function (html) {
+
+					el.append(html);
+
+					[ 'name', 'content-type', 'category', 'position', 'show-on-error-codes' ].forEach(p => {
+						let input = $('input#' + p + '-input');
+						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val() || null, input); });
+					});
+
+					[ 'dont-cache', 'page-creates-raw-data' ].forEach(p => {
+						let name  = p.toCamel();
+						let input = $('input#' + p + '-checkbox');
+						input.prop('checked', entity[name]);
+						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, name, input.is(':checked'), input); });
+					});
+
+					$('button#set-password-button').on('click', function(e) {
+						let input = $('input#password-input');
+						_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
+					});
+
+					// focus on first input field
+					$('input#name-input').focus();
+					$('input#name-input').select();
+				});
+
+			}, '_html_');
+		}
 	},
 }
 
 var registeredDialogs = {
-	'LDAPGroup':  { id: 'ldapgroup', title: 'LDAP configuration', callback: _Dialogs.ldapGroupDialog },
-	'Image':  { id: 'file', title: 'Advanced options', callback: _Dialogs.fileDialog },
-	'File':  { id: 'file', title: 'Advanced options', callback: _Dialogs.fileDialog },
 	'A': { id: 'a', title : '&#x2605;', callback: _Dialogs.aDialog },
 	'Button': { id: 'button', title : '&#x2605;', callback: _Dialogs.buttonDialog },
 	'Div': { id: 'div', title : '&#x2605;', callback: _Dialogs.divDialog },
+	'File':  { id: 'file', title: 'Advanced', callback: _Dialogs.fileDialog },
+	'Image':  { id: 'file', title: 'Advanced', callback: _Dialogs.fileDialog },
+	'Input':  { id: 'input', title: '&#x2605;', callback: _Dialogs.inputDialog },
+	'LDAPGroup':  { id: 'ldapgroup', title: 'LDAP configuration', callback: _Dialogs.ldapGroupDialog },
+	'Page': { id: 'page', title : '&#x2605;', callback: _Dialogs.pageDialog },
+	'User': { id: 'user', title : '&#x2605;', callback: _Dialogs.userDialog },
 }
 
 function setNull(id, key, input) {
