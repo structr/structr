@@ -193,8 +193,7 @@ var _Entities = {
 
 	},
 	queryDialog: function(entity, el) {
-
-		_Entities.repeaterConfig(entity, el);
+		return _Entities.repeaterConfig(entity, el);
 
 	},
 	repeaterConfig: function(entity, el) {
@@ -218,6 +217,24 @@ var _Entities = {
 		var textArea = $('<textarea class="hidden query-text"></textarea>').appendTo(el);
 		var flowSelector = $('#flow-selector');
 
+		// test
+		var editor = CodeMirror.fromTextArea(textArea.get(0), {
+			lineNumbers: false,
+			lineWrapping: false,
+			indentUnit: 4,
+			tabSize:4,
+			indentWithTabs: true,
+			autoRefresh: true,
+			extraKeys: {
+				"Ctrl-Space": "autocomplete"
+			}
+		});
+		_Code.setupAutocompletion(editor, entity.id, true);
+
+		var refreshEditor = function() {
+			window.setTimeout(e => editor.refresh(), 10);
+		};
+
 		var initRepeaterInputs = function() {
 
 			var saveBtn = $('<button class="action">Save</button>');
@@ -234,7 +251,8 @@ var _Entities = {
 					btn.click();
 					var flow = entity[queryType.propertyName];
 					saveBtn.hide();
-					textArea.hide();
+					//textArea.hide();
+					$(editor.getWrapperElement()).hide();
 					flowSelector.show();
 					if (flow) {
 						//var flowName = flow.effectiveName;
@@ -247,10 +265,12 @@ var _Entities = {
 					if (entity[queryType.propertyName] && entity[queryType.propertyName].trim() !== "") {
 						btn.addClass('active');
 						saveBtn.show();
-						textArea.show();
+						$(editor.getWrapperElement()).show();
+						refreshEditor();
 						flowSelector.hide();
 						$('button.flow').removeClass('active');
-						textArea.text(textArea.text() + entity[queryType.propertyName]);
+						editor.setValue(editor.getValue() + entity[queryType.propertyName]);
+						refreshEditor();
 						queryHeading.text(btn.text());
 					}
 				}
@@ -266,12 +286,13 @@ var _Entities = {
 
 				if (queryType === 'flow') {
 					saveBtn.hide();
-					textArea.hide();
+					$(editor.getWrapperElement()).hide();
 					flowSelector.show();
 
 				} else {
 					saveBtn.show();
-					textArea.show();
+					$(editor.getWrapperElement()).show();
+					refreshEditor();
 					flowSelector.hide();
 				}
 			});
@@ -300,7 +321,7 @@ var _Entities = {
 							val = flowSelector.val();
 
 						} else {
-							val = textArea.val();
+							val = editor.getValue();
 							data.flow = null;
 							flowSelector.val('--- Select Flow ---');
 						}
@@ -337,6 +358,11 @@ var _Entities = {
 		} else {
 			initRepeaterInputs();
 		}
+
+		// return callback that refreshes CodeMirror when called..
+		return function() {
+			editor.refresh();
+		};
 	},
 	activateTabs: function(nodeId, elId, activeId, activeTabPrefix) {
 		activeTabPrefix = activeTabPrefix || _Entities.activeQueryTabPrefix;
@@ -607,10 +633,12 @@ var _Entities = {
 
 					if (entity.isContent !== true || entity.type === 'Template') {
 
-						_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', !hasCustomDialog, function(c) {
-							_Entities.queryDialog(entity, c, typeInfo);
-						});
+						// callback to refresh() the CodeMirror instance in the query and data binding dialog when it's shown
+						var showCallback = function() {};
 
+						_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', !hasCustomDialog, function(c) {
+							showCallback = _Entities.queryDialog(entity, c, typeInfo);
+						}, function() { showCallback(); }, function() { showCallback(); });
 					}
 
 					if (entity.isContent !== true) {

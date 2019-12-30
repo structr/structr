@@ -43,128 +43,128 @@ public class AutocompleteTest extends StructrUiTest {
 	public void testAutocompleteInMixedContent() {
 
 		// StructrScript in the first script block
-		assertFirstResult("text", "page", AbstractHintProvider.getHints(securityContext, null, null, "<html><head><title>${pa", "", 0, 0));
+		assertFirstResult("text", "page", AbstractHintProvider.getHints(securityContext, false, null, "<html><head><title>${pa", "", 0, 0));
 
 		// Non-Script block, no results
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "<html><head><title>${page.name}this.", "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "<html><head><title>${page.name}this.", "", 0, 0));
 
 		// StructrScript in the second script block
-		assertFirstResult("text", "titleize", AbstractHintProvider.getHints(securityContext, null, null, "<html><head><title>${page.name}</title></head><body><h1>${titl", "", 0, 0));
+		assertFirstResult("text", "titleize", AbstractHintProvider.getHints(securityContext, false, null, "<html><head><title>${page.name}</title></head><body><h1>${titl", "", 0, 0));
 
 		// Javascript in the third script block
-		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "<html><head><title>${page.name}</title></head><body><h1>${titleize(page.name)}</h1><div>${{\n\n\tlet self = $.", "", 0, 0));
+		assertFullResult(AbstractHintProvider.getHints(securityContext, false, null, "<html><head><title>${page.name}</title></head><body><h1>${titleize(page.name)}</h1><div>${{\n\n\tlet self = $.", "", 0, 0));
 
 		// Javascript in the third script block
-		assertFirstResult("text", "this", AbstractHintProvider.getHints(securityContext, null, null, "<html><head><title>${page.name}</title></head><body><h1>${titleize(page.name)}</h1><div>${{\n\n\tlet self = $.th", "", 0, 0));
+		assertFirstResult("text", "this", AbstractHintProvider.getHints(securityContext, false, null, "<html><head><title>${page.name}</title></head><body><h1>${titleize(page.name)}</h1><div>${{\n\n\tlet self = $.th", "", 0, 0));
 
 		// Non-Script block, no results
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "<html><head><title>${page.name}</title></head><body><h1>${titleize(page.name)}</h1><div>${{\n\n\tlet self = $.this;}n}}</div>this.", "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "<html><head><title>${page.name}</title></head><body><h1>${titleize(page.name)}</h1><div>${{\n\n\tlet self = $.this;}n}}</div>this.", "", 0, 0));
 	}
 
 	@Test
 	public void testStructrscriptAutocomplete() {
 
-		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${", "", 0, 0));
-		assertFirstResult("text", "localize", AbstractHintProvider.getHints(securityContext, null, null, "${locali", "", 0, 0));
+		assertFullResult(AbstractHintProvider.getHints(securityContext, false, null, "${", "", 0, 0));
+		assertFirstResult("text", "localize", AbstractHintProvider.getHints(securityContext, false, null, "${locali", "", 0, 0));
 
 		// patterns that should produce the full list of autocomplete results
-		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${\n\t", "", 0, 0));
-		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${", "", 0, 0));
-		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${\n\tcontains(", "", 0, 0));
-		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${contains(", "", 0, 0));
-		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${contains(", ")", 0, 0));
+		assertFullResult(AbstractHintProvider.getHints(securityContext, false, null, "${\n\t", "", 0, 0));
+		assertFullResult(AbstractHintProvider.getHints(securityContext, false, null, "${", "", 0, 0));
+		assertFullResult(AbstractHintProvider.getHints(securityContext, false, null, "${\n\tcontains(", "", 0, 0));
+		assertFullResult(AbstractHintProvider.getHints(securityContext, false, null, "${contains(", "", 0, 0));
+		assertFullResult(AbstractHintProvider.getHints(securityContext, false, null, "${contains(", ")", 0, 0));
 
 		// patterns that should not produce any autocomplete results
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${cu.", "", 0, 0));
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${current.", "", 0, 0));
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${current.c", "", 0, 0));
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${localize(.loc", "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${cu.", "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${current.", "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${current.c", "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${localize(.loc", "", 0, 0));
 
 		// verify that autocomplete is disabled for cursor positions inside a string
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${", "x", 0, 0));
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${contains(", "x", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${", "x", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${contains(", "x", 0, 0));
 	}
 
 	@Test
 	public void testJavascriptAutocomplete() {
 
 		// patterns that should produce the full list of autocomplete results
-		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.", "", 0, 0));
-		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${{$.", "", 0, 0));
-		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\tStructr.", "", 0, 0));
-		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${{Structr.", "", 0, 0));
-		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\tlet test = $.", "", 0, 0));
-		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.contains($.", "", 0, 0));
-		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.contains($.", " ", 0, 0));
-		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.contains($.", ";", 0, 0));
-		assertFullResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.contains($.", ")", 0, 0));
+		assertFullResult(AbstractHintProvider.getHints(securityContext, false, null, "${{\n\t$.", "", 0, 0));
+		assertFullResult(AbstractHintProvider.getHints(securityContext, false, null, "${{$.", "", 0, 0));
+		assertFullResult(AbstractHintProvider.getHints(securityContext, false, null, "${{\n\tStructr.", "", 0, 0));
+		assertFullResult(AbstractHintProvider.getHints(securityContext, false, null, "${{Structr.", "", 0, 0));
+		assertFullResult(AbstractHintProvider.getHints(securityContext, false, null, "${{\n\tlet test = $.", "", 0, 0));
+		assertFullResult(AbstractHintProvider.getHints(securityContext, false, null, "${{\n\t$.contains($.", "", 0, 0));
+		assertFullResult(AbstractHintProvider.getHints(securityContext, false, null, "${{\n\t$.contains($.", " ", 0, 0));
+		assertFullResult(AbstractHintProvider.getHints(securityContext, false, null, "${{\n\t$.contains($.", ";", 0, 0));
+		assertFullResult(AbstractHintProvider.getHints(securityContext, false, null, "${{\n\t$.contains($.", ")", 0, 0));
 
 		// patterns that should not produce any autocomplete results
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.cu.", "", 0, 0));
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.current.", "", 0, 0));
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\tlet test = $.current.c", "", 0, 0));
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.contains(", "", 0, 0));
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t $.localize(.loc", "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${{\n\t$.cu.", "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${{\n\t$.current.", "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${{\n\tlet test = $.current.c", "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${{\n\t$.contains(", "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${{\n\t $.localize(.loc", "", 0, 0));
 
 		// verify that autocomplete is disabled for cursor positions inside a string
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.", "x", 0, 0));
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${{$.", "x", 0, 0));
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\tStructr.", "x", 0, 0));
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${{Structr.", "x", 0, 0));
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\tlet test = $.", "x", 0, 0));
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.contains($.", "x", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${{\n\t$.", "x", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${{$.", "x", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${{\n\tStructr.", "x", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${{Structr.", "x", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${{\n\tlet test = $.", "x", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${{\n\t$.contains($.", "x", 0, 0));
 	}
 
 	@Test
 	public void testJavascriptAutocompleteForKeywords() {
 
-		assertFirstResult("text", "cacheForSeconds", AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.page.",  "", 0, 0));
-		assertFirstResult("text", "name",            AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.page.n", "", 0, 0));
+		assertFirstResult("text", "cacheForSeconds", AbstractHintProvider.getHints(securityContext, false, null, "${{\n\t$.page.",  "", 0, 0));
+		assertFirstResult("text", "name",            AbstractHintProvider.getHints(securityContext, false, null, "${{\n\t$.page.n", "", 0, 0));
 
-		assertFirstResult("text", "blocked",         AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.me.",   "", 0, 0));
-		assertFirstResult("text", "isAdmin",         AbstractHintProvider.getHints(securityContext, null, null, "${{\n\t$.me.isA", "", 0, 0));
+		assertFirstResult("text", "blocked",         AbstractHintProvider.getHints(securityContext, false, null, "${{\n\t$.me.",   "", 0, 0));
+		assertFirstResult("text", "isAdmin",         AbstractHintProvider.getHints(securityContext, false, null, "${{\n\t$.me.isA", "", 0, 0));
 	}
 
 	@Test
 	public void testStructrscriptAutocompleteForKeywords() {
 
-		assertFirstResult("text", "cacheForSeconds", AbstractHintProvider.getHints(securityContext, null, null, "${page.",  "", 0, 0));
-		assertFirstResult("text", "name",            AbstractHintProvider.getHints(securityContext, null, null, "${page.n", "", 0, 0));
+		assertFirstResult("text", "cacheForSeconds", AbstractHintProvider.getHints(securityContext, false, null, "${page.",  "", 0, 0));
+		assertFirstResult("text", "name",            AbstractHintProvider.getHints(securityContext, false, null, "${page.n", "", 0, 0));
 
-		assertFirstResult("text", "blocked",         AbstractHintProvider.getHints(securityContext, null, null, "${me.",   "", 0, 0));
-		assertFirstResult("text", "isAdmin",         AbstractHintProvider.getHints(securityContext, null, null, "${me.isA", "", 0, 0));
+		assertFirstResult("text", "blocked",         AbstractHintProvider.getHints(securityContext, false, null, "${me.",   "", 0, 0));
+		assertFirstResult("text", "isAdmin",         AbstractHintProvider.getHints(securityContext, false, null, "${me.isA", "", 0, 0));
 	}
 
 	@Test
 	public void testJavascriptAutocompleteFunctionContextHints() {
 
-		assertFirstResult("text", "'A'", AbstractHintProvider.getHints(securityContext, null, null, "${{ $.find(",  "", 0, 0));
-		assertFirstResult("text", "'A'", AbstractHintProvider.getHints(securityContext, null, null, "${{ $.find('",  "", 0, 0));
-		assertFirstResult("text", "\"A\"", AbstractHintProvider.getHints(securityContext, null, null, "${{ $.find(\"",  "", 0, 0));
-		assertFirstResult("text", "'User'", AbstractHintProvider.getHints(securityContext, null, null, "${{ $.find('Us",  "", 0, 0));
-		assertFirstResult("text", "\"User\"", AbstractHintProvider.getHints(securityContext, null, null, "${{ $.find(\"Us",  "", 0, 0));
+		assertFirstResult("text", "'A'", AbstractHintProvider.getHints(securityContext, false, null, "${{ $.find(",  "", 0, 0));
+		assertFirstResult("text", "'A'", AbstractHintProvider.getHints(securityContext, false, null, "${{ $.find('",  "", 0, 0));
+		assertFirstResult("text", "\"A\"", AbstractHintProvider.getHints(securityContext, false, null, "${{ $.find(\"",  "", 0, 0));
+		assertFirstResult("text", "'User'", AbstractHintProvider.getHints(securityContext, false, null, "${{ $.find('Us",  "", 0, 0));
+		assertFirstResult("text", "\"User\"", AbstractHintProvider.getHints(securityContext, false, null, "${{ $.find(\"Us",  "", 0, 0));
 
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${{ $.find('User'",  "", 0, 0));
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${{ $.find(\"User\"",  "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${{ $.find('User'",  "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${{ $.find(\"User\"",  "", 0, 0));
 	}
 
 	@Test
 	public void testStructrscriptAutocompleteFunctionContextHints() {
 
-		assertFirstResult("text", "'A'", AbstractHintProvider.getHints(securityContext, null, null, "${find(",  "", 0, 0));
-		assertFirstResult("text", "'A'", AbstractHintProvider.getHints(securityContext, null, null, "${find('",  "", 0, 0));
-		assertFirstResult("text", "\"A\"", AbstractHintProvider.getHints(securityContext, null, null, "${find(\"",  "", 0, 0));
-		assertFirstResult("text", "'User'", AbstractHintProvider.getHints(securityContext, null, null, "${find('Us",  "", 0, 0));
-		assertFirstResult("text", "\"User\"", AbstractHintProvider.getHints(securityContext, null, null, "${find(\"Us",  "", 0, 0));
-		assertFirstResult("text", "'User'", AbstractHintProvider.getHints(securityContext, null, null, "${find('User",  "", 0, 0));
-		assertFirstResult("text", "\"User\"", AbstractHintProvider.getHints(securityContext, null, null, "${find(\"User",  "", 0, 0));
+		assertFirstResult("text", "'A'", AbstractHintProvider.getHints(securityContext, false, null, "${find(",  "", 0, 0));
+		assertFirstResult("text", "'A'", AbstractHintProvider.getHints(securityContext, false, null, "${find('",  "", 0, 0));
+		assertFirstResult("text", "\"A\"", AbstractHintProvider.getHints(securityContext, false, null, "${find(\"",  "", 0, 0));
+		assertFirstResult("text", "'User'", AbstractHintProvider.getHints(securityContext, false, null, "${find('Us",  "", 0, 0));
+		assertFirstResult("text", "\"User\"", AbstractHintProvider.getHints(securityContext, false, null, "${find(\"Us",  "", 0, 0));
+		assertFirstResult("text", "'User'", AbstractHintProvider.getHints(securityContext, false, null, "${find('User",  "", 0, 0));
+		assertFirstResult("text", "\"User\"", AbstractHintProvider.getHints(securityContext, false, null, "${find(\"User",  "", 0, 0));
 
 		// no results, but no error either!
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${find(\"User\"",  "", 0, 0));
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${find(\"User\"\"",  "", 0, 0));
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${find('User'",  "", 0, 0));
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${find('User''", "", 0, 0));
-		assertEmptyResult(AbstractHintProvider.getHints(securityContext, null, null, "${find('User', { ", "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${find(\"User\"",  "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${find(\"User\"\"",  "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${find('User'",  "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${find('User''", "", 0, 0));
+		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "${find('User', { ", "", 0, 0));
 	}
 
 	@Test
@@ -191,7 +191,7 @@ public class AutocompleteTest extends StructrUiTest {
 			final SchemaMethod method = app.nodeQuery(SchemaMethod.class).and(SchemaMethod.name, "testMethod").getFirst();
 
 			// verify that the properties of the Test type are in the autocomplete result
-			final List<GraphObject> result1 = AbstractHintProvider.getHints(securityContext, method, null, "{\n\t$.this.", "", 0, 0);
+			final List<GraphObject> result1 = AbstractHintProvider.getHints(securityContext, false, method, "{\n\t$.this.", "", 0, 0);
 			final Map<String, Object> base        = ((GraphObjectMap)result1.get(0)).toMap();
 			final Map<String, Object> createdBy   = ((GraphObjectMap)result1.get(1)).toMap();
 			final Map<String, Object> createdDate = ((GraphObjectMap)result1.get(2)).toMap();
@@ -204,17 +204,17 @@ public class AutocompleteTest extends StructrUiTest {
 			assertEquals("Invalid autocomplete result", "id",          id.get("text"));
 
 			// verify that the letter "d" is correctly expanded into "description"
-			assertFirstResult("text", "description", AbstractHintProvider.getHints(securityContext, method, null, "{\n\t$.this.d", "", 0, 0));
+			assertFirstResult("text", "description", AbstractHintProvider.getHints(securityContext, false, method, "{\n\t$.this.d", "", 0, 0));
 
 			// verify that an opening brace resets the results
-			assertFullResult(AbstractHintProvider.getHints(securityContext, method, null, "{\n\t$.contains($.", "", 0, 0));
+			assertFullResult(AbstractHintProvider.getHints(securityContext, false, method, "{\n\t$.contains($.", "", 0, 0));
 
 			// verify that this. does not produce results
-			assertEmptyResult(AbstractHintProvider.getHints(securityContext, method, null, "{\n\tthis.", "", 0, 0));
+			assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, method, "{\n\tthis.", "", 0, 0));
 
-			assertEmptyResult(AbstractHintProvider.getHints(securityContext, method, null, "{\n\t$.this.abc", "", 0, 0));
-			assertEmptyResult(AbstractHintProvider.getHints(securityContext, method, null, "{\n\t$.this.ma.", "", 0, 0));
-			assertEmptyResult(AbstractHintProvider.getHints(securityContext, method, null, "{\n\tlet test = $.contains(t", "", 0, 0));
+			assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, method, "{\n\t$.this.abc", "", 0, 0));
+			assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, method, "{\n\t$.this.ma.", "", 0, 0));
+			assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, method, "{\n\tlet test = $.contains(t", "", 0, 0));
 
 			tx.success();
 

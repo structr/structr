@@ -612,7 +612,7 @@ var _Code = {
 					}
 				});
 
-				_Code.setupAutocompletion(editor, id);
+				_Code.setupAutocompletion(editor, id, false);
 
 				var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
 				if (scrollInfo) {
@@ -1650,9 +1650,9 @@ var _Code = {
 			}
 		})
 	},
-	setupAutocompletion: function(editor, id) {
+	setupAutocompletion: function(editor, id, isAutoscriptEnv) {
 
-		CodeMirror.registerHelper('hint', 'ajax', (editor, callback) => _Code.getAutocompleteHint(editor, id, callback));
+		CodeMirror.registerHelper('hint', 'ajax', (editor, callback) => _Code.getAutocompleteHint(editor, id, isAutoscriptEnv, callback));
 		CodeMirror.hint.ajax.async = true;
 		CodeMirror.commands.autocomplete = function(mirror) { mirror.showHint({ hint: CodeMirror.hint.ajax }); };
 		editor.on('keyup', (instance, event) => {
@@ -1666,13 +1666,13 @@ var _Code = {
 			}
 		});
 	},
-	getAutocompleteHint: function(editor, id, callback) {
+	getAutocompleteHint: function(editor, id, isAutoscriptEnv, callback) {
 
 		var cursor = editor.getCursor();
 		var before = editor.getRange({ line: 0, ch: 0 }, cursor);
 		var after  = editor.getRange(cursor, { line: cursor.line + 1, ch: 0 });
 		var type   = _Code.getEditorModeForContent(editor.getValue());
-		Command.autocomplete(id, '', before, after, cursor.line, cursor.ch, type, function(result) {
+		Command.autocomplete(id, isAutoscriptEnv, before, after, cursor.line, cursor.ch, type, function(result) {
 			var inner  = { from: cursor, to: cursor, list: result };
 			callback(inner);
 		});

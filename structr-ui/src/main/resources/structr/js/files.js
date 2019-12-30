@@ -1341,8 +1341,12 @@ var _Files = {
 					lineWrapping: lineWrapping,
 					indentUnit: 4,
 					tabSize:4,
-					indentWithTabs: true
+					indentWithTabs: true,
+					extraKeys: {
+						"Ctrl-Space": "autocomplete"
+					}
 				});
+				_Code.setupAutocompletion(editor, file.id, false);
 
 				var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + file.id));
 				if (scrollInfo) {

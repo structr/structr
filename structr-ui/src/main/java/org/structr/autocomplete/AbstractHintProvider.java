@@ -69,18 +69,18 @@ public abstract class AbstractHintProvider {
 
 	protected final Comparator comparator     = new HintComparator();
 
-	public static List<GraphObject> getHints(final SecurityContext securityContext, final GraphObject currentEntity, final String type, final String textBefore, final String textAfter, final int cursorLine, final int cursorPosition) {
+	public static List<GraphObject> getHints(final SecurityContext securityContext, final boolean isAutoscriptEnv, final GraphObject currentEntity, final String textBefore, final String textAfter, final int cursorLine, final int cursorPosition) {
 
 		String text = null;
 
 		// don't interpret invalid strings
-		if (text != null && (text.endsWith("''") || text.endsWith("\"\""))) {
+		if (textBefore != null && (textBefore.endsWith("''") || textBefore.endsWith("\"\""))) {
 			return Collections.EMPTY_LIST;
 		}
 
 		if (StringUtils.isBlank(textAfter) || textAfter.startsWith(" ") || textAfter.startsWith("\t") || textAfter.startsWith("\n") || textAfter.startsWith(";") || textAfter.startsWith(")")) {
 
-			if (currentEntity instanceof SchemaMethod) {
+			if (isAutoscriptEnv || currentEntity instanceof SchemaMethod) {
 
 				// we can use the whole text here, the method will always contain script code and nothing else
 				// add ${ to be able to reuse code below
@@ -112,14 +112,14 @@ public abstract class AbstractHintProvider {
 					final JavascriptHintProvider provider = new JavascriptHintProvider();
 					final String source                   = text.substring(3);
 
-					return provider.getHints(securityContext, currentEntity, type, source, cursorLine, cursorPosition);
+					return provider.getHints(securityContext, currentEntity, source, cursorLine, cursorPosition);
 
 				} else if (text.startsWith("${")) {
 
 					final PlaintextHintProvider provider = new PlaintextHintProvider();
 					final String source                   = text.substring(2);
 
-					return provider.getHints(securityContext, currentEntity, type, source, cursorLine, cursorPosition);
+					return provider.getHints(securityContext, currentEntity, source, cursorLine, cursorPosition);
 				}
 			}
 		}
@@ -127,7 +127,7 @@ public abstract class AbstractHintProvider {
 		return Collections.EMPTY_LIST;
 	}
 
-	public List<GraphObject> getHints(final SecurityContext securityContext, final GraphObject currentEntity, final String type, final String script, final int cursorLine, final int cursorPosition) {
+	public List<GraphObject> getHints(final SecurityContext securityContext, final GraphObject currentEntity, final String script, final int cursorLine, final int cursorPosition) {
 
 		final ParseResult parseResult = new ParseResult();
 		final List<Hint> allHints     = getAllHints(securityContext, currentEntity, script, parseResult);
@@ -282,6 +282,19 @@ public abstract class AbstractHintProvider {
 		}
 	}
 
+	protected void addHintsForSchemaMethod(final SecurityContext securityContext, final SchemaMethod method, final List<Hint> hints, final ParseResult result) {
+
+		final AbstractSchemaNode node = method.getProperty(SchemaMethod.schemaNode);
+		if (node != null) {
+
+			final Class type = StructrApp.getConfiguration().getNodeEntityClass(node.getClassName());
+			if (type != null) {
+
+				addHintsForType(securityContext, type, hints, result);
+			}
+		}
+	}
+
 	protected void addHintsForType(final SecurityContext securityContext, final Class type, final List<Hint> hints, final ParseResult result) {
 
 		try {
@@ -302,63 +315,15 @@ public abstract class AbstractHintProvider {
 				}
 
 				// filter inherited properties (except name)
-				if (!type.getSimpleName().equals(declaringClass) && !"name".equals(name)) {
-					continue;
-				}
+				//if (!type.getSimpleName().equals(declaringClass) && !"name".equals(name)) {
+				//	continue;
+				//}
 
 				hints.add(createHint(name, propertyType, name));
 			}
 
 		} catch (FrameworkException ex) {
 			java.util.logging.Logger.getLogger(JavascriptHintProvider.class.getName()).log(Level.SEVERE, null, ex);
-		}
-
-		Collections.sort(hints, comparator);
-	}
-
-	protected void addHintsForCurrentObject(final SecurityContext securityContext, final GraphObject currentNode, final List<Hint> hints, final ParseResult result) {
-
-		final SchemaMethod method     = (SchemaMethod)currentNode;
-		final AbstractSchemaNode node = method.getProperty(SchemaMethod.schemaNode);
-
-		if (node != null) {
-
-			final Class type = StructrApp.getConfiguration().getNodeEntityClass(node.getClassName());
-
-			try {
-
-				final List<GraphObjectMap> typeInfo = SchemaHelper.getSchemaTypeInfo(securityContext, type.getSimpleName(), type, PropertyView.All);
-
-				for (final GraphObjectMap property : typeInfo) {
-
-					final Map<String, Object> map = property.toMap();
-					final String name             = (String)map.get("jsonName");
-					final String propertyType     = (String)map.get("uiType");
-					final String className        = (String)map.get("className");
-					final String declaringClass   = (String)map.get("declaringClass");
-
-					// skip properties defined in NodeInterface class, except for name
-					if (NodeInterface.class.getSimpleName().equals(declaringClass) && !"name".equals(name)) {
-						continue;
-					}
-
-					hints.add(createHint(name, propertyType, name));
-				}
-
-			} catch (FrameworkException ex) {
-				java.util.logging.Logger.getLogger(JavascriptHintProvider.class.getName()).log(Level.SEVERE, null, ex);
-			}
-
-			Collections.sort(hints, comparator);
-		}
-	}
-
-	protected void addHintsForRetrieve(final SecurityContext securityContext, final List<Hint> hints, final ParseResult result) {
-
-		// find keys currently stored in context
-		for (final String key : securityContext.getContextStore().getConstantKeys()) {
-
-			hints.add(createHint(key, "", "key from store()"));
 		}
 
 		Collections.sort(hints, comparator);
@@ -373,16 +338,16 @@ public abstract class AbstractHintProvider {
 			return true;
 		}
 
-		if ("this".equals(token) && currentNode instanceof SchemaMethod) {
+		if ("this".equals(token)) {
 
-			addHintsForCurrentObject(securityContext, currentNode, hints, result);
+			if(currentNode instanceof SchemaMethod) {
 
-			return true;
-		}
+				addHintsForSchemaMethod(securityContext, (SchemaMethod)currentNode, hints, result);
 
-		if ("retrieve".equals(token)) {
+			} else if (currentNode != null) {
 
-			addHintsForRetrieve(securityContext, hints, result);
+				addHintsForType(securityContext, StructrApp.getConfiguration().getNodeEntityClass(currentNode.getType()), hints, result);
+			}
 
 			return true;
 		}
@@ -397,6 +362,13 @@ public abstract class AbstractHintProvider {
 		if ("me".equals(token)) {
 
 			addHintsForType(securityContext, StructrApp.getConfiguration().getNodeEntityClass("Principal"), hints, result);
+
+			return true;
+		}
+
+		if ("current".equals(token)) {
+
+			addHintsForType(securityContext, StructrApp.getConfiguration().getNodeEntityClass("AbstractNode"), hints, result);
 
 			return true;
 		}

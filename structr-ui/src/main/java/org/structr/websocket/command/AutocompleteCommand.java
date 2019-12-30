@@ -38,8 +38,8 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class AutocompleteCommand extends AbstractCommand {
 
-	private static final Logger logger                                   = LoggerFactory.getLogger(AutocompleteCommand.class.getName());
-	private static final Property<List<GraphObjectMap>> list             = new GenericProperty("list");
+	private static final Logger logger                       = LoggerFactory.getLogger(AutocompleteCommand.class.getName());
+	private static final Property<List<GraphObjectMap>> list = new GenericProperty("list");
 
 	static {
 
@@ -58,15 +58,15 @@ public class AutocompleteCommand extends AbstractCommand {
 
 		if (contentType != null) {
 
-			final String before      = webSocketData.getNodeDataStringValue("before");
-			final String after       = webSocketData.getNodeDataStringValue("after");
-			final String type        = webSocketData.getNodeDataStringValueTrimmed("type");
-			final int cursorPosition = webSocketData.getNodeDataIntegerValue("cursorPosition");
-			final int line           = webSocketData.getNodeDataIntegerValue("line");
+			final boolean isAutoscriptEnv = webSocketData.getNodeDataBooleanValue("isAutoscriptEnv");
+			final String before           = webSocketData.getNodeDataStringValue("before");
+			final String after            = webSocketData.getNodeDataStringValue("after");
+			final int cursorPosition      = webSocketData.getNodeDataIntegerValue("cursorPosition");
+			final int line                = webSocketData.getNodeDataIntegerValue("line");
 
 			try {
 
-				final List<GraphObject> hints = AbstractHintProvider.getHints(securityContext, StructrApp.getInstance().get(AbstractNode.class, id), type, before, after, line, cursorPosition);
+				final List<GraphObject> hints = AbstractHintProvider.getHints(securityContext, isAutoscriptEnv, StructrApp.getInstance().get(AbstractNode.class, id), before, after, line, cursorPosition);
 				result.addAll(hints);
 
 			} catch(FrameworkException fex) {

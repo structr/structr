@@ -5306,3 +5306,7 @@ button.icon-button {
 button.icon-button i {
 	margin: 0;
 }
+
+div#tabView-query div.CodeMirror {
+	height: 120px !important;
+}

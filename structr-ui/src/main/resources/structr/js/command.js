@@ -1198,17 +1198,17 @@ var Command = {
 	 *
 	 * No broadcast.
 	 */
-	autocomplete: function(id, type, before, after, line, cursorPosition, contentType, callback) {
+	autocomplete: function(id, isAutoscriptEnv, before, after, line, cursorPosition, contentType, callback) {
 		var obj  = {
 			command: 'AUTOCOMPLETE',
 			id: id,
 			data: {
-				type: type,
 				before: before,
 				after: after,
 				contentType: contentType,
 				line: line,
-				cursorPosition: cursorPosition
+				cursorPosition: cursorPosition,
+				isAutoscriptEnv: isAutoscriptEnv
 			}
 		};
 		_Logger.log(_LogType.WS[obj.command], 'autocomplete()', obj, callback);
