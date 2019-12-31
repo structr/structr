@@ -1714,7 +1714,7 @@ var _Entities = {
 					Command.get(id, 'id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', handleGraphObject);
 				}
 			}
-		});
+		}, true);
 
 		_Entities.accessControlDialog(entity, dialogText);
 
