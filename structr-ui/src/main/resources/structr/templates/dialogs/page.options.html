@@ -9,6 +9,8 @@
 			<label>Content Type</label>
 			<input type="text" id="content-type-input" value="${config.entity.contentType || ''}" />
 		</div>
+	</div>
+	<div class="row">
 		<div class="option-tile">
 			<label>Category</label>
 			<input type="text" id="category-input" value="${config.entity.category || ''}" />
@@ -17,6 +19,8 @@
 			<label>Show on Error Codes</label>
 			<input type="text" id="show-on-error-codes-input" value="${config.entity.showOnErrorCodes || ''}" />
 		</div>
+	</div>
+	<div class="row">
 		<div class="option-tile">
 			<label>Position </label>
 			<input type="text" id="position-input" value="${config.entity.position || ''}" />
@@ -31,6 +35,12 @@
 				<input type="checkbox" id="page-creates-raw-data-checkbox" />
 				<label for="page-creates-raw-data-checkbox">Use binary encoding for output</label>
 			</div>
+		</div>
+	</div>
+	<div id="custom-properties-parent" class="hidden">
+		<h3>Custom Properties</h3>
+		<div class="row">
+		     <div id="custom-properties-container"></div>
 		</div>
 	</div>
 </div>

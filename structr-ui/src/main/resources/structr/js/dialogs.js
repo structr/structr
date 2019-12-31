@@ -37,7 +37,27 @@ var _Dialogs = {
 	},
 
 	getTitle: function() {
-		return "Details";
+		return "Main Properties";
+	},
+	showCustomProperties: function(entity) {
+
+		// custom properties
+		let customContainer = $('div#custom-properties-container');
+
+		_Schema.getTypeInfo(entity.type, function(typeInfo) {
+
+			_Entities.listProperties(entity, 'custom', customContainer, typeInfo, function(properties) {
+
+				// make container visible when custom properties exist
+				if (Object.keys(properties).length > 0) {
+					$('div#custom-properties-parent').removeClass("hidden");
+				}
+
+				$('input.dateField', customContainer).each(function(i, input) {
+					_Entities.activateDatePicker($(input));
+				});
+			});
+		});
 	},
 
 	// ----- custom dialogs -----
@@ -150,6 +170,8 @@ var _Dialogs = {
 					// focus on first input field
 					$('input#class-input').focus();
 					$('input#class-input').select();
+
+					_Dialogs.showCustomProperties(entity);
 				});
 
 			}, '_html_');
@@ -189,6 +211,8 @@ var _Dialogs = {
 					// focus on first input field
 					$('input#class-input').focus();
 					$('input#class-input').select();
+
+					_Dialogs.showCustomProperties(entity);
 				});
 
 			}, '_html_');
@@ -212,6 +236,8 @@ var _Dialogs = {
 					// focus on first input field
 					$('input#class-input').focus();
 					$('input#class-input').select();
+
+					_Dialogs.showCustomProperties(entity);
 				});
 
 			}, '_html_');
@@ -250,6 +276,8 @@ var _Dialogs = {
 					// focus on first input field
 					$('input#class-input').focus();
 					$('input#class-input').select();
+
+					_Dialogs.showCustomProperties(entity);
 				});
 
 			}, '_html_');
@@ -285,6 +313,8 @@ var _Dialogs = {
 					// focus on first input field
 					$('input#name-input').focus();
 					$('input#name-input').select();
+
+					_Dialogs.showCustomProperties(entity);
 				});
 
 			}, '_html_');
@@ -320,6 +350,8 @@ var _Dialogs = {
 					// focus on first input field
 					$('input#name-input').focus();
 					$('input#name-input').select();
+
+					_Dialogs.showCustomProperties(entity);
 				});
 
 			}, '_html_');
@@ -328,15 +360,15 @@ var _Dialogs = {
 }
 
 var registeredDialogs = {
-	'A': { id: 'a', title : '&#x2605;', callback: _Dialogs.aDialog },
-	'Button': { id: 'button', title : '&#x2605;', callback: _Dialogs.buttonDialog },
-	'Div': { id: 'div', title : '&#x2605;', callback: _Dialogs.divDialog },
+	'A': { id: 'a', title : 'General', callback: _Dialogs.aDialog },
+	'Button': { id: 'button', title : 'General', callback: _Dialogs.buttonDialog },
+	'Div': { id: 'div', title : 'General', callback: _Dialogs.divDialog },
 	'File':  { id: 'file', title: 'Advanced', callback: _Dialogs.fileDialog },
 	'Image':  { id: 'file', title: 'Advanced', callback: _Dialogs.fileDialog },
-	'Input':  { id: 'input', title: '&#x2605;', callback: _Dialogs.inputDialog },
+	'Input':  { id: 'input', title: 'General', callback: _Dialogs.inputDialog },
 	'LDAPGroup':  { id: 'ldapgroup', title: 'LDAP configuration', callback: _Dialogs.ldapGroupDialog },
-	'Page': { id: 'page', title : '&#x2605;', callback: _Dialogs.pageDialog },
-	'User': { id: 'user', title : '&#x2605;', callback: _Dialogs.userDialog },
+	'Page': { id: 'page', title : 'General', callback: _Dialogs.pageDialog },
+	'User': { id: 'user', title : 'General', callback: _Dialogs.userDialog },
 }
 
 function setNull(id, key, input) {

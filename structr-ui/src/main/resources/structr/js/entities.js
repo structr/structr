@@ -584,9 +584,9 @@ var _Entities = {
 
 		var handleGraphObject = function(entity) {
 
-			var views = ['ui', 'custom' ];
+			var views      = ['ui' ];
 			var activeView = 'ui';
-			var tabTexts = [];
+			var tabTexts   = [];
 
 			if (activeViewOverride) {
 				activeView = activeViewOverride;
@@ -833,7 +833,7 @@ var _Entities = {
 					});
 
 					if (typeof callback === 'function') {
-						callback();
+						callback(properties);
 					}
 				}
 			});
