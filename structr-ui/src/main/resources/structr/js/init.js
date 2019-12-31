@@ -1273,7 +1273,7 @@ var Structr = {
 					var version = ui.version;
 					var build = ui.build;
 					var date = ui.date;
-					var versionLink = 'https://structr.org/download';
+					var versionLink = 'https://structr.com/download';
 					var versionInfo = '<a target="_blank" href="' + versionLink + '">' + version + '</a>';
 					if (build && date) {
 						versionInfo += '<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a><span> (' + date + ')</span>';
