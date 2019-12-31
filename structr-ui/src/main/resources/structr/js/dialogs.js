@@ -36,6 +36,10 @@ var _Dialogs = {
 		return false;
 	},
 
+	getTitle: function() {
+		return "Details";
+	},
+
 	// ----- custom dialogs -----
 	ldapGroupDialog: function(el, entity) {
 
@@ -119,7 +123,7 @@ var _Dialogs = {
 
 			Command.get(entity.id, null, function(a) {
 
-				Structr.fetchHtmlTemplate('dialogs/a.options', { entity: entity, a: a, title: 'Main Options' }, function (html) {
+				Structr.fetchHtmlTemplate('dialogs/a.options', { entity: entity, a: a, title: _Dialogs.getTitle() }, function (html) {
 
 					el.append(html);
 
@@ -158,7 +162,7 @@ var _Dialogs = {
 
 			Command.get(entity.id, null, function(button) {
 
-				Structr.fetchHtmlTemplate('dialogs/button.options', { entity: entity, button: button, title: 'Main Options' }, function (html) {
+				Structr.fetchHtmlTemplate('dialogs/button.options', { entity: entity, button: button, title: _Dialogs.getTitle() }, function (html) {
 
 					el.append(html);
 
@@ -196,7 +200,7 @@ var _Dialogs = {
 
 			Command.get(entity.id, null, function(input) {
 
-				Structr.fetchHtmlTemplate('dialogs/input.options', { entity: entity, input: input, title: 'Main Options' }, function (html) {
+				Structr.fetchHtmlTemplate('dialogs/input.options', { entity: entity, input: input, title: _Dialogs.getTile() }, function (html) {
 
 					el.append(html);
 
@@ -219,7 +223,7 @@ var _Dialogs = {
 
 			Command.get(entity.id, null, function(div) {
 
-				Structr.fetchHtmlTemplate('dialogs/div.options', { entity: entity, div: div, title: 'Main Options' }, function (html) {
+				Structr.fetchHtmlTemplate('dialogs/div.options', { entity: entity, div: div, title: _Dialogs.getTitle() }, function (html) {
 
 					el.append(html);
 
@@ -257,7 +261,7 @@ var _Dialogs = {
 
 			Command.get(entity.id, null, function(div) {
 
-				Structr.fetchHtmlTemplate('dialogs/user.options', { entity: entity, user: entity, title: 'Main Options' }, function (html) {
+				Structr.fetchHtmlTemplate('dialogs/user.options', { entity: entity, user: entity, title: _Dialogs.getTitle() }, function (html) {
 
 					el.append(html);
 
@@ -292,7 +296,7 @@ var _Dialogs = {
 
 			Command.get(entity.id, null, function(page) {
 
-				Structr.fetchHtmlTemplate('dialogs/page.options', { entity: entity, page: entity, title: 'Main Options' }, function (html) {
+				Structr.fetchHtmlTemplate('dialogs/page.options', { entity: entity, page: entity, title: _Dialogs.getTitle() }, function (html) {
 
 					el.append(html);
 
