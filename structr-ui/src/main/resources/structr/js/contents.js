@@ -771,38 +771,42 @@ var _Contents = {
 
 				e.preventDefault();
 				e.stopPropagation();
+				
+				_Entities.getSchemaProperties(entity.type, 'custom', function(properties) {
 
-				Command.query('SchemaNode', 1, 1, 'name', 'asc', { name: entity.type }, function(schemaNodes) {
+					let props = Object.values(properties);
 
-					schemaNodes[0].schemaProperties.forEach(function(prop) {
+					props.forEach(function(prop) {
+
+						let key = prop.jsonName;
 
 						var newVal;
-						var oldVal = entity[prop.name];
+						var oldVal = entity[key];
 
 						if (true) {
 
 							if (prop.contentType && prop.contentType === 'text/html') {
-								newVal = $('#prop-' + prop.name + ' .edit-area').trumbowyg('html') || null;
+								newVal = $('#prop-' + key + ' .edit-area').trumbowyg('html') || null;
 							} else if (prop.propertyType === 'Boolean') {
-								newVal = $('#prop-' + prop.name + ' .value-container input').prop('checked') || false;
+								newVal = $('#prop-' + key + ' .value-container input').prop('checked') || false;
 							} else {
 								if (prop.format === 'multi-line') {
-									newVal = $('#prop-' + prop.name + ' .value-container textarea').val() || null;
+									newVal = $('#prop-' + key + ' .value-container textarea').val() || null;
 								} else {
-									newVal = $('#prop-' + prop.name + ' .value-container input').val() || null;
+									newVal = $('#prop-' + key + ' .value-container input').val() || null;
 								}
 							}
 
 							if (newVal !== oldVal) {
 
-								Command.setProperty(entity.id, prop.name, newVal, false, function() {
+								Command.setProperty(entity.id, key, newVal, false, function() {
 
 									oldVal = newVal;
 									dialogSaveButton.prop("disabled", true).addClass('disabled');
 									saveAndClose.prop("disabled", true).addClass('disabled');
 
 									// update title in list
-									if (prop.name === 'title') {
+									if (key === 'title') {
 										var f = $('#row' + entity.id + ' .item-title b');
 										f.text(fitStringToWidth(newVal, 200));
 										blinkGreen(f);
