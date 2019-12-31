@@ -5260,17 +5260,23 @@ table#principals tbody td {
 	font-size: 8pt;
 }
 
+div.row {
+	clear: both;
+}
+
 div.option-tile {
 	float: left;
-	width: 415px;
-	margin-right: 20px;
+	width: calc(50% - 10px);
 	padding-bottom: 10px;
 }
 
-div.option-tile.double {
-	width: 850px;
+div.option-tile:nth-child(even) {
+	margin-left: 20px;
 }
 
+div.option-tile.double {
+	width: calc(100%);
+}
 
 div.quick-access-options h3 {
 	margin-bottom: 0;
@@ -5309,4 +5315,13 @@ button.icon-button i {
 
 div#tabView-query div.CodeMirror {
 	height: 120px !important;
+}
+
+div#custom-properties-parent {
+	padding-top: 12px;
+}
+
+div#custom-properties-container table td:nth-child(3) {
+	text-align: right;
+	width: 30px;
 }

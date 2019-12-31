@@ -9,6 +9,8 @@
 			<label>eMail</label>
 			<input type="text" id="e-mail-input" value="${config.entity.eMail || ''}" />
 		</div>
+	</div>
+	<div class="row">
 		<div class="option-tile">
 			<label style="display: block;">Password</label>
 			<input type="password" id="password-input" value="" style="width: 315px;"/>
@@ -24,6 +26,12 @@
 				<input type="checkbox" id="is-two-factor-user-checkbox" />
 				<label for="is-two-factor-user-checkbox">Enable Two-Factor Authentication for this User</label>
 			</div>
+		</div>
+	</div>
+	<div id="custom-properties-parent" class="hidden">
+		<h3>Custom Properties</h3>
+		<div class="row">
+		     <div id="custom-properties-container"></div>
 		</div>
 	</div>
 </div>
