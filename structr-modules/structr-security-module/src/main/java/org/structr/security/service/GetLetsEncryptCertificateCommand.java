@@ -21,6 +21,7 @@ package org.structr.security.service;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -38,6 +39,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.security.cert.X509Certificate;
+import java.util.LinkedList;
 import org.apache.commons.lang.StringUtils;
 import org.shredzone.acme4j.Account;
 import org.shredzone.acme4j.AccountBuilder;
@@ -54,9 +56,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.MaintenanceCommand;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 import org.structr.rest.resource.MaintenanceParameterResource;
+import org.structr.schema.SchemaHelper;
+import org.structr.web.common.FileHelper;
+import org.structr.web.entity.Folder;
 
 /**
  * Maintenance command to get or renew Let's Encrypt certificates.
@@ -221,7 +232,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 
 	private static void writeCertificateToKeyStore(final Collection<String> domains, final Certificate certificate, final KeyPair domainKeyPair) throws FrameworkException {
 
-		final String password         = Settings.KeystorePassword.getValue();
+		final String password = Settings.KeystorePassword.getValue();
 
 		final KeyStore keyStore = getOrCreateKeyStore();
 		try {
@@ -341,7 +352,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			return;
 		}
 
-		// Wait for the specified amount of milliseconds
+		// Wait the specified amount of milliseconds
 		Thread.sleep(wait);
 		
 		challenge.trigger();
@@ -385,14 +396,57 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 	}
 
 	private static void stopServer() {
-		if (challengeType.equals("http") && server != null) {
-			server.stop(0);
+		
+		if (challengeType.equals("http")) {
+			
+			if (server != null) {
+				
+				logger.info("Stopping temporary HTTP server...");
+				
+				// If a temporary HTTP server is running, stop it.
+				server.stop(0);
+				
+				logger.info("Successfully stoppted temporary HTTP server.");
+				
+			} else {
+
+				logger.info("Removing /.well-known/acme-challenge/* from internal file system...");
+				
+				final App app = StructrApp.getInstance();
+				try (final Tx tx = app.tx()) {
+
+					// Delete challenge response file and all parent folders from internal file system
+
+					final SecurityContext adminContext = SecurityContext.getSuperUserInstance();
+					final Folder wellKnownFolder = (Folder) FileHelper.getFileByAbsolutePath(adminContext, "/.well-known");
+					if (wellKnownFolder != null) {
+
+						final List<NodeInterface> filteredResults = new LinkedList<>();
+						filteredResults.addAll(wellKnownFolder.getAllChildNodes());
+
+						for (NodeInterface node : filteredResults) {
+								app.delete(node);
+						}
+						
+						app.delete(wellKnownFolder);
+					}
+					
+					tx.success();
+					
+					logger.info("Successfully removed challenge response resources /.well-known/acme-challenge/* from internal file system.");
+					
+				} catch (FrameworkException ex) {
+					logger.error("Unable to remove challenge response file and folders.");
+				}
+			}
 		}
 	}
 	
 	public static Challenge httpChallenge(final Authorization auth) throws FrameworkException {
 
 		final Http01Challenge challenge = auth.findChallenge(Http01Challenge.class);
+		final String uriPath            = "/.well-known/acme-challenge/" + challenge.getToken();
+		final String content            = challenge.getAuthorization();
 
 		if (challenge == null) {
 			logger.info("No " + Http01Challenge.TYPE + " challenge found, aborting.");
@@ -405,8 +459,6 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			
 			server = HttpServer.create(new InetSocketAddress(80), 0);
 
-			final String uriPath = "/.well-known/acme-challenge/" + challenge.getToken();
-			final String content = challenge.getAuthorization();
 
 			logger.info("HTTP Challenge URI path: " + uriPath);
 			logger.info("HTTP Challenge content: " + content);
@@ -436,7 +488,37 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 
 			stopServer();
 
-			logger.error("Unable to start HTTP server for challenge authorization.", iox);
+			logger.info("Unable to start temporary HTTP server for challenge authorization, trying internal file server...", iox);
+			
+			final App app = StructrApp.getInstance();
+			
+			try (final Tx tx = app.tx()) {
+			
+				final SecurityContext adminContext = SecurityContext.getSuperUserInstance();
+				final Folder parentFolder = FileHelper.createFolderPath(adminContext, "/.well-known/acme-challenge/");
+
+				PropertyMap props = new PropertyMap();
+				props.put(StructrApp.key(org.structr.web.entity.Folder.class, "visibleToPublicUsers"), true);
+				props.put(StructrApp.key(org.structr.web.entity.Folder.class, "visibleToAuthenticatedUsers"), true);
+
+				parentFolder.setProperties(adminContext, props);
+				parentFolder.getParent().setProperties(adminContext, props);
+			
+				org.structr.web.entity.File challengeFile = FileHelper.createFile(adminContext, new ByteArrayInputStream(content.getBytes()), "text/plain", SchemaHelper.getEntityClassForRawType("File"), challenge.getToken(), parentFolder);
+				
+				props = new PropertyMap();
+				props.put(StructrApp.key(org.structr.web.entity.File.class, "visibleToPublicUsers"), true);
+				props.put(StructrApp.key(org.structr.web.entity.File.class, "visibleToAuthenticatedUsers"), true);				
+				
+				challengeFile.setProperties(adminContext, props);
+				
+				tx.success();
+				
+			} catch (IOException ex) {
+				logger.error("Unable to start create challenge response file in internal file system, aborting.", ex);
+				throw new FrameworkException(422, "Unable to start create challenge response file in internal file system, aborting.");
+			}
+			
 		}
 
 		return challenge;
