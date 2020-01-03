@@ -125,7 +125,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			}
 
 		} else {
-
+			logger.info("No server supplied, aborting.");
 			throw new FrameworkException(500, "No server supplied, aborting.");
 		}
 
@@ -175,7 +175,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 				while (org.shredzone.acme4j.Status.VALID != order.getStatus() && attempts-- > 0) {
 					
 					if (org.shredzone.acme4j.Status.INVALID == order.getStatus()) {
-						
+						logger.info("Order failed after " + attempts + " attempts, aborting.");
 						throw new FrameworkException(422, "Order failed after " + attempts + " attempts, aborting.");
 					}
 
@@ -207,12 +207,14 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 				logger.info("Keystore file successfully written.");
 				
 			} else {
+				logger.info("Unable to get certificate from order, aborting.");
 				throw new FrameworkException(422, "Unable to get certificate from order, aborting.");
 			}
 			
 			
 		} catch (final Exception e) {
 
+			logger.info("Unable to get certificate from Let's Encrypt: " + e.getMessage());
 			throw new FrameworkException(422, "Unable to get certificate from Let's Encrypt: " + e.getMessage());
 		}
 	}
@@ -231,19 +233,24 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			KeyStore.PrivateKeyEntry privateKeyEntry = new KeyStore.PrivateKeyEntry(domainKeyPair.getPrivate(), certificateChainList.toArray(new X509Certificate[certificateChainList.size()]));
 			KeyStore.ProtectionParameter protParam = new KeyStore.PasswordProtection(password.toCharArray());
 
-			keyStore.setEntry(certificateAlias + "_" + Settings.LetsEncryptDomainKeyFilename, privateKeyEntry, protParam);
+			keyStore.setEntry(certificateAlias + "_" + Settings.LetsEncryptDomainKeyFilename.getValue(), privateKeyEntry, protParam);
 			
 			writeKeyStore(keyStore);
 			
 		} catch (final Exception ex) {
 			
+			logger.info("Unable to write to keystore: " + ex.getMessage());
 			throw new FrameworkException(422, "Unable to write to keystore: " + ex.getMessage());
 		}
 	}
 
+	private static String getKeyStoreFilename() {
+		return Settings.KeystorePath.getValue(Settings.LetsEncryptDomainKeyFilename.getValue() + ".keystore");
+	}
+	
 	private static void writeKeyStore(final KeyStore keyStore) throws FrameworkException {
 	
-		final String keyStoreFilename = Settings.KeystorePath.getValue();
+		final String keyStoreFilename = getKeyStoreFilename();
 		final String password         = Settings.KeystorePassword.getValue();
 
 		final File keyStoreFile = new File(keyStoreFilename);
@@ -253,6 +260,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			keyStore.store(fos, password.toCharArray());
 
 		} catch (final Exception ex) {
+			logger.info("Unable to write to keystore: " + ex.getMessage());
 			throw new FrameworkException(422, "Unable to write to keystore: " + ex.getMessage());
 		}
 	
@@ -260,7 +268,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 	
 	private static KeyStore getOrCreateKeyStore() throws FrameworkException {
 		
-		final String keyStoreFilename = Settings.KeystorePath.getValue();
+		final String keyStoreFilename = getKeyStoreFilename();
 		final String password         = Settings.KeystorePassword.getValue();
 		
 		final File keyStoreFile = new File(keyStoreFilename);
@@ -270,7 +278,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			keyStore = KeyStore.getInstance("PKCS12");
 			
 		} catch (final KeyStoreException ex) {
-			
+			logger.info("Unable to create Keystore instance: " + ex.getMessage());
 			throw new FrameworkException(422, "Unable to create Keystore instance: " + ex.getMessage());
 		}
 		
@@ -292,7 +300,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			return keyStore;
 			
 		} catch (final Exception ex) {
-			
+			logger.info("Unable to create new keystore file. Check permissions. " + ex.getMessage());
 			throw new FrameworkException(422, "Unable to create new keystore file. Check permissions. " + ex.getMessage());
 		}
 		
@@ -318,19 +326,23 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 		}
 
 		if (challenge == null) {
-			server.stop(0);
+
+			stopServer();
+
+			logger.info("No ACME challenge found, aborting.");
 			throw new FrameworkException(422, "No ACME challenge found, aborting.");
 		}
 
 		if (challenge.getStatus() == org.shredzone.acme4j.Status.VALID) {
-			server.stop(0);
+
+			stopServer();
+
 			logger.info("Challenge has already been authorized, aborting.");
 			return;
 		}
 
 		// Wait for the specified amount of milliseconds
 		Thread.sleep(wait);
-		
 		
 		challenge.trigger();
 
@@ -341,6 +353,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			while (org.shredzone.acme4j.Status.VALID != challenge.getStatus() && attempts-- > 0) {
 				
 				if (challenge.getStatus() == org.shredzone.acme4j.Status.INVALID) {
+					logger.info("Challenge authorization failed due to invalid response, aborting.");
 					throw new FrameworkException(422, "Challenge authorization failed due to invalid response, aborting.");
 				}
 
@@ -349,27 +362,40 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 				challenge.update();
 			}
 		} catch (final InterruptedException ex) {
-			server.stop(0);
+
+			stopServer();
+
 			logger.error("Challenge authorization thread has been interrupted", ex);
 			Thread.currentThread().interrupt();
 		}
 
 		if (challenge.getStatus() != org.shredzone.acme4j.Status.VALID) {
-			
-			server.stop(0);
+
+			stopServer();
+
+			logger.info("No valid authorization received for challenge for domain " + auth.getIdentifier().getDomain() + ", aborting.");
 			throw new FrameworkException(422, "No valid authorization received for challenge for domain " + auth.getIdentifier().getDomain() + ", aborting.");
 		}
 
-		logger.info("Successfully finished challenge, stopping server on port 80.");
+		if (challengeType.equals("http")) {
 
-		server.stop(0);
+			logger.info("Successfully finished challenge, stopping server on port 80.");
+			stopServer();
+		}
 	}
 
+	private static void stopServer() {
+		if (challengeType.equals("http") && server != null) {
+			server.stop(0);
+		}
+	}
+	
 	public static Challenge httpChallenge(final Authorization auth) throws FrameworkException {
 
 		final Http01Challenge challenge = auth.findChallenge(Http01Challenge.class);
 
 		if (challenge == null) {
+			logger.info("No " + Http01Challenge.TYPE + " challenge found, aborting.");
 			throw new FrameworkException(422, "No " + Http01Challenge.TYPE + " challenge found, aborting.");
 		}
 
@@ -408,7 +434,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 
 		} catch (final IOException iox) {
 
-			server.stop(0);
+			stopServer();
 
 			logger.error("Unable to start HTTP server for challenge authorization.", iox);
 		}
@@ -420,12 +446,13 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 
 		final Dns01Challenge challenge = auth.findChallenge(Dns01Challenge.TYPE);
 		if (challenge == null) {
+			logger.info("No " + Dns01Challenge.TYPE + " challenge found, aborting.");
 			throw new FrameworkException(422, "No " + Dns01Challenge.TYPE + " challenge found, aborting.");
 		}
 
-		logger.info("Within the next " + wait + " seconds, create a TXT record in your DNS for " + auth.getIdentifier().getDomain() + " with the folling data:");
+		logger.info("Within the next " + (wait/1000) + " seconds, create a TXT record in your DNS for " + auth.getIdentifier().getDomain() + " with the folling data:");
 		logger.info("_acme-challenge.{}. IN TXT {}", auth.getIdentifier().getDomain(), challenge.getDigest());
-		logger.info("After " + wait + " seconds, the certificate authority will probe the DNS record to authorize the challenge. If the record is not available, the authorization will fail.");
+		logger.info("After " + (wait/1000) + " seconds, the certificate authority will probe the DNS record to authorize the challenge. If the record is not available, the authorization will fail.");
 
 		return challenge;
 	}
