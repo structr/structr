@@ -141,6 +141,7 @@
 									</mapper>
 								</data>
 
+								<!--
 								<data>
 									<src>${basedir}/src/main/deb/logrotate.d</src>
 									<type>directory</type>
@@ -150,6 +151,7 @@
 										<filemode>755</filemode>
 									</mapper>
 								</data>
+								-->
 							</dataSet>
 						</configuration>
 					</execution>
