@@ -50,7 +50,7 @@ public abstract class NodeServiceCommand extends Command {
 
 	@Override
 	public Class getServiceClass()	{
-		return(NodeService.class);
+		return NodeService.class;
 	}
 
 	@Override
