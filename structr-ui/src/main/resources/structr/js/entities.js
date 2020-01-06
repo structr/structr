@@ -217,24 +217,6 @@ var _Entities = {
 		var textArea = $('<textarea class="hidden query-text"></textarea>').appendTo(el);
 		var flowSelector = $('#flow-selector');
 
-		// test
-		var editor = CodeMirror.fromTextArea(textArea.get(0), {
-			lineNumbers: false,
-			lineWrapping: false,
-			indentUnit: 4,
-			tabSize:4,
-			indentWithTabs: true,
-			autoRefresh: true,
-			extraKeys: {
-				"Ctrl-Space": "autocomplete"
-			}
-		});
-		_Code.setupAutocompletion(editor, entity.id, true);
-
-		var refreshEditor = function() {
-			window.setTimeout(e => editor.refresh(), 10);
-		};
-
 		var initRepeaterInputs = function() {
 
 			var saveBtn = $('<button class="action">Save</button>');
@@ -251,8 +233,7 @@ var _Entities = {
 					btn.click();
 					var flow = entity[queryType.propertyName];
 					saveBtn.hide();
-					//textArea.hide();
-					$(editor.getWrapperElement()).hide();
+					textArea.hide();
 					flowSelector.show();
 					if (flow) {
 						//var flowName = flow.effectiveName;
@@ -265,12 +246,10 @@ var _Entities = {
 					if (entity[queryType.propertyName] && entity[queryType.propertyName].trim() !== "") {
 						btn.addClass('active');
 						saveBtn.show();
-						$(editor.getWrapperElement()).show();
-						refreshEditor();
+						textArea.show();
 						flowSelector.hide();
 						$('button.flow').removeClass('active');
-						editor.setValue(editor.getValue() + entity[queryType.propertyName]);
-						refreshEditor();
+						textArea.text(textArea.text() + entity[queryType.propertyName]);
 						queryHeading.text(btn.text());
 					}
 				}
@@ -286,13 +265,12 @@ var _Entities = {
 
 				if (queryType === 'flow') {
 					saveBtn.hide();
-					$(editor.getWrapperElement()).hide();
+					textArea.hide();
 					flowSelector.show();
 
 				} else {
 					saveBtn.show();
-					$(editor.getWrapperElement()).show();
-					refreshEditor();
+					textArea.show();
 					flowSelector.hide();
 				}
 			});
@@ -321,7 +299,7 @@ var _Entities = {
 							val = flowSelector.val();
 
 						} else {
-							val = editor.getValue();
+							val = textArea.val();
 							data.flow = null;
 							flowSelector.val('--- Select Flow ---');
 						}
@@ -358,11 +336,6 @@ var _Entities = {
 		} else {
 			initRepeaterInputs();
 		}
-
-		// return callback that refreshes CodeMirror when called..
-		return function() {
-			editor.refresh();
-		};
 	},
 	activateTabs: function(nodeId, elId, activeId, activeTabPrefix) {
 		activeTabPrefix = activeTabPrefix || _Entities.activeQueryTabPrefix;
