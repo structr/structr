@@ -606,12 +606,9 @@ var _Entities = {
 
 					if (entity.isContent !== true || entity.type === 'Template') {
 
-						// callback to refresh() the CodeMirror instance in the query and data binding dialog when it's shown
-						var showCallback = function() {};
-
 						_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', !hasCustomDialog, function(c) {
-							showCallback = _Entities.queryDialog(entity, c, typeInfo);
-						}, function() { showCallback(); }, function() { showCallback(); });
+							_Entities.queryDialog(entity, c, typeInfo);
+						}, function() { }, function() { });
 					}
 
 					if (entity.isContent !== true) {
