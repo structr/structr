@@ -2901,6 +2901,10 @@ table.push {
 	width: calc(100% - 14px);
 }
 
+#resourceAccessesTable thead th .pager input {
+	width: initial;
+}
+
 #resourceAccessesTable td img {
 	vertical-align: middle;
 }
