@@ -56,6 +56,6 @@ public class MailClearAttachmentsFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Removes all attachments from the current mail";
 	}
 }

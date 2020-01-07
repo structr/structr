@@ -56,6 +56,6 @@ public class MailClearReplyToFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Removes the reply to address from the current mail";
 	}
 }

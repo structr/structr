@@ -38,7 +38,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getSignature() {
-		return "file, content";
+		return "file, content[, encoding = \"UTF-8\"]";
 	}
 
 	@Override

@@ -74,6 +74,6 @@ public class MailDecodeTextFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Decodes RFC 822 \"text\" token from mail-safe form as per RFC 2047";
 	}
 }

@@ -42,7 +42,7 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getSignature() {
-		return "fromAddress [, fromName, subject, html, text, files ]";
+		return "fromAddress [, fromName[, subject[, htmlContent[, textContent[, files]]]]]";
 	}
 
 	@Override
@@ -97,6 +97,6 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Begins a new mail configuration - previously started configurations are cleared.";
 	}
 }

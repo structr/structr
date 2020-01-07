@@ -56,6 +56,6 @@ public class MailClearBccFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Removes all BCC addresses from the current mail";
 	}
 }

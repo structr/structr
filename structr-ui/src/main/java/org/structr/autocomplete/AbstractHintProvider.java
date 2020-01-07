@@ -18,7 +18,6 @@
  */
 package org.structr.autocomplete;
 
-import org.structr.core.function.ParseResult;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
@@ -37,6 +36,7 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.function.Functions;
 import org.structr.core.function.KeywordHint;
+import org.structr.core.function.ParseResult;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
@@ -160,11 +160,11 @@ public abstract class AbstractHintProvider {
 
 					if (hint.mayModify()) {
 
-						item.put(text, visitReplacement(functionName));
+						item.put(text, displayName);
 
 					} else {
 
-						item.put(text, functionName);
+						item.put(text, displayName);
 					}
 
 					item.put(displayText, displayName + " - " + textOrPlaceholder(hint.shortDescription()));

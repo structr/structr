@@ -75,7 +75,7 @@ public class StopWordsFunction extends Function<Object, Object> {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Returns a list of words (for the given language) which can be safely ignored in a NLP purposes";
 	}
 
 	@Override

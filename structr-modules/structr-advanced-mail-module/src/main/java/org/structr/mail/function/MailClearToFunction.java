@@ -56,6 +56,6 @@ public class MailClearToFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Removes the to addresses from the current mail";
 	}
 }

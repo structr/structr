@@ -56,6 +56,6 @@ public class MailClearHeadersFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Removes all custom headers for the current mail";
 	}
 }
