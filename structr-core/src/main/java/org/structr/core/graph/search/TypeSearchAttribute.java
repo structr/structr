@@ -92,10 +92,12 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 		}
 	}
 
+	@Override
 	public Class getSourceType() {
 		return sourceType;
 	}
 
+	@Override
 	public Class getTargetType() {
 		return targetType;
 	}

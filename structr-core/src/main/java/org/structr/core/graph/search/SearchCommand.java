@@ -36,10 +36,10 @@ import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryContext;
+import org.structr.api.search.SortOrder;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.geo.GeoCodingResult;
@@ -93,12 +93,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	private final SearchAttributeGroup rootGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
+	private DefaultSortOrder sortOrder           = new DefaultSortOrder();
 	private SearchAttributeGroup currentGroup    = rootGroup;
-	private Comparator<T> comparator             = null;
-	private PropertyKey sortKey                  = null;
+	private Comparator comparator                = null;
 	private boolean publicOnly                   = false;
 	private boolean includeHidden                = true;
-	private boolean sortDescending               = false;
 	private boolean doNotSort                    = false;
 	private Class type                           = null;
 	private int pageSize                         = Integer.MAX_VALUE;
@@ -213,10 +212,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		} else {
 
 			// apply sorting
-			if (sortKey != null && !doNotSort) {
+			if (!sortOrder.isEmpty() && !doNotSort) {
 
-				rootGroup.setSortKey(sortKey);
-				rootGroup.sortDescending(sortDescending);
+				rootGroup.setSortOrder(sortOrder);
 			}
 
 			final Index<S> index = getIndex();
@@ -290,7 +288,10 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			}
 
 			// sort list
-			Collections.sort(finalResult, new GraphObjectComparator(sortKey, sortDescending));
+			if (!sortOrder.isEmpty()) {
+
+				Collections.sort(finalResult, sortOrder);
+			}
 
 			return new PagingIterable(finalResult, pageSize, page);
 
@@ -374,39 +375,24 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
-	public org.structr.core.app.Query<T> sort(final PropertyKey key) {
-		return sortAscending(key);
-	}
+	public org.structr.core.app.Query<T> sort(final SortOrder sortOrder) {
 
-	@Override
-	public org.structr.core.app.Query<T> sortAscending(final PropertyKey key) {
+		this.doNotSort  = false;
 
-		this.doNotSort      = false;
-		this.sortDescending = false;
-		this.sortKey        = key;
-
-		assertPropertyIsIndexed(key);
+		// type cast
+		if (sortOrder instanceof DefaultSortOrder) {
+			this.sortOrder = (DefaultSortOrder)sortOrder;
+		}
 
 		return this;
 	}
 
 	@Override
-	public org.structr.core.app.Query<T> sortDescending(final PropertyKey key) {
+	public org.structr.core.app.Query<T> sort(final PropertyKey sortKey, final boolean sortDescending) {
 
-		this.doNotSort      = false;
-		this.sortDescending = true;
-		this.sortKey        = key;
+		this.doNotSort  = false;
 
-		assertPropertyIsIndexed(key);
-
-		return this;
-	}
-
-	@Override
-	public org.structr.core.app.Query<T> order(final boolean descending) {
-
-		this.doNotSort      = false;
-		this.sortDescending = descending;
+		sortOrder.addElement(sortKey, sortDescending);
 
 		return this;
 	}

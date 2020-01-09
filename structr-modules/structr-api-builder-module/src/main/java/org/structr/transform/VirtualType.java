@@ -32,7 +32,6 @@ import org.structr.api.Predicate;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.ResultTransformer;
 import org.structr.common.SecurityContext;
@@ -126,7 +125,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 	// ----- private methods -----
 	static List<VirtualProperty> sort(final List<VirtualProperty> source) {
 
-		Collections.sort(source, new GraphObjectComparator(StructrApp.key(VirtualProperty.class, "position"), false));
+		Collections.sort(source, StructrApp.key(VirtualProperty.class, "position").sorted(false));
 
 		return source;
 	}

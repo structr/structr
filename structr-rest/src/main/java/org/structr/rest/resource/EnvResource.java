@@ -21,11 +21,10 @@ package org.structr.rest.resource;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
+import org.structr.api.search.SortOrder;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -37,7 +36,6 @@ import org.structr.core.Services;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.GenericProperty;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.common.HttpHelper;
@@ -63,7 +61,7 @@ public class EnvResource extends Resource {
 	}
 
 	@Override
-	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
 		final List<GraphObjectMap> resultList             = new LinkedList<>();
 		final GraphObjectMap info                         = new GraphObjectMap();
@@ -127,25 +125,25 @@ public class EnvResource extends Resource {
 	public boolean isCollectionResource() throws FrameworkException {
 		return false;
 	}
-	
+
 
 	public static String[] getAvailableVersions(final String urlString) {
-		
+
 		if (StringUtils.isNotBlank(urlString)) {
-			
+
 			try {
-			
+
 				final String result = HttpHelper.get(urlString);
 				if (StringUtils.isNotBlank(result)) {
 					return result.split("\\r?\\n");
 				}
-			
+
 			} catch (FrameworkException ex) {
 			}
 		}
-		
+
 		return new String[]{};
-		
+
 	}
-	
+
 }

@@ -110,7 +110,7 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 		if (sortKey != null) {
 
 			final PropertyKey sortProperty = StructrApp.key(DOMNode.class, sortKey);
-			query = StructrApp.getInstance(securityContext).nodeQuery().includeHidden().sort(sortProperty).order("desc".equals(sortOrder));
+			query = StructrApp.getInstance(securityContext).nodeQuery().includeHidden().sort(sortProperty, "desc".equals(sortOrder));
 
 		} else {
 

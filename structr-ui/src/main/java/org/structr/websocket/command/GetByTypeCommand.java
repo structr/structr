@@ -90,7 +90,7 @@ public class GetByTypeCommand extends AbstractCommand {
 				final PropertyKey sortProperty = StructrApp.key(type, sortKey);
 				if (sortProperty != null) {
 
-					query.sort(sortProperty).order("desc".equals(sortOrder));
+					query.sort(sortProperty, "desc".equals(sortOrder));
 				}
 			}
 

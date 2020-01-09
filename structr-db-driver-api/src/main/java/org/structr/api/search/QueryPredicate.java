@@ -37,7 +37,5 @@ public interface QueryPredicate {
 	Occurrence getOccurrence();
 	boolean isExactMatch();
 
-	String getSortKey();
-	SortType getSortType();
-	boolean sortDescending();
+	SortOrder getSortOrder();
 }

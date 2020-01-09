@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Set;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.api.search.QueryContext;
+import org.structr.api.search.SortOrder;
+import org.structr.api.search.SortSpec;
 import org.structr.api.search.SortType;
 
 /**
@@ -39,9 +41,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 	private String sourceTypeLabel                  = null;
 	private String targetTypeLabel                  = null;
 	private AbstractCypherIndex<?> index            = null;
-	private boolean sortDescending                  = false;
-	private SortType sortType                       = null;
-	private String sortKey                          = null;
+	private SortOrder sortOrder                     = null;
 	private int page                                = 0;
 	private int pageSize                            = 0;
 	private int count                               = 0;
@@ -69,8 +69,8 @@ public class AdvancedCypherQuery implements CypherQuery {
 		return this.pageSize;
 	}
 
-	public String getSortKey() {
-		return sortKey;
+	public SortOrder getSortOrder() {
+		return sortOrder;
 	}
 
 	@Override
@@ -126,31 +126,54 @@ public class AdvancedCypherQuery implements CypherQuery {
 				break;
 		}
 
-		if (sortKey != null) {
+		if (sortOrder != null) {
 
-			switch (sortType) {
+			boolean first     = true;
+			int sortSpecIndex = 0;
 
-				case Default:
-					// default is "String"
-					// no COALESCE needed => much faster
-					buf.append(" ORDER BY sortKey");
 
-					break;
+			for (final SortSpec spec : sortOrder.getSortElements()) {
 
-				default:
-					// other types are numeric
-					buf.append(" ORDER BY COALESCE(sortKey, ");
+				if (first) {
 
-					// COALESCE needs a correctly typed minimum value,
-					// so we need to supply a value based on the sort
-					// type.
+					buf.append(" ORDER BY");
 
-					buf.append("-1");
-					buf.append(")");
-			}
+				} else {
 
-			if (sortDescending) {
-				buf.append(" DESC");
+					buf.append(", ");
+				}
+
+				final SortType sortType = spec.getSortType();
+				switch (sortType) {
+
+					case Default:
+						// default is "String"
+						// no COALESCE needed => much faster
+						buf.append(" sortKey");
+						buf.append(sortSpecIndex);
+
+						break;
+
+					default:
+						// other types are numeric
+						buf.append(" COALESCE(sortKey");
+						buf.append(sortSpecIndex);
+						buf.append(", ");
+
+						// COALESCE needs a correctly typed minimum value,
+						// so we need to supply a value based on the sort
+						// type.
+
+						buf.append("-1");
+						buf.append(")");
+				}
+
+				if (spec.sortDescending()) {
+					buf.append(" DESC");
+				}
+
+				sortSpecIndex++;
+				first = false;
 			}
 		}
 
@@ -320,11 +343,8 @@ public class AdvancedCypherQuery implements CypherQuery {
 	}
 
 	@Override
-	public void sort(final SortType sortType, final String sortKey, final boolean sortDescending) {
-
-		this.sortDescending = sortDescending;
-		this.sortType       = sortType;
-		this.sortKey        = sortKey;
+	public void sort(final SortOrder sortOrder) {
+		this.sortOrder = sortOrder;
 	}
 
 	public void setSourceType(final String sourceTypeLabel) {
@@ -352,7 +372,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 				buf.append(":");
 				buf.append(indexLabel);
 			}
-		
+
 			return buf.toString();
 		}
 

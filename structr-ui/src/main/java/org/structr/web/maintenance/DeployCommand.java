@@ -55,7 +55,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -824,14 +823,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		final List<Folder> folders = Iterables.toList(folder.getFolders());
-		Collections.sort(folders, new GraphObjectComparator(AbstractNode.name, false));
+		Collections.sort(folders, AbstractNode.name.sorted(false));
 
 		for (final Folder child : folders) {
 			exportFilesAndFolders(path, child, config);
 		}
 
 		final List<File> files = Iterables.toList(folder.getFiles());
-		Collections.sort(files, new GraphObjectComparator(AbstractNode.name, false));
+		Collections.sort(files, AbstractNode.name.sorted(false));
 
 		for (final File file : files) {
 			exportFile(path, file, config);

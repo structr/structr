@@ -16,29 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common;
+package org.structr.api.search;
 
 import java.util.Comparator;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.PropertyKey;
+import java.util.List;
 
-/**
- * A wrapper around {@link GraphObjectComparator} to be able to use it for
- * {@link AbstractNode} objects without type cast.
- * 
- *
- */
-public class AbstractNodePropertyComparator implements Comparator<NodeInterface> {
+public interface SortOrder extends Comparator {
 
-	private GraphObjectComparator comparator = null;
-	
-	public AbstractNodePropertyComparator(PropertyKey sortKey, String sortOrder) {
-		comparator = new GraphObjectComparator(sortKey, sortOrder);
-	}
-	
-	@Override
-	public int compare(NodeInterface o1, NodeInterface o2) {
-		return comparator.compare(o1, o2);
-	}
+	List<SortSpec> getSortElements();
+	boolean isEmpty();
 }

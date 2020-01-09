@@ -19,6 +19,7 @@
 package org.structr.test.common;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -30,7 +31,6 @@ import org.structr.api.NotFoundException;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -1455,7 +1455,7 @@ public class BasicTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				GraphObjectComparator comp = new GraphObjectComparator(TestOne.anInt, GraphObjectComparator.ASCENDING);
+				Comparator comp = TestOne.anInt.sorted(false);
 
 				try {
 					comp.compare(null, null);
@@ -1512,6 +1512,8 @@ public class BasicTest extends StructrTest {
 				setPropertyTx(a, TestOne.anInt, 2);
 				setPropertyTx(b, TestOne.anInt, 1);
 				assertEquals(1, comp.compare(a, b));
+
+				tx.success();
 			}
 
 		} catch (FrameworkException ex) {
@@ -1531,7 +1533,7 @@ public class BasicTest extends StructrTest {
 			TestOne a = createTestNode(TestOne.class);
 			TestOne b = createTestNode(TestOne.class);
 
-			GraphObjectComparator comp = new GraphObjectComparator(TestOne.anInt, GraphObjectComparator.DESCENDING);
+			Comparator comp = TestOne.anInt.sorted(true);
 
 			try {
 				comp.compare(null, null);

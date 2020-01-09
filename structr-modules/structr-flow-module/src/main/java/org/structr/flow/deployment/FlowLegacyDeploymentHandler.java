@@ -72,7 +72,7 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 
 			for (final FlowContainer cont: app.nodeQuery(FlowContainer.class).sort(StructrApp.key(NodeInterface.class, "id")).getAsList()) {
 
-				final FlowContainerConfiguration conf = app.nodeQuery(FlowContainerConfiguration.class).and(FlowContainerConfiguration.flow, cont).sortDescending(StructrApp.key(NodeInterface.class,"lastModifiedDate")).getFirst();
+				final FlowContainerConfiguration conf = app.nodeQuery(FlowContainerConfiguration.class).and(FlowContainerConfiguration.flow, cont).sort(StructrApp.key(NodeInterface.class,"lastModifiedDate"), true).getFirst();
 
 				if (conf != null) {
 

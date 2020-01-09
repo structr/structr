@@ -43,6 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
+import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -56,6 +57,7 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
@@ -141,23 +143,14 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				authenticator.checkResourceAccess(securityContext, request, resourceSignature, propertyView.get(securityContext));
 
 				// add sorting & paging
-				String pageSizeParameter = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
-				String pageParameter = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
-				String sortOrder = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
-				String sortKeyName = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
-				boolean sortDescending = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
-				int pageSize = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
-				int page = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
-				PropertyKey sortKey = null;
-
-				// set sort key
-				if (sortKeyName != null) {
-
-					Class<? extends GraphObject> type = resource.getEntityClass();
-
-					sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName, false);
-
-				}
+				final String pageSizeParameter          = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
+				final String pageParameter              = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
+				final String[] sortOrders               = request.getParameterValues(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
+				final String[] sortKeyNames             = request.getParameterValues(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
+				final int pageSize                      = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
+				final int page                          = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
+				final Class<? extends GraphObject> type = resource.getEntityClassOrDefault();
+				final SortOrder sortOrder               = new DefaultSortOrder(type, sortKeyNames, sortOrders);
 
 				// Should line breaks be removed?
 				removeLineBreaks = StringUtils.equals(request.getParameter(REMOVE_LINE_BREAK_PARAM), "1");
@@ -166,32 +159,13 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				writeBom = StringUtils.equals(request.getParameter(WRITE_BOM), "1");
 
 				// do action
-				result = resource.doGet(sortKey, sortDescending, pageSize, page);
+				result = resource.doGet(sortOrder, pageSize, page);
 				if (result != null) {
-
-					/*
-					result.setIsCollection(resource.isCollectionResource());
-					result.setIsPrimitiveArray(resource.isPrimitiveArray());
-
-					PagingHelper.addPagingParameter(result, pageSize, page);
-
-					// timing..
-					final double queryTimeEnd = System.nanoTime();
-
-					// store property view that will be used to render the results
-					result.setPropertyView(propertyView.get(securityContext));
-					*/
 
 					// allow resource to modify result set
 					resource.postProcessResultSet(result);
 
-					/*
-					DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-
-					result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
-					*/
-
-					Writer writer = response.getWriter();
+					final Writer writer = response.getWriter();
 
 					if (writeBom) {
 						writeUtf8Bom(writer);

@@ -19,6 +19,8 @@
 package org.structr.bolt.index;
 
 import org.structr.api.graph.Node;
+import org.structr.api.search.SortOrder;
+import org.structr.api.search.SortSpec;
 import org.structr.api.util.Iterables;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.SessionTransaction;
@@ -59,16 +61,29 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	@Override
 	public String getQuerySuffix(final AdvancedCypherQuery query) {
 
-		final StringBuilder buf = new StringBuilder();
-		final String sortKey    = query.getSortKey();
+		final StringBuilder buf   = new StringBuilder();
+		final SortOrder sortOrder = query.getSortOrder();
 
 		buf.append(" RETURN n");
 
-		if (sortKey != null) {
+		if (sortOrder != null) {
 
-			buf.append(", n.`");
-			buf.append(sortKey);
-			buf.append("` AS sortKey");
+			int sortSpecIndex = 0;
+
+			for (final SortSpec spec : sortOrder.getSortElements()) {
+
+				final String sortKey = spec.getSortKey();
+
+				if (sortKey != null) {
+
+					buf.append(", n.`");
+					buf.append(sortKey);
+					buf.append("` AS sortKey");
+					buf.append(sortSpecIndex);
+				}
+
+				sortSpecIndex++;
+			}
 		}
 
 		return buf.toString();

@@ -49,7 +49,7 @@ public class AutocompleteTest extends StructrUiTest {
 		assertEmptyResult(AbstractHintProvider.getHints(securityContext, false, null, "<html><head><title>${page.name}this.", "", 0, 0));
 
 		// StructrScript in the second script block
-		assertFirstResult("text", "titleize", AbstractHintProvider.getHints(securityContext, false, null, "<html><head><title>${page.name}</title></head><body><h1>${titl", "", 0, 0));
+		assertFirstResult("text", "titleize(str)", AbstractHintProvider.getHints(securityContext, false, null, "<html><head><title>${page.name}</title></head><body><h1>${titl", "", 0, 0));
 
 		// Javascript in the third script block
 		assertFullResult(AbstractHintProvider.getHints(securityContext, false, null, "<html><head><title>${page.name}</title></head><body><h1>${titleize(page.name)}</h1><div>${{\n\n\tlet self = $.", "", 0, 0));
@@ -65,7 +65,7 @@ public class AutocompleteTest extends StructrUiTest {
 	public void testStructrscriptAutocomplete() {
 
 		assertFullResult(AbstractHintProvider.getHints(securityContext, false, null, "${", "", 0, 0));
-		assertFirstResult("text", "localize", AbstractHintProvider.getHints(securityContext, false, null, "${locali", "", 0, 0));
+		assertFirstResult("text", "localize(key [, domain ])", AbstractHintProvider.getHints(securityContext, false, null, "${locali", "", 0, 0));
 
 		// patterns that should produce the full list of autocomplete results
 		assertFullResult(AbstractHintProvider.getHints(securityContext, false, null, "${\n\t", "", 0, 0));
@@ -242,17 +242,17 @@ public class AutocompleteTest extends StructrUiTest {
 		final Map<String, Object> get      = ((GraphObjectMap)result.get(8)).toMap();
 		final Map<String, Object> head     = ((GraphObjectMap)result.get(9)).toMap();
 
-		assertEquals("Invalid autocomplete result", "current",   current.get("text"));
-		assertEquals("Invalid autocomplete result", "locale",    locale.get("text"));
-		assertEquals("Invalid autocomplete result", "me",        me.get("text"));
-		assertEquals("Invalid autocomplete result", "page",      page.get("text"));
-		assertEquals("Invalid autocomplete result", "request",   request.get("text"));
-		assertEquals("Invalid autocomplete result", "response",  response.get("text"));
-		assertEquals("Invalid autocomplete result", "page",      page.get("text"));
-		assertEquals("Invalid autocomplete result", "this",      thisObj.get("text"));
-		assertEquals("Invalid autocomplete result", "DELETE",    delete.get("text"));
-		assertEquals("Invalid autocomplete result", "GET",       get.get("text"));
-		assertEquals("Invalid autocomplete result", "HEAD",      head.get("text"));
+		assertEquals("Invalid autocomplete result", "current",                                        current.get("text"));
+		assertEquals("Invalid autocomplete result", "locale",                                         locale.get("text"));
+		assertEquals("Invalid autocomplete result", "me",                                             me.get("text"));
+		assertEquals("Invalid autocomplete result", "page",                                           page.get("text"));
+		assertEquals("Invalid autocomplete result", "request",                                        request.get("text"));
+		assertEquals("Invalid autocomplete result", "response",                                       response.get("text"));
+		assertEquals("Invalid autocomplete result", "page",                                           page.get("text"));
+		assertEquals("Invalid autocomplete result", "this",                                           thisObj.get("text"));
+		assertEquals("Invalid autocomplete result", "DELETE(url [, contentType ])",                   delete.get("text"));
+		assertEquals("Invalid autocomplete result", "GET(url, [ contentType, username, password ])",  get.get("text"));
+		assertEquals("Invalid autocomplete result", "HEAD(url [, username, password ])",              head.get("text"));
 
 	}
 

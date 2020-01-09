@@ -58,7 +58,7 @@ public class FindRelationshipFunction extends CoreFunction {
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			final ConfigurationProvider config = StructrApp.getConfiguration();
-			final Query query = StructrApp.getInstance(securityContext).relationshipQuery().sort(GraphObject.createdDate).order(false);
+			final Query query = StructrApp.getInstance(securityContext).relationshipQuery().sort(GraphObject.createdDate);
 
 			// the type to query for
 			Class type = null;

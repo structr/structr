@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.Task;
+import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -33,7 +34,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotAllowedException;
@@ -62,7 +62,7 @@ public class MaintenanceResource extends Resource {
 	}
 
 	@Override
-	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 		throw new NotAllowedException("GET not allowed on " + getResourceSignature());
 	}
 

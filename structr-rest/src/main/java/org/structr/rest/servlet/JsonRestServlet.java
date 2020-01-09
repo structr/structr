@@ -52,11 +52,10 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
+import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.graph.search.SearchCommand;
-import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.resource.Resource;
 import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
@@ -969,36 +968,20 @@ public class JsonRestServlet extends AbstractDataServlet {
 			resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 			authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 
-			// add sorting & paging
-			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
-			String pageParameter     = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
-			String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
-			String sortKeyName       = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
-			String outputDepth       = request.getParameter(REQUEST_PARAMTER_OUTPUT_DEPTH);
-			boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
-			int pageSize             = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
-			int page                 = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
-			int depth                = Services.parseInt(outputDepth, config.getOutputNestingDepth());
-
-			PropertyKey sortKey      = null;
-
-			// set sort key
-			if (sortKeyName != null) {
-
-				Class<? extends GraphObject> type = resource.getEntityClass();
-				if (type == null) {
-
-					// fallback to default implementation
-					// if no type can be determined
-					type = AbstractNode.class;
-				}
-
-				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName, false);
-			}
+			// add sorting && pagination
+			final String pageSizeParameter          = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
+			final String pageParameter              = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
+			final String outputDepth                = request.getParameter(REQUEST_PARAMTER_OUTPUT_DEPTH);
+			final int pageSize                      = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
+			final int page                          = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
+			final int depth                         = Services.parseInt(outputDepth, config.getOutputNestingDepth());
+			final String[] sortKeyNames             = request.getParameterValues(REQUEST_PARAMETER_SORT_KEY);
+			final String[] sortOrders               = request.getParameterValues(REQUEST_PARAMETER_SORT_ORDER);
+			final Class<? extends GraphObject> type = resource.getEntityClassOrDefault();
 
 			// evaluate constraints and measure query time
 			final double queryTimeStart = System.nanoTime();
-			final ResultStream result   = resource.doGet(sortKey, sortDescending, pageSize, page);
+			final ResultStream result   = resource.doGet(new DefaultSortOrder(type, sortKeyNames, sortOrders), pageSize, page);
 			final double queryTimeEnd   = System.nanoTime();
 
 			if (result == null) {

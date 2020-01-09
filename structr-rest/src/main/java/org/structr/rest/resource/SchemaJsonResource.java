@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.LoggerFactory;
+import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
@@ -30,7 +31,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.export.StructrSchema;
@@ -81,7 +81,7 @@ public class SchemaJsonResource extends Resource {
 	}
 
 	@Override
-	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
 		String schema = null;
 

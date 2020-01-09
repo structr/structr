@@ -21,7 +21,7 @@ package org.structr.bolt.index;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.structr.api.search.QueryContext;
-import org.structr.api.search.SortType;
+import org.structr.api.search.SortOrder;
 
 /**
  *
@@ -85,7 +85,7 @@ public class SimpleCypherQuery implements CypherQuery {
 	}
 
 	@Override
-	public void sort(final SortType sortType, final String sortKey, final boolean sortDescending) {
+	public void sort(final SortOrder sortOrder) {
 	}
 
 	@Override

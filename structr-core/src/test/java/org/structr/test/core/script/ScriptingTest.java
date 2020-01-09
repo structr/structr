@@ -3789,9 +3789,9 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', { 'name2': $.contains('s') }, $.sort('name', true)); }}", "testFindNewSyntax");
-			final List<NodeInterface> result2 = (List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.sort('name', true)); }}", "testFindNewSyntax");
-			final List<NodeInterface> result3 = (List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.sort('name')); }}", "testFindNewSyntax");
+			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', { 'name2': $.contains('s') }, $.sort('name', true)); }}", "testFindNewSyntax");
+			final List<NodeInterface> result2 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.sort('name', true)); }}", "testFindNewSyntax");
+			final List<NodeInterface> result3 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.sort('name')); }}", "testFindNewSyntax");
 
 			final String testFunction = "${{\n" +
 			"    let users = $.find('Project', {\n" +
@@ -3825,26 +3825,26 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Advanced find() does not filter correctly", result4.get(0).getUuid(), group3);
 			assertEquals("Advanced find() does not filter correctly", result4.get(1).getUuid(), group2);
 
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', { name: $.contains('2') }); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', { name: 'group1', name1: 'structr', name2: 'test' }); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.empty('name')); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.or($.empty('name'), $.equals('name', 'group2'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.contains('name2', 'e'), $.contains('name2', 'e'), $.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.and($.equals('age', $.range(0, 35)))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.equals('age', $.range(0, 35)), $.equals('name', 'group2')); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.and($.equals('age', $.range(0, 35)), $.equals('name', 'group2'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.and($.contains('name2', 'e'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.and($.equals('name', 'group1'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.and($.equals('name', 'group1'), $.equals('name1', 'structr'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.and($.equals('name1', 'structr'), $.equals('name2', 'test'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 0, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.and($.equals('name1', 'structr'), $.equals('name2', 'structr'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.or($.equals('age', 22), $.equals('age', 44))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.and($.equals('name3', 'other'), $.or($.equals('age', 22), $.equals('age', 44)))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', { name: $.contains('2') }); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', { name: 'group1', name1: 'structr', name2: 'test' }); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.empty('name')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.or($.empty('name'), $.equals('name', 'group2'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.contains('name2', 'e'), $.contains('name2', 'e'), $.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('age', $.range(0, 35)))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.equals('age', $.range(0, 35)), $.equals('name', 'group2')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('age', $.range(0, 35)), $.equals('name', 'group2'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.contains('name2', 'e'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('name', 'group1'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('name', 'group1'), $.equals('name1', 'structr'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('name1', 'structr'), $.equals('name2', 'test'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 0, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('name1', 'structr'), $.equals('name2', 'structr'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.or($.equals('age', 22), $.equals('age', 44))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('name3', 'other'), $.or($.equals('age', 22), $.equals('age', 44)))); }}", "testFindNewSyntax")).size());
 
-			final List<NodeInterface> page1 = (List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Test', $.sort('name'), $.page(1, 10)); }}", "testFindNewSyntax");
-			final List<NodeInterface> page2 = (List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Test', $.sort('name'), $.page(1, 5)); }}", "testFindNewSyntax");
-			final List<NodeInterface> page3 = (List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Test', $.sort('name'), $.page(3, 5)); }}", "testFindNewSyntax");
+			final List<NodeInterface> page1 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.sort('name'), $.page(1, 10)); }}", "testFindNewSyntax");
+			final List<NodeInterface> page2 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.sort('name'), $.page(1, 5)); }}", "testFindNewSyntax");
+			final List<NodeInterface> page3 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.sort('name'), $.page(3, 5)); }}", "testFindNewSyntax");
 
 			assertEquals("Advanced find() with sort() and page() returns wrong result", 10, page1.size());
 			assertEquals("Advanced find() with sort() and page() returns wrong result", "test000", page1.get(0).getName());
@@ -4381,6 +4381,302 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testSortingByMultipleKeysInJavascript() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name7"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name5"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name2"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name1"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name3"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name4"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 10L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name9"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 10L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name8"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 10L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name6"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 10L));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			//final List<TestOne> result1 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.name).getAsList();
+			final List<TestOne> result1 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('TestOne', $.sort('aLong'), $.sort('name'))}}", "test1");
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result1.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result1.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result1.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result1.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result1.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result1.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result1.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result1.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result1.get(8).getName());
+
+			//final List<TestOne> result2 = app.nodeQuery(TestOne.class).sort(TestOne.aLong, true).sort(TestOne.name).getAsList();
+			final List<TestOne> result2 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('TestOne', $.sort('aLong', true), $.sort('name'))}}", "test2");
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result2.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result2.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result2.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result2.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result2.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result2.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result2.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result2.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result2.get(8).getName());
+
+			//final List<TestOne> result3 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.name, true).getAsList();
+			final List<TestOne> result3 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('TestOne', $.sort('aLong'), $.sort('name', true))}}", "test3");
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result3.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result3.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result3.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result3.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result3.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result3.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result3.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result3.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result3.get(8).getName());
+
+			//final List<TestOne> result4 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.anInt).sort(TestOne.name).getAsList();
+			final List<TestOne> result4 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('TestOne', $.sort('aLong'), $.sort('anInt'), $.sort('name'))}}", "test4");
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result4.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result4.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result4.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result4.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result4.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result4.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result4.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result4.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result4.get(8).getName());
+
+			//final List<TestOne> result5 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.anInt, true).sort(TestOne.name).getAsList();
+			final List<TestOne> result5 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('TestOne', $.sort('aLong'), $.sort('anInt', true), $.sort('name'))}}", "test5");
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result5.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result5.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result5.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result5.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result5.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result5.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result5.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result5.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result5.get(8).getName());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			System.out.println(fex.getMessage());
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testSortingByMultipleKeysInStructrScriptAdvancedFind() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name7"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name5"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name2"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name1"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name3"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name4"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 10L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name9"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 10L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name8"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 10L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name6"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 10L));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			//final List<TestOne> result1 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.name).getAsList();
+			final List<TestOne> result1 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong'), sort('name'))}", "test1");
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result1.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result1.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result1.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result1.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result1.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result1.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result1.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result1.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result1.get(8).getName());
+
+			//final List<TestOne> result2 = app.nodeQuery(TestOne.class).sort(TestOne.aLong, true).sort(TestOne.name).getAsList();
+			final List<TestOne> result2 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong', true), sort('name'))}", "test2");
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result2.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result2.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result2.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result2.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result2.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result2.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result2.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result2.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result2.get(8).getName());
+
+			//final List<TestOne> result3 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.name, true).getAsList();
+			final List<TestOne> result3 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong'), sort('name', true))}", "test3");
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result3.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result3.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result3.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result3.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result3.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result3.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result3.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result3.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result3.get(8).getName());
+
+			//final List<TestOne> result4 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.anInt).sort(TestOne.name).getAsList();
+			final List<TestOne> result4 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong'), sort('anInt'), sort('name'))}", "test4");
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result4.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result4.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result4.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result4.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result4.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result4.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result4.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result4.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result4.get(8).getName());
+
+			//final List<TestOne> result5 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.anInt, true).sort(TestOne.name).getAsList();
+			final List<TestOne> result5 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong'), sort('anInt', true), sort('name'))}", "test5");
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result5.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result5.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result5.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result5.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result5.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result5.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result5.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result5.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result5.get(8).getName());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			System.out.println(fex.getMessage());
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testSortingByMultipleKeysInStructrScriptNormalFind() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name7"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name5"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name2"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name1"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name3"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name4"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 10L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name9"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 10L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name8"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 10L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name6"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 10L));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			//final List<TestOne> result1 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.name).getAsList();
+			final List<TestOne> result1 = (List)Scripting.evaluate(ctx, null, "${sort(find('TestOne') 'aLong', false, 'name', false)}", "test1");
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result1.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result1.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result1.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result1.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result1.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result1.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result1.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result1.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result1.get(8).getName());
+
+			//final List<TestOne> result2 = app.nodeQuery(TestOne.class).sort(TestOne.aLong, true).sort(TestOne.name).getAsList();
+			final List<TestOne> result2 = (List)Scripting.evaluate(ctx, null, "${sort(find('TestOne'), 'aLong', true, 'name')}", "test2");
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result2.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result2.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result2.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result2.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result2.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result2.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result2.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result2.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result2.get(8).getName());
+
+			//final List<TestOne> result3 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.name, true).getAsList();
+			final List<TestOne> result3 = (List)Scripting.evaluate(ctx, null, "${sort(find('TestOne'), 'aLong', false, 'name', true)}", "test3");
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result3.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result3.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result3.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result3.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result3.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result3.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result3.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result3.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result3.get(8).getName());
+
+			//final List<TestOne> result4 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.anInt).sort(TestOne.name).getAsList();
+			final List<TestOne> result4 = (List)Scripting.evaluate(ctx, null, "${sort(find('TestOne'), 'aLong', false, 'anInt', false, 'name', false)}", "test4");
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result4.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result4.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result4.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result4.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result4.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result4.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result4.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result4.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result4.get(8).getName());
+
+			//final List<TestOne> result5 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.anInt, true).sort(TestOne.name).getAsList();
+			final List<TestOne> result5 = (List)Scripting.evaluate(ctx, null, "${sort(find('TestOne'), 'aLong', false, 'anInt', true, 'name')}", "test5");
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result5.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result5.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result5.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result5.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result5.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result5.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result5.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result5.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result5.get(8).getName());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			System.out.println(fex.getMessage());
+			fail("Unexpected exception.");
+		}
+	}
 
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource, final String comment) {

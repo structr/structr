@@ -397,7 +397,7 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<GraphObject> result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getAsList();
+				List<GraphObject> result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
 				assertEquals(2, result.size());
 

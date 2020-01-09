@@ -87,14 +87,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 				final PropertyKey key = StructrApp.key(type, sortKey);
 				if (key != null) {
 
-					if (contextStore.getSortDescending()) {
-
-						query.sortDescending(key);
-
-					} else {
-
-						query.sortAscending(key);
-					}
+					query.sort(key, contextStore.getSortDescending());
 				}
 
 			} else {

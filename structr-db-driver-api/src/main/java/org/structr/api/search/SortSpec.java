@@ -16,16 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.index;
+package org.structr.api.search;
 
-import org.structr.api.search.SortOrder;
+public interface SortSpec {
 
-public interface DatabaseQuery {
-
-	public void and();
-	public void or();
-	public void not();
-	public void andNot();
-
-	void sort(final SortOrder sortOrder);
+	SortType getSortType();
+	String getSortKey();
+	boolean sortDescending();
 }

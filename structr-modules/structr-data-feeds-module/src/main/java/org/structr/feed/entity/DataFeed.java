@@ -35,7 +35,6 @@ import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -138,7 +137,7 @@ public interface DataFeed extends NodeInterface {
 			final PropertyKey<Date> dateKey = StructrApp.key(FeedItem.class, "pubDate");
 
 			// Sort by publication date, youngest items first
-			feedItems.sort(new GraphObjectComparator(dateKey, GraphObjectComparator.DESCENDING));
+			feedItems.sort(dateKey.sorted(true));
 
 			for (final FeedItem item : feedItems) {
 
