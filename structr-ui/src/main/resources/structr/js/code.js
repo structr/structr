@@ -39,6 +39,8 @@ var _Code = {
 	searchThreshold: 3,
 	searchTextLength: 0,
 	lastClickedPath: '',
+	layouter: null,
+	seed: 42,
 	codeRecentElementsKey: 'structrCodeRecentElements_' + port,
 	init: function() {
 
@@ -252,6 +254,9 @@ var _Code = {
 	},
 	refreshTree: function() {
 		_TreeHelper.refreshTree(codeTree);
+		if (_Code.layouter !== null) {
+			_Code.layouter.on('click', _Code.handleGraphClick);
+		}
 	},
 	treeInitFunction: function(obj, callback) {
 
@@ -612,7 +617,7 @@ var _Code = {
 					}
 				});
 
-				_Code.setupAutocompletion(editor, id, false);
+				_Code.setupAutocompletion(editor, id, true);
 
 				var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
 				if (scrollInfo) {
@@ -991,10 +996,13 @@ var _Code = {
 			// global types that are not associated with an actual entity
 			case 'core':
 			case 'html':
-			case 'root':
 			case 'ui':
 			case 'web':
 				_Code.displayContent(identifier.type);
+				break;
+
+			case 'root':
+				_Code.displayRootContent();
 				break;
 
 			case 'globals':
@@ -1108,6 +1116,11 @@ var _Code = {
 
 		var identifier = _Code.splitIdentifier(data.id);
 
+		if (_Code.layouter) {
+			_Code.layouter.focus(identifier.id);
+			return;
+		}
+
 		Command.get(identifier.id, null, function(result) {
 
 			_Code.updateRecentlyUsed(result, data.updateLocationStack);
@@ -1163,6 +1176,89 @@ var _Code = {
 		Structr.fetchHtmlTemplate('code/' + templateName, { }, function(html) {
 			codeContents.append(html);
 		});
+	},
+	random: function() {
+	    var x = Math.sin(_Code.seed++) * 10000;
+	    return x - Math.floor(x);
+	},
+	displayRootContent: function() {
+
+		var hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
+		if (hiddenSchemaNodes === null) {
+
+			_Schema.updateHiddenSchemaNodes();
+
+			hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
+		}
+
+		Structr.fetchHtmlTemplate('code/root', { }, function(html) {
+
+			codeContents.empty();
+			codeContents.append(html);
+
+			var layouter          = new SigmaLayouter('all-types');
+
+			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { }, function(result1) {
+
+				result1.forEach(function(node) {
+
+					if (hiddenSchemaNodes === null || hiddenSchemaNodes.indexOf(node.name) === -1) {
+						layouter.addNode(node);
+					}
+				});
+
+				Command.query('SchemaRelationshipNode', 10000, 1, 'name', 'asc', { }, function(result2) {
+
+					result2.forEach(function(r) {
+						layouter.addEdge(r.id, r.relationshipType, r.sourceId, r.targetId, true);
+					});
+
+					layouter.refresh();
+					layouter.layout();
+					layouter.on('click', _Code.handleGraphClick);
+
+					_Code.layouter = layouter;
+
+				}, true, 'ui');
+
+			}, true, 'ui');
+		});
+	},
+	handleGraphClick: function(data) {
+
+		console.log(data);
+
+		if (data.nodes.length === 1) {
+
+			Command.get(data.nodes[0], null, function(result) {
+				_Code.findAndOpenNode(_Code.getPathForEntity(result), false, false);
+				_Code.displaySchemaNodeContext(result);
+			});
+		}
+
+	},
+	displaySchemaNodeContext:function(entity) {
+
+		Structr.fetchHtmlTemplate('code/type-context', { entity: entity }, function(html) {
+
+			codeContext.empty();
+			codeContext.append(html);
+
+			$('#schema-node-name').off('blur').on('blur', function() {
+
+				var name = $(this).val();
+
+				_Code.showSchemaRecompileMessage();
+
+				Command.setProperty(entity.id, 'name', name, false, function() {
+
+					_Code.layouter.getNodes().update({ id: entity.id, label: '<b>' + name + '</b>' });
+					_Code.hideSchemaRecompileMessage();
+					_Code.refreshTree();
+				});
+			});
+		});
+
 	},
 	displayCustomTypesContent: function(data) {
 		Structr.fetchHtmlTemplate('code/custom', { }, function(html) {

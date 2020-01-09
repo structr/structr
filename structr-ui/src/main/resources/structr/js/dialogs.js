@@ -59,6 +59,24 @@ var _Dialogs = {
 			});
 		});
 	},
+	showVisibilityOptions: function(entity) {
+
+		// add visibility options
+		Structr.fetchHtmlTemplate('dialogs/visibility-partial', { }, function (html) {
+
+			$('#visibility-options').append(html);
+
+			var showConditionsSelect = $('select#show-conditions');
+			var hideConditionsSelect = $('select#hide-conditions');
+
+			// dialog logic here..
+			showConditionsSelect.on('change', function() { _Entities.setPropertyWithFeedback(entity, 'showConditions', showConditionsSelect.val(), showConditionsSelect); });
+			hideConditionsSelect.on('change', function() { _Entities.setPropertyWithFeedback(entity, 'hideConditions', hideConditionsSelect.val(), hideConditionsSelect); });
+
+			showConditionsSelect.val(entity.showConditions);
+			hideConditionsSelect.val(entity.hideConditions);
+		});
+	},
 
 	// ----- custom dialogs -----
 	ldapGroupDialog: function(el, entity) {
@@ -157,21 +175,12 @@ var _Dialogs = {
 						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val(), input); });
 					});
 
-					var showConditionsSelect = $('select#show-conditions');
-					var hideConditionsSelect = $('select#hide-conditions');
-
-					// dialog logic here..
-					showConditionsSelect.on('change', function() { _Entities.setPropertyWithFeedback(entity, 'showConditions', showConditionsSelect.val(), showConditionsSelect); });
-					hideConditionsSelect.on('change', function() { _Entities.setPropertyWithFeedback(entity, 'hideConditions', hideConditionsSelect.val(), hideConditionsSelect); });
-
-					showConditionsSelect.val(entity.showConditions);
-					hideConditionsSelect.val(entity.hideConditions);
-
 					// focus on first input field
 					$('input#class-input').focus();
 					$('input#class-input').select();
 
 					_Dialogs.showCustomProperties(entity);
+					_Dialogs.showVisibilityOptions(entity);
 				});
 
 			}, '_html_');
@@ -198,21 +207,12 @@ var _Dialogs = {
 						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val(), input); });
 					});
 
-					var showConditionsSelect = $('select#show-conditions');
-					var hideConditionsSelect = $('select#hide-conditions');
-
-					// dialog logic here..
-					showConditionsSelect.on('change', function() { _Entities.setPropertyWithFeedback(entity, 'showConditions', showConditionsSelect.val(), showConditionsSelect); });
-					hideConditionsSelect.on('change', function() { _Entities.setPropertyWithFeedback(entity, 'hideConditions', hideConditionsSelect.val(), hideConditionsSelect); });
-
-					showConditionsSelect.val(entity.showConditions);
-					hideConditionsSelect.val(entity.hideConditions);
-
 					// focus on first input field
 					$('input#class-input').focus();
 					$('input#class-input').select();
 
 					_Dialogs.showCustomProperties(entity);
+					_Dialogs.showVisibilityOptions(entity);
 				});
 
 			}, '_html_');
@@ -224,7 +224,7 @@ var _Dialogs = {
 
 			Command.get(entity.id, null, function(input) {
 
-				Structr.fetchHtmlTemplate('dialogs/input.options', { entity: entity, input: input, title: _Dialogs.getTile() }, function (html) {
+				Structr.fetchHtmlTemplate('dialogs/input.options', { entity: entity, input: input, title: _Dialogs.getTitle() }, function (html) {
 
 					el.append(html);
 
@@ -238,6 +238,7 @@ var _Dialogs = {
 					$('input#class-input').select();
 
 					_Dialogs.showCustomProperties(entity);
+					_Dialogs.showVisibilityOptions(entity);
 				});
 
 			}, '_html_');
@@ -263,21 +264,12 @@ var _Dialogs = {
 						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val(), input); });
 					});
 
-					var showConditionsSelect = $('select#show-conditions');
-					var hideConditionsSelect = $('select#hide-conditions');
-
-					// dialog logic here..
-					showConditionsSelect.on('change', function() { _Entities.setPropertyWithFeedback(entity, 'showConditions', showConditionsSelect.val(), showConditionsSelect); });
-					hideConditionsSelect.on('change', function() { _Entities.setPropertyWithFeedback(entity, 'hideConditions', hideConditionsSelect.val(), hideConditionsSelect); });
-
-					showConditionsSelect.val(entity.showConditions);
-					hideConditionsSelect.val(entity.hideConditions);
-
 					// focus on first input field
 					$('input#class-input').focus();
 					$('input#class-input').select();
 
 					_Dialogs.showCustomProperties(entity);
+					_Dialogs.showVisibilityOptions(entity);
 				});
 
 			}, '_html_');

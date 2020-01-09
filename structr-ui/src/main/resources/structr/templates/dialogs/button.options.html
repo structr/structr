@@ -42,25 +42,7 @@
 			<input type="text" id="data-key-input" value="${config.entity.dataKey || ''}" />
 		</div>
 	</div>
-	<div class="row">
-		<div class="option-tile">
-			<label>Show Conditions</label>
-			<select id="show-conditions">
-				<option value="">(none)</option>
-				<option>me.isAdmin</option>
-				<option>empty(current)</option>
-				<option>not(empty(current))</option>
-			</select>
-		</div>
-		<div class="option-tile">
-			<label>Hide Conditions</label>
-			<select id="hide-conditions">
-				<option value="">(none)</option>
-				<option>me.isAdmin</option>
-				<option>empty(current)</option>
-				<option>not(empty(current))</option>
-			</select>
-		</div>
+	<div class="row" id="visibility-options">
 	</div>
 	<div id="custom-properties-parent" class="hidden">
 		<h3>Custom Properties</h3>

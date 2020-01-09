@@ -541,6 +541,25 @@ var _Schema = {
 		_Schema.schemaLoaded = all;
 		return _Schema.schemaLoaded;
 	},
+	updateHiddenSchemaNodes: function() {
+
+		return fetch(rootUrl + '/ApplicationConfigurationDataNode/ui?configType=layout').then(function(response) {
+
+			return response.json();
+
+		}).then(function(data) {
+
+			if (data.result.length > 0) {
+
+				return data.result[0].content;
+
+			} else {
+				_Schema.hiddenSchemaNodes = [];
+				noSchemaNodeVisibilityConfigured = true;
+				return false;
+			}
+		});
+	},
 	loadNodes: function(callback) {
 
 		let noSchemaNodeVisibilityConfigured = false;
@@ -550,22 +569,8 @@ var _Schema = {
 
 			if (!_Schema.hiddenSchemaNodes) {
 
-				return fetch(rootUrl + '/ApplicationConfigurationDataNode/ui?configType=layout').then(function(response) {
+				_Schema.updateHiddenSchemaNodes();
 
-					return response.json();
-
-				}).then(function(data) {
-
-					if (data.result.length > 0) {
-
-						return data.result[0].content;
-
-					} else {
-						_Schema.hiddenSchemaNodes = [];
-						noSchemaNodeVisibilityConfigured = true;
-						return false;
-					}
-				});
 			} else {
 				return false;
 			}
