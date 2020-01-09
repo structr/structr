@@ -1293,12 +1293,16 @@ var _Files = {
 		});
 	},
 	updateTextFile: function(file, text, callback) {
-		var chunks = Math.ceil(text.length / chunkSize);
-		for (var c = 0; c < chunks; c++) {
-			var start = c * chunkSize;
-			var end = (c + 1) * chunkSize;
-			var chunk = utf8_to_b64(text.substring(start, end));
-			Command.chunk(file.id, c, chunkSize, chunk, chunks, ((c+1 === chunks) ? callback : undefined));
+		if (text === "") {
+			Command.chunk(file.id, 0, chunkSize, "", 1, callback);
+		} else {
+			var chunks = Math.ceil(text.length / chunkSize);
+			for (var c = 0; c < chunks; c++) {
+				var start = c * chunkSize;
+				var end = (c + 1) * chunkSize;
+				var chunk = utf8_to_b64(text.substring(start, end));
+				Command.chunk(file.id, c, chunkSize, chunk, chunks, ((c+1 === chunks) ? callback : undefined));
+			}
 		}
 	},
 	editContent: function(button, file, element) {
@@ -1372,7 +1376,7 @@ var _Files = {
 				let showPreviewCheckbox  = $('#showTemplatePreview');
 
 				Structr.appendInfoTextToElement({
-					text: "Expressions like <pre>Hello ${print(me.name)} !</pre> will be evaluated. To see a preview, tick this checkbox.",
+					text: "Expressions like <pre>Hello ${print(me.name)} !</pre> will be evaluated. To see a preview, tick the adjacent checkbox.",
 					element: isTemplateCheckbox,
 					insertAfter: true,
 					css: {
