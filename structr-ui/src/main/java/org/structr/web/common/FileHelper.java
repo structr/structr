@@ -450,7 +450,7 @@ public class FileHelper {
 				}
 
 				long fileSize = FileHelper.getSize(fileOnDisk);
-				if (fileSize > 0) {
+				if (fileSize >= 0) {
 
 					map.put(sizeKey, fileSize);
 				}

@@ -52,6 +52,11 @@ public class GetContentFunction extends UiAdvancedFunction {
 			if (sources[0] instanceof File) {
 
 				final File file = (File)sources[0];
+
+				if (file.getSize() == 0) {
+					return "";
+				}
+
 				final String encoding = (sources.length == 2 && sources[1] != null) ? sources[1].toString() : "UTF-8";
 
 				try (final InputStream is = file.getInputStream()) {
