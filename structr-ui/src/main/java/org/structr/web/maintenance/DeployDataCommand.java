@@ -18,7 +18,11 @@
  */
 package org.structr.web.maintenance;
 
+import com.google.gson.Gson;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -459,31 +463,53 @@ public class DeployDataCommand extends DeployCommand {
 
 	private <T extends AbstractNode> void exportDataForType(final SecurityContext context, final Class<T> nodeType, final Path targetConfFile) throws FrameworkException {
 
-		final List<Map<String, Object>> nodes  = new LinkedList<>();
-		final App app                          = StructrApp.getInstance(context);
+		final App app = StructrApp.getInstance(context);
 
 		try (final Tx tx = app.tx()) {
 
-			for (final T node : app.nodeQuery(nodeType).getAsList()) {
+			try (final Writer fos = new OutputStreamWriter(new FileOutputStream(targetConfFile.toFile()))) {
 
-				final Map<String, Object> entry = new TreeMap<>();
-				nodes.add(entry);
+				final Gson gson = getGson();
+				boolean dataWritten = false;
 
-				final PropertyContainer pc = node.getPropertyContainer();
+				fos.write("[");
 
-				for (final String key : pc.getPropertyKeys()) {
-					putData(entry, key, pc.getProperty(key));
+				for (final T node : app.nodeQuery(nodeType).getResultStream()) {
+
+					final Map<String, Object> entry = new TreeMap<>();
+
+					final PropertyContainer pc = node.getPropertyContainer();
+
+					for (final String key : pc.getPropertyKeys()) {
+						putData(entry, key, pc.getProperty(key));
+					}
+
+					exportOwnershipAndSecurity(node, entry);
+//					exportCustomPropertiesForNode(context, node, entry);
+					exportRelationshipsForNode(context, node);
+
+					if (dataWritten) {
+						fos.write(",");
+					}
+					fos.write("\n");
+
+					gson.toJson(entry, fos);
+
+					dataWritten = true;
 				}
 
-				exportOwnershipAndSecurity(node, entry);
-//				exportCustomPropertiesForNode(context, node, entry);
-				exportRelationshipsForNode(context, node);
+				if (dataWritten) {
+					fos.write("\n");
+				}
+
+				fos.write("]");
+
+			} catch (IOException ioex) {
+				logger.warn("", ioex);
 			}
 
 			tx.success();
 		}
-
-		writeJsonToFile(targetConfFile, nodes);
 	}
 
 	private void exportRelationshipsForNode(final SecurityContext context, final AbstractNode node) throws FrameworkException {
