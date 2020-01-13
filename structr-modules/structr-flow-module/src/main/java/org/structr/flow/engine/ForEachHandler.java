@@ -79,8 +79,10 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 
 				}
 
-				context.deepCopy(loopContext);
-
+				//context.deepCopy(loopContext);
+				for (Map.Entry<String,Object> entry : getAggregationData(loopContext, flowElement).entrySet()) {
+					context.setData(entry.getKey(), entry.getValue());
+				}
 				context.setData(flowElement.getUuid(), data);
 
 			}
@@ -90,22 +92,26 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 		return flowElement.next();
 	}
 
-	private void openNewContext(final Context context, Context loopContext, final FlowElement flowElement) {
+	private Map<String,Object> getAggregationData(final Context context, final FlowElement flowElement) {
 		Map<String,Object> aggregateData = new HashMap<>();
 
-		FlowElement currentElement = flowElement;
+		FlowElement currentElement = ((FlowForEach)flowElement).getLoopBody();
 
 		while (currentElement.next() != null) {
 			if (currentElement instanceof FlowAggregate) {
 
-				aggregateData.put(((FlowAggregate) currentElement).getUuid(), loopContext.getData(((FlowAggregate) currentElement).getUuid()));
+				aggregateData.put(((FlowAggregate) currentElement).getUuid(), context.getData(((FlowAggregate) currentElement).getUuid()));
 			}
 			currentElement = currentElement.next();
 		}
 
+		return aggregateData;
+	}
+
+	private void openNewContext(final Context context, Context loopContext, final FlowElement flowElement) {
 		loopContext = new Context(context);
 
-		for (Map.Entry<String,Object> entry : aggregateData.entrySet()) {
+		for (Map.Entry<String,Object> entry : getAggregationData(loopContext, flowElement).entrySet()) {
 			loopContext.setData(entry.getKey(), entry.getValue());
 		}
 
