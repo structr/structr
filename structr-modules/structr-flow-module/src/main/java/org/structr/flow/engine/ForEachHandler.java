@@ -21,9 +21,12 @@ package org.structr.flow.engine;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
+import com.sun.tools.javac.comp.Flow;
 import org.structr.flow.api.*;
 import org.structr.flow.impl.FlowAggregate;
+import org.structr.flow.impl.FlowDecision;
 import org.structr.flow.impl.FlowForEach;
 import org.structr.flow.impl.FlowNode;
 
@@ -45,25 +48,27 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 			if (loopBody != null) {
 
 				final Object data = dataSource.get(context);
-				Context loopContext = new Context(context);
 
 				// Special handling for FlowAggregate to ensure it's properly reset for nested loops.
 				FlowElement element = loopBody;
-				do {
-					if (element instanceof FlowAggregate) {
-						loopContext.setData(((FlowAggregate) element).getUuid(), null);
-					}
-				} while ((element = element.next()) != null);
 
+				final Context cleanedLoopContext = new Context(context);
+				traverseAndEvalute(element, (el) -> {
+					if (el instanceof FlowAggregate) {
+						cleanedLoopContext.setData(((FlowAggregate) el).getUuid(), null);
+					}
+				});
+
+				Context loopContext = new Context(cleanedLoopContext);
 
 				if (data instanceof Iterable) {
 
 					for (final Object o : ((Iterable) data)) {
 
 						// Provide current element data for loop context and write evaluation result into main context data for this loop element
-						openNewContext(context, loopContext, flowElement);
 						loopContext.setData(flowElement.getUuid(), o);
-						context.setData(flowElement.getUuid(), engine.execute(loopContext, loopBody));
+						engine.execute(loopContext, loopBody);
+						loopContext = openNewContext(context, loopContext, flowElement);
 
 						// Break when an intermediate result or error occurs
 						if (context.hasResult() || context.hasError()) {
@@ -75,11 +80,9 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 
 					// Provide current element data for loop context and write evaluation result into main context data for this loop element
 					loopContext.setData(flowElement.getUuid(), data);
-					context.setData(flowElement.getUuid(), engine.execute(loopContext, loopBody));
-
+					engine.execute(loopContext, loopBody);
 				}
 
-				//context.deepCopy(loopContext);
 				for (Map.Entry<String,Object> entry : getAggregationData(loopContext, flowElement).entrySet()) {
 					context.setData(entry.getKey(), entry.getValue());
 				}
@@ -97,24 +100,57 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 
 		FlowElement currentElement = ((FlowForEach)flowElement).getLoopBody();
 
-		while (currentElement.next() != null) {
-			if (currentElement instanceof FlowAggregate) {
+		traverseAndEvalute(currentElement, (el) -> {
+			if (el instanceof FlowAggregate) {
 
-				aggregateData.put(((FlowAggregate) currentElement).getUuid(), context.getData(((FlowAggregate) currentElement).getUuid()));
+				aggregateData.put(((FlowAggregate) el).getUuid(), context.getData(((FlowAggregate) el).getUuid()));
 			}
-			currentElement = currentElement.next();
-		}
+		});
 
 		return aggregateData;
 	}
 
-	private void openNewContext(final Context context, Context loopContext, final FlowElement flowElement) {
-		loopContext = new Context(context);
+	private Context openNewContext(final Context context, Context loopContext, final FlowElement flowElement) {
+		final Context newContext = new Context(context);
 
 		for (Map.Entry<String,Object> entry : getAggregationData(loopContext, flowElement).entrySet()) {
-			loopContext.setData(entry.getKey(), entry.getValue());
+
+			newContext.setData(entry.getKey(), entry.getValue());
 		}
 
+		return newContext;
+	}
+
+	private void traverseAndEvalute(final FlowElement element, final Consumer<FlowElement> consumer) {
+
+		if (element != null) {
+
+			consumer.accept(element);
+
+			if (element instanceof FlowDecision) {
+
+				final FlowDecision decision = (FlowDecision)element;
+
+				FlowElement decisionElement = decision.getProperty(FlowDecision.trueElement);
+				if (decisionElement != null) {
+
+					traverseAndEvalute(decisionElement, consumer);
+				}
+
+				decisionElement = decision.getProperty(FlowDecision.falseElement);
+				if (decisionElement != null) {
+
+					traverseAndEvalute(decisionElement, consumer);
+				}
+
+			} else {
+
+				if (element.next() != null) {
+
+					traverseAndEvalute(element.next(), consumer);
+				}
+			}
+		}
 	}
 
 }
