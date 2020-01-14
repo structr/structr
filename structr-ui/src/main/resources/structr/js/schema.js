@@ -569,7 +569,7 @@ var _Schema = {
 
 			if (!_Schema.hiddenSchemaNodes) {
 
-				_Schema.updateHiddenSchemaNodes();
+				return _Schema.updateHiddenSchemaNodes();
 
 			} else {
 				return false;
