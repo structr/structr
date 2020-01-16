@@ -94,7 +94,7 @@ var _Widgets = {
 				}
 			});
 
-			_Pager.initPager('local-widgets', 'Widget', 1, 25);
+			_Pager.initPager('local-widgets', 'Widget', 1, 25, 'treePath', 'asc');
 			var _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl, true, 'Widget', 'public', function(entities) {
 				entities.forEach(function (entity) {
 					StructrModel.create(entity, null, false);
