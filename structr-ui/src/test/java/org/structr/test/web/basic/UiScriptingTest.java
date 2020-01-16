@@ -201,6 +201,53 @@ public class UiScriptingTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testMultiRequestParametersInJavascript() {
+
+		try (final Tx tx = app.tx()) {
+
+			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
+			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
+
+			template.setContent("${{request.param.join('')}}");
+
+			page.appendChild(template);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		try (final Tx tx = app.tx()) {
+
+			RestAssured
+			.given()
+				//.headers("X-User", "admin" , "X-Password", "admin")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+				.statusCode(200)
+				.body(equalTo("abc"))
+			.when()
+				.get("/test?param=a&param=b&param=c");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
 	public void testScripting() {
 
 		NodeInterface detailsDataObject = null;

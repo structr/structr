@@ -901,7 +901,13 @@ public class StructrScriptable extends ScriptableObject {
 
 		@Override
 		public Object get(String name, Scriptable start) {
-			return request.getParameter(name);
+
+			Object value = request.getParameterValues(name);
+			if (value != null && ((String[]) value).length == 1) {
+				value = ((String[]) value)[0];
+			}
+
+			return value;
 		}
 
 		@Override
