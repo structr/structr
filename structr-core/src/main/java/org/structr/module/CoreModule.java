@@ -38,6 +38,7 @@ import org.structr.core.function.CopyPermissionsFunction;
 import org.structr.core.function.CreateFunction;
 import org.structr.core.function.CreateRelationshipFunction;
 import org.structr.core.function.CypherFunction;
+import org.structr.core.function.DateAddFunction;
 import org.structr.core.function.DateFormatFunction;
 import org.structr.core.function.DebugFunction;
 import org.structr.core.function.DeleteCacheValueFunction;
@@ -201,6 +202,7 @@ public class CoreModule implements StructrModule {
 		Functions.put(licenseManager, new MinFunction());
 		Functions.put(licenseManager, new SetLocaleFunction());
 		Functions.put(licenseManager, new DateFormatFunction());
+		Functions.put(licenseManager, new DateAddFunction());
 		Functions.put(licenseManager, new ParseDateFunction());
 		Functions.put(licenseManager, new WeekDaysFunction());
 		Functions.put(licenseManager, new ToDateFunction());
