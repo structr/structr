@@ -28,16 +28,28 @@
 var _Pager = {
 
 	initPager: function(id, type, p, ps, sort, order, filters) {
-		if (!_Pager.restorePagerData(id)) {
-			pagerType[id] = type;
-			page[id] = parseInt(p);
-			pageSize[id] = parseInt(ps);
-			sortKey[id] = sort;
-			sortOrder[id] = order;
-			pagerFilters[id] = filters || {};
+		_Pager.restorePagerData(id);
 
-			_Pager.storePagerData(id, type, page[id], pageSize[id], sortKey[id], sortOrder[id], pagerFilters[id]);
+		if (pagerType[id] === undefined) {
+			pagerType[id] = type;
 		}
+		if (page[id] === undefined) {
+			page[id] = parseInt(p);
+		}
+		if (pageSize[id] === undefined) {
+			pageSize[id] = parseInt(ps);
+		}
+		if (sortKey[id] === undefined) {
+			sortKey[id] = sort;
+		}
+		if (sortOrder[id] === undefined) {
+			sortOrder[id] = order;
+		}
+		if (pagerFilters[id] === undefined) {
+			pagerFilters[id] = filters || {};
+		}
+
+		_Pager.storePagerData(id, type, page[id], pageSize[id], sortKey[id], sortOrder[id], pagerFilters[id]);
 	},
 
 	initFilters: function(id, type, filters) {
