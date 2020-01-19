@@ -208,7 +208,7 @@ public class UiScriptingTest extends StructrUiTest {
 			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
 			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
 
-			template.setContent("${{request.param.join('')}}");
+			template.setContent("${{ $.print($.get('request').param.join('')); }}");
 
 			page.appendChild(template);
 
