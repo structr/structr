@@ -18,12 +18,10 @@
  */
 package org.structr.flow.engine;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import com.sun.tools.javac.comp.Flow;
 import org.structr.flow.api.*;
 import org.structr.flow.impl.FlowAggregate;
 import org.structr.flow.impl.FlowDecision;
@@ -53,7 +51,7 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 				FlowElement element = loopBody;
 
 				final Context cleanedLoopContext = new Context(context);
-				traverseAndEvalute(element, (el) -> {
+				traverseAndEvaluate(element, (el) -> {
 					if (el instanceof FlowAggregate) {
 						cleanedLoopContext.setData(((FlowAggregate) el).getUuid(), null);
 					}
@@ -100,7 +98,7 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 
 		FlowElement currentElement = ((FlowForEach)flowElement).getLoopBody();
 
-		traverseAndEvalute(currentElement, (el) -> {
+		traverseAndEvaluate(currentElement, (el) -> {
 			if (el instanceof FlowAggregate) {
 
 				aggregateData.put(((FlowAggregate) el).getUuid(), context.getData(((FlowAggregate) el).getUuid()));
@@ -121,7 +119,7 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 		return newContext;
 	}
 
-	private void traverseAndEvalute(final FlowElement element, final Consumer<FlowElement> consumer) {
+	private void traverseAndEvaluate(final FlowElement element, final Consumer<FlowElement> consumer) {
 
 		if (element != null) {
 
@@ -134,20 +132,20 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 				FlowElement decisionElement = decision.getProperty(FlowDecision.trueElement);
 				if (decisionElement != null) {
 
-					traverseAndEvalute(decisionElement, consumer);
+					traverseAndEvaluate(decisionElement, consumer);
 				}
 
 				decisionElement = decision.getProperty(FlowDecision.falseElement);
 				if (decisionElement != null) {
 
-					traverseAndEvalute(decisionElement, consumer);
+					traverseAndEvaluate(decisionElement, consumer);
 				}
 
 			} else {
 
 				if (element.next() != null) {
 
-					traverseAndEvalute(element.next(), consumer);
+					traverseAndEvaluate(element.next(), consumer);
 				}
 			}
 		}
