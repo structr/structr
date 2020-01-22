@@ -670,9 +670,9 @@ var _Entities = {
 
 				// update entity for show callback
 				if (entity.relType) {
-					Command.getRelationship(entity.id, entity.target, null, function(e) { showCallback(e); });
+					Command.getRelationship(entity.id, entity.target, null, function(e) { showCallback($('#tabView-' + name), e); });
 				} else {
-					Command.get(entity.id, null, function(e) { showCallback(e); });
+					Command.get(entity.id, null, function(e) { showCallback($('#tabView-' + name), e); });
 				}
 			}
 		});

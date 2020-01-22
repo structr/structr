@@ -85,6 +85,7 @@ var _Dialogs = {
 
 			Structr.fetchHtmlTemplate('dialogs/ldap.group', { group: entity }, function (html) {
 
+				el.empty();
 				el.append(html);
 
 				var dnInput     = $('input#ldap-group-dn');
@@ -130,6 +131,7 @@ var _Dialogs = {
 
 			Structr.fetchHtmlTemplate('dialogs/file.options', { file: entity }, function (html) {
 
+				el.empty();
 				el.append(html);
 
 				$('button#extract-structure-button').on('click', function() {
@@ -163,6 +165,7 @@ var _Dialogs = {
 
 				Structr.fetchHtmlTemplate('dialogs/a.options', { entity: entity, a: a, title: _Dialogs.getTitle() }, function (html) {
 
+					el.empty();
 					el.append(html);
 
 					[ 'id', 'class', 'href', 'style' ].forEach(p => {
@@ -195,6 +198,7 @@ var _Dialogs = {
 
 				Structr.fetchHtmlTemplate('dialogs/button.options', { entity: entity, button: button, title: _Dialogs.getTitle() }, function (html) {
 
+					el.empty();
 					el.append(html);
 
 					[ 'id', 'class', 'onclick', 'title', 'type', 'style' ].forEach(p => {
@@ -226,6 +230,7 @@ var _Dialogs = {
 
 				Structr.fetchHtmlTemplate('dialogs/input.options', { entity: entity, input: input, title: _Dialogs.getTitle() }, function (html) {
 
+					el.empty();
 					el.append(html);
 
 					[ 'id', 'class', 'title', 'placeholder', 'type', 'style' ].forEach(p => {
@@ -252,6 +257,7 @@ var _Dialogs = {
 
 				Structr.fetchHtmlTemplate('dialogs/div.options', { entity: entity, div: div, title: _Dialogs.getTitle() }, function (html) {
 
+					el.empty();
 					el.append(html);
 
 					[ 'id', 'class', 'style' ].forEach(p => {
@@ -283,6 +289,7 @@ var _Dialogs = {
 
 				Structr.fetchHtmlTemplate('dialogs/user.options', { entity: entity, user: entity, title: _Dialogs.getTitle() }, function (html) {
 
+					el.empty();
 					el.append(html);
 
 					[ 'name', 'e-mail' ].forEach(p => {
@@ -320,6 +327,7 @@ var _Dialogs = {
 
 				Structr.fetchHtmlTemplate('dialogs/page.options', { entity: entity, page: entity, title: _Dialogs.getTitle() }, function (html) {
 
+					el.empty();
 					el.append(html);
 
 					[ 'name', 'content-type', 'category', 'position', 'show-on-error-codes' ].forEach(p => {

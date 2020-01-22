@@ -313,6 +313,7 @@ var _Pages = {
 		var categoryFilter = $('<input type="text" class="filter page-label" data-attribute="category" placeholder="Category" />');
 		pPager.pager.append(categoryFilter);
 		pPager.activateFilterElements();
+		/*
 		var bulkEditingHelper = $(
 			'<button type="button" title="Open Bulk Editing Helper (Ctrl-Alt-E)" class="icon-button">'
 			+ '<i class="icon ' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" />'
@@ -322,7 +323,7 @@ var _Pages = {
 			Structr.dialog('Bulk Editing Helper (Ctrl-Alt-E)');
 			new RefactoringHelper(dialog).show();
 		});
-
+		*/
 		$.ajax({
 			url: '/structr/rest/Page/category',
 			success: function(data) {
