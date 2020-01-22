@@ -18,7 +18,6 @@
  */
 package org.structr.geo;
 
-import com.vividsolutions.jts.geom.Geometry;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -29,19 +28,19 @@ import org.structr.common.error.ArgumentTypeException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
-public class GetWCSDataFunction extends AbstractGeoserverFunction {
+public class GetWFSDataFunction extends AbstractGeoserverFunction {
 
-	private static final Logger logger       = LoggerFactory.getLogger(GetWCSDataFunction.class.getName());
-	public static final String ERROR_MESSAGE = "usage: get_wcs_data(baseUrl, coverageId, boundingBox, min, max)";
+	private static final Logger logger       = LoggerFactory.getLogger(GetWFSDataFunction.class.getName());
+	public static final String ERROR_MESSAGE = "usage: get_wfs_data(baseUrl, version, typeName [, parameterString ])";
 
 	@Override
 	public String getName() {
-		return "get_wcs_data";
+		return "get_wfs_data";
 	}
 
 	@Override
 	public String getSignature() {
-		return "baseUrl, coverageId, bBox, min, max";
+		return "baseUrl, version, typeName, [, params ]";
 	}
 
 	@Override
@@ -49,16 +48,15 @@ public class GetWCSDataFunction extends AbstractGeoserverFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndTypes(sources, 5, String.class, String.class, Geometry.class, Number.class, Number.class);
+			assertArrayHasMinLengthAndTypes(sources, 3, String.class, String.class, String.class, String.class);
 
 			final Map<String, Object> data = new LinkedHashMap<>();
 			final String baseUrl           = (String)sources[0];
-			final String coverageId        = (String)sources[1];
-			final Geometry boundingBox     = (Geometry)sources[2];
-			final Number min               = (Number)sources[3];
-			final Number max               = (Number)sources[4];
+			final String version           = (String)sources[1];
+			final String typeName          = (String)sources[2];
+			final String parameters        = (String)sources[3];
 
-			data.put("data", getFilteredCoverageGeometries(baseUrl, coverageId, boundingBox, min.doubleValue(), max.doubleValue()));
+			data.put("data", getWFSData(baseUrl, version, typeName, parameters));
 
 			// we need to return a single object that contains all the data since Structr returns a
 			// list with a single element in a different format that a list with multiple elements
@@ -89,6 +87,6 @@ public class GetWCSDataFunction extends AbstractGeoserverFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Reads coverage data from a WCS endpoint and returns it";
+		return "Reads features from a WFS endpoint and returns geometries.";
 	}
 }

@@ -196,7 +196,7 @@ public abstract class Function<S, T> extends Hint {
 			throw ArgumentTypeException.wrongTypes(array, minimum, types);
 		}
 
-		for (int i=0; i<array.length; i++) {
+		for (int i=0; (i<array.length && i < types.length); i++) {
 
 			final Object element = array[i];
 			final Class type     = types[i];

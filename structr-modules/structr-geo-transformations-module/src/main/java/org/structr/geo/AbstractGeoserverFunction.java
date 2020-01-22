@@ -41,12 +41,17 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.factory.Hints;
 import org.geotools.geometry.jts.JTS;
+import org.geotools.gml3.v3_2.GMLConfiguration;
 import org.geotools.process.raster.PolygonExtractionProcess;
 import org.geotools.referencing.CRS;
+import org.geotools.xml.Parser;
 import org.jaitools.numeric.Range;
 import org.json.JSONObject;
 import org.json.XML;
 import org.opengis.coverage.Coverage;
+import org.opengis.feature.Feature;
+import org.opengis.feature.GeometryAttribute;
+import org.opengis.feature.Property;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
@@ -54,8 +59,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 
-public abstract class AbstractWCSDataFunction extends GeoFunction {
+public abstract class AbstractGeoserverFunction extends GeoFunction {
 
+	private static final String[] GEOMETRY_NAMES    = { "geometry", "geometrie" };
 	private static final int GEOSERVER_ERROR_STATUS = 502;
 
 	protected URL getWCSDescriptionUrl(final String baseUrl, final String coverageId) throws MalformedURLException {
@@ -114,6 +120,23 @@ public abstract class AbstractWCSDataFunction extends GeoFunction {
 		return new URL(buf.toString());
 	}
 
+	protected URL getWFSUrl(final String baseUrl, final String version, final String typeName, final String parameters) throws MalformedURLException {
+
+		final StringBuilder buf = new StringBuilder(baseUrl);
+
+		buf.append("/wfs?SERVICE=WFS");
+		buf.append("&version=");
+		buf.append(version);
+		buf.append("&request=GetFeature");
+		buf.append("&typeName=").append(typeName);
+
+		if (parameters !=null) {
+			buf.append(parameters);
+		}
+
+		return new URL(buf.toString());
+	}
+
 	protected List<Geometry> getFilteredCoverageGeometries(final String baseUrl, final String coverageId, final Geometry boundingBox, final double min, final double max) throws FrameworkException {
 
 		try {
@@ -153,6 +176,108 @@ public abstract class AbstractWCSDataFunction extends GeoFunction {
 
 			throw new FrameworkException(422, t.getMessage());
 		}
+	}
+
+	protected List<Map<String, Object>> getWFSData(final String baseUrl, final String version, final String typeName, final String parameters) throws FrameworkException {
+
+		final List<Map<String, Object>> data = new LinkedList<>();
+
+		try {
+
+			final URL url                      = getWFSUrl(baseUrl, version, typeName, parameters);
+			final HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+
+			connection.connect();
+
+			final int statusCode = connection.getResponseCode();
+			if (statusCode == 200) {
+
+				try (final InputStream is = connection.getInputStream()) {
+
+					final GMLConfiguration config  = new GMLConfiguration();
+					final List<Feature> features   = new LinkedList<>();
+					final Parser parser            = new Parser(config);
+					final Object result            = parser.parse(is);
+
+					if (result instanceof Map) {
+
+						final Map<String, Object> map = (Map)result;
+						final Object member           = map.get("member");
+
+						if (member != null) {
+
+							if (member instanceof List) {
+
+								features.addAll((List)member);
+
+							} else if (member instanceof Feature) {
+
+								features.add((Feature)member);
+							}
+
+						} else {
+
+							// single result that was not parsed into a Feature impl
+							data.add(map);
+						}
+
+					} else if (result instanceof Feature) {
+
+						features.add((Feature)result);
+					}
+
+					for (final Object obj : features) {
+
+						if (obj instanceof Feature) {
+
+							final Feature feature         = (Feature)obj;
+							final Map<String, Object> map = new LinkedHashMap<>();
+
+							map.put("name", feature.getName().toString());
+							map.put("id",   feature.getIdentifier().getID());
+
+							for (final Property property : feature.getProperties()) {
+
+								map.put(property.getName().toString(), property.getValue());
+							}
+
+							data.add(map);
+
+						} else if (obj instanceof Map) {
+
+							data.add((Map)obj);
+
+						} else {
+
+							// unknown type
+							logger.warn("Unknown feature  type {}, ignoring.", obj);
+						}
+					}
+				}
+
+			} else {
+
+				try (final InputStream is = connection.getErrorStream()) {
+
+					final String content = IOUtils.toString(is, "utf-8");
+
+					System.out.println(content);
+
+					throw new FrameworkException(GEOSERVER_ERROR_STATUS, content);
+				}
+			}
+
+		} catch (FrameworkException fex) {
+
+			// re-throw FrameworkException
+			throw fex;
+
+		} catch (Throwable t) {
+
+			throw new FrameworkException(GEOSERVER_ERROR_STATUS, t.getMessage());
+		}
+
+		return data;
 	}
 
 	protected Map<String, Object> getWCSCoverageDescription(final String baseUrl, final String coverageId) {
@@ -203,6 +328,34 @@ public abstract class AbstractWCSDataFunction extends GeoFunction {
 		}
 
 		return data;
+	}
+
+	protected GeometryAttribute getGeometryAttributeFromFeature(final Feature feature) {
+
+		for (final String name : GEOMETRY_NAMES) {
+
+			final Object value = feature.getProperty(name);
+			if (value instanceof GeometryAttribute) {
+
+				return (GeometryAttribute)value;
+			}
+		}
+
+		return null;
+	}
+
+	protected Geometry getGeometryFromMap(final Map map) {
+
+		for (final String name : GEOMETRY_NAMES) {
+
+			final Object value = map.get(name);
+			if (value instanceof Geometry) {
+
+				return (Geometry)value;
+			}
+		}
+
+		return null;
 	}
 
 	protected GridCoverage2D getWCSCoverage(final String baseUrl, final String coverageId, final Geometry subset) throws FrameworkException {
@@ -308,7 +461,7 @@ public abstract class AbstractWCSDataFunction extends GeoFunction {
 	public static void main(final String[] args) {
 
 		try {
-			final AbstractWCSDataFunction func = new AbstractWCSDataFunction() {
+			final AbstractGeoserverFunction func = new AbstractGeoserverFunction() {
 				@Override
 				public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 					throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.

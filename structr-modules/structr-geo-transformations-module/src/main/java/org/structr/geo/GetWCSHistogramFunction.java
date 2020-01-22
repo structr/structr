@@ -38,7 +38,7 @@ import org.structr.common.error.ArgumentTypeException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
-public class GetWCSHistogramFunction extends AbstractWCSDataFunction {
+public class GetWCSHistogramFunction extends AbstractGeoserverFunction {
 
 	private static final Logger logger       = LoggerFactory.getLogger(GetWCSHistogramFunction.class.getName());
 	public static final String ERROR_MESSAGE = "usage: get_wcs_histogram(baseUrl, coverageId, boundingBox, [numBins, lowValue])";

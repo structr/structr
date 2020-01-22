@@ -45,6 +45,7 @@ public class GeoTransformationsModule implements StructrModule {
 		Functions.put(licenseManager, new WKTToPolygonsFunction());
 		Functions.put(licenseManager, new WKTToGeometryFunction());
 		Functions.put(licenseManager, new MakePolygonValidFunction());
+		Functions.put(licenseManager, new GetWFSDataFunction());
 		Functions.put(licenseManager, new GetWCSDataFunction());
 		Functions.put(licenseManager, new GetWCSHistogramFunction());
 
