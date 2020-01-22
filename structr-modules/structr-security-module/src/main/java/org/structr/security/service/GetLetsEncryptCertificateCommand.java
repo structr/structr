@@ -406,7 +406,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 				// If a temporary HTTP server is running, stop it.
 				server.stop(0);
 				
-				logger.info("Successfully stoppted temporary HTTP server.");
+				logger.info("Successfully stopped temporary HTTP server.");
 				
 			} else {
 
