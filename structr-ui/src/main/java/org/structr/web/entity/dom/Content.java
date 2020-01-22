@@ -87,7 +87,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		type.overrideMethod("setFavoriteContent",         false, "setContent(arg0);");
 		type.overrideMethod("getFavoriteContent",         false, "return getContent();");
 		type.overrideMethod("getFavoriteContentType",     false, "return getContentType();");
-		type.overrideMethod("getContext",                 false, "return getPagePath();");
+		type.overrideMethod("getContext",                 false, "if (StringUtils.isNotBlank(getName())) { return getName(); } else { return getPagePath(); }");
 
 		// ----- interface org.w3c.dom.Node -----
 		type.overrideMethod("getTextContent",        false, "return getData();");
