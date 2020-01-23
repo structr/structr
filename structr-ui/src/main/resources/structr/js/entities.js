@@ -555,94 +555,108 @@ var _Entities = {
 	},
 	showProperties: function(obj, activeViewOverride) {
 
-		var handleGraphObject = function(entity) {
+		let handleGraphObject;
+		
+		_Entities.getSchemaProperties(obj.type, 'custom', function(properties) {
 
-			var views      = ['ui' ];
-			var activeView = 'ui';
-			var tabTexts   = [];
+			handleGraphObject = function(entity) {
 
-			if (activeViewOverride) {
-				activeView = activeViewOverride;
+				var views      = ['ui'];
+				
+				if (Object.keys(properties).length) {
+					views.push('custom');
+				}
+				
+				var activeView = 'ui';
+				var tabTexts   = [];
+
+				if (activeViewOverride) {
+					activeView = activeViewOverride;
+				}
+
+				_Schema.getTypeInfo(entity.type, function(typeInfo) {
+
+
+					var dialogTitle;
+
+					if (entity.hasOwnProperty('relType')) {
+
+						tabTexts.ui = 'Relationship Properties';
+						tabTexts.sourceNode = 'Source Node Properties';
+						tabTexts.targetNode = 'Target Node Properties';
+
+						dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' relationship ' + (entity.name ? entity.name : entity.id);
+
+					} else {
+
+						if (entity.isDOMNode && !entity.isContent) {
+							views.unshift('_html_');
+							if (Structr.isModuleActive(_Pages)) {
+								activeView = '_html_';
+							}
+						}
+
+						tabTexts._html_ = 'HTML Attributes';
+						tabTexts.ui = 'Built-in Properties';
+						tabTexts.custom = 'Custom Properties';
+
+						dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' node ' + (entity.name ? entity.name : entity.id);
+
+					}
+
+					Structr.dialog(dialogTitle, function() { return true; }, function() { return true; }, true);
+
+					var tabsdiv = dialogHead.append('<div id="tabs"></div>');
+					var mainTabs = tabsdiv.append('<ul></ul>');
+					var contentEl = dialog.append('<div></div>');
+
+					// custom dialog tab?
+					var hasCustomDialog = _Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
+
+					if (entity.isDOMNode) {
+
+						if (entity.isContent !== true || entity.type === 'Template') {
+
+							_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', !hasCustomDialog, function(c) {
+								_Entities.queryDialog(entity, c, typeInfo);
+							}, function() { }, function() { });
+						}
+
+						if (entity.isContent !== true) {
+
+							_Entities.appendPropTab(entity, mainTabs, contentEl, 'editBinding', 'Edit Mode Binding', false, function(c) {
+								_Entities.dataBindingDialog(entity, c, typeInfo);
+							});
+
+						}
+
+					}
+
+					_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, typeInfo);
+
+					if (!entity.hasOwnProperty('relType')) {
+						_Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Access Control and Visibility', false, function(c) {
+							_Entities.accessControlDialog(entity, c, typeInfo);
+						});
+					}
+
+					activeView = activeViewOverride || LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id) || activeView;
+					$('#tab-' + activeView).click();
+
+					Structr.resize();
+
+				});
+
+			};
+
+			if (obj.relType) {
+				Command.getRelationship(obj.id, obj.target, null, function(entity) { handleGraphObject(entity); });
+			} else {
+				Command.get(obj.id, null, function(entity) { handleGraphObject(entity); }, 'ui');
 			}
 
-			_Schema.getTypeInfo(entity.type, function(typeInfo) {
-				var dialogTitle;
+		});
 
-				if (entity.hasOwnProperty('relType')) {
-
-					tabTexts.ui = 'Relationship Properties';
-					tabTexts.sourceNode = 'Source Node Properties';
-					tabTexts.targetNode = 'Target Node Properties';
-
-					dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' relationship ' + (entity.name ? entity.name : entity.id);
-
-				} else {
-
-					if (entity.isDOMNode && !entity.isContent) {
-						views.unshift('_html_');
-						if (Structr.isModuleActive(_Pages)) {
-							activeView = '_html_';
-						}
-					}
-
-					tabTexts._html_ = 'HTML Attributes';
-					tabTexts.ui = 'Built-in Properties';
-					tabTexts.custom = 'Custom Properties';
-
-					dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' node ' + (entity.name ? entity.name : entity.id);
-
-				}
-
-				Structr.dialog(dialogTitle, function() { return true; }, function() { return true; }, true);
-
-				var tabsdiv = dialogHead.append('<div id="tabs"></div>');
-				var mainTabs = tabsdiv.append('<ul></ul>');
-				var contentEl = dialog.append('<div></div>');
-
-				// custom dialog tab?
-				var hasCustomDialog = _Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
-
-				if (entity.isDOMNode) {
-
-					if (entity.isContent !== true || entity.type === 'Template') {
-
-						_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', !hasCustomDialog, function(c) {
-							_Entities.queryDialog(entity, c, typeInfo);
-						}, function() { }, function() { });
-					}
-
-					if (entity.isContent !== true) {
-
-						_Entities.appendPropTab(entity, mainTabs, contentEl, 'editBinding', 'Edit Mode Binding', false, function(c) {
-							_Entities.dataBindingDialog(entity, c, typeInfo);
-						});
-
-					}
-
-				}
-
-				_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, typeInfo);
-
-				if (!entity.hasOwnProperty('relType')) {
-					_Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Access Control and Visibility', false, function(c) {
-						_Entities.accessControlDialog(entity, c, typeInfo);
-					});
-				}
-
-				activeView = activeViewOverride || LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id) || activeView;
-				$('#tab-' + activeView).click();
-
-				Structr.resize();
-
-			});
-
-		};
-
-		if (obj.relType) {
-			Command.getRelationship(obj.id, obj.target, null, function(entity) { handleGraphObject(entity); });
-		} else {
-			Command.get(obj.id, null, function(entity) { handleGraphObject(entity); }, 'ui');
-		}
 	},
 	appendPropTab: function(entity, tabsEl, contentEl, name, label, active, callback, initCallback, showCallback) {
 
