@@ -462,7 +462,8 @@ var _Pages = {
 			e.stopPropagation();
 			var self = $(this);
 			var link = $.trim(self.parent().children('b.name_').attr('title'));
-			var url = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + link + (LSWrapper.getItem(detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(detailsObjectIdKey + entity.id) : '');
+			let pagePath = entity.path ? entity.path.replace(/^\//, '') : link;
+			var url = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + pagePath + (LSWrapper.getItem(detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(detailsObjectIdKey + entity.id) : '');
 			window.open(url);
 		});
 
