@@ -18,14 +18,16 @@
  */
 package org.structr.flow.impl.rels;
 
+import org.structr.common.PermissionPropagation;
 import org.structr.core.entity.ManyToOne;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.web.entity.dom.DOMNode;
 
 /**
  *
  */
-public class DOMNodeFLOWFlowContainer extends ManyToOne<DOMNode, FlowContainer> {
+public class DOMNodeFLOWFlowContainer extends ManyToOne<DOMNode, FlowContainer> implements PermissionPropagation {
 
 	@Override
 	public Class<DOMNode> getSourceType() {
@@ -40,5 +42,35 @@ public class DOMNodeFLOWFlowContainer extends ManyToOne<DOMNode, FlowContainer> 
 	@Override
 	public String name() {
 		return "FLOW";
+	}
+
+	@Override
+	public SchemaRelationshipNode.Direction getPropagationDirection() {
+		return SchemaRelationshipNode.Direction.Both;
+	}
+
+	@Override
+	public SchemaRelationshipNode.Propagation getReadPropagation() {
+		return SchemaRelationshipNode.Propagation.Add;
+	}
+
+	@Override
+	public SchemaRelationshipNode.Propagation getWritePropagation() {
+		return SchemaRelationshipNode.Propagation.Keep;
+	}
+
+	@Override
+	public SchemaRelationshipNode.Propagation getDeletePropagation() {
+		return SchemaRelationshipNode.Propagation.Keep;
+	}
+
+	@Override
+	public SchemaRelationshipNode.Propagation getAccessControlPropagation() {
+		return SchemaRelationshipNode.Propagation.Keep;
+	}
+
+	@Override
+	public String getDeltaProperties() {
+		return null;
 	}
 }
