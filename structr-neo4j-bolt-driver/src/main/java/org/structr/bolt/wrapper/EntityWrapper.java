@@ -83,7 +83,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		assertNotStale();
 
-		return accessData().containsKey(name);
+		return accessData(false).containsKey(name);
 	}
 
 	@Override
@@ -91,7 +91,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		assertNotStale();
 
-		final Object value = accessData().get(name);
+		final Object value = accessData(false).get(name);
 		if (value instanceof List) {
 
 			try {
@@ -151,7 +151,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 			tx.set(query, map);
 
 			// update data
-			accessData().put(key, value);
+			accessData(true).put(key, value);
 
 			// mark node as modified
 			setModified();
@@ -202,7 +202,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		tx.set(query, map);
 
 		// remove key from data
-		accessData().put(key, null);
+		accessData(true).put(key, null);
 
 		setModified();
 	}
@@ -212,7 +212,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		assertNotStale();
 
-		return accessData().keySet();
+		return accessData(false).keySet();
 	}
 
 	@Override
@@ -257,6 +257,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 	}
 
 	public void setModified() {
+		db.getCurrentTransaction().accessed(this);
 		db.getCurrentTransaction().modified(this);
 	}
 
@@ -329,7 +330,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 	// ----- private methods -----
 	private void update(final Map<String, Object> values) {
-		accessData().putAll(values);
+		accessData(true).putAll(values);
 	}
 
 	private void filter(final Map<String, Object> data) {
@@ -350,7 +351,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 	private boolean needsUpdate(final String key, final Object newValue) {
 
-		final Object existingValue = accessData().get(key);
+		final Object existingValue = accessData(false).get(key);
 
 		if (existingValue == null && newValue == null) {
 			return false;
@@ -394,7 +395,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 	}
 
 	// ----- private methods -----
-	private ChangeAwareMap accessData() {
+	private ChangeAwareMap accessData(final boolean write) {
 
 		// read-only access does not need a transaction
 		final SessionTransaction tx = db.getCurrentTransaction(false);
@@ -412,7 +413,9 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 				copy = new ChangeAwareMap(entityData);
 				txData.put(transactionId, copy);
 
-				tx.accessed(this);
+				if (write) {
+					tx.accessed(this);
+				}
 			}
 
 			return copy;
