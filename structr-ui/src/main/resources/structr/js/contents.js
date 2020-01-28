@@ -615,8 +615,6 @@ var _Contents = {
 
 						//var isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
 
-						console.log(key, isRelated, isCollection, isReadOnly, isSystem);
-
 						var oldVal = entity[key];
 
 						dialogText.append('<div id="prop-' + key + '" class="prop"><label for="' + key + '"><h3>' + formatKey(key) + '</h3></label></div>');
@@ -657,8 +655,9 @@ var _Contents = {
 
 						} else if (isRelated) {
 
-							div.append('<div id="relatedNodesList" class="value-container related-nodes"> <i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> </div>');
-							$('#relatedNodesList').children('.add').on('click', function() {
+							let relatedNodesList = $('<div class="value-container related-nodes"> <i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> </div>');
+							div.append(relatedNodesList);
+							$(relatedNodesList).children('.add').on('click', function() {
 								Structr.dialog('Add ' + prop.type, function() {
 								}, function() {
 									_Contents.editItem(item);
@@ -771,7 +770,7 @@ var _Contents = {
 
 				e.preventDefault();
 				e.stopPropagation();
-				
+
 				_Entities.getSchemaProperties(entity.type, 'custom', function(properties) {
 
 					let props = Object.values(properties);
@@ -797,7 +796,7 @@ var _Contents = {
 								}
 							}
 
-							if (newVal !== oldVal) {
+							if (!prop.relatedType && newVal !== oldVal) {
 
 								Command.setProperty(entity.id, key, newVal, false, function() {
 
