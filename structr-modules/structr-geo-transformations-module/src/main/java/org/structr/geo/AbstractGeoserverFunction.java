@@ -128,7 +128,7 @@ public abstract class AbstractGeoserverFunction extends GeoFunction {
 		buf.append("&version=");
 		buf.append(version);
 		buf.append("&request=GetFeature");
-		buf.append("&typeName=").append(typeName);
+		buf.append("&typeNames=").append(typeName);
 
 		if (parameters !=null) {
 			buf.append(parameters);
