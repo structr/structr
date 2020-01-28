@@ -18,12 +18,14 @@
  */
 package org.structr.flow.impl.rels;
 
+import org.structr.common.PermissionPropagation;
 import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowCondition;
 
-public class FlowConditionBaseNode extends OneToMany<FlowCondition, FlowBaseNode> {
+public class FlowConditionBaseNode extends OneToMany<FlowCondition, FlowBaseNode> implements PermissionPropagation {
 
 	@Override
 	public Class<FlowCondition> getSourceType() {
@@ -43,5 +45,35 @@ public class FlowConditionBaseNode extends OneToMany<FlowCondition, FlowBaseNode
 	@Override
 	public int getAutocreationFlag() {
 		return Relation.ALWAYS;
+	}
+
+	@Override
+	public SchemaRelationshipNode.Direction getPropagationDirection() {
+		return SchemaRelationshipNode.Direction.Both;
+	}
+
+	@Override
+	public SchemaRelationshipNode.Propagation getReadPropagation() {
+		return SchemaRelationshipNode.Propagation.Add;
+	}
+
+	@Override
+	public SchemaRelationshipNode.Propagation getWritePropagation() {
+		return SchemaRelationshipNode.Propagation.Keep;
+	}
+
+	@Override
+	public SchemaRelationshipNode.Propagation getDeletePropagation() {
+		return SchemaRelationshipNode.Propagation.Keep;
+	}
+
+	@Override
+	public SchemaRelationshipNode.Propagation getAccessControlPropagation() {
+		return SchemaRelationshipNode.Propagation.Keep;
+	}
+
+	@Override
+	public String getDeltaProperties() {
+		return null;
 	}
 }

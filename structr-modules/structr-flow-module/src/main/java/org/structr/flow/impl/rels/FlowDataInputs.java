@@ -18,12 +18,14 @@
  */
 package org.structr.flow.impl.rels;
 
+import org.structr.common.PermissionPropagation;
 import org.structr.core.entity.ManyToMany;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.impl.FlowBaseNode;
 
-public class FlowDataInputs extends ManyToMany<DataSource, FlowBaseNode> {
+public class FlowDataInputs extends ManyToMany<DataSource, FlowBaseNode> implements PermissionPropagation {
 
 	@Override
 	public Class<DataSource> getSourceType() {
@@ -43,5 +45,35 @@ public class FlowDataInputs extends ManyToMany<DataSource, FlowBaseNode> {
 	@Override
 	public int getAutocreationFlag() {
 		return Relation.ALWAYS;
+	}
+
+	@Override
+	public SchemaRelationshipNode.Direction getPropagationDirection() {
+		return SchemaRelationshipNode.Direction.Both;
+	}
+
+	@Override
+	public SchemaRelationshipNode.Propagation getReadPropagation() {
+		return SchemaRelationshipNode.Propagation.Add;
+	}
+
+	@Override
+	public SchemaRelationshipNode.Propagation getWritePropagation() {
+		return SchemaRelationshipNode.Propagation.Keep;
+	}
+
+	@Override
+	public SchemaRelationshipNode.Propagation getDeletePropagation() {
+		return SchemaRelationshipNode.Propagation.Keep;
+	}
+
+	@Override
+	public SchemaRelationshipNode.Propagation getAccessControlPropagation() {
+		return SchemaRelationshipNode.Propagation.Keep;
+	}
+
+	@Override
+	public String getDeltaProperties() {
+		return null;
 	}
 }
