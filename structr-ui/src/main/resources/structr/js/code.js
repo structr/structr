@@ -606,7 +606,7 @@ var _Code = {
 				var contentBox = $('.editor', element);
 				var editor = CodeMirror(contentBox.get(0), {
 					value: text,
-					mode: _Code.getEditorModeForContent(entity.source),
+					mode: _Code.getEditorModeForContent(text),
 					lineNumbers: true,
 					lineWrapping: false,
 					indentUnit: 4,
