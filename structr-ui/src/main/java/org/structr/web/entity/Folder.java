@@ -63,8 +63,12 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextA
 		type.addBooleanProperty("mountWatchContents",      PropertyView.Public, PropertyView.Ui);
 		type.addIntegerProperty("mountScanInterval",       PropertyView.Public, PropertyView.Ui);
 		type.addLongProperty("mountLastScanned",           PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("mountTargetFileType",      PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("mountTargetFolderType",    PropertyView.Public, PropertyView.Ui);
 
 		type.addPropertyGetter("mountTarget", String.class);
+		type.addPropertyGetter("mountTargetFileType", String.class);
+		type.addPropertyGetter("mountTargetFolderType", String.class);
 		type.addPropertyGetter("enabledChecksums", String.class);
 
 		type.addPropertyGetter("children", Iterable.class);
@@ -115,6 +119,8 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextA
 	java.io.File getFileOnDisk(final File file, final String path, final boolean create);
 
 	String getMountTarget();
+	String getMountTargetFileType();
+	String getMountTargetFolderType();
 	String getEnabledChecksums();
 
 	Iterable<AbstractFile> getChildren();
