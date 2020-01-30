@@ -3838,8 +3838,16 @@ button.create-form-button.accept {
 	left: 64px;
 }
 
+#folder-contents .img-tile i.edit_props_icon {
+	left: 260px;
+}
+
 #folder-contents .tile i.edit_icon {
 	left: 44px;
+}
+
+#folder-contents .img-tile i.edit_icon {
+	left: 240px;
 }
 
 #folder-contents .tile img.tn {
@@ -3859,6 +3867,10 @@ button.create-form-button.accept {
 
 #folder-contents .tile i.key_icon {
 	left: 84px;
+}
+
+#folder-contents .img-tile i.key_icon {
+	left: 280px;
 }
 
 #folder-contents .tile .minify_file_icon i {

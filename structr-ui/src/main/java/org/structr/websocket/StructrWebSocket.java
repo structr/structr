@@ -350,7 +350,14 @@ public class StructrWebSocket implements WebSocketListener {
 				securityContext.clearCustomView();
 			}
 
-			session.getRemote().sendStringByFuture(msg);
+			if (session != null && session.getRemote() != null) {
+
+				session.getRemote().sendStringByFuture(msg);
+
+			} else {
+
+				logger.warn("Unable to send websocket message - either no session or no remote.");
+			}
 
 			tx.success();
 
