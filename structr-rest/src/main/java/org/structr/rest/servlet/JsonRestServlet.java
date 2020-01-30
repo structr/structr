@@ -981,20 +981,23 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			// evaluate constraints and measure query time
 			final double queryTimeStart = System.nanoTime();
-			final ResultStream result   = resource.doGet(new DefaultSortOrder(type, sortKeyNames, sortOrders), pageSize, page);
-			final double queryTimeEnd   = System.nanoTime();
 
-			if (result == null) {
+			try (final ResultStream result = resource.doGet(new DefaultSortOrder(type, sortKeyNames, sortOrders), pageSize, page)) {
 
-				throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Unable to retrieve result, check database connection");
-			}
+				final double queryTimeEnd = System.nanoTime();
 
-			if (returnContent) {
+				if (result == null) {
 
-				final DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-				result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
+					throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Unable to retrieve result, check database connection");
+				}
 
-				processResult(securityContext, request, response, result, depth, resource.isCollectionResource());
+				if (returnContent) {
+
+					final DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+					result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
+
+					processResult(securityContext, request, response, result, depth, resource.isCollectionResource());
+				}
 			}
 
 			tx.success();

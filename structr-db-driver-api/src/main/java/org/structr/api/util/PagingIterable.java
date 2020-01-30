@@ -94,8 +94,22 @@ public class PagingIterable<T> implements ResultStream<T> {
 		}
 
 	}, Integer.MAX_VALUE, 1);
-	
+
 	public boolean isConsumed() {
 		return source != null && source.isConsumed();
+	}
+
+	@Override
+	public void close() {
+
+		if (source instanceof AutoCloseable) {
+
+			try {
+				((AutoCloseable)source).close();
+
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
 	}
 }

@@ -94,10 +94,10 @@ var _Dialogs = {
 				var scopeInput  = $('input#ldap-group-scope');
 
 				// dialog logic here..
-				dnInput.on('change', function() { _Entities.setPropertyWithFeedback(entity, 'distinguishedName', dnInput.val(), dnInput); });
-				pathInput.on('change', function() { _Entities.setPropertyWithFeedback(entity, 'path', pathInput.val(), pathInput); });
-				filterInput.on('change', function() { _Entities.setPropertyWithFeedback(entity, 'filter', filterInput.val(), filterInput); });
-				scopeInput.on('change', function() { _Entities.setPropertyWithFeedback(entity, 'scope', scopeInput.val(), scopeInput); });
+				dnInput.on('blur', function() { _Entities.setPropertyWithFeedback(entity, 'distinguishedName', dnInput.val(), dnInput); });
+				pathInput.on('blur', function() { _Entities.setPropertyWithFeedback(entity, 'path', pathInput.val(), pathInput); });
+				filterInput.on('blur', function() { _Entities.setPropertyWithFeedback(entity, 'filter', filterInput.val(), filterInput); });
+				scopeInput.on('blur', function() { _Entities.setPropertyWithFeedback(entity, 'scope', scopeInput.val(), scopeInput); });
 
 				$('i#clear-ldap-group-dn').on('click', function() { setNull(entity.id, 'distinguishedName', dnInput); });
 				$('i#clear-ldap-group-path').on('click', function() { setNull(entity.id, 'path', pathInput); });
@@ -170,12 +170,12 @@ var _Dialogs = {
 
 					[ 'id', 'class', 'href', 'style' ].forEach(p => {
 						let input = $('input#' + p + '-input');
-						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, '_html_' + p, input.val(), input); });
+						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, '_html_' + p, input.val(), input); });
 					});
 
 					[ 'function-query', 'data-key' ].forEach(p => {
 						let input = $('input#' + p + '-input');
-						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val(), input); });
+						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val(), input); });
 					});
 
 					// focus on first input field
@@ -203,12 +203,12 @@ var _Dialogs = {
 
 					[ 'id', 'class', 'onclick', 'title', 'type', 'style' ].forEach(p => {
 						let input = $('input#' + p + '-input');
-						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, '_html_' + p, input.val(), input); });
+						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, '_html_' + p, input.val(), input); });
 					});
 
 					[ 'function-query', 'data-key' ].forEach(p => {
 						let input = $('input#' + p + '-input');
-						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val(), input); });
+						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val(), input); });
 					});
 
 					// focus on first input field
@@ -235,7 +235,7 @@ var _Dialogs = {
 
 					[ 'id', 'class', 'title', 'placeholder', 'type', 'style' ].forEach(p => {
 						let input = $('input#' + p + '-input');
-						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, '_html_' + p, input.val(), input); });
+						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, '_html_' + p, input.val(), input); });
 					});
 
 					// focus on first input field
@@ -262,12 +262,12 @@ var _Dialogs = {
 
 					[ 'id', 'class', 'style' ].forEach(p => {
 						let input = $('input#' + p + '-input');
-						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, '_html_' + p, input.val(), input); });
+						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, '_html_' + p, input.val(), input); });
 					});
 
 					[ 'function-query', 'data-key' ].forEach(p => {
 						let input = $('input#' + p + '-input');
-						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val(), input); });
+						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val(), input); });
 					});
 
 					// focus on first input field
@@ -294,7 +294,7 @@ var _Dialogs = {
 
 					[ 'name', 'e-mail' ].forEach(p => {
 						let input = $('input#' + p + '-input');
-						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val() || null, input); });
+						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val() || null, input); });
 					});
 
 					[ 'is-admin', 'is-two-factor-user' ].forEach(p => {
@@ -332,7 +332,7 @@ var _Dialogs = {
 
 					[ 'name', 'content-type', 'category', 'position', 'show-on-error-codes' ].forEach(p => {
 						let input = $('input#' + p + '-input');
-						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val() || null, input); });
+						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val() || null, input); });
 					});
 
 					[ 'dont-cache', 'page-creates-raw-data' ].forEach(p => {

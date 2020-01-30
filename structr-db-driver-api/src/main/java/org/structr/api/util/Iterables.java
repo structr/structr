@@ -58,7 +58,6 @@ public class Iterables {
 					((AutoCloseable)iterator).close();
 
 				} catch (Exception e) {
-					// Ignore
 				}
 			}
 		}
@@ -70,8 +69,23 @@ public class Iterables {
 
 		int c = 0;
 
-		for (final Iterator<?> iterator = iterable.iterator(); iterator.hasNext(); iterator.next()) {
-			c++;
+		try {
+
+			for (Object o : iterable) {
+				c++;
+			}
+
+		} finally {
+
+			if (iterable instanceof AutoCloseable) {
+
+				try {
+
+					((AutoCloseable)iterable).close();
+
+				} catch (Exception ex) {
+				}
+			}
 		}
 
 		return c;
@@ -167,7 +181,7 @@ public class Iterables {
 		return addAll(new LinkedHashSet<>(), iterable);
 	}
 
-	private static class MapIterable<S, T> implements Iterable<T>, AutoCloseable {
+	private static class MapIterable<S, T> implements Iterable<T> {
 
 		private final Iterable<S> from;
 		private final Function<? super S, ? extends T> function;
@@ -186,21 +200,6 @@ public class Iterables {
 			}
 
 			return iterator;
-		}
-
-		@Override
-		public void close() {
-
-			if (iterator instanceof AutoCloseable) {
-
-				try {
-					((AutoCloseable)iterator).close();
-
-				} catch (Throwable t) {
-
-					t.printStackTrace();
-				}
-			}
 		}
 
 		static class MapIterator<S, T> implements Iterator<T>, AutoCloseable {
@@ -232,23 +231,17 @@ public class Iterables {
 			}
 
 			@Override
-			public void close() {
+			public void close() throws Exception {
 
 				if (fromIterator instanceof AutoCloseable) {
 
-					try {
-						((AutoCloseable)fromIterator).close();
-
-					} catch (Throwable t) {
-
-						t.printStackTrace();
-					}
+					((AutoCloseable)fromIterator).close();
 				}
 			}
 		}
 	}
 
-	private static class FilterIterable<T> implements Iterable<T>, AutoCloseable {
+	private static class FilterIterable<T> implements Iterable<T> {
 
 		private final Predicate<? super T> specification;
 		private final Iterable<T> iterable;
@@ -268,21 +261,6 @@ public class Iterables {
 			}
 
 			return iterator;
-		}
-
-		@Override
-		public void close() {
-
-			if (iterator instanceof AutoCloseable) {
-
-				try {
-					((AutoCloseable)iterator).close();
-
-				} catch (Throwable t) {
-
-					t.printStackTrace();
-				}
-			}
 		}
 
 		static class FilterIterator<T> implements Iterator<T>, AutoCloseable {
@@ -356,23 +334,17 @@ public class Iterables {
 			}
 
 			@Override
-			public void close() {
+			public void close() throws Exception {
 
 				if (iterator instanceof AutoCloseable) {
 
-					try {
-						((AutoCloseable)iterator).close();
-
-					} catch (Throwable t) {
-
-						t.printStackTrace();
-					}
+					((AutoCloseable)iterator).close();
 				}
 			}
 		}
 	}
 
-	private static class FlatteningIterable<T> implements Iterable<T>, AutoCloseable {
+	private static class FlatteningIterable<T> implements Iterable<T> {
 
 		private Iterator<Iterable<T>> source = null;
 		private Iterator<T> current          = null;
@@ -387,7 +359,7 @@ public class Iterables {
 
 			if (iterator == null) {
 
-				iterator = new Iterator<T>() {
+				iterator = new CloseableIterator<T>() {
 
 					@Override
 					public boolean hasNext() {
@@ -414,25 +386,22 @@ public class Iterables {
 					public T next() {
 						return current.next();
 					}
+
+					@Override
+					public void close() throws Exception {
+
+						if (current instanceof AutoCloseable) {
+
+							((AutoCloseable)current).close();
+						}
+					}
 				};
 			}
 
 			return iterator;
 		}
+	}
 
-		@Override
-		public void close() {
-
-			if (source instanceof AutoCloseable) {
-
-				try {
-					((AutoCloseable)source).close();
-
-				} catch (Throwable t) {
-
-					t.printStackTrace();
-				}
-			}
-		}
+	private static interface CloseableIterator<T> extends Iterator<T>, AutoCloseable {
 	}
 }

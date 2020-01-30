@@ -23,6 +23,7 @@ import java.util.List;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -72,17 +73,20 @@ public class GetSuggestionsCommand extends AbstractCommand {
 				if (name != null) {   element.attr("name", name); }
 				if (htmlId != null) { element.attr("id",   htmlId); }
 
-				for (final Widget widget : app.nodeQuery(Widget.class).getResultStream()) {
+				try (final ResultStream<Widget> resultStream = app.nodeQuery(Widget.class).getResultStream()) {
 
-					final String[] selectors = getSelectors(widget, selectorsKey);
-					if (selectors != null) {
+					for (final Widget widget : resultStream) {
 
-						for (final String selector : selectors) {
+						final String[] selectors = getSelectors(widget, selectorsKey);
+						if (selectors != null) {
 
-							if (element.select(selector).first() != null) {
+							for (final String selector : selectors) {
 
-								result.add(widget);
-								break;
+								if (element.select(selector).first() != null) {
+
+									result.add(widget);
+									break;
+								}
 							}
 						}
 					}

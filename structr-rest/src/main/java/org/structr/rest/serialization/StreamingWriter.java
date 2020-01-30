@@ -145,53 +145,53 @@ public abstract class StreamingWriter {
 
 		final RestWriter rootWriter = getRestWriter(securityContext, output);
 
-		configureWriter(rootWriter);
+			configureWriter(rootWriter);
 
-		// result fields in alphabetical order
-		final Set<Integer> visitedObjects             = new LinkedHashSet<>();
-		final String queryTime                        = result.getQueryTime();
-		final Integer page                            = result.getPage();
-		final Integer pageSize                        = result.getPageSize();
+			// result fields in alphabetical order
+			final Set<Integer> visitedObjects             = new LinkedHashSet<>();
+			final String queryTime                        = result.getQueryTime();
+			final Integer page                            = result.getPage();
+			final Integer pageSize                        = result.getPageSize();
 
-		rootWriter.beginDocument(baseUrl, propertyView.get(securityContext));
-		rootWriter.beginObject();
+			rootWriter.beginDocument(baseUrl, propertyView.get(securityContext));
+			rootWriter.beginObject();
 
-		if (result != null) {
+			if (result != null) {
 
-			rootWriter.name(resultKeyName);
-			root.serializeRoot(rootWriter, result, propertyView.get(securityContext), 0, visitedObjects);
-		}
+				rootWriter.name(resultKeyName);
+				root.serializeRoot(rootWriter, result, propertyView.get(securityContext), 0, visitedObjects);
+			}
 
-		if (includeMetadata) {
+			if (includeMetadata) {
 
-			// time delta for serialization
-			long t1 = System.nanoTime();
+				// time delta for serialization
+				long t1 = System.nanoTime();
 
-			if (pageSize != null && !pageSize.equals(Integer.MAX_VALUE)) {
+				if (pageSize != null && !pageSize.equals(Integer.MAX_VALUE)) {
 
-				if (page != null) {
+					if (page != null) {
 
-					rootWriter.name("page").value(page);
+						rootWriter.name("page").value(page);
+					}
+
+					rootWriter.name("page_size").value(pageSize);
 				}
 
-				rootWriter.name("page_size").value(pageSize);
-			}
+				if (queryTime != null) {
+					rootWriter.name("query_time").value(queryTime);
+				}
 
-			if (queryTime != null) {
-				rootWriter.name("query_time").value(queryTime);
-			}
+				if (!securityContext.ignoreResultCount()) {
 
-			if (!securityContext.ignoreResultCount()) {
+					rootWriter.name("result_count").value(result.calculateTotalResultCount());
+					rootWriter.name("page_count").value(result.calculatePageCount());
+					rootWriter.name("result_count_time").value(decimalFormat.format((System.nanoTime() - t1) / 1000000000.0));
+				}
 
-				rootWriter.name("result_count").value(result.calculateTotalResultCount());
-				rootWriter.name("page_count").value(result.calculatePageCount());
-				rootWriter.name("result_count_time").value(decimalFormat.format((System.nanoTime() - t1) / 1000000000.0));
+				if (renderSerializationTime) {
+					rootWriter.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
+				}
 			}
-
-			if (renderSerializationTime) {
-				rootWriter.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
-			}
-		}
 
 		// finished
 		rootWriter.endObject();

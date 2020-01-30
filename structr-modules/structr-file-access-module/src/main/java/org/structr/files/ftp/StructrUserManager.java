@@ -51,7 +51,9 @@ public class StructrUserManager implements UserManager {
 
 	@Override
 	public User getUserByName(String userName) throws FtpException {
+
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
 			org.structr.web.entity.User structrUser = getStructrUser(userName);
 			tx.success();
 			if (structrUser != null) {

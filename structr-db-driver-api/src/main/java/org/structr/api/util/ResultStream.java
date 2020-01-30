@@ -22,7 +22,7 @@ package org.structr.api.util;
  * The result stream of a query operation.
  */
 
-public interface ResultStream<T> extends Iterable<T> {
+public interface ResultStream<T> extends Iterable<T>, AutoCloseable {
 
 	/**
 	 * Calculates and returns the total number of results
@@ -47,4 +47,7 @@ public interface ResultStream<T> extends Iterable<T> {
 
 	void setQueryTime(final String formattedTime);
 	String getQueryTime();
+
+	@Override
+	public void close(); // hide the exception to make closing easier
 }

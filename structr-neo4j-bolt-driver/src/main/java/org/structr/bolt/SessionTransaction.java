@@ -23,10 +23,16 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
+import org.neo4j.driver.v1.StatementResultCursor;
 import org.neo4j.driver.v1.Transaction;
 import org.neo4j.driver.v1.Value;
 import org.neo4j.driver.v1.Values;
@@ -46,9 +52,7 @@ import org.structr.api.RetryException;
 import org.structr.api.UnknownClientException;
 import org.structr.api.UnknownDatabaseException;
 import org.structr.api.util.Iterables;
-import org.structr.bolt.mapper.NodeId;
 import org.structr.bolt.mapper.RecordMapMapper;
-import org.structr.bolt.mapper.RecordNodeIdMapper;
 import org.structr.bolt.mapper.RecordNodeMapper;
 import org.structr.bolt.mapper.RecordRelationshipMapper;
 import org.structr.bolt.wrapper.EntityWrapper;
@@ -339,8 +343,16 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
+			final IterableQueueingConsumer<Record> consumer = new IterableQueueingConsumer<>();
+
 			logQuery(statement, map);
-			return Iterables.map(new RecordNodeMapper(), new IteratorWrapper<>(tx.run(statement, map)));
+
+			tx.runAsync(statement, map)
+				.thenCompose(cursor -> consumer.start(cursor))
+				.thenCompose(cursor -> cursor.forEachAsync(consumer::add))
+				.thenAccept(ignore  -> consumer.finish());
+
+			return Iterables.map(new RecordNodeMapper(), consumer);
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -360,29 +372,16 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
-			logQuery(statement, map);
-			return Iterables.map(new RecordRelationshipMapper(db), new IteratorWrapper<>(tx.run(statement, map)));
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
-		}
-	}
-
-	public Iterable<NodeId> getNodeIds(final String statement, final Map<String, Object> map) {
-
-		try {
+			final IterableQueueingConsumer<Record> consumer = new IterableQueueingConsumer<>();
 
 			logQuery(statement, map);
-			return Iterables.map(new RecordNodeIdMapper(), new IteratorWrapper<>(tx.run(statement, map)));
+
+			tx.runAsync(statement, map)
+				.thenCompose(cursor -> consumer.start(cursor))
+				.thenCompose(cursor -> cursor.forEachAsync(consumer::add))
+				.thenAccept(ignore  -> consumer.finish());
+
+			return Iterables.map(new RecordRelationshipMapper(db), consumer);
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -569,36 +568,108 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		@Override
 		public Iterator<T> iterator() {
+			return new CloseableIterator<>(iterator);
+		}
+	}
 
-			return new Iterator<T>() {
+	public class CloseableIterator<T> implements Iterator<T>, AutoCloseable {
 
-				@Override
-				public boolean hasNext() {
+		private Iterator<T> iterator = null;
 
-					try {
-						return iterator.hasNext();
+		public CloseableIterator(final Iterator<T> iterator) {
+			this.iterator = iterator;
+		}
 
-					} catch (ClientException dex) {
-						throw SessionTransaction.translateClientException(dex);
-					} catch (DatabaseException dex) {
-						throw SessionTransaction.translateDatabaseException(dex);
-					}
-				}
+		@Override
+		public boolean hasNext() {
 
-				@Override
-				public T next() {
+			try {
+				return iterator.hasNext();
 
-					try {
+			} catch (ClientException dex) {
+				throw SessionTransaction.translateClientException(dex);
+			} catch (DatabaseException dex) {
+				throw SessionTransaction.translateDatabaseException(dex);
+			}
+		}
 
-						return iterator.next();
+		@Override
+		public T next() {
 
-					} catch (ClientException dex) {
-						throw SessionTransaction.translateClientException(dex);
-					} catch (DatabaseException dex) {
-						throw SessionTransaction.translateDatabaseException(dex);
-					}
-				}
-			};
+			try {
+
+				return iterator.next();
+
+			} catch (ClientException dex) {
+				throw SessionTransaction.translateClientException(dex);
+			} catch (DatabaseException dex) {
+				throw SessionTransaction.translateDatabaseException(dex);
+			}
+		}
+
+		@Override
+		public void close() throws Exception {
+
+			if (iterator instanceof StatementResult) {
+
+				((StatementResult)iterator).consume();
+			}
+		}
+	}
+
+	public class IterableQueueingConsumer<T> implements Iterable<T>, Iterator<T>, AutoCloseable {
+
+		private final BlockingQueue<T> queue = new LinkedBlockingQueue<>();
+		private final AtomicBoolean aborted  = new AtomicBoolean(false);
+		private final AtomicBoolean finished = new AtomicBoolean(false);
+		private final AtomicBoolean added    = new AtomicBoolean(false);
+		private StatementResultCursor cursor = null;
+
+		@Override
+		public Iterator<T> iterator() {
+			return this;
+		}
+
+		@Override
+		public void close() {
+			aborted.set(true);
+			cursor.consumeAsync();
+		}
+
+		public void finish() {
+			finished.set(true);
+			added.set(true);
+		}
+
+		@Override
+		public boolean hasNext() {
+
+			// make the consuming thread wait for results util elements have been added OR the producer has no more results (finished == true)
+			while (!added.get() || (!finished.get() && queue.isEmpty())) {
+				try { Thread.yield(); } catch (Throwable t) {}
+			}
+
+			return !queue.isEmpty();
+		}
+
+		@Override
+		public T next() {
+			return queue.poll();
+		}
+
+		void add(final T t) {
+
+			if (aborted.get()) {
+				return;
+			}
+
+			queue.add(t);
+			added.set(true);
+		}
+
+		CompletionStage<StatementResultCursor> start(final StatementResultCursor cursor) {
+			this.cursor = cursor;
+			return CompletableFuture.completedFuture(cursor);
 		}
 	}
 }

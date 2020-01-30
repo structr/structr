@@ -490,19 +490,27 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		final Iterable<GraphObject> listSource = renderContext.getListSource();
 		if (listSource != null) {
 
-			for (final Object dataObject : listSource) {
+			try {
+				for (final Object dataObject : listSource) {
 
-				// make current data object available in renderContext
-				if (dataObject instanceof GraphObject) {
+					// make current data object available in renderContext
+					if (dataObject instanceof GraphObject) {
 
-					renderContext.putDataObject(dataKey, (GraphObject)dataObject);
+						renderContext.putDataObject(dataKey, (GraphObject)dataObject);
 
-				} else if (dataObject instanceof Iterable) {
+					} else if (dataObject instanceof Iterable) {
 
-					renderContext.putDataObject(dataKey, Function.recursivelyWrapIterableInMap((Iterable)dataObject, 0));
+						renderContext.putDataObject(dataKey, Function.recursivelyWrapIterableInMap((Iterable)dataObject, 0));
+					}
+
+					node.renderContent(renderContext, depth + 1);
 				}
 
-				node.renderContent(renderContext, depth + 1);
+			} finally {
+
+				if (listSource instanceof AutoCloseable) {
+					try { ((AutoCloseable)listSource).close(); } catch (Exception ex) {}
+				}
 			}
 
 			renderContext.clearDataObject(dataKey);
