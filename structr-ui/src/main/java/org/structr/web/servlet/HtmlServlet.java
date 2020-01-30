@@ -57,7 +57,6 @@ import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PathHelper;
@@ -1048,7 +1047,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			}
 
 
-			final List<AbstractNode> results = Iterables.toList(query.getResultStream());
+			final List<AbstractNode> results = query.getAsList();
 
 			logger.debug("{} results", results.size());
 			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, results);

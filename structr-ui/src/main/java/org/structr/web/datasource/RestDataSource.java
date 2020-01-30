@@ -78,7 +78,6 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		return getData(renderContext, restQuery);
 	}
 
-	// FIXME: this method is needed by the websocket search command because there is no reference node for the above method
 	public Iterable<GraphObject> getData(final RenderContext renderContext, final String restQuery) throws FrameworkException {
 
 		final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
@@ -160,7 +159,6 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		// update request in security context
 		securityContext.setRequest(wrappedRequest);
 
-		//HttpServletResponse response = renderContext.getResponse();
 		Resource resource = null;
 		try {
 
@@ -181,8 +179,6 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 		}
 
-		// TODO: decide if we need to rest the REST request here
-		//securityContext.checkResourceAccess(request, resource.getResourceSignature(), resource.getGrant(request, response), PropertyView.Ui);
 		// add sorting & paging
 		String pageSizeParameter = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
 		String pageParameter     = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);

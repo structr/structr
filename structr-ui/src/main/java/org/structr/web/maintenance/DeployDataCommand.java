@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.PropertyContainer;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
@@ -58,7 +59,7 @@ public class DeployDataCommand extends DeployCommand {
 
 	private static final Logger logger                     = LoggerFactory.getLogger(DeployDataCommand.class.getName());
 
-	private Map<String, List<Map<String, Object>>> relationshipMap;		// {relType: [{id:"", type:"", ...}], ..}
+	private Map<String, List<Map<String, Object>>> relationshipMap;
 	private Set<String> alreadyExportedRelationships;
 
 	private HashSet<Class> exportTypes;
@@ -456,34 +457,57 @@ public class DeployDataCommand extends DeployCommand {
 			}
 		}
 	}
-
 	private <T extends AbstractNode> void exportDataForType(final SecurityContext context, final Class<T> nodeType, final Path targetConfFile) throws FrameworkException {
 
-		final List<Map<String, Object>> nodes  = new LinkedList<>();
-		final App app                          = StructrApp.getInstance(context);
+		final App app = StructrApp.getInstance(context);
 
 		try (final Tx tx = app.tx()) {
 
-			for (final T node : app.nodeQuery(nodeType).getAsList()) {
+			try (final Writer fos = new OutputStreamWriter(new FileOutputStream(targetConfFile.toFile()))) {
 
-				final Map<String, Object> entry = new TreeMap<>();
-				nodes.add(entry);
+				final Gson gson = getGson();
+				boolean dataWritten = false;
 
-				final PropertyContainer pc = node.getPropertyContainer();
+				fos.write("[");
 
-				for (final String key : pc.getPropertyKeys()) {
-					putData(entry, key, pc.getProperty(key));
+				try (final ResultStream<T> resultStream = app.nodeQuery(nodeType).getResultStream()) {
+
+					for (final T node : resultStream) {
+
+						final Map<String, Object> entry = new TreeMap<>();
+
+						final PropertyContainer pc = node.getPropertyContainer();
+
+						for (final String key : pc.getPropertyKeys()) {
+							putData(entry, key, pc.getProperty(key));
+						}
+
+						exportOwnershipAndSecurity(node, entry);
+						exportRelationshipsForNode(context, node);
+
+						if (dataWritten) {
+							fos.write(",");
+						}
+						fos.write("\n");
+
+						gson.toJson(entry, fos);
+
+						dataWritten = true;
+					}
 				}
 
-				exportOwnershipAndSecurity(node, entry);
-//				exportCustomPropertiesForNode(context, node, entry);
-				exportRelationshipsForNode(context, node);
+				if (dataWritten) {
+					fos.write("\n");
+				}
+
+				fos.write("]");
+
+			} catch (IOException ioex) {
+				logger.warn("", ioex);
 			}
 
 			tx.success();
 		}
-
-		writeJsonToFile(targetConfFile, nodes);
 	}
 
 	private void exportRelationshipsForNode(final SecurityContext context, final AbstractNode node) throws FrameworkException {
@@ -525,49 +549,6 @@ public class DeployDataCommand extends DeployCommand {
 			}
 		}
 	}
-
-//	private void exportCustomPropertiesForNode(final SecurityContext context, final AbstractNode node, final Map<String, Object> map) throws FrameworkException {
-//
-//		final List<GraphObjectMap> customProperties = SchemaHelper.getSchemaTypeInfo(context, node.getType(), node.getClass(), "custom");
-//
-//		for (final GraphObjectMap propertyInfo : customProperties) {
-//
-//			final Map propInfo        = propertyInfo.toMap();
-//			final String propertyName = (String) propInfo.get("jsonName");
-//
-//			if (propInfo.get("relatedType") == null) {
-//				map.put(propertyName, node.getProperty(StructrApp.key(node.getClass(), propertyName)));
-//
-//			} else {
-//
-//				if (Boolean.TRUE.equals(propInfo.get("isCollection"))) {
-//
-//					final Iterable res = node.getProperty(StructrApp.key(node.getClass(), propertyName));
-//					if (res != null) {
-//						final Iterator<AbstractNode> it = res.iterator();
-//
-//						while (it.hasNext()) {
-//							final AbstractNode relatedNode = it.next();
-//							final RelationshipInterface r = (RelationshipInterface) relatedNode.getPath(context);
-//							if (r != null) {
-//								exportRelationship(context, r);
-//							}
-//						}
-//					}
-//
-//				} else {
-//
-//					final AbstractNode relatedNode = node.getProperty(StructrApp.key(node.getClass(), propertyName));
-//					if (relatedNode != null) {
-//						final RelationshipInterface r = (RelationshipInterface) relatedNode.getPath(context);
-//						if (r != null) {
-//							exportRelationship(context, r);
-//						}
-//					}
-//				}
-//			}
-//		}
-//	}
 
 	private boolean isTypeInExportedTypes(final Class type) {
 
@@ -615,9 +596,6 @@ public class DeployDataCommand extends DeployCommand {
 					putData(entry, key, pc.getProperty(key));
 				}
 
-
-//				exportCustomPropertiesForRelationship(context, rel, entry);
-
 				addRelationshipToMap(rel.getClass().getSimpleName(), entry);
 
 				alreadyExportedRelationships.add(relUuid);
@@ -638,19 +616,6 @@ public class DeployDataCommand extends DeployCommand {
 
 		relsOfType.add(relInfo);
 	}
-
-//	private void exportCustomPropertiesForRelationship(final SecurityContext context, final RelationshipInterface rel, final Map<String, Object> map) throws FrameworkException {
-//
-//		final List<GraphObjectMap> customProperties = SchemaHelper.getSchemaTypeInfo(context, rel.getType(), rel.getClass(), "custom");
-//
-//		customProperties.stream().forEach((final GraphObjectMap propertyInfo) -> {
-//
-//			final Map propInfo        = propertyInfo.toMap();
-//			final String propertyName = (String) propInfo.get("jsonName");
-//
-//			map.put(propertyName, rel.getProperty(StructrApp.key(rel.getClass(), propertyName)));
-//		});
-//	}
 
 	private <T extends NodeInterface> void importRelationshipListData(final SecurityContext context, final Class type, final List<Map<String, Object>> data) throws FrameworkException {
 

@@ -24,7 +24,7 @@ import java.util.NoSuchElementException;
 /**
  * Custom iterator to allow pagination of query results.
  */
-public class PagingIterator<T> implements Iterator<T> {
+public class PagingIterator<T> implements Iterator<T>, AutoCloseable {
 
 	private final Iterator<T> iterator;
 	private final int page;
@@ -146,5 +146,14 @@ public class PagingIterator<T> implements Iterator<T> {
 
 	public boolean isConsumed() {
 		return consumed;
+	}
+
+	@Override
+	public void close() throws Exception {
+
+		if (iterator instanceof AutoCloseable) {
+
+			((AutoCloseable)iterator).close();
+		}
 	}
 }

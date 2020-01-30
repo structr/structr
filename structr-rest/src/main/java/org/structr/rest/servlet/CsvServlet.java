@@ -99,8 +99,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws UnsupportedEncodingException {
 
 		Authenticator authenticator = null;
-		ResultStream result = null;
-		Resource resource = null;
+		Resource resource           = null;
 
 		setCustomResponseHeaders(response);
 
@@ -120,9 +119,6 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 			// set default value for property view
 			propertyView.set(securityContext, defaultPropertyView);
-
-			// evaluate constraints and measure query time
-			double queryTimeStart = System.nanoTime();
 
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
@@ -166,56 +162,39 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				writeBom = StringUtils.equals(request.getParameter(WRITE_BOM), "1");
 
 				// do action
-				result = resource.doGet(sortKey, sortDescending, pageSize, page);
-				if (result != null) {
+				try (final ResultStream result = resource.doGet(sortKey, sortDescending, pageSize, page)) {
 
-					/*
-					result.setIsCollection(resource.isCollectionResource());
-					result.setIsPrimitiveArray(resource.isPrimitiveArray());
+					if (result != null) {
 
-					PagingHelper.addPagingParameter(result, pageSize, page);
+						// allow resource to modify result set
+						resource.postProcessResultSet(result);
 
-					// timing..
-					final double queryTimeEnd = System.nanoTime();
+						final Writer writer = response.getWriter();
 
-					// store property view that will be used to render the results
-					result.setPropertyView(propertyView.get(securityContext));
-					*/
+						if (writeBom) {
+							writeUtf8Bom(writer);
+						}
 
-					// allow resource to modify result set
-					resource.postProcessResultSet(result);
+						// gson.toJson(result, writer);
+						writeCsv(result, writer, propertyView.get(securityContext));
+						response.setStatus(HttpServletResponse.SC_OK);
+						writer.flush();
+						writer.close();
 
-					/*
-					DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+					} else {
 
-					result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
-					*/
+						logger.warn("Result was null!");
 
-					Writer writer = response.getWriter();
+						int code = HttpServletResponse.SC_NO_CONTENT;
 
-					if (writeBom) {
-						writeUtf8Bom(writer);
+						response.setStatus(code);
+
+						Writer writer = response.getWriter();
+
+						writer.flush();
+						writer.close();
+
 					}
-
-					// gson.toJson(result, writer);
-					writeCsv(result, writer, propertyView.get(securityContext));
-					response.setStatus(HttpServletResponse.SC_OK);
-					writer.flush();
-					writer.close();
-
-				} else {
-
-					logger.warn("Result was null!");
-
-					int code = HttpServletResponse.SC_NO_CONTENT;
-
-					response.setStatus(code);
-
-					Writer writer = response.getWriter();
-
-					writer.flush();
-					writer.close();
-
 				}
 
 				tx.success();

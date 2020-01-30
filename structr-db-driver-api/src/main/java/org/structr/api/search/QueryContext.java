@@ -32,11 +32,20 @@ public class QueryContext {
 	public QueryContext() {
 	}
 
+	public QueryContext page(final int pageSize, final int page) {
+
+		sliced = true;
+		skip   = (page - 1) * pageSize;
+		limit  = pageSize;
+
+		return this;
+	}
+
 	public QueryContext slice(final int from, final int to) {
 
 		sliced = true;
-		skip = from;
-		limit = to - from;
+		skip   = from;
+		limit  = to - from;
 
 		return this;
 	}

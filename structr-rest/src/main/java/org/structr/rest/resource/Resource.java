@@ -123,22 +123,23 @@ public abstract class Resource {
 				securityContext.ignoreResultCount(true);
 
 				// always fetch the first page
-				final ResultStream<GraphObject> result = doGet(null, false, pageSize, 1);
+				try (final ResultStream<GraphObject> result = doGet(null, false, pageSize, 1)) {
 
-				for (final GraphObject obj : result) {
+					for (final GraphObject obj : result) {
 
-					hasMore = true;
+						hasMore = true;
 
-					if (obj.isNode()) {
+						if (obj.isNode()) {
 
-						app.delete((NodeInterface)obj);
+							app.delete((NodeInterface)obj);
 
-					} else {
+						} else {
 
-						app.delete((RelationshipInterface)obj);
+							app.delete((RelationshipInterface)obj);
+						}
+
+						count++;
 					}
-
-					count++;
 				}
 
 				tx.success();
@@ -164,8 +165,7 @@ public abstract class Resource {
 
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
-		final ResultStream<GraphObject> result = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE);
-		final List<GraphObject> results        = Iterables.toList(result);
+		final List<GraphObject> results = Iterables.toList(doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
 
 		if (results != null && !results.isEmpty()) {
 
