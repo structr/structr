@@ -58,6 +58,7 @@ public class UiModule implements StructrModule {
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
 		Functions.put(licenseManager, new EscapeHtmlFunction());
+		Functions.put(licenseManager, new EscapeXmlFunction());
 		Functions.put(licenseManager, new UnescapeHtmlFunction());
 		Functions.put(licenseManager, new StripHtmlFunction());
 		Functions.put(licenseManager, new FromJsonFunction());
