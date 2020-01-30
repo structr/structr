@@ -1594,7 +1594,6 @@ public class SearchAndSortingTest extends StructrTest {
 		try {
 
 			boolean includeHidden           = false;
-			boolean publicOnly              = false;
 			Class type                      = TestOne.class;
 			int number                      = 20;    // no more than 89 to avoid sort order TestOne-10, TestOne-100 ...
 			final List<NodeInterface> nodes = this.createTestNodes(type, number);

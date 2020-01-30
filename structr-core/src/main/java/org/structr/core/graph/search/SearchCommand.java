@@ -131,14 +131,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				rootGroup.add(new PropertySearchAttribute(GraphObject.visibleToPublicUsers, true, Occurrence.REQUIRED, true));
 			}
-
-		} else {
-
-			// optimization for admin users that see all the nodes: pass limit down into query
-			if (user.isAdmin() && pageSize != Integer.MAX_VALUE) {
-
-				queryContext.page(pageSize, page);
-			}
 		}
 
 		// special handling of deleted and hidden flags
