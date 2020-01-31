@@ -747,9 +747,7 @@ var _Files = {
 			div.closest('tr').remove();
 		});
 
-		if (!_Files.isViewModeActive('img')) {
-			_Entities.appendAccessControlIcon(div, d);
-		}
+		_Entities.appendAccessControlIcon(div, d);
 
 		if (d.isFolder) {
 			_Files.handleFolder(div, d);
@@ -786,10 +784,8 @@ var _Files = {
 			}
 		});
 
-		if (!_Files.isViewModeActive('img')) {
-			_Entities.appendEditPropertiesIcon(div, d);
-			_Entities.makeSelectable(div);
-		}
+		_Entities.appendEditPropertiesIcon(div, d);
+		_Entities.makeSelectable(div);
 
 		_Files.resize();
 	},
@@ -1016,23 +1012,13 @@ var _Files = {
 	},
 	appendEditImageIcon: function(parent, image) {
 
-		var viewIcon;
+		var viewIcon = $('.view_icon', parent);
 
-		if (_Files.isViewModeActive('img')) {
-
-			viewIcon = $('.tn', parent);
-			viewIcon.closest('a').prop('href', 'javascript:void(0)');
-
-		} else {
-
-			viewIcon = $('.view_icon', parent);
-
-			if (!(viewIcon && viewIcon.length)) {
-				parent.append('<i title="' + image.name + ' [' + image.id + ']" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-			}
-
-			viewIcon = $('.edit_icon', parent);
+		if (!(viewIcon && viewIcon.length)) {
+			parent.append('<i title="' + image.name + ' [' + image.id + ']" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
 		}
+
+		viewIcon = $('.edit_icon', parent);
 
 		viewIcon.on('click', function(e) {
 			e.stopPropagation();

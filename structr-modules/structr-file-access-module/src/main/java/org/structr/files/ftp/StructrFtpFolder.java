@@ -106,45 +106,51 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 			logger.debug("Children of {} requested", requestedPath);
 
 			if ("/".equals(requestedPath)) {
+
 				try {
-					ResultStream<Folder> folders = app.nodeQuery(Folder.class).sort(AbstractNode.name).getResultStream();
 
-					for (Folder f : folders) {
+					try (final ResultStream<Folder> folders = app.nodeQuery(Folder.class).sort(AbstractNode.name).getResultStream()) {
 
-						if (f.getHasParent()) {
-							continue;
+						for (Folder f : folders) {
+
+							if (f.getHasParent()) {
+								continue;
+							}
+
+							FtpFile ftpFile = new StructrFtpFolder(securityContext, f);
+							logger.debug("Folder found: {}", ftpFile.getAbsolutePath());
+
+							ftpFiles.add(ftpFile);
+
 						}
-
-						FtpFile ftpFile = new StructrFtpFolder(securityContext, f);
-						logger.debug("Folder found: {}", ftpFile.getAbsolutePath());
-
-						ftpFiles.add(ftpFile);
-
 					}
 
-					ResultStream<File> files = app.nodeQuery(File.class).sort(AbstractNode.name).getResultStream();
-					for (File f : files) {
+					try (final ResultStream<File> files = app.nodeQuery(File.class).sort(AbstractNode.name).getResultStream()) {
+						for (File f : files) {
 
-						if (f.getHasParent()) {
-							continue;
+							if (f.getHasParent()) {
+								continue;
+							}
+
+							logger.debug("Structr file found: {}", f);
+
+							FtpFile ftpFile = new StructrFtpFile(securityContext, f);
+							logger.debug("File found: {}", ftpFile.getAbsolutePath());
+
+							ftpFiles.add(ftpFile);
+
 						}
-
-						logger.debug("Structr file found: {}", f);
-
-						FtpFile ftpFile = new StructrFtpFile(securityContext, f);
-						logger.debug("File found: {}", ftpFile.getAbsolutePath());
-
-						ftpFiles.add(ftpFile);
-
 					}
 
-					ResultStream<Page> pages = app.nodeQuery(Page.class).sort(AbstractNode.name).getResultStream();
-					for (Page p : pages) {
+					try (final ResultStream<Page> pages = app.nodeQuery(Page.class).sort(AbstractNode.name).getResultStream()) {
 
-						logger.debug("Structr page found: {}", p);
+						for (Page p : pages) {
 
-						ftpFiles.add(new FtpFilePageWrapper(p));
+							logger.debug("Structr page found: {}", p);
 
+							ftpFiles.add(new FtpFilePageWrapper(p));
+
+						}
 					}
 
 					return ftpFiles;

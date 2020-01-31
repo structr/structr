@@ -48,6 +48,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.Factory;
@@ -116,17 +117,20 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		}
 
 		final Factory<S, T> factory  = getFactory(securityContext, includeHidden, publicOnly, pageSize, page);
+		final Principal user         = securityContext.getUser(false);
 		boolean hasGraphSources      = false;
 		boolean hasSpatialSource     = false;
 
-		if (securityContext.getUser(false) == null && !isRelationshipSearch()) {
+		if (user == null) {
 
-			rootGroup.add(new PropertySearchAttribute(GraphObject.visibleToPublicUsers, true, Occurrence.REQUIRED, true));
+			if (isRelationshipSearch()) {
 
-		} else if (securityContext.getUser(false) == null && isRelationshipSearch()) {
+				rootGroup.add(new RelationshipVisibilitySearchAttribute());
 
-			rootGroup.add(new RelationshipVisibilitySearchAttribute());
+			} else {
 
+				rootGroup.add(new PropertySearchAttribute(GraphObject.visibleToPublicUsers, true, Occurrence.REQUIRED, true));
+			}
 		}
 
 		// special handling of deleted and hidden flags
@@ -227,7 +231,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				// do query
 				indexHits = Iterables.map(factory, index.query(getQueryContext(), rootGroup));
-				//indexHits = new PagingIterable<>(Iterables.map(factory, index.query(getQueryContext(), rootGroup)), pageSize, page);
 
 				if (comparator != null) {
 
@@ -294,9 +297,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			}
 
 			return new PagingIterable(finalResult, pageSize, page);
-
-			// return paged final result
-			//return new Result(PagingHelper.subList(finalResult, pageSize, page), resultCount, true, false);
 
 		} else {
 

@@ -101,8 +101,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws UnsupportedEncodingException {
 
 		Authenticator authenticator = null;
-		ResultStream result = null;
-		Resource resource = null;
+		Resource resource           = null;
 
 		setCustomResponseHeaders(response);
 
@@ -122,9 +121,6 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 			// set default value for property view
 			propertyView.set(securityContext, defaultPropertyView);
-
-			// evaluate constraints and measure query time
-			double queryTimeStart = System.nanoTime();
 
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
@@ -159,37 +155,39 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				writeBom = StringUtils.equals(request.getParameter(WRITE_BOM), "1");
 
 				// do action
-				result = resource.doGet(sortOrder, pageSize, page);
-				if (result != null) {
+				try (final ResultStream result = resource.doGet(sortOrder, pageSize, page)) {
+					
+					if (result != null) {
 
-					// allow resource to modify result set
-					resource.postProcessResultSet(result);
+						// allow resource to modify result set
+						resource.postProcessResultSet(result);
 
-					final Writer writer = response.getWriter();
+						final Writer writer = response.getWriter();
 
-					if (writeBom) {
-						writeUtf8Bom(writer);
+						if (writeBom) {
+							writeUtf8Bom(writer);
+						}
+
+						// gson.toJson(result, writer);
+						writeCsv(result, writer, propertyView.get(securityContext));
+						response.setStatus(HttpServletResponse.SC_OK);
+						writer.flush();
+						writer.close();
+
+					} else {
+
+						logger.warn("Result was null!");
+
+						int code = HttpServletResponse.SC_NO_CONTENT;
+
+						response.setStatus(code);
+
+						Writer writer = response.getWriter();
+
+						writer.flush();
+						writer.close();
+
 					}
-
-					// gson.toJson(result, writer);
-					writeCsv(result, writer, propertyView.get(securityContext));
-					response.setStatus(HttpServletResponse.SC_OK);
-					writer.flush();
-					writer.close();
-
-				} else {
-
-					logger.warn("Result was null!");
-
-					int code = HttpServletResponse.SC_NO_CONTENT;
-
-					response.setStatus(code);
-
-					Writer writer = response.getWriter();
-
-					writer.flush();
-					writer.close();
-
 				}
 
 				tx.success();

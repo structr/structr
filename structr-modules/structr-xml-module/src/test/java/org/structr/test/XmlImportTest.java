@@ -158,7 +158,7 @@ public class XmlImportTest extends StructrUiTest {
 			.expect().statusCode(200).when().post("/File/" + newFileId + "/doXMLImport");
 
 		// wait for result (import is async.)
-		try { Thread.sleep(300); } catch (Throwable t) {}
+		try { Thread.sleep(2000); } catch (Throwable t) {}
 
 		// check imported data for correct import
 		try (final Tx tx = app.tx()) {

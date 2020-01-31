@@ -205,28 +205,26 @@ public class SessionHelper {
 
 	/**
 	 * Remove all sessionIds for all users.
-	 * 
+	 *
 	 */
 	public static void clearAllSessions() {
 
 		logger.info("Clearing all session ids for all users");
 
-		final PropertyKey<String[]> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
-		
 		try (final Tx tx = StructrApp.getInstance().tx(false, false, false)) {
-			
-			for (final Principal user : StructrApp.getInstance().get(Principal.class)) {
+
+			for (final Principal user : StructrApp.getInstance().nodeQuery(Principal.class).getAsList()) {
 				clearAllSessions(user);
 			}
-			
+
 			tx.success();
-			
+
 		} catch (final FrameworkException ex) {
 			logger.warn("Removing all session ids failed: {}", ex);
 		}
-		
+
 	}
-	
+
 	public static void invalidateSession(final String sessionId) {
 
 		if (sessionId != null) {

@@ -158,7 +158,7 @@ public class LoginResource extends FilterableResource {
 
 		if (returnedMethodResult == null) {
 			// should not happen
-			returnedMethodResult = new RestMethodResult(401);
+			throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);
 		}
 
 		return returnedMethodResult;

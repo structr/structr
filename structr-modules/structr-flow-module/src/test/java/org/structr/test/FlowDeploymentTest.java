@@ -91,6 +91,9 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 				assertNotNull(container);
 				result = container.evaluate(securityContext, flowParameters);
 				assertNotNull(result);
+
+				tx.success();
+
 			}
 
 		} catch (FrameworkException ex) {

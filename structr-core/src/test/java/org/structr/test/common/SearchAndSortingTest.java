@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Occurrence;
-import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
@@ -1595,7 +1594,6 @@ public class SearchAndSortingTest extends StructrTest {
 		try {
 
 			boolean includeHidden           = false;
-			boolean publicOnly              = false;
 			Class type                      = TestOne.class;
 			int number                      = 20;    // no more than 89 to avoid sort order TestOne-10, TestOne-100 ...
 			final List<NodeInterface> nodes = this.createTestNodes(type, number);
@@ -1620,7 +1618,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = Iterables.toList(app.get(type));
+				final List<NodeInterface> result = app.nodeQuery(type).getAsList();
 
 				assertTrue(result.size() == number);
 
@@ -1736,6 +1734,8 @@ public class SearchAndSortingTest extends StructrTest {
 
 				assertEquals("Invalid paging result count with non-superuser security context", tester1NodeCount, result.calculateTotalResultCount());
 
+				result.close();
+
 				tx.success();
 			}
 
@@ -1748,6 +1748,8 @@ public class SearchAndSortingTest extends StructrTest {
 				final ResultStream<GraphObject> result = tester2App.nodeQuery(type).sort(sortKey, sortDesc).pageSize(pageSize).page(page).getResultStream();
 
 				assertEquals("Invalid paging result count with non-superuser security context", tester2NodeCount, result.calculateTotalResultCount());
+
+				result.close();
 
 				tx.success();
 			}

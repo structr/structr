@@ -39,6 +39,7 @@ import org.structr.api.graph.PropertyContainer;
 import org.structr.api.service.Command;
 import org.structr.api.service.Service;
 import org.structr.api.util.FixedSizeCache;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.ContentAnalyzer;
@@ -156,8 +157,11 @@ public class StructrApp implements App {
 	@Override
 	public <T extends NodeInterface> void delete(final Class<T> type) throws FrameworkException {
 
-		for (final T node : nodeQuery(type).getResultStream()) {
-			delete(node);
+		try (final ResultStream<T> result = nodeQuery(type).getResultStream()) {
+
+			for (final T node : result) {
+				delete(node);
+			}
 		}
 	}
 
@@ -295,13 +299,6 @@ public class StructrApp implements App {
 		}
 
 		return null;
-	}
-
-	@Override
-	public <T extends GraphObject> Iterable<T> get(final Class<T> type) throws FrameworkException {
-
-		final Query<T> query = command(SearchNodeCommand.class);
-		return query.andType(type).getResultStream();
 	}
 
 	@Override
