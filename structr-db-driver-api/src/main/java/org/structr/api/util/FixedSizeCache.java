@@ -18,10 +18,15 @@
  */
 package org.structr.api.util;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryPoolMXBean;
+import java.lang.management.MemoryUsage;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import org.apache.commons.collections4.map.LRUMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A map-like storage structure with a fixed maximum size that
@@ -34,14 +39,22 @@ import org.apache.commons.collections4.map.LRUMap;
  */
 public class FixedSizeCache<K, V> {
 
-	private Map<K, V> cache  = null;
+	private static final Logger logger  = LoggerFactory.getLogger(FixedSizeCache.class);
+	private long lastUpdate             = System.currentTimeMillis();
+	private MemoryPoolMXBean bean       = null;
+	private Map<K, V> cache             = null;
+	private String name                 = null;
 
-	public FixedSizeCache(final int maxSize) {
-		this.cache   = Collections.synchronizedMap(new InvalidatingLRUMap<>(maxSize));
+	public FixedSizeCache(final String name, final int maxSize) {
+
+		this.cache = new InvalidatingLRUMap<>(maxSize);
+		this.bean  = getOldGenerationMXBean();
+		this.name  = name;
 	}
 
 	public synchronized void put(final K key, final V value) {
 		cache.put(key, value);
+		checkAvailableMemory();
 	}
 
 	public synchronized V get(final K key) {
@@ -68,6 +81,55 @@ public class FixedSizeCache<K, V> {
 		return cache.isEmpty();
 	}
 
+	// ----- private methods -----
+	private MemoryPoolMXBean getOldGenerationMXBean() {
+
+		final List<MemoryPoolMXBean> beans = ManagementFactory.getMemoryPoolMXBeans();
+		for (final MemoryPoolMXBean bean : beans) {
+
+			if (bean.getName().endsWith(" Old Gen")) {
+				return bean;
+			}
+		}
+
+		logger.warn("Memory management info not available, automatic cache size limitation is DISABLED.");
+
+		return null;
+	}
+
+	private void checkAvailableMemory() {
+
+		if (bean != null && System.currentTimeMillis() > lastUpdate) {
+
+			final MemoryUsage usage = bean.getCollectionUsage();
+			final double maxMemory  = Math.max(1, usage.getMax());
+			final double usedMemory = Math.max(1, usage.getUsed());
+			final double percentage = (usedMemory / maxMemory) * 100.0;
+
+			lastUpdate = System.currentTimeMillis() + 1000;
+
+			if (percentage > 99.00) {
+
+				int size = cache.size();
+
+				size *= 0.9;
+				size /= 10000;
+				size *= 10000;
+
+				// enforce lower bound for cache size
+				size = Math.max(1000, size);
+
+				logger.warn("JVM is running low on memory, limiting {} size to {}", name, size);
+
+				cache.clear();
+
+				// replace current cache instance with limited one (should be ok to do since all methods are synchronized)
+				cache = new InvalidatingLRUMap<>(size);
+			}
+		}
+	}
+
+	// ----- nested classes -----
 	private static class InvalidatingLRUMap<K, V> extends LRUMap<K, V> {
 
 		public InvalidatingLRUMap(final int maxSize) {

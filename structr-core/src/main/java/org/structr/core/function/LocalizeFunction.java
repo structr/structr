@@ -216,7 +216,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 
 	// ----- caching -----
-	private static final FixedSizeCache<String, String> localizationCache = new FixedSizeCache<>(10000);
+	private static final FixedSizeCache<String, String> localizationCache = new FixedSizeCache<>("Localization cache", 10000);
 
 	public static synchronized void invalidateCache() {
 		localizationCache.clear();
