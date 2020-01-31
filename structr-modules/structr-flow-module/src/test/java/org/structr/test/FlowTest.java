@@ -18,7 +18,6 @@
  */
 package org.structr.test;
 
-import com.drew.lang.StreamUtil;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.util.Arrays;
@@ -35,7 +34,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
@@ -51,7 +49,6 @@ import org.structr.web.entity.html.Html;
 import org.structr.web.entity.html.Title;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.fail;
 import org.w3c.dom.Node;
 
@@ -95,6 +92,8 @@ public class FlowTest extends StructrUiTest {
 			result = container.evaluate(securityContext, flowParameters);
 			assertNotNull(result);
 
+			tx.success();
+
 		} catch (Throwable ex) {
 
 			ex.printStackTrace();
@@ -106,8 +105,6 @@ public class FlowTest extends StructrUiTest {
 
 	@Test
 	public void testFlowForEach() {
-
-		Iterable<Object> result = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -133,6 +130,8 @@ public class FlowTest extends StructrUiTest {
 			forEach.setProperty(FlowForEach.loopBody, agg);
 
 			container.evaluate(securityContext, new HashMap<>());
+
+			tx.success();
 
 		} catch (Throwable ex) {
 
