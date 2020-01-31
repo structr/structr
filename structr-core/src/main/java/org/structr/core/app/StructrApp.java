@@ -75,8 +75,6 @@ import org.structr.schema.ConfigurationProvider;
 
 /**
  * Stateful facade for accessing the Structr core layer.
- *
- *
  */
 public class StructrApp implements App {
 
@@ -637,7 +635,7 @@ public class StructrApp implements App {
 
 		if (nodeUuidMap == null) {
 
-			nodeUuidMap = new FixedSizeCache<>(Settings.UuidCacheSize.getValue());
+			nodeUuidMap = new FixedSizeCache<>("Node UUID cache", Settings.UuidCacheSize.getValue());
 		}
 
 		return nodeUuidMap.get(uuid);
@@ -647,7 +645,7 @@ public class StructrApp implements App {
 
 		if (relUuidMap == null) {
 
-			relUuidMap = new FixedSizeCache<>(Settings.UuidCacheSize.getValue());
+			relUuidMap = new FixedSizeCache<>("Relationship UUID cache", Settings.UuidCacheSize.getValue());
 		}
 
 		return relUuidMap.get(uuid);
@@ -662,7 +660,7 @@ public class StructrApp implements App {
 
 				if (nodeUuidMap == null) {
 
-					nodeUuidMap = new FixedSizeCache<>(Settings.UuidCacheSize.getValue());
+					nodeUuidMap = new FixedSizeCache<>("Node UUID cache", Settings.UuidCacheSize.getValue());
 				}
 
 			}
@@ -678,7 +676,7 @@ public class StructrApp implements App {
 
 				if (relUuidMap == null) {
 
-					relUuidMap = new FixedSizeCache<>(Settings.UuidCacheSize.getValue());
+					relUuidMap = new FixedSizeCache<>("Relationship UUID cache", Settings.UuidCacheSize.getValue());
 				}
 
 			}

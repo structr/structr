@@ -55,7 +55,7 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 	}
 
 	public static void initialize(final int cacheSize) {
-		relationshipCache = new FixedSizeCache<>(cacheSize);
+		relationshipCache = new FixedSizeCache<>("Relationship cache", cacheSize);
 	}
 
 	@Override

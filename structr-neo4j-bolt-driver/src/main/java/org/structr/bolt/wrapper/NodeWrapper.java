@@ -63,7 +63,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	}
 
 	public static void initialize(final int cacheSize) {
-		nodeCache = new FixedSizeCache<>(cacheSize);
+		nodeCache = new FixedSizeCache<>("Node cache", cacheSize);
 	}
 
 	@Override
