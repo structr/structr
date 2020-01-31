@@ -2,24 +2,19 @@
 
 . bin/config
 
-PID_FILE='/var/run/structr.pid'
+PID=$(pgrep -f org.structr.Server)
 
-if [ ! -e $PID_FILE ]; then
+if [[ -z $PID ]]; then
+	echo "ERROR: server not running."
 
-	echo "No server running."
-
-	exit 0
-
+else
+  echo "Stopping Structr instance '$DISPLAY_NAME'..."
+  while [ ! -z $PID ]
+  do
+    kill $PID
+    sleep 1
+    PID=$(pgrep -f org.structr.Server)
+  done
+  echo "Structr instance '$DISPLAY_NAME' stopped"
 fi
-
-SERVER_PID=`cat $PID_FILE`
-
-echo "Stopping Structr instance '$DISPLAY_NAME'..."
-
-kill $SERVER_PID
-
-( tail -q -n0 -F $LOG_FILE 2>/dev/null & echo $! >tail.pid ) | sed -n '/Shutdown complete/q'
-tail -q -200 $LOG_FILE 2> /dev/null | grep 'Shutting down'
-rm $PID_FILE
-
-echo "Structr instance '$DISPLAY_NAME' stopped (PID $SERVER_PID)"
+exit 0
