@@ -151,7 +151,7 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 
 			try (final Tx tx = app.tx()) {
 
-				final Principal user = app.create(type, new NodeAttribute<>(AbstractNode.name, name));
+				final Principal user = (Principal)app.create(type, new NodeAttribute<>(AbstractNode.name, name));
 
 				// set e-mail address
 				if (eMail != null && !"isAdmin".equals(eMail)) {
