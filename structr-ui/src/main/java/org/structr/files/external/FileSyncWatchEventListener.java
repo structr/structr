@@ -118,20 +118,20 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 
 		if (folder != null) {
 
-			Class<? extends AbstractFile> targetFileType      = null;
-			Class<? extends AbstractFile> targetFolderType    = null;
+			Class<? extends File> targetFileType      = null;
+			Class<? extends Folder> targetFolderType    = null;
 
 			try {
 				if (folder.getMountTargetFileType() != null) {
 					final Class clazz = StructrApp.getConfiguration().getNodeEntityClass(folder.getMountTargetFileType());
-					if (clazz != GenericNode.class && AbstractFile.class.isAssignableFrom(clazz)) {
+					if (clazz != null && clazz != GenericNode.class && File.class.isAssignableFrom(clazz)) {
 						targetFileType = clazz;
 					}
 				}
 
 				if (folder.getMountTargetFolderType() != null) {
 					final Class clazz = StructrApp.getConfiguration().getNodeEntityClass(folder.getMountTargetFolderType());
-					if (clazz != GenericNode.class && AbstractFile.class.isAssignableFrom(clazz)) {
+					if (clazz != null && clazz != GenericNode.class && Folder.class.isAssignableFrom(clazz)) {
 						targetFolderType = clazz;
 					}
 				}
@@ -166,7 +166,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 		return null;
 	}
 
-	private AbstractFile getOrCreate(final Folder parentFolder, final Path fullPath, final Path relativePath, final boolean doCreate, final Class<? extends AbstractFile> folderType, final Class<? extends AbstractFile> fileType) throws FrameworkException {
+	private AbstractFile getOrCreate(final Folder parentFolder, final Path fullPath, final Path relativePath, final boolean doCreate, final Class<? extends Folder> folderType, final Class<? extends File> fileType) throws FrameworkException {
 
 		final PropertyKey<Boolean> isExternalKey = StructrApp.key(AbstractFile.class, "isExternal");
 		final PropertyKey<Folder> parentKey      = StructrApp.key(AbstractFile.class, "parent");
