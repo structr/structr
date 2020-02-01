@@ -50,6 +50,8 @@ var _Dashboard = {
 		Structr.updateMainHelpLink('https://support.structr.com/article/202');
 
 		let templateConfig = {};
+		let releasesIndexUrl = '';
+		let snapshotsIndexUrl = '';
 
 		fetch(rootUrl + '/_env').then(function(response) {
 
@@ -59,23 +61,12 @@ var _Dashboard = {
 
 			templateConfig.envInfo = data.result;
 
-			templateConfig.envInfo.version = (data.result.components['structr'] || data.result.components['structr-ui']).version;
-			templateConfig.envInfo.build   = (data.result.components['structr'] || data.result.components['structr-ui']).build;
-			templateConfig.envInfo.date    = (data.result.components['structr'] || data.result.components['structr-ui']).date;
+			templateConfig.envInfo.version = (data.result.components['structr'] || data.result.components['structr-ui']).version || '';
+			templateConfig.envInfo.build   = (data.result.components['structr'] || data.result.components['structr-ui']).build   || '';
+			templateConfig.envInfo.date    = (data.result.components['structr'] || data.result.components['structr-ui']).date    || '';
 
-			// Search for newer releases and store latest version
-			data.result.availableReleases.forEach(function(version) {
-				if (version > templateConfig.envInfo.version) {
-					templateConfig.envInfo.newReleaseAvailable = version;
-				}
-			});
-
-			// Search for newer snapshots and store latest version
-			data.result.availableSnapshots.forEach(function(version) {
-				if (version > templateConfig.envInfo.version) {
-					templateConfig.envInfo.newSnapshotAvailable = version;
-				}
-			});
+			releasesIndexUrl  = data.result.availableReleasesUrl;
+			snapshotsIndexUrl = data.result.availableSnapshotsUrl;
 
 			if (templateConfig.envInfo.startDate) {
 				templateConfig.envInfo.startDate = _Dashboard.dateToIsoString(templateConfig.envInfo.startDate);
@@ -106,6 +97,8 @@ var _Dashboard = {
 			Structr.fetchHtmlTemplate('dashboard/dashboard', templateConfig, function(html) {
 
 				main.append(html);
+
+				_Dashboard.gatherVersionUpdateInfo(templateConfig.envInfo.version, releasesIndexUrl, snapshotsIndexUrl);
 
 				document.querySelectorAll('#dashboard .tabs-menu li a').forEach(function(tabLink) {
 					tabLink.addEventListener('click', function(e) {
@@ -157,6 +150,81 @@ var _Dashboard = {
 				Structr.unblockMenu(100);
 			});
 		});
+	},
+	gatherVersionUpdateInfo(currentVersion, releasesIndexUrl, snapshotsIndexUrl) {
+
+		let releaseInfo = '';
+		let snapshotInfo = '';
+
+		let gatherVersionUpdateInfoFinished = () => {
+
+			let versionUpdateInfoElement = document.querySelector('#version-update-info');
+			if (versionUpdateInfoElement) {
+
+				let versionInfo = [];
+				if (releaseInfo !== '') {
+					versionInfo.push(releaseInfo);
+				}
+				if (snapshotInfo !== '') {
+					versionInfo.push(snapshotInfo);
+				}
+
+				if (versionInfo.length > 0) {
+					versionUpdateInfoElement.textContent = '(' + versionInfo.join(' | ') + ')';
+				}
+			}
+		};
+
+		let requiredFetchCount = 0;
+		if (releasesIndexUrl !== '') {
+			requiredFetchCount++;
+
+			// Search for newer releases and store latest version
+			fetch(releasesIndexUrl).then((response) => {
+				return response.text();
+
+			}).then((releaseVersionsList) => {
+
+				let newReleaseAvailable = undefined;
+
+				releaseVersionsList.split(/[\n\r]/).forEach(function(version) {
+					if (version > currentVersion) {
+						newReleaseAvailable = version;
+					}
+				});
+
+				releaseInfo = (newReleaseAvailable ? 'newer release available: ' +  newReleaseAvailable : 'no new release available');
+
+				requiredFetchCount--;
+				if (requiredFetchCount === 0) {
+					gatherVersionUpdateInfoFinished();
+				}
+			});
+		}
+
+		if (snapshotsIndexUrl !== '') {
+			requiredFetchCount++;
+
+			fetch(snapshotsIndexUrl).then((response) => {
+				return response.text();
+
+			}).then((snapshotVersionsList) => {
+
+				let newSnapshotAvailable = undefined;
+				snapshotVersionsList.split(/[\n\r]/).forEach(function(version) {
+					if (version > currentVersion) {
+						newSnapshotAvailable = version;
+					}
+				});
+
+				snapshotInfo = (newSnapshotAvailable ? 'newer snapshot available: ' +  newSnapshotAvailable : 'no new snapshot available');
+
+				requiredFetchCount--;
+				if (requiredFetchCount === 0) {
+					gatherVersionUpdateInfoFinished();
+				}
+			});
+		}
 	},
 	dateToIsoString: function(dateString) {
 		let date = new Date(dateString);
