@@ -22,7 +22,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
 import org.structr.api.search.SortOrder;
 import org.structr.api.service.LicenseManager;
@@ -38,7 +37,6 @@ import org.structr.core.property.DateProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.common.HttpHelper;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
 
@@ -88,8 +86,8 @@ public class EnvResource extends Resource {
 			info.setProperty(new StringProperty("licensee"), "Unlicensed");
 		}
 
-		info.setProperty(new ArrayProperty("availableReleases",  String.class), getAvailableVersions(Settings.ReleasesIndexUrl.getValue()));
-		info.setProperty(new ArrayProperty("availableSnapshots", String.class), getAvailableVersions(Settings.SnapshotsIndexUrl.getValue()));
+		info.setProperty(new StringProperty("availableReleasesUrl"), Settings.ReleasesIndexUrl.getValue());
+		info.setProperty(new StringProperty("availableSnapshotsUrl"), Settings.SnapshotsIndexUrl.getValue());
 
 		resultList.add(info);
 
@@ -124,26 +122,6 @@ public class EnvResource extends Resource {
 	@Override
 	public boolean isCollectionResource() throws FrameworkException {
 		return false;
-	}
-
-
-	public static String[] getAvailableVersions(final String urlString) {
-
-		if (StringUtils.isNotBlank(urlString)) {
-
-			try {
-
-				final String result = HttpHelper.get(urlString);
-				if (StringUtils.isNotBlank(result)) {
-					return result.split("\\r?\\n");
-				}
-
-			} catch (FrameworkException ex) {
-			}
-		}
-
-		return new String[]{};
-
 	}
 
 }
