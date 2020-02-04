@@ -24,6 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.config.Settings;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
@@ -38,35 +39,46 @@ public class AdvancedCypherQuery implements CypherQuery {
 	private final Set<String> indexLabels           = new LinkedHashSet<>();
 	private final Set<String> typeLabels            = new LinkedHashSet<>();
 	private final StringBuilder buffer              = new StringBuilder();
+	private int fetchSize                           = Settings.FetchSize.getValue();
+	private boolean canUseCountStore                = false;
 	private String sourceTypeLabel                  = null;
 	private String targetTypeLabel                  = null;
 	private AbstractCypherIndex<?> index            = null;
 	private SortOrder sortOrder                     = null;
-	private int page                                = 0;
-	private int pageSize                            = 0;
+	private int fetchPage                           = 0;
 	private int count                               = 0;
 	private QueryContext queryContext               = null;
 
-	public AdvancedCypherQuery(final QueryContext queryContext, final AbstractCypherIndex<?> index) {
+	public AdvancedCypherQuery(final QueryContext queryContext, final AbstractCypherIndex<?> index, final int requestedPageSize, final int requestedPage) {
 
-		this.queryContext = queryContext;
-		this.pageSize = 1000000;
-		this.index    = index;
+		this.queryContext      = queryContext;
+		this.index             = index;
+
+		if (queryContext.isSuperuser() && requestedPageSize < Integer.MAX_VALUE) {
+
+			final int firstRequestedIndex = (requestedPage - 1) * requestedPageSize;
+			final int firstFetchIndex     = (firstRequestedIndex / fetchSize);
+
+			fetchPage = Math.max(0, firstFetchIndex);
+
+			// notify query context that we skipped a number of nodes
+			queryContext.setSkipped(firstFetchIndex * fetchSize);
+		}
 	}
 
 	@Override
 	public String toString() {
-		return getStatement();
+		return getStatement(false);
 	}
 
 	@Override
 	public void nextPage() {
-		page++;
+		fetchPage++;
 	}
 
 	@Override
 	public int pageSize() {
-		return this.pageSize;
+		return this.fetchSize;
 	}
 
 	public SortOrder getSortOrder() {
@@ -74,18 +86,19 @@ public class AdvancedCypherQuery implements CypherQuery {
 	}
 
 	@Override
-	public String getStatement() {
+	public String getStatement(final boolean paged) {
 
-		final StringBuilder buf = new StringBuilder();
-		final int typeCount     = typeLabels.size();
+		final boolean hasPredicates = buffer.length() > 0;
+		final StringBuilder buf     = new StringBuilder();
+		final int typeCount         = typeLabels.size();
 
 		switch (typeCount) {
 
 			case 0:
 
-				buf.append(index.getQueryPrefix(getTypeQueryLabel(null), sourceTypeLabel, targetTypeLabel));
+				buf.append(index.getQueryPrefix(getTypeQueryLabel(null), sourceTypeLabel, targetTypeLabel, hasPredicates));
 
-				if (buffer.length() > 0) {
+				if (hasPredicates) {
 					buf.append(" WHERE ");
 					buf.append(buffer);
 				}
@@ -95,9 +108,9 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 			case 1:
 
-				buf.append(index.getQueryPrefix(getTypeQueryLabel(Iterables.first(typeLabels)), sourceTypeLabel, targetTypeLabel));
+				buf.append(index.getQueryPrefix(getTypeQueryLabel(Iterables.first(typeLabels)), sourceTypeLabel, targetTypeLabel, hasPredicates));
 
-				if (buffer.length() > 0) {
+				if (hasPredicates) {
 					buf.append(" WHERE ");
 					buf.append(buffer);
 				}
@@ -110,9 +123,9 @@ public class AdvancedCypherQuery implements CypherQuery {
 				// create UNION query
 				for (final Iterator<String> it = typeLabels.iterator(); it.hasNext();) {
 
-					buf.append(index.getQueryPrefix(getTypeQueryLabel(it.next()), sourceTypeLabel, targetTypeLabel));
+					buf.append(index.getQueryPrefix(getTypeQueryLabel(it.next()), sourceTypeLabel, targetTypeLabel, hasPredicates));
 
-					if (buffer.length() > 0) {
+					if (hasPredicates) {
 						buf.append(" WHERE ");
 						buf.append(buffer);
 					}
@@ -177,12 +190,12 @@ public class AdvancedCypherQuery implements CypherQuery {
 			}
 		}
 
-		if (queryContext.isSliced()) {
+		if (paged) {
 
 			buf.append(" SKIP ");
-			buf.append(queryContext.getSkip());
+			buf.append(fetchPage * fetchSize);
 			buf.append(" LIMIT ");
-			buf.append(queryContext.getLimit());
+			buf.append(fetchSize);
 		}
 
 		return buf.toString();
@@ -351,13 +364,25 @@ public class AdvancedCypherQuery implements CypherQuery {
 		this.sourceTypeLabel = sourceTypeLabel;
 	}
 
+	public String getSourceType() {
+		return sourceTypeLabel;
+	}
+
 	public void setTargetType(final String targetTypeLabel) {
 		this.targetTypeLabel = targetTypeLabel;
+	}
+
+	public String getTargetType() {
+		return targetTypeLabel;
 	}
 
 	@Override
 	public QueryContext getQueryContext() {
 		return queryContext;
+	}
+
+	public boolean canUseCountStore() {
+		return canUseCountStore;
 	}
 
 	// ----- private methods -----

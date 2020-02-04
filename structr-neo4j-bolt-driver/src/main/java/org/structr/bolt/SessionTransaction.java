@@ -23,16 +23,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.StatementResultCursor;
 import org.neo4j.driver.v1.Transaction;
 import org.neo4j.driver.v1.Value;
 import org.neo4j.driver.v1.Values;
@@ -52,9 +46,8 @@ import org.structr.api.RetryException;
 import org.structr.api.UnknownClientException;
 import org.structr.api.UnknownDatabaseException;
 import org.structr.api.util.Iterables;
+import org.structr.bolt.index.IterableQueueingRecordConsumer;
 import org.structr.bolt.mapper.RecordMapMapper;
-import org.structr.bolt.mapper.RecordNodeMapper;
-import org.structr.bolt.mapper.RecordRelationshipMapper;
 import org.structr.bolt.wrapper.EntityWrapper;
 import org.structr.bolt.wrapper.NodeWrapper;
 import org.structr.bolt.wrapper.RelationshipWrapper;
@@ -302,7 +295,11 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		try {
 
 			logQuery(statement, map);
-			return tx.run(statement, map).next().get(0).asNode();
+
+			final StatementResult result = tx.run(statement, map);
+			final Record single          = result.single();
+
+			return single.get(0).asNode();
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -323,7 +320,11 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		try {
 
 			logQuery(statement, map);
-			return tx.run(statement, map).next().get(0).asRelationship();
+
+			final StatementResult result = tx.run(statement, map);
+			final Record single          = result.single();
+
+			return single.get(0).asRelationship();
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -339,62 +340,15 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		}
 	}
 
-	public Iterable<Node> getNodes(final String statement, final Map<String, Object> map) {
+	public void collectRecords(final String statement, final Map<String, Object> map, final IterableQueueingRecordConsumer consumer) {
 
-		try {
+		logQuery(statement, map);
 
-			final IterableQueueingConsumer<Record> consumer = new IterableQueueingConsumer<>();
-
-			logQuery(statement, map);
-
-			tx.runAsync(statement, map)
-				.thenCompose(cursor -> consumer.start(cursor))
-				.thenCompose(cursor -> cursor.forEachAsync(consumer::add))
-				.thenAccept(ignore  -> consumer.finish());
-
-			return Iterables.map(new RecordNodeMapper(), consumer);
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
-		}
-	}
-
-	public Iterable<Relationship> getRelationships(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			final IterableQueueingConsumer<Record> consumer = new IterableQueueingConsumer<>();
-
-			logQuery(statement, map);
-
-			tx.runAsync(statement, map)
-				.thenCompose(cursor -> consumer.start(cursor))
-				.thenCompose(cursor -> cursor.forEachAsync(consumer::add))
-				.thenAccept(ignore  -> consumer.finish());
-
-			return Iterables.map(new RecordRelationshipMapper(db), consumer);
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
-		}
+		tx.runAsync(statement, map)
+			.thenCompose(cursor -> consumer.start(cursor))
+			.thenCompose(cursor -> cursor.forEachAsync(consumer::accept))
+			.thenAccept(summary -> consumer.finish())
+			.exceptionally(t -> consumer.exception(t));
 	}
 
 	public Iterable<String> getStrings(final String statement, final Map<String, Object> map) {
@@ -614,62 +568,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 				((StatementResult)iterator).consume();
 			}
-		}
-	}
-
-	public class IterableQueueingConsumer<T> implements Iterable<T>, Iterator<T>, AutoCloseable {
-
-		private final BlockingQueue<T> queue = new LinkedBlockingQueue<>();
-		private final AtomicBoolean aborted  = new AtomicBoolean(false);
-		private final AtomicBoolean finished = new AtomicBoolean(false);
-		private final AtomicBoolean added    = new AtomicBoolean(false);
-		private StatementResultCursor cursor = null;
-
-		@Override
-		public Iterator<T> iterator() {
-			return this;
-		}
-
-		@Override
-		public void close() {
-			aborted.set(true);
-			cursor.consumeAsync();
-		}
-
-		public void finish() {
-			finished.set(true);
-			added.set(true);
-		}
-
-		@Override
-		public boolean hasNext() {
-
-			// make the consuming thread wait for results util elements have been added OR the producer has no more results (finished == true)
-			while (!added.get() || (!finished.get() && queue.isEmpty())) {
-				try { Thread.yield(); } catch (Throwable t) {}
-			}
-
-			return !queue.isEmpty();
-		}
-
-		@Override
-		public T next() {
-			return queue.poll();
-		}
-
-		void add(final T t) {
-
-			if (aborted.get()) {
-				return;
-			}
-
-			queue.add(t);
-			added.set(true);
-		}
-
-		CompletionStage<StatementResultCursor> start(final StatementResultCursor cursor) {
-			this.cursor = cursor;
-			return CompletableFuture.completedFuture(cursor);
 		}
 	}
 }

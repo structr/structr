@@ -156,7 +156,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 				// do action
 				try (final ResultStream result = resource.doGet(sortOrder, pageSize, page)) {
-					
+
 					if (result != null) {
 
 						// allow resource to modify result set
@@ -275,7 +275,6 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				// do not send websocket notifications for created objects
 				securityContext.setDoTransactionNotifications(false);
 				securityContext.disableModificationOfAccessTime();
-				securityContext.ignoreResultCount(true);
 				securityContext.disableEnsureCardinality();
 
 				final String username = securityContext.getUser(false).getName();

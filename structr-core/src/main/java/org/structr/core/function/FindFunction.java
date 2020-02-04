@@ -51,7 +51,6 @@ public class FindFunction extends AbstractQueryFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final SecurityContext securityContext = ctx.getSecurityContext();
-		final boolean ignoreResultCount       = securityContext.ignoreResultCount();
 
 		try {
 
@@ -104,7 +103,6 @@ public class FindFunction extends AbstractQueryFunction {
 		} finally {
 
 			resetQueryParameters(securityContext);
-			securityContext.ignoreResultCount(ignoreResultCount);
 		}
 	}
 

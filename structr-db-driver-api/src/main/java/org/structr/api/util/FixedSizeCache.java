@@ -99,20 +99,22 @@ public class FixedSizeCache<K, V> {
 
 	private void checkAvailableMemory() {
 
-		if (bean != null && System.currentTimeMillis() > lastUpdate) {
+		final long now = System.currentTimeMillis();
+
+		if (bean != null && now > lastUpdate + 1000) {
 
 			final MemoryUsage usage = bean.getCollectionUsage();
 			final double maxMemory  = Math.max(1, usage.getMax());
 			final double usedMemory = Math.max(1, usage.getUsed());
 			final double percentage = (usedMemory / maxMemory) * 100.0;
 
-			lastUpdate = System.currentTimeMillis() + 1000;
+			lastUpdate = now;
 
-			if (percentage > 99.00) {
+			if (percentage > 98.00) {
 
 				int size = cache.size();
 
-				size *= 0.9;
+				size *= 0.8;
 				size /= 10000;
 				size *= 10000;
 

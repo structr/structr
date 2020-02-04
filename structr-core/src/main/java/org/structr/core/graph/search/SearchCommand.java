@@ -95,6 +95,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	private final SearchAttributeGroup rootGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
 	private DefaultSortOrder sortOrder           = new DefaultSortOrder();
+	private QueryContext queryContext            = new QueryContext();
 	private SearchAttributeGroup currentGroup    = rootGroup;
 	private Comparator comparator                = null;
 	private boolean publicOnly                   = false;
@@ -103,7 +104,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	private Class type                           = null;
 	private int pageSize                         = Integer.MAX_VALUE;
 	private int page                             = 1;
-	private QueryContext queryContext            = new QueryContext();
 
 	public abstract Factory<S, T> getFactory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly, final int pageSize, final int page);
 	public abstract boolean isRelationshipSearch();
@@ -131,6 +131,10 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				rootGroup.add(new PropertySearchAttribute(GraphObject.visibleToPublicUsers, true, Occurrence.REQUIRED, true));
 			}
+
+		} else {
+
+			queryContext.setIsSuperuser(user.isAdmin());
 		}
 
 		// special handling of deleted and hidden flags
@@ -230,7 +234,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				}
 
 				// do query
-				indexHits = Iterables.map(factory, index.query(getQueryContext(), rootGroup));
+				indexHits = Iterables.map(factory, index.query(getQueryContext(), rootGroup, pageSize, page));
 
 				if (comparator != null) {
 
@@ -241,7 +245,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 					Collections.sort(rawResult, comparator);
 
 					// return paging iterable
-					return new PagingIterable(rawResult, pageSize, page);
+					return new PagingIterable(rawResult, pageSize, page, queryContext.getSkipped());
 				}
 			}
 		}
@@ -296,12 +300,12 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				Collections.sort(finalResult, sortOrder);
 			}
 
-			return new PagingIterable(finalResult, pageSize, page);
+			return new PagingIterable(finalResult, pageSize, page, queryContext.getSkipped());
 
 		} else {
 
 			// no filtering
-			return new PagingIterable(indexHits, pageSize, page);
+			return new PagingIterable(indexHits, pageSize, page, queryContext.getSkipped());
 		}
 	}
 

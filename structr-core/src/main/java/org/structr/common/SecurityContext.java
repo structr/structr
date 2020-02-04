@@ -71,7 +71,8 @@ public class SecurityContext {
 	private boolean forceMergeOfNestedProperties          = false;
 	private boolean doCascadingDelete                     = true;
 	private boolean modifyAccessTime                      = true;
-	private boolean ignoreResultCount                     = false;
+	private boolean disableSoftLimit                      = false;
+	private boolean forceResultCount                      = false;
 	private boolean ensureCardinality                     = true;
 	private boolean doInnerCallbacks                      = true;
 	private boolean isReadOnlyTransaction                 = false;
@@ -149,8 +150,12 @@ public class SecurityContext {
 				this.forceMergeOfNestedProperties = true;
 			}
 
-			if (request.getParameter("ignoreResultCount") != null) {
-				this.ignoreResultCount = true;
+			if (request.getParameter("forceResultCount") != null) {
+				this.forceResultCount = true;
+			}
+
+			if (request.getParameter("disableSoftLimit") != null) {
+				this.disableSoftLimit = true;
 			}
 
 			if (request.getParameter(SecurityContext.JSON_PARALLELIZATION_REQUEST_PARAMETER_NAME) != null) {
@@ -843,12 +848,12 @@ public class SecurityContext {
 		modifyAccessTime = true;
 	}
 
-	public void ignoreResultCount(final boolean doIgnore) {
-		this.ignoreResultCount = doIgnore;
+	public boolean forceResultCount() {
+		return forceResultCount;
 	}
 
-	public boolean ignoreResultCount() {
-		return ignoreResultCount;
+	public boolean disableSoftLimit() {
+		return disableSoftLimit;
 	}
 
 	public boolean doEnsureCardinality() {
@@ -954,6 +959,22 @@ public class SecurityContext {
 
 	public void clearTemporary(final String uuid) {
 		tmp.remove(uuid);
+	}
+
+	public int getSoftLimit(final int pageSize) {
+
+		if (disableSoftLimit) {
+			return Integer.MAX_VALUE;
+		}
+
+		final int softLimit = Settings.ResultCountSoftLimit.getValue();
+
+		if (pageSize > 0 && pageSize < Integer.MAX_VALUE && pageSize > softLimit) {
+
+			return pageSize;
+		}
+
+		return softLimit;
 	}
 
 	// ----- static methods -----

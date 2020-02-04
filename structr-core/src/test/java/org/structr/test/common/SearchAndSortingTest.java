@@ -22,6 +22,7 @@ import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Occurrence;
 import org.structr.api.util.ResultStream;
@@ -1662,104 +1663,120 @@ public class SearchAndSortingTest extends StructrTest {
 	@Test
 	public void test06PagingVisibility() {
 
-		Principal tester1 = null;
-		Principal tester2 = null;
-
-		try (final Tx tx = app.tx()) {
-
-			// create non-admin user
-			tester1 = app.create(Principal.class, "tester1");
-			tester2 = app.create(Principal.class, "tester2");
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-			fail("Unexpected exception");
-		}
-
 		try {
 
-			final SecurityContext tester1Context     = SecurityContext.getInstance(tester1, AccessMode.Backend);
-			final SecurityContext tester2Context     = SecurityContext.getInstance(tester2, AccessMode.Backend);
-			final App tester1App                     = StructrApp.getInstance(tester1Context);
-			final App tester2App                     = StructrApp.getInstance(tester2Context);
-			final Class type                         = TestOne.class;
-			final int number                         = 1000;
-			final List<NodeInterface> allNodes       = this.createTestNodes(type, number);
-			final List<NodeInterface> tester1Nodes   = new LinkedList<>();
-			final List<NodeInterface> tester2Nodes   = new LinkedList<>();
-			final int offset                         = 0;
+			Principal tester1 = null;
+			Principal tester2 = null;
 
 			try (final Tx tx = app.tx()) {
 
-				int i = offset;
-				for (NodeInterface node : allNodes) {
+				// create non-admin user
+				tester1 = app.create(Principal.class, "tester1");
+				tester2 = app.create(Principal.class, "tester2");
 
-					// System.out.println("Node ID: " + node.getNodeId());
-					String _name = "TestOne-" + StringUtils.leftPad(Integer.toString(i), 5, "0");
+				tx.success();
 
-					final double rand = Math.random();
+			} catch (FrameworkException fex) {
 
-					if (rand < 0.3) {
+				logger.warn("", fex);
+				fail("Unexpected exception");
+			}
 
-						node.setProperty(NodeInterface.owner, tester1);
-						tester1Nodes.add(node);
+			try {
 
-					} else if (rand < 0.6) {
+				final SecurityContext tester1Context     = SecurityContext.getInstance(tester1, AccessMode.Backend);
+				final SecurityContext tester2Context     = SecurityContext.getInstance(tester2, AccessMode.Backend);
+				final int softLimit                      = Settings.ResultCountSoftLimit.getValue();
+				final App tester1App                     = StructrApp.getInstance(tester1Context);
+				final App tester2App                     = StructrApp.getInstance(tester2Context);
+				final Class type                         = TestOne.class;
+				final int number                         = 1000;
+				final List<NodeInterface> allNodes       = this.createTestNodes(type, number);
+				final List<NodeInterface> tester1Nodes   = new LinkedList<>();
+				final List<NodeInterface> tester2Nodes   = new LinkedList<>();
+				final int offset                         = 0;
 
-						node.setProperty(NodeInterface.owner, tester2);
-						tester2Nodes.add(node);
+				try (final Tx tx = app.tx()) {
+
+					int i = offset;
+					for (NodeInterface node : allNodes) {
+
+						// System.out.println("Node ID: " + node.getNodeId());
+						String _name = "TestOne-" + StringUtils.leftPad(Integer.toString(i), 5, "0");
+
+						final double rand = Math.random();
+
+						if (rand < 0.3) {
+
+							node.setProperty(NodeInterface.owner, tester1);
+							tester1Nodes.add(node);
+
+						} else if (rand < 0.6) {
+
+							node.setProperty(NodeInterface.owner, tester2);
+							tester2Nodes.add(node);
+						}
+
+						i++;
+
+						node.setProperty(AbstractNode.name, _name);
 					}
 
-					i++;
-
-					node.setProperty(AbstractNode.name, _name);
+					tx.success();
 				}
 
-				tx.success();
+				Settings.CypherDebugLogging.setValue(true);
+
+				final int tester1NodeCount   = tester1Nodes.size();
+				final int tester2NodeCount   = tester2Nodes.size();
+
+				try (final Tx tx = app.tx()) {
+
+					final PropertyKey sortKey        = AbstractNode.name;
+					final boolean sortDesc           = false;
+					final int pageSize               = 10;
+					final int page                   = 22;
+					final ResultStream<GraphObject> result = tester1App.nodeQuery(type).sort(sortKey, sortDesc).pageSize(pageSize).page(page).getResultStream();
+
+					assertEquals("Invalid paging result count with non-superuser security context", tester1NodeCount, result.calculateTotalResultCount(null, softLimit));
+
+					result.close();
+
+					tx.success();
+
+				} catch (Exception ex) {
+					fail("Unexpected exception");
+				}
+
+				try (final Tx tx = app.tx()) {
+
+					final PropertyKey sortKey        = AbstractNode.name;
+					final boolean sortDesc           = false;
+					final int pageSize               = 10;
+					final int page                   = 22;
+					final ResultStream<GraphObject> result = tester2App.nodeQuery(type).sort(sortKey, sortDesc).pageSize(pageSize).page(page).getResultStream();
+
+					assertEquals("Invalid paging result count with non-superuser security context", tester2NodeCount, result.calculateTotalResultCount(null, softLimit));
+
+					result.close();
+
+					tx.success();
+
+				} catch (Exception ex) {
+					fail("Unexpected exception");
+				}
+
+
+			} catch (FrameworkException ex) {
+
+				logger.error(ex.toString());
+				fail("Unexpected exception");
+
 			}
 
-			final int tester1NodeCount   = tester1Nodes.size();
-			final int tester2NodeCount   = tester2Nodes.size();
+		} finally {
 
-			try (final Tx tx = app.tx()) {
-
-				final PropertyKey sortKey        = AbstractNode.name;
-				final boolean sortDesc           = false;
-				final int pageSize               = 10;
-				final int page                   = 22;
-				final ResultStream<GraphObject> result = tester1App.nodeQuery(type).sort(sortKey, sortDesc).pageSize(pageSize).page(page).getResultStream();
-
-				assertEquals("Invalid paging result count with non-superuser security context", tester1NodeCount, result.calculateTotalResultCount());
-
-				result.close();
-
-				tx.success();
-			}
-
-			try (final Tx tx = app.tx()) {
-
-				final PropertyKey sortKey        = AbstractNode.name;
-				final boolean sortDesc           = false;
-				final int pageSize               = 10;
-				final int page                   = 22;
-				final ResultStream<GraphObject> result = tester2App.nodeQuery(type).sort(sortKey, sortDesc).pageSize(pageSize).page(page).getResultStream();
-
-				assertEquals("Invalid paging result count with non-superuser security context", tester2NodeCount, result.calculateTotalResultCount());
-
-				result.close();
-
-				tx.success();
-			}
-
-
-		} catch (FrameworkException ex) {
-
-			logger.error(ex.toString());
-			fail("Unexpected exception");
-
+			Settings.CypherDebugLogging.setValue(false);
 		}
 	}
 

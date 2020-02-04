@@ -19,12 +19,13 @@
 package org.structr.bolt.index;
 
 import org.structr.api.graph.Node;
+import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
 import org.structr.api.util.Iterables;
 import org.structr.bolt.BoltDatabaseService;
-import org.structr.bolt.SessionTransaction;
 import org.structr.bolt.mapper.NodeNodeMapper;
+import org.structr.bolt.mapper.RecordNodeMapper;
 
 /**
  *
@@ -36,9 +37,15 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	}
 
 	@Override
-	public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel) {
+	public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates) {
 
-		final StringBuilder buf = new StringBuilder("MATCH (n:NodeInterface");
+		final StringBuilder buf = new StringBuilder("MATCH (n");
+
+		// Only add :NodeInterface label when query has predicates, single label queries are much faster.
+		if (hasPredicates) {
+			buf.append(":NodeInterface");
+		}
+
 		final String tenantId   = db.getTenantIdentifier();
 
 		if (tenantId != null) {
@@ -61,11 +68,11 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	@Override
 	public String getQuerySuffix(final AdvancedCypherQuery query) {
 
-		final StringBuilder buf   = new StringBuilder();
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append(" RETURN DISTINCT n");
+
 		final SortOrder sortOrder = query.getSortOrder();
-
-		buf.append(" RETURN n");
-
 		if (sortOrder != null) {
 
 			int sortSpecIndex = 0;
@@ -73,7 +80,6 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 			for (final SortSpec spec : sortOrder.getSortElements()) {
 
 				final String sortKey = spec.getSortKey();
-
 				if (sortKey != null) {
 
 					buf.append(", n.`");
@@ -92,16 +98,14 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	@Override
 	public Iterable<Node> getResult(final AdvancedCypherQuery query) {
 
-		try {
-			final SessionTransaction tx = db.getCurrentTransaction();
+		final IterableQueueingRecordConsumer consumer = new IterableQueueingRecordConsumer(db, query);
+		final QueryContext context                    = query.getQueryContext();
 
-			tx.setIsPing(query.getQueryContext().isPing());
-
-			return Iterables.map(new NodeNodeMapper(db), tx.getNodes(query.getStatement(), query.getParameters()));
-
-		} finally {
-
-			query.nextPage();
+		if (context != null && !context.isDeferred()) {
+			consumer.start();
 		}
+
+		// return mapped result
+		return Iterables.map(new NodeNodeMapper(db), Iterables.map(new RecordNodeMapper(), consumer));
 	}
 }

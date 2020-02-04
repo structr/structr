@@ -38,7 +38,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.function.Functions;
 import org.structr.core.graphql.GraphQLQueryConfiguration;
 import org.structr.core.graphql.GraphQLRequest;
 import org.structr.core.property.PropertyKey;
@@ -122,9 +121,16 @@ public class GraphQLWriter {
 				writer.name(query.getFieldName());
 				writer.beginArray();
 
+				final int softLimit = securityContext.getSoftLimit(0);
+				int count           = 0;
+
 				for (final GraphObject object : query.getEntities(securityContext)) {
 
 					root.serialize(writer, null, object, query, query.getRootPath());
+
+					if (count++ > softLimit) {
+						break;
+					}
 				}
 
 				writer.endArray();
@@ -331,6 +337,7 @@ public class GraphQLWriter {
 
 			final GraphQLQueryConfiguration config = graphQLQuery.getQueryConfiguration(path);
 			final Predicate predicate              = config.getPredicateForPropertyKey(key);
+			final SecurityContext securityContext  = writer.getSecurityContext();
 			int pageSize                           = Integer.MAX_VALUE;
 			int start                              = 0;
 			int count                              = 0;
@@ -343,6 +350,8 @@ public class GraphQLWriter {
 				page     = config.getPage();
 				start    = (page - 1) * pageSize;
 			}
+
+			final int softLimit = securityContext.getSoftLimit(config.getPageSize());
 
 			writer.beginArray();
 
@@ -358,6 +367,10 @@ public class GraphQLWriter {
 
 					// stop serialization if page size is reached
 					if (count >= pageSize) {
+						break;
+					}
+
+					if (count > softLimit) {
 						break;
 					}
 				}

@@ -19,7 +19,6 @@
 package org.structr.bolt.wrapper;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,11 +35,14 @@ import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
+import org.structr.api.search.QueryContext;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.api.util.Iterables;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.SessionTransaction;
-import org.structr.bolt.mapper.RelationshipRelationshipMapper;
+import org.structr.bolt.index.AbstractCypherIndex;
+import org.structr.bolt.index.AdvancedCypherQuery;
+import org.structr.bolt.index.CypherRelationshipIndex;
 
 /**
  *
@@ -394,12 +396,10 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 				map.put("id", id);
 
-				final Iterable<org.neo4j.driver.v1.types.Node> result   = tx.getNodes(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id RETURN DISTINCT n"), map);
-				final Iterator<org.neo4j.driver.v1.types.Node> iterator = result.iterator();
+				final org.neo4j.driver.v1.types.Node node = tx.getNode(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id RETURN DISTINCT n"), map);
+				if (node != null) {
 
-				if (iterator.hasNext()) {
-
-					wrapper = NodeWrapper.newInstance(db, iterator.next());
+					wrapper = NodeWrapper.newInstance(db, node);
 
 					nodeCache.put(id, wrapper);
 
@@ -500,17 +500,16 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		public synchronized Iterable<Relationship> getResult(final BoltDatabaseService db, final long id, final String match, final String pattern, final String returnStatement) {
 
-			final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
-			final Map<String, Object> map               = new HashMap<>();
-			final SessionTransaction tx                 = db.getCurrentTransaction();
-			final String whereStatement                 = " WHERE ID(n) = $id ";
+			final String whereStatement         = " WHERE ID(n) = $id ";
+			final String statement              = concat("MATCH ", match, whereStatement, returnStatement);
+			final CypherRelationshipIndex index = (CypherRelationshipIndex)db.relationshipIndex();
+			final AdvancedCypherQuery query     = new RelationshipQuery(new QueryContext(), index, statement);
 
-			map.put("id", id);
+			query.getParameters().put("id", id);
 
 			if (Settings.ForceResultStreaming.getValue() || dontUseCache) {
 
-				// return streaming result
-				return Iterables.map(mapper, tx.getRelationships(concat("MATCH ", match, whereStatement, returnStatement), map));
+				return index.getResult(query);
 
 			} else {
 
@@ -521,11 +520,29 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 					set = new TreeSet<>((o1, o2) -> { return compare("internalTimestamp", o1, o2); });
 
 					// add elements
-					set.addAll(Iterables.toList(Iterables.map(mapper, tx.getRelationships(concat("MATCH ", match, whereStatement, returnStatement), map))));
+					set.addAll(Iterables.toList(index.getResult(query)));
 				}
 
 				return set;
 			}
+		}
+	}
+
+	private static class RelationshipQuery extends AdvancedCypherQuery {
+
+		private String statement = null;
+
+		public RelationshipQuery(QueryContext queryContext, AbstractCypherIndex<?> index, final String statement) {
+
+			super(queryContext, index, Integer.MAX_VALUE, 1);
+
+			this.statement = statement;
+		}
+
+		@Override
+		public String getStatement(final boolean paged) {
+
+			return statement;
 		}
 	}
 }

@@ -83,7 +83,7 @@ public class GraphQLQuery {
 
 		config.configureQuery(query);
 
-		return query.getAsList();
+		return query.getResultStream();
 	}
 
 	// ----- private methods -----

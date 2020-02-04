@@ -29,7 +29,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.NotFoundException;
 import org.structr.api.NotInTransactionException;
+import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
+import org.structr.api.util.ResultStream;
 import org.structr.common.AccessMode;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
@@ -116,6 +118,82 @@ public class BasicTest extends StructrTest {
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testQuerySoftLimit() {
+
+		Settings.ResultCountSoftLimit.setValue(100);
+		Settings.FetchSize.setValue(100);
+
+		final int num = 3234;
+		int total     = 0;
+
+		System.out.println("Creating " + num + " elements..");
+
+		try (final Tx tx = app.tx()) {
+
+			for (int i=0; i<num; i++) {
+				app.create(TestSix.class);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		System.out.println("Done.");
+
+		Settings.CypherDebugLogging.setValue(true);
+
+		try {
+			try (final Tx tx = app.tx()) {
+
+				int count = 0;
+
+				try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
+
+					for (TestSix test : results) {
+						count++;
+					}
+
+					total = results.calculateTotalResultCount(null, Settings.ResultCountSoftLimit.getValue());
+				}
+
+				System.out.println(count + " / " + total);
+
+				assertEquals("Invalid result count", num, count);
+				assertEquals("Invalid total count", num, total);
+
+				tx.success();
+
+			} catch (Exception fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
+
+					if (results.iterator().hasNext()) {
+						results.iterator().next();
+					}
+				}
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
+			}
+
+		} finally {
+
+			Settings.CypherDebugLogging.setValue(false);
 		}
 	}
 

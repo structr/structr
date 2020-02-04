@@ -85,7 +85,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 		commonRequestParameters.add(REQUEST_PARAMETER_SORT_ORDER);
 		commonRequestParameters.add(REQUEST_PARAMTER_OUTPUT_DEPTH);
 		commonRequestParameters.add("debugLoggingEnabled");
-		commonRequestParameters.add("ignoreResultCount");
+		commonRequestParameters.add("forceResultCount");
+		commonRequestParameters.add("disableSoftLimit");
 
 		// cross reference here, but these need to be added as well..
 		commonRequestParameters.add(SearchCommand.DISTANCE_SEARCH_KEYWORD);
@@ -1020,6 +1021,9 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		} catch (Throwable t) {
 
+			// TEST
+			t.printStackTrace();
+
 			if (t instanceof QuietException || t.getCause() instanceof QuietException) {
 				// ignore exceptions which (by jettys standards) should be handled less verbosely
 			} else {
@@ -1035,7 +1039,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} finally {
 
 			try {
-				//response.getWriter().flush();
+				response.getWriter().flush();
 				response.getWriter().close();
 
 			} catch (Throwable t) {
