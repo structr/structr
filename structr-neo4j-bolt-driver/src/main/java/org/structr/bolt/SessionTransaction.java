@@ -57,7 +57,7 @@ import org.structr.bolt.wrapper.RelationshipWrapper;
  */
 public class SessionTransaction implements org.structr.api.Transaction {
 
-	private static final AtomicLong idSource          = new AtomicLong();
+	private static final AtomicLong ID_SOURCE         = new AtomicLong();
 	private final Set<EntityWrapper> accessedEntities = new HashSet<>();
 	private final Set<EntityWrapper> modifiedEntities = new HashSet<>();
 	private final Set<Long> deletedNodes              = new HashSet<>();
@@ -72,7 +72,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 	public SessionTransaction(final BoltDatabaseService db, final Session session) {
 
-		this.transactionId = idSource.getAndIncrement();
+		this.transactionId = ID_SOURCE.getAndIncrement();
 		this.session       = session;
 		this.tx            = session.beginTransaction();
 		this.db            = db;

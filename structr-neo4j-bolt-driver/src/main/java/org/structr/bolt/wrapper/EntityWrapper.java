@@ -25,7 +25,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
 import org.neo4j.driver.v1.types.Entity;
 import org.slf4j.Logger;
@@ -36,6 +35,7 @@ import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Cachable;
 import org.structr.api.util.ChangeAwareMap;
+import org.structr.api.util.FixedSizeCache;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.SessionTransaction;
 
@@ -44,8 +44,8 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 	private static final Logger logger = LoggerFactory.getLogger(EntityWrapper.class.getName());
 
-	private final Map<Long, ChangeAwareMap> txData = new ConcurrentHashMap<>();
-	private final ChangeAwareMap entityData        = new ChangeAwareMap();
+	private final FixedSizeCache<Long, ChangeAwareMap> txData = new FixedSizeCache("Transaction data store", 10000);
+	private final ChangeAwareMap entityData                   = new ChangeAwareMap();
 
 	protected BoltDatabaseService db               = null;
 	protected boolean deleted                      = false;
@@ -395,7 +395,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 	}
 
 	// ----- private methods -----
-	private Map<String, Object> accessData(final boolean write) {
+	private ChangeAwareMap accessData(final boolean write) {
 
 		// read-only access does not need a transaction
 		final SessionTransaction tx = db.getCurrentTransaction(false);
@@ -405,26 +405,20 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 				throw new NotFoundException("Entity with ID " + id + " not found.");
 			}
 
-			if (write) {
+			final long transactionId = tx.getTransactionId();
+			ChangeAwareMap copy      = txData.get(transactionId);
 
-				final long transactionId = tx.getTransactionId();
-				ChangeAwareMap copy      = txData.get(transactionId);
+			if (copy == null) {
 
-				if (copy == null) {
+				copy = new ChangeAwareMap(entityData);
+				txData.put(transactionId, copy);
 
-					copy = new ChangeAwareMap(entityData);
-					txData.put(transactionId, copy);
-
+				if (write) {
 					tx.accessed(this);
 				}
-
-				return copy;
-
-			} else {
-
-				return entityData.immutable();
 			}
 
+			return copy;
 
 		} else {
 

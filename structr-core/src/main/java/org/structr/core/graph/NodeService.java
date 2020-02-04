@@ -241,22 +241,12 @@ public class NodeService implements SingletonService {
 	private void checkCacheSizes() {
 
 		final CountResult counts = getInitialCounts();
-		final long nodeCacheSize = Settings.NodeCacheSize.getValue();
-		final long relCacheSize  = Settings.RelationshipCacheSize.getValue();
 		final long nodeCount     = counts.getNodeCount();
 		final long relCount      = counts.getRelationshipCount();
 
 		logger.info("Database contains {} nodes, {} relationships.", nodeCount, relCount);
-
-		if (nodeCacheSize < nodeCount) {
-			logger.warn("Insufficient node cache size detected, please set database.cache.node.size to at least {} for best performance.", nodeCount);
-		}
-
-		if (relCacheSize < relCount) {
-			logger.warn("Insufficient relationship cache size detected, please set database.cache.relationship.size to at least {} for best performance.", relCount);
-		}
-
 	}
+
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
