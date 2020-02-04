@@ -46,7 +46,6 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 	public Object apply(final ActionContext ctx, final Object caller, Object[] sources) throws FrameworkException {
 
 		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-		final boolean ignoreResultCount       = securityContext.ignoreResultCount();
 
 		try {
 
@@ -99,7 +98,6 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 		} finally {
 
 			resetQueryParameters(securityContext);
-			securityContext.ignoreResultCount(ignoreResultCount);
 		}
 	}
 

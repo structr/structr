@@ -395,7 +395,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 	}
 
 	// ----- private methods -----
-	private ChangeAwareMap accessData(final boolean write) {
+	private Map<String, Object> accessData(final boolean write) {
 
 		// read-only access does not need a transaction
 		final SessionTransaction tx = db.getCurrentTransaction(false);
@@ -405,20 +405,26 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 				throw new NotFoundException("Entity with ID " + id + " not found.");
 			}
 
-			final long transactionId = tx.getTransactionId();
-			ChangeAwareMap copy      = txData.get(transactionId);
+			if (write) {
 
-			if (copy == null) {
+				final long transactionId = tx.getTransactionId();
+				ChangeAwareMap copy      = txData.get(transactionId);
 
-				copy = new ChangeAwareMap(entityData);
-				txData.put(transactionId, copy);
+				if (copy == null) {
 
-				if (write) {
+					copy = new ChangeAwareMap(entityData);
+					txData.put(transactionId, copy);
+
 					tx.accessed(this);
 				}
+
+				return copy;
+
+			} else {
+
+				return entityData.immutable();
 			}
 
-			return copy;
 
 		} else {
 

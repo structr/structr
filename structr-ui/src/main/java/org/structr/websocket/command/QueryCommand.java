@@ -125,7 +125,7 @@ public class QueryCommand extends AbstractCommand {
 
 			// set full result list
 			webSocketData.setResult(list);
-			webSocketData.setRawResultCount(result.calculateTotalResultCount());
+			webSocketData.setRawResultCount(result.calculateTotalResultCount(null, securityContext.getSoftLimit(pageSize)));
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);

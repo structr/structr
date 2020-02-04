@@ -61,16 +61,15 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.index.Index;
+import org.structr.api.search.Occurrence;
+import org.structr.api.search.QueryContext;
+import org.structr.api.search.QueryPredicate;
+import org.structr.api.search.SortOrder;
+import org.structr.api.search.TypeQuery;
 import org.structr.api.util.CountResult;
-import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
 import org.structr.bolt.index.CypherNodeIndex;
 import org.structr.bolt.index.CypherRelationshipIndex;
-import org.structr.bolt.index.NodeResultStream;
-import org.structr.bolt.index.RelationshipResultStream;
-import org.structr.bolt.index.SimpleCypherQuery;
-import org.structr.bolt.mapper.NodeNodeMapper;
-import org.structr.bolt.mapper.RelationshipRelationshipMapper;
 import org.structr.bolt.wrapper.BoltIdentity;
 import org.structr.bolt.wrapper.NodeWrapper;
 import org.structr.bolt.wrapper.RelationshipWrapper;
@@ -315,19 +314,11 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	@Override
 	public Iterable<Node> getAllNodes() {
 
-		final StringBuilder buf = new StringBuilder();
-		final String tenantId   = getTenantIdentifier();
+		final QueryContext context     = new QueryContext(true);
+		final QueryPredicate predicate = new TypePredicate();
+		final Index<Node> index        = nodeIndex();
 
-		buf.append("MATCH (n");
-
-		if (tenantId != null) {
-			buf.append(":");
-			buf.append(tenantId);
-		}
-
-		buf.append(") RETURN n");
-
-		return Iterables.map(new NodeNodeMapper(this), new NodeResultStream(this, new SimpleCypherQuery(buf.toString())));
+		return index.query(context, predicate, Integer.MAX_VALUE, 1);
 	}
 
 	@Override
@@ -337,21 +328,11 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			return getAllNodes();
 		}
 
-		final StringBuilder buf = new StringBuilder();
-		final String tenantId   = getTenantIdentifier();
+		final QueryContext context     = new QueryContext(true);
+		final QueryPredicate predicate = new TypePredicate(type);
+		final Index<Node> index        = nodeIndex();
 
-		buf.append("MATCH (n");
-
-		if (tenantId != null) {
-			buf.append(":");
-			buf.append(tenantId);
-		}
-
-		buf.append(":");
-		buf.append(type);
-		buf.append(") RETURN n");
-
-		return Iterables.map(new NodeNodeMapper(this), new NodeResultStream(this, new SimpleCypherQuery(buf.toString())));
+		return index.query(context, predicate, Integer.MAX_VALUE, 1);
 	}
 
 	@Override
@@ -361,23 +342,11 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			return getAllNodes();
 		}
 
-		final StringBuilder buf = new StringBuilder();
-		final String tenantId   = getTenantIdentifier();
+		final QueryContext context     = new QueryContext(true);
+		final QueryPredicate predicate = new TypePropertyPredicate(type);
+		final Index<Node> index        = nodeIndex();
 
-		buf.append("MATCH (n");
-
-		if (tenantId != null) {
-			buf.append(":");
-			buf.append(tenantId);
-		}
-
-		buf.append(") WHERE n.type = $type RETURN n");
-
-		final SimpleCypherQuery query = new SimpleCypherQuery(buf.toString());
-
-		query.getParameters().put("type", type);
-
-		return Iterables.map(new NodeNodeMapper(this), new NodeResultStream(this, query));
+		return index.query(context, predicate, Integer.MAX_VALUE, 1);
 	}
 
 	@Override
@@ -403,26 +372,11 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	@Override
 	public Iterable<Relationship> getAllRelationships() {
 
-		final StringBuilder buf = new StringBuilder();
-		final String tenantId   = getTenantIdentifier();
+		final Index<Relationship> index = relationshipIndex();
+		final QueryPredicate predicate  = new TypePredicate();
+		final QueryContext context      = new QueryContext(true);
 
-		buf.append("MATCH (");
-
-		if (tenantId != null) {
-			buf.append(":");
-			buf.append(tenantId);
-		}
-
-		buf.append(")-[r]->(");
-
-		if (tenantId != null) {
-			buf.append(":");
-			buf.append(tenantId);
-		}
-
-		buf.append(") RETURN r");
-
-		return Iterables.map(new RelationshipRelationshipMapper(this), new RelationshipResultStream(this, new SimpleCypherQuery(buf.toString())));
+		return index.query(context, predicate, Integer.MAX_VALUE, 1);
 	}
 
 	@Override
@@ -432,28 +386,11 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			return getAllRelationships();
 		}
 
-		final StringBuilder buf = new StringBuilder();
-		final String tenantId   = getTenantIdentifier();
+		final Index<Relationship> index = relationshipIndex();
+		final QueryPredicate predicate  = new TypePredicate(type);
+		final QueryContext context      = new QueryContext(true);
 
-		buf.append("MATCH (");
-
-		if (tenantId != null) {
-			buf.append(":");
-			buf.append(tenantId);
-		}
-
-		buf.append(")-[r:");
-		buf.append(type);
-		buf.append("]->(");
-
-		if (tenantId != null) {
-			buf.append(":");
-			buf.append(tenantId);
-		}
-
-		buf.append(") RETURN r");
-
-		return Iterables.map(new RelationshipRelationshipMapper(this), new RelationshipResultStream(this, new SimpleCypherQuery(buf.toString())));
+		return index.query(context, predicate, Integer.MAX_VALUE, 1);
 	}
 
 	@Override
@@ -656,14 +593,14 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 	@Override
 	public void cleanDatabase() {
-		
+
 		final String tenantId = getTenantIdentifier();
 		if (tenantId != null) {
-			
+
 			execute("MATCH (n:" + tenantId + ") DETACH DELETE n", Collections.emptyMap());
 
 		} else {
-			
+
 			execute("MATCH (n) DETACH DELETE n", Collections.emptyMap());
 		}
 	}
@@ -817,5 +754,79 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		return 0;
+	}
+
+	// ----- nested classes -----
+	private static class TypePredicate implements TypeQuery {
+
+		protected String mainType = null;
+		protected String name     = null;
+
+		public TypePredicate() {
+		}
+
+		public TypePredicate(final String mainType) {
+			this.mainType = mainType;
+		}
+
+		@Override
+		public Class getSourceType() {
+			return null;
+		}
+
+		@Override
+		public Class getTargetType() {
+			return null;
+		}
+
+		@Override
+		public Class getQueryType() {
+			return TypeQuery.class;
+		}
+
+		@Override
+		public String getName() {
+			return "type";
+		}
+
+		@Override
+		public Class getType() {
+			return String.class;
+		}
+
+		@Override
+		public Object getValue() {
+			return mainType;
+		}
+
+		@Override
+		public String getLabel() {
+			return null;
+		}
+
+		@Override
+		public Occurrence getOccurrence() {
+			return Occurrence.REQUIRED;
+		}
+
+		@Override
+		public boolean isExactMatch() {
+			return true;
+		}
+
+		@Override
+		public SortOrder getSortOrder() {
+			return null;
+		}
+	}
+
+	private static class TypePropertyPredicate extends TypePredicate {
+
+		public TypePropertyPredicate(final String type) {
+
+			super(null);
+
+			name = type;
+		}
 	}
 }

@@ -29,7 +29,7 @@ public interface CypherQuery extends DatabaseQuery {
 	int pageSize();
 	void nextPage();
 
-	String getStatement();
+	String getStatement(final boolean paged);
 	Map<String, Object> getParameters();
 
 	QueryContext getQueryContext();

@@ -29,7 +29,7 @@ import org.structr.api.search.SortType;
 public class SimpleCypherQuery implements CypherQuery {
 
 	private final Map<String, Object> params = new LinkedHashMap<>();
-	private QueryContext queryContext        = new QueryContext();
+	private final QueryContext queryContext  = new QueryContext();
 	private String base                      = null;
 	private int pageSize                     = 0;
 	private int page                         = 0;
@@ -51,7 +51,7 @@ public class SimpleCypherQuery implements CypherQuery {
 	}
 
 	@Override
-	public String getStatement() {
+	public String getStatement(final boolean paged) {
 
 		final StringBuilder buf = new StringBuilder(base);
 

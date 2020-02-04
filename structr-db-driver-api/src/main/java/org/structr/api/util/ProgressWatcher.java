@@ -16,25 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt.index;
-
-import java.util.Map;
-import org.neo4j.driver.v1.types.Relationship;
-import org.structr.bolt.BoltDatabaseService;
-import org.structr.bolt.SessionTransaction;
+package org.structr.api.util;
 
 /**
  */
-public class RelationshipResultStream extends AbstractResultStream<Relationship> {
+public interface ProgressWatcher {
 
-	public RelationshipResultStream(final BoltDatabaseService db, final CypherQuery query) {
-		super(db, query);
-	}
-
-	@Override
-	protected Iterable<Relationship> fetchData(final BoltDatabaseService db, final String statement, final Map<String, Object> data) {
-		final SessionTransaction tx = db.getCurrentTransaction();
-		return tx.getRelationships(statement, data);
-	}
+	boolean okToContinue(final int progress);
 }
-

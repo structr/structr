@@ -42,13 +42,13 @@ import org.structr.core.property.PropertyKey;
  */
 public class NodeService implements SingletonService {
 
-	private static final Logger logger   = LoggerFactory.getLogger(NodeService.class.getName());
-	private DatabaseService databaseService      = null;
-	private Index<Node> nodeIndex        = null;
-	private Index<Relationship> relIndex = null;
-	private String filesPath             = null;
-	private boolean isInitialized        = false;
-	private CountResult initialCount     = null;
+	private static final Logger logger      = LoggerFactory.getLogger(NodeService.class.getName());
+	private DatabaseService databaseService = null;
+	private Index<Node> nodeIndex           = null;
+	private Index<Relationship> relIndex    = null;
+	private String filesPath                = null;
+	private boolean isInitialized           = false;
+	private CountResult initialCount        = null;
 
 	@Override
 	public void injectArguments(Command command) {

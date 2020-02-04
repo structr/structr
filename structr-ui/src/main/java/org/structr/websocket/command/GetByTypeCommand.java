@@ -104,7 +104,7 @@ public class GetByTypeCommand extends AbstractCommand {
 			final List<GraphObject> list = Iterables.toList(result);
 
 			// save raw result count
-			int resultCountBeforePaging = result.calculateTotalResultCount();
+			int resultCountBeforePaging = result.calculateTotalResultCount(null, securityContext.getSoftLimit(pageSize));
 
 			// set full result list
 			webSocketData.setResult(list);

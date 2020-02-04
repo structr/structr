@@ -19,9 +19,10 @@
 package org.structr.bolt.index;
 
 import org.structr.api.graph.Relationship;
+import org.structr.api.search.QueryContext;
 import org.structr.api.util.Iterables;
 import org.structr.bolt.BoltDatabaseService;
-import org.structr.bolt.SessionTransaction;
+import org.structr.bolt.mapper.RecordRelationshipMapper;
 import org.structr.bolt.mapper.RelationshipRelationshipMapper;
 
 /**
@@ -34,7 +35,7 @@ public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 	}
 
 	@Override
-	public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel) {
+	public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates) {
 
 		final StringBuilder buf       = new StringBuilder();
 		final String tenantIdentifier = db.getTenantIdentifier();
@@ -96,10 +97,14 @@ public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 	@Override
 	public Iterable<Relationship> getResult(final AdvancedCypherQuery query) {
 
-		final SessionTransaction tx = db.getCurrentTransaction();
+		final IterableQueueingRecordConsumer consumer = new IterableQueueingRecordConsumer(db, query);
+		final QueryContext context                    = query.getQueryContext();
 
-		tx.setIsPing(query.getQueryContext().isPing());
+		if (context != null && !context.isDeferred()) {
+			consumer.start();
+		}
 
-		return Iterables.map(new RelationshipRelationshipMapper(db), tx.getRelationships(query.getStatement(), query.getParameters()));
+		// return mapped result
+		return Iterables.map(new RelationshipRelationshipMapper(db), Iterables.map(new RecordRelationshipMapper(db), consumer));
 	}
 }

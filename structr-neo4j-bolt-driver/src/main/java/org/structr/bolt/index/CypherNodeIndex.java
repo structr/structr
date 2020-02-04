@@ -19,10 +19,11 @@
 package org.structr.bolt.index;
 
 import org.structr.api.graph.Node;
+import org.structr.api.search.QueryContext;
 import org.structr.api.util.Iterables;
 import org.structr.bolt.BoltDatabaseService;
-import org.structr.bolt.SessionTransaction;
 import org.structr.bolt.mapper.NodeNodeMapper;
+import org.structr.bolt.mapper.RecordNodeMapper;
 
 /**
  *
@@ -34,9 +35,15 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	}
 
 	@Override
-	public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel) {
+	public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates) {
 
-		final StringBuilder buf = new StringBuilder("MATCH (n:NodeInterface");
+		final StringBuilder buf = new StringBuilder("MATCH (n");
+
+		// Only add :NodeInterface label when query has predicates, single label queries are much faster.
+		if (hasPredicates) {
+			buf.append(":NodeInterface");
+		}
+
 		final String tenantId   = db.getTenantIdentifier();
 
 		if (tenantId != null) {
@@ -62,7 +69,7 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 		final StringBuilder buf = new StringBuilder();
 		final String sortKey    = query.getSortKey();
 
-		buf.append(" RETURN n");
+		buf.append(" RETURN DISTINCT n");
 
 		if (sortKey != null) {
 
@@ -77,16 +84,14 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	@Override
 	public Iterable<Node> getResult(final AdvancedCypherQuery query) {
 
-		try {
-			final SessionTransaction tx = db.getCurrentTransaction();
+		final IterableQueueingRecordConsumer consumer = new IterableQueueingRecordConsumer(db, query);
+		final QueryContext context                    = query.getQueryContext();
 
-			tx.setIsPing(query.getQueryContext().isPing());
-
-			return Iterables.map(new NodeNodeMapper(db), tx.getNodes(query.getStatement(), query.getParameters()));
-
-		} finally {
-
-			query.nextPage();
+		if (context != null && !context.isDeferred()) {
+			consumer.start();
 		}
+
+		// return mapped result
+		return Iterables.map(new NodeNodeMapper(db), Iterables.map(new RecordNodeMapper(), consumer));
 	}
 }

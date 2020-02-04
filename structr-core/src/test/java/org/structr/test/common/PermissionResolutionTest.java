@@ -403,24 +403,33 @@ public class PermissionResolutionTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		testGranted(projectType, new boolean[] { false, false, false, false });
-		setPermissionResolution(uuid, SchemaRelationshipNode.readPropagation,          Propagation.Add);
-		testGranted(projectType, new boolean[] { true, false, false, false });
-		setPermissionResolution(uuid, SchemaRelationshipNode.writePropagation,         Propagation.Add);
-		testGranted(projectType, new boolean[] { true, true, false, false });
-		setPermissionResolution(uuid, SchemaRelationshipNode.deletePropagation,        Propagation.Add);
-		testGranted(projectType, new boolean[] { true, true, true, false });
-		setPermissionResolution(uuid, SchemaRelationshipNode.accessControlPropagation, Propagation.Add);
-		testGranted(projectType, new boolean[] { true, true, true, true });
+		try {
 
-		setPermissionResolution(uuid, SchemaRelationshipNode.readPropagation,          Propagation.Remove);
-		testGranted(projectType, new boolean[] { false, true, true, true });
-		setPermissionResolution(uuid, SchemaRelationshipNode.writePropagation,         Propagation.Remove);
-		testGranted(projectType, new boolean[] { false, false, true, true });
-		setPermissionResolution(uuid, SchemaRelationshipNode.deletePropagation,        Propagation.Remove);
-		testGranted(projectType, new boolean[] { false, false, false, true });
-		setPermissionResolution(uuid, SchemaRelationshipNode.accessControlPropagation, Propagation.Remove);
-		testGranted(projectType, new boolean[] { false, false, false, false });
+			//Settings.CypherDebugLogging.setValue(true);
+
+			testGranted(projectType, new boolean[] { false, false, false, false });
+			setPermissionResolution(uuid, SchemaRelationshipNode.readPropagation,          Propagation.Add);
+			testGranted(projectType, new boolean[] { true, false, false, false });
+			setPermissionResolution(uuid, SchemaRelationshipNode.writePropagation,         Propagation.Add);
+			testGranted(projectType, new boolean[] { true, true, false, false });
+			setPermissionResolution(uuid, SchemaRelationshipNode.deletePropagation,        Propagation.Add);
+			testGranted(projectType, new boolean[] { true, true, true, false });
+			setPermissionResolution(uuid, SchemaRelationshipNode.accessControlPropagation, Propagation.Add);
+			testGranted(projectType, new boolean[] { true, true, true, true });
+
+			setPermissionResolution(uuid, SchemaRelationshipNode.readPropagation,          Propagation.Remove);
+			testGranted(projectType, new boolean[] { false, true, true, true });
+			setPermissionResolution(uuid, SchemaRelationshipNode.writePropagation,         Propagation.Remove);
+			testGranted(projectType, new boolean[] { false, false, true, true });
+			setPermissionResolution(uuid, SchemaRelationshipNode.deletePropagation,        Propagation.Remove);
+			testGranted(projectType, new boolean[] { false, false, false, true });
+			setPermissionResolution(uuid, SchemaRelationshipNode.accessControlPropagation, Propagation.Remove);
+			testGranted(projectType, new boolean[] { false, false, false, false });
+
+		} finally {
+
+			//Settings.CypherDebugLogging.setValue(false);
+		}
 	}
 
 	public static void clearResourceAccess() {
@@ -466,7 +475,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 			final Principal tester            = app.nodeQuery(Principal.class).getFirst();
 			final SecurityContext userContext = SecurityContext.getInstance(tester, AccessMode.Backend);
-			final List<NodeInterface> result  = app.nodeQuery(projectType).getAsList();
+			final List<NodeInterface> result  = app.nodeQuery(projectType).sort(AbstractNode.name).getAsList();
 
 			assertEquals("Invalid permission resolution precondition",  true, result.get(0).isGranted(Permission.read,          userContext));
 			assertEquals("Invalid permission resolution precondition",  true, result.get(0).isGranted(Permission.write,         userContext));

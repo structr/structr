@@ -119,9 +119,6 @@ public abstract class Resource {
 
 				chunk++;
 
-				// don't count all the nodes, just fetch the page
-				securityContext.ignoreResultCount(true);
-
 				// always fetch the first page
 				try (final ResultStream<GraphObject> result = doGet(null, false, pageSize, 1)) {
 

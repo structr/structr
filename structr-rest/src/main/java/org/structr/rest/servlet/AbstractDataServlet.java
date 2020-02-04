@@ -189,30 +189,32 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 		} catch (Throwable t) {
 
-			if (t instanceof QuietException || t.getCause() instanceof QuietException) {
-				// ignore exceptions which (by jettys standards) should be handled less verbosely
-			} else if (t instanceof IllegalStateException && t.getCause() == null && t.getMessage() == null) {
-				// ignore exception. it is probably caused by a canceled request/closed connection which caused the JsonWriter to tilt
-			} else {
-				logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
-				logger.warn(" => Error thrown: ", t);
-			}
+			try {
 
-			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+				if (t instanceof QuietException || t.getCause() instanceof QuietException) {
+					// ignore exceptions which (by jettys standards) should be handled less verbosely
+				} else if (t instanceof IllegalStateException && t.getCause() == null && t.getMessage() == null) {
+					// ignore exception. it is probably caused by a canceled request/closed connection which caused the JsonWriter to tilt
+				} else {
+					logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
+					logger.warn(" => Error thrown: ", t);
+				}
 
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Exception in GET: " + t.getMessage()));
+				int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+
+				response.setStatus(code);
+				response.getWriter().append(RestMethodResult.jsonError(code, "Exception in GET: " + t.getMessage()));
+
+				// if sending the error creates an error, we can probably ignore that one
+			} catch (Throwable ignore) { }
 
 		} finally {
 
 			try {
-				//response.getWriter().flush();
+				response.getWriter().flush();
 				response.getWriter().close();
 
-			} catch (Throwable t) {
-
-				logger.warn("Unable to flush and close response: {}", t.getMessage());
-			}
+			} catch (Throwable t) { }
 		}
 	}
 
