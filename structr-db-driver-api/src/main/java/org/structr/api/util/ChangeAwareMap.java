@@ -18,8 +18,6 @@
  */
 package org.structr.api.util;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -30,7 +28,7 @@ import java.util.Set;
  * An extended LinkedHashMap that records write operations that happened after
  * the map was initialized in order to be able to identify modified values.
  */
-public class ChangeAwareMap implements Map<String, Object> {
+public class ChangeAwareMap {
 
 	private final Map<String, Object> data = new LinkedHashMap<>();
 	private final Set<String> modifiedKeys = new LinkedHashSet<>();
@@ -46,10 +44,9 @@ public class ChangeAwareMap implements Map<String, Object> {
 		data.putAll(initialData.data);
 	}
 
-	@Override
-	public void putAll(final Map<? extends String, ? extends Object> input) {
+	public void putAll(final Map<String, Object> input) {
 
-		for (final Entry<? extends String, ? extends Object> entry : input.entrySet()) {
+		for (final Entry<String, Object> entry : input.entrySet()) {
 
 			final String key   = entry.getKey();
 			final Object value = entry.getValue();
@@ -58,23 +55,19 @@ public class ChangeAwareMap implements Map<String, Object> {
 		}
 	}
 
-	@Override
-	public boolean containsKey(final Object key) {
+	public boolean containsKey(final String key) {
 		return data.containsKey(key);
 	}
 
-	@Override
-	public Object get(final Object key) {
+	public Object get(final String key) {
 		return data.get(key);
 	}
 
-	@Override
 	public Object put(final String key, final Object value) {
 		modifiedKeys.add(key);
 		return data.put(key, value);
 	}
 
-	@Override
 	public Set<String> keySet() {
 		return data.keySet();
 	}
@@ -83,44 +76,7 @@ public class ChangeAwareMap implements Map<String, Object> {
 		return modifiedKeys;
 	}
 
-	@Override
-	public Object remove(final Object key) {
+	public Object remove(final String key) {
 		return data.remove(key);
-	}
-
-	// other map methods
-	@Override
-	public int size() {
-		return data.size();
-	}
-
-	@Override
-	public boolean isEmpty() {
-		return data.isEmpty();
-	}
-
-	@Override
-	public boolean containsValue(Object value) {
-		return data.containsValue(value);
-	}
-
-	@Override
-	public void clear() {
-		data.clear();
-		modifiedKeys.clear();
-	}
-
-	@Override
-	public Collection<Object> values() {
-		throw new UnsupportedOperationException("Not supported.");
-	}
-
-	@Override
-	public Set<Entry<String, Object>> entrySet() {
-		throw new UnsupportedOperationException("Not supported.");
-	}
-
-	public Map<String, Object> immutable() {
-		return Collections.unmodifiableMap(data);
 	}
 }
