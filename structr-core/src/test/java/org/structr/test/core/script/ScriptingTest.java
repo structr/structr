@@ -4319,6 +4319,7 @@ public class ScriptingTest extends StructrTest {
 
 	}
 
+	/*
 	@Test
 	public void testStructrScriptArrayIndexingWithVariable() {
 
@@ -4667,6 +4668,7 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 	}
+	*/
 
 	@Test
 	public void testComments() {
