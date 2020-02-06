@@ -42,7 +42,7 @@ public class VersionHelper {
 
 		classPath                            = System.getProperty("java.class.path");
 		final Pattern outerPattern           = Pattern.compile("(structr-[^:;]*\\.jar)");
-		final Pattern innerPattern           = Pattern.compile("(structr-core|structr-rest|structr-ui|structr)-([^-]*(?:-SNAPSHOT|-(rc|RC)\\d){0,1})-{0,1}(?:([0-9]{0,12})\\.{0,1}([0-9a-f]{0,32}))\\.jar");
+		final Pattern innerPattern           = Pattern.compile("(structr-core|structr-rest|structr-ui|structr)-([^-]*(?:-SNAPSHOT|-(?:rc|RC)\\d){0,1})-{0,1}(?:([0-9]{0,12})\\.{0,1}([0-9a-f]{0,32}))\\.jar");
 
 		final Matcher outerMatcher           = outerPattern.matcher(classPath);
 
