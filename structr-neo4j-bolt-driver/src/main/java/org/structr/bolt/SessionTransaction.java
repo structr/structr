@@ -62,6 +62,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 	private final Set<EntityWrapper> modifiedEntities = new HashSet<>();
 	private final Set<Long> deletedNodes              = new HashSet<>();
 	private final Set<Long> deletedRels               = new HashSet<>();
+	private final Object transactionKey               = new Object();
 	private BoltDatabaseService db                    = null;
 	private Session session                           = null;
 	private Transaction tx                            = null;
@@ -99,7 +100,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 			for (final EntityWrapper entity : accessedEntities) {
 
-				entity.rollback(transactionId);
+				entity.rollback(transactionKey);
 				entity.removeFromCache();
 			}
 
@@ -113,7 +114,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			NodeWrapper.expunge(deletedNodes);
 
 			for (final EntityWrapper entity : accessedEntities) {
-				entity.commit(transactionId);
+				entity.commit(transactionKey);
 			}
 
 			for (final EntityWrapper entity : modifiedEntities) {
@@ -480,6 +481,11 @@ public class SessionTransaction implements org.structr.api.Transaction {
 	@Override
 	public long getTransactionId() {
 		return this.transactionId;
+	}
+
+	public Object getTransactionKey() {
+		// we need a simple object that can be used in a weak hash map
+		return transactionKey;
 	}
 
 	// ----- public static methods -----

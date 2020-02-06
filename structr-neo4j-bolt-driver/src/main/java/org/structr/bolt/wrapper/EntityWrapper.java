@@ -20,11 +20,13 @@ package org.structr.bolt.wrapper;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.WeakHashMap;
 import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
 import org.neo4j.driver.v1.types.Entity;
 import org.slf4j.Logger;
@@ -35,7 +37,6 @@ import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Cachable;
 import org.structr.api.util.ChangeAwareMap;
-import org.structr.api.util.FixedSizeCache;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.SessionTransaction;
 
@@ -44,13 +45,12 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 	private static final Logger logger = LoggerFactory.getLogger(EntityWrapper.class.getName());
 
-	private final FixedSizeCache<Long, ChangeAwareMap> txData = new FixedSizeCache("Transaction data store", 10000);
-	private final ChangeAwareMap entityData                   = new ChangeAwareMap();
-
-	protected BoltDatabaseService db               = null;
-	protected boolean deleted                      = false;
-	protected boolean stale                        = false;
-	protected long id                              = -1L;
+	private final Map<Object, ChangeAwareMap> txData = Collections.synchronizedMap(new WeakHashMap<>());
+	private final ChangeAwareMap entityData          = new ChangeAwareMap();
+	protected BoltDatabaseService db                 = null;
+	protected boolean deleted                        = false;
+	protected boolean stale                          = false;
+	protected long id                                = -1L;
 
 	protected EntityWrapper() {
 		// nop constructor for cache access
@@ -261,7 +261,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		db.getCurrentTransaction().modified(this);
 	}
 
-	public void rollback(final long transactionId) {
+	public void rollback(final Object transactionId) {
 
 		synchronized (this) {
 
@@ -271,7 +271,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		}
 	}
 
-	public void commit(final long transactionId) {
+	public void commit(final Object transactionId) {
 
 		synchronized (this) {
 
@@ -405,7 +405,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 				throw new NotFoundException("Entity with ID " + id + " not found.");
 			}
 
-			final long transactionId = tx.getTransactionId();
+			final Object transactionId = tx.getTransactionKey();
 			ChangeAwareMap copy      = txData.get(transactionId);
 
 			if (copy == null) {
