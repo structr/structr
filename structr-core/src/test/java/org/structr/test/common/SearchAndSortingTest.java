@@ -1737,7 +1737,7 @@ public class SearchAndSortingTest extends StructrTest {
 					final boolean sortDesc           = false;
 					final int pageSize               = 10;
 					final int page                   = 22;
-					final ResultStream<GraphObject> result = tester1App.nodeQuery(type).sort(sortKey, sortDesc).pageSize(pageSize).page(page).getResultStream();
+					final ResultStream<GraphObject> result = tester1App.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getResultStream();
 
 					assertEquals("Invalid paging result count with non-superuser security context", tester1NodeCount, result.calculateTotalResultCount(null, softLimit));
 
@@ -1755,7 +1755,7 @@ public class SearchAndSortingTest extends StructrTest {
 					final boolean sortDesc           = false;
 					final int pageSize               = 10;
 					final int page                   = 22;
-					final ResultStream<GraphObject> result = tester2App.nodeQuery(type).sort(sortKey, sortDesc).pageSize(pageSize).page(page).getResultStream();
+					final ResultStream<GraphObject> result = tester2App.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getResultStream();
 
 					assertEquals("Invalid paging result count with non-superuser security context", tester2NodeCount, result.calculateTotalResultCount(null, softLimit));
 

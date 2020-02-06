@@ -64,7 +64,7 @@ import org.structr.api.index.Index;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.QueryPredicate;
-import org.structr.api.search.SortOrder;
+import org.structr.api.search.SortType;
 import org.structr.api.search.TypeQuery;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.NodeWithOwnerResult;
@@ -815,8 +815,18 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		@Override
-		public SortOrder getSortOrder() {
+		public String getSortKey() {
 			return null;
+		}
+
+		@Override
+		public SortType getSortType() {
+			return SortType.Default;
+		}
+
+		@Override
+		public boolean sortDescending() {
+			return false;
 		}
 	}
 
