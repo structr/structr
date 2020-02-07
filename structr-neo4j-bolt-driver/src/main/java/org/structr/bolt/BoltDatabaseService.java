@@ -61,6 +61,7 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.index.Index;
+import org.structr.api.search.ExactQuery;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.QueryPredicate;
@@ -820,13 +821,52 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 	}
 
-	private static class TypePropertyPredicate extends TypePredicate {
+	private static class TypePropertyPredicate implements ExactQuery {
+
+		protected String type = null;
 
 		public TypePropertyPredicate(final String type) {
+			this.type = type;
+		}
 
-			super(null);
+		@Override
+		public Class getQueryType() {
+			return ExactQuery.class;
+		}
 
-			name = type;
+		@Override
+		public String getName() {
+			return "type";
+		}
+
+		@Override
+		public Class getType() {
+			return String.class;
+		}
+
+		@Override
+		public Object getValue() {
+			return type;
+		}
+
+		@Override
+		public String getLabel() {
+			return null;
+		}
+
+		@Override
+		public Occurrence getOccurrence() {
+			return Occurrence.REQUIRED;
+		}
+
+		@Override
+		public boolean isExactMatch() {
+			return true;
+		}
+
+		@Override
+		public SortOrder getSortOrder() {
+			return null;
 		}
 	}
 }
