@@ -18,7 +18,11 @@
  */
 package org.structr.web.maintenance;
 
+import com.google.gson.Gson;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
