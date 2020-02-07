@@ -126,6 +126,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 				final SessionTransaction tx = db.getCurrentTransaction(false);
 				if (tx != null && !tx.isClosed()) {
 
+					//tx.clearCursors();
 					tx.collectRecords(query.getStatement(true), query.getParameters(), this);
 				}
 			}

@@ -508,6 +508,40 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		return transactionKey;
 	}
 
+	/**
+	 * This method uses reflection to hack into Neo4j's internal driver implementation
+	 * and remove CompletionStage instances from a list that is only ever added to. It
+	 * was intended to solve a memory leak problem that occurs with small heap sizes
+	 * when a large number of results is fetched incrementally in a single transaction,
+	 * but was disabled because an external user of the driver should not act in such
+	 * a way.
+	 */
+	public void clearCursors() {
+
+		/* disabled!
+		if (tx instanceof ExplicitTransaction) {
+
+			try {
+
+				final Field resultCursors = ExplicitTransaction.class.getDeclaredField("resultCursors");
+				final Field cursorStages  = ResultCursorsHolder.class.getDeclaredField("cursorStages");
+
+				resultCursors.setAccessible(true);
+				cursorStages.setAccessible(true);
+
+				final ResultCursorsHolder holder = (ResultCursorsHolder)resultCursors.get(tx);
+				final List stages                = (List)cursorStages.get(holder);
+
+				stages.clear();
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+		}
+		*/
+	}
+
+
 	// ----- public static methods -----
 	public static RuntimeException translateClientException(final ClientException cex) {
 
