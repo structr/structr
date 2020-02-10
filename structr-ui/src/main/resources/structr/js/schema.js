@@ -3323,27 +3323,27 @@ var _Schema = {
 		var visibilityTables = [
 			{
 				caption: "Custom Types",
-				filter: { isBuiltinType: false },
+				filterFn: (node) => { return node.isBuiltinType === false; },
 				exact: true
 			},
 			{
 				caption: "Core Types",
-				filter: { isBuiltinType: true, category: 'core' },
+				filterFn: (node) => { return node.isBuiltinType === true && node.category === 'core'; },
 				exact: false
 			},
 			{
 				caption: "UI Types",
-				filter: { isBuiltinType: true, category: 'ui' },
+				filterFn: (node) => { return node.isBuiltinType === true && node.category === 'ui'; },
 				exact: false
 			},
 			{
 				caption: "HTML Types",
-				filter: { isBuiltinType: true, category: 'html' },
+				filterFn: (node) => { return node.isBuiltinType === true && node.category === 'html'; },
 				exact: false
 			},
 			{
 				caption: "Uncategorized Types",
-				filter: { isBuiltinType: true, category: null },
+				filterFn: (node) => { return node.isBuiltinType === true && node.category === null; },
 				exact: true
 			}
 		];
@@ -3362,32 +3362,37 @@ var _Schema = {
 			LSWrapper.setItem(_Schema.activeSchemaToolsSelectedVisibilityTab, tabName);
 		};
 
-		visibilityTables.forEach(function(visType) {
-			ul.append('<li id="tab" data-name="' + visType.caption + '">' + visType.caption + '</li>');
+		Command.query('SchemaNode', 2000, 1, 'name', 'asc', {}, function(schemaNodes) {
 
-			var tab = $('<div class="tab" data-name="' + visType.caption + '"></div>');
-			contentEl.append(tab);
+			visibilityTables.forEach(function(visType) {
+				ul.append('<li id="tab" data-name="' + visType.caption + '">' + visType.caption + '</li>');
 
-			var schemaVisibilityTable = $('<table class="props schema-visibility-table"></table>');
-			schemaVisibilityTable.append('<tr><th class="" colspan=2>' + visType.caption + '</th></tr>');
-			schemaVisibilityTable.append('<tr><th class="toggle-column-header"><input type="checkbox" title="Toggle all" class="toggle-all-types"><i class="invert-all-types invert-icon ' + _Icons.getFullSpriteClass(_Icons.toggle_icon) + '" title="Invert all"></i> Visible</th><th>Type</th></tr>');
-			tab.append(schemaVisibilityTable);
+				var tab = $('<div class="tab" data-name="' + visType.caption + '"></div>');
+				contentEl.append(tab);
 
-			Command.query('SchemaNode', 1000, 1, 'name', 'asc', visType.filter, function(schemaNodes) {
+				var schemaVisibilityTable = $('<table class="props schema-visibility-table"></table>');
+				schemaVisibilityTable.append('<tr><th class="" colspan=2>' + visType.caption + '</th></tr>');
+				schemaVisibilityTable.append('<tr><th class="toggle-column-header"><input type="checkbox" title="Toggle all" class="toggle-all-types"><i class="invert-all-types invert-icon ' + _Icons.getFullSpriteClass(_Icons.toggle_icon) + '" title="Invert all"></i> Visible</th><th>Type</th></tr>');
+				tab.append(schemaVisibilityTable);
+
 				schemaNodes.forEach(function(schemaNode) {
-					let hidden = _Schema.hiddenSchemaNodes.indexOf(schemaNode.name) > -1;
-					schemaVisibilityTable.append('<tr><td><input class="toggle-type" data-structr-type="' + schemaNode.name + '" type="checkbox" ' + (hidden ? '' : 'checked') + '></td><td>' + schemaNode.name + '</td></tr>');
+
+					if (visType.filterFn(schemaNode)) {
+						let hidden = _Schema.hiddenSchemaNodes.indexOf(schemaNode.name) > -1;
+						schemaVisibilityTable.append('<tr><td><input class="toggle-type" data-structr-type="' + schemaNode.name + '" type="checkbox" ' + (hidden ? '' : 'checked') + '></td><td>' + schemaNode.name + '</td></tr>');
+					}
 				});
-			}, visType.exact);
+			});
+
+			$('#' + id + '-tabs > li', container).off('click').on('click', function(e) {
+				e.stopPropagation();
+				activateTab($(this).data('name'));
+			});
+
+			var activeTab = LSWrapper.getItem(_Schema.activeSchemaToolsSelectedVisibilityTab) || visibilityTables[0].caption;
+			activateTab(activeTab);
 		});
 
-		$('#' + id + '-tabs > li', container).off('click').on('click', function(e) {
-			e.stopPropagation();
-			activateTab($(this).data('name'));
-		});
-
-		var activeTab = LSWrapper.getItem(_Schema.activeSchemaToolsSelectedVisibilityTab) || visibilityTables[0].caption;
-		activateTab(activeTab);
 	},
 	updateHiddenSchemaTypes: function() {
 
