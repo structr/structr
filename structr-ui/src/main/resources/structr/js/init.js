@@ -465,7 +465,7 @@ var Structr = {
 	doLogout: function(text) {
 		_Favorites.logoutAction();
 		_Console.logoutAction();
-		Structr.saveLocalStorage();
+		LSWrapper.save();
 		if (Command.logout(user)) {
 			Cookies.remove('JSESSIONID');
 			sessionId.length = 0;
@@ -489,7 +489,7 @@ var Structr = {
 	},
 	loadInitialModule: function(isLogin, callback) {
 
-		Structr.restoreLocalStorage(function() {
+		LSWrapper.restore(function() {
 
 			Structr.expanded = JSON.parse(LSWrapper.getItem(expandedIdsKey));
 			_Logger.log(_LogType.INIT, '######## Expanded IDs after reload ##########', Structr.expanded);
@@ -561,18 +561,6 @@ var Structr = {
 			}
 		});
 
-	},
-	saveLocalStorage: function(callback) {
-		_Logger.log(_LogType.INIT, "Saving localstorage");
-		Command.saveLocalStorage(callback);
-	},
-	restoreLocalStorage: function(callback) {
-		if (!LSWrapper.isLoaded()) {
-			_Logger.log(_LogType.INIT, "Restoring localstorage");
-			Command.getLocalStorage(callback);
-		} else {
-			callback();
-		}
 	},
 	restoreDialog: function(dialogData) {
 		_Logger.log(_LogType.INIT, 'restoreDialog', dialogData, dialogBox);
@@ -2243,6 +2231,6 @@ $(window).on('beforeunload', function(event) {
 		_Logger.log(_LogType.INIT, '########################################### unload #####################################################');
 		// Remove dialog data in case of page reload
 		LSWrapper.removeItem(dialogDataKey);
-		Structr.saveLocalStorage();
+		LSWrapper.save();
 	}
 });

@@ -2068,7 +2068,6 @@ var _Schema = {
 
 		if (property.propertyType && property.propertyType !== '') {
 			$('.property-name', propertyRow).off('change').on('change', function() {
-				console.log('nameChange!')
 				_Schema.savePropertyDefinition(property);
 			}).prop('disabled', protected).val(property.name);
 			$('.property-dbname', propertyRow).off('change').on('change', function() {
@@ -3243,7 +3242,7 @@ var _Schema = {
 				new MessageBuilder().info("This layout was created using an older version of Structr. To make use of newer features you should delete and re-create it with the current version.").show();
 			}
 
-			Structr.saveLocalStorage();
+			LSWrapper.save();
 
 			_Schema.reload();
 
