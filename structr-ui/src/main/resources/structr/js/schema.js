@@ -3391,7 +3391,7 @@ var _Schema = {
 
 			var activeTab = LSWrapper.getItem(_Schema.activeSchemaToolsSelectedVisibilityTab) || visibilityTables[0].caption;
 			activateTab(activeTab);
-		});
+		}, false, null, 'id,name,isBuiltinType,category');
 
 	},
 	updateHiddenSchemaTypes: function() {
