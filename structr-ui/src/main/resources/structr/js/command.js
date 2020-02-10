@@ -630,7 +630,6 @@ var Command = {
 				localStorageString: LSWrapper.getAsJSON()
 			}
 		};
-		//_Logger.log(_LogType.WS[obj.command], 'saveLocalStorage()', data.localStorageString);
 		return sendObj(obj, callback);
 	},
 	/**

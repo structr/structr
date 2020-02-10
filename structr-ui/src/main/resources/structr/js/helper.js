@@ -405,26 +405,76 @@ jQuery.isBlank = function (obj) {
 };
 
 $.fn.showInlineBlock = function () {
-	return this.css('display','inline-block');
+	return this.css('display', 'inline-block');
 };
+
 
 /**
  * thin wrapper for localStorage with a success-check and error display
  */
-
 var LSWrapper = new (function() {
 
-	var _localStorageObject = {};
+	let _localStorageObject = {};
+	let _localStoragePersistenceKey = 'structrLocalStoragePersistence_';
+	let _localStoragePersistenceDateKey = 'structrLocalStoragePersistenceDate_';
+	let _localStorageLastSyncToServerKey = 'structrLocalStorageLastSyncToServer_';
+	let _persistInterval = 60;
+
+	let _lastLoadTimestamp = null;
+
+	this.save = function (callback) {
+
+		Command.saveLocalStorage(function () {
+
+			localStorage.setItem(_localStorageLastSyncToServerKey, new Date().getTime());
+
+			if (typeof callback === 'function') {
+				callback();
+			}
+		});
+	};
+
+	this.restore = function (callback) {
+
+		if (!this.isLoaded()) {
+
+			if (this.isRecent()) {
+
+				let success = this.restoreFromRealLocalStorage();
+
+				if (success) {
+					callback();
+				} else {
+					this.restoreFromServer(callback);
+				}
+
+			} else {
+				this.restoreFromServer(callback);
+			}
+
+		} else {
+			callback();
+		}
+	};
 
 	this.isLoaded = function () {
 		return !(!_localStorageObject || (Object.keys(_localStorageObject).length === 0 && _localStorageObject.constructor === Object));
 	};
 
 	this.setItem = function(key, value) {
+
 		_localStorageObject[key] = value;
+
+		this.persistToRealLocalStorage();
 	};
 
 	this.getItem = function (key, defaultValue = null) {
+
+		let lastPersist = JSON.parse(localStorage.getItem(_localStoragePersistenceDateKey));
+		if (_lastLoadTimestamp < lastPersist) {
+			this.restoreFromRealLocalStorage();
+		}
+
 		return (_localStorageObject[key] === undefined) ? defaultValue : _localStorageObject[key];
 	};
 
@@ -433,15 +483,112 @@ var LSWrapper = new (function() {
 	};
 
 	this.clear = function () {
+
 		_localStorageObject = {};
+
+		this.persistToRealLocalStorage();
 	};
 
 	this.getAsJSON = function () {
 		return JSON.stringify(_localStorageObject);
 	};
 
+	this.restoreFromServer = function (callback) {
+		Command.getLocalStorage(callback);
+	};
+
 	this.setAsJSON = function (json) {
+
 		_localStorageObject = JSON.parse(json);
+		_lastLoadTimestamp  = new Date().getTime();
+
+		this.persistToRealLocalStorage();
+	};
+
+	this.isRecent = function () {
+
+		let lastPersist = JSON.parse(localStorage.getItem(_localStoragePersistenceDateKey));
+
+		if (!lastPersist) {
+
+			return false;
+
+		} else {
+
+			return ((new Date().getTime() - lastPersist) <= (_persistInterval * 1000));
+		}
+	};
+
+	this.persistToRealLocalStorage = function(retry = true) {
+
+		try {
+
+			let now = new Date().getTime();
+
+			localStorage.setItem(_localStoragePersistenceKey, this.getAsJSON());
+			localStorage.setItem(_localStoragePersistenceDateKey, now);
+
+			let lastSyncTime = localStorage.getItem(_localStorageLastSyncToServerKey);
+
+			if (!lastSyncTime || (now - lastSyncTime) > (_persistInterval * 1000)) {
+				// send to server
+				console.log('sending to server');
+
+				this.save();
+			}
+
+		} catch (e) {
+
+			// localstorage failed. probably quota exceeded. prune and retry once
+			if (retry === true) {
+
+				this.prune();
+				this.persistToRealLocalStorage(false);
+
+			} else {
+				Structr.error('Failed to save localstorage. The following error occurred: <p>' + e + '</p>', true);
+			}
+		}
+	};
+
+	this.restoreFromRealLocalStorage = function () {
+
+		let lsContent = localStorage.getItem(_localStoragePersistenceKey);
+
+		if (!lsContent) {
+			return false;
+		} else {
+
+			_lastLoadTimestamp = new Date().getTime();
+
+			_localStorageObject = JSON.parse(lsContent);
+			return true;
+		}
+	};
+
+	this.prune = function() {
+
+		console.warn('prune');
+
+		// if localstorage save fails, remove the following elements
+		let pruneKeys = [
+			'structrActiveEditTab',			// last selected properties tab for node
+			'activeFileTabPrefix',			// last selected properties tab for file
+			'structrScrollInfoKey',			// scroll info in editor
+			'structrTreeExpandedIds'		// expanded tree info for pages tree
+		];
+
+		let lsKeys = Object.keys(_localStorageObject);
+
+		for (let lsKey of lsKeys) {
+
+			for (let pruneKey of pruneKeys) {
+
+				if (lsKey.indexOf(pruneKey) === 0) {
+					delete _localStorageObject[lsKey];
+				}
+			}
+		}
 	};
 
 });
