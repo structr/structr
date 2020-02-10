@@ -3153,6 +3153,13 @@ input.bitmask {
 	padding-top: 10px;
 }
 
+#info-area .message.SCRIPT-QUEUED .text,
+#info-area .message.SCRIPT-BEGIN .text,
+#info-area .message.SCRIPT-END .text {
+	max-height: 200px;
+	overflow: auto;
+}
+
 #info-area .message-buttons {
 	position: absolute;
 	right: 5px;

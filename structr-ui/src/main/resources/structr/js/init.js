@@ -1227,7 +1227,6 @@ var Structr = {
 
 				var openSlideoutCallback = slideout.data('closeCallback');
 				if (typeof openSlideoutCallback === "function") {
-					console.log(openSlideoutCallback)
 					openSlideoutCallback();
 				}
 			}
@@ -1555,6 +1554,8 @@ var Structr = {
 	},
 	handleGenericMessage: function(data) {
 
+		let showScheduledJobsNotifications = Importer.isShowNotifications();
+
 		switch (data.type) {
 
 			case "CSV_IMPORT_STATUS":
@@ -1615,7 +1616,7 @@ var Structr = {
 					RESUMED: 'The import of <b>' + data.filename + '</b> has been resumed'
 				};
 
-				if (me.username === data.username) {
+				if (showScheduledJobsNotifications && me.username === data.username) {
 
 					var msg = new MessageBuilder()
 							.title(data.jobtype + ' ' + fileImportTitles[data.subtype])
@@ -1628,16 +1629,16 @@ var Structr = {
 					}
 
 					msg.show();
+				}
 
-					if (Structr.isModuleActive(Importer)) {
-						Importer.updateJobTable();
-					}
+				if (Structr.isModuleActive(Importer)) {
+					Importer.updateJobTable();
 				}
 				break;
 
 			case "FILE_IMPORT_EXCEPTION":
 
-				if (me.username === data.username) {
+				if (showScheduledJobsNotifications && me.username === data.username) {
 
 					var text = data.message;
 					if (data.message !== data.stringvalue) {
@@ -1650,10 +1651,10 @@ var Structr = {
 							.requiresConfirmation()
 							.allowConfirmAll()
 							.show();
+				}
 
-					if (Structr.isModuleActive(Importer)) {
-						Importer.updateJobTable();
-					}
+				if (Structr.isModuleActive(Importer)) {
+					Importer.updateJobTable();
 				}
 				break;
 
@@ -1666,27 +1667,27 @@ var Structr = {
 				};
 				var scriptJobTexts = {
 					QUEUED: 'Script job #' + data.jobId + ' will begin after currently running/queued job(s)',
-					BEGIN: 'Started script job #' + data.jobId + ((data.jobName.length === 0) ? '' : '<br>' + data.jobName),
-					END: 'Finished script job #' + data.jobId + ((data.jobName.length === 0) ? '' : '<br>' + data.jobName)
+					BEGIN: 'Started script job #' + data.jobId + ((data.jobName.length === 0) ? '' : ' (' + data.jobName + ')'),
+					END: 'Finished script job #' + data.jobId + ((data.jobName.length === 0) ? '' : ' (' + data.jobName + ')')
 				};
 
-				if (me.username === data.username) {
+				if (showScheduledJobsNotifications && me.username === data.username) {
 
-					var msg = new MessageBuilder()
+					let msg = new MessageBuilder()
 							.title(scriptJobTitles[data.subtype])
 							.className((data.subtype === 'END') ? 'success' : 'info')
-							.text(scriptJobTexts[data.subtype])
-							.uniqueClass(data.jobtype + '-status-' + data.jobId);
+							.text('<div>' + scriptJobTexts[data.subtype] + '</div>')
+							.uniqueClass(data.jobtype + '-' + data.subtype).appendsText();
 
 					if (data.subtype !== 'QUEUED') {
-						msg.updatesText().requiresConfirmation().allowConfirmAll();
+						msg.requiresConfirmation().allowConfirmAll();
 					}
 
 					msg.show();
+				}
 
-					if (Structr.isModuleActive(Importer)) {
-						Importer.updateJobTable();
-					}
+				if (Structr.isModuleActive(Importer)) {
+					Importer.updateJobTable();
 				}
 				break;
 
@@ -2056,7 +2057,7 @@ function MessageBuilder () {
 		} else {
 
 			window.setTimeout(function() {
-				originalMsgBuilder.hide();
+//				originalMsgBuilder.hide();
 			}, this.params.delayDuration);
 
 			$('#' + newMsgBuilder.params.msgId).click(function() {
