@@ -1098,12 +1098,9 @@ var _Schema = {
 		classSelect.off('change').on('change', function() {
 			var obj = {extendsClass: $(this).val()};
 			_Schema.storeSchemaEntity('schema_properties', entity, JSON.stringify(obj), function() {
-				// enable or disable the edit button
-				if (obj.extendsClass.indexOf('org.structr.dynamic.') === 0) {
-					$("#edit-parent-class").removeClass('disabled');
-				} else {
-					$("#edit-parent-class").addClass('disabled');
-				}
+
+				_Schema.openEditDialog(entity.id);
+
 			});
 		});
 
