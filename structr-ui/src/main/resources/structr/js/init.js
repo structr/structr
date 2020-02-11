@@ -2047,7 +2047,7 @@ function MessageBuilder () {
 		} else {
 
 			window.setTimeout(function() {
-//				originalMsgBuilder.hide();
+				originalMsgBuilder.hide();
 			}, this.params.delayDuration);
 
 			$('#' + newMsgBuilder.params.msgId).click(function() {
