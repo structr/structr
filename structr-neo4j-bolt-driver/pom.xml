@@ -19,11 +19,11 @@
 	<repositories>
 		<repository>
 			<id>neo4j-releases</id>
-			<url>http://m2.neo4j.org/content/repositories/releases</url>
+			<url>https://m2.neo4j.org/content/repositories/releases</url>
 		</repository>
 		<repository>
 			<id>neo4j-snapshots</id>
-			<url>http://m2.neo4j.org/content/repositories/snapshots</url>
+			<url>https://m2.neo4j.org/content/repositories/snapshots</url>
 		</repository>
 		<repository>
 			<id>neo4j-contrib-releases</id>
