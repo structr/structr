@@ -1862,6 +1862,26 @@ var Structr = {
 	},
 	hideLoadingMessage: function() {
 		Structr.unblockUiGeneric();
+	},
+
+	nonBlockUIBlockerId: 'non-block-ui-blocker',
+	nonBlockUIBlockerContentId: 'non-block-ui-blocker-content',
+	showNonBlockUILoadingMessage: function(title, text) {
+
+		var messageTitle = title || 'Executing Task';
+		var messageText  = text || 'Please wait until the operation has finished...';
+
+		let pageBlockerDiv = $('<div id="' + Structr.nonBlockUIBlockerId +'"></div>');
+
+		let messageDiv = $('<div id="' + Structr.nonBlockUIBlockerContentId +'"></div>');
+		messageDiv.html('<img src="' + _Icons.getSpinnerImageAsData() + '"> <b>' + messageTitle + '</b><br><br>' + messageText);
+
+		$('body').append(pageBlockerDiv);
+		$('body').append(messageDiv);
+	},
+	hideNonBlockUILoadingMessage: function() {
+		$('#' + Structr.nonBlockUIBlockerId).remove();
+		$('#' + Structr.nonBlockUIBlockerContentId).remove();
 	}
 };
 

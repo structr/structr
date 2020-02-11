@@ -342,6 +342,12 @@ var _Schema = {
 		Structr.adaptUiToAvailableFeatures();
 
 	},
+	showSchemaRecompileMessage: function() {
+		Structr.showNonBlockUILoadingMessage('Schema is compiling', 'Please wait...');
+	},
+	hideSchemaRecompileMessage:  function() {
+		Structr.hideNonBlockUILoadingMessage();
+	},
 	selectRel: function(rel) {
 		_Schema.clearSelection();
 
@@ -1793,15 +1799,21 @@ var _Schema = {
 	},
 	appendRemoteProperties: function(el, entity) {
 
-		el.append('<table class="related-attrs schema-props"><thead><th>JSON Name</th><th>Type, Direction and Remote type</th><th class="actions-col">Action</th></thead></table>');
+		let tbl = $('<table class="related-attrs schema-props"><thead><th>JSON Name</th><th>Type, Direction and Remote type</th><th class="actions-col">Action</th></thead></table>');
+
+		el.append(tbl);
 
 		entity.relatedTo.forEach(function(target) {
-			_Schema.appendRelatedProperty($('.related-attrs', el), target, true);
+			_Schema.appendRelatedProperty(tbl, target, true);
 		});
 
 		entity.relatedFrom.forEach(function(source) {
-			_Schema.appendRelatedProperty($('.related-attrs', el), source, false);
+			_Schema.appendRelatedProperty(tbl, source, false);
 		});
+
+		if (entity.relatedTo.length === 0 && entity.relatedFrom.length === 0) {
+			tbl.append('<tr><td colspan=3 class="no-rels">Type has no relationships...</td></tr>');
+		}
 	},
 	appendBuiltinProperties: function(el, entity) {
 
@@ -2506,6 +2518,8 @@ var _Schema = {
 
 		if (entity && entity.id) {
 
+			_Schema.showSchemaRecompileMessage();
+
 			$.ajax({
 				url: rootUrl + entity.id,
 				type: 'DELETE',
@@ -2514,11 +2528,13 @@ var _Schema = {
 				statusCode: {
 					200: function() {
 						_Schema.reload();
+						_Schema.hideSchemaRecompileMessage();
 						if (onSuccess) {
 							onSuccess();
 						}
 					},
 					422: function(data) {
+						_Schema.hideSchemaRecompileMessage();
 						if (onError) {
 							onError(data);
 						}
@@ -2553,6 +2569,8 @@ var _Schema = {
 
 						if (changed) {
 
+							_Schema.showSchemaRecompileMessage();
+
 							$.ajax({
 								url: rootUrl + entity.id,
 								type: 'PUT',
@@ -2562,11 +2580,13 @@ var _Schema = {
 								statusCode: {
 									200: function() {
 										_Schema.reload();
+										_Schema.hideSchemaRecompileMessage();
 										if (onSuccess) {
 											onSuccess();
 										}
 									},
 									422: function(data) {
+										_Schema.hideSchemaRecompileMessage();
 										if (onError) {
 											onError(data);
 										}
@@ -2586,6 +2606,8 @@ var _Schema = {
 
 		} else {
 
+			_Schema.showSchemaRecompileMessage();
+
 			$.ajax({
 				url: rootUrl + resource,
 				type: 'POST',
@@ -2594,11 +2616,13 @@ var _Schema = {
 				data: JSON.stringify(obj),
 				statusCode: {
 					201: function(result) {
+						_Schema.hideSchemaRecompileMessage();
 						if (onSuccess) {
 							onSuccess(result);
 						}
 					},
 					422: function(data) {
+						_Schema.hideSchemaRecompileMessage();
 						if (onError) {
 							onError(data);
 						}
@@ -2608,6 +2632,9 @@ var _Schema = {
 		}
 	},
 	createNode: function(type) {
+
+		_Schema.showSchemaRecompileMessage();
+
 		var url = rootUrl + 'schema_nodes';
 		$.ajax({
 			url: url,
@@ -2618,14 +2645,19 @@ var _Schema = {
 			statusCode: {
 				201: function() {
 					_Schema.reload();
+					_Schema.hideSchemaRecompileMessage();
 				},
 				422: function(data) {
+					_Schema.hideSchemaRecompileMessage();
 					Structr.errorFromResponse(data.responseJSON, undefined, {requiresConfirmation: true});
 				}
 			}
 		});
 	},
 	deleteNode: function(id) {
+
+		_Schema.showSchemaRecompileMessage();
+
 		var url = rootUrl + 'schema_nodes/' + id;
 		$.ajax({
 			url: url,
@@ -2635,14 +2667,19 @@ var _Schema = {
 			statusCode: {
 				200: function() {
 					_Schema.reload();
+					_Schema.hideSchemaRecompileMessage();
 				},
 				422: function(data) {
+					_Schema.hideSchemaRecompileMessage();
 					Structr.errorFromResponse(data.responseJSON);
 				}
 			}
 		});
 	},
 	createRelationshipDefinition: function(sourceId, targetId, relationshipType) {
+
+		_Schema.showSchemaRecompileMessage();
+
 		var data = {
 			sourceId: sourceId,
 			targetId: targetId,
@@ -2661,8 +2698,11 @@ var _Schema = {
 			statusCode: {
 				201: function() {
 					_Schema.reload();
+					_Schema.hideSchemaRecompileMessage();
 				},
 				422: function(data) {
+
+					_Schema.hideSchemaRecompileMessage();
 
 					var additionalInformation = {};
 					var causedByUndefinedRelName = data.responseJSON.errors.some(function (e) {
@@ -2682,6 +2722,9 @@ var _Schema = {
 		});
 	},
 	removeRelationshipDefinition: function(id) {
+
+		_Schema.showSchemaRecompileMessage();
+
 		$.ajax({
 			url: rootUrl + 'schema_relationship_nodes/' + id,
 			type: 'DELETE',
@@ -2690,8 +2733,10 @@ var _Schema = {
 			statusCode: {
 				200: function(data, textStatus, jqXHR) {
 					_Schema.reload();
+					_Schema.hideSchemaRecompileMessage();
 				},
 				422: function(data) {
+					_Schema.hideSchemaRecompileMessage();
 					Structr.errorFromResponse(data.responseJSON);
 				}
 			}
@@ -2703,6 +2748,9 @@ var _Schema = {
 		_Schema.editRelationship(entity, data, onSuccess, onError, onNoChange);
 	},
 	editRelationship: function(entity, newData, onSuccess, onError, onNoChange) {
+
+		_Schema.showSchemaRecompileMessage();
+
 		$.ajax({
 			url: rootUrl + 'schema_relationship_nodes/' + entity.id,
 			type: 'GET',
@@ -2727,9 +2775,11 @@ var _Schema = {
 									if (onSuccess) {
 										onSuccess();
 									}
+									_Schema.hideSchemaRecompileMessage();
 									_Schema.reload();
 								},
 								422: function(data) {
+									_Schema.hideSchemaRecompileMessage();
 									if (onError) {
 										onError(data);
 									}
@@ -2780,13 +2830,18 @@ var _Schema = {
 		}
 
 		input.show().focus().select();
+		let saving = false;
 		input.off('blur').on('blur', function() {
 			if (!id) {
 				return false;
 			}
-			Command.get(id, 'id', function(entity) {
-				_Schema.changeAttr(entity, element, input, key, oldVal, isRel);
-			});
+			if (!saving) {
+				saving = true;
+				Command.get(id, 'id', function(entity) {
+					_Schema.changeAttr(entity, element, input, key, oldVal, isRel);
+				});
+			}
+
 			return false;
 		});
 
@@ -2796,9 +2851,12 @@ var _Schema = {
 				if (!id) {
 					return false;
 				}
-				Command.get(id, 'id', function(entity) {
-					_Schema.changeAttr(entity, element, input, key, oldVal, isRel);
-				});
+				if (!saving) {
+					saving = true;
+					Command.get(id, 'id', function(entity) {
+						_Schema.changeAttr(entity, element, input, key, oldVal, isRel);
+					});
+				}
 				return false;
 			}
 		});
