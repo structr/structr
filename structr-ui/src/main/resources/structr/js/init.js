@@ -752,7 +752,9 @@ var Structr = {
 	maximize: function() {
 
 		// Calculate dimensions of dialog
-		Structr.setSize($(window).width(), $(window).height(), $(window).width() - 24, $(window).height() - 24);
+		if ($('.blockPage').length && !loginBox.is(':visible')) {
+			Structr.setSize($(window).width(), $(window).height(), $(window).width() - 24, $(window).height() - 24);
+		}
 
 		isMax = true;
 		$('#maximizeDialog').hide();
