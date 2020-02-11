@@ -541,11 +541,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	@Override
 	protected void doHead(final HttpServletRequest request, final HttpServletResponse response) {
 
-		final Authenticator auth = getConfig().getAuthenticator();
-		SecurityContext securityContext;
+		final Authenticator auth        = getConfig().getAuthenticator();
+		SecurityContext securityContext = null;
 		List<Page> pages                = null;
 		boolean requestUriContainsUuids = false;
-		final App app;
 
 		try {
 
@@ -559,7 +558,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				tx.success();
 			}
 
-			app = StructrApp.getInstance(securityContext);
+			final App app = StructrApp.getInstance(securityContext);
 
 			try (final Tx tx = app.tx()) {
 
@@ -738,10 +737,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				if (rootElement == null) {
 
-					// no content
-					response.setContentLength(0);
-					response.getOutputStream().close();
-
 					tx.success();
 					return;
 				}
@@ -793,15 +788,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						response.setContentType(contentType);
 
 						setCustomResponseHeaders(response);
-
-						response.getOutputStream().close();
 					}
 
 				} else {
 
 					notFound(response, securityContext);
-
-					response.getOutputStream().close();
 				}
 
 				tx.success();
