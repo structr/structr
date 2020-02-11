@@ -228,7 +228,7 @@ var _Schema = {
 		schemaInputContainer.append('<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays"><label for="schema-show-overlays"> Show relationship labels</label>');
 		schemaInputContainer.append('<button class="btn" id="schema-tools"><i class="' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" /> Tools</button>');
 		schemaInputContainer.append('<button class="btn" id="global-schema-methods"><i class="' + _Icons.getFullSpriteClass(_Icons.book_icon) + '" /> Global schema methods</button>');
-		schemaInputContainer.append(' <select id="saved-layout-selector-main"></select> <button class="btn schema-tool-button action" id="restore-schema-layout"><i class="' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" /> Restore Layout</button>');
+		schemaInputContainer.append(' <select id="saved-layout-selector-main"></select> <button class="btn schema-tool-button action" id="restore-schema-layout"><i class="' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" /> Apply Layout</button>');
 
 		$('#schema-show-overlays').off('change').on('change', function() {
 			_Schema.updateOverlayVisibility($(this).prop('checked'));
@@ -3219,16 +3219,21 @@ var _Schema = {
 				layoutSelector.empty();
 				layoutSelector.append('<option selected value="" disabled>-- Select Layout --</option>');
 
-				grouped.forEach(function(group) {
+				if (grouped.length === 0) {
+					layoutSelector.append('<option value="" disabled>no layouts available</option>');
+				} else {
 
-					let optGroup = $('<optgroup label="' + group.ownerName + '"></optgroup>');
-					layoutSelector.append(optGroup);
+					grouped.forEach(function(group) {
 
-					group.configs.forEach(function(layout) {
+						let optGroup = $('<optgroup label="' + group.ownerName + '"></optgroup>');
+						layoutSelector.append(optGroup);
 
-						optGroup.append('<option value="' + layout.id + '">' + layout.name + '</option>');
+						group.configs.forEach(function(layout) {
+
+							optGroup.append('<option value="' + layout.id + '">' + layout.name + '</option>');
+						});
 					});
-				});
+				}
 			}
 
 			if (typeof callback === "function") {
@@ -3240,9 +3245,12 @@ var _Schema = {
 
 		let selectedLayout = layoutSelector.val();
 
-		Command.getApplicationConfigurationDataNode(selectedLayout, function(data) {
-			_Schema.applySavedLayoutConfiguration(data.content);
-		});
+		if (selectedLayout) {
+
+			Command.getApplicationConfigurationDataNode(selectedLayout, function(data) {
+				_Schema.applySavedLayoutConfiguration(data.content);
+			});
+		}
 	},
 	applySavedLayoutConfiguration: function (layoutJSON) {
 
