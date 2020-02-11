@@ -147,7 +147,8 @@ var _Schema = {
 		+ '<option value="date">Date</option>'
 		+ '</optgroup>'
 		+ '</select>',
-	currentNodeDialogId:null,
+	currentNodeDialogId: null,
+	globalLayoutSelector: null,
 	reload: function(callback) {
 
 		_Schema.clearTypeInfoCache();
@@ -227,14 +228,20 @@ var _Schema = {
 		schemaInputContainer.append('<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays"><label for="schema-show-overlays"> Show relationship labels</label>');
 		schemaInputContainer.append('<button class="btn" id="schema-tools"><i class="' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" /> Tools</button>');
 		schemaInputContainer.append('<button class="btn" id="global-schema-methods"><i class="' + _Icons.getFullSpriteClass(_Icons.book_icon) + '" /> Global schema methods</button>');
-		schemaInputContainer.append('<button class="btn schema-tool-button" id="schema-layout"><i class="' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" /> Layout</button>');
+		schemaInputContainer.append(' <select id="saved-layout-selector-main"></select> <button class="btn schema-tool-button action" id="restore-schema-layout"><i class="' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" /> Restore Layout</button>');
 
 		$('#schema-show-overlays').off('change').on('change', function() {
 			_Schema.updateOverlayVisibility($(this).prop('checked'));
 		});
 		$('#schema-tools').off('click').on('click', _Schema.openSchemaToolsDialog);
 		$('#global-schema-methods').off('click').on('click', _Schema.showGlobalSchemaMethods);
-		$('#schema-layout').off('click').on('click', _Schema.doLayout);
+
+		_Schema.globalLayoutSelector = $('#saved-layout-selector-main');
+		_Schema.updateGroupedLayoutSelector([_Schema.globalLayoutSelector], () => {
+			$('#restore-schema-layout').off('click').on('click', () => {
+				_Schema.restoreLayout(_Schema.globalLayoutSelector);
+			});
+		});
 
 		$('#type-name').off('keyup').on('keyup', function(e) {
 
@@ -3133,7 +3140,7 @@ var _Schema = {
 
 							new MessageBuilder().success("Layout saved").show();
 
-							refreshLayoutSelector();
+							_Schema.updateGroupedLayoutSelector([layoutSelector, _Schema.globalLayoutSelector], layoutSelectorChangeHandler);
 							layoutNameInput.val('');
 
 							blinkGreen(layoutSelector);
@@ -3169,13 +3176,7 @@ var _Schema = {
 			});
 
 			restoreLayoutButton.click(function() {
-
-				var selectedLayout = layoutSelector.val();
-
-				Command.getApplicationConfigurationDataNode(selectedLayout, function(data) {
-
-					_Schema.applySavedLayoutConfiguration(data.content);
-				});
+				_Schema.restoreLayout(layoutSelector);
 			});
 
 			downloadLayoutButton.click(function() {
@@ -3201,33 +3202,46 @@ var _Schema = {
 				var selectedLayout = layoutSelector.val();
 
 				Command.deleteNode(selectedLayout, false, function() {
-					refreshLayoutSelector();
+					_Schema.updateGroupedLayoutSelector([layoutSelector, _Schema.globalLayoutSelector], layoutSelectorChangeHandler);
 					blinkGreen(layoutSelector);
 				});
 			});
 
-			var refreshLayoutSelector = function() {
+			_Schema.updateGroupedLayoutSelector([layoutSelector, _Schema.globalLayoutSelector], layoutSelectorChangeHandler);
+		});
+	},
+	updateGroupedLayoutSelector: function(layoutSelectors, callback) {
 
-				Command.getApplicationConfigurationDataNodesGroupedByUser('layout', function(grouped) {
+		Command.getApplicationConfigurationDataNodesGroupedByUser('layout', function(grouped) {
 
-					layoutSelector.empty();
-					layoutSelector.append('<option selected value="" disabled>-- Select Layout --</option>');
+			for (let layoutSelector of layoutSelectors) {
 
-					grouped.forEach(function(group) {
+				layoutSelector.empty();
+				layoutSelector.append('<option selected value="" disabled>-- Select Layout --</option>');
 
-						var optGroup = $('<optgroup label="' + group.ownerName + '"></optgroup>');
-						layoutSelector.append(optGroup);
+				grouped.forEach(function(group) {
 
-						group.configs.forEach(function(layout) {
+					let optGroup = $('<optgroup label="' + group.ownerName + '"></optgroup>');
+					layoutSelector.append(optGroup);
 
-							optGroup.append('<option value="' + layout.id + '">' + layout.name + '</option>');
-						});
+					group.configs.forEach(function(layout) {
+
+						optGroup.append('<option value="' + layout.id + '">' + layout.name + '</option>');
 					});
-
-					layoutSelectorChangeHandler();
 				});
-			};
-			refreshLayoutSelector();
+			}
+
+			if (typeof callback === "function") {
+				callback();
+			}
+		});
+	},
+	restoreLayout: function (layoutSelector) {
+
+		let selectedLayout = layoutSelector.val();
+
+		Command.getApplicationConfigurationDataNode(selectedLayout, function(data) {
+			_Schema.applySavedLayoutConfiguration(data.content);
 		});
 	},
 	applySavedLayoutConfiguration: function (layoutJSON) {
@@ -3498,111 +3512,6 @@ var _Schema = {
 				}
 			}
 		});
-	},
-	doLayout: function() {
-
-		// Create a new directed graph
-		var layouter        = new dagre.graphlib.Graph();
-		var marginTop       = 100;
-		var highestPosition = -1;
-		var nonLayoutNodes  = [];
-		var gObj            = {};
-
-		gObj['nodesep']   = 50;
-		gObj['edgesep']   = 0;
-		gObj['ranksep']   = 400;
-		gObj['align']     = 'UR';
-		gObj['rankdir']   = 'TB';
-		gObj['ranker']    = 'longest-path';
-		gObj['acyclicer'] = 'greedy';
-
-		// align:   Alignment for rank nodes. Can be UL, UR, DL, or DR, where U = up, D = down, L = left, and R = right.
- 		// rankdir: Direction for rank nodes. Can be TB, BT, LR, or RL, where T = top, B = bottom, L = left, and R = right.
-		// ranker:  Type of algorithm to assigns a rank to each node in the input graph. Possible values: network-simplex, tight-tree or longest-path
-
-		// Set an object for the graph label
-		layouter.setGraph(gObj);
-
-		// Default to assigning a new object as a label for each new edge.
-		layouter.setDefaultEdgeLabel(function() { return {}; });
-
-		// Add nodes to the graph. The first argument is the node id. The second is
-		// metadata about the node. In this case we're going to add labels to each of
-		// our nodes.
-
-		$.each(Object.keys(nodes), function(i, id) {
-
-			if (!id.endsWith('_top') && !id.endsWith('_bottom')) {
-
-				var idString = 'id_' + id;
-				var node     = $('#' + idString);
-				var entity   = nodes[id];
-
-				if (node && entity) {
-
-					var obj  = node.position();
-					if (obj) {
-
-						if (entity.relCount > 0) {
-
-							obj.left = (obj.left - canvas.offset().left) / _Schema.zoomLevel;
-							obj.top  = (obj.top  - canvas.offset().top)  / _Schema.zoomLevel;
-
-							layouter.setNode(idString, { label: idString,  width: node.width(), height: node.height() });
-
-						} else {
-
-							var top = (obj.top - canvas.offset().top) / _Schema.zoomLevel;
-							if (highestPosition === -1) {
-
-								highestPosition = top;
-							}
-
-							nonLayoutNodes.push(node);
-						}
-					}
-				}
-			}
-		});
-
-		$.each(Object.keys(rels), function(i, id) {
-
-			var rel = rels[id];
-			var src = $('#' + rel.source.id);
-			var tgt = $('#' + rel.target.id);
-
-			if (src && tgt) {
-				layouter.setEdge(rel.source.id, rel.target.id);
-			}
-		});
-
-		dagre.layout(layouter);
-
-		var width  = layouter.graph().width;
-		var height = layouter.graph().height;
-		var offset = height - highestPosition + 300;
-
-		layouter.nodes().forEach(function(v) {
-
-			var position = layouter.node(v);
-			var node     = $('#' + v);
-			var left     = -position.x + width;
-			var top      = position.y + marginTop;
-
-			node.css('top', top);
-			node.css('left', left);
-		});
-
-		// move nodes to the bottom that have not been layouted
-		nonLayoutNodes.forEach(function(n) {
-
-			var top = (n.position().top + offset - canvas.offset().top) / _Schema.zoomLevel;
-			n.css('top', top);
-		});
-
-		_Schema.storePositions();
-		instance.repaintEverything();
-
 	},
 	setZoom: function(zoom, instance, transformOrigin, el) {
 		transformOrigin = transformOrigin || [ 0.5, 0.5 ];

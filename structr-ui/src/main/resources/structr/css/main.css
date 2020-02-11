@@ -2409,8 +2409,20 @@ input.property-name:disabled {
 	color: #999;
 }
 
-#schema-tools, #sync-schema, #show-snapshots, #schema-display-options, #global-schema-methods, #schema-layout {
+#schema-tools, #sync-schema, #show-snapshots, #schema-display-options, #global-schema-methods {
 	margin: 0 0 4px 12px;
+}
+
+#schema-container #saved-layout-selector-main {
+	margin-right: -2px;
+	margin-left: 10px;
+	padding: 2px 2px 3px 2px;
+	border: 1px solid rgba(0,0,0,.125);
+	color: #222;
+	vertical-align: middle;
+	line-height: 1.3em;
+	height: 25px;
+	margin-top: -2px;
 }
 
 #admin-tools-table td, #layout-tools-table td {
