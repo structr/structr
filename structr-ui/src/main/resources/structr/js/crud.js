@@ -164,19 +164,27 @@ var _Crud = {
 			return;
 		}
 
-		_Crud.getTypeInfo(type, function() {
-
-			let properties = _Crud.keys[type];
-
-			if (Object.keys(properties).length === 0) {
-				new MessageBuilder().warning("Unable to find schema information for type '" + type + "'. There might be database nodes with no type information or a type unknown to Structr in the database.").show();
-			} else {
-
-				if (callback) {
-					callback(type, properties);
-				}
+		if (_Crud.keys[type]) {
+			if (callback) {
+				callback();
 			}
-		});
+
+		} else {
+
+			_Crud.getTypeInfo(type, function() {
+
+				let properties = _Crud.keys[type];
+
+				if (Object.keys(properties).length === 0) {
+					new MessageBuilder().warning("Unable to find schema information for type '" + type + "'. There might be database nodes with no type information or a type unknown to Structr in the database.").show();
+				} else {
+
+					if (callback) {
+						callback();
+					}
+				}
+			});
+		}
 	},
 	type: null,
 	pageCount: null,
@@ -318,24 +326,12 @@ var _Crud = {
 			_Crud.type = defaultType;
 		}
 
-		// check for single edit mode
-		var id = urlParam('id');
-		if (id) {
-			_Crud.loadSchema(function() {
-				_Crud.crudRead(null, id, function(node) {
-					_Crud.showDetails(node, node.type);
-				});
-			});
-
-		} else {
-			_Crud.init();
-		}
+		_Crud.init();
 
 		$(window).off('resize');
 		$(window).on('resize', function() {
 			_Crud.resize();
 		});
-
 	},
 	updateTypeList: function () {
 
@@ -396,17 +392,17 @@ var _Crud = {
 	removeLoadingMessage: function() {
 		$('#crud-right .crud-loading').remove();
 	},
-	typeSelected: function (selectedType) {
+	typeSelected: function (type) {
 
 		_Crud.hideTypeVisibilityConfig();
-		_Crud.updateRecentTypeList(selectedType);
-		_Crud.highlightCurrentType(selectedType);
+		_Crud.updateRecentTypeList(type);
+		_Crud.highlightCurrentType(type);
 
 		var crudRight = $('#crud-right');
 		fastRemoveAllChildren(crudRight[0]);
-		_Crud.showLoadingMessageAfterDelay('Loading schema information for type <b>' + selectedType + '</b>', 500);
+		_Crud.showLoadingMessageAfterDelay('Loading schema information for type <b>' + type + '</b>', 500);
 
-		_Crud.getProperties(selectedType, function(type, properties) {
+		_Crud.getProperties(type, function() {
 
 			clearTimeout(_Crud.loadingMessageTimeout);
 
@@ -425,16 +421,8 @@ var _Crud = {
 			_Crud.determinePagerData(type);
 			var pagerNode = _Crud.addPager(type, crudRight);
 
-			crudRight.append('<table class="crud-table"><thead></thead><tbody></tbody></table>');
-			var table = $('table', crudRight);
-			$('thead', table).append('<tr></tr>');
-			var tableHeaderRow = $('tr:first-child', table);
-
-			_Crud.filterKeys(type, Object.keys(properties)).forEach(function(key) {
-				var prop = properties[key];
-				tableHeaderRow.append('<th class="___' + prop.jsonName + '">' + prop.jsonName + '</th>');
-			});
-			tableHeaderRow.append('<th class="___action_header">Actions</th>');
+			crudRight.append('<table class="crud-table"><thead><tr></tr></thead><tbody></tbody></table>');
+			_Crud.updateCrudTableHeader(type);
 
 			crudRight.append('<div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
 
@@ -468,14 +456,39 @@ var _Crud = {
 			exactTypeCheckbox.on('change', function() {
 				_Crud.exact[type] = exactTypeCheckbox.prop('checked');
 				LSWrapper.setItem(_Crud.crudExactTypeKey, _Crud.exact);
-				_Crud.refreshList(type, properties);
+				_Crud.refreshList(type);
 			});
 
 			_Crud.deActivatePagerElements(pagerNode);
-			_Crud.activateList(type, properties);
+			_Crud.activateList(type);
 			_Crud.activatePagerElements(type, pagerNode);
 			_Crud.updateUrl(type);
 		});
+	},
+	getCurrentProperties: function(type) {
+		let properties = _Crud.availableViews[type].all;
+
+		if (_Crud.view[type] !== 'all') {
+			let viewDef = _Crud.availableViews[type][_Crud.view[type]];
+
+			if (viewDef) {
+				properties = viewDef;
+			}
+		}
+
+		return properties;
+	},
+	updateCrudTableHeader: function(type) {
+
+		let properties = _Crud.getCurrentProperties(type);
+
+		var tableHeaderRow = $('#crud-right table thead tr');
+		fastRemoveAllChildren(tableHeaderRow[0]);
+
+		_Crud.filterKeys(type, Object.keys(properties)).forEach(function(key) {
+			tableHeaderRow.append('<th class="___' + key + '">' + key + '</th>');
+		});
+		tableHeaderRow.append('<th class="___action_header">Actions</th>');
 	},
 	getTypeVisibilityConfig: function () {
 
@@ -692,12 +705,27 @@ var _Crud = {
 
 		el.append('<div class="pager" style="clear: both"><button class="pageLeft">&lt; Prev</button>'
 				+ ' Page <input class="page" type="text" size="3" value="' + _Crud.page[type] + '"><button class="pageRight">Next &gt;</button> of <input class="readonly pageCount" readonly="readonly" size="3" value="' + nvl(_Crud.pageCount, 0) + '">'
-				+ ' Page Size: <input class="pageSize" type="text" size="3" value="' + _Crud.pageSize[type] + '"></div>');
+				+ ' Page Size: <input class="pageSize" type="text" size="3" value="' + _Crud.pageSize[type] + '">'
+				+ ' View: <select class="view"></select></div>');
+
+		let select = $('select.view', el);
+		for (let view in _Crud.availableViews[type]) {
+			let selected = '';
+			if (_Crud.view[type] === view) {
+				selected = ' selected';
+			}
+			select.append('<option' + selected + '>' + view + '</option>');
+		}
+
+		Structr.appendInfoTextToElement({
+			element: select,
+			text: 'The attributes of the given view are fetched. Attributes can still be hidden using the "Configure columns" dialog. id and type are always shown first.',
+			insertAfter: true
+		});
 
 		el.append('<div class="resource-link"><a target="_blank" href="' + rootUrl + type + '">/' + type + '</a></div>');
 
 		return $('.pager', el);
-
 	},
 	storeType: function() {
 		LSWrapper.setItem(_Crud.crudTypeKey, _Crud.type);
@@ -1000,34 +1028,30 @@ var _Crud = {
 
 		return '?' + paramsArray.join('&');
 	},
-	refreshList: function(type, properties) {
+	refreshList: function(type) {
 		_Crud.clearList(type);
-		_Crud.activateList(type, properties);
+		_Crud.activateList(type);
 	},
-	activateList: function(type, properties) {
-		properties = properties || _Crud.keys[type];
+	activateList: function(type) {
 		var url = rootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type], _Crud.exact[type]);
-		_Crud.list(type, properties, url);
+		_Crud.list(type, url);
 	},
 	clearList: function(type) {
-		var  div = $('#crud-right table tbody');
+		var div = $('#crud-right table tbody');
 		fastRemoveAllChildren(div[0]);
 	},
-	list: function(type, properties, url) {
+	list: function(type, url) {
+
+		let properties = _Crud.getCurrentProperties(type);
 
 		_Crud.showLoadingMessageAfterDelay('Loading data for type <b>' + type + '</b>', 100);
 
-		var hiddenKeys             = _Crud.getHiddenKeys(type);
-
-		// 'id' attribute is mandatory for request
-		hiddenKeys.splice(hiddenKeys.indexOf('id'));
-
-		var acceptHeaderProperties = Object.keys(properties).filter(function(key) { return !hiddenKeys.includes(key); }).join(',');
+		var acceptHeaderProperties = ' properties=' + _Crud.filterKeys(type, Object.keys(properties)).join(',');
 
 		$.ajax({
 			headers: {
 				Range: _Crud.ranges(type),
-				Accept: 'application/json; charset=utf-8; properties=' + acceptHeaderProperties
+				Accept: 'application/json; charset=utf-8;' + acceptHeaderProperties
 			},
 			url: url,
 			dataType: 'json',
@@ -1294,6 +1318,12 @@ var _Crud = {
 			}
 		});
 
+		$('select.view', pagerNode).on('change', function(e) {
+			_Crud.view[type] = $(this).val();
+			_Crud.updateCrudTableHeader(type);
+			_Crud.refreshList(type);
+		});
+
 		var pageLeft = $('.pageLeft', pagerNode);
 		var pageRight = $('.pageRight', pagerNode);
 
@@ -1320,31 +1350,6 @@ var _Crud = {
 		$('.pageSize', pagerNode).off('keypress');
 		$('.pageLeft', pagerNode).off('click');
 		$('.pageRight', pagerNode).off('click');
-	},
-	crudRead: function(type, id, callback, errorCallback) {
-		// use 'ui' view as default to make the 'edit by id' feature work
-		var view = (type && _Crud.view[type] ? _Crud.view[type] : 'ui');
-		var url = rootUrl + id + '/' + view;
-		$.ajax({
-			url: url,
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8',
-			//async: false,
-			success: function(data) {
-				if (!data)
-					return;
-				if (callback) {
-					callback(data.result);
-				} else {
-					_Crud.appendRow(type, data.result);
-				}
-			},
-			error: function(data) {
-				if (errorCallback) {
-					errorCallback(data);
-				}
-			}
-		});
 	},
 	crudEdit: function(id, type) {
 		var t = type || _Crud.type;
@@ -1468,11 +1473,14 @@ var _Crud = {
 		}
 	},
 	crudRefresh: function(id, key, oldValue) {
-		var url = rootUrl + id + '/' + _Crud.view[_Crud.type];
+		var url = rootUrl + id + '/all';
 
 		$.ajax({
 			url: url,
 			type: 'GET',
+			headers: {
+				Accept: 'application/json; charset=utf-8; properties=id,type,' + key
+			},
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
 			success: function(data) {
@@ -1489,8 +1497,11 @@ var _Crud = {
 	},
 	crudReset: function(id, key) {
 		$.ajax({
-			url: rootUrl + id + '/' + _Crud.view[_Crud.type],
+			url: rootUrl + id + '/all',
 			type: 'GET',
+			headers: {
+				Accept: 'application/json; charset=utf-8; properties=id,type,' + key
+			},
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
 			success: function(data) {
@@ -1776,16 +1787,17 @@ var _Crud = {
 		return $('tr._' + id);
 	},
 	appendRow: function(type, properties, item) {
-		if (!_Crud.keys[item.type]) {
-			_Crud.getProperties(item.type);
-		}
-		var id = item['id'];
-		var tbody = $('#crud-right table tbody');
-		var row = _Crud.row(id);
-		if ( !(row && row.length) ) {
-			tbody.append('<tr class="_' + id + '"></tr>');
-		}
-		_Crud.populateRow(id, item, type, properties);
+
+		_Crud.getProperties(item.type, function() {
+
+			var id = item['id'];
+			var tbody = $('#crud-right table tbody');
+			var row = _Crud.row(id);
+			if ( !(row && row.length) ) {
+				tbody.append('<tr class="_' + id + '"></tr>');
+			}
+			_Crud.populateRow(id, item, type, properties);
+		});
 	},
 	populateRow: function(id, item, type, properties) {
 		var row = _Crud.row(id);
@@ -1928,7 +1940,7 @@ var _Crud = {
 							}
 						});
 						return false;
-					}
+					};
 
 					// create dialog
 					_Schema.getTypeInfo(type, function(typeInfo) {
@@ -2876,17 +2888,28 @@ var _Crud = {
 	},
 	filterKeys: function(type, sourceArray) {
 
-		var hiddenKeys = _Crud.getHiddenKeys(type);
-
 		if (!sourceArray) {
 			return;
 		}
 
-		//### TODO: Sort by order of views: public -> custom -> ui ...
-
-		return sourceArray.filter(function(key) {
+		let hiddenKeys   = _Crud.getHiddenKeys(type);
+		let filteredKeys = sourceArray.filter(function(key) {
 			return !(hiddenKeys.includes(key));
 		});
+
+		let typePos = filteredKeys.indexOf('type');
+		if (typePos !== -1) {
+			filteredKeys.splice(typePos, 1);
+		}
+		filteredKeys.unshift('type');
+
+		let idPos = filteredKeys.indexOf('id');
+		if (idPos !== -1) {
+			filteredKeys.splice(idPos, 1);
+		}
+		filteredKeys.unshift('id');
+
+		return filteredKeys;
 	},
 	toggleColumn: function(type, key) {
 
