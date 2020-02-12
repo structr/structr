@@ -556,17 +556,17 @@ var _Entities = {
 	showProperties: function(obj, activeViewOverride) {
 
 		let handleGraphObject;
-		
+
 		_Entities.getSchemaProperties(obj.type, 'custom', function(properties) {
 
 			handleGraphObject = function(entity) {
 
 				var views      = ['ui'];
-				
+
 				if (Object.keys(properties).length) {
 					views.push('custom');
 				}
-				
+
 				var activeView = 'ui';
 				var tabTexts   = [];
 
@@ -1441,6 +1441,9 @@ var _Entities = {
 
 		let val;
 		let cell = input.closest('.value');
+		if (cell.length === 0) {
+			cell = input.closest('.__value');
+		}
 
 		// Array?
 		if (typeInfo[key] && typeInfo[key].isCollection && !typeInfo[key].relatedType) {
