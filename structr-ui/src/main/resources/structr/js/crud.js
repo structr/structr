@@ -84,6 +84,7 @@ var _Crud = {
 	crudResizerLeftKey: 'structrCrudResizerLeft_' + port,
 	crudExactTypeKey: 'structrCrudExactType_' + port,
 	types: {},
+	availableViews: {},
 	relInfo: {},
 	keys: {},
 	crudCache: new AsyncObjectCache(function (id) {
@@ -104,8 +105,14 @@ var _Crud = {
 			}
 		});
 	}),
-	addSchemaProperties: function(type, view, properties, callback) {
-		let url = rootUrl + '_schema/' + type + '/' + view;
+	getTypeInfo: function (type, callback) {
+
+		let url = rootUrl + '_schema/' + type;
+
+		let errorFn = function(data) {
+			Structr.errorFromResponse(data.responseJSON, url);
+		};
+
 		$.ajax({
 			url: url,
 			dataType: 'json',
@@ -113,42 +120,40 @@ var _Crud = {
 			statusCode: {
 				200: function(data) {
 
-					// no schema entry found?
-					if (!data || !data.result || data.result_count === 0) {
+					if (data && data.result) {
 
-						//
+						_Crud.availableViews[type] = data.result[0].views;
 
-					} else {
+						let properties = {};
 
-						data.result.forEach(function(prop) {
-							properties[prop.jsonName] = prop;
-						});
+						let processViewInfo = function (view) {
+							if (view) {
+								for (let key of Object.keys(view)) {
+									let prop = view[key];
+									properties[prop.jsonName] = prop;
+								}
+							}
+						};
+
+						processViewInfo(data.result[0].views.public);
+						processViewInfo(data.result[0].views.custom);
+						processViewInfo(data.result[0].views.all);
 
 						_Crud.keys[type] = properties;
 					}
 
-					if (callback) {
+					if (typeof callback === 'function') {
 						callback();
 					}
 				},
-				400: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				},
-				401: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				},
-				403: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				},
-				404: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				},
-				422: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				}
+				400: errorFn,
+				401: errorFn,
+				403: errorFn,
+				404: errorFn,
+				422: errorFn
 			},
-			error:function () {
-				console.log("ERROR: loading Schema " + type);
+			error: function () {
+				console.log("ERROR: loading Schema for " + type);
 			}
 		});
 	},
@@ -159,23 +164,19 @@ var _Crud = {
 			return;
 		}
 
-		let properties = {};
-		_Crud.addSchemaProperties(type, 'public', properties, function() {
-			_Crud.addSchemaProperties(type, 'custom', properties, function() {
-				_Crud.addSchemaProperties(type, 'all', properties, function() {
+		_Crud.getTypeInfo(type, function() {
 
-					if (Object.keys(properties).length === 0) {
-						new MessageBuilder().warning("Unable to find schema information for type '" + type + "'. There might be database nodes with no type information or a type unknown to Structr in the database.").show();
-					} else {
+			let properties = _Crud.keys[type];
 
-						if (callback) {
-							callback(type, properties);
-						}
-					}
-				});
-			});
+			if (Object.keys(properties).length === 0) {
+				new MessageBuilder().warning("Unable to find schema information for type '" + type + "'. There might be database nodes with no type information or a type unknown to Structr in the database.").show();
+			} else {
+
+				if (callback) {
+					callback(type, properties);
+				}
+			}
 		});
-
 	},
 	type: null,
 	pageCount: null,
@@ -803,9 +804,7 @@ var _Crud = {
 									dialogCloseButton.on('click', function() {
 										location.reload();
 									});
-
 								}
-
 							}
 						}
 					});
