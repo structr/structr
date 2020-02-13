@@ -34,7 +34,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
 		<test.neo4j.version>neo4j:3.5-enterprise</test.neo4j.version>
-		<test.forkCount>4</test.forkCount>
+		<test.forkCount>1</test.forkCount>
 	</properties>
 
 	<modules>
