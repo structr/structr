@@ -532,7 +532,7 @@ var LSWrapper = new (function() {
 
 			if (!lastSyncTime || (now - lastSyncTime) > (_persistInterval * 1000)) {
 				// send to server
-				console.log('sending to server');
+				_Logger.log(_LogType.INIT, 'sending localstorage to server');
 
 				this.save();
 			}

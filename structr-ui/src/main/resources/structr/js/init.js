@@ -30,8 +30,6 @@ var dontMaximize = false;
 var expandedIdsKey = 'structrTreeExpandedIds_' + port;
 var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
 var pagerDataKey = 'structrPagerData_' + port + '_';
-var autoRefreshDisabledKey = 'structrAutoRefreshDisabled_' + port;
-var detailsObjectIdKey = 'structrDetailsObjectId_' + port;
 var dialogDataKey = 'structrDialogData_' + port;
 var dialogHtmlKey = 'structrDialogHtml_' + port;
 var scrollInfoKey = 'structrScrollInfoKey_' + port;
@@ -752,7 +750,9 @@ var Structr = {
 	maximize: function() {
 
 		// Calculate dimensions of dialog
-		Structr.setSize($(window).width(), $(window).height(), $(window).width() - 24, $(window).height() - 24);
+		if ($('.blockPage').length && !loginBox.is(':visible')) {
+			Structr.setSize($(window).width(), $(window).height(), $(window).width() - 24, $(window).height() - 24);
+		}
 
 		isMax = true;
 		$('#maximizeDialog').hide();
@@ -1860,6 +1860,26 @@ var Structr = {
 	},
 	hideLoadingMessage: function() {
 		Structr.unblockUiGeneric();
+	},
+
+	nonBlockUIBlockerId: 'non-block-ui-blocker',
+	nonBlockUIBlockerContentId: 'non-block-ui-blocker-content',
+	showNonBlockUILoadingMessage: function(title, text) {
+
+		var messageTitle = title || 'Executing Task';
+		var messageText  = text || 'Please wait until the operation has finished...';
+
+		let pageBlockerDiv = $('<div id="' + Structr.nonBlockUIBlockerId +'"></div>');
+
+		let messageDiv = $('<div id="' + Structr.nonBlockUIBlockerContentId +'"></div>');
+		messageDiv.html('<img src="' + _Icons.getSpinnerImageAsData() + '"> <b>' + messageTitle + '</b><br><br>' + messageText);
+
+		$('body').append(pageBlockerDiv);
+		$('body').append(messageDiv);
+	},
+	hideNonBlockUILoadingMessage: function() {
+		$('#' + Structr.nonBlockUIBlockerId).remove();
+		$('#' + Structr.nonBlockUIBlockerContentId).remove();
 	}
 };
 
@@ -2045,7 +2065,7 @@ function MessageBuilder () {
 		} else {
 
 			window.setTimeout(function() {
-//				originalMsgBuilder.hide();
+				originalMsgBuilder.hide();
 			}, this.params.delayDuration);
 
 			$('#' + newMsgBuilder.params.msgId).click(function() {
