@@ -26,7 +26,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
@@ -123,9 +122,6 @@ public class StructrTest {
 
 	@BeforeClass(alwaysRun = true)
 	public void startSystem() {
-
-		// for parallel test execution, add random startup delay
-		try { Thread.sleep(new Random().nextInt(5000)); } catch (Throwable t) {}
 
 		final Date now          = new Date();
 		final long timestamp    = now.getTime();

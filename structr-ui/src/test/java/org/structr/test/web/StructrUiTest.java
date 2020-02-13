@@ -82,9 +82,6 @@ public abstract class StructrUiTest {
 	@BeforeClass(alwaysRun = true)
 	public void setup() {
 
-		// for parallel test execution, add random startup delay
-		try { Thread.sleep(new Random().nextInt(5000)); } catch (Throwable t) {}
-
 		final long timestamp = System.nanoTime();
 
 		basePath = "/tmp/structr-test-" + timestamp;
