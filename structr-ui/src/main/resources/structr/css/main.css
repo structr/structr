@@ -2598,7 +2598,11 @@ input.property-name:disabled {
  */
 #dataBinding .inner {
 	margin-top: 16px;
-	margin-left: 36px;
+	margin-left: 28px;
+}
+
+#dataBinding #type-selector {
+	width: 100%;
 }
 
 #dataBinding .draggable {
@@ -5370,10 +5374,6 @@ div.quick-access-options p {
 div.option-tile select, div.option-tile input[type="text"], div.option-tile select, div.option-tile input[type="password"] {
 	width: 100%;
 	box-sizing: border-box;
-}
-
-div.option-tile select {
-	font-family: "Liberation Mono", "DejaVu Sans Mono", Consolas, Monaco, "Vera Sans Mono", "Lucida Console", "Courier New", Courier, monospace !important;
 }
 
 div.option-tile h4 {
