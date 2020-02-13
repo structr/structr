@@ -1616,12 +1616,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					} else {
 
-						long fileSize = IOUtils.copyLarge(in, out);
+						final long fileSize = IOUtils.copyLarge(in, out);
+						final int status    = response.getStatus();
 
 						response.addHeader("Content-Length", Long.toString(fileSize));
+						response.setStatus(status);
 
-						response.setStatus(HttpServletResponse.SC_OK);
-						callbackMap.put("statusCode", HttpServletResponse.SC_OK);
+						callbackMap.put("statusCode", status);
 					}
 
 				} catch (Throwable t) {
@@ -1643,7 +1644,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						in.close();
 					}
 
-					response.setStatus(HttpServletResponse.SC_OK);
+					response.setStatus(response.getStatus());
 				}
 			}
 		}
