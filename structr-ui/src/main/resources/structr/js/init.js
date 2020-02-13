@@ -394,6 +394,7 @@ var Structr = {
 			fastRemoveAllChildren(main[0]);
 
 			$.blockUI.defaults.overlayCSS.opacity = .6;
+			$.blockUI.defaults.overlayCSS.cursor = 'intial';
 			$.blockUI.defaults.applyPlatformOpacityRules = false;
 			$.blockUI({
 				fadeIn: 25,
@@ -402,7 +403,8 @@ var Structr = {
 				forceInput: true,
 				css: {
 					border: 'none',
-					backgroundColor: 'transparent'
+					backgroundColor: 'transparent',
+					cursor: 'initial'
 				}
 			});
 		}
