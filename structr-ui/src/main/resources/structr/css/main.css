@@ -5372,10 +5372,6 @@ div.option-tile select, div.option-tile input[type="text"], div.option-tile sele
 	box-sizing: border-box;
 }
 
-div.option-tile select {
-	font-family: "Liberation Mono", "DejaVu Sans Mono", Consolas, Monaco, "Vera Sans Mono", "Lucida Console", "Courier New", Courier, monospace !important;
-}
-
 div.option-tile h4 {
 	margin: 0;
 }

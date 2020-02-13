@@ -2318,10 +2318,14 @@ var _Entities = {
 	setPropertyWithFeedback: function(entity, key, newVal, input) {
 		var oldVal = entity[key];
 		Command.setProperty(entity.id, key, newVal, false, function(result) {
-			var newVal= result[key];
+			var newVal = result[key];
+
+			// update entity so this works multiple times
+			entity[key] = newVal;
+
 			if (newVal !== oldVal) {
 				blinkGreen(input);
-				if (newVal.constructor === Array) {
+				if (newVal && newVal.constructor === Array) {
 					newVal = newVal.join(',');
 				}
 				input.val(newVal);
