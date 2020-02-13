@@ -129,7 +129,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		try {
 
 			tx.close();
-			session.close();
+			session.closeAsync();
 
 		} catch (TransientException tex) {
 

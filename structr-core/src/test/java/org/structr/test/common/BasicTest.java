@@ -147,53 +147,45 @@ public class BasicTest extends StructrTest {
 
 		System.out.println("Done.");
 
-		Settings.CypherDebugLogging.setValue(true);
+		try (final Tx tx = app.tx()) {
 
-		try {
-			try (final Tx tx = app.tx()) {
+			int count = 0;
 
-				int count = 0;
+			try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
 
-				try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
-
-					for (TestSix test : results) {
-						count++;
-					}
-
-					total = results.calculateTotalResultCount(null, Settings.ResultCountSoftLimit.getValue());
+				for (TestSix test : results) {
+					count++;
 				}
 
-				System.out.println(count + " / " + total);
-
-				assertEquals("Invalid result count", num, count);
-				assertEquals("Invalid total count", num, total);
-
-				tx.success();
-
-			} catch (Exception fex) {
-				fex.printStackTrace();
-				fail("Unexpected exception");
+				total = results.calculateTotalResultCount(null, Settings.ResultCountSoftLimit.getValue());
 			}
 
-			try (final Tx tx = app.tx()) {
+			System.out.println(count + " / " + total);
 
-				try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
+			assertEquals("Invalid result count", num, count);
+			assertEquals("Invalid total count", num, total);
 
-					if (results.iterator().hasNext()) {
-						results.iterator().next();
-					}
+			tx.success();
+
+		} catch (Exception fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
+
+				if (results.iterator().hasNext()) {
+					results.iterator().next();
 				}
-
-				tx.success();
-
-			} catch (FrameworkException fex) {
-				fex.printStackTrace();
-				fail("Unexpected exception");
 			}
 
-		} finally {
+			tx.success();
 
-			Settings.CypherDebugLogging.setValue(false);
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
 		}
 	}
 

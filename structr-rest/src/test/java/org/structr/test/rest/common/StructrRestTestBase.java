@@ -68,6 +68,7 @@ public abstract class StructrRestTestBase {
 	protected SecurityContext securityContext = null;
 	protected String basePath                 = null;
 	protected App app                         = null;
+	private boolean first                     = true;
 
 	protected final String contextPath = "/";
 	protected final String restUrl     = "/structr/rest";
@@ -76,6 +77,9 @@ public abstract class StructrRestTestBase {
 
 	@BeforeClass(alwaysRun = true)
 	public void setup() {
+
+		// for parallel test execution, add random startup delay
+		try { Thread.sleep(new Random().nextInt(5000)); } catch (Throwable t) {}
 
 		final long timestamp = System.nanoTime();
 
@@ -150,25 +154,30 @@ public abstract class StructrRestTestBase {
 		}
 	}
 
-	@AfterMethod
+	@BeforeMethod
 	public void cleanDatabase() {
 
-		try (final Tx tx = app.tx()) {
+		if (!first) {
 
-			// delete everything
-			Services.getInstance().getService(NodeService.class).getDatabaseService().cleanDatabase();
+			try (final Tx tx = app.tx()) {
 
-			FlushCachesCommand.flushAll();
+				// delete everything
+				Services.getInstance().getService(NodeService.class).getDatabaseService().cleanDatabase();
 
-			SchemaService.ensureBuiltinTypesExist(app);
+				FlushCachesCommand.flushAll();
 
-			tx.success();
+				SchemaService.ensureBuiltinTypesExist(app);
 
-		} catch (Throwable t) {
+				tx.success();
 
-			t.printStackTrace();
-			logger.error("Exception while trying to clean database: {}", t.getMessage());
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				logger.error("Exception while trying to clean database: {}", t.getMessage());
+			}
 		}
+
+		first = false;
 	}
 
 	@BeforeMethod

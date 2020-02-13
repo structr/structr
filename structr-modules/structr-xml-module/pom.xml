@@ -57,7 +57,7 @@
 					</includes>
 					<argLine>-Xms2g -Xmx2g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
 					<reuseForks>false</reuseForks>
-					<forkCount>1</forkCount>
+					<forkCount>${test.forkCount}</forkCount>
 					<skipTests>${skipTests}</skipTests>
 				</configuration>
 				<executions>

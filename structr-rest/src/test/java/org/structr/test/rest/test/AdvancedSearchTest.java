@@ -27,7 +27,6 @@ import static org.hamcrest.Matchers.*;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -1165,41 +1164,32 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.post(resource).getHeader("Location")
 		);
 
-		Settings.CypherDebugLogging.setValue(true);
+		// test default view with properties in it
+		RestAssured
 
-		try {
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.header("Accept", "application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 
-			// test default view with properties in it
-			RestAssured
+			.expect()
+				.statusCode(200)
+				.body("query_time",                 notNullValue())
+				.body("serialization_time",         notNullValue())
+				.body("result_count",               equalTo(1))
+				.body("result",                     hasSize(1))
 
-				.given()
-					.contentType("application/json; charset=UTF-8")
-					.header("Accept", "application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.body("result[0]",                  isEntity(TestTwo.class))
 
-				.expect()
-					.statusCode(200)
-					.body("query_time",                 notNullValue())
-					.body("serialization_time",         notNullValue())
-					.body("result_count",               equalTo(1))
-					.body("result",                     hasSize(1))
+				.body("result[0].id",               equalTo(uuid))
+				.body("result[0].type",	            equalTo(TestTwo.class.getSimpleName()))
+				.body("result[0].name",             equalTo("TestTwo-0"))
+				.body("result[0].anInt",            equalTo(0))
+				.body("result[0].aLong",            equalTo(0))
+				.body("result[0].aDate",            equalTo("2012-09-17T22:33:12+0000"))
 
-					.body("result[0]",                  isEntity(TestTwo.class))
-
-					.body("result[0].id",               equalTo(uuid))
-					.body("result[0].type",	            equalTo(TestTwo.class.getSimpleName()))
-					.body("result[0].name",             equalTo("TestTwo-0"))
-					.body("result[0].anInt",            equalTo(0))
-					.body("result[0].aLong",            equalTo(0))
-					.body("result[0].aDate",            equalTo("2012-09-17T22:33:12+0000"))
-
-				.when()
-					.get(resource);
-			
-		} finally {
-			
-			Settings.CypherDebugLogging.setValue(false);
-		}
+			.when()
+				.get(resource);
 
 		// test all view with properties in it
 		RestAssured

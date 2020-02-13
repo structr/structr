@@ -382,6 +382,7 @@ public class CsvTest extends StructrCsvTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+			ex.printStackTrace();
 			fail();
 		}
 

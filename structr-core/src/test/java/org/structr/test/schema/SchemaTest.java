@@ -447,8 +447,6 @@ public class SchemaTest extends StructrTest {
 
 		cleanDatabaseAndSchema();
 
-		Settings.CypherDebugLogging.setValue(true);
-
 		SchemaRelationshipNode rel = null;
 
 		try (final Tx tx = app.tx()) {
@@ -907,6 +905,7 @@ public class SchemaTest extends StructrTest {
 		}
 	}
 
+	/*
 	@Test
 	public void testInitializationOfNonStructrNodesWithoutTenantIdentifier() {
 
@@ -977,6 +976,7 @@ public class SchemaTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 	}
+	*/
 
 	@Test
 	public void testRelatedTypeOnNotionProperty() {

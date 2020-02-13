@@ -26,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
@@ -67,6 +68,7 @@ public class StructrTest {
 	protected static String basePath                 = null;
 	protected static App app                         = null;
 	protected static String randomTenantId           = RandomStringUtils.randomAlphabetic(10).toUpperCase();
+	private boolean first                            = true;
 
 	@BeforeMethod
 	protected void starting(Method method) {
@@ -84,38 +86,46 @@ public class StructrTest {
 		System.out.println("######################################################################################");
 	}
 
-	@AfterMethod
+	@BeforeMethod
 	public void cleanDatabaseAndSchema() {
 
-		try (final Tx tx = app.tx()) {
+		if (!first) {
 
-			// delete everything
-			Services.getInstance().getService(NodeService.class).getDatabaseService().cleanDatabase();
+			try (final Tx tx = app.tx()) {
 
-			FlushCachesCommand.flushAll();
+				// delete everything
+				Services.getInstance().getService(NodeService.class).getDatabaseService().cleanDatabase();
 
-			tx.success();
+				FlushCachesCommand.flushAll();
 
-		} catch (Throwable t) {
+				tx.success();
 
-			t.printStackTrace();
-			logger.error("Exception while trying to clean database: {}", t.getMessage());
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				logger.error("Exception while trying to clean database: {}", t.getMessage());
+			}
+
+
+			try {
+
+				SchemaService.ensureBuiltinTypesExist(app);
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				logger.error("Exception while trying to clean database: {}", t.getMessage());
+			}
 		}
 
-
-		try {
-
-			SchemaService.ensureBuiltinTypesExist(app);
-
-		} catch (Throwable t) {
-
-			t.printStackTrace();
-			logger.error("Exception while trying to clean database: {}", t.getMessage());
-		}
+		first = false;
 	}
 
 	@BeforeClass(alwaysRun = true)
 	public void startSystem() {
+
+		// for parallel test execution, add random startup delay
+		try { Thread.sleep(new Random().nextInt(5000)); } catch (Throwable t) {}
 
 		final Date now          = new Date();
 		final long timestamp    = now.getTime();

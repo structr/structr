@@ -149,8 +149,17 @@ public class StringPropertyRestTest extends IndexingTest {
 	@Test
 	public void testLargeStrings() {
 
+		// This test is designed to fail if the actual indexable size of a string in the database changes
+
 		testLargeString(4000, 201);
-		testLargeString(4039, 201);
+		testLargeString(4032, 201);
+		testLargeString(4033, 201);
+		testLargeString(4034, 201);
+		testLargeString(4035, 201);
+		testLargeString(4036, 201);
+		testLargeString(4037, 422);
+		testLargeString(4038, 422);
+		testLargeString(4039, 422);
 		testLargeString(4040, 422);
 		testLargeString(4100, 422);
 		testLargeString(5000, 422);
@@ -169,6 +178,8 @@ public class StringPropertyRestTest extends IndexingTest {
 		// cleanup
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
+			.filter(RequestLoggingFilter.logRequestTo(System.out))
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 		.expect()
 			.statusCode(200)
 		.when()
