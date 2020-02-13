@@ -2598,7 +2598,11 @@ input.property-name:disabled {
  */
 #dataBinding .inner {
 	margin-top: 16px;
-	margin-left: 36px;
+	margin-left: 28px;
+}
+
+#dataBinding #type-selector {
+	width: 100%;
 }
 
 #dataBinding .draggable {
