@@ -406,9 +406,6 @@ public class SchemaService implements Service {
 
 				logger.info("Schema build took a total of {} ms", System.currentTimeMillis() - t0);
 
-				//session.run("CREATE INDEX ON :StructrIndexCreationFinished(name)");
-				//session.run("CALL db.indexes() YIELD description, state, type WHERE type = 'node_label_property' RETURN {description: description, state: state}").list()) {
-
 				final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
 				final long maxWaitTime        = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(10);
 				boolean indexUpdateFinished   = false;
@@ -416,10 +413,8 @@ public class SchemaService implements Service {
 				while (!indexUpdateFinished && System.currentTimeMillis() < maxWaitTime) {
 
 					indexUpdateFinished = graphDb.isIndexUpdateFinished();
-
 					if (!indexUpdateFinished) {
 
-						System.out.println("Waiting for index update to be finished.");
 						try { Thread.sleep(1000); } catch (Throwable t) {}
 					}
 				}
