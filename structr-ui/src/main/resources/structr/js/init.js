@@ -39,6 +39,10 @@ var altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = fa
 
 $(function() {
 
+	$.blockUI.defaults.overlayCSS.opacity        = .6;
+	$.blockUI.defaults.overlayCSS.cursor         = 'default';
+	$.blockUI.defaults.applyPlatformOpacityRules = false;
+
 	header = $('#header');
 	main = $('#main');
 	footer = $('#footer');
@@ -281,6 +285,11 @@ var Structr = {
 	msgCount: 0,
 	currentlyActiveSortable: undefined,
 	loadingSpinnerTimeout: undefined,
+	defaultBlockUICss: {
+		cursor: 'default',
+		border: 'none',
+		backgroundColor: 'transparent'
+	},
 	templateCache: new AsyncObjectCache(function(templateName) {
 
 		Promise.resolve($.ajax('templates/' + templateName + '.html?t=' + (new Date().getTime()))).then(function(templateHtml) {
@@ -393,19 +402,12 @@ var Structr = {
 
 			fastRemoveAllChildren(main[0]);
 
-			$.blockUI.defaults.overlayCSS.opacity = .6;
-			$.blockUI.defaults.overlayCSS.cursor = 'intial';
-			$.blockUI.defaults.applyPlatformOpacityRules = false;
 			$.blockUI({
 				fadeIn: 25,
 				fadeOut: 25,
 				message: loginBox,
 				forceInput: true,
-				css: {
-					border: 'none',
-					backgroundColor: 'transparent',
-					cursor: 'initial'
-				}
+				css: Structr.defaultBlockUICss
 			});
 		}
 
@@ -549,23 +551,17 @@ var Structr = {
 			yesButton.off('click');
 			noButton.off('click');
 		});
-		$.blockUI.defaults.overlayCSS.opacity = .6;
-		$.blockUI.defaults.applyPlatformOpacityRules = false;
+
 		$.blockUI({
 			fadeIn: 25,
 			fadeOut: 25,
 			message: $('#confirmation'),
-			css: {
-				border: 'none',
-				backgroundColor: 'transparent'
-			}
+			css: Structr.defaultBlockUICss
 		});
 
 	},
 	restoreDialog: function(dialogData) {
 		_Logger.log(_LogType.INIT, 'restoreDialog', dialogData, dialogBox);
-		$.blockUI.defaults.overlayCSS.opacity = .6;
-		$.blockUI.defaults.applyPlatformOpacityRules = false;
 
 		window.setTimeout(function() {
 
@@ -617,9 +613,6 @@ var Structr = {
 				}
 			});
 
-			$.blockUI.defaults.overlayCSS.opacity = .4;
-			$.blockUI.defaults.applyPlatformOpacityRules = false;
-
 			var dimensions = Structr.getDialogDimensions(24, 24);
 			Structr.blockUI(dimensions);
 
@@ -653,15 +646,12 @@ var Structr = {
 			fadeIn: 25,
 			fadeOut: 25,
 			message: dialogBox,
-			css: {
-				cursor: 'default',
-				border: 'none',
-				backgroundColor: 'transparent',
+			css: Object.assign({
 				width: dimensions.width + 'px',
 				height: dimensions.height + 'px',
 				top: dimensions.top + 'px',
 				left: dimensions.left + 'px'
-			},
+			}, Structr.defaultBlockUICss),
 			themedCSS: {
 				width: dimensions.width + 'px',
 				height: dimensions.height + 'px',
@@ -893,14 +883,10 @@ var Structr = {
 			if (searchField)
 				searchField.focus();
 		});
-		$.blockUI.defaults.overlayCSS.opacity = .6;
-		$.blockUI.defaults.applyPlatformOpacityRules = false;
+
 		$.blockUI({
 			message: $('#tempInfoBox'),
-			css: {
-				border: 'none',
-				backgroundColor: 'transparent'
-			}
+			css: Structr.defaultBlockUICss
 		});
 	},
 	reconnectDialog: function(text) {
@@ -908,14 +894,10 @@ var Structr = {
 			$('#tempErrorBox .errorText').html('<i class="' + _Icons.getFullSpriteClass(_Icons.error_icon) + '" /> ' + text);
 		}
 		$('#tempErrorBox .closeButton').hide();
-		$.blockUI.defaults.overlayCSS.opacity = .6;
-		$.blockUI.defaults.applyPlatformOpacityRules = false;
+
 		$.blockUI({
 			message: $('#tempErrorBox'),
-			css: {
-				border: 'none',
-				backgroundColor: 'transparent'
-			}
+			css: Structr.defaultBlockUICss
 		});
 	},
 	blockMenu: function() {
@@ -1822,17 +1804,13 @@ var Structr = {
 	},
 	blockUiGeneric: function(html, timeout) {
 		Structr.loadingSpinnerTimeout = window.setTimeout(function() {
-			$.blockUI.defaults.overlayCSS.opacity = .2;
-			$.blockUI.defaults.applyPlatformOpacityRules = false;
+
 			$.blockUI({
 				fadeIn: 0,
 				fadeOut: 0,
 				message: html,
 				forceInput: true,
-				css: {
-					border: 'none',
-					backgroundColor: 'transparent'
-				}
+				css: Structr.defaultBlockUICss
 			});
 		}, timeout || 0);
 	},

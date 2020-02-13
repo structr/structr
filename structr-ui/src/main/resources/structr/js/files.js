@@ -920,14 +920,9 @@ var _Files = {
 				$('#tempInfoBox .infoMsg').append(' Unpacking Archive - please stand by...');
 				$('#tempInfoBox .infoMsg').append('<p>Extraction will run in the background.<br>You can safely close this popup and work during this operation.<br>You will be notified when the extraction has finished.</p>');
 
-				$.blockUI.defaults.overlayCSS.opacity = .6;
-				$.blockUI.defaults.applyPlatformOpacityRules = false;
 				$.blockUI({
 					message: $('#tempInfoBox'),
-					css: {
-						border: 'none',
-						backgroundColor: 'transparent'
-					}
+					css: Structr.defaultBlockUICss
 				});
 
 				var closed = false;

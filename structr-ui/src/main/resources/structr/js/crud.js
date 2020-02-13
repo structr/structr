@@ -2563,15 +2563,11 @@ var _Crud = {
 					searchField.focus();
 				});
 			}
-			$.blockUI.defaults.overlayCSS.opacity = .6;
-			$.blockUI.defaults.applyPlatformOpacityRules = false;
-			$.blockUI.defaults.css.cursor = 'default';
 
 			var dimensions = Structr.getDialogDimensions(0, 24);
 			Structr.blockUI(dimensions);
 
 			_Crud.resize();
-
 		}
 	},
 	resize: function() {
