@@ -40,6 +40,11 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "sourceFile, destinationFile";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, Object[] sources) throws FrameworkException {
 
 		try {

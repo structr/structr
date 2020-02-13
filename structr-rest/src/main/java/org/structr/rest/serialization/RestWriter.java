@@ -30,6 +30,8 @@ public interface RestWriter {
 
 	public void setIndent(final String indent);
 	public SecurityContext getSecurityContext();
+	public int getPageSize();
+	public void setPageSize(final int pageSize);
 
 	public RestWriter beginDocument(final String baseUrl, final String propertyView) throws IOException;
 	public RestWriter endDocument() throws IOException;
@@ -53,13 +55,10 @@ public interface RestWriter {
 	default public void increaseSerializationDepth() {
 
 		getSecurityContext().increaseSerializationDepth();
-
 	}
 
 	default public void decreaseSerializationDepth() {
 
 		getSecurityContext().decreaseSerializationDepth();
-
 	}
-
 }

@@ -38,6 +38,11 @@ public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFuncti
 	}
 
 	@Override
+	public String getSignature() {
+		return null;
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		return ctx.getAdvancedMailContainer().getLastOutgoingMessage();

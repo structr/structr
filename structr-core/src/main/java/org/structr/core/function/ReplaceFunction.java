@@ -37,6 +37,11 @@ public class ReplaceFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "template, entity";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -88,6 +93,6 @@ public class ReplaceFunction extends CoreFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Replaces script expressions in the given template with values from the given entity";
 	}
 }

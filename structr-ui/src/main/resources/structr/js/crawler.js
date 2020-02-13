@@ -104,11 +104,11 @@ var _Crawler = {
 				}, 250);
 			});
 		});
-		
+
 		$('#crawler-list-container').append(`<button class="add_page_icon button"><i title="Add Page" class="${_Icons.getFullSpriteClass(_Icons.add_page_icon)}" /> Add Page</button>`);
-		
+
 		$('.add_page_icon', main).on('click', function(e) {
-			
+
 			e.stopPropagation();
 			if (currentSite) {
 				Command.create({ type: 'SourcePage', site: currentSite.id }, function(site) {
@@ -467,7 +467,7 @@ var _Crawler = {
 			_Pager.initPager('crawler-patterns', 'SourcePattern', 1, 25, 'name', 'asc');
 			page['SourcePattern'] = 1;
 			_Pager.initFilters('crawler-patterns', 'SourcePattern', sourcePage.id === 'root' ? {} : { sourcePage: sourcePage.id });
-			
+
 			if (sourcePage.isLoginPage) {
 
 				crawlerList.append(`
@@ -581,7 +581,7 @@ var _Crawler = {
 		$('.pager.pagercrawler-patterns').remove();
 
 		var itemsPager = _Pager.addPager('crawler-patterns', $('.page-header', crawlerList), false, 'SourcePattern', 'ui', function(patterns) {
-			
+
 			if (patterns && patterns.length) {
 				patterns.forEach(_Crawler.appendPatternRow);
 
@@ -675,7 +675,7 @@ var _Crawler = {
 				_Crawler.resize();
 			}
 		});
-		
+
 		itemsPager.cleanupFunction = function () {
 			var toRemove = $('.node.item', itemsPager.el).closest('tr');
 			toRemove.each(function(i, elem) {
@@ -715,7 +715,7 @@ var _Crawler = {
 		tableBody.append('<tr id="' + rowId + '"></tr>');
 
 		d.subPatterns.forEach(function(subPattern) {
-			
+
 			var name = subPattern.name;
 			tableBody.append('<tr id="row' + subPattern.id + '">'
 				+ '<td class="file-type"><a href="javascript:void(0)"><i class="fa fa-code"></i></a></td>'
@@ -807,10 +807,10 @@ var _Crawler = {
 					_Crawler.refreshPatterns(subPattern.parentPattern.sourcePage);
 				});
 			});
-		
+
 			_Entities.setMouseOver(div);
 			_Entities.makeSelectable(div);
-		
+
 		});
 
 		var row = $('#' + rowId);

@@ -324,7 +324,7 @@ img.disabled {
 
 #widgets,
 #remoteWidgets {
-	width: 385px;
+	width: calc(100% - 10px)
 }
 
 #remoteWidgets input:first-of-type  {
@@ -565,7 +565,7 @@ img.disabled {
 }
 
 .ver-scrollable > .node, #widgets > .node, #remoteWidgets > .node {
-	width: 374px;
+	width: calc(100% - 10px);
 }
 
 .slideOutRight {
@@ -882,7 +882,7 @@ ul#previewTabs {
 }
 
 .tab {
-	padding: 8px 0;
+	padding: 0 0 8px 0;
 }
 
 #previewTabs li:active {
@@ -1518,6 +1518,10 @@ button.action.disabled:hover {
 .dialogText label {
 	display: inline-block;
 	min-width: 200px;
+}
+
+.schema-props td.centered {
+	text-align: center;
 }
 
 .schema-props td label {
@@ -2226,6 +2230,15 @@ button.add_property {
 	top: -8px;
 }
 
+.related-attrs td.no-rels {
+	text-align: center;
+	color: grey;
+	font-style: italic;
+	padding-top: 5px;
+	padding-bottom: 6px;
+	font-size: 1.1em;
+}
+
 .schema-props td {
 	white-space: nowrap;
 	padding: 4px;
@@ -2353,7 +2366,7 @@ input.property-name:disabled {
 	box-shadow: 0 0 5px #888;
 }
 
-.schema-props tbody tr:hover {
+.schema-props > tr:hover {
 	background-color: #ffe;
 }
 
@@ -2396,8 +2409,20 @@ input.property-name:disabled {
 	color: #999;
 }
 
-#schema-tools, #sync-schema, #show-snapshots, #schema-display-options, #global-schema-methods, #schema-layout {
+#schema-tools, #sync-schema, #show-snapshots, #schema-display-options, #global-schema-methods {
 	margin: 0 0 4px 12px;
+}
+
+#schema-container #saved-layout-selector-main {
+	margin-right: -2px;
+	margin-left: 10px;
+	padding: 2px 2px 3px 2px;
+	border: 1px solid rgba(0,0,0,.125);
+	color: #222;
+	vertical-align: middle;
+	line-height: 1.3em;
+	height: 25px;
+	margin-top: -2px;
 }
 
 #admin-tools-table td, #layout-tools-table td {
@@ -2577,6 +2602,10 @@ input.property-name:disabled {
 }
 
 #dataBinding .draggable {
+}
+
+#dataBinding #flow-selector {
+	width: 100%;
 }
 
 .data-binding-type {
@@ -2893,6 +2922,10 @@ table.push {
 	width: calc(100% - 14px);
 }
 
+#resourceAccessesTable thead th .pager input {
+	width: initial;
+}
+
 #resourceAccessesTable td img {
 	vertical-align: middle;
 }
@@ -2910,6 +2943,10 @@ table.push {
 	color: #333;
 	vertical-align: top;
 	min-width: 60px;
+}
+
+#resourceAccessesPager {
+	text-align: left;
 }
 
 #securityTabs {
@@ -2975,6 +3012,39 @@ input.bitmask {
 
 #add-resource-access-grant {
 	margin-bottom: 6px;
+}
+
+
+/**
+ * non-blockUI blocker
+ */
+
+#non-block-ui-blocker {
+	z-index: 9998;
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	border: none;
+	margin: 0px;
+	padding: 0px;
+	width: 100%;
+	height: 100%;
+	cursor: wait;
+	background-color: rgb(0, 0, 0);
+	opacity: 0.2;
+}
+
+#non-block-ui-blocker-content {
+	z-index: 9999;
+	position: fixed;
+	width: 30vw;
+	top: 40vh;
+	left: 35vw;
+	background-color: #eee;
+	border: 1px solid #999;
+	text-align: center;
+	padding: 18px;
+	font-size: 11pt;
 }
 
 /*
@@ -3141,6 +3211,13 @@ input.bitmask {
 	padding-top: 10px;
 }
 
+#info-area .message.SCRIPT-QUEUED .text,
+#info-area .message.SCRIPT-BEGIN .text,
+#info-area .message.SCRIPT-END .text {
+	max-height: 200px;
+	overflow: auto;
+}
+
 #info-area .message-buttons {
 	position: absolute;
 	right: 5px;
@@ -3230,14 +3307,13 @@ td#cascading-options, td#propagation-options {
 	cursor: pointer;
 }
 
-
 .CodeMirror-hints {
 	z-index: 10000 !important;
 	font-size: 100%;
 }
 
 .CodeMirror-hint {
-	max-width: 600px;
+	max-width: 800px;
 }
 
 #fruchterman-controlElement {
@@ -3827,8 +3903,16 @@ button.create-form-button.accept {
 	left: 64px;
 }
 
+#folder-contents .img-tile i.edit_props_icon {
+	left: 260px;
+}
+
 #folder-contents .tile i.edit_icon {
 	left: 44px;
+}
+
+#folder-contents .img-tile i.edit_icon {
+	left: 240px;
 }
 
 #folder-contents .tile img.tn {
@@ -3848,6 +3932,10 @@ button.create-form-button.accept {
 
 #folder-contents .tile i.key_icon {
 	left: 84px;
+}
+
+#folder-contents .img-tile i.key_icon {
+	left: 280px;
 }
 
 #folder-contents .tile .minify_file_icon i {
@@ -5067,7 +5155,7 @@ div#xml-configurations button {
  */
 input.refactoring-helper {
 	box-sizing: border-box;
-	width: 25%;
+	width: 33%;
 }
 
 table.refactoring-helper {
@@ -5253,6 +5341,70 @@ table#principals tbody td {
 	font-size: 8pt;
 }
 
+div.row {
+	clear: both;
+}
+
+div.option-tile {
+	float: left;
+	width: calc(50% - 10px);
+	padding-bottom: 10px;
+}
+
+div.option-tile:nth-child(even) {
+	margin-left: 20px;
+}
+
+div.option-tile.double {
+	width: calc(100%);
+}
+
+div.quick-access-options h3 {
+	margin-bottom: 0;
+}
+
+div.quick-access-options p {
+	margin: 0;
+}
+
+div.option-tile select, div.option-tile input[type="text"], div.option-tile select, div.option-tile input[type="password"] {
+	width: 100%;
+	box-sizing: border-box;
+}
+
+div.option-tile select {
+	font-family: "Liberation Mono", "DejaVu Sans Mono", Consolas, Monaco, "Vera Sans Mono", "Lucida Console", "Courier New", Courier, monospace !important;
+}
+
+div.option-tile h4 {
+	margin: 0;
+}
+
+div.option-tile label {
+	color: #000;
+	font-size: 8pt;
+}
+
+button.icon-button {
+	background-color: transparent;
+	padding: 1px 4px 2px 4px;
+}
+
+button.icon-button i {
+	margin: 0;
+}
+
+div#tabView-query div.CodeMirror {
+	height: 120px !important;
+}
+
+div#custom-properties-parent {
+	padding-top: 12px;
+}
+
+div#custom-properties-container table td:nth-child(3) {
+	text-align: right;
+	width: 30px;
 
 /**
  * Database connections dialog

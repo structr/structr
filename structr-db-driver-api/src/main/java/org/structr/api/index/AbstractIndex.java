@@ -34,25 +34,14 @@ public abstract class AbstractIndex<Q extends DatabaseQuery, R extends PropertyC
 	private static final Logger logger = LoggerFactory.getLogger(AbstractIndex.class.getName());
 
 	public abstract Iterable<R> getResult(final Q query);
-	public abstract Q createQuery(final QueryContext context);
+	public abstract Q createQuery(final QueryContext context, final int requestedPageSize, final int requestedPage);
 	public abstract QueryFactory getFactoryForType(final Class type);
 	public abstract TypeConverter getConverterForType(final Class type);
 	public abstract DatabaseService getDatabaseService();
 
 	@Override
-	public Iterable<R> query(final QueryContext context, final QueryPredicate predicate) {
-
-		final Q query = createQuery(context);
-
-		createQuery(predicate, query, true);
-
-		final String sortKey = predicate.getSortKey();
-		if (sortKey != null) {
-
-			query.sort(predicate.getSortType(), sortKey, predicate.sortDescending());
-		}
-
-		return getResult(query);
+	public Iterable<R> query(final QueryContext context, final QueryPredicate predicate, final int requestedPageSize, final int requestedPage) {
+		return getResult(getQuery(context, predicate, requestedPageSize, requestedPage));
 	}
 
 	public boolean createQuery(final QueryPredicate predicate, final Q query, final boolean isFirst) {
@@ -72,5 +61,21 @@ public abstract class AbstractIndex<Q extends DatabaseQuery, R extends PropertyC
 		}
 
 		return false;
+	}
+
+	// ----- private methods -----
+	private Q getQuery(final QueryContext context, final QueryPredicate predicate, final int requestedPageSize, final int requestedPage) {
+
+		final Q query = createQuery(context, requestedPageSize, requestedPage);
+
+		createQuery(predicate, query, true);
+
+		final SortOrder sortOrder = predicate.getSortOrder();
+		if (sortOrder != null) {
+
+			query.sort(sortOrder);
+		}
+
+		return query;
 	}
 }

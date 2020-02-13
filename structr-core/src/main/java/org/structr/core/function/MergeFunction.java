@@ -33,6 +33,11 @@ public class MergeFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "list1, list2, list3...";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final List list = new ArrayList();

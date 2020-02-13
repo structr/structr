@@ -67,9 +67,12 @@ public interface KafkaClient extends MessageClient {
 
 			type.addStringArrayProperty("servers", PropertyView.Public, PropertyView.Ui);
 			type.addStringProperty("groupId", PropertyView.Public, PropertyView.Ui);
+			type.addBooleanProperty("enabled", PropertyView.Public, PropertyView.Ui).setDefaultValue("false");
 
 			type.addPropertyGetter("groupId", String.class);
 			type.addPropertyGetter("subscribers", Iterable.class);
+			type.addPropertyGetter("enabled", Boolean.class);
+
 
 			type.addMethod("setServers")
 					.setReturnType("void")
@@ -123,6 +126,7 @@ public interface KafkaClient extends MessageClient {
 
 	String getGroupId();
 	String[] getServers();
+	Boolean getEnabled();
 	void setServers(String[] servers) throws FrameworkException;
 	Iterable<MessageSubscriber> getSubscribers();
 
@@ -134,7 +138,7 @@ public interface KafkaClient extends MessageClient {
 
 	static void onModification(final KafkaClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		if(modificationQueue.isPropertyModified(thisClient,StructrApp.key(KafkaClient.class,"servers"))) {
+		if(modificationQueue.isPropertyModified(thisClient,StructrApp.key(KafkaClient.class,"servers")) || modificationQueue.isPropertyModified(thisClient,StructrApp.key(KafkaClient.class,"groupId"))) {
 			refreshConfiguration(thisClient);
 		}
 
@@ -296,7 +300,7 @@ public interface KafkaClient extends MessageClient {
 
 			} catch (KafkaException ex) {
 
-				logger.error("Could not setup consumer for KafkaClient " + client.getUuid() + ", triggered by ConsumerWorker Thread. " + ex.getLocalizedMessage());
+				logger.info("Could not setup consumer for KafkaClient " + client.getUuid() + ", triggered by ConsumerWorker Thread. Check for configuration faults. " + ex.getLocalizedMessage());
 				try {Thread.sleep(1000);} catch (InterruptedException iex) {}
 
 			} catch (FrameworkException ex) {
@@ -315,9 +319,7 @@ public interface KafkaClient extends MessageClient {
 					cId = client.getGroupId();
 				}
 
-				return (currentGroupId == null && cId != null) ||
-						(currentGroupId != null && cId == null) ||
-						(!(currentGroupId == null && cId == null) && !currentGroupId.equals(cId));
+				return !currentGroupId.equals(cId);
 
 			} catch (FrameworkException ex) {
 
@@ -330,33 +332,36 @@ public interface KafkaClient extends MessageClient {
 
 			List<String> newTopics = new ArrayList<>();
 
-			try {
-				client.getSubscribers().forEach((MessageSubscriber sub) -> {
-					String topic = sub.getProperty(StructrApp.key(MessageSubscriber.class, "topic"));
-					if (topic != null) {
-						newTopics.add(topic);
-					}
-				});
+			if (this.consumer != null) {
+				try {
+					client.getSubscribers().forEach((MessageSubscriber sub) -> {
+						String topic = sub.getProperty(StructrApp.key(MessageSubscriber.class, "topic"));
+						if (topic != null) {
+							newTopics.add(topic);
+						}
+					});
 
-				if (!forceUpdate && currentlySubscribedTopics != null && !currentlySubscribedTopics.equals(newTopics)) {
-					if (this.consumer.subscription().size() > 0) {
-						this.consumer.unsubscribe();
+					if (!forceUpdate && currentlySubscribedTopics != null && !currentlySubscribedTopics.equals(newTopics)) {
+						if (this.consumer.subscription().size() > 0) {
+							this.consumer.unsubscribe();
+						}
+
+						this.consumer.subscribe(newTopics);
+						this.currentlySubscribedTopics = newTopics;
+					} else if (forceUpdate || currentlySubscribedTopics == null) {
+						if (this.consumer.subscription().size() > 0) {
+							this.consumer.unsubscribe();
+						}
+
+						this.consumer.subscribe(newTopics);
+						this.currentlySubscribedTopics = newTopics;
 					}
 
-					this.consumer.subscribe(newTopics);
-					this.currentlySubscribedTopics = newTopics;
-				} else if (forceUpdate || currentlySubscribedTopics == null) {
-					if (this.consumer.subscription().size() > 0) {
-						this.consumer.unsubscribe();
-					}
-
-					this.consumer.subscribe(newTopics);
-					this.currentlySubscribedTopics = newTopics;
+				} catch (KafkaException ex) {
+					logger.error("Could not update consumer subscriptions for KafkaClient " + client.getUuid() + ", triggered by ConsumerWorker Thread. " + ex.getLocalizedMessage());
 				}
-
-			} catch (KafkaException ex) {
-				logger.error("Could not update consumer subscriptions for KafkaClient " + client.getUuid() + ", triggered by ConsumerWorker Thread. " + ex.getLocalizedMessage());
 			}
+
 
 		}
 
@@ -380,10 +385,11 @@ public interface KafkaClient extends MessageClient {
 				try (final Tx tx = app.tx()) {
 
 					if (this.client == null || Thread.currentThread().isInterrupted()) {
+						running = false;
 						break;
 					}
 
-					if (this.client.getServers() != null && this.client.getServers().length > 0) {
+					if (this.client.getServers() != null && this.client.getServers().length > 0 && this.client.getEnabled()) {
 						if (this.consumer == null) {
 							this.refreshConsumer();
 							this.updateSubscriptions(true);

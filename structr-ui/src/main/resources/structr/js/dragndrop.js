@@ -342,7 +342,7 @@ var _Dragndrop = {
 
 	},
 	htmlElementFromPaletteDropped: function(tag, target, pageId) {
-		var nodeData = _Dragndrop.getAdditionalDataForElementCreation(tag);
+		var nodeData = _Dragndrop.getAdditionalDataForElementCreation(tag, target.tag);
 
 		if (target.type !== 'Template' && (target.isContent || target.type === 'Comment')) {
 			if (tag === 'content' || tag === 'comment') {
@@ -356,18 +356,42 @@ var _Dragndrop = {
 		}
 		return false;
 	},
-	getAdditionalDataForElementCreation:function(tag) {
+	getAdditionalDataForElementCreation:function(tag, parentTag) {
 		var nodeData = {};
-		if (tag === 'a' || tag === 'p'
-				|| tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4' || tag === 'h5' || tag === 'h5' || tag === 'pre' || tag === 'label' || tag === 'option'
-				|| tag === 'li' || tag === 'em' || tag === 'title' || tag === 'b' || tag === 'span' || tag === 'th' || tag === 'td' || tag === 'button' || tag === 'figcaption') {
+
+		let tagsWithAutoContent = ['a', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h5', 'pre', 'label', 'option', 'li', 'em', 'title', 'b', 'span', 'th', 'td', 'button', 'figcaption'];
+
+		if (tagsWithAutoContent.includes(tag)) {
 			if (tag === 'a') {
 				nodeData._html_href = '${link.name}';
 				nodeData.childContent = '${parent.link.name}';
 			} else if (tag === 'title') {
-				nodeData.childContent = '${page.name}';
+				nodeData.childContent = '${capitalize(page.name)}';
 			} else {
 				nodeData.childContent = 'Initial text for ' + tag;
+			}
+		}
+
+		if (parentTag) {
+
+			if (tag === null || tag === 'content') {
+				if (parentTag === 'script') {
+					nodeData.contentType = 'text/javascript';
+					nodeData.content = '// text';
+				} else if (parentTag === 'style') {
+					nodeData.contentType = 'text/css';
+					nodeData.content = '/* text */';
+				}
+			}
+
+			if (tag === 'template') {
+				if (parentTag === 'script') {
+					nodeData.contentType = 'text/javascript';
+					nodeData.content = '// template';
+				} else if (parentTag === 'style') {
+					nodeData.contentType = 'text/css';
+					nodeData.content = '/* template */';
+				}
 			}
 		}
 		return nodeData;

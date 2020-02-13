@@ -42,6 +42,11 @@ public class ExecBinaryFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "outputStream, scriptName [, parameterMap ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -107,7 +112,7 @@ public class ExecBinaryFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Calls the given exported / dynamic method on the given entity";
+		return "Executes a script configured in structr.conf with the given script name and parameters, returning the raw output";
 	}
 
 	private static class ScriptingProcess extends AbstractBinaryProcess<String> {

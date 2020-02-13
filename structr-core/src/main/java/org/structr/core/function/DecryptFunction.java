@@ -34,6 +34,11 @@ public class DecryptFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "value [, secret ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -97,6 +102,6 @@ public class DecryptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Decrypts the given string with a secret key from structr.conf or argument 2";
 	}
 }

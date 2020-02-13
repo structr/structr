@@ -40,6 +40,11 @@ public class RInterpreterFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "code";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -88,6 +93,6 @@ public class RInterpreterFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Executes the given R code using the internal R interpreter";
 	}
 }

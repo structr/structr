@@ -110,8 +110,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	private static final int permissionResolutionMaxLevel                                                     = Settings.ResolutionDepth.getValue();
 	private static final Logger logger                                                                        = LoggerFactory.getLogger(AbstractNode.class.getName());
-	private static final FixedSizeCache<String, Boolean> isGrantedResultCache                                 = new FixedSizeCache<String, Boolean>(100000);
-	private static final FixedSizeCache<String, Object> relationshipTemplateInstanceCache                     = new FixedSizeCache<>(1000);
+	private static final FixedSizeCache<String, Boolean> isGrantedResultCache                                 = new FixedSizeCache<String, Boolean>("Grant result cache", 100000);
+	private static final FixedSizeCache<String, Object> relationshipTemplateInstanceCache                     = new FixedSizeCache<>("Relationship template cache", 1000);
 	private static final Map<String, Map<String, PermissionResolutionResult>> globalPermissionResolutionCache = new HashMap<>();
 
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type, name);

@@ -39,6 +39,11 @@ public class LogEventFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "action, message";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources.length == 1 && sources[0] instanceof Map) {

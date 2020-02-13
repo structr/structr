@@ -193,8 +193,7 @@ var _Entities = {
 
 	},
 	queryDialog: function(entity, el) {
-
-		_Entities.repeaterConfig(entity, el);
+		return _Entities.repeaterConfig(entity, el);
 
 	},
 	repeaterConfig: function(entity, el) {
@@ -206,7 +205,7 @@ var _Entities = {
 			{ title: 'Function Query', propertyName: 'functionQuery' }
 		];
 
-		if (Structr.isModulePresent('api-builder')) {
+		if (Structr.isModulePresent('flows')) {
 			queryTypes.unshift({ title: 'Flow', propertyName: 'flow' });
 		}
 
@@ -321,7 +320,7 @@ var _Entities = {
 			_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-rest');
 		};
 
-		if (Structr.isModulePresent('api-builder') && !flowSelector.length) {
+		if (Structr.isModulePresent('flows') && !flowSelector.length) {
 			flowSelector = $('<select class="hidden" id="flow-selector"></select>').insertBefore(textArea);
 
 			flowSelector.append('<option>--- Select Flow ---</option>');
@@ -389,6 +388,7 @@ var _Entities = {
 				var lineWrapping = LSWrapper.getItem(lineWrappingKey);
 
 				// Intitialize editor
+				CodeMirror.defineMIME("text/html", "htmlmixed-structr");
 				editor = CodeMirror(contentBox.get(0), {
 					value: unescapeTags(innerText),
 					mode: contentType,
@@ -555,95 +555,108 @@ var _Entities = {
 	},
 	showProperties: function(obj, activeViewOverride) {
 
-		var handleGraphObject = function(entity) {
+		let handleGraphObject;
 
-			var views = ['ui', 'custom' ];
-			var activeView = 'ui';
-			var tabTexts = [];
+		_Entities.getSchemaProperties(obj.type, 'custom', function(properties) {
 
-			if (activeViewOverride) {
-				activeView = activeViewOverride;
+			handleGraphObject = function(entity) {
+
+				var views      = ['ui'];
+
+				if (Object.keys(properties).length) {
+					views.push('custom');
+				}
+
+				var activeView = 'ui';
+				var tabTexts   = [];
+
+				if (activeViewOverride) {
+					activeView = activeViewOverride;
+				}
+
+				_Schema.getTypeInfo(entity.type, function(typeInfo) {
+
+
+					var dialogTitle;
+
+					if (entity.hasOwnProperty('relType')) {
+
+						tabTexts.ui = 'Relationship Properties';
+						tabTexts.sourceNode = 'Source Node Properties';
+						tabTexts.targetNode = 'Target Node Properties';
+
+						dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' relationship ' + (entity.name ? entity.name : entity.id);
+
+					} else {
+
+						if (entity.isDOMNode && !entity.isContent) {
+							views.unshift('_html_');
+							if (Structr.isModuleActive(_Pages)) {
+								activeView = '_html_';
+							}
+						}
+
+						tabTexts._html_ = 'HTML Attributes';
+						tabTexts.ui = 'Built-in Properties';
+						tabTexts.custom = 'Custom Properties';
+
+						dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' node ' + (entity.name ? entity.name : entity.id);
+
+					}
+
+					Structr.dialog(dialogTitle, function() { return true; }, function() { return true; }, true);
+
+					var tabsdiv = dialogHead.append('<div id="tabs"></div>');
+					var mainTabs = tabsdiv.append('<ul></ul>');
+					var contentEl = dialog.append('<div></div>');
+
+					// custom dialog tab?
+					var hasCustomDialog = _Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
+
+					if (entity.isDOMNode) {
+
+						if (entity.isContent !== true || entity.type === 'Template') {
+
+							_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', !hasCustomDialog, function(c) {
+								_Entities.queryDialog(entity, c, typeInfo);
+							}, function() { }, function() { });
+						}
+
+						if (entity.isContent !== true) {
+
+							_Entities.appendPropTab(entity, mainTabs, contentEl, 'editBinding', 'Edit Mode Binding', false, function(c) {
+								_Entities.dataBindingDialog(entity, c, typeInfo);
+							});
+
+						}
+
+					}
+
+					_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, typeInfo);
+
+					if (!entity.hasOwnProperty('relType')) {
+						_Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Access Control and Visibility', false, function(c) {
+							_Entities.accessControlDialog(entity, c, typeInfo);
+						});
+					}
+
+					activeView = activeViewOverride || LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id) || activeView;
+					$('#tab-' + activeView).click();
+
+					Structr.resize();
+
+				});
+
+			};
+
+			if (obj.relType) {
+				Command.getRelationship(obj.id, obj.target, null, function(entity) { handleGraphObject(entity); });
+			} else {
+				Command.get(obj.id, null, function(entity) { handleGraphObject(entity); }, 'ui');
 			}
 
-			_Schema.getTypeInfo(entity.type, function(typeInfo) {
-				var dialogTitle;
+		});
 
-				if (entity.hasOwnProperty('relType')) {
-
-					tabTexts.ui = 'Relationship Properties';
-					tabTexts.sourceNode = 'Source Node Properties';
-					tabTexts.targetNode = 'Target Node Properties';
-
-					dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' relationship ' + (entity.name ? entity.name : entity.id);
-
-				} else {
-
-					if (entity.isDOMNode && !entity.isContent) {
-						views.unshift('_html_');
-						if (Structr.isModuleActive(_Pages)) {
-							activeView = '_html_';
-						}
-					}
-
-					tabTexts._html_ = 'HTML Attributes';
-					tabTexts.ui = 'Built-in Properties';
-					tabTexts.custom = 'Custom Properties';
-
-					dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' node ' + (entity.name ? entity.name : entity.id);
-
-				}
-
-				Structr.dialog(dialogTitle, function() { return true; }, function() { return true; });
-
-				var tabsdiv = dialogHead.append('<div id="tabs"></div>');
-				var mainTabs = tabsdiv.append('<ul></ul>');
-				var contentEl = dialog.append('<div></div>');
-
-				// custom dialog tab?
-				var hasCustomDialog = _Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
-
-				if (entity.isDOMNode) {
-
-					if (entity.isContent !== true || entity.type === 'Template') {
-
-						_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', !hasCustomDialog, function(c) {
-							_Entities.queryDialog(entity, c, typeInfo);
-						});
-
-					}
-
-					if (entity.isContent !== true) {
-
-						_Entities.appendPropTab(entity, mainTabs, contentEl, 'editBinding', 'Edit Mode Binding', false, function(c) {
-							_Entities.dataBindingDialog(entity, c, typeInfo);
-						});
-
-					}
-
-				}
-
-				_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, typeInfo);
-
-				if (!entity.hasOwnProperty('relType')) {
-					_Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Access Control and Visibility', false, function(c) {
-						_Entities.accessControlDialog(entity, c, typeInfo);
-					});
-				}
-
-				activeView = activeViewOverride || LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id) || activeView;
-				$('#tab-' + activeView).click();
-
-				Structr.resize();
-
-			});
-
-		};
-
-		if (obj.relType) {
-			Command.getRelationship(obj.id, obj.target, null, function(entity) { handleGraphObject(entity); });
-		} else {
-			Command.get(obj.id, null, function(entity) { handleGraphObject(entity); });
-		}
 	},
 	appendPropTab: function(entity, tabsEl, contentEl, name, label, active, callback, initCallback, showCallback) {
 
@@ -671,9 +684,9 @@ var _Entities = {
 
 				// update entity for show callback
 				if (entity.relType) {
-					Command.getRelationship(entity.id, entity.target, null, function(e) { showCallback(e); });
+					Command.getRelationship(entity.id, entity.target, null, function(e) { showCallback($('#tabView-' + name), e); });
 				} else {
-					Command.get(entity.id, null, function(e) { showCallback(e); });
+					Command.get(entity.id, null, function(e) { showCallback($('#tabView-' + name), e); });
 				}
 			}
 		});
@@ -804,7 +817,7 @@ var _Entities = {
 					});
 
 					if (typeof callback === 'function') {
-						callback();
+						callback(properties);
 					}
 				}
 			});
@@ -1428,6 +1441,9 @@ var _Entities = {
 
 		let val;
 		let cell = input.closest('.value');
+		if (cell.length === 0) {
+			cell = input.closest('.__value');
+		}
 
 		// Array?
 		if (typeInfo[key] && typeInfo[key].isCollection && !typeInfo[key].relatedType) {
@@ -1685,7 +1701,7 @@ var _Entities = {
 					Command.get(id, 'id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', handleGraphObject);
 				}
 			}
-		});
+		}, true);
 
 		_Entities.accessControlDialog(entity, dialogText);
 

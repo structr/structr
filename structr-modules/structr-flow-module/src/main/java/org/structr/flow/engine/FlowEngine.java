@@ -165,7 +165,9 @@ public class FlowEngine {
 		}
 
 		// In case no handler is present at all, print the stack trace and return the intermediate result
-		logger.warn("FlowEngine exception: ",exception);
+		FlowContainer container = current.getFlowContainer();
+		FlowBaseNode currentFlowNode = (FlowBaseNode) current;
+		logger.error((container.getName() != null ? ("[" + container.getProperty(FlowContainer.effectiveName) + "]") : "") + ("([" + currentFlowNode.getType() + "]" + currentFlowNode.getUuid() + ") Exception: "), exception);
 		context.error(new FlowError(exception.getMessage()));
 		return new FlowResult(context);
 	}

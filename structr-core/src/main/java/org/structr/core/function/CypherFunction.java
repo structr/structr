@@ -38,6 +38,11 @@ public class CypherFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "query [, parameterMap ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

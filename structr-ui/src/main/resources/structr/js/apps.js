@@ -105,7 +105,7 @@ var _Apps = {
 								$.unblockUI({ fadeOut: 25 });
 
 								LSWrapper.removeItem(_Schema.hiddenSchemaNodesKey);
-								Structr.saveLocalStorage(function() {
+								LSWrapper.save(function() {
 									form.submit();
 								});
 							}

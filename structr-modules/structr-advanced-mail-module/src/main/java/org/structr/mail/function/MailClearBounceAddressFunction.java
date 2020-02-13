@@ -37,6 +37,11 @@ public class MailClearBounceAddressFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return null;
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		ctx.getAdvancedMailContainer().setBounceAddress(null);
@@ -51,6 +56,6 @@ public class MailClearBounceAddressFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Removes the bounce address from the current mail";
 	}
 }

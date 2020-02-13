@@ -2,7 +2,6 @@
 
 import {FlowNode} from "./FlowNode.js";
 import {FlowSockets} from "../FlowSockets.js";
-import {Persistence} from "../../persistence/Persistence.js";
 
 export class FlowForkJoin extends FlowNode {
 

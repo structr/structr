@@ -52,11 +52,12 @@ import org.structr.api.util.Iterables;
  */
 class SessionTransaction implements org.structr.api.Transaction {
 
-	private static final AtomicLong idSource          = new AtomicLong();
+	private static final AtomicLong ID_SOURCE         = new AtomicLong();
 	private final Set<EntityWrapper> accessedEntities = new HashSet<>();
 	private final Set<EntityWrapper> modifiedEntities = new HashSet<>();
 	private final Set<Long> deletedNodes              = new HashSet<>();
 	private final Set<Long> deletedRels               = new HashSet<>();
+	private final Object transactionKey               = new Object();
 	private BoltDatabaseService db                    = null;
 	private Session session                           = null;
 	private Transaction tx                            = null;
@@ -67,7 +68,7 @@ class SessionTransaction implements org.structr.api.Transaction {
 
 	public SessionTransaction(final BoltDatabaseService db, final Session session) {
 
-		this.transactionId = idSource.getAndIncrement();
+		this.transactionId = ID_SOURCE.getAndIncrement();
 		this.session       = session;
 		this.tx            = session.beginTransaction();
 		this.db            = db;
@@ -94,7 +95,7 @@ class SessionTransaction implements org.structr.api.Transaction {
 
 			for (final EntityWrapper entity : accessedEntities) {
 
-				entity.rollback(transactionId);
+				entity.rollback(transactionKey);
 				entity.removeFromCache();
 			}
 
@@ -108,7 +109,7 @@ class SessionTransaction implements org.structr.api.Transaction {
 			NodeWrapper.expunge(deletedNodes);
 
 			for (final EntityWrapper entity : accessedEntities) {
-				entity.commit(transactionId);
+				entity.commit(transactionKey);
 			}
 
 			for (final EntityWrapper entity : modifiedEntities) {
@@ -123,7 +124,7 @@ class SessionTransaction implements org.structr.api.Transaction {
 		try {
 
 			tx.close();
-			session.close();
+			session.closeAsync();
 
 		} catch (TransientException tex) {
 
@@ -176,8 +177,6 @@ class SessionTransaction implements org.structr.api.Transaction {
 
 	public boolean getBoolean(final String statement, final Map<String, Object> map) {
 
-		final long t0 = System.currentTimeMillis();
-
 		try {
 
 			logQuery(statement, map);
@@ -198,8 +197,6 @@ class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	public long getLong(final String statement) {
-
-		final long t0 = System.currentTimeMillis();
 
 		try {
 
@@ -222,8 +219,6 @@ class SessionTransaction implements org.structr.api.Transaction {
 
 	public long getLong(final String statement, final Map<String, Object> map) {
 
-		final long t0 = System.currentTimeMillis();
-
 		try {
 
 			logQuery(statement, map);
@@ -244,8 +239,6 @@ class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	public Object getObject(final String statement, final Map<String, Object> map) {
-
-		final long t0 = System.currentTimeMillis();
 
 		try {
 
@@ -274,8 +267,6 @@ class SessionTransaction implements org.structr.api.Transaction {
 
 	public Entity getEntity(final String statement, final Map<String, Object> map) {
 
-		final long t0 = System.currentTimeMillis();
-
 		try {
 
 			logQuery(statement, map);
@@ -297,12 +288,14 @@ class SessionTransaction implements org.structr.api.Transaction {
 
 	public Node getNode(final String statement, final Map<String, Object> map) {
 
-		final long t0 = System.currentTimeMillis();
-
 		try {
 
 			logQuery(statement, map);
-			return tx.run(statement, map).next().get(0).asNode();
+
+			final StatementResult result = tx.run(statement, map);
+			final Record single          = result.single();
+
+			return single.get(0).asNode();
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -320,12 +313,14 @@ class SessionTransaction implements org.structr.api.Transaction {
 
 	public Relationship getRelationship(final String statement, final Map<String, Object> map) {
 
-		final long t0 = System.currentTimeMillis();
-
 		try {
 
 			logQuery(statement, map);
-			return tx.run(statement, map).next().get(0).asRelationship();
+
+			final StatementResult result = tx.run(statement, map);
+			final Record single          = result.single();
+
+			return single.get(0).asRelationship();
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -341,78 +336,18 @@ class SessionTransaction implements org.structr.api.Transaction {
 		}
 	}
 
-	public Iterable<Node> getNodes(final String statement, final Map<String, Object> map) {
+	public void collectRecords(final String statement, final Map<String, Object> map, final IterableQueueingRecordConsumer consumer) {
 
-		final long t0 = System.currentTimeMillis();
+		logQuery(statement, map);
 
-		try {
-
-			logQuery(statement, map);
-			return Iterables.map(new RecordNodeMapper(), new IteratorWrapper<>(tx.run(statement, map)));
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
-		}
-	}
-
-	public Iterable<Relationship> getRelationships(final String statement, final Map<String, Object> map) {
-
-		final long t0 = System.currentTimeMillis();
-
-		try {
-
-			logQuery(statement, map);
-			return Iterables.map(new RecordRelationshipMapper(db), new IteratorWrapper<>(tx.run(statement, map)));
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
-		}
-	}
-
-	public Iterable<NodeId> getNodeIds(final String statement, final Map<String, Object> map) {
-
-		final long t0 = System.currentTimeMillis();
-
-		try {
-
-			logQuery(statement, map);
-			return Iterables.map(new RecordNodeIdMapper(), new IteratorWrapper<>(tx.run(statement, map)));
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
-		}
+		tx.runAsync(statement, map)
+			.thenCompose(cursor -> consumer.start(cursor))
+			.thenCompose(cursor -> cursor.forEachAsync(consumer::accept))
+			.thenAccept(summary -> consumer.finish())
+			.exceptionally(t -> consumer.exception(t));
 	}
 
 	public Iterable<String> getStrings(final String statement, final Map<String, Object> map) {
-
-		final long t0 = System.currentTimeMillis();
 
 		try {
 
@@ -439,8 +374,6 @@ class SessionTransaction implements org.structr.api.Transaction {
 
 	public Iterable<Map<String, Object>> run(final String statement, final Map<String, Object> map) {
 
-		final long t0 = System.currentTimeMillis();
-
 		try {
 
 			logQuery(statement, map);
@@ -461,8 +394,6 @@ class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	public void set(final String statement, final Map<String, Object> map) {
-
-		final long t0 = System.currentTimeMillis();
 
 		try {
 
@@ -547,6 +478,11 @@ class SessionTransaction implements org.structr.api.Transaction {
 		return this.transactionId;
 	}
 
+	public Object getTransactionKey() {
+		// we need a simple object that can be used in a weak hash map
+		return transactionKey;
+	}
+
 	// ----- public static methods -----
 	public static RuntimeException translateClientException(final ClientException cex) {
 
@@ -587,36 +523,52 @@ class SessionTransaction implements org.structr.api.Transaction {
 
 		@Override
 		public Iterator<T> iterator() {
+			return new CloseableIterator<>(iterator);
+		}
+	}
 
-			return new Iterator<T>() {
+	public class CloseableIterator<T> implements Iterator<T>, AutoCloseable {
 
-				@Override
-				public boolean hasNext() {
+		private Iterator<T> iterator = null;
 
-					try {
-						return iterator.hasNext();
+		public CloseableIterator(final Iterator<T> iterator) {
+			this.iterator = iterator;
+		}
 
-					} catch (ClientException dex) {
-						throw SessionTransaction.translateClientException(dex);
-					} catch (DatabaseException dex) {
-						throw SessionTransaction.translateDatabaseException(dex);
-					}
-				}
+		@Override
+		public boolean hasNext() {
 
-				@Override
-				public T next() {
+			try {
+				return iterator.hasNext();
 
-					try {
+			} catch (ClientException dex) {
+				throw SessionTransaction.translateClientException(dex);
+			} catch (DatabaseException dex) {
+				throw SessionTransaction.translateDatabaseException(dex);
+			}
+		}
 
-						return iterator.next();
+		@Override
+		public T next() {
 
-					} catch (ClientException dex) {
-						throw SessionTransaction.translateClientException(dex);
-					} catch (DatabaseException dex) {
-						throw SessionTransaction.translateDatabaseException(dex);
-					}
-				}
-			};
+			try {
+
+				return iterator.next();
+
+			} catch (ClientException dex) {
+				throw SessionTransaction.translateClientException(dex);
+			} catch (DatabaseException dex) {
+				throw SessionTransaction.translateDatabaseException(dex);
+			}
+		}
+
+		@Override
+		public void close() throws Exception {
+
+			if (iterator instanceof StatementResult) {
+
+				((StatementResult)iterator).consume();
+			}
 		}
 	}
 }

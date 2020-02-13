@@ -5,14 +5,14 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-test-configuration</artifactId>
-		<version>3.4-SNAPSHOT</version>
+		<version>3.5-SNAPSHOT</version>
 		<relativePath>../structr-test-configuration</relativePath>
 	</parent>
 
 	<groupId>org.structr</groupId>
 	<artifactId>structr-ui</artifactId>
 	<packaging>jar</packaging>
-	<version>3.4-SNAPSHOT</version>
+	<version>3.5-SNAPSHOT</version>
 	<name>Structr UI</name>
 	<description>Structr is an open source framework based on the popular Neo4j graph database.</description>
 	<developers>
@@ -75,6 +75,10 @@
 				<exclusion>
 					<groupId>org.opengis</groupId>
 					<artifactId>geoapi</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.github.jai-imageio</groupId>
+					<artifactId>jai-imageio-core</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -189,6 +193,36 @@
 			<groupId>com.google.zxing</groupId>
 			<artifactId>javase</artifactId>
 			<version>3.3.3</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.github.jai-imageio</groupId>
+					<artifactId>jai-imageio-core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<scope>test</scope>
+			<version>2.44.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.opera</groupId>
+			<artifactId>operadriver</artifactId>
+			<scope>test</scope>
+			<version>1.5</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.seleniumhq.selenium</groupId>
+					<artifactId>selenium-remote-driver</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+			<version>4.11</version>
 		</dependency>
 	</dependencies>
 	<build>

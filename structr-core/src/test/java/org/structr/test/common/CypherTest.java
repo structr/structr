@@ -759,8 +759,18 @@ public class CypherTest extends StructrTest {
 			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN { n: n, r: r }",                   "[{\"n\":\"Project\",\"r\":\"has\"},{\"n\":\"Project\",\"r\":\"has\"}]");
 			tests.put("MATCH (true) RETURN { a: 1, b: 2, c: 3 } LIMIT 1",                                                                             "[{\"a\":1,\"b\":2,\"c\":3}]");
 
-			try (final Tx tx = app.tx()) {
+			tests.put("MATCH (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN n",                                       "[\"Project\",\"Project\"]");
+			tests.put("MATCH (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN r",                                       "[\"has\",\"has\"]");
+			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN path",                             "[[\"Project\",\"has\",\"Task\"],[\"Project\",\"has\",\"Task\"]]");
+			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN nodes(path)",                      "[[\"Project\",\"Task\"],[\"Project\",\"Task\"]]");
+			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN nodes(path), relationships(path)", "[[[\"Project\",\"Task\"],[\"has\"]],[[\"Project\",\"Task\"],[\"has\"]]]");
+			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN n, r, m",                          "[[\"Project\",\"has\",\"Task\"],[\"Project\",\"has\",\"Task\"]]");
+			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN n, m",                             "[[\"Project\",\"Task\"],[\"Project\",\"Task\"]]");
+			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN { n: n, r: r }",                   "[{\"n\":\"Project\",\"r\":\"has\"},{\"n\":\"Project\",\"r\":\"has\"}]");
+			tests.put("MATCH (true) RETURN { a: 1, b: 2, c: 3 } LIMIT 1",                                                                             "[{\"a\":1,\"b\":2,\"c\":3}]");
 
+			try (final Tx tx = app.tx()) {
+				
 				for (final Entry<String, String> test : tests.entrySet()) {
 
 					final String query = test.getKey();

@@ -28,11 +28,16 @@ import org.structr.schema.action.ActionContext;
 public class ParseNumberFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_PARSE_NUMBER    = "Usage: ${parse_number(value, locale)}. Example: ${parse_number('12345.6789', 'en')}";
-	public static final String ERROR_MESSAGE_PARSE_NUMBER_JS = "Usage: ${{Structr.parseNumber(value, pattern)}}. Example: ${{Structr.parseNumber('12345.6789', 'en')}}";
+	public static final String ERROR_MESSAGE_PARSE_NUMBER_JS = "Usage: ${{Structr.parseNumber(value, locale)}}. Example: ${{Structr.parseNumber('12345.6789', 'en')}}";
 
 	@Override
 	public String getName() {
 		return "parse_number";
+	}
+
+	@Override
+	public String getSignature() {
+		return "number [, locale ]";
 	}
 
 	@Override
@@ -45,7 +50,7 @@ public class ParseNumberFunction extends CoreFunction {
 
 		try {
 
-			final String numberString = sources[0].toString().replaceAll("[^\\d.,]", "");;
+			final String numberString = sources[0].toString().replaceAll("[^\\d.,-]", "");
 
 			if (StringUtils.isBlank(numberString)) {
 				return "";
@@ -89,6 +94,6 @@ public class ParseNumberFunction extends CoreFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Parses the given string using the given (optional) locale and format string";
+		return "Parses the given string using the given (optional) locale";
 	}
 }

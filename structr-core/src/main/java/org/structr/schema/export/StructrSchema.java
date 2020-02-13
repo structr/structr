@@ -91,7 +91,7 @@ public class StructrSchema {
 	 *
 	 * @throws InvalidSchemaException
 	 */
-	public static JsonSchema createFromSource(final String source) {
+	public static JsonSchema createFromSource(final String source) throws InvalidSchemaException, URISyntaxException, FrameworkException {
 		return StructrSchema.createFromSource(new StringReader(source));
 	}
 
@@ -104,7 +104,7 @@ public class StructrSchema {
 	 *
 	 * @throws InvalidSchemaException
 	 */
-	public static JsonSchema createFromSource(final Reader reader) {
+	public static JsonSchema createFromSource(final Reader reader) throws InvalidSchemaException, URISyntaxException, FrameworkException {
 
 		final Gson gson                      = new GsonBuilder().create();
 		final Map<String, Object> rawData    = gson.fromJson(reader, Map.class);
@@ -118,7 +118,7 @@ public class StructrSchema {
 	 * @return
 	 *
 	 */
-	public static JsonSchema createEmptySchema() {
+	public static JsonSchema createEmptySchema() throws InvalidSchemaException, URISyntaxException, FrameworkException {
 		return StructrSchema.createFromSource(JsonSchema.EMPTY_SCHEMA);
 	}
 

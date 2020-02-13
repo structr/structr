@@ -26,11 +26,10 @@ var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialog
 var dialogId;
 var pagerType = {}, page = {}, pageSize = {}, sortKey = {}, sortOrder = {}, pagerFilters = {};
 var dialogMaximizedKey = 'structrDialogMaximized_' + port;
+var dontMaximize = false;
 var expandedIdsKey = 'structrTreeExpandedIds_' + port;
 var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
 var pagerDataKey = 'structrPagerData_' + port + '_';
-var autoRefreshDisabledKey = 'structrAutoRefreshDisabled_' + port;
-var detailsObjectIdKey = 'structrDetailsObjectId_' + port;
 var dialogDataKey = 'structrDialogData_' + port;
 var dialogHtmlKey = 'structrDialogHtml_' + port;
 var scrollInfoKey = 'structrScrollInfoKey_' + port;
@@ -212,20 +211,20 @@ $(function() {
 				}
 			}
 		}
-        // Ctrl-Alt-g
-        if (k === 71 && altKey && ctrlKey) {
-            e.preventDefault();
-            var uuid = prompt('Enter the UUID for which you want to open the access control dialog');
-            if (uuid) {
-                if (uuid.length === 32) {
-                    Command.get(uuid, null, function(obj) {
-                        _Entities.showAccessControlDialog(obj);
-                    });
-                } else {
-                    alert('That does not look like a UUID! length != 32');
-                }
-            }
-        }
+		// Ctrl-Alt-g
+		if (k === 71 && altKey && ctrlKey) {
+		    e.preventDefault();
+		    var uuid = prompt('Enter the UUID for which you want to open the access control dialog');
+		    if (uuid) {
+			if (uuid.length === 32) {
+			    Command.get(uuid, null, function(obj) {
+				_Entities.showAccessControlDialog(obj);
+			    });
+			} else {
+			    alert('That does not look like a UUID! length != 32');
+			}
+		    }
+		}
 		// Ctrl-Alt-h
 		if (k === 72 && altKey && ctrlKey) {
 			e.preventDefault();
@@ -234,9 +233,9 @@ $(function() {
 			}
 		}
 		// Ctrl-Alt-s
-		if (k === 83 && altKey && ctrlKey) {
+		if (k === 69 && altKey && ctrlKey) {
 			e.preventDefault();
-			Structr.dialog('Refactoring helper');
+			Structr.dialog('Bulk Editing Helper (Ctrl-Alt-E)');
 			new RefactoringHelper(dialog).show();
 		}
 
@@ -284,7 +283,7 @@ var Structr = {
 	loadingSpinnerTimeout: undefined,
 	templateCache: new AsyncObjectCache(function(templateName) {
 
-		Promise.resolve($.ajax('templates/' + templateName + '.html')).then(function(templateHtml) {
+		Promise.resolve($.ajax('templates/' + templateName + '.html?t=' + (new Date().getTime()))).then(function(templateHtml) {
 			Structr.templateCache.addObject(templateHtml, templateName);
 		}).catch(function(e) {
 			console.log(e.statusText, templateName, e);
@@ -464,7 +463,7 @@ var Structr = {
 	doLogout: function(text) {
 		_Favorites.logoutAction();
 		_Console.logoutAction();
-		Structr.saveLocalStorage();
+		LSWrapper.save();
 		if (Command.logout(user)) {
 			Cookies.remove('JSESSIONID');
 			sessionId.length = 0;
@@ -488,7 +487,7 @@ var Structr = {
 	},
 	loadInitialModule: function(isLogin, callback) {
 
-		Structr.restoreLocalStorage(function() {
+		LSWrapper.restore(function() {
 
 			Structr.expanded = JSON.parse(LSWrapper.getItem(expandedIdsKey));
 			_Logger.log(_LogType.INIT, '######## Expanded IDs after reload ##########', Structr.expanded);
@@ -561,18 +560,6 @@ var Structr = {
 		});
 
 	},
-	saveLocalStorage: function(callback) {
-		_Logger.log(_LogType.INIT, "Saving localstorage");
-		Command.saveLocalStorage(callback);
-	},
-	restoreLocalStorage: function(callback) {
-		if (!LSWrapper.isLoaded()) {
-			_Logger.log(_LogType.INIT, "Restoring localstorage");
-			Command.getLocalStorage(callback);
-		} else {
-			callback();
-		}
-	},
 	restoreDialog: function(dialogData) {
 		_Logger.log(_LogType.INIT, 'restoreDialog', dialogData, dialogBox);
 		$.blockUI.defaults.overlayCSS.opacity = .6;
@@ -586,7 +573,9 @@ var Structr = {
 		}, 1000);
 
 	},
-	dialog: function(text, callbackOk, callbackCancel) {
+	dialog: function(text, callbackOk, callbackCancel, preventMaximize) {
+
+		dontMaximize = preventMaximize || false;
 
 		if (browser) {
 
@@ -737,7 +726,7 @@ var Structr = {
 
 		isMax = LSWrapper.getItem(dialogMaximizedKey);
 
-		if (isMax) {
+		if (isMax && !dontMaximize) {
 			Structr.maximize();
 		} else {
 
@@ -761,7 +750,9 @@ var Structr = {
 	maximize: function() {
 
 		// Calculate dimensions of dialog
-		Structr.setSize($(window).width(), $(window).height(), $(window).width() - 24, $(window).height() - 24);
+		if ($('.blockPage').length && !loginBox.is(':visible')) {
+			Structr.setSize($(window).width(), $(window).height(), $(window).width() - 24, $(window).height() - 24);
+		}
 
 		isMax = true;
 		$('#maximizeDialog').hide();
@@ -1105,53 +1096,55 @@ var Structr = {
 
 		});
 	},
-	openSlideOut: function(slideout, tab, activeTabKey, callback) {
+	openSlideOut: function(triggerEl, slideoutElement, activeTabKey, callback) {
 
 		var storedRightSlideoutWidth = LSWrapper.getItem(_Pages.rightSlideoutWidthKey);
-		var rsw = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (slideout.width() + 12);
+		var rsw = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (slideoutElement.width() + 12);
 
-		slideout.css({
-			width: rsw - 12 + 'px'
-		});
-
-		slideout.addClass('open');
-		var t = $(tab);
+		var t = $(triggerEl);
 		t.addClass('active');
-		slideout.animate({right: 0 + 'px'}, {duration: 100}).zIndex(1);
-
-		$('.node', slideout).width(rsw - 25);
-
+		var slideoutWidth = rsw + 12;
 		LSWrapper.setItem(activeTabKey, t.prop('id'));
-		if (callback) {
-			callback();
-		}
-		_Pages.resize(0, rsw);
-	},
-	closeSlideOuts: function(slideouts, activeTabKey) {
-		var storedRightSlideoutWidth = LSWrapper.getItem(_Pages.rightSlideoutWidthKey);
-		var rsw = 0;
+		slideoutElement.width(rsw);
+		slideoutElement.animate({right: 0 + 'px'}, 100, function() {
+			if (typeof callback === 'function') {
+				callback({sw: slideoutWidth, isOpenAction: true});
+			}
+		}).zIndex(1);
+		slideoutElement.addClass('open');
 
-		var wasOpen = false;
-		slideouts.forEach(function(slideout) {
-			slideout.removeClass('open');
-			var l = slideout.position().left;
-			if (Math.abs(l - $(window).width()) >= 3) {
-				wasOpen = true;
-				rsw = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (slideout.width() + 12);
-				slideout.animate({right: '-=' + rsw + 'px'}, {duration: 100}).zIndex(2);
-				$('.compTab.active', slideout).removeClass('active');
+		t.draggable({
+			axis: 'x',
+			start: function(e, ui) {
+				t.addClass('noclick');
+			},
+			drag: function(e, ui) {
+				var w = $(window).width() - ui.offset.left - 20;
+				slideoutElement.css({
+					width: w + 'px'
+				});
+				ui.position.top += (ui.helper.width() / 2 - 6);
+				ui.position.left = - t.width() / 2 - 20;
+				var oldRightSlideoutWidth = slideoutWidth;
+				slideoutWidth = w + 12;
 
-				var openSlideoutCallback = slideout.data('closeCallback');
-				if (typeof openSlideoutCallback === "function") {
-					openSlideoutCallback();
+				if (typeof callback === 'function') {
+					LSWrapper.setItem(_Pages.rightSlideoutWidthKey, slideoutElement.width());
+					callback({sw: (slideoutWidth - oldRightSlideoutWidth)});
 				}
+			},
+			stop: function(e, ui) {
+				// remove noclick class after 200ms in case the mouseup event is not triggered while over the element (which leads to noclick remaining)
+				window.setTimeout(function() {
+					t.removeClass('noclick');
+				}, 200);
+				LSWrapper.setItem(_Pages.rightSlideoutWidthKey, slideoutElement.width());
+				t.css({
+					left: "",
+					top: ""
+				});
 			}
 		});
-		if (wasOpen) {
-			_Pages.resize(0, -rsw);
-		}
-
-		LSWrapper.removeItem(activeTabKey);
 	},
 	openLeftSlideOut: function(triggerEl, slideoutElement, activeTabKey, callback) {
 		var storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.leftSlideoutWidthKey);
@@ -1164,10 +1157,11 @@ var Structr = {
 		slideoutElement.width(psw);
 		slideoutElement.animate({left: 0 + 'px'}, 100, function() {
 			if (typeof callback === 'function') {
-				callback({sw: slideoutWidth});
+				callback({sw: slideoutWidth, isOpenAction: true});
 			}
 		}).zIndex(1);
 		slideoutElement.addClass('open');
+
 		t.draggable({
 			axis: 'x',
 			start: function(e, ui) {
@@ -1182,7 +1176,6 @@ var Structr = {
 				ui.position.left -= (ui.helper.width() / 2 - 6);
 				var oldLeftSlideoutWidth = slideoutWidth;
 				slideoutWidth = w + 12;
-				$('.node.page', slideoutElement).width(w - 25);
 
 				if (typeof callback === 'function') {
 					LSWrapper.setItem(_Pages.leftSlideoutWidthKey, slideoutElement.width());
@@ -1190,6 +1183,10 @@ var Structr = {
 				}
 			},
 			stop: function(e, ui) {
+				// remove noclick class after 200ms in case the mouseup event is not triggered while over the element (which leads to noclick remaining)
+				window.setTimeout(function() {
+					t.removeClass('noclick');
+				}, 200);
 				LSWrapper.setItem(_Pages.leftSlideoutWidthKey, slideoutElement.width());
 				t.css({
 					left: "",
@@ -1198,25 +1195,55 @@ var Structr = {
 			}
 		});
 	},
+	closeSlideOuts: function(slideouts, activeTabKey, callback) {
+		var wasOpen = false;
+		var rsw = 0;
+
+		slideouts.forEach(function(slideout) {
+			slideout.removeClass('open');
+			var left = slideout.position().left;
+			var sw = slideout.width() + 12;
+
+			if (Math.abs($(window).width() - left) >= 3) {
+				wasOpen = true;
+				rsw = sw;
+				slideout.animate({right: '-=' + sw + 'px'}, 100, function() {
+					if (typeof callback === 'function') {
+						callback(wasOpen, 0, -rsw);
+					}
+				}).zIndex(2);
+				$('.compTab.active', slideout).removeClass('active').draggable("destroy");
+
+				var openSlideoutCallback = slideout.data('closeCallback');
+				if (typeof openSlideoutCallback === "function") {
+					openSlideoutCallback();
+				}
+			}
+		});
+
+		LSWrapper.removeItem(activeTabKey);
+	},
 	closeLeftSlideOuts: function(slideouts, activeTabKey, callback) {
 		var wasOpen = false;
 		var osw;
-		slideouts.forEach(function(w) {
-			var s = $(w);
-			s.removeClass('open');
-			var l = s.position().left;
-			var sw = s.width() + 12;
-			if (Math.abs(l) <= 3) {
+
+		slideouts.forEach(function(slideout) {
+			slideout.removeClass('open');
+			var left = slideout.position().left;
+			var sw = slideout.width() + 12;
+
+			if (Math.abs(left) <= 3) {
 				wasOpen = true;
 				osw = sw;
-				s.animate({left: - sw -1 + 'px'}, 100, function() {
+				slideout.animate({left: - sw -1 + 'px'}, 100, function() {
 					if (typeof callback === 'function') {
 						callback(wasOpen, -osw, 0);
 					}
 				}).zIndex(2);
-				$('.compTab.active', s).removeClass('active').draggable("destroy");
+				$('.compTab.active', slideout).removeClass('active').draggable("destroy");
 			}
 		});
+
 		LSWrapper.removeItem(activeTabKey);
 	},
 	updateVersionInfo: function() {
@@ -1234,7 +1261,7 @@ var Structr = {
 					var version = ui.version;
 					var build = ui.build;
 					var date = ui.date;
-					var versionLink = 'https://structr.org/download';
+					var versionLink = 'https://structr.com/download';
 					var versionInfo = '<a target="_blank" href="' + versionLink + '">' + version + '</a>';
 					if (build && date) {
 						versionInfo += '<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a><span> (' + date + ')</span>';
@@ -1516,6 +1543,8 @@ var Structr = {
 	},
 	handleGenericMessage: function(data) {
 
+		let showScheduledJobsNotifications = Importer.isShowNotifications();
+
 		switch (data.type) {
 
 			case "CSV_IMPORT_STATUS":
@@ -1576,7 +1605,7 @@ var Structr = {
 					RESUMED: 'The import of <b>' + data.filename + '</b> has been resumed'
 				};
 
-				if (me.username === data.username) {
+				if (showScheduledJobsNotifications && me.username === data.username) {
 
 					var msg = new MessageBuilder()
 							.title(data.jobtype + ' ' + fileImportTitles[data.subtype])
@@ -1589,16 +1618,16 @@ var Structr = {
 					}
 
 					msg.show();
+				}
 
-					if (Structr.isModuleActive(Importer)) {
-						Importer.updateJobTable();
-					}
+				if (Structr.isModuleActive(Importer)) {
+					Importer.updateJobTable();
 				}
 				break;
 
 			case "FILE_IMPORT_EXCEPTION":
 
-				if (me.username === data.username) {
+				if (showScheduledJobsNotifications && me.username === data.username) {
 
 					var text = data.message;
 					if (data.message !== data.stringvalue) {
@@ -1611,10 +1640,10 @@ var Structr = {
 							.requiresConfirmation()
 							.allowConfirmAll()
 							.show();
+				}
 
-					if (Structr.isModuleActive(Importer)) {
-						Importer.updateJobTable();
-					}
+				if (Structr.isModuleActive(Importer)) {
+					Importer.updateJobTable();
 				}
 				break;
 
@@ -1627,27 +1656,27 @@ var Structr = {
 				};
 				var scriptJobTexts = {
 					QUEUED: 'Script job #' + data.jobId + ' will begin after currently running/queued job(s)',
-					BEGIN: 'Started script job #' + data.jobId + ((data.jobName.length === 0) ? '' : '<br>' + data.jobName),
-					END: 'Finished script job #' + data.jobId + ((data.jobName.length === 0) ? '' : '<br>' + data.jobName)
+					BEGIN: 'Started script job #' + data.jobId + ((data.jobName.length === 0) ? '' : ' (' + data.jobName + ')'),
+					END: 'Finished script job #' + data.jobId + ((data.jobName.length === 0) ? '' : ' (' + data.jobName + ')')
 				};
 
-				if (me.username === data.username) {
+				if (showScheduledJobsNotifications && me.username === data.username) {
 
-					var msg = new MessageBuilder()
+					let msg = new MessageBuilder()
 							.title(scriptJobTitles[data.subtype])
 							.className((data.subtype === 'END') ? 'success' : 'info')
-							.text(scriptJobTexts[data.subtype])
-							.uniqueClass(data.jobtype + '-status-' + data.jobId);
+							.text('<div>' + scriptJobTexts[data.subtype] + '</div>')
+							.uniqueClass(data.jobtype + '-' + data.subtype).appendsText();
 
 					if (data.subtype !== 'QUEUED') {
-						msg.updatesText().requiresConfirmation().allowConfirmAll();
+						msg.requiresConfirmation().allowConfirmAll();
 					}
 
 					msg.show();
+				}
 
-					if (Structr.isModuleActive(Importer)) {
-						Importer.updateJobTable();
-					}
+				if (Structr.isModuleActive(Importer)) {
+					Importer.updateJobTable();
 				}
 				break;
 
@@ -1832,6 +1861,26 @@ var Structr = {
 	},
 	hideLoadingMessage: function() {
 		Structr.unblockUiGeneric();
+	},
+
+	nonBlockUIBlockerId: 'non-block-ui-blocker',
+	nonBlockUIBlockerContentId: 'non-block-ui-blocker-content',
+	showNonBlockUILoadingMessage: function(title, text) {
+
+		var messageTitle = title || 'Executing Task';
+		var messageText  = text || 'Please wait until the operation has finished...';
+
+		let pageBlockerDiv = $('<div id="' + Structr.nonBlockUIBlockerId +'"></div>');
+
+		let messageDiv = $('<div id="' + Structr.nonBlockUIBlockerContentId +'"></div>');
+		messageDiv.html('<img src="' + _Icons.getSpinnerImageAsData() + '"> <b>' + messageTitle + '</b><br><br>' + messageText);
+
+		$('body').append(pageBlockerDiv);
+		$('body').append(messageDiv);
+	},
+	hideNonBlockUILoadingMessage: function() {
+		$('#' + Structr.nonBlockUIBlockerId).remove();
+		$('#' + Structr.nonBlockUIBlockerContentId).remove();
 	}
 };
 
@@ -2203,6 +2252,6 @@ $(window).on('beforeunload', function(event) {
 		_Logger.log(_LogType.INIT, '########################################### unload #####################################################');
 		// Remove dialog data in case of page reload
 		LSWrapper.removeItem(dialogDataKey);
-		Structr.saveLocalStorage();
+		LSWrapper.save();
 	}
 });

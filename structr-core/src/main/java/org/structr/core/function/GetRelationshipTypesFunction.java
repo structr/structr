@@ -44,6 +44,11 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "node, lookupType [, direction ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final Set<String> resultSet = new HashSet();

@@ -35,6 +35,11 @@ public class PrintFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "objects...";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources != null) {
@@ -60,7 +65,7 @@ public class PrintFunction extends CoreFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Prints the given string to the output buffer";
+		return "Prints the given strings or objects to the output buffer";
 	}
 
 }

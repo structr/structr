@@ -31,6 +31,7 @@ import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.StructrServices;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -106,7 +107,12 @@ public class CronService extends Thread implements RunnableService {
 							}
 						}
 
+					} catch (FrameworkException fex) {
+
+						logger.warn("Exception while executing cron task {}: {}", taskClassName, fex.toString());
+
 					} catch (Throwable t) {
+
 						logger.warn("Exception while executing cron task {}: {}", taskClassName, t.getMessage());
 					}
 				}

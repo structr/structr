@@ -382,7 +382,6 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		// configure security context for maximum performance
 		securityContext.disableEnsureCardinality();
 		securityContext.disableModificationOfAccessTime();
-		securityContext.ignoreResultCount(true);
 
 		final List<File> files  = Arrays.asList(path.toFile().listFiles());
 		final Iterator<File> it = files.iterator();

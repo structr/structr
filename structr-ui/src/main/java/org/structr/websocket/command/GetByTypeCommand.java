@@ -90,7 +90,7 @@ public class GetByTypeCommand extends AbstractCommand {
 				final PropertyKey sortProperty = StructrApp.key(type, sortKey);
 				if (sortProperty != null) {
 
-					query.sort(sortProperty).order("desc".equals(sortOrder));
+					query.sort(sortProperty, "desc".equals(sortOrder));
 				}
 			}
 
@@ -104,7 +104,7 @@ public class GetByTypeCommand extends AbstractCommand {
 			final List<GraphObject> list = Iterables.toList(result);
 
 			// save raw result count
-			int resultCountBeforePaging = result.calculateTotalResultCount();
+			int resultCountBeforePaging = result.calculateTotalResultCount(null, securityContext.getSoftLimit(pageSize));
 
 			// set full result list
 			webSocketData.setResult(list);

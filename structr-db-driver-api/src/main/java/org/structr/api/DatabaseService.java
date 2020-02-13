@@ -83,7 +83,8 @@ public interface DatabaseService {
 	// ----- index -----
 	Index<Node> nodeIndex();
 	Index<Relationship> relationshipIndex();
-	void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfig, final Map<String, Map<String, Boolean>> removedClasses);
+	void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfig, final Map<String, Map<String, Boolean>> removedClasses, final boolean createOnly);
+	boolean isIndexUpdateFinished();
 
 	// utils
 	CountResult getNodeAndRelationshipCount();

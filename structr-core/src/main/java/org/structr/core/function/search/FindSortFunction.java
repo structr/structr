@@ -67,4 +67,14 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 	public String shortDescription() {
 		return "Returns a query predicate that can be used with find() or search().";
 	}
+
+	@Override
+	public boolean isHidden() {
+		return true;
+	}
+
+	@Override
+	public String getSignature() {
+		return null;
+	}
 }

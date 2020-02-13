@@ -40,6 +40,11 @@ public class FromCsvFunction extends CsvFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "source [, d, qc, rs, h ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		try {

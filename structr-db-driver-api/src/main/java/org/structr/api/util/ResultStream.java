@@ -22,29 +22,38 @@ package org.structr.api.util;
  * The result stream of a query operation.
  */
 
-public interface ResultStream<T> extends Iterable<T> {
+public interface ResultStream<T> extends Iterable<T>, AutoCloseable {
 
 	/**
 	 * Calculates and returns the total number of results
 	 * in this result stream. Note that calling this method
 	 * causes the full result to be pulled into memory.
 	 *
+	 * @param progressConsumer optional consumer to allow progress notifications
+	 * @param softLimit limit after which calculation is stopped
+	 *
 	 * @return the total number of results in this result stream
 	 */
-	int calculateTotalResultCount();
+	int calculateTotalResultCount(final ProgressWatcher progressConsumer, final int softLimit);
 
 	/**
 	 * Calculates and returns the total number of result pages
 	 * in this result stream. Note that calling this method
 	 * causes the full result to be pulled into memory.
 	 *
+	 * @param progressConsumer optional consumer to allow progress notifications
+	 * @param softLimit limit after which calculation is stopped
+	 *
 	 * @return the total number of result pages in this result stream
 	 */
-	int calculatePageCount();
+	int calculatePageCount(final ProgressWatcher progressConsumer, final int softLimit);
 
 	int getPageSize();
 	int getPage();
 
 	void setQueryTime(final String formattedTime);
 	String getQueryTime();
+
+	@Override
+	public void close(); // hide the exception to make closing easier
 }

@@ -62,10 +62,11 @@ public class StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrTest.class.getName());
 
-	protected static SecurityContext securityContext   = null;
-	protected static String basePath                   = null;
-	protected static App app                           = null;
-	protected static String randomTenantId             = RandomStringUtils.randomAlphabetic(10).toUpperCase();
+	protected static SecurityContext securityContext = null;
+	protected static String basePath                 = null;
+	protected static App app                         = null;
+	protected static String randomTenantId           = RandomStringUtils.randomAlphabetic(10).toUpperCase();
+	private boolean first                            = true;
 
 	@BeforeMethod
 	protected void starting(Method method) {
@@ -83,34 +84,39 @@ public class StructrTest {
 		System.out.println("######################################################################################");
 	}
 
-	@AfterMethod
+	@BeforeMethod
 	public void cleanDatabaseAndSchema() {
 
-		try (final Tx tx = app.tx()) {
+		if (!first) {
 
-			// delete everything
-			Services.getInstance().getDatabaseService().cleanDatabase();
+			try (final Tx tx = app.tx()) {
 
-			FlushCachesCommand.flushAll();
+				// delete everything
+				Services.getInstance().getDatabaseService().cleanDatabase();
 
-			tx.success();
+				FlushCachesCommand.flushAll();
 
-		} catch (Throwable t) {
+				tx.success();
 
-			t.printStackTrace();
-			logger.error("Exception while trying to clean database: {}", t.getMessage());
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				logger.error("Exception while trying to clean database: {}", t.getMessage());
+			}
+
+
+			try {
+
+				SchemaService.ensureBuiltinTypesExist(app);
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				logger.error("Exception while trying to clean database: {}", t.getMessage());
+			}
 		}
 
-
-		try {
-
-			SchemaService.ensureBuiltinTypesExist(app);
-
-		} catch (Throwable t) {
-
-			t.printStackTrace();
-			logger.error("Exception while trying to clean database: {}", t.getMessage());
-		}
+		first = false;
 	}
 
 	@BeforeClass(alwaysRun = true)

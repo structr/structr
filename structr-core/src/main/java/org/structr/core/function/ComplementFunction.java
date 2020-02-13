@@ -34,6 +34,11 @@ public class ComplementFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "list1, list2, list3, ...";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		// it should be a list so we can use it in a repeater!
@@ -84,7 +89,7 @@ public class ComplementFunction extends CoreFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Returns the complement of all lists";
 	}
 
 }

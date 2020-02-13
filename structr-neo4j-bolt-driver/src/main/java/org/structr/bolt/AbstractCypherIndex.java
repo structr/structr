@@ -68,7 +68,7 @@ abstract class AbstractCypherIndex<T extends PropertyContainer> extends Abstract
 	private final Map<Class, QueryFactory> factories   = new HashMap<>();
 	protected BoltDatabaseService db                   = null;
 
-	public abstract String getQueryPrefix(final String mainType, final String sourceTypeLabel, final String targetTypeLabel);
+	public abstract String getQueryPrefix(final String mainType, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates);
 	public abstract String getQuerySuffix(final AdvancedCypherQuery query);
 
 	public AbstractCypherIndex(final BoltDatabaseService db) {
@@ -79,8 +79,8 @@ abstract class AbstractCypherIndex<T extends PropertyContainer> extends Abstract
 	}
 
 	@Override
-	public AdvancedCypherQuery createQuery(final QueryContext context) {
-		return new AdvancedCypherQuery(context, this);
+	public AdvancedCypherQuery createQuery(final QueryContext context, final int requestedPageSize, final int requestedPage) {
+		return new AdvancedCypherQuery(context, this, requestedPageSize, requestedPage);
 	}
 
 	@Override
@@ -98,7 +98,6 @@ abstract class AbstractCypherIndex<T extends PropertyContainer> extends Abstract
 		return db;
 	}
 
-	@Override
 	public boolean supports(final Class type) {
 		return INDEXABLE.contains(type);
 	}

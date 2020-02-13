@@ -37,6 +37,11 @@ public class LogFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "str";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -48,7 +53,7 @@ public class LogFunction extends CoreFunction {
 			for (final Object obj : sources) {
 
 				if (obj != null) {
-					buf.append(Scripting.formatToDefaultDateOrString(obj));
+					buf.append(Scripting.formatForLogging(obj));
 				}
 			}
 

@@ -63,7 +63,7 @@ public class ListFilesCommand extends AbstractCommand {
 		final int pageSize                     = webSocketData.getPageSize();
 		final int page                         = webSocketData.getPage();
 		final PropertyKey sortProperty         = StructrApp.key(type, sortKey);
-		final Query query                      = StructrApp.getInstance(securityContext).nodeQuery(type).includeHidden().sort(sortProperty).order("desc".equals(sortOrder));
+		final Query query                      = StructrApp.getInstance(securityContext).nodeQuery(type).includeHidden().sort(sortProperty, "desc".equals(sortOrder));
 
 		// for image lists, suppress thumbnails
 		if (type.equals(Image.class)) {

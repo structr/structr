@@ -33,6 +33,11 @@ public class JobInfoFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "jobId";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		try {

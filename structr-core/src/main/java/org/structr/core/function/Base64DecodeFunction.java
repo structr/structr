@@ -37,6 +37,11 @@ public class Base64DecodeFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "text [, scheme, charset ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

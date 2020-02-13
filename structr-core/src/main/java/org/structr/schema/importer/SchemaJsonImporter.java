@@ -21,12 +21,15 @@ package org.structr.schema.importer;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Map;
 import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.schema.InvalidSchemaException;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -105,7 +108,16 @@ public class SchemaJsonImporter extends NodeServiceCommand implements Maintenanc
 		// isolate write output
 		try (final Tx tx = app.tx()) {
 
-			StructrSchema.extendDatabaseSchema(app, StructrSchema.createFromSource(source));
+			final JsonSchema schema;
+
+			try {
+				schema = StructrSchema.createFromSource(source);
+
+			} catch (InvalidSchemaException | URISyntaxException ex) {
+				throw new FrameworkException(422, ex.getMessage());
+			}
+
+			StructrSchema.extendDatabaseSchema(app, schema);
 
 			tx.success();
 		}

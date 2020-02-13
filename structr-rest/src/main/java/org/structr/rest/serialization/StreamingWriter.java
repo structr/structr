@@ -23,6 +23,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.SimpleDateFormat;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -36,9 +37,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.apache.commons.collections4.ListUtils;
+import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.util.ProgressWatcher;
 import org.structr.api.util.ResultStream;
 import org.structr.common.PropertyView;
 import org.structr.common.QueryRange;
@@ -144,53 +147,87 @@ public abstract class StreamingWriter {
 
 		final RestWriter rootWriter = getRestWriter(securityContext, output);
 
-		configureWriter(rootWriter);
+			configureWriter(rootWriter);
 
-		// result fields in alphabetical order
-		final Set<Integer> visitedObjects             = new LinkedHashSet<>();
-		final String queryTime                        = result.getQueryTime();
-		final Integer page                            = result.getPage();
-		final Integer pageSize                        = result.getPageSize();
+			// result fields in alphabetical order
+			final Set<Integer> visitedObjects = new LinkedHashSet<>();
+			final String queryTime            = result.getQueryTime();
+			final Integer page                = result.getPage();
+			final Integer pageSize            = result.getPageSize();
+			final int softLimit               = securityContext.getSoftLimit(pageSize);
+			int actualResultCount             = 0;
 
-		rootWriter.beginDocument(baseUrl, propertyView.get(securityContext));
-		rootWriter.beginObject();
+			// make pageSize available to nested serializers
+			rootWriter.setPageSize(pageSize);
 
-		if (result != null) {
+			rootWriter.beginDocument(baseUrl, propertyView.get(securityContext));
+			rootWriter.beginObject();
 
-			rootWriter.name(resultKeyName);
-			root.serializeRoot(rootWriter, result, propertyView.get(securityContext), 0, visitedObjects);
-		}
+			if (result != null) {
 
-		if (includeMetadata) {
+				rootWriter.name(resultKeyName);
 
-			// time delta for serialization
-			long t1 = System.nanoTime();
+				final Serializer serializer = root.serializeRoot(rootWriter, result, propertyView.get(securityContext), 0, visitedObjects);
+				if (serializer != null) {
 
-			if (pageSize != null && !pageSize.equals(Integer.MAX_VALUE)) {
+					actualResultCount = serializer.getActualResultCount();
+				}
+				rootWriter.flush();
+			}
 
-				if (page != null) {
+			if (includeMetadata) {
 
-					rootWriter.name("page").value(page);
+				long t1         = System.nanoTime(); // time delta for serialization
+				int resultCount = -1;
+				int pageCount   = -1;
+
+				if (pageSize != null && !pageSize.equals(Integer.MAX_VALUE)) {
+
+					if (page != null) {
+
+						rootWriter.name("page").value(page);
+					}
+
+					rootWriter.name("page_size").value(pageSize);
 				}
 
-				rootWriter.name("page_size").value(pageSize);
-			}
+				if (queryTime != null) {
+					rootWriter.name("query_time").value(queryTime);
+				}
 
-			if (queryTime != null) {
-				rootWriter.name("query_time").value(queryTime);
-			}
+				if (actualResultCount == Settings.ResultCountSoftLimit.getValue()) {
 
-			if (!securityContext.ignoreResultCount()) {
+					rootWriter.name("info").beginObject();
+					rootWriter.name("message").value("Result size limited");
+					rootWriter.name("limit").value(Settings.ResultCountSoftLimit.getValue());
+					rootWriter.name("result_size").value(actualResultCount);
+					rootWriter.name("hint").value("Use pageSize parameter to avoid automatic response size limit");
+					rootWriter.endObject();
+				}
 
-				rootWriter.name("result_count").value(result.calculateTotalResultCount());
-				rootWriter.name("page_count").value(result.calculatePageCount());
-				rootWriter.name("result_count_time").value(decimalFormat.format((System.nanoTime() - t1) / 1000000000.0));
-			}
+				// make output available immediately
+				rootWriter.flush();
 
-			if (renderSerializationTime) {
-				rootWriter.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
+				try (final JsonProgressWatcher watcher = new JsonProgressWatcher(rootWriter, 5000L)) {
+
+					final int countLimit = securityContext.forceResultCount() ? Integer.MAX_VALUE : softLimit;
+
+					resultCount = result.calculateTotalResultCount(watcher, countLimit);
+					pageCount   = result.calculatePageCount(watcher, countLimit);
+				}
+
+				if (resultCount >= 0 && pageCount >= 0) {
+
+					rootWriter.name("result_count").value(resultCount);
+					rootWriter.name("page_count").value(pageCount);
+					rootWriter.name("result_count_time").value(decimalFormat.format((System.nanoTime() - t1) / 1000000000.0));
+
+				}
+
+				if (renderSerializationTime) {
+					rootWriter.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
+				}
 			}
-		}
 
 		// finished
 		rootWriter.endObject();
@@ -293,9 +330,20 @@ public abstract class StreamingWriter {
 	// ----- nested classes -----
 	public abstract class Serializer<T> {
 
+		protected boolean softLimitReached  = false;
+		protected int actualResultCount     = 0;
+
 		public abstract void serialize(final RestWriter writer, final T value, final String localPropertyView, final int depth, final Set<Integer> visitedObjects) throws IOException;
 
-		public void serializeRoot(final RestWriter writer, final Object value, final String localPropertyView, final int depth, final Set<Integer> visitedObjects) throws IOException {
+		public boolean softLimitReached() {
+			return softLimitReached;
+		}
+
+		public int getActualResultCount() {
+			return actualResultCount;
+		}
+
+		public Serializer serializeRoot(final RestWriter writer, final Object value, final String localPropertyView, final int depth, final Set<Integer> visitedObjects) throws IOException {
 
 			if (value != null) {
 
@@ -304,11 +352,13 @@ public abstract class StreamingWriter {
 
 					serializer.serialize(writer, value, localPropertyView, depth, visitedObjects);
 
-					return;
+					return serializer;
 				}
 			}
 
 			serializePrimitive(writer, value);
+
+			return null;
 		}
 
 		public void serializeProperty(final RestWriter writer, final PropertyKey key, final Object value, final String localPropertyView, final int depth, final Set<Integer> visitedObjects) {
@@ -333,14 +383,20 @@ public abstract class StreamingWriter {
 
 			} catch(Throwable t) {
 
-				logger.warn("Exception while serializing property {} ({}) declared in {} with valuetype {} (value = {}) : {}", new Object[] {
-					key.jsonName(),
-					key.getClass(),
-					key.getClass().getDeclaringClass(),
-					value.getClass().getName(),
-					value,
-					t.getMessage()
-				});
+				if (t instanceof QuietException || t.getCause() instanceof QuietException) {
+					// ignore exceptions which (by jettys standards) should be handled less verbosely
+				} else if (t instanceof IllegalStateException && t.getCause() == null && (t.getMessage() == null || t.getMessage().equals("Nesting problem."))) {
+					// ignore exception. it is probably caused by a canceled request/closed connection which caused the JsonWriter to tilt
+				} else {
+					logger.warn("Exception while serializing property {} ({}) declared in {} with valuetype {} (value = {}) : {}", new Object[] {
+						key.jsonName(),
+						key.getClass(),
+						key.getClass().getDeclaringClass(),
+						value.getClass().getName(),
+						value,
+						t.getMessage()
+					});
+				}
 			}
 		}
 	}
@@ -423,9 +479,12 @@ public abstract class StreamingWriter {
 		@Override
 		public void serialize(final RestWriter parentWriter, final Iterable value, final String localPropertyView, final int depth, final Set<Integer> visitedObjects) throws IOException {
 
-			final Iterator iterator  = value.iterator();
-			final Object firstValue  = iterator.hasNext() ? iterator.next() : null;
-			final Object secondValue = iterator.hasNext() ? iterator.next() : null;
+			final SecurityContext securityContext = parentWriter.getSecurityContext();
+			final int pageSize                    = parentWriter.getPageSize();
+			final int softLimit                   = securityContext.getSoftLimit(pageSize);
+			final Iterator iterator               = value.iterator();
+			final Object firstValue               = iterator.hasNext() ? iterator.next() : null;
+			final Object secondValue              = iterator.hasNext() ? iterator.next() : null;
 
 			if (!wrapSingleResultInArray && depth == 0 && firstValue != null && secondValue == null && !Settings.ForceArrays.getValue()) {
 
@@ -445,17 +504,26 @@ public abstract class StreamingWriter {
 					// first value?
 					if (firstValue != null) {
 						serializeRoot(parentWriter, firstValue, localPropertyView, depth, visitedObjects);
+						actualResultCount++;
 					}
 
 					// second value?
 					if (secondValue != null) {
 
 						serializeRoot(parentWriter, secondValue, localPropertyView, depth, visitedObjects);
+						actualResultCount++;
 
 						// more values?
 						while (iterator.hasNext()) {
 
 							serializeRoot(parentWriter, iterator.next(), localPropertyView, depth, visitedObjects);
+
+							actualResultCount++;
+
+ 							if (actualResultCount == softLimit) {
+								softLimitReached = true;
+								break;
+							}
 						}
 					}
 				}
@@ -591,5 +659,63 @@ public abstract class StreamingWriter {
 	private interface Operation {
 
 		public void run(final RestWriter writer, final Object o, final Set<Integer> visitedObjects) throws IOException;
+	}
+
+	private static class JsonProgressWatcher implements ProgressWatcher, AutoCloseable {
+
+		private final SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd-HHmmss");
+		private long lastUpdate           = System.currentTimeMillis();
+		private boolean hasWritten        = false;
+		private long interval             = 5000L;
+		private RestWriter writer         = null;
+
+		public JsonProgressWatcher(final RestWriter writer, final long interval) {
+
+			this.interval = interval;
+			this.writer   = writer;
+		}
+
+		@Override
+		public boolean okToContinue(final int progress) {
+
+			final long now = System.currentTimeMillis();
+
+			if (now > lastUpdate + interval) {
+
+				lastUpdate = now;
+
+				try {
+
+					// start array when writing the first entry (might not write anything)
+					if (!hasWritten) {
+
+						writer.name("status").value("Calculating overall result count");
+						writer.name("progress");
+						writer.beginArray();
+						hasWritten = true;
+					}
+
+					writer.beginObject();
+					writer.name("timestamp").value(df.format(System.currentTimeMillis()));
+					writer.name("result_count").value(progress);
+					writer.endObject();
+
+					writer.flush();
+
+				} catch (IOException ioex) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		@Override
+		public void close() throws IOException {
+
+			if (hasWritten) {
+				writer.endArray();
+			}
+		}
 	}
 }

@@ -40,6 +40,11 @@ public class LatLonToUTMFunction extends GeoFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "latitude, longitude";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

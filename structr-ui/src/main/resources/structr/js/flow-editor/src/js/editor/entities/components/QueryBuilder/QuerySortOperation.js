@@ -1,4 +1,4 @@
-import {StructrRest} from "../../../../rest/StructrRest.js";
+import {StructrRest} from "../../../../../../../lib/structr/rest/StructrRest.js";
 import {QueryStringValue} from "./QueryStringValue.js";
 
 export class QuerySortOperation {

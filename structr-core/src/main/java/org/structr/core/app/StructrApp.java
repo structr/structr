@@ -39,8 +39,11 @@ import org.structr.api.graph.PropertyContainer;
 import org.structr.api.service.Command;
 import org.structr.api.service.Service;
 import org.structr.api.util.FixedSizeCache;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.fulltext.ContentAnalyzer;
+import org.structr.common.fulltext.DummyContentAnalyzer;
 import org.structr.common.fulltext.DummyFulltextIndexer;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
@@ -72,8 +75,6 @@ import org.structr.schema.ConfigurationProvider;
 
 /**
  * Stateful facade for accessing the Structr core layer.
- *
- *
  */
 public class StructrApp implements App {
 
@@ -154,8 +155,11 @@ public class StructrApp implements App {
 	@Override
 	public <T extends NodeInterface> void delete(final Class<T> type) throws FrameworkException {
 
-		for (final T node : nodeQuery(type).getResultStream()) {
-			delete(node);
+		try (final ResultStream<T> result = nodeQuery(type).getResultStream()) {
+
+			for (final T node : result) {
+				delete(node);
+			}
 		}
 	}
 
@@ -293,13 +297,6 @@ public class StructrApp implements App {
 		}
 
 		return null;
-	}
-
-	@Override
-	public <T extends GraphObject> Iterable<T> get(final Class<T> type) throws FrameworkException {
-
-		final Query<T> query = command(SearchNodeCommand.class);
-		return query.andType(type).getResultStream();
 	}
 
 	@Override
@@ -459,6 +456,19 @@ public class StructrApp implements App {
 		}
 
 		return new DummyFulltextIndexer();
+	}
+
+	@Override
+	public ContentAnalyzer getContentAnalyzer(final Object... params) {
+
+		final Map<String, StructrModule> modules = StructrApp.getConfiguration().getModules();
+		final StructrModule module               = modules.get("text-search");
+
+		if (module != null && module instanceof ContentAnalyzer) {
+			return (ContentAnalyzer)module;
+		}
+
+		return new DummyContentAnalyzer();
 	}
 
 	// ----- public static methods ----
@@ -625,7 +635,7 @@ public class StructrApp implements App {
 
 		if (nodeUuidMap == null) {
 
-			nodeUuidMap = new FixedSizeCache<>(Settings.UuidCacheSize.getValue());
+			nodeUuidMap = new FixedSizeCache<>("Node UUID cache", Settings.UuidCacheSize.getValue());
 		}
 
 		return nodeUuidMap.get(uuid);
@@ -635,7 +645,7 @@ public class StructrApp implements App {
 
 		if (relUuidMap == null) {
 
-			relUuidMap = new FixedSizeCache<>(Settings.UuidCacheSize.getValue());
+			relUuidMap = new FixedSizeCache<>("Relationship UUID cache", Settings.UuidCacheSize.getValue());
 		}
 
 		return relUuidMap.get(uuid);
@@ -650,7 +660,7 @@ public class StructrApp implements App {
 
 				if (nodeUuidMap == null) {
 
-					nodeUuidMap = new FixedSizeCache<>(Settings.UuidCacheSize.getValue());
+					nodeUuidMap = new FixedSizeCache<>("Node UUID cache", Settings.UuidCacheSize.getValue());
 				}
 
 			}
@@ -666,7 +676,7 @@ public class StructrApp implements App {
 
 				if (relUuidMap == null) {
 
-					relUuidMap = new FixedSizeCache<>(Settings.UuidCacheSize.getValue());
+					relUuidMap = new FixedSizeCache<>("Relationship UUID cache", Settings.UuidCacheSize.getValue());
 				}
 
 			}

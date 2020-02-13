@@ -20,6 +20,7 @@ package org.structr.web.function;
 
 import java.util.Collections;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.importer.ScriptJob;
@@ -35,6 +36,11 @@ public class ScheduleFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "script [, title ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		try {
@@ -46,13 +52,16 @@ public class ScheduleFunction extends UiAdvancedFunction {
 			final ScriptJob job = new ScriptJob(ctx.getSecurityContext().getCachedUser(), Collections.EMPTY_MAP, sources[0], ctx.getSecurityContext().getContextStore(), jobName);
 			job.setOnFinishScript(jobFinishedScript);
 
-			try {
 
-				JobQueueManager.getInstance().addJob(job);
+			TransactionCommand.queuePostProcessProcedure(() -> {
+				try {
 
-			} catch (FrameworkException ex) {
-				logException(ex, ex.getMessage(), null);
-			}
+					JobQueueManager.getInstance().addJob(job);
+				} catch (FrameworkException ex) {
+
+					logException(ex, ex.getMessage(), null);
+				}
+			});
 
 			return job.jobId();
 

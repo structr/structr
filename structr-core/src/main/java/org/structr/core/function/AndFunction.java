@@ -31,6 +31,11 @@ public class AndFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "bool1, bool2, ...";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		boolean result = true;

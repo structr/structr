@@ -23,12 +23,10 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
-import org.structr.api.NetworkException;
-import org.structr.api.NotInTransactionException;
-import org.structr.api.Predicate;
+import org.structr.api.*;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
@@ -43,6 +41,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.scheduler.TransactionPostProcessQueue;
 
 /**
  * Graph service command for database operations that need to be wrapped in
@@ -55,9 +54,10 @@ public class TransactionCommand {
 	private static final ThreadLocal<TransactionCommand> commands  = new ThreadLocal<>();
 	private static final MultiSemaphore                  semaphore = new MultiSemaphore();
 
-	private TransactionReference transaction = null;
-	private ModificationQueue queue          = null;
-	private ErrorBuffer errorBuffer          = null;
+	private TransactionReference transaction             = null;
+	private ModificationQueue queue                      = null;
+	private ErrorBuffer errorBuffer                      = null;
+	private TransactionPostProcessQueue postProcessQueue = null;
 
 
 	private static TransactionCommand getInstance() {
@@ -66,6 +66,7 @@ public class TransactionCommand {
 		if (cmd == null) {
 
 			cmd = new TransactionCommand();
+			cmd.postProcessQueue = new TransactionPostProcessQueue();
 		}
 
 		return cmd;
@@ -185,6 +186,7 @@ public class TransactionCommand {
 
 					// release semaphores as the transaction is now finished
 					semaphore.release(synchronizationKeys);	// careful: this can be null
+					cmd.postProcessQueue.applyProcessQueue();
 				}
 
 			} else {
@@ -521,6 +523,15 @@ public class TransactionCommand {
 			logger.error("Unable to register relationship callback");
 		}
 
+	}
+
+	public static void queuePostProcessProcedure(final Runnable runnable) {
+
+		final TransactionCommand transactionCommand = commands.get();
+		if (transactionCommand != null) {
+
+			transactionCommand.postProcessQueue.queueProcess(runnable);
+		}
 	}
 
 	private static void assertSameTransaction(final GraphObject obj, final long currentTransactionId) {

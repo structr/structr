@@ -29,7 +29,6 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import javax.servlet.DispatcherType;
 import javax.servlet.http.HttpServlet;
@@ -285,7 +284,7 @@ public class HttpService implements RunnableService {
 			idManager.setWorkerName(hardwareId);
 
 			sessionCache.getSessionHandler().setSessionIdManager(idManager);
-			
+
 			if (Settings.HttpOnly.getValue()) {
 				sessionCache.getSessionHandler().setHttpOnly(isTest);
 			}
@@ -295,10 +294,8 @@ public class HttpService implements RunnableService {
 		if (Settings.ClearSessionsOnStartup.getValue()) {
 			SessionHelper.clearAllSessions();
 		}
-		
+
 		final StructrSessionDataStore sessionDataStore = new StructrSessionDataStore();
-		//final FileSessionDataStore store = new FileSessionDataStore();
-		//store.setStoreDir(baseDir.toPath().resolve("sessions").toFile());
 
 		sessionCache.setSessionDataStore(sessionDataStore);
 		sessionCache.setSaveOnInactiveEviction(false);
@@ -414,11 +411,11 @@ public class HttpService implements RunnableService {
 		}
 
 		contexts.addHandler(servletContext);
-		
+
 		httpConfig = new HttpConfiguration();
 		httpConfig.setSecureScheme("https");
 		httpConfig.setSecurePort(httpsPort);
-		//httpConfig.setOutputBufferSize(8192);
+		httpConfig.setOutputBufferSize(1024); // intentionally low buffer size to allow even small bits of content to be sent to the client in case of slow rendering
 		httpConfig.setRequestHeaderSize(requestHeaderSize);
 
 		if (StringUtils.isNotBlank(host) && Settings.HttpPort.getValue() > -1) {
@@ -472,7 +469,7 @@ public class HttpService implements RunnableService {
 				if (Settings.ForceHttps.getValue()) {
 					sessionCache.getSessionHandler().setSecureRequestOnly(true);
 				}
-				
+
 				httpsConnector.setPort(httpsPort);
 				httpsConnector.setIdleTimeout(500000);
 
@@ -517,7 +514,7 @@ public class HttpService implements RunnableService {
 	@Override
 	public void shutdown() {
 
-		
+
 		if (server != null) {
 
 			try {

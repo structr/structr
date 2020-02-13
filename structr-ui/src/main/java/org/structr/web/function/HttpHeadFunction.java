@@ -34,6 +34,11 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "url [, username, password ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		if (sources != null && sources.length >= 1 && sources.length <= 3) {

@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-modules</artifactId>
-        	<version>3.4-SNAPSHOT</version>
+		<version>3.5-SNAPSHOT</version>
 	</parent>
 	<artifactId>structr-pdf-module</artifactId>
 	<packaging>jar</packaging>
@@ -15,12 +15,12 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
-
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>structr-ui</artifactId>
 			<version>${project.version}</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>com.github.jhonnymertz</groupId>

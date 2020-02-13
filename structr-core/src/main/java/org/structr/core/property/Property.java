@@ -20,6 +20,7 @@ package org.structr.core.property;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -40,6 +41,7 @@ import org.structr.core.Services;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 
@@ -489,7 +491,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public boolean isPropertyTypeIndexable(final SecurityContext securityContext) {
+	public boolean isPropertyTypeIndexable() {
 
 		final Class valueType = valueType();
 		if (valueType != null) {
@@ -515,7 +517,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public boolean isPropertyValueIndexable(final SecurityContext securityContext, final Object value) {
+	public boolean isPropertyValueIndexable(final Object value) {
 
 		if (value != null) {
 
@@ -584,6 +586,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public int getProcessingOrderPosition() {
 		return 0;
+	}
+
+	@Override
+	public Comparator<GraphObject> sorted(final boolean descending) {
+		return new DefaultSortOrder(this, descending);
 	}
 
 	// ----- CMIS support -----

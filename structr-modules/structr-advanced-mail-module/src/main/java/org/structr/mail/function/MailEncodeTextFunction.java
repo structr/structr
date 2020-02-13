@@ -39,6 +39,11 @@ public class MailEncodeTextFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "text";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
@@ -69,6 +74,6 @@ public class MailEncodeTextFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return  "Encodes RFC 822 \"text\" token into mail-safe form as per RFC 2047";
 	}
 }

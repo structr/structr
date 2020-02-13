@@ -36,6 +36,11 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "group, user";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -79,6 +84,6 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Removes a user from a group.";
+		return "Removes the given user from the given group";
 	}
 }

@@ -747,9 +747,7 @@ var _Files = {
 			div.closest('tr').remove();
 		});
 
-		if (!_Files.isViewModeActive('img')) {
-			_Entities.appendAccessControlIcon(div, d);
-		}
+		_Entities.appendAccessControlIcon(div, d);
 
 		if (d.isFolder) {
 			_Files.handleFolder(div, d);
@@ -786,10 +784,8 @@ var _Files = {
 			}
 		});
 
-		if (!_Files.isViewModeActive('img')) {
-			_Entities.appendEditPropertiesIcon(div, d);
-			_Entities.makeSelectable(div);
-		}
+		_Entities.appendEditPropertiesIcon(div, d);
+		_Entities.makeSelectable(div);
 
 		_Files.resize();
 	},
@@ -1016,23 +1012,13 @@ var _Files = {
 	},
 	appendEditImageIcon: function(parent, image) {
 
-		var viewIcon;
+		var viewIcon = $('.view_icon', parent);
 
-		if (_Files.isViewModeActive('img')) {
-
-			viewIcon = $('.tn', parent);
-			viewIcon.closest('a').prop('href', 'javascript:void(0)');
-
-		} else {
-
-			viewIcon = $('.view_icon', parent);
-
-			if (!(viewIcon && viewIcon.length)) {
-				parent.append('<i title="' + image.name + ' [' + image.id + ']" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-			}
-
-			viewIcon = $('.edit_icon', parent);
+		if (!(viewIcon && viewIcon.length)) {
+			parent.append('<i title="' + image.name + ' [' + image.id + ']" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
 		}
+
+		viewIcon = $('.edit_icon', parent);
 
 		viewIcon.on('click', function(e) {
 			e.stopPropagation();
@@ -1293,12 +1279,16 @@ var _Files = {
 		});
 	},
 	updateTextFile: function(file, text, callback) {
-		var chunks = Math.ceil(text.length / chunkSize);
-		for (var c = 0; c < chunks; c++) {
-			var start = c * chunkSize;
-			var end = (c + 1) * chunkSize;
-			var chunk = utf8_to_b64(text.substring(start, end));
-			Command.chunk(file.id, c, chunkSize, chunk, chunks, ((c+1 === chunks) ? callback : undefined));
+		if (text === "") {
+			Command.chunk(file.id, 0, chunkSize, "", 1, callback);
+		} else {
+			var chunks = Math.ceil(text.length / chunkSize);
+			for (var c = 0; c < chunks; c++) {
+				var start = c * chunkSize;
+				var end = (c + 1) * chunkSize;
+				var chunk = utf8_to_b64(text.substring(start, end));
+				Command.chunk(file.id, c, chunkSize, chunk, chunks, ((c+1 === chunks) ? callback : undefined));
+			}
 		}
 	},
 	editContent: function(button, file, element) {
@@ -1333,6 +1323,7 @@ var _Files = {
 				element.append('<div class="editor"></div><div id="template-preview"><textarea readonly></textarea></div>');
 				var contentBox = $('.editor', element);
 				var lineWrapping = LSWrapper.getItem(lineWrappingKey);
+				CodeMirror.defineMIME("text/html", "htmlmixed-structr");
 				editor = CodeMirror(contentBox.get(0), {
 					value: text,
 					mode: contentType,
@@ -1340,8 +1331,12 @@ var _Files = {
 					lineWrapping: lineWrapping,
 					indentUnit: 4,
 					tabSize:4,
-					indentWithTabs: true
+					indentWithTabs: true,
+					extraKeys: {
+						"Ctrl-Space": "autocomplete"
+					}
 				});
+				_Code.setupAutocompletion(editor, file.id, false);
 
 				var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + file.id));
 				if (scrollInfo) {
@@ -1367,7 +1362,7 @@ var _Files = {
 				let showPreviewCheckbox  = $('#showTemplatePreview');
 
 				Structr.appendInfoTextToElement({
-					text: "Expressions like <pre>Hello ${print(me.name)} !</pre> will be evaluated. To see a preview, tick this checkbox.",
+					text: "Expressions like <pre>Hello ${print(me.name)} !</pre> will be evaluated. To see a preview, tick the adjacent checkbox.",
 					element: isTemplateCheckbox,
 					insertAfter: true,
 					css: {

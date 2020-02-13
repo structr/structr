@@ -48,7 +48,7 @@ public class RenderContext extends ActionContext {
 	private final Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
 	private final Stack<SecurityContext> scStack       = new Stack<>();
 	private EditMode editMode                          = EditMode.NONE;
-	private AsyncBuffer buffer                         = new AsyncBuffer();
+	private AsyncBuffer buffer                         = null;
 	private int depth                                  = 0;
 	private boolean inBody                             = false;
 	private boolean appLibRendered                     = false;
@@ -71,7 +71,10 @@ public class RenderContext extends ActionContext {
 	}
 
 	public RenderContext(final SecurityContext securityContext) {
+
 		super(securityContext);
+
+		this.buffer = new AsyncBuffer();
 
 		readConfigParameters();
 	}
@@ -86,21 +89,22 @@ public class RenderContext extends ActionContext {
 		super(other);
 
 		this.dataObjects.putAll(other.dataObjects);
-		this.editMode = other.editMode;
-		this.inBody = other.inBody;
-		this.appLibRendered = other.appLibRendered;
-		this.detailsDataObject = other.detailsDataObject;
-		this.currentDataObject = other.currentDataObject;
-		this.sourceDataObject = other.sourceDataObject;
-		this.listSource = other.listSource;
-		this.relatedProperty = other.relatedProperty;
-		this.page = other.page;
-		this.request = other.request;
-		this.response = other.response;
-		this.resourceProvider = other.resourceProvider;
+		this.editMode                   = other.editMode;
+		this.inBody                     = other.inBody;
+		this.appLibRendered             = other.appLibRendered;
+		this.detailsDataObject          = other.detailsDataObject;
+		this.currentDataObject          = other.currentDataObject;
+		this.sourceDataObject           = other.sourceDataObject;
+		this.listSource                 = other.listSource;
+		this.relatedProperty            = other.relatedProperty;
+		this.page                       = other.page;
+		this.request                    = other.request;
+		this.response                   = other.response;
+		this.resourceProvider           = other.resourceProvider;
 		this.anyChildNodeCreatesNewLine = other.anyChildNodeCreatesNewLine;
-		this.locale = other.locale;
-		this.indentHtml = other.indentHtml;
+		this.locale                     = other.locale;
+		this.indentHtml                 = other.indentHtml;
+		this.buffer                     = other.buffer;
 
 	}
 
@@ -108,9 +112,9 @@ public class RenderContext extends ActionContext {
 
 		super(securityContext);
 
-		this.request = request;
+		this.buffer   = new AsyncBuffer();
+		this.request  = request;
 		this.response = response;
-
 		this.editMode = editMode;
 
 		readConfigParameters();

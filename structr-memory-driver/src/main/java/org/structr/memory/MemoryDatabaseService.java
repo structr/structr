@@ -242,7 +242,12 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 	}
 
 	@Override
-	public void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfig, final Map<String, Map<String, Boolean>> removedClasses) {
+	public void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfig, final Map<String, Map<String, Boolean>> removedClasses, final boolean createOnly) {
+	}
+
+	@Override
+	public boolean isIndexUpdateFinished() {
+		return true;
 	}
 
 	@Override

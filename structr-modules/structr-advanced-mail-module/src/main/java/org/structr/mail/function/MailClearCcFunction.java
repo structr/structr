@@ -37,6 +37,11 @@ public class MailClearCcFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return null;
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		ctx.getAdvancedMailContainer().clearCc();
@@ -51,6 +56,6 @@ public class MailClearCcFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Removes all CC addresses from the current mail";
 	}
 }

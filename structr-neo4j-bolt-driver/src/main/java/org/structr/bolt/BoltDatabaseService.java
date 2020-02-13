@@ -27,19 +27,23 @@ import java.io.Writer;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Config;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
+import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
+import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.exceptions.ClientException;
 import org.neo4j.driver.v1.exceptions.DatabaseException;
 import org.neo4j.driver.v1.exceptions.ServiceUnavailableException;
@@ -58,8 +62,13 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.index.Index;
+import org.structr.api.search.ExactQuery;
+import org.structr.api.search.Occurrence;
+import org.structr.api.search.QueryContext;
+import org.structr.api.search.QueryPredicate;
+import org.structr.api.search.SortOrder;
+import org.structr.api.search.TypeQuery;
 import org.structr.api.util.CountResult;
-import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
 
 /**
@@ -132,6 +141,8 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			// drop :NodeInterface index and create uniqueness constraint
 			// disabled, planned for Structr 2.4
 			//createUUIDConstraint();
+
+			createGlobalSchemaLockNode();
 
 			// signal success
 			return true;
@@ -284,19 +295,11 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	@Override
 	public Iterable<Node> getAllNodes() {
 
-		final StringBuilder buf = new StringBuilder();
-		final String tenantId   = getTenantIdentifier();
+		final QueryContext context     = new QueryContext(true);
+		final QueryPredicate predicate = new TypePredicate();
+		final Index<Node> index        = nodeIndex();
 
-		buf.append("MATCH (n");
-
-		if (tenantId != null) {
-			buf.append(":");
-			buf.append(tenantId);
-		}
-
-		buf.append(") RETURN n");
-
-		return Iterables.map(new NodeNodeMapper(this), new NodeResultStream(this, new SimpleCypherQuery(buf.toString())));
+		return index.query(context, predicate, Integer.MAX_VALUE, 1);
 	}
 
 	@Override
@@ -306,21 +309,11 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			return getAllNodes();
 		}
 
-		final StringBuilder buf = new StringBuilder();
-		final String tenantId   = getTenantIdentifier();
+		final QueryContext context     = new QueryContext(true);
+		final QueryPredicate predicate = new TypePredicate(type);
+		final Index<Node> index        = nodeIndex();
 
-		buf.append("MATCH (n");
-
-		if (tenantId != null) {
-			buf.append(":");
-			buf.append(tenantId);
-		}
-
-		buf.append(":");
-		buf.append(type);
-		buf.append(") RETURN n");
-
-		return Iterables.map(new NodeNodeMapper(this), new NodeResultStream(this, new SimpleCypherQuery(buf.toString())));
+		return index.query(context, predicate, Integer.MAX_VALUE, 1);
 	}
 
 	@Override
@@ -330,23 +323,11 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			return getAllNodes();
 		}
 
-		final StringBuilder buf = new StringBuilder();
-		final String tenantId   = getTenantIdentifier();
+		final QueryContext context     = new QueryContext(true);
+		final QueryPredicate predicate = new TypePropertyPredicate(type);
+		final Index<Node> index        = nodeIndex();
 
-		buf.append("MATCH (n");
-
-		if (tenantId != null) {
-			buf.append(":");
-			buf.append(tenantId);
-		}
-
-		buf.append(") WHERE n.type = $type RETURN n");
-
-		final SimpleCypherQuery query = new SimpleCypherQuery(buf.toString());
-
-		query.getParameters().put("type", type);
-
-		return Iterables.map(new NodeNodeMapper(this), new NodeResultStream(this, query));
+		return index.query(context, predicate, Integer.MAX_VALUE, 1);
 	}
 
 	@Override
@@ -372,26 +353,11 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	@Override
 	public Iterable<Relationship> getAllRelationships() {
 
-		final StringBuilder buf = new StringBuilder();
-		final String tenantId   = getTenantIdentifier();
+		final Index<Relationship> index = relationshipIndex();
+		final QueryPredicate predicate  = new TypePredicate();
+		final QueryContext context      = new QueryContext(true);
 
-		buf.append("MATCH (");
-
-		if (tenantId != null) {
-			buf.append(":");
-			buf.append(tenantId);
-		}
-
-		buf.append(")-[r]->(");
-
-		if (tenantId != null) {
-			buf.append(":");
-			buf.append(tenantId);
-		}
-
-		buf.append(") RETURN r");
-
-		return Iterables.map(new RelationshipRelationshipMapper(this), new RelationshipResultStream(this, new SimpleCypherQuery(buf.toString())));
+		return index.query(context, predicate, Integer.MAX_VALUE, 1);
 	}
 
 	@Override
@@ -401,28 +367,11 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			return getAllRelationships();
 		}
 
-		final StringBuilder buf = new StringBuilder();
-		final String tenantId   = getTenantIdentifier();
+		final Index<Relationship> index = relationshipIndex();
+		final QueryPredicate predicate  = new TypePredicate(type);
+		final QueryContext context      = new QueryContext(true);
 
-		buf.append("MATCH (");
-
-		if (tenantId != null) {
-			buf.append(":");
-			buf.append(tenantId);
-		}
-
-		buf.append(")-[r:");
-		buf.append(type);
-		buf.append("]->(");
-
-		if (tenantId != null) {
-			buf.append(":");
-			buf.append(tenantId);
-		}
-
-		buf.append(") RETURN r");
-
-		return Iterables.map(new RelationshipRelationshipMapper(this), new RelationshipResultStream(this, new SimpleCypherQuery(buf.toString())));
+		return index.query(context, predicate, Integer.MAX_VALUE, 1);
 	}
 
 	@Override
@@ -451,39 +400,23 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	}
 
 	@Override
-	public void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfig, final Map<String, Map<String, Boolean>> removedClasses) {
+	public void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfigSource, final Map<String, Map<String, Boolean>> removedClassesSource, final boolean createOnly) {
 
-		final Map<String, String> existingDbIndexes = new HashMap<>();
+		final Map<String, Map<String, Boolean>> schemaIndexConfig = new TreeMap<>(schemaIndexConfigSource);
+		final Map<String, Map<String, Boolean>> removedClasses    = new TreeMap<>(removedClassesSource);
+		final Map<String, String> existingDbIndexes               = new TreeMap<>();
 
-		try (final Transaction tx = beginTx()) {
+		try (final Session session = driver.session()) {
 
-			/* Example full result of `CALL db.indexes`
-				{
-					"provider": {
-					  "version": "2.0",
-					  "key": "lucene+native"
-					},
-					"state": "ONLINE",
-					"description": "INDEX ON :Bank(BIC)",
-					"label": "Bank",
-					"properties": [
-					  "BIC"
-					],
-					"type": "node_label_property"		// possible values: node_label_property, node_unique_property
-				}
-			 */
+			for (final Record record : session.run("CALL db.indexes() YIELD description, state, type WHERE type = 'node_label_property' RETURN {description: description, state: state}").list()) {
 
-			for (final Map<String, Object> row : execute("CALL db.indexes() YIELD description, state, type WHERE type = 'node_label_property' RETURN {description: description, state: state}")) {
-
-				for (final Object value : row.values()) {
+				for (final Object value : record.asMap().values()) {
 
 					final Map<String, String> valueMap = (Map<String, String>)value;
 
 					existingDbIndexes.put(valueMap.get("description"), valueMap.get("state"));
 				}
 			}
-
-			tx.success();
 		}
 
 		logger.debug("Found {} existing indexes", existingDbIndexes.size());
@@ -494,9 +427,10 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		// create indices for properties of existing classes
 		for (final Map.Entry<String, Map<String, Boolean>> entry : schemaIndexConfig.entrySet()) {
 
-			final String typeName = entry.getKey();
+			final Map<String, Boolean> values = new TreeMap<>(entry.getValue());
+			final String typeName             = entry.getKey();
 
-			for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
+			for (final Map.Entry<String, Boolean> propertyIndexConfig : values.entrySet()) {
 
 				final String indexDescription = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
 				final String state            = existingDbIndexes.get(indexDescription);
@@ -507,56 +441,32 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 					logger.warn("Index is in FAILED state - dropping the index before handling it further. {}. If this error is recurring, please verify that the data in the concerned property is indexable by Neo4j", indexDescription);
 
-					try (final Transaction tx = beginTx()) {
-
-						execute("DROP " + indexDescription);
-
-						tx.success();
-
-					} catch (Throwable t) {
-						logger.warn("", t);
-					}
+					try (final Session session = driver.session()) {
+						if (hasIndex(session, indexDescription)) {
+							session.run("DROP " + indexDescription);
+						}
+					} catch (Throwable ignore) {}
 				}
 
+				if (createIndex) {
 
-				try (final Transaction tx = beginTx()) {
+					if (!alreadySet) {
 
-					if (createIndex) {
+						try (final Session session = driver.session()) {
 
-						if (!alreadySet) {
-
-							try {
-
-								execute("CREATE " + indexDescription);
-								createdIndexes++;
-
-							} catch (Throwable t) {
-								logger.warn("Unable to create {}: {}", indexDescription, t.getMessage());
-							}
-						}
-
-					} else if (alreadySet) {
-
-						try {
-
-							execute("DROP " + indexDescription);
-							droppedIndexes++;
-
-						} catch (Throwable t) {
-							logger.warn("Unable to drop {}: {}", indexDescription, t.getMessage());
-						}
+							session.run("CREATE " + indexDescription);
+							createdIndexes++;
+						} catch (Throwable ignore) {}
 					}
 
-					tx.success();
+				} else if (alreadySet && !createOnly) {
 
-				} catch (IllegalStateException i) {
-
-					// if the driver instance is already closed, there is nothing we can do => exit
-					return;
-
-				} catch (Throwable t) {
-
-					logger.warn("Unable to update index configuration: {}", t.getMessage());
+					try (final Session session = driver.session()) {
+						if (hasIndex(session, indexDescription)) {
+							session.run("DROP " + indexDescription);
+							droppedIndexes++;
+						}
+					} catch (Throwable ignore) {}
 				}
 			}
 		}
@@ -569,41 +479,67 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			logger.debug("Dropped {} indexes", droppedIndexes);
 		}
 
-		Integer droppedIndexesOfRemovedTypes = 0;
-		final List removedTypes = new LinkedList();
+		if (!createOnly) {
 
-		// drop indices for all indexed properties of removed classes
-		for (final Map.Entry<String, Map<String, Boolean>> entry : removedClasses.entrySet()) {
+			Integer droppedIndexesOfRemovedTypes = 0;
+			final List removedTypes = new LinkedList();
 
-			final String typeName = entry.getKey();
-			removedTypes.add(typeName);
+			// drop indices for all indexed properties of removed classes
+			for (final Map.Entry<String, Map<String, Boolean>> entry : removedClasses.entrySet()) {
 
-			for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
+				final Map<String, Boolean> values = new TreeMap<>(entry.getValue());
+				final String typeName             = entry.getKey();
 
-				final String indexDescription = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
-				final boolean indexExists     = Boolean.TRUE.equals(existingDbIndexes.get(indexDescription));
-				final boolean dropIndex       = propertyIndexConfig.getValue();
+				removedTypes.add(typeName);
 
-				if (indexExists && dropIndex) {
+				for (final Map.Entry<String, Boolean> propertyIndexConfig : values.entrySet()) {
 
-					try (final Transaction tx = beginTx()) {
+					final String indexDescription = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
+					final boolean indexExists     = Boolean.TRUE.equals(existingDbIndexes.get(indexDescription));
+					final boolean dropIndex       = propertyIndexConfig.getValue();
 
-						// drop index
-						execute("DROP " + indexDescription);
-						droppedIndexesOfRemovedTypes++;
+					if (indexExists && dropIndex) {
 
-						tx.success();
-
-					} catch (Throwable t) {
-						logger.warn("Unable to drop {}: {}", indexDescription, t.getMessage());
+						try (final Session session = driver.session()) {
+							if (hasIndex(session, indexDescription)) {
+								session.run("DROP " + indexDescription);
+								droppedIndexesOfRemovedTypes++;
+							}
+						} catch (Throwable ignore) {}
 					}
 				}
 			}
+
+			if (droppedIndexesOfRemovedTypes > 0) {
+				logger.debug("Dropped {} indexes of deleted types ({})", droppedIndexesOfRemovedTypes, StringUtils.join(removedTypes, ", "));
+			}
 		}
 
-		if (droppedIndexesOfRemovedTypes > 0) {
-			logger.debug("Dropped {} indexes of deleted types ({})", droppedIndexesOfRemovedTypes, StringUtils.join(removedTypes, ", "));
+		// create final index that indicates that index generation is complete (this one will never be dropped)
+		try (final Session session = driver.session()) {
+			session.run("CREATE INDEX ON :StructrIndexCreationFinished(name)");
+		} catch (Throwable ignore) {}
+	}
+
+	@Override
+	public boolean isIndexUpdateFinished() {
+
+		try (final Session session = driver.session()) {
+
+			final StatementResult result = session.run("CALL db.indexes() YIELD state, description WHERE description = 'INDEX ON :StructrIndexCreationFinished(name)' RETURN state");
+			if (result.hasNext()) {
+
+				final Record record                = result.next();
+				final Map<String, Object> valueMap = record.asMap();
+
+				return "ONLINE".equals(valueMap.get("state"));
+			}
+
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
+
+		return false;
 	}
 
 	@Override
@@ -800,6 +736,19 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 	}
 
+	private void createGlobalSchemaLockNode() {
+
+		try (final Session session = driver.session()) {
+
+			try (final org.neo4j.driver.v1.Transaction tx = session.beginTransaction()) {
+
+				tx.run("MERGE (n:StructrGlobalSchemaLock { name: \"StructrGlobalSchemaLock\" })");
+				tx.success();
+
+			} catch (Throwable t) { }
+		}
+	}
+
 	private Properties getProperties() {
 
 		if (globalGraphProperties == null) {
@@ -833,6 +782,137 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		return 0;
+	}
+
+	private boolean hasIndex(final Session session, final String index) {
+
+		final Map<String, Object> data = new LinkedHashMap<>();
+		data.put("name", index);
+
+		final StatementResult result   = session.run("CALL db.indexes() YIELD state, description WHERE description = $name RETURN state", data);
+		if (result.hasNext()) {
+
+			final Record record                = result.next();
+			final Map<String, Object> valueMap = record.asMap();
+
+			return "ONLINE".equals(valueMap.get("state"));
+		}
+
+		return false;
+	}
+
+	// ----- nested classes -----
+	private static class TypePredicate implements TypeQuery {
+
+		protected String mainType = null;
+		protected String name     = null;
+
+		public TypePredicate() {
+		}
+
+		public TypePredicate(final String mainType) {
+			this.mainType = mainType;
+		}
+
+		@Override
+		public Class getSourceType() {
+			return null;
+		}
+
+		@Override
+		public Class getTargetType() {
+			return null;
+		}
+
+		@Override
+		public Class getQueryType() {
+			return TypeQuery.class;
+		}
+
+		@Override
+		public String getName() {
+			return "type";
+		}
+
+		@Override
+		public Class getType() {
+			return String.class;
+		}
+
+		@Override
+		public Object getValue() {
+			return mainType;
+		}
+
+		@Override
+		public String getLabel() {
+			return null;
+		}
+
+		@Override
+		public Occurrence getOccurrence() {
+			return Occurrence.REQUIRED;
+		}
+
+		@Override
+		public boolean isExactMatch() {
+			return true;
+		}
+
+		@Override
+		public SortOrder getSortOrder() {
+			return null;
+		}
+	}
+
+	private static class TypePropertyPredicate implements ExactQuery {
+
+		protected String type = null;
+
+		public TypePropertyPredicate(final String type) {
+			this.type = type;
+		}
+
+		@Override
+		public Class getQueryType() {
+			return ExactQuery.class;
+		}
+
+		@Override
+		public String getName() {
+			return "type";
+		}
+
+		@Override
+		public Class getType() {
+			return String.class;
+		}
+
+		@Override
+		public Object getValue() {
+			return type;
+		}
+
+		@Override
+		public String getLabel() {
+			return null;
+		}
+
+		@Override
+		public Occurrence getOccurrence() {
+			return Occurrence.REQUIRED;
+		}
+
+		@Override
+		public boolean isExactMatch() {
+			return true;
+		}
+
+		@Override
+		public SortOrder getSortOrder() {
+			return null;
+		}
+
 	}
 
 	private <T> NativeQuery<T> createQuery(final String query, final Class<T> type) {

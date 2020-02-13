@@ -142,7 +142,7 @@ public class SchemaSnapshotTest extends StructrUiTest {
 
 			StructrSchema.replaceDatabaseSchema(app, StructrSchema.createEmptySchema());
 
-		} catch (FrameworkException ex) {
+		} catch (Throwable ex) {
 			fail("Unexpected exception");
 		}
 

@@ -37,6 +37,11 @@ public class AnalyzeJavaFunction extends ParserModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "javaCode";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

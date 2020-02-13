@@ -26,7 +26,6 @@ import org.structr.api.DatabaseFeature;
 import org.structr.api.config.Settings;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Occurrence;
-import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
@@ -566,7 +565,7 @@ public class SearchAndSortingTest extends StructrTest {
 				int pageSize        = 10;
 				int page            = 1;
 
-				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getAsList();
+				result = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
 				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), Math.min(number, pageSize) });
 				assertEquals(Math.min(number, pageSize), result.size());
@@ -634,7 +633,7 @@ public class SearchAndSortingTest extends StructrTest {
 				int pageSize        = 10;
 				int page            = 1;
 
-				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getAsList();
+				result = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
 				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), Math.min(number, pageSize) });
 				assertTrue(result.size() == Math.min(number, pageSize));
@@ -706,7 +705,7 @@ public class SearchAndSortingTest extends StructrTest {
 				int pageSize        = 10;
 				int page            = 1;
 
-				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getAsList();
+				result = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
 				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
 				assertTrue(result.size() == Math.min(number, pageSize));
@@ -775,7 +774,7 @@ public class SearchAndSortingTest extends StructrTest {
 				int pageSize        = 10;
 				int page            = 1;
 
-				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getAsList();
+				result = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
 				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
 				assertTrue(result.size() == Math.min(number, pageSize));
@@ -799,7 +798,6 @@ public class SearchAndSortingTest extends StructrTest {
 			fail("Unexpected exception");
 
 		}
-
 	}
 
 	@Test
@@ -840,7 +838,7 @@ public class SearchAndSortingTest extends StructrTest {
 				int pageSize        = 5;
 				int page            = 1;
 
-				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getAsList();
+				result = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
 				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
 				assertTrue(result.size() == Math.min(number, pageSize));
@@ -919,9 +917,7 @@ public class SearchAndSortingTest extends StructrTest {
 				int pageSize        = 10;
 				int page            = 1;
 
-				Settings.CypherDebugLogging.setValue(true);
-
-				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getAsList();
+				result = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
 				Settings.CypherDebugLogging.setValue(false);
 
@@ -939,7 +935,7 @@ public class SearchAndSortingTest extends StructrTest {
 				}
 
 				// allow visual inspection of test results
-				final List<AbstractNode> list = app.nodeQuery(type).sort(sortKey).order(sortDesc).getAsList();
+				final List<AbstractNode> list = app.nodeQuery(type).sort(sortKey, sortDesc).getAsList();
 				list.stream().forEach(n -> System.out.println(n.getName() + ": " + n.getProperty(TestOne.aDate)));
 
 				tx.success();
@@ -980,7 +976,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				boolean sortDesc    = false;
 
-				final List<TestOne> result = app.nodeQuery(TestOne.class).sort(TestOne.anInt).order(sortDesc).getAsList();
+				final List<TestOne> result = app.nodeQuery(TestOne.class).sort(TestOne.anInt, sortDesc).getAsList();
 
 				// check that the sorting is stable, i.e. the position of nodes
 				// with equal values (and null) is not modified by sorting
@@ -1520,7 +1516,7 @@ public class SearchAndSortingTest extends StructrTest {
 				int pageSize        = 10;
 				int page            = 1;
 
-				result = app.nodeQuery(type).includeHidden().sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getAsList();
+				result = app.nodeQuery(type).includeHidden().sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
 				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
 				assertTrue(result.size() == pageSize);
@@ -1607,7 +1603,6 @@ public class SearchAndSortingTest extends StructrTest {
 		try {
 
 			boolean includeHidden           = false;
-			boolean publicOnly              = false;
 			Class type                      = TestOne.class;
 			int number                      = 20;    // no more than 89 to avoid sort order TestOne-10, TestOne-100 ...
 			final List<NodeInterface> nodes = this.createTestNodes(type, number);
@@ -1632,7 +1627,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = Iterables.toList(app.get(type));
+				final List<NodeInterface> result = app.nodeQuery(type).getAsList();
 
 				assertTrue(result.size() == number);
 
@@ -1697,6 +1692,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			final SecurityContext tester1Context     = SecurityContext.getInstance(tester1, AccessMode.Backend);
 			final SecurityContext tester2Context     = SecurityContext.getInstance(tester2, AccessMode.Backend);
+			final int softLimit                      = Settings.ResultCountSoftLimit.getValue();
 			final App tester1App                     = StructrApp.getInstance(tester1Context);
 			final App tester2App                     = StructrApp.getInstance(tester2Context);
 			final Class type                         = TestOne.class;
@@ -1744,11 +1740,16 @@ public class SearchAndSortingTest extends StructrTest {
 				final boolean sortDesc           = false;
 				final int pageSize               = 10;
 				final int page                   = 22;
-				final ResultStream<GraphObject> result = tester1App.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getResultStream();
+				final ResultStream<GraphObject> result = tester1App.nodeQuery(type).sort(sortKey, sortDesc).pageSize(pageSize).page(page).getResultStream();
 
-				assertEquals("Invalid paging result count with non-superuser security context", tester1NodeCount, result.calculateTotalResultCount());
+				assertEquals("Invalid paging result count with non-superuser security context", tester1NodeCount, result.calculateTotalResultCount(null, softLimit));
+
+				result.close();
 
 				tx.success();
+
+			} catch (Exception ex) {
+				fail("Unexpected exception");
 			}
 
 			try (final Tx tx = app.tx()) {
@@ -1757,11 +1758,16 @@ public class SearchAndSortingTest extends StructrTest {
 				final boolean sortDesc           = false;
 				final int pageSize               = 10;
 				final int page                   = 22;
-				final ResultStream<GraphObject> result = tester2App.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getResultStream();
+				final ResultStream<GraphObject> result = tester2App.nodeQuery(type).sort(sortKey, sortDesc).pageSize(pageSize).page(page).getResultStream();
 
-				assertEquals("Invalid paging result count with non-superuser security context", tester2NodeCount, result.calculateTotalResultCount());
+				assertEquals("Invalid paging result count with non-superuser security context", tester2NodeCount, result.calculateTotalResultCount(null, softLimit));
+
+				result.close();
 
 				tx.success();
+
+			} catch (Exception ex) {
+				fail("Unexpected exception");
 			}
 
 
@@ -1970,8 +1976,7 @@ public class SearchAndSortingTest extends StructrTest {
 						.and().parent()
 						.and().parent()
 						.and().parent()
-					.sort(AbstractNode.name)
-					.order(false)
+					.sort(AbstractNode.name, false)
 					.getAsList();
 
 			assertEquals("Invalid sort() result", "aaa", list.get(0).getProperty(nameKey));
@@ -2038,8 +2043,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			final List<Group> list = app.nodeQuery(Group.class)
 					.attributes(attributes)
-					.sort(AbstractNode.name)
-					.order(false)
+					.sort(AbstractNode.name, false)
 					.getAsList();
 
 			assertEquals("Invalid sort() result", "a", list.get(0).getProperty(nameKey));
@@ -2056,10 +2060,102 @@ public class SearchAndSortingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testSortByMultipleKeys() {
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name7"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name5"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name2"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name1"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name3"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name4"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 10L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name9"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 10L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name8"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 10L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name6"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 10L));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final List<TestOne> result1 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.name).getAsList();
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result1.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result1.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result1.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result1.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result1.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result1.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result1.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result1.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result1.get(8).getName());
+
+			final List<TestOne> result2 = app.nodeQuery(TestOne.class).sort(TestOne.aLong, true).sort(TestOne.name).getAsList();
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result2.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result2.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result2.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result2.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result2.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result2.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result2.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result2.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result2.get(8).getName());
+
+			final List<TestOne> result3 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.name, true).getAsList();
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result3.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result3.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result3.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result3.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result3.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result3.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result3.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result3.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result3.get(8).getName());
+
+			final List<TestOne> result4 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.anInt).sort(TestOne.name).getAsList();
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result4.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result4.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result4.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result4.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result4.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result4.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result4.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result4.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result4.get(8).getName());
+
+			final List<TestOne> result5 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.anInt, true).sort(TestOne.name).getAsList();
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result5.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result5.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result5.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result5.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result5.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result5.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result5.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result5.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result5.get(8).getName());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			System.out.println(fex.getMessage());
+			fail("Unexpected exception.");
+		}
+	}
+
 	// ----- private methods -----
 	private void testPaging(final Class type, final int pageSize, final int page, final int number, final int offset, final boolean includeHidden, final PropertyKey sortKey, final boolean sortDesc) throws FrameworkException {
 
-		final Query query = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize);
+		final Query query = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize);
 
 		if (includeHidden) {
 			query.includeHidden();

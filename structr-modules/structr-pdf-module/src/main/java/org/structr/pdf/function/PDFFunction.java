@@ -45,6 +45,11 @@ public class PDFFunction extends Function<Object, Object> {
 	}
 
 	@Override
+	public String getSignature() {
+		return "pageName [, wkthtmlParams, baseUrl, runWithX, xSettings ]";
+	}
+
+	@Override
 	public String getRequiredModule() {
 		return "pdf";
 	}

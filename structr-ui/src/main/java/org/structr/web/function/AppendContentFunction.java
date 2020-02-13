@@ -37,6 +37,11 @@ public class AppendContentFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "file, content [, encoding=UTF-8 ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

@@ -56,7 +56,7 @@ abstract class AbstractResultStream<T> implements Iterable<T> {
 						// reset count
 						remaining = query.pageSize();
 
-						final String statement            = query.getStatement();
+						final String statement            = query.getStatement(true);
 						final Map<String, Object> params  = query.getParameters();
 
 						result = fetchData(db, statement, params);

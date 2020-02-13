@@ -90,7 +90,6 @@ public class XMLFileImportJob extends FileImportJob {
 
 			// disable transaction notifications
 			threadContext.disableModificationOfAccessTime();
-			threadContext.ignoreResultCount(true);
 			threadContext.setDoTransactionNotifications(false);
 			threadContext.disableEnsureCardinality();
 

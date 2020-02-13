@@ -37,6 +37,11 @@ public class MailSetHtmlContentFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "html";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
@@ -61,6 +66,6 @@ public class MailSetHtmlContentFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Sets the HTML content of the current mail";
 	}
 }

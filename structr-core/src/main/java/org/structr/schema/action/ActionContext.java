@@ -372,7 +372,7 @@ public class ActionContext {
 			sb.append(request.getPathInfo());
 
 			final String qs = request.getQueryString();
-			final Map pm    = request.getParameterMap();
+			final Map pm    = getAllVariables();
 
 			if (qs != null) {
 

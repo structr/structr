@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import java.util.Comparator;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.structr.api.Predicate;
@@ -373,13 +374,13 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public boolean isPropertyTypeIndexable(final SecurityContext securityContext) {
-		return propertyKey.isPropertyTypeIndexable(securityContext);
+	public boolean isPropertyTypeIndexable() {
+		return propertyKey.isPropertyTypeIndexable();
 	}
 
 	@Override
-	public boolean isPropertyValueIndexable(final SecurityContext securityContext, Object value) {
-		return propertyKey.isPropertyValueIndexable(securityContext, value);
+	public boolean isPropertyValueIndexable(Object value) {
+		return propertyKey.isPropertyValueIndexable(value);
 	}
 
 	@Override
@@ -400,5 +401,10 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public Object getIndexValue(Object value) {
 		return propertyKey.getIndexValue(value);
+	}
+
+	@Override
+	public Comparator<GraphObject> sorted(final boolean descending) {
+		return propertyKey.sorted(descending);
 	}
 }

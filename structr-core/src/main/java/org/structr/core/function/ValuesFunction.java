@@ -38,6 +38,11 @@ public class ValuesFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "entity, viewName";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		//if (arrayHasMinLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof GraphObject) {

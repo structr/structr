@@ -45,6 +45,11 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "key [, domain ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -104,7 +109,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Returns a (cached) Localization result for the given key and optional domain";
 	}
 
 	public static List getLocalizedList(final ActionContext ctx, final Object caller, final List<String> keyList, final String domain) throws FrameworkException {
@@ -211,7 +216,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 
 	// ----- caching -----
-	private static final FixedSizeCache<String, String> localizationCache = new FixedSizeCache<>(10000);
+	private static final FixedSizeCache<String, String> localizationCache = new FixedSizeCache<>("Localization cache", 10000);
 
 	public static synchronized void invalidateCache() {
 		localizationCache.clear();

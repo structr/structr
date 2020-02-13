@@ -37,6 +37,11 @@ public class IndexSourceTreeFunction extends ParserModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "rootFolder";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

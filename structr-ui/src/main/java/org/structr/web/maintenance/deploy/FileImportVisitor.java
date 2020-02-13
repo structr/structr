@@ -41,7 +41,6 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.common.FileHelper;
@@ -122,11 +121,9 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					tx.disableChangelog();
 
 					// set properties from files.json
-					final PropertyMap fileProperties                          = getPropertiesForFileOrFolder(file.getPath());
-					final PropertyKey<Map<String, String>> sourcesPropertyKey = new GenericProperty("minificationSources");
-					Map<String, String> sourcesConfig                         = fileProperties.get(sourcesPropertyKey);
-
-					fileProperties.remove(sourcesPropertyKey);
+					final Map<String, Object> rawProperties = getRawPropertiesForFileOrFolder(file.getPath());
+					final Map<String, String> sourcesConfig = (Map<String, String>)rawProperties.remove("minificationSources");
+					final PropertyMap fileProperties = convertRawPropertiesForFileOrFolder(rawProperties);
 
 					file.unlockSystemPropertiesOnce();
 					file.setProperties(securityContext, fileProperties);
@@ -182,25 +179,31 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			tx.disableChangelog();
 
-			if (getExistingFolder(folderPath) == null) {
+			final Folder existingFolder        = getExistingFolder(folderPath);
+			final PropertyMap folderProperties = new PropertyMap(AbstractNode.name, folderObj.getFileName().toString());
 
-				final PropertyMap folderProperties = new PropertyMap(AbstractNode.name, folderObj.getFileName().toString());
+			if (!basePath.equals(folderObj.getParent())) {
 
-				if (!basePath.equals(folderObj.getParent())) {
+				final String parentPath = harmonizeFileSeparators("/", basePath.relativize(folderObj.getParent()).toString());
+				folderProperties.put(StructrApp.key(Folder.class, "parent"), getExistingFolder(parentPath));
+			}
 
-					final String parentPath = harmonizeFileSeparators("/", basePath.relativize(folderObj.getParent()).toString());
-					folderProperties.put(StructrApp.key(Folder.class, "parent"), getExistingFolder(parentPath));
-				}
+			// load properties from files.json
+			final PropertyMap properties = getConvertedPropertiesForFileOrFolder(folderPath);
+			if (properties != null) {
+				folderProperties.putAll(properties);
+			}
 
-				// set properties from files.json
-				final PropertyMap properties = getPropertiesForFileOrFolder(folderPath);
-				if (properties != null) {
-					folderProperties.putAll(properties);
-				}
+			if (existingFolder == null) {
 
 				final Folder newFolder = app.create(Folder.class, folderProperties);
 
 				this.folderCache.put(folderPath, newFolder);
+
+			} else {
+
+				existingFolder.unlockSystemPropertiesOnce();
+				existingFolder.setProperties(securityContext, folderProperties);
 			}
 
 			tx.success();
@@ -212,22 +215,31 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 	private void createFile(final Path path, final String fileName) throws IOException {
 
+		boolean deferFile  = false;
 		String newFileUuid = null;
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
 			tx.disableChangelog();
 
-			final String fullPath            = harmonizeFileSeparators("/", basePath.relativize(path).toString());
-			final PropertyMap fileProperties = getPropertiesForFileOrFolder(fullPath);
+			final String fullPath                   = harmonizeFileSeparators("/", basePath.relativize(path).toString());
+			final Map<String, Object> rawProperties = getRawPropertiesForFileOrFolder(fullPath);
 
-			if (fileProperties == null) {
+			if (rawProperties == null) {
 
 				if (!fileName.startsWith(".")) {
 					logger.info("Ignoring {} (not in files.json)", fullPath);
 				}
 
 			} else {
+
+				Object minificationSources = null;
+				if (rawProperties.containsKey("minificationSources")) {
+					deferFile = true;
+					minificationSources = rawProperties.remove("minificationSources");
+				}
+
+				final PropertyMap fileProperties = convertRawPropertiesForFileOrFolder(rawProperties);
 
 				final PropertyKey isThumbnailKey = StructrApp.key(Image.class, "isThumbnail");
 
@@ -250,7 +262,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 				if (file != null) {
 
-					final Long checksumOfExistingFile = file.getChecksum();
+					final Long checksumOfExistingFile = FileHelper.getChecksum(file.getFileOnDisk());
 					final Long checksumOfNewFile      = FileHelper.getChecksum(path.toFile());
 
 					if (checksumOfExistingFile != null && checksumOfNewFile != null && checksumOfExistingFile.equals(checksumOfNewFile)) {
@@ -303,8 +315,9 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 				if (file != null) {
 
-					if (fileProperties.containsKey(StructrApp.key(AbstractMinifiedFile.class, "minificationSources"))) {
+					if (deferFile) {
 						deferredFiles.add(file);
+						rawProperties.put("minificationSources", minificationSources);
 					} else {
 						file.unlockSystemPropertiesOnce();
 						file.setProperties(securityContext, fileProperties);
@@ -362,18 +375,29 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		}
 	}
 
-	private PropertyMap getPropertiesForFileOrFolder(final String path) throws FrameworkException {
+	private Map<String, Object> getRawPropertiesForFileOrFolder(final String path) throws FrameworkException {
 
 		final Object data = metadata.get(path);
 		if (data != null && data instanceof Map) {
 
-			return getPropertiesForFileOrFolder((Map<String, Object>)data);
+			return (Map<String, Object>)data;
 		}
 
 		return null;
 	}
 
-	private PropertyMap getPropertiesForFileOrFolder(final Map<String, Object> data) throws FrameworkException {
+	private PropertyMap getConvertedPropertiesForFileOrFolder(final String path) throws FrameworkException {
+
+		final Map<String, Object> data = getRawPropertiesForFileOrFolder(path);
+		if (data != null) {
+
+			return convertRawPropertiesForFileOrFolder(data);
+		}
+
+		return null;
+	}
+
+	private PropertyMap convertRawPropertiesForFileOrFolder(final Map<String, Object> data) throws FrameworkException {
 
 		return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), StructrApp.getConfiguration().getNodeEntityClass((String)data.get("type")), data);
 

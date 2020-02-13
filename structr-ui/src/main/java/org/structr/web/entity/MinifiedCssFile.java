@@ -31,6 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationEvent;
@@ -55,7 +56,13 @@ public interface MinifiedCssFile extends AbstractMinifiedFile {
 		type.addPropertyGetter("lineBreak", Integer.class);
 
 		type.overrideMethod("shouldModificationTriggerMinifcation", false, "return " + MinifiedCssFile.class.getName() + ".shouldModificationTriggerMinifcation(this, arg0);");
-		type.overrideMethod("minify",                               false, MinifiedCssFile.class.getName() + ".minify(this);");
+
+		type.addMethod("minify")
+			.addParameter("ctx", SecurityContext.class.getName())
+			.setSource(MinifiedCssFile.class.getName() + ".minify(this, ctx);")
+			.addException(FrameworkException.class.getName())
+			.addException(IOException.class.getName())
+			.setDoExport(true);
 	}}
 
 	Integer getLineBreak();
@@ -65,9 +72,9 @@ public interface MinifiedCssFile extends AbstractMinifiedFile {
 		return modState.getModifiedProperties().containsKey(StructrApp.key(MinifiedCssFile.class, "lineBreak"));
 	}
 
-	static void minify(final MinifiedCssFile thisFile) throws FrameworkException, IOException {
+	static void minify(final MinifiedCssFile thisFile, final SecurityContext securityContext) throws FrameworkException, IOException {
 
-		logger.info("Running minify: {}", thisFile.getUuid());
+		logger.info("Running minification of MinifiedCssFile: {}", thisFile.getUuid());
 
 		FileHelper.setFileData(thisFile, AbstractMinifiedFile.getConcatenatedSource(thisFile).getBytes(), null);
 

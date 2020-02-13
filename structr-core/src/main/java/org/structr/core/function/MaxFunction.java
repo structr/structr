@@ -33,6 +33,11 @@ public class MaxFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "value1, value2";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

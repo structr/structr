@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -405,6 +406,19 @@ public class SchemaService implements Service {
 
 				logger.info("Schema build took a total of {} ms", System.currentTimeMillis() - t0);
 
+				final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
+				final long maxWaitTime        = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(10);
+				boolean indexUpdateFinished   = false;
+
+				while (!indexUpdateFinished && System.currentTimeMillis() < maxWaitTime) {
+
+					indexUpdateFinished = graphDb.isIndexUpdateFinished();
+					if (!indexUpdateFinished) {
+
+						try { Thread.sleep(1000); } catch (Throwable t) {}
+					}
+				}
+
 				// compiling done
 				compiling.set(false);
 
@@ -526,7 +540,7 @@ public class SchemaService implements Service {
 								Map<String, Boolean> typeConfig = schemaIndexConfig.get(typeName);
 
 								if (typeConfig == null) {
-									
+
 									typeConfig = new LinkedHashMap<>();
 									schemaIndexConfig.put(typeName, typeConfig);
 								}
@@ -536,8 +550,8 @@ public class SchemaService implements Service {
 									boolean createIndex        = key.isIndexed() || key.isIndexedWhenEmpty();
 									final Class declaringClass = key.getDeclaringClass();
 
-									createIndex &= declaringClass == null || whitelist.contains(type) || type.equals(declaringClass);
-									createIndex &= !NonIndexed.class.isAssignableFrom(type);
+									createIndex &= (declaringClass == null || whitelist.contains(type) || type.equals(declaringClass));
+									createIndex &= (!NonIndexed.class.isAssignableFrom(type));
 
 									typeConfig.put(key.dbName(), createIndex);
 								}
@@ -561,7 +575,7 @@ public class SchemaService implements Service {
 							}
 						}
 
-						graphDb.updateIndexConfiguration(schemaIndexConfig, removedClassesConfig);
+						graphDb.updateIndexConfiguration(schemaIndexConfig, removedClassesConfig, Services.isTesting());
 
 					} finally {
 

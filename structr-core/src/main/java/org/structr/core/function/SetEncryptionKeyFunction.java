@@ -32,6 +32,11 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "secretKey";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources != null && sources.length == 1) {
@@ -63,6 +68,6 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Sets the secret key for encryt()/decrypt(), overriding the value from structr.conf";
 	}
 }

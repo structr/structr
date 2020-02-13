@@ -39,6 +39,11 @@ public class MailSetInReplyTo extends AdvancedMailModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "messageId";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {

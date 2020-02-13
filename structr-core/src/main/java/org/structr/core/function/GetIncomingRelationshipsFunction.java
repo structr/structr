@@ -39,6 +39,11 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "source, target [, relType ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final List<AbstractRelationship> list = new ArrayList<>();

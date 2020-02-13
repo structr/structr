@@ -20,12 +20,13 @@ package org.structr.bolt;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.WeakHashMap;
 import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
 import org.neo4j.driver.v1.types.Entity;
 import org.slf4j.Logger;
@@ -42,13 +43,12 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 	private static final Logger logger = LoggerFactory.getLogger(EntityWrapper.class.getName());
 
-	private final Map<Long, ChangeAwareMap> txData = new ConcurrentHashMap<>();
-	private final ChangeAwareMap entityData        = new ChangeAwareMap();
-
-	protected BoltDatabaseService db               = null;
-	protected boolean deleted                      = false;
-	protected boolean stale                        = false;
-	protected long id                              = -1L;
+	private final Map<Object, ChangeAwareMap> txData = Collections.synchronizedMap(new WeakHashMap<>());
+	private final ChangeAwareMap entityData          = new ChangeAwareMap();
+	protected BoltDatabaseService db                 = null;
+	protected boolean deleted                        = false;
+	protected boolean stale                          = false;
+	protected long id                                = -1L;
 
 	protected EntityWrapper() {
 		// nop constructor for cache access
@@ -81,7 +81,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 		assertNotStale();
 
-		return accessData().containsKey(name);
+		return accessData(false).containsKey(name);
 	}
 
 	@Override
@@ -89,7 +89,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 		assertNotStale();
 
-		final Object value = accessData().get(name);
+		final Object value = accessData(false).get(name);
 		if (value instanceof List) {
 
 			try {
@@ -149,7 +149,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 			tx.set(query, map);
 
 			// update data
-			accessData().put(key, value);
+			accessData(true).put(key, value);
 
 			// mark node as modified
 			setModified();
@@ -200,7 +200,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 		tx.set(query, map);
 
 		// remove key from data
-		accessData().put(key, null);
+		accessData(true).put(key, null);
 
 		setModified();
 	}
@@ -210,7 +210,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 		assertNotStale();
 
-		return accessData().keySet();
+		return accessData(false).keySet();
 	}
 
 	@Override
@@ -256,10 +256,11 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 	}
 
 	public void setModified() {
+		db.getCurrentTransaction().accessed(this);
 		db.getCurrentTransaction().modified(this);
 	}
 
-	public void rollback(final long transactionId) {
+	public void rollback(final Object transactionId) {
 
 		synchronized (this) {
 
@@ -269,7 +270,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 		}
 	}
 
-	public void commit(final long transactionId) {
+	public void commit(final Object transactionId) {
 
 		synchronized (this) {
 
@@ -328,7 +329,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 	// ----- private methods -----
 	private void update(final Map<String, Object> values) {
-		accessData().putAll(values);
+		accessData(true).putAll(values);
 	}
 
 	private void filter(final Map<String, Object> data) {
@@ -349,7 +350,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 	private boolean needsUpdate(final String key, final Object newValue) {
 
-		final Object existingValue = accessData().get(key);
+		final Object existingValue = accessData(false).get(key);
 
 		if (existingValue == null && newValue == null) {
 			return false;
@@ -393,7 +394,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 	}
 
 	// ----- private methods -----
-	private ChangeAwareMap accessData() {
+	private ChangeAwareMap accessData(final boolean write) {
 
 		// read-only access does not need a transaction
 		final SessionTransaction tx = db.getCurrentTransaction(false);
@@ -403,7 +404,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 				throw new NotFoundException("Entity with ID " + id + " not found.");
 			}
 
-			final long transactionId = tx.getTransactionId();
+			final Object transactionId = tx.getTransactionKey();
 			ChangeAwareMap copy      = txData.get(transactionId);
 
 			if (copy == null) {
@@ -411,7 +412,9 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 				copy = new ChangeAwareMap(entityData);
 				txData.put(transactionId, copy);
 
-				tx.accessed(this);
+				if (write) {
+					tx.accessed(this);
+				}
 			}
 
 			return copy;

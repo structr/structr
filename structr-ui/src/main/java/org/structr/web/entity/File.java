@@ -235,6 +235,14 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
+		type.addMethod("extractStructure")
+			.addParameter("ctx", SecurityContext.class.getName())
+			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+			.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
+			.setSource("return " + File.class.getName() + ".extractStructure(this);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "includeInFrontendExport");
 		type.addViewProperty(PropertyView.Public, "owner");
@@ -423,7 +431,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				for (AbstractMinifiedFile minifiedFile : targets) {
 
 					try {
-						minifiedFile.minify();
+						minifiedFile.minify(thisFile.getSecurityContext());
 					} catch (IOException ex) {
 						logger.warn("Could not automatically update minification target: ".concat(minifiedFile.getName()), ex);
 					}
@@ -881,6 +889,11 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		// default to setting in security context
 		return thisFile.getSecurityContext().doIndexing();
+	}
+
+	static Map<String, Object> extractStructure(final File thisFile) throws FrameworkException {
+		StructrApp.getInstance(thisFile.getSecurityContext()).getContentAnalyzer().analyzeContent(thisFile);
+		return null;
 	}
 
 	// ----- interface JavaScriptSource -----

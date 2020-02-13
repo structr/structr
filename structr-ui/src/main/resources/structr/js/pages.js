@@ -38,6 +38,9 @@ var _Pages = {
 	activeTabRightKey: 'structrActiveTabRight_' + port,
 	activeTabLeftKey: 'structrActiveTabLeft_' + port,
 	selectedTypeKey: 'structrSelectedType_' + port,
+	autoRefreshDisabledKey: 'structrAutoRefreshDisabled_' + port,
+	detailsObjectIdKey: 'structrDetailsObjectId_' + port,
+	requestParametersKey: 'structrRequestParameters_' + port,
 	init: function() {
 
 		_Pager.initPager('pages',   'Page', 1, 25, 'name', 'asc');
@@ -160,7 +163,7 @@ var _Pages = {
 			_Pages.leftSlideoutTrigger(this, pagesSlideout, [activeElementsSlideout, dataBindingSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function (params) {
 				_Pages.resize(params.sw, 0);
 				_Pages.pagesTabResizeContent();
-			}, _Pages.leftSlideoutClosedCallback);
+			}, _Pages.slideoutClosedCallback);
 		};
 		$('#pagesTab').on('click', pagesTabSlideoutAction).droppable({
 			tolerance: 'touch',
@@ -169,22 +172,26 @@ var _Pages = {
 
 		$('#activeElementsTab').on('click', function() {
 			_Pages.leftSlideoutTrigger(this, activeElementsSlideout, [pagesSlideout, dataBindingSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function(params) {
-				_Pages.refreshActiveElements();
+				if (params.isOpenAction) {
+					_Pages.refreshActiveElements();
+				}
 				_Pages.resize(params.sw, 0);
-			}, _Pages.leftSlideoutClosedCallback);
+			}, _Pages.slideoutClosedCallback);
 		});
 
 		$('#dataBindingTab').on('click', function() {
 			_Pages.leftSlideoutTrigger(this, dataBindingSlideout, [pagesSlideout, activeElementsSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function(params) {
-				_Pages.reloadDataBindingWizard();
+				if (params.isOpenAction) {
+					_Pages.reloadDataBindingWizard();
+				}
 				_Pages.resize(params.sw, 0);
-			}, _Pages.leftSlideoutClosedCallback);
+			}, _Pages.slideoutClosedCallback);
 		});
 
 		$('#localizationsTab').on('click', function() {
 			_Pages.leftSlideoutTrigger(this, localizationsSlideout, [pagesSlideout, activeElementsSlideout, dataBindingSlideout], _Pages.activeTabLeftKey, function(params) {
 				_Pages.resize(params.sw, 0);
-			}, _Pages.leftSlideoutClosedCallback);
+			}, _Pages.slideoutClosedCallback);
 		});
 
 		$('#localizations button.refresh').on('click', function () {
@@ -206,24 +213,49 @@ var _Pages = {
 		});
 
 		$('#widgetsTab').on('click', function() {
-			_Pages.rightSlideoutClickTrigger(this, widgetsSlideout, [paletteSlideout, componentsSlideout, elementsSlideout], false, _Widgets.reloadWidgets);
+			_Pages.rightSlideoutClickTrigger(this, widgetsSlideout, [paletteSlideout, componentsSlideout, elementsSlideout], _Pages.activeTabRightKey, function(params) {
+				if (params.isOpenAction) {
+					_Widgets.reloadWidgets();
+				}
+				_Pages.resize(0, params.sw);
+			}, _Pages.slideoutClosedCallback);
 		});
 
 		$('#paletteTab').on('click', function() {
-			_Pages.rightSlideoutClickTrigger(this, paletteSlideout, [widgetsSlideout, componentsSlideout, elementsSlideout], false, _Elements.reloadPalette);
+			_Pages.rightSlideoutClickTrigger(this, paletteSlideout, [widgetsSlideout, componentsSlideout, elementsSlideout], _Pages.activeTabRightKey, function(params) {
+				if (params.isOpenAction) {
+					_Elements.reloadPalette();
+				}
+				_Pages.resize(0, params.sw);
+			}, _Pages.slideoutClosedCallback);
 		});
 
-		$('#componentsTab').on('click', function() {
-			_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], false, _Elements.reloadComponents);
-		}).droppable({
+		var componentsTabSlideoutAction = function() {
+			_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], _Pages.activeTabRightKey, function(params) {
+				if (params.isOpenAction) {
+					_Elements.reloadComponents();
+				}
+				_Pages.resize(0, params.sw);
+				_Pages.componentsTabResizeContent();
+			}, _Pages.slideoutClosedCallback);
+		};
+		$('#componentsTab').on('click', componentsTabSlideoutAction).droppable({
 			tolerance: 'touch',
-			over: function(e, ui) {
-				_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], true, _Elements.reloadComponents);
+			over: function() {
+				if (!componentsSlideout.hasClass('open')) {
+					componentsTabSlideoutAction();
+				}
 			}
 		});
 
 		$('#elementsTab').on('click', function() {
-			_Pages.rightSlideoutClickTrigger(this, elementsSlideout, [widgetsSlideout, paletteSlideout, componentsSlideout], false, _Elements.reloadUnattachedNodes);
+			_Pages.rightSlideoutClickTrigger(this, elementsSlideout, [widgetsSlideout, paletteSlideout, componentsSlideout], _Pages.activeTabRightKey, function(params) {
+				if (params.isOpenAction) {
+					_Elements.reloadUnattachedNodes();
+				}
+				_Pages.resize(0, params.sw);
+				_Pages.unattachedNodesTabResizeContent();
+			}, _Pages.slideoutClosedCallback);
 		});
 
 		previewTabs = $('<ul id="previewTabs"></ul>');
@@ -284,7 +316,17 @@ var _Pages = {
 		var categoryFilter = $('<input type="text" class="filter page-label" data-attribute="category" placeholder="Category" />');
 		pPager.pager.append(categoryFilter);
 		pPager.activateFilterElements();
-
+		/*
+		var bulkEditingHelper = $(
+			'<button type="button" title="Open Bulk Editing Helper (Ctrl-Alt-E)" class="icon-button">'
+			+ '<i class="icon ' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" />'
+			+ '</button>');
+		pPager.pager.append(bulkEditingHelper);
+		bulkEditingHelper.on('click', e => {
+			Structr.dialog('Bulk Editing Helper (Ctrl-Alt-E)');
+			new RefactoringHelper(dialog).show();
+		});
+		*/
 		$.ajax({
 			url: '/structr/rest/Page/category',
 			success: function(data) {
@@ -308,6 +350,7 @@ var _Pages = {
 
 		previewTabs.append('<li id="import_page" title="Import Template" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.pull_file_icon) + '" /></li>');
 		previewTabs.append('<li id="add_page" title="Add page" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /></li>');
+		previewTabs.append('<li id="add_template" title="Add Template" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" /></li>');
 
 		$('#import_page', previewTabs).on('click', function(e) {
 			e.stopPropagation();
@@ -368,6 +411,44 @@ var _Pages = {
 			Command.createSimplePage();
 		});
 
+		// page template widgets present? Display special create page dialog
+		Command.query('Widget', 10, 1, 'name', 'asc', { isPageTemplate: true }, function(result) {
+
+			if (result && result.length) {
+
+				$('#add_template').on('click', function(e) {
+
+					e.stopPropagation();
+
+					Structr.dialog('Select Template to Create New Page', function() {}, function() {});
+
+					dialog.empty();
+					dialogMsg.empty();
+					dialog.append('<div id="template-tiles"></div>');
+
+					var container = $('#template-tiles');
+
+					result.forEach(function(widget) {
+						var id = 'create-from-' + widget.id;
+						container.append('<div class="app-tile"><h4>' + widget.name + '</h4><p>' + widget.description + '</p><button class="action" id="' + id + '">Create Page</button></div>');
+						$('#' + id).on('click', function() {
+							Command.create({ type: 'Page' }, function(page) {
+								Structr.removeExpandedNode(page.id);
+								Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
+							});
+						});
+
+					});
+
+				});
+
+			} else {
+
+				// remove wizard button if no page templates exist (can be changed later when the dialog includes some hints etc.)
+				$('#add_template').remove();
+			}
+		}, true);
+
 		Structr.adaptUiToAvailableFeatures();
 
 	},
@@ -384,7 +465,12 @@ var _Pages = {
 			e.stopPropagation();
 			var self = $(this);
 			var link = $.trim(self.parent().children('b.name_').attr('title'));
-			var url = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + link + (LSWrapper.getItem(detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(detailsObjectIdKey + entity.id) : '');
+			let pagePath = entity.path ? entity.path.replace(/^\//, '') : link;
+
+			let detailsObject     = (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '');
+			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '?' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
+
+			var url = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + pagePath + detailsObject + requestParameters;
 			window.open(url);
 		});
 
@@ -397,7 +483,7 @@ var _Pages = {
 				return true;
 			}, function() {
 				return true;
-			});
+			}, true);
 
 			dialog.empty();
 			dialogMsg.empty();
@@ -405,12 +491,14 @@ var _Pages = {
 			dialog.append('<p>With these settings you can influence the behaviour of the page previews only. They are not persisted on the Page object but only stored in the UI settings.</p>');
 
 			dialog.append('<table class="props">'
-					+ '<tr><td><label for="details-object-id">UUID of details object to append to preview URL</label></td><td><input id="_details-object-id" name="details-object-id" size="30" value="' + (LSWrapper.getItem(detailsObjectIdKey + entity.id) ?  LSWrapper.getItem(detailsObjectIdKey + entity.id) : '') + '"> <i id="clear-details-object-id" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
-					+ '<tr><td><label for="auto-refresh">Automatic refresh</label></td><td><input title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (LSWrapper.getItem(autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '></td></tr>'
-					+ '<tr><td><label for="page-category">Category</label></td><td><input name="page-category" id="_page-category" type="text" value="' + (entity.category || '') + '"> <i id="clear-page-category" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
+					+ '<tr><td><label for="_details-object-id">UUID of details object to append to preview URL</label></td><td><input id="_details-object-id" value="' + (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '') + '" style="width:90%;"> <i id="clear-details-object-id" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
+					+ '<tr><td><label for="_request-parameters">Request parameters to append to preview URL</label></td><td><code style="font-size: 10pt;">?</code><input id="_request-parameters" value="' + (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '') + '" style="width:90%;"> <i id="clear-request-parameters" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
+					+ '<tr><td><label for="_auto-refresh">Automatic refresh</label></td><td><input id="_auto-refresh" title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (LSWrapper.getItem(_Pages.autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '></td></tr>'
+					+ '<tr><td><label for="_page-category">Category</label></td><td><input id="_page-category" type="text" value="' + (entity.category || '') + '" style="width:90%;"> <i id="clear-page-category" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
 					+ '</table>');
 
-			var detailsObjectIdInput = $('#_details-object-id');
+			var detailsObjectIdInput   = $('#_details-object-id');
+			var requestParametersInput = $('#_request-parameters');
 
 			window.setTimeout(function() {
 				detailsObjectIdInput.select().focus();
@@ -418,27 +506,55 @@ var _Pages = {
 
 			$('#clear-details-object-id').on('click', function() {
 				detailsObjectIdInput.val('');
-				var oldVal = LSWrapper.getItem(detailsObjectIdKey + entity.id) || null;
+				var oldVal = LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) || null;
 				if (oldVal) {
 					blinkGreen(detailsObjectIdInput);
-					LSWrapper.removeItem(detailsObjectIdKey + entity.id);
+					LSWrapper.removeItem(_Pages.detailsObjectIdKey + entity.id);
 					detailsObjectIdInput.focus();
+
+					_Pages.reloadIframe(entity.id);
 				}
 			});
 
 			detailsObjectIdInput.on('blur', function() {
 				var inp = $(this);
-				var oldVal = LSWrapper.getItem(detailsObjectIdKey + entity.id) || null;
+				var oldVal = LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) || null;
 				var newVal = inp.val() || null;
 				if (newVal !== oldVal) {
-					LSWrapper.setItem(detailsObjectIdKey + entity.id, newVal);
+					LSWrapper.setItem(_Pages.detailsObjectIdKey + entity.id, newVal);
 					blinkGreen(detailsObjectIdInput);
+
+					_Pages.reloadIframe(entity.id);
+				}
+			});
+
+			$('#clear-request-parameters').on('click', function() {
+				requestParametersInput.val('');
+				var oldVal = LSWrapper.getItem(_Pages.requestParametersKey + entity.id) || null;
+				if (oldVal) {
+					blinkGreen(requestParametersInput);
+					LSWrapper.removeItem(_Pages.requestParametersKey + entity.id);
+					requestParametersInput.focus();
+
+					_Pages.reloadIframe(entity.id);
+				}
+			});
+
+			requestParametersInput.on('blur', function() {
+				var inp = $(this);
+				var oldVal = LSWrapper.getItem(_Pages.requestParametersKey + entity.id) || null;
+				var newVal = inp.val() || null;
+				if (newVal !== oldVal) {
+					LSWrapper.setItem(_Pages.requestParametersKey + entity.id, newVal);
+					blinkGreen(requestParametersInput);
+
+					_Pages.reloadIframe(entity.id);
 				}
 			});
 
 			$('.auto-refresh', dialog).on('click', function(e) {
 				e.stopPropagation();
-				var key = autoRefreshDisabledKey + entity.id;
+				var key = _Pages.autoRefreshDisabledKey + entity.id;
 				var autoRefreshDisabled = (LSWrapper.getItem(key) === '1');
 				if (autoRefreshDisabled) {
 					LSWrapper.removeItem(key);
@@ -596,9 +712,12 @@ var _Pages = {
 		_Pages.unloadIframes();
 		var iframe = $('#preview_' + id);
 		Command.get(id, 'id,name', function(obj) {
-			var url = viewRootUrl + obj.name + (LSWrapper.getItem(detailsObjectIdKey + id) ? '/' + LSWrapper.getItem(detailsObjectIdKey + id) : '') + '?edit=2';
+			let detailsObject     = (LSWrapper.getItem(_Pages.detailsObjectIdKey + id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + id) : '');
+			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + id) : '');
+			var url = viewRootUrl + obj.name + detailsObject + '?edit=2' + requestParameters;
 			iframe.prop('src', url);
 			_Logger.log(_LogType.PAGES, 'iframe', id, 'activated');
+
 			_Pages.hideAllPreviews();
 			iframe.parent().show();
 			_Pages.resize();
@@ -617,7 +736,7 @@ var _Pages = {
 
 			return false;
 		}
-		var autoRefreshDisabled = LSWrapper.getItem(autoRefreshDisabledKey + id);
+		var autoRefreshDisabled = LSWrapper.getItem(_Pages.autoRefreshDisabledKey + id);
 
 		if (!autoRefreshDisabled && id) {
 			_Pages.loadIframe(id);
@@ -1123,10 +1242,18 @@ var _Pages = {
 		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (pagesSlideout.width() + 12);
 		$('.node.page', pagesSlideout).width(psw - 35);
 	},
+	componentsTabResizeContent: function () {
+		var storedRightSlideoutWidth = LSWrapper.getItem(_Pages.rightSlideoutWidthKey);
+		var csw = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (componentsSlideout.width() + 12);
+		$('#componentsArea > .node').width(csw - 35);
+	},
+	unattachedNodesTabResizeContent: function () {
+		var storedRightSlideoutWidth = LSWrapper.getItem(_Pages.rightSlideoutWidthKey);
+		var csw = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (componentsSlideout.width() + 12);
+		$('#elementsArea > .node').width(csw - 35);
+	},
 	leftSlideoutTrigger: function (triggerEl, slideoutElement, otherSlideouts, activeTabKey, openCallback, closeCallback) {
-		if ($(triggerEl).hasClass('noclick')) {
-			$(triggerEl).removeClass('noclick');
-		} else {
+		if (!$(triggerEl).hasClass('noclick')) {
 			if (Math.abs(slideoutElement.position().left + slideoutElement.width() + 12) <= 3) {
 				Structr.closeLeftSlideOuts(otherSlideouts, activeTabKey, closeCallback);
 				Structr.openLeftSlideOut(triggerEl, slideoutElement, activeTabKey, openCallback);
@@ -1135,15 +1262,17 @@ var _Pages = {
 			}
 		}
 	},
-	rightSlideoutClickTrigger: function (triggerEl, slideoutElement, otherSlideouts, isDrag, callback) {
-		if (Math.abs(slideoutElement.position().left - $(window).width()) <= 3) {
-			Structr.closeSlideOuts(otherSlideouts, _Pages.activeTabRightKey);
-			Structr.openSlideOut(slideoutElement, triggerEl, _Pages.activeTabRightKey, callback);
-		} else if (!isDrag) {
-			Structr.closeSlideOuts([slideoutElement], _Pages.activeTabRightKey);
+	rightSlideoutClickTrigger: function (triggerEl, slideoutElement, otherSlideouts, activeTabKey, openCallback, closeCallback) {
+		if (!$(triggerEl).hasClass('noclick')) {
+			if (Math.abs(slideoutElement.position().left - $(window).width()) <= 3) {
+				Structr.closeSlideOuts(otherSlideouts, activeTabKey, closeCallback);
+				Structr.openSlideOut(triggerEl, slideoutElement, activeTabKey, openCallback);
+			} else {
+				Structr.closeSlideOuts([slideoutElement], activeTabKey, closeCallback);
+			}
 		}
 	},
-	leftSlideoutClosedCallback: function(wasOpen, offsetLeft, offsetRight) {
+	slideoutClosedCallback: function(wasOpen, offsetLeft, offsetRight) {
 		if (wasOpen) {
 			_Pages.resize(offsetLeft, offsetRight);
 		}
@@ -1161,7 +1290,7 @@ var _Pages = {
 				return;
 			}
 
-			var detailObjectId = LSWrapper.getItem(detailsObjectIdKey + id);
+			var detailObjectId = LSWrapper.getItem(_Pages.detailsObjectIdKey + id);
 
 			Command.listLocalizations(id, locale, detailObjectId, function(result) {
 

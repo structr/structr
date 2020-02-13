@@ -33,7 +33,7 @@ public class FixedSizeCacheTest {
 	@Test
 	public void testFixedSizeCache() {
 
-		final FixedSizeCache<Long, Long> test = new FixedSizeCache<>(10);
+		final FixedSizeCache<Long, Long> test = new FixedSizeCache<>("Test cache", 10);
 
 		for (int i=0; i<100; i++) {
 

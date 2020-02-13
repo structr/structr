@@ -27,7 +27,6 @@ import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -151,7 +150,7 @@ public interface User extends Principal {
 			final PropertyKey<Boolean> skipSecurityRels = StructrApp.key(User.class, "skipSecurityRelationships");
 			if (user.getProperty(skipSecurityRels).equals(Boolean.TRUE) && !user.isAdmin()) {
 
-				throw new FrameworkException(422, "", new SemanticErrorToken(user.getClass().getSimpleName(), skipSecurityRels, "can_only_be_set_for_admin_accounts"));
+				throw new FrameworkException(422, "The skipSecurityRels flags can only be set for admin accounts");
 			}
 
 			if (Principal.getTwoFactorSecret(user) == null) {
