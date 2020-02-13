@@ -39,6 +39,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
 import java.util.LinkedList;
 import org.apache.commons.lang.StringUtils;
 import org.shredzone.acme4j.Account;
@@ -92,7 +93,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 		final String challenge      = (String) attributes.get("challenge");
 		final String server         = (String) attributes.get("server");
 		final String wait           = (String) attributes.get("wait");
-		
+
 		final int waitForSeconds;
 		if (StringUtils.isBlank(wait)) {
 			waitForSeconds = Settings.LetsEncryptWaitBeforeAuthorization.getValue();
@@ -125,10 +126,10 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			switch (server) {
 
 				case "production":
-					
+
 					serverUrl = Settings.LetsEncryptProductionServerURL.getValue();
 					break;
-					
+
 				case "staging":
 				default:
 					serverUrl = Settings.LetsEncryptStagingServerURL.getValue();
@@ -143,11 +144,11 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 		challengeType = (challenge != null ? challenge : Settings.LetsEncryptChallengeType.getValue());
 
 		getCertificate(challengeType, wait);
-		
+
 	}
 
 	// ----- private methods -----
-	
+
 	private static void getCertificate(final String challengeType, final Integer wait) throws FrameworkException {
 
 		try {
@@ -184,7 +185,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			try {
 				int attempts = 3;
 				while (org.shredzone.acme4j.Status.VALID != order.getStatus() && attempts-- > 0) {
-					
+
 					if (org.shredzone.acme4j.Status.INVALID == order.getStatus()) {
 						logger.info("Order failed after " + attempts + " attempts, aborting.");
 						throw new FrameworkException(422, "Order failed after " + attempts + " attempts, aborting.");
@@ -202,7 +203,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			final Certificate certificate = order.getCertificate();
 
 			if (certificate != null) {
-			
+
 				logger.info("Certificate for domains {} successfully generated.", domains);
 				logger.info("Certificate URL: {}", certificate.getLocation());
 
@@ -211,18 +212,18 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 				}
 
 				logger.info("Writing to keystore {}", Settings.KeystorePath.getValue());
-			
+
 				// Write keystore file
 				writeCertificateToKeyStore(domains, certificate, domainKeyPair);
 
 				logger.info("Keystore file successfully written.");
-				
+
 			} else {
 				logger.info("Unable to get certificate from order, aborting.");
 				throw new FrameworkException(422, "Unable to get certificate from order, aborting.");
 			}
-			
-			
+
+
 		} catch (final Exception e) {
 
 			logger.info("Unable to get certificate from Let's Encrypt: " + e.getMessage());
@@ -245,11 +246,11 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			KeyStore.ProtectionParameter protParam = new KeyStore.PasswordProtection(password.toCharArray());
 
 			keyStore.setEntry(certificateAlias + "_" + Settings.LetsEncryptDomainKeyFilename.getValue(), privateKeyEntry, protParam);
-			
+
 			writeKeyStore(keyStore);
-			
+
 		} catch (final Exception ex) {
-			
+
 			logger.info("Unable to write to keystore: " + ex.getMessage());
 			throw new FrameworkException(422, "Unable to write to keystore: " + ex.getMessage());
 		}
@@ -258,14 +259,14 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 	private static String getKeyStoreFilename() {
 		return Settings.KeystorePath.getValue(Settings.LetsEncryptDomainKeyFilename.getValue() + ".keystore");
 	}
-	
+
 	private static void writeKeyStore(final KeyStore keyStore) throws FrameworkException {
-	
+
 		final String keyStoreFilename = getKeyStoreFilename();
 		final String password         = Settings.KeystorePassword.getValue();
 
 		final File keyStoreFile = new File(keyStoreFilename);
-		
+
 		try (FileOutputStream fos = new FileOutputStream(keyStoreFile)) {
 
 			keyStore.store(fos, password.toCharArray());
@@ -274,49 +275,49 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			logger.info("Unable to write to keystore: " + ex.getMessage());
 			throw new FrameworkException(422, "Unable to write to keystore: " + ex.getMessage());
 		}
-	
+
 	}
-	
+
 	private static KeyStore getOrCreateKeyStore() throws FrameworkException {
-		
+
 		final String keyStoreFilename = getKeyStoreFilename();
 		final String password         = Settings.KeystorePassword.getValue();
-		
+
 		final File keyStoreFile = new File(keyStoreFilename);
-		
+
 		final KeyStore keyStore;
 		try {
 			keyStore = KeyStore.getInstance("PKCS12");
-			
+
 		} catch (final KeyStoreException ex) {
 			logger.info("Unable to create Keystore instance: " + ex.getMessage());
 			throw new FrameworkException(422, "Unable to create Keystore instance: " + ex.getMessage());
 		}
-		
+
 		try {
-			
+
 			if (!keyStoreFile.exists()) {
 				keyStoreFile.createNewFile();
-				
+
 				keyStore.load(null, null);
-			
+
 			} else {
-				
+
 				try (final FileInputStream fis = new java.io.FileInputStream(keyStoreFile)) {
-					
+
 					keyStore.load(fis, password.toCharArray());
 				}
 			}
 
 			return keyStore;
-			
+
 		} catch (final Exception ex) {
 			logger.info("Unable to create new keystore file. Check permissions. " + ex.getMessage());
 			throw new FrameworkException(422, "Unable to create new keystore file. Check permissions. " + ex.getMessage());
 		}
-		
+
 	}
-	
+
 	private static void authorizeChallenge(final String challengeType, final Authorization auth, final int wait) throws Exception {
 		logger.info("Starting challenge authorization for domain {}", auth.getIdentifier().getDomain());
 
@@ -354,15 +355,15 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 
 		// Wait the specified amount of milliseconds
 		Thread.sleep(wait);
-		
+
 		challenge.trigger();
 
 		try {
-			
+
 			int attempts = 10;
-			
+
 			while (org.shredzone.acme4j.Status.VALID != challenge.getStatus() && attempts-- > 0) {
-				
+
 				if (challenge.getStatus() == org.shredzone.acme4j.Status.INVALID) {
 					logger.info("Challenge authorization failed due to invalid response, aborting.");
 					throw new FrameworkException(422, "Challenge authorization failed due to invalid response, aborting.");
@@ -396,22 +397,22 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 	}
 
 	private static void stopServer() {
-		
+
 		if (challengeType.equals("http")) {
-			
+
 			if (server != null) {
-				
+
 				logger.info("Stopping temporary HTTP server...");
-				
+
 				// If a temporary HTTP server is running, stop it.
 				server.stop(0);
-				
+
 				logger.info("Successfully stopped temporary HTTP server.");
-				
+
 			} else {
 
 				logger.info("Removing /.well-known/acme-challenge/* from internal file system...");
-				
+
 				final App app = StructrApp.getInstance();
 				try (final Tx tx = app.tx()) {
 
@@ -427,21 +428,21 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 						for (NodeInterface node : filteredResults) {
 								app.delete(node);
 						}
-						
+
 						app.delete(wellKnownFolder);
 					}
-					
+
 					tx.success();
-					
+
 					logger.info("Successfully removed challenge response resources /.well-known/acme-challenge/* from internal file system.");
-					
+
 				} catch (FrameworkException ex) {
 					logger.error("Unable to remove challenge response file and folders.");
 				}
 			}
 		}
 	}
-	
+
 	public static Challenge httpChallenge(final Authorization auth) throws FrameworkException {
 
 		final Http01Challenge challenge = auth.findChallenge(Http01Challenge.class);
@@ -456,7 +457,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 		try {
 
 			logger.info("Creating temporary HTTP server listening on port 80.");
-			
+
 			server = HttpServer.create(new InetSocketAddress(80), 0);
 
 
@@ -481,7 +482,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			});
 
 			server.start();
-			
+
 			logger.info("Temporary HTTP started.");
 
 		} catch (final IOException iox) {
@@ -489,11 +490,11 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			stopServer();
 
 			logger.info("Unable to start temporary HTTP server for challenge authorization, trying internal file server...", iox);
-			
+
 			final App app = StructrApp.getInstance();
-			
+
 			try (final Tx tx = app.tx()) {
-			
+
 				final SecurityContext adminContext = SecurityContext.getSuperUserInstance();
 				final Folder parentFolder = FileHelper.createFolderPath(adminContext, "/.well-known/acme-challenge/");
 
@@ -503,22 +504,22 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 
 				parentFolder.setProperties(adminContext, props);
 				parentFolder.getParent().setProperties(adminContext, props);
-			
+
 				org.structr.web.entity.File challengeFile = FileHelper.createFile(adminContext, new ByteArrayInputStream(content.getBytes()), "text/plain", SchemaHelper.getEntityClassForRawType("File"), challenge.getToken(), parentFolder);
-				
+
 				props = new PropertyMap();
 				props.put(StructrApp.key(org.structr.web.entity.File.class, "visibleToPublicUsers"), true);
-				props.put(StructrApp.key(org.structr.web.entity.File.class, "visibleToAuthenticatedUsers"), true);				
-				
+				props.put(StructrApp.key(org.structr.web.entity.File.class, "visibleToAuthenticatedUsers"), true);
+
 				challengeFile.setProperties(adminContext, props);
-				
+
 				tx.success();
-				
+
 			} catch (IOException ex) {
 				logger.error("Unable to start create challenge response file in internal file system, aborting.", ex);
 				throw new FrameworkException(422, "Unable to start create challenge response file in internal file system, aborting.");
 			}
-			
+
 		}
 
 		return challenge;
@@ -583,5 +584,15 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 
 			return domainKey;
 		}
+	}
+
+	@Override
+	public Map<String, String> getCustomHeaders() {
+		return Collections.EMPTY_MAP;
+	}
+
+	@Override
+	public List<Object> getPayload() {
+		return Collections.EMPTY_LIST;
 	}
 }
