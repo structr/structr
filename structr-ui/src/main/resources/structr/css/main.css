@@ -5406,3 +5406,9 @@ div#custom-properties-container table td:nth-child(3) {
 	text-align: right;
 	width: 30px;
 }
+
+/* mount dialog */
+
+#mount-dialog input[type="text"] {
+	width: calc(100% - 10px);
+}
