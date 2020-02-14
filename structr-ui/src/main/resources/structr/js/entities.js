@@ -1397,6 +1397,9 @@ var _Entities = {
 
 			input.closest('.array-attr').find('i.remove').off('click').on('click', function(el) {
 				let cell = input.closest('.value');
+				if (cell.length === 0) {
+					cell = input.closest('.__value');
+				}
 				input.parent().remove();
 				_Entities.saveArrayValue(cell, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback);
 			});
