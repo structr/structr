@@ -86,6 +86,22 @@ var _Dialogs = {
 			});
 		}
 	},
+	showRepeaterOptions: function(entity, el) {
+
+		let repeaterConfigContainer = $('.repeater-config-container', el);
+
+		if (repeaterConfigContainer.length) {
+
+			Structr.fetchHtmlTemplate('dialogs/repeater-partial', { entity: entity }, function (html) {
+
+				repeaterConfigContainer.html(html);
+
+				[ 'function-query', 'data-key' ].forEach(p => {
+					_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), entity, p.toCamel());
+				});
+			});
+		}
+	},
 
 	// ----- custom dialogs -----
 	ldapGroupDialog: function(el, entity) {
@@ -195,16 +211,13 @@ var _Dialogs = {
 						_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), a, '_html_' + p);
 					});
 
-					[ 'function-query', 'data-key' ].forEach(p => {
-						_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), entity, p.toCamel());
-					});
-
 					// focus on first input field
 					$('input#class-input').focus();
 					$('input#class-input').select();
 
 					_Dialogs.showCustomProperties(entity);
-					_Dialogs.showVisibilityOptions(entity);
+					_Dialogs.showRepeaterOptions(entity, el);
+					_Dialogs.showVisibilityOptions(entity, el);
 				});
 
 			}, '_html_');
@@ -226,16 +239,13 @@ var _Dialogs = {
 						_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), button, '_html_' + p);
 					});
 
-					[ 'function-query', 'data-key' ].forEach(p => {
-						_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), entity, p.toCamel());
-					});
-
 					// focus on first input field
 					$('input#class-input').focus();
 					$('input#class-input').select();
 
 					_Dialogs.showCustomProperties(entity);
-					_Dialogs.showVisibilityOptions(entity);
+					_Dialogs.showRepeaterOptions(entity, el);
+					_Dialogs.showVisibilityOptions(entity, el);
 				});
 
 			}, '_html_');
@@ -262,7 +272,7 @@ var _Dialogs = {
 					$('input#class-input').select();
 
 					_Dialogs.showCustomProperties(entity);
-					_Dialogs.showVisibilityOptions(entity);
+					_Dialogs.showVisibilityOptions(entity, el);
 				});
 
 			}, '_html_');
@@ -280,13 +290,7 @@ var _Dialogs = {
 					el.append(html);
 
 					[ 'id', 'class', 'style' ].forEach(p => {
-						let input = $('input#' + p + '-input');
-						_Dialogs.registerSimpleInputBlurhandler(input, div, '_html_' + p);
-					});
-
-					[ 'function-query', 'data-key' ].forEach(p => {
-						let input = $('input#' + p + '-input');
-						_Dialogs.registerSimpleInputBlurhandler(input, entity, p.toCamel());
+						_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), div, '_html_' + p);
 					});
 
 					// focus on first input field
@@ -294,6 +298,7 @@ var _Dialogs = {
 					$('input#class-input').select();
 
 					_Dialogs.showCustomProperties(entity);
+					_Dialogs.showRepeaterOptions(entity, el);
 					_Dialogs.showVisibilityOptions(entity, el);
 				});
 
