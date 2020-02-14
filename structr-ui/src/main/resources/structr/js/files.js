@@ -1529,6 +1529,12 @@ var _Files = {
 							mountConfig[$(el).data('attributeName')] = val;
 						}
 					});
+					$('.mount-option[type="number"]').each(function(i, el) {
+						var val = $(el).val();
+						if (val !== "") {
+							mountConfig[$(el).data('attributeName')] = parseInt(val);
+						}
+					});
 					$('.mount-option[type="checkbox"]').each(function(i, el) {
 						mountConfig[$(el).data('attributeName')] = $(el).prop('checked');
 					});
