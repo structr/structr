@@ -31,7 +31,6 @@ import java.util.Properties;
 import java.util.Set;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -81,6 +80,7 @@ public class Settings {
 	public static final Setting<String> LogPrefix               = new StringSetting(generalGroup,             "Logging",     "log.prefix",                       "structr");
 	public static final Setting<String> LogName                 = new StringSetting(generalGroup,             "Logging",     "log.name",                         "structr-yyyy_mm_dd.request.log", "File name pattern for the logging output");
 	public static final Setting<Boolean> LogJSExcpetionRequest  = new BooleanSetting(generalGroup,            "Logging",     "log.javascript.exception.request", false, "Adds path, queryString and parameterMap to JavaScript exceptions (if available)");
+	public static final Setting<Boolean> SetupWizardCompleted   = new BooleanSetting(generalGroup,            "hidden",      "setup.wizard.completed",           false);
 	public static final Setting<String> Configuration           = new StringSetting(generalGroup,             "hidden",      "configuration.provider",           "org.structr.module.JarConfigurationProvider", "Fully-qualified class name of a Java class in the current class path that implements the <code>org.structr.schema.ConfigurationProvider</code> interface.");
 	public static final StringMultiChoiceSetting Services       = new StringMultiChoiceSetting(generalGroup,  "Services",    "configured.services",              "NodeService SchemaService AgentService CronService HttpService", "Services that are listed in this configuration key will be started when Structr starts.");
 	public static final Setting<Integer> ServicesStartTimeout   = new IntegerSetting(generalGroup,            "Services",    "services.start.timeout",           30);
@@ -134,6 +134,7 @@ public class Settings {
 
 	// database settings
 	public static final Setting<String> DatabaseAvailableConnections = new StringSetting(databaseGroup,  "hidden",                  "database.available.connections",   null);
+	public static final Setting<String> DatabaseDriverMode           = new ChoiceSetting(databaseGroup,  "Database Driver",         "database.driver.mode",             "embedded", Settings.getStringsAsSet("embedded", "remote"));
 	public static final Setting<String> DatabaseDriver               = new StringSetting(databaseGroup,  "Database Driver",         "database.driver",                  DEFAULT_DATABASE_DRIVER);
 	public static final Setting<String> ConnectionUrl                = new StringSetting(databaseGroup,  "Database Connection",     "database.connection.url",          "bolt://localhost:7688");
 	public static final Setting<String> TestingConnectionUrl         = new StringSetting(databaseGroup,  "hidden",                  "testing.connection.url",           "bolt://localhost:7689");
@@ -326,7 +327,7 @@ public class Settings {
 
 	//security settings
 	public static final Setting<String> SuperUserName                  = new StringSetting(securityGroup,     "Superuser",            "superuser.username",                    "superadmin", "Name of the superuser");
-	public static final Setting<String> SuperUserPassword              = new PasswordSetting(securityGroup,   "Superuser",            "superuser.password",                    RandomStringUtils.randomAlphanumeric(12), "Password of the superuser (or empty to create a random password at runtime)");
+	public static final Setting<String> SuperUserPassword              = new PasswordSetting(securityGroup,   "Superuser",            "superuser.password",                    null, "Password of the superuser");
 	public static final Setting<Integer> ResolutionDepth               = new IntegerSetting(applicationGroup, "Application Security", "application.security.resolution.depth", 5);
 	public static final Setting<String> OwnerlessNodes                 = new StringSetting(applicationGroup,  "Application Security", "application.security.ownerless.nodes",  "read", "The permission level for users on nodes without an owner. One or more of: <code>read, write, delete, accessControl</code>");
 

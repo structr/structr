@@ -284,9 +284,10 @@ let containsIgnoreCase = (haystack, needle) => {
 
 let initSearch = () => {
 
-	let isLogin = document.getElementById('login');
+	let isLogin   = document.getElementById('login');
+	let isWelcome = document.getElementById('welcome');
 
-	if (!isLogin) {
+	if (!isLogin && !isWelcome) {
 
 		let header = document.getElementById('header');
 

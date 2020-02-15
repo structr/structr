@@ -27,8 +27,6 @@ import org.structr.api.config.Settings;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
-import org.structr.api.search.SortType;
-import static org.structr.api.search.SortType.Default;
 import org.structr.api.util.Iterables;
 
 /**
@@ -157,30 +155,8 @@ public class AdvancedCypherQuery implements CypherQuery {
 					buf.append(", ");
 				}
 
-				final SortType sortType = spec.getSortType();
-				switch (sortType) {
-
-					case Default:
-						// default is "String"
-						// no COALESCE needed => much faster
-						buf.append(" sortKey");
-						buf.append(sortSpecIndex);
-
-						break;
-
-					default:
-						// other types are numeric
-						buf.append(" COALESCE(sortKey");
-						buf.append(sortSpecIndex);
-						buf.append(", ");
-
-						// COALESCE needs a correctly typed minimum value,
-						// so we need to supply a value based on the sort
-						// type.
-
-						buf.append("-1");
-						buf.append(")");
-				}
+				buf.append(" sortKey");
+				buf.append(sortSpecIndex);
 
 				if (spec.sortDescending()) {
 					buf.append(" DESC");

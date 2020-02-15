@@ -142,7 +142,6 @@ var _Dashboard = {
 				_Dashboard.activateLogBox();
 				_Dashboard.activateLastActiveTab();
 				_Dashboard.appendGlobalSchemaMethods($('#dash-global-schema-methods'));
-				_Dashboard.appendDatabaseSelectionBox();
 
 				$(window).off('resize');
 				$(window).on('resize', function () {
@@ -244,112 +243,6 @@ var _Dashboard = {
 			blinkGreen($('#clear-local-storage-on-server'));
 			LSWrapper.clear();
 		});
-	},
-	appendDatabaseSelectionBox: function () {
-
-		Structr.fetchHtmlTemplate('dashboard/database.connections', {}, function (html) {
-
-			var parent = $('#dash-connections');
-
-			parent.append(html);
-
-			_Dashboard.loadDatabaseSelectionBox();
-		});
-	},
-	loadDatabaseSelectionBox: function () {
-
-		$.post(
-			rootUrl + '/maintenance/manageDatabases',
-			JSON.stringify({command: "list"}),
-			function (data) {
-
-				var body = $('#database-connection-table-body');
-				body.empty();
-
-				data.result.forEach(function (result) {
-
-					Structr.fetchHtmlTemplate('dashboard/connection.row', _Dashboard.mapConnectionResult(result), function (html) {
-
-						body.append(html);
-
-						$('button#connect-button_' + result.name).on('click', function (btn) {
-
-							Structr.showLoadingMessage(
-								'Changing database connection to ' + result.name,
-								'Please wait until the change has been applied. If you don\'t have a valid session ID in the other database, you will need to re-login after the change.',
-								200
-								);
-
-							$.ajax({
-								url: rootUrl + '/maintenance/manageDatabases',
-								type: 'post',
-								data: JSON.stringify({
-									command: 'activate',
-									name: result.name
-								}),
-								statusCode: {
-									200: function(response) {
-
-										Structr.hideLoadingMessage();
-										_Dashboard.onload();
-									},
-									503: function(response) {
-
-										var message = new MessageBuilder().title("Service Unavailable").error(response.responseJSON.message);
-
-										message.delayDuration(5000).fadeDuration(1000);
-										message.show();
-
-										Structr.hideLoadingMessage();
-										_Dashboard.onload();
-									}
-								}
-							});
-						});
-
-						$('button#delete-button_' + result.name).on('click', function (btn) {
-
-							$.post(
-								rootUrl + '/maintenance/manageDatabases',
-								JSON.stringify({
-									command: 'remove',
-									name: result.name
-								}),
-								function () {
-									Structr.hideLoadingMessage();
-									_Dashboard.onload();
-								}
-							);
-						});
-					});
-				});
-
-				Structr.fetchHtmlTemplate('dashboard/new-connection.row', {}, function (html) {
-
-					body.append(html);
-
-					$('button#new-database-connection-button').on('click', function (btn) {
-
-						$.post(
-							rootUrl + '/maintenance/manageDatabases',
-							JSON.stringify({
-								command: 'add',
-								driver: 'org.structr.bolt.BoltDatabaseService',
-								mode: 'remote',
-								name: $('#connection-name').val(),
-								url: $('#connection-url').val(),
-								username: $('#connection-username').val(),
-								password: $('#connection-password').val()
-							}),
-							function () {
-								Structr.hideLoadingMessage();
-								_Dashboard.onload();
-							}
-						);
-					});
-				});
-			}
-		);
 	},
 	checkLicenseEnd: function (envInfo, element, cfg) {
 
@@ -540,42 +433,5 @@ var _Dashboard = {
 			method: 'POST'
 		});
 
-	},
-	mapConnectionResult: function (result) {
-
-		var activeString = result.active ? '<b>active</b>' : '-';
-		var button = '';
-
-		if (!result.active) {
-
-			button += '<button class="action" id="connect-button_' + result.name + '">Connect</button>';
-			button += '<button class="" id="delete-button_' + result.name + '">Delete</button>';
-		}
-
-		if (result.driver === 'org.structr.memory.MemoryDatabaseService') {
-
-			return {
-
-				name: result.name,
-				type: 'in-memory',
-				url: '-',
-				username: '-',
-				active: activeString,
-				button: button
-
-			};
-
-		} else {
-
-			return {
-
-				name: result.name,
-				type: 'neo4j',
-				url: result.url,
-				username: result.username,
-				active: activeString,
-				button: button
-			};
-		}
 	}
 };

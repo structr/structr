@@ -177,6 +177,7 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 
 						} else if (v1 == null) {
 
+							// sort order is "nulls last"
 							return desc ? -1 : 1;
 
 						} else {
@@ -189,7 +190,7 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 					if (v1 instanceof Comparable && v2 instanceof Comparable) {
 
 						Comparable c1 = (Comparable)v1;
-						Comparable c2 = (Comparable)v1;
+						Comparable c2 = (Comparable)v2;
 
 						final int result = desc ? c2.compareTo(c1) : c1.compareTo(c2);
 						if (result != 0) {

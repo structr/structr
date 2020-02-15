@@ -49,7 +49,6 @@ public class NodeService implements SingletonService {
 	private String filesPath                = null;
 	private boolean isInitialized           = false;
 	private CountResult initialCount        = null;
-	private String serviceName              = null;
 
 	@Override
 	public void injectArguments(Command command) {
@@ -65,9 +64,6 @@ public class NodeService implements SingletonService {
 
 	@Override
 	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-
-		// initialize service name from the outside
-		this.serviceName = serviceName;
 
 		final String databaseDriver = Settings.DatabaseDriver.getPrefixedValue(serviceName);
 

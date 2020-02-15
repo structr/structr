@@ -18,7 +18,6 @@
  */
 package org.structr.memory;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
 import org.structr.memory.index.MemoryRelationshipIndex;
@@ -33,7 +32,6 @@ import static org.structr.api.DatabaseFeature.QueryLanguage;
 import org.structr.api.NativeQuery;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.Transaction;
-import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.GraphProperties;
 import org.structr.api.graph.Identity;
@@ -61,20 +59,14 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 	private final MemoryNodeRepository nodes                            = new MemoryNodeRepository();
 	private MemoryRelationshipIndex relIndex                            = null;
 	private MemoryNodeIndex nodeIndex                                   = null;
-	private File storageDirectory                                       = null;
 
 	@Override
 	public boolean initialize(final String serviceName) {
-
-		storageDirectory = new File(Settings.DatabasePath.getPrefixedValue(serviceName));
-
-		loadFromStorage();
 		return true;
 	}
 
 	@Override
 	public void shutdown() {
-		writeToStorage();
 	}
 
 	@Override
@@ -474,27 +466,6 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 
 	void updateCache(final MemoryRelationship relationship) {
 		relationships.updateCache(relationship);
-	}
-
-	// ----- private methods -----
-	private void loadFromStorage() {
-
-		if (storageDirectory.exists()) {
-
-			nodes.loadFromStorage(this, storageDirectory);
-			relationships.loadFromStorage(this, storageDirectory);
-		}
-	}
-
-	private void writeToStorage() {
-
-		if (!storageDirectory.exists()) {
-
-			storageDirectory.mkdirs();
-		}
-
-		nodes.writeToStorage(storageDirectory);
-		relationships.writeToStorage(storageDirectory);
 	}
 
 	// ----- nested classes -----

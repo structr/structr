@@ -48,9 +48,10 @@ public class ConfigServlet extends AbstractServletBase {
 
 	private static final Logger logger                     = LoggerFactory.getLogger(ConfigServlet.class);
 	private static final Set<String> authenticatedSessions = new HashSet<>();
+	private static final String MainUrl                    = "/structr/";
 	private static final String ConfigUrl                  = "/structr/config";
 	private static final String ConfigName                 = "structr.conf";
-	private static final String TITLE                      =  "Structr Configuration Editor";
+	private static final String TITLE                      = "Structr Configuration Editor";
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -86,8 +87,8 @@ public class ConfigServlet extends AbstractServletBase {
 
 			} else if (request.getParameter("reset") != null) {
 
-				final String key      = request.getParameter("reset");
-				Setting setting = Settings.getSetting(key);
+				final String key = request.getParameter("reset");
+				Setting setting  = Settings.getSetting(key);
 
 				if (setting == null) {
 					setting = Settings.getCaseSensitiveSetting(key);
@@ -157,6 +158,15 @@ public class ConfigServlet extends AbstractServletBase {
 				// redirect
 				response.sendRedirect(ConfigUrl + "#services");
 
+			} else if (request.getParameter("finish") != null) {
+
+				// finish wizard
+				Settings.SetupWizardCompleted.setValue(true);
+				Settings.storeConfiguration(ConfigName);
+
+				// redirect
+				response.sendRedirect(MainUrl);
+
 			} else {
 
 				// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
@@ -191,7 +201,7 @@ public class ConfigServlet extends AbstractServletBase {
 			switch (action) {
 
 				case "login":
-					
+
 					if (StringUtils.isNoneBlank(Settings.SuperUserPassword.getValue(), request.getParameter("password")) && Settings.SuperUserPassword.getValue().equals(request.getParameter("password"))) {
 						authenticateSession(request);
 					}
@@ -275,95 +285,109 @@ public class ConfigServlet extends AbstractServletBase {
 	// ----- private methods -----
 	private Document createConfigDocument(final HttpServletRequest request, final PrintWriter writer) {
 
-		final Document doc = new Document(writer);
-		final Tag body     = setupDocument(request, doc);
-		final Tag form     = body.block("form").css("config-form");
-		final Tag main     = form.block("div").id("main");
-		final Tag tabs     = main.block("div").id("configTabs");
-		final Tag menu     = tabs.block("ul").css("tabs-menu");
+		final boolean firstStart = !Settings.SetupWizardCompleted.getValue();
+		final Document doc       = new Document(writer);
+		final Tag body           = setupDocument(request, doc);
+		final Tag form           = body.block("form").css("config-form");
+		final Tag main           = form.block("div").id("main");
+		final Tag tabs           = main.block("div").id("configTabs");
+		final Tag menu           = tabs.block("ul").css("tabs-menu");
 
 		// configure form
 		form.attr(new Attr("action", ConfigUrl), new Attr("method", "post"));
 
-		for (final SettingsGroup group : Settings.getGroups()) {
-
-			final String key  = group.getKey();
-			final String name = group.getName();
-
-			menu.block("li").block("a").id(key + "Menu").attr(new Attr("href", "#" + key)).block("span").text(name);
-
-			final Tag container = tabs.block("div").css("tab-content").id(key);
-
-			// let settings group render itself
-			group.render(container);
-
-			// stop floating
-			container.block("div").attr(new Style("clear: both;"));
+		if (firstStart) {
+			welcomeTab(menu, tabs);
 		}
 
-		// add services tab
-		menu.block("li").block("a").id("servicesMenu").attr(new Attr("href", "#services")).block("span").text("Services");
+		databasesTab(menu, tabs);
 
-		final Services services = Services.getInstance();
-		final Tag container     = tabs.block("div").css("tab-content").id("services");
-		final Tag table         = container.block("table").id("services-table");
-		final Tag header        = table.block("tr");
+		if (!firstStart) {
 
-		header.block("th").text("Service Name");
-		header.block("th").attr(new Attr("colspan", "2"));
+			// settings tabs
+			for (final SettingsGroup group : Settings.getGroups()) {
 
-		for (final Class serviceClass : services.getRegisteredServiceClasses()) {
+				final String key  = group.getKey();
+				final String name = group.getName();
 
-			final Set<String> serviceNames = new TreeSet<>();
+				menu.block("li").block("a").id(key + "Menu").attr(new Attr("href", "#" + key)).block("span").text(name);
 
-			serviceNames.addAll(services.getServices(serviceClass).keySet());
-			serviceNames.add("default");
+				final Tag container = tabs.block("div").css("tab-content").id(key);
 
-			for (final String name : serviceNames) {
+				// let settings group render itself
+				group.render(container);
 
-				final boolean running         = serviceClass != null ? services.isReady(serviceClass, name) : false;
-				final String serviceClassName = serviceClass.getSimpleName() + "." + name;
+				// stop floating
+				container.block("div").attr(new Style("clear: both;"));
+			}
 
-				final Tag row  = table.block("tr");
+			// services tab
+			menu.block("li").block("a").id("servicesMenu").attr(new Attr("href", "#services")).block("span").text("Services");
 
-				row.block("td").text(serviceClassName);
+			final Services services = Services.getInstance();
+			final Tag container     = tabs.block("div").css("tab-content").id("services");
 
-				if (running) {
+			container.block("h1").text("Services");
 
-					row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?restart=" + serviceClassName + "';")).text("Restart");
+			final Tag table         = container.block("table").id("services-table");
+			final Tag header        = table.block("tr");
 
-					if ("HttpService".equals(serviceClassName)) {
+			header.block("th").text("Service Name");
+			header.block("th").attr(new Attr("colspan", "2"));
+
+			for (final Class serviceClass : services.getRegisteredServiceClasses()) {
+
+				final Set<String> serviceNames = new TreeSet<>();
+
+				serviceNames.addAll(services.getServices(serviceClass).keySet());
+				serviceNames.add("default");
+
+				for (final String name : serviceNames) {
+
+					final boolean running         = serviceClass != null ? services.isReady(serviceClass, name) : false;
+					final String serviceClassName = serviceClass.getSimpleName() + "." + name;
+
+					final Tag row  = table.block("tr");
+
+					row.block("td").text(serviceClassName);
+
+					if (running) {
+
+						row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?restart=" + serviceClassName + "';")).text("Restart");
+
+						if ("HttpService".equals(serviceClassName)) {
+
+							row.block("td");
+
+						} else {
+
+							row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?stop=" + serviceClassName + "';")).text("Stop");
+						}
 
 						row.block("td");
 
 					} else {
 
-						row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?stop=" + serviceClassName + "';")).text("Stop");
+						row.block("td");
+						row.block("td");
+						row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?start=" + serviceClassName + "';")).text("Start");
 					}
-
-					row.block("td");
-
-				} else {
-
-					row.block("td");
-					row.block("td");
-					row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?start=" + serviceClassName + "';")).text("Start");
 				}
 			}
+
+			// stop floating
+			container.block("div").attr(new Style("clear: both;"));
+
+			// buttons
+			final Tag buttons = form.block("div").css("buttons");
+
+			buttons.block("button").attr(new Type("button")).id("new-entry-button").text("Add entry");
+			buttons.block("button").attr(new Type("button")).id("reload-config-button").text("Reload configuration file");
+			buttons.empty("input").attr(new Type("submit"), new Value("Save to structr.conf"));
 		}
 
 		// update active section so we can restore it when redirecting
-		container.empty("input").attr(new Type("hidden"), new Name("active_section")).id("active_section");
-
-		// stop floating
-		container.block("div").attr(new Style("clear: both;"));
-
-		// buttons
-		final Tag buttons = form.block("div").css("buttons");
-
-		buttons.block("button").attr(new Type("button")).id("new-entry-button").text("Add entry");
-		buttons.block("button").attr(new Type("button")).id("reload-config-button").text("Reload configuration file");
-		buttons.empty("input").attr(new Type("submit"), new Value("Save to structr.conf"));
+		form.empty("input").attr(new Type("hidden"), new Name("active_section")).id("active_section");
 
 		return doc;
 	}
@@ -433,6 +457,10 @@ public class ConfigServlet extends AbstractServletBase {
 
 	private boolean isAuthenticated(final HttpServletRequest request) {
 
+		if (!Settings.SetupWizardCompleted.getValue()) {
+			return true;
+		}
+
 		final HttpSession session = request.getSession();
 		if (session != null) {
 
@@ -452,6 +480,78 @@ public class ConfigServlet extends AbstractServletBase {
 		}
 
 		return false;
+	}
+
+	private void welcomeTab(final Tag menu, final Tag tabs) {
+
+		final boolean databaseIsConfigured = false;
+		final boolean passwordIsSet        = StringUtils.isNotBlank(Settings.SuperUserPassword.getValue());
+		final Style fgGreen                = new Style("color: #81ce25;");
+		final Style bgGreen                = new Style("background-color: #81ce25; color: #fff; border: 1px solid rgba(0,0,0,.125);");
+		final String id                    = "welcome";
+
+		menu.block("li").css("active").block("a").id(id + "Menu").attr(new Attr("href", "#" + id)).block("span").text("Welcome").css("active");
+
+		final Tag container = tabs.block("div").css("tab-content").id(id).attr(new Style("display: block;"));
+		final Tag body      = header(container, "Welcome to Structr");
+
+		body.block("p").text("This is the first start, so you need to configure some things.");
+
+		final Tag list  = body.block("ul");
+		final Tag item1 = list.block("li").text("Set a password for the <b>superuser</b>");
+		final Tag item2 = list.block("li").text("Configure a <b>database connection</b>");
+
+		if (passwordIsSet) {
+			item1.block("span").text(" &#x2714;").attr(fgGreen);
+		}
+
+		if (databaseIsConfigured) {
+			item2.block("span").text(" &#x2714;").attr(fgGreen);
+		}
+
+		if (!passwordIsSet) {
+
+			body.block("h3").text("Superuser password");
+
+			final Tag pwd = body.block("p");
+			pwd.empty("input").attr(new Name("superuser.password")).attr(new Type("text")).attr(new Attr("size", 40));
+			pwd.empty("input").attr(new Type("submit")).attr(new Attr("value", "Set password")).attr(bgGreen);
+
+		} else {
+
+			body.block("h3").text("Options");
+
+			body.block("p").css("steps").block("button").attr(new Type("button")).text("Use default settings to connect to Neo4j").attr(bgGreen).attr(new OnClick("$('#databasesMenu').click();"));
+			body.block("p").css("steps").text("or");
+			body.block("p").css("steps").block("button").attr(new Type("button")).text("Configure database connection").attr(new OnClick("$('#databasesMenu').click();"));
+			body.block("p").css("steps").block("button").attr(new Type("button")).text("Continue without database connection").attr(new OnClick("window.location.href='" + ConfigUrl + "?finish';"));
+
+		}
+	}
+
+	private void databasesTab(final Tag menu, final Tag tabs) {
+
+		final String id = "databases";
+
+		menu.block("li").block("a").id(id + "Menu").attr(new Attr("href", "#" + id)).block("span").text("Database Connections");
+
+		final Tag container = tabs.block("div").css("tab-content").id(id);
+		final Tag body      = header(container, "Database Connections");
+
+		body.block("p").text("Welcome to Structr! This is the first start, so you need to configure some things.");
+	}
+
+	private Tag header(final Tag container, final String title) {
+
+		final Tag div       = container.block("div");
+		final Tag main      = div.block("div").css("config-group");
+
+		main.block("h1").text(title);
+
+		// stop floating
+		container.block("div").attr(new Style("clear: both;"));
+
+		return main;
 	}
 
 	private void authenticateSession(final HttpServletRequest request) {
