@@ -34,24 +34,26 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.config.SettingsGroup;
+import org.structr.api.service.DatabaseConnection;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Document;
 import org.structr.api.util.html.Tag;
 import org.structr.api.util.html.attr.Href;
 import org.structr.api.util.html.attr.Rel;
 import org.structr.core.Services;
+import org.structr.core.graph.ManageDatabasesCommand;
 
 /**
  *
  */
 public class ConfigServlet extends AbstractServletBase {
 
-	private static final Logger logger                     = LoggerFactory.getLogger(ConfigServlet.class);
-	private static final Set<String> authenticatedSessions = new HashSet<>();
-	private static final String MainUrl                    = "/structr/";
-	private static final String ConfigUrl                  = "/structr/config";
-	private static final String ConfigName                 = "structr.conf";
-	private static final String TITLE                      = "Structr Configuration Editor";
+	private static final Logger logger        = LoggerFactory.getLogger(ConfigServlet.class);
+	private static final Set<String> sessions = new HashSet<>();
+	private static final String MainUrl       = "/structr/";
+	private static final String ConfigUrl     = "/structr/config";
+	private static final String ConfigName    = "structr.conf";
+	private static final String TITLE         = "Structr Configuration Editor";
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -168,6 +170,11 @@ public class ConfigServlet extends AbstractServletBase {
 				response.sendRedirect(MainUrl);
 
 			} else {
+
+				if (request.getParameter("useDefault") != null) {
+
+					// create default configuration
+				}
 
 				// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
 				response.setContentType("text/html; charset=utf-8");
@@ -467,7 +474,7 @@ public class ConfigServlet extends AbstractServletBase {
 			final String sessionId = session.getId();
 			if (sessionId != null) {
 
-				return authenticatedSessions.contains(sessionId);
+				return sessions.contains(sessionId);
 
 			} else {
 
@@ -521,7 +528,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 			body.block("h3").text("Options");
 
-			body.block("p").css("steps").block("button").attr(new Type("button")).text("Use default settings to connect to Neo4j").attr(bgGreen).attr(new OnClick("$('#databasesMenu').click();"));
+			body.block("p").css("steps").block("button").attr(new Type("button")).text("Use default settings to connect to Neo4j").attr(new OnClick("window.location.href='" + ConfigUrl + "?useDefault';"));
 			body.block("p").css("steps").text("or");
 			body.block("p").css("steps").block("button").attr(new Type("button")).text("Configure database connection").attr(new OnClick("$('#databasesMenu').click();"));
 			body.block("p").css("steps").block("button").attr(new Type("button")).text("Continue without database connection").attr(new OnClick("window.location.href='" + ConfigUrl + "?finish';"));
@@ -538,7 +545,12 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag container = tabs.block("div").css("tab-content").id(id);
 		final Tag body      = header(container, "Database Connections");
 
-		body.block("p").text("Welcome to Structr! This is the first start, so you need to configure some things.");
+		final ManageDatabasesCommand cmd = Services.getInstance().command(null, ManageDatabasesCommand.class);
+
+		for (final DatabaseConnection connection : cmd.getConnections()) {
+
+			connection.render(body);
+		}
 	}
 
 	private Tag header(final Tag container, final String title) {
@@ -562,7 +574,7 @@ public class ConfigServlet extends AbstractServletBase {
 			final String sessionId = session.getId();
 			if (sessionId != null) {
 
-				authenticatedSessions.add(sessionId);
+				sessions.add(sessionId);
 
 			} else {
 
@@ -583,7 +595,7 @@ public class ConfigServlet extends AbstractServletBase {
 			final String sessionId = session.getId();
 			if (sessionId != null) {
 
-				authenticatedSessions.remove(sessionId);
+				sessions.remove(sessionId);
 
 			} else {
 
