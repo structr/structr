@@ -41,6 +41,11 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "fromAddress [, fromName[, subject[, htmlContent[, textContent[, files]]]]]";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
@@ -92,6 +97,6 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Begins a new mail configuration - previously started configurations are cleared.";
 	}
 }

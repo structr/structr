@@ -53,12 +53,11 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.eclipse.jetty.io.EofException;
+import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
@@ -250,12 +249,18 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				AbstractNode dataNode = null;
 
 				final String[] uriParts = PathHelper.getParts(path);
-				if ((uriParts == null) || (uriParts.length == 0)) {
+
+				if (uriParts == null) {
+					logger.error("URI parts array is null, shouldn't happen.");
+					throw new FrameworkException(500, "URI parts array is null, shouldn't happen.");
+				}
+
+				if (uriParts.length == 0) {
+
+					logger.debug("No path supplied, trying to find index page");
 
 					// find a visible page
 					rootElement = findIndexPage(securityContext, pages, edit);
-
-					logger.debug("No path supplied, trying to find index page");
 
 				} else {
 
@@ -286,60 +291,80 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					if (file == null) {
 
-						if (uriParts != null) {
+						// store remaining path parts in request
+						final Matcher matcher = threadLocalUUIDMatcher.get();
 
-							// store remaining path parts in request
-							final Matcher matcher = threadLocalUUIDMatcher.get();
+						for (int i = 0; i < uriParts.length; i++) {
 
-							for (int i = 0; i < uriParts.length; i++) {
+							request.setAttribute(uriParts[i], i);
+							matcher.reset(uriParts[i]);
 
-								request.setAttribute(uriParts[i], i);
-								matcher.reset(uriParts[i]);
-
-								// set to "true" if part matches UUID pattern
-								requestUriContainsUuids |= matcher.matches();
-							}
+							// set to "true" if part matches UUID pattern
+							requestUriContainsUuids |= matcher.matches();
 						}
 
-						if (!requestUriContainsUuids) {
+						if (uriParts.length == 1) {
 
-							// Try to find a data node by name
-							dataNode = findFirstNodeByName(securityContext, request, path);
+							if (!requestUriContainsUuids) {
 
-						} else {
+								// Try to find a page by path
+								rootElement = findPage(securityContext, pages, path, edit);
 
-							dataNode = findNodeByUuid(securityContext, PathHelper.getName(path));
+								if (rootElement == null) {
 
-						}
+									// Try to find a partial by name
+									rootElement = findPartialByName(securityContext, PathHelper.getName(path));
+								}
 
-						//if (dataNode != null && !(dataNode instanceof Linkable)) {
-						if (dataNode != null) {
+							} else {
 
-							// Last path part matches a data node
-							// Remove last path part and try again searching for a page
-							// clear possible entry points
-							request.removeAttribute(POSSIBLE_ENTRY_POINTS_KEY);
+								final AbstractNode possibleRootNode = findNodeByUuid(securityContext, PathHelper.getName(path));
 
-							final String pagePart = StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP);
-							
-							// Search for a page only when page part is non-empty
-							if (StringUtils.isNotBlank(pagePart)) {
-							
-								rootElement = findPage(securityContext, pages, pagePart, edit);
-							}
-
-							renderContext.setDetailsDataObject(dataNode);
-
-							// Start rendering on data node
-							if (rootElement == null && dataNode instanceof DOMNode) {
-
-								// check visibleForSite here as well
-								if (!(dataNode instanceof Page) || isVisibleForSite(request, (Page)dataNode)) {
-
-									rootElement = ((DOMNode) dataNode);
+								if (possibleRootNode instanceof DOMNode) {
+									rootElement = (DOMNode) possibleRootNode;
 								}
 							}
+
+						} else if (uriParts.length == 2) {
+
+							final String pagePart = StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP);
+
+							rootElement = findPage(securityContext, pages, pagePart, edit);
+
+							if (rootElement == null) {
+
+								final AbstractNode possibleRootNode = findNodeByUuid(securityContext, PathHelper.getName(pagePart));
+
+								// check visibleForSite here as well
+								if (!(possibleRootNode instanceof Page) || isVisibleForSite(request, (Page)possibleRootNode)) {
+
+									rootElement = ((DOMNode) possibleRootNode);
+								}
+
+								dataNode = findNodeByUuid(securityContext, PathHelper.getName(path));
+
+								if (dataNode == null) {
+									dataNode = findFirstNodeByName(securityContext, request, path);
+								}
+
+								renderContext.setDetailsDataObject(dataNode);
+
+							} else {
+
+								if (requestUriContainsUuids) {
+
+									dataNode = findNodeByUuid(securityContext, PathHelper.getName(path));
+
+								} else {
+
+									dataNode = findFirstNodeByName(securityContext, request, path);
+								}
+
+								renderContext.setDetailsDataObject(dataNode);
+							}
 						}
+
+						setLimitingDataObject(securityContext, request, renderContext);
 					}
 				}
 
@@ -516,11 +541,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	@Override
 	protected void doHead(final HttpServletRequest request, final HttpServletResponse response) {
 
-		final Authenticator auth = getConfig().getAuthenticator();
-		SecurityContext securityContext;
+		final Authenticator auth        = getConfig().getAuthenticator();
+		SecurityContext securityContext = null;
 		List<Page> pages                = null;
 		boolean requestUriContainsUuids = false;
-		final App app;
 
 		try {
 
@@ -534,7 +558,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				tx.success();
 			}
 
-			app = StructrApp.getInstance(securityContext);
+			final App app = StructrApp.getInstance(securityContext);
 
 			try (final Tx tx = app.tx()) {
 
@@ -713,10 +737,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				if (rootElement == null) {
 
-					// no content
-					response.setContentLength(0);
-					response.getOutputStream().close();
-
 					tx.success();
 					return;
 				}
@@ -768,15 +788,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						response.setContentType(contentType);
 
 						setCustomResponseHeaders(response);
-
-						response.getOutputStream().close();
 					}
 
 				} else {
 
 					notFound(response, securityContext);
-
-					response.getOutputStream().close();
 				}
 
 				tx.success();
@@ -891,12 +907,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				} catch (EofException ee) {
 
-					final SecurityContext sc = renderContext.getSecurityContext();
-					final Principal user     = sc.getUser(false);
-					final String username    = (user != null) ? user.getName() : "anonymous";
-
-					logger.warn("Could not flush the response body content to the client, probably because the network connection was terminated.");
-					logger.warn(" -> From: {} | URI: {} | Query: {} | User: {}", request.getRemoteAddr(), request.getRequestURI(), request.getQueryString(), username);
+					// ignore EofException which (by jettys standards) should be handled less verbosely
 
 				} catch (IOException | InterruptedException t) {
 					//logger.warn("Unexpected exception", t);
@@ -905,7 +916,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			@Override
 			public void onError(Throwable t) {
-				if (t instanceof EofException) {
+				if (t instanceof QuietException) {
+					// ignore exceptions which (by jettys standards) should be handled less verbosely
+				} else {
 
 					final SecurityContext sc = renderContext.getSecurityContext();
 					final Principal user     = sc.getUser(false);
@@ -913,9 +926,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					logger.warn("Could not flush the response body content to the client, probably because the network connection was terminated.");
 					logger.warn(" -> From: {} | URI: {} | Query: {} | User: {}", request.getRemoteAddr(), request.getRequestURI(), request.getQueryString(), username);
-
-				} else {
-					//logger.warn("Unexpected exception", t);
 				}
 			}
 		});
@@ -987,7 +997,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			}
 
 
-			final List<AbstractNode> results = Iterables.toList(query.getResultStream());
+			final List<AbstractNode> results = query.getAsList();
 
 			logger.debug("{} results", results.size());
 			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, results);
@@ -1052,7 +1062,20 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	}
 
 	/**
-	 * Find a page with matching path.
+	 * Find a partial by name (meaning a DOMNode which can not be a page - otherwise a check for Sites has to be applied)
+	 *
+	 * @param securityContext
+	 * @param name
+	 * @return
+	 * @throws FrameworkException
+	 */
+	private DOMNode findPartialByName(final SecurityContext securityContext, final String name) throws FrameworkException {
+
+		return StructrApp.getInstance(securityContext).nodeQuery(DOMNode.class).andName(name).not().and(DOMNode.type, "Page").getFirst();
+	}
+
+	/**
+	 * Find a page by matching path.
 	 *
 	 * To be compatible with older versions, fallback to name-only lookup.
 	 *
@@ -1068,7 +1091,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		if (pages == null) {
 
 			pages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).getAsList();
-			Collections.sort(pages, new GraphObjectComparator(StructrApp.key(Page.class, "position"), GraphObjectComparator.ASCENDING));
+			Collections.sort(pages, StructrApp.key(Page.class, "position").sorted(false));
 		}
 
 		for (final Page page : pages) {
@@ -1120,7 +1143,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		if (pages == null) {
 
 			pages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).getAsList();
-			Collections.sort(pages, new GraphObjectComparator(positionKey, GraphObjectComparator.ASCENDING));
+			Collections.sort(pages, positionKey.sorted(false));
 		}
 
 		for (Page page : pages) {
@@ -1404,6 +1427,32 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	}
 
+	private void setLimitingDataObject(final SecurityContext securityContext, final HttpServletRequest request, final RenderContext renderContext) {
+
+		// check special parameter for details object
+		final String detailsObjectId = StringUtils.substringAfterLast(request.getRequestURI(), ";");
+
+		if (StringUtils.isNotBlank(detailsObjectId)) {
+
+			AbstractNode detailsObject = null;
+
+			try {
+
+				detailsObject = findNodeByUuid(securityContext, detailsObjectId);
+
+			} catch (FrameworkException ex) {
+
+				logger.debug("No details object found for id {}.", detailsObjectId);
+			}
+
+			if (detailsObject != null) {
+
+				//renderContext.setDetailsDataObject(detailsObject);
+				renderContext.setSourceDataObject(detailsObject);
+			}
+		}
+	}
+
 	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final NodeInterface node, final boolean dontCache) {
 
 		boolean notModified = false;
@@ -1627,7 +1676,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 * @param page
 	 * @return
 	 */
-	private boolean isVisibleForSite(final HttpServletRequest request, final Page page) {
+	public static boolean isVisibleForSite(final HttpServletRequest request, final Page page) {
 
 		final Site site = page.getSite();
 		if (site == null) {
@@ -1828,7 +1877,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		}
 	}
 
-	private String filterMaliciousRedirects(final String source) {
+	public static String filterMaliciousRedirects(final String source) {
 
 		if (source != null) {
 

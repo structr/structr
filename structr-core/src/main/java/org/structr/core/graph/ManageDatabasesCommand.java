@@ -28,24 +28,24 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
+import org.structr.api.service.DatabaseConnection;
+import static org.structr.api.service.DatabaseConnection.KEY_ACTIVE;
+import static org.structr.api.service.DatabaseConnection.KEY_DRIVER;
+import static org.structr.api.service.DatabaseConnection.KEY_FORCE_STREAMING;
+import static org.structr.api.service.DatabaseConnection.KEY_NAME;
+import static org.structr.api.service.DatabaseConnection.KEY_NODE_CACHE_SIZE;
+import static org.structr.api.service.DatabaseConnection.KEY_PASSWORD;
+import static org.structr.api.service.DatabaseConnection.KEY_RELATIONSHIP_CACHE_SIZE;
+import static org.structr.api.service.DatabaseConnection.KEY_TENANT_IDENTIFIER;
+import static org.structr.api.service.DatabaseConnection.KEY_URL;
+import static org.structr.api.service.DatabaseConnection.KEY_USERNAME;
+import static org.structr.api.service.DatabaseConnection.KEY_UUID_CACHE_SIZE;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 
 /**
  */
 public class ManageDatabasesCommand extends NodeServiceCommand implements MaintenanceCommand {
-
-	private static final String KEY_ACTIVE                  = "active";
-	private static final String KEY_NAME                    = "name";
-	private static final String KEY_DRIVER                  = "driver";
-	private static final String KEY_URL                     = "url";
-	private static final String KEY_USERNAME                = "username";
-	private static final String KEY_PASSWORD                = "password";
-	private static final String KEY_TENANT_IDENTIFIER       = "tenantIdentifier";
-	private static final String KEY_RELATIONSHIP_CACHE_SIZE = "relationshipCacheSize";
-	private static final String KEY_NODE_CACHE_SIZE         = "nodeCacheSize";
-	private static final String KEY_UUID_CACHE_SIZE         = "uuidCacheSize";
-	private static final String KEY_FORCE_STREAMING         = "forceStreaming";
 
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
@@ -99,8 +99,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		return false;
 	}
 
-	// ----- private methods -----
-	private void activateConnection(final Map<String, Object> data) throws FrameworkException {
+	public void activateConnection(final Map<String, Object> data) throws FrameworkException {
 
 		final String name = (String)data.get("name");
 		if (name != null) {
@@ -124,7 +123,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		}
 	}
 
-	private void addConnection(final Map<String, Object> data) throws FrameworkException {
+	public void addConnection(final Map<String, Object> data) throws FrameworkException {
 
 		final String prefix = (String)data.get(KEY_NAME);
 		if (StringUtils.isNotBlank(prefix)) {
@@ -162,7 +161,36 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		}
 	}
 
-	private void removeConnection(final Map<String, Object> data) throws FrameworkException {
+	public void saveConnection(final Map<String, Object> data) throws FrameworkException {
+
+		final String prefix = (String)data.get(KEY_NAME);
+		if (StringUtils.isNotBlank(prefix)) {
+
+			final Set<String> connectionNames = getConnectionNames();
+			if (connectionNames.contains(prefix)) {
+
+				setOrDefault(Settings.DatabaseDriver,        prefix, data, KEY_DRIVER);
+				setOrDefault(Settings.ConnectionUrl,         prefix, data, KEY_URL);
+				setOrDefault(Settings.ConnectionUser,        prefix, data, KEY_USERNAME);
+				setOrDefault(Settings.ConnectionPassword,    prefix, data, KEY_PASSWORD);
+				setOrDefault(Settings.TenantIdentifier,      prefix, data, KEY_TENANT_IDENTIFIER);
+				setOrDefault(Settings.RelationshipCacheSize, prefix, data, KEY_RELATIONSHIP_CACHE_SIZE);
+				setOrDefault(Settings.NodeCacheSize,         prefix, data, KEY_NODE_CACHE_SIZE);
+				setOrDefault(Settings.UuidCacheSize,         prefix, data, KEY_UUID_CACHE_SIZE);
+				setOrDefault(Settings.ForceResultStreaming,  prefix, data, KEY_FORCE_STREAMING);
+
+			} else {
+
+				throw new FrameworkException(422, "Configuration " + prefix + " does not exist.");
+			}
+
+		} else {
+
+			throw new FrameworkException(422, "Please supply the name of the connection to save.");
+		}
+	}
+
+	public void removeConnection(final Map<String, Object> data) throws FrameworkException {
 
 		final String prefix = (String)data.get(KEY_NAME);
 		if (StringUtils.isNotBlank(prefix)) {
@@ -200,22 +228,20 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		}
 	}
 
-	private List<Map<String, Object>> getConnections() {
+	public List<DatabaseConnection> getConnections() {
 
-		final List<Map<String, Object>> connections = new LinkedList<>();
-
-		// add default connection
-		connections.add(getPrefixedSettings("default", ""));
+		final List<DatabaseConnection> connections = new LinkedList<>();
 
 		for (final String connection : getConnectionNames()) {
 
 			// add connections defined in settings
-			connections.add(getPrefixedSettings(connection, connection));
+			connections.add(new DatabaseConnection(getPrefixedSettings(connection, connection)));
 		}
 
 		return connections;
 	}
 
+	// ----- private methods -----
 	private Map<String, Object> getPrefixedSettings(final String name, final String prefix) {
 
 		final Map<String, Object> settings = new LinkedHashMap<>();

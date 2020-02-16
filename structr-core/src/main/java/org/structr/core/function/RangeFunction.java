@@ -32,6 +32,11 @@ public class RangeFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return null;
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		Object rangeStart    = null;
@@ -73,5 +78,10 @@ public class RangeFunction extends AdvancedScriptingFunction {
 	@Override
 	public String shortDescription() {
 		return "Returns a range predicate that can be used in find() function calls";
+	}
+
+	@Override
+	public boolean isHidden() {
+		return true;
 	}
 }

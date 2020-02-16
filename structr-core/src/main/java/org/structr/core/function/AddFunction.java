@@ -31,6 +31,11 @@ public class AddFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "values...";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		double result = 0.0;

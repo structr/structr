@@ -42,6 +42,11 @@ public class FindRelationshipFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "type [, parameterMap ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -53,7 +58,7 @@ public class FindRelationshipFunction extends CoreFunction {
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			final ConfigurationProvider config = StructrApp.getConfiguration();
-			final Query query = StructrApp.getInstance(securityContext).relationshipQuery().sort(GraphObject.createdDate).order(false);
+			final Query query = StructrApp.getInstance(securityContext).relationshipQuery().sort(GraphObject.createdDate);
 
 			// the type to query for
 			Class type = null;
@@ -80,10 +85,6 @@ public class FindRelationshipFunction extends CoreFunction {
 				logger.warn("Error in find_relationship(): no type specified. Parameters: {}", getParametersAsString(sources));
 				return ERROR_MESSAGE_FIND_RELATIONSHIP_NO_TYPE_SPECIFIED;
 			}
-
-			// experimental: disable result count, prevents instantiation
-			// of large collections just for counting all the objects..
-			securityContext.ignoreResultCount(true);
 
 			// extension for native javascript objects
 			if (sources.length == 2 && sources[1] instanceof Map) {

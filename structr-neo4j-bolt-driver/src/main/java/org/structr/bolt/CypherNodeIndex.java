@@ -19,6 +19,9 @@
 package org.structr.bolt;
 
 import org.structr.api.graph.Node;
+import org.structr.api.search.QueryContext;
+import org.structr.api.search.SortOrder;
+import org.structr.api.search.SortSpec;
 import org.structr.api.util.Iterables;
 
 /**
@@ -31,9 +34,15 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	}
 
 	@Override
-	public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel) {
+	public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates) {
 
-		final StringBuilder buf = new StringBuilder("MATCH (n:NodeInterface");
+		final StringBuilder buf = new StringBuilder("MATCH (n");
+
+		// Only add :NodeInterface label when query has predicates, single label queries are much faster.
+		if (hasPredicates) {
+			buf.append(":NodeInterface");
+		}
+
 		final String tenantId   = db.getTenantIdentifier();
 
 		if (tenantId != null) {
@@ -57,15 +66,27 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	public String getQuerySuffix(final AdvancedCypherQuery query) {
 
 		final StringBuilder buf = new StringBuilder();
-		final String sortKey    = query.getSortKey();
 
-		buf.append(" RETURN n");
+		buf.append(" RETURN DISTINCT n");
 
-		if (sortKey != null) {
+		final SortOrder sortOrder = query.getSortOrder();
+		if (sortOrder != null) {
 
-			buf.append(", n.`");
-			buf.append(sortKey);
-			buf.append("` AS sortKey");
+			int sortSpecIndex = 0;
+
+			for (final SortSpec spec : sortOrder.getSortElements()) {
+
+				final String sortKey = spec.getSortKey();
+				if (sortKey != null) {
+
+					buf.append(", n.`");
+					buf.append(sortKey);
+					buf.append("` AS sortKey");
+					buf.append(sortSpecIndex);
+				}
+
+				sortSpecIndex++;
+			}
 		}
 
 		return buf.toString();
@@ -74,16 +95,14 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	@Override
 	public Iterable<Node> getResult(final AdvancedCypherQuery query) {
 
-		try {
-			final SessionTransaction tx = db.getCurrentTransaction();
+		final IterableQueueingRecordConsumer consumer = new IterableQueueingRecordConsumer(db, query);
+		final QueryContext context                    = query.getQueryContext();
 
-			tx.setIsPing(query.getQueryContext().isPing());
-
-			return Iterables.map(new NodeNodeMapper(db), tx.getNodes(query.getStatement(), query.getParameters()));
-
-		} finally {
-
-			query.nextPage();
+		if (context != null && !context.isDeferred()) {
+			consumer.start();
 		}
+
+		// return mapped result
+		return Iterables.map(new NodeNodeMapper(db), Iterables.map(new RecordNodeMapper(), consumer));
 	}
 }

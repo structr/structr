@@ -69,7 +69,7 @@ import org.structr.web.entity.File;
 public class FulltextIndexingAgent extends Agent<String> {
 
 	private static final Logger logger = LoggerFactory.getLogger(FulltextIndexingAgent.class.getName());
-	private static final Map<String, Set<String>> languageStopwordMap = new LinkedHashMap<>();
+	static final Map<String, Set<String>> languageStopwordMap = new LinkedHashMap<>();
 	public static final String TASK_NAME                              = "FulltextIndexing";
 
 	private final Detector detector;

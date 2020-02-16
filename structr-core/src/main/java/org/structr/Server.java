@@ -20,21 +20,22 @@ package org.structr;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.VersionHelper;
 import org.structr.core.Services;
 
 /**
  * Main startup class for Structr.
- * 
+ *
  *
  */
 public class Server {
 
 	private static final Logger logger = LoggerFactory.getLogger(Server.class.getName());
-	
+
 	public static void main(String[] args) {
-		
-		logger.info("Starting Structr..");
-		
+
+		logger.info("Starting Structr {}", VersionHelper.getFullVersionInfo());
+
 		// start service layer using default configuration
 		// augmented by local structr.conf
 		Services.getInstance();

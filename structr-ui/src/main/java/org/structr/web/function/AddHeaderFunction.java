@@ -31,6 +31,11 @@ public class AddHeaderFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "name, value";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		if (sources != null && sources.length == 2) {

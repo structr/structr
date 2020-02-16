@@ -308,7 +308,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	public static final String NOT_SUPPORTED_ERR_MESSAGE_RENAME        = "Renaming of nodes is not supported by this implementation.";
 
 	public static final Set<String> cloneBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
-		"id", "type", "ownerDocument", "pageId", "parent", "parentId", "syncedNodes", "syncedNodesIds", "children", "childrenIds", "linkable", "linkableId", "path"
+		"id", "type", "ownerDocument", "pageId", "parent", "parentId", "syncedNodes", "syncedNodesIds", "children", "childrenIds", "linkable", "linkableId", "path", "relationshipId"
 	}));
 
 	public static final String[] rawProps = new String[] {
@@ -399,12 +399,14 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	static void onCreation(final DOMNode thisNode, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		DOMNode.checkName(thisNode, errorBuffer);
+		DOMNode.syncName(thisNode, errorBuffer);
 	}
 
 	static void onModification(final DOMNode thisNode, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		DOMNode.increasePageVersion(thisNode);
 		DOMNode.checkName(thisNode, errorBuffer);
+		DOMNode.syncName(thisNode, errorBuffer);
 	}
 
 	public static String escapeForHtml(final String raw) {
@@ -488,19 +490,27 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		final Iterable<GraphObject> listSource = renderContext.getListSource();
 		if (listSource != null) {
 
-			for (final Object dataObject : listSource) {
+			try {
+				for (final Object dataObject : listSource) {
 
-				// make current data object available in renderContext
-				if (dataObject instanceof GraphObject) {
+					// make current data object available in renderContext
+					if (dataObject instanceof GraphObject) {
 
-					renderContext.putDataObject(dataKey, (GraphObject)dataObject);
+						renderContext.putDataObject(dataKey, (GraphObject)dataObject);
 
-				} else if (dataObject instanceof Iterable) {
+					} else if (dataObject instanceof Iterable) {
 
-					renderContext.putDataObject(dataKey, Function.recursivelyWrapIterableInMap((Iterable)dataObject, 0));
+						renderContext.putDataObject(dataKey, Function.recursivelyWrapIterableInMap((Iterable)dataObject, 0));
+					}
+
+					node.renderContent(renderContext, depth + 1);
 				}
 
-				node.renderContent(renderContext, depth + 1);
+			} finally {
+
+				if (listSource instanceof AutoCloseable) {
+					try { ((AutoCloseable)listSource).close(); } catch (Exception ex) {}
+				}
 			}
 
 			renderContext.clearDataObject(dataKey);
@@ -1493,6 +1503,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		// admin-only edit modes ==> visibility check not necessary
 		final boolean isAdminOnlyEditMode = (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode) || EditMode.DEPLOYMENT.equals(editMode));
+		final boolean isPartial           = renderContext.getPage() == null;
 
 		if (!isAdminOnlyEditMode && !securityContext.isVisible(thisNode)) {
 			return;
@@ -1526,10 +1537,21 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 				final PropertyKey propertyKey;
 
-				if (thisNode.renderDetails() && detailMode) {
+				// Make sure the closest 'page' keyword is always set also for partials
+				if (depth == 0 && isPartial) {
 
-					renderContext.setDataObject(details);
-					renderContext.putDataObject(subKey, details);
+					renderContext.setPage(thisNode.getClosestPage());
+
+				}
+
+				final GraphObject sourceDataObject = renderContext.getSourceDataObject();
+
+				// Render partial with possible top-level repeater limited to a single data object
+				if (depth == 0 && isPartial && sourceDataObject != null) {
+				//if (thisNode.renderDetails() && detailMode) {
+
+					renderContext.putDataObject(subKey, renderContext.getSourceDataObject());
+					renderContext.setPage(thisNode.getClosestPage());
 
 					thisNode.renderContent(renderContext, depth);
 
@@ -1599,7 +1621,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 						thisNode.renderNodeList(securityContext, renderContext, depth, subKey);
 
 					}
-
 				}
 
 			} else {
@@ -1612,20 +1633,19 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	public static Iterable<GraphObject> checkListSources(final DOMNode thisNode, final SecurityContext securityContext, final RenderContext renderContext) {
 
 		// try registered data sources first
-		for (GraphDataSource<Iterable<GraphObject>> source : DataSources.getDataSources()) {
+		for (final GraphDataSource<Iterable<GraphObject>> source : DataSources.getDataSources()) {
 
 			try {
 
-				Iterable<GraphObject> graphData = source.getData(renderContext, thisNode);
+				final Iterable<GraphObject> graphData = source.getData(renderContext, thisNode);
 				if (graphData != null && !Iterables.isEmpty(graphData)) {
+
 					return graphData;
 				}
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("", fex);
-
-				logger.warn("Could not retrieve data from graph data source {}: {}", new Object[]{source, fex});
+				logger.warn("Could not retrieve data from graph data source {}: {}", source, fex);
 			}
 		}
 
@@ -1897,6 +1917,19 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		if (_name != null && _name.contains("/")) {
 
 			errorBuffer.add(new SemanticErrorToken(thisNode.getType(), AbstractNode.name, "may_not_contain_slashes", _name));
+		}
+	}
+
+	static void syncName(final DOMNode thisNode, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		// sync name only
+		final String name = thisNode.getProperty(DOMNode.name);
+		if (name!= null) {
+
+			for (final DOMNode syncedNode : thisNode.getSyncedNodes()) {
+
+				syncedNode.setProperty(DOMNode.name, name);
+			}
 		}
 	}
 

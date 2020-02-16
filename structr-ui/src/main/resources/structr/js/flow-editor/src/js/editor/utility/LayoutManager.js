@@ -1,27 +1,26 @@
 'use strict';
 
-import {Persistence} from "../../persistence/Persistence.js";
-import {Rest} from "../../rest/Rest.js";
+import {Persistence} from "../../../../../lib/structr/persistence/Persistence.js";
+import {Rest} from "../../../../../lib/structr/rest/Rest.js";
+import {StructrRest} from "../../../../../lib/structr/rest/StructrRest.js";
 
 export class LayoutManager {
 
     constructor(editor) {
         this._persistence = new Persistence();
         this._rest = new Rest();
+        this._structrRest = new StructrRest();
         this._flowEditor = editor;
 
     }
 
-    async getOwnSavedLayout() {
-        let layout = null;
+    async getActiveSavedLayout() {
+    	let layout = null;
 
-        let me = await this._persistence.getNodesByClass({type: "me"});
-
-        let r = await this._rest.get('/structr/rest/FlowContainerConfiguration?principal=' + me[0].id + '&flow=' + this._flowEditor._flowContainer.id + '&validForEditor=' + this._flowEditor._editorId);
-
-        if (r !== null && r !== undefined && r.result_count > 0) {
-            layout = JSON.parse(r.result[0].configJson);
-        }
+        if (this._flowEditor._flowContainer.activeConfiguration !== null && this._flowEditor._flowContainer.activeConfiguration !== undefined) {
+            let restResult = await this._structrRest.getById('FlowContainerConfiguration', this._flowEditor._flowContainer.activeConfiguration.id, 'all');
+			layout = await JSON.parse(restResult.result.configJson);
+		}
 
         return layout;
     }
@@ -54,10 +53,9 @@ export class LayoutManager {
 
     }
 
-    async saveLayout(visibleForAll) {
-
-        var layout = {};
-        var editorConfig = this._flowEditor.getEditorJson();
+    async saveLayout(visibleForAll, saveAsNewLayout) {
+        let layout = {};
+        let editorConfig = this._flowEditor.getEditorJson();
 
         for (let [key,node] of Object.entries(editorConfig.nodes)) {
 
@@ -67,34 +65,30 @@ export class LayoutManager {
 
         }
 
-        let persistence = new Persistence();
-        let rest = new Rest();
+		let activeLayout = null;
 
-        let me = await persistence.getNodesByClass({type:"me"});
+		if (this._flowEditor._flowContainer.activeConfiguration !== null && this._flowEditor._flowContainer.activeConfiguration !== undefined && saveAsNewLayout === false) {
+			activeLayout = await this._persistence.getNodesById(this._flowEditor._flowContainer.activeConfiguration.id, {type: "FlowContainerConfiguration"}, 'all');
+			if (activeLayout !== null && activeLayout !== undefined && activeLayout.length > 0) {
+				activeLayout = activeLayout[0];
+			}
+		}
 
-        if (me !== null && me !== undefined && me.length > 0) {
-            me = me[0];
-        }
-
-        if (me.id !== null && me.id !== undefined) {
-            let r = await rest.get('/structr/rest/FlowContainerConfiguration?principal=' + me.id + '&flow=' + this._flowEditor._flowContainer.id + '&validForEditor=' + this._flowEditor._editorId);
-
-            if (r != null && r !== undefined && r.result_count > 0) {
-                let config = persistence._wrapObject(r.result[0], new Object());
-                config.configJson = JSON.stringify(layout);
-                config.visibleToAuthenticatedUsers =  visibleForAll !== undefined ? visibleForAll : false;
-                config.visibleToPublicUsers =  visibleForAll !== undefined ? visibleForAll : false;
-            } else {
-                await persistence._persistObject({
-                    type: "FlowContainerConfiguration",
-                    flow: this._flowEditor._flowContainer.id,
-                    principal: me.id,
-                    validForEditor: this._flowEditor._editorId,
-                    configJson: JSON.stringify(layout),
-                    visibleToPublicUsers: visibleForAll !== undefined ? visibleForAll : false,
-                    visibleToAuthenticatedUsers: visibleForAll !== undefined ? visibleForAll : false
-                });
-            }
+        if (activeLayout !== null && activeLayout !== undefined && saveAsNewLayout === false) {
+			activeLayout.configJson = JSON.stringify(layout);
+			activeLayout.visibleToAuthenticatedUsers =  visibleForAll !== undefined ? visibleForAll : false;
+			activeLayout.visibleToPublicUsers =  visibleForAll !== undefined ? visibleForAll : false;
+            return activeLayout;
+        } else {
+            return await this._persistence._persistObject({
+                type: "FlowContainerConfiguration",
+                flow: this._flowEditor._flowContainer.id,
+				activeForFlow: this._flowEditor._flowContainer.id,
+                validForEditor: this._flowEditor._editorId,
+                configJson: JSON.stringify(layout),
+                visibleToPublicUsers: visibleForAll !== undefined ? visibleForAll : false,
+                visibleToAuthenticatedUsers: visibleForAll !== undefined ? visibleForAll : false
+            });
         }
 
     }

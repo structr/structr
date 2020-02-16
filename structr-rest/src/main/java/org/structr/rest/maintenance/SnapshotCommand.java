@@ -24,6 +24,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -33,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.schema.InvalidSchemaException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -151,6 +153,10 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 				try (final Reader reader = new FileReader(snapshotFile)) {
 
 					StructrSchema.replaceDatabaseSchema(app, StructrSchema.createFromSource(reader));
+
+				} catch (InvalidSchemaException | URISyntaxException ex) {
+
+					throw new FrameworkException(422, ex.getMessage());
 				}
 
 			} else {
@@ -175,8 +181,11 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 			StructrSchema.replaceDatabaseSchema(app, StructrSchema.createEmptySchema());
 
 			tx.success();
-		}
 
+		} catch (InvalidSchemaException | URISyntaxException ex) {
+
+			throw new FrameworkException(422, ex.getMessage());
+		}
 	}
 
 	private void addSnapshot(final String fileName) throws FrameworkException {
@@ -192,6 +201,10 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 				try (final Reader reader = new FileReader(snapshotFile)) {
 
 					StructrSchema.extendDatabaseSchema(app, StructrSchema.createFromSource(reader));
+
+				} catch (InvalidSchemaException | URISyntaxException ex) {
+
+					throw new FrameworkException(422, ex.getMessage());
 				}
 
 			} else {

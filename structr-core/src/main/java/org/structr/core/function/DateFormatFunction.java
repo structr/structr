@@ -38,6 +38,11 @@ public class DateFormatFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "value, pattern";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources == null || sources.length != 2 || sources[1] == null) {

@@ -25,6 +25,8 @@ import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -35,6 +37,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -52,6 +55,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 	private static final Logger logger       = LoggerFactory.getLogger(ComponentImportVisitor.class.getName());
 
+	private final List<Path> deferredPaths    = new LinkedList<>();
 	private Map<String, Object> configuration = null;
 	private SecurityContext securityContext   = null;
 	private App app                           = null;
@@ -105,6 +109,10 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 		return FileVisitResult.CONTINUE;
 	}
 
+	public List<Path> getDeferredPaths() {
+		return deferredPaths;
+	}
+
 	// ----- private methods -----
 	private DOMNode getExistingComponent(final String name) {
 
@@ -130,15 +138,6 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 		return result;
 	}
 
-	private void deleteComponent(final App app, final String name) throws FrameworkException {
-
-		final DOMNode node = getExistingComponent(name);
-		if (node != null) {
-
-			deleteRecursively(app, node);
-		}
-	}
-
 	private void deleteRecursively(final App app, final DOMNode node) throws FrameworkException {
 
 		for (DOMNode child : node.getChildren()) {
@@ -151,6 +150,8 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 		}
 
 		app.delete(node);
+
+		FlushCachesCommand.flushAll();
 	}
 
 	private PropertyMap getPropertiesForComponent(final String name) {
@@ -221,7 +222,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 					} else {
 
-						deleteComponent(app, componentName);
+						deleteRecursively(app, existingComponent);
 					}
 				}
 
@@ -272,6 +273,15 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 						// store properties from components.json if present
 						rootElement.setProperties(securityContext, properties);
 					}
+
+					final List<String> missingComponentNames = importer.getMissingComponentNames();
+					if (!missingComponentNames.isEmpty()) {
+
+						// there are missing components => defer import for this file
+						deferredPaths.add(file);
+					}
+
+
 				}
 			}
 

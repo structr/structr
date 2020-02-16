@@ -24,6 +24,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NativeQueryCommand;
 import org.structr.schema.action.ActionContext;
 
 public class CypherFunction extends CoreFunction {
@@ -34,6 +35,11 @@ public class CypherFunction extends CoreFunction {
 	@Override
 	public String getName() {
 		return "cypher";
+	}
+
+	@Override
+	public String getSignature() {
+		return "query [, parameterMap ]";
 	}
 
 	@Override
@@ -51,7 +57,15 @@ public class CypherFunction extends CoreFunction {
 				params.putAll((Map)sources[1]);
 			}
 
-			return StructrApp.getInstance(ctx.getSecurityContext()).query(query, params);
+			final boolean dontFlushCaches = (sources.length > 2 && sources[2] instanceof Boolean) ? ((boolean)sources[2]) : false;
+
+			final NativeQueryCommand nqc = StructrApp.getInstance(ctx.getSecurityContext()).command(NativeQueryCommand.class);
+
+			if (Boolean.TRUE.equals(dontFlushCaches)) {
+				nqc.setDontFlushCachesIfKeywordsInQuery(dontFlushCaches);
+			}
+
+			return nqc.execute(query, params);
 
 		} catch (ArgumentNullException pe) {
 

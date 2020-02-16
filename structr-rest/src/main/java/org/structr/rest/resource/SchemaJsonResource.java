@@ -18,10 +18,13 @@
  */
 package org.structr.rest.resource;
 
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.LoggerFactory;
+import org.structr.api.schema.InvalidSchemaException;
+import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
@@ -29,7 +32,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.export.StructrSchema;
@@ -80,7 +82,7 @@ public class SchemaJsonResource extends Resource {
 	}
 
 	@Override
-	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
 		String schema = null;
 
@@ -96,12 +98,18 @@ public class SchemaJsonResource extends Resource {
 
 		if(propertySet != null && propertySet.containsKey("schema")) {
 
-			final App app = StructrApp.getInstance(securityContext);
-			String schemaJson = (String)propertySet.get("schema");
+			try {
+				final App app           = StructrApp.getInstance(securityContext);
+				final String schemaJson = (String)propertySet.get("schema");
 
-			StructrSchema.replaceDatabaseSchema(app, StructrSchema.createFromSource(schemaJson));
+				StructrSchema.replaceDatabaseSchema(app, StructrSchema.createFromSource(schemaJson));
 
-			return new RestMethodResult(200, "Schema imported successfully");
+				return new RestMethodResult(200, "Schema imported successfully");
+
+			} catch (InvalidSchemaException | URISyntaxException ex) {
+
+				return new RestMethodResult(422, ex.getMessage());
+			}
 		}
 
 		return new RestMethodResult(400, "Invalid request body. Specify schema json string as 'schema' in request body.");

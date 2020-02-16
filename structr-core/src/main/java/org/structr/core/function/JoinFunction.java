@@ -34,6 +34,11 @@ public class JoinFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "list, separator";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -70,6 +75,6 @@ public class JoinFunction extends CoreFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Joins all its parameters to a single string";
+		return "Joins all its parameters to a single string using the given separator";
 	}
 }

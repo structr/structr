@@ -46,6 +46,11 @@ public class IncludeChildFunction extends IncludeFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "name";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -100,7 +105,7 @@ public class IncludeChildFunction extends IncludeFunction {
 				}
 			}
 
-			return renderNode(securityContext, ctx, innerCtx, sources, app, node);
+			return renderNode(securityContext, ctx, innerCtx, sources, app, node, true);
 
 		} catch (ArgumentNullException pe) {
 

@@ -199,6 +199,14 @@ let doSearch = (q) => {
 				}
 			});
 
+			// textarea
+			formGroup.querySelectorAll('textarea').forEach((textarea) => {
+				if (textarea.value && containsIgnoreCase(textarea.value, q)) {
+					hitInFormGroup = true;
+					textarea.classList.add(hitClass);
+				}
+			});
+
 			// select
 			formGroup.querySelectorAll('select option').forEach((option) => {
 				if (containsIgnoreCase(option.textContent, q)) {
@@ -276,9 +284,10 @@ let containsIgnoreCase = (haystack, needle) => {
 
 let initSearch = () => {
 
-	let isLogin = document.getElementById('login');
+	let isLogin   = document.getElementById('login');
+	let isWelcome = document.getElementById('welcome');
 
-	if (!isLogin) {
+	if (!isLogin && !isWelcome) {
 
 		let header = document.getElementById('header');
 
@@ -328,3 +337,23 @@ let initSearch = () => {
 };
 
 document.addEventListener('DOMContentLoaded', initSearch);
+
+function addConnection() {
+	console.log("addConnection");
+	// TODO
+}
+
+function deleteConnection(name) {
+	console.log("deleteConnection");
+	// TODO
+}
+
+function saveConnection(name) {
+	console.log("saveConnection");
+	// TODO
+}
+
+function useConnection(name) {
+	console.log("useConnection");
+	// TODO
+}

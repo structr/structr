@@ -50,9 +50,9 @@ public class CsvHelper {
 		final CSVReader reader;
 
 		if (rfc4180Mode) {
-			
+
 			reader = new CSVReader(input, 0, new RFC4180Parser());
-			
+
 		} else if (quoteCharacter == null) {
 
 			reader = new CSVReader(input, fieldSeparator);
@@ -197,6 +197,10 @@ public class CsvHelper {
 				final JsonInput jsonInput = new JsonInput();
 				final int len             = fields.length;
 
+				if (fields.length > propertyNames.length) {
+					throw new FrameworkException(422, "Line contains more fields than columns - maybe a problem with the field quoting?");
+				}
+
 				for (int i=0; i<len; i++) {
 
 					final String key = propertyNames[i];
@@ -222,14 +226,15 @@ public class CsvHelper {
 
 			} catch (Throwable t) {
 
-				logger.warn("Exception in CSV line: {}", fields);
+				final String first100Characters = Arrays.toString(fields).substring(0, 100);
+				logger.warn("Exception in CSV line: {}", first100Characters);
 				logger.warn("", t);
 
 				final Map<String, Object> data = new LinkedHashMap();
 
 				data.put("type",     "CSV_IMPORT_ERROR");
 				data.put("title",    "CSV Import Error");
-				data.put("text",     "Error occured with dataset: " + fields);
+				data.put("text",     "Error occured with dataset: " + first100Characters);
 				data.put("username", userName);
 
 				TransactionCommand.simpleBroadcastGenericMessage(data);

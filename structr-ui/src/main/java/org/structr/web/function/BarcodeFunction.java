@@ -43,6 +43,11 @@ public class BarcodeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "type, data [, width, height, hintKey, hintValue ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

@@ -36,6 +36,11 @@ public class SearchFunction extends AbstractQueryFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "type, options...";
+	}
+
+	@Override
 	public String getNamespaceIdentifier() {
 		return "find";
 	}
@@ -44,7 +49,6 @@ public class SearchFunction extends AbstractQueryFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final SecurityContext securityContext = ctx.getSecurityContext();
-		final boolean ignoreResultCount       = securityContext.ignoreResultCount();
 
 		try {
 
@@ -96,7 +100,6 @@ public class SearchFunction extends AbstractQueryFunction {
 		} finally {
 
 			resetQueryParameters(securityContext);
-			securityContext.ignoreResultCount(ignoreResultCount);
 		}
 	}
 

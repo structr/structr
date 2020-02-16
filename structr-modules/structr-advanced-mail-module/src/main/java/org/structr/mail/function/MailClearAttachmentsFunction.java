@@ -37,6 +37,11 @@ public class MailClearAttachmentsFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return null;
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		ctx.getAdvancedMailContainer().clearAttachments();
@@ -51,6 +56,6 @@ public class MailClearAttachmentsFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Removes all attachments from the current mail";
 	}
 }

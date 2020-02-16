@@ -36,7 +36,11 @@ public class PagingIterable<T> implements ResultStream<T> {
 	}
 
 	public PagingIterable(final Iterable<T> source, final int pageSize, final int page) {
-		this.source = new PagingIterator<>(source.iterator(), page, pageSize);
+		this(source, pageSize, page, 0);
+	}
+
+	public PagingIterable(final Iterable<T> source, final int pageSize, final int page, final int skipped) {
+		this.source = new PagingIterator<>(source.iterator(), page, pageSize, skipped);
 	}
 
 	@Override
@@ -52,13 +56,13 @@ public class PagingIterable<T> implements ResultStream<T> {
 	}
 
 	@Override
-	public int calculateTotalResultCount() {
-		return source.getResultCount();
+	public int calculateTotalResultCount(final ProgressWatcher progressConsumer, final int softLimit) {
+		return source.getResultCount(progressConsumer, softLimit);
 	}
 
 	@Override
-	public int calculatePageCount() {
-		return source.getPageCount();
+	public int calculatePageCount(final ProgressWatcher progressConsumer, final int softLimit) {
+		return source.getPageCount(progressConsumer, softLimit);
 	}
 
 	@Override
@@ -93,9 +97,23 @@ public class PagingIterable<T> implements ResultStream<T> {
 			throw new IllegalStateException("This iterator is empty.");
 		}
 
-	}, Integer.MAX_VALUE, 1);
-	
+	}, Integer.MAX_VALUE, 1, 0);
+
 	public boolean isConsumed() {
 		return source != null && source.isConsumed();
+	}
+
+	@Override
+	public void close() {
+
+		if (source instanceof AutoCloseable) {
+
+			try {
+				((AutoCloseable)source).close();
+
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
 	}
 }

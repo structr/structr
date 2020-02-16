@@ -54,6 +54,11 @@ public class IncludeFunction extends UiCommunityFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "name";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -68,10 +73,23 @@ public class IncludeFunction extends UiCommunityFunction {
 			final PropertyKey<DOMNode> sharedCompKey = StructrApp.key(DOMNode.class, "sharedComponent");
 			final SecurityContext securityContext    = ctx.getSecurityContext();
 			final App app                            = StructrApp.getInstance(securityContext);
-			final RenderContext innerCtx             = new RenderContext((RenderContext)ctx);
 			final List<DOMNode> nodeList             = app.nodeQuery(DOMNode.class).andName((String)sources[0]).getAsList();
 
-			DOMNode node = null;
+
+			RenderContext innerCtx = null;
+			boolean useBuffer      = false;
+			DOMNode node           = null;
+
+			if (ctx instanceof RenderContext) {
+
+				innerCtx  = new RenderContext((RenderContext)ctx);
+				useBuffer = true;
+
+			} else {
+
+				innerCtx  = new RenderContext(ctx.getSecurityContext());
+				useBuffer = false;
+			}
 
 			/**
 			 * Nodes can be included via their name property These nodes MUST: 1. be unique in name 2. NOT be in the trash => have an ownerDocument AND a parent (public
@@ -109,7 +127,7 @@ public class IncludeFunction extends UiCommunityFunction {
 				}
 			}
 
-			return renderNode(securityContext, ctx, innerCtx, sources, app, node);
+			return renderNode(securityContext, ctx, innerCtx, sources, app, node, useBuffer);
 
 		} catch (ArgumentNullException pe) {
 
@@ -133,7 +151,7 @@ public class IncludeFunction extends UiCommunityFunction {
 		return "Includes the content of the node with the given name";
 	}
 
-	protected String renderNode(final SecurityContext securityContext, final ActionContext ctx, final RenderContext innerCtx, final Object[] sources, final App app, final DOMNode node) throws FrameworkException {
+	protected String renderNode(final SecurityContext securityContext, final ActionContext ctx, final RenderContext innerCtx, final Object[] sources, final App app, final DOMNode node, final boolean useBuffer) throws FrameworkException {
 
 		if (node != null) {
 
@@ -212,7 +230,16 @@ public class IncludeFunction extends UiCommunityFunction {
 
 		}
 
-		return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
+		if (useBuffer) {
+
+			// output was written to RenderContext async buffer
+			return null;
+
+		} else {
+
+			// output needs to be returned as a function result
+			return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
+		}
 	}
 
 }

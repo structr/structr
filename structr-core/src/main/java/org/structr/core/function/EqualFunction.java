@@ -36,6 +36,11 @@ public class EqualFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "value1, value2";
+	}
+
+	@Override
 	public List<String> aliases() {
 		return Arrays.asList("eq");
 	}

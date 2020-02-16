@@ -18,7 +18,6 @@
  */
 package org.structr.web.importer;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
@@ -101,15 +100,12 @@ public class MixedCSVFileImportJob extends FileImportJob {
 			//logger.info("Importing CSV from {} ({}) to {} using {}", filePath, fileUuid, targetType, configuration);
 
 			final SecurityContext threadContext = SecurityContext.getInstance(user, AccessMode.Backend);
-			final APIBuilder builder            = (APIBuilder) StructrApp.getConfiguration().getModules().get("api-builder");
 			final SimpleDateFormat df           = new SimpleDateFormat("yyyyMMddHHMM");
-			final String importTypeName         = "ImportFromCsv" + df.format(System.currentTimeMillis());
 			final App app                       = StructrApp.getInstance(threadContext);
 
 			// disable transaction notifications
 			threadContext.setContextStore(ctxStore);
 			threadContext.disableModificationOfAccessTime();
-			threadContext.ignoreResultCount(true);
 			threadContext.setDoTransactionNotifications(false);
 			threadContext.disableEnsureCardinality();
 
@@ -244,9 +240,9 @@ public class MixedCSVFileImportJob extends FileImportJob {
 
 				importFinished(startTime, overallCount, ignoreCount);
 
-			} catch (IOException | FrameworkException fex) {
+			} catch (Exception ex) {
 
-				reportException(fex);
+				reportException(ex);
 
 			} finally {
 

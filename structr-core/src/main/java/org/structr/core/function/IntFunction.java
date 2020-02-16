@@ -25,11 +25,16 @@ import org.structr.schema.action.ActionContext;
 
 public class IntFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_INT = "Usage: ${int(string)}. Example: ${int(this.numericalStringValue)}";
+	public static final String ERROR_MESSAGE_INT = "Usage: ${int(parameter)}. Example: ${int(this.numericalStringValue)} or ${int(5.8)}";
 
 	@Override
 	public String getName() {
 		return "int";
+	}
+
+	@Override
+	public String getSignature() {
+		return "value";
 	}
 
 	@Override
@@ -43,7 +48,17 @@ public class IntFunction extends CoreFunction {
 				return ((Number)sources[0]).intValue();
 			}
 
-			return getDoubleOrNull(sources[0]).intValue();
+			final Double dbl = getDoubleOrNull(sources[0]);
+
+			if (dbl != null) {
+
+				return dbl.intValue();
+
+			} else {
+
+				logParameterError(caller, sources, ctx.isJavaScriptContext());
+				return null;
+			}
 
 		} catch (ArgumentNullException pe) {
 

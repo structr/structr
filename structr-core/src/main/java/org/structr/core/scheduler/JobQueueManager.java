@@ -121,6 +121,20 @@ public class JobQueueManager {
 		return jobInfoList;
 	}
 
+	public Map<String, Object> jobInfo (final Long jobId) {
+
+		if (activeJobs.containsKey(jobId)) {
+
+			return activeJobs.get(jobId).getJobInfo();
+
+		} else if (queuedJobs.containsKey(jobId)) {
+
+			return queuedJobs.get(jobId).getJobInfo();
+		}
+
+		return null;
+	}
+
 	private void addJobToList (final List<Map<String, Object>> list, final ScheduledJob job) {
 		list.add(job.getJobInfo());
 	}

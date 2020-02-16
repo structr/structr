@@ -2,10 +2,7 @@
 
 import {FlowNode} from "./FlowNode.js";
 import {FlowSockets} from "../FlowSockets.js";
-import {Persistence} from "../../persistence/Persistence.js";
-import {FlowContainer} from "./FlowContainer.js";
-import {QueryOperation} from "./components/QueryBuilder/QueryOperation.js";
-import {QueryGroup} from "./components/QueryBuilder/QueryGroup.js";
+import {Persistence} from "../../../../../lib/structr/persistence/Persistence.js";
 import {QueryBuilder} from "./components/QueryBuilder/QueryBuilder.js";
 
 export class FlowTypeQuery extends FlowNode {

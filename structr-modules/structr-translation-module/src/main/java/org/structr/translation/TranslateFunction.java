@@ -41,6 +41,11 @@ public class TranslateFunction extends UiFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "text, sourceLanguage, targetLanguage, translationProvider";
+	}
+
+	@Override
 	public String getRequiredModule() {
 		return "translation";
 	}

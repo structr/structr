@@ -51,6 +51,7 @@ import org.structr.api.service.RunnableService;
 import org.structr.api.service.Service;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.StructrServices;
+import org.structr.bolt.BoltDatabaseService;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
@@ -192,16 +193,35 @@ public class Services implements StructrServices {
 			logger.info("Reading {}..", configFileName);
 			Settings.loadConfiguration(configFileName);
 
-		} else {
+			// this might be the first start with a new / upgraded version
+			// check if we need to do some migration maybe?
 
-			// write structr.conf with random superadmin password
-			logger.info("Writing {}..", configFileName);
+			if (Settings.ConnectionUser.isModified() || Settings.ConnectionUrl.isModified() || Settings.ConnectionPassword.isModified() || Settings.DatabaseDriverMode.isModified()) {
+
+				if (!Settings.DatabaseDriver.isModified()) {
+
+					logger.info("Migrating database connection configuration");
+
+					// driver is not modified (i.e. in-memory driver), but other config settings
+					// indicate that a remote driver was used, so we change the setting to use
+					// the neo4j driver
+					Settings.DatabaseDriver.setValue(BoltDatabaseService.class.getName());
+				}
+			}
+
+			if (Settings.SuperUserPassword.isModified() && !Settings.SetupWizardCompleted.isModified()) {
+
+				// when an existing config is detected and the superuser password is set, we can
+				// safely assume that the configuration wizard can be skipped
+				Settings.SetupWizardCompleted.setValue(true);
+			}
 
 			try {
+
 				Settings.storeConfiguration(configFileName);
 
 			} catch (IOException ioex) {
-				logger.warn("Unable to write {}: {}", configFileName, ioex.getMessage());
+				logger.warn("Unable to store migrated config: {}", ioex.getMessage());
 			}
 		}
 

@@ -19,6 +19,7 @@
 package org.structr.test.rest.resource;
 
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.response.ResponseBody;
 import static org.hamcrest.Matchers.*;
 import org.testng.annotations.Test;
 import org.structr.test.rest.common.StructrRestTestBase;
@@ -159,4 +160,42 @@ public class CollectionResourceBasicTest extends StructrRestTestBase {
 
 	}
 
+	@Test
+	public void testOrderOfIDsWhenPostingMultipleObjects() {
+
+		// make sure that the order of UUIDs returned by a POST
+		// request matches the order of posted objects
+
+		final ResponseBody response = RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("[ { name: group4 }, { name: group2 }, { name: group3 }, { name: group5 }, { name: group1 } ]")
+
+			.expect()
+				.statusCode(201)
+
+			.when()
+				.post("/Group")
+				.getBody();
+
+		// collect results exactly as ordered in POST data (4, 2, 3, 5, 1)
+		final String id4 = response.jsonPath().getString("result[0]");
+		final String id2 = response.jsonPath().getString("result[1]");
+		final String id3 = response.jsonPath().getString("result[2]");
+		final String id5 = response.jsonPath().getString("result[3]");
+		final String id1 = response.jsonPath().getString("result[4]");
+
+		final String ct  = "application/json; charset=UTF-8";
+		final String rc  = "result_count";
+		final String rn  = "result.name";
+		final String ri  = "result.id";
+
+		// check for correct assignment of id and name
+		RestAssured.given().contentType(ct).expect().statusCode(200).body(rc, equalTo(1)).body(rn, equalTo("group1")).body(ri, equalTo(id1)).when().get("/Group/" + id1);
+		RestAssured.given().contentType(ct).expect().statusCode(200).body(rc, equalTo(1)).body(rn, equalTo("group2")).body(ri, equalTo(id2)).when().get("/Group/" + id2);
+		RestAssured.given().contentType(ct).expect().statusCode(200).body(rc, equalTo(1)).body(rn, equalTo("group3")).body(ri, equalTo(id3)).when().get("/Group/" + id3);
+		RestAssured.given().contentType(ct).expect().statusCode(200).body(rc, equalTo(1)).body(rn, equalTo("group4")).body(ri, equalTo(id4)).when().get("/Group/" + id4);
+		RestAssured.given().contentType(ct).expect().statusCode(200).body(rc, equalTo(1)).body(rn, equalTo("group5")).body(ri, equalTo(id5)).when().get("/Group/" + id5);
+	}
 }

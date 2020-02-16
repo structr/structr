@@ -40,6 +40,11 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "user, node, permissions";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

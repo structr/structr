@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.ArgumentTypeException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -72,7 +73,7 @@ public abstract class Function<S, T> extends Hint {
 	}
 
 	/**
-	 * Basic logging for functions called with wrong parameter count
+	 * Basic logging for functions called with wrong parameter combination/count
 	 *
 	 * @param caller The element that caused the error
 	 * @param parameters The function parameters
@@ -116,7 +117,7 @@ public abstract class Function<S, T> extends Hint {
 		if (Settings.LogFunctionsStackTrace.getValue()) {
 			logger.error(msg, ArrayUtils.add(messageParams, t));
 		} else {
-			logger.error(msg, messageParams);
+			logger.error(msg + " (Stacktrace suppressed - see setting " + Settings.LogFunctionsStackTrace.getKey() + ")", messageParams);
 		}
 	}
 
@@ -189,6 +190,29 @@ public abstract class Function<S, T> extends Hint {
 			}
 		}
 	}
+	protected void assertArrayHasMinLengthAndTypes(final Object[] array, final int minimum, final Class... types) throws ArgumentCountException, ArgumentNullException {
+
+		if (array.length < minimum) {
+			throw ArgumentTypeException.wrongTypes(array, minimum, types);
+		}
+
+		for (int i=0; (i<array.length && i < types.length); i++) {
+
+			final Object element = array[i];
+			final Class type     = types[i];
+
+			if (element != null) {
+
+				if (!type.isAssignableFrom(element.getClass())) {
+					throw ArgumentTypeException.wrongTypes(array, minimum, types);
+				}
+
+			} else {
+
+				throw ArgumentTypeException.wrongTypes(array, minimum, types);
+			}
+		}
+	}
 
 	protected Double getDoubleOrNull(final Object obj) {
 
@@ -215,6 +239,10 @@ public abstract class Function<S, T> extends Hint {
 
 			}
 
+		} catch (NumberFormatException nfe) {
+
+			logger.error("{}: Exception parsing '{}'", new Object[] { getReplacement(), obj });
+
 		} catch (Throwable t) {
 
 			logException(t, "{}: Exception parsing '{}'", new Object[] { getReplacement(), obj });
@@ -223,7 +251,7 @@ public abstract class Function<S, T> extends Hint {
 		return null;
 	}
 
-	protected Integer parseInt(final Object source) {
+	public static Integer parseInt(final Object source) {
 
 		if (source instanceof Integer) {
 
@@ -241,6 +269,46 @@ public abstract class Function<S, T> extends Hint {
 		}
 
 		return null;
+	}
+
+	protected int parseInt(final Object source, final int defaultValue) {
+
+		if (source instanceof Integer) {
+
+			return ((Integer)source);
+		}
+
+		if (source instanceof Number) {
+
+			return ((Number)source).intValue();
+		}
+
+		if (source instanceof String) {
+
+			return Integer.parseInt((String)source);
+		}
+
+		return defaultValue;
+	}
+
+	protected double parseDouble(final Object source, final double defaultValue) {
+
+		if (source instanceof Double) {
+
+			return ((Double)source);
+		}
+
+		if (source instanceof Number) {
+
+			return ((Number)source).doubleValue();
+		}
+
+		if (source instanceof String) {
+
+			return Double.parseDouble((String)source);
+		}
+
+		return defaultValue;
 	}
 
 	protected String encodeURL(final String source) {
@@ -573,9 +641,9 @@ public abstract class Function<S, T> extends Hint {
 
 					res.add((GraphObject)o);
 
-				} else if (o instanceof String) {
+				} else if (o instanceof CharSequence) {
 
-					res.add(Function.wrapStringInGraphObjectMap((String)o));
+					res.add(Function.wrapStringInGraphObjectMap(o.toString()));
 
 				} else if (o instanceof Number) {
 
@@ -609,9 +677,9 @@ public abstract class Function<S, T> extends Hint {
 
 			return res;
 
-		} else if (sourceObject instanceof String) {
+		} else if (sourceObject instanceof CharSequence) {
 
-			return Function.wrapStringInGraphObjectMap((String)sourceObject);
+			return Function.wrapStringInGraphObjectMap(sourceObject.toString());
 
 		} else if (sourceObject instanceof Number) {
 

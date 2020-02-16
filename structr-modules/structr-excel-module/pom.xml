@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-modules</artifactId>
-		<version>3.4-SNAPSHOT</version>
+		<version>3.5-SNAPSHOT</version>
 	</parent>
 	<artifactId>structr-excel-module</artifactId>
 	<packaging>jar</packaging>
@@ -19,7 +19,8 @@
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
-			<version>3.16</version>
+			<version>4.0.1</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>

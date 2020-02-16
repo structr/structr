@@ -37,6 +37,11 @@ public class MQTTPublishFunction extends MessagingModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "client, topic, message";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 		if (sources != null && sources.length == 3 && sources[0] != null && sources[1] != null && sources[2] != null) {
 

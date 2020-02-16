@@ -33,6 +33,11 @@ public class UnwindFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "list1, list2, ...";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final List list = new ArrayList();
@@ -77,6 +82,6 @@ public class UnwindFunction extends CoreFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Converts a list of lists into a flat list";
 	}
 }

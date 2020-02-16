@@ -21,7 +21,7 @@ package org.structr.bolt;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.structr.api.search.QueryContext;
-import org.structr.api.search.SortType;
+import org.structr.api.search.SortOrder;
 
 /**
  *
@@ -29,7 +29,7 @@ import org.structr.api.search.SortType;
 class SimpleCypherQuery implements CypherQuery {
 
 	private final Map<String, Object> params = new LinkedHashMap<>();
-	private QueryContext queryContext        = new QueryContext();
+	private final QueryContext queryContext  = new QueryContext();
 	private String base                      = null;
 	private int pageSize                     = 0;
 	private int page                         = 0;
@@ -51,7 +51,7 @@ class SimpleCypherQuery implements CypherQuery {
 	}
 
 	@Override
-	public String getStatement() {
+	public String getStatement(final boolean paged) {
 
 		final StringBuilder buf = new StringBuilder(base);
 
@@ -85,7 +85,7 @@ class SimpleCypherQuery implements CypherQuery {
 	}
 
 	@Override
-	public void sort(final SortType sortType, final String sortKey, final boolean sortDescending) {
+	public void sort(final SortOrder sortOrder) {
 	}
 
 	@Override

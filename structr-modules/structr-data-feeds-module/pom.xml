@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-modules</artifactId>
-		<version>3.4-SNAPSHOT</version>
+		<version>3.5-SNAPSHOT</version>
 	</parent>
 	<artifactId>structr-data-feeds-module</artifactId>
 	<packaging>jar</packaging>
@@ -118,7 +118,7 @@
 			</plugin>
 		</plugins>
 	</build>
-	
+
 	<licenses>
 		<license>
 			<name>GNU Affero General Public License, Version 3</name>

@@ -36,6 +36,11 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "type [, blacklist ]";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {

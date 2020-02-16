@@ -37,6 +37,11 @@ public class AnalyzeSourceTreeFunction extends ParserModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "path";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

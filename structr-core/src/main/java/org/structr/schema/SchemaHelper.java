@@ -55,7 +55,6 @@ import org.structr.api.graph.PropertyContainer;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.common.CaseHelper;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.PermissionPropagation;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -1104,7 +1103,6 @@ public class SchemaHelper {
 		sourceFile.importLine(baseType.getName());
 		sourceFile.importLine(DateArrayPropertyParser.class.getName());
 		sourceFile.importLine(ConfigurationProvider.class.getName());
-		sourceFile.importLine(GraphObjectComparator.class.getName());
 		sourceFile.importLine(PermissionPropagation.class.getName());
 		sourceFile.importLine(PropagationDirection.class.getName());
 		sourceFile.importLine(FrameworkException.class.getName());

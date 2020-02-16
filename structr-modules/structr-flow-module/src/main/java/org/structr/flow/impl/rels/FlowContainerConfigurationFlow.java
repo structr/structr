@@ -18,12 +18,15 @@
  */
 package org.structr.flow.impl.rels;
 
+import org.structr.api.graph.PropagationDirection;
+import org.structr.api.graph.PropagationMode;
+import org.structr.common.PermissionPropagation;
 import org.structr.core.entity.ManyToOne;
 import org.structr.core.entity.Relation;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.flow.impl.FlowContainerConfiguration;
 
-public class FlowContainerConfigurationFlow extends ManyToOne<FlowContainerConfiguration, FlowContainer> {
+public class FlowContainerConfigurationFlow extends ManyToOne<FlowContainerConfiguration, FlowContainer> implements PermissionPropagation {
 
 	@Override
 	public Class<FlowContainerConfiguration> getSourceType() {
@@ -48,5 +51,35 @@ public class FlowContainerConfigurationFlow extends ManyToOne<FlowContainerConfi
 	@Override
 	public int getAutocreationFlag() {
 		return Relation.ALWAYS;
+	}
+
+	@Override
+	public PropagationDirection getPropagationDirection() {
+		return PropagationDirection.Both;
+	}
+
+	@Override
+	public PropagationMode getReadPropagation() {
+		return PropagationMode.Add;
+	}
+
+	@Override
+	public PropagationMode getWritePropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getDeletePropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getAccessControlPropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public String getDeltaProperties() {
+		return null;
 	}
 }

@@ -40,6 +40,11 @@ public class CallFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "functionName [, parameterMap ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources != null && sources.length >= 1 && sources[0] != null) {

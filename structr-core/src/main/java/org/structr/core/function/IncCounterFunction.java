@@ -33,6 +33,11 @@ public class IncCounterFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "level [, resetLowerLevels=false ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

@@ -37,7 +37,7 @@ import org.structr.core.graph.Tx;
 public class RemoveMethodsWithUnusedSignature implements MigrationHandler {
 
 	//                                                                 name              signature                                          type
-	private static final Pattern PATTERN = Pattern.compile("method ([a-zA-Z0-9_]+)\\(([a-zA-Z0-9_ \\.]*)\\) is already defined in class ([a-zA-Z0-9\\.]+)");
+	private static final Pattern PATTERN = Pattern.compile("method ([a-zA-Z0-9_]+)\\(([a-zA-Z0-9_ \\.,<>]*)\\) is already defined in class ([a-zA-Z0-9\\.]+)");
 	private static final Logger logger   = LoggerFactory.getLogger(RemoveMethodsWithUnusedSignature.class);
 
 	@Override
@@ -64,7 +64,13 @@ public class RemoveMethodsWithUnusedSignature implements MigrationHandler {
 
 					try (final Tx tx = app.tx()) {
 
-						final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
+						SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
+
+						if (schemaNode == null) {
+
+							schemaNode = app.nodeQuery(SchemaNode.class).andName(fqcn.substring(fqcn.lastIndexOf(".") + 1)).getFirst();
+						}
+
 						if (schemaNode != null) {
 
 							for (final SchemaMethod method : app.nodeQuery(SchemaMethod.class)

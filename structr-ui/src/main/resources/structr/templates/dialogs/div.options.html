@@ -1,0 +1,57 @@
+<div id="div-options" class="quick-access-options">
+	<h3>${config.title}</h3>
+	<div class="row">
+		<div class="option-tile">
+			<label>CSS Class</label>
+			<input type="text" id="class-input" value="${config.entity._html_class || ''}" />
+		</div>
+		<div class="option-tile">
+			<label>HTML ID</label>
+			<input type="text" id="id-input" value="${config.entity._html_id || ''}" />
+		</div>
+	</div>
+	<div class="row">
+		<div class="option-tile double">
+			<label>Style</label>
+			<input type="text" id="style-input" value="${config.div._html_style || ''}" />
+		</div>
+	</div>
+	<div class="row">
+		<div class="option-tile">
+			<label>Function Query</label>
+			<input type="text" id="function-query-input" value="${config.entity.functionQuery || ''}" />
+		</div>
+		<div class="option-tile">
+			<label>Data Key</label>
+			<input type="text" id="data-key-input" value="${config.entity.dataKey || ''}" />
+		</div>
+	</div>
+	<div class="row">
+		<div class="option-tile">
+			<label>Show Conditions</label>
+			<select id="show-conditions">
+				<option value="">(none)</option>
+				<option>false</option>
+				<option>me.isAdmin</option>
+				<option>empty(current)</option>
+				<option>not(empty(current))</option>
+			</select>
+		</div>
+		<div class="option-tile">
+			<label>Hide Conditions</label>
+			<select id="hide-conditions">
+				<option value="">(none)</option>
+				<option>true</option>
+				<option>me.isAdmin</option>
+				<option>empty(current)</option>
+				<option>not(empty(current))</option>
+			</select>
+		</div>
+	</div>
+	<div id="custom-properties-parent" class="hidden">
+		<h3>Custom Properties</h3>
+		<div class="row">
+		     <div id="custom-properties-container"></div>
+		</div>
+	</div>
+</div>

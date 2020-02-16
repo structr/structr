@@ -55,11 +55,13 @@ public interface Widget extends NodeInterface {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Widget"));
 		type.setCategory("ui");
 
-		type.addStringProperty("source",        PropertyView.Ui, PropertyView.Public);
-		type.addStringProperty("description",   PropertyView.Ui, PropertyView.Public);
-		type.addStringProperty("configuration", PropertyView.Ui, PropertyView.Public);
-		type.addStringProperty("treePath",      PropertyView.Ui, PropertyView.Public).setIndexed(true);
-		type.addBooleanProperty("isWidget",     PropertyView.Ui, PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addStringProperty("source",          PropertyView.Ui, PropertyView.Public);
+		type.addStringProperty("description",     PropertyView.Ui, PropertyView.Public);
+		type.addStringProperty("configuration",   PropertyView.Ui, PropertyView.Public);
+		type.addStringProperty("treePath",        PropertyView.Ui, PropertyView.Public).setIndexed(true);
+		type.addBooleanProperty("isWidget",       PropertyView.Ui, PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addStringArrayProperty("selectors",  PropertyView.Ui, PropertyView.Public, "editWidget");
+		type.addBooleanProperty("isPageTemplate", PropertyView.Ui, PropertyView.Public, "editWidget").setIndexed(true);
 
 		image.relate(type, "PICTURE_OF", Cardinality.ManyToOne, "pictures", "widget");
 
@@ -115,6 +117,11 @@ public interface Widget extends NodeInterface {
 			if (processDeploymentInfo) {
 				importer.setIsDeployment(true);
 				importer.setCommentHandler(new DeploymentCommentHandler());
+			}
+
+			// test: insert widget into Page object directly
+			if (parent.equals(page)) {
+				importer.setIsDeployment(true);
 			}
 
 			importer.parse(true);

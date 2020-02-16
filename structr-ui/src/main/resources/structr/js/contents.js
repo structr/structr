@@ -282,7 +282,7 @@ var _Contents = {
 	},
 	load: function(id, callback) {
 
-		Command.query('ContentContainer', containerPageSize, containerPage, 'name', 'asc', {parent: id}, function(folders) {
+		Command.query('ContentContainer', containerPageSize, containerPage, 'position', 'asc', {parent: id}, function(folders) {
 
 			var list = [];
 
@@ -335,14 +335,14 @@ var _Contents = {
 		};
 
 		if (id === 'root') {
-			Command.list('ContentContainer', true, 1000, 1, 'name', 'asc', null, handleChildren);
+			Command.list('ContentContainer', true, 1000, 1, 'position', 'asc', null, handleChildren);
 		} else {
-			Command.query('ContentContainer', 1000, 1, 'name', 'asc', {parent: id}, handleChildren, true, 'ui');
+			Command.query('ContentContainer', 1000, 1, 'position', 'asc', {parent: id}, handleChildren, true, 'ui');
 		}
 
-		_Pager.initPager('contents-items', 'ContentItem', 1, 25, 'name', 'asc');
+		_Pager.initPager('contents-items', 'ContentItem', 1, 25, 'position', 'asc');
 		page['ContentItem'] = 1;
-		_Pager.initFilters('contents-items', 'ContentItem', id === 'root' ? {} : { containers: [id] });
+		_Pager.initFilters('contents-items', 'ContentItem', id === 'root' ? { containers: [] } : { containers: [id] });
 
 		var itemsPager = _Pager.addPager('contents-items', contentsContents, false, 'ContentItem', 'ui', handleChildren);
 
@@ -593,45 +593,34 @@ var _Contents = {
 			saveAndClose     = $('#saveAndClose', dialogBtn);
 			let refreshBtn   = $('#refresh', dialogBtn);
 
-			var typeInfo = {};
-			Command.getSchemaInfo(entity.type, function(schemaInfo) {
-				$(schemaInfo).each(function(i, prop) {
+			_Entities.getSchemaProperties(entity.type, 'custom', function(properties) {
+
+				var typeInfo = {};
+				$(properties).each(function(i, prop) {
 					typeInfo[prop.jsonName] = prop;
 				});
-			});
 
-			Command.query('SchemaNode', 1, 1, 'name', 'asc', { name: entity.type }, function(schemaNodes) {
+				//let properties = schemaNodes[0].schemaProperties.concat(schemaNodes[0].relatedTo);
+				let props = Object.values(properties);
 
-				let properties = schemaNodes[0].schemaProperties.concat(schemaNodes[0].relatedTo);
-
-				_Contents.sortBySchemaOrder(entity.type, 'custom', properties, function(props) {
+				//_Contents.sortBySchemaOrder(entity.type, 'custom', properties, function(props) {
 
 					props.forEach(function(prop) {
 
-						let isRelated    = 'targetJsonName' in prop;
-						let key = isRelated ? prop.targetJsonName : prop.name;
-
-						let isCollection = false;
-						let isReadOnly   = false;
-						let isSystem     = false;
-
-						if (isRelated) {
-							key  = prop.targetJsonName;
-							isCollection = typeInfo[key].isCollection;
-
-						} else {
-							isReadOnly = typeInfo[key].isReadOnly;
-							isSystem   = typeInfo[key].system;
-						}
+						let isRelated    = 'relatedType' in prop;
+						let key          = prop.jsonName;
+						let isCollection = prop.isCollection || false;
+						let isReadOnly   = prop.isReadOnly   || false;
+						let isSystem     = prop.system       || false;
 
 						//var isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
 
 						var oldVal = entity[key];
 
-						dialogText.append('<div id="prop-' + prop.id + '" class="prop"><label for="' + prop.id + '"><h3>' + formatKey(key) + '</h3></label></div>');
-						var div = $('#prop-' + prop.id);
+						dialogText.append('<div id="prop-' + key + '" class="prop"><label for="' + key + '"><h3>' + formatKey(key) + '</h3></label></div>');
+						var div = $('#prop-' + key);
 
-						if (prop.propertyType === 'Boolean') {
+						if (prop.type === 'Boolean') {
 
 							div.removeClass('value').append('<div class="value-container"><input type="checkbox" class="' + key + '_"></div>');
 							var checkbox = div.find('input[type="checkbox"].' + key + '_');
@@ -651,28 +640,29 @@ var _Contents = {
 								}
 							});
 
-						} else if (prop.propertyType === 'Date' && !isReadOnly) {
+						} else if (prop.type === 'Date' && !isReadOnly) {
 
 							div.append('<div class="value-container"></div>');
-							_Entities.appendDatePicker($('.value-container', div), entity, prop.name, typeInfo.format || "yyyy-MM-dd'T'HH:mm:ssZ");
+							_Entities.appendDatePicker($('.value-container', div), entity, key, prop.format || "yyyy-MM-dd'T'HH:mm:ssZ");
 							var valueInput = $('.value-container input', div);
 							valueInput.on('change', function(e) {
 								if (e.keyCode !== 27) {
-									Command.get(entity.id, prop.name, function(newEntity) {
-										_Contents.checkValueHasChanged(newEntity[prop.name], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
+									Command.get(entity.id, key, function(newEntity) {
+										_Contents.checkValueHasChanged(newEntity[key], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
 									});
 								}
 							});
 
 						} else if (isRelated) {
 
-							div.append('<div id="relatedNodesList" class="value-container related-nodes"> <i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> </div>');
-							$('#relatedNodesList').children('.add').on('click', function() {
-								Structr.dialog('Add ' + typeInfo[key].type, function() {
+							let relatedNodesList = $('<div class="value-container related-nodes"> <i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> </div>');
+							div.append(relatedNodesList);
+							$(relatedNodesList).children('.add').on('click', function() {
+								Structr.dialog('Add ' + prop.type, function() {
 								}, function() {
 									_Contents.editItem(item);
 								});
-								_Entities.displaySearch(entity.id, key, typeInfo[key].type, dialogText, isCollection);
+								_Entities.displaySearch(entity.id, key, prop.type, dialogText, isCollection);
 							});
 
 							if (entity[key]) {
@@ -742,12 +732,12 @@ var _Contents = {
 									//btns: ['strong', 'em', '|', 'insertImage'],
 									//autogrow: true
 								}).on('tbwchange', function() {
-									Command.get(entity.id, prop.name, function(newEntity) {
-										_Contents.checkValueHasChanged(newEntity[prop.name], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
+									Command.get(entity.id, key, function(newEntity) {
+										_Contents.checkValueHasChanged(newEntity[key], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
 									});
 								}).on('tbwpaste', function() {
-									Command.get(entity.id, prop.name, function(newEntity) {
-										_Contents.checkValueHasChanged(newEntity[prop.name], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
+									Command.get(entity.id, key, function(newEntity) {
+										_Contents.checkValueHasChanged(newEntity[key], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
 									});
 								});
 
@@ -756,13 +746,13 @@ var _Contents = {
 								let valueContainer = $('.value-container', div);
 								let valueInput;
 
-								valueContainer.append(formatValueInputField(prop.name, oldVal, false, typeInfo[key].readOnly, typeInfo[key].format === 'multi-line'));
-								valueInput = valueContainer.find('[name=' + prop.name + ']');
+								valueContainer.append(formatValueInputField(key, oldVal, false, prop.readOnly, prop.format === 'multi-line'));
+								valueInput = valueContainer.find('[name=' + key + ']');
 
 								valueInput.on('keyup', function(e) {
 									if (e.keyCode !== 27) {
-										Command.get(entity.id, prop.name, function(newEntity) {
-											_Contents.checkValueHasChanged(newEntity[prop.name], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
+										Command.get(entity.id, key, function(newEntity) {
+											_Contents.checkValueHasChanged(newEntity[key], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
 										});
 									}
 								});
@@ -770,7 +760,7 @@ var _Contents = {
 						}
 
 					});
-				});
+				//});
 
 			}, true);
 
@@ -781,37 +771,41 @@ var _Contents = {
 				e.preventDefault();
 				e.stopPropagation();
 
-				Command.query('SchemaNode', 1, 1, 'name', 'asc', { name: entity.type }, function(schemaNodes) {
+				_Entities.getSchemaProperties(entity.type, 'custom', function(properties) {
 
-					schemaNodes[0].schemaProperties.forEach(function(prop) {
+					let props = Object.values(properties);
+
+					props.forEach(function(prop) {
+
+						let key = prop.jsonName;
 
 						var newVal;
-						var oldVal = entity[prop.name];
+						var oldVal = entity[key];
 
 						if (true) {
 
 							if (prop.contentType && prop.contentType === 'text/html') {
-								newVal = $('#prop-' + prop.id + ' .edit-area').trumbowyg('html') || null;
+								newVal = $('#prop-' + key + ' .edit-area').trumbowyg('html') || null;
 							} else if (prop.propertyType === 'Boolean') {
-								newVal = $('#prop-' + prop.id + ' .value-container input').prop('checked') || false;
+								newVal = $('#prop-' + key + ' .value-container input').prop('checked') || false;
 							} else {
 								if (prop.format === 'multi-line') {
-									newVal = $('#prop-' + prop.id + ' .value-container textarea').val() || null;
+									newVal = $('#prop-' + key + ' .value-container textarea').val() || null;
 								} else {
-									newVal = $('#prop-' + prop.id + ' .value-container input').val() || null;
+									newVal = $('#prop-' + key + ' .value-container input').val() || null;
 								}
 							}
 
-							if (newVal !== oldVal) {
+							if (!prop.relatedType && newVal !== oldVal) {
 
-								Command.setProperty(entity.id, prop.name, newVal, false, function() {
+								Command.setProperty(entity.id, key, newVal, false, function() {
 
 									oldVal = newVal;
 									dialogSaveButton.prop("disabled", true).addClass('disabled');
 									saveAndClose.prop("disabled", true).addClass('disabled');
 
 									// update title in list
-									if (prop.name === 'title') {
+									if (key === 'title') {
 										var f = $('#row' + entity.id + ' .item-title b');
 										f.text(fitStringToWidth(newVal, 200));
 										blinkGreen(f);

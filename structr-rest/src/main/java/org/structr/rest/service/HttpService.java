@@ -29,10 +29,12 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import javax.servlet.DispatcherType;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.chemistry.opencmis.server.impl.CmisRepositoryContextListener;
 import org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet;
 import org.apache.chemistry.opencmis.server.impl.browser.CmisBrowserBindingServlet;
@@ -43,10 +45,12 @@ import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
@@ -212,6 +216,13 @@ public class HttpService implements RunnableService {
 		server = new Server(Settings.HttpPort.getValue());
 		final ContextHandlerCollection contexts = new ContextHandlerCollection();
 
+		contexts.addHandler(new AbstractHandler() {
+			@Override
+			public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+				System.out.println(target);
+			}
+
+		});
 		contexts.addHandler(new DefaultHandler());
 
 		final ServletContextHandler servletContext = new ServletContextHandler(server, contextPath, true, true);
@@ -285,7 +296,7 @@ public class HttpService implements RunnableService {
 			idManager.setWorkerName(hardwareId);
 
 			sessionCache.getSessionHandler().setSessionIdManager(idManager);
-			
+
 			if (Settings.HttpOnly.getValue()) {
 				sessionCache.getSessionHandler().setHttpOnly(isTest);
 			}
@@ -295,10 +306,8 @@ public class HttpService implements RunnableService {
 		if (Settings.ClearSessionsOnStartup.getValue()) {
 			SessionHelper.clearAllSessions();
 		}
-		
+
 		final StructrSessionDataStore sessionDataStore = new StructrSessionDataStore();
-		//final FileSessionDataStore store = new FileSessionDataStore();
-		//store.setStoreDir(baseDir.toPath().resolve("sessions").toFile());
 
 		sessionCache.setSessionDataStore(sessionDataStore);
 		sessionCache.setSaveOnInactiveEviction(false);
@@ -389,7 +398,6 @@ public class HttpService implements RunnableService {
 		} else {
 
 			server.setHandler(contexts);
-
 		}
 
 		final List<ContextHandler> resourceHandler = collectResourceHandlers();
@@ -414,11 +422,11 @@ public class HttpService implements RunnableService {
 		}
 
 		contexts.addHandler(servletContext);
-		
+
 		httpConfig = new HttpConfiguration();
 		httpConfig.setSecureScheme("https");
 		httpConfig.setSecurePort(httpsPort);
-		//httpConfig.setOutputBufferSize(8192);
+		httpConfig.setOutputBufferSize(1024); // intentionally low buffer size to allow even small bits of content to be sent to the client in case of slow rendering
 		httpConfig.setRequestHeaderSize(requestHeaderSize);
 
 		if (StringUtils.isNotBlank(host) && Settings.HttpPort.getValue() > -1) {
@@ -472,7 +480,7 @@ public class HttpService implements RunnableService {
 				if (Settings.ForceHttps.getValue()) {
 					sessionCache.getSessionHandler().setSecureRequestOnly(true);
 				}
-				
+
 				httpsConnector.setPort(httpsPort);
 				httpsConnector.setIdleTimeout(500000);
 
@@ -517,7 +525,7 @@ public class HttpService implements RunnableService {
 	@Override
 	public void shutdown() {
 
-		
+
 		if (server != null) {
 
 			try {
@@ -584,7 +592,7 @@ public class HttpService implements RunnableService {
 						final String resourceBase = Settings.getOrCreateStringSetting(resourceHandlerName, "resourceBase").getValue();
 						if (resourceBase != null) {
 
-							final ResourceHandler resourceHandler = new ResourceHandler();
+							final ResourceHandler resourceHandler = new RedirectingResourceHandler();
 							resourceHandler.setDirectoriesListed(Settings.getBooleanSetting(resourceHandlerName, "directoriesListed").getValue());
 
 							final String welcomeFiles = Settings.getOrCreateStringSetting(resourceHandlerName, "welcomeFiles").getValue();
@@ -747,4 +755,30 @@ public class HttpService implements RunnableService {
 			}
 		}
 	}
+
+	/**
+	 * A resource handler that redirects all requests to the config
+	 * servlet if the system is not configured yet.
+	 */
+	private class RedirectingResourceHandler extends ResourceHandler {
+
+		@Override
+		public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+
+			if (Settings.SetupWizardCompleted.getValue() == false && ("/".equals(target) || "/index.html".equals(target))) {
+
+				// please don't cache this redirect
+				response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+				response.setHeader("Expires", null);
+
+				// redirect to setup wizard
+				response.sendRedirect("/structr/config");
+
+			} else {
+
+				super.handle(target, baseRequest, request, response);
+			}
+		}
+	}
 }
+

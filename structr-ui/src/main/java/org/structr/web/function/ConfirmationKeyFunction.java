@@ -32,6 +32,11 @@ public class ConfirmationKeyFunction extends UiCommunityFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return null;
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		return AuthHelper.getConfirmationKey();

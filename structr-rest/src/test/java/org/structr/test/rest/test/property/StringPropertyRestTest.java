@@ -151,13 +151,22 @@ public class StringPropertyRestTest extends IndexingTest {
 	@Test
 	public void testLargeStrings() {
 
+		// This test is designed to fail if the actual indexable size of a string in the database changes
 		final boolean supportsLargeStrings = Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.LargeStringIndexing);
+		final int errorStatusCode          = supportsLargeStrings ? 201 : 422;
 
 		testLargeString(4000, 201);
-		testLargeString(4039, supportsLargeStrings ? 201 : 422);
-		testLargeString(4040, supportsLargeStrings ? 201 : 422);
-		testLargeString(4100, supportsLargeStrings ? 201 : 422);
-		testLargeString(5000, supportsLargeStrings ? 201 : 422);
+		testLargeString(4032, 201);
+		testLargeString(4033, 201);
+		testLargeString(4034, 201);
+		testLargeString(4035, 201);
+		testLargeString(4036, 201);
+		testLargeString(4037, errorStatusCode);
+		testLargeString(4038, errorStatusCode);
+		testLargeString(4039, errorStatusCode);
+		testLargeString(4040, errorStatusCode);
+		testLargeString(4100, errorStatusCode);
+		testLargeString(5000, errorStatusCode);
 	}
 
 	private void testLargeString(final int length, final int expectedStatusCode) {
@@ -173,6 +182,8 @@ public class StringPropertyRestTest extends IndexingTest {
 		// cleanup
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
+			.filter(RequestLoggingFilter.logRequestTo(System.out))
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 		.expect()
 			.statusCode(200)
 		.when()

@@ -18,7 +18,6 @@
  */
 package org.structr.web.importer;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -91,7 +90,6 @@ public class XMLFileImportJob extends FileImportJob {
 
 			// disable transaction notifications
 			threadContext.disableModificationOfAccessTime();
-			threadContext.ignoreResultCount(true);
 			threadContext.setDoTransactionNotifications(false);
 			threadContext.disableEnsureCardinality();
 
@@ -152,7 +150,7 @@ public class XMLFileImportJob extends FileImportJob {
 					reportException(ex);
 				}
 
-			} catch (IOException ex) {
+			} catch (Exception ex) {
 
 				reportException(ex);
 

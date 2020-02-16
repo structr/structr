@@ -47,6 +47,8 @@ public class NativeQueryCommand extends NodeServiceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(NativeQueryCommand.class.getName());
 
+	private boolean dontFlushCachesIfKeywordsInQuery = false;
+
 	public Iterable execute(String query) throws FrameworkException {
 		return execute(query, null);
 	}
@@ -73,8 +75,8 @@ public class NativeQueryCommand extends NodeServiceCommand {
 			final Iterable result    = graphDb.execute(nativeQuery);
 			final Iterable extracted = extractRows(result, includeHiddenAndDeleted, publicOnly);
 
-			if (query.matches("(?i)(?s)(?m).*\\s+(delete|set|remove)\\s+.*")) {
-				logger.info("Clearing all caches due to DELETE, SET or REMOVE found in Cypher query: " + query);
+			if (!dontFlushCachesIfKeywordsInQuery && query.matches("(?i)(?s)(?m).*\\s+(delete|set|remove)\\s+.*")) {
+				logger.info("Clearing all caches due to DELETE, SET or REMOVE found in native query: " + query);
 				FlushCachesCommand.flushAll();
 			}
 
@@ -82,6 +84,10 @@ public class NativeQueryCommand extends NodeServiceCommand {
 		}
 
 		return Collections.emptyList();
+	}
+
+	public void setDontFlushCachesIfKeywordsInQuery(final boolean dontFlushCachesIfKeywordsInQuery) {
+		this.dontFlushCachesIfKeywordsInQuery = dontFlushCachesIfKeywordsInQuery;
 	}
 
 	private Iterable extractRows(final Iterable<Map<String, Object>> result, final boolean includeHiddenAndDeleted, final boolean publicOnly) {

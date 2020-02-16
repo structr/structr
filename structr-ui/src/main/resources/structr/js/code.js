@@ -39,6 +39,8 @@ var _Code = {
 	searchThreshold: 3,
 	searchTextLength: 0,
 	lastClickedPath: '',
+	layouter: null,
+	seed: 42,
 	codeRecentElementsKey: 'structrCodeRecentElements_' + port,
 	init: function() {
 
@@ -252,6 +254,9 @@ var _Code = {
 	},
 	refreshTree: function() {
 		_TreeHelper.refreshTree(codeTree);
+		if (_Code.layouter !== null) {
+			_Code.layouter.on('click', _Code.handleGraphClick);
+		}
 	},
 	treeInitFunction: function(obj, callback) {
 
@@ -510,9 +515,10 @@ var _Code = {
 									&& p.declaringClass !== 'NodeInterface'
 									&& p.declaringClass !== 'AbstractNode';
 							});
+
 							displayFunction(filtered.map(function(s) {
 								return {
-									id: s.declaringUuid || s.name,
+									id: s.declaringClass + '-' + s.declaringUuid + '-' + s.name,
 									type: 'SchemaProperty',
 									name: s.name,
 									propertyType: s.declaringPropertyType ? s.declaringPropertyType : s.propertyType,
@@ -600,7 +606,7 @@ var _Code = {
 				var contentBox = $('.editor', element);
 				var editor = CodeMirror(contentBox.get(0), {
 					value: text,
-					mode: 'text/javascript',
+					mode: _Code.getEditorModeForContent(text),
 					lineNumbers: true,
 					lineWrapping: false,
 					indentUnit: 4,
@@ -611,11 +617,7 @@ var _Code = {
 					}
 				});
 
-				CodeMirror.registerHelper('hint', 'ajax', _Code.getAutocompleteHint);
-				CodeMirror.hint.ajax.async = true;
-				CodeMirror.commands.autocomplete = function(mirror) {
-					mirror.showHint({ hint: CodeMirror.hint.ajax });
-				};
+				_Code.setupAutocompletion(editor, id, true);
 
 				var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
 				if (scrollInfo) {
@@ -627,13 +629,20 @@ var _Code = {
 					LSWrapper.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
 				});
 
-				editor.on('change', function() {
-					var type = _Code.getEditorModeForContent(editor.getValue());
-					var prev = editor.getOption('mode');
-					if (prev !== type) {
-						editor.setOption('mode', type);
-					}
-				});
+				if (entity.codeType === 'java') {
+
+					editor.setOption('mode', 'text/x-java');
+
+				} else {
+
+					editor.on('change', function() {
+						var type = _Code.getEditorModeForContent(editor.getValue());
+						var prev = editor.getOption('mode');
+						if (prev !== type) {
+							editor.setOption('mode', type);
+						}
+					});
+				}
 
 				editor.id = entity.id;
 
@@ -654,7 +663,6 @@ var _Code = {
 						codeSaveButton.prop("disabled", false).removeClass('disabled');
 						codeResetButton.prop("disabled", false).removeClass('disabled');
 					}
-
 				});
 
 				codeResetButton.on('click', function(e) {
@@ -664,7 +672,6 @@ var _Code = {
 					editor.setValue(text);
 					codeSaveButton.prop("disabled", true).addClass('disabled');
 					codeResetButton.prop("disabled", true).addClass('disabled');
-
 				});
 
 				codeSaveButton.on('click', function(e) {
@@ -679,7 +686,6 @@ var _Code = {
 					text = newText;
 					codeSaveButton.prop("disabled", true).addClass('disabled');
 					codeResetButton.prop("disabled", true).addClass('disabled');
-
 				});
 
 				if (canDelete) {
@@ -990,10 +996,13 @@ var _Code = {
 			// global types that are not associated with an actual entity
 			case 'core':
 			case 'html':
-			case 'root':
 			case 'ui':
 			case 'web':
 				_Code.displayContent(identifier.type);
+				break;
+
+			case 'root':
+				_Code.displayRootContent();
 				break;
 
 			case 'globals':
@@ -1107,6 +1116,11 @@ var _Code = {
 
 		var identifier = _Code.splitIdentifier(data.id);
 
+		if (_Code.layouter) {
+			_Code.layouter.focus(identifier.id);
+			return;
+		}
+
 		Command.get(identifier.id, null, function(result) {
 
 			_Code.updateRecentlyUsed(result, data.updateLocationStack);
@@ -1162,6 +1176,89 @@ var _Code = {
 		Structr.fetchHtmlTemplate('code/' + templateName, { }, function(html) {
 			codeContents.append(html);
 		});
+	},
+	random: function() {
+	    var x = Math.sin(_Code.seed++) * 10000;
+	    return x - Math.floor(x);
+	},
+	displayRootContent: function() {
+
+		var hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
+		if (hiddenSchemaNodes === null) {
+
+			_Schema.updateHiddenSchemaNodes();
+
+			hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
+		}
+
+		Structr.fetchHtmlTemplate('code/root', { }, function(html) {
+
+			codeContents.empty();
+			codeContents.append(html);
+
+			var layouter          = new SigmaLayouter('all-types');
+
+			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { }, function(result1) {
+
+				result1.forEach(function(node) {
+
+					if (hiddenSchemaNodes === null || hiddenSchemaNodes.indexOf(node.name) === -1) {
+						layouter.addNode(node);
+					}
+				});
+
+				Command.query('SchemaRelationshipNode', 10000, 1, 'name', 'asc', { }, function(result2) {
+
+					result2.forEach(function(r) {
+						layouter.addEdge(r.id, r.relationshipType, r.sourceId, r.targetId, true);
+					});
+
+					layouter.refresh();
+					layouter.layout();
+					layouter.on('click', _Code.handleGraphClick);
+
+					_Code.layouter = layouter;
+
+				}, true, 'ui');
+
+			}, true, 'ui');
+		});
+	},
+	handleGraphClick: function(data) {
+
+		console.log(data);
+
+		if (data.nodes.length === 1) {
+
+			Command.get(data.nodes[0], null, function(result) {
+				_Code.findAndOpenNode(_Code.getPathForEntity(result), false, false);
+				_Code.displaySchemaNodeContext(result);
+			});
+		}
+
+	},
+	displaySchemaNodeContext:function(entity) {
+
+		Structr.fetchHtmlTemplate('code/type-context', { entity: entity }, function(html) {
+
+			codeContext.empty();
+			codeContext.append(html);
+
+			$('#schema-node-name').off('blur').on('blur', function() {
+
+				var name = $(this).val();
+
+				_Code.showSchemaRecompileMessage();
+
+				Command.setProperty(entity.id, 'name', name, false, function() {
+
+					_Code.layouter.getNodes().update({ id: entity.id, label: '<b>' + name + '</b>' });
+					_Code.hideSchemaRecompileMessage();
+					_Code.refreshTree();
+				});
+			});
+		});
+
 	},
 	displayCustomTypesContent: function(data) {
 		Structr.fetchHtmlTemplate('code/custom', { }, function(html) {
@@ -1334,24 +1431,36 @@ var _Code = {
 
 			_Code.updateRecentlyUsed(result, selection.updateLocationStack);
 
-			switch (result.propertyType) {
-				case 'Cypher':
-					_Code.displayCypherPropertyDetails(result);
-					break;
-				case 'Function':
-					_Code.displayFunctionPropertyDetails(result);
-					break;
-				case 'String':
-					_Code.displayStringPropertyDetails(result);
-					break;
-				case 'Boolean':
-					_Code.displayBooleanPropertyDetails(result);
-					break;
-				default:
-					if (result.propertyType) {
+			if (result.propertyType) {
+
+				switch (result.propertyType) {
+					case 'Cypher':
+						_Code.displayCypherPropertyDetails(result);
+						break;
+
+					case 'Function':
+						_Code.displayFunctionPropertyDetails(result);
+						break;
+
+					case 'String':
+						_Code.displayStringPropertyDetails(result);
+						break;
+
+					case 'Boolean':
+						_Code.displayBooleanPropertyDetails(result);
+						break;
+
+					default:
 						_Code.displayDefaultPropertyDetails(result);
-					}
-					break;
+						break;
+				}
+
+			} else {
+
+				if (result.type === 'SchemaRelationshipNode') {
+					// this is a remote property/adjacent type
+					// _Code.displayRelationshipPropertyDetails(result);
+				}
 			}
 		});
 	},
@@ -1637,15 +1746,29 @@ var _Code = {
 			}
 		})
 	},
-	getAutocompleteHint: function(editor, callback) {
+	setupAutocompletion: function(editor, id, isAutoscriptEnv) {
+
+		CodeMirror.registerHelper('hint', 'ajax', (editor, callback) => _Code.getAutocompleteHint(editor, id, isAutoscriptEnv, callback));
+		CodeMirror.hint.ajax.async = true;
+		CodeMirror.commands.autocomplete = function(mirror) { mirror.showHint({ hint: CodeMirror.hint.ajax }); };
+		editor.on('keyup', (instance, event) => {
+			switch (event.key) {
+
+				case "'":
+				case '"':
+				case '.':
+				case '(':
+					CodeMirror.commands.autocomplete(instance, null, {completeSingle: false});
+			}
+		});
+	},
+	getAutocompleteHint: function(editor, id, isAutoscriptEnv, callback) {
 
 		var cursor = editor.getCursor();
-		var word   = editor.findWordAt(cursor);
-		var prev   = editor.findWordAt({ line: word.anchor.line, ch: word.anchor.ch - 2 });
-		var range1 = editor.getRange(prev.anchor, prev.head);
-		var range2 = editor.getRange(word.anchor, word.head);
+		var before = editor.getRange({ line: 0, ch: 0 }, cursor);
+		var after  = editor.getRange(cursor, { line: cursor.line + 1, ch: 0 });
 		var type   = _Code.getEditorModeForContent(editor.getValue());
-		Command.autocomplete('', '', range2, range1, '', cursor.line, cursor.ch, type, function(result) {
+		Command.autocomplete(id, isAutoscriptEnv, before, after, cursor.line, cursor.ch, type, function(result) {
 			var inner  = { from: cursor, to: cursor, list: result };
 			callback(inner);
 		});
@@ -1731,7 +1854,7 @@ var _Code = {
 		_Code.displayCreateButton(targetId, 'magic', 'create-type', 'Create new type', '', { type: 'SchemaNode'});
 	},
 	getEditorModeForContent: function(content) {
-		if (content.indexOf('{') === 0) {
+		if (content && (content.indexOf('{') === 0 || content.indexOf("${{") === 0)) {
 			return 'text/javascript';
 		}
 		return 'text';

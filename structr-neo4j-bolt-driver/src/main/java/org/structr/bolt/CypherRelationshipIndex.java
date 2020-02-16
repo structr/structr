@@ -19,6 +19,9 @@
 package org.structr.bolt;
 
 import org.structr.api.graph.Relationship;
+import org.structr.api.search.QueryContext;
+import org.structr.api.search.SortOrder;
+import org.structr.api.search.SortSpec;
 import org.structr.api.util.Iterables;
 
 /**
@@ -31,7 +34,7 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 	}
 
 	@Override
-	public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel) {
+	public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates) {
 
 		final StringBuilder buf       = new StringBuilder();
 		final String tenantIdentifier = db.getTenantIdentifier();
@@ -76,15 +79,27 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 	public String getQuerySuffix(final AdvancedCypherQuery query) {
 
 		final StringBuilder buf = new StringBuilder();
-		final String sortKey    = query.getSortKey();
 
 		buf.append(" RETURN DISTINCT n");
 
-		if (sortKey != null) {
+		final SortOrder sortOrder = query.getSortOrder();
+		if (sortOrder != null) {
 
-			buf.append(", n.`");
-			buf.append(sortKey);
-			buf.append("` AS sortKey");
+			int sortSpecIndex = 0;
+
+			for (final SortSpec spec : sortOrder.getSortElements()) {
+
+				final String sortKey = spec.getSortKey();
+				if (sortKey != null) {
+
+					buf.append(", n.`");
+					buf.append(sortKey);
+					buf.append("` AS sortKey");
+					buf.append(sortSpecIndex);
+				}
+
+				sortSpecIndex++;
+			}
 		}
 
 		return buf.toString();
@@ -93,10 +108,14 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 	@Override
 	public Iterable<Relationship> getResult(final AdvancedCypherQuery query) {
 
-		final SessionTransaction tx = db.getCurrentTransaction();
+		final IterableQueueingRecordConsumer consumer = new IterableQueueingRecordConsumer(db, query);
+		final QueryContext context                    = query.getQueryContext();
 
-		tx.setIsPing(query.getQueryContext().isPing());
+		if (context != null && !context.isDeferred()) {
+			consumer.start();
+		}
 
-		return Iterables.map(new RelationshipRelationshipMapper(db), tx.getRelationships(query.getStatement(), query.getParameters()));
+		// return mapped result
+		return Iterables.map(new RelationshipRelationshipMapper(db), Iterables.map(new RecordRelationshipMapper(db), consumer));
 	}
 }

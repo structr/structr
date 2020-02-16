@@ -33,6 +33,11 @@ public class CoalesceFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "value1, value2, value3, ...";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources != null) {

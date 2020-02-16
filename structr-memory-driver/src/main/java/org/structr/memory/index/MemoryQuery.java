@@ -26,8 +26,9 @@ import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.search.QueryContext;
-import org.structr.api.search.SortType;
 import org.structr.api.index.DatabaseQuery;
+import org.structr.api.search.SortOrder;
+import org.structr.api.search.SortSpec;
 import org.structr.api.util.Iterables;
 import org.structr.memory.index.predicate.Conjunction;
 import org.structr.memory.index.predicate.GroupPredicate;
@@ -41,8 +42,7 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 	private final Set<String> labels              = new LinkedHashSet<>();
 	private GroupPredicate<T> currentPredicate    = rootPredicate;
 	private QueryContext queryContext             = null;
-	private String sortKey                        = null;
-	private boolean sortDescending                = false;
+	private SortOrder sortOrder                   = null;
 	private boolean negateNextPredicate           = false;
 
 	public MemoryQuery(final QueryContext queryContext) {
@@ -93,10 +93,8 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 	}
 
 	@Override
-	public void sort(SortType sortType, String sortKey, boolean sortDescending) {
-
-		this.sortDescending = sortDescending;
-		this.sortKey        = sortKey;
+	public void sort(final SortOrder sortOrder) {
+		this.sortOrder = sortOrder;
 	}
 
 	public void beginGroup(final Conjunction conj) {
@@ -116,13 +114,13 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 
 	public Iterable<T> sort(final Iterable<T> source) {
 
-		if (sortKey != null) {
+		if (sortOrder != null) {
 
 			try {
 
 				final List<T> list = Iterables.toList(source);
 
-				Collections.sort(list, new Sorter());
+				Collections.sort(list, new Sorter(sortOrder));
 
 				return list;
 
@@ -139,7 +137,6 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 		return rootPredicate.accept(value);
 	}
 
-	@Override
 	public QueryContext getQueryContext() {
 		return queryContext;
 	}
@@ -147,40 +144,72 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 	// ----- nested classes -----
 	private class Sorter implements Comparator<T> {
 
+		private SortOrder sortOrder = null;
+
+		public Sorter(final SortOrder order) {
+			this.sortOrder = order;
+		}
+
 		@Override
-		public int compare(T o1, T o2) {
+		public int compare(final T o1, final T o2) {
 
-			final Object v1 = o1.getProperty(sortKey);
-			final Object v2 = o2.getProperty(sortKey);
+			if (o1 == null || o2 == null) {
+				throw new NullPointerException("Cannot compare null objects.");
+			}
 
-			if (v1 == null && v2 == null) {
+			if (o1 instanceof PropertyContainer && o2 instanceof PropertyContainer) {
+
+				final PropertyContainer g1 = (PropertyContainer)o1;
+				final PropertyContainer g2 = (PropertyContainer)o2;
+
+				for (final SortSpec spec : sortOrder.getSortElements()) {
+
+					final String key   = spec.getSortKey();
+					final boolean desc = spec.sortDescending();
+					Object v1          = g1.getProperty(key);
+					Object v2          = g2.getProperty(key);
+
+					if (v1 == null || v2 == null) {
+
+						if (v1 == null && v2 == null) {
+
+							return 0;
+
+						} else if (v1 == null) {
+
+							// sort order is "nulls last"
+							return desc ? -1 : 1;
+
+						} else {
+
+							return desc ? 1 : -1;
+
+						}
+					}
+
+					if (v1 instanceof Comparable && v2 instanceof Comparable) {
+
+						Comparable c1 = (Comparable)v1;
+						Comparable c2 = (Comparable)v2;
+
+						final int result = desc ? c2.compareTo(c1) : c1.compareTo(c2);
+						if (result != 0) {
+
+							// return result if values are different, stay in loop if values are equal
+							return result;
+						}
+
+					} else {
+
+						throw new ClassCastException("Cannot sort values of types " + v1.getClass().getName() + ", " + v2.getClass().getName());
+					}
+				}
+
+				// if we arrive here, the values for all the keys are equal
 				return 0;
 			}
 
-			if (v1 == null && v2 != null) {
-				return sortDescending ? 1 : -1;
-			}
-
-			if (v1 != null && v2 == null) {
-				return sortDescending ? -1 : 1;
-			}
-
-			if (v1 instanceof Comparable && v2 instanceof Comparable) {
-
-				final Comparable c1 = (Comparable)v1;
-				final Comparable c2 = (Comparable)v2;
-
-				if (sortDescending) {
-
-					return c2.compareTo(c1);
-
-				} else {
-
-					return c1.compareTo(c2);
-				}
-			}
-
-			throw new ClassCastException("Cannot sort values of types " + v1.getClass().getName() + ", " + v2.getClass().getName());
+			throw new ClassCastException("Cannot sort values of types " + o1.getClass().getName() + ", " + o2.getClass().getName());
 		}
 	}
 }

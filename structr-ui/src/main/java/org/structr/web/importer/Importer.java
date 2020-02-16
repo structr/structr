@@ -122,7 +122,8 @@ public class Importer {
 
 	}
 
-	private final StringBuilder commentSource = new StringBuilder();
+	private final List<String> missingComponentNames = new LinkedList<>();
+	private final StringBuilder commentSource    = new StringBuilder();
 	private final SecurityContext securityContext;
 	private final boolean includeInExport;
 	private final boolean publicVisible;
@@ -207,7 +208,12 @@ public class Importer {
 		if (StringUtils.isNotBlank(code)) {
 
 			if (!isDeployment) {
-				logger.info("##### Start parsing code for page {} #####", new Object[]{name});
+
+				// do we need this?
+				if (name != null) {
+					logger.info("##### Start parsing code for page {} #####", name);
+				}
+
 			} else {
 
 				// a trailing slash to all void/self-closing tags so the XML parser can parse it correctly
@@ -333,6 +339,10 @@ public class Importer {
 
 	public void setIsDeployment(final boolean isDeployment) {
 		this.isDeployment = isDeployment;
+	}
+
+	public List<String> getMissingComponentNames() {
+		return missingComponentNames;
 	}
 
 	// ----- public static methods -----
@@ -522,7 +532,7 @@ public class Importer {
 	private DOMNode createChildNodes(final Node startNode, final DOMNode parent, final Page page, final boolean removeHashAttribute, final int depth) throws FrameworkException {
 
 		DOMNode rootElement     = null;
-		Linkable linkable            = null;
+		Linkable linkable       = null;
 		String instructions     = null;
 
 		final List<Node> children = startNode.childNodes();
@@ -778,7 +788,9 @@ public class Importer {
 
 					} else {
 
-						logger.warn("Unable to find shared component {} - ignored!", src);
+						logger.warn("Unable to find shared component {} - ignored! Import will be re-tried after all other components are imported. ", src);
+
+						missingComponentNames.add(src);
 					}
 
 				} else {

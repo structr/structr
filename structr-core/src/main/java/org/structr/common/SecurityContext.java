@@ -36,6 +36,7 @@ import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.core.GraphObject;
 import org.structr.core.auth.Authenticator;
@@ -59,22 +60,25 @@ public class SecurityContext {
 		Add, Remove, Toggle, Replace
 	}
 
-	private static final Logger logger                   = LoggerFactory.getLogger(SecurityContext.class.getName());
-	private static final Map<String, Long> resourceFlags = new ConcurrentHashMap<>();
-	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,-]+)");
-	private MergeMode remoteCollectionMergeMode          = MergeMode.Replace;
-	private boolean returnDetailedCreationResults        = false;
-	private boolean uuidWasSetManually                   = false;
-	private boolean doTransactionNotifications           = false;
-	private boolean forceMergeOfNestedProperties         = false;
-	private boolean doCascadingDelete                    = true;
-	private boolean modifyAccessTime                     = true;
-	private boolean ignoreResultCount                    = false;
-	private boolean ensureCardinality                    = true;
-	private boolean doInnerCallbacks                     = true;
-	private boolean isReadOnlyTransaction                = false;
-	private boolean doMultiThreadedJsonOutput            = false;
-	private int serializationDepth                       = -1;
+	private static final Logger logger                    = LoggerFactory.getLogger(SecurityContext.class.getName());
+	private static final Map<String, SecurityContext> tmp = new ConcurrentHashMap<>();
+	private static final Map<String, Long> resourceFlags  = new ConcurrentHashMap<>();
+	private static final Pattern customViewPattern        = Pattern.compile(".*properties=([0-9a-zA-Z_,-]+)");
+	private MergeMode remoteCollectionMergeMode           = MergeMode.Replace;
+	private boolean returnDetailedCreationResults         = false;
+	private boolean uuidWasSetManually                    = false;
+	private boolean doTransactionNotifications            = false;
+	private boolean forceMergeOfNestedProperties          = false;
+	private boolean doCascadingDelete                     = true;
+	private boolean modifyAccessTime                      = true;
+	private boolean disableSoftLimit                      = false;
+	private boolean forceResultCount                      = false;
+	private boolean ensureCardinality                     = true;
+	private boolean doInnerCallbacks                      = true;
+	private boolean isReadOnlyTransaction                 = false;
+	private boolean doMultiThreadedJsonOutput             = false;
+	private boolean doIndexing                            = Settings.IndexingEnabled.getValue(true);
+	private int serializationDepth                        = -1;
 
 	private final Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
 	private final Map<String, Object> attrs      = new ConcurrentHashMap<>();
@@ -146,8 +150,12 @@ public class SecurityContext {
 				this.forceMergeOfNestedProperties = true;
 			}
 
-			if (request.getParameter("ignoreResultCount") != null) {
-				this.ignoreResultCount = true;
+			if (request.getParameter("forceResultCount") != null) {
+				this.forceResultCount = true;
+			}
+
+			if (request.getParameter("disableSoftLimit") != null) {
+				this.disableSoftLimit = true;
 			}
 
 			if (request.getParameter(SecurityContext.JSON_PARALLELIZATION_REQUEST_PARAMETER_NAME) != null) {
@@ -837,12 +845,12 @@ public class SecurityContext {
 		modifyAccessTime = true;
 	}
 
-	public void ignoreResultCount(final boolean doIgnore) {
-		this.ignoreResultCount = doIgnore;
+	public boolean forceResultCount() {
+		return forceResultCount;
 	}
 
-	public boolean ignoreResultCount() {
-		return ignoreResultCount;
+	public boolean disableSoftLimit() {
+		return disableSoftLimit;
 	}
 
 	public boolean doEnsureCardinality() {
@@ -932,6 +940,43 @@ public class SecurityContext {
 
 	public boolean doMultiThreadedJsonOutput() {
 		return doMultiThreadedJsonOutput;
+	}
+
+	public void setDoIndexing(final boolean doIndexing) {
+		this.doIndexing = doIndexing;
+	}
+
+	public boolean doIndexing() {
+		return doIndexing;
+	}
+
+	public void storeTemporary(final String uuid) {
+		tmp.put(uuid, this);
+	}
+
+	public void clearTemporary(final String uuid) {
+		tmp.remove(uuid);
+	}
+
+	public int getSoftLimit(final int pageSize) {
+
+		if (disableSoftLimit) {
+			return Integer.MAX_VALUE;
+		}
+
+		final int softLimit = Settings.ResultCountSoftLimit.getValue();
+
+		if (pageSize > 0 && pageSize < Integer.MAX_VALUE && pageSize > softLimit) {
+
+			return pageSize;
+		}
+
+		return softLimit;
+	}
+
+	// ----- static methods -----
+	public static SecurityContext getTemporaryStoredContext(final String uuid) {
+		return tmp.get(uuid);
 	}
 
 	// ----- nested classes -----

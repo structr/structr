@@ -34,6 +34,11 @@ public class SizeFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "collection";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final List list = new ArrayList();

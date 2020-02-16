@@ -25,6 +25,7 @@ import org.structr.api.DatabaseService;
 import org.structr.api.service.Command;
 import org.structr.api.service.Service;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.fulltext.ContentAnalyzer;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
@@ -62,7 +63,6 @@ public interface App extends Closeable {
 	NodeInterface getNodeById(final String uuid) throws FrameworkException;
 	RelationshipInterface getRelationshipById(final Class type, final String uuid) throws FrameworkException;
 	RelationshipInterface getRelationshipById(final String uuid) throws FrameworkException;
-	<T extends GraphObject> Iterable<T> get(final Class<T> type) throws FrameworkException;
 	<T extends GraphObject> T get(final Class<T> type, final String uuid) throws FrameworkException;
 
 	Query<? extends NodeInterface> nodeQuery();
@@ -78,6 +78,7 @@ public interface App extends Closeable {
 	void processTasks(final Task... tasks);
 	<T extends Command & MaintenanceCommand> void maintenance(final Class<T> commandClass, final Map<String, Object> propertySet) throws FrameworkException;
 
+	ContentAnalyzer getContentAnalyzer(final Object... params);
 	FulltextIndexer getFulltextIndexer(final Object... params);
 
 	Iterable<GraphObject> query(final String nativeQuery, final Map<String, Object> parameters) throws FrameworkException;

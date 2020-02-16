@@ -37,6 +37,11 @@ public class MailAddBccFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "bccAddress [, bccName ]";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
@@ -64,6 +69,6 @@ public class MailAddBccFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Adds a BCC address and optional BCC name to the current mail";
 	}
 }

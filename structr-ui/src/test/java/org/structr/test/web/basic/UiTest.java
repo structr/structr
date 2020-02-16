@@ -20,7 +20,9 @@ package org.structr.test.web.basic;
 
 import java.io.IOException;
 import java.net.URI;
+import java.text.SimpleDateFormat;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.tika.io.IOUtils;
@@ -684,6 +686,7 @@ public class UiTest extends StructrUiTest {
 	public void testImageAndThumbnailDelete() {
 
 		User tester = null;
+		String uuid = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -701,6 +704,8 @@ public class UiTest extends StructrUiTest {
 
 			assertEquals("Image should have two thumbnails", 2, Iterables.count(image.getThumbnails()));
 
+			uuid = image.getUuid();
+
 			tx.success();
 
 		} catch (IOException | FrameworkException fex) {
@@ -714,7 +719,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = testerApp.tx()) {
 
-			final Image deleteMe = testerApp.nodeQuery(Image.class).getFirst();
+			final Image deleteMe = testerApp.get(Image.class, uuid);
 
 			assertNotNull("Image should be visible to test user", deleteMe);
 
@@ -729,7 +734,19 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = testerApp.tx()) {
 
-			assertEquals("No images should be visible to test user", 0, testerApp.nodeQuery(Image.class).getAsList().size());
+			final List<Image> images = testerApp.nodeQuery(Image.class).getAsList();
+
+			if (!images.isEmpty()) {
+
+				final SimpleDateFormat df = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.S");
+
+				for (final Image image : images) {
+
+					System.out.println("Found Image " + image.getName() + " (" + image.getUuid() + "), created " + df.format(image.getCreatedDate()) + " which should have been deleted.");
+				}
+			}
+
+			assertEquals("No images should be visible to test user", 0, images.size());
 
 			tx.success();
 

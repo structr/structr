@@ -54,7 +54,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
-
 import org.structr.schema.action.Actions;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
@@ -163,6 +162,53 @@ public class UiScriptingTest extends StructrUiTest {
 			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
 
 			template.setContent("${each(request.param, print(data))}");
+
+			page.appendChild(template);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		try (final Tx tx = app.tx()) {
+
+			RestAssured
+			.given()
+				//.headers("X-User", "admin" , "X-Password", "admin")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+				.statusCode(200)
+				.body(equalTo("abc"))
+			.when()
+				.get("/test?param=a&param=b&param=c");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testMultiRequestParametersInJavascript() {
+
+		try (final Tx tx = app.tx()) {
+
+			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
+			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
+
+			template.setContent("${{ $.print($.get('request').param.join('')); }}");
 
 			page.appendChild(template);
 
@@ -952,9 +998,8 @@ public class UiScriptingTest extends StructrUiTest {
 		}
 	}
 
-
 	@Test
-	private void testSchemaMethodsWithNullSource() {
+	public void testSchemaMethodsWithNullSource() {
 		// Tests a scenario that can occur when creating methods through the code area in which the created SchemaMethod has a null source value
 
 		try (final Tx tx = app.tx()) {
@@ -987,6 +1032,57 @@ public class UiScriptingTest extends StructrUiTest {
 			fail("Unexpected exception");
 
 		}
+	}
+
+
+	@Test
+	public void testScriptReplacement() {
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page       = Page.createSimplePage(securityContext, "test");
+			final Div div         = (Div)page.getElementsByTagName("div").item(0);
+			final Content content = (Content)div.getFirstChild();
+
+			// setup scripting repeater
+			content.setProperty(StructrApp.key(Content.class, "content"), "{${42}${print('123')}${{ return 'test'; }}$$${page.name}}${{ return 99; }}");
+
+
+			// create admin user
+			createTestNode(User.class,
+				new NodeAttribute<>(StructrApp.key(User.class, "name"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		// test successful basic auth
+		RestAssured
+			.given()
+				.headers("X-User", "admin" , "X-Password", "admin")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+				.statusCode(200)
+				.body("html.head.title", Matchers.equalTo("Test"))
+				.body("html.body.h1",    Matchers.equalTo("Test"))
+				.body("html.body.div",   Matchers.equalTo("{42.0123test$$test}99"))
+			.when()
+			.get("/html/test");
 	}
 
 

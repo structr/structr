@@ -36,6 +36,10 @@ public class ValueExpression extends Expression {
 		this.keyword = keyword;
 	}
 
+	public String getKeyword() {
+		return keyword;
+	}
+
 	@Override
 	public String toString() {
 

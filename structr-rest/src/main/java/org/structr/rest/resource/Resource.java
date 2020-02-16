@@ -28,10 +28,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.search.SortOrder;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
 import org.structr.common.CaseHelper;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -81,7 +81,7 @@ public abstract class Resource {
 	public abstract String getResourceSignature();
 	public abstract boolean isCollectionResource() throws FrameworkException;
 
-	public abstract ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException;
+	public abstract ResultStream doGet(final SortOrder sortOrder, final int pageSize, final int page) throws FrameworkException;
 	public abstract RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException;
 
 	@Override
@@ -119,26 +119,24 @@ public abstract class Resource {
 
 				chunk++;
 
-				// don't count all the nodes, just fetch the page
-				securityContext.ignoreResultCount(true);
-
 				// always fetch the first page
-				final ResultStream<GraphObject> result = doGet(null, false, pageSize, 1);
+				try (final ResultStream<GraphObject> result = doGet(null, pageSize, 1)) {
 
-				for (final GraphObject obj : result) {
+					for (final GraphObject obj : result) {
 
-					hasMore = true;
+						hasMore = true;
 
-					if (obj.isNode()) {
+						if (obj.isNode()) {
 
-						app.delete((NodeInterface)obj);
+							app.delete((NodeInterface)obj);
 
-					} else {
+						} else {
 
-						app.delete((RelationshipInterface)obj);
+							app.delete((RelationshipInterface)obj);
+						}
+
+						count++;
 					}
-
-					count++;
 				}
 
 				tx.success();
@@ -164,8 +162,7 @@ public abstract class Resource {
 
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
-		final ResultStream<GraphObject> result = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE);
-		final List<GraphObject> results        = Iterables.toList(result);
+		final List<GraphObject> results = Iterables.toList(doGet(null, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
 
 		if (results != null && !results.isEmpty()) {
 
@@ -230,6 +227,17 @@ public abstract class Resource {
 		return true;
 	}
 
+	public Class getEntityClassOrDefault() {
+
+		final Class entityClass = getEntityClass();
+		if (entityClass != null) {
+
+			return entityClass;
+		}
+
+		return AbstractNode.class;
+	}
+
 	// ----- protected methods -----
 	protected PropertyKey findPropertyKey(final TypedIdResource typedIdResource, final TypeResource typeResource) {
 
@@ -261,13 +269,11 @@ public abstract class Resource {
 		return uriBuilder.toString();
 	}
 
-	protected void applyDefaultSorting(List<? extends GraphObject> list, PropertyKey sortKey, boolean sortDescending) {
+	protected void applyDefaultSorting(final List<? extends GraphObject> list, final SortOrder sortOrder) {
 
-		String finalSortOrder = sortDescending ? "desc" : "asc";
+		if (sortOrder != null && !sortOrder.isEmpty()) {
 
-		if (sortKey != null) {
-
-			Collections.sort(list, new GraphObjectComparator(sortKey, finalSortOrder));
+			Collections.sort(list, sortOrder);
 		}
 	}
 

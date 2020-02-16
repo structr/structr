@@ -37,6 +37,11 @@ public class MailSelectConfigFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "name";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
@@ -61,6 +66,6 @@ public class MailSelectConfigFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Selects a configuration prefix for the mail configuration (as configured in structr.conf)";
 	}
 }

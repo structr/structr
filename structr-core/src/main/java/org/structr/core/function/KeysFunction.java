@@ -39,6 +39,11 @@ public class KeysFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "entity [, viewName ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {

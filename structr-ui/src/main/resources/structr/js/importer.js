@@ -35,6 +35,7 @@ $(document).ready(function() {
 
 var Importer = {
 	_moduleName: 'importer',
+	showNotificationsKey: 'structrImporterShowNotifications_' + port,
 	appDataXMLKey: 'xml-import-config',
 	appDataCSVKey: 'csv-import-config',
 	timeout: undefined,
@@ -62,10 +63,20 @@ var Importer = {
 				Importer.updateJobTable();
 			});
 
+			let showNotifications = Importer.isShowNotifications();
+
+			let showNotificationsCheckbox = document.querySelector('#importer-show-notifications');
+			if (showNotificationsCheckbox) {
+				showNotificationsCheckbox.checked = showNotifications;
+
+				showNotificationsCheckbox.addEventListener('change', () => {
+					LSWrapper.setItem(Importer.showNotificationsKey, showNotificationsCheckbox.checked);
+				});
+			}
+
 			Importer.updateJobTable();
 
 			Structr.unblockMenu(100);
-
 		});
 
 	},
@@ -73,6 +84,9 @@ var Importer = {
 		Importer.schemaTypeCachePopulated = false;
 
 		Importer.restoreButtons();
+	},
+	isShowNotifications: function() {
+		return LSWrapper.getItem(Importer.showNotificationsKey, true);
 	},
 	updateJobTable: function () {
 
@@ -103,7 +117,6 @@ var Importer = {
 			window.clearTimeout(Importer.timeout);
 
 		}, 250);
-
 
 	},
 	createRowForJob: function (job) {
@@ -625,7 +638,7 @@ var Importer = {
 
 				Importer.displayImportPropertyMapping(type, csvHeaders.result.headers, $('#row-container'), names, true, typeConfig, function() {
 
-					$('#start-import').on('click', function() {
+					$('#start-import').off('click').on('click', function() {
 
 						var configInfo = Importer.collectCSVImportConfigurationInfo();
 						var allowImport = (configInfo.errors.length === 0);
@@ -895,7 +908,7 @@ var Importer = {
 				}
 			});
 
-			$('#start-import').on('click', function() {
+			$('#start-import').off('click').on('click', function() {
 
 				$.post(rootUrl + 'File/' + file.id + '/doXMLImport', JSON.stringify(configuration), function(data) {});
 			});

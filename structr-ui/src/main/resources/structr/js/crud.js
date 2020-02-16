@@ -18,14 +18,7 @@
  */
 var defaultType, defaultView, defaultSort, defaultOrder, defaultPage, defaultPageSize;
 var searchField;
-var defaultCollectionPageSize = 10;
-var hiddenTabs = [];
 var browser = (typeof document === 'object');
-var crudPagerDataKey = 'structrCrudPagerData_' + port + '_';
-var crudTypeKey = 'structrCrudType_' + port;
-var crudHiddenColumnsKey = 'structrCrudHiddenColumns_' + port;
-var crudRecentTypesKey = 'structrCrudRecentTypes_' + port;
-var crudResizerLeftKey = 'structrCrudResizerLeft_' + port;
 
 if (browser) {
 
@@ -74,7 +67,6 @@ if (browser) {
 				_Crud.hideTypeVisibilityConfig();
 			}
 		});
-
 	});
 
 } else {
@@ -83,8 +75,16 @@ if (browser) {
 
 var _Crud = {
 	_moduleName: 'crud',
+	defaultCollectionPageSize: 10,
 	displayTypeConfigKey: 'structrCrudDisplayTypes_' + port,
+	crudPagerDataKey: 'structrCrudPagerData_' + port + '_',
+	crudTypeKey: 'structrCrudType_' + port,
+	crudHiddenColumnsKey: 'structrCrudHiddenColumns_' + port,
+	crudRecentTypesKey: 'structrCrudRecentTypes_' + port,
+	crudResizerLeftKey: 'structrCrudResizerLeft_' + port,
+	crudExactTypeKey: 'structrCrudExactType_' + port,
 	types: {},
+	availableViews: {},
 	relInfo: {},
 	keys: {},
 	crudCache: new AsyncObjectCache(function (id) {
@@ -105,8 +105,14 @@ var _Crud = {
 			}
 		});
 	}),
-	addSchemaProperties: function(type, view, properties, callback) {
-		let url = rootUrl + '_schema/' + type + '/' + view;
+	getTypeInfo: function (type, callback) {
+
+		let url = rootUrl + '_schema/' + type;
+
+		let errorFn = function(data) {
+			Structr.errorFromResponse(data.responseJSON, url);
+		};
+
 		$.ajax({
 			url: url,
 			dataType: 'json',
@@ -114,42 +120,40 @@ var _Crud = {
 			statusCode: {
 				200: function(data) {
 
-					// no schema entry found?
-					if (!data || !data.result || data.result_count === 0) {
+					if (data && data.result) {
 
-						//
+						_Crud.availableViews[type] = data.result[0].views;
 
-					} else {
+						let properties = {};
 
-						data.result.forEach(function(prop) {
-							properties[prop.jsonName] = prop;
-						});
+						let processViewInfo = function (view) {
+							if (view) {
+								for (let key of Object.keys(view)) {
+									let prop = view[key];
+									properties[prop.jsonName] = prop;
+								}
+							}
+						};
+
+						processViewInfo(data.result[0].views.public);
+						processViewInfo(data.result[0].views.custom);
+						processViewInfo(data.result[0].views.all);
 
 						_Crud.keys[type] = properties;
 					}
 
-					if (callback) {
+					if (typeof callback === 'function') {
 						callback();
 					}
 				},
-				400: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				},
-				401: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				},
-				403: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				},
-				404: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				},
-				422: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				}
+				400: errorFn,
+				401: errorFn,
+				403: errorFn,
+				404: errorFn,
+				422: errorFn
 			},
-			error:function () {
-				console.log("ERROR: loading Schema " + type);
+			error: function () {
+				console.log("ERROR: loading Schema for " + type);
 			}
 		});
 	},
@@ -159,23 +163,28 @@ var _Crud = {
 		if (type === null) {
 			return;
 		}
-		let properties = {};
-		_Crud.addSchemaProperties(type, 'public', properties, function() {
-			_Crud.addSchemaProperties(type, 'custom', properties, function() {
-				_Crud.addSchemaProperties(type, 'all', properties, function() {
 
-					if (Object.keys(properties).length === 0) {
-						new MessageBuilder().warning("Unable to find schema information for type '" + type + "'. There might be database nodes with no type information or a type unknown to Structr in the database.").show();
-					} else {
+		if (_Crud.keys[type]) {
+			if (callback) {
+				callback();
+			}
 
-						if (callback) {
-							callback(type, properties);
-						}
+		} else {
+
+			_Crud.getTypeInfo(type, function() {
+
+				let properties = _Crud.keys[type];
+
+				if (Object.keys(properties).length === 0) {
+					new MessageBuilder().warning("Unable to find schema information for type '" + type + "'. There might be database nodes with no type information or a type unknown to Structr in the database.").show();
+				} else {
+
+					if (callback) {
+						callback();
 					}
-				});
+				}
 			});
-		});
-
+		}
 	},
 	type: null,
 	pageCount: null,
@@ -183,6 +192,7 @@ var _Crud = {
 	sort: {},
 	order: {},
 	page: {},
+	exact: {},
 	pageSize: {},
 	typeCategories: {
 		rels: 'Relationship Types',
@@ -207,7 +217,7 @@ var _Crud = {
 		other: true
 	},
 	moveResizer: function(left) {
-		left = left || LSWrapper.getItem(crudResizerLeftKey) || 210;
+		left = left || LSWrapper.getItem(_Crud.crudResizerLeftKey) || 210;
 		$('.column-resizer', main).css({ left: left });
 
 		$('#crud-types').css({width: left - 12 + 'px'});
@@ -226,10 +236,12 @@ var _Crud = {
 				+ '<div id="crud-right" class="resourceBox full-height-box"></div></div>');
 
 		_Crud.moveResizer();
-		Structr.initVerticalSlider($('.column-resizer', main), crudResizerLeftKey, 204, _Crud.moveResizer);
+		Structr.initVerticalSlider($('.column-resizer', main), _Crud.crudResizerLeftKey, 204, _Crud.moveResizer);
 
 		let filterSettings = $('#crudTypeFilterSettings');
 		var savedTypeVisibility = LSWrapper.getItem(_Crud.displayTypeConfigKey) || {};
+
+		_Crud.exact = LSWrapper.getItem(_Crud.crudExactTypeKey) || {};
 
 		Object.keys(_Crud.typeCategories).forEach(function(k) {
 			let elId = 'crudTypeToggle' + k;
@@ -314,24 +326,12 @@ var _Crud = {
 			_Crud.type = defaultType;
 		}
 
-		// check for single edit mode
-		var id = urlParam('id');
-		if (id) {
-			_Crud.loadSchema(function() {
-				_Crud.crudRead(null, id, function(node) {
-					_Crud.showDetails(node, node.type);
-				});
-			});
-
-		} else {
-			_Crud.init();
-		}
+		_Crud.init();
 
 		$(window).off('resize');
 		$(window).on('resize', function() {
 			_Crud.resize();
 		});
-
 	},
 	updateTypeList: function () {
 
@@ -392,17 +392,17 @@ var _Crud = {
 	removeLoadingMessage: function() {
 		$('#crud-right .crud-loading').remove();
 	},
-	typeSelected: function (selectedType) {
+	typeSelected: function (type) {
 
 		_Crud.hideTypeVisibilityConfig();
-		_Crud.updateRecentTypeList(selectedType);
-		_Crud.highlightCurrentType(selectedType);
+		_Crud.updateRecentTypeList(type);
+		_Crud.highlightCurrentType(type);
 
 		var crudRight = $('#crud-right');
 		fastRemoveAllChildren(crudRight[0]);
-		_Crud.showLoadingMessageAfterDelay('Loading schema information for type <b>' + selectedType + '</b>', 500);
+		_Crud.showLoadingMessageAfterDelay('Loading schema information for type <b>' + type + '</b>', 500);
 
-		_Crud.getProperties(selectedType, function(type, properties) {
+		_Crud.getProperties(type, function() {
 
 			clearTimeout(_Crud.loadingMessageTimeout);
 
@@ -415,27 +415,21 @@ var _Crud = {
 					+ '<button id="export' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_table_icon) + '" /> Export as CSV</button>'
 					+ '<button id="import' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_add_icon) + '" /> Import CSV</button>'
 					+ '<button id="delete' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /> Delete <b>all</b> objects of this type</button>'
+					+ '<input id="exact_type_' + type + '" class="exact-type-checkbox" type="checkbox"><label for="exact_type_' + type + '" class="exact-type-checkbox-label"> Exclude subtypes</label>'
 					+ '</div>');
 
 			_Crud.determinePagerData(type);
 			var pagerNode = _Crud.addPager(type, crudRight);
 
-			crudRight.append('<table class="crud-table"><thead></thead><tbody></tbody></table>');
-			var table = $('table', crudRight);
-			$('thead', table).append('<tr></tr>');
-			var tableHeaderRow = $('tr:first-child', table);
-
-			_Crud.filterKeys(type, Object.keys(properties)).forEach(function(key) {
-				var prop = properties[key];
-				tableHeaderRow.append('<th class="___' + prop.jsonName + '">' + prop.jsonName + '</th>');
-			});
-			tableHeaderRow.append('<th class="___action_header">Actions</th>');
+			crudRight.append('<table class="crud-table"><thead><tr></tr></thead><tbody></tbody></table>');
+			_Crud.updateCrudTableHeader(type);
 
 			crudRight.append('<div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
 
 			$('#create' + type, crudRight).on('click', function() {
 				_Crud.crudCreate(type);
 			});
+
 			$('#export' + type, crudRight).on('click', function() {
 				_Crud.crudExport(type);
 			});
@@ -455,11 +449,46 @@ var _Crud = {
 				});
 			});
 
+			let exactTypeCheckbox = $('#exact_type_' + type, crudRight);
+			if (_Crud.exact[type] === true) {
+				exactTypeCheckbox.prop('checked', true);
+			}
+			exactTypeCheckbox.on('change', function() {
+				_Crud.exact[type] = exactTypeCheckbox.prop('checked');
+				LSWrapper.setItem(_Crud.crudExactTypeKey, _Crud.exact);
+				_Crud.refreshList(type);
+			});
+
 			_Crud.deActivatePagerElements(pagerNode);
-			_Crud.activateList(type, properties);
+			_Crud.activateList(type);
 			_Crud.activatePagerElements(type, pagerNode);
 			_Crud.updateUrl(type);
 		});
+	},
+	getCurrentProperties: function(type) {
+		let properties = _Crud.availableViews[type].all;
+
+		if (_Crud.view[type] !== 'all') {
+			let viewDef = _Crud.availableViews[type][_Crud.view[type]];
+
+			if (viewDef) {
+				properties = viewDef;
+			}
+		}
+
+		return properties;
+	},
+	updateCrudTableHeader: function(type) {
+
+		let properties = _Crud.getCurrentProperties(type);
+
+		var tableHeaderRow = $('#crud-right table thead tr');
+		fastRemoveAllChildren(tableHeaderRow[0]);
+
+		_Crud.filterKeys(type, Object.keys(properties)).forEach(function(key) {
+			tableHeaderRow.append('<th class="___' + key + '">' + key + '</th>');
+		});
+		tableHeaderRow.append('<th class="___action_header">Actions</th>');
 	},
 	getTypeVisibilityConfig: function () {
 
@@ -500,7 +529,7 @@ var _Crud = {
 	},
 	updateRecentTypeList: function (selectedType) {
 
-		var recentTypes = LSWrapper.getItem(crudRecentTypesKey);
+		var recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
 
 		if (recentTypes && selectedType) {
 
@@ -528,17 +557,17 @@ var _Crud = {
 
 		}
 
-		LSWrapper.setItem(crudRecentTypesKey, recentTypes);
+		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
 
 	},
 	removeRecentType: function (typeToRemove) {
 
-		var currentType = LSWrapper.getItem(crudTypeKey);
+		var currentType = LSWrapper.getItem(_Crud.crudTypeKey);
 		if (typeToRemove === currentType) {
-			LSWrapper.removeItem(crudTypeKey);
+			LSWrapper.removeItem(_Crud.crudTypeKey);
 		}
 
-		var recentTypes = LSWrapper.getItem(crudRecentTypesKey);
+		var recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
 
 		if (recentTypes) {
 			recentTypes = recentTypes.filter(function(type) {
@@ -546,7 +575,7 @@ var _Crud = {
 			});
 		}
 
-		LSWrapper.setItem(crudRecentTypesKey, recentTypes);
+		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
 
 		_Crud.updateRecentTypeList();
 	},
@@ -676,18 +705,33 @@ var _Crud = {
 
 		el.append('<div class="pager" style="clear: both"><button class="pageLeft">&lt; Prev</button>'
 				+ ' Page <input class="page" type="text" size="3" value="' + _Crud.page[type] + '"><button class="pageRight">Next &gt;</button> of <input class="readonly pageCount" readonly="readonly" size="3" value="' + nvl(_Crud.pageCount, 0) + '">'
-				+ ' Page Size: <input class="pageSize" type="text" size="3" value="' + _Crud.pageSize[type] + '"></div>');
+				+ ' Page Size: <input class="pageSize" type="text" size="3" value="' + _Crud.pageSize[type] + '">'
+				+ ' View: <select class="view"></select></div>');
+
+		let select = $('select.view', el);
+		for (let view in _Crud.availableViews[type]) {
+			let selected = '';
+			if (_Crud.view[type] === view) {
+				selected = ' selected';
+			}
+			select.append('<option' + selected + '>' + view + '</option>');
+		}
+
+		Structr.appendInfoTextToElement({
+			element: select,
+			text: 'The attributes of the given view are fetched. Attributes can still be hidden using the "Configure columns" dialog. id and type are always shown first.',
+			insertAfter: true
+		});
 
 		el.append('<div class="resource-link"><a target="_blank" href="' + rootUrl + type + '">/' + type + '</a></div>');
 
 		return $('.pager', el);
-
 	},
 	storeType: function() {
-		LSWrapper.setItem(crudTypeKey, _Crud.type);
+		LSWrapper.setItem(_Crud.crudTypeKey, _Crud.type);
 	},
 	restoreType: function() {
-		var val = LSWrapper.getItem(crudTypeKey);
+		var val = LSWrapper.getItem(_Crud.crudTypeKey);
 		if (val) {
 			_Crud.type = val;
 		}
@@ -695,11 +739,11 @@ var _Crud = {
 	storePagerData: function() {
 		var type = _Crud.type;
 		var pagerData = _Crud.view[type] + ',' + _Crud.sort[type] + ',' + _Crud.order[type] + ',' + _Crud.page[type] + ',' + _Crud.pageSize[type];
-		LSWrapper.setItem(crudPagerDataKey + type, pagerData);
+		LSWrapper.setItem(_Crud.crudPagerDataKey + type, pagerData);
 	},
 	restorePagerData: function() {
 		var type = _Crud.type;
-		var val = LSWrapper.getItem(crudPagerDataKey + type);
+		var val = LSWrapper.getItem(_Crud.crudPagerDataKey + type);
 
 		if (val) {
 			var pagerData = val.split(',');
@@ -711,16 +755,16 @@ var _Crud = {
 		}
 	},
 	setCollectionPageSize: function(type, key, value) {
-		LSWrapper.setItem(crudPagerDataKey + '_collectionPageSize_' + type + '.___' + key, value);
+		LSWrapper.setItem(_Crud.crudPagerDataKey + '_collectionPageSize_' + type + '.___' + key, value);
 	},
 	getCollectionPageSize: function(type, key) {
-		return LSWrapper.getItem(crudPagerDataKey + '_collectionPageSize_' + type + '.___' + key);
+		return LSWrapper.getItem(_Crud.crudPagerDataKey + '_collectionPageSize_' + type + '.___' + key);
 	},
 	setCollectionPage: function(type, key, value) {
-		LSWrapper.setItem(crudPagerDataKey + '_collectionPage_' + type + '.___' + key, value);
+		LSWrapper.setItem(_Crud.crudPagerDataKey + '_collectionPage_' + type + '.___' + key, value);
 	},
 	getCollectionPage: function(type, key) {
-		return LSWrapper.getItem(crudPagerDataKey + '_collectionPage_' + type + '.___' + key);
+		return LSWrapper.getItem(_Crud.crudPagerDataKey + '_collectionPage_' + type + '.___' + key);
 	},
 	replaceSortHeader: function(type) {
 		var table = $('#crud-right table');
@@ -788,9 +832,7 @@ var _Crud = {
 									dialogCloseButton.on('click', function() {
 										location.reload();
 									});
-
 								}
-
 							}
 						}
 					});
@@ -825,7 +867,7 @@ var _Crud = {
 		});
 	},
 	appendPerCollectionPager: function(el, type, key, callback) {
-		el.append('<input type="text" class="collection-page-size" size="1" value="' + (_Crud.getCollectionPageSize(type, key) || defaultCollectionPageSize) + '">');
+		el.append('<input type="text" class="collection-page-size" size="1" value="' + (_Crud.getCollectionPageSize(type, key) || _Crud.defaultCollectionPageSize) + '">');
 
 		$('.collection-page-size', el).on('blur', function() {
 			var newPageSize = $(this).val();
@@ -889,7 +931,7 @@ var _Crud = {
 	},
 	appendCellPager: function(el, id, type, key) {
 
-		var pageSize = _Crud.getCollectionPageSize(type, key) || defaultCollectionPageSize;
+		var pageSize = _Crud.getCollectionPageSize(type, key) || _Crud.defaultCollectionPageSize;
 
 		// use public view for cell pager - we should not need more information than this!
 		$.ajax({
@@ -964,48 +1006,52 @@ var _Crud = {
 		});
 
 	},
-	sortAndPagingParameters: function(t, s, o, ps, p) {
-		var sortParam = (s ? 'sort=' + s : '');
-		var orderParam = (o ? 'order=' + o : '');
-		var pageSizeParam = (ps ? 'pageSize=' + ps : '');
-		var pageParam = (p ? 'page=' + p : '');
+	sortAndPagingParameters: function(t, s, o, ps, p, exact = false) {
 
-		var params = '';
-		params = params + (sortParam ? (params.length ? '&' : '?') + sortParam : '');
-		params = params + (orderParam ? (params.length ? '&' : '?') + orderParam : '');
-		params = params + (pageSizeParam ? (params.length ? '&' : '?') + pageSizeParam : '');
-		params = params + (pageParam ? (params.length ? '&' : '?') + pageParam : '');
+		let paramsArray = [];
 
-		return params;
+		if (s) {
+			paramsArray.push('sort=' + s);
+		}
+		if (o) {
+			paramsArray.push('order=' + o);
+		}
+		if (ps) {
+			paramsArray.push('pageSize=' + ps);
+		}
+		if (p) {
+			paramsArray.push('page=' + p);
+		}
+		if (exact === true) {
+			paramsArray.push('type=' + t);
+		}
+
+		return '?' + paramsArray.join('&');
 	},
-	refreshList: function(type, properties) {
+	refreshList: function(type) {
 		_Crud.clearList(type);
-		_Crud.activateList(type, properties);
+		_Crud.activateList(type);
 	},
-	activateList: function(type, properties) {
-		properties = properties || _Crud.keys[type];
-		var url = rootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
-		_Crud.list(type, properties, url);
+	activateList: function(type) {
+		var url = rootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type], _Crud.exact[type]);
+		_Crud.list(type, url);
 	},
 	clearList: function(type) {
-		var  div = $('#crud-right table tbody');
+		var div = $('#crud-right table tbody');
 		fastRemoveAllChildren(div[0]);
 	},
-	list: function(type, properties, url) {
+	list: function(type, url) {
+
+		let properties = _Crud.getCurrentProperties(type);
 
 		_Crud.showLoadingMessageAfterDelay('Loading data for type <b>' + type + '</b>', 100);
 
-		var hiddenKeys             = _Crud.getHiddenKeys(type);
-
-		// 'id' attribute is mandatory for request
-		hiddenKeys.splice(hiddenKeys.indexOf('id'));
-
-		var acceptHeaderProperties = Object.keys(properties).filter(function(key) { return !hiddenKeys.includes(key); }).join(',');
+		var acceptHeaderProperties = ' properties=' + _Crud.filterKeys(type, Object.keys(properties)).join(',');
 
 		$.ajax({
 			headers: {
 				Range: _Crud.ranges(type),
-				Accept: 'application/json; charset=utf-8; properties=' + acceptHeaderProperties
+				Accept: 'application/json; charset=utf-8;' + acceptHeaderProperties
 			},
 			url: url,
 			dataType: 'json',
@@ -1065,7 +1111,7 @@ var _Crud = {
 			keys.forEach(function(key) {
 				if ( _Crud.isCollection(key, type)) {
 					var page = _Crud.getCollectionPage(type, key) || 1;
-					var pageSize = _Crud.getCollectionPageSize(type, key) || defaultCollectionPageSize;
+					var pageSize = _Crud.getCollectionPageSize(type, key) || _Crud.defaultCollectionPageSize;
 					var start = (page-1)*pageSize;
 					var end = page*pageSize;
 					ranges += key + '=' + start + '-' + end + ';';
@@ -1272,6 +1318,12 @@ var _Crud = {
 			}
 		});
 
+		$('select.view', pagerNode).on('change', function(e) {
+			_Crud.view[type] = $(this).val();
+			_Crud.updateCrudTableHeader(type);
+			_Crud.refreshList(type);
+		});
+
 		var pageLeft = $('.pageLeft', pagerNode);
 		var pageRight = $('.pageRight', pagerNode);
 
@@ -1299,36 +1351,11 @@ var _Crud = {
 		$('.pageLeft', pagerNode).off('click');
 		$('.pageRight', pagerNode).off('click');
 	},
-	crudRead: function(type, id, callback, errorCallback) {
-		// use 'ui' view as default to make the 'edit by id' feature work
-		var view = (type && _Crud.view[type] ? _Crud.view[type] : 'ui');
-		var url = rootUrl + id + '/' + view;
-		$.ajax({
-			url: url,
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8',
-			//async: false,
-			success: function(data) {
-				if (!data)
-					return;
-				if (callback) {
-					callback(data.result);
-				} else {
-					_Crud.appendRow(type, data.result);
-				}
-			},
-			error: function(data) {
-				if (errorCallback) {
-					errorCallback(data);
-				}
-			}
-		});
-	},
 	crudEdit: function(id, type) {
 		var t = type || _Crud.type;
 
 		$.ajax({
-			url: rootUrl + id + (_Crud.view[t] ? '/' + _Crud.view[t] : ''),
+			url: rootUrl + id + '/public',
 			type: 'GET',
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
@@ -1446,11 +1473,14 @@ var _Crud = {
 		}
 	},
 	crudRefresh: function(id, key, oldValue) {
-		var url = rootUrl + id + '/' + _Crud.view[_Crud.type];
+		var url = rootUrl + id + '/all';
 
 		$.ajax({
 			url: url,
 			type: 'GET',
+			headers: {
+				Accept: 'application/json; charset=utf-8; properties=id,type,' + key
+			},
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
 			success: function(data) {
@@ -1467,8 +1497,11 @@ var _Crud = {
 	},
 	crudReset: function(id, key) {
 		$.ajax({
-			url: rootUrl + id + '/' + _Crud.view[_Crud.type],
+			url: rootUrl + id + '/all',
 			type: 'GET',
+			headers: {
+				Accept: 'application/json; charset=utf-8; properties=id,type,' + key
+			},
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
 			success: function(data) {
@@ -1754,16 +1787,17 @@ var _Crud = {
 		return $('tr._' + id);
 	},
 	appendRow: function(type, properties, item) {
-		if (!_Crud.keys[item.type]) {
-			_Crud.getProperties(item.type);
-		}
-		var id = item['id'];
-		var tbody = $('#crud-right table tbody');
-		var row = _Crud.row(id);
-		if ( !(row && row.length) ) {
-			tbody.append('<tr class="_' + id + '"></tr>');
-		}
-		_Crud.populateRow(id, item, type, properties);
+
+		_Crud.getProperties(item.type, function() {
+
+			var id = item['id'];
+			var tbody = $('#crud-right table tbody');
+			var row = _Crud.row(id);
+			if ( !(row && row.length) ) {
+				tbody.append('<tr class="_' + id + '"></tr>');
+			}
+			_Crud.populateRow(id, item, type, properties);
+		});
 	},
 	populateRow: function(id, item, type, properties) {
 		var row = _Crud.row(id);
@@ -1906,7 +1940,7 @@ var _Crud = {
 							}
 						});
 						return false;
-					}
+					};
 
 					// create dialog
 					_Schema.getTypeInfo(type, function(typeInfo) {
@@ -2160,7 +2194,7 @@ var _Crud = {
 	 *
 	 * If an optional type is given, restrict search to this type.
 	 */
-	search: function(searchString, el, type, onClickCallback, optionalPageSize) {
+	search: function(searchString, el, type, onClickCallback, optionalPageSize, blacklistedIds = []) {
 
 		_Crud.clearSearchResults(el);
 
@@ -2223,7 +2257,9 @@ var _Crud = {
 							if (Array.isArray(result)) {
 								if (result.length) {
 									$.each(result, function(i, node) {
-										_Crud.searchResult(searchResults, type, node, onClickCallback);
+										if (!blacklistedIds.includes(node.id)) {
+											_Crud.searchResult(searchResults, type, node, onClickCallback);
+										}
 									});
 								} else {
 									_Crud.noResults(searchResults, type);
@@ -2259,7 +2295,6 @@ var _Crud = {
 					}
 				}
 			});
-
 		});
 	},
 	noResults: function(searchResults, type) {
@@ -2591,7 +2626,8 @@ var _Crud = {
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8;',
 			headers: {
-				Range: _Crud.ranges(type)
+				Range: _Crud.ranges(type),
+				Accept: 'application/json; charset=utf-8;' + ((_Crud.keys[type]) ? 'properties=' + _Crud.filterKeys(type, Object.keys(_Crud.keys[type])).join(',') : '')
 			},
 			success: function(data) {
 				if (!data)
@@ -2703,7 +2739,7 @@ var _Crud = {
 
 	},
 	getHiddenKeys: function(type) {
-		var hiddenKeysSource = LSWrapper.getItem(crudHiddenColumnsKey + type);
+		var hiddenKeysSource = LSWrapper.getItem(_Crud.crudHiddenColumnsKey + type);
 		var hiddenKeys = [];
 		if (hiddenKeysSource) {
 
@@ -2852,17 +2888,28 @@ var _Crud = {
 	},
 	filterKeys: function(type, sourceArray) {
 
-		var hiddenKeys = _Crud.getHiddenKeys(type);
-
 		if (!sourceArray) {
 			return;
 		}
 
-		//### TODO: Sort by order of views: public -> custom -> ui ...
-
-		return sourceArray.filter(function(key) {
+		let hiddenKeys   = _Crud.getHiddenKeys(type);
+		let filteredKeys = sourceArray.filter(function(key) {
 			return !(hiddenKeys.includes(key));
 		});
+
+		let typePos = filteredKeys.indexOf('type');
+		if (typePos !== -1) {
+			filteredKeys.splice(typePos, 1);
+		}
+		filteredKeys.unshift('type');
+
+		let idPos = filteredKeys.indexOf('id');
+		if (idPos !== -1) {
+			filteredKeys.splice(idPos, 1);
+		}
+		filteredKeys.unshift('id');
+
+		return filteredKeys;
 	},
 	toggleColumn: function(type, key) {
 
@@ -2885,7 +2932,7 @@ var _Crud = {
 			});
 		}
 
-		LSWrapper.setItem(crudHiddenColumnsKey + type, JSON.stringify(hiddenKeys));
+		LSWrapper.setItem(_Crud.crudHiddenColumnsKey + type, JSON.stringify(hiddenKeys));
 	},
 	serializeObject: function(obj) {
 		var o = {};

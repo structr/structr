@@ -581,7 +581,7 @@ var Command = {
 	 * to the new one.
 	 *
 	 */
-	appendWidget: function(source, parentId, pageId, widgetHostBaseUrl, attributes, processDeploymentInfo) {
+	appendWidget: function(source, parentId, pageId, widgetHostBaseUrl, attributes, processDeploymentInfo, callback) {
 		var obj = {
 			command: 'APPEND_WIDGET',
 			pageId: pageId,
@@ -596,7 +596,7 @@ var Command = {
 			$.extend(obj.data, attributes);
 		}
 		_Logger.log(_LogType.WS[obj.command], 'appendWidget()', obj);
-		return sendObj(obj);
+		return sendObj(obj, callback);
 	},
 	/**
 	 * Send a SAVE_NODE command to the server.
@@ -630,7 +630,6 @@ var Command = {
 				localStorageString: LSWrapper.getAsJSON()
 			}
 		};
-		//_Logger.log(_LogType.WS[obj.command], 'saveLocalStorage()', data.localStorageString);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -1198,18 +1197,17 @@ var Command = {
 	 *
 	 * No broadcast.
 	 */
-	autocomplete: function(id, type, currentToken, previousToken, thirdToken, line, cursorPosition, contentType, callback) {
+	autocomplete: function(id, isAutoscriptEnv, before, after, line, cursorPosition, contentType, callback) {
 		var obj  = {
 			command: 'AUTOCOMPLETE',
 			id: id,
 			data: {
-				type: type,
-				currentToken: currentToken,
-				previousToken: previousToken,
-				thirdToken: thirdToken,
+				before: before,
+				after: after,
 				contentType: contentType,
 				line: line,
-				cursorPosition: cursorPosition
+				cursorPosition: cursorPosition,
+				isAutoscriptEnv: isAutoscriptEnv
 			}
 		};
 		_Logger.log(_LogType.WS[obj.command], 'autocomplete()', obj, callback);
@@ -1362,6 +1360,26 @@ var Command = {
 	 */
 	getApplicationConfigurationDataNode: function(id, callback) {
 		return Command.get(id, 'content', callback);
+	},
+	/**
+	 * Send a GET_SUGGESTIONS command to the server.
+	 *
+	 * This command send id, name, tag and a list of
+	 * CSS classes to the server to obtain a list of widget-like
+	 * templates that the user can choose from.
+	 *
+	 */
+	getSuggestions: function(id, name, tag, classes, callback) {
+		var obj  = {
+			command: 'GET_SUGGESTIONS',
+			data: {
+				htmlId: id,
+				name: name,
+				tag: tag,
+				classes: classes
+			}
+		};
+		return sendObj(obj, callback);
 	},
 	/**
      * Requests log snapshot from the server.

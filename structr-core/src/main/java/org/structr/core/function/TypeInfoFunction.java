@@ -33,6 +33,11 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "type [, view]";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {

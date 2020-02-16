@@ -33,7 +33,6 @@ import java.util.Queue;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
@@ -99,7 +98,8 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		entry.setCodeSource(this);
 
 		// Parameters must be sorted by index
-		Collections.sort(params, new GraphObjectComparator(SchemaMethodParameter.index, false));
+		//Collections.sort(params, new GraphObjectComparator(SchemaMethodParameter.index, false));
+		Collections.sort(params, SchemaMethodParameter.index.sorted(false));
 
 		for (final SchemaMethodParameter parameter : params) {
 

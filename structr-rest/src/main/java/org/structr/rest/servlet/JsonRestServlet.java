@@ -21,10 +21,10 @@ package org.structr.rest.servlet;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
-
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -36,11 +36,13 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.IJsonInput;
@@ -50,11 +52,10 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
+import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.graph.search.SearchCommand;
-import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.resource.Resource;
 import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
@@ -84,7 +85,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 		commonRequestParameters.add(REQUEST_PARAMETER_SORT_ORDER);
 		commonRequestParameters.add(REQUEST_PARAMTER_OUTPUT_DEPTH);
 		commonRequestParameters.add("debugLoggingEnabled");
-		commonRequestParameters.add("ignoreResultCount");
+		commonRequestParameters.add("forceResultCount");
+		commonRequestParameters.add("disableSoftLimit");
 
 		// cross reference here, but these need to be added as well..
 		commonRequestParameters.add(SearchCommand.DISTANCE_SEARCH_KEYWORD);
@@ -200,7 +202,17 @@ public class JsonRestServlet extends AbstractDataServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in DELETE: " + jpex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonParseException in DELETE: " + jpex.getMessage()));
+
+		} catch (AssertException aex) {
+
+			logger.warn("Assertion error in DELETE", aex.getMessage());
+			aex.printStackTrace();
+
+			int code = aex.getStatusCode();
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "Assertion error in DELETE: " + aex.getMessage()));
 
 		} catch (Throwable t) {
 
@@ -209,7 +221,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in DELETE: " + t.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, t.getClass().getSimpleName() + " in DELETE: " + t.getMessage()));
 
 		} finally {
 
@@ -320,7 +332,17 @@ public class JsonRestServlet extends AbstractDataServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in OPTIONS: " + jpex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonParseException in OPTIONS: " + jpex.getMessage()));
+
+		} catch (AssertException aex) {
+
+			logger.warn("Assertion error in OPTIONS", aex.getMessage());
+			aex.printStackTrace();
+
+			int code = aex.getStatusCode();
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "Assertion error in OPTIONS: " + aex.getMessage()));
 
 		} catch (Throwable t) {
 
@@ -329,7 +351,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in OPTIONS: " + t.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, t.getClass().getSimpleName() + " in OPTIONS: " + t.getMessage()));
 
 		} finally {
 
@@ -517,6 +539,16 @@ public class JsonRestServlet extends AbstractDataServlet {
 			response.setStatus(code);
 			response.getWriter().append(RestMethodResult.jsonError(code, "Unsupported operation in POST: " + uoe.getMessage()));
 
+		} catch (AssertException aex) {
+
+			logger.warn("Assertion error in POST", aex.getMessage());
+			aex.printStackTrace();
+
+			int code = aex.getStatusCode();
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "Assertion error in POST: " + aex.getMessage()));
+
 		} catch (Throwable t) {
 
 			logger.warn("Exception in POST", t);
@@ -524,7 +556,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in POST: " + t.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, t.getClass().getSimpleName() + " in POST: " + t.getMessage()));
 
 		} finally {
 
@@ -639,7 +671,17 @@ public class JsonRestServlet extends AbstractDataServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in PUT: " + jpex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonParseException in PUT: " + jpex.getMessage()));
+
+		} catch (AssertException aex) {
+
+			logger.warn("Assertion error in PUT", aex.getMessage());
+			aex.printStackTrace();
+
+			int code = aex.getStatusCode();
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "Assertion error in PUT: " + aex.getMessage()));
 
 		} catch (Throwable t) {
 
@@ -649,7 +691,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in PUT: " + t.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, t.getClass().getSimpleName() + " in PUT: " + t.getMessage()));
 
 		} finally {
 
@@ -681,12 +723,13 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 	protected void doPatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		final RestMethodResult result;
 		final SecurityContext securityContext;
 		final Authenticator authenticator;
 		final Resource resource;
 
 		setCustomResponseHeaders(response);
+
+		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
 
 		try {
 
@@ -722,24 +765,58 @@ public class JsonRestServlet extends AbstractDataServlet {
 					tx.success();
 				}
 
-				final List<Map<String, Object>> inputs = new LinkedList<>();
+				if (resource.isCollectionResource()) {
 
-				for (JsonInput propertySet : jsonInput.getJsonInputs()) {
+					final List<Map<String, Object>> inputs = new LinkedList<>();
 
-					inputs.add(convertPropertySetToMap(propertySet));
-				}
+					for (JsonInput propertySet : jsonInput.getJsonInputs()) {
 
-				result = resource.doPatch(inputs);
-
-				// isolate write output
-				try (final Tx tx = app.tx()) {
-
-					if (result != null) {
-
-						commitResponse(securityContext, request, response, result, resource.isCollectionResource());
+						inputs.add(convertPropertySetToMap(propertySet));
 					}
 
-					tx.success();
+					result = resource.doPatch(inputs);
+
+					// isolate write output
+					try (final Tx tx = app.tx()) {
+
+						if (result != null) {
+
+							commitResponse(securityContext, request, response, result, resource.isCollectionResource());
+						}
+
+						tx.success();
+					}
+
+				} else {
+
+					final Map<String, Object> flattenedInputs = new HashMap<>();
+
+					for (JsonInput propertySet : jsonInput.getJsonInputs()) {
+
+						flattenedInputs.putAll(convertPropertySetToMap(propertySet));
+					}
+
+					// isolate doPatch (redirect to doPut)
+					boolean retry = true;
+					while (retry) {
+
+						try (final Tx tx = app.tx()) {
+
+							result = resource.doPut(flattenedInputs);
+							tx.success();
+							retry = false;
+
+						} catch (RetryException ddex) {
+							retry = true;
+						}
+					}
+
+					// isolate write output
+					try (final Tx tx = app.tx()) {
+
+						commitResponse(securityContext, request, response, result, resource.isCollectionResource());
+						tx.success();
+					}
 				}
 
 			} else {
@@ -787,6 +864,16 @@ public class JsonRestServlet extends AbstractDataServlet {
 			response.setStatus(code);
 			response.getWriter().append(RestMethodResult.jsonError(code, "Unsupported operation in PATCH: " + uoe.getMessage()));
 
+		} catch (AssertException aex) {
+
+			logger.warn("Assertion error in PATCH", aex.getMessage());
+			aex.printStackTrace();
+
+			int code = aex.getStatusCode();
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "Assertion error in PATCH: " + aex.getMessage()));
+
 		} catch (Throwable t) {
 
 			logger.warn("Exception in PATCH", t);
@@ -794,7 +881,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in PATCH: " + t.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, t.getClass().getSimpleName() + " in PATCH: " + t.getMessage()));
 
 		} finally {
 
@@ -882,49 +969,36 @@ public class JsonRestServlet extends AbstractDataServlet {
 			resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 			authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 
-			// add sorting & paging
-			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
-			String pageParameter     = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
-			String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
-			String sortKeyName       = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
-			String outputDepth       = request.getParameter(REQUEST_PARAMTER_OUTPUT_DEPTH);
-			boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
-			int pageSize             = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
-			int page                 = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
-			int depth                = Services.parseInt(outputDepth, config.getOutputNestingDepth());
-
-			PropertyKey sortKey      = null;
-
-			// set sort key
-			if (sortKeyName != null) {
-
-				Class<? extends GraphObject> type = resource.getEntityClass();
-				if (type == null) {
-
-					// fallback to default implementation
-					// if no type can be determined
-					type = AbstractNode.class;
-				}
-
-				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName, false);
-			}
+			// add sorting && pagination
+			final String pageSizeParameter          = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
+			final String pageParameter              = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
+			final String outputDepth                = request.getParameter(REQUEST_PARAMTER_OUTPUT_DEPTH);
+			final int pageSize                      = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
+			final int page                          = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
+			final int depth                         = Services.parseInt(outputDepth, config.getOutputNestingDepth());
+			final String[] sortKeyNames             = request.getParameterValues(REQUEST_PARAMETER_SORT_KEY);
+			final String[] sortOrders               = request.getParameterValues(REQUEST_PARAMETER_SORT_ORDER);
+			final Class<? extends GraphObject> type = resource.getEntityClassOrDefault();
 
 			// evaluate constraints and measure query time
 			final double queryTimeStart = System.nanoTime();
-			final ResultStream result   = resource.doGet(sortKey, sortDescending, pageSize, page);
-			final double queryTimeEnd   = System.nanoTime();
 
-			if (result == null) {
+			try (final ResultStream result = resource.doGet(new DefaultSortOrder(type, sortKeyNames, sortOrders), pageSize, page)) {
 
-				throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Unable to retrieve result, check database connection");
-			}
+				final double queryTimeEnd = System.nanoTime();
 
-			if (returnContent) {
+				if (result == null) {
 
-				final DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-				result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
+					throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Unable to retrieve result, check database connection");
+				}
 
-				processResult(securityContext, request, response, result, depth, resource.isCollectionResource());
+				if (returnContent) {
+
+					final DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+					result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
+
+					processResult(securityContext, request, response, result, depth, resource.isCollectionResource());
+				}
 			}
 
 			tx.success();
@@ -935,10 +1009,27 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			writeException(response, frameworkException);
 
+		} catch (AssertException aex) {
+
+			logger.warn("Assertion error in GET", aex.getMessage());
+			aex.printStackTrace();
+
+			int code = aex.getStatusCode();
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "Assertion error in GET: " + aex.getMessage()));
+
 		} catch (Throwable t) {
 
-			logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
-			logger.warn(" => Error thrown: ", t);
+			// TEST
+			t.printStackTrace();
+
+			if (t instanceof QuietException || t.getCause() instanceof QuietException) {
+				// ignore exceptions which (by jettys standards) should be handled less verbosely
+			} else {
+				logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
+				logger.warn(" => Error thrown: ", t);
+			}
 
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
@@ -948,7 +1039,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} finally {
 
 			try {
-				//response.getWriter().flush();
+				response.getWriter().flush();
 				response.getWriter().close();
 
 			} catch (Throwable t) {

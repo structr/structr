@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-modules</artifactId>
-		<version>3.4-SNAPSHOT</version>
+		<version>3.5-SNAPSHOT</version>
 	</parent>
 	<artifactId>structr-text-search-module</artifactId>
 	<packaging>jar</packaging>
@@ -38,6 +38,10 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-langdetect</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parsers</artifactId>
 			<exclusions>
 				<exclusion>
@@ -59,6 +63,10 @@
 				<exclusion>
 					<groupId>org.opengis</groupId>
 					<artifactId>geoapi</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.github.jai-imageio</groupId>
+					<artifactId>jai-imageio-core</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>

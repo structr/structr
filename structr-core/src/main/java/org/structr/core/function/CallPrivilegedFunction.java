@@ -33,6 +33,11 @@ public class CallPrivilegedFunction extends CallFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "functionName [, parameterMap ]";
+	}
+
+	@Override
 	public String usage(boolean inJavaScriptContext) {
 		return (inJavaScriptContext ? ERROR_MESSAGE_CALL_PRIVILEGED_JS : ERROR_MESSAGE_CALL_PRIVILEGED);
 	}

@@ -24,7 +24,7 @@ import java.util.NoSuchElementException;
 /**
  * Custom iterator to allow pagination of query results.
  */
-public class PagingIterator<T> implements Iterator<T> {
+public class PagingIterator<T> implements Iterator<T>, AutoCloseable {
 
 	private final Iterator<T> iterator;
 	private final int page;
@@ -33,8 +33,12 @@ public class PagingIterator<T> implements Iterator<T> {
 	private boolean consumed = false;
 
 	public PagingIterator(final Iterator<T> iterator, final int page, final int pageSize) {
+		this(iterator, page, pageSize, 0);
+	}
 
-		this.currentIndex = 0;
+	public PagingIterator(final Iterator<T> iterator, final int page, final int pageSize, final int skipped) {
+
+		this.currentIndex = skipped;
 		this.iterator     = iterator;
 		this.page         = page;
 		this.pageSize     = pageSize;
@@ -54,11 +58,7 @@ public class PagingIterator<T> implements Iterator<T> {
 
 	private int getOffset() {
 
-		if (page == 0) {
-
-			return 0;
-
-		} else if (page  > 0) {
+		if (page > 0) {
 
 			return pageSize == Integer.MAX_VALUE ? 0 : (page - 1) * pageSize;
 		}
@@ -69,7 +69,7 @@ public class PagingIterator<T> implements Iterator<T> {
 	private int getLimitOffset() {
 
 		//For positive paging, reverse paging needs an alternative implementation
-		return getOffset()+pageSize;
+		return getOffset() + pageSize;
 	}
 
 	@Override
@@ -115,23 +115,42 @@ public class PagingIterator<T> implements Iterator<T> {
 		throw new NoSuchElementException("No element available for next() call!");
 	}
 
-	public int getResultCount() {
+	public int getResultCount(final ProgressWatcher watcher, final int softLimit) {
 
 		// exhaust iterator and return final result count
 		while (iterator.hasNext()) {
+
+			if (currentIndex >= softLimit) {
+				return -1;
+			}
+
+			if (watcher != null && !watcher.okToContinue(currentIndex)) {
+				return currentIndex;
+			}
+
 			iterator.next();
 			currentIndex++;
 		}
 
 		consumed = true;
 
+		// close iterator (don't fetch more results!)
+		try {
+			close();
+
+		} catch (Exception ignore) {}
+
 		return currentIndex;
 	}
 
-	public int getPageCount() {
+	public int getPageCount(final ProgressWatcher watcher, final int softLimit) {
 
-		final double resultCount = getResultCount();
+		final double resultCount = getResultCount(watcher, softLimit);
 		final double pageSize    = this.pageSize;
+
+		if (resultCount == -1) {
+			return -1;
+		}
 
 		return (int) Math.rint(Math.ceil(resultCount / pageSize));
 	}
@@ -146,5 +165,14 @@ public class PagingIterator<T> implements Iterator<T> {
 
 	public boolean isConsumed() {
 		return consumed;
+	}
+
+	@Override
+	public void close() throws Exception {
+
+		if (iterator instanceof AutoCloseable) {
+
+			((AutoCloseable)iterator).close();
+		}
 	}
 }

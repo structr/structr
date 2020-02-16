@@ -96,9 +96,8 @@ form.config-form .tab-content button {
 	background-color: #f6f6f6;
 }
 
-.config-group h3 {
-	font-size: 1.5em;
-	margin: .5em 0;
+.config-group h1 {
+	margin: .5em 0 0 0;
 }
 
 .form-group {
@@ -107,7 +106,7 @@ form.config-form .tab-content button {
 .form-group label {
 	font-weight: bold;
 	margin-bottom: 4px;
-	/*vertical-align: top;*/
+	vertical-align: top;
 }
 
 .form-group input[type=text], .form-group textarea {
@@ -115,19 +114,19 @@ form.config-form .tab-content button {
 }
 
 .form-group input[type=radio] {
-	/*vertical-align: top;*/
+	vertical-align: top;
 	padding: 0;
 }
 
 .form-group span {
 	display: inline-block;
-	/*vertical-align: top;*/
+	vertical-align: top;
 	margin-top: 4px;
 	margin-right: 2em;
 }
 
 .form-group i {
-	margin: 4px 0 0 4px;
+	margin: 0 0 0 4px;
 	cursor: pointer;
 }
 
@@ -138,7 +137,7 @@ form.config-form .tab-content button {
 #services-table th {
 	padding: 4px;
 	text-align: left;
-	font-size: 12pt;
+	font-size: 10pt;
 }
 
 #services-table td {
@@ -251,4 +250,66 @@ td.search-matches {
 
 .no-search-match, li.no-search-match {
 	display: none;
+}
+
+p.steps button {
+	width: 300px;
+	border: none !important;
+	height: 32px;
+}
+
+h2 {
+	margin: 2em 0 0 0;
+}
+
+div.connection {
+	float: left;
+	margin: 1em 2em 2em 0;
+	background-color: #fff;
+	min-width: 300px;
+	min-height: 200px;
+	padding: 1em 1.5em;
+}
+
+div.connection.new-connection {
+	border: 2px dashed #ddd;
+}
+
+div.connection h4 {
+	font-size: 1.2em;
+}
+
+div.connection p {
+	padding: 1em 0 0 0;
+}
+
+div.connection input[type="password"],
+div.connection input[type="text"] {
+	box-sizing: border-box;
+	width: 100%;
+	border-radius: 3px;
+}
+
+div.connection p.buttons {
+	padding: 2em 0 0 0;
+	text-align: right;
+}
+
+div.connection button {
+	border: none !important;
+	height: 32px;
+	position: relative;
+	margin: 0;
+	padding-left: 1em;
+	padding-right: 1em;
+}
+
+div.connection button:hover {
+	padding-left: 1em !important;
+	padding-right: 1em !important;
+	background-color: #f8f8f8;
+}
+
+.delete-button {
+	float: right;
 }

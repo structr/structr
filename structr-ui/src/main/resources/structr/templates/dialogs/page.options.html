@@ -1,0 +1,46 @@
+<div id="div-options" class="quick-access-options">
+	<h3>${config.title}</h3>
+	<div class="row">
+		<div class="option-tile">
+			<label>Name</label>
+			<input type="text" id="name-input" value="${config.entity.name || ''}" />
+		</div>
+		<div class="option-tile">
+			<label>Content Type</label>
+			<input type="text" id="content-type-input" value="${config.entity.contentType || ''}" />
+		</div>
+	</div>
+	<div class="row">
+		<div class="option-tile">
+			<label>Category</label>
+			<input type="text" id="category-input" value="${config.entity.category || ''}" />
+		</div>
+		<div class="option-tile">
+			<label>Show on Error Codes</label>
+			<input type="text" id="show-on-error-codes-input" value="${config.entity.showOnErrorCodes || ''}" />
+		</div>
+	</div>
+	<div class="row">
+		<div class="option-tile">
+			<label>Position </label>
+			<input type="text" id="position-input" value="${config.entity.position || ''}" />
+		</div>
+		<div class="option-tile">
+			<label style="display:block;">Options</label>
+			<div style="padding-top: 2px;">
+				<input type="checkbox" id="dont-cache-checkbox" />
+				<label for="dont-cache-checkbox">Caching disabled</label>
+			</div>
+			<div style="padding-top: 2px;">
+				<input type="checkbox" id="page-creates-raw-data-checkbox" />
+				<label for="page-creates-raw-data-checkbox">Use binary encoding for output</label>
+			</div>
+		</div>
+	</div>
+	<div id="custom-properties-parent" class="hidden">
+		<h3>Custom Properties</h3>
+		<div class="row">
+		     <div id="custom-properties-container"></div>
+		</div>
+	</div>
+</div>

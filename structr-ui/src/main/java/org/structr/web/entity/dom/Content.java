@@ -18,6 +18,7 @@
  */
 package org.structr.web.entity.dom;
 
+import java.io.IOException;
 import java.net.URI;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.ConstantBooleanTrue;
@@ -86,7 +87,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		type.overrideMethod("setFavoriteContent",         false, "setContent(arg0);");
 		type.overrideMethod("getFavoriteContent",         false, "return getContent();");
 		type.overrideMethod("getFavoriteContentType",     false, "return getContentType();");
-		type.overrideMethod("getContext",                 false, "return getPagePath();");
+		type.overrideMethod("getContext",                 false, "if (StringUtils.isNotBlank(getName())) { return getName(); } else { return getPagePath(); }");
 
 		// ----- interface org.w3c.dom.Node -----
 		type.overrideMethod("getTextContent",        false, "return getData();");
@@ -155,18 +156,6 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 	String getContent();
 	void setContent(final String content) throws FrameworkException;
 	void setContentType(final String contentType) throws FrameworkException;
-
-	/*
-	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui,
-		content, contentType, parent, pageId, syncedNodes, sharedComponent, sharedComponentConfiguration, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
-		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent, isDOMNode, isFavoritable
-	);
-
-	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public,
-		content, contentType, parent, pageId, syncedNodes, sharedComponent, sharedComponentConfiguration, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
-		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent, isDOMNode, isFavoritable
-	);
-	*/
 
 	static void onModification(final Content thisContent, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
@@ -245,10 +234,11 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 				return;
 			}
 
-			final String id           = thisNode.getUuid();
-			final boolean inBody      = renderContext.inBody();
-			final AsyncBuffer out     = renderContext.getBuffer();
-			final String _contentType = thisNode.getContentType();
+			final RenderContextContentHandler handler = new RenderContextContentHandler(thisNode, renderContext);
+			final String id                           = thisNode.getUuid();
+			final boolean inBody                      = renderContext.inBody();
+			final AsyncBuffer out                     = renderContext.getBuffer();
+			final String _contentType                 = thisNode.getContentType();
 
 			// apply configuration for shared component if present
 			final String _sharedComponentConfiguration = thisNode.getSharedComponentConfiguration();
@@ -257,13 +247,10 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 				Scripting.evaluate(renderContext, thisNode, "${" + _sharedComponentConfiguration + "}", "shared component configuration");
 			}
 
-			// fetch content with variable replacement
-			String _content = thisNode.getPropertyWithVariableReplacement(renderContext, StructrApp.key(Content.class, "content"));
-
+			// determine some postprocessing flags
 			if (!(EditMode.RAW.equals(edit) || EditMode.WIDGET.equals(edit)) && (_contentType == null || ("text/plain".equals(_contentType)))) {
 
-				_content = escapeForHtml(_content);
-
+				handler.setEscapeForHtml(true);
 			}
 
 			if (EditMode.CONTENT.equals(edit) && inBody && thisNode.isGranted(Permission.write, securityContext)) {
@@ -282,54 +269,40 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
 					// In edit mode, add an artificial comment tag around content nodes within body to make them editable
 					final String cleanedContent = StringUtils.remove(StringUtils.remove(org.apache.commons.lang3.StringUtils.replace(thisNode.getContent(), "\n", "\\\\n"), "<!--"), "-->");
-					out.append("<!--data-structr-id=\"".concat(id)
-						.concat("\" data-structr-raw-value=\"").concat(escapeForHtmlAttributes(cleanedContent)).concat("\"-->"));
-
+					out.append("<!--data-structr-id=\"".concat(id).concat("\" data-structr-raw-value=\"").concat(escapeForHtmlAttributes(cleanedContent)).concat("\"-->"));
 				}
-
 			}
 
-			// examine content type and apply converter
 			if (_contentType != null) {
 
-				final Adapter<String, String> converter = ContentConverters.getConverterForType(_contentType);
-				if (converter != null) {
-
-					try {
-
-						// apply adapter
-						_content = converter.adapt(_content);
-
-					} catch (FrameworkException fex) {
-
-						logger.warn("Unable to convert content: {}", fex.getMessage());
-					}
-				}
+				handler.setConverter(ContentConverters.getConverterForType(_contentType));
 			}
 
 			// replace newlines with <br /> for rendering
-			if (((_contentType == null) || _contentType.equals("text/plain")) && (_content != null) && !_content.isEmpty()) {
+			if (((_contentType == null) || _contentType.equals("text/plain"))) {
 
 				final DOMNode _parent = thisNode.getParent();
 				if (_parent == null || !(_parent instanceof Textarea)) {
 
-					_content = _content.replaceAll("[\\n]{1}", "<br>");
+					handler.setReplaceNewlines(true);
 				}
 			}
 
-			if (_content != null) {
+			// render content with support for async output
+			Content.renderContentWithScripts(thisNode.getProperty(StructrApp.key(Content.class, "content")), handler);
 
-				// insert whitespace to make element clickable
-				if (EditMode.CONTENT.equals(edit) && _content.length() == 0) {
-					_content = "--- empty ---";
+			// empty content placeholder for Structr UI
+			if (EditMode.CONTENT.equals(edit)) {
+
+				if (handler.isEmpty()) {
+
+					out.append("--- empty ---");
 				}
 
-				out.append(_content);
-			}
+				if (inBody && !("text/javascript".equals(_contentType) && !("text/css".equals(_contentType)))) {
 
-			if (EditMode.CONTENT.equals(edit) && inBody && !("text/javascript".equals(_contentType) && !("text/css".equals(_contentType)))) {
-
-				out.append("<!---->");
+					out.append("<!---->");
+				}
 			}
 
 		} catch (Throwable t) {
@@ -537,6 +510,274 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
 
+		}
+	}
+
+	public static void renderContentWithScripts(final String source, final ContentHandler handler) throws FrameworkException, IOException {
+
+		if (source != null) {
+
+			final StringBuilder scriptBuffer = new StringBuilder();
+			final StringBuilder textBuffer   = new StringBuilder();
+			final int length                 = source.length();
+			boolean ignoreNext               = false;
+			boolean inComment                = false;
+			boolean inSingleQuotes           = false;
+			boolean inDoubleQuotes           = false;
+			boolean inTemplate               = false;
+			boolean hasSlash                 = false;
+			boolean hasBackslash             = false;
+			boolean hasDollar                = false;
+			int level                        = 0;
+			int row                          = 0;
+			int column                       = 0;
+
+			for (int i=0; i<length; i++) {
+
+				final char c = source.charAt(i);
+
+				switch (c) {
+
+					case '\\':
+						hasBackslash  = !hasBackslash;
+						break;
+
+					case '\'':
+						if (inTemplate && !inDoubleQuotes && !hasBackslash && !inComment) {
+							inSingleQuotes = !inSingleQuotes;
+						}
+						hasDollar = false;
+						hasBackslash = false;
+						break;
+
+					case '\"':
+						if (inTemplate && !inSingleQuotes && !hasBackslash && !inComment) {
+							inDoubleQuotes = !inDoubleQuotes;
+						}
+						hasDollar = false;
+						hasBackslash = false;
+						break;
+
+					case '$':
+						if (!inComment) {
+
+							hasDollar    = true;
+							hasBackslash = false;
+						}
+						break;
+
+					case '{':
+						if (!inTemplate && hasDollar && !inComment) {
+
+							inTemplate = true;
+
+							// extract and handle content from non-script buffer
+							textBuffer.setLength(Math.max(0, textBuffer.length() - 1));
+
+							if (textBuffer.length() > 0) {
+
+								// call handler
+								handler.handleText(textBuffer.toString());
+							}
+
+							// switch to other buffer
+							textBuffer.setLength(0);
+							scriptBuffer.append("$");
+
+							handler.possibleStartOfScript(row, column-1);
+
+						} else if (inTemplate && !inSingleQuotes && !inDoubleQuotes && !inComment) {
+							level++;
+						}
+
+						hasDollar = false;
+						hasBackslash = false;
+						break;
+
+					case '}':
+
+						if (!inSingleQuotes && !inDoubleQuotes && inTemplate && !inComment && level-- == 0) {
+
+							inTemplate = false;
+							level      = 0;
+
+							// append missing }
+							scriptBuffer.append("}");
+
+							// call handler
+							handler.handleScript(scriptBuffer.toString());
+
+							// switch to other buffer
+							scriptBuffer.setLength(0);
+
+							ignoreNext = true;
+						}
+						hasDollar    = false;
+						hasBackslash = false;
+						break;
+
+					case '/':
+
+						if (inTemplate && !inComment && !inSingleQuotes && !inDoubleQuotes) {
+
+							if (hasSlash) {
+
+								inComment = true;
+								hasSlash  = false;
+
+							} else {
+
+								hasSlash = true;
+							}
+						}
+						break;
+
+					case '\r':
+					case '\n':
+						inComment = false;
+						column = 0;
+						row++;
+						break;
+
+					default:
+						hasDollar = false;
+						hasBackslash = false;
+						break;
+				}
+
+				if (ignoreNext) {
+
+					ignoreNext = false;
+
+				} else {
+
+					if (inTemplate) {
+
+						scriptBuffer.append(c);
+
+					} else {
+
+						textBuffer.append(c);
+					}
+				}
+
+				column++;
+			}
+
+			if (scriptBuffer.length() > 0) {
+
+				// something's wrong, content ended inside of script template block
+				handler.handleIncompleteScript(scriptBuffer.toString());
+			}
+
+			if (textBuffer.length() > 0) {
+
+				// handle text
+				handler.handleText(textBuffer.toString());
+			}
+		}
+	}
+
+	static interface ContentHandler {
+
+		void handleScript(final String script) throws FrameworkException, IOException;
+		void handleIncompleteScript(final String script) throws FrameworkException, IOException;
+		void handleText(final String text) throws FrameworkException;
+		void possibleStartOfScript(final int row, final int column);
+	}
+
+	static class RenderContextContentHandler implements ContentHandler {
+
+		private Adapter<String, String> converter = null;
+		private RenderContext renderContext       = null;
+		private Content node                      = null;
+		private boolean replaceNewlines           = false;
+		private boolean escapeForHtml             = false;
+		private boolean isEmpty                   = true;
+
+		public RenderContextContentHandler(final Content node, final RenderContext renderContext) {
+
+			this.renderContext = renderContext;
+			this.node          = node;
+		}
+
+		public void setConverter(final Adapter<String, String> converter) {
+			this.converter = converter;
+		}
+
+		public void setReplaceNewlines(final boolean replaceNewlines) {
+			this.replaceNewlines = replaceNewlines;
+		}
+
+		public void setEscapeForHtml(final boolean escapeForHtml) {
+			this.escapeForHtml = escapeForHtml;
+		}
+
+		public boolean isEmpty() {
+			return isEmpty;
+		}
+
+		@Override
+		public void handleIncompleteScript(final String script) throws FrameworkException, IOException {
+		}
+
+		@Override
+		public void handleScript(final String script) throws FrameworkException, IOException {
+
+			if (renderContext.returnRawValue()) {
+
+				if (StringUtils.isNotBlank(script)) {
+
+					renderContext.getBuffer().append(transform(script));
+					isEmpty = false;
+				}
+
+			} else {
+
+				final Object value = Scripting.evaluate(renderContext, node, script, "script source");
+				if (value != null) {
+
+					final String content = value.toString();
+					if (StringUtils.isNotBlank(content)) {
+
+						renderContext.getBuffer().append(transform(content));
+						isEmpty = false;
+					}
+				}
+			}
+		}
+
+		@Override
+		public void handleText(final String text) throws FrameworkException {
+
+			if (!text.isEmpty()) {
+				isEmpty = false;
+			}
+
+			renderContext.getBuffer().append(transform(text));
+		}
+
+		@Override
+		public void possibleStartOfScript(final int row, final int column) {
+		}
+
+		private String transform(final String src) throws FrameworkException {
+
+			String content = src;
+
+			if (escapeForHtml) {
+				content = escapeForHtml(content);
+			}
+
+			if (converter != null) {
+				content = converter.adapt(content);
+			}
+
+			if (replaceNewlines) {
+				content = content.replaceAll("[\\n]{1}", "<br>");
+			}
+
+			return content;
 		}
 	}
 }

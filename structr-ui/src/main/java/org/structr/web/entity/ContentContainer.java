@@ -43,6 +43,7 @@ public interface ContentContainer extends NodeInterface {
 		type.setCategory("ui");
 
 		type.addBooleanProperty("isContentContainer",                       PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addIntegerProperty("position",                                 PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addCustomProperty("path", ContentPathProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setTypeHint("String").setReadOnly(true).setIndexed(true);
 
 		type.addPropertyGetter("parent", ContentContainer.class);

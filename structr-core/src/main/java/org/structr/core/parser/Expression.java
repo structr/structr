@@ -64,6 +64,12 @@ public abstract class Expression {
 		}
 	}
 
+	public List<Expression> getChildren() {
+		return expressions;
+
+	}
+
+
 	public Expression getParent() {
 		return parent;
 	}

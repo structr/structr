@@ -38,6 +38,11 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return null;
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
@@ -63,6 +68,6 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Sends the current mail";
 	}
 }
