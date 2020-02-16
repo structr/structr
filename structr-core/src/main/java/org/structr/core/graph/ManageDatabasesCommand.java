@@ -161,6 +161,35 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		}
 	}
 
+	public void saveConnection(final Map<String, Object> data) throws FrameworkException {
+
+		final String prefix = (String)data.get(KEY_NAME);
+		if (StringUtils.isNotBlank(prefix)) {
+
+			final Set<String> connectionNames = getConnectionNames();
+			if (connectionNames.contains(prefix)) {
+
+				setOrDefault(Settings.DatabaseDriver,        prefix, data, KEY_DRIVER);
+				setOrDefault(Settings.ConnectionUrl,         prefix, data, KEY_URL);
+				setOrDefault(Settings.ConnectionUser,        prefix, data, KEY_USERNAME);
+				setOrDefault(Settings.ConnectionPassword,    prefix, data, KEY_PASSWORD);
+				setOrDefault(Settings.TenantIdentifier,      prefix, data, KEY_TENANT_IDENTIFIER);
+				setOrDefault(Settings.RelationshipCacheSize, prefix, data, KEY_RELATIONSHIP_CACHE_SIZE);
+				setOrDefault(Settings.NodeCacheSize,         prefix, data, KEY_NODE_CACHE_SIZE);
+				setOrDefault(Settings.UuidCacheSize,         prefix, data, KEY_UUID_CACHE_SIZE);
+				setOrDefault(Settings.ForceResultStreaming,  prefix, data, KEY_FORCE_STREAMING);
+
+			} else {
+
+				throw new FrameworkException(422, "Configuration " + prefix + " does not exist.");
+			}
+
+		} else {
+
+			throw new FrameworkException(422, "Please supply the name of the connection to save.");
+		}
+	}
+
 	public void removeConnection(final Map<String, Object> data) throws FrameworkException {
 
 		final String prefix = (String)data.get(KEY_NAME);
@@ -202,9 +231,6 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 	public List<DatabaseConnection> getConnections() {
 
 		final List<DatabaseConnection> connections = new LinkedList<>();
-
-		// add default connection
-		connections.add(new DatabaseConnection(getPrefixedSettings("default", "")));
 
 		for (final String connection : getConnectionNames()) {
 

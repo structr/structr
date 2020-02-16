@@ -337,3 +337,23 @@ let initSearch = () => {
 };
 
 document.addEventListener('DOMContentLoaded', initSearch);
+
+function addConnection() {
+	console.log("addConnection");
+	// TODO
+}
+
+function deleteConnection(name) {
+	console.log("deleteConnection");
+	// TODO
+}
+
+function saveConnection(name) {
+	console.log("saveConnection");
+	// TODO
+}
+
+function useConnection(name) {
+	console.log("useConnection");
+	// TODO
+}

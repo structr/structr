@@ -21,8 +21,8 @@ package org.structr.api.service;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.structr.api.util.html.Attr;
+import org.structr.api.util.html.InputField;
 import org.structr.api.util.html.Tag;
-import org.structr.api.util.html.attr.Type;
 
 /**
  *
@@ -41,6 +41,9 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 	public static final String KEY_NODE_CACHE_SIZE         = "nodeCacheSize";
 	public static final String KEY_UUID_CACHE_SIZE         = "uuidCacheSize";
 	public static final String KEY_FORCE_STREAMING         = "forceStreaming";
+
+	public DatabaseConnection() {
+	}
 
 	public DatabaseConnection(final Map<String, Object> data) {
 		putAll(data);
@@ -78,26 +81,39 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 		return (String)get(KEY_PASSWORD);
 	}
 
-	public void render(final Tag parent) {
+	public boolean isActive() {
+		return Boolean.TRUE.equals(get(KEY_ACTIVE));
+	}
 
-		final Tag div   = parent.block("div").css("connection app-tile");
-		final Type type = new Type("text");
 
-		div.block("h4").text(getName());
+	public void render(final Tag parent, final String configUrl) {
+
+		final String name = getName();
+		final Tag div     = parent.block("div").css("connection app-tile");
+
+		div.block("button").attr(new Attr("type", "button")).text("x").css("delete-button").attr(new Attr("onclick", "deleteConnection('" + name + "');"));
+
+		div.block("h4").text(name + (isActive() ? " &raquo;active&laquo;" : ""));
 
 		final Tag url = div.block("p");
 		url.block("label").text("Connection URL");
-		url.block("input").attr(type).attr(new Attr("value", getUrl()));
+		url.add(new InputField(url, "text", "url-" + name, getUrl()));
 
 		final Tag user = div.block("p");
 		user.block("label").text("Username");
-		user.block("input").attr(type).attr(new Attr("value", getUsername()));
+		user.add(new InputField(user, "text", "username-" + name, getUsername()));
 
 		final Tag pass = div.block("p");
 		pass.block("label").text("Password");
-		pass.block("input").attr(new Type("password")).attr(new Attr("value", getPassword()));
+		pass.add(new InputField(pass, "password", "password-" + name, getPassword()));
 
 		final Tag buttons = div.block("p").css("buttons");
-		buttons.block("button").text("Connect");
+
+		if (!isActive()) {
+			buttons.block("button").attr(new Attr("type", "button")).text("Use this connection").attr(new Attr("onclick", "useConnection('" + name + "');"));
+		}
+
+		buttons.block("button").attr(new Attr("type", "button")).text("Save").attr(new Attr("onclick", "saveConnection('" + name + "')"));
+
 	}
 }

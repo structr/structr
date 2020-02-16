@@ -258,24 +258,33 @@ p.steps button {
 	height: 32px;
 }
 
+h2 {
+	margin: 2em 0 0 0;
+}
+
 div.connection {
 	float: left;
 	margin: 1em 2em 2em 0;
 	background-color: #fff;
 	min-width: 300px;
 	min-height: 200px;
-	padding: 1em;
+	padding: 1em 1.5em;
+}
+
+div.connection.new-connection {
+	border: 2px dashed #ddd;
 }
 
 div.connection h4 {
-	font-size: 1.1em;
+	font-size: 1.2em;
 }
 
 div.connection p {
 	padding: 1em 0 0 0;
 }
 
-div.connection input {
+div.connection input[type="password"],
+div.connection input[type="text"] {
 	box-sizing: border-box;
 	width: 100%;
 	border-radius: 3px;
@@ -287,9 +296,20 @@ div.connection p.buttons {
 }
 
 div.connection button {
-	background-color: #81ce25 !important;
-	border: 1px solid rgba(0,0,0,.125) !important;
-	color: #fff !important;
+	border: none !important;
+	height: 32px;
 	position: relative;
 	margin: 0;
+	padding-left: 1em;
+	padding-right: 1em;
+}
+
+div.connection button:hover {
+	padding-left: 1em !important;
+	padding-right: 1em !important;
+	background-color: #f8f8f8;
+}
+
+.delete-button {
+	float: right;
 }

@@ -21,6 +21,9 @@ package org.structr.rest.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
@@ -37,9 +40,11 @@ import org.structr.api.config.SettingsGroup;
 import org.structr.api.service.DatabaseConnection;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Document;
+import org.structr.api.util.html.InputField;
 import org.structr.api.util.html.Tag;
 import org.structr.api.util.html.attr.Href;
 import org.structr.api.util.html.attr.Rel;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.graph.ManageDatabasesCommand;
 
@@ -48,12 +53,12 @@ import org.structr.core.graph.ManageDatabasesCommand;
  */
 public class ConfigServlet extends AbstractServletBase {
 
-	private static final Logger logger        = LoggerFactory.getLogger(ConfigServlet.class);
-	private static final Set<String> sessions = new HashSet<>();
-	private static final String MainUrl       = "/structr/";
-	private static final String ConfigUrl     = "/structr/config";
-	private static final String ConfigName    = "structr.conf";
-	private static final String TITLE         = "Structr Configuration Editor";
+	private static final Logger logger                = LoggerFactory.getLogger(ConfigServlet.class);
+	private static final Set<String> sessions         = new HashSet<>();
+	private static final String MainUrl               = "/structr/";
+	private static final String ConfigUrl             = "/structr/config";
+	private static final String ConfigName            = "structr.conf";
+	private static final String TITLE                 = "Structr Configuration Editor";
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -222,64 +227,139 @@ public class ConfigServlet extends AbstractServletBase {
 
 		} else if (isAuthenticated(request)) {
 
-			// a configuration form was submitted
-			for (final Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+			// set redirect target
+			redirectTarget = request.getParameter("active_section");
 
-				final String value   = getFirstElement(entry.getValue());
-				final String key     = entry.getKey();
-				SettingsGroup parent = null;
+			// database connections form
+			if ("/add".equals(request.getPathInfo())) {
 
-				// skip internal group configuration parameter
-				if (key.endsWith("._settings_group")) {
-					continue;
+				final ManageDatabasesCommand cmd = Services.getInstance().command(null, ManageDatabasesCommand.class);
+				final String name                = request.getParameter("new-name");
+				final String url                 = request.getParameter("new-url");
+				final String username            = request.getParameter("new-username");
+				final String password            = request.getParameter("new-password");
+
+				System.out.println("name:     " + name);
+				System.out.println("url:      " + url);
+				System.out.println("username: " + username);
+				System.out.println("password: " + password);
+
+				final DatabaseConnection connection = new DatabaseConnection();
+
+				connection.setName(name);
+				connection.setUrl(url);
+				connection.setUsername(username);
+				connection.setPassword(password);
+
+				try {
+					cmd.addConnection(connection);
+
+				} catch (FrameworkException fex) {
+					fex.printStackTrace();
 				}
 
-				if ("active_section".equals(key)) {
+			} else {
 
-					redirectTarget = value;
-					continue;
-				}
+				// check for REST action
+				final String path = request.getPathInfo();
+				if (StringUtils.isNotBlank(path)) {
 
-				Setting<?> setting = Settings.getSetting(key);
+					final String[] parts = StringUtils.split(path, "/");
+					if (parts.length == 2) {
 
-				if (setting != null && setting.isDynamic()) {
+						final ManageDatabasesCommand cmd = Services.getInstance().command(null, ManageDatabasesCommand.class);
+						final Map<String, Object> data   = new LinkedHashMap<>();
+						final String name                = parts[0];
+						final String restAction          = parts[1];
 
-					// unregister dynamic settings so the type can change
-					setting.unregister();
-					setting = null;
-				}
+						// values for save action
+						final String connectionUrl       = request.getParameter("url-" + name);
+						final String connectionUsername  = request.getParameter("username-" + name);
+						final String connectionPassword  = request.getParameter("password-" + name);
 
-				if (setting == null) {
+						data.put(DatabaseConnection.KEY_NAME,     name);
+						data.put(DatabaseConnection.KEY_URL,      connectionUrl);
+						data.put(DatabaseConnection.KEY_USERNAME, connectionUsername);
+						data.put(DatabaseConnection.KEY_PASSWORD, connectionPassword);
 
-					if (key.contains(".cronExpression")) {
+						switch (restAction) {
 
-						parent = Settings.cronGroup;
+							case "save":
+								try { cmd.saveConnection(data); } catch (FrameworkException fex) {}
+								break;
 
-					} else {
+							case "delete":
+								try { cmd.removeConnection(data); } catch (FrameworkException fex) {}
+								break;
 
-						// group specified?
-						final String group = request.getParameter(key + "._settings_group");
-						if (group != null) {
-
-							parent = Settings.getGroup(group);
-							if (parent == null) {
-
-								// default to misc group
-								parent = Settings.miscGroup;
-							}
-
-						} else {
-
-							// fallback to misc group
-							parent = Settings.miscGroup;
+							case "use":
+								try { cmd.activateConnection(data); } catch (FrameworkException fex) {}
+								break;
 						}
 					}
 
-					setting = Settings.createSettingForValue(parent, key, value);
-				}
+				} else {
 
-				// store new value
-				setting.fromString(value);
+					// a configuration form was submitted
+					for (final Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+
+						final String value   = getFirstElement(entry.getValue());
+						final String key     = entry.getKey();
+						SettingsGroup parent = null;
+
+						// skip internal group configuration parameter
+						if (key.endsWith("._settings_group")) {
+							continue;
+						}
+
+						if ("active_section".equals(key)) {
+
+							redirectTarget = value;
+							continue;
+						}
+
+						Setting<?> setting = Settings.getSetting(key);
+
+						if (setting != null && setting.isDynamic()) {
+
+							// unregister dynamic settings so the type can change
+							setting.unregister();
+							setting = null;
+						}
+
+						if (setting == null) {
+
+							if (key.contains(".cronExpression")) {
+
+								parent = Settings.cronGroup;
+
+							} else {
+
+								// group specified?
+								final String group = request.getParameter(key + "._settings_group");
+								if (group != null) {
+
+									parent = Settings.getGroup(group);
+									if (parent == null) {
+
+										// default to misc group
+										parent = Settings.miscGroup;
+									}
+
+								} else {
+
+									// fallback to misc group
+									parent = Settings.miscGroup;
+								}
+							}
+
+							setting = Settings.createSettingForValue(parent, key, value);
+						}
+
+						// store new value
+						setting.fromString(value);
+					}
+				}
 			}
 
 			// serialize settings
@@ -538,19 +618,52 @@ public class ConfigServlet extends AbstractServletBase {
 
 	private void databasesTab(final Tag menu, final Tag tabs) {
 
-		final String id = "databases";
+		final ManageDatabasesCommand cmd           = Services.getInstance().command(null, ManageDatabasesCommand.class);
+		final List<DatabaseConnection> connections = cmd.getConnections();
+		final String id                            = "databases";
 
 		menu.block("li").block("a").id(id + "Menu").attr(new Attr("href", "#" + id)).block("span").text("Database Connections");
 
 		final Tag container = tabs.block("div").css("tab-content").id(id);
 		final Tag body      = header(container, "Database Connections");
 
-		final ManageDatabasesCommand cmd = Services.getInstance().command(null, ManageDatabasesCommand.class);
+		for (final DatabaseConnection connection : connections) {
 
-		for (final DatabaseConnection connection : cmd.getConnections()) {
-
-			connection.render(body);
+			connection.render(body, ConfigUrl);
 		}
+
+		if (connections.isEmpty()) {
+
+			body.block("p").text("There are currently no database connections configured.");
+		}
+
+		body.block("h2").text("Add connection");
+
+		// new connection form should appear below existing connections
+		body.block("div").attr(new Attr("style", "clear: both;"));
+
+		final Tag div = body.block("div").css("connection app-tile new-connection");
+
+		div.block("h4").text("Add database connection");
+
+		final Tag name = div.block("p");
+		name.block("label").text("Name");
+		name.add(new InputField(name, "text", "new-name", "", "Enter name.."));
+
+		final Tag url = div.block("p");
+		url.block("label").text("Connection URL");
+		url.add(new InputField(url, "text", "new-url", "bolt://localhost:7687", "Enter url.."));
+
+		final Tag user = div.block("p");
+		user.block("label").text("Username");
+		user.add(new InputField(user, "text", "new-username", "neo4j", "Enter username.."));
+
+		final Tag pass = div.block("p");
+		pass.block("label").text("Password");
+		pass.add(new InputField(pass, "password", "new-password", "", "Enter password.."));
+
+		final Tag buttons = div.block("p").css("buttons");
+		buttons.block("button").attr(new Attr("type", "button")).text("Add connection").attr(new Attr("onclick", "addConnection();"));
 	}
 
 	private Tag header(final Tag container, final String title) {
