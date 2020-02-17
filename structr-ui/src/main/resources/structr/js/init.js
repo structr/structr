@@ -126,7 +126,7 @@ $(function() {
 		if (k === 69) {
 			eKey = false;
 		}
-		if (navigator.platform === 'MacIntel' && k === 91) {
+		if (navigator.platform === 'MacIntel' && (k === 91 || e.metaKey)) {
 			cmdKey = false;
 		}
 		if (e.keyCode === 27) {
@@ -180,7 +180,7 @@ $(function() {
 		if (k === 69) {
 			eKey = true;
 		}
-		if (navigator.platform === 'MacIntel' && k === 91) {
+		if (navigator.platform === 'MacIntel' && (k === 91 || e.metaKey)) {
 			cmdKey = true;
 		}
 		if ((e.ctrlKey && (e.which === 83)) || (navigator.platform === 'MacIntel' && cmdKey && (e.which === 83))) {
@@ -217,14 +217,12 @@ $(function() {
 		if (k === 71 && altKey && ctrlKey) {
 		    e.preventDefault();
 		    var uuid = prompt('Enter the UUID for which you want to open the access control dialog');
-		    if (uuid) {
-			if (uuid.length === 32) {
-			    Command.get(uuid, null, function(obj) {
-				_Entities.showAccessControlDialog(obj);
-			    });
+		    if (uuid && uuid.length === 32) {
+				Command.get(uuid, null, function(obj) {
+					_Entities.showAccessControlDialog(obj);
+				});
 			} else {
-			    alert('That does not look like a UUID! length != 32');
-			}
+				alert('That does not look like a UUID! length != 32');
 		    }
 		}
 		// Ctrl-Alt-h
@@ -234,7 +232,7 @@ $(function() {
 				_Schema.hideSelectedSchemaTypes();
 			}
 		}
-		// Ctrl-Alt-s
+		// Ctrl-Alt-e
 		if (k === 69 && altKey && ctrlKey) {
 			e.preventDefault();
 			Structr.dialog('Bulk Editing Helper (Ctrl-Alt-E)');

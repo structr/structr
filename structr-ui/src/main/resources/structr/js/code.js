@@ -202,7 +202,7 @@ var _Code = {
 			if (k === 69) {
 				eKey = true;
 			}
-			if (navigator.platform === 'MacIntel' && k === 91) {
+			if (navigator.platform === 'MacIntel' && (k === 91 || e.metaKey)) {
 				cmdKey = true;
 			}
 			if ((e.ctrlKey && (e.which === 83)) || (navigator.platform === 'MacIntel' && cmdKey && (e.which === 83))) {
@@ -222,7 +222,7 @@ var _Code = {
 	updateDirtyFlag: function(entity) {
 
 		let formContent = _Code.collectChangedPropertyData(entity);
-		let dirty = Object.keys(formContent).length > 0;
+		let dirty       = Object.keys(formContent).length > 0;
 
 		if (dirty) {
 			$('#action-button-save').removeClass('disabled').attr('disabled', null);
@@ -371,31 +371,34 @@ var _Code = {
 	},
 	saveEntityAction:function(entity, callback) {
 
-		let formData        = _Code.collectChangedPropertyData(entity);
-		let compileRequired = _Code.isCompileRequiredForSave(formData);
+		if (_Code.isDirty()) {
 
-		if (compileRequired) {
-			_Code.showSchemaRecompileMessage();
-		}
-
-		Command.setProperties(entity.id, formData, function() {
-			Object.assign(entity, formData);
-			_Code.updateDirtyFlag(entity);
-
-			_Code.showSaveAction(formData);
-
-			if (formData.name) {
-				_Code.refreshTree();
-			}
+			let formData        = _Code.collectChangedPropertyData(entity);
+			let compileRequired = _Code.isCompileRequiredForSave(formData);
 
 			if (compileRequired) {
-				_Code.hideSchemaRecompileMessage();
+				_Code.showSchemaRecompileMessage();
 			}
 
-			if (typeof callback === 'function') {
-				callback();
-			}
-		});
+			Command.setProperties(entity.id, formData, function() {
+				Object.assign(entity, formData);
+				_Code.updateDirtyFlag(entity);
+
+				_Code.showSaveAction(formData);
+
+				if (formData.name) {
+					_Code.refreshTree();
+				}
+
+				if (compileRequired) {
+					_Code.hideSchemaRecompileMessage();
+				}
+
+				if (typeof callback === 'function') {
+					callback();
+				}
+			});
+		}
 	},
 	loadRecentlyUsedElements: function(doneCallback) {
 
@@ -1723,30 +1726,32 @@ var _Code = {
 
 			_Code.runCurrentEntitySaveAction = function() {
 
-				// update entity before storing the view to make sure that nonGraphProperties are correctly identified..
-				Command.get(view.schemaNode.id, null, function(reloadedEntity) {
+				if (_Code.isDirty()) {
 
-					let formData = _Code.collectChangedPropertyData(view);
-					let sortedAttrs = $('.property-attrs.view').sortedVals();
-					formData.schemaProperties   = _Schema.findSchemaPropertiesByNodeAndName(reloadedEntity, sortedAttrs);
-					formData.nonGraphProperties = _Schema.findNonGraphProperties(reloadedEntity, sortedAttrs);
+					// update entity before storing the view to make sure that nonGraphProperties are correctly identified..
+					Command.get(view.schemaNode.id, null, function(reloadedEntity) {
 
-					_Code.showSchemaRecompileMessage();
+						let formData = _Code.collectChangedPropertyData(view);
+						let sortedAttrs = $('.property-attrs.view').sortedVals();
+						formData.schemaProperties   = _Schema.findSchemaPropertiesByNodeAndName(reloadedEntity, sortedAttrs);
+						formData.nonGraphProperties = _Schema.findNonGraphProperties(reloadedEntity, sortedAttrs);
 
-					Command.setProperties(view.id, formData, function() {
-						Object.assign(view, formData);
-						_Code.updateDirtyFlag(view);
+						_Code.showSchemaRecompileMessage();
 
-						_Code.showSaveAction(formData);
+						Command.setProperties(view.id, formData, function() {
+							Object.assign(view, formData);
+							_Code.updateDirtyFlag(view);
 
-						if (formData.name) {
-							_Code.refreshTree();
-						}
+							_Code.showSaveAction(formData);
 
-						_Code.hideSchemaRecompileMessage();
+							if (formData.name) {
+								_Code.refreshTree();
+							}
+
+							_Code.hideSchemaRecompileMessage();
+						});
 					});
-
-				});
+				}
 			};
 
 			var buttons = $('#view-buttons');
@@ -1833,7 +1838,7 @@ var _Code = {
 				// schedule because otherwise the sortable does not know something has been removed
 				window.setTimeout(()=> {
 					changeFn();
-				}, 0)
+				}, 0);
 			}).chosenSortable(function() {
 				changeFn();
 			});
