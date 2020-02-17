@@ -3738,8 +3738,10 @@ input.tree-search-input:focus {
 	margin: 8px 0 8px 0;
 }
 
-#code-contents #default-buttons span {
-	cursor: pointer;
+#code-contents h4 {
+	font-size: 10pt;
+	margin: 8px 0 8px 0;
+	display: inline-block;
 }
 
 #code-contents #property-buttons {
@@ -3752,6 +3754,23 @@ input.tree-search-input:focus {
 
 #code-contents property-options {
 	border: 1px solid #ddd;
+}
+
+#code-contents .action-button {
+	position: relative;
+	background-color: #fff;
+	width: 90px;
+	color: #444;
+	float: left;
+	margin: 0 12px 12px 0;
+	padding: 16px 8px;
+	border: 1px solid #ddd;
+	height: inherit;
+	box-sizing: content-box;
+}
+
+#code-contents .action-button .action-button-icon {
+	text-align: center;
 }
 
 #code-contents .property-options-group {
@@ -3793,6 +3812,14 @@ i.fa.blue {
 	display: none;
 }
 
+button.action-button-open {
+	margin: 0 9px -59px -3px;
+	padding: 13px 8px;
+	z-index: 1000;
+	border: 4px solid #81ce25;
+	box-shadow: 0px 0px 36px rgba(127,127,127,.2);
+}
+
 button.create-form-button {
 	margin: 0 !important;
 	padding: 0 8px;
@@ -3804,6 +3831,7 @@ button.create-form-button:hover {
 }
 
 button.create-form-button.cancel {
+	float: left;
 	color: #ccc;
 }
 
@@ -3830,11 +3858,18 @@ button.create-form-button.accept {
 	width: 100%;
 	padding: 4px 0 4px 0;
 	display: inline-block;
+}
+
+#code-contents .input label {
 	font-weight: 600;
 }
 
 #code-contents input[type="text"] {
 	width: 100%;
+}
+
+#code-contents input[type="checkbox"] {
+	vertical-align: top;
 }
 
 #folder-contents .tile {
