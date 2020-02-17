@@ -22,11 +22,15 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.geotools.data.PrjFileReader;
+import org.geotools.data.shapefile.dbf.DbaseFileHeader;
+import org.geotools.data.shapefile.dbf.DbaseFileReader;
 import org.geotools.data.shapefile.files.ShpFileType;
 import org.geotools.data.shapefile.files.ShpFiles;
 import org.geotools.data.shapefile.shp.ShapefileReader;
@@ -87,7 +91,7 @@ public class ReadShapefileFunction extends GeoFunction {
 						final ShapefileReader reader          = new ShapefileReader(shpFiles, true, true, gf);
 						final CoordinateReferenceSystem wgs84 = CRS.decode("EPSG:4326");
 						final CoordinateReferenceSystem crs   = readCRS(shpFiles, reader);
-						final List<String> wktStrings         = new LinkedList<>();
+						final List<Map<String, Object>> data  = new LinkedList<>();
 						final Map<String, Object> result      = new LinkedHashMap<>();
 						MathTransform transform               = null;
 
@@ -96,10 +100,19 @@ public class ReadShapefileFunction extends GeoFunction {
 							transform = CRS.findMathTransform(crs, wgs84, true);
 						}
 
-						while (reader.hasNext()) {
+						final List<String> metadataFields        = new LinkedList<>();
+						final List<Map<String, Object>> metadata = readDBF(shpFiles, metadataFields);
+						Iterator<Map<String, Object>> iterator   = null;
 
-							final Record record = reader.nextRecord();
-							final Object shape = record.shape();
+						if (metadata != null) {
+							iterator = metadata.iterator();
+						}
+						
+						while (reader.hasNext() && (iterator == null || iterator.hasNext())) {
+
+							final Map<String, Object> item = new LinkedHashMap<>();
+							final Record record            = reader.nextRecord();
+							final Object shape             = record.shape();
 
 							if (shape instanceof Geometry) {
 
@@ -110,17 +123,21 @@ public class ReadShapefileFunction extends GeoFunction {
 									geometry = JTS.transform(geometry, transform);
 								}
 
-								wktStrings.add(geometry.toString());
+								item.put("wkt", geometry.toString());
 
-								// create objects?
+								// store data as well
+								if (iterator != null) {
+									item.put("metadata", iterator.next());
+								}
 
-
+								data.add(item);
 							}
 						}
 
 						reader.close();
 
-						result.put("geometries", wktStrings);
+						result.put("geometries", data);
+						result.put("fields",     metadataFields);
 
 						return result;
 
@@ -191,5 +208,54 @@ public class ReadShapefileFunction extends GeoFunction {
 		}
 
 		return null;
+	}
+	
+	private static List<Map<String, Object>> readDBF(ShpFiles shpFiles, final List<String> metadataFields) {
+
+		final List<Map<String, Object>> data = new LinkedList<>();
+
+		try {
+
+			final DbaseFileReader reader = new DbaseFileReader(shpFiles, true, Charset.forName("utf-8"));
+
+			try {
+
+				final DbaseFileHeader header = reader.getHeader();
+				final int num                = header.getNumFields();
+
+				for (int i=0; i<num; i++) {
+					metadataFields.add(header.getFieldName(i));
+				}
+
+				while (reader.hasNext()) {
+
+					final Map<String, Object> row = new LinkedHashMap<>();
+					final Object[] entry          = reader.readEntry();
+
+					if (entry != null) {
+
+						for (int i=0; i<entry.length; i++) {
+
+							final Object o = entry[i];
+							if (o != null) {
+
+								row.put(header.getFieldName(i), o);
+							}
+						}
+					}
+
+					data.add(row);
+				}
+
+			} finally {
+
+				reader.close();
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return data;
 	}
 }
