@@ -52,6 +52,11 @@ var _Code = {
 		$(window).on('keydown', _Code.handleKeyDownEvent);
 
 	},
+	beforeunloadHandler: function() {
+		if (_Code.isDirty()) {
+			return 'There are unsaved changes - discard changes?';
+		}
+	},
 	resize: function() {
 
 		var windowHeight = $(window).height();
@@ -536,8 +541,15 @@ var _Code = {
 
 	},
 	unload: function() {
-		fastRemoveAllChildren($('.searchBox', main));
-		fastRemoveAllChildren($('#code-main', main));
+
+		let allow = _Code.testAllowNavigation();
+
+		if (allow) {
+			fastRemoveAllChildren($('.searchBox', main));
+			fastRemoveAllChildren($('#code-main', main));
+		}
+
+		return allow;
 	},
 	load: function(obj, callback) {
 

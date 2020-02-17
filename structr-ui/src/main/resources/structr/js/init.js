@@ -81,10 +81,14 @@ $(function() {
 		Structr.doLogout();
 	});
 
-	$(window).on('hashchange', function(e) {
+	window.addEventListener('hashchange', (e) => {
 		var anchor = getAnchorFromUrl(window.location.href);
 		if (anchor === 'logout' || loginBox.is(':visible')) return;
-		Structr.requestActivateModule(e, anchor);
+		let allow = Structr.requestActivateModule(e, anchor);
+
+		if (allow === false) {
+			window.location.href = e.oldURL;
+		}
 	});
 
 	$(document).on('mouseenter', '[data-toggle="popup"]', function() {
@@ -95,12 +99,6 @@ $(function() {
 	$(document).on('mouseleave', '[data-toggle="popup"]', function() {
 		var target = $(this).data("target");
 		$(target).removeClass('visible');
-	});
-
-	$(document).on('click', '[data-activate-module]', function(e) {
-		var module = $(this).data('activateModule');
-		_Logger.log(_LogType.INIT, 'Activating module ' + module);
-		Structr.requestActivateModule(e, module);
 	});
 
 	Structr.connect();
@@ -916,23 +914,37 @@ var Structr = {
 		if (menuBlocked) return;
 		event.stopPropagation();
 		if (Structr.getActiveModuleName() !== name || main.children().length === 0) {
-			Structr.doActivateModule(name);
+			return Structr.doActivateModule(name);
 		}
+
+		return true;
 	},
 	doActivateModule: function(name) {
 		if (Structr.modules[name]) {
-			var activeModule = Structr.modules[Structr.getActiveModuleName()];
+			var activeModule = Structr.getActiveModule();
+
+			let moduleAllowsNavigation = true;
 			if (activeModule && activeModule.unload) {
-				activeModule.unload();
+				let moduleOverride = activeModule.unload();
+				if (moduleOverride === false) {
+					moduleAllowsNavigation = false;
+				}
 			}
-			Structr.clearMain();
-			Structr.activateMenuEntry(name);
-			Structr.modules[name].onload();
-			Structr.adaptUiToAvailableFeatures();
+
+			if (moduleAllowsNavigation) {
+				Structr.clearMain();
+				Structr.activateMenuEntry(name);
+				Structr.modules[name].onload();
+				Structr.adaptUiToAvailableFeatures();
+			}
+
+			return moduleAllowsNavigation;
 		} else {
 			_Logger.log(_LogType.INIT, 'Module ' + name + ' does not exist.');
 			Structr.unblockMenu();
 		}
+
+		return true;
 	},
 	activateMenuEntry: function(name) {
 		Structr.blockMenu();
@@ -2226,8 +2238,16 @@ function formatKey(text) {
 var keyEventBlocked = true;
 var keyEventTimeout;
 
-$(window).on('beforeunload', function(event) {
+window.addEventListener('beforeunload', (event) => {
 	if (event.target === document) {
+
+		if (Structr.getActiveModule().beforeunloadHandler && typeof Structr.getActiveModule().beforeunloadHandler === "function") {
+			let ret = Structr.getActiveModule().beforeunloadHandler();
+			if (ret) {
+				event.returnValue = ret;
+			}
+		}
+
 		_Logger.log(_LogType.INIT, '########################################### unload #####################################################');
 		// Remove dialog data in case of page reload
 		LSWrapper.removeItem(dialogDataKey);
