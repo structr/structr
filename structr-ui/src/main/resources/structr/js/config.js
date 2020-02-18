@@ -338,22 +338,67 @@ let initSearch = () => {
 
 document.addEventListener('DOMContentLoaded', initSearch);
 
+function collectData(name) {
+
+	let data = {
+		'new-name':     $('input[name="new-name"]').val(),
+		'new-url':      $('input[name="new-url"]').val(),	
+		'new-username': $('input[name="new-username"]').val(),	
+		'new-password': $('input[name="new-password"]').val(),
+		'active_section': '#databases'
+	};
+
+	return data;
+}
+
 function addConnection() {
-	console.log("addConnection");
-	// TODO
+		
+	$.ajax({
+		type: 'post',
+		url: '/structr/config/add',
+		data: collectData(),
+		complete: function(response) {
+			console.log(response.status);
+		}
+	});
 }
 
 function deleteConnection(name) {
-	console.log("deleteConnection");
-	// TODO
+		
+	$.ajax({
+		type: 'post',
+		url: '/structr/config/' + name + '/delete',
+		data: {
+			'active_section': '#databases'
+		},
+		complete: function(response) {
+			window.location.reload();
+		}
+	});
 }
 
 function saveConnection(name) {
-	console.log("saveConnection");
-	// TODO
+		
+	$.ajax({
+		type: 'post',
+		url: '/structr/config/' + name + '/use',
+		data: collectData(name),
+		complete: function(response) {
+			window.location.reload();
+		}
+	});
 }
 
 function useConnection(name) {
-	console.log("useConnection");
-	// TODO
+		
+	$.ajax({
+		type: 'post',
+		url: '/structr/config/' + name + '/use',
+		data: {
+			'active_section': '#databases'
+		},
+		complete: function(response) {
+			window.location.reload();
+		}
+	});
 }

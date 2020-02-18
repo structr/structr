@@ -255,7 +255,11 @@ public class ConfigServlet extends AbstractServletBase {
 					cmd.addConnection(connection);
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					response.setStatus(fex.getStatus());
+					response.getWriter().print(fex.getMessage());
+					response.getWriter().flush();
+					response.getWriter().close();
+					return;
 				}
 
 			} else {
@@ -282,19 +286,27 @@ public class ConfigServlet extends AbstractServletBase {
 						data.put(DatabaseConnection.KEY_USERNAME, connectionUsername);
 						data.put(DatabaseConnection.KEY_PASSWORD, connectionPassword);
 
-						switch (restAction) {
+						try {
+							switch (restAction) {
 
-							case "save":
-								try { cmd.saveConnection(data); } catch (FrameworkException fex) {}
-								break;
+								case "save":
+									cmd.saveConnection(data);
+									break;
 
-							case "delete":
-								try { cmd.removeConnection(data); } catch (FrameworkException fex) {}
-								break;
+								case "delete":
+									cmd.removeConnection(data);
+									break;
 
-							case "use":
-								try { cmd.activateConnection(data); } catch (FrameworkException fex) {}
-								break;
+								case "use":
+									cmd.activateConnection(data);
+									break;
+							}
+						} catch (FrameworkException fex) {
+							response.setStatus(fex.getStatus());
+							response.getWriter().print(fex.getMessage());
+							response.getWriter().flush();
+							response.getWriter().close();
+							return;
 						}
 					}
 
