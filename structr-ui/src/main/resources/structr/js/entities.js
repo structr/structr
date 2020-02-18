@@ -1245,6 +1245,11 @@ var _Entities = {
 				var resultHandler = function(nodes) {
 
 					nodes.forEach(function(node) {
+
+						if (node.path && node.path.indexOf('/._structr_thumbnails/') === 0) {
+							return;
+						}
+
 						var displayName = node.title || node.name || node.id;
 						box.append('<div title="' + displayName + '" " class="_' + node.id + ' node element">' + fitStringToWidth(displayName, 120) + '</div>');
 						$('._' + node.id, box).on('click', function() {
