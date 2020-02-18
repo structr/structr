@@ -1337,7 +1337,7 @@ i.button {
 
 #folder-contents .nodeHover, .image.nodeHover {
 	color: #333 ! important;
-	background-color: #f5f5f5 ! important;
+	background: #b5e27f ! important;
 	border: 1px solid transparent;
 	z-index: 1;
 }
@@ -1366,7 +1366,7 @@ button:hover:not(.disabled) {
 	color: #222;
 	padding: 1px 8px 2px 4px;
 	vertical-align: middle;
-	border: 1px solid transparent;
+	border: 1px solid rgba(0,0,0,.25);
 	background-color: #fff;
 	cursor: pointer ! important;
 	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
@@ -1604,7 +1604,7 @@ button.action.disabled:hover {
 #files-main .selected, #files-main .selected:hover {
 	color: #333 ! important;
 	border: 1px solid transparent ! important;
-	background-color: #81ce25 ! important;
+	background: #81ce25 ! important;
 }
 
 .node-helper {
@@ -1760,12 +1760,36 @@ button.action.disabled:hover {
 	display: none;
 }
 
+#switches {
+	width: 200px;
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	text-align: right;
+}
+
+#switch-list.active {
+	width: 61px;
+}
+
+#switch-list.inactive {
+	width: 34px;
+}
+
+#switch-tiles.active {
+	width: 66px;
+}
+
+#switch-tiles.inactive {
+	width: 39px;
+}
+
 button.switch {
 	min-width: 48px;
 	margin-right: 12px;
 	color: #444;
 	font-weight: normal;
-	border: 1px solid transparent;
+	border: 1px solid #eee;
 	background-color: #fff;
 }
 
@@ -1774,14 +1798,9 @@ button.switch i {
 	vertical-align: top;
 }
 
-button.switch:hover {
-	border: 1px solid #eee;
-}
-
 button.enabled, button.active {
 	color: #222;
 	font-weight: bold;
-	border: 1px solid transparent;
 	background-color: transparent;
 }
 
@@ -3993,11 +4012,11 @@ table.dataTable thead th, table.dataTable thead td {
 }
 
 .jstree-default .jstree-wholerow-clicked {
-	background: #b5e27f ! important;
+	background: #81ce25 ! important;
 }
 
 .jstree-default .jstree-wholerow-hovered {
-	background: #81ce25 ! important;
+	background: #b5e27f ! important;
 }
 
 #files-table {
@@ -4203,37 +4222,6 @@ i.fa.ps {
 	pointer-events: none;
 }
 
-#switches {
-	width: 200px;
-	position: absolute;
-	top: 12px;
-	right: 12px;
-	text-align: right;
-}
-
-#switches .switch {
-	min-width: 12px;
-	margin-right: 0;
-	vertical-align: top;
-}
-
-#switches .switch:first-child {
-	min-width: 12px;
-	border-top-right-radius: 0;
-	border-bottom-right-radius: 0;
-}
-
-#switches .switch:nth-child(2) {
-	border-left: none;
-	border-radius: 0;
-}
-
-#switches .switch:nth-child(3) {
-	border-left: none;
-	border-top-left-radius: 0;
-	border-bottom-left-radius: 0;
-}
-
 .prop .node {
 	color: #333;
 	line-height: 1.7em;
@@ -4261,22 +4249,6 @@ i.fa.ps {
 .prop .remove {
 	float: right;
 	margin: 4px 0 2px 1px;
-}
-
-#switch-list.active {
-	width: 61px;
-}
-
-#switch-list.inactive {
-	width: 34px;
-}
-
-#switch-tiles.active {
-	width: 66px;
-}
-
-#switch-tiles.inactive {
-	width: 39px;
 }
 
 /**
