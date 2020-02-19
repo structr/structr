@@ -162,7 +162,6 @@ var _Pages = {
 		var pagesTabSlideoutAction = function() {
 			_Pages.leftSlideoutTrigger(this, pagesSlideout, [activeElementsSlideout, dataBindingSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function (params) {
 				_Pages.resize(params.sw, 0);
-				_Pages.pagesTabResizeContent();
 			}, _Pages.slideoutClosedCallback);
 		};
 		$('#pagesTab').on('click', pagesTabSlideoutAction).droppable({
@@ -236,7 +235,6 @@ var _Pages = {
 					_Elements.reloadComponents();
 				}
 				_Pages.resize(0, params.sw);
-				_Pages.componentsTabResizeContent();
 			}, _Pages.slideoutClosedCallback);
 		};
 		$('#componentsTab').on('click', componentsTabSlideoutAction).droppable({
@@ -254,7 +252,6 @@ var _Pages = {
 					_Elements.reloadUnattachedNodes();
 				}
 				_Pages.resize(0, params.sw);
-				_Pages.unattachedNodesTabResizeContent();
 			}, _Pages.slideoutClosedCallback);
 		});
 
@@ -1005,7 +1002,6 @@ var _Pages = {
 		});
 
 		_Dragndrop.makeDroppable(div);
-		_Pages.pagesTabResizeContent();
 
 		return div;
 	},
@@ -1236,21 +1232,6 @@ var _Pages = {
 		if (activeNode) {
 			activeNode.removeClass('nodeHover');
 		}
-	},
-	pagesTabResizeContent: function () {
-		var storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.leftSlideoutWidthKey);
-		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (pagesSlideout.width() + 12);
-		$('.node.page', pagesSlideout).width(psw - 35);
-	},
-	componentsTabResizeContent: function () {
-		var storedRightSlideoutWidth = LSWrapper.getItem(_Pages.rightSlideoutWidthKey);
-		var csw = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (componentsSlideout.width() + 12);
-		$('#componentsArea > .node').width(csw - 35);
-	},
-	unattachedNodesTabResizeContent: function () {
-		var storedRightSlideoutWidth = LSWrapper.getItem(_Pages.rightSlideoutWidthKey);
-		var csw = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (componentsSlideout.width() + 12);
-		$('#elementsArea > .node').width(csw - 35);
 	},
 	leftSlideoutTrigger: function (triggerEl, slideoutElement, otherSlideouts, activeTabKey, openCallback, closeCallback) {
 		if (!$(triggerEl).hasClass('noclick')) {

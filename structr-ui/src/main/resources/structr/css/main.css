@@ -370,10 +370,6 @@ img.disabled {
 	margin-top: 8px;
 }
 
-#pages .ver-scrollable {
-	overflow-x: hidden;
-}
-
 #previews {
 	margin: 4px 25px 0 25px;
 }
@@ -566,9 +562,13 @@ img.disabled {
 	overflow-x: hidden;
 }
 
-.ver-scrollable > .node, #widgets > .node, #remoteWidgets > .node {
-	width: calc(100% - 10px);
+.ver-scrollable > .node {
+	width: calc(100% - 20px);
 }
+#widgets > .node, #remoteWidgets > .node {
+	width: calc(100% - 5px);
+}
+
 
 .slideOutRight {
 	width: 400px;
@@ -1246,17 +1246,13 @@ i.button {
 .nodeHover, .nodeActive, #graph-canvas .node {
 	color: #333 ! important;
 	background-color: #f5f5f5 ! important;
-	border: 1px solid rgba(0,0,0,.125);
+	border: 1px solid rgba(0,0,0,.125) ! important;
 }
 
 .slideOut .node {
 	padding: 2px 0px 2px 2px;
-	margin: 0 0 0 11px;
-}
-
-.slideOut .node.page {
-	padding: 2px 0px 2px 2px;
-	margin: 0 0 0 20px;
+	margin: 0 0 0 12px;
+	border-right: 0px;
 }
 
 #componentsArea > .node, #elementsArea > .node {
@@ -1304,8 +1300,14 @@ i.button {
 	padding-left: 0;
 }
 
-#pages .node.nodeHover {
-	border: 1px solid rgba(0,0,0,.125) ! important;
+#pages .ver-scrollable {
+	overflow-x: hidden;
+	margin-top: 4px;
+}
+
+#pages .node.page {
+	width: calc(100% - 20px);
+	margin-left: 16px;
 }
 
 .node.nodeSelectedFromContextMenu {

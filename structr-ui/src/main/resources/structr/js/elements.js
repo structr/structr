@@ -349,8 +349,6 @@ var _Elements = {
 
 			_Elements.appendEntitiesToDOMElement(result, components);
 			Structr.refreshPositionsForCurrentlyActiveSortable();
-
-			_Pages.componentsTabResizeContent();
 		});
 	},
 	createComponent: function(el) {
@@ -413,8 +411,6 @@ var _Elements = {
 				}
 
 				_Elements.appendEntitiesToDOMElement(result, elements);
-
-				_Pages.unattachedNodesTabResizeContent();
 			});
 		}
 
