@@ -16,38 +16,11 @@
 			<input type="text" id="style-input" value="${config.div._html_style || ''}" />
 		</div>
 	</div>
-	<div class="row">
-		<div class="option-tile">
-			<label>Function Query</label>
-			<input type="text" id="function-query-input" value="${config.entity.functionQuery || ''}" />
-		</div>
-		<div class="option-tile">
-			<label>Data Key</label>
-			<input type="text" id="data-key-input" value="${config.entity.dataKey || ''}" />
-		</div>
-	</div>
-	<div class="row">
-		<div class="option-tile">
-			<label>Show Conditions</label>
-			<select id="show-conditions">
-				<option value="">(none)</option>
-				<option>false</option>
-				<option>me.isAdmin</option>
-				<option>empty(current)</option>
-				<option>not(empty(current))</option>
-			</select>
-		</div>
-		<div class="option-tile">
-			<label>Hide Conditions</label>
-			<select id="hide-conditions">
-				<option value="">(none)</option>
-				<option>true</option>
-				<option>me.isAdmin</option>
-				<option>empty(current)</option>
-				<option>not(empty(current))</option>
-			</select>
-		</div>
-	</div>
+
+	<div class="row repeater-config-container"></div>
+
+	<div class="row show-hide-conditions-container"></div>
+
 	<div id="custom-properties-parent" class="hidden">
 		<h3>Custom Properties</h3>
 		<div class="row">

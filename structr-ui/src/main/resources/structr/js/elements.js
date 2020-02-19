@@ -349,8 +349,6 @@ var _Elements = {
 
 			_Elements.appendEntitiesToDOMElement(result, components);
 			Structr.refreshPositionsForCurrentlyActiveSortable();
-
-			_Pages.componentsTabResizeContent();
 		});
 	},
 	createComponent: function(el) {
@@ -380,7 +378,7 @@ var _Elements = {
 			elementsSlideout.append('<div class="ver-scrollable" id="elementsArea"></div>');
 			elements = $('#elementsArea', elementsSlideout);
 
-			elements.append('<button class="btn action disabled" id="delete-all-unattached-nodes" disabled>Loading </button>');
+			elements.before('<button class="btn action disabled" id="delete-all-unattached-nodes" disabled>Loading </button>');
 
 			var btn = $('#delete-all-unattached-nodes');
 			Structr.loaderIcon(btn, {
@@ -413,8 +411,6 @@ var _Elements = {
 				}
 
 				_Elements.appendEntitiesToDOMElement(result, elements);
-
-				_Pages.unattachedNodesTabResizeContent();
 			});
 		}
 

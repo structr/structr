@@ -1245,6 +1245,11 @@ var _Entities = {
 				var resultHandler = function(nodes) {
 
 					nodes.forEach(function(node) {
+
+						if (node.path && node.path.indexOf('/._structr_thumbnails/') === 0) {
+							return;
+						}
+
 						var displayName = node.title || node.name || node.id;
 						box.append('<div title="' + displayName + '" " class="_' + node.id + ' node element">' + fitStringToWidth(displayName, 120) + '</div>');
 						$('._' + node.id, box).on('click', function() {
@@ -1397,6 +1402,9 @@ var _Entities = {
 
 			input.closest('.array-attr').find('i.remove').off('click').on('click', function(el) {
 				let cell = input.closest('.value');
+				if (cell.length === 0) {
+					cell = input.closest('.__value');
+				}
 				input.parent().remove();
 				_Entities.saveArrayValue(cell, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback);
 			});
@@ -2318,10 +2326,14 @@ var _Entities = {
 	setPropertyWithFeedback: function(entity, key, newVal, input) {
 		var oldVal = entity[key];
 		Command.setProperty(entity.id, key, newVal, false, function(result) {
-			var newVal= result[key];
+			var newVal = result[key];
+
+			// update entity so this works multiple times
+			entity[key] = newVal;
+
 			if (newVal !== oldVal) {
 				blinkGreen(input);
-				if (newVal.constructor === Array) {
+				if (newVal && newVal.constructor === Array) {
 					newVal = newVal.join(',');
 				}
 				input.val(newVal);

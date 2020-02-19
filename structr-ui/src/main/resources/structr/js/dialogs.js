@@ -59,23 +59,48 @@ var _Dialogs = {
 			});
 		});
 	},
-	showVisibilityOptions: function(entity) {
+	showVisibilityOptions: function(entity, el) {
 
-		// add visibility options
-		Structr.fetchHtmlTemplate('dialogs/visibility-partial', { }, function (html) {
+		let showConditionsContainer = $('.show-hide-conditions-container', el);
 
-			$('#visibility-options').append(html);
+		if (showConditionsContainer.length) {
 
-			var showConditionsSelect = $('select#show-conditions');
-			var hideConditionsSelect = $('select#hide-conditions');
+			Structr.fetchHtmlTemplate('dialogs/visibility-partial', { entity: entity }, function (html) {
 
-			// dialog logic here..
-			showConditionsSelect.on('change', function() { _Entities.setPropertyWithFeedback(entity, 'showConditions', showConditionsSelect.val(), showConditionsSelect); });
-			hideConditionsSelect.on('change', function() { _Entities.setPropertyWithFeedback(entity, 'hideConditions', hideConditionsSelect.val(), hideConditionsSelect); });
+				showConditionsContainer.html(html);
 
-			showConditionsSelect.val(entity.showConditions);
-			hideConditionsSelect.val(entity.hideConditions);
-		});
+				let showConditionsInput  = $('input#show-conditions');
+				let showConditionsSelect = $('select#show-conditions-templates');
+				let hideConditionsInput  = $('input#hide-conditions');
+				let hideConditionsSelect = $('select#hide-conditions-templates');
+
+				showConditionsInput.on('change', () => { _Entities.setPropertyWithFeedback(entity, 'showConditions', showConditionsInput.val(), showConditionsInput); });
+				hideConditionsInput.on('change', () => { _Entities.setPropertyWithFeedback(entity, 'hideConditions', hideConditionsInput.val(), hideConditionsInput); });
+
+				showConditionsSelect.on('change', () => {
+					showConditionsInput.val(showConditionsSelect.val()).trigger('change');
+				});
+				hideConditionsSelect.on('change', () => {
+					hideConditionsInput.val(hideConditionsSelect.val()).trigger('change');
+				});
+			});
+		}
+	},
+	showRepeaterOptions: function(entity, el) {
+
+		let repeaterConfigContainer = $('.repeater-config-container', el);
+
+		if (repeaterConfigContainer.length) {
+
+			Structr.fetchHtmlTemplate('dialogs/repeater-partial', { entity: entity }, function (html) {
+
+				repeaterConfigContainer.html(html);
+
+				[ 'function-query', 'data-key' ].forEach(p => {
+					_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), entity, p.toCamel());
+				});
+			});
+		}
 	},
 
 	// ----- custom dialogs -----
@@ -116,7 +141,6 @@ var _Dialogs = {
 						}
 					});
 				});
-
 			});
 
 		} else if (el) {
@@ -157,6 +181,21 @@ var _Dialogs = {
 			$('input#ldap-group-dn').val(el.distinguishedName);
 		}
 	},
+	registerSimpleInputBlurhandler: function(input, entity, key) {
+
+		input.on('blur', function() {
+
+			let oldVal = entity[key];
+			let newVal = input.val();
+
+			let isChange = (oldVal !== newVal) && !((oldVal === null || oldVal === undefined) && newVal === '');
+
+			if (isChange) {
+				_Entities.setPropertyWithFeedback(entity, key, input.val() || null, input);
+			}
+		});
+
+	},
 	aDialog: function(el, entity) {
 
 		if (el && entity) {
@@ -169,13 +208,7 @@ var _Dialogs = {
 					el.append(html);
 
 					[ 'id', 'class', 'href', 'style' ].forEach(p => {
-						let input = $('input#' + p + '-input');
-						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, '_html_' + p, input.val(), input); });
-					});
-
-					[ 'function-query', 'data-key' ].forEach(p => {
-						let input = $('input#' + p + '-input');
-						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val(), input); });
+						_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), a, '_html_' + p);
 					});
 
 					// focus on first input field
@@ -183,7 +216,8 @@ var _Dialogs = {
 					$('input#class-input').select();
 
 					_Dialogs.showCustomProperties(entity);
-					_Dialogs.showVisibilityOptions(entity);
+					_Dialogs.showRepeaterOptions(entity, el);
+					_Dialogs.showVisibilityOptions(entity, el);
 				});
 
 			}, '_html_');
@@ -202,13 +236,7 @@ var _Dialogs = {
 					el.append(html);
 
 					[ 'id', 'class', 'onclick', 'title', 'type', 'style' ].forEach(p => {
-						let input = $('input#' + p + '-input');
-						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, '_html_' + p, input.val(), input); });
-					});
-
-					[ 'function-query', 'data-key' ].forEach(p => {
-						let input = $('input#' + p + '-input');
-						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val(), input); });
+						_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), button, '_html_' + p);
 					});
 
 					// focus on first input field
@@ -216,7 +244,8 @@ var _Dialogs = {
 					$('input#class-input').select();
 
 					_Dialogs.showCustomProperties(entity);
-					_Dialogs.showVisibilityOptions(entity);
+					_Dialogs.showRepeaterOptions(entity, el);
+					_Dialogs.showVisibilityOptions(entity, el);
 				});
 
 			}, '_html_');
@@ -235,7 +264,7 @@ var _Dialogs = {
 
 					[ 'id', 'class', 'title', 'placeholder', 'type', 'style' ].forEach(p => {
 						let input = $('input#' + p + '-input');
-						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, '_html_' + p, input.val(), input); });
+						_Dialogs.registerSimpleInputBlurhandler(input, entity, '_html_' + p);
 					});
 
 					// focus on first input field
@@ -243,7 +272,7 @@ var _Dialogs = {
 					$('input#class-input').select();
 
 					_Dialogs.showCustomProperties(entity);
-					_Dialogs.showVisibilityOptions(entity);
+					_Dialogs.showVisibilityOptions(entity, el);
 				});
 
 			}, '_html_');
@@ -261,13 +290,7 @@ var _Dialogs = {
 					el.append(html);
 
 					[ 'id', 'class', 'style' ].forEach(p => {
-						let input = $('input#' + p + '-input');
-						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, '_html_' + p, input.val(), input); });
-					});
-
-					[ 'function-query', 'data-key' ].forEach(p => {
-						let input = $('input#' + p + '-input');
-						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val(), input); });
+						_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), div, '_html_' + p);
 					});
 
 					// focus on first input field
@@ -275,7 +298,8 @@ var _Dialogs = {
 					$('input#class-input').select();
 
 					_Dialogs.showCustomProperties(entity);
-					_Dialogs.showVisibilityOptions(entity);
+					_Dialogs.showRepeaterOptions(entity, el);
+					_Dialogs.showVisibilityOptions(entity, el);
 				});
 
 			}, '_html_');
@@ -332,7 +356,7 @@ var _Dialogs = {
 
 					[ 'name', 'content-type', 'category', 'position', 'show-on-error-codes' ].forEach(p => {
 						let input = $('input#' + p + '-input');
-						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val() || null, input); });
+						_Dialogs.registerSimpleInputBlurhandler(input, entity, p.toCamel());
 					});
 
 					[ 'dont-cache', 'page-creates-raw-data' ].forEach(p => {
@@ -356,8 +380,8 @@ var _Dialogs = {
 
 			}, '_html_');
 		}
-	},
-}
+	}
+};
 
 var registeredDialogs = {
 	'A': { id: 'a', title : 'General', callback: _Dialogs.aDialog },
@@ -368,8 +392,8 @@ var registeredDialogs = {
 	'Input':  { id: 'input', title: 'General', callback: _Dialogs.inputDialog },
 	'LDAPGroup':  { id: 'ldapgroup', title: 'LDAP configuration', callback: _Dialogs.ldapGroupDialog },
 	'Page': { id: 'page', title : 'General', callback: _Dialogs.pageDialog },
-	'User': { id: 'user', title : 'General', callback: _Dialogs.userDialog },
-}
+	'User': { id: 'user', title : 'General', callback: _Dialogs.userDialog }
+};
 
 function setNull(id, key, input) {
 	Command.setProperty(id, key, null, false, function() {

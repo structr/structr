@@ -27,14 +27,12 @@ import java.io.Writer;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.driver.v1.AuthTokens;
@@ -137,10 +135,6 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 			RelationshipWrapper.initialize(relCacheSize);
 			logger.info("Relationship cache size set to {}", relCacheSize);
-
-			// drop :NodeInterface index and create uniqueness constraint
-			// disabled, planned for Structr 2.4
-			//createUUIDConstraint();
 
 			createGlobalSchemaLockNode();
 
@@ -402,21 +396,21 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	@Override
 	public void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfigSource, final Map<String, Map<String, Boolean>> removedClassesSource, final boolean createOnly) {
 
-		final Map<String, Map<String, Boolean>> schemaIndexConfig = new TreeMap<>(schemaIndexConfigSource);
-		final Map<String, Map<String, Boolean>> removedClasses    = new TreeMap<>(removedClassesSource);
-		final Map<String, String> existingDbIndexes               = new TreeMap<>();
+		final Map<String, String> existingDbIndexes = new HashMap<>();
 
-		try (final Session session = driver.session()) {
+		try (final Transaction tx = beginTx()) {
 
-			for (final Record record : session.run("CALL db.indexes() YIELD description, state, type WHERE type = 'node_label_property' RETURN {description: description, state: state}").list()) {
+			for (final Map<String, Object> row : execute("CALL db.indexes() YIELD description, state, type WHERE type = 'node_label_property' RETURN {description: description, state: state}")) {
 
-				for (final Object value : record.asMap().values()) {
+				for (final Object value : row.values()) {
 
 					final Map<String, String> valueMap = (Map<String, String>)value;
 
 					existingDbIndexes.put(valueMap.get("description"), valueMap.get("state"));
 				}
 			}
+
+			tx.success();
 		}
 
 		logger.debug("Found {} existing indexes", existingDbIndexes.size());
@@ -425,12 +419,11 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		Integer droppedIndexes = 0;
 
 		// create indices for properties of existing classes
-		for (final Map.Entry<String, Map<String, Boolean>> entry : schemaIndexConfig.entrySet()) {
+		for (final Map.Entry<String, Map<String, Boolean>> entry : schemaIndexConfigSource.entrySet()) {
 
-			final Map<String, Boolean> values = new TreeMap<>(entry.getValue());
-			final String typeName             = entry.getKey();
+			final String typeName = entry.getKey();
 
-			for (final Map.Entry<String, Boolean> propertyIndexConfig : values.entrySet()) {
+			for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
 
 				final String indexDescription = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
 				final String state            = existingDbIndexes.get(indexDescription);
@@ -441,32 +434,56 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 					logger.warn("Index is in FAILED state - dropping the index before handling it further. {}. If this error is recurring, please verify that the data in the concerned property is indexable by Neo4j", indexDescription);
 
-					try (final Session session = driver.session()) {
-						if (hasIndex(session, indexDescription)) {
-							session.run("DROP " + indexDescription);
-						}
-					} catch (Throwable ignore) {}
+					try (final Transaction tx = beginTx()) {
+
+						execute("DROP " + indexDescription);
+
+						tx.success();
+
+					} catch (Throwable t) {
+						logger.warn("", t);
+					}
 				}
 
-				if (createIndex) {
 
-					if (!alreadySet) {
+				try (final Transaction tx = beginTx()) {
 
-						try (final Session session = driver.session()) {
+					if (createIndex) {
 
-							session.run("CREATE " + indexDescription);
-							createdIndexes++;
-						} catch (Throwable ignore) {}
+						if (!alreadySet) {
+
+							try {
+
+								execute("CREATE " + indexDescription);
+								createdIndexes++;
+
+							} catch (Throwable t) {
+								logger.warn("Unable to create {}: {}", indexDescription, t.getMessage());
+							}
+						}
+
+					} else if (alreadySet && !createOnly) {
+
+						try {
+
+							execute("DROP " + indexDescription);
+							droppedIndexes++;
+
+						} catch (Throwable t) {
+							logger.warn("Unable to drop {}: {}", indexDescription, t.getMessage());
+						}
 					}
 
-				} else if (alreadySet && !createOnly) {
+					tx.success();
 
-					try (final Session session = driver.session()) {
-						if (hasIndex(session, indexDescription)) {
-							session.run("DROP " + indexDescription);
-							droppedIndexes++;
-						}
-					} catch (Throwable ignore) {}
+				} catch (IllegalStateException i) {
+
+					// if the driver instance is already closed, there is nothing we can do => exit
+					return;
+
+				} catch (Throwable t) {
+
+					logger.warn("Unable to update index configuration: {}", t.getMessage());
 				}
 			}
 		}
@@ -485,14 +502,12 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			final List removedTypes = new LinkedList();
 
 			// drop indices for all indexed properties of removed classes
-			for (final Map.Entry<String, Map<String, Boolean>> entry : removedClasses.entrySet()) {
+			for (final Map.Entry<String, Map<String, Boolean>> entry : removedClassesSource.entrySet()) {
 
-				final Map<String, Boolean> values = new TreeMap<>(entry.getValue());
-				final String typeName             = entry.getKey();
-
+				final String typeName = entry.getKey();
 				removedTypes.add(typeName);
 
-				for (final Map.Entry<String, Boolean> propertyIndexConfig : values.entrySet()) {
+				for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
 
 					final String indexDescription = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
 					final boolean indexExists     = Boolean.TRUE.equals(existingDbIndexes.get(indexDescription));
@@ -500,12 +515,17 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 					if (indexExists && dropIndex) {
 
-						try (final Session session = driver.session()) {
-							if (hasIndex(session, indexDescription)) {
-								session.run("DROP " + indexDescription);
-								droppedIndexesOfRemovedTypes++;
-							}
-						} catch (Throwable ignore) {}
+						try (final Transaction tx = beginTx()) {
+
+							// drop index
+							execute("DROP " + indexDescription);
+							droppedIndexesOfRemovedTypes++;
+
+							tx.success();
+
+						} catch (Throwable t) {
+							logger.warn("Unable to drop {}: {}", indexDescription, t.getMessage());
+						}
 					}
 				}
 			}
@@ -782,23 +802,6 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		return 0;
-	}
-
-	private boolean hasIndex(final Session session, final String index) {
-
-		final Map<String, Object> data = new LinkedHashMap<>();
-		data.put("name", index);
-
-		final StatementResult result   = session.run("CALL db.indexes() YIELD state, description WHERE description = $name RETURN state", data);
-		if (result.hasNext()) {
-
-			final Record record                = result.next();
-			final Map<String, Object> valueMap = record.asMap();
-
-			return "ONLINE".equals(valueMap.get("state"));
-		}
-
-		return false;
 	}
 
 	// ----- nested classes -----

@@ -39,6 +39,10 @@ var altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = fa
 
 $(function() {
 
+	$.blockUI.defaults.overlayCSS.opacity        = .6;
+	$.blockUI.defaults.overlayCSS.cursor         = 'default';
+	$.blockUI.defaults.applyPlatformOpacityRules = false;
+
 	header = $('#header');
 	main = $('#main');
 	footer = $('#footer');
@@ -77,10 +81,14 @@ $(function() {
 		Structr.doLogout();
 	});
 
-	$(window).on('hashchange', function(e) {
+	window.addEventListener('hashchange', (e) => {
 		var anchor = getAnchorFromUrl(window.location.href);
 		if (anchor === 'logout' || loginBox.is(':visible')) return;
-		Structr.requestActivateModule(e, anchor);
+		let allow = Structr.requestActivateModule(e, anchor);
+
+		if (allow === false) {
+			window.location.href = e.oldURL;
+		}
 	});
 
 	$(document).on('mouseenter', '[data-toggle="popup"]', function() {
@@ -91,12 +99,6 @@ $(function() {
 	$(document).on('mouseleave', '[data-toggle="popup"]', function() {
 		var target = $(this).data("target");
 		$(target).removeClass('visible');
-	});
-
-	$(document).on('click', '[data-activate-module]', function(e) {
-		var module = $(this).data('activateModule');
-		_Logger.log(_LogType.INIT, 'Activating module ' + module);
-		Structr.requestActivateModule(e, module);
 	});
 
 	Structr.connect();
@@ -124,7 +126,7 @@ $(function() {
 		if (k === 69) {
 			eKey = false;
 		}
-		if (navigator.platform === 'MacIntel' && k === 91) {
+		if (navigator.platform === 'MacIntel' && (k === 91 || e.metaKey)) {
 			cmdKey = false;
 		}
 		if (e.keyCode === 27) {
@@ -178,7 +180,7 @@ $(function() {
 		if (k === 69) {
 			eKey = true;
 		}
-		if (navigator.platform === 'MacIntel' && k === 91) {
+		if (navigator.platform === 'MacIntel' && (k === 91 || e.metaKey)) {
 			cmdKey = true;
 		}
 		if ((e.ctrlKey && (e.which === 83)) || (navigator.platform === 'MacIntel' && cmdKey && (e.which === 83))) {
@@ -215,14 +217,12 @@ $(function() {
 		if (k === 71 && altKey && ctrlKey) {
 		    e.preventDefault();
 		    var uuid = prompt('Enter the UUID for which you want to open the access control dialog');
-		    if (uuid) {
-			if (uuid.length === 32) {
-			    Command.get(uuid, null, function(obj) {
-				_Entities.showAccessControlDialog(obj);
-			    });
+		    if (uuid && uuid.length === 32) {
+				Command.get(uuid, null, function(obj) {
+					_Entities.showAccessControlDialog(obj);
+				});
 			} else {
-			    alert('That does not look like a UUID! length != 32');
-			}
+				alert('That does not look like a UUID! length != 32');
 		    }
 		}
 		// Ctrl-Alt-h
@@ -232,7 +232,7 @@ $(function() {
 				_Schema.hideSelectedSchemaTypes();
 			}
 		}
-		// Ctrl-Alt-s
+		// Ctrl-Alt-e
 		if (k === 69 && altKey && ctrlKey) {
 			e.preventDefault();
 			Structr.dialog('Bulk Editing Helper (Ctrl-Alt-E)');
@@ -281,6 +281,11 @@ var Structr = {
 	msgCount: 0,
 	currentlyActiveSortable: undefined,
 	loadingSpinnerTimeout: undefined,
+	defaultBlockUICss: {
+		cursor: 'default',
+		border: 'none',
+		backgroundColor: 'transparent'
+	},
 	templateCache: new AsyncObjectCache(function(templateName) {
 
 		Promise.resolve($.ajax('templates/' + templateName + '.html?t=' + (new Date().getTime()))).then(function(templateHtml) {
@@ -393,17 +398,12 @@ var Structr = {
 
 			fastRemoveAllChildren(main[0]);
 
-			$.blockUI.defaults.overlayCSS.opacity = .6;
-			$.blockUI.defaults.applyPlatformOpacityRules = false;
 			$.blockUI({
 				fadeIn: 25,
 				fadeOut: 25,
 				message: loginBox,
 				forceInput: true,
-				css: {
-					border: 'none',
-					backgroundColor: 'transparent'
-				}
+				css: Structr.defaultBlockUICss
 			});
 		}
 
@@ -547,23 +547,17 @@ var Structr = {
 			yesButton.off('click');
 			noButton.off('click');
 		});
-		$.blockUI.defaults.overlayCSS.opacity = .6;
-		$.blockUI.defaults.applyPlatformOpacityRules = false;
+
 		$.blockUI({
 			fadeIn: 25,
 			fadeOut: 25,
 			message: $('#confirmation'),
-			css: {
-				border: 'none',
-				backgroundColor: 'transparent'
-			}
+			css: Structr.defaultBlockUICss
 		});
 
 	},
 	restoreDialog: function(dialogData) {
 		_Logger.log(_LogType.INIT, 'restoreDialog', dialogData, dialogBox);
-		$.blockUI.defaults.overlayCSS.opacity = .6;
-		$.blockUI.defaults.applyPlatformOpacityRules = false;
 
 		window.setTimeout(function() {
 
@@ -615,9 +609,6 @@ var Structr = {
 				}
 			});
 
-			$.blockUI.defaults.overlayCSS.opacity = .4;
-			$.blockUI.defaults.applyPlatformOpacityRules = false;
-
 			var dimensions = Structr.getDialogDimensions(24, 24);
 			Structr.blockUI(dimensions);
 
@@ -651,15 +642,12 @@ var Structr = {
 			fadeIn: 25,
 			fadeOut: 25,
 			message: dialogBox,
-			css: {
-				cursor: 'default',
-				border: 'none',
-				backgroundColor: 'transparent',
+			css: Object.assign({
 				width: dimensions.width + 'px',
 				height: dimensions.height + 'px',
 				top: dimensions.top + 'px',
 				left: dimensions.left + 'px'
-			},
+			}, Structr.defaultBlockUICss),
 			themedCSS: {
 				width: dimensions.width + 'px',
 				height: dimensions.height + 'px',
@@ -892,14 +880,10 @@ var Structr = {
 			if (searchField)
 				searchField.focus();
 		});
-		$.blockUI.defaults.overlayCSS.opacity = .6;
-		$.blockUI.defaults.applyPlatformOpacityRules = false;
+
 		$.blockUI({
 			message: $('#tempInfoBox'),
-			css: {
-				border: 'none',
-				backgroundColor: 'transparent'
-			}
+			css: Structr.defaultBlockUICss
 		});
 	},
 	reconnectDialog: function(text) {
@@ -907,14 +891,10 @@ var Structr = {
 			$('#tempErrorBox .errorText').html('<i class="' + _Icons.getFullSpriteClass(_Icons.error_icon) + '" /> ' + text);
 		}
 		$('#tempErrorBox .closeButton').hide();
-		$.blockUI.defaults.overlayCSS.opacity = .6;
-		$.blockUI.defaults.applyPlatformOpacityRules = false;
+
 		$.blockUI({
 			message: $('#tempErrorBox'),
-			css: {
-				border: 'none',
-				backgroundColor: 'transparent'
-			}
+			css: Structr.defaultBlockUICss
 		});
 	},
 	blockMenu: function() {
@@ -933,23 +913,37 @@ var Structr = {
 		if (menuBlocked) return;
 		event.stopPropagation();
 		if (Structr.getActiveModuleName() !== name || main.children().length === 0) {
-			Structr.doActivateModule(name);
+			return Structr.doActivateModule(name);
 		}
+
+		return true;
 	},
 	doActivateModule: function(name) {
 		if (Structr.modules[name]) {
-			var activeModule = Structr.modules[Structr.getActiveModuleName()];
+			var activeModule = Structr.getActiveModule();
+
+			let moduleAllowsNavigation = true;
 			if (activeModule && activeModule.unload) {
-				activeModule.unload();
+				let moduleOverride = activeModule.unload();
+				if (moduleOverride === false) {
+					moduleAllowsNavigation = false;
+				}
 			}
-			Structr.clearMain();
-			Structr.activateMenuEntry(name);
-			Structr.modules[name].onload();
-			Structr.adaptUiToAvailableFeatures();
+
+			if (moduleAllowsNavigation) {
+				Structr.clearMain();
+				Structr.activateMenuEntry(name);
+				Structr.modules[name].onload();
+				Structr.adaptUiToAvailableFeatures();
+			}
+
+			return moduleAllowsNavigation;
 		} else {
 			_Logger.log(_LogType.INIT, 'Module ' + name + ' does not exist.');
 			Structr.unblockMenu();
 		}
+
+		return true;
 	},
 	activateMenuEntry: function(name) {
 		Structr.blockMenu();
@@ -1821,17 +1815,13 @@ var Structr = {
 	},
 	blockUiGeneric: function(html, timeout) {
 		Structr.loadingSpinnerTimeout = window.setTimeout(function() {
-			$.blockUI.defaults.overlayCSS.opacity = .2;
-			$.blockUI.defaults.applyPlatformOpacityRules = false;
+
 			$.blockUI({
 				fadeIn: 0,
 				fadeOut: 0,
 				message: html,
 				forceInput: true,
-				css: {
-					border: 'none',
-					backgroundColor: 'transparent'
-				}
+				css: Structr.defaultBlockUICss
 			});
 		}, timeout || 0);
 	},
@@ -2247,8 +2237,16 @@ function formatKey(text) {
 var keyEventBlocked = true;
 var keyEventTimeout;
 
-$(window).on('beforeunload', function(event) {
+window.addEventListener('beforeunload', (event) => {
 	if (event.target === document) {
+
+		if (Structr.getActiveModule().beforeunloadHandler && typeof Structr.getActiveModule().beforeunloadHandler === "function") {
+			let ret = Structr.getActiveModule().beforeunloadHandler();
+			if (ret) {
+				event.returnValue = ret;
+			}
+		}
+
 		_Logger.log(_LogType.INIT, '########################################### unload #####################################################');
 		// Remove dialog data in case of page reload
 		LSWrapper.removeItem(dialogDataKey);

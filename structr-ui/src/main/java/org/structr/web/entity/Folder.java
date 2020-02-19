@@ -33,6 +33,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.property.PropertyMap;
 import org.structr.files.cmis.config.StructrFolderActions;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
@@ -75,6 +76,7 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextA
 
 		type.overrideMethod("onCreation",     true, Folder.class.getName() + ".onCreation(this, arg0, arg1);");
 		type.overrideMethod("onModification", true, Folder.class.getName() + ".onModification(this, arg0, arg1, arg2);");
+		type.overrideMethod("onDeletion",     true, Folder.class.getName() + ".onDeletion(this, arg0, arg1, arg2);");
 
 		type.overrideMethod("getFiles",       false, "return " + Folder.class.getName() + ".getFiles(this);");
 		type.overrideMethod("getFolders",     false, "return " + Folder.class.getName() + ".getFolders(this);");
@@ -148,6 +150,11 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextA
 
 			Folder.updateWatchService(thisFolder, true);
 		}
+	}
+
+	static void onDeletion(final Folder thisFolder, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
+
+		Folder.updateWatchService(thisFolder, false);
 	}
 
 

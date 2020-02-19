@@ -120,7 +120,7 @@ var _Crud = {
 			statusCode: {
 				200: function(data) {
 
-					if (data && data.result) {
+					if (data && data.result && data.result[0]) {
 
 						_Crud.availableViews[type] = data.result[0].views;
 
@@ -140,10 +140,13 @@ var _Crud = {
 						processViewInfo(data.result[0].views.all);
 
 						_Crud.keys[type] = properties;
-					}
 
-					if (typeof callback === 'function') {
-						callback();
+						if (typeof callback === 'function') {
+							callback();
+						}
+
+					} else {
+						Structr.error('Error: No type information found for type: ' + type, true);
 					}
 				},
 				400: errorFn,
@@ -2563,15 +2566,11 @@ var _Crud = {
 					searchField.focus();
 				});
 			}
-			$.blockUI.defaults.overlayCSS.opacity = .6;
-			$.blockUI.defaults.applyPlatformOpacityRules = false;
-			$.blockUI.defaults.css.cursor = 'default';
 
 			var dimensions = Structr.getDialogDimensions(0, 24);
 			Structr.blockUI(dimensions);
 
 			_Crud.resize();
-
 		}
 	},
 	resize: function() {
