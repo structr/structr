@@ -479,7 +479,10 @@ var LSWrapper = new (function() {
 	};
 
 	this.removeItem = function (key) {
+
 		delete _localStorageObject[key];
+
+		this.persistToRealLocalStorage();
 	};
 
 	this.clear = function () {

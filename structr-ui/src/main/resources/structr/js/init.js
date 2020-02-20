@@ -26,7 +26,6 @@ var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialog
 var dialogId;
 var pagerType = {}, page = {}, pageSize = {}, sortKey = {}, sortOrder = {}, pagerFilters = {};
 var dialogMaximizedKey = 'structrDialogMaximized_' + port;
-var dontMaximize = false;
 var expandedIdsKey = 'structrTreeExpandedIds_' + port;
 var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
 var pagerDataKey = 'structrPagerData_' + port + '_';
@@ -567,9 +566,7 @@ var Structr = {
 		}, 1000);
 
 	},
-	dialog: function(text, callbackOk, callbackCancel, preventMaximize) {
-
-		dontMaximize = preventMaximize || false;
+	dialog: function(text, callbackOk, callbackCancel) {
 
 		if (browser) {
 
@@ -617,7 +614,6 @@ var Structr = {
 			dimensions.text = text;
 			_Logger.log(_LogType.INIT, 'Open dialog', dialog, dimensions, callbackOk, callbackCancel);
 			LSWrapper.setItem(dialogDataKey, JSON.stringify(dimensions));
-
 		}
 	},
 	getDialogDimensions: function(marginLeft, marginTop) {
@@ -714,7 +710,7 @@ var Structr = {
 
 		isMax = LSWrapper.getItem(dialogMaximizedKey);
 
-		if (isMax && !dontMaximize) {
+		if (isMax) {
 			Structr.maximize();
 		} else {
 
