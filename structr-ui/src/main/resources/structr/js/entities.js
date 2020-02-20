@@ -604,7 +604,7 @@ var _Entities = {
 
 					}
 
-					Structr.dialog(dialogTitle, function() { return true; }, function() { return true; }, true);
+					Structr.dialog(dialogTitle, function() { return true; }, function() { return true; });
 
 					var tabsdiv = dialogHead.append('<div id="tabs"></div>');
 					var mainTabs = tabsdiv.append('<ul></ul>');
