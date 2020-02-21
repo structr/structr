@@ -67,17 +67,20 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 	@Override
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
-		final App app                          = StructrApp.getInstance();
-		final Class<? extends OneToMany> clazz = this.getClass();
-		final Class<S> sourceType              = getSourceType();
+		if (securityContext.doEnsureCardinality()) {
 
-		if (targetNode != null) {
+			final App app                          = StructrApp.getInstance();
+			final Class<? extends OneToMany> clazz = this.getClass();
+			final Class<S> sourceType              = getSourceType();
 
-			// check existing relationships
-			final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationshipAsSuperUser(clazz);
-			if (incomingRel != null && SearchCommand.isTypeAssignableFromOtherType(sourceType, incomingRel.getSourceType())) {
+			if (targetNode != null) {
 
-				app.delete(incomingRel);
+				// check existing relationships
+				final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationshipAsSuperUser(clazz);
+				if (incomingRel != null && SearchCommand.isTypeAssignableFromOtherType(sourceType, incomingRel.getSourceType())) {
+
+					app.delete(incomingRel);
+				}
 			}
 		}
 	}
