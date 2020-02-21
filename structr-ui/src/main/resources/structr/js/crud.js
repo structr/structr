@@ -36,8 +36,6 @@ if (browser) {
 
 		Structr.registerModule(_Crud);
 
-		_Crud.resize();
-
 		$(document).on('click', '#crud-left li', function() {
 			_Crud.typeSelected($(this).data('type'));
 		});

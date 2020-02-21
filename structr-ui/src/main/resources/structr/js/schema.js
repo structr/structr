@@ -1569,22 +1569,11 @@ var _Schema = {
 				initFunction();
 			}
 
-			var lineWrapping = LSWrapper.getItem(lineWrappingKey);
-			el.append('<div class="editor-settings"><span><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span></div>');
+			el.append('<div class="editor-settings"><span><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span></div>');
 			$('#lineWrapping', el).off('change').on('change', function() {
 				var inp = $(this);
-				var isLinewrappingOn = inp.is(':checked');
-				if  (isLinewrappingOn) {
-					LSWrapper.setItem(lineWrappingKey, "1");
-				} else {
-					LSWrapper.removeItem(lineWrappingKey);
-				}
+				Structr.updateCodeMirrorOptionGlobally('lineWrapping', inp.is(':checked'));
 				blinkGreen(inp.parent());
-
-				$('.CodeMirror', actionsTable).each(function(idx, cmEl) {
-					cmEl.CodeMirror.setOption('lineWrapping', isLinewrappingOn);
-					cmEl.CodeMirror.refresh();
-				});
 			});
 		});
 	},
@@ -2190,21 +2179,19 @@ var _Schema = {
 		contentType = contentType ? contentType : entity.contentType;
 		var text1, text2;
 
-		var lineWrapping = LSWrapper.getItem(lineWrappingKey);
-
 		// Intitialize editor
-		editor = CodeMirror(contentBox.get(0), {
+		editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
 			value: text,
 			mode: contentType,
 			lineNumbers: true,
-			lineWrapping: lineWrapping,
+			lineWrapping: false,
 			extraKeys: {
 				"Ctrl-Space": _Contents.autoComplete
 			},
 			indentUnit: 4,
 			tabSize:4,
 			indentWithTabs: true
-		});
+		}));
 		_Code.setupAutocompletion(editor, entity.id);
 
 		Structr.resize();
@@ -2292,16 +2279,10 @@ var _Schema = {
 			});
 		});
 
-		dialogMeta.append('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
+		dialogMeta.append('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span>');
 		$('#lineWrapping').off('change').on('change', function() {
 			var inp = $(this);
-			if  (inp.is(':checked')) {
-				LSWrapper.setItem(lineWrappingKey, "1");
-				editor.setOption('lineWrapping', true);
-			} else {
-				LSWrapper.removeItem(lineWrappingKey);
-				editor.setOption('lineWrapping', false);
-			}
+			Structr.updateCodeMirrorOptionGlobally('lineWrapping', inp.is(':checked'));
 			blinkGreen(inp.parent());
 			editor.refresh();
 		});
@@ -3715,11 +3696,12 @@ var _Schema = {
 	},
 	initCodeMirrorForMethodCode: function(el) {
 		var existingCodeMirror = $('.CodeMirror', $(el).parent())[0];
+
 		if (!existingCodeMirror) {
-			var cm = CodeMirror.fromTextArea(el, {
+			var cm = CodeMirror.fromTextArea(el, Structr.getCodeMirrorSettings({
 				lineNumbers: true,
 				mode: _Schema.senseCodeMirrorMode($(el).val()),
-				lineWrapping: LSWrapper.getItem(lineWrappingKey),
+				lineWrapping: false,
 				extraKeys: {
 					"'.'":        _Contents.autoComplete,
 					"Ctrl-Space": _Contents.autoComplete
@@ -3727,7 +3709,8 @@ var _Schema = {
 				indentUnit: 4,
 				tabSize: 4,
 				indentWithTabs: true
-			});
+			}));
+
 			$(cm.getWrapperElement()).addClass('cm-schema-methods');
 			cm.refresh();
 
@@ -3740,15 +3723,17 @@ var _Schema = {
 	},
 	initCodeMirrorForMethodComment: function(el) {
 		var existingCodeMirror = $('.CodeMirror', $(el).parent())[0];
+
 		if (!existingCodeMirror) {
-			var cm = CodeMirror.fromTextArea(el, {
+			var cm = CodeMirror.fromTextArea(el, Structr.getCodeMirrorSettings({
 				theme: "no-lang",
 				lineNumbers: true,
-				lineWrapping: LSWrapper.getItem(lineWrappingKey),
+				lineWrapping: false,
 				indentUnit: 4,
 				tabSize: 4,
 				indentWithTabs: true
-			});
+			}));
+
 			$(cm.getWrapperElement()).addClass('cm-schema-methods');
 			cm.refresh();
 

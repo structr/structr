@@ -280,6 +280,7 @@ var Structr = {
 	msgCount: 0,
 	currentlyActiveSortable: undefined,
 	loadingSpinnerTimeout: undefined,
+	keyCodeMirrorSettings: 'structrCodeMirrorSettings_' + port,
 	defaultBlockUICss: {
 		cursor: 'default',
 		border: 'none',
@@ -1866,6 +1867,30 @@ var Structr = {
 	hideNonBlockUILoadingMessage: function() {
 		$('#' + Structr.nonBlockUIBlockerId).remove();
 		$('#' + Structr.nonBlockUIBlockerContentId).remove();
+	},
+
+	getCodeMirrorSettings: function(baseConfig) {
+
+		let savedSettings = LSWrapper.getItem(Structr.keyCodeMirrorSettings) || {};
+
+		if (baseConfig) {
+			return Object.assign(baseConfig, savedSettings);
+		}
+
+		return savedSettings;
+	},
+
+	updateCodeMirrorOptionGlobally: function(optionName, value) {
+
+		let codeMirrorSettings = Structr.getCodeMirrorSettings();
+
+		$('.CodeMirror').each(function(idx, cmEl) {
+			cmEl.CodeMirror.setOption(optionName, value);
+			codeMirrorSettings[optionName] = value;
+			cmEl.CodeMirror.refresh();
+		});
+
+		LSWrapper.setItem(Structr.keyCodeMirrorSettings, codeMirrorSettings);
 	}
 };
 

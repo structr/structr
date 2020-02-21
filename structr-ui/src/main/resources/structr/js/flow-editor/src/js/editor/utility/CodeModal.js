@@ -39,7 +39,7 @@ export class CodeModal {
             }
         });
 
-        let editor = CodeMirror(container.querySelector("div.modal-content"), {
+        let editor = CodeMirror(container.querySelector("div.modal-content"), Structr.getCodeMirrorSettings({
             lineNumbers: true,
             styleActiveLine: true,
             matchBrackets: true,
@@ -53,12 +53,12 @@ export class CodeModal {
                     cm.setOption("fullScreen", !cm.getOption("fullScreen"));
                 }
             }
-        });
+        }));
 
         editor.setOption("theme", "darcula");
 
         // Write changes on blur/exit
-        editor.on('blur', ()=>{element.value = editor.getValue();element.dispatchEvent(new Event('change'))});
+        editor.on('blur', ()=> { element.value = editor.getValue(); element.dispatchEvent(new Event('change')); });
 
         // Stop key events from bubbling up
         editor.on('keydown', (event) => event.stopPropagation());

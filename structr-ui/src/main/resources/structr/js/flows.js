@@ -398,7 +398,7 @@ var _Flows = {
                 if (name.indexOf(".") !== -1) {
 					dataObject.effectiveName = name;
 				} else {
-                	dataObject.name = name;	
+                	dataObject.name = name;
 				}
 
                 if (id !== null) {
@@ -628,17 +628,17 @@ var _Flows = {
 
         dialogText.append('<div class="editor"></div>');
 		let contentBox = $('.editor', dialogText);
-		let lineWrapping = LSWrapper.getItem(lineWrappingKey);
-		let cmEditor = CodeMirror(contentBox.get(0), {
+
+		let cmEditor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
 			value: element.value,
 			mode: "application/javascript",
 			lineNumbers: true,
-			lineWrapping: lineWrapping,
+			lineWrapping: false,
 			indentUnit: 4,
-			tabSize:4,
+			tabSize: 4,
 			indentWithTabs: true,
 			autofocus: true
-		});
+		}));
 
         Structr.resize();
 
