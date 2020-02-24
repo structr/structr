@@ -67,20 +67,17 @@ public abstract class ManyToOne<S extends NodeInterface, T extends NodeInterface
 	@Override
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
-		if (securityContext.doEnsureCardinality()) {
+		final App app                          = StructrApp.getInstance();
+		final Class<? extends ManyToOne> clazz = this.getClass();
+		final Class<T> targetType              = getTargetType();
 
-			final App app                          = StructrApp.getInstance();
-			final Class<? extends ManyToOne> clazz = this.getClass();
-			final Class<T> targetType              = getTargetType();
+		if (sourceNode != null) {
 
-			if (sourceNode != null) {
+			// check existing relationships
+			final Relation<?, T, ?, ?> outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(clazz);
+			if (outgoingRel != null && SearchCommand.isTypeAssignableFromOtherType(targetType, outgoingRel.getTargetType())) {
 
-				// check existing relationships
-				final Relation<?, T, ?, ?> outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(clazz);
-				if (outgoingRel != null && SearchCommand.isTypeAssignableFromOtherType(targetType, outgoingRel.getTargetType())) {
-
-					app.delete(outgoingRel);
-				}
+				app.delete(outgoingRel);
 			}
 		}
 	}

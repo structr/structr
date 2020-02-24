@@ -31,7 +31,7 @@ import org.structr.core.function.ChangelogFunction;
 import org.structr.core.function.ConfigFunction;
 import org.structr.core.function.DecryptFunction;
 import org.structr.core.function.DisableCascadingDeleteFunction;
-import org.structr.core.function.DisableEnsureCardinalityFunction;
+import org.structr.core.function.DisablePreventDuplicateRelationshipsFunction;
 import org.structr.core.function.DisableNotificationsFunction;
 import org.structr.core.function.EnableCascadingDeleteFunction;
 import org.structr.core.function.EnableNotificationsFunction;
@@ -135,7 +135,7 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new DisableCascadingDeleteFunction());
 		Functions.put(licenseManager, new EnableCascadingDeleteFunction());
 		Functions.put(licenseManager, new DisableNotificationsFunction());
-		Functions.put(licenseManager, new DisableEnsureCardinalityFunction());
+		Functions.put(licenseManager, new DisablePreventDuplicateRelationshipsFunction());
 		Functions.put(licenseManager, new EnableNotificationsFunction());
 		Functions.put(licenseManager, new RInterpreterFunction());
 		Functions.put(licenseManager, new EvaluateScriptFunction());

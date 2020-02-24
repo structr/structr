@@ -24,14 +24,14 @@ import org.structr.schema.action.ActionContext;
 /**
  *
  */
-public class DisableEnsureCardinalityFunction extends AdvancedScriptingFunction {
+public class DisablePreventDuplicateRelationshipsFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_DISABLE_ENSURE_CARDINALITY    = "Usage: ${disable_ensure_cardinality()}";
-	public static final String ERROR_MESSAGE_DISABLE_ENSURE_CARDINALITY_JS = "Usage: ${Structr.disableEnsureCardinality()}";
+	public static final String ERROR_MESSAGE_DISABLE_PREVENT_DUPLICATE_RELATIONSHIPS    = "Usage: ${disable_prevent_duplicate_relationships()}";
+	public static final String ERROR_MESSAGE_DISABLE_PREVENT_DUPLICATE_RELATIONSHIPS_JS = "Usage: ${Structr.disablePreventDuplicateRelationships()}";
 
 	@Override
 	public String getName() {
-		return "disable_ensure_cardinality";
+		return "disable_prevent_duplicate_relationships";
 	}
 
 	@Override
@@ -42,19 +42,23 @@ public class DisableEnsureCardinalityFunction extends AdvancedScriptingFunction 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		ctx.getSecurityContext().disableEnsureCardinality();
+		ctx.getSecurityContext().disablePreventDuplicateRelationships();
 
 		return "";
 	}
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_DISABLE_ENSURE_CARDINALITY_JS : ERROR_MESSAGE_DISABLE_ENSURE_CARDINALITY);
+		return (inJavaScriptContext ? ERROR_MESSAGE_DISABLE_PREVENT_DUPLICATE_RELATIONSHIPS_JS : ERROR_MESSAGE_DISABLE_PREVENT_DUPLICATE_RELATIONSHIPS);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Disables ensure cardinality in the Structr Backend for the current transaction - USE AT YOUR OWN RISK!";
+		return "Disables prevention of duplicate relationships in many-to-many rels in the Structr Backend for the current transaction - USE AT YOUR OWN RISK!";
 	}
 
+	@Override
+	public boolean isHidden() {
+		return true;
+	}
 }

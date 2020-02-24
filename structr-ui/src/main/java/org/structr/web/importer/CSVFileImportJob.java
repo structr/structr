@@ -119,7 +119,7 @@ public class CSVFileImportJob extends FileImportJob {
 			// disable transaction notifications
 			threadContext.disableModificationOfAccessTime();
 			threadContext.setDoTransactionNotifications(false);
-			threadContext.disableEnsureCardinality();
+			threadContext.disablePreventDuplicateRelationships();
 
 			try (final InputStream is = getFileInputStream(threadContext)) {
 

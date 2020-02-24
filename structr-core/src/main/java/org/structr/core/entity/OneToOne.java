@@ -70,32 +70,29 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 	@Override
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
-		if (securityContext.doEnsureCardinality()) {
+		final App app                         = StructrApp.getInstance();
+		final Class<? extends OneToOne> clazz = getClass();
+		final Class<S> sourceType             = getSourceType();
+		final Class<T> targetType             = getTargetType();
 
-			final App app                         = StructrApp.getInstance();
-			final Class<? extends OneToOne> clazz = getClass();
-			final Class<S> sourceType             = getSourceType();
-			final Class<T> targetType             = getTargetType();
+		if (sourceNode != null) {
 
-			if (sourceNode != null) {
+			// check existing relationships
+			final Relation<S, ?, ?, ?> outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(clazz);
 
-				// check existing relationships
-				final Relation<S, ?, ?, ?> outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(clazz);
-
-				// remove relationship if exists
-				if (outgoingRel != null && SearchCommand.isTypeAssignableFromOtherType(targetType, outgoingRel.getTargetType())) {
-					app.delete(outgoingRel);
-				}
+			// remove relationship if exists
+			if (outgoingRel != null && SearchCommand.isTypeAssignableFromOtherType(targetType, outgoingRel.getTargetType())) {
+				app.delete(outgoingRel);
 			}
+		}
 
-			if (targetNode != null) {
+		if (targetNode != null) {
 
-				// check existing relationships
-				final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationshipAsSuperUser(clazz);
+			// check existing relationships
+			final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationshipAsSuperUser(clazz);
 
-				if (incomingRel != null && SearchCommand.isTypeAssignableFromOtherType(sourceType, incomingRel.getSourceType())) {
-					app.delete(incomingRel);
-				}
+			if (incomingRel != null && SearchCommand.isTypeAssignableFromOtherType(sourceType, incomingRel.getSourceType())) {
+				app.delete(incomingRel);
 			}
 		}
 	}

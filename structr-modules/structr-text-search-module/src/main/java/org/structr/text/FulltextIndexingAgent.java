@@ -85,7 +85,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 		final App app                         = StructrApp.getInstance(securityContext);
 
-		securityContext.disableEnsureCardinality();
+		securityContext.disablePreventDuplicateRelationships();
 
 		if (TASK_NAME.equals(task.getType())) {
 

@@ -229,7 +229,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final App app                   = StructrApp.getInstance(ctx);
 
 			ctx.setDoTransactionNotifications(false);
-			ctx.disableEnsureCardinality();
+			ctx.disablePreventDuplicateRelationships();
 			ctx.disableModificationOfAccessTime();
 			ctx.setDoIndexing(false);
 
