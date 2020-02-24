@@ -1437,7 +1437,7 @@ var _Code = {
 		Structr.fetchHtmlTemplate('code/globals', { }, function(html) {
 			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
-			_Code.displayCreateButton('#method-actions', 'magic', 'new', 'Add global schema method', '', { type: 'SchemaMethod' });
+			_Code.displayCreateButton('#method-actions', 'fa fa-magic', 'new', 'Add global schema method', '', { type: 'SchemaMethod' });
 		});
 	},
 	displayPropertiesContent: function(selection, updateLocationStack) {
