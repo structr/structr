@@ -246,13 +246,26 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path source = Paths.get(path);
 			if (!Files.exists(source)) {
 
+				publishWarningMessage("Import not started", "Source path " + path + " does not exist.");
+
 				throw new FrameworkException(422, "Source path " + path + " does not exist.");
 			}
 
 			if (!Files.isDirectory(source)) {
 
+				publishWarningMessage("Import not started", "Source path " + path + " is not a directory.");
+
 				throw new FrameworkException(422, "Source path " + path + " is not a directory.");
 			}
+
+			if (source.isAbsolute() != true) {
+
+				publishWarningMessage("Import not started", "Source path " + path + " is not an absolute path - relative paths are not allowed.");
+
+				throw new FrameworkException(422, "Source path " + path + " is not an absolute path - relative paths are not allowed.");
+			}
+
+			logger.info("Importing from '{}'", path);
 
 			final Map<String, Object> broadcastData = new HashMap();
 			broadcastData.put("start",   startTime);
@@ -653,14 +666,23 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	protected void doExport(final Map<String, Object> attributes) throws FrameworkException {
 
-		final String path  = (String) attributes.get("target");
+		final String path = (String) attributes.get("target");
 
 		if (StringUtils.isBlank(path)) {
+
+			publishWarningMessage("Export not started", "Please provide target path for deployment export.");
 
 			throw new FrameworkException(422, "Please provide target path for deployment export.");
 		}
 
 		final Path target  = Paths.get(path);
+
+		if (target.isAbsolute() != true) {
+
+			publishWarningMessage("Export not started", "Target path '" + path + "' is not an absolute path - relative paths are not allowed.");
+
+			throw new FrameworkException(422, "Target path '" + path + "' is not an absolute path - relative paths are not allowed.");
+		}
 
 		try {
 
