@@ -21,8 +21,6 @@ package org.structr.rest.resource;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.api.config.Settings;
 import org.structr.api.service.LicenseManager;
@@ -88,6 +86,7 @@ public class EnvResource extends Resource {
 			info.setProperty(new StringProperty("licensee"), "Unlicensed");
 		}
 
+		info.setProperty(new GenericProperty("resultCountSoftLimit"), Settings.ResultCountSoftLimit.getValue());
 		info.setProperty(new StringProperty("availableReleasesUrl"), Settings.ReleasesIndexUrl.getValue());
 		info.setProperty(new StringProperty("availableSnapshotsUrl"), Settings.SnapshotsIndexUrl.getValue());
 
