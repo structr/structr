@@ -17,10 +17,7 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 $(document).ready(function() {
-
 	Structr.registerModule(_Localization);
-	_Localization.resize();
-
 });
 
 var _Localization = {

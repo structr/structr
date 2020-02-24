@@ -90,7 +90,7 @@ public class SetPermissionCommand extends AbstractCommand {
 			final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 			securityContext.setDoTransactionNotifications(false);
-			securityContext.disableEnsureCardinality();
+			securityContext.disablePreventDuplicateRelationships();
 
 			final App app = StructrApp.getInstance(securityContext);
 			try (final Tx nestedTx = app.tx()) {

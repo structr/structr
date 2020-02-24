@@ -24,10 +24,7 @@ var currentContentContainerKey = 'structrCurrentContentContainer_' + port;
 var contentsResizerLeftKey = 'structrContentsResizerLeftKey_' + port;
 
 $(document).ready(function() {
-
 	Structr.registerModule(_Contents);
-	_Contents.resize();
-
 });
 
 var _Contents = {

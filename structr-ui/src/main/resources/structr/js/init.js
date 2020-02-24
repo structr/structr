@@ -125,7 +125,7 @@ $(function() {
 		if (k === 69) {
 			eKey = false;
 		}
-		if (navigator.platform === 'MacIntel' && (k === 91 || e.metaKey)) {
+		if (navigator.platform === 'MacIntel' && (k === 91 || k === 93 || k === 224)) {
 			cmdKey = false;
 		}
 		if (e.keyCode === 27) {
@@ -179,10 +179,10 @@ $(function() {
 		if (k === 69) {
 			eKey = true;
 		}
-		if (navigator.platform === 'MacIntel' && (k === 91 || e.metaKey)) {
+		if (navigator.platform === 'MacIntel' && (k === 91 || k === 93 || k === 224) && e.metaKey) {
 			cmdKey = true;
 		}
-		if ((e.ctrlKey && (e.which === 83)) || (navigator.platform === 'MacIntel' && cmdKey && (e.which === 83))) {
+		if (k === 83 && ((!(navigator.platform === 'MacIntel') && e.ctrlKey) || (navigator.platform === 'MacIntel' && cmdKey && (k === 83)))) {
 			e.preventDefault();
 			if (dialogSaveButton && dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
 				dialogSaveButton.click();
@@ -280,6 +280,7 @@ var Structr = {
 	msgCount: 0,
 	currentlyActiveSortable: undefined,
 	loadingSpinnerTimeout: undefined,
+	keyCodeMirrorSettings: 'structrCodeMirrorSettings_' + port,
 	defaultBlockUICss: {
 		cursor: 'default',
 		border: 'none',
@@ -1867,6 +1868,30 @@ var Structr = {
 	hideNonBlockUILoadingMessage: function() {
 		$('#' + Structr.nonBlockUIBlockerId).remove();
 		$('#' + Structr.nonBlockUIBlockerContentId).remove();
+	},
+
+	getCodeMirrorSettings: function(baseConfig) {
+
+		let savedSettings = LSWrapper.getItem(Structr.keyCodeMirrorSettings) || {};
+
+		if (baseConfig) {
+			return Object.assign(baseConfig, savedSettings);
+		}
+
+		return savedSettings;
+	},
+
+	updateCodeMirrorOptionGlobally: function(optionName, value) {
+
+		let codeMirrorSettings = Structr.getCodeMirrorSettings();
+
+		$('.CodeMirror').each(function(idx, cmEl) {
+			cmEl.CodeMirror.setOption(optionName, value);
+			codeMirrorSettings[optionName] = value;
+			cmEl.CodeMirror.refresh();
+		});
+
+		LSWrapper.setItem(Structr.keyCodeMirrorSettings, codeMirrorSettings);
 	}
 };
 

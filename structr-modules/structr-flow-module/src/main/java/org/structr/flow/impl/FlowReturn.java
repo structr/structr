@@ -58,7 +58,7 @@ public class FlowReturn extends FlowNode implements Return, DeployableEntity, Th
 		final String _script = getProperty(result);
 
 		String script = _script;
-		if (script == null) {
+		if (script == null || script.equals("")) {
 			script = "data";
 		}
 

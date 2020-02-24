@@ -17,7 +17,6 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var elements, dropBlocked;
-var lineWrappingKey = 'structrEditorLineWrapping_' + port;
 var contents, editor, contentType, currentEntity;
 
 $(function() {
@@ -1494,22 +1493,21 @@ var _Elements = {
 
 		var text1, text2;
 
-		var lineWrapping = LSWrapper.getItem(lineWrappingKey);
 
 		// Intitialize editor
 		CodeMirror.defineMIME("text/html", "htmlmixed-structr");
-		editor = CodeMirror(contentBox.get(0), {
+		editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
 			value: text,
 			mode: mode || contentType,
 			lineNumbers: true,
-			lineWrapping: lineWrapping,
+			lineWrapping: false,
 			extraKeys: {
 				"Ctrl-Space": "autocomplete"
 			},
 			indentUnit: 4,
-			tabSize:4,
+			tabSize: 4,
 			indentWithTabs: true
-		});
+		}));
 
 		_Code.setupAutocompletion(editor, entity.id);
 
@@ -1678,16 +1676,10 @@ var _Elements = {
 			});
 		});
 
-		dialogMeta.append('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
-		$('#lineWrapping').on('change', function() {
+		dialogMeta.append('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span>');
+		$('#lineWrapping').off('change').on('change', function() {
 			var inp = $(this);
-			if  (inp.is(':checked')) {
-				LSWrapper.setItem(lineWrappingKey, "1");
-				editor.setOption('lineWrapping', true);
-			} else {
-				LSWrapper.removeItem(lineWrappingKey);
-				editor.setOption('lineWrapping', false);
-			}
+			Structr.updateCodeMirrorOptionGlobally('lineWrapping', inp.is(':checked'));
 			blinkGreen(inp.parent());
 			editor.refresh();
 		});

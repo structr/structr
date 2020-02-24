@@ -402,7 +402,7 @@ public class DeployDataCommand extends DeployCommand {
 		final SecurityContext context = SecurityContext.getSuperUserInstance();
 
 		context.setDoTransactionNotifications(false);
-		context.disableEnsureCardinality();
+		context.disablePreventDuplicateRelationships();
 		context.disableModificationOfAccessTime();
 		context.disableInnerCallbacks();
 		context.setDoCascadingDelete(false);

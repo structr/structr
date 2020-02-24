@@ -458,6 +458,7 @@ var LSWrapper = new (function() {
 	};
 
 	this.isLoaded = function () {
+
 		return !(!_localStorageObject || (Object.keys(_localStorageObject).length === 0 && _localStorageObject.constructor === Object));
 	};
 
@@ -493,10 +494,12 @@ var LSWrapper = new (function() {
 	};
 
 	this.getAsJSON = function () {
+
 		return JSON.stringify(_localStorageObject);
 	};
 
 	this.restoreFromServer = function (callback) {
+
 		Command.getLocalStorage(callback);
 	};
 
@@ -570,8 +573,6 @@ var LSWrapper = new (function() {
 	};
 
 	this.prune = function() {
-
-		console.warn('prune');
 
 		// if localstorage save fails, remove the following elements
 		let pruneKeys = [
@@ -1041,19 +1042,17 @@ var _Favorites = new (function () {
 								'</div>'
 							);
 
-							var lineWrapping = LSWrapper.getItem(lineWrappingKey);
-
 							CodeMirror.defineMIME("text/html", "htmlmixed-structr");
-							var editor = CodeMirror($('#editor-' + id).get(0), {
+							var editor = CodeMirror($('#editor-' + id).get(0), Structr.getCodeMirrorSettings({
 								value: favorite.favoriteContent || '',
 								mode: favorite.favoriteContentType || 'text/plain',
 								autoFocus: true,
 								lineNumbers: true,
-								lineWrapping: lineWrapping,
+								lineWrapping: false,
 								indentUnit: 4,
-								tabSize:4,
+								tabSize: 4,
 								indentWithTabs: true
-							});
+							}));
 							_Code.setupAutocompletion(editor, id);
 
 							var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + id));
@@ -1072,16 +1071,11 @@ var _Favorites = new (function () {
 							buttons.children('#saveFile').remove();
 							buttons.children('#saveAndClose').remove();
 
-							buttons.prepend('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
-							$('#lineWrapping').on('change', function() {
+							buttons.prepend('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span>');
+							$('#lineWrapping').off('change').on('change', function() {
 								var inp = $(this);
-								if (inp.is(':checked')) {
-									LSWrapper.setItem(lineWrappingKey, "1");
-									editor.setOption('lineWrapping', true);
-								} else {
-									LSWrapper.removeItem(lineWrappingKey);
-									editor.setOption('lineWrapping', false);
-								}
+								Structr.updateCodeMirrorOptionGlobally('lineWrapping', inp.is(':checked'));
+								blinkGreen(inp.parent());
 								editor.refresh();
 							});
 

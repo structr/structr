@@ -1317,20 +1317,20 @@ var _Files = {
 				}
 				element.append('<div class="editor"></div><div id="template-preview"><textarea readonly></textarea></div>');
 				var contentBox = $('.editor', element);
-				var lineWrapping = LSWrapper.getItem(lineWrappingKey);
+
 				CodeMirror.defineMIME("text/html", "htmlmixed-structr");
-				editor = CodeMirror(contentBox.get(0), {
+				editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
 					value: text,
 					mode: contentType,
 					lineNumbers: true,
-					lineWrapping: lineWrapping,
+					lineWrapping: false,
 					indentUnit: 4,
-					tabSize:4,
+					tabSize: 4,
 					indentWithTabs: true,
 					extraKeys: {
 						"Ctrl-Space": "autocomplete"
 					}
-				});
+				}));
 				_Code.setupAutocompletion(editor, file.id, false);
 
 				var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + file.id));
@@ -1348,11 +1348,10 @@ var _Files = {
 				dialogBtn.children('#saveFile').remove();
 				dialogBtn.children('#saveAndClose').remove();
 
-				var h = '<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '>&nbsp;&nbsp;'
+				var h = '<span class="editor-info"><label for="lineWrapping">Line Wrapping: <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></label>&nbsp;&nbsp;'
 				+ '<label for="isTemplate">Replace template expressions:</label> <input id="isTemplate" type="checkbox"><label for="showTemplatePreview">Show preview:</label> <input id="showTemplatePreview" type="checkbox"></span>';
 				dialogMeta.html(h);
 
-				let lineWrappingCheckbox = $('#lineWrapping');
 				let isTemplateCheckbox   = $('#isTemplate').prop('checked', file.isTemplate);
 				let showPreviewCheckbox  = $('#showTemplatePreview');
 
@@ -1375,14 +1374,10 @@ var _Files = {
 				};
 				isTemplateCheckboxChangeFunction(file.isTemplate);
 
-				lineWrappingCheckbox.on('change', function() {
-					if ($(this).is(':checked')) {
-						LSWrapper.setItem(lineWrappingKey, "1");
-						editor.setOption('lineWrapping', true);
-					} else {
-						LSWrapper.removeItem(lineWrappingKey);
-						editor.setOption('lineWrapping', false);
-					}
+				$('#lineWrapping').off('change').on('change', function() {
+					var inp = $(this);
+					Structr.updateCodeMirrorOptionGlobally('lineWrapping', inp.is(':checked'));
+					blinkGreen(inp.parent());
 					editor.refresh();
 				});
 

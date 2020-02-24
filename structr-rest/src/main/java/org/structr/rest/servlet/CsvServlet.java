@@ -275,7 +275,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				// do not send websocket notifications for created objects
 				securityContext.setDoTransactionNotifications(false);
 				securityContext.disableModificationOfAccessTime();
-				securityContext.disableEnsureCardinality();
+				securityContext.disablePreventDuplicateRelationships();
 
 				final String username = securityContext.getUser(false).getName();
 				final long startTime = System.currentTimeMillis();

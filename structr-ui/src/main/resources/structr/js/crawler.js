@@ -26,7 +26,6 @@ var proxyUrl = '/structr/proxy';
 
 $(document).ready(function() {
 	Structr.registerModule(_Crawler);
-	_Crawler.resize();
 });
 
 var _Crawler = {

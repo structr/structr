@@ -817,18 +817,18 @@ var _Code = {
 		var text = entity[key] || '';
 
 		var contentBox = $('.editor', element);
-		var editor = CodeMirror(contentBox.get(0), {
+		var editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
 			value: text,
 			mode: _Code.getEditorModeForContent(text),
 			lineNumbers: true,
 			lineWrapping: false,
 			indentUnit: 4,
-			tabSize:4,
+			tabSize: 4,
 			indentWithTabs: true,
 			extraKeys: {
 				"Ctrl-Space": "autocomplete"
 			}
-		});
+		}));
 
 		_Code.setupAutocompletion(editor, entity.id, true);
 
@@ -1298,11 +1298,13 @@ var _Code = {
 						200: function(result) {
 
 							var container = $(sourceContainer);
-							var editor    = CodeMirror(container[0], {
+
+							var editor    = CodeMirror(container[0], Structr.getCodeMirrorSettings({
 								value: result.result,
 								mode: 'text/x-java',
-								lineNumbers: true
-							});
+								lineNumbers: true,
+								readOnly: true
+							}));
 
 							$('.CodeMirror').height('100%');
 							editor.refresh();
@@ -1435,7 +1437,7 @@ var _Code = {
 		Structr.fetchHtmlTemplate('code/globals', { }, function(html) {
 			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
-			_Code.displayCreateButton('#method-actions', 'magic', 'new', 'Add global schema method', '', { type: 'SchemaMethod' });
+			_Code.displayCreateButton('#method-actions', 'fa fa-magic', 'new', 'Add global schema method', '', { type: 'SchemaMethod' });
 		});
 	},
 	displayPropertiesContent: function(selection, updateLocationStack) {

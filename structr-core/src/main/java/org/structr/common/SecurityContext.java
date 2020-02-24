@@ -73,7 +73,7 @@ public class SecurityContext {
 	private boolean modifyAccessTime                      = true;
 	private boolean disableSoftLimit                      = false;
 	private boolean forceResultCount                      = false;
-	private boolean ensureCardinality                     = true;
+	private boolean preventDuplicateRelationships                     = true;
 	private boolean doInnerCallbacks                      = true;
 	private boolean isReadOnlyTransaction                 = false;
 	private boolean doMultiThreadedJsonOutput             = false;
@@ -853,16 +853,16 @@ public class SecurityContext {
 		return disableSoftLimit;
 	}
 
-	public boolean doEnsureCardinality() {
-		return ensureCardinality;
+	public boolean preventDuplicateRelationships() {
+		return preventDuplicateRelationships;
 	}
 
-	public void disableEnsureCardinality() {
-		ensureCardinality = false;
+	public void disablePreventDuplicateRelationships() {
+		preventDuplicateRelationships = false;
 	}
 
-	public void enableEnsureCardinality() {
-		ensureCardinality = false;
+	public void enablePreventDuplicateRelationships() {
+		preventDuplicateRelationships = false;
 	}
 
 	public void disableInnerCallbacks() {

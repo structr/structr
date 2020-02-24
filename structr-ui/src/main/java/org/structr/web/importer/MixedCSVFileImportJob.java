@@ -107,7 +107,7 @@ public class MixedCSVFileImportJob extends FileImportJob {
 			threadContext.setContextStore(ctxStore);
 			threadContext.disableModificationOfAccessTime();
 			threadContext.setDoTransactionNotifications(false);
-			threadContext.disableEnsureCardinality();
+			threadContext.disablePreventDuplicateRelationships();
 
 			try (final InputStream is = getFileInputStream(threadContext)) {
 

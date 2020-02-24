@@ -1819,7 +1819,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				// ensureCardinality is not neccessary here
 				final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 				final PropertyMap properties           = new PropertyMap();
-				superUserContext.disableEnsureCardinality();
+				superUserContext.disablePreventDuplicateRelationships();
 
 				// performance improvement for grant(): add properties to the CREATE call that would
 				// otherwise be set in separate calls later in the transaction.
@@ -1898,7 +1898,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 					// ensureCardinality is not neccessary here
 					final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 					final PropertyMap properties           = new PropertyMap();
-					superUserContext.disableEnsureCardinality();
+					superUserContext.disablePreventDuplicateRelationships();
 
 					// performance improvement for grant(): add properties to the CREATE call that would
 					// otherwise be set in separate calls later in the transaction.

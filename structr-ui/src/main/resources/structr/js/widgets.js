@@ -542,7 +542,7 @@ var _Widgets = {
 	appendWidgetPropertyEditor: function (container, value, mode, allowEdit) {
 
 		CodeMirror.defineMIME("text/html", "htmlmixed-structr");
-		return CodeMirror(container.get(0), {
+		return CodeMirror(container.get(0), Structr.getCodeMirrorSettings({
 			value: value,
 			mode: mode,
 			lineNumbers: true,
@@ -550,7 +550,7 @@ var _Widgets = {
 			tabSize: 4,
 			indentWithTabs: true,
 			readOnly: !allowEdit
-		});
+		}));
 	},
 	appendWidgetSelectorEditor: function (container, entity, allowEdit) {
 

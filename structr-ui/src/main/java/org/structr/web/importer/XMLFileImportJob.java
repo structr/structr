@@ -91,7 +91,7 @@ public class XMLFileImportJob extends FileImportJob {
 			// disable transaction notifications
 			threadContext.disableModificationOfAccessTime();
 			threadContext.setDoTransactionNotifications(false);
-			threadContext.disableEnsureCardinality();
+			threadContext.disablePreventDuplicateRelationships();
 
 			// experimental: instruct deserialization strategies to set properties on related nodes
 			threadContext.setAttribute("setNestedProperties", true);
