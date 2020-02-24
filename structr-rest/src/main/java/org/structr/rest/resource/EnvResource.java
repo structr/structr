@@ -86,6 +86,7 @@ public class EnvResource extends Resource {
 			info.setProperty(new StringProperty("licensee"), "Unlicensed");
 		}
 
+		info.setProperty(new GenericProperty("resultCountSoftLimit"), Settings.ResultCountSoftLimit.getValue());
 		info.setProperty(new StringProperty("availableReleasesUrl"), Settings.ReleasesIndexUrl.getValue());
 		info.setProperty(new StringProperty("availableSnapshotsUrl"), Settings.SnapshotsIndexUrl.getValue());
 
