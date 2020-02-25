@@ -232,6 +232,9 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 	 * Gets called after a new slice of data has been received
 	 */
 	this.updatePager = function() {
+
+		console.log(pageCount[this.id]);
+
 		if (page[this.id] === 1) {
 			this.pageLeft.attr('disabled', 'disabled').addClass('disabled');
 		} else {

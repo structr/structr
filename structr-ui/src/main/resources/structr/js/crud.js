@@ -74,6 +74,7 @@ if (browser) {
 var _Crud = {
 	_moduleName: 'crud',
 	defaultCollectionPageSize: 10,
+	resultCountSoftLimit: 10000,
 	displayTypeConfigKey: 'structrCrudDisplayTypes_' + port,
 	crudPagerDataKey: 'structrCrudPagerData_' + port + '_',
 	crudTypeKey: 'structrCrudType_' + port,
@@ -904,7 +905,14 @@ var _Crud = {
 			statusCode: {
 				200: function(data) {
 
-					var pageCount   = data.page_count;
+					var softLimited = false;
+					var pageCount = data.page_count;
+
+					// handle new soft-limited REST result without counts
+					if (data.result_count === undefined && data.page_count === undefined) {
+						pageCount = _Crud.getSoftLimitedPageCount(pageSize);
+						softLimited = true;
+					}
 
 					$('.cell-pager .collection-page', el).val(page);
 					$('.cell-pager .page-count', el).val(pageCount);
@@ -925,6 +933,10 @@ var _Crud = {
 					data.result.forEach(function(preloadedNode) {
 						_Crud.getAndAppendNode(type, id, key, preloadedNode.id, el, preloadedNode);
 					});
+
+					if (softLimited) {
+						_Crud.showSoftLimitAlert($('input.page-count'));
+					}
 				}
 			}
 
@@ -942,6 +954,7 @@ var _Crud = {
 			statusCode: {
 				200: function(data) {
 
+					var softLimited = false;
 					var resultCount = data.result_count;
 					var pageCount   = data.page_count;
 
@@ -952,6 +965,13 @@ var _Crud = {
 					}
 
 					var page = 1;
+
+					// handle new soft-limited REST result without counts
+					if (data.result_count === undefined && data.page_count === undefined) {
+						resultCount = _Crud.getSoftLimitedResultCount();
+						pageCount   = _Crud.getSoftLimitedPageCount(pageSize);
+						softLimited = true;
+					}
 
 					if (!resultCount || !pageCount || pageCount === 1) {
 						return;
@@ -995,6 +1015,9 @@ var _Crud = {
 
 					$('.cell-pager', el).append(' of <input type="text" size="1" readonly class="readonly page-count" value="' + pageCount + '">');
 
+					if (softLimited) {
+						_Crud.showSoftLimitAlert($('input.page-count'));
+					}
 				}
 
 			},
@@ -1271,6 +1294,8 @@ var _Crud = {
 		});
 	},
 	updatePager: function(type, qt, st, ps, p, pc) {
+
+		let softLimited = false;
 		var typeNode = $('#crud-right');
 		$('.queryTime', typeNode).text(qt);
 		$('.serTime', typeNode).text(st);
@@ -1279,8 +1304,17 @@ var _Crud = {
 		_Crud.page[type] = p;
 		$('.page', typeNode).val(_Crud.page[type]);
 
+		if (pc === undefined) {
+			pc = _Crud.getSoftLimitedPageCount(ps);
+			softLimited = true;
+		}
+
 		_Crud.pageCount = pc;
 		$('.pageCount', typeNode).val(_Crud.pageCount);
+
+		if (softLimited && !$('.soft-limit-warning')[0]) {
+			_Crud.showSoftLimitAlert($('input.pageCount'));
+		}
 
 		var pageLeft = $('.pageLeft', typeNode);
 		var pageRight = $('.pageRight', typeNode);
@@ -2947,6 +2981,18 @@ var _Crud = {
 			}
 		});
 		return o;
+	},
+	getSoftLimitedPageCount: function(pageSize) {
+		return Math.ceil(_Crud.getSoftLimitedResultCount() / pageSize);
+	},
+	getSoftLimitedResultCount: function() {
+		return _Crud.resultCountSoftLimit;
+	},
+	getSoftLimitMessage: function() {
+		return 'Result count exceeds soft limit (' + _Crud.resultCountSoftLimit + '). Page count may be higher than displayed.';
+	},
+	showSoftLimitAlert: function(el) {
+		el.attr('style', 'background-color: #fc0 !important;');
+		el.attr('title', _Crud.getSoftLimitMessage());
 	}
-
 };

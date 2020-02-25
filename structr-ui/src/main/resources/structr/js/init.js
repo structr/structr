@@ -1296,6 +1296,10 @@ var Structr = {
 				Structr.activeModules = envInfo.modules;
 				Structr.adaptUiToAvailableFeatures();
 
+				if (envInfo.resultCountSoftLimit !== undefined) {
+					_Crud.resultCountSoftLimit = envInfo.resultCountSoftLimit;
+				}
+
 				// run previously registered callbacks
 				let registeredCallbacks = Structr.moduleAvailabilityCallbacks;
 				Structr.moduleAvailabilityCallbacks = [];
