@@ -49,6 +49,7 @@ public class NodeService implements SingletonService {
 	private String filesPath                = null;
 	private boolean isInitialized           = false;
 	private CountResult initialCount        = null;
+	private String errorMessage             = null;
 
 	@Override
 	public void injectArguments(Command command) {
@@ -100,6 +101,10 @@ public class NodeService implements SingletonService {
 
 					logger.warn("Error while initializing indexes: {}", t.getMessage());
 				}
+
+			} else {
+
+				errorMessage = databaseService.getErrorMessage();
 			}
 		}
 
@@ -239,6 +244,12 @@ public class NodeService implements SingletonService {
 			}
 		}
 	}
+
+	@Override
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
 
 	// ----- private methods -----
 	private void checkCacheSizes() {

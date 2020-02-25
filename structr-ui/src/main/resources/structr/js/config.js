@@ -340,65 +340,177 @@ document.addEventListener('DOMContentLoaded', initSearch);
 
 function collectData(name) {
 
+	if (!name) {
+		name = 'structr-new-connection';
+	}
+
+	let nameInput = $('input#name-' + name);
+	let urlInput  = $('input#url-' + name);
+	let userInput = $('input#username-' + name);
+	let pwdInput  = $('input#password-' + name);
+
+	nameInput.removeClass();
+	urlInput.removeClass();
+	userInput.removeClass();
+	pwdInput.removeClass();
+
 	let data = {
-		'new-name':     $('input[name="new-name"]').val(),
-		'new-url':      $('input[name="new-url"]').val(),	
-		'new-username': $('input[name="new-username"]').val(),	
-		'new-password': $('input[name="new-password"]').val(),
+		'name':     nameInput.val(),
+		'url':      urlInput.val(),
+		'username': userInput.val(),
+		'password': pwdInput.val(),
 		'active_section': '#databases'
 	};
 
 	return data;
 }
 
-function addConnection() {
-		
+function addConnection(button) {
+
+	let name = 'structr-new-connection';
+
+	button.disabled = true;
+	button.dataset.text = button.innerHTML;
+	button.innerHTML = 'Connecting..';
+
+	let status = $('div#status-' + name);
+	status.addClass('hidden');
+	status.empty();
+
 	$.ajax({
 		type: 'post',
 		url: '/structr/config/add',
 		data: collectData(),
-		complete: function(response) {
-			console.log(response.status);
+		statusCode: {
+			200: function(response) {
+				location.reload();
+			},
+			422: response => handleErrorResponse(name, response, button),
+			503: response => handleErrorResponse(name, response, button)
 		}
 	});
 }
 
 function deleteConnection(name) {
-		
+
 	$.ajax({
 		type: 'post',
 		url: '/structr/config/' + name + '/delete',
 		data: {
 			'active_section': '#databases'
 		},
-		complete: function(response) {
-			window.location.reload();
+		statusCode: {
+			200: function(response) {
+				location.reload();
+			},
+			422: response => handleErrorResponse(name, response),
+			503: response => handleErrorResponse(name, response)
 		}
 	});
 }
 
 function saveConnection(name) {
-		
+
 	$.ajax({
 		type: 'post',
 		url: '/structr/config/' + name + '/use',
 		data: collectData(name),
-		complete: function(response) {
-			window.location.reload();
+		statusCode: {
+			200: function(response) {
+				location.reload();
+			},
+			422: response => handleErrorResponse(name, response),
+			503: response => handleErrorResponse(name, response)
 		}
 	});
 }
 
-function useConnection(name) {
-		
+function connect(button, name) {
+
+	button.disabled = true;
+	button.dataset.text = button.innerHTML;
+	button.innerHTML = 'Connecting..';
+
+	let status = $('div#status-' + name);
+	status.addClass('hidden');
+	status.empty();
+
 	$.ajax({
 		type: 'post',
-		url: '/structr/config/' + name + '/use',
-		data: {
-			'active_section': '#databases'
-		},
-		complete: function(response) {
-			window.location.reload();
+		url: '/structr/config/' + name + '/connect',
+		data: collectData(name),
+		statusCode: {
+			200: function(response) {
+				location.reload();
+			},
+			422: response => handleErrorResponse(name, response, button),
+			503: response => handleErrorResponse(name, response, button)
 		}
 	});
+}
+
+function disconnect(button, name) {
+
+	button.disabled = true;
+	button.dataset.text = button.innerHTML;
+	button.innerHTML = 'Disconnecting..';
+
+	let status = $('div#status-' + name);
+	status.addClass('hidden');
+	status.empty();
+
+	$.ajax({
+		type: 'post',
+		url: '/structr/config/' + name + '/disconnect',
+		data: collectData(name),
+		statusCode: {
+			200: function(response) {
+				location.reload();
+			},
+			422: response => handleErrorResponse(name, response, button),
+			503: response => handleErrorResponse(name, response, button)
+		}
+	});
+}
+
+function handleErrorResponse(name, response, button) {
+
+	let json = response.responseJSON;
+
+	if (!name) {
+		name = 'structr-new-connection';
+	}
+
+	if (button) {
+		button.disabled = false;
+		button.innerHTML = button.dataset.text;
+	}
+
+	switch (response.status) {
+
+		case 422:
+			if (json.errors && json.errors.length) {
+
+				json.errors.forEach(t => {
+					if (t.property !== undefined && t.token !== undefined) {
+						$('input#' + t.property + '-' + name + '"]').addClass(t.token);
+					}
+				});
+
+			} else {
+
+				let status = $('div#status-' + name);
+				status.empty();
+				status.append(json.message);
+				status.removeClass('hidden');
+			}
+			break;
+
+		case 503:
+			let status = $('div#status-' + name);
+			status.empty();
+			status.append(json.message);
+			status.removeClass('hidden');
+			break;
+	}
 }

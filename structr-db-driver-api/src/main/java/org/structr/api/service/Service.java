@@ -92,4 +92,8 @@ public interface Service extends Feature {
 	default int getRetryDelay() {
 		return Settings.ServicesStartTimeout.getValue(30);
 	}
+
+	default String getErrorMessage() {
+		return null;
+	}
 }

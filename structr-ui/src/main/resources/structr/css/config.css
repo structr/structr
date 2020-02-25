@@ -269,10 +269,16 @@ div.connection {
 	min-width: 300px;
 	min-height: 200px;
 	padding: 1em 1.5em;
+	border-radius: 3px;
+	box-shadow: 0px 0px 12px rgba(127,127,127,.2);
+}
+
+div.connection.active {
+	border: 1px solid #81ce25;
 }
 
 div.connection.new-connection {
-	border: 2px dashed #ddd;
+	border: 1px dashed #ddd;
 }
 
 div.connection h4 {
@@ -302,14 +308,26 @@ div.connection button {
 	margin: 0;
 	padding-left: 1em;
 	padding-right: 1em;
+	background-color: #eee !important;
 }
 
 div.connection button:hover {
 	padding-left: 1em !important;
 	padding-right: 1em !important;
-	background-color: #f8f8f8;
+	background-color: #ddd !important;
 }
 
 .delete-button {
 	float: right;
+}
+
+input.must_not_be_empty {
+	background-color: #ffbaba;
+	color: #d8000c;
+	border: 1px solid #d8000c;
+}
+
+div.warning-message {
+	padding: 5px 5px 5px 30px;
+	margin: 8px 0 0 0;
 }

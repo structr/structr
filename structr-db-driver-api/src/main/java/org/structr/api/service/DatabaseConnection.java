@@ -88,12 +88,15 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 
 	public void render(final Tag parent, final String configUrl) {
 
-		final String name = getName();
-		final Tag div     = parent.block("div").css("connection app-tile");
+		final boolean active = isActive();
+		final String name    = getName();
+		final Tag div        = parent.block("div").css("connection app-tile" + (active ? " active" : ""));
 
-		div.block("button").attr(new Attr("type", "button")).text("x").css("delete-button").attr(new Attr("onclick", "deleteConnection('" + name + "');"));
+		if (!active) {
+			div.block("button").attr(new Attr("type", "button")).text("x").css("delete-button").attr(new Attr("onclick", "deleteConnection('" + name + "');"));
+		}
 
-		div.block("h4").text(name + (isActive() ? " &raquo;active&laquo;" : ""));
+		div.block("h4").text(name + (isActive() ? " (active)" : ""));
 
 		final Tag url = div.block("p");
 		url.block("label").text("Connection URL");
@@ -109,11 +112,15 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 
 		final Tag buttons = div.block("p").css("buttons");
 
-		if (!isActive()) {
-			buttons.block("button").attr(new Attr("type", "button")).text("Use this connection").attr(new Attr("onclick", "useConnection('" + name + "');"));
+		if (isActive()) {
+			buttons.block("button").attr(new Attr("type", "button")).text("Disconnect").attr(new Attr("onclick", "disconnect(this, '" + name + "');"));
+		} else {
+			buttons.block("button").attr(new Attr("type", "button")).text("Connect").attr(new Attr("onclick", "connect(this, '" + name + "');"));
 		}
 
-		buttons.block("button").attr(new Attr("type", "button")).text("Save").attr(new Attr("onclick", "saveConnection('" + name + "')"));
+		//buttons.block("button").attr(new Attr("type", "button")).text("Save").attr(new Attr("onclick", "saveConnection('" + name + "')"));
+
+		div.block("div").id("status-" + name).css("warning warning-message hidden");
 
 	}
 }

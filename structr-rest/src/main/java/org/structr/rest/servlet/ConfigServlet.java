@@ -126,7 +126,19 @@ public class ConfigServlet extends AbstractServletBase {
 				final String serviceName = request.getParameter("start");
 				if (serviceName != null && isAuthenticated(request)) {
 
-					//Services.getInstance().startService(serviceName);
+					try {
+						Services.getInstance().startService(serviceName);
+
+					} catch (FrameworkException fex) {
+
+						response.setContentType("application/json");
+						response.setStatus(fex.getStatus());
+						response.getWriter().print(fex.toJSON());
+						response.getWriter().flush();
+						response.getWriter().close();
+
+						return;
+					}
 				}
 
 				// redirect
@@ -137,7 +149,7 @@ public class ConfigServlet extends AbstractServletBase {
 				final String serviceName = request.getParameter("stop");
 				if (serviceName != null && isAuthenticated(request)) {
 
-					//Services.getInstance().shutdownService(serviceName, "default");
+					Services.getInstance().shutdownService(serviceName);
 				}
 
 				// redirect
@@ -233,17 +245,11 @@ public class ConfigServlet extends AbstractServletBase {
 			// database connections form
 			if ("/add".equals(request.getPathInfo())) {
 
-				final ManageDatabasesCommand cmd = Services.getInstance().command(null, ManageDatabasesCommand.class);
-				final String name                = request.getParameter("new-name");
-				final String url                 = request.getParameter("new-url");
-				final String username            = request.getParameter("new-username");
-				final String password            = request.getParameter("new-password");
-
-				System.out.println("name:     " + name);
-				System.out.println("url:      " + url);
-				System.out.println("username: " + username);
-				System.out.println("password: " + password);
-
+				final ManageDatabasesCommand cmd    = Services.getInstance().command(null, ManageDatabasesCommand.class);
+				final String name                   = request.getParameter("name");
+				final String url                    = request.getParameter("url");
+				final String username               = request.getParameter("username");
+				final String password               = request.getParameter("password");
 				final DatabaseConnection connection = new DatabaseConnection();
 
 				connection.setName(name);
@@ -255,10 +261,13 @@ public class ConfigServlet extends AbstractServletBase {
 					cmd.addConnection(connection);
 
 				} catch (FrameworkException fex) {
+
+					response.setContentType("application/json");
 					response.setStatus(fex.getStatus());
-					response.getWriter().print(fex.getMessage());
+					response.getWriter().print(fex.toJSON());
 					response.getWriter().flush();
 					response.getWriter().close();
+
 					return;
 				}
 
@@ -277,9 +286,9 @@ public class ConfigServlet extends AbstractServletBase {
 						final String restAction          = parts[1];
 
 						// values for save action
-						final String connectionUrl       = request.getParameter("url-" + name);
-						final String connectionUsername  = request.getParameter("username-" + name);
-						final String connectionPassword  = request.getParameter("password-" + name);
+						final String connectionUrl       = request.getParameter("url");
+						final String connectionUsername  = request.getParameter("username");
+						final String connectionPassword  = request.getParameter("password");
 
 						data.put(DatabaseConnection.KEY_NAME,     name);
 						data.put(DatabaseConnection.KEY_URL,      connectionUrl);
@@ -297,15 +306,24 @@ public class ConfigServlet extends AbstractServletBase {
 									cmd.removeConnection(data);
 									break;
 
-								case "use":
+								case "connect":
+									cmd.saveConnection(data);
 									cmd.activateConnection(data);
 									break;
+
+								case "disconnect":
+									cmd.deactivateConnections();
+									break;
 							}
+
 						} catch (FrameworkException fex) {
+
+							response.setContentType("application/json");
 							response.setStatus(fex.getStatus());
-							response.getWriter().print(fex.getMessage());
+							response.getWriter().print(fex.toJSON());
 							response.getWriter().flush();
 							response.getWriter().close();
+
 							return;
 						}
 					}
@@ -323,6 +341,8 @@ public class ConfigServlet extends AbstractServletBase {
 						if (key.endsWith("._settings_group")) {
 							continue;
 						}
+
+						// skip
 
 						if ("active_section".equals(key)) {
 
@@ -387,7 +407,7 @@ public class ConfigServlet extends AbstractServletBase {
 		final boolean firstStart = !Settings.SetupWizardCompleted.getValue();
 		final Document doc       = new Document(writer);
 		final Tag body           = setupDocument(request, doc);
-		final Tag form           = body.block("form").css("config-form");
+		final Tag form           = body.block("form").css("config-form").empty("input").attr(new Attr("type", "submit"), new Attr("disabled", "disabled")).css("hidden").parent();
 		final Tag main           = form.block("div").id("main");
 		final Tag tabs           = main.block("div").id("configTabs");
 		final Tag menu           = tabs.block("ul").css("tabs-menu");
@@ -639,20 +659,29 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag container = tabs.block("div").css("tab-content").id(id);
 		final Tag body      = header(container, "Database Connections");
 
+		if (connections.isEmpty()) {
+
+			body.block("p").text("There are currently no database connections configured.");
+
+		} else {
+
+			boolean hasActiveConnection = connections.stream().map(DatabaseConnection::isActive).reduce(false, (t, u) -> t || u);
+			if (!hasActiveConnection) {
+
+				body.block("p").text("There is currently no active database connection.");
+			}
+		}
+
+		// database connections
 		for (final DatabaseConnection connection : connections) {
 
 			connection.render(body, ConfigUrl);
 		}
 
-		if (connections.isEmpty()) {
-
-			body.block("p").text("There are currently no database connections configured.");
-		}
-
-		body.block("h2").text("Add connection");
-
 		// new connection form should appear below existing connections
 		body.block("div").attr(new Attr("style", "clear: both;"));
+
+		body.block("h2").text("Add connection");
 
 		final Tag div = body.block("div").css("connection app-tile new-connection");
 
@@ -660,22 +689,24 @@ public class ConfigServlet extends AbstractServletBase {
 
 		final Tag name = div.block("p");
 		name.block("label").text("Name");
-		name.add(new InputField(name, "text", "new-name", "", "Enter name.."));
+		name.add(new InputField(name, "text", "name-structr-new-connection", "", "Enter name.."));
 
 		final Tag url = div.block("p");
 		url.block("label").text("Connection URL");
-		url.add(new InputField(url, "text", "new-url", "bolt://localhost:7687", "Enter url.."));
+		url.add(new InputField(url, "text", "url-structr-new-connection", "bolt://localhost:7687", "Enter url.."));
 
 		final Tag user = div.block("p");
 		user.block("label").text("Username");
-		user.add(new InputField(user, "text", "new-username", "neo4j", "Enter username.."));
+		user.add(new InputField(user, "text", "username-structr-new-connection", "neo4j", "Enter username.."));
 
 		final Tag pass = div.block("p");
 		pass.block("label").text("Password");
-		pass.add(new InputField(pass, "password", "new-password", "", "Enter password.."));
+		pass.add(new InputField(pass, "password", "password-structr-new-connection", "", "Enter password.."));
 
 		final Tag buttons = div.block("p").css("buttons");
-		buttons.block("button").attr(new Attr("type", "button")).text("Add connection").attr(new Attr("onclick", "addConnection();"));
+		buttons.block("button").attr(new Attr("type", "button")).text("Add connection").attr(new Attr("onclick", "addConnection(this);"));
+
+		div.block("div").id("status-structr-new-connection").css("warning warning-message hidden");
 	}
 
 	private Tag header(final Tag container, final String title) {

@@ -501,6 +501,21 @@ public class Services implements StructrServices {
 		attributes.remove(name);
 	}
 
+	public boolean startService(final String serviceTypeAndName) throws FrameworkException {
+
+		final String serviceTypeName = StringUtils.substringBefore(serviceTypeAndName, ".");
+		final Class serviceType      = getServiceClassForName(serviceTypeName);
+
+		if (serviceType != null) {
+
+			final String serviceName = StringUtils.substringAfter(serviceTypeAndName, ".");
+
+			return startService(serviceType, serviceName, false);
+		}
+
+		return false;
+	}
+
 	public boolean startService(final Class serviceClass, final String serviceName, final boolean disableRetry) throws FrameworkException {
 
 		boolean waitAndRetry = true;
@@ -570,6 +585,10 @@ public class Services implements StructrServices {
 					} else if (!disableRetry && isVital && !waitAndRetry) {
 
 						checkVitalService(serviceClass, null);
+
+					} else {
+
+						throw new FrameworkException(503, service.getErrorMessage());
 					}
 
 				} catch (Throwable t) {
@@ -619,11 +638,25 @@ public class Services implements StructrServices {
 		return false;
 	}
 
-	private <T extends Service> void shutdownServices(final Class<T> serviceClass) {
+	public <T extends Service> void shutdownServices(final Class<T> serviceClass) {
 
 		for (final Entry<String, T> entry : getServices(serviceClass).entrySet()) {
 
 			shutdownService(entry.getValue(), entry.getKey());
+		}
+	}
+
+	public void shutdownService(final String serviceTypeAndName) {
+
+		final String serviceTypeName = StringUtils.substringBefore(serviceTypeAndName, ".");
+		final Class serviceType      = getServiceClassForName(serviceTypeName);
+
+		if (serviceType != null) {
+
+			final String serviceName = StringUtils.substringAfter(serviceTypeAndName, ".");
+			final Service service    = getService(serviceType, serviceName);
+
+			shutdownService(service, serviceName);
 		}
 	}
 

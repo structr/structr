@@ -40,8 +40,13 @@ import static org.structr.api.service.DatabaseConnection.KEY_TENANT_IDENTIFIER;
 import static org.structr.api.service.DatabaseConnection.KEY_URL;
 import static org.structr.api.service.DatabaseConnection.KEY_USERNAME;
 import static org.structr.api.service.DatabaseConnection.KEY_UUID_CACHE_SIZE;
+import org.structr.bolt.BoltDatabaseService;
+import org.structr.common.error.EmptyPropertyToken;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.GenericProperty;
 
 /**
  */
@@ -99,94 +104,121 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		return false;
 	}
 
+	public void deactivateConnections() throws FrameworkException {
+		Services.getInstance().activateService(NodeService.class, "default");
+	}
+
 	public void activateConnection(final Map<String, Object> data) throws FrameworkException {
 
-		final String name = (String)data.get("name");
-		if (name != null) {
+		final ErrorBuffer errorBuffer = checkInput(data, true);
+		if (errorBuffer.hasError()) {
 
-			if ("default".equals(name)) {
+			throw new FrameworkException(422, "Invalid data.", errorBuffer);
+		}
 
-				Services.getInstance().activateService(NodeService.class, "");
+		final String name = (String)data.get(KEY_NAME);
+		if ("default".equals(name)) {
 
-			} else if (getConnectionNames().contains(name)) {
+			if (!Services.getInstance().activateService(NodeService.class, "")) {
 
-				Services.getInstance().activateService(NodeService.class, name);
+				throw new FrameworkException(503, "Failed to start service");
+			}
 
-			} else {
+		} else if (getConnectionNames().contains(name)) {
 
-				throw new FrameworkException(422, "Connection with name " + name + " does not exist.");
+			if (!Services.getInstance().activateService(NodeService.class, name)) {
+
+				throw new FrameworkException(503, "Failed to start service");
 			}
 
 		} else {
 
-			throw new FrameworkException(422, "Please supply the name of the connection to activate.");
+			throw new FrameworkException(422, "Connection with name " + name + " does not exist.");
 		}
 	}
 
 	public void addConnection(final Map<String, Object> data) throws FrameworkException {
 
+		final ErrorBuffer errorBuffer = checkInput(data, false);
+		if (errorBuffer.hasError()) {
+
+			throw new FrameworkException(422, "Invalid data.", errorBuffer);
+		}
+
 		final String prefix = (String)data.get(KEY_NAME);
-		if (StringUtils.isNotBlank(prefix)) {
+		if ("default".equals(prefix)) {
 
-			if ("default".equals(prefix)) {
+			throw new FrameworkException(422, "Cannot overwrite default connection.");
+		}
 
-				throw new FrameworkException(422, "Cannot overwrite default connection.");
-			}
+		final Set<String> connectionNames = getConnectionNames();
+		if (!connectionNames.contains(prefix)) {
 
-			final Set<String> connectionNames = getConnectionNames();
-			if (!connectionNames.contains(prefix)) {
+			final boolean isFirst = connectionNames.isEmpty();
 
-				setOrDefault(Settings.DatabaseDriver,        prefix, data, KEY_DRIVER);
-				setOrDefault(Settings.ConnectionUrl,         prefix, data, KEY_URL);
-				setOrDefault(Settings.ConnectionUser,        prefix, data, KEY_USERNAME);
-				setOrDefault(Settings.ConnectionPassword,    prefix, data, KEY_PASSWORD);
-				setOrDefault(Settings.TenantIdentifier,      prefix, data, KEY_TENANT_IDENTIFIER);
-				setOrDefault(Settings.RelationshipCacheSize, prefix, data, KEY_RELATIONSHIP_CACHE_SIZE);
-				setOrDefault(Settings.NodeCacheSize,         prefix, data, KEY_NODE_CACHE_SIZE);
-				setOrDefault(Settings.UuidCacheSize,         prefix, data, KEY_UUID_CACHE_SIZE);
-				setOrDefault(Settings.ForceResultStreaming,  prefix, data, KEY_FORCE_STREAMING);
+			//setOrDefault(Settings.DatabaseDriver,        prefix, data, KEY_DRIVER);
+			Settings.DatabaseDriver.getPrefixedSetting(prefix).setValue(BoltDatabaseService.class.getName());
 
-				connectionNames.add(prefix);
+			setOrDefault(Settings.ConnectionUrl,         prefix, data, KEY_URL);
+			setOrDefault(Settings.ConnectionUser,        prefix, data, KEY_USERNAME);
+			setOrDefault(Settings.ConnectionPassword,    prefix, data, KEY_PASSWORD);
+			//setOrDefault(Settings.TenantIdentifier,      prefix, data, KEY_TENANT_IDENTIFIER);
+			//setOrDefault(Settings.RelationshipCacheSize, prefix, data, KEY_RELATIONSHIP_CACHE_SIZE);
+			//setOrDefault(Settings.NodeCacheSize,         prefix, data, KEY_NODE_CACHE_SIZE);
+			//setOrDefault(Settings.UuidCacheSize,         prefix, data, KEY_UUID_CACHE_SIZE);
+			//setOrDefault(Settings.ForceResultStreaming,  prefix, data, KEY_FORCE_STREAMING);
 
-				Settings.DatabaseAvailableConnections.setValue(StringUtils.join(connectionNames, " "));
+			connectionNames.add(prefix);
 
-			} else {
+			Settings.DatabaseAvailableConnections.setValue(StringUtils.join(connectionNames, " "));
 
-				throw new FrameworkException(422, "Configuration " + prefix + " already exists.");
+			if (isFirst) {
+
+				try {
+					activateConnection(data);
+
+				} catch (FrameworkException fex) {
+
+					// if connecting fails, remove
+					removeConnection(data);
+					throw fex;
+				}
 			}
 
 		} else {
 
-			throw new FrameworkException(422, "Please supply the name of the connection to add.");
+			throw new FrameworkException(422, "Configuration " + prefix + " already exists.");
 		}
 	}
 
 	public void saveConnection(final Map<String, Object> data) throws FrameworkException {
 
-		final String prefix = (String)data.get(KEY_NAME);
-		if (StringUtils.isNotBlank(prefix)) {
+		final ErrorBuffer errorBuffer = checkInput(data, false);
+		if (errorBuffer.hasError()) {
 
-			final Set<String> connectionNames = getConnectionNames();
-			if (connectionNames.contains(prefix)) {
+			throw new FrameworkException(422, "Invalid data.", errorBuffer);
+		}
 
-				setOrDefault(Settings.DatabaseDriver,        prefix, data, KEY_DRIVER);
-				setOrDefault(Settings.ConnectionUrl,         prefix, data, KEY_URL);
-				setOrDefault(Settings.ConnectionUser,        prefix, data, KEY_USERNAME);
-				setOrDefault(Settings.ConnectionPassword,    prefix, data, KEY_PASSWORD);
-				setOrDefault(Settings.TenantIdentifier,      prefix, data, KEY_TENANT_IDENTIFIER);
-				setOrDefault(Settings.RelationshipCacheSize, prefix, data, KEY_RELATIONSHIP_CACHE_SIZE);
-				setOrDefault(Settings.NodeCacheSize,         prefix, data, KEY_NODE_CACHE_SIZE);
-				setOrDefault(Settings.UuidCacheSize,         prefix, data, KEY_UUID_CACHE_SIZE);
-				setOrDefault(Settings.ForceResultStreaming,  prefix, data, KEY_FORCE_STREAMING);
+		final String prefix               = (String)data.get(KEY_NAME);
+		final Set<String> connectionNames = getConnectionNames();
 
-			} else {
+		if (connectionNames.contains(prefix)) {
 
-				throw new FrameworkException(422, "Configuration " + prefix + " does not exist.");
-			}
+			//setOrDefault(Settings.DatabaseDriver,        prefix, data, KEY_DRIVER);
+			Settings.DatabaseDriver.getPrefixedSetting(prefix).setValue(BoltDatabaseService.class.getName());
+
+			setOrDefault(Settings.ConnectionUrl,         prefix, data, KEY_URL);
+			setOrDefault(Settings.ConnectionUser,        prefix, data, KEY_USERNAME);
+			setOrDefault(Settings.ConnectionPassword,    prefix, data, KEY_PASSWORD);
+			//setOrDefault(Settings.TenantIdentifier,      prefix, data, KEY_TENANT_IDENTIFIER);
+			//setOrDefault(Settings.RelationshipCacheSize, prefix, data, KEY_RELATIONSHIP_CACHE_SIZE);
+			//setOrDefault(Settings.NodeCacheSize,         prefix, data, KEY_NODE_CACHE_SIZE);
+			//setOrDefault(Settings.UuidCacheSize,         prefix, data, KEY_UUID_CACHE_SIZE);
+			//setOrDefault(Settings.ForceResultStreaming,  prefix, data, KEY_FORCE_STREAMING);
 
 		} else {
 
-			throw new FrameworkException(422, "Please supply the name of the connection to save.");
+			throw new FrameworkException(422, "Configuration " + prefix + " does not exist.");
 		}
 	}
 
@@ -217,6 +249,14 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 				Settings.DatabaseAvailableConnections.setValue(StringUtils.join(connectionNames, " "));
 
+				final Services services = Services.getInstance();
+
+				if (prefix.equals(services.getNameOfActiveService(NodeService.class))) {
+
+					services.shutdownServices(NodeService.class);
+					services.setActiveServiceName(NodeService.class, "default");
+				}
+
 			} else {
 
 				throw new FrameworkException(422, "Configuration " + prefix + " does not exist.");
@@ -224,7 +264,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 		} else {
 
-			throw new FrameworkException(422, "Please supply the name of the connection to remove.");
+			throw new FrameworkException(422, "Please supply the name of the connection to remove.", new EmptyPropertyToken("Connection", AbstractNode.name));
 		}
 	}
 
@@ -292,5 +332,31 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		}
 
 		setting.getPrefixedSetting(prefix).setValue((T)value);
+	}
+
+	private ErrorBuffer checkInput(final Map<String, Object> data, final boolean nameOnly) {
+
+		final ErrorBuffer errorBuffer = new ErrorBuffer();
+
+		if (StringUtils.isEmpty((String)data.get(KEY_NAME))) {
+			errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("name")));
+		}
+
+		if (!nameOnly) {
+
+			if (StringUtils.isEmpty((String)data.get(KEY_URL))) {
+				errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("url")));
+			}
+
+			if (StringUtils.isEmpty((String)data.get(KEY_USERNAME))) {
+				errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("username")));
+			}
+
+			if (StringUtils.isEmpty((String)data.get(KEY_PASSWORD))) {
+				errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("password")));
+			}
+		}
+
+		return errorBuffer;
 	}
 }

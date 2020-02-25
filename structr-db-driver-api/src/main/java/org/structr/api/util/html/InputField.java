@@ -26,12 +26,12 @@ public class InputField extends Empty {
 		this(parent, type, name, value, null);
 	}
 
-	public InputField(final Tag parent, final String type, final String name, final String value, final String placeholder) {
+	public InputField(final Tag parent, final String type, final String id, final String value, final String placeholder) {
 
 		super(parent, "input");
 
 		attr(new Attr("type", type));
-		attr(new Attr("name", name));
+		attr(new Attr("id", id));
 		attr(new Attr("value", value));
 
 		if (placeholder != null) {
