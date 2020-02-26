@@ -70,6 +70,11 @@ public class MemoryNode extends MemoryEntity implements Node {
 
 	@Override
 	public boolean hasRelationshipTo(final RelationshipType relationshipType, final Node targetNode) {
+		return getRelationshipTo(relationshipType, targetNode) != null;
+	}
+
+	@Override
+	public Relationship getRelationshipTo(final RelationshipType relationshipType, final Node targetNode) {
 
 		final MemoryTransaction tx    = db.getCurrentTransaction(true);
 		final MemoryIdentity sourceId = getIdentity();
@@ -83,7 +88,7 @@ public class MemoryNode extends MemoryEntity implements Node {
 				&& targetId.equals(r.getTargetNodeIdentity())
 				&& name.equals(r.getType().name());
 
-		}, tx.getRelationships(new MemoryLabelFilter<>(name)))) != null;
+		}, tx.getRelationships(new MemoryLabelFilter<>(name))));
 	}
 
 	@Override
