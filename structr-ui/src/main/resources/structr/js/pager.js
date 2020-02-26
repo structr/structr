@@ -233,7 +233,7 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 	 */
 	this.updatePager = function() {
 
-		console.log(pageCount[this.id]);
+		//console.log(pageCount[this.id]);
 
 		if (page[this.id] === 1) {
 			this.pageLeft.attr('disabled', 'disabled').addClass('disabled');
