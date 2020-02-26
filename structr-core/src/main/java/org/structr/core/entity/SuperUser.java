@@ -265,6 +265,11 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
+	public <R extends AbstractRelationship> R getRelationshipTo(final RelationshipType relType, final NodeInterface targetNode) {
+		throw new UnsupportedOperationException("Not supported.");
+	}
+
+	@Override
 	public <R extends AbstractRelationship> Iterable<R> getRelationships() {
 		throw new UnsupportedOperationException("Not supported.");
 	}

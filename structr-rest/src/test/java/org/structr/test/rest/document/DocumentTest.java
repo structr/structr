@@ -30,6 +30,8 @@ import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonReferenceType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonSchema.Cascade;
+import org.structr.api.schema.JsonType;
+import org.structr.common.PropertyView;
 import org.testng.annotations.Test;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.Tx;
@@ -1658,6 +1660,59 @@ public class DocumentTest extends StructrRestTestBase {
 
 			.when()
 				.get("/ProjectHASTask");
+
+	}
+
+	@Test
+	public void testForeignPropertiesOnRelationship() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.getType("GroupCONTAINSPrincipal");
+
+			type.addStringProperty("test", PropertyView.Public);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String parent = createEntity("Group", "{ name: 'parent' }");
+		final String child  = createEntity("Group", "{ name: 'child' }");
+
+
+		// create data
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.body("{ members: [ { id: '" + child + "', test: 'success!!' } ] }")
+
+			.expect()
+				.statusCode(200)
+
+			.when()
+				.put("/Group/" + parent);
+
+		// check result
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+			.expect()
+				.statusCode(200)
+				.body("result[0].test", equalTo("success!!"))
+
+			.when()
+				.get("/GroupCONTAINSPrincipal");
 
 	}
 
