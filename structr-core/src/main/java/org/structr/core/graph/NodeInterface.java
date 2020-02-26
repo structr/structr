@@ -75,6 +75,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	String getName();
 
 	boolean hasRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
+	<R extends AbstractRelationship> R getRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
 
 	<R extends AbstractRelationship> Iterable<R> getRelationships();
 	<R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser();

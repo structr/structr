@@ -43,6 +43,7 @@ import org.structr.bolt.SessionTransaction;
 import org.structr.bolt.index.AbstractCypherIndex;
 import org.structr.bolt.index.AdvancedCypherQuery;
 import org.structr.bolt.index.CypherRelationshipIndex;
+import org.structr.bolt.mapper.RelationshipRelationshipMapper;
 
 /**
  *
@@ -205,7 +206,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		final SessionTransaction tx      = db.getCurrentTransaction();
 		final Map<String, Object> params = new LinkedHashMap<>();
-		final String tenantIdentifier = getTenantIdentifer(db);
+		final String tenantIdentifier    = getTenantIdentifer(db);
 
 		params.put("id1", id);
 		params.put("id2", db.unwrap(targetNode.getId()));
@@ -213,7 +214,6 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		try {
 
 			// try to fetch existing relationship by node ID(s)
-			// FIXME: this call can be very slow when lots of relationships exist
 			tx.getLong(concat("MATCH (n", tenantIdentifier, ")-[r:", type.name(), "]->(m", tenantIdentifier, ") WHERE id(n) = $id1 AND id(m) = $id2 RETURN id(r)"), params);
 
 			// success
@@ -226,14 +226,37 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	}
 
 	@Override
+	public Relationship getRelationshipTo(final RelationshipType type, final Node targetNode) {
+
+		assertNotStale();
+
+		final SessionTransaction tx                 = db.getCurrentTransaction();
+		final Map<String, Object> params            = new LinkedHashMap<>();
+		final String tenantIdentifier               = getTenantIdentifer(db);
+		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
+
+		params.put("id1", id);
+		params.put("id2", db.unwrap(targetNode.getId()));
+
+		try {
+
+			return mapper.apply(tx.getRelationship(concat("MATCH (n", tenantIdentifier, ")-[r:", type.name(), "]->(m", tenantIdentifier, ") WHERE id(n) = $id1 AND id(m) = $id2 RETURN r"), params));
+
+		} catch (Throwable t) {
+		}
+
+		return null;
+	}
+
+	@Override
 	public Iterable<Relationship> getRelationships() {
 
 		assertNotStale();
 
 		final RelationshipResult cache = getRelationshipCache(null, null);
-		final String tenantIdentifier = getTenantIdentifer(db);
+		final String tenantIdentifier  = getTenantIdentifer(db);
 
-		return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r]-(o)"), "(n)-[]-()", "RETURN r, o ORDER BY r.internalTimestamp");
+		return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r]-()"), "(n)-[]-()", "RETURN r ORDER BY r.internalTimestamp");
 	}
 
 	@Override
@@ -242,7 +265,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		assertNotStale();
 
 		final RelationshipResult cache = getRelationshipCache(direction, null);
-		final String tenantIdentifier = getTenantIdentifer(db);
+		final String tenantIdentifier  = getTenantIdentifer(db);
 
 		switch (direction) {
 
@@ -250,10 +273,10 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 				return getRelationships();
 
 			case OUTGOING:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r]->(t)"), "(n)-[]->()", "RETURN r, t ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r]->()"), "(n)-[]->()", "RETURN r ORDER BY r.internalTimestamp");
 
 			case INCOMING:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier , ")<-[r]-(s)"), "(n)<-[]-()", "RETURN r, s ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier , ")<-[r]-()"), "(n)<-[]-()", "RETURN r ORDER BY r.internalTimestamp");
 		}
 
 		return null;
@@ -265,19 +288,19 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		assertNotStale();
 
 		final RelationshipResult cache = getRelationshipCache(direction, relationshipType);
-		final String tenantIdentifier = getTenantIdentifer(db);
+		final String tenantIdentifier  = getTenantIdentifer(db);
 		final String rel               = relationshipType.name();
 
 		switch (direction) {
 
 			case BOTH:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]-(o)"), concat("(n)-[:", rel, "]-()"), "RETURN r, o ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]-()"), concat("(n)-[:", rel, "]-()"), "RETURN r ORDER BY r.internalTimestamp");
 
 			case OUTGOING:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->(t)"), concat("(n)-[:", rel, "]->()"), "RETURN r, t ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->()"), concat("(n)-[:", rel, "]->()"), "RETURN r ORDER BY r.internalTimestamp");
 
 			case INCOMING:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-(s)"), concat("(n)<-[:", rel, "]-()"), "RETURN r, s ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-()"), concat("(n)<-[:", rel, "]-()"), "RETURN r ORDER BY r.internalTimestamp");
 		}
 
 		return null;

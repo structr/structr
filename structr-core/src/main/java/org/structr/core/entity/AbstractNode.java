@@ -573,6 +573,23 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
+	public <R extends AbstractRelationship> R getRelationshipTo(final RelationshipType type, final NodeInterface targetNode) {
+
+		if (dbNode != null && type != null && targetNode != null) {
+
+			final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
+			final Relationship rel               = dbNode.getRelationshipTo(type, targetNode.getNode());
+
+			if (rel != null) {
+
+				return factory.adapt(rel);
+			}
+		}
+
+		return null;
+	}
+
+	@Override
 	public final <R extends AbstractRelationship> Iterable<R> getRelationships() {
 		return new IterableAdapter<>(dbNode.getRelationships(), new RelationshipFactory<R>(securityContext));
 	}
