@@ -65,7 +65,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 					break;
 
 				case "add":
-					addConnection(attributes);
+					addConnection(attributes, false);
 					break;
 
 				case "remove":
@@ -137,7 +137,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		}
 	}
 
-	public void addConnection(final Map<String, Object> data) throws FrameworkException {
+	public void addConnection(final Map<String, Object> data, final boolean connectNow) throws FrameworkException {
 
 		final ErrorBuffer errorBuffer = checkInput(data, false);
 		if (errorBuffer.hasError()) {
@@ -153,8 +153,6 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 		final Set<String> connectionNames = getConnectionNames();
 		if (!connectionNames.contains(prefix)) {
-
-			final boolean isFirst = connectionNames.isEmpty();
 
 			//setOrDefault(Settings.DatabaseDriver,        prefix, data, KEY_DRIVER);
 			Settings.DatabaseDriver.getPrefixedSetting(prefix).setValue(BoltDatabaseService.class.getName());
@@ -172,7 +170,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 			Settings.DatabaseAvailableConnections.setValue(StringUtils.join(connectionNames, " "));
 
-			if (isFirst) {
+			if (connectNow) {
 
 				try {
 					activateConnection(data);
@@ -279,6 +277,10 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		}
 
 		return connections;
+	}
+
+	public boolean hasActiveConnection() {
+		return getConnections().stream().map(DatabaseConnection::isActive).reduce(false, (t, u) -> t || u);
 	}
 
 	// ----- private methods -----

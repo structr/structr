@@ -250,6 +250,7 @@ public class ConfigServlet extends AbstractServletBase {
 				final String url                    = request.getParameter("url");
 				final String username               = request.getParameter("username");
 				final String password               = request.getParameter("password");
+				final String connectNow             = request.getParameter("now");
 				final DatabaseConnection connection = new DatabaseConnection();
 
 				connection.setName(name);
@@ -258,7 +259,7 @@ public class ConfigServlet extends AbstractServletBase {
 				connection.setPassword(password);
 
 				try {
-					cmd.addConnection(connection);
+					cmd.addConnection(connection, cmd.getConnections().isEmpty() && "true".equals(connectNow));
 
 				} catch (FrameworkException fex) {
 
@@ -702,6 +703,15 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag pass = div.block("p");
 		pass.block("label").text("Password");
 		pass.add(new InputField(pass, "password", "password-structr-new-connection", "", "Enter password.."));
+
+		if (connections.isEmpty()) {
+
+			// allow user to prevent connecting immediately
+			final Tag checkbox = div.block("p");
+			final Tag label    = checkbox.block("label");
+			label.empty("input").attr(new Attr("type", "checkbox"), new Attr("id", "connect-checkbox"), new Attr("checked", "checked"));
+			label.block("span").text(" Connect immediately");
+		}
 
 		final Tag buttons = div.block("p").css("buttons");
 		buttons.block("button").attr(new Attr("type", "button")).text("Add connection").attr(new Attr("onclick", "addConnection(this);"));

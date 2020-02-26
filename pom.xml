@@ -31,7 +31,7 @@
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
 		<test.neo4j.version>neo4j:3.5-enterprise</test.neo4j.version>
 		<structr.lib.directory>${structr.root.directory}/structr-ui/target/lib</structr.lib.directory>
-		<test.forkCount>4</test.forkCount>
+		<test.forkCount>1</test.forkCount>
 	</properties>
 
 	<modules>

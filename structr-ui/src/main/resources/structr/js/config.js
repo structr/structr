@@ -344,10 +344,11 @@ function collectData(name) {
 		name = 'structr-new-connection';
 	}
 
-	let nameInput = $('input#name-' + name);
-	let urlInput  = $('input#url-' + name);
-	let userInput = $('input#username-' + name);
-	let pwdInput  = $('input#password-' + name);
+	let nameInput   = $('input#name-' + name);
+	let urlInput    = $('input#url-' + name);
+	let userInput   = $('input#username-' + name);
+	let pwdInput    = $('input#password-' + name);
+	let nowCheckbox = $('input#connect-checkbox');
 
 	nameInput.removeClass();
 	urlInput.removeClass();
@@ -355,12 +356,15 @@ function collectData(name) {
 	pwdInput.removeClass();
 
 	let data = {
-		'name':     nameInput.val(),
-		'url':      urlInput.val(),
-		'username': userInput.val(),
-		'password': pwdInput.val(),
-		'active_section': '#databases'
+		name:     nameInput.val(),
+		url:      urlInput.val(),
+		username: userInput.val(),
+		password: pwdInput.val(),
+		now:      nowCheckbox && nowCheckbox.is(':checked'),
+		active_section: '#databases'
 	};
+
+	console.log(data);
 
 	return data;
 }
@@ -368,10 +372,14 @@ function collectData(name) {
 function addConnection(button) {
 
 	let name = 'structr-new-connection';
+	let data = collectData();
 
-	button.disabled = true;
 	button.dataset.text = button.innerHTML;
-	button.innerHTML = 'Connecting..';
+	button.disabled     = true;
+
+	if (data.now) {
+		button.innerHTML = 'Connecting..';
+	}
 
 	let status = $('div#status-' + name);
 	status.addClass('hidden');
@@ -380,7 +388,7 @@ function addConnection(button) {
 	$.ajax({
 		type: 'post',
 		url: '/structr/config/add',
-		data: collectData(),
+		data: data,
 		statusCode: {
 			200: function(response) {
 				location.reload();
@@ -493,7 +501,7 @@ function handleErrorResponse(name, response, button) {
 
 				json.errors.forEach(t => {
 					if (t.property !== undefined && t.token !== undefined) {
-						$('input#' + t.property + '-' + name + '"]').addClass(t.token);
+						$('input#' + t.property + '-' + name).addClass(t.token);
 					}
 				});
 
