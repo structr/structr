@@ -71,6 +71,7 @@ import org.structr.core.function.WriteFunction;
 import org.structr.core.function.XPathFunction;
 import org.structr.core.function.XmlFunction;
 import org.structr.core.function.search.FindAndFunction;
+import org.structr.core.function.search.FindWithinDistanceFunction;
 import org.structr.core.function.search.FindContainsFunction;
 import org.structr.core.function.search.FindEmptyFunction;
 import org.structr.core.function.search.FindEqualsFunction;
@@ -152,6 +153,7 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new DecryptFunction());
 
 		Functions.put(licenseManager, new RangeFunction());
+		Functions.put(licenseManager, new FindWithinDistanceFunction());
 		Functions.put(licenseManager, new FindEmptyFunction());
 		Functions.put(licenseManager, new FindEqualsFunction());
 		Functions.put(licenseManager, new FindContainsFunction());
