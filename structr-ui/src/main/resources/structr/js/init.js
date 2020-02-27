@@ -467,7 +467,7 @@ var Structr = {
 		if (Command.logout(user)) {
 			Cookies.remove('JSESSIONID');
 			sessionId.length = 0;
-			LSWrapper.clear();
+			//LSWrapper.clear();
 			Structr.renewSessionId();
 			Structr.clearMain();
 			Structr.clearVersionInfo();
@@ -970,7 +970,7 @@ var Structr = {
 		}
 	},
 	getActiveModuleName: function() {
-		return LSWrapper.getItem(lastMenuEntryKey);
+		return lastMenuEntry || LSWrapper.getItem(lastMenuEntryKey);
 	},
 	getActiveModule: function() {
 		return Structr.modules[Structr.getActiveModuleName()];
@@ -2265,11 +2265,14 @@ var keyEventTimeout;
 window.addEventListener('beforeunload', (event) => {
 	if (event.target === document) {
 
-		if (Structr.getActiveModule().beforeunloadHandler && typeof Structr.getActiveModule().beforeunloadHandler === "function") {
-			let ret = Structr.getActiveModule().beforeunloadHandler();
+		let activeModule = Structr.getActiveModule();
+		if (activeModule && activeModule.beforeunloadHandler && typeof activeModule.beforeunloadHandler === "function") {
+			let ret = activeModule.beforeunloadHandler();
 			if (ret) {
 				event.returnValue = ret;
 			}
+			// persist last menu entry
+			LSWrapper.setItem(lastMenuEntryKey, lastMenuEntry);
 		}
 
 		_Logger.log(_LogType.INIT, '########################################### unload #####################################################');

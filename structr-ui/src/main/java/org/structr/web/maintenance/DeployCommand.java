@@ -1642,9 +1642,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					final Object name   = map.get("name");
 					final Object domain = map.get("domain");
 					final Object locale = map.get("locale");
+					final Object id     = map.get("id");
 
 					// null domain is replaced by a string so that those localizations are shown first
-					return (name != null ? name.toString() : "null").concat((domain != null ? domain.toString() : "00-nulldomain")).concat((locale != null ? locale.toString() : "null"));
+					return (name != null ? name.toString() : "null").concat((domain != null ? domain.toString() : "00-nulldomain")).concat((locale != null ? locale.toString() : "null")).concat(id.toString());
 				}
 			});
 
@@ -2014,6 +2015,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		@Override
 		public int compare(String o1, String o2) {
+			if (o1 != null && o1.equals(o2)) {
+				return 0;
+			}
 			if ("id".equals(o1)) {
 				return -1;
 			}

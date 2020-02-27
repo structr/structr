@@ -103,11 +103,12 @@ public class ReadShapefileFunction extends GeoFunction {
 						final List<String> metadataFields        = new LinkedList<>();
 						final List<Map<String, Object>> metadata = readDBF(shpFiles, metadataFields);
 						Iterator<Map<String, Object>> iterator   = null;
+						int count                                = 0;
 
 						if (metadata != null) {
 							iterator = metadata.iterator();
 						}
-						
+
 						while (reader.hasNext() && (iterator == null || iterator.hasNext())) {
 
 							final Map<String, Object> item = new LinkedHashMap<>();
@@ -131,6 +132,10 @@ public class ReadShapefileFunction extends GeoFunction {
 								}
 
 								data.add(item);
+							}
+
+							if (++count % 1000 == 0) {
+								logger.info("Number of geometries: {}", count);
 							}
 						}
 
@@ -209,14 +214,14 @@ public class ReadShapefileFunction extends GeoFunction {
 
 		return null;
 	}
-	
+
 	private static List<Map<String, Object>> readDBF(ShpFiles shpFiles, final List<String> metadataFields) {
 
-		final List<Map<String, Object>> data = new LinkedList<>();
 
 		try {
 
 			final DbaseFileReader reader = new DbaseFileReader(shpFiles, true, Charset.forName("utf-8"));
+			final List<Map<String, Object>> data = new LinkedList<>();
 
 			try {
 
@@ -252,10 +257,12 @@ public class ReadShapefileFunction extends GeoFunction {
 				reader.close();
 			}
 
+			return data;
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-		return data;
+		return null;
 	}
 }
