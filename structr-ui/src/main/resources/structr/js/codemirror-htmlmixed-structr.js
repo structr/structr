@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 // CodeMirror 'htmlmixed-structr' mode to better support nested serverside javascript environments without breaking syntax highlighting ( ${{ ... }} )
 //
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
