@@ -1014,16 +1014,8 @@ var _Pages = {
 				var inner = $(getNonCommentSiblings(c.node));
 				let newDiv = $('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
 
-				if (c.node.nextSibling && c.node.nextSibling.nextSibling) {
-					if (c.node.nextSibling.nextSibling.nodeType === 8) {
-						if (c.node.nextSibling.nextSibling.nodeValue === '') {
-							c.node.nextSibling.nextSibling.remove();
-						}
-					}
-				}
-
-				$(c.node).replaceWith(newDiv);
 				newDiv.append(inner);
+				$(c.node).replaceWith(newDiv);
 
 				$(newDiv).on({
 					mouseover: function(e) {
