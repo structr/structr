@@ -118,29 +118,50 @@ var _Dashboard = {
 					_Dashboard.clearLocalStorageOnServer(templateConfig.meObj.id);
 				});
 
-				_Dashboard.checkLicenseEnd(templateConfig.envInfo, $('#dash-about-structr .end-date'));
+				_Dashboard.checkLicenseEnd(templateConfig.envInfo, $('#dashboard-about-structr .end-date'));
 
-				$('button#do-import').on('click', function() {
-					var location = $('#deployment-source-input').val();
-					if (location && location.length) {
-						_Dashboard.deploy('import', location);
-					} else {
-						// show error message
-					}
+				$('button#do-app-import').on('click', function() {
+					_Dashboard.deploy('import', $('#deployment-source-input').val());
 				});
 
-				$('button#do-export').on('click', function() {
-					var location = $('#deployment-target-input').val();
-					if (location && location.length) {
-						_Dashboard.deploy('export', location);
-					} else {
-						// show error message
-					}
+				$('button#do-app-export').on('click', function() {
+					_Dashboard.deploy('export', $('#app-export-target-input').val());
+				});
+
+				$('button#do-app-import-from-url').on('click', function() {
+					_Dashboard.deployFromURL($('#redirect-url').val(), $('#deployment-url-input').val());
+				});
+
+				$('button#do-data-import').on('click', function() {
+					_Dashboard.deployData('import', $('#data-import-source-input').val());
+				});
+
+				$('button#do-data-export').on('click', function() {
+					_Dashboard.deployData('export', $('#data-export-target-input').val(), $('#data-export-types-input').val());
+				});
+
+				let typesSelectElem = $('#data-export-types-input');
+
+				Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name', function(nodes) {
+					nodes.forEach(function(node) {
+						
+						typesSelectElem.append('<option>' + node.name + '</option>');
+					});
+
+					typesSelectElem.chosen({
+						search_contains: true,
+						width: 'calc(100% - 14px)',
+						display_selected_options: false,
+						hide_results_on_select: false,
+						display_disabled_options: false
+					}).chosenSortable(function() {
+						//_Schema.activateEditModeForViewRow(tr);
+					});
 				});
 
 				_Dashboard.activateLogBox();
 				_Dashboard.activateLastActiveTab();
-				_Dashboard.appendGlobalSchemaMethods($('#dash-global-schema-methods'));
+				_Dashboard.appendGlobalSchemaMethods($('#dashboard-global-schema-methods'));
 
 				$(window).off('resize');
 				$(window).on('resize', function() {
@@ -383,10 +404,10 @@ var _Dashboard = {
 	},
     activateLogBox: function() {
 
-		let feedbackElement = document.querySelector('#dash-server-log-feedback');
+		let feedbackElement = document.querySelector('#dashboard-server-log-feedback');
 
 		let numberOfLines      = LSWrapper.getItem(_Dashboard.logLinesKey, 300);
-		let numberOfLinesInput = document.querySelector('#dash-server-log-lines');
+		let numberOfLinesInput = document.querySelector('#dashboard-server-log-lines');
 
 		numberOfLinesInput.value = numberOfLines;
 
@@ -407,7 +428,7 @@ var _Dashboard = {
 		};
 
 		let logRefreshTimeInterval    = LSWrapper.getItem(_Dashboard.logRefreshTimeIntervalKey, 1000);
-		let refreshTimeIntervalSelect = document.querySelector('#dash-server-log-refresh-interval');
+		let refreshTimeIntervalSelect = document.querySelector('#dashboard-server-log-refresh-interval');
 
 		refreshTimeIntervalSelect.value = logRefreshTimeInterval;
 
@@ -421,7 +442,7 @@ var _Dashboard = {
 			blinkGreen($(refreshTimeIntervalSelect));
 		});
 
-		let logBoxContentBox = $('#dash-server-log textarea');
+		let logBoxContentBox = $('#dashboard-server-log textarea');
 
         let scrollEnabled = true;
 		let textAreaHasFocus = false;
@@ -468,7 +489,7 @@ var _Dashboard = {
 			}
 		});
 
-		new Clipboard('#dash-server-log-copy', {
+		new Clipboard('#dashboard-server-log-copy', {
 			target: function () {
 				return logBoxContentBox[0];
 			}
@@ -478,6 +499,11 @@ var _Dashboard = {
     },
 	deploy: function(mode, location) {
 
+		if (!(location && location.length)) {
+			new MessageBuilder().title('Unable to start data ' + mode + '').warning('Please enter a local directory path for data export.').requiresConfirmation().show();
+			return;
+		}
+		
 		var data = {
 			mode: mode
 		};
@@ -491,8 +517,81 @@ var _Dashboard = {
 		$.ajax({
 			url: rootUrl + '/maintenance/deploy',
 			data: JSON.stringify(data),
-			method: 'POST'
+			method: 'POST',
+			dataType: 'json',
+			contentType: 'application/json; charset=utf-8',
+			statusCode: {
+				422: function(data) {
+					//new MessageBuilder().title('Unable to start app ' + mode + '').warning(data.responseJSON.message).requiresConfirmation().show();
+				}
+			}
+		});
+	},
+	deployFromURL: function(redirectUrl, downloadUrl) {
+
+		if (!(downloadUrl && downloadUrl.length)) {
+			new MessageBuilder().title('Unable to start app import from URL').warning('Please enter the URL of the ZIP file containing the app.').requiresConfirmation().show();
+			return;
+		}
+
+		let data = new FormData();
+		data.append('redirectUrl', redirectUrl);
+		data.append('downloadUrl', downloadUrl);
+
+		$.ajax({
+			url: '/structr/deploy',
+			method: 'POST',
+			processData: false,
+			contentType: false,
+			data: data,
+			statusCode: {
+				400: function(data) {
+					new MessageBuilder().title('Unable to import app from URL ' + downloadUrl).warning(data.responseJSON.message).requiresConfirmation().show();
+				}
+			},
+			success: function() {
+				//console.log('Deployment successful!');
+			}
+		});
+	},
+	deployData: function(mode, location, types) {
+
+		if (!(location && location.length)) {
+			new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please enter a directory path for data ' + mode + '.').requiresConfirmation().show();
+			return;
+		}
+
+		var data = {
+			mode: mode
+		};
+
+		if (mode === 'import') {
+			data['source'] = location;
+		} else if (mode === 'export') {
+			data['target'] = location;
+			if (types && types.length) {
+				data['types'] = types.join(',');
+			} else {
+				new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please select at least one data type.').requiresConfirmation().show();
+				return;
+			}
+					
+		}
+		
+		let url = rootUrl + '/maintenance/deployData';
+
+		$.ajax({
+			url: url,
+			data: JSON.stringify(data),
+			method: 'POST',
+			dataType: 'json',
+			contentType: 'application/json; charset=utf-8',
+			statusCode: {
+				422: function(data) {
+					new MessageBuilder().warning(data.responseJSON.message).requiresConfirmation().show();
+				}
+			}
 		});
 
-	}
+	}	
 };

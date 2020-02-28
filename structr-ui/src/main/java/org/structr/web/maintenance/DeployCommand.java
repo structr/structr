@@ -253,16 +253,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			if (!Files.isDirectory(source)) {
 
-				publishWarningMessage("Import not started", "Source path " + path + " is not a directory.");
+				publishWarningMessage("Import not started", "Source path '" + path + "' is not a directory.");
 
 				throw new FrameworkException(422, "Source path " + path + " is not a directory.");
 			}
 
 			if (source.isAbsolute() != true) {
 
-				publishWarningMessage("Import not started", "Source path " + path + " is not an absolute path - relative paths are not allowed.");
+				publishWarningMessage("Import not started", "Source path '" + path + "' is not an absolute path - relative paths are not allowed.");
 
-				throw new FrameworkException(422, "Source path " + path + " is not an absolute path - relative paths are not allowed.");
+				throw new FrameworkException(422, "Source path '" + path + "' is not an absolute path - relative paths are not allowed.");
 			}
 
 			logger.info("Importing from '{}'", path);

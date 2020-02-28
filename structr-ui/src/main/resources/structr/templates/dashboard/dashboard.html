@@ -2,28 +2,28 @@
 
 	<ul class="tabs-menu">
 		<li class="active">
-			<a href="#dash-about-me">About Me</a>
+			<a href="#dashboard-about-me">About Me</a>
 		</li>
 		<li>
-			<a href="#dash-about-structr">About Structr</a>
+			<a href="#dashboard-about-structr">About Structr</a>
 		</li>
 		<li>
-			<a href="#dash-deployment">Deployment</a>
+			<a href="#dashboard-deployment">Deployment</a>
 		</li>
 		<li>
-			<a href="#dash-global-schema-methods">Global schema methods</a>
+			<a href="#dashboard-global-schema-methods">Global schema methods</a>
 		</li>
 		<li>
-			<a href="#dash-server-log">Server Log</a>
+			<a href="#dashboard-server-log">Server Log</a>
 		</li>
 <!--		<li>
-			<a href="#dash-sysinfo">System Information</a>
+			<a href="#dashboard-sysinfo">System Information</a>
 		</li>-->
 	</ul>
 
 	<div class="tabs-contents">
 
-		<div class="tab-content active" id="dash-about-me">
+		<div class="tab-content active" id="dashboard-about-me">
 			<p>You are currently logged in as <b>${config.meObj.name}</b></p>
 			<table class="props">
 				<tr><td class="key">ID</td><td>${config.meObj.id}</td></tr>
@@ -36,7 +36,7 @@
 			<button class="action" id="clear-local-storage-on-server">Reset stored UI settings</button>
 		</div>
 
-		<div class="tab-content" id="dash-about-structr">
+		<div class="tab-content" id="dashboard-about-structr">
 
 			<table class="props">
 				<tr><td class="key">Version</td><td>${config.envInfo.version} ${config.envInfo.build} ${config.envInfo.date} <span id="version-update-info"></span></td></tr>
@@ -49,40 +49,63 @@
 			</table>
 		</div>
 
-		<div class="tab-content" id="dash-deployment">
+		<div class="tab-content" id="dashboard-deployment">
 
-			<h3>Import application from local directory</h3>
-			<div>
-				<input type="text" id="deployment-source-input" size="60" placeholder="Enter directory path...">
-				<button class="action" id="do-import">Import from local directory</button>
-			</div>
+			<table>
+				<tr>
+					<td>
 
-			<h3>Import application from URL</h3>
-			${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Deployment via URL is not possible because <code>DeployServlet</code> is not running.</span>')}
-			<form action="/structr/deploy" method="POST" enctype="multipart/form-data">
-				<input type="hidden" name="redirectUrl" value="${window.location.href}">
-				<input type="text" id="deployment-url-input" size="60" placeholder="Enter download URL..." name="downloadUrl" ${(config.deployServletAvailable ? '' : 'disabled')}>
-				<button type="submit" class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')}>Import from URL</button>
-			</form>
+						<h3>Import application from local directory</h3>
+						<div>
+							<input type="text" id="deployment-source-input" placeholder="Local directory path for app import"><br>
+							<button class="action" id="do-app-import">Import from local directory</button>
+						</div>
 
-			<h3>Export application to local directory</h3>
-			<div>
-				<input type="text" id="deployment-target-input" size="60" placeholder="Enter directory path...">
-				<button class="action" id="do-export">Export to local directory</button>
-			</div>
+						<h3>Import data from local directory</h3>
+						<div>
+							<input type="text" id="data-import-source-input" placeholder="Local directory path for data import"><br>
+							<button class="action" id="do-data-import">Import data from local directory</button>
+						</div>
+
+						<h3>Import application from URL</h3>
+						${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Deployment via URL is not possible because <code>DeployServlet</code> is not running.</span>')}
+						<div>
+							<input type="hidden" id="redirect-url" value="${window.location.href}">
+							<input type="text" id="deployment-url-input" placeholder="Download URL of ZIP file for app import" name="downloadUrl" ${(config.deployServletAvailable ? '' : 'disabled')}><br>
+							<button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-app-import-from-url">Import app from ZIP file</button>
+						</div>
+
+					</td>
+					<td>
+						<h3>Export application to local directory</h3>
+						<div>
+							<input type="text" id="app-export-target-input" placeholder="Local directory path for app export"><br>
+							<button class="action" id="do-app-export">Export app to local directory</button>
+						</div>
+
+						<h3>Export data to local directory</h3>
+						<div>
+							<input type="text" id="data-export-target-input" placeholder="Local directory path for data export"><br>
+							<select id="data-export-types-input" class="property-attrs chosen-sortable" data-placeholder="Please select data type(s) to export" multiple="multiple"></select><br>
+							<button class="action" id="do-data-export">Export data to local directory</button>
+						</div>
+
+					</td>
+				</tr>
+			</table>
 
 		</div>
 
-		<div class="tab-content" id="dash-global-schema-methods">
+		<div class="tab-content" id="dashboard-global-schema-methods">
 
 		</div>
 
-		<div class="tab-content" id="dash-server-log">
+		<div class="tab-content" id="dashboard-server-log">
 
-			<div id="dash-server-log-controls">
+			<div id="dashboard-server-log-controls">
 
 				<label>Refresh Interval:</label>
-				<select id="dash-server-log-refresh-interval">
+				<select id="dashboard-server-log-refresh-interval">
 					<option value="10000">10s</option>
 					<option value="5000">5s</option>
 					<option value="2000">2s</option>
@@ -90,24 +113,24 @@
 					<option value="-1">off</option>
 				</select>
 
-				<span class="dash-spacer"></span>
+				<span class="dashboard-spacer"></span>
 
 				<label>Number of lines: </label>
-				<input id="dash-server-log-lines" type="number">
+				<input id="dashboard-server-log-lines" type="number">
 
-				<span class="dash-spacer"></span>
+				<span class="dashboard-spacer"></span>
 
-				<button id="dash-server-log-copy" class="action">Copy</button>
+				<button id="dashboard-server-log-copy" class="action">Copy</button>
 
-				<span class="dash-spacer"></span>
+				<span class="dashboard-spacer"></span>
 
-				<span id="dash-server-log-feedback"></span>
+				<span id="dashboard-server-log-feedback"></span>
 			</div>
 
 			<textarea readonly="readonly" rows=25></textarea>
 		</div>
 
-		<div class="tab-content" id="dash-sysinfo">
+		<div class="tab-content" id="dashboard-sysinfo">
 
 		</div>
 	</div>
@@ -183,37 +206,78 @@
 			vertical-align: top;
 		}
 
-		#dash-deployment .deployment-warning {
+		#dashboard-deployment table {
+			width: 100%;
+		}
+		
+		#dashboard-deployment td {
+			width: 50%;
+			vertical-align: top;
+		}
+
+		#dashboard-deployment .deployment-warning {
 			color: red;
 			margin-bottom: 6px;
 			display: inline-block;
 		}
 
-		#deployment-source-input, #deployment-url-input, #deployment-target-input {
-			height: 14px;
+		#dashboard-deployment input {
+			width: calc(100% - 24px);
+			/*width: 425px;*/
+			height: 15px;
 			margin: 0 4px 12px 0;
 		}
 
-		#dash-server-log {
+		#dashboard-deployment td > div {
+			margin-bottom: 36px;
+		}
+
+		#dashboard-deployment h3 {
+			margin-top: 0;
+		}
+
+		#data_export_types_input_chosen {
+			margin: 0 4px 12px 0;
+		}
+		
+		#data_export_types_input_chosen .search-field {
+			height: 22px;
+			padding-top: 3px;
+		}
+		
+		#data_export_types_input_chosen .chosen-choices {
+			margin-top: -3px;
+		}
+		
+		#data_export_types_input_chosen .chosen-choices li.search-choice {
+			padding: 1px 20px 1px 5px;
+			margin: 2px 5px 2px 0;
+		}
+		
+		#data_export_types_input_chosen .chosen-choices li.search-choice .search-choice-close {
+			top: 2px;
+		}
+		
+		#dashboard-server-log {
 			height: calc(100% - 34px);
 		}
 
-		#dash-server-log-controls {
+		#dashboard-server-log-controls {
 			height: 30px;
 		}
 
-		#dash-server-log-lines {
+		#dashboard-server-log-lines {
 			width: 64px;
 		}
 
-		#dash-server-log textarea {
+		#dashboard-server-log textarea {
 			height: calc(100% - 30px);
 			width: 100%;
 			resize: none;
 			font-family: monospace ! important;
 		}
 
-		#dash-server-log .dash-spacer {
+		#dashboard-server-log .dashboard-spacer {
 			display: inline-block;
 			width: 30px;
 		}

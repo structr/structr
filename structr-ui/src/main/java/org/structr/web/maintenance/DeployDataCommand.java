@@ -237,12 +237,12 @@ public class DeployDataCommand extends DeployCommand {
 			if (!Files.exists(source)) {
 
 				logger.warn("Please provide 'source' attribute for deployment source directory path.");
-				throw new FrameworkException(422, "Source path " + path + " does not exist.");
+				throw new FrameworkException(422, "Source path '" + path + "' does not exist.");
 			}
 
 			if (!Files.isDirectory(source)) {
 
-				throw new FrameworkException(422, "Source path " + path + " is not a directory.");
+				throw new FrameworkException(422, "Source path '" + path + "' is not a directory.");
 			}
 
 			doInnerCallbacks  = parameters.get("doInnerCallbacks") == null  ? false : "true".equals(parameters.get("doInnerCallbacks").toString());

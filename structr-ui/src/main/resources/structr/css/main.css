@@ -2338,6 +2338,12 @@ button.add_property {
 	display: none;
 }
 
+.chosen-container-multi .chosen-choices, .chosen-container-multi .chosen-choices li.search-choice {
+	background: none;
+	border: 1px solid rgba(0,0,0,.125);
+	font-size: 9pt;
+}
+
 input.property-name:disabled {
 	background-color: inherit;
 }
@@ -3024,7 +3030,7 @@ table.push {
 	background: #fff ! important;
 	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
 	border: 1px solid rgba(0,0,0,.125);
-	overflow: hidden;
+	/*overflow: hidden;*/
 	margin-top: -3px;
 }
 
@@ -3246,9 +3252,10 @@ input.bitmask {
 }
 
 #info-area .message-buttons {
-	position: absolute;
-	right: 5px;
-	bottom: 4px;
+    position: relative;
+    text-align: right;
+    margin-bottom: -6px;
+    margin: 2px -3px -8px 0;
 }
 
 #info-area .message:only-child .confirmAll {
