@@ -24,7 +24,7 @@ case "$1" in
         exit 0
         ;;
   status|info)
-		PID=$(pgrep -f org.structr.Server)
+		PID=$(pgrep -P 1 -f org.structr.Server)
 		if [[ ! -z $PID ]]; then
 			echo "There may be a Structr instance running with pid $PID, exiting."
 			exit 1
