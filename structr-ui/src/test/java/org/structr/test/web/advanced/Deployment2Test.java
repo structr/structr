@@ -60,9 +60,9 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
 
-public class DeploymentTest2 extends DeploymentTestBase {
+public class Deployment2Test extends DeploymentTestBase {
 
-	private static final Logger logger = LoggerFactory.getLogger(DeploymentTest2.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(Deployment2Test.class.getName());
 
 	@Test
 	public void test21ExportGrants() {

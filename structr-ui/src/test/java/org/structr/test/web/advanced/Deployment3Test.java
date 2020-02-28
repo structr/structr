@@ -69,9 +69,9 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
 
-public class DeploymentTest3 extends DeploymentTestBase {
+public class Deployment3Test extends DeploymentTestBase {
 
-	private static final Logger logger = LoggerFactory.getLogger(DeploymentTest3.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(Deployment3Test.class.getName());
 
 	@Test
 	public void test31RoundtripWithEmptyContentElements() {

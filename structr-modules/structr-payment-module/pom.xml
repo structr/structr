@@ -100,7 +100,7 @@
 						<exclude>src/test/**/*.properties</exclude>
 					</excludes>
 					<properties>
-						<year>2019</year>
+						<year>2020</year>
 						<owner>Structr GmbH</owner>
 					</properties>
 				</configuration>
@@ -120,7 +120,7 @@
 			<name>GNU Affero General Public License, Version 3</name>
 			<url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
 			<comments>
-				Copyright (C) 2010-2019 Structr GmbH
+				Copyright (C) 2010-2020 Structr GmbH
 
 				This file is part of Structr &lt;http://structr.org&gt;.
 

@@ -53,9 +53,9 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
 
-public class DeploymentTest1 extends DeploymentTestBase {
+public class Deployment1Test extends DeploymentTestBase {
 
-	private static final Logger logger = LoggerFactory.getLogger(DeploymentTest1.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(Deployment1Test.class.getName());
 
 	@Test
 	public void test11TemplateInTbody() {

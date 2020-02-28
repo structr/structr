@@ -39,9 +39,9 @@ import org.structr.websocket.command.CreateComponentCommand;
 import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
 
-public class DeploymentTest0 extends DeploymentTestBase {
+public class Deployment0Test extends DeploymentTestBase {
 
-	private static final Logger logger = LoggerFactory.getLogger(DeploymentTest0.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(Deployment0Test.class.getName());
 
 	@Test
 	public void test01SimplePage() {
