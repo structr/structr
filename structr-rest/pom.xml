@@ -97,7 +97,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.0.2</version>
+				<version>${maven.plugin.jar.version}</version>
 				<configuration>
 					<archive>
 						<manifestSection>
@@ -108,36 +108,6 @@
 						</manifestSection>
 					</archive>
 				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>com.mycila</groupId>
-				<artifactId>license-maven-plugin</artifactId>
-				<version>2.11</version>
-				<configuration>
-					<header>header.txt</header>
-					<includes>
-						<include>src/**</include>
-					</includes>
-					<excludes>
-						<exclude>**/README</exclude>
-						<exclude>src/**/.directory</exclude>
-						<exclude>src/**/*.properties</exclude>
-						<exclude>src/main/resources/**</exclude>
-						<exclude>src/test/resources/**</exclude>
-					</excludes>
-					<properties>
-						<year>2020</year>
-						<owner>Structr GmbH</owner>
-					</properties>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>

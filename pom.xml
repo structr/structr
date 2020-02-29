@@ -38,6 +38,7 @@
 		<test.neo4j.version>neo4j:3.5-enterprise</test.neo4j.version>
 		<structr.lib.directory>${structr.root.directory}/structr-ui/target/lib</structr.lib.directory>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+		<maven.plugin.jar.version>3.2.0</maven.plugin.jar.version>
 		<test.forkCount>1</test.forkCount>
 	</properties>
 
@@ -345,9 +346,26 @@
 				</configuration>
 			</plugin>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.1.1</version>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${structr.lib.directory}</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>com.mycila</groupId>
 				<artifactId>license-maven-plugin</artifactId>
-				<version>2.11</version>
+				<version>3.0</version>
 				<configuration>
 					<header>header.txt</header>
 					<includes>
@@ -356,7 +374,35 @@
 					<excludes>
 						<exclude>**/README</exclude>
 						<exclude>src/**/.directory</exclude>
+						<exclude>src/**/*.sh</exclude>
 						<exclude>src/**/*.properties</exclude>
+						<exclude>src/main/resources/**/*.html</exclude>
+						<exclude>src/main/resources/**/*.html</exclude>
+						<exclude>src/main/resources/**/*.xml</exclude>
+						<exclude>src/main/resources/**/*.xsl*</exclude>
+						<exclude>src/main/resources/**/*.eot</exclude>
+						<exclude>src/main/resources/**/*.woff</exclude>
+						<exclude>src/main/resources/**/*.woff2</exclude>
+						<exclude>src/main/resources/**/*.ttf</exclude>
+						<exclude>src/main/resources/**/*.otf</exclude>
+						<exclude>src/main/resources/**/*.svg</exclude>
+						<exclude>src/main/resources/**/*.properties</exclude>
+						<exclude>src/main/resources/bin/**</exclude>
+						<exclude>src/main/resources/mime.types</exclude>
+						<exclude>src/main/resources/structr/codemirror/**</exclude>
+						<exclude>src/main/resources/structr/trumbowyg/**</exclude>
+						<exclude>src/main/resources/structr/js/lib/**</exclude>
+						<exclude>src/main/resources/structr/css/lib/**</exclude>
+						<exclude>src/test/javascript/casperjs/**</exclude>
+						<exclude>src/test/javascript/bin/**</exclude>
+						<exclude>src/test/javascript/lib/**</exclude>
+						<exclude>src/test/**/*.html</exclude>
+						<exclude>src/test/**/*.xml</exclude>
+						<exclude>src/main/deb/**</exclude>
+						<exclude>src/main/resources/CollapsibleLists.js</exclude>
+						<exclude>src/main/resources/structr/js/flow-editor/**/*</exclude>
+						<exclude>src/test/resources/**/*.properties</exclude>
+						<exclude>src/test/resources/**/*.txt</exclude>
 					</excludes>
 					<properties>
 						<year>2020</year>
@@ -391,6 +437,14 @@
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+					<encoding>${project.build.sourceEncoding}</encoding>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
