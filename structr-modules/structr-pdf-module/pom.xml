@@ -11,10 +11,6 @@
 	<artifactId>structr-pdf-module</artifactId>
 	<packaging>jar</packaging>
 
-	<properties>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
@@ -115,8 +111,6 @@
 			<url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
 			<comments>
 				Copyright (C) 2010-2020 Structr GmbH
-
-				This file is part of Structr &lt;http://structr.org&gt;.
 
 				Structr is free software: you can redistribute it and/or modify
 				it under the terms of the GNU Affero General Public License as
