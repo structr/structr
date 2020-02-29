@@ -319,6 +319,7 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 
 		} catch (Throwable t) {
 
+			t.printStackTrace();
 		}
 
 		return null;
