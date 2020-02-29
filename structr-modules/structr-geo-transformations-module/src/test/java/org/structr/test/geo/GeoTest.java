@@ -212,7 +212,7 @@ public class GeoTest {
 		try {
 
 			final Object result6 = func.apply(null, null, new Object[] { "32 N 439596 5967780" });
-			assertEquals("Invalid UTM conversion result", 53.85499997165232, get(result6, 0));
+			assertEquals("Invalid UTM conversion result", 53.854999971652326, get(result6, 0));
 			assertEquals("Invalid UTM conversion result", 8.081674915658844, get(result6, 1));
 
 			final Object result7 = func.apply(null, null, new Object[] { "32U 395473 5686479" });
@@ -224,8 +224,8 @@ public class GeoTest {
 			assertEquals("Invalid UTM conversion result", 7.49998773689121, get(result8, 1));
 
 			final Object result9 = func.apply(null, null, new Object[] { "32H 395473 5686479" });
-			assertEquals("Invalid UTM conversion result", -38.96442577579118, get(result9, 0));
-			assertEquals("Invalid UTM conversion result", 7.793498600057568, get(result9, 1));
+			assertEquals("Invalid UTM conversion result", -38.964425775791184, get(result9, 0));
+			assertEquals("Invalid UTM conversion result", 7.793498600057567, get(result9, 1));
 
 			final Object result10 = func.apply(null, null, new Object[] { "3U 395473 5686479" });
 			assertEquals("Invalid UTM conversion result", 51.319997116243364, get(result10, 0));
