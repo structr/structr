@@ -9,11 +9,6 @@
 	<artifactId>structr-xml-module</artifactId>
 	<packaging>jar</packaging>
 
-	<properties>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-	</properties>
-
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
@@ -49,18 +44,6 @@
 						</manifestSection>
 					</archive>
 					<outputDirectory>${structr.lib.directory}</outputDirectory>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-					<encoding>${project.build.sourceEncoding}</encoding>
-					<debug>true</debug>
-					<showDeprecation>true</showDeprecation>
 				</configuration>
 			</plugin>
 			<plugin>

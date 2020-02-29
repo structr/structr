@@ -15,12 +15,6 @@
 
 	<packaging>pom</packaging>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-	</properties>
-
 	<modules>
 		<module>structr-xmpp-module</module>
 		<module>structr-media-module</module>
@@ -42,7 +36,7 @@
 		<module>structr-messaging-engine-module</module>
 		<module>structr-excel-module</module>
 		<module>structr-advanced-mail-module</module>
-		<module>structr-pdf-module</module>
+	        <module>structr-pdf-module</module>
 		<module>structr-security-module</module>
 	</modules>
 
