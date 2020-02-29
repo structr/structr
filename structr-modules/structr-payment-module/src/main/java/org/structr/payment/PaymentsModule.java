@@ -37,9 +37,7 @@ public class PaymentsModule implements StructrModule {
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
 
-		logger.info("Checking payment provider configuration..");
-
-		// check and read configuration..
+		// read configuration..
 		checkString("paypal.mode",      Settings.getOrCreateStringSetting("paypal", "mode").getValue(),      "paypal.mode not set, please set to either sandbox or live.");
 		checkString("paypal.username",  Settings.getOrCreateStringSetting("paypal", "username").getValue(),  "paypal.username not set in structr.conf.");
 		checkString("paypal.password",  Settings.getOrCreateStringSetting("paypal", "password").getValue(),  "paypal.password not set in structr.conf.");
@@ -89,7 +87,8 @@ public class PaymentsModule implements StructrModule {
 
 		if (StringUtils.isEmpty(value)) {
 
-			logger.warn("{}", message);
+			// don't warn for empty values
+			//logger.warn("{}", message);
 
 		} else {
 
