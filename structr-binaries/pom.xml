@@ -12,10 +12,6 @@
 		<version>3.5-SNAPSHOT</version>
 	</parent>
 
-	<properties>
-		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-	</properties>
-
 	<build>
 		<plugins>
 			<plugin>
