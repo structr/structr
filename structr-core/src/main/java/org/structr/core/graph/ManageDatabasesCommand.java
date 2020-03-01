@@ -30,6 +30,7 @@ import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.service.DatabaseConnection;
 import static org.structr.api.service.DatabaseConnection.KEY_ACTIVE;
+import static org.structr.api.service.DatabaseConnection.KEY_DISPLAYNAME;
 import static org.structr.api.service.DatabaseConnection.KEY_DRIVER;
 import static org.structr.api.service.DatabaseConnection.KEY_FORCE_STREAMING;
 import static org.structr.api.service.DatabaseConnection.KEY_NAME;
@@ -46,6 +47,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.function.Functions;
 import org.structr.core.property.GenericProperty;
 
 /**
@@ -157,6 +159,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 			//setOrDefault(Settings.DatabaseDriver,        prefix, data, KEY_DRIVER);
 			Settings.DatabaseDriver.getPrefixedSetting(prefix).setValue(BoltDatabaseService.class.getName());
 
+			setOrDefault(Settings.ConnectionName,        prefix, data, KEY_DISPLAYNAME);
 			setOrDefault(Settings.ConnectionUrl,         prefix, data, KEY_URL);
 			setOrDefault(Settings.ConnectionUser,        prefix, data, KEY_USERNAME);
 			setOrDefault(Settings.ConnectionPassword,    prefix, data, KEY_PASSWORD);
@@ -234,6 +237,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 			if (connectionNames.contains(prefix)) {
 
 				Settings.DatabaseDriver.getPrefixedSetting(prefix).unregister();
+				Settings.ConnectionName.getPrefixedSetting(prefix).unregister();
 				Settings.ConnectionUrl.getPrefixedSetting(prefix).unregister();
 				Settings.ConnectionUser.getPrefixedSetting(prefix).unregister();
 				Settings.ConnectionPassword.getPrefixedSetting(prefix).unregister();
@@ -290,6 +294,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 		settings.put(KEY_NAME,                    name);
 		settings.put(KEY_DRIVER,                  Settings.DatabaseDriver.getPrefixedValue(prefix));
+		settings.put(KEY_DISPLAYNAME,             Settings.ConnectionName.getPrefixedValue(prefix));
 		settings.put(KEY_URL,                     Settings.ConnectionUrl.getPrefixedValue(prefix));
 		settings.put(KEY_USERNAME,                Settings.ConnectionUser.getPrefixedValue(prefix));
 		settings.put(KEY_PASSWORD,                Settings.ConnectionPassword.getPrefixedValue(prefix));
@@ -343,6 +348,12 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		if (StringUtils.isEmpty((String)data.get(KEY_NAME))) {
 			errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("name")));
 		}
+
+		final String name    = (String)data.get(KEY_NAME);
+		final String cleaned = Functions.cleanString(name);
+
+		data.put(KEY_DISPLAYNAME, name);
+		data.put(KEY_NAME,        cleaned);
 
 		if (!nameOnly) {
 

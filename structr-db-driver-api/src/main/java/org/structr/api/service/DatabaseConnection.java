@@ -31,6 +31,7 @@ import org.structr.api.util.html.Tag;
 public class DatabaseConnection extends LinkedHashMap<String, Object> {
 
 	public static final String KEY_ACTIVE                  = "active";
+	public static final String KEY_DISPLAYNAME             = "displayName";
 	public static final String KEY_NAME                    = "name";
 	public static final String KEY_DRIVER                  = "driver";
 	public static final String KEY_URL                     = "url";
@@ -55,6 +56,10 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 
 	public String getName() {
 		return (String)get(KEY_NAME);
+	}
+
+	public String getDisplayName() {
+		return (String)get(KEY_DISPLAYNAME);
 	}
 
 	public void setUrl(final String url) {
@@ -88,15 +93,16 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 
 	public void render(final Tag parent, final String configUrl) {
 
-		final boolean active = isActive();
-		final String name    = getName();
-		final Tag div        = parent.block("div").css("connection app-tile" + (active ? " active" : ""));
+		final boolean active     = isActive();
+		final String displayName = getDisplayName();
+		final String name        = getName();
+		final Tag div            = parent.block("div").css("connection app-tile" + (active ? " active" : ""));
 
 		if (!active) {
 			div.block("button").attr(new Attr("type", "button")).text("x").css("delete-button").attr(new Attr("onclick", "deleteConnection('" + name + "');"));
 		}
 
-		div.block("h4").text(name + (isActive() ? " (active)" : ""));
+		div.block("h4").text(displayName + (isActive() ? " (active)" : ""));
 
 		final Tag url = div.block("p");
 		url.block("label").text("Connection URL");
