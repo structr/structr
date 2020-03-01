@@ -634,7 +634,7 @@ public class ConfigServlet extends AbstractServletBase {
 			body.block("h3").text("Superuser password");
 
 			final Tag pwd = body.block("p");
-			pwd.empty("input").attr(new Name("superuser.password")).attr(new Type("text")).attr(new Attr("size", 40));
+			pwd.empty("input").attr(new Name("superuser.password")).attr(new Type("password")).attr(new Attr("size", 40));
 			pwd.empty("input").attr(new Type("submit")).attr(new Attr("value", "Set password")).attr(bgGreen);
 
 		} else {
