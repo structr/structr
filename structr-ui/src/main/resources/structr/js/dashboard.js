@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-$(document).ready(function () {
+$(document).ready(function() {
 	Structr.registerModule(_Dashboard);
 });
 
@@ -28,12 +28,12 @@ var _Dashboard = {
 	logRefreshTimeIntervalKey: 'dashboardLogRefreshTimeInterval' + port,
 	logLinesKey: 'dashboardNumberOfLines' + port,
 
-	init: function () {},
-	unload: function () {
+	init: function() {},
+	unload: function() {
 		window.clearInterval(_Dashboard.logInterval);
 	},
-	removeActiveClass: function (nodelist) {
-		nodelist.forEach(function (el) {
+	removeActiveClass: function(nodelist) {
+		nodelist.forEach(function(el) {
 			el.classList.remove('active');
 		});
 	},
@@ -57,7 +57,7 @@ var _Dashboard = {
 
 			return response.json();
 
-		}).then(function (data) {
+		}).then(function(data) {
 
 			templateConfig.envInfo = data.result;
 
@@ -78,11 +78,11 @@ var _Dashboard = {
 
 			return fetch(rootUrl + '/me/ui');
 
-		}).then(function (response) {
+		}).then(function(response) {
 
 			return response.json();
 
-		}).then(function (data) {
+		}).then(function(data) {
 
 			templateConfig.meObj = data.result;
 
@@ -94,9 +94,8 @@ var _Dashboard = {
 
 		}).then(function() {
 
-			Structr.fetchHtmlTemplate('dashboard/dashboard', templateConfig, function (html) {
+			Structr.fetchHtmlTemplate('dashboard/dashboard', templateConfig, function(html) {
 
-				main.empty();
 				main.append(html);
 
 				_Dashboard.gatherVersionUpdateInfo(templateConfig.envInfo.version, releasesIndexUrl, snapshotsIndexUrl);
@@ -115,36 +114,57 @@ var _Dashboard = {
 					});
 				});
 
-				document.querySelector('#clear-local-storage-on-server').addEventListener('click', function () {
+				document.querySelector('#clear-local-storage-on-server').addEventListener('click', function() {
 					_Dashboard.clearLocalStorageOnServer(templateConfig.meObj.id);
 				});
 
-				_Dashboard.checkLicenseEnd(templateConfig.envInfo, $('#dash-about-structr .end-date'));
+				_Dashboard.checkLicenseEnd(templateConfig.envInfo, $('#dashboard-about-structr .end-date'));
 
-				$('button#do-import').on('click', function () {
-					var location = $('#deployment-source-input').val();
-					if (location && location.length) {
-						_Dashboard.deploy('import', location);
-					} else {
-						// show error message
-					}
+				$('button#do-app-import').on('click', function() {
+					_Dashboard.deploy('import', $('#deployment-source-input').val());
 				});
 
-				$('button#do-export').on('click', function () {
-					var location = $('#deployment-target-input').val();
-					if (location && location.length) {
-						_Dashboard.deploy('export', location);
-					} else {
-						// show error message
-					}
+				$('button#do-app-export').on('click', function() {
+					_Dashboard.deploy('export', $('#app-export-target-input').val());
+				});
+
+				$('button#do-app-import-from-url').on('click', function() {
+					_Dashboard.deployFromURL($('#redirect-url').val(), $('#deployment-url-input').val());
+				});
+
+				$('button#do-data-import').on('click', function() {
+					_Dashboard.deployData('import', $('#data-import-source-input').val());
+				});
+
+				$('button#do-data-export').on('click', function() {
+					_Dashboard.deployData('export', $('#data-export-target-input').val(), $('#data-export-types-input').val());
+				});
+
+				let typesSelectElem = $('#data-export-types-input');
+
+				Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name', function(nodes) {
+					nodes.forEach(function(node) {
+						
+						typesSelectElem.append('<option>' + node.name + '</option>');
+					});
+
+					typesSelectElem.chosen({
+						search_contains: true,
+						width: 'calc(100% - 14px)',
+						display_selected_options: false,
+						hide_results_on_select: false,
+						display_disabled_options: false
+					}).chosenSortable(function() {
+						//_Schema.activateEditModeForViewRow(tr);
+					});
 				});
 
 				_Dashboard.activateLogBox();
 				_Dashboard.activateLastActiveTab();
-				_Dashboard.appendGlobalSchemaMethods($('#dash-global-schema-methods'));
+				_Dashboard.appendGlobalSchemaMethods($('#dashboard-global-schema-methods'));
 
 				$(window).off('resize');
-				$(window).on('resize', function () {
+				$(window).on('resize', function() {
 					Structr.resize();
 				});
 
@@ -231,20 +251,23 @@ var _Dashboard = {
 		let date = new Date(dateString);
 		return date.getFullYear() + '-' + ('' + (date.getMonth() + 1)).padStart(2, '0') + '-' + ('' + date.getDate()).padStart(2, '0');
 	},
-	displayVersion: function (obj) {
-		return (obj.version ? ' (v' + obj.version + ')' : '');
+	displayVersion: function(obj) {
+		return (obj.version ? ' (v' + obj.version + ')': '');
 	},
-	displayName: function (obj) {
+	displayName: function(obj) {
 		return fitStringToWidth(obj.name, 160);
 	},
-	clearLocalStorageOnServer: function (userId) {
+	clearLocalStorageOnServer: function(userId) {
 
-		Command.setProperty(userId, 'localStorage', null, false, function () {
+		Command.setProperty(userId, 'localStorage', null, false, function() {
 			blinkGreen($('#clear-local-storage-on-server'));
 			LSWrapper.clear();
 		});
 	},
-	checkLicenseEnd: function (envInfo, element, cfg) {
+	checkNewVersions: function() {
+
+	},
+	checkLicenseEnd: function(envInfo, element, cfg) {
 
 		if (envInfo && envInfo.endDate && element) {
 
@@ -283,9 +306,9 @@ var _Dashboard = {
 
 		var maintenanceList = $('<div></div>').appendTo(container);
 
-		$.get(rootUrl + '/SchemaMethod?schemaNode=&sort=name', function (data) {
+		$.get(rootUrl + '/SchemaMethod?schemaNode=&sort=name', function(data) {
 
-			data.result.forEach(function (result) {
+			data.result.forEach(function(result) {
 
 				var methodRow = $('<div class="global-method" style=""></div>');
 				var methodName = $('<span>' + result.name + '</span>');
@@ -305,9 +328,9 @@ var _Dashboard = {
 					});
 				}
 
-				$('button#run-' + result.id).on('click', function () {
+				$('button#run-' + result.id).on('click', function() {
 
-					Structr.dialog('Run global schema method ' + result.name, function () {}, function () {
+					Structr.dialog('Run global schema method ' + result.name, function() {}, function() {
 						$('#run-method').remove();
 						$('#clear-log').remove();
 					});
@@ -329,16 +352,16 @@ var _Dashboard = {
 					Structr.appendInfoTextToElement({
 						element: $('#params h3'),
 						text: "Parameters can be accessed by using the <code>retrieve()</code> function.",
-						css: {marginLeft: "5px"},
-						helpElementCss: {fontSize: "12px"}
+						css: { marginLeft: "5px" },
+						helpElementCss: { fontSize: "12px" }
 					});
 
-					addParamBtn.on('click', function () {
+					addParamBtn.on('click', function() {
 						var newParam = $('<div class="param"><input class="param-name" placeholder="Parameter name"> : <input class="param-value" placeholder="Parameter value"></div>');
 						var removeParam = $('<i class="button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" alt="Remove parameter" title="Remove parameter"/>');
 
 						newParam.append(removeParam);
-						removeParam.on('click', function () {
+						removeParam.on('click', function() {
 							newParam.remove();
 						});
 						paramsBox.append(newParam);
@@ -347,7 +370,7 @@ var _Dashboard = {
 					dialog.append('<h3>Method output</h3>');
 					dialog.append('<pre id="log-output"></pre>');
 
-					$('#run-method').on('click', function () {
+					$('#run-method').on('click', function() {
 
 						$('#log-output').empty();
 						$('#log-output').append('Running method..\n');
@@ -365,58 +388,122 @@ var _Dashboard = {
 							url: rootUrl + '/maintenance/globalSchemaMethods/' + result.name,
 							data: JSON.stringify(params),
 							method: 'POST',
-							complete: function (data) {
+							complete: function(data) {
 								$('#log-output').append(data.responseText);
 								$('#log-output').append('Done.');
 							}
 						});
 					});
 
-					$('#clear-log').on('click', function () {
+					$('#clear-log').on('click', function() {
 						$('#log-output').empty();
 					});
 				});
 			});
 		});
 	},
-	activateLogBox: function () {
+    activateLogBox: function() {
 
-		let logBoxContentBox = $('#dash-server-log textarea');
+		let feedbackElement = document.querySelector('#dashboard-server-log-feedback');
 
-		let scrollEnabled = true;
+		let numberOfLines      = LSWrapper.getItem(_Dashboard.logLinesKey, 300);
+		let numberOfLinesInput = document.querySelector('#dashboard-server-log-lines');
 
-		let updateLog = function () {
-			Command.getServerLogSnapshot(300, (a) => {
-				logBoxContentBox.html(a[0].result);
-				if (scrollEnabled) {
-					logBoxContentBox.scrollTop(logBoxContentBox[0].scrollHeight);
-				}
-			});
+		numberOfLinesInput.value = numberOfLines;
+
+		numberOfLinesInput.addEventListener('change', () => {
+			numberOfLines = numberOfLinesInput.value;
+			LSWrapper.setItem(_Dashboard.logLinesKey, numberOfLines);
+
+			blinkGreen($(numberOfLinesInput));
+		});
+
+		let registerRefreshInterval = (timeInMs) => {
+
+			window.clearInterval(_Dashboard.logInterval);
+
+			if (timeInMs > 0) {
+				_Dashboard.logInterval = window.setInterval(() => updateLog(), timeInMs);
+			}
 		};
 
-		let registerEventHandlers = function () {
-			_Dashboard.logInterval = window.setInterval(() => updateLog(), 1000);
+		let logRefreshTimeInterval    = LSWrapper.getItem(_Dashboard.logRefreshTimeIntervalKey, 1000);
+		let refreshTimeIntervalSelect = document.querySelector('#dashboard-server-log-refresh-interval');
 
-			logBoxContentBox.bind('scroll', (event) => {
-				let textarea = event.target;
+		refreshTimeIntervalSelect.value = logRefreshTimeInterval;
 
-				let maxScroll = textarea.scrollHeight - 4;
-				let currentScroll = (textarea.scrollTop + $(textarea).height());
+		registerRefreshInterval(logRefreshTimeInterval);
 
-				if (currentScroll >= maxScroll) {
-					scrollEnabled = true;
-				} else {
-					scrollEnabled = false;
-				}
-			});
+		refreshTimeIntervalSelect.addEventListener('change', () => {
+			logRefreshTimeInterval = refreshTimeIntervalSelect.value;
+			LSWrapper.setItem(_Dashboard.logRefreshTimeIntervalKey, logRefreshTimeInterval);
+
+			registerRefreshInterval(logRefreshTimeInterval);
+			blinkGreen($(refreshTimeIntervalSelect));
+		});
+
+		let logBoxContentBox = $('#dashboard-server-log textarea');
+
+        let scrollEnabled = true;
+		let textAreaHasFocus = false;
+
+		logBoxContentBox.on('focus', () => {
+			textAreaHasFocus = true;
+			feedbackElement.textContent = 'Text area has focus, refresh disabled until focus lost.';
+		});
+
+		logBoxContentBox.on('blur', () => {
+			textAreaHasFocus = false;
+			feedbackElement.textContent = '';
+		});
+
+        let updateLog = function() {
+
+			if (!textAreaHasFocus) {
+
+				feedbackElement.textContent = 'Refreshing server log...';
+
+				Command.getServerLogSnapshot(numberOfLines, (a) => {
+					logBoxContentBox.text(a[0].result);
+					if (scrollEnabled) {
+						logBoxContentBox.scrollTop(logBoxContentBox[0].scrollHeight);
+					}
+
+					window.setTimeout(() => {
+						feedbackElement.textContent = '';
+					}, 250);
+				});
+			}
 		};
 
-		registerEventHandlers();
-		updateLog();
+		logBoxContentBox.bind('scroll', (event) => {
+			let textarea = event.target;
 
-	},
-	deploy: function (mode, location) {
+			let maxScroll = textarea.scrollHeight - 4;
+			let currentScroll = (textarea.scrollTop + $(textarea).height());
 
+			if (currentScroll >= maxScroll) {
+				scrollEnabled = true;
+			} else {
+				scrollEnabled = false;
+			}
+		});
+
+		new Clipboard('#dashboard-server-log-copy', {
+			target: function () {
+				return logBoxContentBox[0];
+			}
+		});
+
+        updateLog();
+    },
+	deploy: function(mode, location) {
+
+		if (!(location && location.length)) {
+			new MessageBuilder().title('Unable to start data ' + mode + '').warning('Please enter a local directory path for data export.').requiresConfirmation().show();
+			return;
+		}
+		
 		var data = {
 			mode: mode
 		};
@@ -430,8 +517,81 @@ var _Dashboard = {
 		$.ajax({
 			url: rootUrl + '/maintenance/deploy',
 			data: JSON.stringify(data),
-			method: 'POST'
+			method: 'POST',
+			dataType: 'json',
+			contentType: 'application/json; charset=utf-8',
+			statusCode: {
+				422: function(data) {
+					//new MessageBuilder().title('Unable to start app ' + mode + '').warning(data.responseJSON.message).requiresConfirmation().show();
+				}
+			}
+		});
+	},
+	deployFromURL: function(redirectUrl, downloadUrl) {
+
+		if (!(downloadUrl && downloadUrl.length)) {
+			new MessageBuilder().title('Unable to start app import from URL').warning('Please enter the URL of the ZIP file containing the app.').requiresConfirmation().show();
+			return;
+		}
+
+		let data = new FormData();
+		data.append('redirectUrl', redirectUrl);
+		data.append('downloadUrl', downloadUrl);
+
+		$.ajax({
+			url: '/structr/deploy',
+			method: 'POST',
+			processData: false,
+			contentType: false,
+			data: data,
+			statusCode: {
+				400: function(data) {
+					new MessageBuilder().title('Unable to import app from URL ' + downloadUrl).warning(data.responseJSON.message).requiresConfirmation().show();
+				}
+			},
+			success: function() {
+				//console.log('Deployment successful!');
+			}
+		});
+	},
+	deployData: function(mode, location, types) {
+
+		if (!(location && location.length)) {
+			new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please enter a directory path for data ' + mode + '.').requiresConfirmation().show();
+			return;
+		}
+
+		var data = {
+			mode: mode
+		};
+
+		if (mode === 'import') {
+			data['source'] = location;
+		} else if (mode === 'export') {
+			data['target'] = location;
+			if (types && types.length) {
+				data['types'] = types.join(',');
+			} else {
+				new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please select at least one data type.').requiresConfirmation().show();
+				return;
+			}
+					
+		}
+		
+		let url = rootUrl + '/maintenance/deployData';
+
+		$.ajax({
+			url: url,
+			data: JSON.stringify(data),
+			method: 'POST',
+			dataType: 'json',
+			contentType: 'application/json; charset=utf-8',
+			statusCode: {
+				422: function(data) {
+					new MessageBuilder().warning(data.responseJSON.message).requiresConfirmation().show();
+				}
+			}
 		});
 
-	}
+	}	
 };

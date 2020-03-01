@@ -425,7 +425,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 			for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
 
-				final String indexDescription = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
+				final String indexDescription = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
 				final String state            = existingDbIndexes.get(indexDescription);
 				final boolean alreadySet      = Boolean.TRUE.equals("ONLINE".equals(state));
 				final boolean createIndex     = propertyIndexConfig.getValue();
@@ -509,7 +509,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 				for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
 
-					final String indexDescription = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
+					final String indexDescription = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
 					final boolean indexExists     = Boolean.TRUE.equals(existingDbIndexes.get(indexDescription));
 					final boolean dropIndex       = propertyIndexConfig.getValue();
 

@@ -217,6 +217,13 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 				HttpHelper.streamURLToFile(downloadUrl, file);
 				fileName = PathHelper.getName(downloadUrl);
+			
+			} else {
+					
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				response.getOutputStream().write("ERROR (400): No download URL given\n".getBytes("UTF-8"));
+				
+				return;
 			}
 
 			if (file.exists() && file.length() > 0L) {

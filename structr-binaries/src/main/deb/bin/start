@@ -4,7 +4,7 @@ cd /usr/lib/structr
 
 . bin/config
 
-PID=$(pgrep -f org.structr.Server)
+PID=$(pgrep -P 1 -f org.structr.Server)
 
 if [[ ! -z $PID ]]; then
 
