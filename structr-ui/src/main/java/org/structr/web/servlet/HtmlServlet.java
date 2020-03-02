@@ -1679,8 +1679,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	public static boolean isVisibleForSite(final HttpServletRequest request, final Page page) {
 
-		final Site site = page.getSite();
-		if (site == null) {
+		final Iterable<Site> sites = page.getSites();
+		if (sites == null) {
 
 			return true;
 		}
@@ -1688,17 +1688,22 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		final String serverName = request.getServerName();
 		final int serverPort    = request.getServerPort();
 
-		if (StringUtils.isNotBlank(serverName) && !serverName.equals(site.getHostname())) {
-			return false;
+		boolean isVisible = false;
+		
+		for (final Site site : sites) {
+
+				if (StringUtils.isBlank(serverName) || serverName.equals(site.getHostname())) {
+					isVisible = true;
+				}
+
+				final Integer sitePort = site.getPort();
+
+				if (isVisible && (sitePort == null || serverPort == sitePort)) {
+					isVisible = true;
+				}
 		}
 
-		final Integer sitePort = site.getPort();
-
-		if (sitePort != null && serverPort != sitePort) {
-			return false;
-		}
-
-		return true;
+		return isVisible;
 
 	}
 

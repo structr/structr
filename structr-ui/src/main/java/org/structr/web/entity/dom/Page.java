@@ -95,7 +95,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		type.addPropertyGetter("path", String.class);
 		type.addPropertyGetter("elements", Iterable.class);
 		type.addPropertyGetter("cacheForSeconds", Integer.class);
-		type.addPropertyGetter("site", Site.class);
+		type.addPropertyGetter("sites", Iterable.class);
 
 		type.addPropertyGetter("version", Integer.TYPE);
 		type.addPropertySetter("version", Integer.TYPE);
@@ -174,7 +174,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		createElement2.addParameter("tag", "String");
 		createElement2.setSource("return " + Page.class.getName() + ".createElement(this, tag, false);");
 
-		site.relate(type, "CONTAINS", Cardinality.OneToMany, "site", "pages");
+		site.relate(type, "CONTAINS", Cardinality.ManyToMany, "sites", "pages");
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "linkingElements");
@@ -184,12 +184,12 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		type.addViewProperty(PropertyView.Public, "children");
 		type.addViewProperty(PropertyView.Public, "name");
 		type.addViewProperty(PropertyView.Public, "owner");
-		type.addViewProperty(PropertyView.Public, "site");
+		type.addViewProperty(PropertyView.Public, "sites");
 
 		type.addViewProperty(PropertyView.Ui, "pageCreatesRawData");
 		type.addViewProperty(PropertyView.Ui, "dontCache");
 		type.addViewProperty(PropertyView.Ui, "children");
-		type.addViewProperty(PropertyView.Ui, "site");
+		type.addViewProperty(PropertyView.Ui, "sites");
 	}}
 
 	public static final Set<String> nonBodyTags = new HashSet<>(Arrays.asList(new String[] { "html", "head", "body", "meta", "link" } ));
@@ -199,7 +199,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 
 	Iterable<DOMNode> getElements();
 
-	Site getSite();
+	Iterable<Site> getSites();
 
 	void setVersion(int version) throws FrameworkException;
 	void increaseVersion() throws FrameworkException;
