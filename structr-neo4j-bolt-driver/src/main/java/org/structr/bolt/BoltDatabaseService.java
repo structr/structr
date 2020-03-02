@@ -24,6 +24,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -42,6 +43,7 @@ import org.neo4j.driver.v1.GraphDatabase;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
+import org.neo4j.driver.v1.TransactionConfig;
 import org.neo4j.driver.v1.exceptions.ClientException;
 import org.neo4j.driver.v1.exceptions.DatabaseException;
 import org.neo4j.driver.v1.exceptions.ServiceUnavailableException;
@@ -52,6 +54,7 @@ import org.structr.api.DatabaseFeature;
 import org.structr.api.NativeQuery;
 import org.structr.api.NetworkException;
 import org.structr.api.NotInTransactionException;
+import org.structr.api.RetryException;
 import org.structr.api.Transaction;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.GraphProperties;
@@ -136,8 +139,6 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			RelationshipWrapper.initialize(relCacheSize);
 			logger.info("Relationship cache size set to {}", relCacheSize);
 
-			createGlobalSchemaLockNode();
-
 			// signal success
 			return true;
 
@@ -164,6 +165,26 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 			try {
 				session = new SessionTransaction(this, driver.session());
+				sessions.set(session);
+
+			} catch (ServiceUnavailableException ex) {
+				throw new NetworkException(ex.getMessage(), ex);
+			} catch (ClientException cex) {
+				logger.warn("Cannot connect to Neo4j database server at {}: {}", databaseUrl, cex.getMessage());
+			}
+		}
+
+		return session;
+	}
+
+	@Override
+	public Transaction beginTx(final int timeoutInSeconds) {
+
+		SessionTransaction session = sessions.get();
+		if (session == null || session.isClosed()) {
+
+			try {
+				session = new SessionTransaction(this, driver.session(), getTransactionConfigForTimeout(timeoutInSeconds));
 				sessions.set(session);
 
 			} catch (ServiceUnavailableException ex) {
@@ -397,8 +418,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	public void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfigSource, final Map<String, Map<String, Boolean>> removedClassesSource, final boolean createOnly) {
 
 		final Map<String, String> existingDbIndexes = new HashMap<>();
+		final int timeoutSeconds                    = 10;
 
-		try (final Transaction tx = beginTx()) {
+		try (final Transaction tx = beginTx(timeoutSeconds)) {
 
 			for (final Map<String, Object> row : execute("CALL db.indexes() YIELD description, state, type WHERE type = 'node_label_property' RETURN {description: description, state: state}")) {
 
@@ -434,56 +456,81 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 					logger.warn("Index is in FAILED state - dropping the index before handling it further. {}. If this error is recurring, please verify that the data in the concerned property is indexable by Neo4j", indexDescription);
 
-					try (final Transaction tx = beginTx()) {
+					boolean retry  = true;
+					int retryCount = 0;
 
-						execute("DROP " + indexDescription);
+					while (retry) {
 
-						tx.success();
+						retry = false;
 
-					} catch (Throwable t) {
-						logger.warn("", t);
+						try (final Transaction tx = beginTx(timeoutSeconds)) {
+
+							execute("DROP " + indexDescription);
+
+							tx.success();
+
+						} catch (RetryException rex) {
+
+							retry = ++retryCount < 3;
+							logger.info("DROP INDEX: retry {}", retryCount);
+
+						} catch (Throwable t) {
+							logger.warn("Unable to drop failed index: {}", t.getMessage());
+						}
 					}
 				}
 
+				boolean retry  = true;
+				int retryCount = 0;
 
-				try (final Transaction tx = beginTx()) {
+				while (retry) {
 
-					if (createIndex) {
+					retry = false;
 
-						if (!alreadySet) {
+					try (final Transaction tx = beginTx(timeoutSeconds)) {
+
+						if (createIndex) {
+
+							if (!alreadySet) {
+
+								try {
+
+									execute("CREATE " + indexDescription);
+									createdIndexes++;
+
+								} catch (Throwable t) {
+									logger.warn("Unable to create {}: {}", indexDescription, t.getMessage());
+								}
+							}
+
+						} else if (alreadySet && !createOnly) {
 
 							try {
 
-								execute("CREATE " + indexDescription);
-								createdIndexes++;
+								execute("DROP " + indexDescription);
+								droppedIndexes++;
 
 							} catch (Throwable t) {
-								logger.warn("Unable to create {}: {}", indexDescription, t.getMessage());
+								logger.warn("Unable to drop {}: {}", indexDescription, t.getMessage());
 							}
 						}
 
-					} else if (alreadySet && !createOnly) {
+						tx.success();
 
-						try {
+					} catch (RetryException rex) {
 
-							execute("DROP " + indexDescription);
-							droppedIndexes++;
+						retry = ++retryCount < 3;
+						logger.info("INDEX update: retry {}", retryCount);
 
-						} catch (Throwable t) {
-							logger.warn("Unable to drop {}: {}", indexDescription, t.getMessage());
-						}
+					} catch (IllegalStateException i) {
+
+						// if the driver instance is already closed, there is nothing we can do => exit
+						return;
+
+					} catch (Throwable t) {
+
+						logger.warn("Unable to update index configuration: {}", t.getMessage());
 					}
-
-					tx.success();
-
-				} catch (IllegalStateException i) {
-
-					// if the driver instance is already closed, there is nothing we can do => exit
-					return;
-
-				} catch (Throwable t) {
-
-					logger.warn("Unable to update index configuration: {}", t.getMessage());
 				}
 			}
 		}
@@ -515,16 +562,29 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 					if (indexExists && dropIndex) {
 
-						try (final Transaction tx = beginTx()) {
+						boolean retry  = true;
+						int retryCount = 0;
 
-							// drop index
-							execute("DROP " + indexDescription);
-							droppedIndexesOfRemovedTypes++;
+						while (retry) {
 
-							tx.success();
+							retry = false;
 
-						} catch (Throwable t) {
-							logger.warn("Unable to drop {}: {}", indexDescription, t.getMessage());
+							try (final Transaction tx = beginTx(timeoutSeconds)) {
+
+								// drop index
+								execute("DROP " + indexDescription);
+								droppedIndexesOfRemovedTypes++;
+
+								tx.success();
+
+							} catch (RetryException rex) {
+
+								retry = ++retryCount < 3;
+								logger.info("DROP INDEX: retry {}", retryCount);
+
+							} catch (Throwable t) {
+								logger.warn("Unable to drop {}: {}", indexDescription, t.getMessage());
+							}
 						}
 					}
 				}
@@ -653,6 +713,10 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		return getCurrentTransaction().run(nativeQuery, parameters);
 	}
 
+	TransactionConfig getTransactionConfigForTimeout(final int seconds) {
+		return TransactionConfig.builder().withTimeout(Duration.ofSeconds(seconds)).build();
+	}
+
 	// ----- interface GraphProperties -----
 	@Override
 	public void setProperty(final String name, final Object value) {
@@ -753,19 +817,6 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 				tx.run("CREATE CONSTRAINT ON (node:NodeInterface) ASSERT node.id IS UNIQUE");
 				tx.success();
 			}
-		}
-	}
-
-	private void createGlobalSchemaLockNode() {
-
-		try (final Session session = driver.session()) {
-
-			try (final org.neo4j.driver.v1.Transaction tx = session.beginTransaction()) {
-
-				tx.run("MERGE (n:StructrGlobalSchemaLock { name: \"StructrGlobalSchemaLock\" })");
-				tx.success();
-
-			} catch (Throwable t) { }
 		}
 	}
 

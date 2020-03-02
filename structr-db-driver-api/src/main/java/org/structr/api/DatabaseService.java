@@ -51,6 +51,7 @@ public interface DatabaseService {
 	<X> X forName(final Class<X> type, final String name);
 
 	Transaction beginTx();
+	Transaction beginTx(final int timeoutInSeconds);
 
 	Node createNode(final String type, final Set<String> labels, final Map<String, Object> properties);
 	NodeWithOwnerResult createNodeWithOwner(final Identity ownerId, final String type, final Set<String> labels, final Map<String, Object> nodeProperties, final Map<String, Object> ownsProperties, final Map<String, Object> securityProperties);
