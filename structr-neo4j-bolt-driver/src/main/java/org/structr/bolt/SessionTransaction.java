@@ -28,6 +28,7 @@ import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.Transaction;
+import org.neo4j.driver.v1.TransactionConfig;
 import org.neo4j.driver.v1.Value;
 import org.neo4j.driver.v1.Values;
 import org.neo4j.driver.v1.exceptions.ClientException;
@@ -71,6 +72,14 @@ class SessionTransaction implements org.structr.api.Transaction {
 		this.transactionId = ID_SOURCE.getAndIncrement();
 		this.session       = session;
 		this.tx            = session.beginTransaction();
+		this.db            = db;
+	}
+
+	public SessionTransaction(final BoltDatabaseService db, final Session session, final TransactionConfig config) {
+
+		this.transactionId = ID_SOURCE.getAndIncrement();
+		this.session       = session;
+		this.tx            = session.beginTransaction(config);
 		this.db            = db;
 	}
 
@@ -124,7 +133,7 @@ class SessionTransaction implements org.structr.api.Transaction {
 		try {
 
 			tx.close();
-			session.closeAsync();
+			session.close();
 
 		} catch (TransientException tex) {
 

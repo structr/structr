@@ -82,6 +82,11 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 
 	@Override
 	public Transaction beginTx() {
+		return beginTx(-1);
+	}
+
+	@Override
+	public Transaction beginTx(final int timeoutInSeconds) {
 
 		MemoryTransaction tx = transactions.get();
 		if (tx == null) {

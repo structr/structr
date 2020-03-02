@@ -132,11 +132,10 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 			// wait for data (or exception)
 			try { Thread.yield(); } catch (Throwable t) {}
 
-			/*
-			if (System.currentTimeMillis() > yieldStart + 30000) {
+			if (System.currentTimeMillis() > yieldStart + 60000) {
 
 				System.out.println("#######################################################################################################");
-				System.out.println("IterableQueueingRecordConsumer waited for 10 seconds, aborting");
+				System.out.println("IterableQueueingRecordConsumer waited for 60 seconds, aborting");
 				System.out.println("statement: " + query.getStatement(true));
 				System.out.println("throwable: " + throwable);
 				System.out.println("finished:  " + finished.get());
@@ -145,7 +144,6 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 
 				break;
 			}
-			*/
 		}
 
 		return !queue.isEmpty();
