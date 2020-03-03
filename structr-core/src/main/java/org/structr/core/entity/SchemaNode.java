@@ -368,6 +368,19 @@ public class SchemaNode extends AbstractSchemaNode {
 					}
 				}
 			}
+
+			// migrate Page
+			if ("Page".equals(getName())) {
+
+				// remove method getSite()
+				for (final SchemaMethod m : getProperty(SchemaNode.schemaMethods)) {
+
+					if ("getSite".equals(m.getName())) {
+
+						StructrApp.getInstance().delete(m);
+					}
+				}
+			}
 		}
 
 		// migrate Mail and Mailbox
