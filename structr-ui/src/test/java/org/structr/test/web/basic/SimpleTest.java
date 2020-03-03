@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import org.hamcrest.Matchers;
@@ -287,11 +288,11 @@ public class SimpleTest extends StructrUiTest {
 				throw new FrameworkException(422, dex.getMessage());
 			}
 
-			final PropertyMap siteOneProperties    = new PropertyMap();
-			final PropertyKey<Site> siteKey        = StructrApp.key(Page.class, "site");
-			final PropertyKey<Integer> positionKey = StructrApp.key(Page.class, "position");
-			final PropertyKey<Integer> portKey     = StructrApp.key(Site.class, "port");
-			final PropertyKey<String> hostnameKey  = StructrApp.key(Site.class, "hostname");
+			final PropertyMap siteOneProperties        = new PropertyMap();
+			final PropertyKey<Iterable<Site>> sitesKey = StructrApp.key(Page.class, "sites");
+			final PropertyKey<Integer> positionKey     = StructrApp.key(Page.class, "position");
+			final PropertyKey<Integer> portKey         = StructrApp.key(Site.class, "port");
+			final PropertyKey<String> hostnameKey      = StructrApp.key(Site.class, "hostname");
 
 			siteOneProperties.put(Site.name, "site-one");
 			siteOneProperties.put(Site.visibleToPublicUsers, true);
@@ -308,13 +309,13 @@ public class SimpleTest extends StructrUiTest {
 			final Site siteTwo = app.create(Site.class, siteTwoProperties);
 
 			final PropertyMap pageOneProperties = new PropertyMap();
-			pageOneProperties.put(siteKey, siteOne);
+			pageOneProperties.put(sitesKey, Arrays.asList(siteOne));
 			pageOneProperties.put(Page.visibleToPublicUsers, true);
 			pageOneProperties.put(positionKey, 10);
 			pageOne.setProperties(pageOne.getSecurityContext(), pageOneProperties);
 
 			final PropertyMap pageTwoProperties = new PropertyMap();
-			pageTwoProperties.put(siteKey, siteTwo);
+			pageTwoProperties.put(sitesKey, Arrays.asList(siteTwo));
 			pageTwoProperties.put(Page.visibleToPublicUsers, true);
 			pageTwoProperties.put(positionKey, 10);
 			pageTwo.setProperties(pageTwo.getSecurityContext(), pageTwoProperties);
