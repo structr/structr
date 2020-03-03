@@ -148,7 +148,6 @@ public class StringPropertyRestTest extends IndexingTest {
 
 	}
 
-	/*
 	@Test
 	public void testLargeStrings() {
 
@@ -169,7 +168,6 @@ public class StringPropertyRestTest extends IndexingTest {
 		testLargeString(4100, errorStatusCode);
 		testLargeString(5000, errorStatusCode);
 	}
-	*/
 
 	private void testLargeString(final int length, final int expectedStatusCode) {
 

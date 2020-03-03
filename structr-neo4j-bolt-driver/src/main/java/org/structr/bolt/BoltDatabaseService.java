@@ -646,23 +646,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 	@Override
 	public boolean isIndexUpdateFinished() {
-
-		try (final Session session = driver.session()) {
-
-			final StatementResult result = session.run("CALL db.indexes() YIELD state, description WHERE description = 'INDEX ON :StructrIndexCreationFinished(name)' RETURN state");
-			if (result.hasNext()) {
-
-				final Record record                = result.next();
-				final Map<String, Object> valueMap = record.asMap();
-
-				return "ONLINE".equals(valueMap.get("state"));
-			}
-
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-
-		return false;
+		return true;
 	}
 
 	@Override
