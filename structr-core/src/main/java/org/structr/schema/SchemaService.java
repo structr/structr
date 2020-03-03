@@ -390,8 +390,6 @@ public class SchemaService implements Service {
 
 					FlushCachesCommand.flushAll();
 
-					t.printStackTrace();
-
 					logger.error("Unable to compile dynamic schema: {}", t.getMessage());
 					success = false;
 				}
@@ -405,6 +403,7 @@ public class SchemaService implements Service {
 
 				logger.info("Schema build took a total of {} ms", System.currentTimeMillis() - t0);
 
+				/*
 				final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
 				final long maxWaitTime        = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(10);
 				boolean indexUpdateFinished   = false;
@@ -414,9 +413,12 @@ public class SchemaService implements Service {
 					indexUpdateFinished = graphDb.isIndexUpdateFinished();
 					if (!indexUpdateFinished) {
 
-						try { Thread.sleep(1000); } catch (Throwable t) {}
+						System.out.println("Waiting...");
+
+						try { Thread.sleep(2000); } catch (Throwable t) {}
 					}
 				}
+				*/
 
 				// compiling done
 				compiling.set(false);
@@ -513,6 +515,12 @@ public class SchemaService implements Service {
 	}
 
 	private static void updateIndexConfiguration(final Map<String, Map<String, PropertyKey>> removedClasses) {
+
+		if (Services.isTesting()) {
+
+			logger.info("Skipping index creation in test mode.");
+			return;
+		}
 
 		final Thread indexUpdater = new Thread(new Runnable() {
 

@@ -37,6 +37,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.bolt.BoltDatabaseService;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -76,7 +77,6 @@ public abstract class StructrUiTest {
 	protected final String htmlUrl     = "/structr/html";
 	protected final String wsUrl       = "/structr/ws";
 	protected String baseUri           = null;
-	private boolean first              = true;
 
 	@BeforeClass(alwaysRun = true)
 	public void setup() {
@@ -140,30 +140,25 @@ public abstract class StructrUiTest {
 		System.out.println("######################################################################################");
 	}
 
-	@BeforeMethod()
+	@AfterMethod()
 	public void cleanDatabase() {
 
-		if (!first) {
+		try (final Tx tx = app.tx()) {
 
-			try (final Tx tx = app.tx()) {
+			// delete everything
+			Services.getInstance().getDatabaseService().cleanDatabase();
 
-				// delete everything
-				Services.getInstance().getDatabaseService().cleanDatabase();
+			FlushCachesCommand.flushAll();
 
-				FlushCachesCommand.flushAll();
+			SchemaService.ensureBuiltinTypesExist(app);
 
-				SchemaService.ensureBuiltinTypesExist(app);
+			tx.success();
 
-				tx.success();
+		} catch (Throwable t) {
 
-			} catch (Throwable t) {
-
-				t.printStackTrace();
-				logger.error("Exception while trying to clean database: {}", t.getMessage());
-			}
+			t.printStackTrace();
+			logger.error("Exception while trying to clean database: {}", t.getMessage());
 		}
-
-		first = false;
 	}
 
 	@AfterClass(alwaysRun = true)
@@ -625,7 +620,8 @@ public abstract class StructrUiTest {
 	protected void setupDatabaseConnection() {
 
 		// use database driver from system property, default to MemoryDatabaseService
-		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
+		//Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
+		Settings.DatabaseDriver.setValue(BoltDatabaseService.class.getName());
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());

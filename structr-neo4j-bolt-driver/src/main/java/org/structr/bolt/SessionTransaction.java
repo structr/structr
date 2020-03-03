@@ -71,11 +71,13 @@ class SessionTransaction implements org.structr.api.Transaction {
 
 		this.transactionId = ID_SOURCE.getAndIncrement();
 		this.session       = session;
-		this.tx            = session.beginTransaction();
+		this.tx            = session.beginTransaction(db.getTransactionConfig(transactionId));
 		this.db            = db;
 	}
 
-	public SessionTransaction(final BoltDatabaseService db, final Session session, final TransactionConfig config) {
+	public SessionTransaction(final BoltDatabaseService db, final Session session, final int timeoutInSeconds) {
+
+		final TransactionConfig config = db.getTransactionConfigForTimeout(timeoutInSeconds, transactionId);
 
 		this.transactionId = ID_SOURCE.getAndIncrement();
 		this.session       = session;

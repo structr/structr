@@ -35,6 +35,11 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Config;
@@ -184,7 +189,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		if (session == null || session.isClosed()) {
 
 			try {
-				session = new SessionTransaction(this, driver.session(), getTransactionConfigForTimeout(timeoutInSeconds));
+				session = new SessionTransaction(this, driver.session(), timeoutInSeconds);
 				sessions.set(session);
 
 			} catch (ServiceUnavailableException ex) {
@@ -417,28 +422,39 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	@Override
 	public void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfigSource, final Map<String, Map<String, Boolean>> removedClassesSource, final boolean createOnly) {
 
+		final ExecutorService executor              = Executors.newCachedThreadPool();
 		final Map<String, String> existingDbIndexes = new HashMap<>();
 		final int timeoutSeconds                    = 10;
 
-		try (final Transaction tx = beginTx(timeoutSeconds)) {
+		try {
 
-			for (final Map<String, Object> row : execute("CALL db.indexes() YIELD description, state, type WHERE type = 'node_label_property' RETURN {description: description, state: state}")) {
+			executor.submit(() -> {
 
-				for (final Object value : row.values()) {
+				try (final Transaction tx = beginTx(timeoutSeconds)) {
 
-					final Map<String, String> valueMap = (Map<String, String>)value;
+					for (final Map<String, Object> row : execute("CALL db.indexes() YIELD description, state, type WHERE type = 'node_label_property' RETURN {description: description, state: state}")) {
 
-					existingDbIndexes.put(valueMap.get("description"), valueMap.get("state"));
+						for (final Object value : row.values()) {
+
+							final Map<String, String> valueMap = (Map<String, String>)value;
+
+							existingDbIndexes.put(valueMap.get("description"), valueMap.get("state"));
+						}
+					}
+
+					tx.success();
 				}
-			}
 
-			tx.success();
+			}).get(timeoutSeconds, TimeUnit.SECONDS);
+
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 
 		logger.debug("Found {} existing indexes", existingDbIndexes.size());
 
-		Integer createdIndexes = 0;
-		Integer droppedIndexes = 0;
+		final AtomicInteger createdIndexes = new AtomicInteger(0);
+		final AtomicInteger droppedIndexes = new AtomicInteger(0);
 
 		// create indices for properties of existing classes
 		for (final Map.Entry<String, Map<String, Boolean>> entry : schemaIndexConfigSource.entrySet()) {
@@ -456,96 +472,118 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 					logger.warn("Index is in FAILED state - dropping the index before handling it further. {}. If this error is recurring, please verify that the data in the concerned property is indexable by Neo4j", indexDescription);
 
-					boolean retry  = true;
-					int retryCount = 0;
+					final AtomicBoolean retry = new AtomicBoolean(true);
+					final AtomicInteger retryCount = new AtomicInteger(0);
 
-					while (retry) {
+					while (retry.get()) {
 
-						retry = false;
+						retry.set(false);
 
-						try (final Transaction tx = beginTx(timeoutSeconds)) {
+						try {
 
-							execute("DROP " + indexDescription);
+							executor.submit(() -> {
 
-							tx.success();
+								try (final Transaction tx = beginTx(timeoutSeconds)) {
 
-						} catch (RetryException rex) {
+									execute("DROP " + indexDescription);
 
-							retry = ++retryCount < 3;
-							logger.info("DROP INDEX: retry {}", retryCount);
+									tx.success();
+
+								} catch (RetryException rex) {
+
+									retry.set(retryCount.incrementAndGet() < 3);
+									logger.info("DROP INDEX: retry {}", retryCount.get());
+
+								} catch (Throwable t) {
+									logger.warn("Unable to drop failed index: {}", t.getMessage());
+								}
+
+								return null;
+
+							}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 						} catch (Throwable t) {
-							logger.warn("Unable to drop failed index: {}", t.getMessage());
+							t.printStackTrace();
 						}
 					}
 				}
 
-				boolean retry  = true;
-				int retryCount = 0;
+				final AtomicBoolean retry = new AtomicBoolean(true);
+				final AtomicInteger retryCount = new AtomicInteger(0);
 
-				while (retry) {
+				while (retry.get()) {
 
-					retry = false;
+					retry.set(false);
 
-					try (final Transaction tx = beginTx(timeoutSeconds)) {
+					try {
 
-						if (createIndex) {
+						executor.submit(() -> {
 
-							if (!alreadySet) {
+							try (final Transaction tx = beginTx(timeoutSeconds)) {
 
-								try {
+								if (createIndex) {
 
-									execute("CREATE " + indexDescription);
-									createdIndexes++;
+									if (!alreadySet) {
 
-								} catch (Throwable t) {
-									logger.warn("Unable to create {}: {}", indexDescription, t.getMessage());
+										try {
+
+											execute("CREATE " + indexDescription);
+											createdIndexes.incrementAndGet();
+
+										} catch (Throwable t) {
+											logger.warn("Unable to create {}: {}", indexDescription, t.getMessage());
+										}
+									}
+
+								} else if (alreadySet && !createOnly) {
+
+									try {
+
+										execute("DROP " + indexDescription);
+										droppedIndexes.incrementAndGet();
+
+									} catch (Throwable t) {
+										logger.warn("Unable to drop {}: {}", indexDescription, t.getMessage());
+									}
 								}
-							}
 
-						} else if (alreadySet && !createOnly) {
+								tx.success();
 
-							try {
+							} catch (RetryException rex) {
 
-								execute("DROP " + indexDescription);
-								droppedIndexes++;
+								retry.set(retryCount.incrementAndGet() < 3);
+								logger.info("INDEX update: retry {}", retryCount.get());
+
+							} catch (IllegalStateException i) {
+
+								// if the driver instance is already closed, there is nothing we can do => exit
+								return;
 
 							} catch (Throwable t) {
-								logger.warn("Unable to drop {}: {}", indexDescription, t.getMessage());
+
+								logger.warn("Unable to update index configuration: {}", t.getMessage());
 							}
-						}
 
-						tx.success();
-
-					} catch (RetryException rex) {
-
-						retry = ++retryCount < 3;
-						logger.info("INDEX update: retry {}", retryCount);
-
-					} catch (IllegalStateException i) {
-
-						// if the driver instance is already closed, there is nothing we can do => exit
-						return;
+						}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 					} catch (Throwable t) {
-
-						logger.warn("Unable to update index configuration: {}", t.getMessage());
+						t.printStackTrace();
 					}
 				}
 			}
 		}
 
-		if (createdIndexes > 0) {
-			logger.debug("Created {} indexes", createdIndexes);
+		if (createdIndexes.get() > 0) {
+			logger.debug("Created {} indexes", createdIndexes.get());
 		}
 
-		if (droppedIndexes > 0) {
-			logger.debug("Dropped {} indexes", droppedIndexes);
+		if (droppedIndexes.get() > 0) {
+			logger.debug("Dropped {} indexes", droppedIndexes.get());
 		}
 
 		if (!createOnly) {
 
-			Integer droppedIndexesOfRemovedTypes = 0;
+			final AtomicInteger droppedIndexesOfRemovedTypes = new AtomicInteger(0);
 			final List removedTypes = new LinkedList();
 
 			// drop indices for all indexed properties of removed classes
@@ -562,43 +600,48 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 					if (indexExists && dropIndex) {
 
-						boolean retry  = true;
-						int retryCount = 0;
+						final AtomicBoolean retry = new AtomicBoolean(true);
+						final AtomicInteger retryCount = new AtomicInteger(0);
 
-						while (retry) {
+						while (retry.get()) {
 
-							retry = false;
+							retry.set(false);
 
-							try (final Transaction tx = beginTx(timeoutSeconds)) {
+							try {
 
-								// drop index
-								execute("DROP " + indexDescription);
-								droppedIndexesOfRemovedTypes++;
+								executor.submit(() -> {
 
-								tx.success();
+									try (final Transaction tx = beginTx(timeoutSeconds)) {
 
-							} catch (RetryException rex) {
+										// drop index
+										execute("DROP " + indexDescription);
+										droppedIndexesOfRemovedTypes.incrementAndGet();
 
-								retry = ++retryCount < 3;
-								logger.info("DROP INDEX: retry {}", retryCount);
+										tx.success();
+
+									} catch (RetryException rex) {
+
+										retry.set(retryCount.incrementAndGet() < 3);
+										logger.info("DROP INDEX: retry {}", retryCount.get());
+
+									} catch (Throwable t) {
+										logger.warn("Unable to drop {}: {}", indexDescription, t.getMessage());
+									}
+
+								}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 							} catch (Throwable t) {
-								logger.warn("Unable to drop {}: {}", indexDescription, t.getMessage());
+								t.printStackTrace();
 							}
 						}
 					}
 				}
 			}
 
-			if (droppedIndexesOfRemovedTypes > 0) {
-				logger.debug("Dropped {} indexes of deleted types ({})", droppedIndexesOfRemovedTypes, StringUtils.join(removedTypes, ", "));
+			if (droppedIndexesOfRemovedTypes.get() > 0) {
+				logger.debug("Dropped {} indexes of deleted types ({})", droppedIndexesOfRemovedTypes.get(), StringUtils.join(removedTypes, ", "));
 			}
 		}
-
-		// create final index that indicates that index generation is complete (this one will never be dropped)
-		try (final Session session = driver.session()) {
-			session.run("CREATE INDEX ON :StructrIndexCreationFinished(name)");
-		} catch (Throwable ignore) {}
 	}
 
 	@Override
@@ -713,8 +756,29 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		return getCurrentTransaction().run(nativeQuery, parameters);
 	}
 
-	TransactionConfig getTransactionConfigForTimeout(final int seconds) {
-		return TransactionConfig.builder().withTimeout(Duration.ofSeconds(seconds)).build();
+	TransactionConfig getTransactionConfig(final long id) {
+
+		final Map<String, Object> metadata = new HashMap<>();
+
+		metadata.put("id", id);
+
+		return TransactionConfig
+			.builder()
+			.withMetadata(metadata)
+			.build();
+	}
+
+	TransactionConfig getTransactionConfigForTimeout(final int seconds, final long id) {
+
+		final Map<String, Object> metadata = new HashMap<>();
+
+		metadata.put("id", id);
+
+		return TransactionConfig
+			.builder()
+			.withTimeout(Duration.ofSeconds(seconds))
+			.withMetadata(metadata)
+			.build();
 	}
 
 	// ----- interface GraphProperties -----
