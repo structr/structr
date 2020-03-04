@@ -3022,8 +3022,10 @@ var _Schema = {
 						fadeOut: 25
 					});
 
+					_Schema.showSchemaRecompileMessage();
 					Command.snapshots("purge", undefined, undefined, function () {
 						_Schema.reload();
+						_Schema.hideSchemaRecompileMessage();
 					});
 				});
 			});
