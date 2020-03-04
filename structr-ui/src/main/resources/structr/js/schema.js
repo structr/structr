@@ -3169,7 +3169,7 @@ var _Schema = {
 				Command.getApplicationConfigurationDataNode(selectedLayout, function(data) {
 
 					var element = document.createElement('a');
-					element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data.content));
+					element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify({name:data.name, content: JSON.parse(data.content)})));
 					element.setAttribute('download', selectedLayout + '.json');
 
 					element.style.display = 'none';
