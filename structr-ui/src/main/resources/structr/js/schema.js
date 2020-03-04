@@ -296,8 +296,11 @@ var _Schema = {
 					}
 				});
 				instance.bind('connectionDetached', function(info) {
-					_Schema.askDeleteRelationship(info.connection.scope);
-					_Schema.reload();
+
+					if (info.sourceId.indexOf('id_') === 0 && info.targetId.indexOf('id_') === 0) {
+						_Schema.askDeleteRelationship(info.connection.scope);
+						_Schema.reload();
+					}
 				});
 				reload = false;
 
