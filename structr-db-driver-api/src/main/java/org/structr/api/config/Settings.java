@@ -529,8 +529,12 @@ public class Settings {
 	}
 
 	public static Setting<?> createSettingForValue(final SettingsGroup group, final String key, final String value) {
+		return createSettingForValue(group, key, value, false);
+	}
 
-		if (value != null) {
+	public static Setting<?> createSettingForValue(final SettingsGroup group, final String key, final String value, final boolean forceString) {
+
+		if (value != null && !forceString) {
 
 			// try to determine property value type, string, integer or boolean?
 			final String lowerCaseValue = value.toLowerCase();
@@ -631,7 +635,7 @@ public class Settings {
 					}
 
 					// create new StringSetting for unknown key
-					Settings.createSettingForValue(targetGroup, key, value);
+					Settings.createSettingForValue(targetGroup, key, value, key.contains(Settings.ConnectionPassword.getKey()));
 				}
 			}
 
