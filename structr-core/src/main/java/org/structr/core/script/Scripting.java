@@ -19,12 +19,7 @@
 package org.structr.core.script;
 
 import java.io.StringWriter;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.script.*;
@@ -37,6 +32,8 @@ import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Undefined;
 import org.mozilla.javascript.WrappedException;
 import org.renjin.script.RenjinScriptEngine;
+import org.renjin.sexp.ExternalPtr;
+import org.renjin.sexp.ListVector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -396,6 +393,32 @@ public class Scripting {
 		try {
 
 			Object extractedValue = engine.eval(script);
+
+
+			// Renjin handling start
+			if (extractedValue instanceof ListVector) {
+
+				ListVector vec = (ListVector)extractedValue;
+
+				List<Object> listResult = new ArrayList<>();
+
+				for (Object o : vec) {
+
+					if (o instanceof ExternalPtr) {
+
+						listResult.add(((ExternalPtr)o).getInstance());
+					}
+				}
+
+				return listResult;
+			}
+
+			if (extractedValue instanceof ExternalPtr) {
+
+				ExternalPtr ptr = (ExternalPtr)extractedValue;
+				return ptr.getInstance();
+			}
+			// Renjin handling end
 
 			if (output != null && output.toString() != null && output.toString().length() > 0) {
 				extractedValue = output.toString();
