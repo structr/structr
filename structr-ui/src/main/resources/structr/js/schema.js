@@ -289,18 +289,19 @@ var _Schema = {
 				$('.node').css({zIndex: ++maxZ});
 
 				instance.bind('connection', function(info, originalEvent) {
-					if (!originalEvent) {
-						_Logger.log(_LogType.SCHEMA, "Ignoring connection event in jsPlumb as it looks like it has been created programmatically");
+
+					if (info.connection.scope === 'jsPlumb_DefaultScope') {
+						if (originalEvent) {
+							_Schema.connect(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'));
+						}
 					} else {
-						_Schema.connect(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'));
+						new MessageBuilder().warning('Moving existing relationships is not permitted!').title('Not allowed').requiresConfirmation().show();
+						_Schema.reload();
 					}
 				});
 				instance.bind('connectionDetached', function(info) {
-
-					if (info.sourceId.indexOf('id_') === 0 && info.targetId.indexOf('id_') === 0) {
-						_Schema.askDeleteRelationship(info.connection.scope);
-						_Schema.reload();
-					}
+					new MessageBuilder().warning('Deleting relationships is only possible via the delete button!').title('Not allowed').requiresConfirmation().show();
+					_Schema.reload();
 				});
 				reload = false;
 
@@ -1542,16 +1543,18 @@ var _Schema = {
 				_Schema.appendEmptyMethod(actionsTable, entity, _Schema.getFirstFreeMethodName('onCreate'));
 			});
 
-			el.append('<button class="add-icon add-afterCreate-button"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add afterCreate</button>');
-			$('.add-afterCreate-button', el).off('click').on('click', function() {
-				_Schema.appendEmptyMethod(actionsTable, entity, _Schema.getFirstFreeMethodName('afterCreate'));
-			});
+			if (entity.type === 'SchemaNode') {
+				el.append('<button class="add-icon add-afterCreate-button"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add afterCreate</button>');
+				$('.add-afterCreate-button', el).off('click').on('click', function() {
+					_Schema.appendEmptyMethod(actionsTable, entity, _Schema.getFirstFreeMethodName('afterCreate'));
+				});
 
-			Structr.appendInfoTextToElement({
-				text: "The difference between onCreate an afterCreate is that afterCreate is called after all checks have run and the transaction is committed.<br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.",
-				element: $('.add-afterCreate-button', el),
-				insertAfter: true
-			});
+				Structr.appendInfoTextToElement({
+					text: "The difference between onCreate an afterCreate is that afterCreate is called after all checks have run and the transaction is committed.<br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.",
+					element: $('.add-afterCreate-button', el),
+					insertAfter: true
+				});
+			}
 
 			el.append('<button class="add-icon add-onSave-button"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add onSave</button>');
 			$('.add-onSave-button', el).off('click').on('click', function() {

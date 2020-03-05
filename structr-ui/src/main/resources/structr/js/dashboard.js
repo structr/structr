@@ -142,11 +142,30 @@ var _Dashboard = {
 
 				let typesSelectElem = $('#data-export-types-input');
 
-				Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name', function(nodes) {
-					nodes.forEach(function(node) {
-						
-						typesSelectElem.append('<option>' + node.name + '</option>');
-					});
+				Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isBuiltinType', function(nodes) {
+
+					let builtinTypes = [];
+					let customTypes = [];
+
+					for (let n of nodes) {
+						if (n.isBuiltinType) {
+							builtinTypes.push(n);
+						} else {
+							customTypes.push(n);
+						}
+					}
+
+					if (customTypes.length > 0) {
+
+						typesSelectElem.append(customTypes.reduce(function(html, node) {
+							return html + '<option>' + node.name + '</option>';
+						}, '<optgroup label="Custom Types">') + '</optgroup>');
+					}
+
+					typesSelectElem.append(builtinTypes.reduce(function(html, node) {
+							return html + '<option>' + node.name + '</option>';
+						}, '<optgroup label="Builtin Types">') + '</optgroup>');
+
 
 					typesSelectElem.chosen({
 						search_contains: true,
@@ -503,7 +522,7 @@ var _Dashboard = {
 			new MessageBuilder().title('Unable to start data ' + mode + '').warning('Please enter a local directory path for data export.').requiresConfirmation().show();
 			return;
 		}
-		
+
 		var data = {
 			mode: mode
 		};
@@ -575,9 +594,9 @@ var _Dashboard = {
 				new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please select at least one data type.').requiresConfirmation().show();
 				return;
 			}
-					
+
 		}
-		
+
 		let url = rootUrl + '/maintenance/deployData';
 
 		$.ajax({
@@ -593,5 +612,5 @@ var _Dashboard = {
 			}
 		});
 
-	}	
+	}
 };

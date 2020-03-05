@@ -52,22 +52,28 @@
 		<div class="tab-content" id="dashboard-deployment">
 
 			<table>
+				<thead>
+					<tr>
+						<td><h2>Import</h2></td>
+						<td><h2>Export</h2></td>
+					</tr>
+				</thead>
 				<tr>
 					<td>
 
-						<h3>Import application from local directory</h3>
+						<h3>Import <u>application</u> from local directory</h3>
 						<div>
 							<input type="text" id="deployment-source-input" placeholder="Local directory path for app import"><br>
 							<button class="action" id="do-app-import">Import from local directory</button>
 						</div>
 
-						<h3>Import data from local directory</h3>
+						<h3>Import <u>data</u> from local directory</h3>
 						<div>
 							<input type="text" id="data-import-source-input" placeholder="Local directory path for data import"><br>
 							<button class="action" id="do-data-import">Import data from local directory</button>
 						</div>
 
-						<h3>Import application from URL</h3>
+						<h3>Import <u>application</u> from URL</h3>
 						${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Deployment via URL is not possible because <code>DeployServlet</code> is not running.</span>')}
 						<div>
 							<input type="hidden" id="redirect-url" value="${window.location.href}">
@@ -77,13 +83,13 @@
 
 					</td>
 					<td>
-						<h3>Export application to local directory</h3>
+						<h3>Export <u>application</u> to local directory</h3>
 						<div>
 							<input type="text" id="app-export-target-input" placeholder="Local directory path for app export"><br>
 							<button class="action" id="do-app-export">Export app to local directory</button>
 						</div>
 
-						<h3>Export data to local directory</h3>
+						<h3>Export <u>data</u> to local directory</h3>
 						<div>
 							<input type="text" id="data-export-target-input" placeholder="Local directory path for data export"><br>
 							<select id="data-export-types-input" class="property-attrs chosen-sortable" data-placeholder="Please select data type(s) to export" multiple="multiple"></select><br>
@@ -209,9 +215,10 @@
 		#dashboard-deployment table {
 			width: 100%;
 		}
-		
+
 		#dashboard-deployment td {
 			width: 50%;
+			padding: 0 10px;
 			vertical-align: top;
 		}
 
@@ -239,25 +246,25 @@
 		#data_export_types_input_chosen {
 			margin: 0 4px 12px 0;
 		}
-		
+
 		#data_export_types_input_chosen .search-field {
 			height: 22px;
 			padding-top: 3px;
 		}
-		
+
 		#data_export_types_input_chosen .chosen-choices {
 			margin-top: -3px;
 		}
-		
+
 		#data_export_types_input_chosen .chosen-choices li.search-choice {
 			padding: 1px 20px 1px 5px;
 			margin: 2px 5px 2px 0;
 		}
-		
+
 		#data_export_types_input_chosen .chosen-choices li.search-choice .search-choice-close {
 			top: 2px;
 		}
-		
+
 		#dashboard-server-log {
 			height: calc(100% - 34px);
 		}
