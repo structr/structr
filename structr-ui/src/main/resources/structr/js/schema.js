@@ -289,18 +289,19 @@ var _Schema = {
 				$('.node').css({zIndex: ++maxZ});
 
 				instance.bind('connection', function(info, originalEvent) {
-					if (!originalEvent) {
-						_Logger.log(_LogType.SCHEMA, "Ignoring connection event in jsPlumb as it looks like it has been created programmatically");
+
+					if (info.connection.scope === 'jsPlumb_DefaultScope') {
+						if (originalEvent) {
+							_Schema.connect(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'));
+						}
 					} else {
-						_Schema.connect(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'));
+						new MessageBuilder().warning('Moving existing relationships is not permitted!').title('Not allowed').requiresConfirmation().show();
+						_Schema.reload();
 					}
 				});
 				instance.bind('connectionDetached', function(info) {
-
-					if (info.sourceId.indexOf('id_') === 0 && info.targetId.indexOf('id_') === 0) {
-						_Schema.askDeleteRelationship(info.connection.scope);
-						_Schema.reload();
-					}
+					new MessageBuilder().warning('Deleting relationships is only possible via the delete button!').title('Not allowed').requiresConfirmation().show();
+					_Schema.reload();
 				});
 				reload = false;
 
