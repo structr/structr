@@ -67,14 +67,14 @@ import org.structr.util.StructrLicenseManager;
 
 public class Services implements StructrServices {
 
-	private static final Logger logger                                   = LoggerFactory.getLogger(StructrApp.class.getName());
+	private static final Logger logger                 = LoggerFactory.getLogger(StructrApp.class.getName());
 
 	// singleton instance
 	private static String jvmIdentifier                = ManagementFactory.getRuntimeMXBean().getName();
 	private static final long licenseCheckInterval     = TimeUnit.HOURS.toMillis(2);
 	private static Services singletonInstance          = null;
 	private static boolean testingModeDisabled         = false;
-	private static boolean updateIndexConfiguration    = true;
+	private static boolean updateIndexConfiguration    = false;
 	private static Boolean cachedTestingFlag           = null;
 	private static long lastLicenseCheck               = 0L;
 
