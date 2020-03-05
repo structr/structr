@@ -1359,7 +1359,7 @@ var Command = {
 	 * Shortcut to get a single ApplicationConfigurationDataNode
 	 */
 	getApplicationConfigurationDataNode: function(id, callback) {
-		return Command.get(id, 'content', callback);
+		return Command.get(id, 'name,content', callback);
 	},
 	/**
 	 * Send a GET_SUGGESTIONS command to the server.
