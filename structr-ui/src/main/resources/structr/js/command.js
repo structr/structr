@@ -1330,7 +1330,8 @@ var Command = {
 				ownerNames.splice(myIndex,1);
 
 				sortedAndGrouped.push({
-					ownerName: me.username,
+					label: me.username,
+					ownerless: false,
 					configs: grouped[me.username]
 				});
 			}
@@ -1338,7 +1339,8 @@ var Command = {
 			// add ownerless configs
 			if (ownerlessConfigs.length > 0) {
 				sortedAndGrouped.push({
-					ownerName: 'Layouts without owner',
+					label: 'Layouts without owner',
+					ownerless: true,
 					configs: ownerlessConfigs
 				});
 			}
@@ -1346,7 +1348,8 @@ var Command = {
 			// add the other configs grouped by owner and sorted by ownername
 			ownerNames.forEach(function (on) {
 				sortedAndGrouped.push({
-					ownerName: on,
+					label: on,
+					ownerless: false,
 					configs: grouped[on]
 				});
 			});
