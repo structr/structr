@@ -31,6 +31,7 @@ import org.mozilla.javascript.Script;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Undefined;
 import org.mozilla.javascript.WrappedException;
+import org.python.jsr223.PyScriptEngine;
 import org.renjin.script.RenjinScriptEngine;
 import org.renjin.sexp.ExternalPtr;
 import org.renjin.sexp.ListVector;
@@ -394,6 +395,10 @@ public class Scripting {
 
 			Object extractedValue = engine.eval(script);
 
+			if (engine instanceof PyScriptEngine) {
+
+				extractedValue = engine.get("result");
+			}
 
 			// Renjin handling start
 			if (extractedValue instanceof ListVector) {
