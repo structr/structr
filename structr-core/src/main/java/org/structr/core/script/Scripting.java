@@ -19,12 +19,7 @@
 package org.structr.core.script;
 
 import java.io.StringWriter;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.script.*;
@@ -36,7 +31,11 @@ import org.mozilla.javascript.Script;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Undefined;
 import org.mozilla.javascript.WrappedException;
+import org.python.core.PyList;
+import org.python.jsr223.PyScriptEngine;
 import org.renjin.script.RenjinScriptEngine;
+import org.renjin.sexp.ExternalPtr;
+import org.renjin.sexp.ListVector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -396,6 +395,54 @@ public class Scripting {
 		try {
 
 			Object extractedValue = engine.eval(script);
+
+			if (engine instanceof PyScriptEngine || engine instanceof RenjinScriptEngine) {
+
+				extractedValue = engine.get("result");
+			}
+
+			// Python handling start
+			if (extractedValue instanceof PyList) {
+				PyList list = (PyList)extractedValue;
+
+				List<Object> listResult = new ArrayList<>();
+
+				for (Object o : list) {
+
+					listResult.add(o);
+				}
+
+				return listResult;
+			}
+			// Python handling end
+
+			// Renjin handling start
+			if (extractedValue instanceof ListVector) {
+
+				ListVector vec = (ListVector)extractedValue;
+
+				List<Object> listResult = new ArrayList<>();
+
+				for (Object o : vec) {
+
+					if (o instanceof ExternalPtr) {
+
+						listResult.add(((ExternalPtr)o).getInstance());
+					} else {
+
+						listResult.add(o);
+					}
+				}
+
+				return listResult;
+			}
+
+			if (extractedValue instanceof ExternalPtr) {
+
+				ExternalPtr ptr = (ExternalPtr)extractedValue;
+				return ptr.getInstance();
+			}
+			// Renjin handling end
 
 			if (output != null && output.toString() != null && output.toString().length() > 0) {
 				extractedValue = output.toString();

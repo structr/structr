@@ -3088,7 +3088,7 @@ var _Schema = {
 
 			var layoutSelectorChangeHandler = function () {
 
-				var selectedOption = $(':selected:not(:disabled)', layoutSelector);
+				let selectedOption = $(':selected:not(:disabled)', layoutSelector);
 
 				if (selectedOption.length === 0) {
 
@@ -3102,14 +3102,16 @@ var _Schema = {
 					Structr.enableButton(restoreLayoutButton);
 					Structr.enableButton(downloadLayoutButton);
 
-					var username = selectedOption.closest('optgroup').prop('label');
+					let optGroup    = selectedOption.closest('optgroup');
+					let username    = optGroup.prop('label');
+					let isOwnerless = optGroup.data('ownerless') === true;
 
-					if (username !== 'null' && username !== me.username) {
-						Structr.disableButton(updateLayoutButton);
-						Structr.disableButton(deleteLayoutButton);
-					} else {
+					if (isOwnerless || username === me.username) {
 						Structr.enableButton(updateLayoutButton);
 						Structr.enableButton(deleteLayoutButton);
+					} else {
+						Structr.disableButton(updateLayoutButton);
+						Structr.disableButton(deleteLayoutButton);
 					}
 				}
 			};
@@ -3214,7 +3216,7 @@ var _Schema = {
 
 					grouped.forEach(function(group) {
 
-						let optGroup = $('<optgroup label="' + group.ownerName + '"></optgroup>');
+						let optGroup = $('<optgroup data-ownerless="' + group.ownerless + '" label="' + group.label + '"></optgroup>');
 						layoutSelector.append(optGroup);
 
 						group.configs.forEach(function(layout) {
