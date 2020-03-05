@@ -488,13 +488,6 @@ var _Flows = {
 
                 let defaultEntries = [
                     {
-                        id: 'globals',
-                        text: 'Favorites',
-                        children: true,
-                        icon: _Icons.star_icon,
-                        data: {type: "favorite"}
-                    },
-                    {
                         id: 'root',
                         text: 'Flows',
                         children: true,
