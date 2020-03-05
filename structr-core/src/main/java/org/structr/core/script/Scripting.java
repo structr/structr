@@ -428,6 +428,9 @@ public class Scripting {
 					if (o instanceof ExternalPtr) {
 
 						listResult.add(((ExternalPtr)o).getInstance());
+					} else {
+
+						listResult.add(o);
 					}
 				}
 
