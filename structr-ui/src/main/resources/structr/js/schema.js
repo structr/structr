@@ -1542,16 +1542,18 @@ var _Schema = {
 				_Schema.appendEmptyMethod(actionsTable, entity, _Schema.getFirstFreeMethodName('onCreate'));
 			});
 
-			el.append('<button class="add-icon add-afterCreate-button"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add afterCreate</button>');
-			$('.add-afterCreate-button', el).off('click').on('click', function() {
-				_Schema.appendEmptyMethod(actionsTable, entity, _Schema.getFirstFreeMethodName('afterCreate'));
-			});
+			if (entity.type === 'SchemaNode') {
+				el.append('<button class="add-icon add-afterCreate-button"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add afterCreate</button>');
+				$('.add-afterCreate-button', el).off('click').on('click', function() {
+					_Schema.appendEmptyMethod(actionsTable, entity, _Schema.getFirstFreeMethodName('afterCreate'));
+				});
 
-			Structr.appendInfoTextToElement({
-				text: "The difference between onCreate an afterCreate is that afterCreate is called after all checks have run and the transaction is committed.<br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.",
-				element: $('.add-afterCreate-button', el),
-				insertAfter: true
-			});
+				Structr.appendInfoTextToElement({
+					text: "The difference between onCreate an afterCreate is that afterCreate is called after all checks have run and the transaction is committed.<br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.",
+					element: $('.add-afterCreate-button', el),
+					insertAfter: true
+				});
+			}
 
 			el.append('<button class="add-icon add-onSave-button"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add onSave</button>');
 			$('.add-onSave-button', el).off('click').on('click', function() {
