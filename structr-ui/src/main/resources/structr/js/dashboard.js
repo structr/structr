@@ -76,6 +76,8 @@ var _Dashboard = {
 				templateConfig.envInfo.endDate = _Dashboard.dateToIsoString(templateConfig.envInfo.endDate);
 			}
 
+			templateConfig.databaseDriver = Structr.getDatabaseDriverNameForDatabaseServiceName(templateConfig.envInfo.databaseService);
+
 			return fetch(rootUrl + '/me/ui');
 
 		}).then(function(response) {
@@ -97,6 +99,10 @@ var _Dashboard = {
 			Structr.fetchHtmlTemplate('dashboard/dashboard', templateConfig, function(html) {
 
 				main.append(html);
+
+				if (templateConfig.envInfo.databaseService === 'MemoryDatabaseService') {
+					Structr.appendInMemoryInfoToElement($('#dashboard-about-structr .db-driver'));
+				}
 
 				_Dashboard.gatherVersionUpdateInfo(templateConfig.envInfo.version, releasesIndexUrl, snapshotsIndexUrl);
 

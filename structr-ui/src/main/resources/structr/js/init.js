@@ -1238,22 +1238,40 @@ var Structr = {
 		LSWrapper.removeItem(activeTabKey);
 	},
 	updateVersionInfo: function() {
+
 		$.get(rootUrl + '_env', function(data) {
 			if (data && data.result) {
 
-				var envInfo = data.result;
+				let envInfo = data.result;
+
+				let dbInfoEl = $('#header .structr-instance-db');
+
+				if (envInfo.databaseService) {
+					let driverName = Structr.getDatabaseDriverNameForDatabaseServiceName(envInfo.databaseService);
+					let icon       = _Icons.database_icon;
+
+					if (envInfo.databaseService === 'MemoryDatabaseService') {
+						icon = _Icons.database_error_icon;
+					}
+
+					dbInfoEl.html('<span><i class="' + _Icons.getFullSpriteClass(icon) + '" title="' + driverName + '"></span>');
+
+					if (envInfo.databaseService === 'MemoryDatabaseService') {
+						Structr.appendInMemoryInfoToElement($('span', dbInfoEl), $('span i', dbInfoEl));
+					}
+				}
 
 				$('#header .structr-instance-name').text(envInfo.instanceName);
 				$('#header .structr-instance-stage').text(envInfo.instanceStage);
 
-				var ui = envInfo.components['structr-ui'];
+				let ui = envInfo.components['structr-ui'];
 				if (ui) {
 
-					var version = ui.version;
-					var build = ui.build;
-					var date = ui.date;
-					var versionLink = 'https://structr.com/download';
-					var versionInfo = '<a target="_blank" href="' + versionLink + '">' + version + '</a>';
+					let version     = ui.version;
+					let build       = ui.build;
+					let date        = ui.date;
+					let versionLink = 'https://structr.com/download';
+					let versionInfo = '<a target="_blank" href="' + versionLink + '">' + version + '</a>';
 					if (build && date) {
 						versionInfo += '<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a><span> (' + date + ')</span>';
 					}
@@ -1308,6 +1326,39 @@ var Structr = {
 				});
 			}
 		});
+	},
+	appendInMemoryInfoToElement: function(el, optionalToggleElement) {
+
+		let config = {
+			element: el,
+			text: "Currently running on an in-memory database implementation. Data is no persisted and will be lost after restarting the instance! You can use the configuration servlet to configure a database connection.",
+			customToggleIcon: _Icons.database_error_icon,
+			helpElementCss: {
+				'border': '2px solid red',
+				'border-radius': '4px',
+				'font-weight': 'bold',
+				'font-size': '15px',
+				'color': '#000'
+			}
+		};
+
+		if (optionalToggleElement) {
+			config.toggleElement = optionalToggleElement;
+		}
+
+		Structr.appendInfoTextToElement(config);
+	},
+	getDatabaseDriverNameForDatabaseServiceName: function (databaseServiceName) {
+		switch (databaseServiceName) {
+			case 'BoltDatabaseService':
+				return 'Bolt Database Driver';
+
+			case 'MemoryDatabaseService':
+				return 'In-Memory Database Driver';
+				break;
+		}
+
+		return 'Unknown database driver!';
 	},
 	clearVersionInfo: function() {
 		$('.structr-version').html('');
@@ -1504,7 +1555,7 @@ var Structr = {
 				.on("mousemove", function(e) {
 					helpElement.show();
 					helpElement.css({
-						left: e.clientX + 20 + offsetX,
+						left: Math.min(e.clientX + 20 + offsetX, window.innerWidth - helpElement.width() - 50),
 						top: Math.min(e.clientY + 10 + offsetY, window.innerHeight - helpElement.height() - 10)
 					});
 				}).on("mouseout", function(e) {

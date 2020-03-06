@@ -113,6 +113,7 @@ var _Icons = {
 	disconnect_icon: 'icon/disconnect.png',
 	folder_connect_icon: 'icon/folder_connect.png',
 	folder_disconnect_icon: 'icon/folder_disconnect.png',
+	database_error_icon: 'icon/database_error.png',
 
 
 	getFullSpriteClass: function (key) {
@@ -225,6 +226,7 @@ var _Icons = {
 			case _Icons.disconnect_icon:              return 'sprite-disconnect';
 			case _Icons.folder_connect_icon:          return 'sprite-folder_connect';
 			case _Icons.folder_disconnect_icon:       return 'sprite-folder_disconnect';
+			case _Icons.database_error_icon:          return 'sprite-database_error';
 
 			default:                                  return 'sprite-error';
 		}

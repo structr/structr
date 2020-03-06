@@ -122,9 +122,10 @@ input[type="checkbox"] {
 	height: 27px;
 	margin-top: 12px;
 	font-size: 20px;
+	text-align: right;
 }
 
-#header .structr-instance-stage {
+#header .structr-instance-stage:not(:empty) {
 	margin-left:10px;
 }
 

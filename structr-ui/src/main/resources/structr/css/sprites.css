@@ -132,59 +132,63 @@
 }
 
 .sprite-compress {
-	background-position: -4px -52px;
+	background-position: -292px -28px;
 }
 
 .sprite-connect {
-	background-position: -28px -52px;
+	background-position: -4px -52px;
 }
 
 .sprite-control_play {
-	background-position: -52px -52px;
+	background-position: -28px -52px;
 }
 
 .sprite-control_play_blue {
-	background-position: -76px -52px;
+	background-position: -52px -52px;
 }
 
 .sprite-cross {
-	background-position: -100px -52px;
+	background-position: -76px -52px;
 }
 
 .sprite-cross_small_grey {
 	width: 12px;
 	height: 12px;
-	background-position: -292px -28px;
+	background-position: -100px -52px;
 }
 
 .sprite-cursor {
-	background-position: -124px -52px;
+	background-position: -120px -52px;
 }
 
 .sprite-cursor2 {
 	width: 16px;
 	height: 23px;
-	background-position: -148px -52px;
+	background-position: -144px -52px;
 }
 
 .sprite-database {
-	background-position: -172px -52px;
+	background-position: -168px -52px;
 }
 
 .sprite-database_add {
-	background-position: -196px -52px;
+	background-position: -192px -52px;
+}
+
+.sprite-database_error {
+	background-position: -216px -52px;
 }
 
 .sprite-database_gear {
-	background-position: -220px -52px;
+	background-position: -240px -52px;
 }
 
 .sprite-database_table {
-	background-position: -244px -52px;
+	background-position: -264px -52px;
 }
 
 .sprite-delete {
-	background-position: -268px -52px;
+	background-position: -288px -52px;
 }
 
 .sprite-delete_gray {
@@ -208,27 +212,27 @@
 }
 
 .sprite-eye {
-	background-position: -124px -76px;
+	background-position: -168px -76px;
 }
 
 .sprite-folder {
-	background-position: -172px -76px;
+	background-position: -192px -76px;
 }
 
 .sprite-folder_add {
-	background-position: -196px -76px;
+	background-position: -216px -76px;
 }
 
 .sprite-folder_connect {
-	background-position: -220px -76px;
+	background-position: -240px -76px;
 }
 
 .sprite-folder_database {
-	background-position: -244px -76px;
+	background-position: -264px -76px;
 }
 
 .sprite-folder_delete {
-	background-position: -268px -76px;
+	background-position: -288px -76px;
 }
 
 .sprite-folder_disconnect {
@@ -374,85 +378,85 @@
 }
 
 .sprite-page_white_code {
-	background-position: -4px -172px;
+	background-position: -292px -148px;
 }
 
 .sprite-page_white_delete {
-	background-position: -28px -172px;
+	background-position: -4px -172px;
 }
 
 .sprite-page_white_get {
-	background-position: -52px -172px;
+	background-position: -28px -172px;
 }
 
 .sprite-page_white_put {
-	background-position: -76px -172px;
+	background-position: -52px -172px;
 }
 
 .sprite-page_white_stack {
-	background-position: -100px -172px;
+	background-position: -76px -172px;
 }
 
 .sprite-page_white_text {
-	background-position: -124px -172px;
+	background-position: -100px -172px;
 }
 
 .sprite-page_yellow {
-	background-position: -148px -172px;
+	background-position: -124px -172px;
 }
 
 .sprite-pencil {
-	background-position: -172px -172px;
+	background-position: -148px -172px;
 }
 
 .sprite-pencil_small_grey {
 	width: 12px;
 	height: 12px;
-	background-position: -292px -48px;
+	background-position: -124px -76px;
 }
 
 .sprite-pull_page {
-	background-position: -196px -172px;
+	background-position: -172px -172px;
 }
 
 .sprite-script_lightning {
-	background-position: -220px -172px;
+	background-position: -196px -172px;
 }
 
 .sprite-script_palette {
-	background-position: -244px -172px;
+	background-position: -220px -172px;
 }
 
 .sprite-star {
-	background-position: -268px -172px;
+	background-position: -244px -172px;
 }
 
 .sprite-star_delete {
-	background-position: -4px -196px;
+	background-position: -268px -172px;
 }
 
 .sprite-structr-logo {
 	width: 86px;
 	height: 23px;
-	background-position: -28px -196px;
+	background-position: -4px -196px;
 }
 
 .sprite-structr-logo_92x60 {
 	width: 92px;
 	height: 60px;
-	background-position: -122px -196px;
+	background-position: -98px -196px;
 }
 
 .sprite-structr_gray_100x27 {
 	width: 100px;
 	height: 27px;
-	background-position: -4px -264px;
+	background-position: -198px -196px;
 }
 
 .sprite-structr_gray_200x54 {
 	width: 200px;
 	height: 54px;
-	background-position: -312px -4px;
+	background-position: -316px -4px;
 }
 
 .sprite-structr_icon_16x16 {
@@ -488,11 +492,11 @@
 }
 
 .sprite-textfield_add {
-	background-position: -296px -90px;
+	background-position: -312px -90px;
 }
 
 .sprite-tick {
-	background-position: -320px -90px;
+	background-position: -336px -90px;
 }
 
 .sprite-tree_arrow_down {
@@ -508,55 +512,55 @@
 }
 
 .sprite-tux {
-	background-position: -344px -90px;
+	background-position: -360px -90px;
 }
 
 .sprite-user {
-	background-position: -368px -90px;
+	background-position: -384px -90px;
 }
 
 .sprite-user_add {
-	background-position: -392px -90px;
+	background-position: -408px -90px;
 }
 
 .sprite-user_delete {
-	background-position: -416px -90px;
+	background-position: -432px -90px;
 }
 
 .sprite-user_gray {
-	background-position: -440px -90px;
+	background-position: -456px -90px;
 }
 
 .sprite-user_green {
-	background-position: -464px -90px;
+	background-position: -480px -90px;
 }
 
 .sprite-user_orange {
-	background-position: -488px -98px;
+	background-position: -296px -114px;
 }
 
 .sprite-user_red {
-	background-position: -296px -122px;
+	background-position: -320px -114px;
 }
 
 .sprite-user_suit {
-	background-position: -320px -122px;
+	background-position: -344px -114px;
 }
 
 .sprite-wand {
-	background-position: -344px -122px;
+	background-position: -368px -114px;
 }
 
 .sprite-wrench {
-	background-position: -368px -122px;
+	background-position: -392px -114px;
 }
 
 .sprite-xhtml_add {
-	background-position: -392px -122px;
+	background-position: -416px -114px;
 }
 
 .sprite-zoom {
-	background-position: -416px -122px;
+	background-position: -440px -114px;
 }
 
 /**
