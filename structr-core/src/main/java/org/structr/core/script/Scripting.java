@@ -23,6 +23,11 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.script.*;
+
+import com.caucho.quercus.env.Env;
+import com.caucho.quercus.env.JavaCollectionAdapter;
+import com.caucho.quercus.env.JavaListAdapter;
+import com.caucho.quercus.script.QuercusScriptEngine;
 import org.apache.commons.collections4.map.LRUMap;
 import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.Context;
@@ -400,6 +405,21 @@ public class Scripting {
 
 				extractedValue = engine.get("result");
 			}
+
+			// PHP handling start
+			if (extractedValue instanceof JavaListAdapter) {
+				JavaListAdapter list = (JavaListAdapter)extractedValue;
+
+				List<Object> listResult = new ArrayList<>();
+
+				for (Object o : list.toJavaList(Env.getCurrent(), Object.class)) {
+
+					listResult.add(o);
+				}
+
+				return listResult;
+			}
+			// PHP handling end
 
 			// Python handling start
 			if (extractedValue instanceof PyList) {
