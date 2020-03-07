@@ -443,6 +443,8 @@ function connect(button, name) {
 	status.addClass('hidden');
 	status.empty();
 
+	_Config.showNonBlockUILoadingMessage('Connection is being established', 'Please wait...');
+
 	$.ajax({
 		type: 'post',
 		url: '/structr/config/' + name + '/connect',
@@ -467,6 +469,8 @@ function disconnect(button, name) {
 	status.addClass('hidden');
 	status.empty();
 
+	_Config.showNonBlockUILoadingMessage('Connection is being disconnected', 'Please wait...');
+
 	$.ajax({
 		type: 'post',
 		url: '/structr/config/' + name + '/disconnect',
@@ -482,6 +486,8 @@ function disconnect(button, name) {
 }
 
 function handleErrorResponse(name, response, button) {
+
+	_Config.hideNonBlockUILoadingMessage();
 
 	let json = response.responseJSON;
 
@@ -522,3 +528,27 @@ function handleErrorResponse(name, response, button) {
 			break;
 	}
 }
+
+
+
+_Config = {
+	nonBlockUIBlockerId: 'non-block-ui-blocker',
+	nonBlockUIBlockerContentId: 'non-block-ui-blocker-content',
+	showNonBlockUILoadingMessage: function(title, text) {
+
+		var messageTitle = title || 'Executing Task';
+		var messageText  = text || 'Please wait until the operation has finished...';
+
+		let pageBlockerDiv = $('<div id="' + _Config.nonBlockUIBlockerId +'"></div>');
+
+		let messageDiv = $('<div id="' + _Config.nonBlockUIBlockerContentId +'"></div>');
+		messageDiv.html('<img src="' + _Icons.getSpinnerImageAsData() + '"> <b>' + messageTitle + '</b><br><br>' + messageText);
+
+		$('body').append(pageBlockerDiv);
+		$('body').append(messageDiv);
+	},
+	hideNonBlockUILoadingMessage: function() {
+		$('#' + _Config.nonBlockUIBlockerId).remove();
+		$('#' + _Config.nonBlockUIBlockerContentId).remove();
+	}
+};
