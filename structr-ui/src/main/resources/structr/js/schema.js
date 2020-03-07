@@ -289,14 +289,18 @@ var _Schema = {
 				$('.node').css({zIndex: ++maxZ});
 
 				instance.bind('connection', function(info, originalEvent) {
-					if (!originalEvent) {
-						_Logger.log(_LogType.SCHEMA, "Ignoring connection event in jsPlumb as it looks like it has been created programmatically");
+
+					if (info.connection.scope === 'jsPlumb_DefaultScope') {
+						if (originalEvent) {
+							_Schema.connect(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'));
+						}
 					} else {
-						_Schema.connect(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'));
+						new MessageBuilder().warning('Moving existing relationships is not permitted!').title('Not allowed').requiresConfirmation().show();
+						_Schema.reload();
 					}
 				});
 				instance.bind('connectionDetached', function(info) {
-					_Schema.askDeleteRelationship(info.connection.scope);
+					new MessageBuilder().warning('Deleting relationships is only possible via the delete button!').title('Not allowed').requiresConfirmation().show();
 					_Schema.reload();
 				});
 				reload = false;
@@ -1539,16 +1543,18 @@ var _Schema = {
 				_Schema.appendEmptyMethod(actionsTable, entity, _Schema.getFirstFreeMethodName('onCreate'));
 			});
 
-			el.append('<button class="add-icon add-afterCreate-button"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add afterCreate</button>');
-			$('.add-afterCreate-button', el).off('click').on('click', function() {
-				_Schema.appendEmptyMethod(actionsTable, entity, _Schema.getFirstFreeMethodName('afterCreate'));
-			});
+			if (entity.type === 'SchemaNode') {
+				el.append('<button class="add-icon add-afterCreate-button"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add afterCreate</button>');
+				$('.add-afterCreate-button', el).off('click').on('click', function() {
+					_Schema.appendEmptyMethod(actionsTable, entity, _Schema.getFirstFreeMethodName('afterCreate'));
+				});
 
-			Structr.appendInfoTextToElement({
-				text: "The difference between onCreate an afterCreate is that afterCreate is called after all checks have run and the transaction is committed.<br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.",
-				element: $('.add-afterCreate-button', el),
-				insertAfter: true
-			});
+				Structr.appendInfoTextToElement({
+					text: "The difference between onCreate an afterCreate is that afterCreate is called after all checks have run and the transaction is committed.<br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.",
+					element: $('.add-afterCreate-button', el),
+					insertAfter: true
+				});
+			}
 
 			el.append('<button class="add-icon add-onSave-button"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add onSave</button>');
 			$('.add-onSave-button', el).off('click').on('click', function() {
@@ -3022,8 +3028,10 @@ var _Schema = {
 						fadeOut: 25
 					});
 
+					_Schema.showSchemaRecompileMessage();
 					Command.snapshots("purge", undefined, undefined, function () {
 						_Schema.reload();
+						_Schema.hideSchemaRecompileMessage();
 					});
 				});
 			});
@@ -3080,7 +3088,7 @@ var _Schema = {
 
 			var layoutSelectorChangeHandler = function () {
 
-				var selectedOption = $(':selected:not(:disabled)', layoutSelector);
+				let selectedOption = $(':selected:not(:disabled)', layoutSelector);
 
 				if (selectedOption.length === 0) {
 
@@ -3094,14 +3102,16 @@ var _Schema = {
 					Structr.enableButton(restoreLayoutButton);
 					Structr.enableButton(downloadLayoutButton);
 
-					var username = selectedOption.closest('optgroup').prop('label');
+					let optGroup    = selectedOption.closest('optgroup');
+					let username    = optGroup.prop('label');
+					let isOwnerless = optGroup.data('ownerless') === true;
 
-					if (username !== 'null' && username !== me.username) {
-						Structr.disableButton(updateLayoutButton);
-						Structr.disableButton(deleteLayoutButton);
-					} else {
+					if (isOwnerless || username === me.username) {
 						Structr.enableButton(updateLayoutButton);
 						Structr.enableButton(deleteLayoutButton);
+					} else {
+						Structr.disableButton(updateLayoutButton);
+						Structr.disableButton(deleteLayoutButton);
 					}
 				}
 			};
@@ -3167,7 +3177,7 @@ var _Schema = {
 				Command.getApplicationConfigurationDataNode(selectedLayout, function(data) {
 
 					var element = document.createElement('a');
-					element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data.content));
+					element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify({name:data.name, content: JSON.parse(data.content)})));
 					element.setAttribute('download', selectedLayout + '.json');
 
 					element.style.display = 'none';
@@ -3206,7 +3216,7 @@ var _Schema = {
 
 					grouped.forEach(function(group) {
 
-						let optGroup = $('<optgroup label="' + group.ownerName + '"></optgroup>');
+						let optGroup = $('<optgroup data-ownerless="' + group.ownerless + '" label="' + group.label + '"></optgroup>');
 						layoutSelector.append(optGroup);
 
 						group.configs.forEach(function(layout) {

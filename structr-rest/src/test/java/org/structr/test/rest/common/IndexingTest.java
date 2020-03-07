@@ -38,8 +38,6 @@ public abstract class IndexingTest extends StructrRestTestBase {
 	@Override
 	public void setup() {
 
-		Services.enableUpdateIndexConfiguration();
-
 		final long timestamp = System.nanoTime();
 
 		basePath = "/tmp/structr-test-" + timestamp;
@@ -66,6 +64,8 @@ public abstract class IndexingTest extends StructrRestTestBase {
 		Settings.RestUserClass.setValue("");
 
 		final Services services = Services.getInstance();
+
+		Services.enableUpdateIndexConfiguration();
 
 		// wait for service layer to be initialized
 		do {

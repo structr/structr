@@ -321,7 +321,7 @@ var _Dialogs = {
 						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val() || null, input); });
 					});
 
-					[ 'is-admin', 'is-two-factor-user' ].forEach(p => {
+					[ 'is-admin', 'is-two-factor-user', 'skip-security-relationships' ].forEach(p => {
 						let name  = p.toCamel();
 						let input = $('input#' + p + '-checkbox');
 						input.prop('checked', entity[name]);

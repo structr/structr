@@ -403,23 +403,6 @@ public class SchemaService implements Service {
 
 				logger.info("Schema build took a total of {} ms", System.currentTimeMillis() - t0);
 
-				/*
-				final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
-				final long maxWaitTime        = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(10);
-				boolean indexUpdateFinished   = false;
-
-				while (!indexUpdateFinished && System.currentTimeMillis() < maxWaitTime) {
-
-					indexUpdateFinished = graphDb.isIndexUpdateFinished();
-					if (!indexUpdateFinished) {
-
-						System.out.println("Waiting...");
-
-						try { Thread.sleep(2000); } catch (Throwable t) {}
-					}
-				}
-				*/
-
 				// compiling done
 				compiling.set(false);
 
@@ -516,7 +499,7 @@ public class SchemaService implements Service {
 
 	private static void updateIndexConfiguration(final Map<String, Map<String, PropertyKey>> removedClasses) {
 
-		if (Services.isTesting()) {
+		if (Services.isTesting() && !Services.updateIndexConfiguration()) {
 
 			logger.info("Skipping index creation in test mode.");
 			return;
