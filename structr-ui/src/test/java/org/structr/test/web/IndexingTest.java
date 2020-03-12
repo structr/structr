@@ -69,8 +69,6 @@ public abstract class IndexingTest extends StructrUiTest {
 
 		Services.enableUpdateIndexConfiguration();
 
-		System.out.println("############################################ INDEXING ENABLED");
-
 		// wait for service layer to be initialized
 		do {
 			try { Thread.sleep(100); } catch (Throwable t) {}
