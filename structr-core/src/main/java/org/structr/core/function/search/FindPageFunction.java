@@ -47,6 +47,10 @@ public class FindPageFunction extends AdvancedScriptingFunction {
 				case 1: page     = parseInt(sources[0]);
 			}
 
+			if (page == 0) {
+				logger.warn("Page function used with page == 0 while page count starts at 1.");
+			}
+
 			return new PagePredicate(page, pageSize);
 
 		} catch (final IllegalArgumentException e) {

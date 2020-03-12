@@ -18,7 +18,6 @@
  */
 package org.structr.test.web.advanced;
 
-import static com.caucho.quercus.lib.JavaModule.java;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
@@ -34,7 +33,6 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -45,7 +43,7 @@ import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.test.web.StructrUiTest;
+import org.structr.test.web.IndexingTest;
 import org.structr.test.web.entity.TestFive;
 import org.structr.test.web.entity.TestOne;
 import org.structr.test.web.entity.TestTwo;
@@ -53,19 +51,13 @@ import org.structr.web.entity.User;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
-import org.testng.annotations.BeforeClass;
 
 /**
  *
  */
-public class PerformanceTest extends StructrUiTest {
+public class PerformanceTest extends IndexingTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(PerformanceTest.class);
-
-	@BeforeClass
-	public void enableIndexing() {
-		Services.enableUpdateIndexConfiguration();
-	}
 
 	/**
 	 * Tests basic throughput of node creation operations
