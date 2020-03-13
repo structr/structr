@@ -710,12 +710,14 @@ var _Flows = {
 					if (Array.isArray(result)) {
 						for (let node of result) {
 
-							flowEditor.renderNode(persistence._wrapObject(node, node));
+							flowEditor.renderNode(persistence._wrapObject(node, node), true);
 						}
 					} else {
 
-						flowEditor.renderNode(persistence._wrapObject(result, result));
+						flowEditor.renderNode(persistence._wrapObject(result, result), true);
 					}
+
+					flowEditor._editor.view.update();
 
 				}).then(() => {
 

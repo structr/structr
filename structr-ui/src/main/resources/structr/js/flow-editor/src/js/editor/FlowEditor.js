@@ -599,7 +599,7 @@ export class FlowEditor {
 
 	}
 
-	renderNode(node) {
+	renderNode(node, preventViewUpdate) {
 		let fNode = undefined;
 		switch (node.type) {
 			case 'FlowAction':
@@ -706,7 +706,9 @@ export class FlowEditor {
 
 		this._editor.addNode(editorNode);
 
-		this._editor.view.update();
+		if (!preventViewUpdate) {
+			this._editor.view.update();
+		}
 
 		this._overrideContextMenu(fNode);
 

@@ -32,14 +32,15 @@ export class FlowCall extends FlowNode {
                 let call = new D3NE.Control('<select class="control-select"><option disabled selected>None</option></select>', (element, control) =>{
 
                     let persistence = new Persistence();
-                    persistence.getNodesByClass(new FlowContainer()).then(result => {
+
+                    persistence.getNodesByClass(new FlowContainer(), 'effectiveNameView').then(result => {
                         
                         result = result.sort((a,b) => {
                             return a.effectiveName.toLowerCase() > b.effectiveName.toLowerCase() ? 1 : a.effectiveName.toLowerCase() < b.effectiveName.toLowerCase() ? -1 : 0;
                         });
 
                         for (let container of result) {
-                            if (container.id !== scopedDbNode.flowContainer.id) {
+                            if (container.id !== scopedDbNode.flow.id) {
                                 let option = document.createElement("option");
                                 option.text = container.effectiveName;
                                 option.value = container.id;
