@@ -49,8 +49,8 @@ public class FlowCall extends FlowActionNode implements DataSource, DeployableEn
 	public static final Property<Iterable<FlowParameterInput>> parameters = new StartNodes<>("parameters", FlowCallParameter.class);
 	public static final Property<FlowContainer> flow                      = new EndNode<>("flow", FlowCallContainer.class);
 
-	public static final View defaultView 								= new View(FlowCall.class, PropertyView.Public, flow, dataTarget, parameters, isStartNodeOfContainer);
-	public static final View uiView      								= new View(FlowCall.class, PropertyView.Ui,     flow, dataTarget, parameters, isStartNodeOfContainer);
+	public static final View defaultView 								= new View(FlowCall.class, PropertyView.Public, flow, dataTarget, parameters, isStartNodeOfContainer, flowContainer);
+	public static final View uiView      								= new View(FlowCall.class, PropertyView.Ui,     flow, dataTarget, parameters, isStartNodeOfContainer, flowContainer);
 
 	@Override
 	public void execute(Context context) throws FlowException {

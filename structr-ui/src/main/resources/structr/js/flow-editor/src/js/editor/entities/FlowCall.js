@@ -40,7 +40,7 @@ export class FlowCall extends FlowNode {
                         });
 
                         for (let container of result) {
-                            if (container.id !== scopedDbNode.flow.id) {
+                            if (container.id !== scopedDbNode.flowContainer.id) {
                                 let option = document.createElement("option");
                                 option.text = container.effectiveName;
                                 option.value = container.id;
