@@ -1872,7 +1872,7 @@ var _Code = {
 			}
 			
 			// run button
-			if (!method.isPartOfBuiltInSchema) {
+			if (!method.schemaNode && !method.isPartOfBuiltInSchema) {
 				_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.exec_blue_icon), 'run', 'Run method', function() {
 					_Code.runGlobalSchemaMethod(method);
 				});
