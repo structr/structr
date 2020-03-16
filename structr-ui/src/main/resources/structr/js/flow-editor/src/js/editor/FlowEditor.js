@@ -58,7 +58,7 @@ export class FlowEditor {
 				this._flowContainer = flowContainer;
 				this._rootElement = rootElement;
 				this.flowNodes = [];
-				this.disableRelationshipEvents = false;
+				this.disableRelationshipEvents = true;
 
 				window._rootElement = rootElement;
 
