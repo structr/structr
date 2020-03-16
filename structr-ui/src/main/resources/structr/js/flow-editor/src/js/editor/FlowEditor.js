@@ -755,6 +755,7 @@ export class FlowEditor {
 
 	selectNodeById(id) {
 		this._editor.selected.list = this.flowNodes.filter((fNode) => {return fNode.dbNode.id === id}).map( n => n.editorNode);
+		this._editor.view.zoomAt(this._editor.selected.list);
 		this._editor.view.update();
 	}
 
