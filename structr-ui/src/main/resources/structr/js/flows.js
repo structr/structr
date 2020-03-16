@@ -701,6 +701,8 @@ var _Flows = {
             let rootElement = document.querySelector("#nodeEditor");
             flowEditor = new FlowEditor(rootElement, r[0], {deactivateInternalEvents: true});
 
+            flowEditor.disableRelationshipEvents = true;
+
             flowEditor.waitForInitialization().then( () => {
 
 				rest.post('/structr/rest/FlowContainer/' + r[0].id + "/getFlowNodes").then((res) => {
@@ -738,6 +740,8 @@ var _Flows = {
 						flowEditor.applySavedLayout();
 						flowEditor._editor.view.update();
 						flowEditor.resetView();
+
+						flowEditor.disableRelationshipEvents = false;
 
 						// activate buttons
 						document.querySelector('.run_flow_icon').classList.remove('disabled');
