@@ -150,6 +150,24 @@
 			<artifactId>javatools</artifactId>
 			<version>1.1-SNAPSHOT</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.graalvm.sdk/graal-sdk -->
+		<dependency>
+			<groupId>org.graalvm.sdk</groupId>
+			<artifactId>graal-sdk</artifactId>
+			<version>1.0.0-rc8</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.oracle.truffle/truffle-api -->
+		<dependency>
+			<groupId>org.graalvm.truffle</groupId>
+			<artifactId>truffle-api</artifactId>
+			<version>1.0.0-rc8</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.graalvm.js/js -->
+		<dependency>
+			<groupId>org.graalvm.js</groupId>
+			<artifactId>js</artifactId>
+			<version>1.0.0-rc8</version>
+		</dependency>
 	</dependencies>
 
 	<build>
