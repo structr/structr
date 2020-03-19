@@ -442,11 +442,6 @@ var _Elements = {
 
 		entity = StructrModel.ensureObject(entity);
 
-		var hasChildren = entity.childrenIds && entity.childrenIds.length;
-
-		// store active nodes in special place..
-		var isActiveNode = entity.isActiveNode();
-
 		var parent;
 		if (refNodeIsParent) {
 			parent = refNode;
@@ -459,11 +454,28 @@ var _Elements = {
 			return false;
 		}
 
+		var hasChildren = entity.childrenIds && entity.childrenIds.length;
+
+		// store active nodes in special place..
+		var isActiveNode = entity.isActiveNode();
+
+		let elementClasses = ['node', 'element'];
+		elementClasses.push(isActiveNode ? 'activeNode' : 'staticNode');
+		if (_Elements.isEntitySelected(entity)) {
+			elementClasses.push('nodeSelectedFromContextMenu');
+		}
+		if (entity.tag === 'html') {
+			elementClasses.push('html_element');
+		}
+		if (entity.hidden === true) {
+			elementClasses.push('is-hidden');
+		}
+
 		_Entities.ensureExpanded(parent);
 
 		var id = entity.id;
 
-		var html = '<div id="id_' + id + '" class="node element' + (entity.tag === 'html' ? ' html_element' : '') + ' ' + (isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelectedFromContextMenu' : '') + '"></div>';
+		var html = '<div id="id_' + id + '" class="' + elementClasses.join(' ') + '"></div>';
 
 		if (refNode && !refNodeIsParent) {
 			refNode.before(html);

@@ -1113,6 +1113,18 @@ span.id {
 	cursor: pointer ! important;
 }
 
+
+/* set the hidden nodes icon to have a background and little opacity */
+.is-hidden > .typeIcon {
+	opacity: 0.5;
+	background-color: lightgray;
+}
+
+/* set all children of a hidden node to have even less opacity */
+.is-hidden > .node .typeIcon {
+	opacity: 0.3;
+}
+
 .typeIcon {
 	width: 16px;
 	height: 16px;
