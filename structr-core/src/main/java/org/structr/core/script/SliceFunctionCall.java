@@ -59,7 +59,7 @@ public class SliceFunctionCall implements IdFunctionCall {
 
 		Object result = null;
 
-		Scripting.setupJavascriptContext();
+		//Scripting.setupJavascriptContext();
 
 		try {
 
@@ -70,7 +70,7 @@ public class SliceFunctionCall implements IdFunctionCall {
 
 		} finally {
 
-			Scripting.destroyJavascriptContext();
+			//Scripting.destroyJavascriptContext();
 		}
 
 		return result;

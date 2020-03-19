@@ -205,7 +205,7 @@ public class StructrScriptable extends ScriptableObject {
 						final String source   = actionContext.getJavascriptLibraryCode(fileName);
 
 						// use cached / compiled source code for JS libs
-						Scripting.compileOrGetCached(context, source, fileName, 1).exec(context, scope);
+						//Scripting.compileOrGetCached(context, source, fileName, 1).exec(context, scope);
 
 					} else {
 

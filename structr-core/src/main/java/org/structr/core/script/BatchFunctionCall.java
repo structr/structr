@@ -59,7 +59,7 @@ public class BatchFunctionCall implements IdFunctionCall {
 		final boolean background  = toBoolean(args, 2);
 		final Thread workerThread = new Thread(() -> {
 
-			Scripting.setupJavascriptContext();
+			//Scripting.setupJavascriptContext();
 
 			try {
 
@@ -111,7 +111,7 @@ public class BatchFunctionCall implements IdFunctionCall {
 
 			} finally {
 
-				Scripting.destroyJavascriptContext();
+				//Scripting.destroyJavascriptContext();
 			}
 		});
 

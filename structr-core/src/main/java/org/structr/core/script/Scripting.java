@@ -25,17 +25,10 @@ import java.util.regex.Pattern;
 import javax.script.*;
 
 import com.caucho.quercus.env.Env;
-import com.caucho.quercus.env.JavaCollectionAdapter;
 import com.caucho.quercus.env.JavaListAdapter;
-import com.caucho.quercus.script.QuercusScriptEngine;
-import org.apache.commons.collections4.map.LRUMap;
 import org.apache.commons.lang3.StringUtils;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.ContextFactory;
-import org.mozilla.javascript.Script;
-import org.mozilla.javascript.ScriptableObject;
-import org.mozilla.javascript.Undefined;
-import org.mozilla.javascript.WrappedException;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Value;
 import org.python.core.PyList;
 import org.python.jsr223.PyScriptEngine;
 import org.renjin.script.RenjinScriptEngine;
@@ -63,7 +56,7 @@ public class Scripting {
 
 	private static final Logger logger                       = LoggerFactory.getLogger(Scripting.class.getName());
 	private static final Pattern ScriptEngineExpression      = Pattern.compile("^\\$\\{(\\w+)\\{(.*)\\}\\}$", Pattern.DOTALL);
-	private static final Map<String, Script> compiledScripts = Collections.synchronizedMap(new LRUMap<>(10000));
+	//private static final Map<String, Script> compiledScripts = Collections.synchronizedMap(new LRUMap<>(10000));
 
 	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue) throws FrameworkException {
 		return replaceVariables(actionContext, entity, rawValue, false);
@@ -237,6 +230,23 @@ public class Scripting {
 		final String entityType        = entity != null ? (entity.getClass().getSimpleName() + ".") : "";
 		final String entityName        = entity != null ? entity.getProperty(AbstractNode.name) : null;
 		final String entityDescription = entity != null ? ( StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + entity.getUuid() : "anonymous";
+
+		final Context context = Context.newBuilder("js").allowAllAccess(true).build();
+		StructrPolyglotBinding structrBinding = new StructrPolyglotBinding(actionContext, entity);
+		context.getBindings("js").putMember("Structr", structrBinding);
+		context.getBindings("js").putMember("$", structrBinding);
+
+		try {
+			Value result = context.eval("js", embedInFunction(snippet.getSource()));
+
+
+			return result;
+		} catch (Exception ex) {
+
+			throw new FrameworkException(422, ex.getMessage());
+		}
+
+		/*
 		final Context scriptingContext = Scripting.setupJavascriptContext();
 
 		try {
@@ -333,6 +343,7 @@ public class Scripting {
 
 			Scripting.destroyJavascriptContext();
 		}
+		*/
 	}
 
 	private static String getExceptionMessage (final ActionContext actionContext) {
@@ -481,48 +492,16 @@ public class Scripting {
 
 	}
 
-	public static Context setupJavascriptContext() {
-
-		final Context scriptingContext = new ContextFactory().enterContext();
-
-		// enable some optimizations..
-		scriptingContext.setLanguageVersion(Context.VERSION_ES6);
-		scriptingContext.setInstructionObserverThreshold(0);
-		scriptingContext.setGenerateObserverCount(false);
-		scriptingContext.setGeneratingDebug(true);
-
-		return scriptingContext;
-	}
-
-	public static void destroyJavascriptContext() {
-		Context.exit();
-	}
-
-	private static String embedInFunction(final ActionContext actionContext, final String source) {
+	private static String embedInFunction(final String source) {
 
 		final StringBuilder buf = new StringBuilder();
 
 		buf.append("function main() { ");
 		buf.append(source);
 		buf.append("\n}\n");
-		buf.append("\n\nvar _structrMainResult = main();");
+		buf.append("\n\nmain();");
 
 		return buf.toString();
-	}
-
-	public static Script compileOrGetCached(final Context context, final String source, final String sourceName, final int lineNo) {
-
-		synchronized (compiledScripts) {
-
-			Script script = compiledScripts.get(source);
-			if (script == null) {
-
-				script = context.compileString(source, sourceName, lineNo, null);
-				compiledScripts.put(source, script);
-			}
-
-			return script;
-		}
 	}
 
 	// this is only public to be testable :(
