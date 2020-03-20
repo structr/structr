@@ -43,19 +43,19 @@ public class StructrPolyglotBinding implements ProxyObject {
 	public Object getMember(String name) {
 
 		if ("this".equals(name)) {
-			return entity;
+			return StructrPolyglotWrapper.wrap(entity);
 		}
 
 		if ("me".equals(name)) {
-			return actionContext.getSecurityContext().getUser(false);
+			return StructrPolyglotWrapper.wrap(actionContext.getSecurityContext().getUser(false));
 		}
 
 		if (actionContext.getConstant(name) != null) {
-			return actionContext.getConstant(name);
+			return StructrPolyglotWrapper.wrap(actionContext.getConstant(name));
 		}
 
 		if (actionContext.getAllVariables().containsKey(name)) {
-			return actionContext.getAllVariables().get(name);
+			return StructrPolyglotWrapper.wrap(actionContext.getAllVariables().get(name));
 		}
 
 		Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));

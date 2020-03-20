@@ -19,8 +19,14 @@
 package org.structr.core.script;
 
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.structr.core.GraphObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public abstract class StructrPolyglotWrapper {
 
@@ -30,6 +36,25 @@ public abstract class StructrPolyglotWrapper {
 			GraphObject graphObject = (GraphObject)obj;
 
 			return new StructrPolyglotGraphObjectWrapper(graphObject);
+		} else if (obj instanceof Iterable) {
+
+			final List<Object> wrappedList = new ArrayList<>();
+
+			for (final Object o : (Iterable)obj) {
+				wrappedList.add(wrap(o));
+			}
+
+			return ProxyArray.fromList(wrappedList);
+		} else if (obj instanceof Map) {
+
+			final Map<String, Object> wrappedMap = new HashMap<>();
+
+			for (Map.Entry<String, Object> entry : (((Map<String, Object>)obj).entrySet())) {
+
+				wrappedMap.put(entry.getKey(), wrap(entry.getValue()));
+			}
+
+			return ProxyObject.fromMap(wrappedMap);
 		}
 
 		return obj;
@@ -44,8 +69,7 @@ public abstract class StructrPolyglotWrapper {
 
 				return value.asHostObject();
 			} else {
-
-				return value;
+				return unwrap(value.as(Object.class));
 			}
 		} else {
 

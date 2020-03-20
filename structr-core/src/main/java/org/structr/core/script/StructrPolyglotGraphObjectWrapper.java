@@ -71,4 +71,8 @@ public class StructrPolyglotGraphObjectWrapper implements ProxyObject {
 			}
 		}
 	}
+
+	public GraphObject getGraphObject() {
+		return graphObject;
+	}
 }

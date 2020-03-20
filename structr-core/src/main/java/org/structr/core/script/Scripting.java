@@ -237,7 +237,7 @@ public class Scripting {
 		context.getBindings("js").putMember("$", structrBinding);
 
 		try {
-			Value result = context.eval("js", embedInFunction(snippet.getSource()));
+			Object result = StructrPolyglotWrapper.unwrap(context.eval("js", embedInFunction(snippet.getSource())));
 
 
 			return result;
@@ -401,7 +401,7 @@ public class Scripting {
 			scriptContext.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
 		} else if (engine instanceof  RenjinScriptEngine) {
 
-			engine.put("Structr", new StructrScriptObject(actionContext, entity));
+			engine.put("Structr", new StructrPolyglotBinding(actionContext, entity));
 
 		}
 
