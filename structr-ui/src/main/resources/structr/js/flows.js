@@ -739,6 +739,8 @@ var _Flows = {
 						flowEditor._editor.view.update();
 						flowEditor.resetView();
 
+						flowEditor.disableRelationshipEvents = false;
+
 						// activate buttons
 						document.querySelector('.run_flow_icon').classList.remove('disabled');
 						document.querySelector('.delete_flow_icon').classList.remove('disabled');

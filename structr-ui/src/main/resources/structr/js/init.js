@@ -1237,93 +1237,107 @@ var Structr = {
 
 		LSWrapper.removeItem(activeTabKey);
 	},
-	updateVersionInfo: function() {
+	updateVersionInfo: function(retryCount = 0) {
 
-		$.get(rootUrl + '_env', function(data) {
-			if (data && data.result) {
+		fetch(rootUrl + '/_env').then(function(response) {
 
-				let envInfo = data.result;
+			if (response.ok) {
+				return response.json();
+			} else {
+				throw Error("Unable to read env resource data");
+			}
 
-				let dbInfoEl = $('#header .structr-instance-db');
+		}).then(function(data) {
 
-				if (envInfo.databaseService) {
-					let driverName = Structr.getDatabaseDriverNameForDatabaseServiceName(envInfo.databaseService);
-					let icon       = _Icons.database_icon;
+			let envInfo = data.result;
 
-					if (envInfo.databaseService === 'MemoryDatabaseService') {
-						icon = _Icons.database_error_icon;
-					}
+			let dbInfoEl = $('#header .structr-instance-db');
 
-					dbInfoEl.html('<span><i class="' + _Icons.getFullSpriteClass(icon) + '" title="' + driverName + '"></span>');
+			if (envInfo.databaseService) {
+				let driverName = Structr.getDatabaseDriverNameForDatabaseServiceName(envInfo.databaseService);
+				let icon       = _Icons.database_icon;
 
-					if (envInfo.databaseService === 'MemoryDatabaseService') {
-						Structr.appendInMemoryInfoToElement($('span', dbInfoEl), $('span i', dbInfoEl));
-					}
+				if (envInfo.databaseService === 'MemoryDatabaseService') {
+					icon = _Icons.database_error_icon;
 				}
 
-				$('#header .structr-instance-name').text(envInfo.instanceName);
-				$('#header .structr-instance-stage').text(envInfo.instanceStage);
+				dbInfoEl.html('<span><i class="' + _Icons.getFullSpriteClass(icon) + '" title="' + driverName + '"></span>');
 
-				let ui = envInfo.components['structr-ui'];
-				if (ui) {
+				if (envInfo.databaseService === 'MemoryDatabaseService') {
+					Structr.appendInMemoryInfoToElement($('span', dbInfoEl), $('span i', dbInfoEl));
+				}
+			}
 
-					let version     = ui.version;
-					let build       = ui.build;
-					let date        = ui.date;
-					let versionLink = 'https://structr.com/download';
-					let versionInfo = '<a target="_blank" href="' + versionLink + '">' + version + '</a>';
-					if (build && date) {
-						versionInfo += '<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a><span> (' + date + ')</span>';
-					}
+			$('#header .structr-instance-name').text(envInfo.instanceName);
+			$('#header .structr-instance-stage').text(envInfo.instanceStage);
 
-					if (envInfo.edition) {
+			let ui = envInfo.components['structr-ui'];
+			if (ui) {
 
-						Structr.edition = envInfo.edition;
+				let version     = ui.version;
+				let build       = ui.build;
+				let date        = ui.date;
+				let versionLink = 'https://structr.com/download';
+				let versionInfo = '<a target="_blank" href="' + versionLink + '">' + version + '</a>';
+				if (build && date) {
+					versionInfo += '<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a><span> (' + date + ')</span>';
+				}
 
-						var tooltipText = 'Structr ' + envInfo.edition + ' Edition';
-						if (envInfo.licensee) {
-							tooltipText += '\nLicensed to: ' + envInfo.licensee;
-						} else {
-							tooltipText += '\nUnlicensed';
-						}
+				if (envInfo.edition) {
 
-						versionInfo += '<i title="' + tooltipText + '" class="edition-icon ' + _Icons.getFullSpriteClass(_Icons.getIconForEdition(envInfo.edition)) + '"></i>';
+					Structr.edition = envInfo.edition;
 
-						$('.structr-version').html(versionInfo);
-
-						_Dashboard.checkLicenseEnd(envInfo, $('.structr-version'), {
-							offsetX: -300,
-							helpElementCss: {
-								color: "black",
-								fontSize: "8pt",
-								lineHeight: "1.7em"
-							}
-						});
-
+					var tooltipText = 'Structr ' + envInfo.edition + ' Edition';
+					if (envInfo.licensee) {
+						tooltipText += '\nLicensed to: ' + envInfo.licensee;
 					} else {
-						$('.structr-version').html(versionInfo);
+						tooltipText += '\nUnlicensed';
 					}
+
+					versionInfo += '<i title="' + tooltipText + '" class="edition-icon ' + _Icons.getFullSpriteClass(_Icons.getIconForEdition(envInfo.edition)) + '"></i>';
+
+					$('.structr-version').html(versionInfo);
+
+					_Dashboard.checkLicenseEnd(envInfo, $('.structr-version'), {
+						offsetX: -300,
+						helpElementCss: {
+							color: "black",
+							fontSize: "8pt",
+							lineHeight: "1.7em"
+						}
+					});
+
+				} else {
+					$('.structr-version').html(versionInfo);
 				}
+			}
 
-				var hamburger = $('#menu li.submenu-trigger');
-				var subMenu = $('#submenu');
-				envInfo.mainMenu.forEach(function(entry) {
-					$('li[data-name="' + entry + '"]', subMenu).insertBefore(hamburger);
-				});
+			var hamburger = $('#menu li.submenu-trigger');
+			var subMenu = $('#submenu');
+			envInfo.mainMenu.forEach(function(entry) {
+				$('li[data-name="' + entry + '"]', subMenu).insertBefore(hamburger);
+			});
 
-				Structr.activeModules = envInfo.modules;
-				Structr.adaptUiToAvailableFeatures();
+			Structr.activeModules = envInfo.modules;
+			Structr.adaptUiToAvailableFeatures();
 
-				if (envInfo.resultCountSoftLimit !== undefined) {
-					_Crud.resultCountSoftLimit = envInfo.resultCountSoftLimit;
-				}
+			if (envInfo.resultCountSoftLimit !== undefined) {
+				_Crud.resultCountSoftLimit = envInfo.resultCountSoftLimit;
+			}
 
-				// run previously registered callbacks
-				let registeredCallbacks = Structr.moduleAvailabilityCallbacks;
-				Structr.moduleAvailabilityCallbacks = [];
-				registeredCallbacks.forEach((cb) => {
-					cb();
-				});
+			// run previously registered callbacks
+			let registeredCallbacks = Structr.moduleAvailabilityCallbacks;
+			Structr.moduleAvailabilityCallbacks = [];
+			registeredCallbacks.forEach((cb) => {
+				cb();
+			});
+		}).catch((e) => {
+			if (retryCount < 3) {
+				setTimeout(() => {
+					Structr.updateVersionInfo(++retryCount);
+				}, 250);
+			} else {
+				console.log(e);
 			}
 		});
 	},

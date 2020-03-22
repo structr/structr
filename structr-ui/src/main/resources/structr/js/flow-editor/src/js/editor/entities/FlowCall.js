@@ -7,12 +7,13 @@ import {FlowContainer} from "./FlowContainer.js";
 
 export class FlowCall extends FlowNode {
 
-    constructor(node) {
-        super(node);
+    constructor(node, flowEditor) {
+        super(node, flowEditor);
     }
 
     getComponent() {
         let scopedDbNode = this.dbNode;
+        let flowEditor = this.flowEditor;
         return new D3NE.Component('Call', {
             template: FlowCall._nodeTemplate(),
             builder(node) {
@@ -40,7 +41,7 @@ export class FlowCall extends FlowNode {
                         });
 
                         for (let container of result) {
-                            if (container.id !== scopedDbNode.flowContainer.id) {
+                            if (container.id !== flowEditor._flowContainer.id) {
                                 let option = document.createElement("option");
                                 option.text = container.effectiveName;
                                 option.value = container.id;

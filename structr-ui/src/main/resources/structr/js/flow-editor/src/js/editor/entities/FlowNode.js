@@ -2,8 +2,9 @@
 
 export class FlowNode {
 
-    constructor(dbNode) {
+    constructor(dbNode, flowEditor) {
         this.dbNode = dbNode;
+        this.flowEditor = flowEditor;
     }
 
     getName() {
