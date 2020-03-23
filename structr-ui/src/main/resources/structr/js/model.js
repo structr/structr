@@ -415,6 +415,12 @@ var StructrModel = {
 				}
 			}
 
+			if (obj.hidden === true) {
+				element.addClass('is-hidden');
+			} else {
+				element.removeClass('is-hidden');
+			}
+
 			// update icon
 			var icon = undefined;
 			if (element.hasClass('element')) {

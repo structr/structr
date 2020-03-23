@@ -710,12 +710,14 @@ var _Flows = {
 					if (Array.isArray(result)) {
 						for (let node of result) {
 
-							flowEditor.renderNode(persistence._wrapObject(node, node));
+							flowEditor.renderNode(persistence._wrapObject(node, node), true);
 						}
 					} else {
 
-						flowEditor.renderNode(persistence._wrapObject(result, result));
+						flowEditor.renderNode(persistence._wrapObject(result, result), true);
 					}
+
+					flowEditor._editor.view.update();
 
 				}).then(() => {
 
@@ -736,6 +738,8 @@ var _Flows = {
 						flowEditor.applySavedLayout();
 						flowEditor._editor.view.update();
 						flowEditor.resetView();
+
+						flowEditor.disableRelationshipEvents = false;
 
 						// activate buttons
 						document.querySelector('.run_flow_icon').classList.remove('disabled');

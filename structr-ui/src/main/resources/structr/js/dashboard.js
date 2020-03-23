@@ -44,7 +44,7 @@ var _Dashboard = {
 			tab.click();
 		}
 	},
-	onload: function() {
+	onload: function(retryCount = 0) {
 
 		_Dashboard.init();
 		Structr.updateMainHelpLink('https://support.structr.com/article/202');
@@ -55,7 +55,11 @@ var _Dashboard = {
 
 		fetch(rootUrl + '/_env').then(function(response) {
 
-			return response.json();
+			if (response.ok) {
+				return response.json();
+			} else {
+				throw Error("Unable to read env resource data");
+			}
 
 		}).then(function(data) {
 
@@ -195,6 +199,14 @@ var _Dashboard = {
 
 				Structr.unblockMenu(100);
 			});
+		}).catch((e) => {
+			if (retryCount < 3) {
+				setTimeout(() => {
+					_Dashboard.onload(++retryCount);
+				}, 250);
+			} else {
+				console.log(e);
+			}
 		});
 	},
 	gatherVersionUpdateInfo(currentVersion, releasesIndexUrl, snapshotsIndexUrl) {

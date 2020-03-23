@@ -58,6 +58,7 @@ export class FlowEditor {
 				this._flowContainer = flowContainer;
 				this._rootElement = rootElement;
 				this.flowNodes = [];
+				this.disableRelationshipEvents = true;
 
 				window._rootElement = rootElement;
 
@@ -359,55 +360,63 @@ export class FlowEditor {
 
 	_connectionCreationHandler(input, output) {
 
-		if (input.node.id === output.node.id) {
-			this._editor.view.pickedOutput = null;
-			throw new TypeError("Cannot connect a node to itself. Cancelling connection creation.");
-		}
+		if (!this.disableRelationshipEvents) {
 
-		if(input.node.data.dbNode !== undefined && output.node.data.dbNode !== undefined) {
-			try {
-				for (let [key, con] of Object.entries(FlowConnectionTypes.getInst().getAllConnectionTypes())) {
-
-					if (con.sourceAttribute === output.socket.id && con.targetAttribute === input.socket.id) {
-						let sourceId = output.node.data.dbNode.id;
-						let targetId = input.node.data.dbNode.id;
-						let relType = con.type;
-
-						let persistence = new Persistence();
-
-						persistence.getNodesByClass({type:relType}).then( result => {
-
-							let shouldCreate = result.filter( el => el.sourceId == sourceId && el.targetId == targetId).length == 0;
-
-							if (shouldCreate) {
-								persistence.createNode({type: relType, sourceId: sourceId, targetId: targetId});
-							}
-						});
-
-						break;
-					}
-
-				}
-			} catch (e) {
-				console.log("Exception during rel creation:");
-				console.log(e);
+			if (input.node.id === output.node.id) {
+				this._editor.view.pickedOutput = null;
+				throw new TypeError("Cannot connect a node to itself. Cancelling connection creation.");
 			}
 
-		} else {
+			if (input.node.data.dbNode !== undefined && output.node.data.dbNode !== undefined) {
+				try {
+					for (let [key, con] of Object.entries(FlowConnectionTypes.getInst().getAllConnectionTypes())) {
 
-			console.log('Error in connectionCreationHandler. Input or Output dbnode were null.');
+						if (con.sourceAttribute === output.socket.id && con.targetAttribute === input.socket.id) {
+							let sourceId = output.node.data.dbNode.id;
+							let targetId = input.node.data.dbNode.id;
+							let relType = con.type;
+
+							let persistence = new Persistence();
+
+							persistence.getNodesByClass({type: relType}).then(result => {
+
+								let shouldCreate = result.filter(el => el.sourceId == sourceId && el.targetId == targetId).length == 0;
+
+								if (shouldCreate) {
+									persistence.createNode({type: relType, sourceId: sourceId, targetId: targetId});
+								}
+							});
+
+							break;
+						}
+
+					}
+				} catch (e) {
+					console.log("Exception during rel creation:");
+					console.log(e);
+				}
+
+			} else {
+
+				console.log('Error in connectionCreationHandler. Input or Output dbnode were null.');
+			}
+
 		}
 
 	}
 
 	_connectionDeletionHandler(connection) {
-		let persistence = new Persistence();
-		persistence.deleteNode(connection);
+		if (!this.disableRelationshipEvents) {
+			let persistence = new Persistence();
+			persistence.deleteNode(connection);
+		}
 	}
 
 	_nodeDeletionHandler(node) {
-		let persistence = new Persistence();
-		persistence.deleteNode(node.data.dbNode);
+		if (!this.disableRelationshipEvents) {
+			let persistence = new Persistence();
+			persistence.deleteNode(node.data.dbNode);
+		}
 	}
 
 	_getFlowClasses() {
@@ -599,7 +608,7 @@ export class FlowEditor {
 
 	}
 
-	renderNode(node) {
+	renderNode(node, preventViewUpdate) {
 		let fNode = undefined;
 		switch (node.type) {
 			case 'FlowAction':
@@ -706,7 +715,9 @@ export class FlowEditor {
 
 		this._editor.addNode(editorNode);
 
-		this._editor.view.update();
+		if (!preventViewUpdate) {
+			this._editor.view.update();
+		}
 
 		this._overrideContextMenu(fNode);
 
@@ -744,6 +755,7 @@ export class FlowEditor {
 
 	selectNodeById(id) {
 		this._editor.selected.list = this.flowNodes.filter((fNode) => {return fNode.dbNode.id === id}).map( n => n.editorNode);
+		this._editor.view.zoomAt(this._editor.selected.list);
 		this._editor.view.update();
 	}
 
