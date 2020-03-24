@@ -21,6 +21,7 @@ package org.structr.core.script;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ public abstract class StructrPolyglotWrapper {
 
 	public static Object wrap(Object obj) {
 
+/*
 		if (obj instanceof GraphObject) {
 			GraphObject graphObject = (GraphObject)obj;
 
@@ -56,7 +58,7 @@ public abstract class StructrPolyglotWrapper {
 
 			return ProxyObject.fromMap(wrappedMap);
 		}
-
+*/
 		return obj;
 	}
 
@@ -68,7 +70,14 @@ public abstract class StructrPolyglotWrapper {
 			if (value.isHostObject()) {
 
 				return value.asHostObject();
+			} else if (value.hasArrayElements()) {
+
+				return convertValueToList(value);
+			} else if (value.hasMembers()) {
+
+				return convertValueToMap(value);
 			} else {
+
 				return unwrap(value.as(Object.class));
 			}
 		} else {
@@ -77,4 +86,31 @@ public abstract class StructrPolyglotWrapper {
 		}
 	}
 
+	protected static List<Object> convertValueToList(Value value) {
+		final List<Object> resultList = new ArrayList<>();
+
+		if (value.hasArrayElements()) {
+
+			for (int i = 0; i < value.getArraySize(); i++) {
+
+				resultList.add(unwrap(value.getArrayElement(i)));
+			}
+		}
+
+		return resultList;
+	}
+
+	protected static Map<String, Object> convertValueToMap(Value value) {
+		final Map<String, Object> resultMap = new HashMap<>();
+
+		if (value.hasMembers()) {
+
+			for (String key : value.getMemberKeys()) {
+
+				resultMap.put(key, unwrap(value.getMember(key)));
+			}
+		}
+
+		return resultMap;
+	}
 }

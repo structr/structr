@@ -28,7 +28,6 @@ import com.caucho.quercus.env.Env;
 import com.caucho.quercus.env.JavaListAdapter;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Value;
 import org.python.core.PyList;
 import org.python.jsr223.PyScriptEngine;
 import org.renjin.script.RenjinScriptEngine;
@@ -231,8 +230,13 @@ public class Scripting {
 		final String entityName        = entity != null ? entity.getProperty(AbstractNode.name) : null;
 		final String entityDescription = entity != null ? ( StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + entity.getUuid() : "anonymous";
 
-		final Context context = Context.newBuilder("js").allowAllAccess(true).build();
-		StructrPolyglotBinding structrBinding = new StructrPolyglotBinding(actionContext, entity);
+		final Context context = Context.newBuilder("js")
+				.allowPolyglotAccess(StructrPolyglotAccessProvider.getPolyglotAccessConfig())
+				.allowHostAccess(StructrPolyglotAccessProvider.getHostAccessConfig())
+				.build();
+
+		final StructrPolyglotBinding structrBinding = new StructrPolyglotBinding(actionContext, entity);
+
 		context.getBindings("js").putMember("Structr", structrBinding);
 		context.getBindings("js").putMember("$", structrBinding);
 
@@ -246,104 +250,6 @@ public class Scripting {
 			throw new FrameworkException(422, ex.getMessage());
 		}
 
-		/*
-		final Context scriptingContext = Scripting.setupJavascriptContext();
-
-		try {
-
-			final ScriptableObject scope = scriptingContext.initStandardObjects();
-			final StructrScriptable scriptable = new StructrScriptable(actionContext, entity, scriptingContext);
-
-			// don't wrap Java primitives
-			scriptingContext.getWrapFactory().setJavaPrimitiveWrap(false);
-
-			scriptable.setParentScope(scope);
-
-			// register Structr scriptable
-			scope.put("Structr", scope, scriptable);
-			scope.put("$",       scope, scriptable); // shortcut for "Structr"
-
-			// clear output buffer
-			actionContext.clear();
-
-			// compile or use provided script
-			Script compiledScript = snippet.getCompiledScript();
-			if (compiledScript == null) {
-
-				final String sourceLocation     = entityType + snippet.getName() + " [" + entityDescription + "]";
-				final String embeddedSourceCode = embedInFunction(actionContext, snippet.getSource());
-
-				compiledScript = compileOrGetCached(scriptingContext, embeddedSourceCode, sourceLocation, 1);
-			}
-
-			Object extractedValue = compiledScript.exec(scriptingContext, scope);
-
-			if (scriptable.hasException()) {
-				throw scriptable.getException();
-			}
-
-			// prioritize written output over result returned from method
-			final String output = actionContext.getOutput();
-			if (output != null && !output.isEmpty()) {
-				extractedValue = output;
-			}
-
-			if (extractedValue == null || extractedValue == Undefined.instance) {
-				extractedValue = scriptable.unwrap(scope.get("_structrMainResult", scope));
-			}
-
-			if (extractedValue == null || extractedValue == Undefined.instance) {
-				extractedValue = "";
-			}
-
-			return extractedValue;
-
-		} catch (final FrameworkException fex) {
-
-			if (!actionContext.getDisableVerboseExceptionLogging()) {
-				logger.warn(getExceptionMessage(actionContext), fex);
-			}
-
-			// just throw the FrameworkException so we dont lose the information contained
-			throw fex;
-
-		} catch (final WrappedException w) {
-
-			if (w.getWrappedException() instanceof FrameworkException) {
-				throw (FrameworkException)w.getWrappedException();
-			}
-
-			if (!actionContext.getDisableVerboseExceptionLogging()) {
-				logger.warn(getExceptionMessage(actionContext), w);
-			}
-
-			// if any other kind of Throwable is encountered throw a new FrameworkException and be done with it
-			throw new FrameworkException(422, w.getMessage());
-
-		} catch (final NullPointerException npe) {
-
-			if (!actionContext.getDisableVerboseExceptionLogging()) {
-				logger.warn(getExceptionMessage(actionContext), npe);
-			}
-
-			final String message = "NullPointerException in " + npe.getStackTrace()[0].toString();
-
-			throw new FrameworkException(422, message);
-
-		} catch (final Throwable t) {
-
-			if (!actionContext.getDisableVerboseExceptionLogging()) {
-				logger.warn(getExceptionMessage(actionContext), t);
-			}
-
-			// if any other kind of Throwable is encountered throw a new FrameworkException and be done with it
-			throw new FrameworkException(422, t.getMessage());
-
-		} finally {
-
-			Scripting.destroyJavascriptContext();
-		}
-		*/
 	}
 
 	private static String getExceptionMessage (final ActionContext actionContext) {
