@@ -739,6 +739,8 @@ var _Flows = {
 						flowEditor._editor.view.update();
 						flowEditor.resetView();
 
+						flowEditor.setupContextMenu();
+
 						flowEditor.disableRelationshipEvents = false;
 
 						// activate buttons
