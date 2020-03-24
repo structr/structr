@@ -82,7 +82,7 @@ public class CronService extends Thread implements RunnableService {
 
 			for (CronEntry entry : cronEntries) {
 
-				if (entry.getDelayToNextExecutionInMillis() < GRANULARITY_UNIT.toMillis(GRANULARITY)) {
+				if (entry.shouldExecuteNow()) {
 
 					final String taskClassName = entry.getName();
 					final Class taskClass      = instantiate(taskClassName);

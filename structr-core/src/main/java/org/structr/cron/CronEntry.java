@@ -45,6 +45,7 @@ public class CronEntry implements Delayed {
 	private CronField seconds = null;
 	private String name       = null;
 	private AtomicInteger runCount = new AtomicInteger(0);
+	private long nextScheduledExecution = 0;
 
 	private CronEntry(String name) {
 		this.name = name;
@@ -81,6 +82,17 @@ public class CronEntry implements Delayed {
 
 	public void decrementRunCount() {
 		this.runCount.decrementAndGet();
+	}
+
+	public boolean shouldExecuteNow() {
+
+		final boolean shouldExecute = (System.currentTimeMillis() > nextScheduledExecution);
+
+		if (shouldExecute) {
+			calculateNextExecutionTime();
+		}
+
+		return shouldExecute;
 	}
 
 	// ----- static methods -----
@@ -157,6 +169,8 @@ public class CronEntry implements Delayed {
 			} catch (Throwable t) {
 				logger.warn("Invalid cron expression for task {}, field 'months': {}", new Object[] { task, t.getMessage() });
 			}
+
+			cronEntry.calculateNextExecutionTime();
 
 			return cronEntry;
 
@@ -267,18 +281,10 @@ public class CronEntry implements Delayed {
 		throw new IllegalArgumentException("Invalid field: '" + field + "'");
 	}
 
-	@Override
-	public int compareTo(Delayed o) {
-
-		Long myDelay = getDelay(TimeUnit.MILLISECONDS);
-		Long oDelay  = o.getDelay(TimeUnit.MILLISECONDS);
-
-		return myDelay.compareTo(oDelay);
-	}
-
-	public long getDelayToNextExecutionInMillis() {
+	private void calculateNextExecutionTime() {
 
 		Calendar now       = GregorianCalendar.getInstance();
+		now.add(Calendar.SECOND, 1);								// next execution is at least 1 sec away
 		int nowSeconds     = now.get(Calendar.SECOND);
 		int nowMinutes     = now.get(Calendar.MINUTE);
 		int nowHours       = now.get(Calendar.HOUR_OF_DAY);
@@ -294,17 +300,17 @@ public class CronEntry implements Delayed {
 			modified = false;
 
 			if(!modified && !seconds.isInside(nowSeconds)) {
-				now.add(Calendar.SECOND, 1);
+				addAndResetLowerFields(now, Calendar.SECOND, 1);
 				modified = true;
 			}
 
 			if(!modified && !minutes.isInside(nowMinutes)) {
-				now.add(Calendar.MINUTE, 1);
+				addAndResetLowerFields(now, Calendar.MINUTE, 1);
 				modified = true;
 			}
 
 			if(!modified && !hours.isInside(nowHours)) {
-				now.add(Calendar.HOUR_OF_DAY, 1);
+				addAndResetLowerFields(now, Calendar.HOUR_OF_DAY, 1);
 				modified = true;
 			}
 
@@ -312,27 +318,27 @@ public class CronEntry implements Delayed {
 			if(!dow.isIsWildcard() && !days.isIsWildcard()) {
 
 				if(!modified && !(dow.isInside(nowDow) || days.isInside(nowDays))) {
-					now.add(Calendar.DAY_OF_MONTH, 1);
+					addAndResetLowerFields(now, Calendar.DAY_OF_MONTH, 1);
 					modified = true;
 				}
 
 			} else if(!dow.isIsWildcard()) {
 
 				if(!modified && !dow.isInside(nowDow)) {
-					now.add(Calendar.DAY_OF_MONTH, 1);
+					addAndResetLowerFields(now, Calendar.DAY_OF_MONTH, 1);
 					modified = true;
 				}
 
 			} else if(!days.isIsWildcard()) {
 
 				if(!modified && !days.isInside(nowDays)) {
-					now.add(Calendar.DAY_OF_MONTH, 1);
+					addAndResetLowerFields(now, Calendar.DAY_OF_MONTH, 1);
 					modified = true;
 				}
 			}
 
 			if(!modified && !months.isInside(nowMonths)) {
-				now.add(Calendar.MONTH, 1);
+				addAndResetLowerFields(now, Calendar.MONTH, 1);
 				modified = true;
 			}
 
@@ -348,7 +354,45 @@ public class CronEntry implements Delayed {
 			throw new IllegalArgumentException("Unable to determine next cron date for task " + name + ", aborting.");
 		}
 
-		return now.getTimeInMillis() - System.currentTimeMillis();
+		now.set(Calendar.MILLISECOND, 0);
+
+		nextScheduledExecution = now.getTimeInMillis();
+	}
+
+	private void addAndResetLowerFields (Calendar cal, int field, int amount) {
+
+		cal.add(field, amount);
+
+		switch (field) {
+			case Calendar.MONTH:
+				cal.set(Calendar.DAY_OF_MONTH, 1);
+			case Calendar.DAY_OF_MONTH:
+				cal.set(Calendar.HOUR_OF_DAY, 0);
+			case Calendar.HOUR_OF_DAY:
+				cal.set(Calendar.MINUTE, 0);
+			case Calendar.MINUTE:
+				cal.set(Calendar.SECOND, 0);
+			case Calendar.SECOND:
+				// no lower field to reset - milis are always 0
+		}
+	}
+
+	@Override
+	public int compareTo(Delayed o) {
+
+		Long myDelay = getDelay(TimeUnit.MILLISECONDS);
+		Long oDelay  = o.getDelay(TimeUnit.MILLISECONDS);
+
+		return myDelay.compareTo(oDelay);
+	}
+
+	public long getDelayToNextExecutionInMillis() {
+
+		if (nextScheduledExecution < System.currentTimeMillis()) {
+			calculateNextExecutionTime();
+		}
+
+		return nextScheduledExecution - System.currentTimeMillis();
 	}
 
 	public CronField getSeconds() {
