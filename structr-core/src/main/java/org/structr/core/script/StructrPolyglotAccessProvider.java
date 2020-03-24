@@ -23,9 +23,6 @@ import org.graalvm.polyglot.PolyglotAccess;
 import org.graalvm.polyglot.Value;
 import org.structr.core.GraphObject;
 
-import java.util.Collection;
-import java.util.List;
-
 public abstract class StructrPolyglotAccessProvider {
 
 	public static HostAccess getHostAccessConfig() {
@@ -34,39 +31,9 @@ public abstract class StructrPolyglotAccessProvider {
 				.allowPublicAccess(true)
 				.allowArrayAccess(true)
 				.allowListAccess(true)
-				// GraphObject Handling
-				.targetTypeMapping(GraphObject.class, StructrPolyglotGraphObjectWrapper.class,
-						null,
-						StructrPolyglotGraphObjectWrapper::new
-				)
-				.targetTypeMapping(GraphObject.class, Value.class,
-						null,
+				.targetTypeMapping(GraphObject.class, Value.class, null,
 						v -> Value.asValue(new StructrPolyglotGraphObjectWrapper(v))
 				)
-				.targetTypeMapping(Value.class, GraphObject.class,
-						v -> (v.as(Object.class) instanceof GraphObject),
-						v -> ((GraphObject)(v.as(Object.class)))
-				)
-				.targetTypeMapping(StructrPolyglotGraphObjectWrapper.class, GraphObject.class,
-						null,
-						StructrPolyglotGraphObjectWrapper::getGraphObject
-				)
-				// Iterable and Collection Handling
-				/*
-				.targetTypeMapping(
-						Value.class, List.class,
-						Value::hasArrayElements,
-						StructrPolyglotWrapper::convertValueToList
-				).targetTypeMapping(
-						Value.class, Collection.class,
-						Value::hasArrayElements,
-						StructrPolyglotWrapper::convertValueToList
-				).targetTypeMapping(
-						Value.class, Iterable.class,
-						Value::hasArrayElements,
-						StructrPolyglotWrapper::convertValueToList
-				)
-				 */
 				.build();
 	}
 
