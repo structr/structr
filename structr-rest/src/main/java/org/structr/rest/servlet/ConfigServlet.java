@@ -167,10 +167,17 @@ public class ConfigServlet extends AbstractServletBase {
 
 							try { Thread.sleep(1000); } catch (Throwable t) {}
 
-							//Services.getInstance().shutdownService(serviceName, "default");
-							//Services.getInstance().startService(serviceName);
-						}
+							Services.getInstance().shutdownService(serviceName);
 
+							try {
+								Services.getInstance().startService(serviceName);
+
+							} catch (FrameworkException fex) {
+
+								logger.warn("Unable to start service '{}'", serviceName);
+								logger.warn("", fex);
+							}
+						}
 					}).start();
 				}
 

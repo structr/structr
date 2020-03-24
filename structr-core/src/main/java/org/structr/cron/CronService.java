@@ -87,34 +87,42 @@ public class CronService extends Thread implements RunnableService {
 					final String taskClassName = entry.getName();
 					final Class taskClass      = instantiate(taskClassName);
 
-					try {
+					new Thread(new Runnable() {
 
-						if (taskClass != null) {
+						@Override
+						public void run() {
 
-							Task task = (Task)taskClass.newInstance();
+							try {
 
-							logger.debug("Starting task {}", taskClassName);
-							StructrApp.getInstance().processTasks(task);
+								if (taskClass != null) {
 
-						} else {
+									Task task = (Task)taskClass.newInstance();
 
-							try (final Tx tx = StructrApp.getInstance().tx()) {
+									logger.debug("Starting task {}", taskClassName);
+									StructrApp.getInstance().processTasks(task);
 
-								// check for schema method with the given name
-								Actions.callAsSuperUser(taskClassName, Collections.EMPTY_MAP);
+								} else {
 
-								tx.success();
+									try (final Tx tx = StructrApp.getInstance().tx()) {
+
+										// check for schema method with the given name
+										Actions.callAsSuperUser(taskClassName, Collections.EMPTY_MAP);
+
+										tx.success();
+									}
+								}
+
+							} catch (FrameworkException fex) {
+
+								logger.warn("Exception while executing cron task {}: {}", taskClassName, fex.toString());
+
+							} catch (Throwable t) {
+
+								logger.warn("Exception while executing cron task {}: {}", taskClassName, t.getMessage());
 							}
+
 						}
-
-					} catch (FrameworkException fex) {
-
-						logger.warn("Exception while executing cron task {}: {}", taskClassName, fex.toString());
-
-					} catch (Throwable t) {
-
-						logger.warn("Exception while executing cron task {}: {}", taskClassName, t.getMessage());
-					}
+					}).start();
 				}
 			}
 		}

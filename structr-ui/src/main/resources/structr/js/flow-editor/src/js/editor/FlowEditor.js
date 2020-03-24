@@ -719,9 +719,15 @@ export class FlowEditor {
 			this._editor.view.update();
 		}
 
-		this._overrideContextMenu(fNode);
-
 		return fNode;
+	}
+
+	setupContextMenu() {
+
+		for (let node of this.flowNodes) {
+
+			this._overrideContextMenu(node);
+		}
 	}
 
 	getFlowNodeForDbId(id) {
