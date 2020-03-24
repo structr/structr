@@ -154,7 +154,7 @@ public abstract class AbstractHintProvider {
 				final String functionName = getFunctionName(hint.getReplacement());
 				final String displayName  = getFunctionName(hint.getDisplayName());
 
-				if ((unrestricted || displayName.startsWith(lastToken)) && !script.endsWith(functionName)) {
+				if ((unrestricted || displayName.startsWith(lastToken))) {
 
 					final GraphObjectMap item = new GraphObjectMap();
 
