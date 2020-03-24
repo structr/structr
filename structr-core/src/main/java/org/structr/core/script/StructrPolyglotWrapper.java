@@ -33,39 +33,20 @@ public abstract class StructrPolyglotWrapper {
 
 	public static Object wrap(Object obj) {
 
-/*
+
 		if (obj instanceof GraphObject) {
 			GraphObject graphObject = (GraphObject)obj;
 
 			return new StructrPolyglotGraphObjectWrapper(graphObject);
-		} else if (obj instanceof Iterable) {
-
-			final List<Object> wrappedList = new ArrayList<>();
-
-			for (final Object o : (Iterable)obj) {
-				wrappedList.add(wrap(o));
-			}
-
-			return ProxyArray.fromList(wrappedList);
-		} else if (obj instanceof Map) {
-
-			final Map<String, Object> wrappedMap = new HashMap<>();
-
-			for (Map.Entry<String, Object> entry : (((Map<String, Object>)obj).entrySet())) {
-
-				wrappedMap.put(entry.getKey(), wrap(entry.getValue()));
-			}
-
-			return ProxyObject.fromMap(wrappedMap);
 		}
-*/
+
 		return obj;
 	}
 
 	public static Object unwrap(Object obj) {
 
 		if (obj instanceof Value) {
-			Value value = (Value)obj;
+			Value value = (Value) obj;
 
 			if (value.isHostObject()) {
 
@@ -80,6 +61,9 @@ public abstract class StructrPolyglotWrapper {
 
 				return unwrap(value.as(Object.class));
 			}
+		} else if (obj instanceof StructrPolyglotGraphObjectWrapper) {
+
+			return ((StructrPolyglotGraphObjectWrapper)obj).getGraphObject();
 		} else {
 
 			return obj;

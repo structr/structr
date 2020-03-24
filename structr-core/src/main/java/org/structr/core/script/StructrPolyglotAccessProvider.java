@@ -32,11 +32,17 @@ public abstract class StructrPolyglotAccessProvider {
 
 		return HostAccess.newBuilder()
 				.allowPublicAccess(true)
+				.allowArrayAccess(true)
+				.allowListAccess(true)
 				// GraphObject Handling
 				.targetTypeMapping(GraphObject.class, StructrPolyglotGraphObjectWrapper.class,
 						null,
 						StructrPolyglotGraphObjectWrapper::new
-						)
+				)
+				.targetTypeMapping(GraphObject.class, Value.class,
+						null,
+						v -> Value.asValue(new StructrPolyglotGraphObjectWrapper(v))
+				)
 				.targetTypeMapping(Value.class, GraphObject.class,
 						v -> (v.as(Object.class) instanceof GraphObject),
 						v -> ((GraphObject)(v.as(Object.class)))
@@ -46,6 +52,7 @@ public abstract class StructrPolyglotAccessProvider {
 						StructrPolyglotGraphObjectWrapper::getGraphObject
 				)
 				// Iterable and Collection Handling
+				/*
 				.targetTypeMapping(
 						Value.class, List.class,
 						Value::hasArrayElements,
@@ -59,6 +66,7 @@ public abstract class StructrPolyglotAccessProvider {
 						Value::hasArrayElements,
 						StructrPolyglotWrapper::convertValueToList
 				)
+				 */
 				.build();
 	}
 

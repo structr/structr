@@ -233,6 +233,8 @@ public class Scripting {
 		final Context context = Context.newBuilder("js")
 				.allowPolyglotAccess(StructrPolyglotAccessProvider.getPolyglotAccessConfig())
 				.allowHostAccess(StructrPolyglotAccessProvider.getHostAccessConfig())
+				.allowExperimentalOptions(true)
+				.option("js.experimental-foreign-object-prototype", "true")
 				.build();
 
 		final StructrPolyglotBinding structrBinding = new StructrPolyglotBinding(actionContext, entity);
