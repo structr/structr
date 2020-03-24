@@ -24,6 +24,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +44,7 @@ public class CronEntry implements Delayed {
 	private CronField months  = null;
 	private CronField seconds = null;
 	private String name       = null;
+	private AtomicInteger runCount = new AtomicInteger(0);
 
 	private CronEntry(String name) {
 		this.name = name;
@@ -67,6 +69,18 @@ public class CronEntry implements Delayed {
 		buf.append(" ");
 
 		return buf.toString();
+	}
+
+	public boolean isRunning() {
+		return (runCount.intValue() > 0);
+	}
+
+	public void incrementRunCount() {
+		this.runCount.incrementAndGet();
+	}
+
+	public void decrementRunCount() {
+		this.runCount.decrementAndGet();
 	}
 
 	// ----- static methods -----
