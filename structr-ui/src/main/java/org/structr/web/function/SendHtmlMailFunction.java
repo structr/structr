@@ -37,7 +37,7 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(SendHtmlMailFunction.class.getName());
 
-	public static final String ERROR_MESSAGE_SEND_HTML_MAIL = "Usage: ${send_html_mail(fromAddress, fromName, toAddress, toName, subject, content[, textContent][, files])}.";
+	public static final String ERROR_MESSAGE_SEND_HTML_MAIL = "Usage: ${send_html_mail(fromAddress, fromName, toAddress, toName, subject, htmlContent, textContent [, files])}.";
 
 	@Override
 	public String getName() {
@@ -46,7 +46,7 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getSignature() {
-		return "from, fromName, to, toName, subject, html [, text, files ]";
+		return "fromAddress, fromName, toAddress, toName, subject, htmlContent, textContent [, files]";
 	}
 
 	@Override
@@ -54,7 +54,7 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 6, 8);
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 7, 8);
 
 			final String from        = sources[0].toString();
 			final String fromName    = sources[1].toString();
@@ -62,11 +62,7 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 			final String toName      = sources[3].toString();
 			final String subject     = sources[4].toString();
 			final String htmlContent = sources[5].toString();
-			String textContent = "";
-
-			if (sources.length >= 7) {
-				textContent = sources[6].toString();
-			}
+			final String textContent = sources[6].toString();
 
 			List<File> fileNodes = null;
 			List<DynamicMailAttachment> attachments = new ArrayList<>();
@@ -101,7 +97,6 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 			} catch (EmailException ex) {
 
 				logException(caller, ex, sources);
-
 			}
 
 		} catch (ArgumentNullException pe) {

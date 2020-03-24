@@ -31,7 +31,7 @@ import org.w3c.dom.Document;
 
 public class XPathFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_XPATH = "Usage: ${xpath(xmlDocument, expression)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\" [, \"STRING\"])}";
+	public static final String ERROR_MESSAGE_XPATH = "Usage: ${xpath(xmlDocument, expression, returnType)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\" [, \"STRING\"])}";
 
 	@Override
 	public String getName() {
@@ -40,7 +40,7 @@ public class XPathFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getSignature() {
-		return "document, xpath";
+		return "document, xpath [, returnType ]";
 	}
 
 	@Override
