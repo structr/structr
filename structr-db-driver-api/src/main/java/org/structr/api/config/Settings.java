@@ -324,7 +324,8 @@ public class Settings {
 	public static final Setting<Integer> ProxyMaxRequestSize   = new IntegerSetting(servletsGroup, "ProxyServlet", "proxyservlet.maxrequestsize",        1200);
 
 	// cron settings
-	public static final Setting<String> CronTasks              = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations");
+	public static final Setting<String> CronTasks                   = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations");
+	public static final Setting<Boolean> CronAllowParallelExecution = new BooleanSetting(cronGroup,  "", "CronService.allowparallelexecution", false, "Enables the parallel execution of *the same* cron job. This can happen if the method runs longer than the defined cron interval. As thisand could possibly create problems the default is false.");
 
 	//security settings
 	public static final Setting<String> SuperUserName                  = new StringSetting(securityGroup,     "Superuser",            "superuser.username",                    "superadmin", "Name of the superuser");

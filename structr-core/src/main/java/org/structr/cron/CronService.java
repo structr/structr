@@ -82,47 +82,57 @@ public class CronService extends Thread implements RunnableService {
 
 			for (CronEntry entry : cronEntries) {
 
-				if (entry.getDelayToNextExecutionInMillis() < GRANULARITY_UNIT.toMillis(GRANULARITY)) {
+				if (entry.shouldExecuteNow()) {
 
 					final String taskClassName = entry.getName();
 					final Class taskClass      = instantiate(taskClassName);
 
-					new Thread(new Runnable() {
+					if (entry.isRunning() && Settings.CronAllowParallelExecution.getValue() == false) {
+						logger.warn("Prevented parallel execution of '{}' - if this happens regularly you should consider adjusting the cronExpression!", taskClassName);
+					} else {
 
-						@Override
-						public void run() {
+						new Thread(new Runnable() {
 
-							try {
+							@Override
+							public void run() {
 
-								if (taskClass != null) {
+								try {
 
-									Task task = (Task)taskClass.newInstance();
+									entry.incrementRunCount();
 
-									logger.debug("Starting task {}", taskClassName);
-									StructrApp.getInstance().processTasks(task);
+									if (taskClass != null) {
 
-								} else {
+										Task task = (Task)taskClass.newInstance();
 
-									try (final Tx tx = StructrApp.getInstance().tx()) {
+										logger.debug("Starting task {}", taskClassName);
+										StructrApp.getInstance().processTasks(task);
 
-										// check for schema method with the given name
-										Actions.callAsSuperUser(taskClassName, Collections.EMPTY_MAP);
+									} else {
 
-										tx.success();
+										try (final Tx tx = StructrApp.getInstance().tx()) {
+
+											// check for schema method with the given name
+											Actions.callAsSuperUser(taskClassName, Collections.EMPTY_MAP);
+
+											tx.success();
+										}
 									}
+
+								} catch (FrameworkException fex) {
+
+									logger.warn("Exception while executing cron task {}: {}", taskClassName, fex.toString());
+
+								} catch (Throwable t) {
+
+									logger.warn("Exception while executing cron task {}: {}", taskClassName, t.getMessage());
+
+								} finally {
+
+									entry.decrementRunCount();
 								}
-
-							} catch (FrameworkException fex) {
-
-								logger.warn("Exception while executing cron task {}: {}", taskClassName, fex.toString());
-
-							} catch (Throwable t) {
-
-								logger.warn("Exception while executing cron task {}: {}", taskClassName, t.getMessage());
 							}
-
-						}
-					}).start();
+						}).start();
+					}
 				}
 			}
 		}
