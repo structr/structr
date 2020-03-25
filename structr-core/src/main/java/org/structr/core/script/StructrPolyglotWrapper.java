@@ -39,21 +39,11 @@ public abstract class StructrPolyglotWrapper {
 
 			return new StructrPolyglotGraphObjectWrapper(graphObject);
 		} else if (obj instanceof Iterable) {
-			final List<Object> wrappedList = new ArrayList<>();
 
-			for (Object o : (Iterable)obj) {
-
-				wrappedList.add(wrap(o));
-			}
-			return wrappedList;
+			return wrapIterable((Iterable)obj);
 		} else if (obj instanceof Map) {
-			final Map<String, Object> wrappedMap = new HashMap<>();
 
-			for (Map.Entry<String,Object> entry : ((Map<String, Object>)obj).entrySet()) {
-
-				wrappedMap.put(entry.getKey(), wrap(entry.getValue()));
-			}
-			return wrappedMap;
+			return wrapMap((Map<String, Object>)obj);
 		}
 
 		return obj;
@@ -66,7 +56,7 @@ public abstract class StructrPolyglotWrapper {
 
 			if (value.isHostObject()) {
 
-				return value.asHostObject();
+				return unwrap(value.asHostObject());
 			} else if (value.as(Object.class).getClass().equals(StructrPolyglotGraphObjectWrapper.class)) {
 
 				return value.as(StructrPolyglotGraphObjectWrapper.class).getGraphObject();
@@ -83,13 +73,59 @@ public abstract class StructrPolyglotWrapper {
 		} else if (obj instanceof StructrPolyglotGraphObjectWrapper) {
 
 			return ((StructrPolyglotGraphObjectWrapper) obj).getGraphObject();
+		} else if (obj instanceof Iterable) {
+
+			return unwrapIterable((Iterable) obj);
+		} else if(obj instanceof Map) {
+
+			return unwrapMap((Map<String, Object>) obj);
 		} else {
 
 			return obj;
 		}
 	}
 
-	protected static List<Object> convertValueToList(Value value) {
+	protected static List<Object> wrapIterable(final Iterable<Object> iterable) {
+		final List<Object> wrappedList = new ArrayList<>();
+
+		for (Object o : iterable) {
+
+			wrappedList.add(wrap(o));
+		}
+		return wrappedList;
+	}
+
+	protected static List<Object> unwrapIterable(final Iterable<Object> iterable) {
+		final List<Object> wrappedList = new ArrayList<>();
+
+		for (Object o : iterable) {
+
+			wrappedList.add(unwrap(o));
+		}
+		return wrappedList;
+	}
+
+	protected static Map<String, Object> wrapMap(final Map<String, Object> map) {
+		final Map<String, Object> wrappedMap = new HashMap<>();
+
+		for (Map.Entry<String,Object> entry : map.entrySet()) {
+
+			wrappedMap.put(entry.getKey(), wrap(entry.getValue()));
+		}
+		return wrappedMap;
+	}
+
+	protected static Map<String, Object> unwrapMap(final Map<String, Object> map) {
+		final Map<String, Object> wrappedMap = new HashMap<>();
+
+		for (Map.Entry<String,Object> entry : map.entrySet()) {
+
+			wrappedMap.put(entry.getKey(), unwrap(entry.getValue()));
+		}
+		return wrappedMap;
+	}
+
+	protected static List<Object> convertValueToList(final Value value) {
 		final List<Object> resultList = new ArrayList<>();
 
 		if (value.hasArrayElements()) {
@@ -103,7 +139,7 @@ public abstract class StructrPolyglotWrapper {
 		return resultList;
 	}
 
-	protected static Map<String, Object> convertValueToMap(Value value) {
+	protected static Map<String, Object> convertValueToMap(final Value value) {
 		final Map<String, Object> resultMap = new HashMap<>();
 
 		if (value.hasMembers()) {
