@@ -19,9 +19,6 @@
 package org.structr.core.script;
 
 import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyArray;
-import org.graalvm.polyglot.proxy.ProxyObject;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 
 import java.util.ArrayList;
@@ -57,9 +54,6 @@ public abstract class StructrPolyglotWrapper {
 			if (value.isHostObject()) {
 
 				return unwrap(value.asHostObject());
-			} else if (value.as(Object.class).getClass().equals(StructrPolyglotGraphObjectWrapper.class)) {
-
-				return value.as(StructrPolyglotGraphObjectWrapper.class).getGraphObject();
 			} else if (value.hasArrayElements()) {
 
 				return convertValueToList(value);

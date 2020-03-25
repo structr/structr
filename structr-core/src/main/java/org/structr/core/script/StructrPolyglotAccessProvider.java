@@ -20,21 +20,17 @@ package org.structr.core.script;
 
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.PolyglotAccess;
-import org.graalvm.polyglot.Value;
-import org.structr.core.GraphObject;
 
 public abstract class StructrPolyglotAccessProvider {
 
 	public static HostAccess getHostAccessConfig() {
 
-		return HostAccess.newBuilder()
+		final HostAccess.Builder builder  = HostAccess.newBuilder()
 				.allowPublicAccess(true)
 				.allowArrayAccess(true)
-				.allowListAccess(true)
-				.targetTypeMapping(GraphObject.class, Value.class, null,
-						v -> Value.asValue(new StructrPolyglotGraphObjectWrapper(v))
-				)
-				.build();
+				.allowListAccess(true);
+
+		return builder.build();
 	}
 
 	public static PolyglotAccess getPolyglotAccessConfig() {

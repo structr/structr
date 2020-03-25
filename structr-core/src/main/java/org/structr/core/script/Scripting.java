@@ -18,12 +18,6 @@
  */
 package org.structr.core.script;
 
-import java.io.StringWriter;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.script.*;
-
 import com.caucho.quercus.env.Env;
 import com.caucho.quercus.env.JavaListAdapter;
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +40,12 @@ import org.structr.core.function.Functions;
 import org.structr.core.property.DateProperty;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.parser.DatePropertyParser;
+
+import javax.script.*;
+import java.io.StringWriter;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
