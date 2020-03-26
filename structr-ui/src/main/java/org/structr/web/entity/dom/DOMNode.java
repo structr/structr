@@ -1051,10 +1051,18 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	}
 
-	static boolean displayForConditions(final DOMNode thisNode, final RenderContext renderContext) {
+	static boolean displayForConditions(final DOMNode thisNode, final RenderContext renderContext)  {
 
 		String _showConditions = thisNode.getProperty(StructrApp.key(DOMNode.class, "showConditions"));
 		String _hideConditions = thisNode.getProperty(StructrApp.key(DOMNode.class, "hideConditions"));
+
+		final DOMNode ownerDocument = thisNode.getOwnerDocument();
+		boolean isShadowPage = false;
+		try {
+			isShadowPage = ownerDocument.equals(CreateComponentCommand.getOrCreateHiddenDocument());
+		} catch (FrameworkException fex) {
+			logger.warn("Unable fetch ShadowDocument node: {}", fex.getMessage());
+		}
 
 		// If both fields are empty, render node
 		if (StringUtils.isBlank(_hideConditions) && StringUtils.isBlank(_showConditions)) {
@@ -1067,7 +1075,11 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			}
 
 		} catch (UnlicensedScriptException |FrameworkException ex) {
-			logger.error("Hide conditions " + _hideConditions + " could not be evaluated.", ex);
+			if (!isShadowPage) {
+				logger.error("Error while evaluating hide condition '{}' in page {}[{}], DOMNode {}", _hideConditions, ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, ex);
+			} else {
+				logger.error("Error while evaluating hide condition '{}' in shared component, DOMNode {}", _hideConditions, thisNode, ex);
+			}
 		}
 		try {
 			// If show conditions evaluate to "false", don't render
@@ -1076,7 +1088,11 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			}
 
 		} catch (UnlicensedScriptException |FrameworkException ex) {
-			logger.error("Show conditions " + _showConditions + " could not be evaluated.", ex);
+			if (!isShadowPage) {
+				logger.error("Error while evaluating show condition '{}' in page {}[{}], DOMNode {}", _showConditions, ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, ex);
+			} else {
+				logger.error("Error while evaluating show condition '{}' in shared component, DOMNode {}", _showConditions, thisNode, ex);
+			}
 		}
 
 		return true;
