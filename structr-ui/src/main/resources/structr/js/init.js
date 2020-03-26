@@ -286,6 +286,7 @@ var Structr = {
 	modules: {},
 	activeModules: {},
 	moduleAvailabilityCallbacks: [],
+	keyMenuConfig: 'structrMenuConfig_' + port,
 	edition: '',
 	classes: [],
 	expanded: {},
@@ -513,8 +514,8 @@ var Structr = {
 				_Logger.log(_LogType.INIT, 'Last menu entry found: ' + lastMenuEntry);
 			}
 			_Logger.log(_LogType.INIT, 'lastMenuEntry', lastMenuEntry);
-			Structr.doActivateModule(lastMenuEntry);
 			Structr.updateVersionInfo();
+			Structr.doActivateModule(lastMenuEntry);
 
 			callback();
 		});
@@ -1324,14 +1325,18 @@ var Structr = {
 				}
 			}
 
-			var hamburger = $('#menu li.submenu-trigger');
-			var subMenu = $('#submenu');
-			envInfo.mainMenu.forEach(function(entry) {
-				$('li[data-name="' + entry + '"]', subMenu).insertBefore(hamburger);
-			});
-
 			Structr.activeModules = envInfo.modules;
 			Structr.adaptUiToAvailableFeatures();
+
+			let userConfigMenu = LSWrapper.getItem(Structr.keyMenuConfig);
+			if (!userConfigMenu) {
+				userConfigMenu = {
+					main: envInfo.mainMenu,
+					sub: []
+				};
+			}
+
+			Structr.updateMainMenu(userConfigMenu);
 
 			if (envInfo.resultCountSoftLimit !== undefined) {
 				_Crud.resultCountSoftLimit = envInfo.resultCountSoftLimit;
@@ -1352,6 +1357,26 @@ var Structr = {
 				console.log(e);
 			}
 		});
+	},
+	updateMainMenu: function (menuConfig) {
+
+		LSWrapper.setItem(Structr.keyMenuConfig, menuConfig);
+
+		let menu      = $('#menu');
+		let submenu   = $('#submenu');
+		let hamburger = $('#menu li.submenu-trigger');
+
+		// first move all elements from main menu to submenu
+		$('li[data-name]', menu).appendTo(submenu);
+
+		menuConfig.main.forEach(function(entry) {
+			$('li[data-name="' + entry + '"]', menu).insertBefore(hamburger);
+		});
+
+		menuConfig.sub.forEach(function(entry) {
+			$('#submenu li').last().after($('li[data-name="' + entry + '"]', menu));
+		});
+
 	},
 	appendInMemoryInfoToElement: function(el, optionalToggleElement) {
 

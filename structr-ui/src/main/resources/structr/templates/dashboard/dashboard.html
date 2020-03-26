@@ -16,6 +16,9 @@
 		<li>
 			<a href="#dashboard-server-log">Server Log</a>
 		</li>
+		<li>
+			<a href="#dashboard-ui-config">UI Settings</a>
+		</li>
 <!--		<li>
 			<a href="#dashboard-sysinfo">System Information</a>
 		</li>-->
@@ -140,6 +143,22 @@
 		<div class="tab-content" id="dashboard-sysinfo">
 
 		</div>
+
+		<div class="tab-content" id="dashboard-ui-config">
+
+			<div class="menu-order-container">
+				<div class="menu-order-config-container header">Main Menu</div>
+				<div class="menu-order-config-container header">Sub Menu</div>
+			</div>
+
+			<div class="menu-order-container">
+				<div id="main-menu-entries-config" class="connectedSortable menu-order-config-container"></div>
+				<div id="sub-menu-entries-config" class="connectedSortable menu-order-config-container"></div>
+			</div>
+
+			<button id="save-menu-config" class="action">Save & Apply</button>
+		</div>
+
 	</div>
 
 	<style type="text/css">
@@ -288,6 +307,26 @@
 		#dashboard-server-log .dashboard-spacer {
 			display: inline-block;
 			width: 30px;
+		}
+
+		.menu-order-container {
+			display: flex;
+		}
+
+		.menu-order-config-container {
+			padding: 6px;
+			width: 120px;
+		}
+
+		.menu-order-config-container.header {
+			font-weight: bold;
+			text-align: center;
+		}
+
+		.menu-item {
+			border: 1px solid lightgray;
+			margin-bottom: 4px;
+			padding: 4px;
 		}
 	</style>
 </div>
