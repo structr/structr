@@ -19,6 +19,8 @@
 package org.structr.core.script;
 
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyInstantiable;
+import org.graalvm.polyglot.proxy.ProxyNativeObject;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,7 +74,21 @@ public class StructrPolyglotGraphObjectWrapper implements ProxyObject {
 		}
 	}
 
+	@Override
+	public boolean removeMember(String key) {
+		try {
+
+			graphObject.removeProperty(StructrApp.getConfiguration().getPropertyKeyForDatabaseName(graphObject.getEntityType(), key));
+			return true;
+		} catch (FrameworkException ex) {
+
+			logger.error("Could not remove property on wrapped polyglot GraphObject entity.", ex);
+			return false;
+		}
+	}
+
 	public GraphObject getGraphObject() {
 		return graphObject;
 	}
+
 }

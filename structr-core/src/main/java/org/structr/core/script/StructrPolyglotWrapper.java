@@ -29,13 +29,15 @@ import java.util.Map;
 public abstract class StructrPolyglotWrapper {
 
 	public static Object wrap(Object obj) {
-
-
+		/*
 		if (obj instanceof GraphObject) {
 			GraphObject graphObject = (GraphObject)obj;
 
 			return new StructrPolyglotGraphObjectWrapper(graphObject);
-		} else if (obj instanceof Iterable) {
+		} else
+		 */
+
+		if (obj instanceof Iterable) {
 
 			return wrapIterable((Iterable)obj);
 		} else if (obj instanceof Map) {
@@ -64,9 +66,12 @@ public abstract class StructrPolyglotWrapper {
 
 				return unwrap(value.as(Object.class));
 			}
+		/*
 		} else if (obj instanceof StructrPolyglotGraphObjectWrapper) {
 
 			return ((StructrPolyglotGraphObjectWrapper) obj).getGraphObject();
+
+		 */
 		} else if (obj instanceof Iterable) {
 
 			return unwrapIterable((Iterable) obj);

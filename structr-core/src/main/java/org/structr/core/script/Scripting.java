@@ -22,6 +22,7 @@ import com.caucho.quercus.env.Env;
 import com.caucho.quercus.env.JavaListAdapter;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.PolyglotException;
 import org.python.core.PyList;
 import org.python.jsr223.PyScriptEngine;
 import org.renjin.script.RenjinScriptEngine;
@@ -46,6 +47,7 @@ import java.io.StringWriter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -235,6 +237,7 @@ public class Scripting {
 				.allowHostAccess(StructrPolyglotAccessProvider.getHostAccessConfig())
 				.allowExperimentalOptions(true)
 				.option("js.experimental-foreign-object-prototype", "true")
+				.option("js.nashorn-compat", "true")
 				.build();
 
 		final StructrPolyglotBinding structrBinding = new StructrPolyglotBinding(actionContext, entity);
@@ -244,7 +247,6 @@ public class Scripting {
 
 		try {
 			Object result = StructrPolyglotWrapper.unwrap(context.eval("js", embedInFunction(snippet.getSource())));
-
 
 			return result;
 		} catch (Exception ex) {
@@ -282,120 +284,51 @@ public class Scripting {
 	// ----- private methods -----
 	private static Object evaluateScript(final ActionContext actionContext, final GraphObject entity, final String engineName, final String script) throws FrameworkException {
 
-		final ScriptEngineManager manager = new ScriptEngineManager();
-		ScriptEngine engine = manager.getEngineByName(engineName);
-
-		if (engine == null) {
-			List<ScriptEngineFactory> factories = manager.getEngineFactories();
-
-			for (ScriptEngineFactory factory : factories) {
-
-				if (factory.getNames().contains(engineName)) {
-
-					engine = factory.getScriptEngine();
-					break;
-				}
-			}
-		}
-
-		if (engine == null) {
-			throw new RuntimeException(engineName + " script engine could not be initialized. Check class path.");
-		}
-
-		final ScriptContext scriptContext = engine.getContext();
-		final Bindings bindings           = new StructrScriptBindings(actionContext, entity);
-
-		if (!(engine instanceof RenjinScriptEngine)) {
-			scriptContext.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
-		} else if (engine instanceof  RenjinScriptEngine) {
-
-			engine.put("Structr", new StructrPolyglotBinding(actionContext, entity));
-
-		}
-
-		StringWriter output = new StringWriter();
-		scriptContext.setWriter(output);
-
 		try {
 
-			Object extractedValue = engine.eval(script);
+			final Context context = Context.newBuilder()
+					.allowPolyglotAccess(StructrPolyglotAccessProvider.getPolyglotAccessConfig())
+					.allowHostAccess(StructrPolyglotAccessProvider.getHostAccessConfig())
+					.build();
 
-			if (engine instanceof PyScriptEngine || engine instanceof RenjinScriptEngine) {
+			final StructrPolyglotBinding structrBinding = new StructrPolyglotBinding(actionContext, entity);
 
-				extractedValue = engine.get("result");
+			context.getBindings(engineName).putMember("Structr", structrBinding);
+			context.getBindings(engineName).putMember("$", structrBinding);
+
+
+			final StringBuilder wrappedScript = new StringBuilder();
+
+
+			switch (engineName) {
+				case "R":
+					wrappedScript.append("main <- function() {");
+					wrappedScript.append(script);
+					wrappedScript.append("}\n");
+					wrappedScript.append("\n\nmain()");
+					break;
+				case "python":
+					// Prepend tabs
+					final String tabPrependedScript = Arrays.stream(script.trim().split("\n")).map(line -> "	" + line).collect(Collectors.joining("\n"));
+					wrappedScript.append("def main():\n");
+					wrappedScript.append(tabPrependedScript);
+					wrappedScript.append("\n");
+
+					context.eval(engineName, wrappedScript.toString());
+
+					return StructrPolyglotWrapper.unwrap(context.getBindings(engineName).getMember("main").execute());
 			}
 
-			// PHP handling start
-			if (extractedValue instanceof JavaListAdapter) {
-				JavaListAdapter list = (JavaListAdapter)extractedValue;
 
-				List<Object> listResult = new ArrayList<>();
+				Object result = StructrPolyglotWrapper.unwrap(context.eval(engineName, wrappedScript.toString()));
 
-				for (Object o : list.toJavaList(Env.getCurrent(), Object.class)) {
+				return result;
+		} catch (PolyglotException ex) {
 
-					listResult.add(o);
-				}
+			throw new FrameworkException(422, ex.getMessage());
+		} catch (Throwable ex) {
 
-				return listResult;
-			}
-			// PHP handling end
-
-			// Python handling start
-			if (extractedValue instanceof PyList) {
-				PyList list = (PyList)extractedValue;
-
-				List<Object> listResult = new ArrayList<>();
-
-				for (Object o : list) {
-
-					listResult.add(o);
-				}
-
-				return listResult;
-			}
-			// Python handling end
-
-			// Renjin handling start
-			if (extractedValue instanceof ListVector) {
-
-				ListVector vec = (ListVector)extractedValue;
-
-				List<Object> listResult = new ArrayList<>();
-
-				for (Object o : vec) {
-
-					if (o instanceof ExternalPtr) {
-
-						listResult.add(((ExternalPtr)o).getInstance());
-					} else {
-
-						listResult.add(o);
-					}
-				}
-
-				return listResult;
-			}
-
-			if (extractedValue instanceof ExternalPtr) {
-
-				ExternalPtr ptr = (ExternalPtr)extractedValue;
-				return ptr.getInstance();
-			}
-			// Renjin handling end
-
-			if (output != null && output.toString() != null && output.toString().length() > 0) {
-				extractedValue = output.toString();
-			}
-
-			return extractedValue;
-
-		} catch (final Throwable e) {
-
-			if (!actionContext.getDisableVerboseExceptionLogging()) {
-				logger.error("Error while processing {} script: {}", engineName, script, e);
-			}
-
-			throw new FrameworkException(422, e.getMessage());
+			throw new FrameworkException(422, ex.getMessage());
 		}
 
 	}
