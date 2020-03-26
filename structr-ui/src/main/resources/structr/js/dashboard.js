@@ -366,75 +366,7 @@ var _Dashboard = {
 				}
 
 				$('button#run-' + result.id).on('click', function() {
-
-					Structr.dialog('Run global schema method ' + result.name, function() {}, function() {
-						$('#run-method').remove();
-						$('#clear-log').remove();
-					});
-
-					dialogBtn.prepend('<button id="run-method">Run</button>');
-					dialogBtn.append('<button id="clear-log">Clear output</button>');
-
-					var paramsOuterBox = $('<div id="params"><h3 class="heading-narrow">Parameters</h3></div>');
-					var paramsBox = $('<div></div>');
-					paramsOuterBox.append(paramsBox);
-					var addParamBtn = $('<i title="Add parameter" class="button ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" />');
-					paramsBox.append(addParamBtn);
-					dialog.append(paramsOuterBox);
-
-					if (cleanedComment.trim() !== '') {
-						dialog.append('<div id="global-method-comment"><h3 class="heading-narrow">Comment</h3>' + cleanedComment + '</div>');
-					}
-
-					Structr.appendInfoTextToElement({
-						element: $('#params h3'),
-						text: "Parameters can be accessed by using the <code>retrieve()</code> function.",
-						css: { marginLeft: "5px" },
-						helpElementCss: { fontSize: "12px" }
-					});
-
-					addParamBtn.on('click', function() {
-						var newParam = $('<div class="param"><input class="param-name" placeholder="Parameter name"> : <input class="param-value" placeholder="Parameter value"></div>');
-						var removeParam = $('<i class="button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" alt="Remove parameter" title="Remove parameter"/>');
-
-						newParam.append(removeParam);
-						removeParam.on('click', function() {
-							newParam.remove();
-						});
-						paramsBox.append(newParam);
-					});
-
-					dialog.append('<h3>Method output</h3>');
-					dialog.append('<pre id="log-output"></pre>');
-
-					$('#run-method').on('click', function() {
-
-						$('#log-output').empty();
-						$('#log-output').append('Running method..\n');
-
-						var params = {};
-						$('#params .param').each(function (index, el) {
-							var name = $('.param-name', el).val();
-							var val = $('.param-value', el).val();
-							if (name) {
-								params[name] = val;
-							}
-						});
-
-						$.ajax({
-							url: rootUrl + '/maintenance/globalSchemaMethods/' + result.name,
-							data: JSON.stringify(params),
-							method: 'POST',
-							complete: function(data) {
-								$('#log-output').append(data.responseText);
-								$('#log-output').append('Done.');
-							}
-						});
-					});
-
-					$('#clear-log').on('click', function() {
-						$('#log-output').empty();
-					});
+					_Code.runGlobalSchemaMethod(result);
 				});
 			});
 		});
