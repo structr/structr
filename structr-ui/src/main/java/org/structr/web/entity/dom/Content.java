@@ -29,6 +29,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Favoritable;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyKey;
@@ -45,6 +46,7 @@ import org.structr.web.converter.ContentConverters;
 import static org.structr.web.entity.dom.DOMNode.escapeForHtml;
 import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
 import org.structr.web.entity.html.Textarea;
+import org.structr.websocket.command.CreateComponentCommand;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -307,9 +309,15 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
 		} catch (Throwable t) {
 
-			// catch exception to prevent ugly status 500 error pages in frontend.
-			logger.error("", t);
+			DOMNode ownerDocument = thisNode.getOwnerDocument();
+			boolean isShadowPage = DOMNode.checkOwnerDocumentIsShadowPage(ownerDocument);
 
+			// catch exception to prevent ugly status 500 error pages in frontend.
+			if (!isShadowPage) {
+				logger.error("Error while evaluating script in page {}[{}], Content[{}]", ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, t);
+			} else {
+				logger.error("Error while evaluating script in shared component, Content[{}]", thisNode, t);
+			}
 		}
 	}
 

@@ -204,12 +204,24 @@ $(function() {
 			var uuid = prompt('Enter the UUID for which you want to open the properties dialog');
 			if (uuid) {
 				if (uuid.length === 32) {
-					Command.get(uuid, null, function(obj) {
+					Command.get(uuid, null, function (obj) {
 						_Entities.showProperties(obj);
 					});
 				} else {
 					alert('That does not look like a UUID! length != 32');
 				}
+			}
+		}
+		// Ctrl-Alt-t
+		if (k === 77 && altKey && ctrlKey) {
+			e.preventDefault();
+			var uuid = prompt('Enter the UUID for which you want to open the edit dialog');
+			if (uuid && uuid.length === 32) {
+				Command.get(uuid, null, function(obj) {
+					_Elements.openEditContentDialog(this, obj);
+				});
+			} else {
+				alert('That does not look like a UUID! length != 32');
 			}
 		}
 		// Ctrl-Alt-g
