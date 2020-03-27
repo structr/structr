@@ -19,7 +19,6 @@
 package org.structr.core.script;
 
 import org.graalvm.polyglot.Value;
-import org.structr.core.GraphObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,13 +28,6 @@ import java.util.Map;
 public abstract class StructrPolyglotWrapper {
 
 	public static Object wrap(Object obj) {
-		/*
-		if (obj instanceof GraphObject) {
-			GraphObject graphObject = (GraphObject)obj;
-
-			return new StructrPolyglotGraphObjectWrapper(graphObject);
-		} else
-		 */
 
 		if (obj instanceof Iterable) {
 
@@ -66,12 +58,6 @@ public abstract class StructrPolyglotWrapper {
 
 				return unwrap(value.as(Object.class));
 			}
-		/*
-		} else if (obj instanceof StructrPolyglotGraphObjectWrapper) {
-
-			return ((StructrPolyglotGraphObjectWrapper) obj).getGraphObject();
-
-		 */
 		} else if (obj instanceof Iterable) {
 
 			return unwrapIterable((Iterable) obj);
@@ -85,6 +71,7 @@ public abstract class StructrPolyglotWrapper {
 	}
 
 	protected static List<Object> wrapIterable(final Iterable<Object> iterable) {
+
 		final List<Object> wrappedList = new ArrayList<>();
 
 		for (Object o : iterable) {
@@ -95,6 +82,7 @@ public abstract class StructrPolyglotWrapper {
 	}
 
 	protected static List<Object> unwrapIterable(final Iterable<Object> iterable) {
+
 		final List<Object> wrappedList = new ArrayList<>();
 
 		for (Object o : iterable) {
@@ -105,6 +93,7 @@ public abstract class StructrPolyglotWrapper {
 	}
 
 	protected static Map<String, Object> wrapMap(final Map<String, Object> map) {
+
 		final Map<String, Object> wrappedMap = new HashMap<>();
 
 		for (Map.Entry<String,Object> entry : map.entrySet()) {
@@ -115,6 +104,7 @@ public abstract class StructrPolyglotWrapper {
 	}
 
 	protected static Map<String, Object> unwrapMap(final Map<String, Object> map) {
+
 		final Map<String, Object> wrappedMap = new HashMap<>();
 
 		for (Map.Entry<String,Object> entry : map.entrySet()) {
@@ -125,6 +115,7 @@ public abstract class StructrPolyglotWrapper {
 	}
 
 	protected static List<Object> convertValueToList(final Value value) {
+
 		final List<Object> resultList = new ArrayList<>();
 
 		if (value.hasArrayElements()) {
@@ -139,6 +130,7 @@ public abstract class StructrPolyglotWrapper {
 	}
 
 	protected static Map<String, Object> convertValueToMap(final Value value) {
+
 		final Map<String, Object> resultMap = new HashMap<>();
 
 		if (value.hasMembers()) {

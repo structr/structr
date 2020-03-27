@@ -19,19 +19,29 @@
 package org.structr.core.script;
 
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.function.Functions;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
+import java.awt.*;
+import java.util.Arrays;
 import java.util.Set;
+
+import static org.structr.core.script.StructrPolyglotWrapper.wrap;
 
 public class StructrPolyglotBinding implements ProxyObject {
 
-	private GraphObject entity          = null;
-	private ActionContext actionContext = null;
+	private static final Logger logger           = LoggerFactory.getLogger(Scripting.class.getName());
+
+	private GraphObject entity                   = null;
+	private ActionContext actionContext          = null;
 
 	public StructrPolyglotBinding(final ActionContext actionContext, final GraphObject entity) {
 
@@ -42,29 +52,30 @@ public class StructrPolyglotBinding implements ProxyObject {
 	@Override
 	public Object getMember(String name) {
 
-		if ("this".equals(name)) {
-			return StructrPolyglotWrapper.wrap(entity);
+		switch (name) {
+			case "get":
+				return getGetFunctionWrapper();
+			case "this":
+				return wrap(entity);
+			case "me":
+				return wrap(actionContext.getSecurityContext().getUser(false));
+			default:
+				if (actionContext.getConstant(name) != null) {
+					return wrap(actionContext.getConstant(name));
+				}
+
+				if (actionContext.getAllVariables().containsKey(name)) {
+					return wrap(actionContext.getAllVariables().get(name));
+				}
+
+				Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
+				if (func != null) {
+
+					return new StructrPolyglotFunctionWrapper(actionContext, entity, func);
+				}
+
+				return null;
 		}
-
-		if ("me".equals(name)) {
-			return StructrPolyglotWrapper.wrap(actionContext.getSecurityContext().getUser(false));
-		}
-
-		if (actionContext.getConstant(name) != null) {
-			return StructrPolyglotWrapper.wrap(actionContext.getConstant(name));
-		}
-
-		if (actionContext.getAllVariables().containsKey(name)) {
-			return StructrPolyglotWrapper.wrap(actionContext.getAllVariables().get(name));
-		}
-
-		Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
-		if (func != null) {
-
-			return new StructrPolyglotFunctionWrapper(actionContext, entity, func);
-		}
-
-		return null;
 	}
 
 	@Override
@@ -84,4 +95,34 @@ public class StructrPolyglotBinding implements ProxyObject {
 	public void putMember(String key, Value value) {
 
 	}
+
+	private ProxyExecutable getGetFunctionWrapper() {
+
+		return new ProxyExecutable() {
+			@Override
+			public Object execute(Value... arguments) {
+
+				try {
+					Object[] args = Arrays.stream(arguments).map(arg -> StructrPolyglotWrapper.unwrap(arg)).toArray();
+
+					if (args.length == 1) {
+
+						return StructrPolyglotWrapper.wrap(actionContext.evaluate(entity, args[0].toString(), null, null, 0));
+					} else if (args.length > 1) {
+
+						final Function<Object, Object> function = Functions.get("get");
+
+						return wrap(function.apply(actionContext, entity, args));
+					}
+
+				} catch (FrameworkException ex) {
+
+					logger.error("Exception while trying to call get on scripting object.", ex);
+				}
+
+				return null;
+			}
+		};
+	}
+
 }

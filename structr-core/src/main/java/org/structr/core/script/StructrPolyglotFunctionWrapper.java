@@ -31,7 +31,7 @@ import java.util.Arrays;
 
 public class StructrPolyglotFunctionWrapper implements ProxyExecutable {
 
-	private static final Logger logger                       = LoggerFactory.getLogger(Scripting.class.getName());
+	private static final Logger logger                       = LoggerFactory.getLogger(StructrPolyglotFunctionWrapper.class.getName());
 
 	private final ActionContext actionContext;
 	private final GraphObject entity;
