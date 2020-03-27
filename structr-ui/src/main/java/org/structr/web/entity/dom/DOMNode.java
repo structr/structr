@@ -958,6 +958,17 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		throw new DOMException(DOMException.NOT_SUPPORTED_ERR, NOT_SUPPORTED_ERR_MESSAGE);
 	}
 
+	static boolean checkOwnerDocumentIsShadowPage(DOMNode ownerDocument) {
+		boolean isShadowPage = false;
+		try {
+			isShadowPage = ownerDocument.equals(CreateComponentCommand.getOrCreateHiddenDocument());
+		} catch (FrameworkException fex) {
+			logger.warn("Unable fetch ShadowDocument node: {}", fex.getMessage());
+		}
+
+		return isShadowPage;
+	}
+
 	static void checkSameDocument(final DOMNode thisNode, final Node otherNode) throws DOMException {
 
 		Document doc = thisNode.getOwnerDocument();
@@ -1056,13 +1067,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		String _showConditions = thisNode.getProperty(StructrApp.key(DOMNode.class, "showConditions"));
 		String _hideConditions = thisNode.getProperty(StructrApp.key(DOMNode.class, "hideConditions"));
 
-		final DOMNode ownerDocument = thisNode.getOwnerDocument();
-		boolean isShadowPage = false;
-		try {
-			isShadowPage = ownerDocument.equals(CreateComponentCommand.getOrCreateHiddenDocument());
-		} catch (FrameworkException fex) {
-			logger.warn("Unable fetch ShadowDocument node: {}", fex.getMessage());
-		}
+		DOMNode ownerDocument = thisNode.getOwnerDocument();
+		boolean isShadowPage = checkOwnerDocumentIsShadowPage(ownerDocument);
 
 		// If both fields are empty, render node
 		if (StringUtils.isBlank(_hideConditions) && StringUtils.isBlank(_showConditions)) {
@@ -1076,9 +1082,9 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		} catch (UnlicensedScriptException |FrameworkException ex) {
 			if (!isShadowPage) {
-				logger.error("Error while evaluating hide condition '{}' in page {}[{}], DOMNode {}", _hideConditions, ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, ex);
+				logger.error("Error while evaluating hide condition '{}' in page {}[{}], DOMNode[{}]", _hideConditions, ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, ex);
 			} else {
-				logger.error("Error while evaluating hide condition '{}' in shared component, DOMNode {}", _hideConditions, thisNode, ex);
+				logger.error("Error while evaluating hide condition '{}' in shared component, DOMNode[{}]", _hideConditions, thisNode, ex);
 			}
 		}
 		try {
@@ -1089,9 +1095,9 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		} catch (UnlicensedScriptException |FrameworkException ex) {
 			if (!isShadowPage) {
-				logger.error("Error while evaluating show condition '{}' in page {}[{}], DOMNode {}", _showConditions, ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, ex);
+				logger.error("Error while evaluating show condition '{}' in page {}[{}], DOMNode[{}]", _showConditions, ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, ex);
 			} else {
-				logger.error("Error while evaluating show condition '{}' in shared component, DOMNode {}", _showConditions, thisNode, ex);
+				logger.error("Error while evaluating show condition '{}' in shared component, DOMNode[{}]", _showConditions, thisNode, ex);
 			}
 		}
 

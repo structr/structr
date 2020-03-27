@@ -204,12 +204,24 @@ $(function() {
 			var uuid = prompt('Enter the UUID for which you want to open the properties dialog');
 			if (uuid) {
 				if (uuid.length === 32) {
-					Command.get(uuid, null, function(obj) {
+					Command.get(uuid, null, function (obj) {
 						_Entities.showProperties(obj);
 					});
 				} else {
 					alert('That does not look like a UUID! length != 32');
 				}
+			}
+		}
+		// Ctrl-Alt-t
+		if (k === 77 && altKey && ctrlKey) {
+			e.preventDefault();
+			var uuid = prompt('Enter the UUID for which you want to open the edit dialog');
+			if (uuid && uuid.length === 32) {
+				Command.get(uuid, null, function(obj) {
+					_Elements.openEditContentDialog(this, obj);
+				});
+			} else {
+				alert('That does not look like a UUID! length != 32');
 			}
 		}
 		// Ctrl-Alt-g
@@ -274,6 +286,7 @@ var Structr = {
 	modules: {},
 	activeModules: {},
 	moduleAvailabilityCallbacks: [],
+	keyMenuConfig: 'structrMenuConfig_' + port,
 	edition: '',
 	classes: [],
 	expanded: {},
@@ -501,8 +514,8 @@ var Structr = {
 				_Logger.log(_LogType.INIT, 'Last menu entry found: ' + lastMenuEntry);
 			}
 			_Logger.log(_LogType.INIT, 'lastMenuEntry', lastMenuEntry);
-			Structr.doActivateModule(lastMenuEntry);
 			Structr.updateVersionInfo();
+			Structr.doActivateModule(lastMenuEntry);
 
 			callback();
 		});
@@ -1312,14 +1325,18 @@ var Structr = {
 				}
 			}
 
-			var hamburger = $('#menu li.submenu-trigger');
-			var subMenu = $('#submenu');
-			envInfo.mainMenu.forEach(function(entry) {
-				$('li[data-name="' + entry + '"]', subMenu).insertBefore(hamburger);
-			});
-
 			Structr.activeModules = envInfo.modules;
 			Structr.adaptUiToAvailableFeatures();
+
+			let userConfigMenu = LSWrapper.getItem(Structr.keyMenuConfig);
+			if (!userConfigMenu) {
+				userConfigMenu = {
+					main: envInfo.mainMenu,
+					sub: []
+				};
+			}
+
+			Structr.updateMainMenu(userConfigMenu);
 
 			if (envInfo.resultCountSoftLimit !== undefined) {
 				_Crud.resultCountSoftLimit = envInfo.resultCountSoftLimit;
@@ -1340,6 +1357,26 @@ var Structr = {
 				console.log(e);
 			}
 		});
+	},
+	updateMainMenu: function (menuConfig) {
+
+		LSWrapper.setItem(Structr.keyMenuConfig, menuConfig);
+
+		let menu      = $('#menu');
+		let submenu   = $('#submenu');
+		let hamburger = $('#menu li.submenu-trigger');
+
+		// first move all elements from main menu to submenu
+		$('li[data-name]', menu).appendTo(submenu);
+
+		menuConfig.main.forEach(function(entry) {
+			$('li[data-name="' + entry + '"]', menu).insertBefore(hamburger);
+		});
+
+		menuConfig.sub.forEach(function(entry) {
+			$('#submenu li').last().after($('li[data-name="' + entry + '"]', menu));
+		});
+
 	},
 	appendInMemoryInfoToElement: function(el, optionalToggleElement) {
 
