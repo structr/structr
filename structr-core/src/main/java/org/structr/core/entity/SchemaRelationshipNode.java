@@ -174,8 +174,8 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		boolean valid = super.isValid(errorBuffer);
 
-		valid &= ValidationHelper.isValidStringMatchingRegex(this, sourceJsonName, schemaRemoteAttributeNamePattern, errorBuffer);
-		valid &= ValidationHelper.isValidStringMatchingRegex(this, targetJsonName, schemaRemoteAttributeNamePattern, errorBuffer);
+		valid &= (getProperty(sourceJsonName) == null || ValidationHelper.isValidStringMatchingRegex(this, sourceJsonName, schemaRemoteAttributeNamePattern, errorBuffer));
+		valid &= (getProperty(targetJsonName) == null || ValidationHelper.isValidStringMatchingRegex(this, targetJsonName, schemaRemoteAttributeNamePattern, errorBuffer));
 		valid &= ValidationHelper.isValidStringNotBlank(this, relationshipType, errorBuffer);
 		valid &= ValidationHelper.isValidPropertyNotNull(this, sourceNode, errorBuffer);
 		valid &= ValidationHelper.isValidPropertyNotNull(this, targetNode, errorBuffer);
