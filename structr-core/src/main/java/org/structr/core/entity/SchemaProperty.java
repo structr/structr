@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -71,8 +70,6 @@ import org.structr.schema.parser.PropertyDefinition;
  *
  */
 public class SchemaProperty extends SchemaReloadingNode implements PropertyDefinition {
-
-	public static final String schemaPropertyNamePattern    = "[a-zA-Z_][a-zA-Z0-9_]*";
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaProperty.class.getName());
 
@@ -686,16 +683,6 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		}
 
 		return doubleArrayPropertyParser;
-	}
-
-	@Override
-	public boolean isValid(final ErrorBuffer errorBuffer) {
-
-		boolean valid = super.isValid(errorBuffer);
-
-		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, schemaPropertyNamePattern, errorBuffer);
-
-		return valid;
 	}
 
 	@Override
