@@ -78,7 +78,6 @@ public class Settings {
 	public static final Setting<Boolean> DebugLogging           = new BooleanSetting(generalGroup,            "Logging",     "log.debug",                        false, "Controls the behaviour of the debug() function. If disabled, the debug() function behaves like a NOP. If enabled, it behaves exactly like the log() function.");
 	public static final Setting<Boolean> LogFunctionsStackTrace = new BooleanSetting(generalGroup,            "Logging",     "log.functions.stacktrace",         false, "If true, the full stacktrace is logged for exceptions in built-in functions.");
 	public static final Setting<String> LogPrefix               = new StringSetting(generalGroup,             "Logging",     "log.prefix",                       "structr");
-	public static final Setting<String> LogName                 = new StringSetting(generalGroup,             "Logging",     "log.name",                         "structr-yyyy_mm_dd.request.log", "File name pattern for the logging output");
 	public static final Setting<Boolean> LogJSExcpetionRequest  = new BooleanSetting(generalGroup,            "Logging",     "log.javascript.exception.request", false, "Adds path, queryString and parameterMap to JavaScript exceptions (if available)");
 	public static final Setting<Boolean> SetupWizardCompleted   = new BooleanSetting(generalGroup,            "hidden",      "setup.wizard.completed",           false);
 	public static final Setting<String> Configuration           = new StringSetting(generalGroup,             "hidden",      "configuration.provider",           "org.structr.module.JarConfigurationProvider", "Fully-qualified class name of a Java class in the current class path that implements the <code>org.structr.schema.ConfigurationProvider</code> interface.");
@@ -98,7 +97,7 @@ public class Settings {
 	public static final Setting<Boolean> HttpsEnabled         = new BooleanSetting(serverGroup, "Interfaces", "application.https.enabled",     false, "Whether SSL is enabled");
 	public static final Setting<String> KeystorePath          = new StringSetting(serverGroup,  "Interfaces", "application.keystore.path",     "", "The path to the JKS keystore containing the SSL certificate");
 	public static final Setting<String> KeystorePassword      = new StringSetting(serverGroup,  "Interfaces", "application.keystore.password", "", "The password for the JKS keystore");
-	public static final Setting<String> RestPath              = new StringSetting(serverGroup,  "Interfaces", "application.rest.path",         "/structr/rest", "Defines the URL path of the Structr REST server. Should not be changed because it is hard-coded in many parts of the application.");
+	public static final Setting<String> RestPath              = new StringSetting(serverGroup,  "hidden",     "application.rest.path",         "/structr/rest", "Defines the URL path of the Structr REST server. Should not be changed because it is hard-coded in many parts of the application.");
 	public static final Setting<String> BaseUrlOverride       = new StringSetting(serverGroup,  "Interfaces", "application.baseurl.override",  "", "Overrides the baseUrl that can be used to prefix links to local web resources. By default, the value is assembled from the protocol, hostname and port of the server instance Structr is running on");
 
 	// HTTP service settings
