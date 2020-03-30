@@ -959,9 +959,11 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	}
 
 	static boolean checkOwnerDocumentIsShadowPage(DOMNode ownerDocument) {
+		
 		boolean isShadowPage = false;
+		
 		try {
-			isShadowPage = ownerDocument.equals(CreateComponentCommand.getOrCreateHiddenDocument());
+			isShadowPage = ownerDocument != null && ownerDocument.equals(CreateComponentCommand.getOrCreateHiddenDocument());
 		} catch (FrameworkException fex) {
 			logger.warn("Unable fetch ShadowDocument node: {}", fex.getMessage());
 		}
