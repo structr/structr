@@ -19,11 +19,14 @@
 package org.structr.core.script;
 
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyArray;
+import org.graalvm.polyglot.proxy.ProxyObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 public abstract class StructrPolyglotWrapper {
 
@@ -31,10 +34,10 @@ public abstract class StructrPolyglotWrapper {
 
 		if (obj instanceof Iterable) {
 
-			return wrapIterable((Iterable)obj);
+			return ProxyArray.fromList(wrapIterable((Iterable)obj));
 		} else if (obj instanceof Map) {
 
-			return wrapMap((Map<String, Object>)obj);
+			return ProxyObject.fromMap(wrapMap((Map<String, Object>)obj));
 		}
 
 		return obj;
@@ -45,7 +48,10 @@ public abstract class StructrPolyglotWrapper {
 		if (obj instanceof Value) {
 			Value value = (Value) obj;
 
-			if (value.isHostObject()) {
+			if (value.canExecute()) {
+
+				return new FunctionWrapper(value);
+			} else if (value.isHostObject()) {
 
 				return unwrap(value.asHostObject());
 			} else if (value.hasArrayElements()) {
@@ -83,13 +89,13 @@ public abstract class StructrPolyglotWrapper {
 
 	protected static List<Object> unwrapIterable(final Iterable<Object> iterable) {
 
-		final List<Object> wrappedList = new ArrayList<>();
+		final List<Object> unwrappedList = new ArrayList<>();
 
 		for (Object o : iterable) {
 
-			wrappedList.add(unwrap(o));
+			unwrappedList.add(unwrap(o));
 		}
-		return wrappedList;
+		return unwrappedList;
 	}
 
 	protected static Map<String, Object> wrapMap(final Map<String, Object> map) {
@@ -105,13 +111,13 @@ public abstract class StructrPolyglotWrapper {
 
 	protected static Map<String, Object> unwrapMap(final Map<String, Object> map) {
 
-		final Map<String, Object> wrappedMap = new HashMap<>();
+		final Map<String, Object> unwrappedMap = new HashMap<>();
 
 		for (Map.Entry<String,Object> entry : map.entrySet()) {
 
-			wrappedMap.put(entry.getKey(), unwrap(entry.getValue()));
+			unwrappedMap.put(entry.getKey(), unwrap(entry.getValue()));
 		}
-		return wrappedMap;
+		return unwrappedMap;
 	}
 
 	protected static List<Object> convertValueToList(final Value value) {
@@ -142,5 +148,22 @@ public abstract class StructrPolyglotWrapper {
 		}
 
 		return resultMap;
+	}
+
+	private static class FunctionWrapper implements Function {
+		private Value func;
+
+		public FunctionWrapper(final Value func) {
+
+			if (func.canExecute()) {
+
+				this.func = func;
+			}
+		}
+
+		@Override
+		public Object apply(Object o) {
+			return unwrap(func.execute(o));
+		}
 	}
 }
