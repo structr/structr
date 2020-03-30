@@ -41,6 +41,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonSchema.Cascade;
 import org.structr.api.util.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.PermissionPropagation;
@@ -75,8 +77,6 @@ import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.SourceFile;
 import org.structr.schema.SourceLine;
 import org.structr.schema.action.ActionEntry;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonSchema.Cascade;
 import org.structr.schema.parser.Validator;
 
 /**
@@ -84,6 +84,8 @@ import org.structr.schema.parser.Validator;
  *
  */
 public class SchemaRelationshipNode extends AbstractSchemaNode {
+
+	public static final String schemaRemoteAttributeNamePattern    = "[a-zA-Z_][a-zA-Z0-9_]*";
 
 	private static final Logger logger                              = LoggerFactory.getLogger(SchemaRelationshipNode.class.getName());
 	private static final Set<Class> propagatingRelTypes             = new HashSet<>();
@@ -172,6 +174,8 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		boolean valid = super.isValid(errorBuffer);
 
+		valid &= (getProperty(sourceJsonName) == null || ValidationHelper.isValidStringMatchingRegex(this, sourceJsonName, schemaRemoteAttributeNamePattern, errorBuffer));
+		valid &= (getProperty(targetJsonName) == null || ValidationHelper.isValidStringMatchingRegex(this, targetJsonName, schemaRemoteAttributeNamePattern, errorBuffer));
 		valid &= ValidationHelper.isValidStringNotBlank(this, relationshipType, errorBuffer);
 		valid &= ValidationHelper.isValidPropertyNotNull(this, sourceNode, errorBuffer);
 		valid &= ValidationHelper.isValidPropertyNotNull(this, targetNode, errorBuffer);

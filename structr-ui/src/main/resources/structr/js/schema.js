@@ -1517,7 +1517,7 @@ var _Schema = {
 						}
 					}
 				}, function(data) {
-					Structr.errorFromResponse(data.responseJSON);
+					Structr.errorFromResponse(data.responseJSON, undefined, {requiresConfirmation: true});
 					blinkRed(tr);
 				});
 			});
@@ -1764,7 +1764,7 @@ var _Schema = {
 				}
 			},
 			function(data) {
-				Structr.errorFromResponse(data.responseJSON);
+				Structr.errorFromResponse(data.responseJSON, undefined, {requiresConfirmation: true});
 				blinkRed(tr);
 			});
 		} else {
@@ -2349,7 +2349,7 @@ var _Schema = {
 				updateAttributeName(true);
 			}, function(data) {
 				blinkRed(row);
-				Structr.errorFromResponse(data.responseJSON);
+				Structr.errorFromResponse(data.responseJSON, undefined, {requiresConfirmation: true});
 			}, function () {
 				updateAttributeName(false);
 			});
@@ -2371,7 +2371,7 @@ var _Schema = {
 					blinkGreen(row);
 				}, function(data) {
 					blinkRed(row);
-					Structr.errorFromResponse(data.responseJSON);
+					Structr.errorFromResponse(data.responseJSON, undefined, {requiresConfirmation: true});
 				});
 			}
 		});
@@ -2784,6 +2784,7 @@ var _Schema = {
 							onNoChange();
 						}
 						_Schema.reload();
+						_Schema.hideSchemaRecompileMessage();
 					}
 				}
 			}

@@ -43,6 +43,7 @@ import static org.structr.core.entity.SchemaNode.GraphQLNodeReferenceName;
 import org.structr.core.entity.relationship.SchemaNodeProperty;
 import org.structr.core.entity.relationship.SchemaViewProperty;
 import org.structr.core.graph.ModificationQueue;
+import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.BooleanProperty;
