@@ -44,44 +44,6 @@ $(document).ready(function() {
 			);
 		}
 	});
-
-	$(document).on('click', 'input.toggle-all-types', function() {
-		var typeTable = $(this).closest('table');
-		var checked = $(this).prop("checked");
-		$('.toggle-type', typeTable).each(function(i, checkbox) {
-			var inp = $(checkbox);
-			inp.prop("checked", checked);
-		});
-		_Schema.updateHiddenSchemaTypes();
-		_Schema.reload();
-	});
-
-	$(document).on('click', 'i.invert-all-types', function() {
-		var typeTable = $(this).closest('table');
-		$('.toggle-type', typeTable).each(function(i, checkbox) {
-			var inp = $(checkbox);
-			inp.prop("checked", !inp.prop("checked"));
-		});
-		_Schema.updateHiddenSchemaTypes();
-		_Schema.reload();
-	});
-
-	$(document).on('click', 'td .toggle-type', function(e) {
-		e.stopPropagation();
-		e.preventDefault();
-		return false;
-	});
-
-	$(document).on('mouseup', '.schema-visibility-table td', function(e) {
-		e.stopPropagation();
-		e.preventDefault();
-		var td = $(this);
-		var inp = $('.toggle-type', td.parent());
-		inp.prop("checked", !inp.prop("checked"));
-		_Schema.updateHiddenSchemaTypes();
-		_Schema.reload();
-		return false;
-	});
 });
 
 var _Schema = {
@@ -1517,7 +1479,7 @@ var _Schema = {
 						}
 					}
 				}, function(data) {
-					Structr.errorFromResponse(data.responseJSON);
+					Structr.errorFromResponse(data.responseJSON, undefined, {requiresConfirmation: true});
 					blinkRed(tr);
 				});
 			});
@@ -1764,7 +1726,7 @@ var _Schema = {
 				}
 			},
 			function(data) {
-				Structr.errorFromResponse(data.responseJSON);
+				Structr.errorFromResponse(data.responseJSON, undefined, {requiresConfirmation: true});
 				blinkRed(tr);
 			});
 		} else {
@@ -2349,7 +2311,7 @@ var _Schema = {
 				updateAttributeName(true);
 			}, function(data) {
 				blinkRed(row);
-				Structr.errorFromResponse(data.responseJSON);
+				Structr.errorFromResponse(data.responseJSON, undefined, {requiresConfirmation: true});
 			}, function () {
 				updateAttributeName(false);
 			});
@@ -2371,7 +2333,7 @@ var _Schema = {
 					blinkGreen(row);
 				}, function(data) {
 					blinkRed(row);
-					Structr.errorFromResponse(data.responseJSON);
+					Structr.errorFromResponse(data.responseJSON, undefined, {requiresConfirmation: true});
 				});
 			}
 		});
@@ -2784,6 +2746,7 @@ var _Schema = {
 							onNoChange();
 						}
 						_Schema.reload();
+						_Schema.hideSchemaRecompileMessage();
 					}
 				}
 			}
@@ -3449,6 +3412,44 @@ var _Schema = {
 						schemaVisibilityTable.append('<tr><td><input class="toggle-type" data-structr-type="' + schemaNode.name + '" type="checkbox" ' + (hidden ? '' : 'checked') + '></td><td>' + schemaNode.name + '</td></tr>');
 					}
 				});
+			});
+
+			$('input.toggle-all-types', container).on('click', function() {
+				var typeTable = $(this).closest('table');
+				var checked = $(this).prop("checked");
+				$('.toggle-type', typeTable).each(function(i, checkbox) {
+					var inp = $(checkbox);
+					inp.prop("checked", checked);
+				});
+				_Schema.updateHiddenSchemaTypes();
+				_Schema.reload();
+			});
+
+			$('i.invert-all-types', container).on('click', function() {
+				var typeTable = $(this).closest('table');
+				$('.toggle-type', typeTable).each(function(i, checkbox) {
+					var inp = $(checkbox);
+					inp.prop("checked", !inp.prop("checked"));
+				});
+				_Schema.updateHiddenSchemaTypes();
+				_Schema.reload();
+			});
+
+			$('td .toggle-type', container).on('click', function(e) {
+				e.stopPropagation();
+				e.preventDefault();
+				return false;
+			});
+
+			$('.schema-visibility-table td', container).on('mouseup', function(e) {
+				e.stopPropagation();
+				e.preventDefault();
+				var td = $(this);
+				var inp = $('.toggle-type', td.parent());
+				inp.prop("checked", !inp.prop("checked"));
+				_Schema.updateHiddenSchemaTypes();
+				_Schema.reload();
+				return false;
 			});
 
 			$('#' + id + '-tabs > li', container).off('click').on('click', function(e) {
