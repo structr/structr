@@ -104,6 +104,7 @@ import org.structr.core.function.ParseNumberFunction;
 import org.structr.core.function.PrintFunction;
 import org.structr.core.function.QuotFunction;
 import org.structr.core.function.RandomFunction;
+import org.structr.core.function.RemoteCypherFunction;
 import org.structr.core.function.ReplaceFunction;
 import org.structr.core.function.ResetCounterFunction;
 import org.structr.core.function.RetrieveFunction;
@@ -145,6 +146,7 @@ public class CoreModule implements StructrModule {
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
+		Functions.put(licenseManager, new RemoteCypherFunction());
 		Functions.put(licenseManager, new CypherFunction());
 		Functions.put(licenseManager, new MD5Function());
 		Functions.put(licenseManager, new UpperFunction());

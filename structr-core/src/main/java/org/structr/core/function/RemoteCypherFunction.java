@@ -18,11 +18,13 @@
  */
 package org.structr.core.function;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.neo4j.driver.v1.AccessMode;
 import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Config;
@@ -30,25 +32,17 @@ import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
-import org.structr.api.NotInTransactionException;
-import org.structr.api.graph.Direction;
-import org.structr.api.graph.Identity;
-import org.structr.api.graph.Node;
-import org.structr.api.graph.Path;
-import org.structr.api.graph.PropertyContainer;
-import org.structr.api.graph.Relationship;
-import org.structr.api.graph.RelationshipType;
+import org.neo4j.driver.v1.types.Node;
+import org.neo4j.driver.v1.types.Path;
+import org.neo4j.driver.v1.types.Path.Segment;
+import org.neo4j.driver.v1.types.Relationship;
+import org.structr.api.util.FixedSizeCache;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.entity.GenericNode;
-import org.structr.core.entity.GenericRelationship;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.GenericProperty;
 import org.structr.schema.action.ActionContext;
 
@@ -56,6 +50,8 @@ public class RemoteCypherFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_CYPHER    = "Usage: ${remote_cypher(url, username, password, query)}. Example ${remote_cypher('bolt://database.url', 'user', 'password', 'MATCH (n) RETURN n')}";
 	public static final String ERROR_MESSAGE_CYPHER_JS = "Usage: ${{Structr.remoteCypher(url, username, password query)}}. Example ${{Structr.remoteCypher('bolt://database.url', 'user', 'password', 'MATCH (n) RETURN n')}}";
+
+	private static final FixedSizeCache<String, Driver> driverCache = new FixedSizeCache<>("Driver Cache", 10);
 
 	@Override
 	public String getName() {
@@ -85,9 +81,10 @@ public class RemoteCypherFunction extends CoreFunction {
 				params.putAll((Map)sources[4]);
 			}
 
-			try (final Driver driver = GraphDatabase.driver(url, AuthTokens.basic(username, password), Config.build().withEncryption().toConfig())) {
+			final Driver driver = getDriver(url, username, password);
+			if (driver != null) {
 
-				try (final Session session = driver.session(AccessMode.WRITE)) {
+				try (final Session session = driver.session(AccessMode.READ)) {
 
 					final StatementResult result         = session.run(query, params);
 					final List<Map<String, Object>> list = result.list(r -> {
@@ -97,6 +94,8 @@ public class RemoteCypherFunction extends CoreFunction {
 					return extractRows(ctx.getSecurityContext(), list);
 				}
 			}
+
+			return null;
 
 		} catch (ArgumentNullException pe) {
 
@@ -118,11 +117,28 @@ public class RemoteCypherFunction extends CoreFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Returns the result of the given Cypher query";
+		return "Returns the result of the given Cypher query against a remote instance";
 	}
 
 
 	// ----- private methods -----
+	private Driver getDriver(final String url, final String username, final String password) {
+
+		final String cacheKey = DigestUtils.md5Hex(url + username + password);
+
+		Driver driver = driverCache.get(cacheKey);
+		if (driver == null) {
+
+			driver = GraphDatabase.driver(url, AuthTokens.basic(username, password), Config.build().withEncryption().toConfig());
+
+			driverCache.put(cacheKey, driver);
+		}
+
+		return driver;
+	}
+
+
+
 	private Iterable extractRows(final SecurityContext securityContext, final Iterable<Map<String, Object>> result) {
 		return Iterables.map(map -> { return extractColumns(securityContext, map); }, result);
 	}
@@ -166,39 +182,37 @@ public class RemoteCypherFunction extends CoreFunction {
 		return null;
 	}
 
-	final Object handleObject(final SecurityContext securityContext, final String key, final Object value, int level) throws FrameworkException {
-
-		if (value instanceof org.neo4j.driver.v1.types.Node) {
-
-			final org.neo4j.driver.v1.types.Node node = (org.neo4j.driver.v1.types.Node)value;
-			final RemoteNode remoteNode               = new RemoteNode(node);
-
-			return handleObject(securityContext, key, remoteNode, level);
-		}
+	private Object handleObject(final SecurityContext securityContext, final String key, final Object value, int level) throws FrameworkException {
 
 		if (value instanceof Node) {
 
-			return instantiateNode(securityContext ,(Node) value);
+			return instantiateNode((Node) value);
 
 		} else if (value instanceof Relationship) {
 
-			final Relationship relationship = (Relationship)value;
-			final GraphObject sourceNode    = instantiateNode(securityContext, relationship.getStartNode());
-			final GraphObject targetNode    = instantiateNode(securityContext, relationship.getEndNode());
+			return instantiateRelationship((Relationship) value);
 
-			if (sourceNode != null && targetNode != null) {
+		} else if (value instanceof Segment) {
 
-				return instantiateRelationship(securityContext, (Relationship) value);
-			}
+			final Segment segment = (Segment)value;
+			final Relationship rel = segment.relationship();
+			final Node start       = segment.start();
+			final Node end         = segment.end();
 
-			return null;
+			final Map<String, Object> result = new HashMap<>();
+
+			result.put("relationship", handleObject(securityContext, null, rel,   level + 1));
+			result.put("start",        handleObject(securityContext, null, start, level + 1));
+			result.put("end",          handleObject(securityContext, null, end,   level + 1));
+
+			return result;
 
 		} else if (value instanceof Path) {
 
 			final List list = new LinkedList<>();
 			final Path path = (Path)value;
 
-			for (final PropertyContainer container : path) {
+			for (final Segment container : path) {
 
 				final Object child = handleObject(securityContext, null, container, level + 1);
 				if (child != null) {
@@ -265,167 +279,11 @@ public class RemoteCypherFunction extends CoreFunction {
 		return value;
 	}
 
-	private <T extends RelationshipInterface> T instantiateRelationship(final SecurityContext securityContext, final Relationship source) {
-
-		final T relationship =  (T)new GenericRelationship(securityContext, source, 0);
-
-		relationship.init(securityContext, source, GenericRelationship.class, 0);
-		relationship.onRelationshipInstantiation();
-
-		return relationship;
+	private Map<String, Object> instantiateNode(final Node node) {
+		return node.asMap();
 	}
 
-	private <T extends NodeInterface> T instantiateNode(final SecurityContext securityContext, final Node source) {
-
-		final T node =  (T)new GenericNode();
-
-		node.init(securityContext, source, GenericNode.class, 0);
-		node.onNodeInstantiation(false);
-
-		return node;
-	}
-
-	private static class RemoteNode implements Node {
-
-		private org.neo4j.driver.v1.types.Node node = null;
-		private RemoteIdentity identity             = null;
-
-		public RemoteNode(final org.neo4j.driver.v1.types.Node node) {
-
-			this.identity = new RemoteIdentity();
-			this.node     = node;
-		}
-
-		@Override
-		public Relationship createRelationshipTo(Node endNode, RelationshipType relationshipType) {
-			throw new UnsupportedOperationException("Read only");
-		}
-
-		@Override
-		public Relationship createRelationshipTo(Node endNode, RelationshipType relationshipType, Map<String, Object> properties) {
-			throw new UnsupportedOperationException("Read only");
-		}
-
-		@Override
-		public void addLabel(String label) {
-			throw new UnsupportedOperationException("Read only");
-		}
-
-		@Override
-		public void removeLabel(String label) {
-			throw new UnsupportedOperationException("Read only");
-		}
-
-		@Override
-		public Iterable<String> getLabels() {
-			return node.labels();
-		}
-
-		@Override
-		public boolean hasRelationshipTo(RelationshipType relationshipType, Node targetNode) {
-			throw new UnsupportedOperationException("Not supported");
-		}
-
-		@Override
-		public Relationship getRelationshipTo(RelationshipType relationshipType, Node targetNode) {
-			throw new UnsupportedOperationException("Not supported");
-		}
-
-		@Override
-		public Iterable<Relationship> getRelationships() {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-		}
-
-		@Override
-		public Iterable<Relationship> getRelationships(Direction direction) {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-		}
-
-		@Override
-		public Iterable<Relationship> getRelationships(Direction direction, RelationshipType relationshipType) {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-		}
-
-		@Override
-		public Identity getId() {
-			return identity;
-		}
-
-		@Override
-		public boolean hasProperty(String name) {
-			return getProperty(name) != null;
-		}
-
-		@Override
-		public Object getProperty(String name) {
-			return getProperty(name, null);
-		}
-
-		@Override
-		public Object getProperty(String name, Object defaultValue) {
-
-			final org.neo4j.driver.v1.Value value = node.get(name);
-			if (value.isNull()) {
-
-				return defaultValue;
-			}
-
-			return value.asObject();
-		}
-
-		@Override
-		public void setProperty(String name, Object value) {
-			throw new UnsupportedOperationException("Read only");
-		}
-
-		@Override
-		public void setProperties(Map<String, Object> values) {
-			throw new UnsupportedOperationException("Read only");
-		}
-
-		@Override
-		public void removeProperty(String name) {
-			throw new UnsupportedOperationException("Read only");
-		}
-
-		@Override
-		public Iterable<String> getPropertyKeys() {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-		}
-
-		@Override
-		public void delete(boolean deleteRelationships) throws NotInTransactionException {
-			throw new UnsupportedOperationException("Read only");
-		}
-
-		@Override
-		public boolean isStale() {
-			return true;
-		}
-
-		@Override
-		public boolean isDeleted() {
-			return false;
-		}
-
-		private class RemoteIdentity implements Identity {
-
-			public Long getId() {
-				return node.id();
-			}
-
-			@Override
-			public int compareTo(Object o) {
-
-				if (o instanceof RemoteIdentity) {
-
-
-					final RemoteIdentity other = (RemoteIdentity)o;
-					return getId().compareTo(other.getId());
-				}
-
-				throw new ClassCastException();
-			}
-		}
+	private Map<String, Object> instantiateRelationship(final Relationship rel) {
+		return rel.asMap();
 	}
 }
