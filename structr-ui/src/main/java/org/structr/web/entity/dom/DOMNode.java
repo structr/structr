@@ -31,6 +31,9 @@ import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonReferenceType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.common.CaseHelper;
@@ -66,9 +69,6 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.Function;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonReferenceType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -958,19 +958,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		throw new DOMException(DOMException.NOT_SUPPORTED_ERR, NOT_SUPPORTED_ERR_MESSAGE);
 	}
 
-	static boolean checkOwnerDocumentIsShadowPage(DOMNode ownerDocument) {
-		
-		boolean isShadowPage = false;
-		
-		try {
-			isShadowPage = ownerDocument != null && ownerDocument.equals(CreateComponentCommand.getOrCreateHiddenDocument());
-		} catch (FrameworkException fex) {
-			logger.warn("Unable fetch ShadowDocument node: {}", fex.getMessage());
-		}
-
-		return isShadowPage;
-	}
-
 	static void checkSameDocument(final DOMNode thisNode, final Node otherNode) throws DOMException {
 
 		Document doc = thisNode.getOwnerDocument();
@@ -1069,20 +1056,20 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		String _showConditions = thisNode.getProperty(StructrApp.key(DOMNode.class, "showConditions"));
 		String _hideConditions = thisNode.getProperty(StructrApp.key(DOMNode.class, "hideConditions"));
 
-		DOMNode ownerDocument = thisNode.getOwnerDocument();
-		boolean isShadowPage = checkOwnerDocumentIsShadowPage(ownerDocument);
+		final DOMNode ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
+		final boolean isShadowPage  = DOMNode.isSharedComponent(thisNode);
 
 		// If both fields are empty, render node
 		if (StringUtils.isBlank(_hideConditions) && StringUtils.isBlank(_showConditions)) {
 			return true;
 		}
 		try {
-			// If hide conditions evaluate to "true", don't render
+			// If hide conditions evaluates to "true", don't render
 			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(Scripting.evaluate(renderContext, thisNode, "${".concat(_hideConditions).concat("}"), "hide condition"))) {
 				return false;
 			}
 
-		} catch (UnlicensedScriptException |FrameworkException ex) {
+		} catch (UnlicensedScriptException | FrameworkException ex) {
 			if (!isShadowPage) {
 				logger.error("Error while evaluating hide condition '{}' in page {}[{}], DOMNode[{}]", _hideConditions, ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, ex);
 			} else {
@@ -1090,12 +1077,12 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			}
 		}
 		try {
-			// If show conditions evaluate to "false", don't render
+			// If show conditions evaluates to "false", don't render
 			if (StringUtils.isNotBlank(_showConditions) && Boolean.FALSE.equals(Scripting.evaluate(renderContext, thisNode, "${".concat(_showConditions).concat("}"), "show condition"))) {
 				return false;
 			}
 
-		} catch (UnlicensedScriptException |FrameworkException ex) {
+		} catch (UnlicensedScriptException | FrameworkException ex) {
 			if (!isShadowPage) {
 				logger.error("Error while evaluating show condition '{}' in page {}[{}], DOMNode[{}]", _showConditions, ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, ex);
 			} else {
