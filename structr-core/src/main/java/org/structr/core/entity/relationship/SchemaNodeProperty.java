@@ -53,4 +53,9 @@ public class SchemaNodeProperty extends OneToMany<AbstractSchemaNode, SchemaProp
 	public boolean isInternal() {
 		return true;
 	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.SOURCE_TO_TARGET;
+	}
 }

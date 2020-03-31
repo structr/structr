@@ -1537,12 +1537,42 @@ button.action.disabled:hover {
 	min-width: 200px;
 }
 
+.schema-props td {
+	white-space: nowrap;
+	padding: 4px;
+}
+
+.schema-props td input[type="checkbox"] {
+    vertical-align: unset;
+}
+
+.schema-props tr.to-delete {
+	opacity: 0.5;
+	background-color: #999;
+}
+
+.schema-props i.discard-changes {
+	display: none;
+}
+
+.schema-props tr.to-delete i.discard-changes, .schema-props tr.has-changes i.discard-changes {
+	display: inline-block;
+}
+
+.schema-props tr.to-delete i.remove-property {
+	display: none;
+}
+
 .schema-props td.centered {
 	text-align: center;
 }
 
 .schema-props td label {
 	min-width: 100px;
+}
+
+.schema-props tfoot .actions-col {
+	text-align: right;
 }
 
 #confirmationText, #infoText, #dialogBox .dialogText {
@@ -2166,9 +2196,6 @@ button.add_property {
 	border: 1px solid rgba(0,0,0,.125);
 }
 
-.schema-props th, .schema-props td {
-}
-
 .actions.schema-props th:first-of-type {
 	width: 16%;
 }
@@ -2273,15 +2300,6 @@ button.add_property {
 	padding-top: 5px;
 	padding-bottom: 6px;
 	font-size: 1.1em;
-}
-
-.schema-props td {
-	white-space: nowrap;
-	padding: 4px;
-}
-
-.schema-props tr:nth-child(even) {
-	background-color: #fff;
 }
 
 #schema-graph .label {

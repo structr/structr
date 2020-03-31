@@ -53,7 +53,6 @@ var _Schema = {
 	connectorStyle: undefined,
 	zoomLevel: undefined,
 	nodePositions: undefined,
-	new_attr_cnt: 0,
 	selectedRel: undefined,
 	relHighlightColor: 'red',
 	availableTypeNames: [],
@@ -1225,30 +1224,120 @@ var _Schema = {
 			});
 
 			Structr.resize();
-
 		});
-
 	},
 	appendLocalProperties: function(el, entity) {
 
-		el.append('<table class="local schema-props"><thead><th>JSON Name</th><th>DB Name</th><th>Type</th><th>Format/Code</th><th>Notnull</th><th>Comp.</th><th>Uniq.</th><th>Idx</th><th>Default</th><th class="actions-col">Action</th></thead></table>');
+		el.append('<table class="local schema-props"><thead><th>JSON Name</th><th>DB Name</th><th>Type</th><th>Format/Code</th><th>Notnull</th><th>Comp.</th><th>Uniq.</th><th>Idx</th><th>Default</th><th class="actions-col">Action</th></thead><tbody></tbody></table>');
 		el.append('<i title="Add local attribute" class="add-icon add-local-attribute ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" />');
 
 		var propertiesTable = $('.local.schema-props', el);
+		var propertiesTableBody = $('tbody', propertiesTable);
 
 		_Schema.sort(entity.schemaProperties);
 
 		$.each(entity.schemaProperties, function(i, prop) {
-			_Schema.appendLocalProperty(propertiesTable, prop);
+
+			Structr.fetchHtmlTemplate('schema/property.local', {property: prop}, function(html) {
+
+				let row = $(html);
+
+				propertiesTableBody.append(row);
+
+				_Schema.setPropertyAttributesInRow(prop, row);
+				_Schema.bindPropertyEvents(prop, row);
+			});
 		});
+
+		propertiesTable.append('<tfoot class="hidden"><th colspan=10 class="actions-col"><button class="discard-all"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /> Discard all</button><button class="save-all"><i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" /> Save all</button></th></tfoot>');
+
+		$('.discard-all', propertiesTable).on('click', () => {
+			propertiesTableBody.find('i.discard-changes').click();
+		});
+
+		$('.save-all', propertiesTable).on('click', () => {
+
+			let schemaProperties = [];
+			let allow = true;
+			let counts = {
+				update:0,
+				delete:0,
+				new:0
+			};
+
+			propertiesTableBody.find('tr').each((i, tr) => {
+
+				let row        = $(tr);
+				let propertyId = row.data('propertyId');
+				let prop       = _Schema.getPropertyInfoInRow(row);
+
+				if (propertyId) {
+					if (row.hasClass('to-delete')) {
+						// do not add this property to the list
+						counts.delete++;
+					} else if (row.hasClass('has-changes')) {
+						// changed lines
+						counts.update++;
+						prop.id = propertyId;
+						allow = _Schema.validatePropertyDefinition(prop, row) && allow;
+						schemaProperties.push(prop);
+					} else {
+						// unchanged lines, only transmit id
+						prop = { id: propertyId };
+						schemaProperties.push(prop);
+					}
+
+				} else {
+					//new lines
+					counts.new++;
+					prop.type = 'SchemaProperty';
+					allow = _Schema.validatePropertyDefinition(prop, row) && allow;
+					schemaProperties.push(prop);
+				}
+			});
+
+			if (allow) {
+
+				let message = 'Update properties for ' + entity.name + '?\n\n';
+				message += (counts.new > 0 ? 'Create ' + counts.new + ' properties.\n' : '');
+				message += (counts.delete > 0 ? 'Delete ' + counts.delete + ' properties.\n' : '');
+				message += (counts.update > 0 ? 'Update ' + counts.update + ' properties.\n' : '');
+
+				if (confirm(message)) {
+					_Schema.showSchemaRecompileMessage();
+
+					fetch(rootUrl + entity.id, {
+						dataType: 'json',
+						contentType: 'application/json; charset=utf-8',
+						method: 'PUT',
+						body: JSON.stringify({
+							schemaProperties: schemaProperties
+						})
+					}).then((response) => {
+
+						if (response.ok) {
+
+							Command.get(entity.id, null, function(reloadedEntity) {
+								el.empty();
+								_Schema.appendLocalProperties(el, reloadedEntity);
+								_Schema.hideSchemaRecompileMessage();
+							});
+
+						} else {
+							new MessageBuilder().error('Something went wrong - please check the log').requiresConfirmation().show();
+							_Schema.hideSchemaRecompileMessage();
+						}
+					});
+				}
+			}
+		});
+
 		$('.add-local-attribute', el).off('click').on('click', function() {
 
-			var rowClass = 'new' + (_Schema.new_attr_cnt++);
-
-			Structr.fetchHtmlTemplate('schema/property.new', {rowClass: rowClass}, function(html) {
+			Structr.fetchHtmlTemplate('schema/property.new', {}, function(html) {
 
 				var tr = $(html);
-				propertiesTable.append(tr);
+				propertiesTableBody.append(tr);
 
 				$('.property-type', tr).off('change').on('change', function() {
 					var selectedOption = $('option:selected', this);
@@ -1256,7 +1345,7 @@ var _Schema = {
 					if (shouldIndex === undefined) {
 						shouldIndex = true;
 					}
-					var indexedCb = $('.' + rowClass + ' .indexed');
+					var indexedCb = $('.indexed', tr);
 					if (indexedCb.prop('checked') !== shouldIndex) {
 						indexedCb.prop('checked', shouldIndex);
 
@@ -1265,19 +1354,211 @@ var _Schema = {
 					}
 				});
 
-				$('.remove-property', tr).off('click').on('click', function() {
+				$('.discard-changes', tr).off('click').on('click', function() {
 					var self = $(this);
 					self.closest('tr').remove();
+					_Schema.propertiesTableChanged(propertiesTable);
 				});
 
-				$('.create-property', tr).off('click').on('click', function() {
-					var self = $(this);
-					if (!self.data('save-pending')) {
-						_Schema.collectAndSaveNewLocalProperty(self, rowClass, tr, entity);
-					}
-				});
+				_Schema.propertiesTableChanged(propertiesTable);
 			});
 		});
+	},
+	bindPropertyEvents: function(property, row) {
+
+		let propertyInfoChangeHandler = () => {
+			_Schema.propertyRowChanged(property, row);
+		};
+
+		var protected = false;
+
+		var propertyTypeOption = $('.property-type option[value="' + property.propertyType + '"]', row);
+		if (propertyTypeOption) {
+			propertyTypeOption.attr('selected', true);
+			if (propertyTypeOption.data('protected')) {
+				propertyTypeOption.prop('disabled', true);
+				propertyTypeOption.closest('select').attr('disabled', true);
+				protected = true;
+			} else {
+				propertyTypeOption.prop('disabled', null);
+			}
+		} else {
+			console.log(property.propertyType, property);
+		}
+
+		var typeField = $('.property-type', row);
+		$('.property-type option[value=""]', row).remove();
+
+		if (property.propertyType === 'String' && !property.isBuiltinProperty) {
+			if (!$('input.content-type', typeField.parent()).length) {
+				typeField.after('<input type="text" size="5" class="content-type">');
+			}
+			$('.content-type', row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', null);
+		}
+
+		$('.property-name',    row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
+		$('.property-dbname',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
+		$('.caching-enabled',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
+		$('.type-hint',        row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
+		$('.property-type',    row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
+		$('.property-format',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
+		$('.not-null',         row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
+		$('.compound',         row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
+		$('.unique',           row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
+		$('.indexed',          row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
+		$('.property-default', row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
+
+
+		$('.edit-read-function', row).off('click').on('click', function() {
+			let unsavedChanges = _Schema.unsavedChangesInPropertiesTable(row.closest('table'));
+
+			if (!unsavedChanges || confirm("Really open code editor? There are unsaved changes which will be lost!")) {
+				_Schema.openCodeEditor($(this), property.id, 'readFunction', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
+			}
+		}).prop('disabled', protected);
+
+		$('.edit-write-function', row).off('click').on('click', function() {
+			let unsavedChanges = _Schema.unsavedChangesInPropertiesTable(row.closest('table'));
+
+			if (!unsavedChanges || confirm("Really open code editor? There are unsaved changes which will be lost!")) {
+				_Schema.openCodeEditor($(this), property.id, 'writeFunction', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
+			}
+		}).prop('disabled', protected);
+
+
+		if (!protected) {
+
+			$('.remove-property', row).off('click').on('click', function() {
+
+				row.addClass('to-delete');
+				propertyInfoChangeHandler();
+
+			}).prop('disabled', null);
+
+			$('.discard-changes', row).off('click').on('click', function() {
+
+				_Schema.setPropertyAttributesInRow(property, row);
+
+				row.removeClass('to-delete');
+				row.removeClass('has-changes');
+
+				propertyInfoChangeHandler();
+
+			}).prop('disabled', null);
+
+		} else {
+			$('.remove-property', row).hide();
+		}
+	},
+	getPropertyInfoInRow: function(tr) {
+
+		let obj = {
+			name:             $('.property-name', tr).val(),
+			dbName:           $('.property-dbname', tr).val(),
+			propertyType:     $('.property-type', tr).val(),
+			contentType:      $('.content-type', tr).val(),
+			format:           $('.property-format', tr).val(),
+			notNull:          $('.not-null', tr).is(':checked'),
+			compound:         $('.compound', tr).is(':checked'),
+			unique:           $('.unique', tr).is(':checked'),
+			indexed:          $('.indexed', tr).is(':checked'),
+			defaultValue:     $('.property-default', tr).val(),
+			isCachingEnabled: $('.caching-enabled', tr).is(':checked'),
+			typeHint:         $('.type-hint', tr).val()
+		};
+
+		if (obj.typeHint === "null") {
+			obj.typeHint = null;
+		}
+
+		return obj;
+	},
+	setPropertyAttributesInRow: function(property, tr) {
+
+		$('.property-name', tr).val(property.name);
+		$('.property-dbname', tr).val(property.dbName);
+		$('.property-type', tr).val(property.propertyType);
+		$('.content-type', tr).val(property.contentType);
+		$('.property-format', tr).val(property.format);
+		$('.not-null', tr).prop('checked', property.notNull);
+		$('.compound', tr).prop('checked', property.compound);
+		$('.unique', tr).prop('checked', property.unique);
+		$('.indexed', tr).prop('checked', property.indexed);
+		$('.property-default', tr).val(property.defaultValue);
+		$('.caching-enabled', tr).prop('checked', property.isCachingEnabled);
+		$('.type-hint', tr).val(property.typeHint || "null");
+
+	},
+	unsavedChangesInPropertiesTable: function (table) {
+		let tbody = $('tbody', table);
+		return (tbody.find('tr.to-delete').length + tbody.find('tr.has-changes').length) > 0;
+	},
+	propertiesTableChanged: function (table) {
+
+		let unsavedChanges = _Schema.unsavedChangesInPropertiesTable(table);
+
+		let tfoot = table.find('tfoot');
+
+		if (unsavedChanges) {
+			tfoot.removeClass('hidden');
+		} else {
+			tfoot.addClass('hidden');
+		}
+
+	},
+	propertyRowChanged: function(property, row) {
+
+		var propertyInfoUI = _Schema.getPropertyInfoInRow(row);
+		let hasChanges     = false;
+
+		for (let key in propertyInfoUI) {
+
+			if ((propertyInfoUI[key] === '' || propertyInfoUI[key] === null || propertyInfoUI[key] === undefined) && (property[key] === '' || property[key] === null || property[key] === undefined)) {
+				// account for different attribute-sets and fuzzy equality
+			} else if (propertyInfoUI[key] !== property[key]) {
+				hasChanges = true;
+			}
+		}
+
+		if (hasChanges) {
+			row.addClass('has-changes');
+		} else {
+			row.removeClass('has-changes');
+		}
+
+		_Schema.propertiesTableChanged(row.closest('table'));
+	},
+	validatePropertyDefinition: function (propertyDefinition, tr) {
+
+		if (propertyDefinition.name.length === 0) {
+
+			blinkRed($('.property-name', tr).closest('td'));
+			return false;
+
+		} else if (propertyDefinition.propertyType.length === 0) {
+
+			blinkRed($('.property-type', tr).closest('td'));
+			return false;
+
+		} else if (propertyDefinition.propertyType === 'Enum' && propertyDefinition.format.trim().length === 0) {
+
+			blinkRed($('.property-format', tr).closest('td'));
+			return false;
+
+		} else if (propertyDefinition.propertyType === 'Enum') {
+
+			var containsSpace = propertyDefinition.format.split(',').some(function (enumVal) {
+				return enumVal.trim().indexOf(' ') !== -1;
+			});
+
+			if (containsSpace) {
+				blinkRed($('.property-format', tr).closest('td'));
+				new MessageBuilder().warning('Enum values must be separated by commas and cannot contain spaces<br>See the <a href="https://support.structr.com/article/329" target="_blank">support article on enum properties</a> for more information.').requiresConfirmation().show();
+				return false;
+			}
+		}
+
+		return true;
 	},
 	appendViews: function(el, entity) {
 
@@ -1760,20 +2041,22 @@ var _Schema = {
 	},
 	appendRemoteProperties: function(el, entity) {
 
-		let tbl = $('<table class="related-attrs schema-props"><thead><th>JSON Name</th><th>Type, Direction and Remote type</th><th class="actions-col">Action</th></thead></table>');
-
+		let tbl = $('<table class="related-attrs schema-props"><thead><th>JSON Name</th><th>Type, Direction and Remote type</th><th class="actions-col">Action</th></thead><tbody></tbody></table>');
+		let tbody = tbl.find('tbody');
 		el.append(tbl);
 
-		entity.relatedTo.forEach(function(target) {
-			_Schema.appendRelatedProperty(tbl, target, true);
-		});
-
-		entity.relatedFrom.forEach(function(source) {
-			_Schema.appendRelatedProperty(tbl, source, false);
-		});
-
 		if (entity.relatedTo.length === 0 && entity.relatedFrom.length === 0) {
-			tbl.append('<tr><td colspan=3 class="no-rels">Type has no relationships...</td></tr>');
+			tbody.append('<tr><td colspan=3 class="no-rels">Type has no relationships...</td></tr>');
+		} else {
+
+			entity.relatedTo.forEach(function(target) {
+				_Schema.appendRelatedProperty(tbody, target, true);
+			});
+
+			entity.relatedFrom.forEach(function(source) {
+				_Schema.appendRelatedProperty(tbody, source, false);
+			});
+
 		}
 	},
 	appendBuiltinProperties: function(el, entity) {
@@ -1805,116 +2088,12 @@ var _Schema = {
 						declaringClass: prop.declaringClass
 					};
 
-					_Schema.appendBuiltinProperty(propertiesTable, property);
+					Structr.fetchHtmlTemplate('schema/property.builtin', {property: property}, function(html) {
+						propertiesTable.append(html);
+					});
 				}
 			});
 		});
-	},
-	collectAndSaveNewLocalProperty: function(button, rowClass, tr, entity) {
-
-		var name = $('.property-name', tr).val();
-		var dbName = $('.property-dbname', tr).val();
-		var type = $('.property-type', tr).val();
-		var format = $('.property-format', tr).val();
-		var notNull = $('.not-null', tr).is(':checked');
-		var compound = $('.compound', tr).is(':checked');
-		var unique = $('.unique', tr).is(':checked');
-		var indexed = $('.indexed', tr).is(':checked');
-		var defaultValue = $('.property-default', tr).val();
-
-		if (name.length === 0) {
-			blinkRed($('.property-name', tr).closest('td'));
-
-		} else if (type.length === 0) {
-			blinkRed($('.property-type', tr).closest('td'));
-
-		} else {
-
-			var obj = {
-				schemaNode: { id: entity.id }
-			};
-			if (name)         { obj.name = name; }
-			if (dbName)       { obj.dbName = dbName; }
-			if (type)         { obj.propertyType = type; }
-			if (format)       { obj.format = format; }
-			if (notNull)      { obj.notNull = notNull; }
-			if (compound)     { obj.compound = compound; }
-			if (unique)       { obj.unique = unique; }
-			if (indexed)      { obj.indexed = indexed; }
-			if (defaultValue) { obj.defaultValue = defaultValue; }
-
-			if (!_Schema.validatePropertyDefinition(obj)) {
-				blinkRed($('.property-type', tr).closest('td'));
-				return;
-			}
-
-			button.data('save-pending', true);
-
-			// store property definition with an empty property object
-			_Schema.storeSchemaEntity('schema_properties', {}, JSON.stringify(obj), function(result) {
-
-				if (result && result.result) {
-
-					var id = result.result[0];
-
-					$.ajax({
-						url: rootUrl + id,
-						type: 'GET',
-						dataType: 'json',
-						contentType: 'application/json; charset=utf-8',
-						statusCode: {
-
-							200: function(data) {
-
-								var property = data.result;
-
-								_Schema.replaceLocalProperty(tr, property);
-
-								_Schema.reload();
-
-								var $el = $("#tabView-views.propTabContent");
-								$el.empty();
-								_Schema.appendViews($el, entity);
-								_Schema.bindEvents(property);
-							}
-						}
-					});
-				}
-
-			}, function(data) {
-
-				var additionalInformation = {
-					requiresConfirmation: true
-				};
-
-				if (obj.propertyType === 'Enum') {
-					additionalInformation.title = 'Schema compilation failed';
-					additionalInformation.overrideText = 'Error while making changes to an Enum property. See the <a href="https://support.structr.com/article/329">support article on enum properties</a> for possible explanations.';
-				}
-
-				Structr.errorFromResponse(data.responseJSON, null, additionalInformation);
-
-				blinkRed(tr);
-
-				button.data('save-pending', false);
-			});
-		}
-	},
-	validatePropertyDefinition: function (propertyDefinition) {
-
-		if (propertyDefinition.propertyType === 'Enum') {
-
-			var containsSpace = propertyDefinition.format.split(',').some(function (enumVal) {
-				return enumVal.trim().indexOf(' ') !== -1;
-			});
-
-			if (containsSpace) {
-				new MessageBuilder().warning('Enum values must be separated by commas and cannot contain spaces<br>See the <a href="https://support.structr.com/article/329" target="_blank">support article on enum properties</a> for more information.').requiresConfirmation().show();
-				return false;
-			}
-		}
-
-		return true;
 	},
 	confirmRemoveSchemaEntity: function(entity, title, callback, hint) {
 
@@ -1976,146 +2155,6 @@ var _Schema = {
 			position: 'relative'
 		});
 
-	},
-	appendLocalProperty: function(el, property) {
-
-		_Schema.buildLocalProperty(el, property, function (element, html) {
-			element.append(html);
-		});
-	},
-	replaceLocalProperty: function(el, property) {
-
-		_Schema.buildLocalProperty(el, property, function (element, html) {
-			var newEl = $(html);
-			element.replaceWith(newEl);
-			blinkGreen(newEl);
-		});
-	},
-	buildLocalProperty: function(el, property, action) {
-
-		Structr.fetchHtmlTemplate('schema/property.local', {property: property}, function(html) {
-
-			action(el, html);
-
-			_Schema.bindEvents(property);
-		});
-	},
-	appendBuiltinProperty: function(el, property) {
-
-		Structr.fetchHtmlTemplate('schema/property.builtin', {property: property}, function(html) {
-			el.append(html);
-		});
-	},
-	bindEvents: function(property) {
-
-		var key = property.name;
-		var propertyRow  = $('.local.schema-props tr[data-property-name="' + key + '"]');
-
-		var protected = false;
-
-		var propertyTypeOption = $('.property-type option[value="' + property.propertyType + '"]', propertyRow);
-		if (propertyTypeOption) {
-			propertyTypeOption.attr('selected', true);
-			if (propertyTypeOption.data('protected')) {
-				propertyTypeOption.prop('disabled', true);
-				propertyTypeOption.closest('select').attr('disabled', true);
-				protected = true;
-			} else {
-				propertyTypeOption.prop('disabled', null);
-			}
-		} else {
-			console.log(property.propertyType, property);
-		}
-
-		var typeField = $('.property-type', propertyRow);
-		$('.property-type option[value=""]', propertyRow).remove();
-
-		if (property.propertyType === 'String' && !property.isBuiltinProperty) {
-			if (!$('input.content-type', typeField.parent()).length) {
-				typeField.after('<input type="text" size="5" class="content-type">');
-			}
-			$('.content-type', propertyRow).off('change').on('change', function() {
-				_Schema.savePropertyDefinition(property);
-			}).prop('disabled', null).val(property.contentType);
-		}
-
-		if (property.propertyType && property.propertyType !== '') {
-			$('.property-name', propertyRow).off('change').on('change', function() {
-				_Schema.savePropertyDefinition(property);
-			}).prop('disabled', protected).val(property.name);
-			$('.property-dbname', propertyRow).off('change').on('change', function() {
-				_Schema.savePropertyDefinition(property);
-			}).prop('disabled', protected).val(property.dbName);
-		}
-
-		$('.caching-enabled', propertyRow).off('change').on('change', function() {
-			_Schema.savePropertyDefinition(property);
-		}).prop('disabled', protected).val(property.isCachingEnabled);
-
-		$('.type-hint', propertyRow).off('change').on('change', function() {
-			_Schema.savePropertyDefinition(property);
-		}).prop('disabled', protected).val("" + property.typeHint);
-
-		$('.property-type', propertyRow).off('change').on('change', function() {
-			_Schema.savePropertyDefinition(property);
-		}).prop('disabled', protected).val(property.propertyType);
-
-		$('.property-format', propertyRow).off('change').on('change', function() {
-			_Schema.savePropertyDefinition(property);
-		}).prop('disabled', protected).val(property.format);
-
-		$('.edit-read-function', propertyRow).off('click').on('click', function() {
-			_Schema.openCodeEditor($(this), property.id, 'readFunction', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
-		}).prop('disabled', protected);
-
-		$('.edit-write-function', propertyRow).off('click').on('click', function() {
-			_Schema.openCodeEditor($(this), property.id, 'writeFunction', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
-		}).prop('disabled', protected);
-
-		$('.not-null', propertyRow).off('change').on('change', function() {
-			_Schema.savePropertyDefinition(property);
-		}).prop('disabled', protected).val(property.notNull);
-
-		$('.compound', propertyRow).off('change').on('change', function() {
-			_Schema.savePropertyDefinition(property);
-		}).prop('disabled', protected).val(property.compound);
-
-		$('.unique', propertyRow).off('change').on('change', function() {
-			_Schema.savePropertyDefinition(property);
-		}).prop('disabled', protected).val(property.unique);
-
-		$('.indexed', propertyRow).off('change').on('change', function() {
-			_Schema.savePropertyDefinition(property);
-		}).prop('disabled', protected).val(property.indexed);
-
-		$('.property-default', propertyRow).off('change').on('change', function() {
-			_Schema.savePropertyDefinition(property);
-		}).prop('disabled', protected).val(property.defaultValue);
-
-		if (!protected) {
-			$('.remove-property', propertyRow).off('click').on('click', function() {
-				_Schema.confirmRemoveSchemaEntity(property, 'Delete property', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); }, 'Property values will not be removed from data nodes.');
-			}).prop('disabled', null);
-		} else {
-			$('.remove-property', propertyRow).hide();
-		}
-	},
-	unbindEvents: function(key) {
-
-		var propertyRow  = $('.local.schema-props tr[data-property-name="' + key + '"]');
-
-		$('.property-type', propertyRow).off('change').prop('disabled', 'disabled');
-		$('.content-type', propertyRow).off('change').prop('disabled', 'disabled');
-		$('.property-format', propertyRow).off('change').prop('disabled', 'disabled');
-		$('.caching-enabled', propertyRow).off('change').prop('disabled', 'disabled');
-		$('.type-hint', propertyRow).off('change').prop('disabled', 'disabled');
-		$('.not-null', propertyRow).off('change').prop('disabled', 'disabled');
-		$('.compound', propertyRow).off('change').prop('disabled', 'disabled');
-		$('.unique', propertyRow).off('change').prop('disabled', 'disabled');
-		$('.indexed', propertyRow).off('change').prop('disabled', 'disabled');
-		$('.property-default', propertyRow).off('change').prop('disabled', 'disabled');
-		$('.remove-property', propertyRow).off('click').prop('disabled', 'disabled');
-		$('.utton', propertyRow).off('click').prop('disabled', 'disabled');
 	},
 	openCodeEditor: function(btn, id, key, callback) {
 
@@ -2337,84 +2376,6 @@ var _Schema = {
 				});
 			}
 		});
-	},
-	savePropertyDefinition: function(property) {
-
-		var propertyRow  = $('.local.schema-props tr[data-property-name="' + property.name + '"]');
-
-		var obj = {
-			name:         			$('.property-name', propertyRow).val(),
-			dbName:       			$('.property-dbname', propertyRow).val(),
-			propertyType: 			$('.property-type', propertyRow).val(),
-			contentType:  			$('.content-type', propertyRow).val(),
-			format:       			$('.property-format', propertyRow).val(),
-			notNull:      			$('.not-null', propertyRow).is(':checked'),
-			compound:     			$('.compound', propertyRow).is(':checked'),
-			unique:       			$('.unique', propertyRow).is(':checked'),
-			indexed:      			$('.indexed', propertyRow).is(':checked'),
-			defaultValue: 			$('.property-default', propertyRow).val(),
-			isCachingEnabled:      	$('.caching-enabled', propertyRow).is(':checked'),
-			typeHint:				$('.type-hint', propertyRow).val()
-		};
-
-		if (obj.typeHint === "null") {
-			obj.typeHint = null;
-		}
-
-		if (obj.name && obj.name.length && obj.propertyType) {
-
-			if (!_Schema.validatePropertyDefinition(obj)) {
-				blinkRed($('.local .' + property.name));
-				return;
-			}
-
-			_Schema.unbindEvents(property.name);
-
-			_Schema.storeSchemaEntity('schema_properties', property, JSON.stringify(obj), function() {
-
-				if (property.name !== obj.name) {
-					propertyRow.attr('data-property-name', obj.name);
-				}
-
-				blinkGreen(propertyRow);
-
-				// accept values into property object
-				property.name = obj.name;
-				property.dbName = obj.dbName;
-				property.propertyType = obj.propertyType;
-				property.contentType = obj.contentType;
-				property.format = obj.format;
-				property.notNull = obj.notNull;
-				property.compound = obj.compound;
-				property.unique = obj.unique;
-				property.indexed = obj.indexed;
-				property.defaultValue = obj.defaultValue;
-				property.isCachingEnabled = obj.isCachingEnabled;
-				property.typeHint = obj.typeHint;
-
-				_Schema.bindEvents(property);
-
-			}, function(data) {
-
-				var additionalInformation = {
-					requiresConfirmation: true
-				};
-
-				if (obj.propertyType === 'Enum') {
-					additionalInformation.title = 'Schema compilation failed';
-					additionalInformation.overrideText = 'Error while making changes to an Enum property. See the <a href="https://support.structr.com/article/329">support article on enum properties</a> for possible explanations.';
-				}
-
-				Structr.errorFromResponse(data.responseJSON, null, additionalInformation);
-
-				blinkRed(propertyRow);
-				_Schema.bindEvents(property);
-
-			}, function() {
-
-				_Schema.bindEvents(property);
-			});
-		}
 	},
 	findSchemaPropertiesByNodeAndName: function(entity, names) {
 
