@@ -58,6 +58,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 import org.structr.web.entity.File;
+import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.html.Body;
+import org.structr.web.entity.html.Div;
+import org.structr.web.entity.html.Html;
+import org.structr.websocket.command.CreateComponentCommand;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -65,9 +70,9 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 
-public class SimpleTest extends StructrUiTest {
+public class DOMAndPageTest extends StructrUiTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(SimpleTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DOMAndPageTest.class.getName());
 
 	@Test
 	public void test01CreatePage() {
@@ -1045,6 +1050,78 @@ public class SimpleTest extends StructrUiTest {
 		} catch (FrameworkException fex) { }
 	}
 
+	@Test
+	public void testPublicAccessToSharedComponent() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page         = Page.createNewPage(securityContext, "testExceptionHandling");
+			final Html html         = createElement(page, page, "html");
+			final Body body         = createElement(page, html, "body");
+			final Div div1          = createElement(page, body, "div");
+			final Content content1  = createContent(page, div1, "content");
+			final DOMNode component = new CreateComponentCommand().create(div1);
+
+			makePublic(page, html, body, div1, content1, component);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		// test successful basic auth
+		RestAssured
+			.given()
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.expect()
+			.body("html.body.div",   Matchers.equalTo("content"))
+			.statusCode(200)
+			.when()
+			.get("/html/testExceptionHandling");
+
+	}
+
+	@Test
+	public void testSharedComponentShowConditionError() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page         = Page.createNewPage(securityContext, "testExceptionHandling");
+			final Html html         = createElement(page, page, "html");
+			final Body body         = createElement(page, html, "body");
+			final Div div1          = createElement(page, body, "div");
+			final Content content1  = createContent(page, div1, "content");
+			final DOMNode component = new CreateComponentCommand().create(div1);
+
+			component.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "assert(1, 2, 3)");
+
+			makePublic(page, html, body, div1, content1, component);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		// test successful basic auth
+		RestAssured
+			.given()
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.expect()
+			.body("html.body.div",   Matchers.equalTo("content"))
+			.statusCode(200)
+			.when()
+			.get("/html/testExceptionHandling");
+
+	}
+
 	// ----- private methods -----
 	private void check() {
 
@@ -1081,5 +1158,32 @@ public class SimpleTest extends StructrUiTest {
 		}
 
 		return null;
+	}
+
+	// copied from DeploymentTestBase (sorry)
+	protected <T extends Node> T createElement(final Page page, final DOMNode parent, final String tag, final String... content) {
+
+		final T child = (T)page.createElement(tag);
+		parent.appendChild((DOMNode)child);
+
+		if (content != null && content.length > 0) {
+
+			for (final String text : content) {
+
+				final Node node = page.createTextNode(text);
+				child.appendChild(node);
+			}
+		}
+
+		return child;
+	}
+
+	// copied from DeploymentTestBase (sorry)
+	protected <T> T createContent(final Page page, final DOMNode parent, final String content) {
+
+		final T child = (T)page.createTextNode(content);
+		parent.appendChild((DOMNode)child);
+
+		return child;
 	}
 }
