@@ -516,6 +516,10 @@ public class Services implements StructrServices {
 		return false;
 	}
 
+	public boolean isConfigured(final Class serviceClass) {
+		return getCongfiguredServiceClasses().contains(serviceClass);
+	}
+
 	public boolean startService(final Class serviceClass, final String serviceName, final boolean disableRetry) throws FrameworkException {
 
 		boolean waitAndRetry = true;
