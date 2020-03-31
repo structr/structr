@@ -308,11 +308,11 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
 		} catch (Throwable t) {
 
-			final DOMNode ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
 			final boolean isShadowPage = DOMNode.isSharedComponent(thisNode);
 
-			// catch exception to prevent ugly status 500 error pages in frontend.
+			// catch exception to prevent status 500 error pages in frontend.
 			if (!isShadowPage) {
+				final DOMNode ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
 				logger.error("Error while evaluating script in page {}[{}], Content[{}]", ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, t);
 			} else {
 				logger.error("Error while evaluating script in shared component, Content[{}]", thisNode, t);

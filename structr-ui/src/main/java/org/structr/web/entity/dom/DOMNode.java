@@ -1056,13 +1056,11 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		String _showConditions = thisNode.getProperty(StructrApp.key(DOMNode.class, "showConditions"));
 		String _hideConditions = thisNode.getProperty(StructrApp.key(DOMNode.class, "hideConditions"));
 
-		final DOMNode ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
-		final boolean isShadowPage  = DOMNode.isSharedComponent(thisNode);
-
 		// If both fields are empty, render node
 		if (StringUtils.isBlank(_hideConditions) && StringUtils.isBlank(_showConditions)) {
 			return true;
 		}
+
 		try {
 			// If hide conditions evaluates to "true", don't render
 			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(Scripting.evaluate(renderContext, thisNode, "${".concat(_hideConditions).concat("}"), "hide condition"))) {
@@ -1070,12 +1068,17 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			}
 
 		} catch (UnlicensedScriptException | FrameworkException ex) {
+
+			final boolean isShadowPage = DOMNode.isSharedComponent(thisNode);
+
 			if (!isShadowPage) {
+				final DOMNode ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
 				logger.error("Error while evaluating hide condition '{}' in page {}[{}], DOMNode[{}]", _hideConditions, ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, ex);
 			} else {
 				logger.error("Error while evaluating hide condition '{}' in shared component, DOMNode[{}]", _hideConditions, thisNode, ex);
 			}
 		}
+
 		try {
 			// If show conditions evaluates to "false", don't render
 			if (StringUtils.isNotBlank(_showConditions) && Boolean.FALSE.equals(Scripting.evaluate(renderContext, thisNode, "${".concat(_showConditions).concat("}"), "show condition"))) {
@@ -1083,7 +1086,11 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			}
 
 		} catch (UnlicensedScriptException | FrameworkException ex) {
+
+			final boolean isShadowPage = DOMNode.isSharedComponent(thisNode);
+
 			if (!isShadowPage) {
+				final DOMNode ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
 				logger.error("Error while evaluating show condition '{}' in page {}[{}], DOMNode[{}]", _showConditions, ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, ex);
 			} else {
 				logger.error("Error while evaluating show condition '{}' in shared component, DOMNode[{}]", _showConditions, thisNode, ex);
@@ -1091,7 +1098,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		}
 
 		return true;
-
 	}
 
 	static boolean shouldBeRendered(final DOMNode thisNode, final RenderContext renderContext) {
