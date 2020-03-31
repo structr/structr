@@ -21,6 +21,8 @@ package org.structr.web.entity.dom;
 import java.io.IOException;
 import java.net.URI;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
@@ -37,8 +39,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -46,7 +46,6 @@ import org.structr.web.converter.ContentConverters;
 import static org.structr.web.entity.dom.DOMNode.escapeForHtml;
 import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
 import org.structr.web.entity.html.Textarea;
-import org.structr.websocket.command.CreateComponentCommand;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -309,8 +308,8 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
 		} catch (Throwable t) {
 
-			DOMNode ownerDocument = thisNode.getOwnerDocument();
-			boolean isShadowPage = DOMNode.checkOwnerDocumentIsShadowPage(ownerDocument);
+			final DOMNode ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
+			final boolean isShadowPage = DOMNode.isSharedComponent(thisNode);
 
 			// catch exception to prevent ugly status 500 error pages in frontend.
 			if (!isShadowPage) {

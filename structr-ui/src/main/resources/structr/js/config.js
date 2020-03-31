@@ -364,8 +364,6 @@ function collectData(name) {
 		active_section: '#databases'
 	};
 
-	console.log(data);
-
 	return data;
 }
 
@@ -385,14 +383,17 @@ function addConnection(button) {
 	status.addClass('hidden');
 	status.empty();
 
+	if (data.now) {
+		_Config.showNonBlockUILoadingMessage('Connection is being established', 'Please wait...');
+	}
+
 	$.ajax({
 		type: 'post',
 		url: '/structr/config/add',
 		data: data,
 		statusCode: {
-			200: function(response) {
-				location.reload();
-			},
+			200: reload,
+			302: reload,
 			422: response => handleErrorResponse(name, response, button),
 			503: response => handleErrorResponse(name, response, button)
 		}
@@ -408,9 +409,8 @@ function deleteConnection(name) {
 			'active_section': '#databases'
 		},
 		statusCode: {
-			200: function(response) {
-				location.reload();
-			},
+			200: reload,
+			302: reload,
 			422: response => handleErrorResponse(name, response),
 			503: response => handleErrorResponse(name, response)
 		}
@@ -419,18 +419,31 @@ function deleteConnection(name) {
 
 function saveConnection(name) {
 
+	let data = collectData(name);
+
+	if (data.now) {
+		_Config.showNonBlockUILoadingMessage('Connection is being established', 'Please wait...');
+	}
+
 	$.ajax({
 		type: 'post',
 		url: '/structr/config/' + name + '/use',
-		data: collectData(name),
+		data: data,
 		statusCode: {
-			200: function(response) {
-				location.reload();
-			},
+			200: reload,
+			302: reload,
 			422: response => handleErrorResponse(name, response),
 			503: response => handleErrorResponse(name, response)
 		}
 	});
+}
+
+function reload(response) {
+
+	_Config.hideNonBlockUILoadingMessage();
+
+	window.location.href = '/structr/config#databases';
+	window.location.reload(true);
 }
 
 function connect(button, name) {
@@ -450,9 +463,8 @@ function connect(button, name) {
 		url: '/structr/config/' + name + '/connect',
 		data: collectData(name),
 		statusCode: {
-			200: function(response) {
-				location.reload();
-			},
+			200: reload,
+			302: reload,
 			422: response => handleErrorResponse(name, response, button),
 			503: response => handleErrorResponse(name, response, button)
 		}
@@ -476,9 +488,8 @@ function disconnect(button, name) {
 		url: '/structr/config/' + name + '/disconnect',
 		data: collectData(name),
 		statusCode: {
-			200: function(response) {
-				location.reload();
-			},
+			200: reload,
+			302: reload,
 			422: response => handleErrorResponse(name, response, button),
 			503: response => handleErrorResponse(name, response, button)
 		}
@@ -507,7 +518,7 @@ function handleErrorResponse(name, response, button) {
 
 				json.errors.forEach(t => {
 					if (t.property !== undefined && t.token !== undefined) {
-						$('input#' + t.property + '-' + name).addClass(t.token);
+						$('input#' + t.property + '-' + name).parent().addClass(t.token);
 					}
 				});
 
