@@ -21,7 +21,6 @@ package org.structr.core.script;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedHashSet;
@@ -741,11 +740,9 @@ public class StructrScriptable extends ScriptableObject {
 
 								if (valueType.isArray() && value instanceof ArrayList) {
 
-									// we need to convert the wrapped array so the converter can handle it ( StructrArray -> ArrayList -> Object[])
-									Object[] tmp = ((ArrayList)value).toArray();
-
-									// convert Object[] to correct valueType
-									value = Arrays.copyOf(tmp, tmp.length, valueType);
+									// let the scripting engine handle the conversion for us
+									final NativeArray tmp = new NativeArray(((ArrayList)value).toArray());
+									value = Context.jsToJava(tmp, valueType);
 
 								} else {
 
