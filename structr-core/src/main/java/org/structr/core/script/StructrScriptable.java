@@ -355,7 +355,9 @@ public class StructrScriptable extends ScriptableObject {
 
 			if (clazz != null) {
 
-				if (StructrApp.getConfiguration().getPropertyKeyForJSONName(clazz, key) instanceof ArrayProperty) {
+				final PropertyKey pkey = StructrApp.getConfiguration().getPropertyKeyForJSONName(clazz, key);
+
+				if (pkey instanceof ArrayProperty || pkey instanceof BooleanArrayProperty || pkey instanceof DateArrayProperty) {
 					return new StructrArray(scope, key, (Object[]) Array.newInstance(Object.class, 0));
 				}
 			}
