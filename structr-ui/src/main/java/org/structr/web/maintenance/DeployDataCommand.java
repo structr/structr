@@ -302,14 +302,7 @@ public class DeployDataCommand extends DeployCommand {
 						logger.info("Importing nodes for type {}", typeName);
 						publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Importing nodes for type " + typeName);
 
-						try {
-
-							importExtensibleNodeListData(context, typeName, readConfigList(p));
-
-						} catch (FrameworkException ex) {
-
-							logger.warn("Exception while importing nodes", ex);
-						}
+						importExtensibleNodeListData(context, typeName, readConfigList(p));
 					}
 				});
 
@@ -336,19 +329,15 @@ public class DeployDataCommand extends DeployCommand {
 						logger.info("Importing relationships for type {}", typeName);
 						publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Importing relationships for type " + typeName);
 
-						try {
+						final Class type = SchemaHelper.getEntityClassForRawType(typeName);
 
-							final Class type = SchemaHelper.getEntityClassForRawType(typeName);
+						if (type == null) {
 
-							if (type == null) {
-								throw new FrameworkException(422, "Type cannot be found: " + typeName);
-							}
+							logger.warn("Not importing data. Relationship type cannot be found: {}!", typeName);
+
+						} else {
 
 							importRelationshipListData(context, type, readConfigList(p));
-
-						} catch (FrameworkException ex) {
-
-							logger.warn("Exception while importing nodes", ex);
 						}
 					}
 				});
@@ -622,7 +611,7 @@ public class DeployDataCommand extends DeployCommand {
 		relsOfType.add(relInfo);
 	}
 
-	private <T extends NodeInterface> void importRelationshipListData(final SecurityContext context, final Class type, final List<Map<String, Object>> data) throws FrameworkException {
+	private <T extends NodeInterface> void importRelationshipListData(final SecurityContext context, final Class type, final List<Map<String, Object>> data) {
 
 		final App app = StructrApp.getInstance(context);
 
@@ -640,11 +629,11 @@ public class DeployDataCommand extends DeployCommand {
 
 				if (sourceNode == null) {
 
-					logger.error("Unable to import relationship of type {}. Source node not found! {}", type.getSimpleName(), entry);
+					logger.error("Unable to import relationship of type {}. Source node not found! {}", type.getSimpleName(), sourceId);
 
 				} else if (targetNode == null) {
 
-					logger.error("Unable to import relationship of type {}. Target node not found! {}", type.getSimpleName(), entry);
+					logger.error("Unable to import relationship of type {}. Target node not found! {}", type.getSimpleName(), targetId);
 
 				} else {
 
@@ -661,71 +650,70 @@ public class DeployDataCommand extends DeployCommand {
 
 		} catch (FrameworkException fex) {
 
-			logger.error("Unable to import {}, aborting with {}", type.getSimpleName(), fex.getMessage());
+			logger.error("Unable to import nodes for type {}. Cause: {}", type.getSimpleName(), fex.getMessage());
 			fex.printStackTrace();
-
-			throw fex;
 		}
 	}
 
-	private <T extends NodeInterface> void importExtensibleNodeListData(final SecurityContext context, final String defaultTypeName, final List<Map<String, Object>> data) throws FrameworkException {
+	private <T extends NodeInterface> void importExtensibleNodeListData(final SecurityContext context, final String defaultTypeName, final List<Map<String, Object>> data) {
 
 		final Class defaultType = SchemaHelper.getEntityClassForRawType(defaultTypeName);
 
 		if (defaultType == null) {
-			throw new FrameworkException(422, "Type cannot be found: " + defaultTypeName);
-		}
 
-		final App app = StructrApp.getInstance(context);
+			logger.warn("Not importing data. Node type cannot be found: {}!", defaultTypeName);
 
-		try (final Tx tx = app.tx()) {
+		} else {
 
-			tx.disableChangelog();
+			final App app = StructrApp.getInstance(context);
 
-			for (final Map<String, Object> entry : data) {
+			try (final Tx tx = app.tx()) {
 
-				final String id = (String)entry.get("id");
+				tx.disableChangelog();
 
-				if (id != null) {
+				for (final Map<String, Object> entry : data) {
 
-					final NodeInterface existingNode = app.getNodeById(id);
+					final String id = (String)entry.get("id");
 
-					if (existingNode != null) {
+					if (id != null) {
 
-						app.delete(existingNode);
+						final NodeInterface existingNode = app.getNodeById(id);
+
+						if (existingNode != null) {
+
+							app.delete(existingNode);
+						}
 					}
+
+					checkOwnerAndSecurity(entry);
+
+					final String typeName = (String) entry.get("type");
+					final Class type      = ((typeName == null || defaultTypeName.equals(typeName)) ? defaultType : SchemaHelper.getEntityClassForRawType(typeName));
+
+					final Map<String, Object> basicPropertiesMap = new HashMap();
+					basicPropertiesMap.put("id", id);
+					basicPropertiesMap.put("type", typeName);
+					basicPropertiesMap.put("owner", entry.get("owner"));
+					basicPropertiesMap.put("grantees", entry.get("grantees"));
+
+					entry.remove("owner");
+					entry.remove("grantees");
+
+					final NodeInterface basicNode = app.create(type, PropertyMap.inputTypeToJavaType(context, type, basicPropertiesMap));
+
+					correctNumberFormats(context, entry, type);
+
+					final PropertyContainer pc = basicNode.getPropertyContainer();
+					pc.setProperties(entry);
 				}
 
-				checkOwnerAndSecurity(entry);
+				tx.success();
 
-				final String typeName = (String) entry.get("type");
-				final Class type      = ((typeName == null || defaultTypeName.equals(typeName)) ? defaultType : SchemaHelper.getEntityClassForRawType(typeName));
+			} catch (FrameworkException fex) {
 
-				final Map<String, Object> basicPropertiesMap = new HashMap();
-				basicPropertiesMap.put("id", id);
-				basicPropertiesMap.put("type", typeName);
-				basicPropertiesMap.put("owner", entry.get("owner"));
-				basicPropertiesMap.put("grantees", entry.get("grantees"));
-
-				entry.remove("owner");
-				entry.remove("grantees");
-
-				final NodeInterface basicNode = app.create(type, PropertyMap.inputTypeToJavaType(context, type, basicPropertiesMap));
-
-				correctNumberFormats(context, entry, type);
-
-				final PropertyContainer pc = basicNode.getPropertyContainer();
-				pc.setProperties(entry);
+				logger.error("Unable to import relationships for type {}. Cause: {}", defaultType.getSimpleName(), fex.getMessage());
+				fex.printStackTrace();
 			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			logger.error("Unable to import {}, aborting with {}", defaultType.getSimpleName(), fex.getMessage());
-			fex.printStackTrace();
-
-			throw fex;
 		}
 	}
 
