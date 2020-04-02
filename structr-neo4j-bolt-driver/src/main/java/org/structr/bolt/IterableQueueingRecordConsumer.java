@@ -55,6 +55,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 	public void start() {
 
 		final SessionTransaction tx = db.getCurrentTransaction();
+		tx.setIsPing(query.getQueryContext().isPing());
 		tx.collectRecords(query.getStatement(true), query.getParameters(), this);
 
 		started.set(true);
