@@ -18,13 +18,14 @@
  */
 package org.structr;
 
+import com.caucho.loader.DynamicClassLoader;
 import org.apache.commons.lang.StringUtils;
 
 /**
  * Custom classloader for Structr.
  *
  */
-public class StructrClassLoader extends ClassLoader {
+public class StructrClassLoader extends DynamicClassLoader {
 
 	public StructrClassLoader(ClassLoader parent) {
 		super(parent);
