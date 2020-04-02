@@ -1,4 +1,4 @@
-<tr data-property-name="${config.property.name}">
+<tr data-property-id="${config.property.id}" >
 	<td><input size="15" type="text" class="property-name" value="${escapeForHtmlAttributes(config.property.name)}"></td>
 	<td><input size="15" type="text" class="property-dbname" value="${escapeForHtmlAttributes(config.property.dbName)}"></td>
 	<td>${_Schema.typeOptions}</td>
@@ -8,5 +8,8 @@
 	<td class="centered"><input class="unique" type="checkbox" ${(config.property.unique ? 'checked' : '')}></td>
 	<td class="centered"><input class="indexed" type="checkbox" ${(config.property.indexed ? 'checked' : '')}></td>
 	<td><input type="text" size="10" class="property-default" value="${escapeForHtmlAttributes(config.property.defaultValue)}"></td>
-	<td class="centered">${config.property.isBuiltinProperty ? '' : '<i title="Remove property" class="remove-icon remove-property ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />'}</td>
+	<td class="centered actions">
+		${config.property.isBuiltinProperty ? '' : '<i title="Discard changes" class="discard-icon discard-changes ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />'}
+		${config.property.isBuiltinProperty ? '' : '<i title="Remove property" class="remove-icon remove-property ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />'}
+	</td>
 </tr>

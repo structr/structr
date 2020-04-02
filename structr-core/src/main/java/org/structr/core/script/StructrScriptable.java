@@ -355,7 +355,9 @@ public class StructrScriptable extends ScriptableObject {
 
 			if (clazz != null) {
 
-				if (StructrApp.getConfiguration().getPropertyKeyForJSONName(clazz, key) instanceof ArrayProperty) {
+				final PropertyKey pkey = StructrApp.getConfiguration().getPropertyKeyForJSONName(clazz, key);
+
+				if (pkey instanceof ArrayProperty || pkey instanceof BooleanArrayProperty || pkey instanceof DateArrayProperty) {
 					return new StructrArray(scope, key, (Object[]) Array.newInstance(Object.class, 0));
 				}
 			}
@@ -740,8 +742,9 @@ public class StructrScriptable extends ScriptableObject {
 
 								if (valueType.isArray() && value instanceof ArrayList) {
 
-									// we need to convert the wrapped array so the converter can handle it ( StructrArray -> ArrayList -> Object[])
-									value = ((ArrayList)value).toArray();
+									// let the scripting engine handle the conversion for us
+									final NativeArray tmp = new NativeArray(((ArrayList)value).toArray());
+									value = Context.jsToJava(tmp, valueType);
 
 								} else {
 

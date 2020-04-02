@@ -39,6 +39,7 @@ import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
+import org.structr.core.Services;
 
 
 public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextAwareEntity {
@@ -235,16 +236,19 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextA
 
 	static void updateWatchService(final Folder thisFolder, final boolean mount) {
 
-		final DirectoryWatchService service = StructrApp.getInstance().getService(DirectoryWatchService.class);
-		if (service != null && service.isRunning()) {
+		if (Services.getInstance().isConfigured(DirectoryWatchService.class)) {
 
-			if (mount) {
+			final DirectoryWatchService service = StructrApp.getInstance().getService(DirectoryWatchService.class);
+			if (service != null && service.isRunning()) {
 
-				service.mountFolder(thisFolder);
+				if (mount) {
 
-			} else {
+					service.mountFolder(thisFolder);
 
-				service.unmountFolder(thisFolder);
+				} else {
+
+					service.unmountFolder(thisFolder);
+				}
 			}
 		}
 	}
