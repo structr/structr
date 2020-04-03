@@ -390,7 +390,7 @@ public class DeployDataCommand extends DeployCommand {
 
 		if (!failedRelationshipImports.isEmpty()) {
 
-			final String infos = failedRelationshipImports.keySet().stream().reduce("", (tmp, typeName) -> { return tmp + typeName + ":" + failedRelationshipImports.get(typeName) + "<br>"; });
+			final String infos = failedRelationshipImports.keySet().stream().reduce("", (tmp, typeName) -> { return tmp + typeName + ": " + failedRelationshipImports.get(typeName) + "<br>"; });
 
 			final String title = "Failed Relationship(s) for Type(s)";
 			final String text = "The following list shows the number of failed relationship imports per type.<br>"
