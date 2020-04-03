@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -457,6 +458,17 @@ public class StructrScriptable extends ScriptableObject {
 
 				final Double value = ScriptRuntime.toNumber(source);
 				return new Date(value.longValue());
+
+			} else if (source instanceof Map && source instanceof NativeObject) {
+
+				// Map can contain ConsString and other things that need unwrapping
+				final Map<String, Object> tmp = new HashMap<>();
+
+				((Map<String, Object>)source).forEach((k, v) -> {
+					tmp.put(k, unwrap(v));
+				});
+
+				return tmp;
 
 			} else {
 
