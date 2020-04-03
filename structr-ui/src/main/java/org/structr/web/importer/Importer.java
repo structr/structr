@@ -1172,7 +1172,7 @@ public class Importer {
 		}
 
 		//downloadAddress = StringUtils.substringBefore(downloadAddress, "?");
-		final String downloadName = cleanFileName(downloadUrl.getFile());
+		final String downloadName = cleanFileName(StringUtils.substringBefore(downloadUrl.getFile(), "?"));
 		final String fileName     = PathHelper.getName(downloadName);
 
 		if (StringUtils.isBlank(fileName)) {
