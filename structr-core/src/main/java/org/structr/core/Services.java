@@ -45,21 +45,21 @@ import org.structr.api.DatabaseService;
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
+import org.structr.api.service.DatabaseConnection;
 import org.structr.api.service.InitializationCallback;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.Service;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.StructrServices;
-import org.structr.bolt.BoltDatabaseService;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
 import org.structr.common.VersionHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.FlushCachesCommand;
+import org.structr.core.graph.ManageDatabasesCommand;
 import org.structr.core.graph.NodeService;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
@@ -67,7 +67,7 @@ import org.structr.util.StructrLicenseManager;
 
 public class Services implements StructrServices {
 
-	private static final Logger logger                 = LoggerFactory.getLogger(StructrApp.class.getName());
+	private static final Logger logger                 = LoggerFactory.getLogger(Services.class.getName());
 
 	// singleton instance
 	private static String jvmIdentifier                = ManagementFactory.getRuntimeMXBean().getName();
@@ -196,16 +196,40 @@ public class Services implements StructrServices {
 			// this might be the first start with a new / upgraded version
 			// check if we need to do some migration maybe?
 
-			if (Settings.ConnectionUser.isModified() || Settings.ConnectionUrl.isModified() || Settings.ConnectionPassword.isModified() || Settings.DatabaseDriverMode.isModified()) {
+			if ("remote".equals(Settings.DatabaseDriverMode.getValue()) || Settings.ConnectionUser.isModified() || Settings.ConnectionUrl.isModified() || Settings.ConnectionPassword.isModified()) {
 
 				if (!Settings.DatabaseDriver.isModified()) {
 
 					logger.info("Migrating database connection configuration");
 
-					// driver is not modified (i.e. in-memory driver), but other config settings
-					// indicate that a remote driver was used, so we change the setting to use
-					// the neo4j driver
-					Settings.DatabaseDriver.setValue(BoltDatabaseService.class.getName());
+					// This is necessary because the default driver changed from bolt to in-memory, so we need to interpret an unmodified setting as "remote" and migrate.
+					// Other config settings indicate that a remote driver was used, so we change the setting to use the neo4j driver.
+					final DatabaseConnection connection = new DatabaseConnection();
+					final String migratedServiceName    = "default-migrated";
+
+					connection.setDisplayName("default-migrated");
+					connection.setName(migratedServiceName);
+					connection.setUrl(Settings.ConnectionUrl.getValue());
+					connection.setUsername(Settings.ConnectionUser.getValue());
+					connection.setPassword(Settings.ConnectionPassword.getValue());
+
+					final ManageDatabasesCommand cmd = new ManageDatabasesCommand();
+
+					try {
+
+						cmd.addConnection(connection, false);
+
+						setActiveServiceName(NodeService.class, migratedServiceName);
+
+						Settings.DatabaseDriver.setValue(Settings.DatabaseDriver.getDefaultValue());
+						Settings.ConnectionUrl.setValue(Settings.ConnectionUrl.getDefaultValue());
+						Settings.ConnectionUser.setValue(Settings.ConnectionUser.getDefaultValue());
+						Settings.ConnectionPassword.setValue(Settings.ConnectionPassword.getDefaultValue());
+						Settings.DatabaseDriverMode.setValue(Settings.DatabaseDriverMode.getDefaultValue());
+
+					} catch (FrameworkException fex) {
+						logger.warn("Unable migrate configuration: {}", fex.getMessage());
+					}
 				}
 			}
 
@@ -596,6 +620,8 @@ public class Services implements StructrServices {
 					}
 
 				} catch (Throwable t) {
+
+					t.printStackTrace();
 
 					logger.warn("Service {} failed to start: {}", serviceClass.getSimpleName(), t.getMessage());
 
