@@ -1307,6 +1307,13 @@ var _Elements = {
 						}
 					},
 					{
+						name: 'Expand subtree recursively',
+						clickHandler: function() {
+							_Entities.expandRecursively([entity.id]);
+							return false;
+						}
+					},
+					{
 						name: 'Collapse subtree',
 						clickHandler: function() {
 							$(div).find('.node').each(function(i, el) {

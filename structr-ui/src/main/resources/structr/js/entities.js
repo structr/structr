@@ -2011,7 +2011,7 @@ var _Entities = {
 		}
 		return b.hasClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon));
 	},
-	ensureExpanded: function(element, callback) {
+	ensureExpanded: function(element, callback, force = false) {
 		if (!element) {
 			return;
 		}
@@ -2024,7 +2024,7 @@ var _Entities = {
 
 		Structr.addExpandedNode(id);
 
-		if (_Entities.isExpanded(element)) {
+		if (force === false && _Entities.isExpanded(element)) {
 			return;
 		} else {
 			_Logger.log(_LogType.ENTITIES, 'ensureExpanded: fetch children', el);
@@ -2070,6 +2070,21 @@ var _Entities = {
 					_Entities.expandAll(ids, lastId);
 				}
 			});
+		});
+	},
+	expandRecursively: function(ids) {
+		if (!ids || ids.length === 0) {
+			return;
+		}
+
+		ids.forEach(function(id) {
+			var el = Structr.node(id);
+
+			_Entities.ensureExpanded(el, function(childNodes) {
+				if (childNodes && childNodes.length) {
+					_Entities.expandRecursively(childNodes.map(n => n.id));
+				}
+			}, true);
 		});
 	},
 	deselectAllElements: function () {
