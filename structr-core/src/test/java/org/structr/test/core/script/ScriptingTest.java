@@ -19,7 +19,6 @@
 package org.structr.test.core.script;
 
 import com.google.gson.GsonBuilder;
-
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -41,6 +40,10 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonFunctionProperty;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonReferenceType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
 import org.structr.common.AccessMode;
@@ -77,10 +80,6 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonReferenceType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.test.common.StructrTest;
 import org.structr.test.core.entity.TestFour;
 import org.structr.test.core.entity.TestOne;
@@ -88,13 +87,12 @@ import org.structr.test.core.entity.TestOne.Status;
 import org.structr.test.core.entity.TestSix;
 import org.structr.test.core.entity.TestThree;
 import org.structr.test.core.entity.TestTwo;
+import org.testng.Assert;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
-
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 
@@ -4410,6 +4408,101 @@ public class ScriptingTest extends StructrTest {
 		} catch (FrameworkException ex) {
 
 			fail();
+		}
+	}
+
+	@Test
+	public void testDifferentArrayPropertyAssignmentAndPush() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonType testType = schema.addType("ArrayPropertiesTest");
+			testType.addStringArrayProperty("strings");
+			testType.addIntegerArrayProperty("ints");
+			testType.addDoubleArrayProperty("doubles");
+			testType.addLongArrayProperty("longs");
+			testType.addBooleanArrayProperty("bools");
+			testType.addDateArrayProperty("dates");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			fail();
+		}
+
+
+		/**
+		 * Test using .push() on the empty object
+		 */
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ac = new ActionContext(securityContext);
+
+			Scripting.evaluate(ac, null, "${{"
+					+ "let n = $.create('ArrayPropertiesTest', {name: 'emptyTest'});"
+					+ "}}", null);
+
+			Scripting.evaluate(ac, null, "${{"
+					+ "let n = $.create('ArrayPropertiesTest', {name: 'emptyPushTest'});"
+					+ "n.strings.push('test');"
+					+ "n.ints.push(42);"
+					+ "n.doubles.push(42);"
+					+ "n.longs.push(42);"
+					+ "n.bools.push(true);"
+					+ "n.dates.push(new Date());"
+					+ "}}", null);
+
+			Scripting.evaluate(ac, null, "${{"
+					+ "let n = $.create('ArrayPropertiesTest', {name: 'emptySetTest'});"
+					+ "n.strings = ['a', 'b', 'c'];"
+					+ "n.ints = [3, 4, 5];"
+					+ "n.doubles = [3.14, 4, 5.05];"
+					+ "n.longs = [3, 4, 5];"
+					+ "n.bools = [true, false, true];"
+					+ "n.dates = [new Date(), $.get('now'), new Date()];"
+					+ "}}", null);
+
+			Scripting.evaluate(ac, null, "${{"
+					+ "let n = $.create('ArrayPropertiesTest', {name: 'setAndPushTest'});"
+					+ "n.strings = ['a', 'b', 'c'];"
+					+ "n.strings.push('d');"
+					+ "n.ints = [3, 4, 5];"
+					+ "n.ints.push(6);"
+					+ "n.doubles = [3.14, 4, 5.05];"
+					+ "n.doubles.push(6);"
+					+ "n.longs = [3, 4, 5];"
+					+ "n.longs.push(6);"
+					+ "n.bools = [true, false, true];"
+					+ "n.bools.push(false);"
+					+ "n.dates = [new Date(), $.get('now'), new Date()];"
+					+ "n.dates.push(new Date());"
+					+ "}}", null);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			fail();
+		}
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ac = new ActionContext(securityContext);
+			assertEquals("All array properties should return 0 length", "000000",                                         Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'emptyTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
+			assertEquals("All array properties should return 1 length after one push()", "111111",                        Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'emptyPushTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
+			assertEquals("All array properties should return 3 length after assignment of [x,y,z]", "333333",             Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'emptySetTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
+			assertEquals("All array properties should return 4 length after assignment of [x,y,z] plus push()", "444444", Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'setAndPushTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
 		}
 	}
 

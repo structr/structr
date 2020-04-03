@@ -321,9 +321,14 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 		super.onModification(securityContext, errorBuffer, modificationQueue);
 
-		// prevent modification of properties using a content hash value
-		if (getProperty(isBuiltinProperty) && !getContentHash().equals(getProperty(contentHash))) {
-			throw new FrameworkException(403, "Modification of built-in properties not permitted.");
+		if (getProperty(schemaNode) == null) {
+			StructrApp.getInstance().delete(this);
+		} else {
+
+			// prevent modification of properties using a content hash value
+			if (getProperty(isBuiltinProperty) && !getContentHash().equals(getProperty(contentHash))) {
+				throw new FrameworkException(403, "Modification of built-in properties not permitted.");
+			}
 		}
 	}
 

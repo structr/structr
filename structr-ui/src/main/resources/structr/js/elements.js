@@ -1307,6 +1307,13 @@ var _Elements = {
 						}
 					},
 					{
+						name: 'Expand subtree recursively',
+						clickHandler: function() {
+							_Entities.expandRecursively([entity.id]);
+							return false;
+						}
+					},
+					{
 						name: 'Collapse subtree',
 						clickHandler: function() {
 							$(div).find('.node').each(function(i, el) {
@@ -1621,7 +1628,9 @@ var _Elements = {
 
 		editor.on('change', function(cm, change) {
 
-			if (text === editor.getValue()) {
+			let editorText = editor.getValue();
+
+			if (text === editorText) {
 				dialogSaveButton.prop("disabled", true).addClass('disabled');
 				saveAndClose.prop("disabled", true).addClass('disabled');
 			} else {
@@ -1629,8 +1638,8 @@ var _Elements = {
 				saveAndClose.prop("disabled", false).removeClass('disabled');
 			}
 
-			$('#chars').text(editor.getValue().length);
-			$('#words').text(editor.getValue().match(/\S+/g) !== null ? editor.getValue().match(/\S+/g).length : 0);
+			$('#chars').text(editorText.length);
+			$('#words').text((editorText.match(/\S+/g) || []).length);
 		});
 
 		var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
