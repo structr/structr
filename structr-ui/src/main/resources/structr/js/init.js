@@ -104,12 +104,10 @@ $(function() {
 
 	// Reset keys in case of window switching
 	$(window).blur(function(e) {
-		console.log('blur')
 		altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 	});
 
 	$(window).focus(function(e) {
-		console.log('focus')
 		altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 	});
 
