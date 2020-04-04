@@ -1735,8 +1735,8 @@ var _Code = {
 
 						let formData = _Code.collectChangedPropertyData(view);
 						let sortedAttrs = $('.property-attrs.view').sortedVals();
-						formData.schemaProperties   = _Schema.findSchemaPropertiesByNodeAndName(reloadedEntity, sortedAttrs);
-						formData.nonGraphProperties = _Schema.findNonGraphProperties(reloadedEntity, sortedAttrs);
+						formData.schemaProperties   = _Schema.views.findSchemaPropertiesByNodeAndName(reloadedEntity, sortedAttrs);
+						formData.nonGraphProperties = _Schema.views.findNonGraphProperties(reloadedEntity, sortedAttrs);
 
 						_Code.showSchemaRecompileMessage();
 
@@ -1870,7 +1870,7 @@ var _Code = {
 					_Code.deleteSchemaEntity(method, 'Delete method ' + method.name + '?');
 				});
 			}
-			
+
 			// run button
 			if (!method.schemaNode && !method.isPartOfBuiltInSchema) {
 				_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.exec_blue_icon), 'run', 'Run method', function() {
@@ -2319,7 +2319,7 @@ var _Code = {
 	runGlobalSchemaMethod: function(schemaMethod) {
 
 		let cleanedComment = (schemaMethod.comment && schemaMethod.comment.trim() !== '') ? schemaMethod.comment.replaceAll("\n", "<br>") : '';
-		
+
 		Structr.dialog('Run global schema method ' + schemaMethod.name, function() {}, function() {
 			$('#run-method').remove();
 			$('#clear-log').remove();
