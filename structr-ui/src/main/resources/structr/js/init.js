@@ -34,7 +34,7 @@ var dialogHtmlKey = 'structrDialogHtml_' + port;
 var scrollInfoKey = 'structrScrollInfoKey_' + port;
 var consoleModeKey = 'structrConsoleModeKey_' + port;
 var resizeFunction;
-var altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
+var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 
 $(function() {
 
@@ -104,11 +104,13 @@ $(function() {
 
 	// Reset keys in case of window switching
 	$(window).blur(function(e) {
-		altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
+		console.log('blur')
+		altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 	});
 
 	$(window).focus(function(e) {
-		altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
+		console.log('focus')
+		altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 	});
 
 	$(window).keyup(function(e) {
@@ -125,9 +127,7 @@ $(function() {
 		if (k === 69) {
 			eKey = false;
 		}
-		if (navigator.platform === 'MacIntel' && (k === 91 || k === 93 || k === 224)) {
-			cmdKey = false;
-		}
+
 		if (e.keyCode === 27) {
 			if (ignoreKeyUp) {
 				ignoreKeyUp = false;
@@ -179,10 +179,11 @@ $(function() {
 		if (k === 69) {
 			eKey = true;
 		}
-		if (navigator.platform === 'MacIntel' && (k === 91 || k === 93 || k === 224) && e.metaKey) {
-			cmdKey = true;
-		}
-		if (k === 83 && ((!(navigator.platform === 'MacIntel') && e.ctrlKey) || (navigator.platform === 'MacIntel' && cmdKey && (k === 83)))) {
+
+		let cmdKey = (navigator.platform === 'MacIntel' && e.metaKey);
+
+		// ctrl-s / cmd-s
+		if (k === 83 && ((navigator.platform !== 'MacIntel' && e.ctrlKey) || (navigator.platform === 'MacIntel' && cmdKey))) {
 			e.preventDefault();
 			if (dialogSaveButton && dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
 				dialogSaveButton.click();

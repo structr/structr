@@ -202,14 +202,16 @@ var _Code = {
 			if (k === 69) {
 				eKey = true;
 			}
-			if (navigator.platform === 'MacIntel' && (k === 91 || e.metaKey)) {
-				cmdKey = true;
-			}
-			if ((e.ctrlKey && (e.which === 83)) || (navigator.platform === 'MacIntel' && cmdKey && (e.which === 83))) {
+
+			let cmdKey = (navigator.platform === 'MacIntel' && e.metaKey);
+
+			// ctrl-s / cmd-s
+			if (k === 83 && ((navigator.platform !== 'MacIntel' && e.ctrlKey) || (navigator.platform === 'MacIntel' && cmdKey))) {
 				e.preventDefault();
 				_Code.runCurrentEntitySaveAction();
 			}
-			if ((e.ctrlKey && (e.which === 85)) || (navigator.platform === 'MacIntel' && cmdKey && (e.which === 85))) {
+			// ctrl-u / cmd-u
+			if (k === 85 && ((navigator.platform !== 'MacIntel' && e.ctrlKey) || (navigator.platform === 'MacIntel' && cmdKey))) {
 				e.preventDefault();
 				_Code.showGeneratedSource();
 			}
