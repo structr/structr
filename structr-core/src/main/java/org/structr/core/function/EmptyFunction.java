@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import java.util.Collection;
+import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.Undefined;
@@ -70,6 +71,10 @@ public class EmptyFunction extends CoreFunction {
 		} else if (sources[0] instanceof NativeObject) {
 
 			return (((NativeObject) sources[0]).size() == 0);
+
+		} else if (sources[0] instanceof Map) {
+
+			return (((Map) sources[0]).isEmpty());
 
 		} else {
 
