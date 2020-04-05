@@ -195,7 +195,7 @@ var _Schema = {
 			_Schema.updateOverlayVisibility($(this).prop('checked'));
 		});
 		$('#schema-tools').off('click').on('click', _Schema.openSchemaToolsDialog);
-		$('#global-schema-methods').off('click').on('click', _Schema.showGlobalSchemaMethods);
+		$('#global-schema-methods').off('click').on('click', _Schema.methods.showGlobalSchemaMethods);
 
 		_Schema.globalLayoutSelector = $('#saved-layout-selector-main');
 		_Schema.updateGroupedLayoutSelector([_Schema.globalLayoutSelector], () => {
