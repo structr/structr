@@ -1021,7 +1021,10 @@ var _Schema = {
 		}, _Schema.methods.getMethodsInitFunction(contentDiv));
 
 		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Remote Attributes', targetView === 'remote', function(c) {
-			_Schema.remoteProperties.appendRemote(c, entity);
+			let editSchemaObjectLinkHandler = ($el) => {
+				_Schema.openEditDialog($el.data('objectId'));
+			};
+			_Schema.remoteProperties.appendRemote(c, entity, editSchemaObjectLinkHandler);
 		});
 
 		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited Attributes', targetView === 'builtin', function(c) {
@@ -1769,7 +1772,7 @@ var _Schema = {
 			'1': 'one',
 			'*': 'many'
 		},
-		appendRemote: function(el, entity) {
+		appendRemote: function(el, entity, editSchemaObjectLinkHandler) {
 
 			let tableConfig = {
 				class: 'related-attrs schema-props',
@@ -1792,11 +1795,11 @@ var _Schema = {
 				} else {
 
 					entity.relatedTo.forEach(function(target) {
-						_Schema.remoteProperties.appendRemoteProperty(tbody, target, true);
+						_Schema.remoteProperties.appendRemoteProperty(tbody, target, true, editSchemaObjectLinkHandler);
 					});
 
 					entity.relatedFrom.forEach(function(source) {
-						_Schema.remoteProperties.appendRemoteProperty(tbody, source, false);
+						_Schema.remoteProperties.appendRemoteProperty(tbody, source, false, editSchemaObjectLinkHandler);
 					});
 				}
 
@@ -1874,11 +1877,51 @@ var _Schema = {
 				});
 			});
 		},
-		appendRemoteProperty: function(el, rel, out) {
+		appendRemoteProperty: function(el, rel, out, editSchemaObjectLinkHandler) {
 
 			let relType = (rel.relationshipType === undefinedRelType) ? '' : rel.relationshipType;
 			let relatedNodeId = (out ? rel.targetId : rel.sourceId);
 			let attributeName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
+
+			let renderRemoteProperty = (tplConfig) => {
+
+				Structr.fetchHtmlTemplate('schema/remote-property', tplConfig, function(html) {
+
+					let row = $(html);
+					el.append(row);
+
+					$('.property-name', row).off('keyup').on('keyup', function() {
+						_Schema.remoteProperties.rowChanged(row, attributeName);
+					});
+
+					$('.reset-action', row).off('click').on('click', function () {
+						$('.property-name', row).val('');
+						_Schema.remoteProperties.rowChanged(row, attributeName);
+					});
+
+					$('.discard-changes', row).off('click').on('click', function () {
+						$('.property-name', row).val(attributeName);
+						_Schema.remoteProperties.rowChanged(row, attributeName);
+					});
+
+					if (!editSchemaObjectLinkHandler) {
+						$('.edit-schema-object', row).removeClass('edit-schema-object');
+					} else {
+
+						$('.edit-schema-object', row).off('click').on('click', function(e) {
+							e.stopPropagation();
+
+							let unsavedChanges = _Schema.remoteProperties.hasUnsavedChanges(row.closest('table'));
+
+							if (!unsavedChanges || confirm("Really switch to other type? There are unsaved changes which will be lost!")) {
+								editSchemaObjectLinkHandler($(this));
+							}
+
+							return false;
+						});
+					}
+				});
+			};
 
 			let tplConfig = {
 				rel: rel,
@@ -1890,41 +1933,18 @@ var _Schema = {
 				arrowRight: (out ? '&gt;' : ''),
 				cardinalityClassLeft: _Schema.remoteProperties.cardinalityClasses[(out ? rel.sourceMultiplicity : rel.targetMultiplicity)],
 				cardinalityClassRight: _Schema.remoteProperties.cardinalityClasses[(out ? rel.targetMultiplicity : rel.sourceMultiplicity)],
-				relatedNodeId: relatedNodeId,
-				relatedNodeType: nodes[relatedNodeId].name
+				relatedNodeId: relatedNodeId
 			};
 
-			Structr.fetchHtmlTemplate('schema/remote-property', tplConfig, function(html) {
-
-				let row = $(html);
-				el.append(row);
-
-				$('.property-name', row).off('keyup').on('keyup', function() {
-					_Schema.remoteProperties.rowChanged(row, attributeName);
+			if (!nodes[relatedNodeId]) {
+				Command.get(relatedNodeId, 'name', (data) => {
+					tplConfig.relatedNodeType = data.name;
+					renderRemoteProperty(tplConfig);
 				});
-
-				$('.reset-action', row).off('click').on('click', function () {
-					$('.property-name', row).val('');
-					_Schema.remoteProperties.rowChanged(row, attributeName);
-				});
-
-				$('.discard-changes', row).off('click').on('click', function () {
-					$('.property-name', row).val(attributeName);
-					_Schema.remoteProperties.rowChanged(row, attributeName);
-				});
-
-				$('.edit-schema-object', row).off('click').on('click', function(e) {
-					e.stopPropagation();
-
-					let unsavedChanges = _Schema.remoteProperties.hasUnsavedChanges(row.closest('table'));
-
-					if (!unsavedChanges || confirm("Really switch to other type? There are unsaved changes which will be lost!")) {
-						_Schema.openEditDialog($(this).data('objectId'));
-					}
-
-					return false;
-				});
-			});
+			} else {
+				tplConfig.relatedNodeType = nodes[relatedNodeId].name;
+				renderRemoteProperty(tplConfig);
+			}
 		},
 		hasUnsavedChanges: function (table) {
 			let tbody = $('tbody', table);

@@ -591,11 +591,18 @@ var _Code = {
 
 					// build list of children for this type
 					{
-
 						children.push({
 							id: 'properties-' + entity.id + '-' + entity.name,
-							text: 'Properties',
+							text: 'Local Attributes',
 							children: entity.schemaProperties.length > 0,
+							icon: 'fa fa-sliders gray',
+							data: data
+						});
+
+						children.push({
+							id: 'remoteproperties-' + entity.id + '-' + entity.name,
+							text: 'Remote Attributes',
+							children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
 							icon: 'fa fa-sliders gray',
 							data: data
 						});
@@ -618,7 +625,7 @@ var _Code = {
 
 						children.push({
 							id: 'inherited-' + entity.id,
-							text: 'Inherited properties',
+							text: 'Inherited Attributes',
 							children: true,
 							icon: 'fa fa-sliders gray',
 							data: data
@@ -698,7 +705,14 @@ var _Code = {
 					var text          = $('#tree-search-input').val();
 					var searchResults = {};
 					var count         = 0;
-					var collectFunction = function(result) { result.forEach(function(r) { searchResults[r.id] = r; }); if (++count === 6) { displayFunction(Object.values(searchResults), 0, true); }};
+					var collectFunction = function(result) {
+						result.forEach(function(r) {
+							searchResults[r.id] = r;
+						});
+						if (++count === 6) {
+							displayFunction(Object.values(searchResults), 0, true);
+						}
+					};
 					Command.query('SchemaNode',     methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
 					Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
 					Command.query('SchemaMethod',   methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
@@ -720,12 +734,6 @@ var _Code = {
 				var identifier = _Code.splitIdentifier(id);
 				switch (identifier.type) {
 
-					case 'outgoing':
-						Command.query('SchemaRelationshipNode', methodPageSize, methodPage, 'name', 'asc', {relatedFrom: [identifier.id ]}, displayFunction, true, 'ui');
-						break;
-					case 'incoming':
-						Command.query('SchemaRelationshipNode', methodPageSize, methodPage, 'name', 'asc', {relatedTo: [identifier.id ]}, displayFunction, true, 'ui');
-						break;
 					case 'inherited':
 						Command.listSchemaProperties(identifier.id, 'custom', function(result) {
 							var filtered = result.filter(function(p) {
@@ -746,23 +754,26 @@ var _Code = {
 						});
 						break;
 					case 'properties':
-						Command.listSchemaProperties(identifier.id, 'custom', function(result) {
-							var filtered = result.filter(function(p) {
-								return p.declaringClass === obj.data.type
-									&& p.declaringClass !== 'GraphObject'
-									&& p.declaringClass !== 'NodeInterface'
-									&& p.declaringClass !== 'AbstractNode';
-							});
+						Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.id }, displayFunction, true, 'ui');
+						break;
+					case 'remoteproperties':
+						Command.get(identifier.id, null, (entity) => {
 
-							displayFunction(filtered.map(function(s) {
+							let mapFn = (rel, out) => {
+								let attrName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
+
 								return {
-									id: s.declaringClass + '-' + s.declaringUuid + '-' + s.name,
-									type: 'SchemaProperty',
-									name: s.name,
-									propertyType: s.declaringPropertyType ? s.declaringPropertyType : s.propertyType,
+									id: 'remoteproperties-' + entity.id + '-' + entity.name + '-' + attrName,
+									type: rel.type,
+									name: attrName,
+									propertyType: '',
 									inherited: false
 								};
-							}));
+							};
+
+							let processedRemoteAttributes = [].concat(entity.relatedTo.map((r) => mapFn(r, true))).concat(entity.relatedFrom.map((r) => mapFn(r, false)));
+
+							displayFunction(processedRemoteAttributes);
 						});
 						break;
 					case 'views':
@@ -981,6 +992,9 @@ var _Code = {
 
 			case 'SchemaView':
 				return 'th-large';
+
+			case 'SchemaRelationshipNode':
+				return 'chain';
 		}
 
 		return icon;
@@ -1012,7 +1026,6 @@ var _Code = {
 			case "Long":         icon = 'calculator'; break;
 			case 'String':       icon = 'pencil-square-o'; break;
 			case 'Encrypted':    icon = 'lock'; break;
-			default:             icon = 'chain'; break;
 		}
 
 		return icon;
@@ -1153,6 +1166,11 @@ var _Code = {
 					_Code.displayPropertiesContent(identifier, data.updateLocationStack);
 					break;
 
+				// remoteproperties (with uuid)
+				case 'remoteproperties':
+					_Code.displayRemotePropertiesContent(identifier, data.updateLocationStack);
+					break;
+
 				// views (with uuid)
 				case 'views':
 					_Code.displayViewsContent(identifier, data.updateLocationStack);
@@ -1273,8 +1291,6 @@ var _Code = {
 						_Code.deleteSchemaEntity(result, 'Delete type ' + result.name + '?', 'This will delete all schema relationships as well, but no data will be removed.');
 					});
 				}
-
-				_Code.displayCreatePropertyButtonList('#property-actions', propertyData);
 
 				_Code.displayCreateButton('#view-actions', 'fa fa-tv', 'new-view', 'Add view', '', { type: 'SchemaView', schemaNode: result.id });
 
@@ -1451,38 +1467,22 @@ var _Code = {
 			_Code.lastClickedPath = path;
 		}
 
-		Structr.fetchHtmlTemplate('code/properties', { identifier: selection }, function(html) {
-			fastRemoveAllChildren(codeContents[0]);
-			codeContents.append(html);
-			var callback = function() { _Code.displayPropertiesContent(selection); };
-			var data     = { type: 'SchemaProperty', schemaNode: selection.id };
-			var id       = '#property-actions';
-
-			_Code.displayCreatePropertyButtonList('#property-actions', data, callback);
-
-			// list of existing properties
-			Command.query('SchemaProperty', 10000, 1, 'name', 'asc', { schemaNode: selection.id }, function(result) {
-				result.forEach(function(t) {
-					_Code.displayActionButton('#existing-properties', 'fa fa-' + _Code.getIconForPropertyType(t.propertyType), t.id, t.name, function() {
-						_Code.findAndOpenNode(path + '/' + t.name);
-					});
-				});
-			}, true);
+		Command.get(selection.id, null, (entity) => {
+			_Schema.properties.appendLocalProperties(codeContents, entity);
 		});
 	},
-	displayCreatePropertyButtonList: function(id, data) {
+	displayRemotePropertiesContent: function (selection, updateLocationStack) {
 
-		// create buttons
-		_Code.displayCreatePropertyButton(id, 'String',   data);
-		_Code.displayCreatePropertyButton(id, 'Encrypted', data);
-		_Code.displayCreatePropertyButton(id, 'Boolean',  data);
-		_Code.displayCreatePropertyButton(id, 'Integer',  data);
-		_Code.displayCreatePropertyButton(id, 'Long',     data);
-		_Code.displayCreatePropertyButton(id, 'Double',   data);
-		_Code.displayCreatePropertyButton(id, 'Enum',     data);
-		_Code.displayCreatePropertyButton(id, 'Date',     data);
-		_Code.displayCreatePropertyButton(id, 'Function', data);
-		_Code.displayCreatePropertyButton(id, 'Cypher',   data);
+		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/RemoteProperties';
+
+		if (updateLocationStack === true) {
+			_Code.updatePathLocationStack(path);
+			_Code.lastClickedPath = path;
+		}
+
+		Command.get(selection.id, null, (entity) => {
+			_Schema.remoteProperties.appendRemote(codeContents, entity, _Code.schemaNodes);
+		});
 
 	},
 	displayViewsContent: function(selection, updateLocationStack) {
