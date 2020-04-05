@@ -1076,6 +1076,12 @@ var _Schema = {
 		Structr.fetchHtmlTemplate('schema/dialog.relationship', {id: id}, function (html) {
 			headEl.append(html);
 
+			Structr.appendInfoTextToElement({
+				text: '<dl class="help-definitions"><dt>NONE</dt><dd>No cascading delete</dd><dt>SOURCE_TO_TARGET</dt><dd>Delete target node when source node is deleted</dd><dt>TARGET_TO_SOURCE</dt><dd>Delete source node when target node is deleted</dd><dt>ALWAYS</dt><dd>Delete source node if target node is deleted AND delete target node if source node is deleted</dd><dt>CONSTRAINT_BASED</dt><dd>Delete source or target node if deletion of the other side would result in a constraint violation on the node (e.g. notNull constraint)</dd></dl>',
+				element: $('#cascading-delete-selector'),
+				insertAfter: true
+			});
+
 			var mainTabs = $('#' + id + '_head #tabs');
 
 			contentEl.append('<div id="' + id + '_content" class="schema-details"></div>');
@@ -1099,15 +1105,7 @@ var _Schema = {
 				$('#relationship-type-name').val(rel.relationshipType === initialRelType ? '' : rel.relationshipType);
 				$('#target-multiplicity-selector').val(rel.targetMultiplicity || '*');
 				$('#target-type-name').text(nodes[rel.targetId].name).data('objectId', rel.targetId);
-
 				$('#cascading-delete-selector').val(rel.cascadingDeleteFlag || 0);
-
-				Structr.appendInfoTextToElement({
-					text: '<dl class="help-definitions"><dt>NONE</dt><dd>No cascading delete</dd><dt>SOURCE_TO_TARGET</dt><dd>Delete target node when source node is deleted</dd><dt>TARGET_TO_SOURCE</dt><dd>Delete source node when target node is deleted</dd><dt>ALWAYS</dt><dd>Delete source node if target node is deleted AND delete target node if source node is deleted</dd><dt>CONSTRAINT_BASED</dt><dd>Delete source or target node if deletion of the other side would result in a constraint violation on the node (e.g. notNull constraint)</dd></dl>',
-					element: $('#cascading-delete-selector'),
-					insertAfter: true
-				});
-
 				$('#autocreate-selector').val(rel.autocreationFlag || 0);
 				$('#propagation-selector').val(rel.permissionPropagation || 'None');
 				$('#read-selector').val(rel.readPropagation || 'Remove');
