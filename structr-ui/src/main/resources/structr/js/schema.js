@@ -1086,12 +1086,12 @@ var _Schema = {
 			});
 
 			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', false, function(c) {
-				_Schema.appendViews(c, entity);
+				_Schema.views.appendViews(c, entity);
 			});
 
 			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', false, function(c) {
-				_Schema.appendMethods(c, entity, entity.schemaMethods);
-			}, _Schema.getMethodsInitFunction(contentDiv));
+				_Schema.methods.appendMethods(c, entity, entity.schemaMethods);
+			}, _Schema.methods.getMethodsInitFunction(contentDiv));
 
 			var selectRelationshipOptions = function(rel) {
 				$('#source-type-name').text(nodes[rel.sourceId].name).data('objectId', rel.sourceId);
