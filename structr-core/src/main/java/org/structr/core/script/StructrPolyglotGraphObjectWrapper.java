@@ -20,11 +20,35 @@ package org.structr.core.script;
 
 import org.structr.core.GraphObject;
 
-public class StructrPolyglotGraphObjectWrapper {
-	private final GraphObject graphObject;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
-	public StructrPolyglotGraphObjectWrapper(final GraphObject graphObject) {
-		this.graphObject = graphObject;
+public abstract class StructrPolyglotGraphObjectWrapper {
+
+	public static GraphObject getProxy(GraphObject graphObject) {
+
+		return (GraphObject)Proxy.newProxyInstance(GraphObject.class.getClassLoader(), new Class[] {GraphObject.class}, new GraphObjectInvocationHandler(graphObject) );
+	}
+
+	protected static class GraphObjectInvocationHandler implements InvocationHandler {
+		private final GraphObject graphObject;
+
+		public GraphObjectInvocationHandler(final GraphObject graphObject) {
+
+			this.graphObject = graphObject;
+		}
+
+		public GraphObject getOriginalObject() {
+
+			return this.graphObject;
+		}
+
+		@Override
+		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+
+			return method.invoke(graphObject, args);
+		}
 	}
 
 }

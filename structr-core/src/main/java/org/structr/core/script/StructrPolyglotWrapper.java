@@ -21,7 +21,9 @@ package org.structr.core.script;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
+import org.structr.core.GraphObject;
 
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +34,10 @@ public abstract class StructrPolyglotWrapper {
 
 	public static Object wrap(Object obj) {
 
-		if (obj instanceof Iterable) {
+		if (obj instanceof GraphObject) {
+
+			return StructrPolyglotGraphObjectWrapper.getProxy((GraphObject) obj);
+		} else 	if (obj instanceof Iterable) {
 
 			return ProxyArray.fromList(wrapIterable((Iterable)obj));
 		} else if (obj instanceof Map) {
@@ -64,6 +69,9 @@ public abstract class StructrPolyglotWrapper {
 
 				return unwrap(value.as(Object.class));
 			}
+		} else if (obj instanceof java.lang.reflect.Proxy) {
+
+			return ((StructrPolyglotGraphObjectWrapper.GraphObjectInvocationHandler)Proxy.getInvocationHandler(obj)).getOriginalObject();
 		} else if (obj instanceof Iterable) {
 
 			return unwrapIterable((Iterable) obj);

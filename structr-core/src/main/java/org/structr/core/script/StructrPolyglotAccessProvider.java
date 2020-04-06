@@ -20,9 +20,6 @@ package org.structr.core.script;
 
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.PolyglotAccess;
-import org.structr.core.app.StructrApp;
-
-import java.util.Map;
 
 public abstract class StructrPolyglotAccessProvider {
 
@@ -32,19 +29,6 @@ public abstract class StructrPolyglotAccessProvider {
 				.allowPublicAccess(true)
 				.allowArrayAccess(true)
 				.allowListAccess(true);
-
-		/*
-		for (Map.Entry entry : StructrApp.getConfiguration().getNodeEntities().entrySet()) {
-
-			builder.targetTypeMapping(entry.getValue(), StructrPolyglotGraphObjectWrapper.class,
-					null,
-					v -> {
-
-						return new StructrPolyglotGraphObjectWrapper(v);
-					}
-			);
-		}
-		 */
 
 		return builder.build();
 	}
