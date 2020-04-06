@@ -2409,10 +2409,10 @@ input.property-name:disabled {
 
 .schema b:hover,
 .schema-details b:hover,
-.schema-details .property-name:hover:not(:disabled),
-.schema-details .property-dbname:hover,
-.schema-details .property-format:hover,
-.schema-details .property-default:hover,
+.schema-props .property-name:hover:not(:disabled),
+.schema-props .property-dbname:hover,
+.schema-props .property-format:hover,
+.schema-props .property-default:hover,
 .schema-details .property-code:hover,
 .schema-details .property-comment:hover,
 .schema-details .localization-locale:hover,
@@ -2437,11 +2437,11 @@ input.property-name:disabled {
 	margin: -2px 0 -2px 0;
 }
 
-.schema-details .edit-schema-object:hover {
+.schema-details .edit-schema-object:hover, #code-main .edit-schema-object:hover {
 	cursor: pointer;
 }
 
-.schema-details .edit-schema-object {
+.schema-details .edit-schema-object, #code-main .edit-schema-object  {
 	border-bottom: 1px dashed #999;
 }
 
@@ -2539,30 +2539,24 @@ input.property-name:disabled {
 	padding: 2px 4px;
 }
 
-.schema-details .add-icon {
+.schema-details .add-icon, #code-main .add-icon {
 	margin: 4px 0 2px 4px;
 }
 
-.schema-details .preview-icon {
+.schema-details .preview-icon, #code-main .preview-icon {
 	margin-left: 2px;
 }
 
-.schema-details .add-icon:hover,
-.schema .toggle-view:hover,
-.schema-details .remove-icon:hover,
-.schema-details .discard-icon:hover,
-.schema-details .create-icon:hover,
-.schema-details .edit-icon:hover,
-.schema-details .preview-icon:hover {
+.schema-details .add-icon:hover, #code-main .add-icon:hover,
+.schema-details .remove-icon:hover, #code-main .remove-icon:hover,
+.schema-details .discard-icon:hover, #code-main .discard-icon:hover,
+.schema-details .create-icon:hover, #code-main .create-icon:hover,
+.schema-details .edit-icon:hover, #code-main .edit-icon:hover,
+.schema-details .preview-icon:hover, #code-main .preview-icon:hover {
 	opacity: .6;
 	cursor: pointer;
 }
 
-.schema .toggle-view {
-	position: absolute;
-	right: 6px;
-	top: 6px;
-}
 
 .schema b {
 	margin: 0 60px 0 60px;
@@ -3249,7 +3243,7 @@ input.bitmask {
 #info-area .message {
 	position: relative;
 	text-align: left;
-	padding: 14px 8px 14px 40px ! important;
+	padding: 14px 8px 18px 40px ! important;
 	font-size: 10pt;
 	clear: both;
 	overflow: auto;
@@ -3748,6 +3742,10 @@ input.tree-search-input:focus {
 	float:left;
 }
 
+#code-contents .schema-props {
+	table-layout: auto;
+}
+
  #flows-canvas {
 	 padding: 0;
  }
@@ -3808,10 +3806,6 @@ input.tree-search-input:focus {
 }
 
 #code-contents #property-buttons button {
-	border: 1px solid #ddd;
-}
-
-#code-contents property-options {
 	border: 1px solid #ddd;
 }
 
@@ -3923,7 +3917,9 @@ button.create-form-button.accept {
 	font-weight: 600;
 }
 
-#code-contents input[type="text"] {
+#code-contents #property-options input[type="text"],
+#code-contents #method-options input[type="text"],
+#code-contents #view-options input[type="text"] {
 	width: 100%;
 }
 

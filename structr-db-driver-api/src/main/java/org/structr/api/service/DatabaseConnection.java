@@ -50,6 +50,10 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 		putAll(data);
 	}
 
+	public void setDisplayName(final String displayName) {
+		put(KEY_DISPLAYNAME, displayName);
+	}
+
 	public void setName(final String name) {
 		put(KEY_NAME, name);
 	}

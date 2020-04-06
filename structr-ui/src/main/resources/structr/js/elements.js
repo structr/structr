@@ -44,7 +44,7 @@ var _Elements = {
 		// Scripting
 		'script', 'noscript',
 		// Sections
-		'body', 'section', 'nav', 'article', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'header', 'footer', 'address',
+		'body', 'section', 'nav', 'article', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'header', 'footer', 'address', 'main',
 		// Grouping content
 		'p', 'hr', 'pre', 'blockquote', 'ol', 'ul', 'li', 'dl', 'dt', 'dd', 'figure', 'figcaption', 'div',
 		// Text-level semantics
@@ -73,7 +73,7 @@ var _Elements = {
 		},
 		{
 			name: 'Sections',
-			elements: ['body', 'section', 'nav', 'article', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'header', 'footer', 'address']
+			elements: ['body', 'section', 'nav', 'article', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'header', 'footer', 'address', 'main']
 		},
 		{
 			name: 'Grouping',
@@ -222,7 +222,7 @@ var _Elements = {
 		},
 		{
 			name: 'l-m',
-			elements: ['label', 'legend', 'li', 'link', '|', 'map', 'mark', 'menu', 'meta', 'meter']
+			elements: ['label', 'legend', 'li', 'link', '|', 'main', 'map', 'mark', 'menu', 'meta', 'meter']
 		},
 		{
 			name: 'n-o',
@@ -248,30 +248,31 @@ var _Elements = {
 		'custom'
 	],
 	suggestedElements: {
-		html     : [ "head", "body" ],
-		head     : [ "title", "style", "base", "link", "meta", "script", "noscript" ],
-		table    : [ "thead", "tbody", "tr", "tfoot", "caption", "colgroup" ],
-		colgroup : [ "col" ],
-		thead    : [ "tr" ],
-		tbody    : [ "tr" ],
-		tfoot    : [ "tr" ],
-		tr       : [ "th", "td" ],
-		ul       : [ "li" ],
-		ol       : [ "li" ],
-		dir      : [ "li" ],
-		dl       : [ "dt", "dd" ],
-		select   : [ "option", "optgroup" ],
-		optgroup : [ "option" ],
-		form     : [ "input", "textarea", "select", "button", "label", "fieldset" ],
-		fieldset : [ "legend", "input", "textarea", "select", "button", "label", "fieldset" ],
-		figure   : [ "img", "figcaption" ],
-		frameset : [ "frame" , "noframes" ],
-		map      : [ "area" ],
-		nav      : [ "a" ],
-		object   : [ "param" ],
-		details  : [ "summary" ],
-		video    : [ "source", "track" ],
-		audio    : [ "source" ]
+		html     : [ 'head', 'body' ],
+		body     : [ 'header', 'main', 'footer' ],
+		head     : [ 'title', 'style', 'base', 'link', 'meta', 'script', 'noscript' ],
+		table    : [ 'thead', 'tbody', 'tr', 'tfoot', 'caption', 'colgroup' ],
+		colgroup : [ 'col' ],
+		thead    : [ 'tr' ],
+		tbody    : [ 'tr' ],
+		tfoot    : [ 'tr' ],
+		tr       : [ 'th', 'td' ],
+		ul       : [ 'li' ],
+		ol       : [ 'li' ],
+		dir      : [ 'li' ],
+		dl       : [ 'dt', 'dd' ],
+		select   : [ 'option', 'optgroup' ],
+		optgroup : [ 'option' ],
+		form     : [ 'input', 'textarea', 'select', 'button', 'label', 'fieldset' ],
+		fieldset : [ 'legend', 'input', 'textarea', 'select', 'button', 'label', 'fieldset' ],
+		figure   : [ 'img', 'figcaption' ],
+		frameset : [ 'frame' , 'noframes' ],
+		map      : [ 'area' ],
+		nav      : [ 'a' ],
+		object   : [ 'param' ],
+		details  : [ 'summary' ],
+		video    : [ 'source', 'track' ],
+		audio    : [ 'source' ]
 	},
 	selectedEntity: undefined,
 	reloadPalette: function() {
@@ -1303,6 +1304,13 @@ var _Elements = {
 							if (!_Entities.isExpanded(div)) {
 								_Entities.toggleElement(div);
 							}
+							return false;
+						}
+					},
+					{
+						name: 'Expand subtree recursively',
+						clickHandler: function() {
+							_Entities.expandRecursively([entity.id]);
 							return false;
 						}
 					},

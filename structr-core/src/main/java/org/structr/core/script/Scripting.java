@@ -18,16 +18,9 @@
  */
 package org.structr.core.script;
 
-import com.caucho.quercus.env.Env;
-import com.caucho.quercus.env.JavaListAdapter;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
-import org.python.core.PyList;
-import org.python.jsr223.PyScriptEngine;
-import org.renjin.script.RenjinScriptEngine;
-import org.renjin.sexp.ExternalPtr;
-import org.renjin.sexp.ListVector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -42,17 +35,11 @@ import org.structr.core.property.DateProperty;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.parser.DatePropertyParser;
 
-import javax.script.*;
-import java.io.StringWriter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-/**
- *
- *
- */
 public class Scripting {
 
 	private static final Logger logger                       = LoggerFactory.getLogger(Scripting.class.getName());

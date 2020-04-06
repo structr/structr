@@ -9,7 +9,7 @@
 	<td class="centered"><input class="indexed" type="checkbox" ${(config.property.indexed ? 'checked' : '')}></td>
 	<td><input type="text" size="10" class="property-default" value="${escapeForHtmlAttributes(config.property.defaultValue)}"></td>
 	<td class="centered actions">
-		${config.property.isBuiltinProperty ? '' : '<i title="Discard changes" class="discard-icon discard-changes ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />'}
-		${config.property.isBuiltinProperty ? '' : '<i title="Remove property" class="remove-icon remove-property ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />'}
+		${config.property.isBuiltinProperty ? '' : '<i title="Discard changes" class="discard-icon discard-changes ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '"></i>'}
+		${config.property.isBuiltinProperty ? '' : '<i title="Remove property" class="remove-icon remove-property ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '"></i>'}
 	</td>
 </tr>
