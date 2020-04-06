@@ -663,10 +663,10 @@ public class Importer {
 
 				if (page != null) {
 
+					final PropertyKey<String> contentTypeKey = StructrApp.key(Content.class, "contentType");
+
 					// create comment or content node
 					if (!StringUtils.isBlank(comment)) {
-
-						final PropertyKey<String> contentTypeKey = StructrApp.key(Content.class, "contentType");
 
 						newNode = (DOMNode) page.createComment(comment);
 						newNode.setProperty(contentTypeKey, "text/html");
@@ -674,6 +674,12 @@ public class Importer {
 					} else {
 
 						newNode = (Content) page.createTextNode(content);
+						
+						final PropertyKey<String> typeKey = StructrApp.key(Input.class, "_html_type");
+						
+						if (parent != null && "text/css".equals(parent.getProperty(typeKey))) {
+							newNode.setProperty(contentTypeKey, "text/css");
+						}
 					}
 				}
 
@@ -997,7 +1003,13 @@ public class Importer {
 
 					final PropertyKey<String> typeKey = StructrApp.key(Input.class, "_html_type");
 					final String contentType          = newNode.getProperty(typeKey);
+	
+					if (contentType == null) {
 
+						// Set default type of script tag to "text/css" to ensure inline CSS gets imported properly
+						newNode.setProperty(typeKey, "text/css");
+					}
+					
 					if ("text/css".equals(contentType)) {
 
 						// parse content of style elements and add referenced files to list of resources to be downloaded
