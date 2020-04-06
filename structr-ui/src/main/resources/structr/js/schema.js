@@ -213,8 +213,8 @@ var _Schema = {
 				}
 				return false;
 			}
-
 		});
+
 		$('#create-type').off('click').on('click', function() {
 			_Schema.createNode($('#type-name').val());
 		});
@@ -979,7 +979,6 @@ var _Schema = {
 									_Schema.openEditDialog(entity.id);
 
 								}, 250);
-
 							});
 
 						} else if (results.length === 0) {
@@ -989,7 +988,6 @@ var _Schema = {
 						} else {
 
 							new MessageBuilder().warning("Can not open entity edit dialog for class '" + typeName + "' - <b>multiple corresponding</b> schema node found").show();
-
 						}
 					});
 				}
@@ -1219,7 +1217,7 @@ var _Schema = {
 		});
 	},
 	properties: {
-		appendLocalProperties: function(el, entity) {
+		appendLocalProperties: function(el, entity, overrides) {
 
 			let tableConfig = {
 				class: 'local schema-props',
@@ -1255,7 +1253,7 @@ var _Schema = {
 						propertiesTableBody.append(row);
 
 						_Schema.properties.setAttributesInRow(prop, row);
-						_Schema.properties.bindRowEvents(prop, row);
+						_Schema.properties.bindRowEvents(prop, row, overrides);
 					});
 				});
 
@@ -1332,7 +1330,9 @@ var _Schema = {
 									});
 
 								} else {
-									new MessageBuilder().error('Something went wrong - please check the log').requiresConfirmation().show();
+									response.json().then((data) => {
+										Structr.errorFromResponse(data, undefined, {requiresConfirmation: true});
+									});
 									_Schema.hideSchemaRecompileMessage();
 								}
 							});
@@ -1373,7 +1373,7 @@ var _Schema = {
 				});
 			});
 		},
-		bindRowEvents: function(property, row) {
+		bindRowEvents: function(property, row, overrides) {
 
 			let propertyInfoChangeHandler = () => {
 				_Schema.properties.rowChanged(property, row);
@@ -1417,20 +1417,28 @@ var _Schema = {
 			$('.indexed',          row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
 			$('.property-default', row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
 
-
 			$('.edit-read-function', row).off('click').on('click', function() {
 				let unsavedChanges = _Schema.properties.hasUnsavedChanges(row.closest('table'));
 
-				if (!unsavedChanges || confirm("Really open code editor? There are unsaved changes which will be lost!")) {
-					_Schema.properties.openCodeEditorForFunctionProperty($(this), property.id, 'readFunction', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
+				if (!unsavedChanges || confirm("Really switch to code editing? There are unsaved changes which will be lost!")) {
+
+					if (overrides && overrides.editReadWriteFunction) {
+						overrides.editReadWriteFunction(property);
+					} else {
+						_Schema.properties.openCodeEditorForFunctionProperty($(this), property.id, 'readFunction', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
+					}
 				}
 			}).prop('disabled', protected);
 
 			$('.edit-write-function', row).off('click').on('click', function() {
 				let unsavedChanges = _Schema.properties.hasUnsavedChanges(row.closest('table'));
 
-				if (!unsavedChanges || confirm("Really open code editor? There are unsaved changes which will be lost!")) {
-					_Schema.properties.openCodeEditorForFunctionProperty($(this), property.id, 'writeFunction', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
+				if (!unsavedChanges || confirm("Really switch to code editing? There are unsaved changes which will be lost!")) {
+					if (overrides && overrides.editReadWriteFunction) {
+						overrides.editReadWriteFunction(property);
+					} else {
+						_Schema.properties.openCodeEditorForFunctionProperty($(this), property.id, 'writeFunction', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
+					}
 				}
 			}).prop('disabled', protected);
 
@@ -1983,32 +1991,132 @@ var _Schema = {
 	views: {
 		appendViews: function(el, entity) {
 
-			el.append('<table class="views schema-props"><thead><th>Name</th><th>Attributes</th><th class="actions-col">Action</th></thead></table>');
-			el.append('<i title="Add view" class="add-icon add-view ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" />');
+			let tableConfig = {
+				class: 'related-attrs schema-props',
+				cols: [
+					{ class: '', title: 'Name' },
+					{ class: '', title: 'Attributes' },
+					{ class: 'actions-col', title: 'Action' }
+				]
+			};
 
-			var viewsTable = $('.views.schema-props', el);
+			Structr.fetchHtmlTemplate('schema/schema-table', tableConfig, function(html) {
 
-			_Schema.sort(entity.schemaViews);
+				let viewsTable = $(html);
 
-			$.each(entity.schemaViews, function(i, view) {
-				_Schema.views.appendView(viewsTable, view, entity);
-			});
+				el.append(viewsTable);
+				el.append('<i title="Add view" class="add-icon add-view ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" />');
 
-			$('.add-view', el).off('click').on('click', function() {
+				let tbody = viewsTable.find('tbody');
 
-				Structr.fetchHtmlTemplate('schema/view', {}, function(html) {
-					var tr = $(html);
-					viewsTable.append(tr);
+				_Schema.sort(entity.schemaViews);
 
-					_Schema.views.activateEditModeForViewRow(tr);
-					_Schema.views.appendViewSelectionElement(tr, {name: 'new'}, entity);
+				$.each(entity.schemaViews, function(i, view) {
+					_Schema.views.appendView(tbody, view, entity);
+				});
 
-					$('.save-action', tr).off('click').on('click', function() {
-						_Schema.views.createOrSaveView(tr, entity);
+				$('.discard-all', viewsTable).on('click', () => {
+					tbody.find('i.discard-changes').click();
+				});
+
+				$('.save-all', viewsTable).on('click', () => {
+
+					let schemaViews = [];
+					let allow = true;
+					let counts = {
+						update: 0,
+						delete: 0,
+						new: 0
+					};
+
+					tbody.find('tr').each((i, tr) => {
+
+						let row    = $(tr);
+						let viewId = row.data('viewId');
+						let view   = _Schema.views.getInfoFromRow(row, entity);
+
+						if (viewId) {
+							if (row.hasClass('to-delete')) {
+								// do not add this property to the list
+								counts.delete++;
+							} else if (row.hasClass('has-changes')) {
+								// changed lines
+								counts.update++;
+								view.id = viewId;
+								allow = _Schema.views.validateViewRow(row) && allow;
+								schemaViews.push(view);
+							} else {
+								// unchanged lines, only transmit id
+								view = { id: viewId };
+								schemaViews.push(view);
+							}
+
+						} else {
+							//new lines
+							counts.new++;
+							view.type = 'SchemaView';
+							allow = _Schema.views.validateViewRow(row) && allow;
+							schemaViews.push(view);
+						}
 					});
 
-					$('.cancel-action', tr).off('click').on('click', function() {
-						tr.remove();
+					if (allow) {
+
+						let message = 'Update properties for ' + entity.name + '?\n\n';
+						message += (counts.new > 0 ? 'Create ' + counts.new + ' views.\n' : '');
+						message += (counts.delete > 0 ? 'Delete ' + counts.delete + ' views. (Note: Builtin views will be restored in their initial configuration!)\n' : '');
+						message += (counts.update > 0 ? 'Update ' + counts.update + ' views.\n' : '');
+
+						if (confirm(message)) {
+
+							_Schema.showSchemaRecompileMessage();
+
+							fetch(rootUrl + entity.id, {
+								dataType: 'json',
+								contentType: 'application/json; charset=utf-8',
+								method: 'PUT',
+								body: JSON.stringify({
+									schemaViews: schemaViews
+								})
+							}).then((response) => {
+
+								if (response.ok) {
+
+									Command.get(entity.id, null, function(reloadedEntity) {
+										el.empty();
+										_Schema.views.appendViews(el, reloadedEntity);
+										_Schema.hideSchemaRecompileMessage();
+									});
+
+								} else {
+									response.json().then((data) => {
+										Structr.errorFromResponse(data, undefined, {requiresConfirmation: true});
+									});
+									_Schema.hideSchemaRecompileMessage();
+								}
+							});
+						}
+					}
+				});
+
+				$('.add-view', el).off('click').on('click', function() {
+
+					Structr.fetchHtmlTemplate('schema/view.new', {}, function(html) {
+
+						var row = $(html);
+						tbody.append(row);
+
+						_Schema.views.tableChanged(viewsTable);
+
+						_Schema.views.appendViewSelectionElement(row, {name: 'new'}, entity, function (chznElement) {
+
+							chznElement.chosenSortable();
+						});
+
+						$('.discard-changes', row).off('click').on('click', function() {
+							 row.remove();
+							_Schema.views.tableChanged(viewsTable);
+						});
 					});
 				});
 			});
@@ -2016,34 +2124,38 @@ var _Schema = {
 		appendView: function(el, view, entity) {
 
 			Structr.fetchHtmlTemplate('schema/view', {view: view}, function(html) {
-				var tr = $(html);
-				el.append(tr);
+				var row = $(html);
+				el.append(row);
 
-				_Schema.views.appendViewSelectionElement(tr, view, entity);
-				_Schema.views.initViewRow(tr, entity, view);
+				_Schema.views.appendViewSelectionElement(row, view, entity, function (chznElement) {
+
+					// store initial configuration for later comparison
+					let initialViewConfig = _Schema.views.getInfoFromRow(row, entity);
+
+					chznElement.chosenSortable(function() {
+						// sort order changed
+						_Schema.views.rowChanged(row, entity, initialViewConfig);
+					});
+
+					_Schema.views.bindRowEvents(row, entity, view, initialViewConfig);
+				});
 			});
 
 		},
-		initViewRow: function(tr, entity, view) {
+		bindRowEvents: function(row, entity, view, initialViewConfig) {
 
-			var activate = function() {
-				_Schema.views.activateEditModeForViewRow(tr);
+			let viewInfoChangeHandler = (event, params) => {
+				_Schema.views.rowChanged(row, entity, initialViewConfig);
 			};
 
-			_Schema.views.deactivateEditModeForViewRow(tr);
+			$('.view.property-name', row).off('change').on('change', viewInfoChangeHandler);
+			$('.view.property-attrs', row).off('change').on('change', viewInfoChangeHandler);
 
-			$('.view.property-name', tr).off('change').on('change', activate).on('keyup', activate);
-			$('.view.property-attrs', tr).off('change').on('change', activate);
+			$('.discard-changes', row).off('click').on('click', function() {
 
-			$('.save-action', tr).off('click').on('click', function() {
-				_Schema.views.createOrSaveView(tr, entity, view);
-			});
+				var select = $('select', row);
 
-			$('.cancel-action', tr).off('click').on('click', function() {
-
-				var select = $('select', tr);
-
-				$('.view.property-name', tr).val(view.name);
+				$('.view.property-name', row).val(view.name);
 
 				Command.listSchemaProperties(entity.id, view.name, function(data) {
 
@@ -2052,40 +2164,35 @@ var _Schema = {
 					});
 
 					select.trigger('chosen:updated');
+
+					row.removeClass('to-delete');
+					row.removeClass('has-changes');
+
+					_Schema.views.tableChanged(row.closest('table'));
 				});
-
-				_Schema.views.deactivateEditModeForViewRow(tr);
 			});
 
-			$('.remove-action', tr).off('click').on('click', function() {
-				_Schema.views.confirmRemoveSchemaEntity(view, $(this).attr('title'), function() { _Schema.openEditDialog(entity.id, 'views'); } );
-			});
+			$('.remove-view', row).off('click').on('click', function() {
 
-			_Schema.views.updateViewPreviewLink(tr, entity.name, view.name);
-		},
-		updateViewPreviewLink:function(tr, typeName, viewName) {
-			$('.preview-action', tr).attr('href', '/structr/rest/' + typeName + '/' + viewName + '?pageSize=1');
-		},
-		activateEditModeForViewRow: function(tr) {
-			$('.hidden-in-edit-mode', tr).addClass('hidden');
-			$('.visible-in-edit-mode', tr).removeClass('hidden');
-		},
-		deactivateEditModeForViewRow: function(tr) {
-			$('.hidden-in-edit-mode', tr).removeClass('hidden');
-			$('.visible-in-edit-mode', tr).addClass('hidden');
-		},
-		appendViewSelectionElement: function(tr, view, schemaEntity) {
+				row.addClass('to-delete');
+				viewInfoChangeHandler();
 
-			var propertySelectTd = $('.view-properties-select', tr).last();
+			}).prop('disabled', null);
+
+			$('.preview-action', row).attr('href', '/structr/rest/' + entity.name + '/' + view.name + '?pageSize=1');
+		},
+		appendViewSelectionElement: function(row, view, schemaEntity, callback) {
+
+			let propertySelectTd = $('.view-properties-select', row).last();
 			propertySelectTd.append('<select class="property-attrs view chosen-sortable" multiple="multiple"></select>');
-			var viewSelectElem = $('.property-attrs', propertySelectTd);
+			let viewSelectElem = $('.property-attrs', propertySelectTd);
 
 			Command.listSchemaProperties(schemaEntity.id, view.name, function(properties) {
 
-				var appendProperty = function(prop) {
-					var name       = prop.name;
-					var isSelected = prop.isSelected ? ' selected="selected"' : '';
-					var isDisabled = (view.name === 'ui' || view.name === 'custom' || prop.isDisabled) ? ' disabled="disabled"' : '';
+				let appendProperty = function(prop) {
+					let name       = prop.name;
+					let isSelected = prop.isSelected ? ' selected="selected"' : '';
+					let isDisabled = (view.name === 'ui' || view.name === 'custom' || prop.isDisabled) ? ' disabled="disabled"' : '';
 
 					viewSelectElem.append('<option value="' + name + '"' + isSelected + isDisabled + '>' + name + '</option>');
 				};
@@ -2093,7 +2200,7 @@ var _Schema = {
 				if (view.sortOrder) {
 					view.sortOrder.split(',').forEach(function(sortedProp) {
 
-						var prop = properties.filter(function(prop) {
+						let prop = properties.filter(function(prop) {
 							return (prop.name === sortedProp);
 						});
 
@@ -2111,84 +2218,16 @@ var _Schema = {
 					appendProperty(prop);
 				});
 
-				viewSelectElem.chosen({
+				let chzn = viewSelectElem.chosen({
 					search_contains: true,
 					width: '100%',
 					display_selected_options: false,
 					hide_results_on_select: false,
 					display_disabled_options: false
-				}).chosenSortable(function() {
-					_Schema.views.activateEditModeForViewRow(tr);
 				});
+
+				callback(chzn);
 			});
-		},
-		createOrSaveView: function(tr, entity, view) {
-
-			var name        = $('.view.property-name', tr).val();
-			var sortedAttrs = $('.view.property-attrs', tr).sortedVals();
-
-			if (name && name.length) {
-
-				// update entity before storing the view to make sure that nonGraphProperties are correctly identified..
-				Command.get(entity.id, null, function(reloadedEntity) {
-
-					var obj                = {};
-					obj.schemaNode         = { id: reloadedEntity.id };
-					obj.schemaProperties   = _Schema.views.findSchemaPropertiesByNodeAndName(reloadedEntity, sortedAttrs);
-					obj.nonGraphProperties = _Schema.views.findNonGraphProperties(reloadedEntity, sortedAttrs);
-					obj.name               = name;
-					obj.sortOrder          = sortedAttrs.join(',');
-
-					_Schema.storeSchemaEntity('schema_views', (view || {}), JSON.stringify(obj), function(result) {
-
-						if (view) {
-
-							// we saved a view
-							blinkGreen(tr);
-							_Schema.views.updateViewPreviewLink(tr, reloadedEntity.name, name);
-
-							view.schemaProperties = obj.schemaProperties;
-							view.name             = obj.name;
-
-							_Schema.views.deactivateEditModeForViewRow(tr);
-
-						} else {
-
-							// we created a view - get the view data
-							if (result && result.result) {
-
-								var id = result.result[0];
-
-								$.ajax({
-									url: rootUrl + id,
-									type: 'GET',
-									dataType: 'json',
-									contentType: 'application/json; charset=utf-8',
-									statusCode: {
-
-										200: function(data) {
-
-											var view = data.result;
-
-											blinkGreen(tr);
-
-											_Schema.reload();
-
-											_Schema.views.initViewRow(tr, reloadedEntity, view);
-										}
-									}
-								});
-							}
-						}
-					}, function(data) {
-						Structr.errorFromResponse(data.responseJSON, undefined, {requiresConfirmation: true});
-						blinkRed(tr);
-					});
-				});
-
-			} else {
-				blinkRed($('.view.property-name', tr));
-			}
 		},
 		findSchemaPropertiesByNodeAndName: function(entity, names) {
 
@@ -2240,6 +2279,79 @@ var _Schema = {
 			}
 
 			return result.join(', ');
+		},
+		hasUnsavedChanges: function (table) {
+			let tbody = $('tbody', table);
+			return (tbody.find('tr.to-delete').length + tbody.find('tr.has-changes').length) > 0;
+		},
+		tableChanged: function (table) {
+
+			let unsavedChanges = _Schema.views.hasUnsavedChanges(table);
+
+			let tfoot = table.find('tfoot');
+
+			if (unsavedChanges) {
+				tfoot.removeClass('hidden');
+			} else {
+				tfoot.addClass('hidden');
+			}
+
+		},
+		getInfoFromRow:function(row, schemaNodeEntity) {
+
+			let sortedAttrs = $('.view.property-attrs', row).sortedVals();
+
+			return {
+				name: $('.view.property-name', row).val(),
+				schemaProperties: _Schema.views.findSchemaPropertiesByNodeAndName(schemaNodeEntity, sortedAttrs),
+				nonGraphProperties: _Schema.views.findNonGraphProperties(schemaNodeEntity, sortedAttrs),
+				sortOrder: sortedAttrs.join(',')
+			};
+		},
+		rowChanged: function(row, entity, initialViewConfig) {
+
+			var viewInfoInUI = _Schema.views.getInfoFromRow(row, entity);
+			let hasChanges   = false;
+
+			for (let key in viewInfoInUI) {
+
+				if (key === 'schemaProperties') {
+
+					let origSchemaProps = initialViewConfig[key].map(p => p.id).sort().join(',');
+					let uiSchemaProps = viewInfoInUI[key].map(p => p.id).sort().join(',');
+
+					if (origSchemaProps !== uiSchemaProps) {
+						hasChanges = true;
+					}
+
+				} else if (viewInfoInUI[key] !== initialViewConfig[key]) {
+					hasChanges = true;
+				}
+			}
+
+			if (hasChanges) {
+				row.addClass('has-changes');
+			} else {
+				row.removeClass('has-changes');
+			}
+
+			_Schema.views.tableChanged(row.closest('table'));
+		},
+		validateViewRow: function (row) {
+
+			if ($('.property-name', row).val().length === 0) {
+
+				blinkRed($('.property-name', row).closest('td'));
+				return false;
+			}
+
+			if ($('.view.property-attrs', row).sortedVals().length === 0) {
+
+				blinkRed($('.view.property-attrs', row).closest('td'));
+				return false;
+			}
+
+			return true;
 		},
 	},
 	methods: {
