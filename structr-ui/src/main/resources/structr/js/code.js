@@ -217,9 +217,12 @@ var _Code = {
 			}
 		}
 	},
-	dirty: false,
 	isDirty: function() {
-		return _Code.dirty;
+		let isDirty = false;
+		if (codeContents) {
+			isDirty = (codeContents.find('.to-delete').length + codeContents.find('.has-changes').length) > 0;
+		}
+		return isDirty;
 	},
 	updateDirtyFlag: function(entity) {
 
@@ -234,7 +237,11 @@ var _Code = {
 			$('#action-button-cancel').addClass('disabled').attr('disabled', 'disabled');
 		}
 
-		_Code.dirty = (dirty === true);
+		if (dirty === true) {
+			codeContents.children().first().addClass('has-changes');
+		} else {
+			codeContents.children().first().removeClass('has-changes');
+		}
 	},
 	testAllowNavigation: function() {
 		if (_Code.isDirty()) {
@@ -624,7 +631,7 @@ var _Code = {
 						});
 
 						children.push({
-							id: 'inherited-' + entity.id,
+							id: 'inheritedproperties-' + entity.id + '-' + entity.name,
 							text: 'Inherited Attributes',
 							children: true,
 							icon: 'fa fa-sliders gray',
@@ -734,7 +741,7 @@ var _Code = {
 				var identifier = _Code.splitIdentifier(id);
 				switch (identifier.type) {
 
-					case 'inherited':
+					case 'inheritedproperties':
 						Command.listSchemaProperties(identifier.id, 'custom', function(result) {
 							var filtered = result.filter(function(p) {
 								return p.declaringClass !== obj.data.type;
@@ -1026,6 +1033,7 @@ var _Code = {
 			case "Long":         icon = 'calculator'; break;
 			case 'String':       icon = 'pencil-square-o'; break;
 			case 'Encrypted':    icon = 'lock'; break;
+			default:             icon = 'chain';
 		}
 
 		return icon;
@@ -1133,7 +1141,6 @@ var _Code = {
 
 			// clear page
 			_Code.clearMainArea();
-
 			var identifier = _Code.splitIdentifier(data.id);
 			switch (identifier.type) {
 
@@ -1181,24 +1188,8 @@ var _Code = {
 					_Code.displayMethodsContent(identifier, data.updateLocationStack);
 					break;
 
-				// outgoing relationships (with uuid)
-				case 'outgoing':
-					_Code.displayOutgoingRelationshipsContent(identifier);
-					break;
-
-				// incoming relationships (with uuid)
-				case 'incoming':
-					_Code.displayIncomingRelationshipsContent(identifier);
-					break;
-
-				// outgoing relationship (with uuid)
-				case 'out':
-					_Code.displayOutRelationshipContent(identifier);
-					break;
-
-				// incoming relationship (with uuid)
-				case 'in':
-					_Code.displayInRelationshipContent(identifier);
+				case 'inheritedproperties':
+					_Code.displayInheritedPropertiesContent(identifier, data.updateLocationStack);
 					break;
 
 				case 'inherited':
@@ -1467,8 +1458,17 @@ var _Code = {
 			_Code.lastClickedPath = path;
 		}
 
-		Command.get(selection.id, null, (entity) => {
-			_Schema.properties.appendLocalProperties(codeContents, entity);
+		Structr.fetchHtmlTemplate('code/properties.local', { identifier: selection }, function(html) {
+
+			codeContents.append(html);
+
+			Command.get(selection.id, null, (entity) => {
+				_Schema.properties.appendLocalProperties($('.content-container', codeContents), entity, {
+					editReadWriteFunction: (property) => {
+						_Code.handleSelection(property);
+					}
+				});
+			});
 		});
 	},
 	displayRemotePropertiesContent: function (selection, updateLocationStack) {
@@ -1480,10 +1480,14 @@ var _Code = {
 			_Code.lastClickedPath = path;
 		}
 
-		Command.get(selection.id, null, (entity) => {
-			_Schema.remoteProperties.appendRemote(codeContents, entity, _Code.schemaNodes);
-		});
+		Structr.fetchHtmlTemplate('code/properties.remote', { identifier: selection }, function(html) {
 
+			codeContents.append(html);
+
+			Command.get(selection.id, null, (entity) => {
+				_Schema.remoteProperties.appendRemote($('.content-container', codeContents), entity, _Code.schemaNodes);
+			});
+		});
 	},
 	displayViewsContent: function(selection, updateLocationStack) {
 
@@ -1495,37 +1499,26 @@ var _Code = {
 		}
 
 		Structr.fetchHtmlTemplate('code/views', { identifier: selection }, function(html) {
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 
-			var callback = function() { _Code.displayViewsContent(selection); };
-			var data     = { type: 'SchemaViews', schemaNode: selection.id };
-
-			_Code.displayCreateButton('#view-actions', 'fa fa-tv', 'new-view', 'Add view', '', data, callback);
-
-			// list of existing properties
-			Command.query('SchemaView', 10000, 1, 'name', 'asc', { schemaNode: selection.id }, function(result) {
-				result.forEach(function(t) {
-					_Code.displayActionButton('#existing-views', 'fa fa-' + _Code.getIconForNodeType(t), t.id, t.name, function() {
-						_Code.findAndOpenNode(path + '/' + t.name);
-					});
-				});
-			}, true);
+			Command.get(selection.id, null, (entity) => {
+				_Schema.views.appendViews($('.content-container', codeContents), entity);
+			});
 		});
 	},
-	displayMethodsContent: function(identifier, updateLocationStack) {
+	displayMethodsContent: function(selection, updateLocationStack) {
 
-		var path = 'Types/' + _Code.getPathComponent(identifier) + '/' + identifier.base + '/Methods';
+		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Methods';
 
 		if (updateLocationStack === true) {
 			_Code.updatePathLocationStack(path);
 			_Code.lastClickedPath = path;
 		}
 
-		Structr.fetchHtmlTemplate('code/methods', { identifier: identifier }, function(html) {
+		Structr.fetchHtmlTemplate('code/methods', { identifier: selection }, function(html) {
 			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
-			var data     = { type: 'SchemaMethod', schemaNode: identifier.id };
+			var data     = { type: 'SchemaMethod', schemaNode: selection.id };
 			var containerId = '#method-actions';
 
 			_Code.displayCreateButton(containerId, 'fa fa-magic', 'on-create',    'Add onCreate method',    'onCreate',    data);
@@ -1534,7 +1527,7 @@ var _Code = {
 			_Code.displayCreateButton(containerId, 'fa fa-magic', 'new',          'Add schema method',      '',            data);
 
 			// list of existing properties
-			Command.query('SchemaMethod', 10000, 1, 'name', 'asc', { schemaNode: identifier.id }, function(result) {
+			Command.query('SchemaMethod', 10000, 1, 'name', 'asc', { schemaNode: selection.id }, function(result) {
 				result.forEach(function(t) {
 					_Code.displayActionButton('#existing-methods', 'fa fa-' + _Code.getIconForNodeType(t), t.id, t.name, function() {
 						_Code.findAndOpenNode(path + '/' + t.name);
@@ -1543,24 +1536,21 @@ var _Code = {
 			}, true);
 		});
 	},
-	displayOutgoingRelationshipsContent: function(identifier) {
-		Structr.fetchHtmlTemplate('code/outgoing-relationships', { identifier: identifier }, function(html) {
+	displayInheritedPropertiesContent: function(selection, updateLocationStack) {
+
+		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Inherited';
+
+		if (updateLocationStack === true) {
+			_Code.updatePathLocationStack(path);
+			_Code.lastClickedPath = path;
+		}
+
+		Structr.fetchHtmlTemplate('code/properties.inherited', { identifier: selection }, function(html) {
 			codeContents.append(html);
-		});
-	},
-	displayIncomingRelationshipsContent: function(identifier) {
-		Structr.fetchHtmlTemplate('code/incoming-relationships', { identifier: identifier }, function(html) {
-			codeContents.append(html);
-		});
-	},
-	displayOutRelationshipContent: function(identifier) {
-		Structr.fetchHtmlTemplate('code/outgoing-relationship', { identifier: identifier }, function(html) {
-			codeContents.append(html);
-		});
-	},
-	displayInRelationshipContent: function(identifier) {
-		Structr.fetchHtmlTemplate('code/incoming-relationship', { identifier: identifier }, function(html) {
-			codeContents.append(html);
+
+			Command.get(selection.id, null, (entity) => {
+				_Schema.properties.appendBuiltinProperties($('.content-container', codeContents), entity);
+			});
 		});
 	},
 	displayPropertyDetails: function(selection) {
@@ -1769,10 +1759,8 @@ var _Code = {
 			});
 
 			// delete button
-			let removeIcon = (view.isBuiltinView ? _Icons.arrow_undo_icon : _Icons.delete_icon);
-			let removeText = (view.isBuiltinView ? 'Reset view' : 'Delete view');
-			_Code.displayActionButton('#view-actions', _Icons.getFullSpriteClass(removeIcon), 'delete', removeText, function() {
-				_Code.deleteSchemaEntity(view, removeText + ' ' + view.name + '?', 'No data will be removed.');
+			_Code.displayActionButton('#view-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete view', function() {
+				_Code.deleteSchemaEntity(view, 'Delete view' + ' ' + view.name + '?', 'Note: Builtin views will be restored in their initial configuration');
 			});
 
 			_Code.updateDirtyFlag(view);
@@ -1839,10 +1827,7 @@ var _Code = {
 				hide_results_on_select: false,
 				display_disabled_options: false
 			}).on('change', function(e,p) {
-				// schedule because otherwise the sortable does not know something has been removed
-				window.setTimeout(()=> {
-					changeFn();
-				}, 0);
+				changeFn();
 			}).chosenSortable(function() {
 				changeFn();
 			});
