@@ -245,7 +245,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 			final String _sharedComponentConfiguration = thisNode.getSharedComponentConfiguration();
 			if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
 
-				Scripting.evaluate(renderContext, thisNode, "${" + _sharedComponentConfiguration + "}", "shared component configuration");
+				Scripting.evaluate(renderContext, thisNode, "${" + _sharedComponentConfiguration.trim() + "}", "shared component configuration");
 			}
 
 			// determine some postprocessing flags
