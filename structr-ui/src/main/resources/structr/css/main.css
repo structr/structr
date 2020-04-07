@@ -3758,6 +3758,10 @@ input.tree-search-input:focus {
 	border: none;
 }
 
+#code-contents .schema-props .chosen-choices {
+	border: none;
+}
+
  #flows-canvas {
 	 padding: 0;
  }

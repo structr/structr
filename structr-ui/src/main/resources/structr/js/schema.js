@@ -2123,7 +2123,7 @@ var _Schema = {
 		},
 		appendView: function(el, view, entity) {
 
-			Structr.fetchHtmlTemplate('schema/view', {view: view}, function(html) {
+			Structr.fetchHtmlTemplate('schema/view', {view: view, type: entity}, function(html) {
 				var row = $(html);
 				el.append(row);
 
@@ -2178,8 +2178,6 @@ var _Schema = {
 				viewInfoChangeHandler();
 
 			}).prop('disabled', null);
-
-			$('.preview-action', row).attr('href', '/structr/rest/' + entity.name + '/' + view.name + '?pageSize=1');
 		},
 		appendViewSelectionElement: function(row, view, schemaEntity, callback) {
 

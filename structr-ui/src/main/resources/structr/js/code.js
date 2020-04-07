@@ -373,10 +373,12 @@ var _Code = {
 				}
 			}
 		}
-
 	},
 	runCurrentEntitySaveAction: function () {
-		alert('Save action triggered before set up!');
+		// this is the default action - it should always be overwritten by specific save actions and is only here to prevent errors
+		if (_Code.isDirty()) {
+			new MessageBuilder().warning('No save action is defined - but the editor is dirty!').requiresConfirmation().show();
+		}
 	},
 	saveEntityAction:function(entity, callback) {
 
@@ -1227,7 +1229,6 @@ var _Code = {
 					Command.get(identifier.id, null, function(result) {
 						_Code.updateRecentlyUsed(result, data.updateLocationStack);
 						Structr.fetchHtmlTemplate('code/method', { method: result }, function(html) {
-							fastRemoveAllChildren(codeContents[0]);
 							codeContents.append(html);
 
 							LSWrapper.setItem(codeLastOpenMethodKey, result.id);
@@ -1269,12 +1270,7 @@ var _Code = {
 			_Code.updateRecentlyUsed(result, data.updateLocationStack);
 			Structr.fetchHtmlTemplate('code/type', { type: result }, function(html) {
 
-				fastRemoveAllChildren(codeContents[0]);
 				codeContents.append(html);
-
-				var propertyData   = { type: 'SchemaProperty', schemaNode: identifier.id };
-				var methodData     = { type: 'SchemaMethod', schemaNode: identifier.id };
-				var methodParent   = '#method-actions';
 
 				// delete button
 				if (!result.isBuiltinType) {
@@ -1282,12 +1278,6 @@ var _Code = {
 						_Code.deleteSchemaEntity(result, 'Delete type ' + result.name + '?', 'This will delete all schema relationships as well, but no data will be removed.');
 					});
 				}
-
-				_Code.displayCreateButton('#view-actions', 'fa fa-tv', 'new-view', 'Add view', '', { type: 'SchemaView', schemaNode: result.id });
-
-				_Code.displayCreateMethodButton(methodParent, 'onCreate', methodData, 'onCreate');
-				_Code.displayCreateMethodButton(methodParent, 'onSave',   methodData, 'onSave');
-				_Code.displayCreateMethodButton(methodParent, 'schema',   methodData, '');
 			});
 		});
 	},
@@ -1344,7 +1334,6 @@ var _Code = {
 
 		Structr.fetchHtmlTemplate('code/root', { }, function(html) {
 
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 
 			var layouter          = new SigmaLayouter('all-types');
@@ -1390,7 +1379,6 @@ var _Code = {
 
 		Structr.fetchHtmlTemplate('code/type-context', { entity: entity }, function(html) {
 
-			fastRemoveAllChildren(codeContext[0]);
 			codeContext.append(html);
 
 			$('#schema-node-name').off('blur').on('blur', function() {
@@ -1411,7 +1399,6 @@ var _Code = {
 	},
 	displayCustomTypesContent: function(data) {
 		Structr.fetchHtmlTemplate('code/custom', { }, function(html) {
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 
 			// create button
@@ -1429,7 +1416,6 @@ var _Code = {
 	},
 	displayBuiltInTypesContent: function() {
 		Structr.fetchHtmlTemplate('code/builtin', { }, function(html) {
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 			var container = $('#builtin-types');
 			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { isBuiltinType: true}, function(result) {
@@ -1444,7 +1430,6 @@ var _Code = {
 	},
 	displayGlobalMethodsContent: function() {
 		Structr.fetchHtmlTemplate('code/globals', { }, function(html) {
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 			_Code.displayCreateButton('#method-actions', 'fa fa-magic', 'new', 'Add global schema method', '', { type: 'SchemaMethod' });
 		});
@@ -1468,6 +1453,10 @@ var _Code = {
 						_Code.handleSelection(property);
 					}
 				});
+
+				_Code.runCurrentEntitySaveAction = () => {
+					$('.save-all', codeContents).click();
+				};
 			});
 		});
 	},
@@ -1486,6 +1475,10 @@ var _Code = {
 
 			Command.get(selection.id, null, (entity) => {
 				_Schema.remoteProperties.appendRemote($('.content-container', codeContents), entity, _Code.schemaNodes);
+
+				_Code.runCurrentEntitySaveAction = () => {
+					$('.save-all', codeContents).click();
+				};
 			});
 		});
 	},
@@ -1503,6 +1496,10 @@ var _Code = {
 
 			Command.get(selection.id, null, (entity) => {
 				_Schema.views.appendViews($('.content-container', codeContents), entity);
+
+				_Code.runCurrentEntitySaveAction = () => {
+					$('.save-all', codeContents).click();
+				};
 			});
 		});
 	},
@@ -1516,7 +1513,6 @@ var _Code = {
 		}
 
 		Structr.fetchHtmlTemplate('code/methods', { identifier: selection }, function(html) {
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 			var data     = { type: 'SchemaMethod', schemaNode: selection.id };
 			var containerId = '#method-actions';
@@ -1603,7 +1599,6 @@ var _Code = {
 			_Code.updateRecentlyUsed(result, selection.updateLocationStack);
 
 			Structr.fetchHtmlTemplate('code/default-view', { view: result }, function(html) {
-				fastRemoveAllChildren(codeContents[0]);
 				codeContents.append(html);
 				_Code.displayDefaultViewOptions(result);
 			});
@@ -1612,7 +1607,6 @@ var _Code = {
 	displayFunctionPropertyDetails: function(property) {
 		Structr.fetchHtmlTemplate('code/function-property', { property: property }, function(html) {
 
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 
 			Structr.activateCommentsInElement(codeContents, {insertAfter: true});
@@ -1625,7 +1619,6 @@ var _Code = {
 	displayCypherPropertyDetails: function(property) {
 
 		Structr.fetchHtmlTemplate('code/cypher-property', { property: property }, function(html) {
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 
 			_Code.editPropertyContent(property, 'format', $('#cypher-code-container'));
@@ -1635,7 +1628,6 @@ var _Code = {
 	displayStringPropertyDetails: function(property) {
 
 		Structr.fetchHtmlTemplate('code/string-property', { property: property }, function(html) {
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 			_Code.displayDefaultPropertyOptions(property);
 		});
@@ -1643,7 +1635,6 @@ var _Code = {
 	displayBooleanPropertyDetails: function(property) {
 
 		Structr.fetchHtmlTemplate('code/boolean-property', { property: property }, function(html) {
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 			_Code.displayDefaultPropertyOptions(property);
 		});
@@ -1651,7 +1642,6 @@ var _Code = {
 	displayDefaultPropertyDetails: function(property) {
 
 		Structr.fetchHtmlTemplate('code/default-property', { property: property }, function(html) {
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 			_Code.displayDefaultPropertyOptions(property);
 		});
