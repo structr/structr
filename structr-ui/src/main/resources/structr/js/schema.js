@@ -1306,7 +1306,7 @@ var _Schema = {
 
 						let message = 'Update properties for ' + entity.name + '?\n\n';
 						message += (counts.new > 0 ? 'Create ' + counts.new + ' properties.\n' : '');
-						message += (counts.delete > 0 ? 'Delete ' + counts.delete + ' properties.\n' : '');
+						message += (counts.delete > 0 ? 'Delete ' + counts.delete + ' properties. (Note: Builtin properties will be restored in their initial configuration!)\n' : '');
 						message += (counts.update > 0 ? 'Update ' + counts.update + ' properties.\n' : '');
 
 						if (confirm(message)) {
