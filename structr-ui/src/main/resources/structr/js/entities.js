@@ -387,7 +387,7 @@ var _Entities = {
 				var contentBox = $('.editor', dialog);
 
 				// Intitialize editor
-				CodeMirror.defineMIME("text/html", "htmlmixed-structr");
+				CodeMirror.defineMIME('text/html', 'htmlmixed-structr');
 				editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
 					value: unescapeTags(innerText),
 					mode: contentType,
@@ -421,11 +421,11 @@ var _Entities = {
 					text2 = editor.getValue();
 					//console.log(text, text2, text === text2);
 					if (text === text2) {
-						dialogSaveButton.prop("disabled", true).addClass('disabled');
-						saveAndClose.prop("disabled", true).addClass('disabled');
+						dialogSaveButton.prop('disabled', true).addClass('disabled');
+						saveAndClose.prop('disabled', true).addClass('disabled');
 					} else {
-						dialogSaveButton.prop("disabled", false).removeClass('disabled');
-						saveAndClose.prop("disabled", false).removeClass('disabled');
+						dialogSaveButton.prop('disabled', false).removeClass('disabled');
+						saveAndClose.prop('disabled', false).removeClass('disabled');
 					}
 
 					_Entities.hideDataHashAttribute(editor);
@@ -436,11 +436,11 @@ var _Entities = {
 					text2 = editor.getValue();
 					//console.log(text, text2, text === text2);
 					if (text === text2) {
-						dialogSaveButton.prop("disabled", true).addClass('disabled');
-						saveAndClose.prop("disabled", true).addClass('disabled');
+						dialogSaveButton.prop('disabled', true).addClass('disabled');
+						saveAndClose.prop('disabled', true).addClass('disabled');
 					} else {
-						dialogSaveButton.prop("disabled", false).removeClass('disabled');
-						saveAndClose.prop("disabled", false).removeClass('disabled');
+						dialogSaveButton.prop('disabled', false).removeClass('disabled');
+						saveAndClose.prop('disabled', false).removeClass('disabled');
 					}
 
 					Command.saveNode(startTag + editor.getValue() + endTag, entity.id, function() {
@@ -452,8 +452,8 @@ var _Entities = {
 								text = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$2').replace(/^\s+|\s+$/g, '');
 								editor.setValue(text);
 
-								dialogSaveButton.prop("disabled", true).addClass('disabled');
-								saveAndClose.prop("disabled", true).addClass('disabled');
+								dialogSaveButton.prop('disabled', true).addClass('disabled');
+								saveAndClose.prop('disabled', true).addClass('disabled');
 								Structr.showAndHideInfoBoxMessage('Node source saved and DOM tree rebuilt.', 'success', 2000, 200);
 
 								if (_Entities.isExpanded(Structr.node(entity.id))) {
