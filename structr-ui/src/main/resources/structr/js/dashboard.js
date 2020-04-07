@@ -183,9 +183,7 @@ var _Dashboard = {
 						display_selected_options: false,
 						hide_results_on_select: false,
 						display_disabled_options: false
-					}).chosenSortable(function() {
-						//_Schema.activateEditModeForViewRow(tr);
-					});
+					}).chosenSortable();
 				});
 
 				_Dashboard.activateLogBox();

@@ -19,9 +19,12 @@
 package org.structr.core.entity;
 
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaNodeView;
 import org.structr.core.entity.relationship.SchemaViewProperty;
 import org.structr.core.graph.ModificationQueue;
@@ -86,5 +89,15 @@ public class SchemaView extends SchemaReloadingNode {
 	@Override
 	public boolean reloadSchemaOnDelete() {
 		return true;
+	}
+
+	@Override
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		super.onModification(securityContext, errorBuffer, modificationQueue);
+
+		if (getProperty(schemaNode) == null) {
+			StructrApp.getInstance().delete(this);
+		}
 	}
 }

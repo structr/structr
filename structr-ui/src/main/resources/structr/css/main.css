@@ -1537,18 +1537,27 @@ button.action.disabled:hover {
 	min-width: 200px;
 }
 
+.schema-props tbody tr:nth-child(odd) {
+	background-color: #f6f6f6;
+}
+
+.schema-props tbody tr:nth-child(even) {
+	background-color: #fff;
+}
+
 .schema-props td {
 	white-space: nowrap;
 	padding: 4px;
 }
 
 .schema-props td input[type="checkbox"] {
-    vertical-align: unset;
+    vertical-align: initial;
 }
 
-.schema-props tr.to-delete {
+.schema-props tbody tr.to-delete {
 	opacity: 0.5;
-	background-color: #999;
+	background-image: linear-gradient(135deg, #ffffff 25%, #b3b3b3 25%, #b3b3b3 50%, #ffffff 50%, #ffffff 75%, #b3b3b3 75%, #b3b3b3 100%);
+	background-size: 20px 20px;
 }
 
 .schema-props i.discard-changes {
@@ -1569,6 +1578,7 @@ button.action.disabled:hover {
 
 .schema-props td label {
 	min-width: 100px;
+	display: inline-block;
 }
 
 .schema-props tfoot .actions-col {
@@ -2549,6 +2559,7 @@ input.property-name:disabled {
 
 .schema-details .add-icon:hover, #code-main .add-icon:hover,
 .schema-details .remove-icon:hover, #code-main .remove-icon:hover,
+.schema-details .reset-icon:hover, #code-main .reset-icon:hover,
 .schema-details .discard-icon:hover, #code-main .discard-icon:hover,
 .schema-details .create-icon:hover, #code-main .create-icon:hover,
 .schema-details .edit-icon:hover, #code-main .edit-icon:hover,
@@ -3744,6 +3755,11 @@ input.tree-search-input:focus {
 
 #code-contents .schema-props {
 	table-layout: auto;
+	border: none;
+}
+
+#code-contents .schema-props .chosen-choices {
+	border: none;
 }
 
  #flows-canvas {
@@ -3907,7 +3923,9 @@ button.create-form-button.accept {
 	width: 226px;
 }
 
-#code-contents label {
+#code-contents #property-options label,
+#code-contents #method-options label,
+#code-contents #view-options label {
 	width: 100%;
 	padding: 4px 0 4px 0;
 	display: inline-block;

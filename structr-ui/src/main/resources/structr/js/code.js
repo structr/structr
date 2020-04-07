@@ -217,9 +217,12 @@ var _Code = {
 			}
 		}
 	},
-	dirty: false,
 	isDirty: function() {
-		return _Code.dirty;
+		let isDirty = false;
+		if (codeContents) {
+			isDirty = (codeContents.find('.to-delete').length + codeContents.find('.has-changes').length) > 0;
+		}
+		return isDirty;
 	},
 	updateDirtyFlag: function(entity) {
 
@@ -234,7 +237,11 @@ var _Code = {
 			$('#action-button-cancel').addClass('disabled').attr('disabled', 'disabled');
 		}
 
-		_Code.dirty = (dirty === true);
+		if (dirty === true) {
+			codeContents.children().first().addClass('has-changes');
+		} else {
+			codeContents.children().first().removeClass('has-changes');
+		}
 	},
 	testAllowNavigation: function() {
 		if (_Code.isDirty()) {
@@ -366,10 +373,12 @@ var _Code = {
 				}
 			}
 		}
-
 	},
 	runCurrentEntitySaveAction: function () {
-		alert('Save action triggered before set up!');
+		// this is the default action - it should always be overwritten by specific save actions and is only here to prevent errors
+		if (_Code.isDirty()) {
+			new MessageBuilder().warning('No save action is defined - but the editor is dirty!').requiresConfirmation().show();
+		}
 	},
 	saveEntityAction:function(entity, callback) {
 
@@ -624,7 +633,7 @@ var _Code = {
 						});
 
 						children.push({
-							id: 'inherited-' + entity.id,
+							id: 'inheritedproperties-' + entity.id + '-' + entity.name,
 							text: 'Inherited Attributes',
 							children: true,
 							icon: 'fa fa-sliders gray',
@@ -734,7 +743,7 @@ var _Code = {
 				var identifier = _Code.splitIdentifier(id);
 				switch (identifier.type) {
 
-					case 'inherited':
+					case 'inheritedproperties':
 						Command.listSchemaProperties(identifier.id, 'custom', function(result) {
 							var filtered = result.filter(function(p) {
 								return p.declaringClass !== obj.data.type;
@@ -1026,6 +1035,7 @@ var _Code = {
 			case "Long":         icon = 'calculator'; break;
 			case 'String':       icon = 'pencil-square-o'; break;
 			case 'Encrypted':    icon = 'lock'; break;
+			default:             icon = 'chain';
 		}
 
 		return icon;
@@ -1133,7 +1143,6 @@ var _Code = {
 
 			// clear page
 			_Code.clearMainArea();
-
 			var identifier = _Code.splitIdentifier(data.id);
 			switch (identifier.type) {
 
@@ -1181,31 +1190,15 @@ var _Code = {
 					_Code.displayMethodsContent(identifier, data.updateLocationStack);
 					break;
 
-				// outgoing relationships (with uuid)
-				case 'outgoing':
-					_Code.displayOutgoingRelationshipsContent(identifier);
-					break;
-
-				// incoming relationships (with uuid)
-				case 'incoming':
-					_Code.displayIncomingRelationshipsContent(identifier);
-					break;
-
-				// outgoing relationship (with uuid)
-				case 'out':
-					_Code.displayOutRelationshipContent(identifier);
-					break;
-
-				// incoming relationship (with uuid)
-				case 'in':
-					_Code.displayInRelationshipContent(identifier);
+				case 'inheritedproperties':
+					_Code.displayInheritedPropertiesContent(identifier, data.updateLocationStack);
 					break;
 
 				case 'inherited':
 					if (identifier.isBuiltinType) {
-						_Code.findAndOpenNode('Types/Built-In/' + identifier.base + '/Properties/' + identifier.property, true);
+						_Code.findAndOpenNode('Types/Built-In/' + identifier.base + '/Local Attributes/' + identifier.property, true);
 					} else {
-						_Code.findAndOpenNode('Types/Custom/' + identifier.base + '/Properties/' + identifier.property, true);
+						_Code.findAndOpenNode('Types/Custom/' + identifier.base + '/Local Attributes/' + identifier.property, true);
 					}
 					break;
 
@@ -1236,7 +1229,6 @@ var _Code = {
 					Command.get(identifier.id, null, function(result) {
 						_Code.updateRecentlyUsed(result, data.updateLocationStack);
 						Structr.fetchHtmlTemplate('code/method', { method: result }, function(html) {
-							fastRemoveAllChildren(codeContents[0]);
 							codeContents.append(html);
 
 							LSWrapper.setItem(codeLastOpenMethodKey, result.id);
@@ -1278,12 +1270,7 @@ var _Code = {
 			_Code.updateRecentlyUsed(result, data.updateLocationStack);
 			Structr.fetchHtmlTemplate('code/type', { type: result }, function(html) {
 
-				fastRemoveAllChildren(codeContents[0]);
 				codeContents.append(html);
-
-				var propertyData   = { type: 'SchemaProperty', schemaNode: identifier.id };
-				var methodData     = { type: 'SchemaMethod', schemaNode: identifier.id };
-				var methodParent   = '#method-actions';
 
 				// delete button
 				if (!result.isBuiltinType) {
@@ -1291,12 +1278,6 @@ var _Code = {
 						_Code.deleteSchemaEntity(result, 'Delete type ' + result.name + '?', 'This will delete all schema relationships as well, but no data will be removed.');
 					});
 				}
-
-				_Code.displayCreateButton('#view-actions', 'fa fa-tv', 'new-view', 'Add view', '', { type: 'SchemaView', schemaNode: result.id });
-
-				_Code.displayCreateMethodButton(methodParent, 'onCreate', methodData, 'onCreate');
-				_Code.displayCreateMethodButton(methodParent, 'onSave',   methodData, 'onSave');
-				_Code.displayCreateMethodButton(methodParent, 'schema',   methodData, '');
 			});
 		});
 	},
@@ -1353,7 +1334,6 @@ var _Code = {
 
 		Structr.fetchHtmlTemplate('code/root', { }, function(html) {
 
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 
 			var layouter          = new SigmaLayouter('all-types');
@@ -1399,7 +1379,6 @@ var _Code = {
 
 		Structr.fetchHtmlTemplate('code/type-context', { entity: entity }, function(html) {
 
-			fastRemoveAllChildren(codeContext[0]);
 			codeContext.append(html);
 
 			$('#schema-node-name').off('blur').on('blur', function() {
@@ -1420,7 +1399,6 @@ var _Code = {
 	},
 	displayCustomTypesContent: function(data) {
 		Structr.fetchHtmlTemplate('code/custom', { }, function(html) {
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 
 			// create button
@@ -1438,7 +1416,6 @@ var _Code = {
 	},
 	displayBuiltInTypesContent: function() {
 		Structr.fetchHtmlTemplate('code/builtin', { }, function(html) {
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 			var container = $('#builtin-types');
 			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { isBuiltinType: true}, function(result) {
@@ -1453,22 +1430,34 @@ var _Code = {
 	},
 	displayGlobalMethodsContent: function() {
 		Structr.fetchHtmlTemplate('code/globals', { }, function(html) {
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 			_Code.displayCreateButton('#method-actions', 'fa fa-magic', 'new', 'Add global schema method', '', { type: 'SchemaMethod' });
 		});
 	},
 	displayPropertiesContent: function(selection, updateLocationStack) {
 
-		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Properties';
+		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Local Attributes';
 
 		if (updateLocationStack === true) {
 			_Code.updatePathLocationStack(path);
 			_Code.lastClickedPath = path;
 		}
 
-		Command.get(selection.id, null, (entity) => {
-			_Schema.properties.appendLocalProperties(codeContents, entity);
+		Structr.fetchHtmlTemplate('code/properties.local', { identifier: selection }, function(html) {
+
+			codeContents.append(html);
+
+			Command.get(selection.id, null, (entity) => {
+				_Schema.properties.appendLocalProperties($('.content-container', codeContents), entity, {
+					editReadWriteFunction: (property) => {
+						_Code.handleSelection(property);
+					}
+				});
+
+				_Code.runCurrentEntitySaveAction = () => {
+					$('.save-all', codeContents).click();
+				};
+			});
 		});
 	},
 	displayRemotePropertiesContent: function (selection, updateLocationStack) {
@@ -1480,10 +1469,18 @@ var _Code = {
 			_Code.lastClickedPath = path;
 		}
 
-		Command.get(selection.id, null, (entity) => {
-			_Schema.remoteProperties.appendRemote(codeContents, entity, _Code.schemaNodes);
-		});
+		Structr.fetchHtmlTemplate('code/properties.remote', { identifier: selection }, function(html) {
 
+			codeContents.append(html);
+
+			Command.get(selection.id, null, (entity) => {
+				_Schema.remoteProperties.appendRemote($('.content-container', codeContents), entity, _Code.schemaNodes);
+
+				_Code.runCurrentEntitySaveAction = () => {
+					$('.save-all', codeContents).click();
+				};
+			});
+		});
 	},
 	displayViewsContent: function(selection, updateLocationStack) {
 
@@ -1495,37 +1492,29 @@ var _Code = {
 		}
 
 		Structr.fetchHtmlTemplate('code/views', { identifier: selection }, function(html) {
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 
-			var callback = function() { _Code.displayViewsContent(selection); };
-			var data     = { type: 'SchemaViews', schemaNode: selection.id };
+			Command.get(selection.id, null, (entity) => {
+				_Schema.views.appendViews($('.content-container', codeContents), entity);
 
-			_Code.displayCreateButton('#view-actions', 'fa fa-tv', 'new-view', 'Add view', '', data, callback);
-
-			// list of existing properties
-			Command.query('SchemaView', 10000, 1, 'name', 'asc', { schemaNode: selection.id }, function(result) {
-				result.forEach(function(t) {
-					_Code.displayActionButton('#existing-views', 'fa fa-' + _Code.getIconForNodeType(t), t.id, t.name, function() {
-						_Code.findAndOpenNode(path + '/' + t.name);
-					});
-				});
-			}, true);
+				_Code.runCurrentEntitySaveAction = () => {
+					$('.save-all', codeContents).click();
+				};
+			});
 		});
 	},
-	displayMethodsContent: function(identifier, updateLocationStack) {
+	displayMethodsContent: function(selection, updateLocationStack) {
 
-		var path = 'Types/' + _Code.getPathComponent(identifier) + '/' + identifier.base + '/Methods';
+		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Methods';
 
 		if (updateLocationStack === true) {
 			_Code.updatePathLocationStack(path);
 			_Code.lastClickedPath = path;
 		}
 
-		Structr.fetchHtmlTemplate('code/methods', { identifier: identifier }, function(html) {
-			fastRemoveAllChildren(codeContents[0]);
+		Structr.fetchHtmlTemplate('code/methods', { identifier: selection }, function(html) {
 			codeContents.append(html);
-			var data     = { type: 'SchemaMethod', schemaNode: identifier.id };
+			var data     = { type: 'SchemaMethod', schemaNode: selection.id };
 			var containerId = '#method-actions';
 
 			_Code.displayCreateButton(containerId, 'fa fa-magic', 'on-create',    'Add onCreate method',    'onCreate',    data);
@@ -1534,7 +1523,7 @@ var _Code = {
 			_Code.displayCreateButton(containerId, 'fa fa-magic', 'new',          'Add schema method',      '',            data);
 
 			// list of existing properties
-			Command.query('SchemaMethod', 10000, 1, 'name', 'asc', { schemaNode: identifier.id }, function(result) {
+			Command.query('SchemaMethod', 10000, 1, 'name', 'asc', { schemaNode: selection.id }, function(result) {
 				result.forEach(function(t) {
 					_Code.displayActionButton('#existing-methods', 'fa fa-' + _Code.getIconForNodeType(t), t.id, t.name, function() {
 						_Code.findAndOpenNode(path + '/' + t.name);
@@ -1543,24 +1532,21 @@ var _Code = {
 			}, true);
 		});
 	},
-	displayOutgoingRelationshipsContent: function(identifier) {
-		Structr.fetchHtmlTemplate('code/outgoing-relationships', { identifier: identifier }, function(html) {
+	displayInheritedPropertiesContent: function(selection, updateLocationStack) {
+
+		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Inherited';
+
+		if (updateLocationStack === true) {
+			_Code.updatePathLocationStack(path);
+			_Code.lastClickedPath = path;
+		}
+
+		Structr.fetchHtmlTemplate('code/properties.inherited', { identifier: selection }, function(html) {
 			codeContents.append(html);
-		});
-	},
-	displayIncomingRelationshipsContent: function(identifier) {
-		Structr.fetchHtmlTemplate('code/incoming-relationships', { identifier: identifier }, function(html) {
-			codeContents.append(html);
-		});
-	},
-	displayOutRelationshipContent: function(identifier) {
-		Structr.fetchHtmlTemplate('code/outgoing-relationship', { identifier: identifier }, function(html) {
-			codeContents.append(html);
-		});
-	},
-	displayInRelationshipContent: function(identifier) {
-		Structr.fetchHtmlTemplate('code/incoming-relationship', { identifier: identifier }, function(html) {
-			codeContents.append(html);
+
+			Command.get(selection.id, null, (entity) => {
+				_Schema.properties.appendBuiltinProperties($('.content-container', codeContents), entity);
+			});
 		});
 	},
 	displayPropertyDetails: function(selection) {
@@ -1613,7 +1599,6 @@ var _Code = {
 			_Code.updateRecentlyUsed(result, selection.updateLocationStack);
 
 			Structr.fetchHtmlTemplate('code/default-view', { view: result }, function(html) {
-				fastRemoveAllChildren(codeContents[0]);
 				codeContents.append(html);
 				_Code.displayDefaultViewOptions(result);
 			});
@@ -1622,7 +1607,6 @@ var _Code = {
 	displayFunctionPropertyDetails: function(property) {
 		Structr.fetchHtmlTemplate('code/function-property', { property: property }, function(html) {
 
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 
 			Structr.activateCommentsInElement(codeContents, {insertAfter: true});
@@ -1635,7 +1619,6 @@ var _Code = {
 	displayCypherPropertyDetails: function(property) {
 
 		Structr.fetchHtmlTemplate('code/cypher-property', { property: property }, function(html) {
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 
 			_Code.editPropertyContent(property, 'format', $('#cypher-code-container'));
@@ -1645,7 +1628,6 @@ var _Code = {
 	displayStringPropertyDetails: function(property) {
 
 		Structr.fetchHtmlTemplate('code/string-property', { property: property }, function(html) {
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 			_Code.displayDefaultPropertyOptions(property);
 		});
@@ -1653,7 +1635,6 @@ var _Code = {
 	displayBooleanPropertyDetails: function(property) {
 
 		Structr.fetchHtmlTemplate('code/boolean-property', { property: property }, function(html) {
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 			_Code.displayDefaultPropertyOptions(property);
 		});
@@ -1661,7 +1642,6 @@ var _Code = {
 	displayDefaultPropertyDetails: function(property) {
 
 		Structr.fetchHtmlTemplate('code/default-property', { property: property }, function(html) {
-			fastRemoveAllChildren(codeContents[0]);
 			codeContents.append(html);
 			_Code.displayDefaultPropertyOptions(property);
 		});
@@ -1769,10 +1749,8 @@ var _Code = {
 			});
 
 			// delete button
-			let removeIcon = (view.isBuiltinView ? _Icons.arrow_undo_icon : _Icons.delete_icon);
-			let removeText = (view.isBuiltinView ? 'Reset view' : 'Delete view');
-			_Code.displayActionButton('#view-actions', _Icons.getFullSpriteClass(removeIcon), 'delete', removeText, function() {
-				_Code.deleteSchemaEntity(view, removeText + ' ' + view.name + '?', 'No data will be removed.');
+			_Code.displayActionButton('#view-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete view', function() {
+				_Code.deleteSchemaEntity(view, 'Delete view' + ' ' + view.name + '?', 'Note: Builtin views will be restored in their initial configuration');
 			});
 
 			_Code.updateDirtyFlag(view);
@@ -1839,10 +1817,7 @@ var _Code = {
 				hide_results_on_select: false,
 				display_disabled_options: false
 			}).on('change', function(e,p) {
-				// schedule because otherwise the sortable does not know something has been removed
-				window.setTimeout(()=> {
-					changeFn();
-				}, 0);
+				changeFn();
 			}).chosenSortable(function() {
 				changeFn();
 			});
@@ -1867,11 +1842,9 @@ var _Code = {
 			});
 
 			// delete button
-			if (!method.schemaNode || !method.schemaNode.isBuiltinType) {
-				_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete method', function() {
-					_Code.deleteSchemaEntity(method, 'Delete method ' + method.name + '?');
-				});
-			}
+			_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete method', function() {
+				_Code.deleteSchemaEntity(method, 'Delete method ' + method.name + '?', 'Note: Builtin methods will be restored in their initial configuration');
+			});
 
 			// run button
 			if (!method.schemaNode && !method.isPartOfBuiltInSchema) {
@@ -1892,34 +1865,6 @@ var _Code = {
 
 			if (typeof callback === 'function') {
 				callback();
-			}
-		});
-	},
-	lockPropertyOptions: function() {
-		$('#property-options').find('input').attr('disabled', true);
-	},
-	unlockPropertyOptions: function() {
-		$('#property-options').find('input').attr('disabled', false);
-	},
-	activatePropertyValueInput: function(inputId, id, name) {
-		$('input#' + inputId).on('blur', function() {
-
-			if (_Code.testAllowNavigation()) {
-
-				var elem     = $(this);
-				var previous = elem.attr('value');
-				if (previous !== elem.val()) {
-					var data   = {};
-					data[name] = elem.val();
-					_Code.lockPropertyOptions();
-					_Code.showSchemaRecompileMessage();
-					Command.setProperties(id, data, function() {
-						_Code.unlockPropertyOptions();
-						blinkGreen(elem);
-						_Code.refreshTree();
-						_Code.hideSchemaRecompileMessage();
-					});
-				}
 			}
 		});
 	},
@@ -1981,6 +1926,7 @@ var _Code = {
 					_Code.showSchemaRecompileMessage();
 					Command.create(data, function() {
 						_Code.refreshTree();
+						_Code.clearMainArea();
 						_Code.displayCustomTypesContent();
 						_Code.hideSchemaRecompileMessage();
 					});
@@ -2259,7 +2205,7 @@ var _Code = {
 				path.push('Types');
 				path.push(getPathComponent(entity.schemaNode));
 				path.push(entity.schemaNode.name);
-				path.push('Properties');
+				path.push('Local Attributes');
 				path.push(entity.name);
 				break;
 
