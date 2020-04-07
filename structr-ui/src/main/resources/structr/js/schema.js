@@ -17,7 +17,7 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var canvas, instance, res, nodes = {}, rels = {}, localStorageSuffix = '_schema_' + port, undefinedRelType = 'UNDEFINED_RELATIONSHIP_TYPE', initialRelType = undefinedRelType;
-var maxZ = 0, reload = false;
+var reload = false;
 var schemaContainer;
 var inheritanceTree, inheritanceSlideout;
 
@@ -50,11 +50,7 @@ var _Schema = {
 	_moduleName: 'schema',
 	schemaLoading: false,
 	schemaLoaded: false,
-	connectorStyle: undefined,
-	zoomLevel: undefined,
 	nodePositions: undefined,
-	selectedRel: undefined,
-	relHighlightColor: 'red',
 	availableTypeNames: [],
 	hiddenSchemaNodes: [],
 	hiddenSchemaNodesKey: 'structrHiddenSchemaNodes_' + port,
@@ -66,12 +62,6 @@ var _Schema = {
 	activeSchemaToolsSelectedVisibilityTab: 'activeSchemaToolsSelectedVisibilityTab_' + port,
 	schemaZoomLevelKey: localStorageSuffix + 'zoomLevel',
 	schemaConnectorStyleKey: localStorageSuffix + 'connectorStyle',
-	selectionInProgress: false,
-	selectBox: undefined,
-	mouseDownCoords: {x:0, y:0},
-	mouseUpCoords: {x:0, y:0},
-	nodeDragStartpoint: undefined,
-	selectedNodes: [],
 	typeOptions: '<select class="property-type"><option value="">--Select--</option>'
 		+ '<option value="String">String</option>'
 		+ '<option value="Encrypted">Encrypted</option>'
@@ -131,8 +121,8 @@ var _Schema = {
 			var node = $(n);
 			var type = node.text();
 			var obj = node.offset();
-			obj.left = (obj.left - canvas.offset().left) / _Schema.zoomLevel;
-			obj.top  = (obj.top  - canvas.offset().top)  / _Schema.zoomLevel;
+			obj.left = (obj.left - canvas.offset().left) / _Schema.ui.zoomLevel;
+			obj.top  = (obj.top  - canvas.offset().top)  / _Schema.ui.zoomLevel;
 			_Schema.nodePositions[type] = obj;
 		});
 
@@ -153,18 +143,18 @@ var _Schema = {
 
 		var schemaInputContainer = $('.schema-input-container');
 
-		_Schema.connectorStyle = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
-		_Schema.zoomLevel = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
+		_Schema.ui.connectorStyle = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
+		_Schema.ui.zoomLevel = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
 
 		schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="action btn"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add</button></div>');
 
 		schemaInputContainer.append('<select id="connector-style"></select>');
 		['Flowchart', 'Bezier', 'StateMachine', 'Straight'].forEach(function(style) {
-			$('#connector-style').append('<option value="' + style + '" ' + (style === _Schema.connectorStyle ? 'selected="selected"' : '') + '>' + style + '</option>');
+			$('#connector-style').append('<option value="' + style + '" ' + (style === _Schema.ui.connectorStyle ? 'selected="selected"' : '') + '>' + style + '</option>');
 		});
 		$('#connector-style').off('change').on('change', function() {
 			var newStyle = $(this).val();
-			_Schema.connectorStyle = newStyle;
+			_Schema.ui.connectorStyle = newStyle;
 			LSWrapper.setItem(_Schema.schemaConnectorStyleKey, newStyle);
 			_Schema.reload();
 		});
@@ -174,13 +164,13 @@ var _Schema = {
 			min:0.25,
 			max:1,
 			step:0.05,
-			value:_Schema.zoomLevel,
+			value:_Schema.ui.zoomLevel,
 			slide: function( event, ui ) {
-				_Schema.zoomLevel = ui.value;
-				LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.zoomLevel);
-				_Schema.setZoom(_Schema.zoomLevel, instance, [0,0], $('#schema-graph')[0]);
-				if (_Schema.selectedNodes.length > 0) {
-					_Schema.updateSelectedNodes();
+				_Schema.ui.zoomLevel = ui.value;
+				LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.ui.zoomLevel);
+				_Schema.ui.setZoom(_Schema.ui.zoomLevel, instance, [0,0], $('#schema-graph')[0]);
+				if (_Schema.ui.selectedNodes.length > 0) {
+					_Schema.ui.updateSelectedNodes();
 				}
 				_Schema.resize();
 			}
@@ -192,7 +182,7 @@ var _Schema = {
 		schemaInputContainer.append(' <select id="saved-layout-selector-main"></select> <button class="btn schema-tool-button action" id="restore-schema-layout"><i class="' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" /> Apply Layout</button>');
 
 		$('#schema-show-overlays').off('change').on('change', function() {
-			_Schema.updateOverlayVisibility($(this).prop('checked'));
+			_Schema.ui.updateOverlayVisibility($(this).prop('checked'));
 		});
 		$('#schema-tools').off('click').on('click', _Schema.openSchemaToolsDialog);
 		$('#global-schema-methods').off('click').on('click', _Schema.methods.showGlobalSchemaMethods);
@@ -247,7 +237,7 @@ var _Schema = {
 
 			_Schema.loadSchema(function() {
 
-				$('.node').css({zIndex: ++maxZ});
+				$('.node').css({zIndex: ++_Schema.ui.maxZ});
 
 				instance.bind('connection', function(info, originalEvent) {
 
@@ -266,28 +256,28 @@ var _Schema = {
 				});
 				reload = false;
 
-				_Schema.setZoom(_Schema.zoomLevel, instance, [0,0], $('#schema-graph')[0]);
+				_Schema.ui.setZoom(_Schema.ui.zoomLevel, instance, [0,0], $('#schema-graph')[0]);
 
 				$('._jsPlumb_connector').click(function(e) {
 					e.stopPropagation();
-					_Schema.selectRel($(this));
+					_Schema.ui.selectRel($(this));
 				});
 
 				canvas.off('mousedown').on('mousedown', function(e) {
 					if (e.which === 1) {
-						_Schema.clearSelection();
-						_Schema.selectionStart(e);
+						_Schema.ui.clearSelection();
+						_Schema.ui.selectionStart(e);
 					}
 				});
 
 				canvas.off('mousemove').on('mousemove', function(e) {
 					if (e.which === 1) {
-						_Schema.selectionDrag(e);
+						_Schema.ui.selectionDrag(e);
 					}
 				});
 
 				canvas.off('mouseup').on('mouseup', function(e) {
-					_Schema.selectionStop();
+					_Schema.ui.selectionStop();
 				});
 
 				_Schema.resize();
@@ -296,7 +286,7 @@ var _Schema = {
 
 				var overlaysVisible = LSWrapper.getItem(_Schema.showSchemaOverlaysKey);
 				var showSchemaOverlays = (overlaysVisible === null) ? true : overlaysVisible;
-				_Schema.updateOverlayVisibility(showSchemaOverlays);
+				_Schema.ui.updateOverlayVisibility(showSchemaOverlays);
 
 				if (scrollPosition) {
 					window.scrollTo(scrollPosition.x, scrollPosition.y);
@@ -319,111 +309,6 @@ var _Schema = {
 	hideSchemaRecompileMessage:  function() {
 		Structr.hideNonBlockUILoadingMessage();
 	},
-	selectRel: function(rel) {
-		_Schema.clearSelection();
-
-		_Schema.selectedRel = rel;
-		_Schema.selectedRel.css({zIndex: ++maxZ});
-		_Schema.selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++maxZ, border: '1px solid ' + _Schema.relHighlightColor, borderRadius:'2px', background: 'rgba(255, 255, 255, 1)'});
-		var pathElements = _Schema.selectedRel.find('path');
-		pathElements.css({stroke: _Schema.relHighlightColor});
-		$(pathElements[1]).css({fill: _Schema.relHighlightColor});
-	},
-	clearSelection: function() {
-		// deselect selected node
-		$('.node', canvas).removeClass('selected');
-		_Schema.selectionStop();
-
-		// deselect selected Relationship
-		if (_Schema.selectedRel) {
-			_Schema.selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({border:'', borderRadius:'', background: 'rgba(255, 255, 255, .8)'});
-			var pathElements = _Schema.selectedRel.find('path');
-			pathElements.css({stroke: '', fill: ''});
-			$(pathElements[1]).css('fill', '');
-			_Schema.selectedRel = undefined;
-		}
-	},
-	selectionStart: function(e) {
-		canvas.addClass('noselect');
-		_Schema.selectionInProgress = true;
-		var schemaOffset = canvas.offset();
-		_Schema.mouseDownCoords.x = e.pageX - schemaOffset.left;
-		_Schema.mouseDownCoords.y = e.pageY - schemaOffset.top;
-	},
-	selectionDrag: function(e) {
-		if (_Schema.selectionInProgress === true) {
-			var schemaOffset = canvas.offset();
-			_Schema.mouseUpCoords.x = e.pageX - schemaOffset.left;
-			_Schema.mouseUpCoords.y = e.pageY - schemaOffset.top;
-			_Schema.drawSelectElem();
-		}
-	},
-	selectionStop: function() {
-		_Schema.selectionInProgress = false;
-		if (_Schema.selectBox) {
-			_Schema.selectBox.remove();
-			_Schema.selectBox = undefined;
-		}
-		_Schema.updateSelectedNodes();
-		canvas.removeClass('noselect');
-	},
-	updateSelectedNodes: function() {
-		_Schema.selectedNodes = [];
-		var canvasOffset = canvas.offset();
-		$('.node.selected', canvas).each(function(idx, el) {
-			var $el = $(el);
-			var elementOffset = $el.offset();
-			_Schema.selectedNodes.push({
-				nodeId: $el.attr('id'),
-				name: $el.children('b').text(),
-				pos: {
-					top:  (elementOffset.top  - canvasOffset.top ),
-					left: (elementOffset.left - canvasOffset.left)
-				}
-			});
-		});
-	},
-	drawSelectElem: function() {
-		if (!_Schema.selectBox || !_Schema.selectBox.length) {
-			canvas.append('<svg id="schema-graph-select-box"><path version="1.1" xmlns="http://www.w3.org/1999/xhtml" fill="none" stroke="#aaa" stroke-width="5"></path></svg>');
-			_Schema.selectBox = $('#schema-graph-select-box');
-		}
-		var cssRect = {
-			position: 'absolute',
-			top:    Math.min(_Schema.mouseDownCoords.y, _Schema.mouseUpCoords.y)  / _Schema.zoomLevel,
-			left:   Math.min(_Schema.mouseDownCoords.x, _Schema.mouseUpCoords.x)  / _Schema.zoomLevel,
-			width:  Math.abs(_Schema.mouseDownCoords.x - _Schema.mouseUpCoords.x) / _Schema.zoomLevel,
-			height: Math.abs(_Schema.mouseDownCoords.y - _Schema.mouseUpCoords.y) / _Schema.zoomLevel
-		};
-		_Schema.selectBox.css(cssRect);
-		_Schema.selectBox.find('path').attr('d', 'm 0 0 h ' + cssRect.width + ' v ' + cssRect.height + ' h ' + (-cssRect.width) + ' v ' + (-cssRect.height) + ' z');
-		_Schema.selectNodesInRect(cssRect);
-	},
-	selectNodesInRect: function(selectionRect) {
-		_Schema.selectedNodes = [];
-
-		$('.node', canvas).each(function(idx, el) {
-			var $el = $(el);
-			if (_Schema.isElemInSelection($el, selectionRect)) {
-				_Schema.selectedNodes.push($el);
-				$el.addClass('selected');
-			} else {
-				$el.removeClass('selected');
-			}
-		});
-	},
-	isElemInSelection: function($el, selectionRect) {
-		var elPos = $el.offset();
-		elPos.top /= _Schema.zoomLevel;
-		elPos.left /= _Schema.zoomLevel;
-		var schemaOffset = canvas.offset();
-		return !(
-			(elPos.top) > (selectionRect.top + schemaOffset.top / _Schema.zoomLevel + selectionRect.height) ||
-			elPos.left > (selectionRect.left + schemaOffset.left / _Schema.zoomLevel + selectionRect.width) ||
-			(elPos.top + $el.innerHeight()) < (selectionRect.top + schemaOffset.top / _Schema.zoomLevel) ||
-			(elPos.left + $el.innerWidth()) < (selectionRect.left + schemaOffset.left / _Schema.zoomLevel)
-		);
-	},
 	onload: function() {
 		main.append(
 			'<div id="inheritance-tree" class="slideOut slideOutLeft"><div class="compTab" id="inheritanceTab">Inheritance Tree</div>Search: <input type="text" id="search-classes"><div id="inheritance-tree-container" class="ver-scrollable hidden"></div></div>'
@@ -438,7 +323,7 @@ var _Schema = {
 			$('.ver-scrollable').css({
 				height: (windowHeight - inheritanceTree.offset().top - 25) + 'px'
 			});
-			canvas.css('transform', _Schema.getSchemaCSSTransform());
+			canvas.css('transform', _Schema.ui.getSchemaCSSTransform());
 			_Schema.resize();
 		};
 
@@ -463,7 +348,6 @@ var _Schema = {
 		_Schema.loadNodes(function() {
 			_Schema.loadRels(callback);
 		});
-
 	},
 	processSchemaRecompileNotification: function () {
 
@@ -686,7 +570,7 @@ var _Schema = {
 					}
 
 					node.off('mousedown').on('mousedown', function() {
-						node.css({zIndex: ++maxZ});
+						node.css({zIndex: ++_Schema.ui.maxZ});
 					});
 
 					var getX = function() {
@@ -755,7 +639,7 @@ var _Schema = {
 						start: function(ui) {
 							var nodeOffset   = $(ui.el).offset();
 							var canvasOffset = canvas.offset();
-							_Schema.nodeDragStartpoint = {
+							_Schema.ui.nodeDragStartpoint = {
 								top:  (nodeOffset.top  - canvasOffset.top ),
 								left: (nodeOffset.left - canvasOffset.left)
 							};
@@ -766,7 +650,7 @@ var _Schema = {
 
 							if (!$element.hasClass('selected')) {
 
-								_Schema.clearSelection();
+								_Schema.ui.clearSelection();
 
 							} else {
 
@@ -774,11 +658,11 @@ var _Schema = {
 								var canvasOffset = canvas.offset();
 
 								var posDelta = {
-									top:  (_Schema.nodeDragStartpoint.top  - nodeOffset.top ),
-									left: (_Schema.nodeDragStartpoint.left - nodeOffset.left)
+									top:  (_Schema.ui.nodeDragStartpoint.top  - nodeOffset.top ),
+									left: (_Schema.ui.nodeDragStartpoint.left - nodeOffset.left)
 								};
 
-								_Schema.selectedNodes.forEach(function(selectedNode) {
+								_Schema.ui.selectedNodes.forEach(function(selectedNode) {
 									if (selectedNode.nodeId !== $element.attr('id')) {
 										$('#' + selectedNode.nodeId).offset({
 											top:  (selectedNode.pos.top  - posDelta.top  > canvasOffset.top ) ? (selectedNode.pos.top  - posDelta.top ) : canvasOffset.top,
@@ -792,7 +676,7 @@ var _Schema = {
 						},
 						stop: function() {
 							_Schema.storePositions();
-							_Schema.updateSelectedNodes();
+							_Schema.ui.updateSelectedNodes();
 							_Schema.resize();
 						}
 					});
@@ -838,7 +722,7 @@ var _Schema = {
 
 			method(entity, dialogHead, dialogText, targetView);
 
-			_Schema.clearSelection();
+			_Schema.ui.clearSelection();
 		});
 
 	},
@@ -879,7 +763,7 @@ var _Schema = {
 						target: nodes[res.targetId + '_top'],
 						deleteEndpointsOnDetach: false,
 						scope: res.id,
-						connector: [_Schema.connectorStyle, {curviness: 200, cornerRadius: 25, stub: [stub, 30], gap: 6, alwaysRespectStubs: true }],
+						connector: [_Schema.ui.connectorStyle, {curviness: 200, cornerRadius: 25, stub: [stub, 30], gap: 6, alwaysRespectStubs: true }],
 						paintStyle: { lineWidth: 5, strokeStyle: res.permissionPropagation !== 'None' ? "#ffad25" : "#81ce25" },
 						overlays: [
 							["Label", {
@@ -3233,8 +3117,8 @@ var _Schema = {
 				var suffix = $('#snapshot-suffix').val();
 
 				var types = [];
-				if (_Schema.selectedNodes && _Schema.selectedNodes.length) {
-					_Schema.selectedNodes.forEach(function(selectedNode) {
+				if (_Schema.ui.selectedNodes && _Schema.ui.selectedNodes.length) {
+					_Schema.ui.selectedNodes.forEach(function(selectedNode) {
 						types.push(selectedNode.name);
 					});
 
@@ -3565,12 +3449,12 @@ var _Schema = {
 				switch (loadedConfig._version) {
 					case 2: {
 
-						_Schema.zoomLevel = loadedConfig.zoom;
-						LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.zoomLevel);
-						_Schema.setZoom(_Schema.zoomLevel, instance, [0,0], $('#schema-graph')[0]);
-						$( "#zoom-slider" ).slider('value', _Schema.zoomLevel);
+						_Schema.ui.zoomLevel = loadedConfig.zoom;
+						LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.ui.zoomLevel);
+						_Schema.ui.setZoom(_Schema.ui.zoomLevel, instance, [0,0], $('#schema-graph')[0]);
+						$( "#zoom-slider" ).slider('value', _Schema.ui.zoomLevel);
 
-						_Schema.updateOverlayVisibility(loadedConfig.showRelLabels);
+						_Schema.ui.updateOverlayVisibility(loadedConfig.showRelLabels);
 
 						var hiddenTypes = loadedConfig.hiddenTypes;
 
@@ -3591,7 +3475,7 @@ var _Schema = {
 
 						var connectorStyle = loadedConfig.connectorStyle;
 						$('#connector-style').val(connectorStyle);
-						_Schema.connectorStyle = connectorStyle;
+						_Schema.ui.connectorStyle = connectorStyle;
 						LSWrapper.setItem(_Schema.schemaConnectorStyleKey, connectorStyle);
 
 						var positions = loadedConfig.positions;
@@ -3647,8 +3531,8 @@ var _Schema = {
 			_version: 2,
 			positions: _Schema.nodePositions,
 			hiddenTypes: _Schema.hiddenSchemaNodes,
-			zoom: _Schema.zoomLevel,
-			connectorStyle: _Schema.connectorStyle,
+			zoom: _Schema.ui.zoomLevel,
+			connectorStyle: _Schema.ui.connectorStyle,
 			showRelLabels: $('#schema-show-overlays').prop('checked')
 		};
 	},
@@ -3829,43 +3713,15 @@ var _Schema = {
 	},
 	hideSelectedSchemaTypes: function () {
 
-		if (_Schema.selectedNodes.length > 0) {
+		if (_Schema.ui.selectedNodes.length > 0) {
 
-			_Schema.selectedNodes.forEach(function(n) {
+			_Schema.ui.selectedNodes.forEach(function(n) {
 				_Schema.hiddenSchemaNodes.push(n.name);
 			});
 
 			LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
 			_Schema.reload();
 		}
-	},
-	setZoom: function(zoom, instance, transformOrigin, el) {
-		transformOrigin = transformOrigin || [ 0.5, 0.5 ];
-		instance = instance || jsPlumb;
-		el = el || instance.getContainer();
-		var p = [ "webkit", "moz", "ms", "o" ],
-			s = _Schema.getSchemaCSSTransform(),
-			oString = (transformOrigin[0] * 100) + "% " + (transformOrigin[1] * 100) + "%";
-
-		for (var i = 0; i < p.length; i++) {
-			el.style[p[i] + "Transform"] = s;
-			el.style[p[i] + "TransformOrigin"] = oString;
-		}
-
-		el.style["transform"] = s;
-		el.style["transformOrigin"] = oString;
-
-		instance.setZoom(zoom);
-		_Schema.resize();
-	},
-	getSchemaCSSTransform: function() {
-	 return _Schema.getSchemaCSSScale() + ' ' + _Schema.getSchemaCSSTranslate();
-	},
-	getSchemaCSSScale: function() {
-		return 'scale(' + _Schema.zoomLevel + ')';
-	},
-	getSchemaCSSTranslate: function() {
-		return 'translate(' + ((inheritanceSlideout.position().left + inheritanceSlideout.outerWidth()) / _Schema.zoomLevel) + 'px)';
 	},
 	sort: function(collection, sortKey, secondarySortKey) {
 		if (!sortKey) {
@@ -3881,15 +3737,6 @@ var _Schema = {
 
 			return equal;
 		});
-	},
-	updateOverlayVisibility: function(show) {
-		LSWrapper.setItem(_Schema.showSchemaOverlaysKey, show);
-		$('#schema-show-overlays').prop('checked', show);
-		if (show) {
-			$('.rel-type, .multiplicity').show();
-		} else {
-			$('.rel-type, .multiplicity').hide();
-		}
 	},
 	loadClassTree: function(schemaNodes) {
 		var classTree = {};
@@ -3995,7 +3842,7 @@ var _Schema = {
 			if ($node.length > 0) {
 				$('.selected').removeClass('selected');
 				$node.addClass('selected');
-				_Schema.selectedNodes = [$node];
+				_Schema.ui.selectedNodes = [$node];
 			}
 		});
 
@@ -4094,5 +3941,154 @@ var _Schema = {
 				callback(Object.keys(types));
 			}
 		});
-	}
+	},
+	ui: {
+		connectorStyle: undefined,
+		zoomLevel: undefined,
+		selectedRel: undefined,
+		relHighlightColor: 'red',
+		maxZ: 0,
+		selectionInProgress: false,
+		mouseDownCoords: {x:0, y:0},
+		mouseUpCoords: {x:0, y:0},
+		nodeDragStartpoint: undefined,
+		selectBox: undefined,
+		selectedNodes: [],
+		selectRel: function(rel) {
+			_Schema.ui.clearSelection();
+
+			_Schema.ui.selectedRel = rel;
+			_Schema.ui.selectedRel.css({zIndex: ++_Schema.ui.maxZ});
+			_Schema.ui.selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++_Schema.ui.maxZ, border: '1px solid ' + _Schema.ui.relHighlightColor, borderRadius:'2px', background: 'rgba(255, 255, 255, 1)'});
+			var pathElements = _Schema.ui.selectedRel.find('path');
+			pathElements.css({stroke: _Schema.ui.relHighlightColor});
+			$(pathElements[1]).css({fill: _Schema.ui.relHighlightColor});
+		},
+		clearSelection: function() {
+			// deselect selected node
+			$('.node', canvas).removeClass('selected');
+			_Schema.ui.selectionStop();
+
+			// deselect selected Relationship
+			if (_Schema.ui.selectedRel) {
+				_Schema.ui.selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({border:'', borderRadius:'', background: 'rgba(255, 255, 255, .8)'});
+				var pathElements = _Schema.ui.selectedRel.find('path');
+				pathElements.css({stroke: '', fill: ''});
+				$(pathElements[1]).css('fill', '');
+				_Schema.ui.selectedRel = undefined;
+			}
+		},
+		selectionStart: function(e) {
+			canvas.addClass('noselect');
+			_Schema.ui.selectionInProgress = true;
+			var schemaOffset = canvas.offset();
+			_Schema.ui.mouseDownCoords.x = e.pageX - schemaOffset.left;
+			_Schema.ui.mouseDownCoords.y = e.pageY - schemaOffset.top;
+		},
+		selectionDrag: function(e) {
+			if (_Schema.ui.selectionInProgress === true) {
+				var schemaOffset = canvas.offset();
+				_Schema.ui.mouseUpCoords.x = e.pageX - schemaOffset.left;
+				_Schema.ui.mouseUpCoords.y = e.pageY - schemaOffset.top;
+				_Schema.ui.drawSelectElem();
+			}
+		},
+		selectionStop: function() {
+			_Schema.ui.selectionInProgress = false;
+			if (_Schema.ui.selectBox) {
+				_Schema.ui.selectBox.remove();
+				_Schema.ui.selectBox = undefined;
+			}
+			_Schema.ui.updateSelectedNodes();
+			canvas.removeClass('noselect');
+		},
+		updateSelectedNodes: function() {
+			_Schema.ui.selectedNodes = [];
+			var canvasOffset = canvas.offset();
+			$('.node.selected', canvas).each(function(idx, el) {
+				var $el = $(el);
+				var elementOffset = $el.offset();
+				_Schema.ui.selectedNodes.push({
+					nodeId: $el.attr('id'),
+					name: $el.children('b').text(),
+					pos: {
+						top:  (elementOffset.top  - canvasOffset.top ),
+						left: (elementOffset.left - canvasOffset.left)
+					}
+				});
+			});
+		},
+		drawSelectElem: function() {
+			if (!_Schema.ui.selectBox || !_Schema.ui.selectBox.length) {
+				canvas.append('<svg id="schema-graph-select-box"><path version="1.1" xmlns="http://www.w3.org/1999/xhtml" fill="none" stroke="#aaa" stroke-width="5"></path></svg>');
+				_Schema.ui.selectBox = $('#schema-graph-select-box');
+			}
+			var cssRect = {
+				position: 'absolute',
+				top:    Math.min(_Schema.ui.mouseDownCoords.y, _Schema.ui.mouseUpCoords.y)  / _Schema.ui.zoomLevel,
+				left:   Math.min(_Schema.ui.mouseDownCoords.x, _Schema.ui.mouseUpCoords.x)  / _Schema.ui.zoomLevel,
+				width:  Math.abs(_Schema.ui.mouseDownCoords.x - _Schema.ui.mouseUpCoords.x) / _Schema.ui.zoomLevel,
+				height: Math.abs(_Schema.ui.mouseDownCoords.y - _Schema.ui.mouseUpCoords.y) / _Schema.ui.zoomLevel
+			};
+			_Schema.ui.selectBox.css(cssRect);
+			_Schema.ui.selectBox.find('path').attr('d', 'm 0 0 h ' + cssRect.width + ' v ' + cssRect.height + ' h ' + (-cssRect.width) + ' v ' + (-cssRect.height) + ' z');
+			_Schema.ui.selectNodesInRect(cssRect);
+		},
+		selectNodesInRect: function(selectionRect) {
+			_Schema.ui.selectedNodes = [];
+
+			$('.node', canvas).each(function(idx, el) {
+				var $el = $(el);
+				if (_Schema.ui.isElemInSelection($el, selectionRect)) {
+					_Schema.ui.selectedNodes.push($el);
+					$el.addClass('selected');
+				} else {
+					$el.removeClass('selected');
+				}
+			});
+		},
+		isElemInSelection: function($el, selectionRect) {
+			var elPos = $el.offset();
+			elPos.top /= _Schema.ui.zoomLevel;
+			elPos.left /= _Schema.ui.zoomLevel;
+			var schemaOffset = canvas.offset();
+			return !(
+				(elPos.top) > (selectionRect.top + schemaOffset.top / _Schema.ui.zoomLevel + selectionRect.height) ||
+				elPos.left > (selectionRect.left + schemaOffset.left / _Schema.ui.zoomLevel + selectionRect.width) ||
+				(elPos.top + $el.innerHeight()) < (selectionRect.top + schemaOffset.top / _Schema.ui.zoomLevel) ||
+				(elPos.left + $el.innerWidth()) < (selectionRect.left + schemaOffset.left / _Schema.ui.zoomLevel)
+			);
+		},
+		setZoom: function(zoom, instance, transformOrigin, el) {
+			transformOrigin = transformOrigin || [ 0.5, 0.5 ];
+			instance = instance || jsPlumb;
+			el = el || instance.getContainer();
+			var p = [ "webkit", "moz", "ms", "o" ],
+				s = _Schema.ui.getSchemaCSSTransform(),
+				oString = (transformOrigin[0] * 100) + "% " + (transformOrigin[1] * 100) + "%";
+
+			for (var i = 0; i < p.length; i++) {
+				el.style[p[i] + "Transform"] = s;
+				el.style[p[i] + "TransformOrigin"] = oString;
+			}
+
+			el.style["transform"] = s;
+			el.style["transformOrigin"] = oString;
+
+			instance.setZoom(zoom);
+			_Schema.resize();
+		},
+		getSchemaCSSTransform: function() {
+			return 'scale(' + _Schema.ui.zoomLevel + ') translate(' + ((inheritanceSlideout.position().left + inheritanceSlideout.outerWidth()) / _Schema.ui.zoomLevel) + 'px)';
+		},
+		updateOverlayVisibility: function(show) {
+			LSWrapper.setItem(_Schema.showSchemaOverlaysKey, show);
+			$('#schema-show-overlays').prop('checked', show);
+			if (show) {
+				$('.rel-type, .multiplicity').show();
+			} else {
+				$('.rel-type, .multiplicity').hide();
+			}
+		},
+	},
 };
