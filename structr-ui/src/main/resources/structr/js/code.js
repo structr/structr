@@ -1196,9 +1196,9 @@ var _Code = {
 
 				case 'inherited':
 					if (identifier.isBuiltinType) {
-						_Code.findAndOpenNode('Types/Built-In/' + identifier.base + '/Properties/' + identifier.property, true);
+						_Code.findAndOpenNode('Types/Built-In/' + identifier.base + '/Local Attributes/' + identifier.property, true);
 					} else {
-						_Code.findAndOpenNode('Types/Custom/' + identifier.base + '/Properties/' + identifier.property, true);
+						_Code.findAndOpenNode('Types/Custom/' + identifier.base + '/Local Attributes/' + identifier.property, true);
 					}
 					break;
 
@@ -1436,7 +1436,7 @@ var _Code = {
 	},
 	displayPropertiesContent: function(selection, updateLocationStack) {
 
-		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Properties';
+		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Local Attributes';
 
 		if (updateLocationStack === true) {
 			_Code.updatePathLocationStack(path);
@@ -1842,11 +1842,9 @@ var _Code = {
 			});
 
 			// delete button
-			if (!method.schemaNode || !method.schemaNode.isBuiltinType) {
-				_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete method', function() {
-					_Code.deleteSchemaEntity(method, 'Delete method ' + method.name + '?');
-				});
-			}
+			_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete method', function() {
+				_Code.deleteSchemaEntity(method, 'Delete method ' + method.name + '?', 'Note: Builtin methods will be restored in their initial configuration');
+			});
 
 			// run button
 			if (!method.schemaNode && !method.isPartOfBuiltInSchema) {
@@ -1867,34 +1865,6 @@ var _Code = {
 
 			if (typeof callback === 'function') {
 				callback();
-			}
-		});
-	},
-	lockPropertyOptions: function() {
-		$('#property-options').find('input').attr('disabled', true);
-	},
-	unlockPropertyOptions: function() {
-		$('#property-options').find('input').attr('disabled', false);
-	},
-	activatePropertyValueInput: function(inputId, id, name) {
-		$('input#' + inputId).on('blur', function() {
-
-			if (_Code.testAllowNavigation()) {
-
-				var elem     = $(this);
-				var previous = elem.attr('value');
-				if (previous !== elem.val()) {
-					var data   = {};
-					data[name] = elem.val();
-					_Code.lockPropertyOptions();
-					_Code.showSchemaRecompileMessage();
-					Command.setProperties(id, data, function() {
-						_Code.unlockPropertyOptions();
-						blinkGreen(elem);
-						_Code.refreshTree();
-						_Code.hideSchemaRecompileMessage();
-					});
-				}
 			}
 		});
 	},
@@ -1956,6 +1926,7 @@ var _Code = {
 					_Code.showSchemaRecompileMessage();
 					Command.create(data, function() {
 						_Code.refreshTree();
+						_Code.clearMainArea();
 						_Code.displayCustomTypesContent();
 						_Code.hideSchemaRecompileMessage();
 					});
@@ -2234,7 +2205,7 @@ var _Code = {
 				path.push('Types');
 				path.push(getPathComponent(entity.schemaNode));
 				path.push(entity.schemaNode.name);
-				path.push('Properties');
+				path.push('Local Attributes');
 				path.push(entity.name);
 				break;
 
