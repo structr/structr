@@ -1428,12 +1428,6 @@ var _Code = {
 			}, true);
 		});
 	},
-	displayGlobalMethodsContent: function() {
-		Structr.fetchHtmlTemplate('code/globals', { }, function(html) {
-			codeContents.append(html);
-			_Code.displayCreateButton('#method-actions', 'fa fa-magic', 'new', 'Add global schema method', '', { type: 'SchemaMethod' });
-		});
-	},
 	displayPropertiesContent: function(selection, updateLocationStack) {
 
 		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Local Attributes';
@@ -1503,6 +1497,21 @@ var _Code = {
 			});
 		});
 	},
+	displayGlobalMethodsContent: function() {
+
+		Structr.fetchHtmlTemplate('code/globals', { }, function(html) {
+			codeContents.append(html);
+
+			Command.rest('SchemaMethod?schemaNode=null&sort=name&order=ascending', function (methods) {
+
+				_Schema.methods.appendMethods($('.content-container', codeContents), null, methods);
+
+				_Code.runCurrentEntitySaveAction = () => {
+					$('.save-all', codeContents).click();
+				};
+			});
+		});
+	},
 	displayMethodsContent: function(selection, updateLocationStack) {
 
 		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Methods';
@@ -1514,22 +1523,15 @@ var _Code = {
 
 		Structr.fetchHtmlTemplate('code/methods', { identifier: selection }, function(html) {
 			codeContents.append(html);
-			var data     = { type: 'SchemaMethod', schemaNode: selection.id };
-			var containerId = '#method-actions';
 
-			_Code.displayCreateButton(containerId, 'fa fa-magic', 'on-create',    'Add onCreate method',    'onCreate',    data);
-			_Code.displayCreateButton(containerId, 'fa fa-magic', 'after-create', 'Add afterCreate method', 'afterCreate', data);
-			_Code.displayCreateButton(containerId, 'fa fa-magic', 'on-save',      'Add onSave method',      'onSave',      data);
-			_Code.displayCreateButton(containerId, 'fa fa-magic', 'new',          'Add schema method',      '',            data);
+			Command.get(selection.id, null, (entity) => {
 
-			// list of existing properties
-			Command.query('SchemaMethod', 10000, 1, 'name', 'asc', { schemaNode: selection.id }, function(result) {
-				result.forEach(function(t) {
-					_Code.displayActionButton('#existing-methods', 'fa fa-' + _Code.getIconForNodeType(t), t.id, t.name, function() {
-						_Code.findAndOpenNode(path + '/' + t.name);
-					});
-				});
-			}, true);
+				_Schema.methods.appendMethods($('.content-container', codeContents), entity, entity.schemaMethods);
+
+				_Code.runCurrentEntitySaveAction = () => {
+					$('.save-all', codeContents).click();
+				};
+			});
 		});
 	},
 	displayInheritedPropertiesContent: function(selection, updateLocationStack) {
@@ -1963,10 +1965,7 @@ var _Code = {
 		_Code.displayCreateButton(targetId, 'fa fa-magic', 'create-type', 'Create new type', '', { type: 'SchemaNode'});
 	},
 	getEditorModeForContent: function(content) {
-		if (content && (content.indexOf('{') === 0 || content.indexOf("${{") === 0)) {
-			return 'text/javascript';
-		}
-		return 'text';
+		return (content && content.indexOf('{') === 0) ? 'text/javascript' : 'text';
 	},
 	updateRecentlyUsed: function(entity, updateLocationStack) {
 
