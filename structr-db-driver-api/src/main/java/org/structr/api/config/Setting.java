@@ -141,6 +141,10 @@ public abstract class Setting<T> {
 		this.value = value;
 	}
 
+	public void setDefaultValue(final T value) {
+		this.defaultValue = value;
+	}
+
 	public boolean isModified() {
 		return (defaultValue != null && !defaultValue.equals(value)) || (defaultValue == null && value != null);
 	}

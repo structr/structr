@@ -336,7 +336,12 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 			value = setting.getValue();
 		}
 
-		setting.getPrefixedSetting(prefix).setValue((T)value);
+		final Setting<T> prefixedSetting = setting.getPrefixedSetting(prefix);
+
+		prefixedSetting.setValue((T)value);
+
+		// default value needs to be null so the new setting return true for isModified()
+		prefixedSetting.setDefaultValue(null);
 	}
 
 	private ErrorBuffer checkInput(final Map<String, Object> data, final boolean nameOnly) {
