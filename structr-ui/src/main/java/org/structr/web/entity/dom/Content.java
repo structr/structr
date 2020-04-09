@@ -20,7 +20,9 @@ package org.structr.web.entity.dom;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.Charset;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.io.IOUtils;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.ConstantBooleanTrue;
@@ -744,7 +746,16 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 				final Object value = Scripting.evaluate(renderContext, node, script, "script source");
 				if (value != null) {
 
-					final String content = value.toString();
+					String content = null;
+					
+					// Convert binary data to String with charset from response
+					if (value instanceof byte[]) {
+						//StringUtils.toEncodedString((byte[]) value, renderContext.getPage().getProperty(StructrApp.key(Page.class, "contentType")));
+						content = StringUtils.toEncodedString((byte[]) value, Charset.forName(renderContext.getResponse().getCharacterEncoding()));
+					} else {
+						content = value.toString();
+					}
+					
 					if (StringUtils.isNotBlank(content)) {
 
 						renderContext.getBuffer().append(transform(content));

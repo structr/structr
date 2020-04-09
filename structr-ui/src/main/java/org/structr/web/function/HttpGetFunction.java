@@ -42,7 +42,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getSignature() {
-		return "url, [ contentType[, username, password] ]";
+		return "url [, contentType [, username, password] ]";
 	}
 
 	@Override
@@ -94,7 +94,10 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 						return doc.html();
 					}
-
+				} else if ("application/octet-stream".equals(contentType)) {
+					
+					return getBinaryFromUrl(ctx, address, username, password);
+					
 				} else {
 
 					return getFromUrl(ctx, address, username, password);

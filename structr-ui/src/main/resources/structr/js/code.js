@@ -49,7 +49,7 @@ var _Code = {
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
 
-		$(window).on('keydown', _Code.handleKeyDownEvent);
+		$(window).off('keydown', _Code.handleKeyDownEvent).on('keydown', _Code.handleKeyDownEvent);
 
 	},
 	beforeunloadHandler: function() {
