@@ -24,8 +24,6 @@ var _Layout = {
 
 	doLayout: function(nodes, rels) {
 
-console.log(nodes);
-
 		_Layout.timeout = window.setInterval(function() {
 
 			_Layout.doForceLayout(nodes, rels, 0.01);

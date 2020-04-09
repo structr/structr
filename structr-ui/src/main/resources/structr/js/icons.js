@@ -74,6 +74,7 @@ var _Icons = {
 	widget_icon: 'icon/layout.png',
 	folder_icon: 'icon/folder.png',
 	add_folder_icon: 'icon/folder_add.png',
+	delete_folder_icon: 'icon/folder_delete.png',
 	add_widget_icon: 'icon/layout_add.png',
 	content_icon: 'icon/page_white.png',
 	active_content_icon: 'icon/page_yellow.png',
@@ -114,6 +115,10 @@ var _Icons = {
 	folder_connect_icon: 'icon/folder_connect.png',
 	folder_disconnect_icon: 'icon/folder_disconnect.png',
 	database_error_icon: 'icon/database_error.png',
+	package_icon: 'icon/package.png',
+	report_icon: 'icon/report.png',
+	find_icon: 'icon/find.png',
+	world_icon: 'icon/world.png',
 
 
 	getFullSpriteClass: function (key) {
