@@ -58,13 +58,13 @@ public class Transformation {
 
 		// output transformation requested
 		actionContext.setConstant("input", source);
-		return Scripting.evaluate(actionContext, null, "${" + outputFunction + "}", "virtual property " + targetName);
+		return Scripting.evaluate(actionContext, null, "${" + outputFunction.trim() + "}", "virtual property " + targetName);
 	}
 
 	public void transformInput(final ActionContext actionContext, final Map<String, Object> source) throws FrameworkException {
 
 		if (source != null) {
-		
+
 			// move / rename input value
 			Object inputValue = source.remove(targetName);
 			if (inputValue != null) {
@@ -73,7 +73,7 @@ public class Transformation {
 
 					// input transformation requested
 					actionContext.setConstant("input", inputValue);
-					inputValue = Scripting.evaluate(actionContext, null, "${" + inputFunction + "}", " virtual property " + sourceName);
+					inputValue = Scripting.evaluate(actionContext, null, "${" + inputFunction.trim() + "}", " virtual property " + sourceName);
 				}
 
 				source.put(sourceName, inputValue);
