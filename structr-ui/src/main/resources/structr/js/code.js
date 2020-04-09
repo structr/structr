@@ -1196,9 +1196,9 @@ var _Code = {
 
 				case 'inherited':
 					if (identifier.isBuiltinType) {
-						_Code.findAndOpenNode('Types/Built-In/' + identifier.base + '/Properties/' + identifier.property, true);
+						_Code.findAndOpenNode('Types/Built-In/' + identifier.base + '/Local Attributes/' + identifier.property, true);
 					} else {
-						_Code.findAndOpenNode('Types/Custom/' + identifier.base + '/Properties/' + identifier.property, true);
+						_Code.findAndOpenNode('Types/Custom/' + identifier.base + '/Local Attributes/' + identifier.property, true);
 					}
 					break;
 
@@ -1428,15 +1428,9 @@ var _Code = {
 			}, true);
 		});
 	},
-	displayGlobalMethodsContent: function() {
-		Structr.fetchHtmlTemplate('code/globals', { }, function(html) {
-			codeContents.append(html);
-			_Code.displayCreateButton('#method-actions', 'fa fa-magic', 'new', 'Add global schema method', '', { type: 'SchemaMethod' });
-		});
-	},
 	displayPropertiesContent: function(selection, updateLocationStack) {
 
-		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Properties';
+		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Local Attributes';
 
 		if (updateLocationStack === true) {
 			_Code.updatePathLocationStack(path);
@@ -1503,6 +1497,21 @@ var _Code = {
 			});
 		});
 	},
+	displayGlobalMethodsContent: function() {
+
+		Structr.fetchHtmlTemplate('code/globals', { }, function(html) {
+			codeContents.append(html);
+
+			Command.rest('SchemaMethod?schemaNode=null&sort=name&order=ascending', function (methods) {
+
+				_Schema.methods.appendMethods($('.content-container', codeContents), null, methods);
+
+				_Code.runCurrentEntitySaveAction = () => {
+					$('.save-all', codeContents).click();
+				};
+			});
+		});
+	},
 	displayMethodsContent: function(selection, updateLocationStack) {
 
 		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Methods';
@@ -1514,22 +1523,15 @@ var _Code = {
 
 		Structr.fetchHtmlTemplate('code/methods', { identifier: selection }, function(html) {
 			codeContents.append(html);
-			var data     = { type: 'SchemaMethod', schemaNode: selection.id };
-			var containerId = '#method-actions';
 
-			_Code.displayCreateButton(containerId, 'fa fa-magic', 'on-create',    'Add onCreate method',    'onCreate',    data);
-			_Code.displayCreateButton(containerId, 'fa fa-magic', 'after-create', 'Add afterCreate method', 'afterCreate', data);
-			_Code.displayCreateButton(containerId, 'fa fa-magic', 'on-save',      'Add onSave method',      'onSave',      data);
-			_Code.displayCreateButton(containerId, 'fa fa-magic', 'new',          'Add schema method',      '',            data);
+			Command.get(selection.id, null, (entity) => {
 
-			// list of existing properties
-			Command.query('SchemaMethod', 10000, 1, 'name', 'asc', { schemaNode: selection.id }, function(result) {
-				result.forEach(function(t) {
-					_Code.displayActionButton('#existing-methods', 'fa fa-' + _Code.getIconForNodeType(t), t.id, t.name, function() {
-						_Code.findAndOpenNode(path + '/' + t.name);
-					});
-				});
-			}, true);
+				_Schema.methods.appendMethods($('.content-container', codeContents), entity, entity.schemaMethods);
+
+				_Code.runCurrentEntitySaveAction = () => {
+					$('.save-all', codeContents).click();
+				};
+			});
 		});
 	},
 	displayInheritedPropertiesContent: function(selection, updateLocationStack) {
@@ -1842,11 +1844,9 @@ var _Code = {
 			});
 
 			// delete button
-			if (!method.schemaNode || !method.schemaNode.isBuiltinType) {
-				_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete method', function() {
-					_Code.deleteSchemaEntity(method, 'Delete method ' + method.name + '?');
-				});
-			}
+			_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete method', function() {
+				_Code.deleteSchemaEntity(method, 'Delete method ' + method.name + '?', 'Note: Builtin methods will be restored in their initial configuration');
+			});
 
 			// run button
 			if (!method.schemaNode && !method.isPartOfBuiltInSchema) {
@@ -1867,34 +1867,6 @@ var _Code = {
 
 			if (typeof callback === 'function') {
 				callback();
-			}
-		});
-	},
-	lockPropertyOptions: function() {
-		$('#property-options').find('input').attr('disabled', true);
-	},
-	unlockPropertyOptions: function() {
-		$('#property-options').find('input').attr('disabled', false);
-	},
-	activatePropertyValueInput: function(inputId, id, name) {
-		$('input#' + inputId).on('blur', function() {
-
-			if (_Code.testAllowNavigation()) {
-
-				var elem     = $(this);
-				var previous = elem.attr('value');
-				if (previous !== elem.val()) {
-					var data   = {};
-					data[name] = elem.val();
-					_Code.lockPropertyOptions();
-					_Code.showSchemaRecompileMessage();
-					Command.setProperties(id, data, function() {
-						_Code.unlockPropertyOptions();
-						blinkGreen(elem);
-						_Code.refreshTree();
-						_Code.hideSchemaRecompileMessage();
-					});
-				}
 			}
 		});
 	},
@@ -1956,6 +1928,7 @@ var _Code = {
 					_Code.showSchemaRecompileMessage();
 					Command.create(data, function() {
 						_Code.refreshTree();
+						_Code.clearMainArea();
 						_Code.displayCustomTypesContent();
 						_Code.hideSchemaRecompileMessage();
 					});
@@ -1992,10 +1965,7 @@ var _Code = {
 		_Code.displayCreateButton(targetId, 'fa fa-magic', 'create-type', 'Create new type', '', { type: 'SchemaNode'});
 	},
 	getEditorModeForContent: function(content) {
-		if (content && (content.indexOf('{') === 0 || content.indexOf("${{") === 0)) {
-			return 'text/javascript';
-		}
-		return 'text';
+		return (content && content.indexOf('{') === 0) ? 'text/javascript' : 'text';
 	},
 	updateRecentlyUsed: function(entity, updateLocationStack) {
 
@@ -2234,7 +2204,7 @@ var _Code = {
 				path.push('Types');
 				path.push(getPathComponent(entity.schemaNode));
 				path.push(entity.schemaNode.name);
-				path.push('Properties');
+				path.push('Local Attributes');
 				path.push(entity.name);
 				break;
 

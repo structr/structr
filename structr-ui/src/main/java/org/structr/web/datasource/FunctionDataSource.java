@@ -27,11 +27,11 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
-import org.structr.core.script.Scripting;
-import org.structr.schema.action.Function;
 import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.function.UiFunction;
@@ -54,7 +54,7 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 
 		try {
 
-			final Object result = Scripting.evaluate(renderContext, referenceNode, "${" + functionQuery + "}", "function query");
+			final Object result = Scripting.evaluate(renderContext, referenceNode, "${" + functionQuery.trim() + "}", "function query");
 			if (result instanceof Iterable) {
 
 				return FunctionDataSource.map((Iterable)result);
