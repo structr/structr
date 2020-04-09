@@ -567,9 +567,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 						}).get(timeoutSeconds, TimeUnit.SECONDS);
 
-					} catch (Throwable t) {
-						t.printStackTrace();
-					}
+					} catch (Throwable t) {}
 				}
 			}
 		}
@@ -631,9 +629,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 								}).get(timeoutSeconds, TimeUnit.SECONDS);
 
-							} catch (Throwable t) {
-								t.printStackTrace();
-							}
+							} catch (Throwable t) {}
 						}
 					}
 				}

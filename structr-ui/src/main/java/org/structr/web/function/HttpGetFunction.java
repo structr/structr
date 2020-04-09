@@ -42,7 +42,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getSignature() {
-		return "url, [ contentType, username, password ]";
+		return "url [, contentType [, username, password] ]";
 	}
 
 	@Override

@@ -20,7 +20,6 @@ package org.structr.test.web.advanced;
 
 import java.util.List;
 import java.util.Map;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonObjectType;
@@ -34,6 +33,7 @@ import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.Test;
 
 public class AutocompleteTest extends StructrUiTest {
 
@@ -242,17 +242,17 @@ public class AutocompleteTest extends StructrUiTest {
 		final Map<String, Object> get      = ((GraphObjectMap)result.get(8)).toMap();
 		final Map<String, Object> head     = ((GraphObjectMap)result.get(9)).toMap();
 
-		assertEquals("Invalid autocomplete result", "current",                                        current.get("text"));
-		assertEquals("Invalid autocomplete result", "locale",                                         locale.get("text"));
-		assertEquals("Invalid autocomplete result", "me",                                             me.get("text"));
-		assertEquals("Invalid autocomplete result", "page",                                           page.get("text"));
-		assertEquals("Invalid autocomplete result", "request",                                        request.get("text"));
-		assertEquals("Invalid autocomplete result", "response",                                       response.get("text"));
-		assertEquals("Invalid autocomplete result", "page",                                           page.get("text"));
-		assertEquals("Invalid autocomplete result", "this",                                           thisObj.get("text"));
-		assertEquals("Invalid autocomplete result", "DELETE(url [, contentType ])",                   delete.get("text"));
-		assertEquals("Invalid autocomplete result", "GET(url, [ contentType, username, password ])",  get.get("text"));
-		assertEquals("Invalid autocomplete result", "HEAD(url [, username, password ])",              head.get("text"));
+		assertEquals("Invalid autocomplete result", "current",                                          current.get("text"));
+		assertEquals("Invalid autocomplete result", "locale",                                           locale.get("text"));
+		assertEquals("Invalid autocomplete result", "me",                                               me.get("text"));
+		assertEquals("Invalid autocomplete result", "page",                                             page.get("text"));
+		assertEquals("Invalid autocomplete result", "request",                                          request.get("text"));
+		assertEquals("Invalid autocomplete result", "response",                                         response.get("text"));
+		assertEquals("Invalid autocomplete result", "page",                                             page.get("text"));
+		assertEquals("Invalid autocomplete result", "this",                                             thisObj.get("text"));
+		assertEquals("Invalid autocomplete result", "DELETE(url [, contentType ])",                     delete.get("text"));
+		assertEquals("Invalid autocomplete result", "GET(url [, contentType [, username, password] ])", get.get("text"));
+		assertEquals("Invalid autocomplete result", "HEAD(url [, username, password ])",                head.get("text"));
 
 	}
 

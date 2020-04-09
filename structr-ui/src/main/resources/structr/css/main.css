@@ -1568,7 +1568,11 @@ button.action.disabled:hover {
 	display: inline-block;
 }
 
-.schema-props tr.to-delete i.remove-property {
+.schema-props tr.to-delete i.remove-action {
+	display: none;
+}
+
+.schema-props tr.editing i.edit-action {
 	display: none;
 }
 
@@ -2206,61 +2210,43 @@ button.add_property {
 	border: 1px solid rgba(0,0,0,.125);
 }
 
-.actions.schema-props th:first-of-type {
-	width: 16%;
+#methods-container {
+	display: flex;
+}
+
+#methods-container-left {
+	flex-basis: 25%;
+	flex-shrink: 0;
+	margin-right: 6px;
+}
+
+#methods-container-right {
+	flex-grow: 1;
+}
+
+#methods-container.global .add-onCreate-button,
+#methods-container.global .add-afterCreate-button,
+#methods-container.global .add-onSave-button {
+	display: none;
 }
 
 .actions.schema-props th:last-of-type {
-	width: 8%;
-}
-
-.actions.schema-props th {
-	width: 38%;
-}
-
-.actions.schema-props .cm-schema-methods {
-	min-height: 20px;
-	height: 100px;
+	width: 40px;
 }
 
 .actions.schema-props .name-col {
 	vertical-align: top;
-	height: 100px;
 }
 
-.actions.schema-props .resize-handle {
-	cursor: ns-resize;
-}
-
-.actions.schema-props .add-to-favorites {
-	vertical-align: baseline;
-}
-
-.actions.schema-props .cm-schema-methods .CodeMirror-scroll {
-	margin-bottom: 0;
-	margin-right: 0;
-	padding-bottom: 0;
-}
-
-.actions.schema-props .cm-schema-methods .CodeMirror-gutters {
-	height: calc(100% - 3px) !important;
-	padding-bottom: 0;
-}
-
-.actions.schema-props .cm-schema-methods .CodeMirror-gutter {
-	padding-bottom: 0;
-	margin-bottom: 0;
-}
-
-.actions.schema-props .cm-schema-methods div.CodeMirror-scroll > div.CodeMirror-sizer + div, .cm-schema-methods .CodeMirror-vscrollbar {
-	display: none !important;
+.actions.schema-props tr.editing {
+	background: #a5e25a;
 }
 
 .editor-settings {
 	padding-left: 4px;
 }
 
-#tabView-methods .editor-settings label, #___global_methods_content .editor-settings label {
+#tabView-methods .editor-settings label {
 	min-width: 0px;
 }
 

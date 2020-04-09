@@ -52,7 +52,7 @@ public class Base64EncodeFunction extends CoreFunction {
 			final byte[] input    = sources[0].toString().getBytes(charset);
 
 			String encodingScheme = "basic";
-			if (sources.length == 2) {
+			if (sources.length >= 2) {
 				encodingScheme = sources[1].toString();
 			}
 

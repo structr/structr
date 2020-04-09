@@ -52,7 +52,7 @@ public class Base64DecodeFunction extends CoreFunction {
 			final Charset charset = (sources.length == 3) ? Charset.forName(sources[2].toString()) : Charset.defaultCharset();
 
 			String decodingScheme = "basic";
-			if (sources.length == 2) {
+			if (sources.length >= 2) {
 				decodingScheme = sources[1].toString();
 			}
 
