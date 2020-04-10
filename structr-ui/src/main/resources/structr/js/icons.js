@@ -234,6 +234,13 @@ var _Icons = {
 			case _Icons.folder_connect_icon:          return 'sprite-folder_connect';
 			case _Icons.folder_disconnect_icon:       return 'sprite-folder_disconnect';
 			case _Icons.database_error_icon:          return 'sprite-database_error';
+			case _Icons.package_icon:                 return 'sprite-package';
+			case _Icons.report_icon:                  return 'sprite-report';
+			case _Icons.find_icon:                    return 'sprite-find';
+			case _Icons.world_icon:                   return 'sprite-world';
+			case _Icons.clock_icon:                   return 'sprite-clock';
+			case _Icons.folder_star_icon:             return 'sprite-folder_star';
+			case _Icons.delete_folder_icon:           return 'sprite-folder_delete';
 
 			default:                                  return 'sprite-error';
 		}

@@ -1352,7 +1352,7 @@ var _Code = {
 
 							if (set.children.includes(result.name)) {
 
-								_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.remove_folder_icon), 'remove-' + set.id, 'Remove from ' + set.name, function() {
+								_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.delete_folder_icon), 'remove-' + set.id, 'Remove from ' + set.name, function() {
 									_WorkingSets.removeTypeFromSet(set.id, result.name, function() {
 										_TreeHelper.refreshNode('#code-tree', 'workingsets-' + set.id);
 										_Code.displaySchemaNodeContent(data);
@@ -1393,14 +1393,29 @@ var _Code = {
 			_Code.updateRecentlyUsed(workingSet, data.updateLocationStack);
 			Structr.fetchHtmlTemplate('code/group', { type: workingSet }, function(html) {
 
+				codeContents.empty();
 				codeContents.append(html);
 
-				_Code.displayActionButton('#working-set-content', _Icons.getFullSpriteClass(_Icons.delete_icon), 'remove', 'Remove', function() {
-					_Code.deleteSchemaEntity(workingSet, 'Remove group ' + workingSet.name + '?', 'This will remove the group but not its contents.');
-					_TreeHelper.refreshTree('#code-tree');
-				});
+				if (workingSet.name === _WorkingSets.recentlyUsedName) {
 
-				_Code.activatePropertyValueInput('group-name-input', workingSet.id, 'name');
+					_Code.displayActionButton('#working-set-content', _Icons.getFullSpriteClass(_Icons.delete_icon), 'clear', 'Clear', function() {
+						_WorkingSets.clearRecentlyUsed(function() {
+							_TreeHelper.refreshTree('#code-tree');
+						});
+					});
+
+					$('#group-name-input').prop('disabled', true);
+
+ 				} else {
+
+					_Code.displayActionButton('#working-set-content', _Icons.getFullSpriteClass(_Icons.delete_icon), 'remove', 'Remove', function() {
+						_WorkingSets.deleteSet(identifier.id, function() {
+							_TreeHelper.refreshNode('#code-tree', 'workingsets');
+						});
+					});
+
+					_Code.activatePropertyValueInput('group-name-input', workingSet.id, 'name');
+				}
 
 				Structr.fetchHtmlTemplate('code/root', { }, function(html) {
 
@@ -1451,7 +1466,7 @@ var _Code = {
 
 								_WorkingSets.updatePositions(workingSet.id, positions);
 
-							}, 1000);
+							}, 300);
 
 						}, true, 'ui');
 
@@ -2134,7 +2149,11 @@ var _Code = {
 	updateRecentlyUsed: function(entity, updateLocationStack) {
 
 		_Code.addRecentlyUsedElement(entity);
-		_WorkingSets.addRecentlyUsed(entity.name);
+
+		// add recently used types to corresponding working set
+		if (entity.type === 'SchemaNode') {
+			_WorkingSets.addRecentlyUsed(entity.name);
+		}
 
 		var path = _Code.getPathForEntity(entity);
 
@@ -2520,6 +2539,7 @@ var _Code = {
 var _WorkingSets = {
 
 	recentlyUsedName: 'Recently Used Types',
+	deleted: {},
 
 	getWorkingSets: function(callback) {
 
@@ -2665,9 +2685,16 @@ var _WorkingSets = {
 		}, true, null, 'id,name');
 	},
 
+	deleteSet: function(id, callback) {
+
+		_WorkingSets.deleted[id] = true;
+
+		Command.deleteNode(id, false, callback);
+	},
+
 	updatePositions: function(id, positions, callback) {
 
-		if (positions) {
+		if (positions && !_WorkingSets.deleted[id]) {
 
 			Command.get(id, null, function(result) {
 
@@ -2696,7 +2723,7 @@ var _WorkingSets = {
 			if (result && result.length) {
 
 				_WorkingSets.addTypeToSet(result[0].id, name, function() {
-					_TreeHelper.refreshNode('#code-tree', 'workingsets-' + result.id);
+					_TreeHelper.refreshNode('#code-tree', 'workingsets-' + result[0].id);
 				});
 
  			} else {
@@ -2708,5 +2735,29 @@ var _WorkingSets = {
 			}
 
 		}, true, null, 'id,name');
+	},
+
+	clearRecentlyUsed: function(callback) {
+
+		Command.query('ApplicationConfigurationDataNode', 1, 1, 'name', true, { name: _WorkingSets.recentlyUsedName }, function(result) {
+
+			if (result && result.length) {
+
+				let set     = result[0];
+				let content = JSON.parse(set.content);
+
+				for (var type of Object.keys(content.positions)) {
+
+					// remove type from positions object
+					delete content.positions[type];
+
+					// add type to hidden types
+					content.hiddenTypes.push(type);
+				}
+
+				Command.setProperty(set.id, 'content', JSON.stringify(content), false, callback);
+			}
+
+		}, true, null, 'id,name,content');
 	}
 };
