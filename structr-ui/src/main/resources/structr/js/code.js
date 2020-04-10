@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+/* global Command, Structr, LSWrapper, _TreeHelper, _Icons, scrollInfoKey, Promise, _Schema, dialogBtn, dialog, me, rootUrl, port, _LogType, _Logger, _Entities */
+
 var main, codeMain, codeTree, codeContents, codeContext;
 var drop;
 var selectedElements = [];
@@ -517,7 +519,7 @@ var _Code = {
 						children: [
 							{ id: 'custom',      text: 'Custom', children: true, icon: _Icons.folder_icon },
 							{ id: 'builtin',     text: 'Built-In', children: true, icon: _Icons.folder_icon },
-							{ id: 'workingsets', text: 'Groups', children: true, icon: _Icons.folder_icon }
+							{ id: 'workingsets', text: 'Groups', children: true, icon: _Icons.folder_star_icon }
 						],
 						icon: _Icons.structr_logo_small,
 						path: '/',
@@ -581,7 +583,7 @@ var _Code = {
 
 		var id = obj.id;
 
-		var displayFunction = function (result, count, isSearch, identifier) {
+		var displayFunction = function (result, count, isSearch, identifier, dontSort) {
 
 			var list = [];
 
@@ -613,7 +615,7 @@ var _Code = {
 							id: 'workingsets-' + entity.id,
 							text:  entity.name,
 							children: entity.children.length > 0,
-							icon: _Icons.folder_icon,
+							icon: entity.name === _WorkingSets.recentlyUsedName ? _Icons.clock_icon : _Icons.folder_icon,
 							data: {
 								id: 'workingsets- ' + entity.id,
 								type: entity.type,
@@ -733,11 +735,14 @@ var _Code = {
 				}
 			});
 
-			list.sort(function(a, b) {
-				if (a.text > b.text) { return 1; }
-				if (a.text < b.text) { return -1; }
-				return 0;
-			});
+			if (!dontSort) {
+
+				list.sort(function(a, b) {
+					if (a.text > b.text) { return 1; }
+					if (a.text < b.text) { return -1; }
+					return 0;
+				});
+			}
 
 			callback(list);
 		};
@@ -775,7 +780,7 @@ var _Code = {
 				Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: null}, displayFunction, true, 'ui');
 				break;
 			case 'workingsets':
-				_WorkingSets.getWorkingSets(displayFunction);
+				_WorkingSets.getWorkingSets(result => displayFunction(result, 0, false, undefined, true));
 				break;
 			default:
 				var identifier = _Code.splitIdentifier(id);
@@ -1322,19 +1327,12 @@ var _Code = {
 
 		var identifier = _Code.splitIdentifier(data.id);
 
-		/*
-		if (_Code.layouter) {
-			_Code.layouter.focus(identifier.id);
-			return;
-		}
-		 *
-		 */
-
 		Command.get(identifier.id, null, function(result) {
 
 			_Code.updateRecentlyUsed(result, data.updateLocationStack);
 			Structr.fetchHtmlTemplate('code/type', { type: result }, function(html) {
 
+				codeContents.empty();
 				codeContents.append(html);
 
 				// delete button
@@ -1350,28 +1348,34 @@ var _Code = {
 
 					workingSets.forEach(function(set) {
 
-						if (set.children.includes(result.name)) {
+						if (set.name !== _WorkingSets.recentlyUsedName) {
 
-							_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.remove_folder_icon), 'remove-' + set.id, 'Remove from ' + set.name, function() {
-								_WorkingSets.removeTypeFromSet(set.id, result.name, function() {
-									_TreeHelper.refreshTree('#code-tree');
+							if (set.children.includes(result.name)) {
+
+								_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.remove_folder_icon), 'remove-' + set.id, 'Remove from ' + set.name, function() {
+									_WorkingSets.removeTypeFromSet(set.id, result.name, function() {
+										_TreeHelper.refreshNode('#code-tree', 'workingsets-' + set.id);
+										_Code.displaySchemaNodeContent(data);
+									});
 								});
-							});
 
-						} else {
+							} else {
 
-							_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.add_folder_icon), 'add-' + set.id, 'Add to ' + set.name, function() {
-								_WorkingSets.addTypeToSet(set.id, result.name, function() {
-									_TreeHelper.refreshTree('#code-tree');
+								_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.add_folder_icon), 'add-' + set.id, 'Add to ' + set.name, function() {
+									_WorkingSets.addTypeToSet(set.id, result.name, function() {
+										_TreeHelper.refreshNode('#code-tree', 'workingsets-' + set.id);
+										_Code.displaySchemaNodeContent(data);
+									});
 								});
-							});
+							}
 						}
 					});
 
 					_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.add_folder_icon), 'new', 'Create new group', function() {
 
 						_WorkingSets.createNewSetAndAddType(result.name, function() {
-							_TreeHelper.refreshTree('#code-tree');
+							_TreeHelper.refreshNode('#code-tree', 'workingsets');
+							_Code.displaySchemaNodeContent(data);
 						});
 					});
 
@@ -2130,6 +2134,7 @@ var _Code = {
 	updateRecentlyUsed: function(entity, updateLocationStack) {
 
 		_Code.addRecentlyUsedElement(entity);
+		_WorkingSets.addRecentlyUsed(entity.name);
 
 		var path = _Code.getPathForEntity(entity);
 
@@ -2508,33 +2513,48 @@ var _Code = {
 					_TreeHelper.refreshTree('#code-tree');
 				});
 			}
-		})
+		});
 	}
 };
 
 var _WorkingSets = {
+
+	recentlyUsedName: 'Recently Used Types',
 
 	getWorkingSets: function(callback) {
 
 		Command.query('ApplicationConfigurationDataNode', 1000, 1, 'name', true, { configType: 'layout' }, function(result) {
 
 			let workingSets = [];
+			let recent;
 
-			for (layout of result) {
+			for (var layout of result) {
 
-				if (layout.owner && layout.owner.name === me.username) {
+				if (!layout.owner || layout.owner.name === me.username) {
 
 					let content  = JSON.parse(layout.content);
 					let children = Object.keys(content.positions);
-
-					workingSets.push({
+					let data     = {
 						type: 'SchemaGroup',
 						id: layout.id,
 						name: layout.name,
 						children: children
-					});
+					};
+
+					if (layout.name === _WorkingSets.recentlyUsedName) {
+
+						data.icon = _Icons.image_icon;
+						recent    = data;
+
+					} else {
+
+						workingSets.push(data);
+					}
 				}
 			}
+
+			// insert most recent at the top
+			workingSets.unshift(recent);
 
 			callback(workingSets);
 
@@ -2568,7 +2588,7 @@ var _WorkingSets = {
 
 				let schemaNodes = [];
 
-				for (schemaNode of result) {
+				for (var schemaNode of result) {
 
 					if (positions[schemaNode.name]) {
 
@@ -2586,16 +2606,18 @@ var _WorkingSets = {
 		Command.get(id, null, function(result) {
 
 			let content = JSON.parse(result.content);
+			if (!content.positions[type]) {
 
-			content.positions[type] = {
-				top: 0,
-				left: 0
+				content.positions[type] = {
+					top: 0,
+					left: 0
+				};
+
+				// adjust hidden types as well
+				content.hiddenTypes.splice(content.hiddenTypes.indexOf(type), 1);
+
+				Command.setProperty(id, 'content', JSON.stringify(content), false, callback);
 			}
-
-			// adjust hidden types as well
-			content.hiddenTypes.splice(content.hiddenTypes.indexOf(type), 1);
-
-			Command.setProperty(id, 'content', JSON.stringify(content), false, callback);
 		});
 	},
 
@@ -2613,7 +2635,7 @@ var _WorkingSets = {
 		});
 	},
 
-	createNewSetAndAddType: function(name, callback) {
+	createNewSetAndAddType: function(name, callback, setName) {
 
 		Command.query('SchemaNode', 10000, 1, 'name', true, { }, function(result) {
 
@@ -2635,7 +2657,7 @@ var _WorkingSets = {
 
 			Command.create({
 				type: 'ApplicationConfigurationDataNode',
-				name: 'New Group',
+				name: setName || 'New Group',
 				content: JSON.stringify(config),
 				configType: 'layout'
 			}, callback);
@@ -2645,21 +2667,46 @@ var _WorkingSets = {
 
 	updatePositions: function(id, positions, callback) {
 
-		Command.get(id, null, function(result) {
+		if (positions) {
 
-			let content = JSON.parse(result.content);
+			Command.get(id, null, function(result) {
 
-			for (key of Object.keys(content.positions)) {
+				let content = JSON.parse(result.content);
 
-				let position = content.positions[key];
-				if (position && position.left === 0 && position.top === 0) {
+				for (var key of Object.keys(content.positions)) {
 
-					position.left = positions[key].left * 2;
-					position.top  = positions[key].top * 2;
+					let position = content.positions[key];
+
+					if (position && position.left === 0 && position.top === 0 && positions[key]) {
+
+						position.left = positions[key].left * 2;
+						position.top  = positions[key].top * 2;
+					}
 				}
+
+				Command.setProperty(id, 'content', JSON.stringify(content), false, callback);
+			});
+		}
+	},
+
+	addRecentlyUsed: function(name) {
+
+		Command.query('ApplicationConfigurationDataNode', 1, 1, 'name', true, { name: _WorkingSets.recentlyUsedName }, function(result) {
+
+			if (result && result.length) {
+
+				_WorkingSets.addTypeToSet(result[0].id, name, function() {
+					_TreeHelper.refreshNode('#code-tree', 'workingsets-' + result.id);
+				});
+
+ 			} else {
+
+				_WorkingSets.createNewSetAndAddType(name, function() {
+					_TreeHelper.refreshNode('#code-tree', 'workingsets');
+				}, _WorkingSets.recentlyUsedName);
+
 			}
 
-			Command.setProperty(id, 'content', JSON.stringify(content), false, callback);
-		});
+		}, true, null, 'id,name');
 	}
-}
+};

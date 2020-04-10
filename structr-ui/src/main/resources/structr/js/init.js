@@ -2047,6 +2047,15 @@ var _TreeHelper = {
 			}, 500);
 		}
 	},
+	refreshNode: function(tree, node, callback) {
+		$(tree).jstree('refresh_node', node);
+
+		if (typeof callback === "function") {
+			window.setTimeout(function() {
+				callback();
+			}, 500);
+		}
+	},
 	makeDroppable: function(tree, list) {
 		window.setTimeout(function() {
 			list.forEach(function(obj) {

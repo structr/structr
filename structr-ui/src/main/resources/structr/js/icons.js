@@ -119,6 +119,8 @@ var _Icons = {
 	report_icon: 'icon/report.png',
 	find_icon: 'icon/find.png',
 	world_icon: 'icon/world.png',
+	clock_icon: 'icon/clock.png',
+	folder_star_icon: 'icon/folder_star.png',
 
 
 	getFullSpriteClass: function (key) {
