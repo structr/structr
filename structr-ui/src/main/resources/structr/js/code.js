@@ -2574,7 +2574,9 @@ var _WorkingSets = {
 			}
 
 			// insert most recent at the top
-			workingSets.unshift(recent);
+			if (recent) {
+				workingSets.unshift(recent);
+			}
 
 			callback(workingSets);
 
