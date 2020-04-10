@@ -75,19 +75,16 @@ import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.service.RunnableService;
-import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.StructrServices;
 import org.structr.core.Services;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.auth.SessionHelper;
-import org.structr.schema.SchemaService;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
 /**
  *
  *
  */
-@ServiceDependency(SchemaService.class)
 public class HttpService implements RunnableService {
 
 	private static final Logger logger = LoggerFactory.getLogger(HttpService.class.getName());

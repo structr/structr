@@ -242,7 +242,15 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		final boolean returnContent = true;
 
-		doGetOrHead(request, response, returnContent);
+		try {
+
+			assertInitialized();
+
+			doGetOrHead(request, response, returnContent);
+
+		} catch (FrameworkException fex) {
+			writeException(response, fex);
+		}
 	}
 
 	@Override
@@ -250,7 +258,15 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		final boolean returnContent = false;
 
-		doGetOrHead(request, response, returnContent);
+		try {
+
+			assertInitialized();
+
+			doGetOrHead(request, response, returnContent);
+
+		} catch (FrameworkException fex) {
+			writeException(response, fex);
+		}
 	}
 
 	@Override

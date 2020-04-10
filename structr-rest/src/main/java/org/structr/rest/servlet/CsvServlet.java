@@ -50,7 +50,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.JsonInput;
 import org.structr.core.Services;
-import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
@@ -106,6 +105,8 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 		setCustomResponseHeaders(response);
 
 		try {
+
+			assertInitialized();
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
@@ -244,6 +245,8 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 		setCustomResponseHeaders(response);
 
 		try {
+
+			assertInitialized();
 
 			// first thing to do!
 			request.setCharacterEncoding("UTF-8");
@@ -628,9 +631,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 			// flush each line
 			out.flush();
 		}
-
 	}
-
 
 	private Map<String, Object> convertPropertySetToMap(JsonInput propertySet) {
 
@@ -640,33 +641,4 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 		return new LinkedHashMap<>();
 	}
-
-	// <editor-fold defaultstate="collapsed" desc="nested classes">
-	private class ThreadLocalPropertyView extends ThreadLocal<String> implements Value<String> {
-
-		@Override
-		protected String initialValue() {
-
-			return defaultPropertyView;
-
-		}
-
-		//~--- get methods --------------------------------------------
-		@Override
-		public String get(SecurityContext securityContext) {
-
-			return get();
-
-		}
-
-		//~--- set methods --------------------------------------------
-		@Override
-		public void set(SecurityContext securityContext, String value) {
-
-			set(value);
-
-		}
-
-	}
-
 }
