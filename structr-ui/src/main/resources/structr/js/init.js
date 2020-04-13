@@ -1553,7 +1553,7 @@ var Structr = {
 	},
 	initVerticalSlider: function(sliderEl, localstorageKey, minWidth, dragCallback) {
 
-		if (typeof dragCallback !== "function") {
+		if (typeof dragCallback !== 'function') {
 			console.error('dragCallback is not a function!');
 			return;
 		}
@@ -1561,9 +1561,18 @@ var Structr = {
 		$(sliderEl).draggable({
 			axis: 'x',
 			drag: function(e, ui) {
-				var left = Math.max(minWidth, ui.position.left);
-				ui.position.left = left;
 
+				let left = Math.min(window.innerWidth - minWidth, Math.max(minWidth, ui.position.left));
+				
+				// If there are two resizer elements, distance between resizers
+				// must always be larger than minWidth.
+				if ($(this).hasClass('column-resizer-left') && $('.column-resizer-right')) {
+					left = Math.min(left, $('.column-resizer-right').position().left - minWidth);
+				} else if ($(this).hasClass('column-resizer-right') && $('.column-resizer-left')) {
+					left = Math.max(left, $('.column-resizer-left').position().left + minWidth);
+				}
+				
+				ui.position.left = left;
 				dragCallback(left);
 			},
 			stop: function(e, ui) {
