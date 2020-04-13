@@ -3574,7 +3574,6 @@ td#cascading-options, td#propagation-options {
 }
 
 .tree-container {
-	display: table-cell;
 	vertical-align: top;
 	padding: 12px 0 12px 12px;
 }
@@ -4764,26 +4763,32 @@ input#element-class {
 	height: calc(100vh - 90px);
 	background-color: transparent;
 	position: absolute;
-	top: 70px;
-	left: 300px;
+	top: 73px;
 	cursor: ew-resize;
 	border: 1px solid transparent;
 }
-.column-resizer-right {
-	z-index: 2;
-	width: 6px;
-	height: calc(100vh - 90px);
-	background-color: transparent;
+.column-resizer::after {
+	color: #b5b5b5;
 	position: absolute;
-	top: 70px;
-	left: 222px;
-	cursor: ew-resize;
-	border: 1px solid transparent;
+	top: calc(50% - 1em);
+	content: '║';
+	font-size: 1.5em;
+	margin-left: -.16em;
+	text-align: left;
+	padding: 0;
 }
 
-#files-main .column-resizer,
-#crawler-main .column-resizer,
-#contents-main .column-resizer {
+.column-resizer-left {
+	left: 300px;
+}
+
+.column-resizer-right {
+	right: 300px;
+}
+
+#files-main .column-resizer-left,
+#crawler-main .column-resizer-left,
+#contents-main .column-resizer-left {
 	left: 300px;
 }
 

@@ -28,6 +28,7 @@ var timeout, attempts = 0, maxRetry = 10;
 var displayingFavorites = false;
 var codeLastOpenMethodKey = 'structrCodeLastOpenMethod_' + port;
 var codeResizerLeftKey = 'structrCodeResizerLeftKey_' + port;
+var codeResizerRightKey = 'structrCodeResizerRightKey_' + port;
 var activeCodeTabPrefix = 'activeCodeTabPrefix' + port;
 
 $(document).ready(function() {
@@ -82,7 +83,8 @@ var _Code = {
 			});
 		}
 
-		_Code.moveResizer();
+		_Code.moveLeftResizer();
+		_Code.moveRightResizer();
 		Structr.resize();
 
 		var nameColumnWidth = $('#code-table th:nth-child(2)').width();
@@ -117,17 +119,25 @@ var _Code = {
 		var contentBox = $('.CodeMirror');
 		contentBox.height('100%');
 	},
-	moveResizer: function(left) {
+	moveLeftResizer: function(left) {
 		left = left || LSWrapper.getItem(codeResizerLeftKey) || 300;
-		$('.column-resizer', codeMain).css({ left: left });
+		$('.column-resizer-left', codeMain).css({ left: left + 'px'});
 
-		var contextWidth = 240;
-		var width        = $(window).width() - left - contextWidth - 80;
+		var contextWidth  = $('#code-context').width();
+		var contentsWidth = window.innerWidth - left - contextWidth - 82;
 
 		$('#code-tree').css({width: left - 14 + 'px'});
-		$('#code-contents').css({left: left + 8 + 'px', width: width + 'px'});
-		$('#code-context').css({left: left + width + 41 + 'px', width: contextWidth + 'px'});
+		$('#code-contents').css({left: left + 8 + 'px', width: contentsWidth + 'px'});
+		$('#code-context').css({left: left + contentsWidth + 42 + 'px', width: contextWidth + 'px'});
 	},
+	moveRightResizer: function(left) {
+		left = left || LSWrapper.getItem(codeResizerRightKey) || window.innerWidth - 240;
+		$('.column-resizer-right').css({left: left + 'px'});
+
+		var treeWidth = $('#code-tree-container').width();
+		$('#code-contents').css({width: left - treeWidth - 46 + 'px'});
+		$('#code-context').css({left: left + 8 + 'px', width: window.innerWidth - left - 48 + 'px'});
+	},	
 	onload: function() {
 
 		Structr.fetchHtmlTemplate('code/main', {}, function(html) {
@@ -144,8 +154,8 @@ var _Code = {
 				codeContents = $('#code-contents');
 				codeContext  = $('#code-context');
 
-				_Code.moveResizer();
-				Structr.initVerticalSlider($('.column-resizer', codeMain), codeResizerLeftKey, 204, _Code.moveResizer);
+				Structr.initVerticalSlider($('.column-resizer-left', codeMain), codeResizerLeftKey, 204, _Code.moveLeftResizer);
+				Structr.initVerticalSlider($('.column-resizer-right', codeMain), codeResizerRightKey, 204, _Code.moveRightResizer);
 
 				$.jstree.defaults.core.themes.dots      = false;
 				$.jstree.defaults.dnd.inside_pos        = 'last';
