@@ -4758,7 +4758,7 @@ input#element-class {
  * Column resizer
  */
 .column-resizer {
-	z-index: 2;
+	z-index: 3;
 	width: 6px;
 	height: calc(100vh - 90px);
 	background-color: transparent;
@@ -4767,6 +4767,7 @@ input#element-class {
 	cursor: ew-resize;
 	border: 1px solid transparent;
 }
+
 .column-resizer::after {
 	color: #b5b5b5;
 	position: absolute;
@@ -4776,6 +4777,17 @@ input#element-class {
 	margin-left: -.16em;
 	text-align: left;
 	padding: 0;
+}
+
+.column-resizer-blocker {
+	display: none;
+	z-index: 2;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: transparent;
 }
 
 .column-resizer-left {
