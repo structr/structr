@@ -180,18 +180,18 @@ public class CronService extends Thread implements RunnableService {
 						CronEntry entry = CronEntry.parse(task, cronSetting.getValue().toString());
 						if(entry != null) {
 
-							logger.info("Adding cron entry {} for {}", new Object[]{ entry, task });
+							logger.info("Adding cron entry {} for '{}'", entry, task);
 
 							cronEntries.add(entry);
 
 						} else {
 
-							logger.warn("Unable to parse cron expression for taks {}, ignoring.", task);
+							logger.warn("Unable to parse cron expression for task '{}', ignoring.", task);
 						}
 
 					} else {
 
-						logger.warn("No cron expression for task {}, ignoring.", task);
+						logger.warn("No cron expression for task '{}', ignoring.", task);
 					}
 				}
 			}
