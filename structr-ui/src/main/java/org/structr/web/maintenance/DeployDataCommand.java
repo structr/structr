@@ -251,9 +251,6 @@ public class DeployDataCommand extends DeployCommand {
 			doInnerCallbacks  = parameters.get("doInnerCallbacks") == null  ? false : "true".equals(parameters.get("doInnerCallbacks").toString());
 			doCascadingDelete = parameters.get("doCascadingDelete") == null ? false : "true".equals(parameters.get("doCascadingDelete").toString());
 
-			missingTypesForImport = new HashSet();
-			failedRelationshipImports = new TreeMap();
-
 			doImportFromDirectory(source);
 
 		} finally {
@@ -264,6 +261,9 @@ public class DeployDataCommand extends DeployCommand {
 	}
 
 	public void doImportFromDirectory(final Path source) {
+
+		missingTypesForImport = new HashSet();
+		failedRelationshipImports = new TreeMap();
 
 		final long startTime = System.currentTimeMillis();
 		customHeaders.put("start", new Date(startTime).toString());
