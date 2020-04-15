@@ -3543,6 +3543,10 @@ td#cascading-options, td#propagation-options {
  * Filesystem-like pages (Filesystem, Contents, Crawer)
  */
 
+#file-tree {
+	height: calc(100% - 11px);
+}
+
 .jstree-anchor {
 	font-size: 9pt;
 }
