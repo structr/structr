@@ -130,12 +130,13 @@ public class Services implements StructrServices {
 
 			final T command          = commandType.newInstance();
 			final Class serviceClass = command.getServiceClass();
-			final String serviceName = getNameOfActiveService(serviceClass);
 
 			// inject security context first
 			command.setArgument("securityContext", securityContext);
 
 			if (serviceClass != null) {
+
+				final String serviceName = getNameOfActiveService(serviceClass);
 
 				// search for already running service..
 				Service service = getService(serviceClass, serviceName);
