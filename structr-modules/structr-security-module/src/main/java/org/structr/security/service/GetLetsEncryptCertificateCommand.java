@@ -34,13 +34,13 @@ import java.net.InetSocketAddress;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.shredzone.acme4j.Account;
 import org.shredzone.acme4j.AccountBuilder;
@@ -489,7 +489,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 
 			stopServer();
 
-			logger.info("Unable to start temporary HTTP server for challenge authorization, trying internal file server...", iox);
+			logger.info("Unable to start temporary HTTP server for challenge authorization, trying internal file server... (Reason: {})", iox.getMessage());
 
 			final App app = StructrApp.getInstance();
 
@@ -516,8 +516,8 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 				tx.success();
 
 			} catch (IOException ex) {
-				logger.error("Unable to start create challenge response file in internal file system, aborting.", ex);
-				throw new FrameworkException(422, "Unable to start create challenge response file in internal file system, aborting.");
+				logger.error("Unable to create challenge response file in internal file system, aborting.", ex);
+				throw new FrameworkException(422, "Unable to create challenge response file in internal file system, aborting.");
 			}
 
 		}
