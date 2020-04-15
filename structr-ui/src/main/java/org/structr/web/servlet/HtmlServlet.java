@@ -283,7 +283,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					final String queryString = request.getQueryString();
 
 					// Look for a file, first include the query string
-					file = findFile(securityContext, request, path + (queryString != null ? "?" + queryString : ""));
+					if (StringUtils.isNotBlank(queryString)) {
+						file = findFile(securityContext, request, path + "?" + queryString);
+					}
 
 					// If no file with query string in the file name found, try without query string
 					if (file == null) {
