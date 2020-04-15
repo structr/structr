@@ -1569,17 +1569,17 @@ var Structr = {
 				let left = Math.min(window.innerWidth - minWidth, Math.max(minWidth, ui.position.left));
 			},
 			drag: function(e, ui) {
-				
+
 				let left = Math.min(window.innerWidth - minWidth, Math.max(minWidth, ui.position.left));
-				
+
 				// If there are two resizer elements, distance between resizers
 				// must always be larger than minWidth.
-				if ($(this).hasClass('column-resizer-left') && $('.column-resizer-right')) {
+				if ($(this).hasClass('column-resizer-left') && $('.column-resizer-right').length > 0) {
 					left = Math.min(left, $('.column-resizer-right').position().left - minWidth);
-				} else if ($(this).hasClass('column-resizer-right') && $('.column-resizer-left')) {
+				} else if ($(this).hasClass('column-resizer-right') && $('.column-resizer-left').length > 0) {
 					left = Math.max(left, $('.column-resizer-left').position().left + minWidth);
 				}
-				
+
 				ui.position.left = left;
 				dragCallback(left);
 			},
