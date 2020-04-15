@@ -59,6 +59,24 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 
+		try {
+
+			assertInitialized();
+
+		} catch (FrameworkException fex) {
+
+			try {
+				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
+
+			} catch (IOException ioex) {
+
+				logger.warn("Unable to send response", ioex);
+			}
+
+			return;
+		}
+
 		final SecurityContext securityContext;
 		final Authenticator authenticator;
 

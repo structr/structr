@@ -136,7 +136,7 @@ var _Pages = {
 		_Logger.log(_LogType.PAGES, 'onload');
 
 		main.prepend(
-				'<div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div>'
+				'<div class="column-resizer-blocker"></div><div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div>'
 				+ '<div id="activeElements" class="slideOut slideOutLeft"><div class="compTab" id="activeElementsTab">Active Elements</div><div class="page inner"></div></div>'
 				+ '<div id="dataBinding" class="slideOut slideOutLeft"><div class="compTab" id="dataBindingTab">Data Binding</div></div>'
 				+ '<div id="localizations" class="slideOut slideOutLeft"><div class="compTab" id="localizationsTab">Localizations</div><div class="page inner"><input class="locale" placeholder="Locale"><button class="refresh action button">' + _Icons.getHtmlForIcon(_Icons.refresh_icon) + ' Refresh</button><div class="results ver-scrollable"></div></div></div>'
