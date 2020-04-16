@@ -492,6 +492,17 @@ var Structr = {
 	renewSessionId: function(callback) {
 		$.get('/').always(function() {
 			sessionId = Structr.getSessionId();
+
+			if (!sessionId && location.protocol === 'http:') {
+
+				new MessageBuilder()
+						.title("Unable to retrieve session id cookie")
+						.warning("This is most likely due to a pre-existing secure HttpOnly cookie. Please navigate to the HTTPS version of this page (even if HTTPS is inactive) and delete the JSESSIONID cookie. Then return to this page and reload. This should solve the problem.")
+						.requiresConfirmation()
+						.uniqueClass("http-only-cookie")
+						.show();
+			}
+
 			if (typeof callback === "function") {
 				callback();
 			}
