@@ -106,6 +106,7 @@ public class HttpService implements RunnableService {
 	private Server server                         = null;
 	private int maxIdleTime                       = 30000;
 	private int requestHeaderSize                 = 8192;
+	private boolean httpsActive                   = false;
 
 	@Override
 	public void startService() throws Exception {
@@ -443,9 +444,13 @@ public class HttpService implements RunnableService {
 			logger.warn("Unable to configure HTTP server port, please make sure that {} and {} are set correctly in structr.conf.", Settings.ApplicationHost.getKey(), Settings.HttpPort.getKey());
 		}
 
+		httpsActive = false;
+
 		if (enableHttps) {
 
 			if (httpsPort > -1 && keyStorePath != null && !keyStorePath.isEmpty() && keyStorePassword != null) {
+
+				httpsActive = true;
 
 				httpsConfig = new HttpConfiguration(httpConfig);
 				httpsConfig.addCustomizer(new SecureRequestCustomizer());
@@ -494,6 +499,8 @@ public class HttpService implements RunnableService {
 				connectors.add(httpsConnector);
 
 			} else {
+
+				httpsActive = false;
 
 				logger.warn("Unable to configure SSL, please make sure that {}, {} and {} are set correctly in structr.conf.", new Object[]{
 					Settings.HttpsPort.getKey(),
@@ -558,6 +565,10 @@ public class HttpService implements RunnableService {
 	@Override
 	public boolean waitAndRetry() {
 		return false;
+	}
+
+	public boolean isHttpsActive() {
+		return httpsActive;
 	}
 
 	// ----- interface Feature -----
