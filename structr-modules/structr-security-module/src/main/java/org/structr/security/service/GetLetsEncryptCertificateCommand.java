@@ -59,6 +59,7 @@ import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.StaticValue;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.MaintenanceCommand;
@@ -126,7 +127,6 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			switch (server) {
 
 				case "production":
-
 					serverUrl = Settings.LetsEncryptProductionServerURL.getValue();
 					break;
 
@@ -149,7 +149,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 
 	// ----- private methods -----
 
-	private static void getCertificate(final String challengeType, final Integer wait) throws FrameworkException {
+	private void getCertificate(final String challengeType, final Integer wait) throws FrameworkException {
 
 		try {
 
@@ -231,7 +231,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 		}
 	}
 
-	private static void writeCertificateToKeyStore(final Collection<String> domains, final Certificate certificate, final KeyPair domainKeyPair) throws FrameworkException {
+	private void writeCertificateToKeyStore(final Collection<String> domains, final Certificate certificate, final KeyPair domainKeyPair) throws FrameworkException {
 
 		final String password = Settings.KeystorePassword.getValue();
 
@@ -256,11 +256,11 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 		}
 	}
 
-	private static String getKeyStoreFilename() {
+	private String getKeyStoreFilename() {
 		return Settings.KeystorePath.getValue(Settings.LetsEncryptDomainKeyFilename.getValue() + ".keystore");
 	}
 
-	private static void writeKeyStore(final KeyStore keyStore) throws FrameworkException {
+	private void writeKeyStore(final KeyStore keyStore) throws FrameworkException {
 
 		final String keyStoreFilename = getKeyStoreFilename();
 		final String password         = Settings.KeystorePassword.getValue();
@@ -275,15 +275,13 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			logger.info("Unable to write to keystore: " + ex.getMessage());
 			throw new FrameworkException(422, "Unable to write to keystore: " + ex.getMessage());
 		}
-
 	}
 
-	private static KeyStore getOrCreateKeyStore() throws FrameworkException {
+	private KeyStore getOrCreateKeyStore() throws FrameworkException {
 
 		final String keyStoreFilename = getKeyStoreFilename();
 		final String password         = Settings.KeystorePassword.getValue();
-
-		final File keyStoreFile = new File(keyStoreFilename);
+		final File keyStoreFile       = new File(keyStoreFilename);
 
 		final KeyStore keyStore;
 		try {
@@ -315,10 +313,10 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			logger.info("Unable to create new keystore file. Check permissions. " + ex.getMessage());
 			throw new FrameworkException(422, "Unable to create new keystore file. Check permissions. " + ex.getMessage());
 		}
-
 	}
 
-	private static void authorizeChallenge(final String challengeType, final Authorization auth, final int wait) throws Exception {
+	private void authorizeChallenge(final String challengeType, final Authorization auth, final int wait) throws Exception {
+
 		logger.info("Starting challenge authorization for domain {}", auth.getIdentifier().getDomain());
 
 		if (org.shredzone.acme4j.Status.VALID == auth.getStatus()) {
@@ -365,7 +363,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			while (org.shredzone.acme4j.Status.VALID != challenge.getStatus() && attempts-- > 0) {
 
 				if (challenge.getStatus() == org.shredzone.acme4j.Status.INVALID) {
-					logger.info("Challenge authorization failed due to invalid response, aborting.");
+					logger.info("Challenge authorization failed due to invalid response, aborting. Error: {}", challenge.getError());
 					throw new FrameworkException(422, "Challenge authorization failed due to invalid response, aborting.");
 				}
 
@@ -373,6 +371,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 
 				challenge.update();
 			}
+
 		} catch (final InterruptedException ex) {
 
 			stopServer();
@@ -391,12 +390,12 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 
 		if (challengeType.equals("http")) {
 
-			logger.info("Successfully finished challenge, stopping server on port 80.");
+			logger.info("Successfully finished challenge, cleaning up...");
 			stopServer();
 		}
 	}
 
-	private static void stopServer() {
+	private void stopServer() {
 
 		if (challengeType.equals("http")) {
 
@@ -413,37 +412,45 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 
 				logger.info("Removing /.well-known/acme-challenge/* from internal file system...");
 
-				final App app = StructrApp.getInstance();
-				try (final Tx tx = app.tx()) {
+				// put cleanup of folders/file in thread so we can use it in scripting
+				final Thread workerThread = new Thread(() -> {
 
-					// Delete challenge response file and all parent folders from internal file system
+					final App app = StructrApp.getInstance();
+					try (final Tx tx = app.tx()) {
 
-					final SecurityContext adminContext = SecurityContext.getSuperUserInstance();
-					final Folder wellKnownFolder = (Folder) FileHelper.getFileByAbsolutePath(adminContext, "/.well-known");
-					if (wellKnownFolder != null) {
+						// Delete challenge response file and all parent folders from internal file system
 
-						final List<NodeInterface> filteredResults = new LinkedList<>();
-						filteredResults.addAll(wellKnownFolder.getAllChildNodes());
+						final SecurityContext adminContext = SecurityContext.getSuperUserInstance();
+						final Folder wellKnownFolder = (Folder) FileHelper.getFileByAbsolutePath(adminContext, "/.well-known");
+						if (wellKnownFolder != null) {
 
-						for (NodeInterface node : filteredResults) {
+							final List<NodeInterface> filteredResults = new LinkedList<>();
+							filteredResults.addAll(wellKnownFolder.getAllChildNodes());
+
+							for (NodeInterface node : filteredResults) {
 								app.delete(node);
+							}
+
+							app.delete(wellKnownFolder);
 						}
 
-						app.delete(wellKnownFolder);
+						tx.success();
+
+					} catch (FrameworkException fex) {
+
+						logger.error("Unable to remove challenge response file and folders. {}", fex.getMessage());
 					}
 
-					tx.success();
-
 					logger.info("Successfully removed challenge response resources /.well-known/acme-challenge/* from internal file system.");
+				});
 
-				} catch (FrameworkException ex) {
-					logger.error("Unable to remove challenge response file and folders.");
-				}
+				workerThread.start();
+				try { workerThread.join(); } catch (Throwable t) { t.printStackTrace(); }
 			}
 		}
 	}
 
-	public static Challenge httpChallenge(final Authorization auth) throws FrameworkException {
+	public Challenge httpChallenge(final Authorization auth) throws FrameworkException {
 
 		final Http01Challenge challenge = auth.findChallenge(Http01Challenge.class);
 		final String uriPath            = "/.well-known/acme-challenge/" + challenge.getToken();
@@ -491,33 +498,52 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 
 			logger.info("Unable to start temporary HTTP server for challenge authorization, trying internal file server... (Reason: {})", iox.getMessage());
 
-			final App app = StructrApp.getInstance();
+			final StaticValue<FrameworkException> exceptionFromThread = new StaticValue<>(null);
 
-			try (final Tx tx = app.tx()) {
+			// put creation of folders/file in thread so we can use it in scripting
+			final Thread workerThread = new Thread(() -> {
 
-				final SecurityContext adminContext = SecurityContext.getSuperUserInstance();
-				final Folder parentFolder = FileHelper.createFolderPath(adminContext, "/.well-known/acme-challenge/");
+				final App app = StructrApp.getInstance();
 
-				PropertyMap props = new PropertyMap();
-				props.put(StructrApp.key(org.structr.web.entity.Folder.class, "visibleToPublicUsers"), true);
-				props.put(StructrApp.key(org.structr.web.entity.Folder.class, "visibleToAuthenticatedUsers"), true);
+				try (final Tx tx = app.tx()) {
 
-				parentFolder.setProperties(adminContext, props);
-				parentFolder.getParent().setProperties(adminContext, props);
+					final SecurityContext adminContext = SecurityContext.getSuperUserInstance();
+					final Folder parentFolder = FileHelper.createFolderPath(adminContext, "/.well-known/acme-challenge/");
 
-				org.structr.web.entity.File challengeFile = FileHelper.createFile(adminContext, new ByteArrayInputStream(content.getBytes()), "text/plain", SchemaHelper.getEntityClassForRawType("File"), challenge.getToken(), parentFolder);
+					PropertyMap props = new PropertyMap();
+					props.put(StructrApp.key(org.structr.web.entity.Folder.class, "visibleToPublicUsers"), true);
+					props.put(StructrApp.key(org.structr.web.entity.Folder.class, "visibleToAuthenticatedUsers"), true);
 
-				props = new PropertyMap();
-				props.put(StructrApp.key(org.structr.web.entity.File.class, "visibleToPublicUsers"), true);
-				props.put(StructrApp.key(org.structr.web.entity.File.class, "visibleToAuthenticatedUsers"), true);
+					parentFolder.setProperties(adminContext, props);
+					parentFolder.getParent().setProperties(adminContext, props);
 
-				challengeFile.setProperties(adminContext, props);
+					org.structr.web.entity.File challengeFile = FileHelper.createFile(adminContext, new ByteArrayInputStream(content.getBytes()), "text/plain", SchemaHelper.getEntityClassForRawType("File"), challenge.getToken(), parentFolder);
 
-				tx.success();
+					props = new PropertyMap();
+					props.put(StructrApp.key(org.structr.web.entity.File.class, "visibleToPublicUsers"), true);
+					props.put(StructrApp.key(org.structr.web.entity.File.class, "visibleToAuthenticatedUsers"), true);
 
-			} catch (IOException ex) {
-				logger.error("Unable to create challenge response file in internal file system, aborting.", ex);
-				throw new FrameworkException(422, "Unable to create challenge response file in internal file system, aborting.");
+					challengeFile.setProperties(adminContext, props);
+
+					tx.success();
+
+				} catch (IOException ex) {
+
+					exceptionFromThread.set(null, new FrameworkException(422, ex.getMessage()));
+
+				} catch (FrameworkException fex) {
+
+					exceptionFromThread.set(null, fex);
+				}
+			});
+
+			workerThread.start();
+			try { workerThread.join(); } catch (Throwable t) { t.printStackTrace(); }
+
+			if (exceptionFromThread.get(null) != null) {
+				FrameworkException fex = exceptionFromThread.get(null);
+				logger.error("Unable to create challenge response file in internal file system, aborting.", fex.getMessage());
+				throw fex;
 			}
 
 		}
@@ -525,7 +551,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 		return challenge;
 	}
 
-	public static Challenge dnsChallenge(final Authorization auth, final int wait) throws FrameworkException {
+	public Challenge dnsChallenge(final Authorization auth, final int wait) throws FrameworkException {
 
 		final Dns01Challenge challenge = auth.findChallenge(Dns01Challenge.TYPE);
 		if (challenge == null) {
@@ -540,7 +566,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 		return challenge;
 	}
 
-	private static KeyPair getOrCreateUserKey() throws IOException {
+	private KeyPair getOrCreateUserKey() throws IOException {
 
 		final File userKeyFile = new File(Settings.LetsEncryptUserKeyFilename.getValue());
 
@@ -563,7 +589,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 		}
 	}
 
-	private static KeyPair getOrCreateDomainKey() throws IOException {
+	private KeyPair getOrCreateDomainKey() throws IOException {
 
 		final File domainKeyFile = new File(Settings.LetsEncryptDomainKeyFilename.getValue());
 
