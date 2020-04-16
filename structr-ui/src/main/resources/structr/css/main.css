@@ -3840,6 +3840,23 @@ input.tree-search-input:focus {
 	vertical-align: middle;
 }
 
+
+/* BEGIN: styles to maximize methods editors in bulk save dialog for code area */
+#code-methods-container {
+	height: calc(100% - 37px);
+}
+#code-methods-container #methods-container {
+	height: 100%;
+}
+#code-methods-container #methods-container #methods-content {
+	height: calc(100% - 58px);
+}
+#code-methods-container #methods-container #methods-content .method-tab-content,
+#code-methods-container #methods-container #methods-content .method-tab-content .cm-schema-methods {
+	height: 100%;
+}
+/* END: styles to maximize methods editors in bulk save dialog for code area */
+
 #type-content-add-property i,
 #type-content-add-method i {
 	color: #81ce25;

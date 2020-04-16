@@ -2325,7 +2325,7 @@ var _Schema = {
 						_Schema.methods.bulkSave(el, tbody, entity);
 					});
 
-					el.append('<div class="editor-settings"><span><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span></div>');
+					$('#methods-container-right', el).append('<div class="editor-settings"><span><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span></div>');
 					$('#lineWrapping', el).off('change').on('change', function() {
 						let checkbox = $(this);
 						Structr.updateCodeMirrorOptionGlobally('lineWrapping', checkbox.is(':checked'));
