@@ -657,6 +657,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			broadcastData.put("duration", duration);
 			publishEndMessage(DEPLOYMENT_IMPORT_STATUS, broadcastData);
 
+		} catch (Throwable t) {
+
+			publishWarningMessage("Fatal Error", "Something went wrong - the deployment import has stopped. Please see the log for more information");
+
+			throw t;
+
 		} finally {
 
 			// restore saved value
