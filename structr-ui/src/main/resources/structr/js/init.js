@@ -492,6 +492,17 @@ var Structr = {
 	renewSessionId: function(callback) {
 		$.get('/').always(function() {
 			sessionId = Structr.getSessionId();
+
+			if (!sessionId && location.protocol === 'http:') {
+
+				new MessageBuilder()
+						.title("Unable to retrieve session id cookie")
+						.warning("This is most likely due to a pre-existing secure HttpOnly cookie. Please navigate to the HTTPS version of this page (even if HTTPS is inactive) and delete the JSESSIONID cookie. Then return to this page and reload. This should solve the problem.")
+						.requiresConfirmation()
+						.uniqueClass("http-only-cookie")
+						.show();
+			}
+
 			if (typeof callback === "function") {
 				callback();
 			}
@@ -1119,6 +1130,7 @@ var Structr = {
 		t.draggable({
 			axis: 'x',
 			start: function(e, ui) {
+				$('.column-resizer-blocker').show();
 				t.addClass('noclick');
 			},
 			drag: function(e, ui) {
@@ -1137,6 +1149,7 @@ var Structr = {
 				}
 			},
 			stop: function(e, ui) {
+				$('.column-resizer-blocker').hide();
 				// remove noclick class after 200ms in case the mouseup event is not triggered while over the element (which leads to noclick remaining)
 				window.setTimeout(function() {
 					t.removeClass('noclick');
@@ -1168,6 +1181,7 @@ var Structr = {
 		t.draggable({
 			axis: 'x',
 			start: function(e, ui) {
+				$('.column-resizer-blocker').show();
 				$(this).addClass('noclick');
 			},
 			drag: function(e, ui) {
@@ -1186,6 +1200,7 @@ var Structr = {
 				}
 			},
 			stop: function(e, ui) {
+				$('.column-resizer-blocker').hide();
 				// remove noclick class after 200ms in case the mouseup event is not triggered while over the element (which leads to noclick remaining)
 				window.setTimeout(function() {
 					t.removeClass('noclick');
@@ -1215,10 +1230,10 @@ var Structr = {
 						callback(wasOpen, 0, -rsw);
 					}
 				}).zIndex(2);
-				$('.compTab.active', slideout).removeClass('active').draggable("destroy");
+				$('.compTab.active', slideout).removeClass('active').draggable('destroy');
 
 				var openSlideoutCallback = slideout.data('closeCallback');
-				if (typeof openSlideoutCallback === "function") {
+				if (typeof openSlideoutCallback === 'function') {
 					openSlideoutCallback();
 				}
 			}
@@ -1243,7 +1258,7 @@ var Structr = {
 						callback(wasOpen, -osw, 0);
 					}
 				}).zIndex(2);
-				$('.compTab.active', slideout).removeClass('active').draggable("destroy");
+				$('.compTab.active', slideout).removeClass('active').draggable('destroy');
 			}
 		});
 
@@ -1553,20 +1568,34 @@ var Structr = {
 	},
 	initVerticalSlider: function(sliderEl, localstorageKey, minWidth, dragCallback) {
 
-		if (typeof dragCallback !== "function") {
+		if (typeof dragCallback !== 'function') {
 			console.error('dragCallback is not a function!');
 			return;
 		}
 
 		$(sliderEl).draggable({
 			axis: 'x',
+			start: function(e, ui) {
+				$('.column-resizer-blocker').show();
+				let left = Math.min(window.innerWidth - minWidth, Math.max(minWidth, ui.position.left));
+			},
 			drag: function(e, ui) {
-				var left = Math.max(minWidth, ui.position.left);
-				ui.position.left = left;
 
+				let left = Math.min(window.innerWidth - minWidth, Math.max(minWidth, ui.position.left));
+
+				// If there are two resizer elements, distance between resizers
+				// must always be larger than minWidth.
+				if ($(this).hasClass('column-resizer-left') && $('.column-resizer-right').length > 0) {
+					left = Math.min(left, $('.column-resizer-right').position().left - minWidth);
+				} else if ($(this).hasClass('column-resizer-right') && $('.column-resizer-left').length > 0) {
+					left = Math.max(left, $('.column-resizer-left').position().left + minWidth);
+				}
+
+				ui.position.left = left;
 				dragCallback(left);
 			},
 			stop: function(e, ui) {
+				$('.column-resizer-blocker').hide();
 				LSWrapper.setItem(localstorageKey, ui.position.left);
 			}
 		});
@@ -2040,6 +2069,15 @@ var _TreeHelper = {
 	},
 	refreshTree: function(tree, callback) {
 		$(tree).jstree('refresh');
+
+		if (typeof callback === "function") {
+			window.setTimeout(function() {
+				callback();
+			}, 500);
+		}
+	},
+	refreshNode: function(tree, node, callback) {
+		$(tree).jstree('refresh_node', node);
 
 		if (typeof callback === "function") {
 			window.setTimeout(function() {

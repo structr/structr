@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+/* global Command, Structr, LSWrapper, _TreeHelper, _Icons, scrollInfoKey, Promise, _Schema, dialogBtn, dialog, me, rootUrl, port, _LogType, _Logger, _Entities */
+
 var main, codeMain, codeTree, codeContents, codeContext;
 var drop;
 var selectedElements = [];
@@ -26,6 +28,7 @@ var timeout, attempts = 0, maxRetry = 10;
 var displayingFavorites = false;
 var codeLastOpenMethodKey = 'structrCodeLastOpenMethod_' + port;
 var codeResizerLeftKey = 'structrCodeResizerLeftKey_' + port;
+var codeResizerRightKey = 'structrCodeResizerRightKey_' + port;
 var activeCodeTabPrefix = 'activeCodeTabPrefix' + port;
 
 $(document).ready(function() {
@@ -80,7 +83,8 @@ var _Code = {
 			});
 		}
 
-		_Code.moveResizer();
+		_Code.moveLeftResizer();
+		_Code.moveRightResizer();
 		Structr.resize();
 
 		var nameColumnWidth = $('#code-table th:nth-child(2)').width();
@@ -115,17 +119,25 @@ var _Code = {
 		var contentBox = $('.CodeMirror');
 		contentBox.height('100%');
 	},
-	moveResizer: function(left) {
+	moveLeftResizer: function(left) {
 		left = left || LSWrapper.getItem(codeResizerLeftKey) || 300;
-		$('.column-resizer', codeMain).css({ left: left });
+		$('.column-resizer-left', codeMain).css({ left: left + 'px'});
 
-		var contextWidth = 240;
-		var width        = $(window).width() - left - contextWidth - 80;
+		var contextWidth  = $('#code-context').width();
+		var contentsWidth = window.innerWidth - left - contextWidth - 82;
 
 		$('#code-tree').css({width: left - 14 + 'px'});
-		$('#code-contents').css({left: left + 8 + 'px', width: width + 'px'});
-		$('#code-context').css({left: left + width + 41 + 'px', width: contextWidth + 'px'});
+		$('#code-contents').css({left: left + 8 + 'px', width: contentsWidth + 'px'});
+		$('#code-context').css({left: left + contentsWidth + 42 + 'px', width: contextWidth + 'px'});
 	},
+	moveRightResizer: function(left) {
+		left = left || LSWrapper.getItem(codeResizerRightKey) || window.innerWidth - 240;
+		$('.column-resizer-right').css({left: left + 'px'});
+
+		var treeWidth = $('#code-tree-container').width();
+		$('#code-contents').css({width: left - treeWidth - 46 + 'px'});
+		$('#code-context').css({left: left + 8 + 'px', width: window.innerWidth - left - 48 + 'px'});
+	},	
 	onload: function() {
 
 		Structr.fetchHtmlTemplate('code/main', {}, function(html) {
@@ -142,8 +154,8 @@ var _Code = {
 				codeContents = $('#code-contents');
 				codeContext  = $('#code-context');
 
-				_Code.moveResizer();
-				Structr.initVerticalSlider($('.column-resizer', codeMain), codeResizerLeftKey, 204, _Code.moveResizer);
+				Structr.initVerticalSlider($('.column-resizer-left', codeMain), codeResizerLeftKey, 204, _Code.moveLeftResizer);
+				Structr.initVerticalSlider($('.column-resizer-right', codeMain), codeResizerRightKey, 204, _Code.moveRightResizer);
 
 				$.jstree.defaults.core.themes.dots      = false;
 				$.jstree.defaults.dnd.inside_pos        = 'last';
@@ -509,21 +521,33 @@ var _Code = {
 						id: 'globals',
 						text: 'Global Methods',
 						children: true,
-						icon: _Icons.star_icon
+						icon: _Icons.world_icon
 					},
 					{
 						id: 'root',
 						text: 'Types',
 						children: [
-							{ id: 'custom', text: 'Custom', children: true, icon: _Icons.folder_icon },
-							{ id: 'builtin', text: 'Built-In', children: true, icon: _Icons.folder_icon }
+							{ id: 'custom',      text: 'Custom', children: true, icon: _Icons.folder_icon },
+							{ id: 'builtin',     text: 'Built-In', children: true, icon: _Icons.folder_icon },
+							{ id: 'workingsets', text: 'Groups', children: true, icon: _Icons.folder_star_icon }
 						],
 						icon: _Icons.structr_logo_small,
 						path: '/',
 						state: {
 							opened: true
 						}
+					},
+					/*
+					{
+						id: 'facetsearch',
+						text: 'Faceted Search Configurations',
+						children: true,
+						icon: _Icons.find_icon,
+						state: {
+							opened: false
+						}
 					}
+					*/
 				];
 
 				if (_Code.searchIsActive()) {
@@ -557,8 +581,8 @@ var _Code = {
 	unload: function() {
 
 		let allow = _Code.testAllowNavigation();
-
 		if (allow) {
+
 			fastRemoveAllChildren($('.searchBox', main));
 			fastRemoveAllChildren($('#code-main', main));
 		}
@@ -569,7 +593,7 @@ var _Code = {
 
 		var id = obj.id;
 
-		var displayFunction = function (result, count, isSearch) {
+		var displayFunction = function (result, count, isSearch, identifier, dontSort) {
 
 			var list = [];
 
@@ -589,120 +613,146 @@ var _Code = {
 					treeId = entity.id + '-' + entity.id + '-search';
 				}
 
-				if (entity.type === 'SchemaNode') {
+				if (identifier) {
+					treeId = entity.id + '-' + entity.id + '-' + identifier.type + '-' + identifier.id + '-' + identifier.extended;
+				}
 
-					var data     = {
-						id: entity.id,
-						type: entity.name,
-						name: entity.name
-					};
-					var children = [];
+				switch (entity.type) {
 
-					// build list of children for this type
-					{
-						children.push({
-							id: 'properties-' + entity.id + '-' + entity.name,
-							text: 'Local Attributes',
-							children: entity.schemaProperties.length > 0,
-							icon: 'fa fa-sliders gray',
-							data: data
+					case 'SchemaGroup':
+
+						list.push({
+							id: 'workingsets-' + entity.id,
+							text:  entity.name,
+							children: entity.children.length > 0,
+							icon: entity.name === _WorkingSets.recentlyUsedName ? _Icons.clock_icon : _Icons.folder_icon,
+							data: {
+								id: 'workingsets- ' + entity.id,
+								type: entity.type,
+								name: entity.name
+							}
 						});
+						break;
 
-						children.push({
-							id: 'remoteproperties-' + entity.id + '-' + entity.name,
-							text: 'Remote Attributes',
-							children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
-							icon: 'fa fa-sliders gray',
-							data: data
-						});
+					case 'SchemaNode':
 
-						children.push({
-							id: 'views-' + entity.id + '-' + entity.name,
-							text: 'Views',
-							children: entity.schemaViews.length > 0,
-							icon: 'fa fa-television gray',
-							data: data
-						});
-
-						children.push({
-							id: 'methods-' + entity.id + '-' + entity.name,
-							text: 'Methods',
-							children: entity.schemaMethods.length > 0,
-							icon: 'fa fa-code gray',
-							data: data
-						});
-
-						children.push({
-							id: 'inheritedproperties-' + entity.id + '-' + entity.name,
-							text: 'Inherited Attributes',
-							children: true,
-							icon: 'fa fa-sliders gray',
-							data: data
-						});
-					}
-
-					list.push({
-						id: treeId,
-						text:  treeName,
-						children: children,
-						icon: 'fa fa-' + icon,
-						data: {
-							type: entity.type,
+						var data = {
+							id: entity.id,
+							type: entity.name,
 							name: entity.name
+						};
+
+						var children = [];
+
+						// build list of children for this type
+						{
+							children.push({
+								id: 'properties-' + entity.id + '-' + entity.name + '-' + (identifier ? identifier.id : ''),
+								text: 'Local Attributes',
+								children: entity.schemaProperties.length > 0,
+								icon: 'fa fa-sliders gray',
+								data: data
+							});
+
+							children.push({
+								id: 'remoteproperties-' + entity.id + '-' + entity.name + '-' + (identifier ? identifier.id : ''),
+								text: 'Remote Attributes',
+								children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
+								icon: 'fa fa-sliders gray',
+								data: data
+							});
+
+							children.push({
+								id: 'views-' + entity.id + '-' + entity.name + '-' + (identifier ? identifier.id : ''),
+								text: 'Views',
+								children: entity.schemaViews.length > 0,
+								icon: 'fa fa-television gray',
+								data: data
+							});
+
+							children.push({
+								id: 'methods-' + entity.id + '-' + entity.name + '-' + (identifier ? identifier.id : ''),
+								text: 'Methods',
+								children: entity.schemaMethods.length > 0,
+								icon: 'fa fa-code gray',
+								data: data
+							});
+
+							children.push({
+								id: 'inheritedproperties-' + entity.id + '-' + entity.name + '-' + (identifier ? identifier.id : ''),
+								text: 'Inherited Attributes',
+								children: true,
+								icon: 'fa fa-sliders gray',
+								data: data
+							});
 						}
-					});
-
-				} else {
-
-					if (entity.inherited) {
 
 						list.push({
 							id: treeId,
-							text:  treeName + (' (' + (entity.propertyType || '') + ')'),
-							children: false,
+							text:  treeName,
+							children: children,
 							icon: 'fa fa-' + icon,
-							li_attr: {
-								style: 'color: #aaa;'
-							},
 							data: {
 								type: entity.type,
 								name: entity.name
 							}
 						});
+						break;
 
-					} else {
+					default:
 
-						var hasVisibleChildren = _Code.hasVisibleChildren(id, entity);
-						var name               = treeName;
+						if (entity.inherited) {
 
-						if (entity.type === 'SchemaMethod') {
-							name = name + '()';
-						}
+							list.push({
+								id: treeId,
+								text:  treeName + (' (' + (entity.propertyType || '') + ')'),
+								children: false,
+								icon: 'fa fa-' + icon,
+								li_attr: {
+									style: 'color: #aaa;'
+								},
+								data: {
+									type: entity.type,
+									name: entity.name
+								}
+							});
 
-						if (entity.type === 'SchemaProperty') {
-							name = name + ' (' + entity.propertyType + ')';
-						}
+						} else {
 
-						list.push({
-							id: treeId,
-							text:  name,
-							children: hasVisibleChildren,
-							icon: 'fa fa-' + icon,
-							data: {
-								type: entity.type,
-								name: entity.name
+							var hasVisibleChildren = _Code.hasVisibleChildren(id, entity);
+							var name               = treeName;
+
+							if (entity.type === 'SchemaMethod') {
+								name = name + '()';
 							}
-						});
 
-					}
+							if (entity.type === 'SchemaProperty') {
+								name = name + ' (' + entity.propertyType + ')';
+							}
+
+							list.push({
+								id: treeId,
+								text:  name,
+								children: hasVisibleChildren,
+								icon: 'fa fa-' + icon,
+								data: {
+									type: entity.type,
+									name: entity.name
+								}
+							});
+						}
+						break;
 				}
 			});
 
-			list.sort(function(a, b) {
-				if (a.text > b.text) { return 1; }
-				if (a.text < b.text) { return -1; }
-				return 0;
-			});
+			if (!dontSort) {
+
+				list.sort(function(a, b) {
+					if (a.text > b.text) { return 1; }
+					if (a.text < b.text) { return -1; }
+					return 0;
+				});
+			}
 
 			callback(list);
 		};
@@ -739,6 +789,9 @@ var _Code = {
 			case 'globals':
 				Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: null}, displayFunction, true, 'ui');
 				break;
+			case 'workingsets':
+				_WorkingSets.getWorkingSets(result => displayFunction(result, 0, false, undefined, true));
+				break;
 			default:
 				var identifier = _Code.splitIdentifier(id);
 				switch (identifier.type) {
@@ -759,11 +812,13 @@ var _Code = {
 									propertyType: s.declaringPropertyType ? s.declaringPropertyType : s.propertyType,
 									inherited: true
 								};
-							}));
+							}), 0, false, identifier);
 						});
 						break;
 					case 'properties':
-						Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.id }, displayFunction, true, 'ui');
+						Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', { schemaNode: identifier.id }, function(result) {
+							displayFunction(result, 0, false, identifier);
+						}, true, 'ui');
 						break;
 					case 'remoteproperties':
 						Command.get(identifier.id, null, (entity) => {
@@ -782,17 +837,28 @@ var _Code = {
 
 							let processedRemoteAttributes = [].concat(entity.relatedTo.map((r) => mapFn(r, true))).concat(entity.relatedFrom.map((r) => mapFn(r, false)));
 
-							displayFunction(processedRemoteAttributes);
+							displayFunction(processedRemoteAttributes, 0, false, identifier);
 						});
 						break;
 					case 'views':
-						Command.query('SchemaView', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.id }, displayFunction, true, 'ui');
+						Command.query('SchemaView', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.id }, function(result) {
+							displayFunction(result, 0, false, identifier);
+						}, true, 'ui');
 						break;
 					case 'methods':
-						Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.id }, displayFunction, true, 'ui');
+						Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.id }, function(result) {
+							displayFunction(result, 0, false, identifier);
+						}, true, 'ui');
+						break;
+					case 'workingsets':
+						_WorkingSets.getWorkingSetContents(identifier.id, function(result) {
+							displayFunction(result, 0, false, identifier);
+						});
 						break;
 					default:
-						Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.id}, displayFunction, true, 'ui');
+						Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.id}, function(result) {
+							displayFunction(result, 0, false, identifier);
+						}, true, 'ui');
 						break;
 				}
 		}
@@ -940,7 +1006,7 @@ var _Code = {
 
 		}
 	},
-	createMethodAndRefreshTree: function(type, name, schemaNode) {
+	createMethodAndRefreshTree: function(type, name, schemaNode, callback) {
 
 		_Code.showSchemaRecompileMessage();
 		Command.create({
@@ -948,9 +1014,12 @@ var _Code = {
 			name: name,
 			schemaNode: schemaNode,
 			source: ''
-		}, function() {
+		}, function(result) {
 			_TreeHelper.refreshTree('#code-tree');
 			_Code.hideSchemaRecompileMessage();
+			if (callback && typeof callback === 'function') {
+				callback(result);
+			}
 		});
 	},
 	getDisplayNameInRecentsForType: function (entity) {
@@ -1240,6 +1309,10 @@ var _Code = {
 				case 'SchemaNode':
 					_Code.displaySchemaNodeContent(data);
 					break;
+
+				case 'SchemaGroup':
+					_Code.displaySchemaGroupContent(data);
+					break;
 			}
 
 		} else {
@@ -1253,6 +1326,10 @@ var _Code = {
 				case 'custom':
 					_Code.displayCreateButtons(false, false, true, '');
 					break;
+
+				case 'workingsets':
+					_Code.displayWorkingSetsContent();
+					break;
 			}
 		}
 	},
@@ -1260,24 +1337,151 @@ var _Code = {
 
 		var identifier = _Code.splitIdentifier(data.id);
 
-		if (_Code.layouter) {
-			_Code.layouter.focus(identifier.id);
-			return;
-		}
-
 		Command.get(identifier.id, null, function(result) {
 
 			_Code.updateRecentlyUsed(result, data.updateLocationStack);
 			Structr.fetchHtmlTemplate('code/type', { type: result }, function(html) {
 
+				codeContents.empty();
 				codeContents.append(html);
 
 				// delete button
 				if (!result.isBuiltinType) {
-					_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete type', function() {
+					_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete type ' + result.name, function() {
 						_Code.deleteSchemaEntity(result, 'Delete type ' + result.name + '?', 'This will delete all schema relationships as well, but no data will be removed.');
+						_TreeHelper.refreshTree('#code-tree');
 					});
 				}
+
+				// manage working sets
+				_WorkingSets.getWorkingSets(function(workingSets) {
+
+					workingSets.forEach(function(set) {
+
+						if (set.name !== _WorkingSets.recentlyUsedName) {
+
+							if (set.children.includes(result.name)) {
+
+								_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.delete_folder_icon), 'remove-' + set.id, 'Remove from ' + set.name, function() {
+									_WorkingSets.removeTypeFromSet(set.id, result.name, function() {
+										_TreeHelper.refreshNode('#code-tree', 'workingsets-' + set.id);
+										_Code.displaySchemaNodeContent(data);
+									});
+								});
+
+							} else {
+
+								_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.add_folder_icon), 'add-' + set.id, 'Add to ' + set.name, function() {
+									_WorkingSets.addTypeToSet(set.id, result.name, function() {
+										_TreeHelper.refreshNode('#code-tree', 'workingsets-' + set.id);
+										_Code.displaySchemaNodeContent(data);
+									});
+								});
+							}
+						}
+					});
+
+					_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.add_folder_icon), 'new', 'Create new group', function() {
+
+						_WorkingSets.createNewSetAndAddType(result.name, function() {
+							_TreeHelper.refreshNode('#code-tree', 'workingsets');
+							_Code.displaySchemaNodeContent(data);
+						});
+					});
+
+				});
+
+			});
+		});
+	},
+	displaySchemaGroupContent: function(data) {
+
+		var identifier = _Code.splitIdentifier(data.id);
+
+		_WorkingSets.getWorkingSet(identifier.id, function(workingSet) {
+
+			_Code.updateRecentlyUsed(workingSet, data.updateLocationStack);
+			Structr.fetchHtmlTemplate('code/group', { type: workingSet }, function(html) {
+
+				codeContents.empty();
+				codeContents.append(html);
+
+				if (workingSet.name === _WorkingSets.recentlyUsedName) {
+
+					_Code.displayActionButton('#working-set-content', _Icons.getFullSpriteClass(_Icons.delete_icon), 'clear', 'Clear', function() {
+						_WorkingSets.clearRecentlyUsed(function() {
+							_TreeHelper.refreshTree('#code-tree');
+						});
+					});
+
+					$('#group-name-input').prop('disabled', true);
+
+ 				} else {
+
+					_Code.displayActionButton('#working-set-content', _Icons.getFullSpriteClass(_Icons.delete_icon), 'remove', 'Remove', function() {
+						_WorkingSets.deleteSet(identifier.id, function() {
+							_TreeHelper.refreshNode('#code-tree', 'workingsets');
+						});
+					});
+
+					_Code.activatePropertyValueInput('group-name-input', workingSet.id, 'name');
+				}
+
+				Structr.fetchHtmlTemplate('code/root', { }, function(html) {
+
+					$('#schema-graph').append(html);
+
+					var layouter = new SigmaLayouter('group-contents');
+
+					Command.query('SchemaNode', 10000, 1, 'name', 'asc', { }, function(result1) {
+
+						result1.forEach(function(node) {
+							if (workingSet.children.includes(node.name)) {
+								layouter.addNode(node);
+							}
+						});
+
+						Command.query('SchemaRelationshipNode', 10000, 1, 'name', 'asc', { }, function(result2) {
+
+							result2.forEach(function(r) {
+								layouter.addEdge(r.id, r.relationshipType, r.sourceId, r.targetId, true);
+							});
+
+							layouter.refresh();
+							layouter.layout();
+							layouter.on('click', _Code.handleGraphClick);
+
+							_Code.layouter = layouter;
+
+							// experimental: use positions from schema layouter to initialize positions in schema editor
+							window.setTimeout(function() {
+
+								let minX = 0;
+								let minY = 0;
+
+								layouter.getNodes().forEach(function(node) {
+									if (node.x < minX) { minX = node.x; }
+									if (node.y < minY) { minY = node.y; }
+								});
+
+								let positions = {};
+
+								layouter.getNodes().forEach(function(node) {
+
+									positions[node.label] = {
+										top: node.y - minY + 20,
+										left: node.x - minX + 20
+									};
+								});
+
+								_WorkingSets.updatePositions(workingSet.id, positions);
+
+							}, 300);
+
+						}, true, 'ui');
+
+					}, true, 'ui');
+				});
 			});
 		});
 	},
@@ -1324,27 +1528,16 @@ var _Code = {
 	},
 	displayRootContent: function() {
 
-		var hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
-		if (hiddenSchemaNodes === null) {
-
-			_Schema.updateHiddenSchemaNodes();
-
-			hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
-		}
-
 		Structr.fetchHtmlTemplate('code/root', { }, function(html) {
 
 			codeContents.append(html);
 
-			var layouter          = new SigmaLayouter('all-types');
+			var layouter = new SigmaLayouter('all-types');
 
 			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { }, function(result1) {
 
 				result1.forEach(function(node) {
-
-					if (hiddenSchemaNodes === null || hiddenSchemaNodes.indexOf(node.name) === -1) {
-						layouter.addNode(node);
-					}
+					layouter.addNode(node);
 				});
 
 				Command.query('SchemaRelationshipNode', 10000, 1, 'name', 'asc', { }, function(result2) {
@@ -1414,18 +1607,14 @@ var _Code = {
 			}, true);
 		});
 	},
+	displayWorkingSetsContent: function() {
+		Structr.fetchHtmlTemplate('code/groups', { }, function(html) {
+			codeContents.append(html);
+		});
+	},
 	displayBuiltInTypesContent: function() {
 		Structr.fetchHtmlTemplate('code/builtin', { }, function(html) {
 			codeContents.append(html);
-			var container = $('#builtin-types');
-			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { isBuiltinType: true}, function(result) {
-				result.forEach(function(t) {
-					if (t.category && t.category === 'html') {
-						return;
-					}
-					_Code.displayTypeContent(container, t.id, t.name, 'file-code-o', 'Types/Built-In/' + t.name);
-				});
-			}, true);
 		});
 	},
 	displayPropertiesContent: function(selection, updateLocationStack) {
@@ -1971,6 +2160,11 @@ var _Code = {
 
 		_Code.addRecentlyUsedElement(entity);
 
+		// add recently used types to corresponding working set
+		if (entity.type === 'SchemaNode') {
+			_WorkingSets.addRecentlyUsed(entity.name);
+		}
+
 		var path = _Code.getPathForEntity(entity);
 
 		if (updateLocationStack) {
@@ -2335,5 +2529,247 @@ var _Code = {
 		$('#clear-log').on('click', function() {
 			$('#log-output').empty();
 		});
+	},
+	activatePropertyValueInput: function(inputId, id, name) {
+		$('input#' + inputId).on('blur', function() {
+			var elem     = $(this);
+			var previous = elem.attr('value');
+			if (previous !== elem.val()) {
+				var data   = {};
+				data[name] = elem.val();
+				Command.setProperties(id, data, function() {
+					blinkGreen(elem);
+					_TreeHelper.refreshTree('#code-tree');
+				});
+			}
+		});
+	}
+};
+
+var _WorkingSets = {
+
+	recentlyUsedName: 'Recently Used Types',
+	deleted: {},
+
+	getWorkingSets: function(callback) {
+
+		Command.query('ApplicationConfigurationDataNode', 1000, 1, 'name', true, { configType: 'layout' }, function(result) {
+
+			let workingSets = [];
+			let recent;
+
+			for (var layout of result) {
+
+				if (!layout.owner || layout.owner.name === me.username) {
+
+					let content  = JSON.parse(layout.content);
+					let children = Object.keys(content.positions);
+					let data     = {
+						type: 'SchemaGroup',
+						id: layout.id,
+						name: layout.name,
+						children: children
+					};
+
+					if (layout.name === _WorkingSets.recentlyUsedName) {
+
+						data.icon = _Icons.image_icon;
+						recent    = data;
+
+					} else {
+
+						workingSets.push(data);
+					}
+				}
+			}
+
+			// insert most recent at the top
+			if (recent) {
+				workingSets.unshift(recent);
+			}
+
+			callback(workingSets);
+
+		}, true, null, 'id,type,name,content,owner');
+	},
+
+	getWorkingSet: function(id, callback) {
+
+		Command.get(id, null, function(result) {
+
+			let content = JSON.parse(result.content);
+
+			callback({
+				id: result.id,
+				type: result.type,
+				name: result.name,
+				owner: result.owner,
+				children: Object.keys(content.positions)
+			});
+		});
+	},
+
+	getWorkingSetContents: function(id, callback) {
+
+		Command.get(id, null, function(result) {
+
+			let content   = JSON.parse(result.content);
+			let positions = content.positions;
+
+			Command.query('SchemaNode', 1000, 1, 'name', true, {}, function(result) {
+
+				let schemaNodes = [];
+
+				for (var schemaNode of result) {
+
+					if (positions[schemaNode.name]) {
+
+						schemaNodes.push(schemaNode);
+					}
+				}
+
+				callback(schemaNodes);
+			});
+		});
+	},
+
+	addTypeToSet: function(id, type, callback) {
+
+		Command.get(id, null, function(result) {
+
+			let content = JSON.parse(result.content);
+			if (!content.positions[type]) {
+
+				content.positions[type] = {
+					top: 0,
+					left: 0
+				};
+
+				// adjust hidden types as well
+				content.hiddenTypes.splice(content.hiddenTypes.indexOf(type), 1);
+
+				Command.setProperty(id, 'content', JSON.stringify(content), false, callback);
+			}
+		});
+	},
+
+	removeTypeFromSet: function(id, type, callback) {
+
+		Command.get(id, null, function(result) {
+
+			let content = JSON.parse(result.content);
+			delete content.positions[type];
+
+			// adjust hidden types as well
+			content.hiddenTypes.push(type);
+
+			Command.setProperty(id, 'content', JSON.stringify(content), false, callback);
+		});
+	},
+
+	createNewSetAndAddType: function(name, callback, setName) {
+
+		Command.query('SchemaNode', 10000, 1, 'name', true, { }, function(result) {
+
+			let positions = {};
+
+			positions[name] = { top: 0, left: 0 };
+
+			// all types are hidden except the one we want to add
+			let hiddenTypes = result.filter(t => t.name !== name).map(t => t.name);
+
+			let config = {
+				_version: 2,
+				positions: positions,
+				hiddenTypes: hiddenTypes,
+				zoom: 1,
+				connectorStyle: 'Flowchart',
+				showRelLabels: true
+			};
+
+			Command.create({
+				type: 'ApplicationConfigurationDataNode',
+				name: setName || 'New Group',
+				content: JSON.stringify(config),
+				configType: 'layout'
+			}, callback);
+
+		}, true, null, 'id,name');
+	},
+
+	deleteSet: function(id, callback) {
+
+		_WorkingSets.deleted[id] = true;
+
+		Command.deleteNode(id, false, callback);
+	},
+
+	updatePositions: function(id, positions, callback) {
+
+		if (positions && !_WorkingSets.deleted[id]) {
+
+			Command.get(id, null, function(result) {
+
+				let content = JSON.parse(result.content);
+
+				for (var key of Object.keys(content.positions)) {
+
+					let position = content.positions[key];
+
+					if (position && position.left === 0 && position.top === 0 && positions[key]) {
+
+						position.left = positions[key].left * 2;
+						position.top  = positions[key].top * 2;
+					}
+				}
+
+				Command.setProperty(id, 'content', JSON.stringify(content), false, callback);
+			});
+		}
+	},
+
+	addRecentlyUsed: function(name) {
+
+		Command.query('ApplicationConfigurationDataNode', 1, 1, 'name', true, { name: _WorkingSets.recentlyUsedName }, function(result) {
+
+			if (result && result.length) {
+
+				_WorkingSets.addTypeToSet(result[0].id, name, function() {
+					_TreeHelper.refreshNode('#code-tree', 'workingsets-' + result[0].id);
+				});
+
+ 			} else {
+
+				_WorkingSets.createNewSetAndAddType(name, function() {
+					_TreeHelper.refreshNode('#code-tree', 'workingsets');
+				}, _WorkingSets.recentlyUsedName);
+
+			}
+
+		}, true, null, 'id,name');
+	},
+
+	clearRecentlyUsed: function(callback) {
+
+		Command.query('ApplicationConfigurationDataNode', 1, 1, 'name', true, { name: _WorkingSets.recentlyUsedName }, function(result) {
+
+			if (result && result.length) {
+
+				let set     = result[0];
+				let content = JSON.parse(set.content);
+
+				for (var type of Object.keys(content.positions)) {
+
+					// remove type from positions object
+					delete content.positions[type];
+
+					// add type to hidden types
+					content.hiddenTypes.push(type);
+				}
+
+				Command.setProperty(set.id, 'content', JSON.stringify(content), false, callback);
+			}
+
+		}, true, null, 'id,name,content');
 	}
 };

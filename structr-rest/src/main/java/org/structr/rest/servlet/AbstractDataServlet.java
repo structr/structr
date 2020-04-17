@@ -279,19 +279,6 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 		writer.println();
 	}
 
-	protected void assertInitialized() throws FrameworkException {
-
-		if (!Services.getInstance().isInitialized()) {
-			throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "System is not initialized yet");
-		}
-
-		/*
-		if (Settings.MaintenanceModeActive.getValue()) {
-			throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "System is currently in maintenance mode");
-		}
-		*/
-	}
-
 	protected Gson getGson() {
 
 		final JsonInputGSONAdapter jsonInputAdapter = new JsonInputGSONAdapter();

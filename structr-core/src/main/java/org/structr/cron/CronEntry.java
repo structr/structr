@@ -112,105 +112,58 @@ public class CronEntry implements Delayed {
 
 			try {
 
-				CronField seconds = parseField(secondsField, 0, 59);
+				cronEntry.setSeconds(parseField("seconds", secondsField, 0, 59));
+				cronEntry.setMinutes(parseField("minutes", minutesField, 0, 59));
+				cronEntry.setHours(parseField("hours", hoursField, 0, 23));
+				cronEntry.setDays(parseField("days", daysField, 1, 31));
+				cronEntry.setMonths(parseField("months", monthsField, 1, 12));
+				cronEntry.setWeeks(parseField("weeks", weeksField, 0, 6));
 
-				cronEntry.setSeconds(seconds);
+				cronEntry.calculateNextExecutionTime();
 
-			} catch (Throwable t) {
-				logger.warn("Invalid cron expression for task {}, field 'seconds': {}", new Object[] { task, t.getMessage() });
-			}
-
-			try {
-
-				CronField minutes = parseField(minutesField, 0, 59);
-
-				cronEntry.setMinutes(minutes);
+				return cronEntry;
 
 			} catch (Throwable t) {
-				logger.warn("Invalid cron expression for task {}, field 'minutes': {}", new Object[] { task, t.getMessage() });
+
+				logger.warn("Invalid cron expression for task '{}'. {}", task, t.getMessage());
 			}
-
-			try {
-
-				CronField hours = parseField(hoursField, 0, 23);
-
-				cronEntry.setHours(hours);
-
-			} catch (Throwable t) {
-				logger.warn("Invalid cron expression for task {}, field 'hours': {}", new Object[] { task, t.getMessage() });
-			}
-
-			try {
-
-				CronField days = parseField(daysField, 1, 31);
-
-				cronEntry.setDays(days);
-
-			} catch (Throwable t) {
-				logger.warn("Invalid cron expression for task {}, field 'days': {}", new Object[] { task, t.getMessage() });
-			}
-
-			try {
-
-				CronField weeks = parseField(weeksField, 0, 6);
-
-				cronEntry.setWeeks(weeks);
-
-			} catch (Throwable t) {
-				logger.warn("Invalid cron expression for task {}, field 'weeks': {}", new Object[] { task, t.getMessage() });
-			}
-
-			try {
-
-				CronField months = parseField(monthsField, 1, 12);
-
-				cronEntry.setMonths(months);
-
-			} catch (Throwable t) {
-				logger.warn("Invalid cron expression for task {}, field 'months': {}", new Object[] { task, t.getMessage() });
-			}
-
-			cronEntry.calculateNextExecutionTime();
-
-			return cronEntry;
 
 		} else {
 
-			logger.warn("Invalid cron expression for task {}: invalid number of fields (must be {}).", new Object[] { task, CronService.NUM_FIELDS });
-
+			logger.warn("Invalid cron expression for task '{}': invalid number of fields (must be {}).", task, CronService.NUM_FIELDS);
 		}
 
 		return null;
 	}
 
 	// ----- private methods -----
-	private static CronField parseField(String field, int minValue, int maxValue) {
+	private static CronField parseField(String fieldName, String fieldValue, int minValue, int maxValue) {
 
 		// asterisk: *
-		if ("*".equals(field)) {
+		if ("*".equals(fieldValue)) {
 
 			return new CronField(minValue, maxValue, 1, true);
 
 		}
 
 		// asterisk with step: */3
-		if (field.startsWith("*/")) {
+		if (fieldValue.startsWith("*/")) {
 
-			int step = Integer.parseInt(field.substring(2));
+			int step = Integer.parseInt(fieldValue.substring(2));
 			if(step > 0 & step <= maxValue) {
 
 			      return new CronField(minValue, maxValue, step);
 
 			} else {
 
-			      throw new IllegalArgumentException("Illegal step: '" + step + "'");
+			      throw new IllegalArgumentException("Field '" + fieldName + "'. Illegal step: '" + step + "'");
 			}
 		}
 
 		// simple number: 2
-		if (field.matches("[0-9]{1,2}")) {
+		if (fieldValue.matches("[0-9]{1,2}")) {
 
-			int value = Integer.parseInt(field);
+			int value = Integer.parseInt(fieldValue);
 
 			if ((value >= minValue) && (value <= maxValue)) {
 
@@ -218,16 +171,16 @@ public class CronEntry implements Delayed {
 
 			} else {
 
-				throw new IllegalArgumentException("Parameter not within range: '" + field + "'");
+				throw new IllegalArgumentException("Field '" + fieldName + "'. Parameter not within range: '" + fieldValue + "'");
 
 			}
 
 		}
 
 		// range: 4-6
-		if (field.matches("[0-9]{1,2}-[0-9]{1,2}")) {
+		if (fieldValue.matches("[0-9]{1,2}-[0-9]{1,2}")) {
 
-			String[] rangeValues = field.split("[-]+");
+			String[] rangeValues = fieldValue.split("[-]+");
 
 			if (rangeValues.length == 2) {
 
@@ -240,22 +193,20 @@ public class CronEntry implements Delayed {
 
 				} else {
 
-					throw new IllegalArgumentException("Parameters not within range: '" + field + "'");
-
+					throw new IllegalArgumentException("Field '" + fieldName + "'. Parameters not within range: '" + fieldValue + "'");
 				}
 
 			} else {
 
-				throw new IllegalArgumentException("Invalid range: '" + field + "'");
-
+				throw new IllegalArgumentException("Field '" + fieldName + "'. Invalid range: '" + fieldValue + "'");
 			}
 
 		}
 
 		// list: 4,6
-		if (field.contains(",")) {
+		if (fieldValue.contains(",")) {
 
-			final String[] listValues  = field.split("[,]+");
+			final String[] listValues  = fieldValue.split("[,]+");
 			final List<Integer> values = new LinkedList<>();
 
 			for (final String value : listValues) {
@@ -264,7 +215,7 @@ public class CronEntry implements Delayed {
 					values.add(Integer.parseInt(value));
 
 				} catch (Throwable t) {
-					throw new IllegalArgumentException("Invalid list value: '" + value + "'");
+					throw new IllegalArgumentException("Field '" + fieldName + "'. Invalid list value: '" + value + "'");
 				}
 			}
 
@@ -273,12 +224,12 @@ public class CronEntry implements Delayed {
 		}
 
 		// range with step: 4-6/3
-		if (field.matches("[0-9]{1,2}-[0-9]{1,2}/[0-9]{1,2}")) {
+		if (fieldValue.matches("[0-9]{1,2}-[0-9]{1,2}/[0-9]{1,2}")) {
 
-			throw new UnsupportedOperationException("Steps are not supported yet.");
+			throw new IllegalArgumentException("Field '" + fieldName + "'. Steps are not supported.");
 		}
 
-		throw new IllegalArgumentException("Invalid field: '" + field + "'");
+		throw new IllegalArgumentException("Field '" + fieldName + "'. Invalid content: '" + fieldValue + "'");
 	}
 
 	private void calculateNextExecutionTime() {

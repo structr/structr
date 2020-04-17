@@ -2325,7 +2325,7 @@ var _Schema = {
 						_Schema.methods.bulkSave(el, tbody, entity);
 					});
 
-					el.append('<div class="editor-settings"><span><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span></div>');
+					$('#methods-container-right', el).append('<div class="editor-settings"><span><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span></div>');
 					$('#lineWrapping', el).off('change').on('change', function() {
 						let checkbox = $(this);
 						Structr.updateCodeMirrorOptionGlobally('lineWrapping', checkbox.is(':checked'));
@@ -2372,23 +2372,27 @@ var _Schema = {
 						});
 						allow = _Schema.methods.validateMethodRow(row) && allow;
 					} else {
-						// unchanged lines, only transmit id
-						methods.push({
-							id: methodId
-						});
+						if (entity) {
+
+							// unchanged lines, only transmit id
+							methods.push({
+								id: methodId
+							});
+						}
 					}
 
 				} else {
 					//new lines
 					counts.new++;
 					allow = _Schema.methods.validateMethodRow(row) && allow;
-					methods.push({
-						id: methodId,
+					let method = {
 						type: 'SchemaMethod',
 						name: methodData.name,
 						source: methodData.source,
 						comment: methodData.comment
-					});
+					};
+
+					methods.push(method);
 				}
 			});
 
@@ -2675,65 +2679,6 @@ var _Schema = {
 
 				_Schema.methods.rowChanged(row, (methodData.comment !== methodData.initialComment));
 			});
-		},
-		createOrSaveMethod: function(tr, entity, method) {
-
-			var obj = {
-				name:    $('.action.property-name', tr).val(),
-				source:  $('.action.property-code', tr).val(),
-				comment: $('.action.property-comment', tr).val()
-			};
-
-			if (entity) {
-				obj.schemaNode = { id: entity.id };
-			}
-
-			if (obj.name && obj.name.length) {
-
-				_Schema.storeSchemaEntity('schema_methods', (method || {}), JSON.stringify(obj), function(result) {
-
-					if (method) {
-
-						blinkGreen(tr);
-
-						method.name    = obj.name;
-						method.source  = obj.source;
-						method.comment = obj.comment;
-
-						_Schema.methods.bindRowEvents(tr, entity, method);
-
-					} else {
-
-						if (result && result.result) {
-
-							var id = result.result[0];
-
-							$.ajax({
-								url: rootUrl + id,
-								type: 'GET',
-								dataType: 'json',
-								contentType: 'application/json; charset=utf-8',
-								statusCode: {
-
-									200: function(data) {
-
-										blinkGreen(tr);
-
-										var method = data.result;
-										_Schema.methods.bindRowEvents(tr, entity, method);
-									}
-								}
-							});
-						}
-					}
-				},
-				function(data) {
-					Structr.errorFromResponse(data.responseJSON, undefined, {requiresConfirmation: true});
-					blinkRed(tr);
-				});
-			} else {
-				blinkRed($('.action.property-name', tr));
-			}
 		},
 		senseCodeMirrorMode: function(content) {
 			return (content && content.indexOf('{') === 0) ? 'text/javascript' : 'text';

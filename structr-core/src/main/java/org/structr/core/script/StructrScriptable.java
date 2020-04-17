@@ -434,6 +434,10 @@ public class StructrScriptable extends ScriptableObject {
 
 				return unwrap(((Wrapper)source).unwrap());
 
+			} else if (source instanceof byte[]) {
+				
+				return source;
+				
 			} else if (source.getClass().isArray()) {
 
 				final List list = new ArrayList();

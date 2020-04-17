@@ -259,27 +259,34 @@ public class TypeResource extends WrappingResource {
 						// find object by id, apply PATCH
 						final Object idSource = propertySet.get("id");
 
-						if (idSource != null && idSource instanceof String) {
+						if (idSource != null) {
 
-							final String id       = (String)idSource;
-							final GraphObject obj = app.get(entityClass, id);
+							if (idSource instanceof String) {
 
-							if (obj != null) {
+								final String id       = (String)idSource;
+								final GraphObject obj = app.get(entityClass, id);
 
-								propertySet.remove("id");
+								if (obj != null) {
 
-								final PropertyMap data = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
+									propertySet.remove("id");
 
-								obj.setProperties(securityContext, data);
+									final PropertyMap data = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
+
+									obj.setProperties(securityContext, data);
+
+								} else {
+
+									throw new NotFoundException("Object with ID " + id + " not found.");
+								}
 
 							} else {
 
-								throw new NotFoundException("Object with ID " + id + " not found.");
+								throw new FrameworkException(422, "Invalid PATCH input, object id must be of type string.");
 							}
 
 						} else {
 
-							throw new FrameworkException(422, "Invalid PATCH input, input object is missing id property.");
+							createNode(propertySet);
 						}
 					}
 

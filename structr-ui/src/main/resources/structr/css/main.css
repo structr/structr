@@ -3543,6 +3543,10 @@ td#cascading-options, td#propagation-options {
  * Filesystem-like pages (Filesystem, Contents, Crawer)
  */
 
+#file-tree {
+	height: calc(100% - 11px);
+}
+
 .jstree-anchor {
 	font-size: 9pt;
 }
@@ -3574,7 +3578,6 @@ td#cascading-options, td#propagation-options {
 }
 
 .tree-container {
-	display: table-cell;
 	vertical-align: top;
 	padding: 12px 0 12px 12px;
 }
@@ -3836,6 +3839,23 @@ input.tree-search-input:focus {
 #code-contents .property-options-group i {
 	vertical-align: middle;
 }
+
+
+/* BEGIN: styles to maximize methods editors in bulk save dialog for code area */
+#code-methods-container {
+	height: calc(100% - 37px);
+}
+#code-methods-container #methods-container {
+	height: 100%;
+}
+#code-methods-container #methods-container #methods-content {
+	height: calc(100% - 58px);
+}
+#code-methods-container #methods-container #methods-content .method-tab-content,
+#code-methods-container #methods-container #methods-content .method-tab-content .cm-schema-methods {
+	height: 100%;
+}
+/* END: styles to maximize methods editors in bulk save dialog for code area */
 
 #type-content-add-property i,
 #type-content-add-method i {
@@ -4442,7 +4462,7 @@ i.fa.ps {
 
 #localizations-list-container {
 	display: table-cell;
-	padding-right: 12px;
+	padding-right: 6px;
 }
 
 #localization-main {
@@ -4759,31 +4779,49 @@ input#element-class {
  * Column resizer
  */
 .column-resizer {
-	z-index: 2;
+	z-index: 3;
 	width: 6px;
 	height: calc(100vh - 90px);
 	background-color: transparent;
 	position: absolute;
-	top: 70px;
-	left: 300px;
-	cursor: ew-resize;
-	border: 1px solid transparent;
-}
-.column-resizer-right {
-	z-index: 2;
-	width: 6px;
-	height: calc(100vh - 90px);
-	background-color: transparent;
-	position: absolute;
-	top: 70px;
-	left: 222px;
+	top: 73px;
 	cursor: ew-resize;
 	border: 1px solid transparent;
 }
 
-#files-main .column-resizer,
-#crawler-main .column-resizer,
-#contents-main .column-resizer {
+.column-resizer::after {
+	color: #b5b5b5;
+	position: absolute;
+	top: calc(50% - 1em);
+	content: '║';
+	font-size: 1.5em;
+	margin-left: -.16em;
+	text-align: left;
+	padding: 0;
+}
+
+.column-resizer-blocker {
+	display: none;
+	z-index: 2;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: transparent;
+}
+
+.column-resizer-left {
+	left: 300px;
+}
+
+.column-resizer-right {
+	right: 300px;
+}
+
+#files-main .column-resizer-left,
+#crawler-main .column-resizer-left,
+#contents-main .column-resizer-left {
 	left: 300px;
 }
 

@@ -51,15 +51,29 @@ public class SetContentFunction extends UiAdvancedFunction {
 			if (sources[0] instanceof File) {
 
 				final File file       = (File)sources[0];
-				final String content  = (String)sources[1];
 				final String encoding = (sources.length == 3 && sources[2] != null) ? sources[2].toString() : "UTF-8";
 
-				try (final FileOutputStream fos = file.getOutputStream(true, false)) {
+				if (sources[1] instanceof byte[]) {
 
-					fos.write(content.getBytes(encoding));
+					try (final FileOutputStream fos = file.getOutputStream(true, false)) {
 
-				} catch (IOException ioex) {
-					logger.warn("set_content(): Unable to write to file '{}'", file.getPath(), ioex);
+						fos.write((byte[]) sources[1]);
+
+					} catch (IOException ioex) {
+						logger.warn("set_content(): Unable to write binary data to file '{}'", file.getPath(), ioex);
+					}
+
+				} else {
+
+					final String content = (String)sources[1];
+
+					try (final FileOutputStream fos = file.getOutputStream(true, false)) {
+
+						fos.write(content.getBytes(encoding));
+
+					} catch (IOException ioex) {
+						logger.warn("set_content(): Unable to write content to file '{}'", file.getPath(), ioex);
+					}
 				}
 			}
 

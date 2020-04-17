@@ -41,7 +41,9 @@ var _Dashboard = {
 		let tabId = LSWrapper.getItem(_Dashboard.activeTabPrefixKey);
 		if (tabId) {
 			let tab = document.querySelector('#dashboard .tabs-menu li a[href="' + tabId + '"]');
-			tab.click();
+			if (tab) {
+				tab.click();
+			}
 		}
 	},
 	onload: function(retryCount = 0) {

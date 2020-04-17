@@ -92,8 +92,8 @@ var _Files = {
 		var headerOffsetHeight = 100;
 
 		if (fileTree) {
-			fileTree.css({
-				height: windowHeight - headerOffsetHeight + 5 + 'px'
+			fileTree.parent().css({
+				height: windowHeight - headerOffsetHeight + 16 + 'px'
 			});
 		}
 

@@ -74,6 +74,7 @@ var _Icons = {
 	widget_icon: 'icon/layout.png',
 	folder_icon: 'icon/folder.png',
 	add_folder_icon: 'icon/folder_add.png',
+	delete_folder_icon: 'icon/folder_delete.png',
 	add_widget_icon: 'icon/layout_add.png',
 	content_icon: 'icon/page_white.png',
 	active_content_icon: 'icon/page_yellow.png',
@@ -114,6 +115,12 @@ var _Icons = {
 	folder_connect_icon: 'icon/folder_connect.png',
 	folder_disconnect_icon: 'icon/folder_disconnect.png',
 	database_error_icon: 'icon/database_error.png',
+	package_icon: 'icon/package.png',
+	report_icon: 'icon/report.png',
+	find_icon: 'icon/find.png',
+	world_icon: 'icon/world.png',
+	clock_icon: 'icon/clock.png',
+	folder_star_icon: 'icon/folder_star.png',
 
 
 	getFullSpriteClass: function (key) {
@@ -227,6 +234,13 @@ var _Icons = {
 			case _Icons.folder_connect_icon:          return 'sprite-folder_connect';
 			case _Icons.folder_disconnect_icon:       return 'sprite-folder_disconnect';
 			case _Icons.database_error_icon:          return 'sprite-database_error';
+			case _Icons.package_icon:                 return 'sprite-package';
+			case _Icons.report_icon:                  return 'sprite-report';
+			case _Icons.find_icon:                    return 'sprite-find';
+			case _Icons.world_icon:                   return 'sprite-world';
+			case _Icons.clock_icon:                   return 'sprite-clock';
+			case _Icons.folder_star_icon:             return 'sprite-folder_star';
+			case _Icons.delete_folder_icon:           return 'sprite-folder_delete';
 
 			default:                                  return 'sprite-error';
 		}

@@ -35,8 +35,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -81,7 +81,6 @@ public class Services implements StructrServices {
 	// non-static members
 	private final Map<Class, Map<String, Service>> serviceCache = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Set<Permission> permissionsForOwnerlessNodes  = new LinkedHashSet<>();
-	private final Map<Class, String> activeServiceNames         = new LinkedHashMap<>();
 	private final Map<String, Class> registeredServiceClasses   = new LinkedHashMap<>();
 	private final List<InitializationCallback> callbacks        = new LinkedList<>();
 	private final Map<String, Object> attributes                = new ConcurrentHashMap<>(10, 0.9f, 8);
@@ -131,12 +130,13 @@ public class Services implements StructrServices {
 
 			final T command          = commandType.newInstance();
 			final Class serviceClass = command.getServiceClass();
-			final String serviceName = getNameOfActiveService(serviceClass);
 
 			// inject security context first
 			command.setArgument("securityContext", securityContext);
 
 			if (serviceClass != null) {
+
+				final String serviceName = getNameOfActiveService(serviceClass);
 
 				// search for already running service..
 				Service service = getService(serviceClass, serviceName);
@@ -286,7 +286,7 @@ public class Services implements StructrServices {
 
 			try {
 
-				final String activeServiceName = Settings.getOrCreateStringSetting(serviceClass.getSimpleName(), "active").getValue("default");
+				final String activeServiceName = getNameOfActiveService(serviceClass);
 
 				startService(serviceClass, activeServiceName, false);
 
@@ -400,6 +400,11 @@ public class Services implements StructrServices {
 	public boolean isInitialized() {
 		return initializationDone;
 	}
+
+	public String getUnavailableMessage() {
+		return "Services is not initialized yet.";
+	}
+
 
 	public boolean isOverridingSchemaTypesAllowed() {
 		return overridingSchemaTypesAllowed;
@@ -627,8 +632,6 @@ public class Services implements StructrServices {
 
 					if (!disableRetry && isVital && !waitAndRetry) {
 						checkVitalService(serviceClass, t);
-					} else {
-						throw new FrameworkException(503, t.getMessage());
 					}
 				}
 
@@ -648,15 +651,14 @@ public class Services implements StructrServices {
 				}
 			}
 
-		} catch (FrameworkException fex) {
-
-			throw fex;
-
 		} catch (Throwable t) {
 
 			if (!disableRetry && isVital) {
+
 				checkVitalService(serviceClass, t);
+
 			} else {
+
 				throw new FrameworkException(503, t.getMessage());
 			}
 
@@ -699,6 +701,7 @@ public class Services implements StructrServices {
 				RunnableService runnableService = (RunnableService) service;
 
 				if (runnableService.isRunning()) {
+					logger.info("Stopping {}..", service.getName());
 					runnableService.stopService();
 				}
 			}
@@ -873,13 +876,6 @@ public class Services implements StructrServices {
 
 					dependencyMap.put(service, dependency);
 				}
-
-			} else {
-
-				// warn user
-				if (!NodeService.class.equals(service)) {
-					logger.warn("Service {} does not have @ServiceDependency annotation, this is likely a bug.", service);
-				}
 			}
 		}
 
@@ -959,8 +955,6 @@ public class Services implements StructrServices {
 			Settings.getOrCreateStringSetting(type.getSimpleName(), "active").setValue(name);
 
 		}
-
-		activeServiceNames.put(type, name);
 	}
 
 	public boolean activateService(final Class type, final String name) throws FrameworkException {
@@ -990,14 +984,7 @@ public class Services implements StructrServices {
 	}
 
 	public <T extends Service> String getNameOfActiveService(final Class<T> type) {
-
-		final String name = activeServiceNames.get(type);
-		if (name != null) {
-
-			return name;
-		}
-
-		return "default";
+		return Settings.getOrCreateStringSetting(type.getSimpleName(), "active").getValue("default");
 	}
 
 	public static void enableUpdateIndexConfiguration() {
