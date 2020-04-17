@@ -50,6 +50,8 @@ import org.structr.core.entity.Relation;
 import org.structr.core.function.ChangelogFunction;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
+import org.structr.core.property.RelationProperty;
 
 /**
  *
@@ -471,10 +473,11 @@ public class ModificationQueue {
 		final GraphObjectMap before = new GraphObjectMap();
 		final GraphObjectMap after  = new GraphObjectMap();
 
-		before.putAll(state.getRemovedProperties());
 
-		after.putAll(state.getModifiedProperties());
-		after.putAll(state.getNewProperties());
+		addLocalProperties(before, state.getRemovedProperties());
+
+		addLocalProperties(after, state.getModifiedProperties());
+		addLocalProperties(after, state.getNewProperties());
 
 		result.put(new GenericProperty("before"),  before);
 		result.put(new GenericProperty("after"),   after);
@@ -482,6 +485,15 @@ public class ModificationQueue {
 		result.put(new GenericProperty("removed"), state.getRemovedRemoteProperties());
 
 		return result;
+	}
+
+	private void addLocalProperties(final GraphObjectMap map, final PropertyMap data) {
+
+		data.getRawMap().forEach((key, value) -> {
+			if ( !(key instanceof RelationProperty) ) {
+				map.put(key, value);
+			}
+		});
 	}
 
 	public void disableChangelog() {

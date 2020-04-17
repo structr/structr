@@ -2934,22 +2934,12 @@ public class ScriptingTest extends StructrTest {
 			final Map<String, Object> projectModifications  = getLoggedModifications(p);
 			final Map<String, Object> taskModifications     = getLoggedModifications(t);
 
-			assertMapPathValueIs(customerModifications, "before.project",  null);
-			assertMapPathValueIs(customerModifications, "before.grantees", null);
-			assertMapPathValueIs(customerModifications, "after.project",   null);
-			assertMapPathValueIs(customerModifications, "after.grantees",  new LinkedList<>());
 			assertMapPathValueIs(customerModifications, "added.project",   p.getUuid());
 			assertMapPathValueIs(customerModifications, "removed",         new LinkedHashMap<>());
 			assertMapPathValueIs(customerModifications, "added.grantees",  Arrays.asList(tester.getUuid()));
 
 			assertMapPathValueIs(projectModifications, "before.name",     "Testproject");
-			assertMapPathValueIs(projectModifications, "before.tasks",    null);
-			assertMapPathValueIs(projectModifications, "before.customer", null);
-			assertMapPathValueIs(projectModifications, "before.grantees", null);
 			assertMapPathValueIs(projectModifications, "after.name",     "newName");
-			assertMapPathValueIs(projectModifications, "after.tasks",    new LinkedList<>());
-			assertMapPathValueIs(projectModifications, "after.customer", null);
-			assertMapPathValueIs(projectModifications, "after.grantees", new LinkedList<>());
 			assertMapPathValueIs(projectModifications, "added.customer", c.getUuid());
 			assertMapPathValueIs(projectModifications, "removed",        new LinkedHashMap<>());
 
@@ -2962,8 +2952,6 @@ public class ScriptingTest extends StructrTest {
 			assertMapPathValueIs(projectModifications, "added.grantees",    Arrays.asList(tester.getUuid()));
 
 
-			assertMapPathValueIs(taskModifications, "before.project",  null);
-			assertMapPathValueIs(taskModifications, "after.project",   null);
 			assertMapPathValueIs(taskModifications, "added.project",   p.getUuid());
 			assertMapPathValueIs(taskModifications, "removed",         new LinkedHashMap<>());
 
@@ -3002,20 +2990,12 @@ public class ScriptingTest extends StructrTest {
 			final Map<String, Object> projectModifications  = getLoggedModifications(p);
 			final Map<String, Object> taskModifications     = getLoggedModifications(t);
 
-			assertMapPathValueIs(customerModifications, "before.project",  null);
-			assertMapPathValueIs(customerModifications, "after.project",   null);
 			assertMapPathValueIs(customerModifications, "added",           new LinkedHashMap<>());
 			assertMapPathValueIs(customerModifications, "removed.project", p.getUuid());
 
-			assertMapPathValueIs(projectModifications, "before.tasks",     null);
-			assertMapPathValueIs(projectModifications, "before.customer",  null);
-			assertMapPathValueIs(projectModifications, "after.tasks",      new LinkedList<>());
-			assertMapPathValueIs(projectModifications, "after.customer",   null);
 			assertMapPathValueIs(projectModifications, "removed.customer", c.getUuid());
 			assertMapPathValueIs(projectModifications, "added",            new LinkedHashMap<>());
 
-			assertMapPathValueIs(taskModifications, "before.project",  null);
-			assertMapPathValueIs(taskModifications, "after.project",   null);
 			assertMapPathValueIs(taskModifications, "added.project",   p.getUuid());
 			assertMapPathValueIs(taskModifications, "removed",         new LinkedHashMap<>());
 
