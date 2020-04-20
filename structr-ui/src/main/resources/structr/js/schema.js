@@ -1704,11 +1704,11 @@ var _Schema = {
 				});
 
 				$('.save-all', tbl).on('click', () => {
-					_Schema.remoteProperties.bulkSave(el, tbody, entity);
+					_Schema.remoteProperties.bulkSave(el, tbody, entity, editSchemaObjectLinkHandler);
 				});
 			});
 		},
-		bulkSave: function(el, tbody, entity) {
+		bulkSave: function(el, tbody, entity, editSchemaObjectLinkHandler) {
 
 			if (!_Schema.remoteProperties.hasUnsavedChanges(tbody.closest('table'))) {
 				return;
@@ -1766,7 +1766,7 @@ var _Schema = {
 
 							Command.get(entity.id, null, function(reloadedEntity) {
 								el.empty();
-								_Schema.remoteProperties.appendRemote(el, reloadedEntity);
+								_Schema.remoteProperties.appendRemote(el, reloadedEntity, editSchemaObjectLinkHandler);
 								_Schema.hideSchemaRecompileMessage();
 							});
 
