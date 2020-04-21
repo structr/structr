@@ -137,7 +137,7 @@ var _Code = {
 		var treeWidth = $('#code-tree-container').width();
 		$('#code-contents').css({width: left - treeWidth - 46 + 'px'});
 		$('#code-context').css({left: left + 8 + 'px', width: window.innerWidth - left - 48 + 'px'});
-	},	
+	},
 	onload: function() {
 
 		Structr.fetchHtmlTemplate('code/main', {}, function(html) {
@@ -427,53 +427,38 @@ var _Code = {
 
 		var recentElements = LSWrapper.getItem(_Code.codeRecentElementsKey) || [];
 
-		var promises = recentElements.map(function(recentElement) {
-			return new Promise(function(resolve, reject) {
-				Command.query('AbstractNode', 1, 1, 'name', true, { id: recentElement.id }, function(res) {
-					resolve(res[0]);
-				});
-			});
+		recentElements.forEach(function(element) {
+			_Code.addRecentlyUsedElement(element.id, element.name, element.iconClass, element.path, true);
 		});
 
-		Promise.all(promises).then(foundElements => {
-
-			var updatedRecentElements = [];
-
-			foundElements.forEach(function(entity) {
-				if (entity) {
-					_Code.addRecentlyUsedElement(entity, true);
-
-					updatedRecentElements.push({id: entity.id});
-				}
-			});
-
-			LSWrapper.setItem(_Code.codeRecentElementsKey, updatedRecentElements);
-
-		}).then(doneCallback);
-
+		doneCallback();
 	},
-	addRecentlyUsedElement: function(entity, fromStorage) {
+	addRecentlyUsedEntity: function(entity, fromStorage) {
 
 		var id   = entity.id;
 		var name = _Code.getDisplayNameInRecentsForType(entity);
-		var icon = _Code.getIconForNodeType(entity);
+		var iconClass = 'fa fa-' + _Code.getIconForNodeType(entity);
 		var path = _Code.getPathForEntity(entity);
+
+		_Code.addRecentlyUsedElement(id, name, iconClass, path, fromStorage);
+	},
+	addRecentlyUsedElement: function(id, name, iconClass, path, fromStorage) {
 
 		if (!fromStorage) {
 
 			var recentElements = LSWrapper.getItem(_Code.codeRecentElementsKey) || [];
 
 			var updatedList = recentElements.filter(function(recentElement) {
-				return (recentElement.id !== entity.id);
+				return (recentElement.id !== id);
 			});
-			updatedList.unshift({id: entity.id});
+			updatedList.unshift({ id: id, name: name, iconClass: iconClass, path: path });
 
-			$('#recently-used-' + entity.id).remove();
+			$('#recently-used-' + id).remove();
 
 			LSWrapper.setItem(_Code.codeRecentElementsKey, updatedList);
 		}
 
-		Structr.fetchHtmlTemplate('code/recently-used-button', { id: id, name: name, icon: icon }, function(html) {
+		Structr.fetchHtmlTemplate('code/recently-used-button', { id: id, name: name, iconClass: iconClass }, function(html) {
 			var ctx  = $('#code-context');
 
 			if (fromStorage) {
@@ -489,8 +474,8 @@ var _Code = {
 				e.stopPropagation();
 				_Code.deleteRecentlyUsedElement(id);
 			});
-
 		});
+
 	},
 	deleteRecentlyUsedElement: function(recentlyUsedElementId) {
 
@@ -1228,7 +1213,7 @@ var _Code = {
 					break;
 
 				case 'globals':
-					_Code.displayGlobalMethodsContent();
+					_Code.displayGlobalMethodsContent(identifier);
 					break;
 
 				case 'custom':
@@ -1635,7 +1620,7 @@ var _Code = {
 					editReadWriteFunction: (property) => {
 						_Code.handleSelection(property);
 					}
-				});
+				}, _Code.refreshTree);
 
 				_Code.runCurrentEntitySaveAction = () => {
 					$('.save-all', codeContents).click();
@@ -1657,7 +1642,7 @@ var _Code = {
 			codeContents.append(html);
 
 			Command.get(selection.id, null, (entity) => {
-				_Schema.remoteProperties.appendRemote($('.content-container', codeContents), entity, _Code.schemaNodes);
+				_Schema.remoteProperties.appendRemote($('.content-container', codeContents), entity, _Code.schemaNodes, _Code.refreshTree);
 
 				_Code.runCurrentEntitySaveAction = () => {
 					$('.save-all', codeContents).click();
@@ -1678,7 +1663,7 @@ var _Code = {
 			codeContents.append(html);
 
 			Command.get(selection.id, null, (entity) => {
-				_Schema.views.appendViews($('.content-container', codeContents), entity);
+				_Schema.views.appendViews($('.content-container', codeContents), entity, _Code.refreshTree);
 
 				_Code.runCurrentEntitySaveAction = () => {
 					$('.save-all', codeContents).click();
@@ -1686,14 +1671,16 @@ var _Code = {
 			});
 		});
 	},
-	displayGlobalMethodsContent: function() {
+	displayGlobalMethodsContent: function(selection) {
+
+		_Code.addRecentlyUsedElement("global-methods", "Global methods", _Icons.getFullSpriteClass(_Icons.world_icon), selection.id, false);
 
 		Structr.fetchHtmlTemplate('code/globals', { }, function(html) {
 			codeContents.append(html);
 
 			Command.rest('SchemaMethod?schemaNode=null&sort=name&order=ascending', function (methods) {
 
-				_Schema.methods.appendMethods($('.content-container', codeContents), null, methods);
+				_Schema.methods.appendMethods($('.content-container', codeContents), null, methods, _Code.refreshTree);
 
 				_Code.runCurrentEntitySaveAction = () => {
 					$('.save-all', codeContents).click();
@@ -1710,12 +1697,14 @@ var _Code = {
 			_Code.lastClickedPath = path;
 		}
 
+		_Code.addRecentlyUsedElement(selection.base + '-' + selection.type, selection.base + ' Methods' , 'fa fa-code gray', selection.id, false);
+
 		Structr.fetchHtmlTemplate('code/methods', { identifier: selection }, function(html) {
 			codeContents.append(html);
 
 			Command.get(selection.id, null, (entity) => {
 
-				_Schema.methods.appendMethods($('.content-container', codeContents), entity, entity.schemaMethods);
+				_Schema.methods.appendMethods($('.content-container', codeContents), entity, entity.schemaMethods, _Code.refreshTree);
 
 				_Code.runCurrentEntitySaveAction = () => {
 					$('.save-all', codeContents).click();
@@ -2158,7 +2147,7 @@ var _Code = {
 	},
 	updateRecentlyUsed: function(entity, updateLocationStack) {
 
-		_Code.addRecentlyUsedElement(entity);
+		_Code.addRecentlyUsedEntity(entity);
 
 		// add recently used types to corresponding working set
 		if (entity.type === 'SchemaNode') {
@@ -2200,20 +2189,30 @@ var _Code = {
 				tree.activate_node(searchId, { updateLocationStack: updateLocationStack });
 			}
 
-			// also scroll into view if node is in tree
-			var domNode = document.getElementById( tree.get_parent(tree.get_parent(searchId)) );
-			if (domNode) {
+			let selectedNode = tree.get_node(searchId);
+			if (selectedNode) {
 
-				var rect = domNode.getBoundingClientRect();
-				if (rect.bottom > window.innerHeight) {
-
-					domNode.scrollIntoView(false);
+				// depending on the depth we select a different parent level
+				let parentToScrollTo = searchId;
+				switch (selectedNode.parents.length) {
+					case 1:
+					case 2:
+					case 3:
+						parentToScrollTo = searchId;
+						break;
+					case 4:
+						parentToScrollTo = tree.get_parent(searchId);
+						break;
+					case 5:
+						parentToScrollTo = tree.get_parent(tree.get_parent(searchId));
+						break;
 				}
 
-				if (rect.top < 0) {
+				// also scroll into view if node is in tree
+				let domNode = document.getElementById( parentToScrollTo ) ;
+				if (domNode) {
 					domNode.scrollIntoView();
 				}
-
 			}
 
 		} else {

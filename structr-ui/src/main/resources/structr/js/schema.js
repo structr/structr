@@ -1099,7 +1099,7 @@ var _Schema = {
 		});
 	},
 	properties: {
-		appendLocalProperties: function(el, entity, overrides) {
+		appendLocalProperties: function(el, entity, overrides, optionalAfterSaveCallback) {
 
 			let tableConfig = {
 				class: 'local schema-props',
@@ -1144,7 +1144,7 @@ var _Schema = {
 				});
 
 				$('.save-all', propertiesTable).on('click', () => {
-					_Schema.properties.bulkSave(el, tbody, entity);
+					_Schema.properties.bulkSave(el, tbody, entity, optionalAfterSaveCallback);
 				});
 
 				$('.add-local-attribute', el).off('click').on('click', function() {
@@ -1179,7 +1179,7 @@ var _Schema = {
 				});
 			});
 		},
-		bulkSave: function(el, tbody, entity) {
+		bulkSave: function(el, tbody, entity, optionalAfterSaveCallback) {
 
 			if (!_Schema.properties.hasUnsavedChanges(tbody.closest('table'))) {
 				return;
@@ -1249,6 +1249,10 @@ var _Schema = {
 								el.empty();
 								_Schema.properties.appendLocalProperties(el, reloadedEntity);
 								_Schema.hideSchemaRecompileMessage();
+
+								if (optionalAfterSaveCallback) {
+									optionalAfterSaveCallback();
+								}
 							});
 
 						} else {
@@ -1668,7 +1672,7 @@ var _Schema = {
 			'1': 'one',
 			'*': 'many'
 		},
-		appendRemote: function(el, entity, editSchemaObjectLinkHandler) {
+		appendRemote: function(el, entity, editSchemaObjectLinkHandler, optionalAfterSaveCallback) {
 
 			let tableConfig = {
 				class: 'related-attrs schema-props',
@@ -1704,11 +1708,11 @@ var _Schema = {
 				});
 
 				$('.save-all', tbl).on('click', () => {
-					_Schema.remoteProperties.bulkSave(el, tbody, entity, editSchemaObjectLinkHandler);
+					_Schema.remoteProperties.bulkSave(el, tbody, entity, editSchemaObjectLinkHandler, optionalAfterSaveCallback);
 				});
 			});
 		},
-		bulkSave: function(el, tbody, entity, editSchemaObjectLinkHandler) {
+		bulkSave: function(el, tbody, entity, editSchemaObjectLinkHandler, optionalAfterSaveCallback) {
 
 			if (!_Schema.remoteProperties.hasUnsavedChanges(tbody.closest('table'))) {
 				return;
@@ -1768,6 +1772,10 @@ var _Schema = {
 								el.empty();
 								_Schema.remoteProperties.appendRemote(el, reloadedEntity, editSchemaObjectLinkHandler);
 								_Schema.hideSchemaRecompileMessage();
+
+								if (optionalAfterSaveCallback) {
+									optionalAfterSaveCallback();
+								}
 							});
 
 						} else {
@@ -1884,7 +1892,7 @@ var _Schema = {
 		}
 	},
 	views: {
-		appendViews: function(el, entity) {
+		appendViews: function(el, entity, optionalAfterSaveCallback) {
 
 			let tableConfig = {
 				class: 'related-attrs schema-props',
@@ -1915,7 +1923,7 @@ var _Schema = {
 				});
 
 				$('.save-all', viewsTable).on('click', () => {
-					_Schema.views.bulkSave(el, tbody, entity);
+					_Schema.views.bulkSave(el, tbody, entity, optionalAfterSaveCallback);
 				});
 
 				$('.add-view', el).off('click').on('click', function() {
@@ -1940,7 +1948,7 @@ var _Schema = {
 				});
 			});
 		},
-		bulkSave: function(el, tbody, entity) {
+		bulkSave: function(el, tbody, entity, optionalAfterSaveCallback) {
 
 			if (!_Schema.views.hasUnsavedChanges(tbody.closest('table'))) {
 				return;
@@ -2011,6 +2019,10 @@ var _Schema = {
 								el.empty();
 								_Schema.views.appendViews(el, reloadedEntity);
 								_Schema.hideSchemaRecompileMessage();
+
+								if (optionalAfterSaveCallback) {
+									optionalAfterSaveCallback();
+								}
 							});
 
 						} else {
@@ -2256,7 +2268,7 @@ var _Schema = {
 	},
 	methods: {
 		methodsData: {},
-		appendMethods: function(el, entity, methods) {
+		appendMethods: function(el, entity, methods, optionalAfterSaveCallback) {
 
 			_Schema.methods.methodsData = {};
 
@@ -2322,7 +2334,7 @@ var _Schema = {
 					});
 
 					$('.save-all', actionsTable).on('click', () => {
-						_Schema.methods.bulkSave(el, tbody, entity);
+						_Schema.methods.bulkSave(el, tbody, entity, optionalAfterSaveCallback);
 					});
 
 					$('#methods-container-right', el).append('<div class="editor-settings"><span><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span></div>');
@@ -2334,7 +2346,7 @@ var _Schema = {
 				});
 			});
 		},
-		bulkSave: function(el, tbody, entity) {
+		bulkSave: function(el, tbody, entity, optionalAfterSaveCallback) {
 
 			if (!_Schema.methods.hasUnsavedChanges(tbody.closest('table'))) {
 				return;
@@ -2425,12 +2437,20 @@ var _Schema = {
 									el.empty();
 									_Schema.methods.appendMethods(el, reloadedEntity, reloadedEntity.schemaMethods);
 									_Schema.hideSchemaRecompileMessage();
+
+									if (optionalAfterSaveCallback) {
+										optionalAfterSaveCallback();
+									}
 								});
 							} else {
 								Command.rest('SchemaMethod?schemaNode=null&sort=name&order=ascending', function (methods) {
 									el.empty();
 									_Schema.methods.appendMethods(el, null, methods);
 									_Schema.hideSchemaRecompileMessage();
+
+									if (optionalAfterSaveCallback) {
+										optionalAfterSaveCallback();
+									}
 								});
 							}
 
