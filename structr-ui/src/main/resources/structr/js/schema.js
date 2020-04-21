@@ -2659,6 +2659,8 @@ var _Schema = {
 				_Schema.methods.rowChanged(row, (methodData.source !== methodData.initialSource));
 			});
 
+			_Code.setupAutocompletion(_Schema.methods.cm.source, methodId, true);
+
 			let commentTextarea = $('textarea.property-comment', contentDiv);
 
 			_Schema.methods.cm.comment = CodeMirror.fromTextArea(commentTextarea[0], Structr.getCodeMirrorSettings({
