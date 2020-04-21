@@ -1263,78 +1263,24 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		final boolean elementPrivate    = !elementPublic && !elementProtected;
 		final boolean elementPublicOnly = elementPublic && !elementProtected;
 
-		if (pagePrivate && !elementPrivate) {
+		if (pagePublic != elementPublic || pageProtected != elementProtected) {
 
 			if (elementPublicOnly) {
 				instructions.add("@structr:public-only");
 				return;
 			}
-
 			if (elementPublic && elementProtected) {
 				instructions.add("@structr:public");
 				return;
 			}
-
 			if (elementProtected) {
 				instructions.add("@structr:protected");
 				return;
 			}
-		}
-
-		if (pageProtected && !elementProtected) {
-
-			if (elementPublicOnly) {
-				instructions.add("@structr:public-only");
-				return;
-			}
-
-			if (elementPublic && elementProtected) {
-				instructions.add("@structr:public");
-				return;
-			}
-
 			if (elementPrivate) {
 				instructions.add("@structr:private");
 				return;
 			}
-		}
-
-		if (pagePublic && !elementPublic) {
-
-			if (elementPublicOnly) {
-				instructions.add("@structr:public-only");
-				return;
-			}
-
-			if (elementProtected) {
-				instructions.add("@structr:protected");
-				return;
-			}
-
-			if (elementPrivate) {
-				instructions.add("@structr:private");
-				return;
-			}
-		}
-
-		if (pagePublicOnly && !elementPublicOnly) {
-
-			if (elementPublic && elementProtected) {
-				instructions.add("@structr:public");
-				return;
-			}
-
-			if (elementProtected) {
-				instructions.add("@structr:protected");
-				return;
-			}
-
-			if (elementPrivate) {
-				instructions.add("@structr:private");
-				return;
-			}
-
-			return;
 		}
 	}
 
