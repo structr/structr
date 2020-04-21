@@ -1572,10 +1572,6 @@ button.action.disabled:hover {
 	display: none;
 }
 
-.schema-props tr.editing i.edit-action {
-	display: none;
-}
-
 .schema-props td.centered {
 	text-align: center;
 }
