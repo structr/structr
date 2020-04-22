@@ -1035,12 +1035,7 @@ public class Importer {
 					if (instructions.contains("@structr:content") && !(newNode instanceof Content)) {
 
 						// unhandled instructions from previous iteration => empty content element
-						final Content emptyContent = createEmptyContentNode(page, parent, commentHandler, instructions);
-
-						final PropertyMap emptyContentProperties = new PropertyMap();
-						emptyContentProperties.put(AbstractNode.visibleToPublicUsers,        parent != null ? parent.getProperty(AbstractNode.visibleToPublicUsers) : publicVisible);
-						emptyContentProperties.put(AbstractNode.visibleToAuthenticatedUsers, parent != null ? parent.getProperty(AbstractNode.visibleToAuthenticatedUsers) : authVisible);
-						emptyContent.setProperties(securityContext, emptyContentProperties);
+						createEmptyContentNode(page, parent, commentHandler, instructions);
 
 					} else {
 
@@ -1087,12 +1082,7 @@ public class Importer {
 		if (instructions != null) {
 
 			logger.warn("empty content element!");
-			final Content emptyContent = createEmptyContentNode(page, parent, commentHandler, instructions);
-
-			final PropertyMap emptyContentProperties = new PropertyMap();
-			emptyContentProperties.put(AbstractNode.visibleToPublicUsers,        parent != null ? parent.getProperty(AbstractNode.visibleToPublicUsers) : publicVisible);
-			emptyContentProperties.put(AbstractNode.visibleToAuthenticatedUsers, parent != null ? parent.getProperty(AbstractNode.visibleToAuthenticatedUsers) : authVisible);
-			emptyContent.setProperties(securityContext, emptyContentProperties);
+			createEmptyContentNode(page, parent, commentHandler, instructions);
 
 			instructions = null;
 		}
@@ -1456,7 +1446,10 @@ public class Importer {
 
 		final Content contentNode = (Content)page.createTextNode("");
 
-		contentNode.setVisibility(publicVisible, authVisible);
+		final PropertyMap emptyContentProperties = new PropertyMap();
+		emptyContentProperties.put(AbstractNode.visibleToPublicUsers,        parent != null ? parent.getProperty(AbstractNode.visibleToPublicUsers) : publicVisible);
+		emptyContentProperties.put(AbstractNode.visibleToAuthenticatedUsers, parent != null ? parent.getProperty(AbstractNode.visibleToAuthenticatedUsers) : authVisible);
+		contentNode.setProperties(securityContext, emptyContentProperties);
 
 		if (parent != null) {
 
