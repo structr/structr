@@ -695,7 +695,6 @@ var _Entities = {
 		if (active && typeof initCallback === "function") {
 			initCallback();
 		}
-		console.log(active)
 		return content;
 	},
 	appendViews: function(entity, views, texts, tabsEl, contentEl, typeInfo) {

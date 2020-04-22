@@ -1035,7 +1035,12 @@ public class Importer {
 					if (instructions.contains("@structr:content") && !(newNode instanceof Content)) {
 
 						// unhandled instructions from previous iteration => empty content element
-						createEmptyContentNode(page, parent, commentHandler, instructions);
+						final Content emptyContent = createEmptyContentNode(page, parent, commentHandler, instructions);
+
+						final PropertyMap emptyContentProperties = new PropertyMap();
+						emptyContentProperties.put(AbstractNode.visibleToPublicUsers,        parent != null ? parent.getProperty(AbstractNode.visibleToPublicUsers) : publicVisible);
+						emptyContentProperties.put(AbstractNode.visibleToAuthenticatedUsers, parent != null ? parent.getProperty(AbstractNode.visibleToAuthenticatedUsers) : authVisible);
+						emptyContent.setProperties(securityContext, emptyContentProperties);
 
 					} else {
 
@@ -1081,7 +1086,13 @@ public class Importer {
 		// reset instructions when leaving a level
 		if (instructions != null) {
 
-			createEmptyContentNode(page, parent, commentHandler, instructions);
+			logger.warn("empty content element!");
+			final Content emptyContent = createEmptyContentNode(page, parent, commentHandler, instructions);
+
+			final PropertyMap emptyContentProperties = new PropertyMap();
+			emptyContentProperties.put(AbstractNode.visibleToPublicUsers,        parent != null ? parent.getProperty(AbstractNode.visibleToPublicUsers) : publicVisible);
+			emptyContentProperties.put(AbstractNode.visibleToAuthenticatedUsers, parent != null ? parent.getProperty(AbstractNode.visibleToAuthenticatedUsers) : authVisible);
+			emptyContent.setProperties(securityContext, emptyContentProperties);
 
 			instructions = null;
 		}
