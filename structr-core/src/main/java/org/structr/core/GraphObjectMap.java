@@ -75,6 +75,11 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public Object setProperty(final PropertyKey key, final Object value, final boolean isCreation) throws FrameworkException {
+		return setProperty(null, key, value, isCreation);
+	}
+
+	@Override
+	public Object setProperty(final SecurityContext securityContext, final PropertyKey key, final Object value, final boolean isCreation) throws FrameworkException {
 		properties.put(key, value);
 		return null;
 	}

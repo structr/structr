@@ -44,6 +44,9 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.PropertyContainer;
+import org.structr.api.schema.JsonMethod;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISDocumentInfo;
@@ -74,9 +77,6 @@ import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.schema.action.JavaScriptSource;
-import org.structr.api.schema.JsonMethod;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.web.common.ClosingFileOutputStream;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
@@ -136,7 +136,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addCustomProperty("base64Data", FileDataProperty.class.getName()).setTypeHint("String");
 
 		// override setProperty methods, but don't call super first (we need the previous value)
-		type.overrideMethod("setProperty",                 false,  "if (parentProperty.equals(arg0)) { " + File.class.getName() + ".checkMoveBinaryContents(this, arg0, arg1); }\n\t\treturn super.setProperty(arg0, arg1, false);");
+		type.overrideMethod("setProperty",                 false,  "if (parentProperty.equals(arg1)) { " + File.class.getName() + ".checkMoveBinaryContents(this, arg1, arg2); }\n\t\treturn super.setProperty(arg0, arg1, arg2, false);");
 		type.overrideMethod("setProperties",               false,  "if (arg1.containsKey(parentProperty)) { " + File.class.getName() + ".checkMoveBinaryContents(this, parentProperty, arg1.get(parentProperty)); }\n\t\tsuper.setProperties(arg0, arg1, false);");
 
 		type.overrideMethod("onCreation",                  true,  File.class.getName() + ".onCreation(this, arg0, arg1);");

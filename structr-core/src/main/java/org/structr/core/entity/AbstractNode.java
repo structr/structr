@@ -1405,6 +1405,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	@Override
 	public <T> Object setProperty(final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
 
+		return setProperty(securityContext, key, value, isCreation);
+	}
+
+	@Override
+	public <T> Object setProperty(final SecurityContext securityContext, final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
+
 		// clear function property cache in security context since we are about to invalidate past results
 		if (securityContext != null) {
 			securityContext.getContextStore().clearFunctionPropertyCache();
@@ -1439,7 +1445,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			// no old value exists  OR  old value exists and is NOT equal => set property
 			if (isCreation || ((oldValue == null) && (value != null)) || ((oldValue != null) && (!oldValue.equals(value)) || (key instanceof FunctionProperty)) ) {
 
-				return setPropertyInternal(key, value);
+				return setPropertyInternal(securityContext, key, value);
 			}
 
 		} finally {
@@ -1449,6 +1455,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 
 		return null;
+
 	}
 
 	@Override
@@ -1504,7 +1511,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		NodeInterface.super.setPropertiesInternal(securityContext, properties, isCreation);
 	}
 
-	private <T> Object setPropertyInternal(final PropertyKey<T> key, final T value) throws FrameworkException {
+	private <T> Object setPropertyInternal(final SecurityContext securityContext, final PropertyKey<T> key, final T value) throws FrameworkException {
 
 		if (key == null) {
 

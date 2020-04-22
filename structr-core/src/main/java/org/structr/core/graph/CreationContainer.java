@@ -109,6 +109,11 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 
 	@Override
 	public <T> Object setProperty(PropertyKey<T> key, T value, final boolean isCreation) throws FrameworkException {
+		return setProperty(null, key, value, isCreation);
+	}
+
+	@Override
+	public <T> Object setProperty(final SecurityContext securityContext, PropertyKey<T> key, T value, final boolean isCreation) throws FrameworkException {
 
 		data.put(key.dbName(), value);
 

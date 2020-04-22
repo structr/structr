@@ -139,6 +139,7 @@ public interface GraphObject extends CodeSource {
 	 */
 	public <T> Object setProperty(final PropertyKey<T> key, T value) throws FrameworkException;
 	public <T> Object setProperty(final PropertyKey<T> key, T value, final boolean isCreation) throws FrameworkException;
+	public <T> Object setProperty(final SecurityContext securityContext, final PropertyKey<T> key, T value, final boolean isCreation) throws FrameworkException;
 
 	public void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException;
 	public void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException;
@@ -214,7 +215,7 @@ public interface GraphObject extends CodeSource {
 					unlockSystemPropertiesOnce();
 				}
 
-				setProperty(key, value, isCreation);
+				setProperty(securityContext, key, value, isCreation);
 			}
 		}
 
