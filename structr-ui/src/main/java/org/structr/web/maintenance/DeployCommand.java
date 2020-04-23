@@ -2016,7 +2016,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			config.setProperty("structr-version", VersionHelper.getFullVersionInfo());
 			config.setProperty("deployment-date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date()));
-			config.setProperty("visibility-flags-relativ-to", "parent");
+			config.setProperty(DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY, DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE);
 
 			config.save(confFile.toFile());
 
