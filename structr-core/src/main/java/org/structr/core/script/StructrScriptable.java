@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -465,12 +466,13 @@ public class StructrScriptable extends ScriptableObject {
 			} else if (source instanceof Map && source instanceof NativeObject) {
 
 				// Map can contain ConsString and other things that need unwrapping
-				// wrap it in-place so we dont lose the NativeObject
+				final Map<String, Object> tmp = new HashMap<>();
+
 				((Map<Object, Object>)source).forEach((k, v) -> {
-					NativeObject.putProperty((NativeObject)source, k.toString(), unwrap(v));
+					tmp.put(k.toString(), unwrap(v));
 				});
 
-				return source;
+				return tmp;
 
 			} else {
 
@@ -1032,6 +1034,11 @@ public class StructrScriptable extends ScriptableObject {
 		@Override
 		public Object get(String name, Scriptable start) {
 			return wrap(context, scope, name, map.get(name));
+		}
+
+		@Override
+		public Object get(int index, Scriptable start) {
+			return get("" + index, start);
 		}
 
 		@Override
