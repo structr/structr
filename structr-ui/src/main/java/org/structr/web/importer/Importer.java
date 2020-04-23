@@ -829,8 +829,13 @@ public class Importer {
 				final PropertyMap newNodeProperties = new PropertyMap();
 				final Class newNodeType             = newNode.getClass();
 
-				newNodeProperties.put(AbstractNode.visibleToPublicUsers,        parent != null ? parent.getProperty(AbstractNode.visibleToPublicUsers) : publicVisible);
-				newNodeProperties.put(AbstractNode.visibleToAuthenticatedUsers, parent != null ? parent.getProperty(AbstractNode.visibleToAuthenticatedUsers) : authVisible);
+				if (isDeployment && !DeployCommand.isDOMNodeVisibilityRelativeToParent()) {
+					newNodeProperties.put(AbstractNode.visibleToPublicUsers,        publicVisible);
+					newNodeProperties.put(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+				} else {
+					newNodeProperties.put(AbstractNode.visibleToPublicUsers,        parent != null ? parent.getProperty(AbstractNode.visibleToPublicUsers) : publicVisible);
+					newNodeProperties.put(AbstractNode.visibleToAuthenticatedUsers, parent != null ? parent.getProperty(AbstractNode.visibleToAuthenticatedUsers) : authVisible);
+				}
 
 				// "id" attribute: Put it into the "_html_id" field
 				if (StringUtils.isNotBlank(id)) {
@@ -1447,8 +1452,15 @@ public class Importer {
 		final Content contentNode = (Content)page.createTextNode("");
 
 		final PropertyMap emptyContentProperties = new PropertyMap();
-		emptyContentProperties.put(AbstractNode.visibleToPublicUsers,        parent != null ? parent.getProperty(AbstractNode.visibleToPublicUsers) : publicVisible);
-		emptyContentProperties.put(AbstractNode.visibleToAuthenticatedUsers, parent != null ? parent.getProperty(AbstractNode.visibleToAuthenticatedUsers) : authVisible);
+
+		if (isDeployment && !DeployCommand.isDOMNodeVisibilityRelativeToParent()) {
+			emptyContentProperties.put(AbstractNode.visibleToPublicUsers,        publicVisible);
+			emptyContentProperties.put(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+		} else {
+			emptyContentProperties.put(AbstractNode.visibleToPublicUsers,        parent != null ? parent.getProperty(AbstractNode.visibleToPublicUsers) : publicVisible);
+			emptyContentProperties.put(AbstractNode.visibleToAuthenticatedUsers, parent != null ? parent.getProperty(AbstractNode.visibleToAuthenticatedUsers) : authVisible);
+		}
+
 		contentNode.setProperties(securityContext, emptyContentProperties);
 
 		if (parent != null) {
