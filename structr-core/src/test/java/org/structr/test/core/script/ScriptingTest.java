@@ -4907,6 +4907,43 @@ public class ScriptingTest extends StructrTest {
 
 	}
 
+	@Test
+	public void testJavaScriptQuirksDuckTypingNumericalMapIndex () {
+
+		/*
+			This test makes sure that map access works even though javascript interprets numerical strings (e.g. "1", "25") as ints (after the map has undergone wrapping/unwrapping
+		*/
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			final String script =  "${{\n" +
+				"	$.store('testStore', {\n" +
+				"		'01': 'valueAtZeroOne',\n" +
+				"		'2' : 'valueAtTwo'\n" +
+				"	});\n" +
+				"	\n" +
+				"	let x = $.retrieve('testStore');\n" +
+				"	\n" +
+				"	return (x['2'] === 'valueAtTwo');\n" +
+				"}}";
+
+			final Object result = Scripting.evaluate(ctx, null, script, "test");
+
+			assertEquals("Result should not be undefined! Access to maps at numerical indexes should work.", true, result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+
+	}
+
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource, final String comment) {
 
