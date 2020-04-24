@@ -223,7 +223,7 @@ public class NodeExtender {
 						System.out.println("  " + StringUtils.leftPad("" + (errorLineNumber), 4) + ": " + code.get(errorLineNumber));
 					}
 					if (errorLineNumber + 1 <= code.size()) {
-						System.out.println("  " + StringUtils.leftPad("" + (errorLineNumber+1), 4) + ": " + code.get(errorLineNumber + 1));
+						System.out.println("  " + StringUtils.leftPad("" + (errorLineNumber+1), 4) + ": " + code.get(errorLineNumber));
 					}
 
 					/*

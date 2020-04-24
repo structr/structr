@@ -722,7 +722,7 @@ public class StructrScriptable extends ScriptableObject {
 
 				try {
 
-					obj.setProperty(actionContext.getSecurityContext(), new GenericProperty(string), StructrScriptable.this.unwrap(o), false);
+					obj.setProperty(new GenericProperty(string), StructrScriptable.this.unwrap(o));
 
 				} catch (FrameworkException fex) {
 					exception = fex;
@@ -769,7 +769,7 @@ public class StructrScriptable extends ScriptableObject {
 							}
 						}
 
-						obj.setProperty(actionContext.getSecurityContext(), key, value, false);
+						obj.setProperty(key, value);
 
 					} catch (FrameworkException fex) {
 						exception = fex;
@@ -789,7 +789,7 @@ public class StructrScriptable extends ScriptableObject {
 			if (key != null) {
 
 				try {
-					obj.setProperty(actionContext.getSecurityContext(), key, null, false);
+					obj.setProperty(key, null);
 
 				} catch (FrameworkException fex) {
 					exception = fex;

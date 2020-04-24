@@ -212,11 +212,6 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public Object setProperty(final SecurityContext securityContext, PropertyKey key, Object value, final boolean isCreation) throws FrameworkException {
-		return null;
-	}
-
-	@Override
 	public PropertyContainer getPropertyContainer() {
 		return null;
 	}

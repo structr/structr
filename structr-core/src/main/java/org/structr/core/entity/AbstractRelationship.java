@@ -517,11 +517,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	@Override
 	public final <T> Object setProperty(final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
-		return setProperty(securityContext, key, value, isCreation);
-	}
-
-	@Override
-	public final <T> Object setProperty(final SecurityContext securityContext, final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
 
 		// clear function property cache in security context since we are about to invalidate past results
 		if (securityContext != null) {
