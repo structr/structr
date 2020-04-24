@@ -18,30 +18,37 @@
  */
 @charset "UTF-8";
 
-/** Defaults */
-
-@font-face { font-family: 'Open Sans'; src: url('../fonts/OpenSans-Light.ttf') format('truetype'); font-weight: 300;}
-@font-face { font-family: 'Open Sans'; src: url('../fonts/OpenSans-Regular.ttf') format('truetype'); font-weight: 400;}
-@font-face { font-family: 'Open Sans'; src: url('../fonts/OpenSans-Semibold.ttf') format('truetype'); font-weight: 600;}
-@font-face { font-family: 'Open Sans'; src: url('../fonts/OpenSans-Bold.ttf') format('truetype'); font-weight: 700;}
-
-@font-face { font-family: 'Roboto'; src: url('../fonts/Roboto-Light.ttf') format('truetype'); font-weight: 300;}
-@font-face { font-family: 'Roboto'; src: url('../fonts/Roboto-Regular.ttf') format('truetype'); font-weight: 400;}
-@font-face { font-family: 'Roboto'; src: url('../fonts/Roboto-Medium.ttf') format('truetype'); font-weight: 600;}
-@font-face { font-family: 'Roboto'; src: url('../fonts/Roboto-Bold.ttf') format('truetype'); font-weight: 700;}
-
 #simple-pages-tree .page.node {
 	margin-left: 0;
 	padding-left: 8px;
 }
 
-#simple-pages-tree .page.node b.name_ {
+#simple-pages-tree div h3 {
+	margin: 6px 0 2px 12px;
+	padding: 0;
+}
+
+#simple-pages-tree div:first-child h3 {
+	margin: -2px 0 2px 12px;
+}
+
+#simple-pages-tree .node:hover {
+	cursor: default;
+	background-color: #b5e27f;
+}
+
+#simple-pages-tree .node b.name_ {
 	cursor: pointer;
 }
 
-#simple-pages-tree .page.node.selected {
-	background: #b5e27f ! important;
+#simple-pages-tree .node.selected {
+	background-color: #81ce25;
 }
+
+#simple-pages-tree .create-page-button {
+	margin: 8px 0 0 8px;
+	cursor: pointer;
+} 
 
 .page-root .preview {
 	width: 100%;
@@ -118,6 +125,7 @@
 	top: 0;
 	left: 0px;
 	width: 100%;
+	height: 24px;
 }
 
 [data-structr-id].hover > .edit-header {
@@ -164,8 +172,45 @@
 	display: block ! important;
 }
 
+#simple-pages-contents {
+	margin-top: 7px;
+}
+
+#preview-url-input {
+	width: 40em;
+	height: 15px;
+}
+
+#element-preview-overlay {
+	position: absolute;
+	border: 1px solid #e5e5e5;
+	box-shadow: 0px 0px 36px rgba(127,127,127,.2);
+	border-radius: none;
+	background-color: #fff;
+	padding: 1rem;
+	width: 200px;
+	top: 0;
+	left: 0;
+	font-size: 1.5em;
+}
+
+.template-partial-selector {
+	background-color: red;
+}
+
 /**
- * widgets
+ * Context column
+ */
+textarea.code-preview {
+	width: 100%;
+	height: 100%;
+	min-height: 800px;
+	font-family: monospace;
+}
+
+
+/**
+ * Widgets
  */
 
 [data-structr-from-widget] .delete_icon {

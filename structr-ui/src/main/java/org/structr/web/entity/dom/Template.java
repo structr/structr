@@ -20,6 +20,7 @@ package org.structr.web.entity.dom;
 
 import java.net.URI;
 import java.util.List;
+import org.codehaus.plexus.util.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -145,6 +146,22 @@ public interface Template extends Content {
 			Content.renderContent(thisTemplate, renderContext, depth);
 
 			out.append("\n</structr:template>\n");
+
+		} else if (EditMode.WITH_PAGE_CONTEXT.equals(editMode)) {
+
+			final AsyncBuffer out = renderContext.getBuffer();
+			final String pageContent  = thisTemplate.getProperty("pageContent");
+			
+			// If this is not an embedded template with page content, render normally.
+			if (StringUtils.isEmpty(pageContent)) {
+				
+				// render content
+				Content.renderContent(thisTemplate, renderContext, depth);
+				
+			} else {
+				
+				out.append(pageContent);
+			}
 
 		} else {
 

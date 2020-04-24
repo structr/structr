@@ -1114,15 +1114,14 @@ span.id {
 }
 
 
-/* set the hidden nodes icon to have a background and little opacity */
+/* Display hidden nodes icons transparent */
 .is-hidden > .typeIcon {
-	opacity: 0.5;
-	background-color: lightgray;
+	opacity: .5;
 }
 
-/* set all children of a hidden node to have even less opacity */
+/* Display children of hidden nodes even more transparent */
 .is-hidden > .node .typeIcon {
-	opacity: 0.3;
+	opacity: .3;
 }
 
 .typeIcon {

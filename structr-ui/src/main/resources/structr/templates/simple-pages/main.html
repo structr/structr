@@ -1,5 +1,7 @@
-<div id="simple-pages-main">
-	<div class="column-resizer"></div>
+<div id="simple-pages-main" class="tree-main">
+	<div class="column-resizer-blocker"></div>
+	<div class="column-resizer column-resizer-left"></div>
+	<div class="column-resizer column-resizer-right"></div>
 	<div class="fit-to-height tree-container" id="simple-pages-tree-container">
 		<div class="tree-search-container" id="tree-search-container">
 			<i id="cancel-search-button" class="cancel-search-button hidden fa fa-remove"></i>
@@ -8,9 +10,12 @@
 			<button type="button" class="tree-forward-button" id="tree-forward-button" title="Forward" disabled><i class="fa fa-caret-right"></i></button>
 		</div>
 		<div class="tree" id="simple-pages-tree">
+			<div class="preview-urls-container"><h3>Preview URLs</h3></div>
+			<div class="templates-container"><h3>Templates</h3></div>
 		</div>
 	</div>
 	<div class="fit-to-height tree-contents-container" id="simple-pages-contents-container">
+		<input type="text" id="preview-url-input" placeholder="Preview URL..."><br>
 		<div class="tree-contents" id="simple-pages-contents">
 		</div>
 	</div>

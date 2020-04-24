@@ -94,7 +94,7 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 		final Authenticator auth = getConfig().getAuthenticator();
 
 		SecurityContext securityContext;
-		String content;
+		String content = null;
 
 		if (auth == null) {
 
@@ -124,27 +124,29 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 			// Ensure access mode is frontend
 			securityContext.setAccessMode(AccessMode.Frontend);
 
-			String address = request.getParameter("url");
-			final URI url  = URI.create(address);
+			final String address = request.getParameter("url");
 
-			String proxyUrl      = request.getParameter("proxyUrl");
-			String proxyUsername = request.getParameter("proxyUsername");
-			String proxyPassword = request.getParameter("proxyPassword");
-			String authUsername  = request.getParameter("authUsername");
-			String authPassword  = request.getParameter("authPassword");
-			String cookie        = request.getParameter("cookie");
+			if (address != null) {
+				final URI url  = URI.create(address);
 
-			final Principal user = securityContext.getCachedUser();
+				String proxyUrl      = request.getParameter("proxyUrl");
+				String proxyUsername = request.getParameter("proxyUsername");
+				String proxyPassword = request.getParameter("proxyPassword");
+				String authUsername  = request.getParameter("authUsername");
+				String authPassword  = request.getParameter("authPassword");
+				String cookie        = request.getParameter("cookie");
 
-			if (user != null && StringUtils.isBlank(proxyUrl)) {
-				proxyUrl      = user.getProperty(proxyUrlKey);
-				proxyUsername = user.getProperty(proxyUsernameKey);
-				proxyPassword = user.getProperty(proxyPasswordKey);
+				final Principal user = securityContext.getCachedUser();
+
+				if (user != null && StringUtils.isBlank(proxyUrl)) {
+					proxyUrl      = user.getProperty(proxyUrlKey);
+					proxyUsername = user.getProperty(proxyUsernameKey);
+					proxyPassword = user.getProperty(proxyPasswordKey);
+				}
+
+				content = HttpHelper.get(address, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
 			}
-
-			content = HttpHelper.get(address, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
-
-
+			
 		} catch (Throwable t) {
 
 			logger.error("Exception while processing request", t);
@@ -152,8 +154,12 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 		}
 
 		try {
+
 			final ServletOutputStream out = response.getOutputStream();
+			response.setContentType("text/html");
+
 			IOUtils.write(content, out, "utf-8");
+
 		} catch (IOException ex) {
 			logger.error("Could not write to response", ex);
 		}

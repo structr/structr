@@ -1,0 +1,10 @@
+<div id="id_${config.template.id}" class="node content ui-sortable ui-droppable">
+	<!--i title="Collapse ${config.template.name}" class="expand_icon sprite sprite-tree_arrow_down"></i-->
+	<i class="typeIcon sprite sprite-layout_content"></i>
+	<b title="${config.template.name || escapeTags(config.template.content.substr(0,200)) + '&hellip;'}" class="name_">${config.template.name || escapeTags(config.template.content.substr(0,50)) + '&hellip;'}</b>
+	<span class="id">${config.template.id}</span>
+	<i title="Access Control and Visibility" class="key_icon button sprite sprite-key donthide" style="display: none;"></i>
+	<i title="Delete template '${config.template.name}'" class="delete_icon button sprite sprite-delete" style="display: none;"></i>
+	<i title="Edit Properties" class="edit_props_icon button sprite sprite-application_view_detail" style="display: none;"></i>
+	<i title="Clone template '${config.template.name}'" class="clone_icon button sprite sprite-page_copy" style="display: none;"></i>
+</div>
