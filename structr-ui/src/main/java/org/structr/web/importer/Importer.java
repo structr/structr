@@ -1086,7 +1086,6 @@ public class Importer {
 		// reset instructions when leaving a level
 		if (instructions != null) {
 
-			logger.warn("empty content element!");
 			createEmptyContentNode(page, parent, commentHandler, instructions);
 
 			instructions = null;
