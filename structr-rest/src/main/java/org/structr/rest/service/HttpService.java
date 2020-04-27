@@ -50,7 +50,6 @@ import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
-import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
@@ -217,13 +216,6 @@ public class HttpService implements RunnableService {
 		server = new Server(Settings.HttpPort.getValue());
 		final ContextHandlerCollection contexts = new ContextHandlerCollection();
 
-		contexts.addHandler(new AbstractHandler() {
-			@Override
-			public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-				System.out.println(target);
-			}
-
-		});
 		contexts.addHandler(new DefaultHandler());
 
 		final ServletContextHandler servletContext = new ServletContextHandler(server, contextPath, true, true);
