@@ -2575,23 +2575,24 @@ var _Schema = {
 				return '';
 			}
 
-			var nextSuffix = 0;
+			let nextSuffix = 0;
 
-			$('#tabView-methods .property-name').each(function(i, el) {
-				var name = $(el).val();
+			for (let key in _Schema.methods.methodsData) {
+
+				let name = _Schema.methods.methodsData[key].name;
 				if (name.indexOf(prefix) === 0) {
-					var suffix = name.slice(prefix.length);
+					let suffix = name.slice(prefix.length);
 
 					if (suffix === '') {
 						nextSuffix = Math.max(nextSuffix, 1);
 					} else {
-						var parsed = parseInt(suffix);
+						let parsed = parseInt(suffix);
 						if (!isNaN(parsed)) {
 							nextSuffix = Math.max(nextSuffix, parsed + 1);
 						}
 					}
 				}
-			});
+			}
 
 			return prefix + (nextSuffix === 0 ? '' : (nextSuffix < 10 ? '0' + nextSuffix : nextSuffix));
 		},
