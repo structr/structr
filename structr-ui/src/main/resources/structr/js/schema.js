@@ -718,7 +718,7 @@ var _Schema = {
 				}
 				dialogMeta.show();
 				instance.repaintEverything();
-			});
+			}, ['schema-edit-dialog']);
 
 			method(entity, dialogHead, dialogText, targetView);
 

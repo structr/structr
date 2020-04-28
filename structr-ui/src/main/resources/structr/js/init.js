@@ -590,7 +590,7 @@ var Structr = {
 		}, 1000);
 
 	},
-	dialog: function(text, callbackOk, callbackCancel) {
+	dialog: function(text, callbackOk, callbackCancel, customClasses) {
 
 		if (browser) {
 
@@ -599,6 +599,13 @@ var Structr = {
 			dialogMsg.empty();
 			dialogMeta.empty();
 			dialogBtn.empty();
+
+			dialogBox[0].classList = ["dialog"];
+			if (customClasses) {
+				for (let customClass of customClasses) {
+					dialogBox.addClass(customClass);
+				}
+			}
 
 			dialogBtn.html('<button class="closeButton">Close</button>');
 			dialogCancelButton = $('.closeButton', dialogBox);

@@ -3837,7 +3837,7 @@ input.tree-search-input:focus {
 }
 
 
-/* BEGIN: styles to maximize methods editors in bulk save dialog for code area */
+/* BEGIN: styles to maximize methods editors in bulk save dialog for CODE area */
 #code-methods-container {
 	height: calc(100% - 37px);
 }
@@ -3851,7 +3851,22 @@ input.tree-search-input:focus {
 #code-methods-container #methods-container #methods-content .method-tab-content .cm-schema-methods {
 	height: 100%;
 }
-/* END: styles to maximize methods editors in bulk save dialog for code area */
+/* END: styles to maximize methods editors in bulk save dialog for CODE area */
+
+
+/* BEGIN: styles to maximize methods editors in bulk save dialog for SCHEMA area */
+#dialogBox.dialog.schema-edit-dialog .dialogText,
+#dialogBox.dialog.schema-edit-dialog .dialogText .schema-details,
+#dialogBox.dialog.schema-edit-dialog .dialogText .schema-details #tabView-methods,
+#dialogBox.dialog.schema-edit-dialog .dialogText .schema-details #tabView-methods #methods-container {
+	height: 100%;
+    margin-bottom: 0;
+}
+
+#dialogBox.dialog.schema-edit-dialog .dialogText .schema-details #tabView-methods #methods-container #methods-content {
+	height: calc(100% - 72px);
+}
+/* END: styles to maximize methods editors in bulk save dialog for SCHEMA area */
 
 #type-content-add-property i,
 #type-content-add-method i {
