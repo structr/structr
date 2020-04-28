@@ -31,7 +31,6 @@ import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.fileupload.FileItemIterator;
@@ -120,6 +119,24 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 
+		try {
+
+			assertInitialized();
+
+		} catch (FrameworkException fex) {
+
+			try {
+				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
+
+			} catch (IOException ioex) {
+
+				logger.warn("Unable to send response", ioex);
+			}
+
+			return;
+		}
+
 		SecurityContext securityContext = null;
 		String redirectUrl              = null;
 
@@ -150,7 +167,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			}
 
 			tx.success();
-			
+
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
@@ -206,7 +223,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				} else {
 
 					try (final InputStream is = item.openStream()) {
-						
+
 						Files.write(IOUtils.toByteArray(is), file);
 						fileName = item.getName();
 					}
@@ -217,12 +234,12 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 				HttpHelper.streamURLToFile(downloadUrl, file);
 				fileName = PathHelper.getName(downloadUrl);
-			
+
 			} else {
-					
+
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.getOutputStream().write("ERROR (400): No download URL given\n".getBytes("UTF-8"));
-				
+
 				return;
 			}
 

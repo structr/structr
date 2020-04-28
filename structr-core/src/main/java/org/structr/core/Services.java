@@ -35,8 +35,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -45,21 +45,21 @@ import org.structr.api.DatabaseService;
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
+import org.structr.api.service.DatabaseConnection;
 import org.structr.api.service.InitializationCallback;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.Service;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.StructrServices;
-import org.structr.bolt.BoltDatabaseService;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
 import org.structr.common.VersionHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.FlushCachesCommand;
+import org.structr.core.graph.ManageDatabasesCommand;
 import org.structr.core.graph.NodeService;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
@@ -67,7 +67,7 @@ import org.structr.util.StructrLicenseManager;
 
 public class Services implements StructrServices {
 
-	private static final Logger logger                 = LoggerFactory.getLogger(StructrApp.class.getName());
+	private static final Logger logger                 = LoggerFactory.getLogger(Services.class.getName());
 
 	// singleton instance
 	private static String jvmIdentifier                = ManagementFactory.getRuntimeMXBean().getName();
@@ -81,7 +81,6 @@ public class Services implements StructrServices {
 	// non-static members
 	private final Map<Class, Map<String, Service>> serviceCache = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Set<Permission> permissionsForOwnerlessNodes  = new LinkedHashSet<>();
-	private final Map<Class, String> activeServiceNames         = new LinkedHashMap<>();
 	private final Map<String, Class> registeredServiceClasses   = new LinkedHashMap<>();
 	private final List<InitializationCallback> callbacks        = new LinkedList<>();
 	private final Map<String, Object> attributes                = new ConcurrentHashMap<>(10, 0.9f, 8);
@@ -131,12 +130,13 @@ public class Services implements StructrServices {
 
 			final T command          = commandType.newInstance();
 			final Class serviceClass = command.getServiceClass();
-			final String serviceName = getNameOfActiveService(serviceClass);
 
 			// inject security context first
 			command.setArgument("securityContext", securityContext);
 
 			if (serviceClass != null) {
+
+				final String serviceName = getNameOfActiveService(serviceClass);
 
 				// search for already running service..
 				Service service = getService(serviceClass, serviceName);
@@ -196,16 +196,40 @@ public class Services implements StructrServices {
 			// this might be the first start with a new / upgraded version
 			// check if we need to do some migration maybe?
 
-			if (Settings.ConnectionUser.isModified() || Settings.ConnectionUrl.isModified() || Settings.ConnectionPassword.isModified() || Settings.DatabaseDriverMode.isModified()) {
+			if ("remote".equals(Settings.DatabaseDriverMode.getValue()) || Settings.ConnectionUser.isModified() || Settings.ConnectionUrl.isModified() || Settings.ConnectionPassword.isModified()) {
 
 				if (!Settings.DatabaseDriver.isModified()) {
 
 					logger.info("Migrating database connection configuration");
 
-					// driver is not modified (i.e. in-memory driver), but other config settings
-					// indicate that a remote driver was used, so we change the setting to use
-					// the neo4j driver
-					Settings.DatabaseDriver.setValue(BoltDatabaseService.class.getName());
+					// This is necessary because the default driver changed from bolt to in-memory, so we need to interpret an unmodified setting as "remote" and migrate.
+					// Other config settings indicate that a remote driver was used, so we change the setting to use the neo4j driver.
+					final DatabaseConnection connection = new DatabaseConnection();
+					final String migratedServiceName    = "default-migrated";
+
+					connection.setDisplayName("default-migrated");
+					connection.setName(migratedServiceName);
+					connection.setUrl(Settings.ConnectionUrl.getValue());
+					connection.setUsername(Settings.ConnectionUser.getValue());
+					connection.setPassword(Settings.ConnectionPassword.getValue());
+
+					final ManageDatabasesCommand cmd = new ManageDatabasesCommand();
+
+					try {
+
+						cmd.addConnection(connection, false);
+
+						setActiveServiceName(NodeService.class, migratedServiceName);
+
+						Settings.DatabaseDriver.setValue(Settings.DatabaseDriver.getDefaultValue());
+						Settings.ConnectionUrl.setValue(Settings.ConnectionUrl.getDefaultValue());
+						Settings.ConnectionUser.setValue(Settings.ConnectionUser.getDefaultValue());
+						Settings.ConnectionPassword.setValue(Settings.ConnectionPassword.getDefaultValue());
+						Settings.DatabaseDriverMode.setValue(Settings.DatabaseDriverMode.getDefaultValue());
+
+					} catch (FrameworkException fex) {
+						logger.warn("Unable migrate configuration: {}", fex.getMessage());
+					}
 				}
 			}
 
@@ -262,7 +286,7 @@ public class Services implements StructrServices {
 
 			try {
 
-				final String activeServiceName = Settings.getOrCreateStringSetting(serviceClass.getSimpleName(), "active").getValue("default");
+				final String activeServiceName = getNameOfActiveService(serviceClass);
 
 				startService(serviceClass, activeServiceName, false);
 
@@ -376,6 +400,11 @@ public class Services implements StructrServices {
 	public boolean isInitialized() {
 		return initializationDone;
 	}
+
+	public String getUnavailableMessage() {
+		return "Services is not initialized yet.";
+	}
+
 
 	public boolean isOverridingSchemaTypesAllowed() {
 		return overridingSchemaTypesAllowed;
@@ -516,6 +545,10 @@ public class Services implements StructrServices {
 		return false;
 	}
 
+	public boolean isConfigured(final Class serviceClass) {
+		return getCongfiguredServiceClasses().contains(serviceClass);
+	}
+
 	public boolean startService(final Class serviceClass, final String serviceName, final boolean disableRetry) throws FrameworkException {
 
 		boolean waitAndRetry = true;
@@ -593,12 +626,12 @@ public class Services implements StructrServices {
 
 				} catch (Throwable t) {
 
+					t.printStackTrace();
+
 					logger.warn("Service {} failed to start: {}", serviceClass.getSimpleName(), t.getMessage());
 
 					if (!disableRetry && isVital && !waitAndRetry) {
 						checkVitalService(serviceClass, t);
-					} else {
-						throw new FrameworkException(503, t.getMessage());
 					}
 				}
 
@@ -618,15 +651,14 @@ public class Services implements StructrServices {
 				}
 			}
 
-		} catch (FrameworkException fex) {
-
-			throw fex;
-
 		} catch (Throwable t) {
 
 			if (!disableRetry && isVital) {
+
 				checkVitalService(serviceClass, t);
+
 			} else {
+
 				throw new FrameworkException(503, t.getMessage());
 			}
 
@@ -669,6 +701,7 @@ public class Services implements StructrServices {
 				RunnableService runnableService = (RunnableService) service;
 
 				if (runnableService.isRunning()) {
+					logger.info("Stopping {}..", service.getName());
 					runnableService.stopService();
 				}
 			}
@@ -843,13 +876,6 @@ public class Services implements StructrServices {
 
 					dependencyMap.put(service, dependency);
 				}
-
-			} else {
-
-				// warn user
-				if (!NodeService.class.equals(service)) {
-					logger.warn("Service {} does not have @ServiceDependency annotation, this is likely a bug.", service);
-				}
 			}
 		}
 
@@ -929,8 +955,6 @@ public class Services implements StructrServices {
 			Settings.getOrCreateStringSetting(type.getSimpleName(), "active").setValue(name);
 
 		}
-
-		activeServiceNames.put(type, name);
 	}
 
 	public boolean activateService(final Class type, final String name) throws FrameworkException {
@@ -960,14 +984,7 @@ public class Services implements StructrServices {
 	}
 
 	public <T extends Service> String getNameOfActiveService(final Class<T> type) {
-
-		final String name = activeServiceNames.get(type);
-		if (name != null) {
-
-			return name;
-		}
-
-		return "default";
+		return Settings.getOrCreateStringSetting(type.getSimpleName(), "active").getValue("default");
 	}
 
 	public static void enableUpdateIndexConfiguration() {

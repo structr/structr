@@ -64,7 +64,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -96,7 +95,6 @@ import org.structr.web.entity.Site;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.websocket.command.AbstractCommand;
 
 /**
  * Main servlet for content rendering.
@@ -155,6 +153,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	@Override
 	public void init() {
 
+		/*
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			AbstractCommand.getOrCreateHiddenDocument();
@@ -163,6 +162,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		} catch (FrameworkException fex) {
 			logger.warn("Unable to create shadow page: {}", fex.getMessage());
 		}
+		*/
 	}
 
 	@Override
@@ -283,7 +283,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					final String queryString = request.getQueryString();
 
 					// Look for a file, first include the query string
-					file = findFile(securityContext, request, path + (queryString != null ? "?" + queryString : ""));
+					if (StringUtils.isNotBlank(queryString)) {
+						file = findFile(securityContext, request, path + "?" + queryString);
+					}
 
 					// If no file with query string in the file name found, try without query string
 					if (file == null) {
@@ -1690,7 +1692,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		final int serverPort    = request.getServerPort();
 
 		boolean isVisible = false;
-		
+
 		for (final Site site : sites) {
 
 				if (StringUtils.isBlank(serverName) || serverName.equals(site.getHostname())) {
@@ -1875,13 +1877,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		}
 
 		return null;
-	}
-
-	private void assertInitialized() throws FrameworkException {
-
-		if (!Services.getInstance().isInitialized()) {
-			throw new FrameworkException(503, "System is not initialized yet.");
-		}
 	}
 
 	public static String filterMaliciousRedirects(final String source) {

@@ -46,7 +46,7 @@ public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 
 		if(sources != null && sources.length == 2 && sources[1] != null && sources[1] instanceof String && sources[0] != null && sources[0] instanceof GraphObject) {
 
-			String script = "${" + sources[1] + "}";
+			String script = "${" + sources[1].toString().trim() + "}";
 			GraphObject entity = (GraphObject)sources[0];
 
 			return Scripting.replaceVariables(ctx, entity, script);

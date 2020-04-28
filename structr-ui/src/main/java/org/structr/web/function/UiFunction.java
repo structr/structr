@@ -39,6 +39,11 @@ public abstract class UiFunction extends Function<Object, Object> {
 		return HttpHelper.get(requestUrl, username, password, ctx.getHeaders());
 	}
 
+	protected byte[] getBinaryFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws IOException, FrameworkException {
+
+		return HttpHelper.getBinary(requestUrl, username, password, ctx.getHeaders());
+	}
+
 	protected GraphObjectMap headFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws IOException, FrameworkException {
 
 		final Map<String, String> headers = HttpHelper.head(requestUrl, password, username, ctx.getHeaders());

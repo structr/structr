@@ -74,7 +74,7 @@ public class BatchFunctionCall implements IdFunctionCall {
 
 					try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-						final Object result = mainCall.exec(cx, scope);
+						final Object result = Scripting.evaluateJavascript(actionContext, null, new Snippet(mainCall));
 
 						if (!Boolean.TRUE.equals(result)) {
 
@@ -98,7 +98,7 @@ public class BatchFunctionCall implements IdFunctionCall {
 
 						try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-							errorHandler.exec(cx, scope);
+							Scripting.evaluateJavascript(actionContext, null, new Snippet(errorHandler));
 
 							tx.success();
 

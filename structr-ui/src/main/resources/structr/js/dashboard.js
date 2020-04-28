@@ -41,7 +41,9 @@ var _Dashboard = {
 		let tabId = LSWrapper.getItem(_Dashboard.activeTabPrefixKey);
 		if (tabId) {
 			let tab = document.querySelector('#dashboard .tabs-menu li a[href="' + tabId + '"]');
-			tab.click();
+			if (tab) {
+				tab.click();
+			}
 		}
 	},
 	onload: function(retryCount = 0) {
@@ -183,9 +185,7 @@ var _Dashboard = {
 						display_selected_options: false,
 						hide_results_on_select: false,
 						display_disabled_options: false
-					}).chosenSortable(function() {
-						//_Schema.activateEditModeForViewRow(tr);
-					});
+					}).chosenSortable();
 				});
 
 				_Dashboard.activateLogBox();
@@ -195,6 +195,47 @@ var _Dashboard = {
 				$(window).off('resize');
 				$(window).on('resize', function() {
 					Structr.resize();
+				});
+
+
+				let userConfigMenu = LSWrapper.getItem(Structr.keyMenuConfig);
+				if (!userConfigMenu) {
+					userConfigMenu = {
+						main: templateConfig.envInfo.mainMenu,
+						sub: []
+					};
+				}
+
+				let mainMenuConfigContainer = document.querySelector('#main-menu-entries-config');
+				let subMenuConfigContainer = document.querySelector('#sub-menu-entries-config');
+
+				for (let menuitem of document.querySelectorAll('#menu li[data-name]')) {
+
+					// account for missing modules because of license
+					if (menuitem.style.display !== 'none') {
+						let n = document.createElement('div');
+						n.classList.add('menu-item');
+						n.textContent = menuitem.dataset.name;
+						n.dataset.name = menuitem.dataset.name;
+						subMenuConfigContainer.appendChild(n);
+					}
+				}
+
+				for (let mainMenuItem of userConfigMenu.main) {
+					mainMenuConfigContainer.appendChild(subMenuConfigContainer.querySelector('div[data-name="' + mainMenuItem + '"]'));
+				}
+
+				$('#main-menu-entries-config, #sub-menu-entries-config').sortable({
+					connectWith: ".connectedSortable"
+				}).disableSelection();
+
+				document.querySelector('#save-menu-config').addEventListener('click', () => {
+					let newMenuConfig = {
+						main: [].map.call(mainMenuConfigContainer.querySelectorAll('div.menu-item'), (el) => { return el.dataset.name; }),
+						sub: [].map.call(subMenuConfigContainer.querySelectorAll('div.menu-item'), (el) => { return el.dataset.name; })
+					};
+
+					Structr.updateMainMenu(newMenuConfig);
 				});
 
 				Structr.unblockMenu(100);

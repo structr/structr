@@ -53,4 +53,9 @@ public class SchemaNodeView extends OneToMany<AbstractSchemaNode, SchemaView>  {
 	public boolean isInternal() {
 		return true;
 	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.SOURCE_TO_TARGET;
+	}
 }

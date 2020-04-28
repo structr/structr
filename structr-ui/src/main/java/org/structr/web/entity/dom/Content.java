@@ -20,7 +20,11 @@ package org.structr.web.entity.dom;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.Charset;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.io.IOUtils;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
@@ -29,6 +33,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Favoritable;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyKey;
@@ -36,8 +41,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -244,7 +247,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 			final String _sharedComponentConfiguration = thisNode.getSharedComponentConfiguration();
 			if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
 
-				Scripting.evaluate(renderContext, thisNode, "${" + _sharedComponentConfiguration + "}", "shared component configuration");
+				Scripting.evaluate(renderContext, thisNode, "${" + _sharedComponentConfiguration.trim() + "}", "shared component configuration");
 			}
 
 			// determine some postprocessing flags
@@ -307,9 +310,15 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
 		} catch (Throwable t) {
 
-			// catch exception to prevent ugly status 500 error pages in frontend.
-			logger.error("", t);
+			final boolean isShadowPage = DOMNode.isSharedComponent(thisNode);
 
+			// catch exception to prevent status 500 error pages in frontend.
+			if (!isShadowPage) {
+				final DOMNode ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
+				logger.error("Error while evaluating script in page {}[{}], Content[{}]", ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, t);
+			} else {
+				logger.error("Error while evaluating script in shared component, Content[{}]", thisNode, t);
+			}
 		}
 	}
 
@@ -737,7 +746,16 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 				final Object value = Scripting.evaluate(renderContext, node, script, "script source");
 				if (value != null) {
 
-					final String content = value.toString();
+					String content = null;
+					
+					// Convert binary data to String with charset from response
+					if (value instanceof byte[]) {
+						//StringUtils.toEncodedString((byte[]) value, renderContext.getPage().getProperty(StructrApp.key(Page.class, "contentType")));
+						content = StringUtils.toEncodedString((byte[]) value, Charset.forName(renderContext.getResponse().getCharacterEncoding()));
+					} else {
+						content = value.toString();
+					}
+					
 					if (StringUtils.isNotBlank(content)) {
 
 						renderContext.getBuffer().append(transform(content));

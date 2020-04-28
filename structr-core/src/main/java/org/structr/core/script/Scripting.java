@@ -25,9 +25,7 @@ import java.util.regex.Pattern;
 import javax.script.*;
 
 import com.caucho.quercus.env.Env;
-import com.caucho.quercus.env.JavaCollectionAdapter;
 import com.caucho.quercus.env.JavaListAdapter;
-import com.caucho.quercus.script.QuercusScriptEngine;
 import org.apache.commons.collections4.map.LRUMap;
 import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.Context;

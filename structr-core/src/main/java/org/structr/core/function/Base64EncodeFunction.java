@@ -49,10 +49,16 @@ public class Base64EncodeFunction extends CoreFunction {
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 3);
 
 			final Charset charset = (sources.length == 3) ? Charset.forName(sources[2].toString()) : Charset.defaultCharset();
-			final byte[] input    = sources[0].toString().getBytes(charset);
+			
+			byte[] input;
+			if (sources[0] instanceof byte[]) {
+				input = (byte[]) sources[0];
+			} else {
+				input = sources[0].toString().getBytes(charset);
+			}
 
 			String encodingScheme = "basic";
-			if (sources.length == 2) {
+			if (sources.length >= 2) {
 				encodingScheme = sources[1].toString();
 			}
 

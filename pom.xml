@@ -7,13 +7,15 @@
 		<version>9</version>
 	</parent>
 
+	<name>Structr</name>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.structr</groupId>
 	<artifactId>structr</artifactId>
 	<packaging>pom</packaging>
 	<version>3.5-SNAPSHOT</version>
-	<name>Structr</name>
-	<url>http://structr.org</url>
+
+	<url>https://structr.com</url>
+
 	<description>Structr is an open source framework based on the popular Neo4j graph database.</description>
 	<developers>
 		<developer>
@@ -24,6 +26,22 @@
 			<name>Christian Morgner</name>
 			<email>christian.morgner@structr.com</email>
 		</developer>
+		<developer>
+			<name>Kai Schwaiger</name>
+			<email>kai.schwaiger@structr.com</email>
+		</developer>
+		<developer>
+			<name>Lukas Reich</name>
+			<email>lukas.reich@structr.com</email>
+		</developer>
+		<developer>
+			<name>Christian Kramp</name>
+			<email>christian.kramp@structr.com</email>
+		</developer>
+		<developer>
+			<name>Jakob Laenge</name>
+			<email>jakob.laenge@structr.com</email>
+		</developer>
 	</developers>
 
 	<prerequisites>
@@ -31,8 +49,8 @@
 	</prerequisites>
 
 	<properties>
-		<maven.compiler.source>13</maven.compiler.source>
-		<maven.compiler.target>13</maven.compiler.target>
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
 		<test.neo4j.version>neo4j:3.5-enterprise</test.neo4j.version>
@@ -54,6 +72,19 @@
 		<module>structr-binaries</module>
 		<module>structr-test-configuration</module>
 	</modules>
+
+	<repositories>
+		<repository>
+			<id>central</id>
+			<name>Central Repository</name>
+			<url>https://repo.maven.apache.org/maven2</url>
+		</repository>
+		<repository>
+			<id>bedatadriven</id>
+			<name>bedatadriven public repo</name>
+			<url>https://nexus.bedatadriven.com/content/groups/public/</url>
+		</repository>
+	</repositories>
 
 	<dependencyManagement>
 		<dependencies>
@@ -339,8 +370,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.8.1</version>
 				<configuration>
-					<source>13</source>
-					<target>13</target>
+					<source>11</source>
+					<target>11</target>
 					<encoding>${project.build.sourceEncoding}</encoding>
 					<debug>true</debug>
 				</configuration>

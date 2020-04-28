@@ -30,6 +30,8 @@ import java.util.function.Function;
 import org.apache.commons.lang.StringUtils;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -45,8 +47,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 
 /**
  *
@@ -160,7 +160,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 
 				try {
 
-					return Boolean.TRUE.equals(Scripting.evaluate(ctx, value, "${" + expression + "}", "virtual type filter"));
+					return Boolean.TRUE.equals(Scripting.evaluate(ctx, value, "${" + expression.trim() + "}", "virtual type filter"));
 
 				} catch (FrameworkException fex) {
 					logger.warn("", fex);

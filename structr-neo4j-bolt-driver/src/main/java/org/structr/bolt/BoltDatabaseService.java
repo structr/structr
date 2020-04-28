@@ -45,10 +45,9 @@ import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Config;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
-import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.TransactionConfig;
+import org.neo4j.driver.v1.exceptions.AuthenticationException;
 import org.neo4j.driver.v1.exceptions.ClientException;
 import org.neo4j.driver.v1.exceptions.DatabaseException;
 import org.neo4j.driver.v1.exceptions.ServiceUnavailableException;
@@ -147,6 +146,8 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			// signal success
 			return true;
 
+		} catch (AuthenticationException auex) {
+			errorMessage = auex.getMessage() + " If you are connecting to this Neo4j instance for the first time, you might need to change the default password in the Neo4j Browser.";
 		} catch (ServiceUnavailableException ex) {
 			errorMessage = ex.getMessage();
 		}
@@ -566,9 +567,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 						}).get(timeoutSeconds, TimeUnit.SECONDS);
 
-					} catch (Throwable t) {
-						t.printStackTrace();
-					}
+					} catch (Throwable t) {}
 				}
 			}
 		}
@@ -630,9 +629,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 								}).get(timeoutSeconds, TimeUnit.SECONDS);
 
-							} catch (Throwable t) {
-								t.printStackTrace();
-							}
+							} catch (Throwable t) {}
 						}
 					}
 				}

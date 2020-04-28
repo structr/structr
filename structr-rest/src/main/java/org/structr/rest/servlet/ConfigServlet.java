@@ -167,10 +167,17 @@ public class ConfigServlet extends AbstractServletBase {
 
 							try { Thread.sleep(1000); } catch (Throwable t) {}
 
-							//Services.getInstance().shutdownService(serviceName, "default");
-							//Services.getInstance().startService(serviceName);
-						}
+							Services.getInstance().shutdownService(serviceName);
 
+							try {
+								Services.getInstance().startService(serviceName);
+
+							} catch (FrameworkException fex) {
+
+								logger.warn("Unable to start service '{}'", serviceName);
+								logger.warn("", fex);
+							}
+						}
 					}).start();
 				}
 
@@ -186,12 +193,39 @@ public class ConfigServlet extends AbstractServletBase {
 				// redirect
 				response.sendRedirect(MainUrl);
 
-			} else {
+			} else if (request.getParameter("useDefault") != null) {
 
-				if (request.getParameter("useDefault") != null) {
+				// create default configuration
+				final ManageDatabasesCommand cmd    = Services.getInstance().command(null, ManageDatabasesCommand.class);
+				final String name                   = "neo-1";
+				final String url                    = Settings.SampleConnectionUrl.getDefaultValue();
+				final String username               = Settings.ConnectionUser.getDefaultValue();
+				final String password               = Settings.ConnectionPassword.getDefaultValue();
 
-					// create default configuration
+				final DatabaseConnection connection = new DatabaseConnection();
+				connection.setName(name);
+				connection.setUrl(url);
+				connection.setUsername(username);
+				connection.setPassword(password);
+
+				try {
+					cmd.addConnection(connection, false);
+
+				} catch (FrameworkException fex) {
+					fex.printStackTrace();
 				}
+
+				// finish wizard
+				Settings.SetupWizardCompleted.setValue(true);
+				Settings.storeConfiguration(ConfigName);
+
+				// make session valid
+				authenticateSession(request);
+
+				// redirect
+				response.sendRedirect(ConfigUrl + "#databases");
+
+			} else {
 
 				// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
 				response.setContentType("text/html; charset=utf-8");
@@ -260,6 +294,12 @@ public class ConfigServlet extends AbstractServletBase {
 
 				try {
 					cmd.addConnection(connection, cmd.getConnections().isEmpty() && "true".equals(connectNow));
+
+					// wizard finished
+					Settings.SetupWizardCompleted.setValue(true);
+
+					// make session valid
+					authenticateSession(request);
 
 				} catch (FrameworkException fex) {
 
@@ -604,7 +644,8 @@ public class ConfigServlet extends AbstractServletBase {
 
 	private void welcomeTab(final Tag menu, final Tag tabs) {
 
-		final boolean databaseIsConfigured = false;
+		final ManageDatabasesCommand cmd   = Services.getInstance().command(null, ManageDatabasesCommand.class);
+		final boolean databaseIsConfigured = !cmd.getConnections().isEmpty();
 		final boolean passwordIsSet        = StringUtils.isNotBlank(Settings.SuperUserPassword.getValue());
 		final Style fgGreen                = new Style("color: #81ce25;");
 		final Style bgGreen                = new Style("background-color: #81ce25; color: #fff; border: 1px solid rgba(0,0,0,.125);");
@@ -641,10 +682,17 @@ public class ConfigServlet extends AbstractServletBase {
 
 			body.block("h3").text("Options");
 
-			body.block("p").css("steps").block("button").attr(new Type("button")).text("Use default settings to connect to Neo4j").attr(new OnClick("window.location.href='" + ConfigUrl + "?useDefault';"));
-			body.block("p").css("steps").text("or");
-			body.block("p").css("steps").block("button").attr(new Type("button")).text("Configure database connection").attr(new OnClick("$('#databasesMenu').click();"));
-			body.block("p").css("steps").block("button").attr(new Type("button")).text("Continue without database connection").attr(new OnClick("window.location.href='" + ConfigUrl + "?finish';"));
+			if (databaseIsConfigured) {
+
+				body.block("p").css("steps").block("button").attr(new Type("button")).text("Manage database connections").attr(new OnClick("$('#databasesMenu').click();"));
+
+			} else {
+
+				body.block("p").css("steps").block("button").attr(new Type("button")).text("Create connection with default settings").attr(new OnClick("window.location.href='" + ConfigUrl + "?useDefault';"));
+				body.block("p").css("steps").text("or");
+				body.block("p").css("steps").block("button").attr(new Type("button")).text("Configure database connection").attr(new OnClick("$('#databasesMenu').click();"));
+				body.block("p").css("steps").block("button").attr(new Type("button")).text("Continue without database connection").attr(new OnClick("window.location.href='" + ConfigUrl + "?finish';"));
+			}
 
 		}
 	}

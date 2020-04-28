@@ -82,7 +82,12 @@ public class LoginResource extends FilterableResource {
 		Principal user = null;
 		RestMethodResult returnedMethodResult = null;
 
-		final App app = StructrApp.getInstance();
+		final SecurityContext ctx       = SecurityContext.getSuperUserInstance();
+		final App app                   = StructrApp.getInstance(ctx);
+
+		if (Settings.CallbacksOnLogin.getValue() == false) {
+			ctx.disableInnerCallbacks();
+		}
 
 		try (final Tx tx = app.tx(true, true, true)) {
 

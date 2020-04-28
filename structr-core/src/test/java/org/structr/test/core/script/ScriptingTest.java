@@ -19,7 +19,6 @@
 package org.structr.test.core.script;
 
 import com.google.gson.GsonBuilder;
-
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -41,6 +40,10 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonFunctionProperty;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonReferenceType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
 import org.structr.common.AccessMode;
@@ -77,10 +80,6 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonReferenceType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.test.common.StructrTest;
 import org.structr.test.core.entity.TestFour;
 import org.structr.test.core.entity.TestOne;
@@ -88,13 +87,12 @@ import org.structr.test.core.entity.TestOne.Status;
 import org.structr.test.core.entity.TestSix;
 import org.structr.test.core.entity.TestThree;
 import org.structr.test.core.entity.TestTwo;
+import org.testng.Assert;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
-
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 
@@ -2936,22 +2934,12 @@ public class ScriptingTest extends StructrTest {
 			final Map<String, Object> projectModifications  = getLoggedModifications(p);
 			final Map<String, Object> taskModifications     = getLoggedModifications(t);
 
-			assertMapPathValueIs(customerModifications, "before.project",  null);
-			assertMapPathValueIs(customerModifications, "before.grantees", null);
-			assertMapPathValueIs(customerModifications, "after.project",   null);
-			assertMapPathValueIs(customerModifications, "after.grantees",  new LinkedList<>());
 			assertMapPathValueIs(customerModifications, "added.project",   p.getUuid());
 			assertMapPathValueIs(customerModifications, "removed",         new LinkedHashMap<>());
 			assertMapPathValueIs(customerModifications, "added.grantees",  Arrays.asList(tester.getUuid()));
 
 			assertMapPathValueIs(projectModifications, "before.name",     "Testproject");
-			assertMapPathValueIs(projectModifications, "before.tasks",    null);
-			assertMapPathValueIs(projectModifications, "before.customer", null);
-			assertMapPathValueIs(projectModifications, "before.grantees", null);
 			assertMapPathValueIs(projectModifications, "after.name",     "newName");
-			assertMapPathValueIs(projectModifications, "after.tasks",    new LinkedList<>());
-			assertMapPathValueIs(projectModifications, "after.customer", null);
-			assertMapPathValueIs(projectModifications, "after.grantees", new LinkedList<>());
 			assertMapPathValueIs(projectModifications, "added.customer", c.getUuid());
 			assertMapPathValueIs(projectModifications, "removed",        new LinkedHashMap<>());
 
@@ -2964,8 +2952,6 @@ public class ScriptingTest extends StructrTest {
 			assertMapPathValueIs(projectModifications, "added.grantees",    Arrays.asList(tester.getUuid()));
 
 
-			assertMapPathValueIs(taskModifications, "before.project",  null);
-			assertMapPathValueIs(taskModifications, "after.project",   null);
 			assertMapPathValueIs(taskModifications, "added.project",   p.getUuid());
 			assertMapPathValueIs(taskModifications, "removed",         new LinkedHashMap<>());
 
@@ -3004,22 +2990,127 @@ public class ScriptingTest extends StructrTest {
 			final Map<String, Object> projectModifications  = getLoggedModifications(p);
 			final Map<String, Object> taskModifications     = getLoggedModifications(t);
 
-			assertMapPathValueIs(customerModifications, "before.project",  null);
-			assertMapPathValueIs(customerModifications, "after.project",   null);
 			assertMapPathValueIs(customerModifications, "added",           new LinkedHashMap<>());
 			assertMapPathValueIs(customerModifications, "removed.project", p.getUuid());
 
-			assertMapPathValueIs(projectModifications, "before.tasks",     null);
-			assertMapPathValueIs(projectModifications, "before.customer",  null);
-			assertMapPathValueIs(projectModifications, "after.tasks",      new LinkedList<>());
-			assertMapPathValueIs(projectModifications, "after.customer",   null);
 			assertMapPathValueIs(projectModifications, "removed.customer", c.getUuid());
 			assertMapPathValueIs(projectModifications, "added",            new LinkedHashMap<>());
 
-			assertMapPathValueIs(taskModifications, "before.project",  null);
-			assertMapPathValueIs(taskModifications, "after.project",   null);
 			assertMapPathValueIs(taskModifications, "added.project",   p.getUuid());
 			assertMapPathValueIs(taskModifications, "removed",         new LinkedHashMap<>());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testScriptCodeWithNewlines() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			createTestType(schema, "Test1", " 	 set(this, 'c', 'passed')  ",   "   \n 	set(this, 's', 'passed')\n	\n    \n  ", "StructrScript with newlines");
+			createTestType(schema, "Test2", "set(this, 'c', 'passed')",             "set(this, 's', 'passed')",                  "StructrScript without newlines");
+			createTestType(schema, "Test3", "   { Structr.this.c = 'passed'; }   ", " 	 \n	  { Structr.this.s = 'passed'; }\n\n	\n    \n "  ,    "JavaScript with newlines");
+			createTestType(schema, "Test4", "{ Structr.this.c = 'passed'; }",       "{ Structr.this.s = 'passed'; }",            "JavaScript without newlines");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class type1 = StructrApp.getConfiguration().getNodeEntityClass("Test1");
+		final Class type2 = StructrApp.getConfiguration().getNodeEntityClass("Test2");
+		final Class type3 = StructrApp.getConfiguration().getNodeEntityClass("Test3");
+		final Class type4 = StructrApp.getConfiguration().getNodeEntityClass("Test4");
+
+		// test onCreate
+		try (final Tx tx = app.tx()) {
+
+			app.create(type1, "test1");
+			app.create(type2, "test2");
+			app.create(type3, "test3");
+			app.create(type4, "test4");
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test onCreate
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject test1 = app.nodeQuery(type1).getFirst();
+                        final GraphObject test2 = app.nodeQuery(type2).getFirst();
+			final GraphObject test3 = app.nodeQuery(type3).getFirst();
+                        final GraphObject test4 = app.nodeQuery(type4).getFirst();
+
+			assertEquals("Newlines in script code not trimmed correctly", "passed", (String)test1.getProperty("c"));
+			assertEquals("Newlines in script code not trimmed correctly", "passed", (String)test2.getProperty("c"));
+			assertEquals("Newlines in script code not trimmed correctly", "passed", (String)test3.getProperty("c"));
+			assertEquals("Newlines in script code not trimmed correctly", "passed", (String)test4.getProperty("c"));
+
+			assertNull("onSave method called for creation", test1.getProperty("s"));
+			assertNull("onSave method called for creation", test2.getProperty("s"));
+			assertNull("onSave method called for creation", test3.getProperty("s"));
+			assertNull("onSave method called for creation", test4.getProperty("s"));
+
+			test1.setProperty(AbstractNode.name, "modified");
+			test2.setProperty(AbstractNode.name, "modified");
+			test3.setProperty(AbstractNode.name, "modified");
+			test4.setProperty(AbstractNode.name, "modified");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test onSave
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject test1 = app.nodeQuery(type1).getFirst();
+                        final GraphObject test2 = app.nodeQuery(type2).getFirst();
+			final GraphObject test3 = app.nodeQuery(type3).getFirst();
+                        final GraphObject test4 = app.nodeQuery(type4).getFirst();
+
+			assertEquals("Newlines in script code not trimmed correctly", "passed", (String)test1.getProperty("s"));
+			assertEquals("Newlines in script code not trimmed correctly", "passed", (String)test2.getProperty("s"));
+			assertEquals("Newlines in script code not trimmed correctly", "passed", (String)test3.getProperty("s"));
+			assertEquals("Newlines in script code not trimmed correctly", "passed", (String)test4.getProperty("s"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test actions
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Newlines in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "	 ${ 'passed' }	 ",    "StructrScript with whitespace"));
+			assertEquals("Newlines in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "${ 'passed' }",                "StructrScript without whitespace"));
+			assertEquals("Newlines in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "  ${{ return 'passed'; }}   ", "JavaScript with whitespace"));
+			assertEquals("Newlines in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "${{ return 'passed'; }}",      "JavaScript without whitespace"));
 
 			tx.success();
 
@@ -4301,6 +4392,101 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
+	public void testDifferentArrayPropertyAssignmentAndPush() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonType testType = schema.addType("ArrayPropertiesTest");
+			testType.addStringArrayProperty("strings");
+			testType.addIntegerArrayProperty("ints");
+			testType.addDoubleArrayProperty("doubles");
+			testType.addLongArrayProperty("longs");
+			testType.addBooleanArrayProperty("bools");
+			testType.addDateArrayProperty("dates");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			fail();
+		}
+
+
+		/**
+		 * Test using .push() on the empty object
+		 */
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ac = new ActionContext(securityContext);
+
+			Scripting.evaluate(ac, null, "${{"
+					+ "let n = $.create('ArrayPropertiesTest', {name: 'emptyTest'});"
+					+ "}}", null);
+
+			Scripting.evaluate(ac, null, "${{"
+					+ "let n = $.create('ArrayPropertiesTest', {name: 'emptyPushTest'});"
+					+ "n.strings.push('test');"
+					+ "n.ints.push(42);"
+					+ "n.doubles.push(42);"
+					+ "n.longs.push(42);"
+					+ "n.bools.push(true);"
+					+ "n.dates.push(new Date());"
+					+ "}}", null);
+
+			Scripting.evaluate(ac, null, "${{"
+					+ "let n = $.create('ArrayPropertiesTest', {name: 'emptySetTest'});"
+					+ "n.strings = ['a', 'b', 'c'];"
+					+ "n.ints = [3, 4, 5];"
+					+ "n.doubles = [3.14, 4, 5.05];"
+					+ "n.longs = [3, 4, 5];"
+					+ "n.bools = [true, false, true];"
+					+ "n.dates = [new Date(), $.get('now'), new Date()];"
+					+ "}}", null);
+
+			Scripting.evaluate(ac, null, "${{"
+					+ "let n = $.create('ArrayPropertiesTest', {name: 'setAndPushTest'});"
+					+ "n.strings = ['a', 'b', 'c'];"
+					+ "n.strings.push('d');"
+					+ "n.ints = [3, 4, 5];"
+					+ "n.ints.push(6);"
+					+ "n.doubles = [3.14, 4, 5.05];"
+					+ "n.doubles.push(6);"
+					+ "n.longs = [3, 4, 5];"
+					+ "n.longs.push(6);"
+					+ "n.bools = [true, false, true];"
+					+ "n.bools.push(false);"
+					+ "n.dates = [new Date(), $.get('now'), new Date()];"
+					+ "n.dates.push(new Date());"
+					+ "}}", null);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			fail();
+		}
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ac = new ActionContext(securityContext);
+			assertEquals("All array properties should return 0 length", "000000",                                         Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'emptyTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
+			assertEquals("All array properties should return 1 length after one push()", "111111",                        Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'emptyPushTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
+			assertEquals("All array properties should return 3 length after assignment of [x,y,z]", "333333",             Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'emptySetTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
+			assertEquals("All array properties should return 4 length after assignment of [x,y,z] plus push()", "444444", Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'setAndPushTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
 	public void testAdvancedFindNamespaceHandlingWithException() {
 
 		/*
@@ -4720,6 +4906,43 @@ public class ScriptingTest extends StructrTest {
 		}
 
 	}
+
+	@Test
+	public void testJavaScriptQuirksDuckTypingNumericalMapIndex () {
+
+		/*
+			This test makes sure that map access works even though javascript interprets numerical strings (e.g. "1", "25") as ints (after the map has undergone wrapping/unwrapping
+		*/
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			final String script =  "${{\n" +
+				"	$.store('testStore', {\n" +
+				"		'01': 'valueAtZeroOne',\n" +
+				"		'2' : 'valueAtTwo'\n" +
+				"	});\n" +
+				"	\n" +
+				"	let x = $.retrieve('testStore');\n" +
+				"	\n" +
+				"	return (x['2'] === 'valueAtTwo');\n" +
+				"}}";
+
+			final Object result = Scripting.evaluate(ctx, null, script, "test");
+
+			assertEquals("Result should not be undefined! Access to maps at numerical indexes should work.", true, result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+
+	}
+
 
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource, final String comment) {

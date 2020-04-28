@@ -23,7 +23,6 @@ var _Widgets = {
 
 	remoteWidgetData: [],
 	remoteWidgetFilterEl: undefined,
-	remoteWidgetFilter: undefined,
 	remoteWidgetsEl: undefined,
 	localWidgetsEl: undefined,
 	widgetServerSelector: undefined,
@@ -108,13 +107,12 @@ var _Widgets = {
 			_Widgets.remoteWidgetsEl = $('#remoteWidgets', widgetsSlideout);
 
 			_Widgets.remoteWidgetFilterEl = $('#remoteWidgetsFilter');
-			_Widgets.remoteWidgetFilterEl.val(_Widgets.remoteWidgetFilter);
 			_Widgets.remoteWidgetFilterEl.keyup(function (e) {
 				if (e.keyCode === 27) {
 					$(this).val('');
 				}
 
-				_Widgets.repaintRemoteWidgets($(this).val());
+				_Widgets.repaintRemoteWidgets();
 			});
 
 			document.querySelector('button#edit-widget-servers').addEventListener('click', _Widgets.showWidgetServersDialog);
@@ -272,19 +270,22 @@ var _Widgets = {
 					_Widgets.remoteWidgetData.push(obj);
 				});
 
-				_Widgets.repaintRemoteWidgets(_Widgets.remoteWidgetFilter);
+				_Widgets.repaintRemoteWidgets();
 
 			}).catch(function(e) {
-				new MessageBuilder().error().text('Could not fetch data from server. Make sure that the resource loads correctly and check CORS settings.<br>Also check your adblocker settings for possible conflicts.').requiresConfirmation().show();
+				_Widgets.remoteWidgetFilterEl.hide();
+				_Widgets.remoteWidgetsEl.empty();
+				_Widgets.remoteWidgetsEl.html('Could not fetch widget data from server (' + url + '). Make sure that the resource loads correctly and check CORS settings.<br>Also check your adblocker settings for possible conflicts.');
 			});
 
 		} else {
 			new MessageBuilder().warning().text('Can not display local widgets as remote widgets. Please select another widget server!').show();
 		}
 	},
-	repaintRemoteWidgets: function (search) {
+	repaintRemoteWidgets: function () {
 
-		_Widgets.remoteWidgetFilter = search;
+		_Widgets.remoteWidgetFilterEl.show();
+		let search = _Widgets.remoteWidgetFilterEl.val();
 		_Widgets.remoteWidgetsEl.empty();
 
 		if (search && search.length > 0) {

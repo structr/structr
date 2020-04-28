@@ -47,7 +47,6 @@ public interface User extends Principal {
 
 		final JsonSchema schema     = SchemaService.getDynamicSchema();
 		final JsonObjectType user   = schema.addType("User");
-		final JsonObjectType image  = schema.addType("Image");
 		final JsonObjectType folder = schema.addType("Folder");
 
 		user.setExtends(schema.getType("Principal"));

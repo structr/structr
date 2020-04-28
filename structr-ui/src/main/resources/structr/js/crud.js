@@ -488,7 +488,7 @@ var _Crud = {
 		fastRemoveAllChildren(tableHeaderRow[0]);
 
 		_Crud.filterKeys(type, Object.keys(properties)).forEach(function(key) {
-			tableHeaderRow.append('<th class="___' + key + '">' + key + '</th>');
+			tableHeaderRow.append('<th class="' + _Crud.cssClassForKey(key) + '">' + key + '</th>');
 		});
 		tableHeaderRow.append('<th class="___action_header">Actions</th>');
 	},
@@ -757,16 +757,16 @@ var _Crud = {
 		}
 	},
 	setCollectionPageSize: function(type, key, value) {
-		LSWrapper.setItem(_Crud.crudPagerDataKey + '_collectionPageSize_' + type + '.___' + key, value);
+		LSWrapper.setItem(_Crud.crudPagerDataKey + '_collectionPageSize_' + type + '.' + _Crud.cssClassForKey(key), value);
 	},
 	getCollectionPageSize: function(type, key) {
-		return LSWrapper.getItem(_Crud.crudPagerDataKey + '_collectionPageSize_' + type + '.___' + key);
+		return LSWrapper.getItem(_Crud.crudPagerDataKey + '_collectionPageSize_' + type + '.' + _Crud.cssClassForKey(key));
 	},
 	setCollectionPage: function(type, key, value) {
-		LSWrapper.setItem(_Crud.crudPagerDataKey + '_collectionPage_' + type + '.___' + key, value);
+		LSWrapper.setItem(_Crud.crudPagerDataKey + '_collectionPage_' + type + '.' + _Crud.cssClassForKey(key), value);
 	},
 	getCollectionPage: function(type, key) {
-		return LSWrapper.getItem(_Crud.crudPagerDataKey + '_collectionPage_' + type + '.___' + key);
+		return LSWrapper.getItem(_Crud.crudPagerDataKey + '_collectionPage_' + type + '.' + _Crud.cssClassForKey(key));
 	},
 	replaceSortHeader: function(type) {
 		var table = $('#crud-right table');
@@ -1753,12 +1753,12 @@ var _Crud = {
 	},
 	cells: function(id, key) {
 		var row = _Crud.row(id);
-		var cellInMainTable = $('.___' + key, row);
+		var cellInMainTable = $('.' + _Crud.cssClassForKey(key), row);
 
 		var cellInDetailsTable;
 		var table = $('#details_' + id);
 		if (table) {
-			cellInDetailsTable = $('.___' + key, table);
+			cellInDetailsTable = $('.' + _Crud.cssClassForKey(key), table);
 		}
 
 		if (cellInMainTable && cellInMainTable.length && !(cellInDetailsTable && cellInDetailsTable.length)) {
@@ -1839,7 +1839,7 @@ var _Crud = {
 		row.empty();
 		if (properties) {
 			_Crud.filterKeys(type, Object.keys(properties)).forEach(function(key) {
-				row.append('<td class="value ___' + key + '"></td>');
+				row.append('<td class="value ' + _Crud.cssClassForKey(key) + '"></td>');
 				var cells = _Crud.cells(id, key);
 				$.each(cells, function(i, cell) {
 					_Crud.populateCell(id, key, type, item[key], cell);
@@ -2688,8 +2688,8 @@ var _Crud = {
 				}
 
 				$.each(keys, function(i, key) {
-					table.append('<tr><td class="key"><label for="' + key + '">' + key + '</label></td><td class="__value ___' + key + '"></td>');
-					var cell = $('.___' + key, table);
+					table.append('<tr><td class="key"><label for="' + key + '">' + key + '</label></td><td class="__value ' + _Crud.cssClassForKey(key) + '"></td>');
+					var cell = $('.' + _Crud.cssClassForKey(key), table);
 					if (_Crud.isCollection(key, type)) {
 						_Crud.appendPerCollectionPager(cell.prev('td'), type, key, function() {
 							_Crud.showDetails(n, typeParam);
@@ -2741,8 +2741,8 @@ var _Crud = {
 				return;
 			}
 
-			table.append('<tr><td class="key"><label for="' + key + '">' + key + '</label></td><td class="__value ___' + key + '"></td>');
-			var cell = $('.___' + key, table);
+			table.append('<tr><td class="key"><label for="' + key + '">' + key + '</label></td><td class="__value ' + _Crud.cssClassForKey(key) + '"></td>');
+			var cell = $('.' + _Crud.cssClassForKey(key), table);
 			if (node && node.id) {
 				_Crud.populateCell(node.id, key, node.type, node[key], cell);
 			} else {
@@ -2957,8 +2957,8 @@ var _Crud = {
 			var table = $('#crud-right table');
 
 			// remove column(s) from table
-			$('th.___' + key, table).remove();
-			$('td.___' + key, table).each(function(i, t) {
+			$('th.' + _Crud.cssClassForKey(key), table).remove();
+			$('td.' + _Crud.cssClassForKey(key), table).each(function(i, t) {
 				t.remove();
 			});
 		}
@@ -2994,5 +2994,8 @@ var _Crud = {
 	showSoftLimitAlert: function(el) {
 		el.attr('style', 'background-color: #fc0 !important;');
 		el.attr('title', _Crud.getSoftLimitMessage());
+	},
+	cssClassForKey: function (key) {
+		return '___' + key.replaceAll(/\s/,  '_whitespace_');
 	}
 };

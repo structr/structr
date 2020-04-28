@@ -50,7 +50,6 @@ import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
-import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
@@ -106,6 +105,7 @@ public class HttpService implements RunnableService {
 	private Server server                         = null;
 	private int maxIdleTime                       = 30000;
 	private int requestHeaderSize                 = 8192;
+	private boolean httpsActive                   = false;
 
 	@Override
 	public void startService() throws Exception {
@@ -216,13 +216,6 @@ public class HttpService implements RunnableService {
 		server = new Server(Settings.HttpPort.getValue());
 		final ContextHandlerCollection contexts = new ContextHandlerCollection();
 
-		contexts.addHandler(new AbstractHandler() {
-			@Override
-			public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-				System.out.println(target);
-			}
-
-		});
 		contexts.addHandler(new DefaultHandler());
 
 		final ServletContextHandler servletContext = new ServletContextHandler(server, contextPath, true, true);
@@ -443,9 +436,13 @@ public class HttpService implements RunnableService {
 			logger.warn("Unable to configure HTTP server port, please make sure that {} and {} are set correctly in structr.conf.", Settings.ApplicationHost.getKey(), Settings.HttpPort.getKey());
 		}
 
+		httpsActive = false;
+
 		if (enableHttps) {
 
 			if (httpsPort > -1 && keyStorePath != null && !keyStorePath.isEmpty() && keyStorePassword != null) {
+
+				httpsActive = true;
 
 				httpsConfig = new HttpConfiguration(httpConfig);
 				httpsConfig.addCustomizer(new SecureRequestCustomizer());
@@ -494,6 +491,8 @@ public class HttpService implements RunnableService {
 				connectors.add(httpsConnector);
 
 			} else {
+
+				httpsActive = false;
 
 				logger.warn("Unable to configure SSL, please make sure that {}, {} and {} are set correctly in structr.conf.", new Object[]{
 					Settings.HttpsPort.getKey(),
@@ -558,6 +557,10 @@ public class HttpService implements RunnableService {
 	@Override
 	public boolean waitAndRetry() {
 		return false;
+	}
+
+	public boolean isHttpsActive() {
+		return httpsActive;
 	}
 
 	// ----- interface Feature -----

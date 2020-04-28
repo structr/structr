@@ -34,7 +34,7 @@ var dialogHtmlKey = 'structrDialogHtml_' + port;
 var scrollInfoKey = 'structrScrollInfoKey_' + port;
 var consoleModeKey = 'structrConsoleModeKey_' + port;
 var resizeFunction;
-var altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
+var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 
 $(function() {
 
@@ -104,11 +104,11 @@ $(function() {
 
 	// Reset keys in case of window switching
 	$(window).blur(function(e) {
-		altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
+		altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 	});
 
 	$(window).focus(function(e) {
-		altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
+		altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 	});
 
 	$(window).keyup(function(e) {
@@ -125,9 +125,7 @@ $(function() {
 		if (k === 69) {
 			eKey = false;
 		}
-		if (navigator.platform === 'MacIntel' && (k === 91 || k === 93 || k === 224)) {
-			cmdKey = false;
-		}
+
 		if (e.keyCode === 27) {
 			if (ignoreKeyUp) {
 				ignoreKeyUp = false;
@@ -179,10 +177,11 @@ $(function() {
 		if (k === 69) {
 			eKey = true;
 		}
-		if (navigator.platform === 'MacIntel' && (k === 91 || k === 93 || k === 224) && e.metaKey) {
-			cmdKey = true;
-		}
-		if (k === 83 && ((!(navigator.platform === 'MacIntel') && e.ctrlKey) || (navigator.platform === 'MacIntel' && cmdKey && (k === 83)))) {
+
+		let cmdKey = (navigator.platform === 'MacIntel' && e.metaKey);
+
+		// ctrl-s / cmd-s
+		if (k === 83 && ((navigator.platform !== 'MacIntel' && e.ctrlKey) || (navigator.platform === 'MacIntel' && cmdKey))) {
 			e.preventDefault();
 			if (dialogSaveButton && dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
 				dialogSaveButton.click();
@@ -204,12 +203,24 @@ $(function() {
 			var uuid = prompt('Enter the UUID for which you want to open the properties dialog');
 			if (uuid) {
 				if (uuid.length === 32) {
-					Command.get(uuid, null, function(obj) {
+					Command.get(uuid, null, function (obj) {
 						_Entities.showProperties(obj);
 					});
 				} else {
 					alert('That does not look like a UUID! length != 32');
 				}
+			}
+		}
+		// Ctrl-Alt-t
+		if (k === 77 && altKey && ctrlKey) {
+			e.preventDefault();
+			var uuid = prompt('Enter the UUID for which you want to open the edit dialog');
+			if (uuid && uuid.length === 32) {
+				Command.get(uuid, null, function(obj) {
+					_Elements.openEditContentDialog(this, obj);
+				});
+			} else {
+				alert('That does not look like a UUID! length != 32');
 			}
 		}
 		// Ctrl-Alt-g
@@ -274,6 +285,7 @@ var Structr = {
 	modules: {},
 	activeModules: {},
 	moduleAvailabilityCallbacks: [],
+	keyMenuConfig: 'structrMenuConfig_' + port,
 	edition: '',
 	classes: [],
 	expanded: {},
@@ -480,6 +492,17 @@ var Structr = {
 	renewSessionId: function(callback) {
 		$.get('/').always(function() {
 			sessionId = Structr.getSessionId();
+
+			if (!sessionId && location.protocol === 'http:') {
+
+				new MessageBuilder()
+						.title("Unable to retrieve session id cookie")
+						.warning("This is most likely due to a pre-existing secure HttpOnly cookie. Please navigate to the HTTPS version of this page (even if HTTPS is inactive) and delete the JSESSIONID cookie. Then return to this page and reload. This should solve the problem.")
+						.requiresConfirmation()
+						.uniqueClass("http-only-cookie")
+						.show();
+			}
+
 			if (typeof callback === "function") {
 				callback();
 			}
@@ -501,8 +524,8 @@ var Structr = {
 				_Logger.log(_LogType.INIT, 'Last menu entry found: ' + lastMenuEntry);
 			}
 			_Logger.log(_LogType.INIT, 'lastMenuEntry', lastMenuEntry);
-			Structr.doActivateModule(lastMenuEntry);
 			Structr.updateVersionInfo();
+			Structr.doActivateModule(lastMenuEntry);
 
 			callback();
 		});
@@ -567,7 +590,7 @@ var Structr = {
 		}, 1000);
 
 	},
-	dialog: function(text, callbackOk, callbackCancel) {
+	dialog: function(text, callbackOk, callbackCancel, customClasses) {
 
 		if (browser) {
 
@@ -576,6 +599,13 @@ var Structr = {
 			dialogMsg.empty();
 			dialogMeta.empty();
 			dialogBtn.empty();
+
+			dialogBox[0].classList = ["dialog"];
+			if (customClasses) {
+				for (let customClass of customClasses) {
+					dialogBox.addClass(customClass);
+				}
+			}
 
 			dialogBtn.html('<button class="closeButton">Close</button>');
 			dialogCancelButton = $('.closeButton', dialogBox);
@@ -1107,6 +1137,7 @@ var Structr = {
 		t.draggable({
 			axis: 'x',
 			start: function(e, ui) {
+				$('.column-resizer-blocker').show();
 				t.addClass('noclick');
 			},
 			drag: function(e, ui) {
@@ -1125,6 +1156,7 @@ var Structr = {
 				}
 			},
 			stop: function(e, ui) {
+				$('.column-resizer-blocker').hide();
 				// remove noclick class after 200ms in case the mouseup event is not triggered while over the element (which leads to noclick remaining)
 				window.setTimeout(function() {
 					t.removeClass('noclick');
@@ -1156,6 +1188,7 @@ var Structr = {
 		t.draggable({
 			axis: 'x',
 			start: function(e, ui) {
+				$('.column-resizer-blocker').show();
 				$(this).addClass('noclick');
 			},
 			drag: function(e, ui) {
@@ -1174,6 +1207,7 @@ var Structr = {
 				}
 			},
 			stop: function(e, ui) {
+				$('.column-resizer-blocker').hide();
 				// remove noclick class after 200ms in case the mouseup event is not triggered while over the element (which leads to noclick remaining)
 				window.setTimeout(function() {
 					t.removeClass('noclick');
@@ -1203,10 +1237,10 @@ var Structr = {
 						callback(wasOpen, 0, -rsw);
 					}
 				}).zIndex(2);
-				$('.compTab.active', slideout).removeClass('active').draggable("destroy");
+				$('.compTab.active', slideout).removeClass('active').draggable('destroy');
 
 				var openSlideoutCallback = slideout.data('closeCallback');
-				if (typeof openSlideoutCallback === "function") {
+				if (typeof openSlideoutCallback === 'function') {
 					openSlideoutCallback();
 				}
 			}
@@ -1231,7 +1265,7 @@ var Structr = {
 						callback(wasOpen, -osw, 0);
 					}
 				}).zIndex(2);
-				$('.compTab.active', slideout).removeClass('active').draggable("destroy");
+				$('.compTab.active', slideout).removeClass('active').draggable('destroy');
 			}
 		});
 
@@ -1312,14 +1346,18 @@ var Structr = {
 				}
 			}
 
-			var hamburger = $('#menu li.submenu-trigger');
-			var subMenu = $('#submenu');
-			envInfo.mainMenu.forEach(function(entry) {
-				$('li[data-name="' + entry + '"]', subMenu).insertBefore(hamburger);
-			});
-
 			Structr.activeModules = envInfo.modules;
 			Structr.adaptUiToAvailableFeatures();
+
+			let userConfigMenu = LSWrapper.getItem(Structr.keyMenuConfig);
+			if (!userConfigMenu) {
+				userConfigMenu = {
+					main: envInfo.mainMenu,
+					sub: []
+				};
+			}
+
+			Structr.updateMainMenu(userConfigMenu);
 
 			if (envInfo.resultCountSoftLimit !== undefined) {
 				_Crud.resultCountSoftLimit = envInfo.resultCountSoftLimit;
@@ -1340,6 +1378,26 @@ var Structr = {
 				console.log(e);
 			}
 		});
+	},
+	updateMainMenu: function (menuConfig) {
+
+		LSWrapper.setItem(Structr.keyMenuConfig, menuConfig);
+
+		let menu      = $('#menu');
+		let submenu   = $('#submenu');
+		let hamburger = $('#menu li.submenu-trigger');
+
+		// first move all elements from main menu to submenu
+		$('li[data-name]', menu).appendTo(submenu);
+
+		menuConfig.main.forEach(function(entry) {
+			$('li[data-name="' + entry + '"]', menu).insertBefore(hamburger);
+		});
+
+		menuConfig.sub.forEach(function(entry) {
+			$('#submenu li').last().after($('li[data-name="' + entry + '"]', menu));
+		});
+
 	},
 	appendInMemoryInfoToElement: function(el, optionalToggleElement) {
 
@@ -1517,20 +1575,34 @@ var Structr = {
 	},
 	initVerticalSlider: function(sliderEl, localstorageKey, minWidth, dragCallback) {
 
-		if (typeof dragCallback !== "function") {
+		if (typeof dragCallback !== 'function') {
 			console.error('dragCallback is not a function!');
 			return;
 		}
 
 		$(sliderEl).draggable({
 			axis: 'x',
+			start: function(e, ui) {
+				$('.column-resizer-blocker').show();
+				let left = Math.min(window.innerWidth - minWidth, Math.max(minWidth, ui.position.left));
+			},
 			drag: function(e, ui) {
-				var left = Math.max(minWidth, ui.position.left);
-				ui.position.left = left;
 
+				let left = Math.min(window.innerWidth - minWidth, Math.max(minWidth, ui.position.left));
+
+				// If there are two resizer elements, distance between resizers
+				// must always be larger than minWidth.
+				if ($(this).hasClass('column-resizer-left') && $('.column-resizer-right').length > 0) {
+					left = Math.min(left, $('.column-resizer-right').position().left - minWidth);
+				} else if ($(this).hasClass('column-resizer-right') && $('.column-resizer-left').length > 0) {
+					left = Math.max(left, $('.column-resizer-left').position().left + minWidth);
+				}
+
+				ui.position.left = left;
 				dragCallback(left);
 			},
 			stop: function(e, ui) {
+				$('.column-resizer-blocker').hide();
 				LSWrapper.setItem(localstorageKey, ui.position.left);
 			}
 		});
@@ -2004,6 +2076,15 @@ var _TreeHelper = {
 	},
 	refreshTree: function(tree, callback) {
 		$(tree).jstree('refresh');
+
+		if (typeof callback === "function") {
+			window.setTimeout(function() {
+				callback();
+			}, 500);
+		}
+	},
+	refreshNode: function(tree, node, callback) {
+		$(tree).jstree('refresh_node', node);
 
 		if (typeof callback === "function") {
 			window.setTimeout(function() {

@@ -45,6 +45,7 @@ import org.structr.bolt.BoltDatabaseService;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UniqueToken;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.function.Functions;
@@ -148,12 +149,8 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		}
 
 		final String prefix = (String)data.get(KEY_NAME);
-		if ("default".equals(prefix)) {
-
-			throw new FrameworkException(422, "Cannot overwrite default connection.");
-		}
-
 		final Set<String> connectionNames = getConnectionNames();
+
 		if (!connectionNames.contains(prefix)) {
 
 			//setOrDefault(Settings.DatabaseDriver,        prefix, data, KEY_DRIVER);
@@ -163,6 +160,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 			setOrDefault(Settings.ConnectionUrl,         prefix, data, KEY_URL);
 			setOrDefault(Settings.ConnectionUser,        prefix, data, KEY_USERNAME);
 			setOrDefault(Settings.ConnectionPassword,    prefix, data, KEY_PASSWORD);
+
 			//setOrDefault(Settings.TenantIdentifier,      prefix, data, KEY_TENANT_IDENTIFIER);
 			//setOrDefault(Settings.RelationshipCacheSize, prefix, data, KEY_RELATIONSHIP_CACHE_SIZE);
 			//setOrDefault(Settings.NodeCacheSize,         prefix, data, KEY_NODE_CACHE_SIZE);
@@ -338,7 +336,12 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 			value = setting.getValue();
 		}
 
-		setting.getPrefixedSetting(prefix).setValue((T)value);
+		final Setting<T> prefixedSetting = setting.getPrefixedSetting(prefix);
+
+		prefixedSetting.setValue((T)value);
+
+		// default value needs to be null so the new setting return true for isModified()
+		prefixedSetting.setDefaultValue(null);
 	}
 
 	private ErrorBuffer checkInput(final Map<String, Object> data, final boolean nameOnly) {
@@ -354,6 +357,11 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 		data.put(KEY_DISPLAYNAME, name);
 		data.put(KEY_NAME,        cleaned);
+
+		// connection cannot be named "default"
+		if ("default".equals((String)data.get(KEY_NAME))) {
+			errorBuffer.add(new UniqueToken("Connection", new GenericProperty("name"), "default"));
+		}
 
 		if (!nameOnly) {
 

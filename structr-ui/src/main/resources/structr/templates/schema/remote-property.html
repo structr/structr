@@ -1,0 +1,11 @@
+<tr data-relationship-id="${config.rel.id}" data-property-name="${config.propertyName}" data-target-collection="${config.targetCollection}">
+	<td><input size="15" type="text" class="property-name related" value="${config.attributeName}" /></td>
+	<td>
+		${config.arrowLeft}&mdash;<i class="cardinality ${config.cardinalityClassLeft}"></i>&mdash;[:<span class="edit-schema-object" data-object-id="${config.rel.id}">${config.relType}</span>]&mdash;<i class="cardinality ${config.cardinalityClassRight}"></i>&mdash;${config.arrowRight}
+		<span class="edit-schema-object" data-object-id="${config.relatedNodeId}">${config.relatedNodeType}</span>
+	</td>
+	<td class="centered">
+		<i title="Discard changes" class="discard-icon discard-changes ${_Icons.getFullSpriteClass(_Icons.cross_icon)}" ></i>
+		<i title="Reset name to default" class="remove-icon reset-action ${_Icons.getFullSpriteClass(_Icons.arrow_undo_icon)}"></i>
+	</td>
+</tr>

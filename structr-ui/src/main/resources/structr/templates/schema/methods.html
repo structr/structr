@@ -1,0 +1,25 @@
+<div id="methods-container" class="${config.class}" style="display:flex">
+	<div id="methods-container-left">
+
+		<div id="methods-table-container"></div>
+
+		<button class="add-icon add-action-button"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add method</button>
+		<button class="add-icon add-onCreate-button"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add onCreate</button>
+		<button class="add-icon add-afterCreate-button"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add afterCreate</button>
+		<button class="add-icon add-onSave-button"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add onSave</button>
+	</div>
+	<div id="methods-container-right" class="data-tabs level-two">
+		<ul>
+			<li data-name="source">Code</li>
+			<li data-name="comment">Comment</li>
+		</ul>
+		<div id="methods-content" style="background-color:#fff">
+			<div class="tab method-tab-content" id="tabView-source">
+				<textarea class="property-code"></textarea>
+			</div>
+			<div class="tab method-tab-content" id="tabView-comment">
+				<textarea class="property-comment"></textarea>
+			</div>
+		</div>
+	</div>
+</div>

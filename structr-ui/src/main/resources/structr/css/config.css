@@ -321,10 +321,26 @@ div.connection button:hover {
 	float: right;
 }
 
-input.must_not_be_empty {
+p.must_not_be_empty input {
 	background-color: #ffbaba;
 	color: #d8000c;
 	border: 1px solid #d8000c;
+}
+
+p.must_not_be_empty::after {
+	content: "Please provide a value for this field.";
+	color: #d8000c;
+}
+
+p.already_taken input {
+	background-color: #ffbaba;
+	color: #d8000c;
+	border: 1px solid #d8000c;
+}
+
+p.already_taken::after {
+	content: "The selected name cannot be used.";
+	color: #d8000c;
 }
 
 div.warning-message {

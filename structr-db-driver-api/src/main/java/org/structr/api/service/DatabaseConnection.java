@@ -50,6 +50,10 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 		putAll(data);
 	}
 
+	public void setDisplayName(final String displayName) {
+		put(KEY_DISPLAYNAME, displayName);
+	}
+
 	public void setName(final String name) {
 		put(KEY_NAME, name);
 	}
@@ -119,6 +123,7 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 		final Tag buttons = div.block("p").css("buttons");
 
 		if (isActive()) {
+			buttons.block("button").attr(new Attr("type", "button")).text("Go to Structr").attr(new Attr("onclick", "window.location.href = '/structr';"));
 			buttons.block("button").attr(new Attr("type", "button")).text("Disconnect").attr(new Attr("onclick", "disconnect(this, '" + name + "');"));
 		} else {
 			buttons.block("button").attr(new Attr("type", "button")).text("Connect").attr(new Attr("onclick", "connect(this, '" + name + "');"));
