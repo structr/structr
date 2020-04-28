@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -372,7 +372,7 @@ public class LDAPService extends Thread implements SingletonService {
 	}
 
 	@Override
-	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		logger.info("host:    {}", Settings.LDAPHost.getValue("localhost"));
 		logger.info("port:    {}", Settings.LDAPPort.getValue(389));

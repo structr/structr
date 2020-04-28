@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.api.config.Settings;
+import org.structr.api.search.SortOrder;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -34,7 +35,6 @@ import org.structr.core.Services;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.GenericProperty;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
@@ -59,7 +59,7 @@ public class EnvResource extends Resource {
 	}
 
 	@Override
-	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
 		final List<GraphObjectMap> resultList             = new LinkedList<>();
 		final GraphObjectMap info                         = new GraphObjectMap();
@@ -86,6 +86,7 @@ public class EnvResource extends Resource {
 			info.setProperty(new StringProperty("licensee"), "Unlicensed");
 		}
 
+		info.setProperty(new GenericProperty("databaseService"), Services.getInstance().getDatabaseService().getClass().getSimpleName());
 		info.setProperty(new GenericProperty("resultCountSoftLimit"), Settings.ResultCountSoftLimit.getValue());
 		info.setProperty(new StringProperty("availableReleasesUrl"), Settings.ReleasesIndexUrl.getValue());
 		info.setProperty(new StringProperty("availableSnapshotsUrl"), Settings.SnapshotsIndexUrl.getValue());

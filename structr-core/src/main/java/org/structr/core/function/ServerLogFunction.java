@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,6 +37,11 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 		return "serverlog";
+	}
+
+	@Override
+	public String getSignature() {
+		return "[ lines=50 ]";
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,6 +38,7 @@ import org.structr.core.function.CopyPermissionsFunction;
 import org.structr.core.function.CreateFunction;
 import org.structr.core.function.CreateRelationshipFunction;
 import org.structr.core.function.CypherFunction;
+import org.structr.core.function.DateAddFunction;
 import org.structr.core.function.DateFormatFunction;
 import org.structr.core.function.DebugFunction;
 import org.structr.core.function.DeleteCacheValueFunction;
@@ -103,6 +104,7 @@ import org.structr.core.function.ParseNumberFunction;
 import org.structr.core.function.PrintFunction;
 import org.structr.core.function.QuotFunction;
 import org.structr.core.function.RandomFunction;
+import org.structr.core.function.RemoteCypherFunction;
 import org.structr.core.function.ReplaceFunction;
 import org.structr.core.function.ResetCounterFunction;
 import org.structr.core.function.RetrieveFunction;
@@ -144,6 +146,7 @@ public class CoreModule implements StructrModule {
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
+		Functions.put(licenseManager, new RemoteCypherFunction());
 		Functions.put(licenseManager, new CypherFunction());
 		Functions.put(licenseManager, new MD5Function());
 		Functions.put(licenseManager, new UpperFunction());
@@ -201,6 +204,7 @@ public class CoreModule implements StructrModule {
 		Functions.put(licenseManager, new MinFunction());
 		Functions.put(licenseManager, new SetLocaleFunction());
 		Functions.put(licenseManager, new DateFormatFunction());
+		Functions.put(licenseManager, new DateAddFunction());
 		Functions.put(licenseManager, new ParseDateFunction());
 		Functions.put(licenseManager, new WeekDaysFunction());
 		Functions.put(licenseManager, new ToDateFunction());

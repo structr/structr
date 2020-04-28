@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,6 +37,11 @@ public class MailClearInReplyTo extends AdvancedMailModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return null;
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		ctx.getAdvancedMailContainer().clearInReplyTo();
@@ -52,6 +57,6 @@ public class MailClearInReplyTo extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Removes the In-Reply-To from the current mail";
 	}
 }

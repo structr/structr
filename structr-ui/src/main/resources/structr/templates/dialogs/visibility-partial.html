@@ -1,0 +1,42 @@
+	<div class="option-tile">
+		<div class="row">
+			<div class="option-tile">
+				<label>Show Conditions</label>
+				<input id="show-conditions" type="text" value="${config.entity.showConditions || ''}">
+			</div>
+			<div class="option-tile">
+				<label>Templates</label>
+				<select id="show-conditions-templates">
+					<option value="" disabled selected>Select...</option>
+					<option value="">(none)</option>
+					<option>true</option>
+					<option>false</option>
+					<option>me.isAdmin</option>
+					<option>empty(current)</option>
+					<option>not(empty(current))</option>
+				</select>
+			</div>
+		</div>
+	</div>
+
+	<div class="option-tile">
+
+		<div class="row">
+			<div class="option-tile">
+				<label>Hide Conditions</label>
+				<input id="hide-conditions" type="text" value="${config.entity.hideConditions || ''}">
+			</div>
+			<div class="option-tile">
+				<label>Templates</label>
+				<select id="hide-conditions-templates">
+					<option value="" disabled selected>Select...</option>
+					<option value="">(none)</option>
+					<option>true</option>
+					<option>false</option>
+					<option>me.isAdmin</option>
+					<option>empty(current)</option>
+					<option>not(empty(current))</option>
+				</select>
+			</div>
+		</div>
+	</div>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,6 +38,9 @@ var _Pages = {
 	activeTabRightKey: 'structrActiveTabRight_' + port,
 	activeTabLeftKey: 'structrActiveTabLeft_' + port,
 	selectedTypeKey: 'structrSelectedType_' + port,
+	autoRefreshDisabledKey: 'structrAutoRefreshDisabled_' + port,
+	detailsObjectIdKey: 'structrDetailsObjectId_' + port,
+	requestParametersKey: 'structrRequestParameters_' + port,
 	init: function() {
 
 		_Pager.initPager('pages',   'Page', 1, 25, 'name', 'asc');
@@ -133,7 +136,7 @@ var _Pages = {
 		_Logger.log(_LogType.PAGES, 'onload');
 
 		main.prepend(
-				'<div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div>'
+				'<div class="column-resizer-blocker"></div><div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div>'
 				+ '<div id="activeElements" class="slideOut slideOutLeft"><div class="compTab" id="activeElementsTab">Active Elements</div><div class="page inner"></div></div>'
 				+ '<div id="dataBinding" class="slideOut slideOutLeft"><div class="compTab" id="dataBindingTab">Data Binding</div></div>'
 				+ '<div id="localizations" class="slideOut slideOutLeft"><div class="compTab" id="localizationsTab">Localizations</div><div class="page inner"><input class="locale" placeholder="Locale"><button class="refresh action button">' + _Icons.getHtmlForIcon(_Icons.refresh_icon) + ' Refresh</button><div class="results ver-scrollable"></div></div></div>'
@@ -159,7 +162,6 @@ var _Pages = {
 		var pagesTabSlideoutAction = function() {
 			_Pages.leftSlideoutTrigger(this, pagesSlideout, [activeElementsSlideout, dataBindingSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function (params) {
 				_Pages.resize(params.sw, 0);
-				_Pages.pagesTabResizeContent();
 			}, _Pages.slideoutClosedCallback);
 		};
 		$('#pagesTab').on('click', pagesTabSlideoutAction).droppable({
@@ -233,7 +235,6 @@ var _Pages = {
 					_Elements.reloadComponents();
 				}
 				_Pages.resize(0, params.sw);
-				_Pages.componentsTabResizeContent();
 			}, _Pages.slideoutClosedCallback);
 		};
 		$('#componentsTab').on('click', componentsTabSlideoutAction).droppable({
@@ -251,7 +252,6 @@ var _Pages = {
 					_Elements.reloadUnattachedNodes();
 				}
 				_Pages.resize(0, params.sw);
-				_Pages.unattachedNodesTabResizeContent();
 			}, _Pages.slideoutClosedCallback);
 		});
 
@@ -313,7 +313,17 @@ var _Pages = {
 		var categoryFilter = $('<input type="text" class="filter page-label" data-attribute="category" placeholder="Category" />');
 		pPager.pager.append(categoryFilter);
 		pPager.activateFilterElements();
-
+		/*
+		var bulkEditingHelper = $(
+			'<button type="button" title="Open Bulk Editing Helper (Ctrl-Alt-E)" class="icon-button">'
+			+ '<i class="icon ' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" />'
+			+ '</button>');
+		pPager.pager.append(bulkEditingHelper);
+		bulkEditingHelper.on('click', e => {
+			Structr.dialog('Bulk Editing Helper (Ctrl-Alt-E)');
+			new RefactoringHelper(dialog).show();
+		});
+		*/
 		$.ajax({
 			url: '/structr/rest/Page/category',
 			success: function(data) {
@@ -452,7 +462,12 @@ var _Pages = {
 			e.stopPropagation();
 			var self = $(this);
 			var link = $.trim(self.parent().children('b.name_').attr('title'));
-			var url = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + link + (LSWrapper.getItem(detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(detailsObjectIdKey + entity.id) : '');
+			let pagePath = entity.path ? entity.path.replace(/^\//, '') : link;
+
+			let detailsObject     = (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '');
+			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '?' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
+
+			var url = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + pagePath + detailsObject + requestParameters;
 			window.open(url);
 		});
 
@@ -473,12 +488,14 @@ var _Pages = {
 			dialog.append('<p>With these settings you can influence the behaviour of the page previews only. They are not persisted on the Page object but only stored in the UI settings.</p>');
 
 			dialog.append('<table class="props">'
-					+ '<tr><td><label for="details-object-id">UUID of details object to append to preview URL</label></td><td><input id="_details-object-id" name="details-object-id" value="' + (LSWrapper.getItem(detailsObjectIdKey + entity.id) ?  LSWrapper.getItem(detailsObjectIdKey + entity.id) : '') + '" style="width:90%;"> <i id="clear-details-object-id" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
-					+ '<tr><td><label for="auto-refresh">Automatic refresh</label></td><td><input title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (LSWrapper.getItem(autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '></td></tr>'
-					+ '<tr><td><label for="page-category">Category</label></td><td><input name="page-category" id="_page-category" type="text" value="' + (entity.category || '') + '" style="width:90%;"> <i id="clear-page-category" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
+					+ '<tr><td><label for="_details-object-id">UUID of details object to append to preview URL</label></td><td><input id="_details-object-id" value="' + (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '') + '" style="width:90%;"> <i id="clear-details-object-id" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
+					+ '<tr><td><label for="_request-parameters">Request parameters to append to preview URL</label></td><td><code style="font-size: 10pt;">?</code><input id="_request-parameters" value="' + (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '') + '" style="width:90%;"> <i id="clear-request-parameters" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
+					+ '<tr><td><label for="_auto-refresh">Automatic refresh</label></td><td><input id="_auto-refresh" title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (LSWrapper.getItem(_Pages.autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '></td></tr>'
+					+ '<tr><td><label for="_page-category">Category</label></td><td><input id="_page-category" type="text" value="' + (entity.category || '') + '" style="width:90%;"> <i id="clear-page-category" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
 					+ '</table>');
 
-			var detailsObjectIdInput = $('#_details-object-id');
+			var detailsObjectIdInput   = $('#_details-object-id');
+			var requestParametersInput = $('#_request-parameters');
 
 			window.setTimeout(function() {
 				detailsObjectIdInput.select().focus();
@@ -486,27 +503,55 @@ var _Pages = {
 
 			$('#clear-details-object-id').on('click', function() {
 				detailsObjectIdInput.val('');
-				var oldVal = LSWrapper.getItem(detailsObjectIdKey + entity.id) || null;
+				var oldVal = LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) || null;
 				if (oldVal) {
 					blinkGreen(detailsObjectIdInput);
-					LSWrapper.removeItem(detailsObjectIdKey + entity.id);
+					LSWrapper.removeItem(_Pages.detailsObjectIdKey + entity.id);
 					detailsObjectIdInput.focus();
+
+					_Pages.reloadIframe(entity.id);
 				}
 			});
 
 			detailsObjectIdInput.on('blur', function() {
 				var inp = $(this);
-				var oldVal = LSWrapper.getItem(detailsObjectIdKey + entity.id) || null;
+				var oldVal = LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) || null;
 				var newVal = inp.val() || null;
 				if (newVal !== oldVal) {
-					LSWrapper.setItem(detailsObjectIdKey + entity.id, newVal);
+					LSWrapper.setItem(_Pages.detailsObjectIdKey + entity.id, newVal);
 					blinkGreen(detailsObjectIdInput);
+
+					_Pages.reloadIframe(entity.id);
+				}
+			});
+
+			$('#clear-request-parameters').on('click', function() {
+				requestParametersInput.val('');
+				var oldVal = LSWrapper.getItem(_Pages.requestParametersKey + entity.id) || null;
+				if (oldVal) {
+					blinkGreen(requestParametersInput);
+					LSWrapper.removeItem(_Pages.requestParametersKey + entity.id);
+					requestParametersInput.focus();
+
+					_Pages.reloadIframe(entity.id);
+				}
+			});
+
+			requestParametersInput.on('blur', function() {
+				var inp = $(this);
+				var oldVal = LSWrapper.getItem(_Pages.requestParametersKey + entity.id) || null;
+				var newVal = inp.val() || null;
+				if (newVal !== oldVal) {
+					LSWrapper.setItem(_Pages.requestParametersKey + entity.id, newVal);
+					blinkGreen(requestParametersInput);
+
+					_Pages.reloadIframe(entity.id);
 				}
 			});
 
 			$('.auto-refresh', dialog).on('click', function(e) {
 				e.stopPropagation();
-				var key = autoRefreshDisabledKey + entity.id;
+				var key = _Pages.autoRefreshDisabledKey + entity.id;
 				var autoRefreshDisabled = (LSWrapper.getItem(key) === '1');
 				if (autoRefreshDisabled) {
 					LSWrapper.removeItem(key);
@@ -664,9 +709,12 @@ var _Pages = {
 		_Pages.unloadIframes();
 		var iframe = $('#preview_' + id);
 		Command.get(id, 'id,name', function(obj) {
-			var url = viewRootUrl + obj.name + (LSWrapper.getItem(detailsObjectIdKey + id) ? '/' + LSWrapper.getItem(detailsObjectIdKey + id) : '') + '?edit=2';
+			let detailsObject     = (LSWrapper.getItem(_Pages.detailsObjectIdKey + id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + id) : '');
+			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + id) : '');
+			var url = viewRootUrl + obj.name + detailsObject + '?edit=2' + requestParameters;
 			iframe.prop('src', url);
 			_Logger.log(_LogType.PAGES, 'iframe', id, 'activated');
+
 			_Pages.hideAllPreviews();
 			iframe.parent().show();
 			_Pages.resize();
@@ -685,7 +733,7 @@ var _Pages = {
 
 			return false;
 		}
-		var autoRefreshDisabled = LSWrapper.getItem(autoRefreshDisabledKey + id);
+		var autoRefreshDisabled = LSWrapper.getItem(_Pages.autoRefreshDisabledKey + id);
 
 		if (!autoRefreshDisabled && id) {
 			_Pages.loadIframe(id);
@@ -954,7 +1002,6 @@ var _Pages = {
 		});
 
 		_Dragndrop.makeDroppable(div);
-		_Pages.pagesTabResizeContent();
 
 		return div;
 	},
@@ -966,8 +1013,9 @@ var _Pages = {
 
 				var inner = $(getNonCommentSiblings(c.node));
 				let newDiv = $('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
-				$(c.node).replaceWith(newDiv);
+
 				newDiv.append(inner);
+				$(c.node).replaceWith(newDiv);
 
 				$(newDiv).on({
 					mouseover: function(e) {
@@ -1186,21 +1234,6 @@ var _Pages = {
 			activeNode.removeClass('nodeHover');
 		}
 	},
-	pagesTabResizeContent: function () {
-		var storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.leftSlideoutWidthKey);
-		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (pagesSlideout.width() + 12);
-		$('.node.page', pagesSlideout).width(psw - 35);
-	},
-	componentsTabResizeContent: function () {
-		var storedRightSlideoutWidth = LSWrapper.getItem(_Pages.rightSlideoutWidthKey);
-		var csw = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (componentsSlideout.width() + 12);
-		$('#componentsArea > .node').width(csw - 35);
-	},
-	unattachedNodesTabResizeContent: function () {
-		var storedRightSlideoutWidth = LSWrapper.getItem(_Pages.rightSlideoutWidthKey);
-		var csw = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (componentsSlideout.width() + 12);
-		$('#elementsArea > .node').width(csw - 35);
-	},
 	leftSlideoutTrigger: function (triggerEl, slideoutElement, otherSlideouts, activeTabKey, openCallback, closeCallback) {
 		if (!$(triggerEl).hasClass('noclick')) {
 			if (Math.abs(slideoutElement.position().left + slideoutElement.width() + 12) <= 3) {
@@ -1239,7 +1272,7 @@ var _Pages = {
 				return;
 			}
 
-			var detailObjectId = LSWrapper.getItem(detailsObjectIdKey + id);
+			var detailObjectId = LSWrapper.getItem(_Pages.detailsObjectIdKey + id);
 
 			Command.listLocalizations(id, locale, detailObjectId, function(result) {
 

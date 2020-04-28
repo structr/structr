@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,7 +19,7 @@
 package org.structr.core.graph;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.structr.api.Predicate;
 import org.structr.common.error.FrameworkException;
@@ -32,8 +32,6 @@ import org.structr.common.error.FrameworkException;
  *
  */
 public interface MaintenanceCommand {
-
-	final Map<String, String> customHeaders = new LinkedHashMap();
 
 	final static String COMMAND_TYPE_KEY         = "type";
 	final static String COMMAND_SUBTYPE_KEY      = "subtype";
@@ -48,10 +46,8 @@ public interface MaintenanceCommand {
 	public void execute(Map<String, Object> attributes) throws FrameworkException;
 	public boolean requiresEnclosingTransaction();
 	public boolean requiresFlushingOfCaches();
-
-	default public Map<String, String> getCustomHeaders () {
-		return customHeaders;
-	}
+	public Map<String, String> getCustomHeaders();
+	public List<Object> getPayload();
 
 	default void publishBeginMessage (final String type, final Map additionalInfo) {
 

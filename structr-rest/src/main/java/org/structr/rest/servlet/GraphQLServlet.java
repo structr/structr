@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,7 +30,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
@@ -38,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
@@ -242,13 +240,6 @@ public class GraphQLServlet extends AbstractServletBase implements HttpServiceSe
 
 				logger.warn("Unable to flush and close response: {}", t.getMessage());
 			}
-		}
-	}
-
-	private void assertInitialized() throws FrameworkException {
-
-		if (!Services.getInstance().isInitialized()) {
-			throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "System is not initialized yet");
 		}
 	}
 

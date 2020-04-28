@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,14 +21,13 @@ package org.structr.test.web.rest;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.net.URI;
-import java.net.URISyntaxException;
 import static org.hamcrest.Matchers.equalTo;
+import org.structr.api.graph.Cardinality;
 import org.testng.annotations.Test;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Relation;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.test.web.StructrUiTest;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -305,8 +304,8 @@ public class NestedResourcesTest extends StructrUiTest {
 			final JsonObjectType version  = schema.addType("TestVersion");
 			final JsonObjectType author   = schema.addType("TestAuthor");
 
-			document.relate(version, "VERSION").setCardinality(Relation.Cardinality.OneToOne).setTargetPropertyName("hasVersion");
-			version.relate(author, "AUTHOR").setCardinality(Relation.Cardinality.OneToOne).setTargetPropertyName("hasAuthor");
+			document.relate(version, "VERSION").setCardinality(Cardinality.OneToOne).setTargetPropertyName("hasVersion");
+			version.relate(author, "AUTHOR").setCardinality(Cardinality.OneToOne).setTargetPropertyName("hasAuthor");
 
 			// extend public view to make result testable via REST GET
 			document.addViewProperty("public", "hasVersion");
@@ -317,7 +316,7 @@ public class NestedResourcesTest extends StructrUiTest {
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
-		} catch (URISyntaxException | FrameworkException ex) {
+		} catch (FrameworkException ex) {
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}

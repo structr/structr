@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,7 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonType;
+import org.structr.api.schema.JsonType;
 
 public interface Localization extends NodeInterface {
 

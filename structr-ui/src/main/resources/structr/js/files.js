@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -92,8 +92,8 @@ var _Files = {
 		var headerOffsetHeight = 100;
 
 		if (fileTree) {
-			fileTree.css({
-				height: windowHeight - headerOffsetHeight + 5 + 'px'
+			fileTree.parent().css({
+				height: windowHeight - headerOffsetHeight + 16 + 'px'
 			});
 		}
 
@@ -747,9 +747,7 @@ var _Files = {
 			div.closest('tr').remove();
 		});
 
-		if (!_Files.isViewModeActive('img')) {
-			_Entities.appendAccessControlIcon(div, d);
-		}
+		_Entities.appendAccessControlIcon(div, d);
 
 		if (d.isFolder) {
 			_Files.handleFolder(div, d);
@@ -786,10 +784,8 @@ var _Files = {
 			}
 		});
 
-		if (!_Files.isViewModeActive('img')) {
-			_Entities.appendEditPropertiesIcon(div, d);
-			_Entities.makeSelectable(div);
-		}
+		_Entities.appendEditPropertiesIcon(div, d);
+		_Entities.makeSelectable(div);
 
 		_Files.resize();
 	},
@@ -924,14 +920,9 @@ var _Files = {
 				$('#tempInfoBox .infoMsg').append(' Unpacking Archive - please stand by...');
 				$('#tempInfoBox .infoMsg').append('<p>Extraction will run in the background.<br>You can safely close this popup and work during this operation.<br>You will be notified when the extraction has finished.</p>');
 
-				$.blockUI.defaults.overlayCSS.opacity = .6;
-				$.blockUI.defaults.applyPlatformOpacityRules = false;
 				$.blockUI({
 					message: $('#tempInfoBox'),
-					css: {
-						border: 'none',
-						backgroundColor: 'transparent'
-					}
+					css: Structr.defaultBlockUICss
 				});
 
 				var closed = false;
@@ -1016,23 +1007,13 @@ var _Files = {
 	},
 	appendEditImageIcon: function(parent, image) {
 
-		var viewIcon;
+		var viewIcon = $('.view_icon', parent);
 
-		if (_Files.isViewModeActive('img')) {
-
-			viewIcon = $('.tn', parent);
-			viewIcon.closest('a').prop('href', 'javascript:void(0)');
-
-		} else {
-
-			viewIcon = $('.view_icon', parent);
-
-			if (!(viewIcon && viewIcon.length)) {
-				parent.append('<i title="' + image.name + ' [' + image.id + ']" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-			}
-
-			viewIcon = $('.edit_icon', parent);
+		if (!(viewIcon && viewIcon.length)) {
+			parent.append('<i title="' + image.name + ' [' + image.id + ']" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
 		}
+
+		viewIcon = $('.edit_icon', parent);
 
 		viewIcon.on('click', function(e) {
 			e.stopPropagation();
@@ -1293,12 +1274,16 @@ var _Files = {
 		});
 	},
 	updateTextFile: function(file, text, callback) {
-		var chunks = Math.ceil(text.length / chunkSize);
-		for (var c = 0; c < chunks; c++) {
-			var start = c * chunkSize;
-			var end = (c + 1) * chunkSize;
-			var chunk = utf8_to_b64(text.substring(start, end));
-			Command.chunk(file.id, c, chunkSize, chunk, chunks, ((c+1 === chunks) ? callback : undefined));
+		if (text === "") {
+			Command.chunk(file.id, 0, chunkSize, "", 1, callback);
+		} else {
+			var chunks = Math.ceil(text.length / chunkSize);
+			for (var c = 0; c < chunks; c++) {
+				var start = c * chunkSize;
+				var end = (c + 1) * chunkSize;
+				var chunk = utf8_to_b64(text.substring(start, end));
+				Command.chunk(file.id, c, chunkSize, chunk, chunks, ((c+1 === chunks) ? callback : undefined));
+			}
 		}
 	},
 	editContent: function(button, file, element) {
@@ -1332,17 +1317,21 @@ var _Files = {
 				}
 				element.append('<div class="editor"></div><div id="template-preview"><textarea readonly></textarea></div>');
 				var contentBox = $('.editor', element);
-				var lineWrapping = LSWrapper.getItem(lineWrappingKey);
+
 				CodeMirror.defineMIME("text/html", "htmlmixed-structr");
-				editor = CodeMirror(contentBox.get(0), {
+				editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
 					value: text,
 					mode: contentType,
 					lineNumbers: true,
-					lineWrapping: lineWrapping,
+					lineWrapping: false,
 					indentUnit: 4,
-					tabSize:4,
-					indentWithTabs: true
-				});
+					tabSize: 4,
+					indentWithTabs: true,
+					extraKeys: {
+						"Ctrl-Space": "autocomplete"
+					}
+				}));
+				_Code.setupAutocompletion(editor, file.id, false);
 
 				var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + file.id));
 				if (scrollInfo) {
@@ -1359,16 +1348,15 @@ var _Files = {
 				dialogBtn.children('#saveFile').remove();
 				dialogBtn.children('#saveAndClose').remove();
 
-				var h = '<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '>&nbsp;&nbsp;'
+				var h = '<span class="editor-info"><label for="lineWrapping">Line Wrapping: <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></label>&nbsp;&nbsp;'
 				+ '<label for="isTemplate">Replace template expressions:</label> <input id="isTemplate" type="checkbox"><label for="showTemplatePreview">Show preview:</label> <input id="showTemplatePreview" type="checkbox"></span>';
 				dialogMeta.html(h);
 
-				let lineWrappingCheckbox = $('#lineWrapping');
 				let isTemplateCheckbox   = $('#isTemplate').prop('checked', file.isTemplate);
 				let showPreviewCheckbox  = $('#showTemplatePreview');
 
 				Structr.appendInfoTextToElement({
-					text: "Expressions like <pre>Hello ${print(me.name)} !</pre> will be evaluated. To see a preview, tick this checkbox.",
+					text: "Expressions like <pre>Hello ${print(me.name)} !</pre> will be evaluated. To see a preview, tick the adjacent checkbox.",
 					element: isTemplateCheckbox,
 					insertAfter: true,
 					css: {
@@ -1386,14 +1374,10 @@ var _Files = {
 				};
 				isTemplateCheckboxChangeFunction(file.isTemplate);
 
-				lineWrappingCheckbox.on('change', function() {
-					if ($(this).is(':checked')) {
-						LSWrapper.setItem(lineWrappingKey, "1");
-						editor.setOption('lineWrapping', true);
-					} else {
-						LSWrapper.removeItem(lineWrappingKey);
-						editor.setOption('lineWrapping', false);
-					}
+				$('#lineWrapping').off('change').on('change', function() {
+					var inp = $(this);
+					Structr.updateCodeMirrorOptionGlobally('lineWrapping', inp.is(':checked'));
+					blinkGreen(inp.parent());
 					editor.refresh();
 				});
 
@@ -1538,6 +1522,12 @@ var _Files = {
 						var val = $(el).val();
 						if (val !== "") {
 							mountConfig[$(el).data('attributeName')] = val;
+						}
+					});
+					$('.mount-option[type="number"]').each(function(i, el) {
+						var val = $(el).val();
+						if (val !== "") {
+							mountConfig[$(el).data('attributeName')] = parseInt(val);
 						}
 					});
 					$('.mount-option[type="checkbox"]').each(function(i, el) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,8 +21,11 @@ package org.structr.web.entity;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import org.structr.api.config.Settings;
+import org.structr.api.graph.Cardinality;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -31,14 +34,12 @@ import org.structr.common.error.UniqueToken;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
-import org.structr.core.entity.Relation;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonReferenceType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonReferenceType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.web.common.FileHelper;
 import org.structr.web.property.MethodProperty;
 import org.structr.web.property.PathProperty;
@@ -95,7 +96,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 			.addException(FrameworkException.class.getName())
 			.addParameter("parent", "org.structr.web.entity.Folder");
 
-		final JsonReferenceType parentRel  = folder.relate(type, "CONTAINS", Relation.Cardinality.OneToMany, "parent", "children");
+		final JsonReferenceType parentRel  = folder.relate(type, "CONTAINS", Cardinality.OneToMany, "parent", "children");
 		final JsonReferenceType siblingRel = type.relate(type, "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling", "nextSibling");
 
 		type.addIdReferenceProperty("parentId",      parentRel.getSourceProperty());
@@ -252,7 +253,9 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		final String uuid       = fileBase.getUuid();
 		final String filePath   = Settings.FilesPath.getValue();
 		final String uuidPath   = AbstractFile.getDirectoryPath(uuid);
-		final java.io.File file = new java.io.File(filePath + "/" + uuidPath + "/" + uuid);
+		final String finalPath  = filePath + "/" + uuidPath + "/" + uuid;
+		final Path path         = Paths.get(URI.create("file://" + finalPath));
+		final java.io.File file = path.toFile();
 
 		// create parent directory tree
 		file.getParentFile().mkdirs();

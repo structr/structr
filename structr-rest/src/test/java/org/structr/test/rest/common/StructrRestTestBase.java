@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -44,13 +44,12 @@ import org.structr.core.auth.SuperUserAuthenticator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 import org.structr.rest.DefaultResourceProvider;
 import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
@@ -68,6 +67,7 @@ public abstract class StructrRestTestBase {
 	protected SecurityContext securityContext = null;
 	protected String basePath                 = null;
 	protected App app                         = null;
+	private boolean first                     = true;
 
 	protected final String contextPath = "/";
 	protected final String restUrl     = "/structr/rest";
@@ -82,7 +82,7 @@ public abstract class StructrRestTestBase {
 		basePath = "/tmp/structr-test-" + timestamp;
 
 		Settings.Services.setValue("NodeService SchemaService HttpService");
-		setupNeo4jConnection();
+		setupDatabaseConnection();
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
@@ -150,25 +150,32 @@ public abstract class StructrRestTestBase {
 		}
 	}
 
-	@AfterMethod
+	@BeforeMethod
 	public void cleanDatabase() {
 
-		try (final Tx tx = app.tx()) {
+		if (!first) {
 
+			try (final Tx tx = app.tx()) {
 			// delete everything
-			Services.getInstance().getService(NodeService.class).getDatabaseService().cleanDatabase();
+			Services.getInstance().getDatabaseService().cleanDatabase();
 
-			FlushCachesCommand.flushAll();
+				// delete everything
+				Services.getInstance().getDatabaseService().cleanDatabase();
 
-			SchemaService.ensureBuiltinTypesExist(app);
+				FlushCachesCommand.flushAll();
 
-			tx.success();
+				SchemaService.ensureBuiltinTypesExist(app);
 
-		} catch (Throwable t) {
+				tx.success();
 
-			t.printStackTrace();
-			logger.error("Exception while trying to clean database: {}", t.getMessage());
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				logger.error("Exception while trying to clean database: {}", t.getMessage());
+			}
 		}
+
+		first = false;
 	}
 
 	@BeforeMethod
@@ -203,9 +210,10 @@ public abstract class StructrRestTestBase {
 		return RandomStringUtils.randomAlphabetic(10).toUpperCase();
 	}
 
-	protected void setupNeo4jConnection() {
+	protected void setupDatabaseConnection() {
 
-		Settings.DatabaseDriverMode.setValue("remote");
+		// use database driver from system property, default to MemoryDatabaseService
+		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());

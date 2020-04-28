@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,7 +28,8 @@ import org.structr.schema.action.ActionContext;
  */
 public class ConstantExpression extends Expression {
 
-	private Object value = null;
+	private String quoteChar = null;
+	private Object value     = null;
 
 	public ConstantExpression(final Object value) {
 		super(null);
@@ -59,4 +60,13 @@ public class ConstantExpression extends Expression {
 	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
 		return source;
 	}
+
+	public void setQuoteChar(final String quoteChar) {
+		this.quoteChar = quoteChar;
+	}
+
+	public String getQuoteChar() {
+		return quoteChar;
+	}
+
 }

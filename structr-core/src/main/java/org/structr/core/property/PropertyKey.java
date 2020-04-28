@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import java.util.Comparator;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.structr.api.Predicate;
@@ -43,14 +44,14 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return jsonName
 	 */
-	public String jsonName();
+	String jsonName();
 
 	/**
 	 * Returns the database name of this property.
 	 *
 	 * @return dbName
 	 */
-	public String dbName();
+	String dbName();
 
 	/**
 	 * Sets the name of this property in the JSON context. This
@@ -59,7 +60,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @param jsonName
 	 */
-	public void jsonName(final String jsonName);
+	void jsonName(final String jsonName);
 
 	/**
 	 * Sets the name of this property in the database context. This
@@ -68,7 +69,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @param dbName
 	 */
-	public void dbName(final String dbName);
+	void dbName(final String dbName);
 
 	/**
 	 * Use this method to mark a property for indexing. This
@@ -78,7 +79,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return the Property to satisfy the builder pattern
 	 */
-	public Property<T> indexed();
+	Property<T> indexed();
 
 	/**
 	 * Use this method to indicate that a property key can change its value
@@ -90,9 +91,9 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return the Property to satisfy the builder pattern
 	 */
-	public Property<T> passivelyIndexed();
+	Property<T> passivelyIndexed();
 
-	public Property<T> indexedWhenEmpty();
+	Property<T> indexedWhenEmpty();
 
 	/**
 	 * Use this method to indicate that a property key is accessible via
@@ -100,21 +101,21 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return the Property to satisfy the builder pattern
 	 */
-	public Property<T> cmis();
+	Property<T> cmis();
 
 	/**
 	 * Returns the desired type name that will be used in the error message if a
 	 * wrong type was provided.
 	 * @return typeName
 	 */
-	public String typeName();
+	String typeName();
 
 	/**
 	 * Returns the type of the value this property returns.
 	 *
 	 * @return the value type
 	 */
-	public Class valueType();
+	Class valueType();
 
 	/**
 	 * Returns the type of the related property this property key references, or
@@ -122,68 +123,68 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return relatedType
 	 */
-	public Class relatedType();
+	Class relatedType();
 
 	/**
 	 * Returns the format value for this property.
 	 *
 	 * @return format
 	 */
-	public String format();
+	String format();
 
 	/**
 	 * Returns the type hint for this property.
 	 *
 	 * @return typeHint
 	 */
-	public String typeHint();
+	String typeHint();
 
 	/**
 	 * Returns the default value for this property.
 	 *
 	 * @return defaultValue
 	 */
-	public T defaultValue();
+	T defaultValue();
 
 	/**
 	 * Returns the readFunction value for this property.
 	 *
 	 * @return readFunction
 	 */
-	public String readFunction();
+	String readFunction();
 
 	/**
 	 * Returns the writeFunction value for this property.
 	 *
 	 * @return writeFunction
 	 */
-	public String writeFunction();
+	String writeFunction();
 
 	/**
 	 * Returns the cachingEnabled value for this property.
 	 *
 	 * @return cachingEnabled
 	 */
-	public boolean cachingEnabled();
+	boolean cachingEnabled();
 
 
-	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext);
-	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity);
-	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext);
-	public Object fixDatabaseProperty(final Object value);
+	PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext);
+	PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity);
+	PropertyConverter<?, T> inputConverter(final SecurityContext securityContext);
+	Object fixDatabaseProperty(final Object value);
 
-	public boolean requiresSynchronization();
-	public String getSynchronizationKey();
+	boolean requiresSynchronization();
+	String getSynchronizationKey();
 
-	public void setDeclaringClass(final Class declaringClass);
-	public Class getDeclaringClass();
-	public String getSourceUuid();
+	void setDeclaringClass(final Class declaringClass);
+	Class getDeclaringClass();
+	String getSourceUuid();
 
-	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter);
-	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate);
-	public Object setProperty(final SecurityContext securityContext, final GraphObject obj, final T value) throws FrameworkException;
+	T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter);
+	T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate);
+	Object setProperty(final SecurityContext securityContext, final GraphObject obj, final T value) throws FrameworkException;
 
-	public void registrationCallback(final Class<GraphObject> entityType);
+	void registrationCallback(final Class<GraphObject> entityType);
 
 	/**
 	 * Indicates whether this property is an unvalidated property or not.
@@ -195,7 +196,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return whether this property is unvalidated
 	 */
-	public boolean isUnvalidated();
+	boolean isUnvalidated();
 
 	/**
 	 * Indicates whether this property is read-only. Read-only properties
@@ -204,7 +205,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return isReadOnly
 	 */
-	public boolean isReadOnly();
+	boolean isReadOnly();
 
 	/**
 	 * Indicates whether this property is an system-internal property.
@@ -213,7 +214,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return isSystemInternal
 	 */
-	public boolean isSystemInternal();
+	boolean isSystemInternal();
 
 	/**
 	 * Indicates whether this property is write-once. Write-once properties
@@ -222,7 +223,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return isWriteOnce
 	 */
-	public boolean isWriteOnce();
+	boolean isWriteOnce();
 
 	/**
 	 * Indicates whether this property is indexed, i.e. searchable using
@@ -230,7 +231,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return isIndexed
 	 */
-	public boolean isIndexed();
+	boolean isIndexed();
 
 	/**
 	 * Indicates whether this property is indexed. The difference to the
@@ -241,7 +242,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return isPassivelyIndexed
 	 */
-	public boolean isPassivelyIndexed();
+	boolean isPassivelyIndexed();
 
 	/**
 	 * Indicates whether this property is searchable with an empty value.
@@ -250,7 +251,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return isIndexedWhenEmpty
 	 */
-	public boolean isIndexedWhenEmpty();
+	boolean isIndexedWhenEmpty();
 
 	/**
 	 * Indicates whether this property represents a collection or a single
@@ -258,7 +259,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return isCollection
 	 */
-	public boolean isCollection();
+	boolean isCollection();
 
 	/**
 	 * Indicates whether the value associated with this property is
@@ -266,7 +267,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return whether this property value is validated for uniqueness
 	 */
-	public boolean isUnique();
+	boolean isUnique();
 
 	/**
 	 * Indicates whether the value associated with this property is
@@ -274,7 +275,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return whether this property value is validated for uniqueness
 	 */
-	public boolean isCompound();
+	boolean isCompound();
 
 	/**
 	 * Indicates whether the value associated with this property is
@@ -282,34 +283,34 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return whether this property value is validated for uniqueness
 	 */
-	public boolean isNotNull();
+	boolean isNotNull();
 
 	/**
 	 * Indicates whether this property is created from a database node.
 	 *
 	 * @return whether this property is dynamic
 	 */
-	public boolean isDynamic();
+	boolean isDynamic();
 
 	/**
 	 * Indicates whether this property is a part of the internal Structr schema.
 	 *
 	 * @return whether this property is a part of the internal Structr schema
 	 */
-	public boolean isPartOfBuiltInSchema();
+	boolean isPartOfBuiltInSchema();
 
 	/**
 	 * Returns the lucene sort type of this property.
 	 * @return sortType
 	 */
-	public SortType getSortType();
+	SortType getSortType();
 
 	/**
 	 * Returns the hint for the property (if any)
 	 *
 	 * @return property hint
 	 */
-	default public String hint() {
+	default String hint() {
 		return null;
 	}
 
@@ -318,38 +319,40 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return property category
 	 */
-	default public String category() {
+	default String category() {
 		return null;
 	}
 
-	public Object getIndexValue(final Object value);
-	public boolean isPropertyTypeIndexable();
-	public boolean isPropertyValueIndexable(final Object value);
+	Object getIndexValue(final Object value);
+	boolean isPropertyTypeIndexable();
+	boolean isPropertyValueIndexable(final Object value);
 
-	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final T searchValue, final boolean exactMatch, final Query query);
-	public void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final boolean exactMatch, final Query query) throws FrameworkException;
-	public T convertSearchValue(final SecurityContext securityContext, final String requestParameter) throws FrameworkException;
+	SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final T searchValue, final boolean exactMatch, final Query query);
+	void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final boolean exactMatch, final Query query) throws FrameworkException;
+	T convertSearchValue(final SecurityContext securityContext, final String requestParameter) throws FrameworkException;
 
 	/**
 	 * Returns the desired position of this property key type
 	 * in the processing order.
 	 * @return processingOrderPosition
 	 */
-	public int getProcessingOrderPosition();
+	int getProcessingOrderPosition();
 
-	public PropertyKey<T> defaultValue(final T defaultValue);
-	public PropertyKey<T> notNull(final boolean notNull);
-	public PropertyKey<T> unique(final boolean unique);
-	public PropertyKey<T> format(final String format);
-	public PropertyKey<T> typeHint(final String typeHint);
-	public PropertyKey<T> partOfBuiltInSchema();
-	public PropertyKey<T> dynamic();
-	public PropertyKey<T> readFunction(final String readFunction);
-	public PropertyKey<T> writeFunction(final String writeFunction);
-	public PropertyKey<T> cachingEnabled(final boolean enabled);
-	public PropertyKey<T> transformators(final String... transformators);
+	PropertyKey<T> defaultValue(final T defaultValue);
+	PropertyKey<T> notNull(final boolean notNull);
+	PropertyKey<T> unique(final boolean unique);
+	PropertyKey<T> format(final String format);
+	PropertyKey<T> typeHint(final String typeHint);
+	PropertyKey<T> partOfBuiltInSchema();
+	PropertyKey<T> dynamic();
+	PropertyKey<T> readFunction(final String readFunction);
+	PropertyKey<T> writeFunction(final String writeFunction);
+	PropertyKey<T> cachingEnabled(final boolean enabled);
+	PropertyKey<T> transformators(final String... transformators);
+
+	Comparator<GraphObject> sorted(final boolean descending);
 
 	// ----- CMIS support -----
-	public PropertyType getDataType();
-	public boolean isCMISProperty();
+	PropertyType getDataType();
+	boolean isCMISProperty();
 }

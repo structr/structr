@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,15 +18,14 @@
  */
 package org.structr.schema.importer;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
+import org.structr.api.util.Iterables;
 
 /**
  *
@@ -101,11 +100,7 @@ public class NodeInfo {
 		// AM 2015-06-26: Changed the behaviour here: In case of multiple labels, don't put them all
 		// into the set of potential types but rather create a combined type.
 		// E.g. a node with the two labels 'Person' and 'Entity' will get a type 'EntityPerson'
-		final List<String> labelStrings = new ArrayList<>();
-		for (final Label label : node.getLabels()) {
-			labelStrings.add(label.name());
-		}
-		//Collections.sort(labelStrings);
+		final List<String> labelStrings = Iterables.toList(node.getLabels());
 		addType(StringUtils.join(labelStrings, ""));
 
 		// second try: type attribute

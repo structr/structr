@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,8 +21,8 @@ package org.structr.core.entity;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
-import java.lang.reflect.TypeVariable;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -33,15 +33,18 @@ import java.util.Queue;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.ValidationHelper;
 import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaMethodParameters;
 import org.structr.core.entity.relationship.SchemaNodeMethod;
 import org.structr.core.graph.ModificationQueue;
+import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.BooleanProperty;
@@ -59,6 +62,8 @@ import org.structr.schema.action.ActionEntry;
  */
 public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
+	public static final String schemaMethodNamePattern    = "[a-zA-Z_][a-zA-Z0-9_]*";
+
 	public static final Property<Iterable<SchemaMethodParameter>> parameters = new EndNodes<>("parameters", SchemaMethodParameters.class);
 	public static final Property<AbstractSchemaNode> schemaNode              = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType));
 	public static final Property<String>             signature               = new StringProperty("signature").indexed();
@@ -72,6 +77,9 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<Boolean>            doExport                = new BooleanProperty("doExport").indexed();
 	public static final Property<String>             codeType                = new StringProperty("codeType").indexed();
 	public static final Property<Boolean>            isPartOfBuiltInSchema   = new BooleanProperty("isPartOfBuiltInSchema").indexed();
+
+	// property which is only used to mark a schema method as "will be deleted"
+	public static final Property<Boolean>            deleteMethod             = new BooleanProperty("deleteMethod").defaultValue(Boolean.FALSE);
 
 	private static final Set<PropertyKey> schemaRebuildTriggerKeys = new LinkedHashSet<>(Arrays.asList(
 		name, parameters, schemaNode, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema
@@ -99,7 +107,8 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		entry.setCodeSource(this);
 
 		// Parameters must be sorted by index
-		Collections.sort(params, new GraphObjectComparator(SchemaMethodParameter.index, false));
+		//Collections.sort(params, new GraphObjectComparator(SchemaMethodParameter.index, false));
+		Collections.sort(params, SchemaMethodParameter.index.sorted(false));
 
 		for (final SchemaMethodParameter parameter : params) {
 
@@ -132,6 +141,26 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	public boolean isJava() {
 		return "java".equals(getProperty(codeType));
+	}
+
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
+
+		boolean valid = super.isValid(errorBuffer);
+
+		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, schemaMethodNamePattern, errorBuffer);
+
+		return valid;
+	}
+
+	@Override
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		super.onModification(securityContext, errorBuffer, modificationQueue);
+
+		if (Boolean.TRUE.equals(getProperty(deleteMethod))) {
+			StructrApp.getInstance().delete(this);
+		}
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.agent.Task;
+import org.structr.api.search.SortOrder;
 import org.structr.api.service.Command;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
@@ -37,8 +38,8 @@ import org.structr.core.graph.BulkSetRelationshipPropertiesCommand;
 import org.structr.core.graph.BulkSetUuidCommand;
 import org.structr.core.graph.ClearDatabase;
 import org.structr.core.graph.FlushCachesCommand;
+import org.structr.core.graph.ManageDatabasesCommand;
 import org.structr.core.graph.SyncCommand;
-import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.maintenance.SnapshotCommand;
@@ -74,6 +75,7 @@ public class MaintenanceParameterResource extends Resource {
 		maintenanceCommandMap.put("flushCaches", FlushCachesCommand.class);
 		maintenanceCommandMap.put("analyzeSchema", SchemaAnalyzer.class);
 		maintenanceCommandMap.put("migrateChangelog", BulkMigrateChangelogCommand.class);
+		maintenanceCommandMap.put("manageDatabases", ManageDatabasesCommand.class);
 
 	}
 
@@ -96,7 +98,7 @@ public class MaintenanceParameterResource extends Resource {
 	}
 
 	@Override
-	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 		throw new NotAllowedException("GET not allowed, use POST to run maintenance commands");
 	}
 

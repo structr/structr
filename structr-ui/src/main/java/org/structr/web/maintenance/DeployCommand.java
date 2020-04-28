@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,11 +37,13 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,14 +52,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.StaticValue;
 import org.structr.core.app.App;
@@ -119,9 +122,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private static final Logger logger                     = LoggerFactory.getLogger(DeployCommand.class.getName());
 	private static final Pattern pattern                   = Pattern.compile("[a-f0-9]{32}");
 
+	private static final Map<String, String> deploymentConf    = new LinkedHashMap<>();
 	private static final Map<String, String> deferredPageLinks = new LinkedHashMap<>();
 	protected static final Set<String> missingPrincipals       = new HashSet<>();
 	protected static final Set<String> missingSchemaFile       = new HashSet<>();
+
+	private final static String DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY          = "visibility-flags-relative-to";
+	private final static String DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE = "parent";
 
 	private final static String DEPLOYMENT_IMPORT_STATUS   = "DEPLOYMENT_IMPORT_STATUS";
 	private final static String DEPLOYMENT_EXPORT_STATUS   = "DEPLOYMENT_EXPORT_STATUS";
@@ -209,7 +216,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-
 	protected void doImport(final Map<String, Object> attributes) throws FrameworkException {
 
 		// backup previous value of change log setting and disable during deployment
@@ -230,7 +236,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final App app                   = StructrApp.getInstance(ctx);
 
 			ctx.setDoTransactionNotifications(false);
-			ctx.disableEnsureCardinality();
+			ctx.disablePreventDuplicateRelationships();
 			ctx.disableModificationOfAccessTime();
 			ctx.setDoIndexing(false);
 
@@ -247,18 +253,51 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path source = Paths.get(path);
 			if (!Files.exists(source)) {
 
+				publishWarningMessage("Import not started", "Source path " + path + " does not exist.");
+
 				throw new FrameworkException(422, "Source path " + path + " does not exist.");
 			}
 
 			if (!Files.isDirectory(source)) {
 
+				publishWarningMessage("Import not started", "Source path '" + path + "' is not a directory.");
+
 				throw new FrameworkException(422, "Source path " + path + " is not a directory.");
 			}
+
+			if (source.isAbsolute() != true) {
+
+				publishWarningMessage("Import not started", "Source path '" + path + "' is not an absolute path - relative paths are not allowed.");
+
+				throw new FrameworkException(422, "Source path '" + path + "' is not an absolute path - relative paths are not allowed.");
+			}
+
+			logger.info("Importing from '{}'", path);
 
 			final Map<String, Object> broadcastData = new HashMap();
 			broadcastData.put("start",   startTime);
 			broadcastData.put("source",  source.toString());
 			publishBeginMessage(DEPLOYMENT_IMPORT_STATUS, broadcastData);
+
+			// read deployment.conf (file containing information about deployment export)
+			final Path deploymentConfFile = source.resolve("deployment.conf");
+			readDeploymentConfigurationFile(deploymentConfFile);
+
+			if (!isDOMNodeVisibilityRelativeToParent()) {
+
+				final String title = "Important Information";
+				final String text = "The deployment export data currently being imported has been created with an older version of Structr\n"
+						+ "in which the visibility flags of DOM elements were exported depending on the flags of the containing page.\n"
+						+ "***The data will be imported correctly, based on the old format.***\n"
+						+ "After this import has finished, you should **export again to the same location** so that the deployment export data will be upgraded to the most recent format.";
+				final String htmlText = "The deployment export currently being imported has been created with an older version of Structr<br>"
+						+ "in which the visibility flags of DOM elements were exported depending on the flags of the containing page.<br>"
+						+ "<b>The data will be imported correctly, based on the old format.</b><br>"
+						+ "After this import has finished, you should <b>export again to the same location</b> so that the deployment export data will be upgraded to the most recent format.";
+
+				logger.info(title + ": " + text);
+				publishWarningMessage(title, htmlText);
+			}
 
 			// apply pre-deploy.conf
 			applyConfigurationFile(ctx, source.resolve("pre-deploy.conf"), DEPLOYMENT_IMPORT_STATUS);
@@ -645,6 +684,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			broadcastData.put("duration", duration);
 			publishEndMessage(DEPLOYMENT_IMPORT_STATUS, broadcastData);
 
+		} catch (Throwable t) {
+
+			publishWarningMessage("Fatal Error", "Something went wrong - the deployment import has stopped. Please see the log for more information");
+
+			throw t;
+
 		} finally {
 
 			// restore saved value
@@ -654,14 +699,23 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	protected void doExport(final Map<String, Object> attributes) throws FrameworkException {
 
-		final String path  = (String) attributes.get("target");
+		final String path = (String) attributes.get("target");
 
 		if (StringUtils.isBlank(path)) {
+
+			publishWarningMessage("Export not started", "Please provide target path for deployment export.");
 
 			throw new FrameworkException(422, "Please provide target path for deployment export.");
 		}
 
 		final Path target  = Paths.get(path);
+
+		if (target.isAbsolute() != true) {
+
+			publishWarningMessage("Export not started", "Target path '" + path + "' is not an absolute path - relative paths are not allowed.");
+
+			throw new FrameworkException(422, "Target path '" + path + "' is not an absolute path - relative paths are not allowed.");
+		}
 
 		try {
 
@@ -692,8 +746,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path mailTemplatesConf   = target.resolve("mail-templates.json");
 			final Path localizationsConf   = target.resolve("localizations.json");
 			final Path widgetsConf         = target.resolve("widgets.json");
-
+			final Path deploymentConfFile = target.resolve("deployment.conf");
 			final Path applicationConfigurationData = target.resolve("application-configuration-data.json");
+
+			writeDeploymentConfigurationFile(deploymentConfFile);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Files");
 			exportFiles(files, filesConf);
@@ -824,14 +880,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		final List<Folder> folders = Iterables.toList(folder.getFolders());
-		Collections.sort(folders, new GraphObjectComparator(AbstractNode.name, false));
+		Collections.sort(folders, AbstractNode.name.sorted(false));
 
 		for (final Folder child : folders) {
 			exportFilesAndFolders(path, child, config);
 		}
 
 		final List<File> files = Iterables.toList(folder.getFiles());
-		Collections.sort(files, new GraphObjectComparator(AbstractNode.name, false));
+		Collections.sort(files, AbstractNode.name.sorted(false));
 
 		for (final File file : files) {
 			exportFile(path, file, config);
@@ -1182,7 +1238,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				}
 
 				// move all methods/function properties to files
-				for (final StructrTypeDefinition typeDef : schema.getTypes()) {
+				for (final StructrTypeDefinition typeDef : schema.getTypeDefinitions()) {
 
 					final String typeName = typeDef.getName();
 
@@ -1621,9 +1677,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					final Object name   = map.get("name");
 					final Object domain = map.get("domain");
 					final Object locale = map.get("locale");
+					final Object id     = map.get("id");
 
 					// null domain is replaced by a string so that those localizations are shown first
-					return (name != null ? name.toString() : "null").concat((domain != null ? domain.toString() : "00-nulldomain")).concat((locale != null ? locale.toString() : "null"));
+					return (name != null ? name.toString() : "null").concat((domain != null ? domain.toString() : "00-nulldomain")).concat((locale != null ? locale.toString() : "null")).concat(id.toString());
 				}
 			});
 
@@ -1827,7 +1884,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						}
 					}
 
-					for (final StructrTypeDefinition typeDef : schema.getTypes()) {
+					for (final StructrTypeDefinition typeDef : schema.getTypeDefinitions()) {
 
 						final Path typeFolder = schemaFolder.resolve(typeDef.getName());
 
@@ -1908,6 +1965,66 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				throw new ImportFailureException(t.getMessage(), t);
 			}
+		}
+	}
+
+	public static boolean isDOMNodeVisibilityRelativeToParent() {
+		return DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE.equals(deploymentConf.get(DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY));
+	}
+
+	protected void readDeploymentConfigurationFile (final Path confFile) {
+
+		deploymentConf.clear();
+
+		if (Files.exists(confFile)) {
+
+			try {
+
+				final PropertiesConfiguration config = new PropertiesConfiguration(confFile.toFile());
+				final Iterator<String> keys          = config.getKeys();
+
+				while (keys.hasNext()) {
+
+					final String key   = keys.next();
+					final String value = StringUtils.trim(config.getString(key));
+
+					deploymentConf.put(key, value);
+				}
+
+				final String message = "Reading deployment config file '" + confFile + "': " + deploymentConf.size() + " entries.";
+				logger.info(message);
+				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, message);
+
+			} catch (Throwable t) {
+
+				final String msg = "Exception caught while importing '" + confFile + "'";
+				logger.warn(msg, t);
+				publishWarningMessage(msg, t.toString());
+			}
+		}
+	}
+
+	protected void writeDeploymentConfigurationFile (final Path confFile) {
+
+		try {
+
+			final String message = "Writing deployment config file '" + confFile + "'";
+			logger.info(message);
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, message);
+
+			final PropertiesConfiguration config = new PropertiesConfiguration();
+
+			config.setProperty("structr-version", VersionHelper.getFullVersionInfo());
+			config.setProperty("deployment-date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date()));
+			config.setProperty(DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY, DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE);
+
+			config.save(confFile.toFile());
+
+		} catch (Throwable t) {
+
+			final String msg = "Exception caught while importing '" + confFile + "'";
+			logger.warn(msg, t);
+			publishWarningMessage(msg, t.toString());
 		}
 	}
 
@@ -1993,6 +2110,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		@Override
 		public int compare(String o1, String o2) {
+			if (o1 != null && o1.equals(o2)) {
+				return 0;
+			}
 			if ("id".equals(o1)) {
 				return -1;
 			}

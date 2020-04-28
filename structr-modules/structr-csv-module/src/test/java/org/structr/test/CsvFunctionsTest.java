@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -202,73 +202,73 @@ public class CsvFunctionsTest extends StructrUiTest {
 			assertEquals(
 					"Invalid result of default to_csv() call (StructrScript)",
 					expectedDefaultCsv,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne'), 'csv')}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne', sort('name')), 'csv')}")
 			);
 
 			assertEquals(
 					"Invalid result of to_csv() call with only name,index (StructrScript)",
 					expectedCsvWithNameAndIndex,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne'), merge('name', 'index'))}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne', sort('name')), merge('name', 'index'))}")
 			);
 
 			assertEquals(
 					"Invalid result of to_csv() call with only name,index (StructrScript)",
 					expectedCsvWithIndexAndName,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne'), merge('index', 'name'))}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne', sort('name')), merge('index', 'name'))}")
 			);
 
 			assertEquals(
 					"Invalid result of to_csv() with delimiterChar = '|'. (StructrScript)",
 					expectedCsvWithNameAndIndexAndCustomDelimiterPipe,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne'), merge('name', 'index'), '|')}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne', sort('name')), merge('name', 'index'), '|')}")
 			);
 
 			assertEquals(
 					"Invalid result of to_csv() with delimiterChar = 'XXX'. Only first character should be used! (StructrScript)",
 					expectedCsvWithNameAndIndexAndCustomDelimiterXXX,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne'), merge('name', 'index'), 'XXX')}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne', sort('name')), merge('name', 'index'), 'XXX')}")
 			);
 
 			assertEquals(
 					"Invalid result of to_csv() call with only index,name AND quote character = '  (StructrScript)",
 					expectedCsvWithIndexAndNameAndSingleQuote,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne'), merge('index', 'name'), ';', \"'\")}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne', sort('name')), merge('index', 'name'), ';', \"'\")}")
 			);
 
 			assertEquals(
 					"Invalid result of to_csv() call with only index,name AND quote character = ' AFTER round-trip through to_csv, from_csv and to_csv (StructrScript)",
 					expectedCsvWithIndexAndNameAndSingleQuoteAfterRoundTrip,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(from_csv(to_csv(find('CsvTestOne'), merge('index', 'name'), ';', \"'\"), ';', \"'\"), merge('index', 'name'), ';', \"'\")}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(from_csv(to_csv(find('CsvTestOne', sort('name')), merge('index', 'name'), ';', \"'\"), ';', \"'\"), merge('index', 'name'), ';', \"'\")}")
 			);
 
 			assertEquals(
 					"Invalid result of to_csv() call with only index,name, singleQuoted and CRLF as recordSeparator (StructrScript)",
 					expectedCsvWithIndexAndNameAndSingleQuoteAndCRLF,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne'), merge('index', 'name'), ';', \"'\", '\\r\\n')}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne', sort('name')), merge('index', 'name'), ';', \"'\", '\\r\\n')}")
 			);
 
 			assertEquals(
 					"Invalid result of to_csv() call with only index,name, singleQuoted and CRLF as recordSeparator and no header (StructrScript)",
 					expectedCsvWithIndexAndNameAndSingleQuoteAndCRLFNoHeader,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne'), merge('index', 'name'), ';', \"'\", '\\r\\n', false)}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne', sort('name')), merge('index', 'name'), ';', \"'\", '\\r\\n', false)}")
 			);
 
 			assertEquals(
 					"Invalid result of to_csv() call with only index,name, singleQuoted and CRLF as recordSeparator and explicit header (StructrScript)",
 					expectedCsvWithIndexAndNameAndSingleQuoteAndCRLFWithExplicitHeader,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne'), merge('index', 'name'), ';', \"'\", '\\r\\n', true)}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne', sort('name')), merge('index', 'name'), ';', \"'\", '\\r\\n', true)}")
 			);
 
 			assertEquals(
 					"Invalid result of to_csv() call with only index,name, singleQuoted and CRLF as recordSeparator and localized header (without domain) (StructrScript)",
 					expectedCsvWithIndexAndNameAndSingleQuoteAndCRLFWithLocalizedHeader,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne'), merge('index', 'name'), ';', \"'\", '\\r\\n', true, true)}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne', sort('name')), merge('index', 'name'), ';', \"'\", '\\r\\n', true, true)}")
 			);
 
 			assertEquals(
 					"Invalid result of to_csv() call with only index,name, singleQuoted and CRLF as recordSeparator and localized header (with domain) (StructrScript)",
 					expectedCsvWithIndexAndNameAndSingleQuoteAndCRLFWithLocalizedHeaderWithDomain,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne'), merge('index', 'name'), ';', \"'\", '\\r\\n', true, true, 'CSV TEST Domain')}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne', sort('name')), merge('index', 'name'), ';', \"'\", '\\r\\n', true, true, 'CSV TEST Domain')}")
 			);
 
 			/**
@@ -278,73 +278,73 @@ public class CsvFunctionsTest extends StructrUiTest {
 			assertEquals(
 					"Invalid result of default Structr.to_csv() call (JavaScript)",
 					expectedDefaultCsv,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne'), 'csv'))}}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne', $.sort('name')), 'csv'))}}")
 			);
 
 			assertEquals(
 					"Invalid result of Structr.to_csv() call with only name,index (JavaScript)",
 					expectedCsvWithNameAndIndex,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne'), ['name', 'index']))}}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne', $.sort('name')), ['name', 'index']))}}")
 			);
 
 			assertEquals(
 					"Invalid result of Structr.to_csv() call with only name,index (JavaScript)",
 					expectedCsvWithIndexAndName,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne'), ['index', 'name']))}}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne', $.sort('name')), ['index', 'name']))}}")
 			);
 
 			assertEquals(
 					"Invalid result of Structr.to_csv() with delimiterChar = '|'. (JavaScript)",
 					expectedCsvWithNameAndIndexAndCustomDelimiterPipe,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne'), ['name', 'index'], '|'))}}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne', $.sort('name')), ['name', 'index'], '|'))}}")
 			);
 
 			assertEquals(
 					"Invalid result of Structr.to_csv() with delimiterChar = 'XXX'. Only first character should be used! (JavaScript)",
 					expectedCsvWithNameAndIndexAndCustomDelimiterXXX,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne'), ['name', 'index'], 'XXX'))}}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne', $.sort('name')), ['name', 'index'], 'XXX'))}}")
 			);
 
 			assertEquals(
 					"Invalid result of Structr.to_csv() call with only index,name AND quote character = '  (JavaScript)",
 					expectedCsvWithIndexAndNameAndSingleQuote,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne'), ['index', 'name'], ';', \"'\"))}}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne', $.sort('name')), ['index', 'name'], ';', \"'\"))}}")
 			);
 
 			assertEquals(
 					"Invalid result of Structr.to_csv() call with only index,name AND quote character = ' AFTER round-trip through to_csv, from_csv and to_csv (JavaScript)",
 					expectedCsvWithIndexAndNameAndSingleQuoteAfterRoundTrip,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.from_csv(Structr.to_csv(Structr.find('CsvTestOne'), ['index', 'name'], ';', \"'\"), ';', \"'\"), ['index', 'name'], ';', \"'\"))}}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.from_csv(Structr.to_csv(Structr.find('CsvTestOne', $.sort('name')), ['index', 'name'], ';', \"'\"), ';', \"'\"), ['index', 'name'], ';', \"'\"))}}")
 			);
 
 			assertEquals(
 					"Invalid result of Structr.to_csv() call with only index,name, singleQuoted and CRLF as recordSeparator (JavaScript)",
 					expectedCsvWithIndexAndNameAndSingleQuoteAndCRLF,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne'), ['index', 'name'], ';', \"'\", '\\r\\n'))}}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne', $.sort('name')), ['index', 'name'], ';', \"'\", '\\r\\n'))}}")
 			);
 
 			assertEquals(
 					"Invalid result of Structr.to_csv() call with only index,name, singleQuoted and CRLF as recordSeparator and no header (JavaScript)",
 					expectedCsvWithIndexAndNameAndSingleQuoteAndCRLFNoHeader,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne'), ['index', 'name'], ';', \"'\", '\\r\\n', false))}}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne', $.sort('name')), ['index', 'name'], ';', \"'\", '\\r\\n', false))}}")
 			);
 
 			assertEquals(
 					"Invalid result of Structr.to_csv() call with only index,name, singleQuoted and CRLF as recordSeparator and explicit header (JavaScript)",
 					expectedCsvWithIndexAndNameAndSingleQuoteAndCRLFWithExplicitHeader,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne'), ['index', 'name'], ';', \"'\", '\\r\\n', true))}}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne', $.sort('name')), ['index', 'name'], ';', \"'\", '\\r\\n', true))}}")
 			);
 
 			assertEquals(
 					"Invalid result of Structr.to_csv() call with only index,name, singleQuoted and CRLF as recordSeparator and localized header (without domain) (JavaScript)",
 					expectedCsvWithIndexAndNameAndSingleQuoteAndCRLFWithLocalizedHeader,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne'), ['index', 'name'], ';', \"'\", '\\r\\n', true, true))}}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne', $.sort('name')), ['index', 'name'], ';', \"'\", '\\r\\n', true, true))}}")
 			);
 
 			assertEquals(
 					"Invalid result of Structr.to_csv() call with only index,name, singleQuoted and CRLF as recordSeparator and localized header (with domain) (JavaScript)",
 					expectedCsvWithIndexAndNameAndSingleQuoteAndCRLFWithLocalizedHeaderWithDomain,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne'), ['index', 'name'], ';', \"'\", '\\r\\n', true, true, 'CSV TEST Domain'))}}")
+					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv(Structr.find('CsvTestOne', $.sort('name')), ['index', 'name'], ';', \"'\", '\\r\\n', true, true, 'CSV TEST Domain'))}}")
 			);
 
 			assertEquals(

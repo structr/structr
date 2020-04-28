@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -116,6 +116,11 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	@Override
 	public boolean hasRelationshipTo(final RelationshipType relType, final NodeInterface targetNode) {
 		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public <R extends AbstractRelationship> R getRelationshipTo(final RelationshipType relType, final NodeInterface targetNode) {
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override

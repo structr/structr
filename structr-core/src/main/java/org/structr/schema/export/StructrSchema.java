@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,8 +36,8 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.Tx;
-import org.structr.schema.json.InvalidSchemaException;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.InvalidSchemaException;
+import org.structr.api.schema.JsonSchema;
 
 /**
  * The main class to interact with the Structr Schema API.
@@ -54,9 +54,8 @@ public class StructrSchema {
 	 * @return the current Structr schema
 	 *
 	 * @throws FrameworkException
-	 * @throws URISyntaxException
 	 */
-	public static JsonSchema createFromDatabase(final App app) throws FrameworkException, URISyntaxException {
+	public static JsonSchema createFromDatabase(final App app) throws FrameworkException {
 		return createFromDatabase(app, null);
 	}
 
@@ -70,9 +69,8 @@ public class StructrSchema {
 	 * @return the current Structr schema
 	 *
 	 * @throws FrameworkException
-	 * @throws URISyntaxException
 	 */
-	public static JsonSchema createFromDatabase(final App app, final List<String> types) throws FrameworkException, URISyntaxException {
+	public static JsonSchema createFromDatabase(final App app, final List<String> types) throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {
 
@@ -92,9 +90,8 @@ public class StructrSchema {
 	 * @return
 	 *
 	 * @throws InvalidSchemaException
-	 * @throws URISyntaxException
 	 */
-	public static JsonSchema createFromSource(final String source) throws InvalidSchemaException, URISyntaxException {
+	public static JsonSchema createFromSource(final String source) throws InvalidSchemaException, URISyntaxException, FrameworkException {
 		return StructrSchema.createFromSource(new StringReader(source));
 	}
 
@@ -106,9 +103,8 @@ public class StructrSchema {
 	 * @return
 	 *
 	 * @throws InvalidSchemaException
-	 * @throws URISyntaxException
 	 */
-	public static JsonSchema createFromSource(final Reader reader) throws InvalidSchemaException, URISyntaxException {
+	public static JsonSchema createFromSource(final Reader reader) throws InvalidSchemaException, URISyntaxException, FrameworkException {
 
 		final Gson gson                      = new GsonBuilder().create();
 		final Map<String, Object> rawData    = gson.fromJson(reader, Map.class);
@@ -121,10 +117,8 @@ public class StructrSchema {
 	 *
 	 * @return
 	 *
-	 * @throws InvalidSchemaException
-	 * @throws URISyntaxException
 	 */
-	public static JsonSchema createEmptySchema() throws InvalidSchemaException, URISyntaxException {
+	public static JsonSchema createEmptySchema() throws InvalidSchemaException, URISyntaxException, FrameworkException {
 		return StructrSchema.createFromSource(JsonSchema.EMPTY_SCHEMA);
 	}
 
@@ -147,7 +141,7 @@ public class StructrSchema {
 	 * @throws FrameworkException
 	 * @throws URISyntaxException
 	 */
-	public static void replaceDatabaseSchema(final App app, final JsonSchema newSchema) throws FrameworkException, URISyntaxException {
+	public static void replaceDatabaseSchema(final App app, final JsonSchema newSchema) throws FrameworkException {
 
 		Services.getInstance().setOverridingSchemaTypesAllowed(true);
 
@@ -177,9 +171,15 @@ public class StructrSchema {
 				app.delete(schemaView);
 			}
 
-			newSchema.createDatabaseSchema(app, JsonSchema.ImportMode.replace);
+			newSchema.createDatabaseSchema(JsonSchema.ImportMode.replace);
 
 			tx.success();
+
+		} catch (Exception ex) {
+
+			if (ex instanceof FrameworkException) {
+				throw (FrameworkException)ex;
+			}
 		}
 	}
 
@@ -192,13 +192,19 @@ public class StructrSchema {
 	 * @throws FrameworkException
 	 * @throws URISyntaxException
 	 */
-	public static void extendDatabaseSchema(final App app, final JsonSchema newSchema) throws FrameworkException, URISyntaxException {
+	public static void extendDatabaseSchema(final App app, final JsonSchema newSchema) throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {
 
-			newSchema.createDatabaseSchema(app, JsonSchema.ImportMode.extend);
+			newSchema.createDatabaseSchema(JsonSchema.ImportMode.extend);
 
 			tx.success();
+
+		} catch (Exception ex) {
+
+			if (ex instanceof FrameworkException) {
+				throw (FrameworkException)ex;
+			}
 		}
 	}
 }

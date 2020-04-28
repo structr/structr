@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -216,8 +216,12 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	@Override
 	public int hashCode() {
-		return getUuid().hashCode();
-
+		final String uuid = getUuid();
+		if (uuid != null) {
+			return uuid.hashCode();
+		} else {
+			return dbRelationship.getId().hashCode();
+		}
 	}
 
 	@Override

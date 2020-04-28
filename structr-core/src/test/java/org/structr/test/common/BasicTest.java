@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.test.common;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -32,7 +33,6 @@ import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
 import org.structr.common.AccessMode;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -42,6 +42,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
+import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
@@ -49,7 +50,6 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.Security;
-import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -147,53 +147,45 @@ public class BasicTest extends StructrTest {
 
 		System.out.println("Done.");
 
-		Settings.CypherDebugLogging.setValue(true);
+		try (final Tx tx = app.tx()) {
 
-		try {
-			try (final Tx tx = app.tx()) {
+			int count = 0;
 
-				int count = 0;
+			try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
 
-				try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
-
-					for (TestSix test : results) {
-						count++;
-					}
-
-					total = results.calculateTotalResultCount(null, Settings.ResultCountSoftLimit.getValue());
+				for (TestSix test : results) {
+					count++;
 				}
 
-				System.out.println(count + " / " + total);
-
-				assertEquals("Invalid result count", num, count);
-				assertEquals("Invalid total count", num, total);
-
-				tx.success();
-
-			} catch (Exception fex) {
-				fex.printStackTrace();
-				fail("Unexpected exception");
+				total = results.calculateTotalResultCount(null, Settings.ResultCountSoftLimit.getValue());
 			}
 
-			try (final Tx tx = app.tx()) {
+			System.out.println(count + " / " + total);
 
-				try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
+			assertEquals("Invalid result count", num, count);
+			assertEquals("Invalid total count", num, total);
 
-					if (results.iterator().hasNext()) {
-						results.iterator().next();
-					}
+			tx.success();
+
+		} catch (Exception fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
+
+				if (results.iterator().hasNext()) {
+					results.iterator().next();
 				}
-
-				tx.success();
-
-			} catch (FrameworkException fex) {
-				fex.printStackTrace();
-				fail("Unexpected exception");
 			}
 
-		} finally {
+			tx.success();
 
-			Settings.CypherDebugLogging.setValue(false);
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
 		}
 	}
 
@@ -1207,14 +1199,14 @@ public class BasicTest extends StructrTest {
 			final List<GenericNode> nodes = createTestNodes(GenericNode.class, 2);
 			final NodeInterface startNode = nodes.get(0);
 			final NodeInterface endNode   = nodes.get(1);
-			NodeHasLocation rel           = null;
+			GenericRelationship rel       = null;
 
 			assertTrue(startNode != null);
 			assertTrue(endNode != null);
 
 			try (final Tx tx = app.tx()) {
 
-				rel = app.create(startNode, endNode, NodeHasLocation.class);
+				rel = app.create(startNode, endNode, GenericRelationship.class);
 				tx.success();
 			}
 
@@ -1222,8 +1214,8 @@ public class BasicTest extends StructrTest {
 
 				assertEquals(startNode.getUuid(), rel.getSourceNodeId());
 				assertEquals(endNode.getUuid(), rel.getTargetNodeId());
-				assertEquals(RelType.IS_AT.name(), rel.getType());
-				assertEquals(NodeHasLocation.class, rel.getClass());
+				assertEquals("GENERIC", rel.getType());
+				assertEquals(GenericRelationship.class, rel.getClass());
 			}
 
 		} catch (FrameworkException ex) {
@@ -1425,9 +1417,9 @@ public class BasicTest extends StructrTest {
 
 		try {
 
-			final NodeHasLocation rel = (createTestRelationships(NodeHasLocation.class, 1)).get(0);
-			final PropertyKey key1         = new StringProperty("jghsdkhgshdhgsdjkfgh");
-			final String val1              = "54354354546806849870";
+			final GenericRelationship rel = (createTestRelationships(GenericRelationship.class, 1)).get(0);
+			final PropertyKey key1        = new StringProperty("jghsdkhgshdhgsdjkfgh");
+			final String val1             = "54354354546806849870";
 
 			try (final Tx tx = app.tx()) {
 
@@ -1533,7 +1525,7 @@ public class BasicTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				GraphObjectComparator comp = new GraphObjectComparator(TestOne.anInt, GraphObjectComparator.ASCENDING);
+				Comparator comp = TestOne.anInt.sorted(false);
 
 				try {
 					comp.compare(null, null);
@@ -1590,6 +1582,8 @@ public class BasicTest extends StructrTest {
 				setPropertyTx(a, TestOne.anInt, 2);
 				setPropertyTx(b, TestOne.anInt, 1);
 				assertEquals(1, comp.compare(a, b));
+
+				tx.success();
 			}
 
 		} catch (FrameworkException ex) {
@@ -1609,7 +1603,7 @@ public class BasicTest extends StructrTest {
 			TestOne a = createTestNode(TestOne.class);
 			TestOne b = createTestNode(TestOne.class);
 
-			GraphObjectComparator comp = new GraphObjectComparator(TestOne.anInt, GraphObjectComparator.DESCENDING);
+			Comparator comp = TestOne.anInt.sorted(true);
 
 			try {
 				comp.compare(null, null);

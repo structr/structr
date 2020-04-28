@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,6 +35,11 @@ public class DateFormatFunction extends CoreFunction {
 	@Override
 	public String getName() {
 		return "date_format";
+	}
+
+	@Override
+	public String getSignature() {
+		return "value, pattern";
 	}
 
 	@Override

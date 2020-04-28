@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,8 +36,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.web.common.FileHelper;
 
 public interface MinifiedCssFile extends AbstractMinifiedFile {

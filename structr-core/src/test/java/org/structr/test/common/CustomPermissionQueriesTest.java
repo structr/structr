@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,11 +21,13 @@ package org.structr.test.common;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseFeature;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
@@ -48,211 +50,219 @@ public class CustomPermissionQueriesTest extends StructrTest {
 	@Test
 	public void test01SimplePermissionResolutionRead() {
 
-		this.cleanDatabaseAndSchema();
+		// don't run tests that depend on Cypher being available in the backend
+		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
-		final Class<Principal> principalType = StructrApp.getConfiguration().getNodeEntityClass("Principal");
-		Principal user1                      = null;
-		Class type1                          = null;
+			this.cleanDatabaseAndSchema();
 
-		try (final Tx tx = app.tx()) {
+			final Class<Principal> principalType = StructrApp.getConfiguration().getNodeEntityClass("Principal");
+			Principal user1                      = null;
+			Class type1                          = null;
 
-			// create a test user
-			user1 = app.create(principalType, "user1");
+			try (final Tx tx = app.tx()) {
 
-			final SchemaNode t1 = app.create(SchemaNode.class, "Type1");
+				// create a test user
+				user1 = app.create(principalType, "user1");
 
-			tx.success();
+				final SchemaNode t1 = app.create(SchemaNode.class, "Type1");
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
+				tx.success();
 
-		assertNotNull("User should have been created", user1);
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
+			}
 
-		try (final Tx tx = app.tx()) {
+			assertNotNull("User should have been created", user1);
 
-			type1 = StructrApp.getConfiguration().getNodeEntityClass("Type1");
+			try (final Tx tx = app.tx()) {
 
-			assertNotNull("Node type Type1 should exist.", type1);
+				type1 = StructrApp.getConfiguration().getNodeEntityClass("Type1");
 
-			final NodeInterface instance1 = app.create(type1, "instance1OfType1");
+				assertNotNull("Node type Type1 should exist.", type1);
 
-			assertNotNull("Instance of type Type1 should exist", instance1);
+				final NodeInterface instance1 = app.create(type1, "instance1OfType1");
 
-			tx.success();
+				assertNotNull("Instance of type Type1 should exist", instance1);
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
+				tx.success();
 
-		// check access for user1 on instance1
-		final App userApp = StructrApp.getInstance(SecurityContext.getInstance(user1, AccessMode.Backend));
-		try (final Tx tx = userApp.tx()) {
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
+			}
 
-			assertNull("User1 should NOT be able to find instance of type Type1", userApp.nodeQuery(type1).getFirst());
+			// check access for user1 on instance1
+			final App userApp = StructrApp.getInstance(SecurityContext.getInstance(user1, AccessMode.Backend));
+			try (final Tx tx = userApp.tx()) {
 
-			tx.success();
+				assertNull("User1 should NOT be able to find instance of type Type1", userApp.nodeQuery(type1).getFirst());
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
+				tx.success();
 
-		// set custom permission query on user
-		try (final Tx tx = userApp.tx()) {
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
+			}
 
-			// query returns always true if user exists
-			user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryRead"), "MATCH (p:Principal:" + randomTenantId + "{id: $principalUuid}) RETURN p IS NOT NULL");
+			// set custom permission query on user
+			try (final Tx tx = userApp.tx()) {
 
-			tx.success();
+				// query returns always true if user exists
+				user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryRead"), "MATCH (p:Principal:" + randomTenantId + "{id: $principalUuid}) RETURN p IS NOT NULL");
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
+				tx.success();
 
-		// check access for user1 on instance1
-		try (final Tx tx = userApp.tx()) {
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
+			}
 
-			assertNotNull("User1 should be able to find instance of type Type1", userApp.nodeQuery(type1).getFirst());
+			// check access for user1 on instance1
+			try (final Tx tx = userApp.tx()) {
 
-			tx.success();
+				assertNotNull("User1 should be able to find instance of type Type1", userApp.nodeQuery(type1).getFirst());
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
+				tx.success();
 
-		// set custom permission query on user
-		try (final Tx tx = userApp.tx()) {
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
+			}
 
-			// query returns always false if user exists
-			user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryRead"), "MATCH (p:Principal:" + randomTenantId + "{id: $principalUuid}) RETURN p IS NULL");
+			// set custom permission query on user
+			try (final Tx tx = userApp.tx()) {
 
-			tx.success();
+				// query returns always false if user exists
+				user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryRead"), "MATCH (p:Principal:" + randomTenantId + "{id: $principalUuid}) RETURN p IS NULL");
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
+				tx.success();
 
-		// check access for user1 on instance1
-		try (final Tx tx = userApp.tx()) {
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
+			}
 
-			assertNull("User1 should NOT be able to find instance of type Type1", userApp.nodeQuery(type1).getFirst());
+			// check access for user1 on instance1
+			try (final Tx tx = userApp.tx()) {
 
-			tx.success();
+				assertNull("User1 should NOT be able to find instance of type Type1", userApp.nodeQuery(type1).getFirst());
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
+			}
 		}
 	}
 
 	@Test
 	public void test02SimplePermissionResolutionWrite() {
 
-		final Class<Principal> principalType = StructrApp.getConfiguration().getNodeEntityClass("Principal");
-		Principal user1                      = null;
-		Class type1                          = null;
+		// don't run tests that depend on Cypher being available in the backend
+		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
-		try (final Tx tx = app.tx()) {
+			final Class<Principal> principalType = StructrApp.getConfiguration().getNodeEntityClass("Principal");
+			Principal user1                      = null;
+			Class type1                          = null;
 
-			// create a test user
-			user1 = app.create(principalType, "user1");
+			try (final Tx tx = app.tx()) {
 
-			final SchemaNode t1 = app.create(SchemaNode.class, "Type1");
+				// create a test user
+				user1 = app.create(principalType, "user1");
 
-			tx.success();
+				final SchemaNode t1 = app.create(SchemaNode.class, "Type1");
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
+				tx.success();
 
-		assertNotNull("User should have been created", user1);
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
+			}
 
-		try (final Tx tx = app.tx()) {
+			assertNotNull("User should have been created", user1);
 
-			type1 = StructrApp.getConfiguration().getNodeEntityClass("Type1");
+			try (final Tx tx = app.tx()) {
 
-			assertNotNull("Node type Type1 should exist.", type1);
+				type1 = StructrApp.getConfiguration().getNodeEntityClass("Type1");
 
-			final NodeInterface instance1 = app.create(type1, "instance1OfType1");
+				assertNotNull("Node type Type1 should exist.", type1);
 
-			assertNotNull("Instance of type Type1 should exist", instance1);
+				final NodeInterface instance1 = app.create(type1, "instance1OfType1");
 
-			// make instance1 visible to user1
-			instance1.grant(Permission.read, user1);
+				assertNotNull("Instance of type Type1 should exist", instance1);
 
-			tx.success();
+				// make instance1 visible to user1
+				instance1.grant(Permission.read, user1);
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
+				tx.success();
 
-		// check access for user1 on instance1
-		final App userApp = StructrApp.getInstance(SecurityContext.getInstance(user1, AccessMode.Backend));
-		try (final Tx tx = userApp.tx()) {
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
+			}
 
-			userApp.nodeQuery(type1).getFirst().setProperty(GraphObject.visibleToPublicUsers, true);
+			// check access for user1 on instance1
+			final App userApp = StructrApp.getInstance(SecurityContext.getInstance(user1, AccessMode.Backend));
+			try (final Tx tx = userApp.tx()) {
 
-			tx.success();
+				userApp.nodeQuery(type1).getFirst().setProperty(GraphObject.visibleToPublicUsers, true);
 
-		} catch (FrameworkException fex) {
-			assertEquals("User1 should NOT be able to modify instance of type Type1", 403, fex.getStatus());
-		}
+				tx.success();
 
-		// set custom permission query on user
-		try (final Tx tx = userApp.tx()) {
+			} catch (FrameworkException fex) {
+				assertEquals("User1 should NOT be able to modify instance of type Type1", 403, fex.getStatus());
+			}
 
-			// query returns always true if user exists
-			user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryWrite"), "MATCH (p:Principal:" + randomTenantId + "{id: $principalUuid}) RETURN p IS NOT NULL");
+			// set custom permission query on user
+			try (final Tx tx = userApp.tx()) {
 
-			tx.success();
+				// query returns always true if user exists
+				user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryWrite"), "MATCH (p:Principal:" + randomTenantId + "{id: $principalUuid}) RETURN p IS NOT NULL");
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
+				tx.success();
 
-		// check access for user1 on instance1
-		try (final Tx tx = userApp.tx()) {
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
+			}
 
-			userApp.nodeQuery(type1).getFirst().setProperty(GraphObject.visibleToPublicUsers, true);
+			// check access for user1 on instance1
+			try (final Tx tx = userApp.tx()) {
 
-			tx.success();
+				userApp.nodeQuery(type1).getFirst().setProperty(GraphObject.visibleToPublicUsers, true);
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
+				tx.success();
 
-		// set custom permission query on user
-		try (final Tx tx = userApp.tx()) {
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
+			}
 
-			// query returns always false if user exists
-			user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryRead"), "MATCH (p:Principal:" + randomTenantId + "{id: $principalUuid}) RETURN p IS NULL");
+			// set custom permission query on user
+			try (final Tx tx = userApp.tx()) {
 
-			tx.success();
+				// query returns always false if user exists
+				user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryRead"), "MATCH (p:Principal:" + randomTenantId + "{id: $principalUuid}) RETURN p IS NULL");
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
+				tx.success();
 
-		// check access for user1 on instance1
-		try (final Tx tx = userApp.tx()) {
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
+			}
 
-			userApp.nodeQuery(type1).getFirst().setProperty(GraphObject.visibleToPublicUsers, true);
+			// check access for user1 on instance1
+			try (final Tx tx = userApp.tx()) {
 
-			tx.success();
+				userApp.nodeQuery(type1).getFirst().setProperty(GraphObject.visibleToPublicUsers, true);
 
-		} catch (FrameworkException fex) {
-			assertEquals("User1 should NOT be able to modify instance of type Type1", 403, fex.getStatus());
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				assertEquals("User1 should NOT be able to modify instance of type Type1", 403, fex.getStatus());
+			}
 		}
 	}
 

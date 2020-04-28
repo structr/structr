@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,6 +33,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
@@ -46,7 +50,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
@@ -61,9 +64,6 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
 import org.structr.test.core.entity.TestEight;
 import org.structr.test.core.entity.TestFive;
 import org.structr.test.core.entity.TestOne;
@@ -600,7 +600,7 @@ public class SystemTest extends StructrTest {
 			JsonSchema schema         = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Item");
 
-			type.relate(type, "NEXT", Relation.Cardinality.OneToOne, "prev", "next");
+			type.relate(type, "NEXT", Cardinality.OneToOne, "prev", "next");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -692,7 +692,7 @@ public class SystemTest extends StructrTest {
 			JsonSchema schema         = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Item");
 
-			type.relate(type, "NEXT", Relation.Cardinality.OneToMany, "prev", "next");
+			type.relate(type, "NEXT", Cardinality.OneToMany, "prev", "next");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -788,7 +788,7 @@ public class SystemTest extends StructrTest {
 			JsonSchema schema         = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Item");
 
-			type.relate(type, "NEXT", Relation.Cardinality.ManyToOne, "prev", "next");
+			type.relate(type, "NEXT", Cardinality.ManyToOne, "prev", "next");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -988,34 +988,38 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testConcurrentIdenticalRelationshipCreation() {
 
-		try {
-			final ExecutorService service = Executors.newCachedThreadPool();
-			final TestSix source          = createTestNode(TestSix.class);
-			final TestOne target          = createTestNode(TestOne.class);
+		final ExecutorService service = Executors.newCachedThreadPool();
 
-			final Future one = service.submit(new RelationshipCreator(source, target));
-			final Future two = service.submit(new RelationshipCreator(source, target));
+		for (int i=0; i<1000; i++) {
 
-			// wait for completion
-			one.get();
-			two.get();
+			try {
+				final TestSix source          = createTestNode(TestSix.class);
+				final TestOne target          = createTestNode(TestOne.class);
 
-			try (final Tx tx = app.tx()) {
+				final Future one = service.submit(new RelationshipCreator(source, target));
+				final Future two = service.submit(new RelationshipCreator(source, target));
 
-				// check for a single relationship since all three parts of
-				// both relationships are equal => only one should be created
-				final List<TestOne> list = Iterables.toList(source.getProperty(TestSix.oneToManyTestOnes));
+				// wait for completion
+				one.get();
+				two.get();
 
-				assertEquals("Invalid concurrent identical relationship creation result", 1, list.size());
+				try (final Tx tx = app.tx()) {
 
-				tx.success();
+					// check for a single relationship since all three parts of
+					// both relationships are equal => only one should be created
+					final List<TestOne> list = Iterables.toList(source.getProperty(TestSix.oneToManyTestOnes));
+
+					assertEquals("Invalid concurrent identical relationship creation result", 1, list.size());
+
+					tx.success();
+				}
+
+			} catch (ExecutionException | InterruptedException | FrameworkException fex) {
+				// success
 			}
-
-			service.shutdownNow();
-
-		} catch (ExecutionException | InterruptedException | FrameworkException fex) {
-			logger.warn("", fex);
 		}
+
+		service.shutdownNow();
 	}
 
 	@Test
@@ -1177,7 +1181,7 @@ public class SystemTest extends StructrTest {
 			final JsonObjectType test1 = sourceSchema.addType("Test1");
 			final JsonObjectType test2 = sourceSchema.addType("Test2");
 
-			test1.relate(test2, "TEST", Relation.Cardinality.OneToOne, "source", "target");
+			test1.relate(test2, "TEST", Cardinality.OneToOne, "source", "target");
 
 			StructrSchema.extendDatabaseSchema(app, sourceSchema);
 

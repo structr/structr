@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,17 +18,23 @@
  */
 package org.structr.autocomplete;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
+import org.structr.core.function.ParseResult;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.function.Functions;
-import org.structr.schema.action.Function;
+import org.structr.core.parser.ConstantExpression;
+import org.structr.core.parser.Expression;
+import org.structr.core.parser.FunctionExpression;
+import org.structr.core.parser.RootExpression;
+import org.structr.core.parser.ValueExpression;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Hint;
 
 /**
@@ -37,30 +43,72 @@ import org.structr.schema.action.Hint;
  */
 public class PlaintextHintProvider extends AbstractHintProvider {
 
+	private static final Logger logger = LoggerFactory.getLogger(PlaintextHintProvider.class);
+
 	@Override
-	protected List<Hint> getAllHints(final GraphObject currentNode, final String currentToken, final String previousToken, final String thirdToken) {
+	protected List<Hint> getAllHints(final SecurityContext securityContext, final GraphObject currentNode, final String editorText, final ParseResult result) {
 
-		final List<Hint> hints = new LinkedList<>();
-
-		// add functions
-		for (final Function<Object, Object> func : Functions.getFunctions()) {
-			hints.add(func);
+		// don't interpret invalid strings
+		if (editorText != null && (editorText.endsWith("''") || editorText.endsWith("\"\""))) {
+			return Collections.EMPTY_LIST;
 		}
 
-		// sort hints
-		Collections.sort(hints, comparator);
+		final List<Hint> hints    = new LinkedList<>();
+		final ActionContext ctx   = new ActionContext(securityContext);
 
-		// add keywords
-		if ("(".equals(currentToken) && StringUtils.isNotBlank(previousToken)) {
-			
-			hints.add(0, createHint("this",     "", "The current object",         "this"));
-			hints.add(0, createHint("response", "", "The current response",       "response"));
-			hints.add(0, createHint("request",  "", "The current request",        "request"));
-			hints.add(0, createHint("page",     "", "The current page",           "page"));
-			hints.add(0, createHint("me",       "", "The current user",           "me"));
-			hints.add(0, createHint("locale",   "", "The current locale",         "locale"));
-			hints.add(0, createHint("current",  "", "The current details object", "current"));
-			
+		try {
+
+			// parse function but ignore exceptions, we're only interested in the expression structure
+			Functions.parse(ctx, currentNode, editorText, result);
+
+		} catch (FrameworkException ignore) { }
+
+		final Expression root = result.getRootExpression();
+		Expression last       = root;
+		boolean found         = true;
+
+		while (found) {
+
+			found = false;
+
+			final List<Expression> children = last.getChildren();
+			if (children != null && !children.isEmpty()) {
+
+				final Expression child = children.get(children.size() - 1);
+				if (!(child instanceof ConstantExpression)) {
+
+					// ignore constants
+					last = children.get(children.size() - 1);
+					found = true;
+				}
+			}
+		}
+
+		if (last instanceof RootExpression) {
+
+			addAllHints(hints);
+		}
+
+		if (last instanceof ValueExpression) {
+
+			handleValueExpression(securityContext, (ValueExpression)last, currentNode, hints, result);
+		}
+
+		if (last instanceof FunctionExpression) {
+
+			final FunctionExpression fe   = (FunctionExpression)last;
+			final List<Hint> contextHints = fe.getContextHints();
+
+			if (contextHints != null) {
+
+				hints.addAll(contextHints);
+
+				Collections.sort(hints, comparator);
+
+			} else {
+
+				addAllHints(hints);
+			}
 		}
 
 		return hints;
@@ -71,72 +119,29 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 		return sourceName;
 	}
 
-	@Override
-	public List<GraphObject> getHints(final GraphObject currentEntity, final String type, final String mainToken, final String secondaryToken, final String otherToken, final int line, final int cursorPosition) {
-
-		final List<String> tokens     = parseTokens(mainToken, cursorPosition);
-		final String currentToken     = getTokenOrBlank(tokens, 0);
-		final String previousToken    = getTokenOrBlank(tokens, 1);
-		final String thirdToken       = getTokenOrBlank(tokens, 2);
-
-		return super.getHints(currentEntity, type, currentToken, previousToken, thirdToken, line, cursorPosition);
-	}
-
-	private List<String> parseTokens(final String source, final int cursorPosition) {
-
-		final int length            = cursorPosition != -1 && cursorPosition < source.length() ? cursorPosition : source.length();
-		final List<String> tokens   = new ArrayList<>();
-		final StringBuilder buf     = new StringBuilder();
-		boolean currentIsLetter     = false;
-		boolean lastWasLetter       = false;
-
-		for (int i=0; i<length; i++) {
-
-			final char c    = source.charAt(i);
-			lastWasLetter   = currentIsLetter;
-			currentIsLetter = Character.isDigit(c) || Character.isLetter(c) || c == '_';
-
-			if (lastWasLetter != currentIsLetter) {
-				tokens.add(buf.toString().trim());
-				buf.setLength(0);
-			}
-
-			buf.append(c);
-		}
-
-		tokens.add(buf.toString().trim());
-
-		// remove single point (".") tokens between two strings
-		int len = tokens.size();
-		for (int i=1; i<len; i++) {
-
-			final String token  = tokens.get(i);
-			final String before = tokens.get(i-1);
-
-			if (i+1 < len) {
-
-				final String after  = tokens.get(i+1);
-				if (".".equals(token) && !".".equals(before) && !".".equals(after)) {
-
-					tokens.remove(i);
-					len -= 1;
-				}
-			}
-		}
-
-		return tokens;
-	}
-
 	// ----- private methods -----
-	private String getTokenOrBlank(final List<String> tokens, final int reverseIndex) {
+	private void handleValueExpression(final SecurityContext securityContext, final ValueExpression expression, final GraphObject currentNode, final List<Hint> hints, final ParseResult result) {
 
-		final int length = tokens.size();
-		final int index  = length - reverseIndex - 1;
+		final String keyword = expression.getKeyword();
 
-		if (index >= 0 && length > 0 && index < length) {
-			return tokens.get(index);
+		// keyword can consist of multiple keywords, separated by ".", so we need to
+		// split the list and resolve the path
+		final String[] parts = keyword.split("[\\.]+", -1);
+		final int length     = parts.length;
+
+		if (length > 1) {
+
+			// replace tokens in result (must be split by ".")
+			result.getTokens().clear();
+			result.getTokens().addAll(Arrays.asList(parts));
+
+			// evaluate first part only for now..
+			handleToken(securityContext, parts[0], currentNode, hints, result);
+
+		} else {
+
+			addAllHints(hints);
 		}
-
-		return "";
 	}
+
 }

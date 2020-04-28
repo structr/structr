@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,6 +30,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
@@ -40,6 +41,7 @@ import org.structr.test.rest.entity.TestOne;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
 
 /**
  *
@@ -131,8 +133,6 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(200)
 				.body("result_count",       equalTo(4))
-//				.body("query_time",         lessThan("0.1"))
-//				.body("serialization_time", lessThan("0.01"))
 
 				.body("result[0]",          isEntity(TestOne.class))
 				.body("result[0].aLong",    equalTo(10))
@@ -162,8 +162,6 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(200)
 				.body("result_count",       equalTo(4))
-//				.body("query_time",         lessThan("0.1"))
-//				.body("serialization_time", lessThan("0.01"))
 
 				.body("result[0]",          isEntity(TestOne.class))
 				.body("result[0].aLong",    equalTo(40))
@@ -192,8 +190,6 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(200)
 				.body("result_count",       equalTo(4))
-//				.body("query_time",         lessThan("0.1"))
-//				.body("serialization_time", lessThan("0.01"))
 
 				.body("result[0]",          isEntity(TestOne.class))
 				.body("result[0].aLong",    equalTo(20))
@@ -308,5 +304,93 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.get("/TestUser/" + tester.getUuid() + "/out?pageSize=2");
 
 
+	}
+
+	@Test
+	public void testSortingByMultipleKeys() {
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name7"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name5"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name2"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name1"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name3"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name4"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 10L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name9"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 10L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name8"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 10L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name6"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 10L));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		//final List<TestOne> result1 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong'), sort('name'))}", "test1");
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result[0].name",    equalTo("name4"))
+			.body("result[1].name",    equalTo("name6"))
+			.body("result[2].name",    equalTo("name8"))
+			.body("result[3].name",    equalTo("name9"))
+			.body("result[4].name",    equalTo("name1"))
+			.body("result[5].name",    equalTo("name2"))
+			.body("result[6].name",    equalTo("name3"))
+			.body("result[7].name",    equalTo("name5"))
+			.body("result[8].name",    equalTo("name7"))
+			.when().get("/TestOne?sort=aLong&sort=name");
+
+
+		//final List<TestOne> result2 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong', true), sort('name'))}", "test2");
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result[0].name",    equalTo("name1"))
+			.body("result[1].name",    equalTo("name2"))
+			.body("result[2].name",    equalTo("name3"))
+			.body("result[3].name",    equalTo("name5"))
+			.body("result[4].name",    equalTo("name7"))
+			.body("result[5].name",    equalTo("name4"))
+			.body("result[6].name",    equalTo("name6"))
+			.body("result[7].name",    equalTo("name8"))
+			.body("result[8].name",    equalTo("name9"))
+			.when().get("/TestOne?sort=aLong&sort=name&order=desc&order=asc");
+
+		//final List<TestOne> result3 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong'), sort('name', true))}", "test3");
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result[0].name",    equalTo("name9"))
+			.body("result[1].name",    equalTo("name8"))
+			.body("result[2].name",    equalTo("name6"))
+			.body("result[3].name",    equalTo("name4"))
+			.body("result[4].name",    equalTo("name7"))
+			.body("result[5].name",    equalTo("name5"))
+			.body("result[6].name",    equalTo("name3"))
+			.body("result[7].name",    equalTo("name2"))
+			.body("result[8].name",    equalTo("name1"))
+			.when().get("/TestOne?sort=aLong&sort=name&order=asc&order=desc");
+
+		//final List<TestOne> result4 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong'), sort('anInt'), sort('name'))}", "test4");
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result[0].name",    equalTo("name4"))
+			.body("result[1].name",    equalTo("name6"))
+			.body("result[2].name",    equalTo("name8"))
+			.body("result[3].name",    equalTo("name9"))
+			.body("result[4].name",    equalTo("name2"))
+			.body("result[5].name",    equalTo("name3"))
+			.body("result[6].name",    equalTo("name5"))
+			.body("result[7].name",    equalTo("name1"))
+			.body("result[8].name",    equalTo("name7"))
+			.when().get("/TestOne?sort=aLong&sort=anInt&sort=name");
+
+		//final List<TestOne> result5 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong'), sort('anInt', true), sort('name'))}", "test5");
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result[0].name",    equalTo("name9"))
+			.body("result[1].name",    equalTo("name8"))
+			.body("result[2].name",    equalTo("name4"))
+			.body("result[3].name",    equalTo("name6"))
+			.body("result[4].name",    equalTo("name1"))
+			.body("result[5].name",    equalTo("name7"))
+			.body("result[6].name",    equalTo("name3"))
+			.body("result[7].name",    equalTo("name5"))
+			.body("result[8].name",    equalTo("name2"))
+			.when().get("/TestOne?sort=aLong&sort=anInt&sort=name&order=asc&order=desc&order=asc");
 	}
 }

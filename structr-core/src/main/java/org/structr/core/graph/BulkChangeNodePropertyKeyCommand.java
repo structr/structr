@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
@@ -60,22 +59,22 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 		if (graphDb != null && StringUtils.isNotBlank(oldKey) && StringUtils.isNotBlank(newKey)) {
 
-			Iterator<AbstractNode> nodeIterator = null;
+			Iterable<AbstractNode> nodes = null;
 
 			if (properties.containsKey(AbstractNode.type.dbName())) {
 
 				type = (String) properties.get(AbstractNode.type.dbName());
 
-				nodeIterator = Iterables.map(nodeFactory, graphDb.getNodesByLabel(type)).iterator();
+				nodes = Iterables.map(nodeFactory, graphDb.getNodesByLabel(type));
 
 				properties.remove(AbstractNode.type.dbName());
 
 			} else {
 
-				nodeIterator = Iterables.map(nodeFactory, graphDb.getAllNodes()).iterator();
+				nodes = Iterables.map(nodeFactory, graphDb.getAllNodes());
 			}
 
-			final long count = bulkGraphOperation(securityContext, nodeIterator, 1000, "ChangeNodePropertyKey", new BulkGraphOperation<AbstractNode>() {
+			final long count = bulkGraphOperation(securityContext, nodes, 1000, "ChangeNodePropertyKey", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {

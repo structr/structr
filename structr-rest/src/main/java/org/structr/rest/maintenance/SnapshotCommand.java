@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.schema.InvalidSchemaException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -41,8 +42,7 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.InvalidSchemaException;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonSchema;
 
 /**
  *
@@ -135,7 +135,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 
 			tx.success();
 
-		} catch (IOException | URISyntaxException ioex) {
+		} catch (IOException ioex) {
 			logger.warn("", ioex);
 		}
 	}
@@ -152,12 +152,11 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 				final File snapshotFile = locateFile(fileName, false);
 				try (final Reader reader = new FileReader(snapshotFile)) {
 
-					final JsonSchema schema = StructrSchema.createFromSource(reader);
-					StructrSchema.replaceDatabaseSchema(app, schema);
+					StructrSchema.replaceDatabaseSchema(app, StructrSchema.createFromSource(reader));
 
-				} catch (InvalidSchemaException iex) {
+				} catch (InvalidSchemaException | URISyntaxException ex) {
 
-					throw new FrameworkException(422, iex.getMessage());
+					throw new FrameworkException(422, ex.getMessage());
 				}
 
 			} else {
@@ -167,7 +166,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 
 			tx.success();
 
-		} catch (IOException | URISyntaxException ioex) {
+		} catch (IOException ioex) {
 			logger.warn("", ioex);
 		}
 	}
@@ -179,22 +178,14 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 		// isolate write output
 		try (final Tx tx = app.tx()) {
 
-			try {
-
-				final JsonSchema schema = StructrSchema.createEmptySchema();
-				StructrSchema.replaceDatabaseSchema(app, schema);
-
-			} catch (InvalidSchemaException iex) {
-
-				throw new FrameworkException(422, iex.getMessage());
-			}
+			StructrSchema.replaceDatabaseSchema(app, StructrSchema.createEmptySchema());
 
 			tx.success();
 
-		} catch (URISyntaxException use) {
-			logger.warn("", use);
-		}
+		} catch (InvalidSchemaException | URISyntaxException ex) {
 
+			throw new FrameworkException(422, ex.getMessage());
+		}
 	}
 
 	private void addSnapshot(final String fileName) throws FrameworkException {
@@ -209,12 +200,11 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 				final File snapshotFile = locateFile(fileName, false);
 				try (final Reader reader = new FileReader(snapshotFile)) {
 
-					final JsonSchema schema = StructrSchema.createFromSource(reader);
-					StructrSchema.extendDatabaseSchema(app, schema);
+					StructrSchema.extendDatabaseSchema(app, StructrSchema.createFromSource(reader));
 
-				} catch (InvalidSchemaException iex) {
+				} catch (InvalidSchemaException | URISyntaxException ex) {
 
-					throw new FrameworkException(422, iex.getMessage());
+					throw new FrameworkException(422, ex.getMessage());
 				}
 
 			} else {
@@ -224,7 +214,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 
 			tx.success();
 
-		} catch (IOException | URISyntaxException ioex) {
+		} catch (IOException  ioex) {
 			logger.warn("", ioex);
 		}
 	}

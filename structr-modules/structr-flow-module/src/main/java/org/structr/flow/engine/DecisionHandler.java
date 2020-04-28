@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,12 +32,19 @@ public class DecisionHandler implements FlowHandler<Decision> {
 	public FlowElement handle(final Context context, final Decision flowElement) throws FlowException {
 
 		final DataSource condition = flowElement.getCondition();
-		final Object value         = condition.get(context);
 
-		if (isTrue(value)) {
+		if (condition != null) {
 
-			return flowElement.getTrueElement();
+			final Object value = condition.get(context);
 
+			if (isTrue(value)) {
+
+				return flowElement.getTrueElement();
+
+			} else {
+
+				return flowElement.getFalseElement();
+			}
 		} else {
 
 			return flowElement.getFalseElement();

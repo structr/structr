@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,6 +32,11 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 		return "error";
+	}
+
+	@Override
+	public String getSignature() {
+		return "propertyName, errorToken [, errorMessage]";
 	}
 
 	@Override

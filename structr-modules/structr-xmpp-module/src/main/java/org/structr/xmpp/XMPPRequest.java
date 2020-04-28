@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,11 +20,11 @@ package org.structr.xmpp;
 
 import java.net.URI;
 import org.jivesoftware.smack.packet.IQ.Type;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 
 /**
  *

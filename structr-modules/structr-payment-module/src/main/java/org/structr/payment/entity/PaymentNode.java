@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,6 +24,9 @@
 package org.structr.payment.entity;
 
 import java.net.URI;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -32,7 +35,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeInterface;
 import org.structr.payment.api.APIError;
 import org.structr.payment.api.APIResponse;
@@ -48,8 +50,6 @@ import org.structr.payment.impl.paypal.PayPalPaymentProvider;
 import org.structr.payment.impl.stripe.StripePaymentProvider;
 import org.structr.payment.impl.test.TestPaymentProvider;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 
 /**
  *

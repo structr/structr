@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,11 @@ public class RoundFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 		return "round";
+	}
+
+	@Override
+	public String getSignature() {
+		return "value [, decimalPlaces ]";
 	}
 
 	@Override

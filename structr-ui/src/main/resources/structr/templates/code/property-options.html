@@ -1,25 +1,24 @@
 <div id="property-options">
 	<div id="default-buttons" class="property-options-group">
-		<div><label>Property actions</label></div>
 		<div id="property-actions"></div>
 		<div style="clear: both;"></div>
 	</div>
 	<div class="property-options-group">
-		<p class="input"><label>Name</label><input type="text" id="property-name-input" size="30" value="${config.property.name}" /></p>
-		<p class="input"><label>Content type</label><input type="text" id="property-content-type-input" size="30" value="${config.property.contentType || ''}" /></p>
-		<p class="input"><label>Type hint</label><input type="text" id="property-type-hint-input" size="30" value="${config.property.typeHint || ''}" /></p>
-		<p class="input"><label>Database name</label><input type="text" id="property-dbname-input" size="30" value="${config.property.dbName || ''}" /></p>
-		<p class="input"><label>Format</label><input type="text" id="property-format-input" size="30" value="${config.property.format || ''}" /></p>
-		<p class="input"><label>Default value</label><input type="text" id="property-default-input" size="30" value="${config.property.defaultValue || ''}" /></p>
+		<p class="input"><label>Name</label><input type="text" id="property-name-input" size="30" data-property="name" value="${config.property.name}" /></p>
+		<p class="input"><label>Content type</label><input type="text" id="property-content-type-input" size="30" data-property="contentType" value="${config.property.contentType || ''}" /></p>
+		<p class="input"><label>Type hint</label><input type="text" id="property-type-hint-input" size="30" data-property="typeHint" value="${config.property.typeHint || ''}" /></p>
+		<p class="input"><label>Database name</label><input type="text" id="property-dbname-input" size="30" data-property="dbName" value="${config.property.dbName || ''}" /></p>
+		<p class="input"><label>Format</label><input type="text" id="property-format-input" size="30" data-property="format" value="${config.property.format || ''}" /></p>
+		<p class="input"><label>Default value</label><input type="text" id="property-default-input" size="30" data-property="defaultValue" value="${config.property.defaultValue || ''}" /></p>
 		<div style="clear: both;"></div>
 	</div>
-	<div id="default-buttons" class="property-options-group">
+	<div class="property-options-group">
 		<div><label>Options</label></div>
-		<p class="checkbox"><input type="checkbox" id="property-unique" data-property="unique" /><span class="toggle-checkbox" data-target="#property-unique">Property value must be unique</span></p>
-		<p class="checkbox"><input type="checkbox" id="property-composite" data-property="compound" /><span class="toggle-checkbox" data-target="#property-composite">Include in composite uniqueness</span></p>
-		<p class="checkbox"><input type="checkbox" id="property-notnull" data-property="notNull" /><span class="toggle-checkbox" data-target="#property-notnull">Property value must not be null</span></p>
-		<p class="checkbox"><input type="checkbox" id="property-indexed" data-property="indexed" /><span class="toggle-checkbox" data-target="#property-indexed">Property value is indexed</span></p>
-		<p class="checkbox"><input type="checkbox" id="property-cached" data-property="isCachingEnabled" /><span class="toggle-checkbox" data-target="#property-cached">Property value can be cached</span></p>
+		<p class="checkbox"><label for="property-unique"><input type="checkbox" id="property-unique" data-property="unique" ${config.property.unique ? 'checked' : ''} /> Property value must be unique</label></p>
+		<p class="checkbox"><label for="property-composite"><input type="checkbox" id="property-composite" data-property="compound" ${config.property.compound ? 'checked' : ''} /> Include in composite uniqueness</label></p>
+		<p class="checkbox"><label for="property-notnull"><input type="checkbox" id="property-notnull" data-property="notNull" ${config.property.notNull ? 'checked' : ''} /> Property value must not be null</label></p>
+		<p class="checkbox"><label for="property-indexed"><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''} /> Property value is indexed</label></p>
+		<p class="checkbox"><label for="property-cached"><input type="checkbox" id="property-cached" data-property="isCachingEnabled" ${config.property.isCachingEnabled ? 'checked' : ''} /> Property value can be cached</label></p>
 		<div style="clear: both;"></div>
 	</div>
 </div>

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -127,8 +127,12 @@
 	background-position: -244px -28px;
 }
 
-.sprite-comment {
+.sprite-clock {
 	background-position: -268px -28px;
+}
+
+.sprite-comment {
+	background-position: -292px -28px;
 }
 
 .sprite-compress {
@@ -154,7 +158,7 @@
 .sprite-cross_small_grey {
 	width: 12px;
 	height: 12px;
-	background-position: -292px -28px;
+	background-position: -312px -4px;
 }
 
 .sprite-cursor {
@@ -175,16 +179,20 @@
 	background-position: -196px -52px;
 }
 
-.sprite-database_gear {
+.sprite-database_error {
 	background-position: -220px -52px;
 }
 
-.sprite-database_table {
+.sprite-database_gear {
 	background-position: -244px -52px;
 }
 
-.sprite-delete {
+.sprite-database_table {
 	background-position: -268px -52px;
+}
+
+.sprite-delete {
+	background-position: -292px -52px;
 }
 
 .sprite-delete_gray {
@@ -211,24 +219,28 @@
 	background-position: -124px -76px;
 }
 
-.sprite-folder {
+.sprite-find {
 	background-position: -172px -76px;
 }
 
-.sprite-folder_add {
+.sprite-folder {
 	background-position: -196px -76px;
 }
 
-.sprite-folder_connect {
+.sprite-folder_add {
 	background-position: -220px -76px;
 }
 
-.sprite-folder_database {
+.sprite-folder_connect {
 	background-position: -244px -76px;
 }
 
-.sprite-folder_delete {
+.sprite-folder_database {
 	background-position: -268px -76px;
+}
+
+.sprite-folder_delete {
+	background-position: -292px -76px;
 }
 
 .sprite-folder_disconnect {
@@ -239,256 +251,292 @@
 	background-position: -28px -100px;
 }
 
-.sprite-folder_upload {
+.sprite-folder_star {
 	background-position: -52px -100px;
 }
 
-.sprite-group {
+.sprite-folder_upload {
 	background-position: -76px -100px;
 }
 
-.sprite-group_add {
+.sprite-github {
+	width: 30px;
+	height: 30px;
 	background-position: -100px -100px;
 }
 
+.sprite-gmail {
+	width: 30px;
+	height: 30px;
+	background-position: -138px -100px;
+}
+
+.sprite-group {
+	background-position: -176px -100px;
+}
+
+.sprite-group_add {
+	background-position: -200px -100px;
+}
+
 .sprite-group_delete {
-	background-position: -124px -100px;
+	background-position: -224px -100px;
 }
 
 .sprite-group_link {
-	background-position: -148px -100px;
+	background-position: -248px -100px;
 }
 
 .sprite-hamburger_white {
-	background-position: -172px -100px;
+	background-position: -272px -100px;
 }
 
 .sprite-help {
-	background-position: -196px -100px;
+	background-position: -296px -100px;
 }
 
 .sprite-icon_microphone {
 	width: 20px;
 	height: 20px;
-	background-position: -220px -100px;
-}
-
-.sprite-image {
-	background-position: -248px -100px;
-}
-
-.sprite-information {
-	background-position: -272px -100px;
-}
-
-.sprite-key {
 	background-position: -4px -124px;
 }
 
+.sprite-image {
+	background-position: -32px -124px;
+}
+
+.sprite-information {
+	background-position: -56px -124px;
+}
+
+.sprite-key {
+	background-position: -176px -124px;
+}
+
 .sprite-key_add {
-	background-position: -28px -124px;
+	background-position: -200px -124px;
 }
 
 .sprite-layout {
-	background-position: -52px -124px;
+	background-position: -224px -124px;
 }
 
 .sprite-layout_add {
-	background-position: -76px -124px;
-}
-
-.sprite-layout_content {
-	background-position: -100px -124px;
-}
-
-.sprite-layout_delete {
-	background-position: -124px -124px;
-}
-
-.sprite-layout_edit {
-	background-position: -148px -124px;
-}
-
-.sprite-layout_yellow {
-	background-position: -172px -124px;
-}
-
-.sprite-link {
-	background-position: -196px -124px;
-}
-
-.sprite-medal_bronze_2 {
 	background-position: -248px -124px;
 }
 
-.sprite-medal_gold_2 {
+.sprite-layout_content {
 	background-position: -272px -124px;
 }
 
+.sprite-layout_delete {
+	background-position: -296px -124px;
+}
+
+.sprite-layout_edit {
+	background-position: -32px -148px;
+}
+
+.sprite-layout_yellow {
+	background-position: -56px -148px;
+}
+
+.sprite-link {
+	background-position: -80px -148px;
+}
+
+.sprite-linkedin {
+	width: 30px;
+	height: 30px;
+	background-position: -104px -148px;
+}
+
+.sprite-medal_bronze_2 {
+	background-position: -142px -148px;
+}
+
+.sprite-medal_gold_2 {
+	background-position: -166px -148px;
+}
+
 .sprite-medal_silver_2 {
-	background-position: -4px -148px;
+	background-position: -190px -148px;
 }
 
 .sprite-package {
-	background-position: -28px -148px;
+	background-position: -214px -148px;
 }
 
 .sprite-package_add {
-	background-position: -52px -148px;
+	background-position: -238px -148px;
 }
 
 .sprite-package_delete {
-	background-position: -76px -148px;
+	background-position: -262px -148px;
 }
 
 .sprite-package_green {
-	background-position: -100px -148px;
+	background-position: -286px -148px;
 }
 
 .sprite-page {
-	background-position: -124px -148px;
+	background-position: -310px -148px;
 }
 
 .sprite-page_add {
-	background-position: -148px -148px;
-}
-
-.sprite-page_copy {
-	background-position: -172px -148px;
-}
-
-.sprite-page_delete {
-	background-position: -196px -148px;
-}
-
-.sprite-page_white {
-	background-position: -220px -148px;
-}
-
-.sprite-page_white_acrobat {
-	background-position: -244px -148px;
-}
-
-.sprite-page_white_add {
-	background-position: -268px -148px;
-}
-
-.sprite-page_white_code {
 	background-position: -4px -172px;
 }
 
-.sprite-page_white_delete {
+.sprite-page_copy {
 	background-position: -28px -172px;
 }
 
-.sprite-page_white_get {
+.sprite-page_delete {
 	background-position: -52px -172px;
 }
 
-.sprite-page_white_put {
+.sprite-page_white {
 	background-position: -76px -172px;
 }
 
+.sprite-page_white_acrobat {
+	background-position: -142px -172px;
+}
+
+.sprite-page_white_add {
+	background-position: -166px -172px;
+}
+
+.sprite-page_white_code {
+	background-position: -190px -172px;
+}
+
+.sprite-page_white_delete {
+	background-position: -214px -172px;
+}
+
+.sprite-page_white_get {
+	background-position: -238px -172px;
+}
+
+.sprite-page_white_put {
+	background-position: -262px -172px;
+}
+
 .sprite-page_white_stack {
-	background-position: -100px -172px;
+	background-position: -286px -172px;
 }
 
 .sprite-page_white_text {
-	background-position: -124px -172px;
+	background-position: -310px -172px;
 }
 
 .sprite-page_yellow {
-	background-position: -148px -172px;
+	background-position: -4px -196px;
 }
 
 .sprite-pencil {
-	background-position: -172px -172px;
+	background-position: -28px -196px;
 }
 
 .sprite-pencil_small_grey {
 	width: 12px;
 	height: 12px;
-	background-position: -292px -48px;
+	background-position: -80px -124px;
 }
 
 .sprite-pull_page {
-	background-position: -196px -172px;
+	background-position: -52px -196px;
+}
+
+.sprite-report {
+	background-position: -76px -196px;
+}
+
+.sprite-ruby {
+	background-position: -100px -196px;
 }
 
 .sprite-script_lightning {
-	background-position: -220px -172px;
+	background-position: -124px -196px;
 }
 
 .sprite-script_palette {
-	background-position: -244px -172px;
+	background-position: -148px -196px;
+}
+
+.sprite-stackoverflow {
+	width: 30px;
+	height: 30px;
+	background-position: -172px -196px;
 }
 
 .sprite-star {
-	background-position: -268px -172px;
+	background-position: -210px -196px;
 }
 
 .sprite-star_delete {
-	background-position: -4px -196px;
+	background-position: -234px -196px;
 }
 
 .sprite-structr-logo {
 	width: 86px;
 	height: 23px;
-	background-position: -28px -196px;
+	background-position: -4px -220px;
 }
 
 .sprite-structr-logo_92x60 {
 	width: 92px;
 	height: 60px;
-	background-position: -122px -196px;
+	background-position: -210px -220px;
 }
 
 .sprite-structr_gray_100x27 {
 	width: 100px;
 	height: 27px;
-	background-position: -4px -264px;
+	background-position: -4px -288px;
 }
 
 .sprite-structr_gray_200x54 {
 	width: 200px;
 	height: 54px;
-	background-position: -312px -4px;
+	background-position: -332px -4px;
 }
 
 .sprite-structr_icon_16x16 {
-	background-position: -312px -66px;
+	background-position: -316px -66px;
 }
 
 .sprite-tab_add {
-	background-position: -336px -66px;
+	background-position: -340px -66px;
 }
 
 .sprite-tab_go {
-	background-position: -360px -66px;
+	background-position: -364px -66px;
 }
 
 .sprite-table_go {
-	background-position: -384px -66px;
+	background-position: -388px -66px;
 }
 
 .sprite-table_lightning {
-	background-position: -408px -66px;
+	background-position: -412px -66px;
 }
 
 .sprite-table_multiple {
-	background-position: -432px -66px;
+	background-position: -436px -66px;
 }
 
 .sprite-text_horizontalrule {
-	background-position: -456px -66px;
+	background-position: -460px -66px;
 }
 
 .sprite-text_indent_remove {
-	background-position: -480px -66px;
+	background-position: -484px -66px;
 }
 
 .sprite-textfield_add {
-	background-position: -296px -90px;
+	background-position: -508px -66px;
 }
 
 .sprite-tick {
@@ -498,65 +546,81 @@
 .sprite-tree_arrow_down {
 	width: 8px;
 	height: 8px;
-	background-position: -504px -66px;
+	background-position: -344px -90px;
 }
 
 .sprite-tree_arrow_right {
 	width: 8px;
 	height: 8px;
-	background-position: -504px -82px;
+	background-position: -360px -90px;
+}
+
+.sprite-tumblr {
+	width: 30px;
+	height: 30px;
+	background-position: -376px -90px;
 }
 
 .sprite-tux {
-	background-position: -344px -90px;
+	background-position: -414px -90px;
+}
+
+.sprite-twitter {
+	width: 30px;
+	height: 30px;
+	background-position: -438px -90px;
 }
 
 .sprite-user {
-	background-position: -368px -90px;
+	background-position: -476px -90px;
 }
 
 .sprite-user_add {
-	background-position: -392px -90px;
+	background-position: -500px -90px;
 }
 
 .sprite-user_delete {
-	background-position: -416px -90px;
+	background-position: -320px -114px;
 }
 
 .sprite-user_gray {
-	background-position: -440px -90px;
+	background-position: -344px -114px;
 }
 
 .sprite-user_green {
-	background-position: -464px -90px;
+	background-position: -414px -114px;
 }
 
 .sprite-user_orange {
-	background-position: -488px -98px;
+	background-position: -476px -114px;
 }
 
 .sprite-user_red {
-	background-position: -296px -122px;
+	background-position: -500px -114px;
 }
 
 .sprite-user_suit {
-	background-position: -320px -122px;
+	background-position: -334px -138px;
 }
 
 .sprite-wand {
-	background-position: -344px -122px;
+	background-position: -358px -138px;
+}
+
+.sprite-world {
+	background-position: -382px -138px;
 }
 
 .sprite-wrench {
-	background-position: -368px -122px;
+	background-position: -406px -138px;
 }
 
 .sprite-xhtml_add {
-	background-position: -392px -122px;
+	background-position: -430px -138px;
 }
 
 .sprite-zoom {
-	background-position: -416px -122px;
+	background-position: -454px -138px;
 }
 
 /**

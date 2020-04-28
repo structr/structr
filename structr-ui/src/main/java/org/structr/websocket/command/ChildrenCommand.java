@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,6 +28,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.web.common.RelType;
+import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -59,18 +61,33 @@ public class ChildrenCommand extends AbstractCommand {
 			return;
 		}
 
-		final Iterable<RelationshipInterface> rels = new IterableAdapter<>(node.getNode().getRelationships(Direction.OUTGOING, RelType.CONTAINS), factory);
-		final List<GraphObject> result             = new LinkedList();
+		final List<GraphObject> result = new LinkedList();
 
-		for (RelationshipInterface rel : rels) {
+		if (node instanceof Page) {
 
-			NodeInterface endNode = rel.getTargetNode();
-			if (endNode == null) {
+			DOMNode subNode = (DOMNode) ((Page) node).treeGetFirstChild();
 
-				continue;
+			while (subNode != null) {
+
+				result.add(subNode);
+
+				subNode = (DOMNode) subNode.getNextSibling();
 			}
 
-			result.add(endNode);
+		} else {
+
+			final Iterable<RelationshipInterface> rels = new IterableAdapter<>(node.getNode().getRelationships(Direction.OUTGOING, RelType.CONTAINS), factory);
+
+			for (RelationshipInterface rel : rels) {
+
+				NodeInterface endNode = rel.getTargetNode();
+				if (endNode == null) {
+
+					continue;
+				}
+
+				result.add(endNode);
+			}
 		}
 
 		webSocketData.setView(PropertyView.Ui);

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -42,6 +42,11 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 		return "localize";
+	}
+
+	@Override
+	public String getSignature() {
+		return "key [, domain ]";
 	}
 
 	@Override
@@ -104,7 +109,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Returns a (cached) Localization result for the given key and optional domain";
 	}
 
 	public static List getLocalizedList(final ActionContext ctx, final Object caller, final List<String> keyList, final String domain) throws FrameworkException {

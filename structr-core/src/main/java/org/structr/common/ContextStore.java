@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,7 +24,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.Localization;
 import org.structr.core.property.GenericProperty;
-import org.structr.core.property.PropertyKey;
 
 /**
  * Encapsulates all information stored for Action-/SecurityContexts which are available via scripting
@@ -76,6 +75,9 @@ public class ContextStore {
 		constants.put(name, data);
 	}
 
+	public Set<String> getConstantKeys() {
+		return constants.keySet();
+	}
 
 	// --- store() / retrieve() ---
 	public void setParameters(Map<String, Object> parameters) {
@@ -203,7 +205,7 @@ public class ContextStore {
 	public void setRangeEnd(final int end) {
 		this.queryRangeEnd = end;
 	}
-	
+
 	public void setSortKey(final String sortKey) {
 		this.sortKey = sortKey;
 	}

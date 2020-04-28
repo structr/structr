@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -76,13 +76,15 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 
 			try (final Tx tx = app.tx()) {
 
-				container = app.nodeQuery(FlowContainer.class).uuid(containerUuid).getFirst();
+				app.nodeQuery(FlowContainer.class).uuid(containerUuid).getFirst();
 
 				doImportExportRoundtrip(true);
 
 				tx.success();
 			}
 
+			// this is correct
+			//doImportExportRoundtrip(true);
 
 			try (final Tx tx = app.tx()) {
 
@@ -93,7 +95,6 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 				assertNotNull(result);
 
 				tx.success();
-
 			}
 
 		} catch (FrameworkException ex) {

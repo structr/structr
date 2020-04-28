@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,22 +28,22 @@ import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.schema.InvalidSchemaException;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.MaintenanceCommand;
+import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.InvalidSchemaException;
-import org.structr.schema.json.JsonSchema;
 
 /**
  * This class can handle Schema JSON documents
  */
-public class SchemaJsonImporter implements MaintenanceCommand {
+public class SchemaJsonImporter extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaJsonImporter.class.getName());
-
 
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
@@ -117,13 +117,7 @@ public class SchemaJsonImporter implements MaintenanceCommand {
 				throw new FrameworkException(422, ex.getMessage());
 			}
 
-			try {
-				StructrSchema.extendDatabaseSchema(app, schema);
-
-			} catch (URISyntaxException ex) {
-				throw new FrameworkException(422, ex.getMessage());
-			}
-
+			StructrSchema.extendDatabaseSchema(app, schema);
 
 			tx.success();
 		}

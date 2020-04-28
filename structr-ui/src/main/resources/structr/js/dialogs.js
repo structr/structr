@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,6 +36,73 @@ var _Dialogs = {
 		return false;
 	},
 
+	getTitle: function() {
+		return "Main Properties";
+	},
+	showCustomProperties: function(entity) {
+
+		// custom properties
+		let customContainer = $('div#custom-properties-container');
+
+		_Schema.getTypeInfo(entity.type, function(typeInfo) {
+
+			_Entities.listProperties(entity, 'custom', customContainer, typeInfo, function(properties) {
+
+				// make container visible when custom properties exist
+				if (Object.keys(properties).length > 0) {
+					$('div#custom-properties-parent').removeClass("hidden");
+				}
+
+				$('input.dateField', customContainer).each(function(i, input) {
+					_Entities.activateDatePicker($(input));
+				});
+			});
+		});
+	},
+	showVisibilityOptions: function(entity, el) {
+
+		let showConditionsContainer = $('.show-hide-conditions-container', el);
+
+		if (showConditionsContainer.length) {
+
+			Structr.fetchHtmlTemplate('dialogs/visibility-partial', { entity: entity }, function (html) {
+
+				showConditionsContainer.html(html);
+
+				let showConditionsInput  = $('input#show-conditions');
+				let showConditionsSelect = $('select#show-conditions-templates');
+				let hideConditionsInput  = $('input#hide-conditions');
+				let hideConditionsSelect = $('select#hide-conditions-templates');
+
+				showConditionsInput.on('change', () => { _Entities.setPropertyWithFeedback(entity, 'showConditions', showConditionsInput.val(), showConditionsInput); });
+				hideConditionsInput.on('change', () => { _Entities.setPropertyWithFeedback(entity, 'hideConditions', hideConditionsInput.val(), hideConditionsInput); });
+
+				showConditionsSelect.on('change', () => {
+					showConditionsInput.val(showConditionsSelect.val()).trigger('change');
+				});
+				hideConditionsSelect.on('change', () => {
+					hideConditionsInput.val(hideConditionsSelect.val()).trigger('change');
+				});
+			});
+		}
+	},
+	showRepeaterOptions: function(entity, el) {
+
+		let repeaterConfigContainer = $('.repeater-config-container', el);
+
+		if (repeaterConfigContainer.length) {
+
+			Structr.fetchHtmlTemplate('dialogs/repeater-partial', { entity: entity }, function (html) {
+
+				repeaterConfigContainer.html(html);
+
+				[ 'function-query', 'data-key' ].forEach(p => {
+					_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), entity, p.toCamel());
+				});
+			});
+		}
+	},
+
 	// ----- custom dialogs -----
 	ldapGroupDialog: function(el, entity) {
 
@@ -43,6 +110,7 @@ var _Dialogs = {
 
 			Structr.fetchHtmlTemplate('dialogs/ldap.group', { group: entity }, function (html) {
 
+				el.empty();
 				el.append(html);
 
 				var dnInput     = $('input#ldap-group-dn');
@@ -73,7 +141,6 @@ var _Dialogs = {
 						}
 					});
 				});
-
 			});
 
 		} else if (el) {
@@ -88,6 +155,7 @@ var _Dialogs = {
 
 			Structr.fetchHtmlTemplate('dialogs/file.options', { file: entity }, function (html) {
 
+				el.empty();
 				el.append(html);
 
 				$('button#extract-structure-button').on('click', function() {
@@ -113,14 +181,219 @@ var _Dialogs = {
 			$('input#ldap-group-dn').val(el.distinguishedName);
 		}
 	},
-}
+	registerSimpleInputBlurhandler: function(input, entity, key) {
+
+		input.on('blur', function() {
+
+			let oldVal = entity[key];
+			let newVal = input.val();
+
+			let isChange = (oldVal !== newVal) && !((oldVal === null || oldVal === undefined) && newVal === '');
+
+			if (isChange) {
+				_Entities.setPropertyWithFeedback(entity, key, input.val() || null, input);
+			}
+		});
+
+	},
+	aDialog: function(el, entity) {
+
+		if (el && entity) {
+
+			Command.get(entity.id, null, function(a) {
+
+				Structr.fetchHtmlTemplate('dialogs/a.options', { entity: entity, a: a, title: _Dialogs.getTitle() }, function (html) {
+
+					el.empty();
+					el.append(html);
+
+					[ 'id', 'class', 'href', 'style' ].forEach(p => {
+						_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), a, '_html_' + p);
+					});
+
+					// focus on first input field
+					$('input#class-input').focus();
+					$('input#class-input').select();
+
+					_Dialogs.showCustomProperties(entity);
+					_Dialogs.showRepeaterOptions(entity, el);
+					_Dialogs.showVisibilityOptions(entity, el);
+				});
+
+			}, '_html_');
+		}
+
+	},
+	buttonDialog: function(el, entity) {
+
+		if (el && entity) {
+
+			Command.get(entity.id, null, function(button) {
+
+				Structr.fetchHtmlTemplate('dialogs/button.options', { entity: entity, button: button, title: _Dialogs.getTitle() }, function (html) {
+
+					el.empty();
+					el.append(html);
+
+					[ 'id', 'class', 'onclick', 'title', 'type', 'style' ].forEach(p => {
+						_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), button, '_html_' + p);
+					});
+
+					// focus on first input field
+					$('input#class-input').focus();
+					$('input#class-input').select();
+
+					_Dialogs.showCustomProperties(entity);
+					_Dialogs.showRepeaterOptions(entity, el);
+					_Dialogs.showVisibilityOptions(entity, el);
+				});
+
+			}, '_html_');
+		}
+	},
+	inputDialog: function(el, entity) {
+
+		if (el && entity) {
+
+			Command.get(entity.id, null, function(input) {
+
+				Structr.fetchHtmlTemplate('dialogs/input.options', { entity: entity, input: input, title: _Dialogs.getTitle() }, function (html) {
+
+					el.empty();
+					el.append(html);
+
+					[ 'id', 'class', 'title', 'placeholder', 'type', 'style' ].forEach(p => {
+						let input = $('input#' + p + '-input');
+						_Dialogs.registerSimpleInputBlurhandler(input, entity, '_html_' + p);
+					});
+
+					// focus on first input field
+					$('input#class-input').focus();
+					$('input#class-input').select();
+
+					_Dialogs.showCustomProperties(entity);
+					_Dialogs.showVisibilityOptions(entity, el);
+				});
+
+			}, '_html_');
+		}
+	},
+	divDialog: function(el, entity) {
+
+		if (el && entity) {
+
+			Command.get(entity.id, null, function(div) {
+
+				Structr.fetchHtmlTemplate('dialogs/div.options', { entity: entity, div: div, title: _Dialogs.getTitle() }, function (html) {
+
+					el.empty();
+					el.append(html);
+
+					[ 'id', 'class', 'style' ].forEach(p => {
+						_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), div, '_html_' + p);
+					});
+
+					// focus on first input field
+					$('input#class-input').focus();
+					$('input#class-input').select();
+
+					_Dialogs.showCustomProperties(entity);
+					_Dialogs.showRepeaterOptions(entity, el);
+					_Dialogs.showVisibilityOptions(entity, el);
+				});
+
+			}, '_html_');
+		}
+	},
+	userDialog: function(el, entity) {
+
+		if (el && entity) {
+
+			Command.get(entity.id, null, function(div) {
+
+				Structr.fetchHtmlTemplate('dialogs/user.options', { entity: entity, user: entity, title: _Dialogs.getTitle() }, function (html) {
+
+					el.empty();
+					el.append(html);
+
+					[ 'name', 'e-mail' ].forEach(p => {
+						let input = $('input#' + p + '-input');
+						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val() || null, input); });
+					});
+
+					[ 'is-admin', 'is-two-factor-user', 'skip-security-relationships' ].forEach(p => {
+						let name  = p.toCamel();
+						let input = $('input#' + p + '-checkbox');
+						input.prop('checked', entity[name]);
+						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, name, input.is(':checked'), input); });
+					});
+
+					$('button#set-password-button').on('click', function(e) {
+						let input = $('input#password-input');
+						_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
+					});
+
+					// focus on first input field
+					$('input#name-input').focus();
+					$('input#name-input').select();
+
+					_Dialogs.showCustomProperties(entity);
+				});
+
+			}, '_html_');
+		}
+	},
+	pageDialog: function(el, entity) {
+
+		if (el && entity) {
+
+			Command.get(entity.id, null, function(page) {
+
+				Structr.fetchHtmlTemplate('dialogs/page.options', { entity: entity, page: entity, title: _Dialogs.getTitle() }, function (html) {
+
+					el.empty();
+					el.append(html);
+
+					[ 'name', 'content-type', 'category', 'position', 'show-on-error-codes' ].forEach(p => {
+						let input = $('input#' + p + '-input');
+						_Dialogs.registerSimpleInputBlurhandler(input, entity, p.toCamel());
+					});
+
+					[ 'dont-cache', 'page-creates-raw-data' ].forEach(p => {
+						let name  = p.toCamel();
+						let input = $('input#' + p + '-checkbox');
+						input.prop('checked', entity[name]);
+						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, name, input.is(':checked'), input); });
+					});
+
+					$('button#set-password-button').on('click', function(e) {
+						let input = $('input#password-input');
+						_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
+					});
+
+					// focus on first input field
+					$('input#name-input').focus();
+					$('input#name-input').select();
+
+					_Dialogs.showCustomProperties(entity);
+				});
+
+			}, '_html_');
+		}
+	}
+};
 
 var registeredDialogs = {
+	'A': { id: 'a', title : 'General', callback: _Dialogs.aDialog },
+	'Button': { id: 'button', title : 'General', callback: _Dialogs.buttonDialog },
+	'Div': { id: 'div', title : 'General', callback: _Dialogs.divDialog },
+	'File':  { id: 'file', title: 'Advanced', callback: _Dialogs.fileDialog },
+	'Image':  { id: 'file', title: 'Advanced', callback: _Dialogs.fileDialog },
+	'Input':  { id: 'input', title: 'General', callback: _Dialogs.inputDialog },
 	'LDAPGroup':  { id: 'ldapgroup', title: 'LDAP configuration', callback: _Dialogs.ldapGroupDialog },
-	'Image':  { id: 'file', title: 'Advanced options', callback: _Dialogs.fileDialog },
-	'File':  { id: 'file', title: 'Advanced options', callback: _Dialogs.fileDialog }
-
-}
+	'Page': { id: 'page', title : 'General', callback: _Dialogs.pageDialog },
+	'User': { id: 'user', title : 'General', callback: _Dialogs.userDialog }
+};
 
 function setNull(id, key, input) {
 	Command.setProperty(id, key, null, false, function() {

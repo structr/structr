@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,7 +36,12 @@ public class GenericNode extends AbstractNode implements NonIndexed {
 
 	@Override
 	public int hashCode() {
-		return getUuid().hashCode();
+		final String uuid = getUuid();
+		if (uuid != null) {
+			return uuid.hashCode();
+		} else {
+			return dbNode.getId().hashCode();
+		}
 	}
 
 	@Override

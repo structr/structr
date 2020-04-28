@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import org.apache.commons.lang3.StringUtils;
@@ -38,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.function.XmlFunction;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -126,7 +126,7 @@ public class RDFImporter extends SchemaAnalyzer {
 
 	public List<String> importRDF(final InputStream is) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
 
-		final Document doc                            = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);
+		final Document doc                            = XmlFunction.getDocumentBuilder().parse(is);
 		final Set<HasSubclassRelationship> subclasses = new LinkedHashSet<>();
 		final Map<String, RdfProperty> properties     = new LinkedHashMap<>();
 		final Map<String, RdfClass> classes           = new LinkedHashMap<>();

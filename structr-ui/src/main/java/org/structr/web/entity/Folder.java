@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,7 @@ package org.structr.web.entity;
 import java.io.IOException;
 import java.net.URI;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.structr.api.graph.Cardinality;
 import org.structr.api.util.Iterables;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISFolderInfo;
@@ -31,13 +32,14 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.property.PropertyMap;
 import org.structr.files.cmis.config.StructrFolderActions;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.core.Services;
 
 
 public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextAwareEntity {
@@ -63,14 +65,19 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextA
 		type.addBooleanProperty("mountWatchContents",      PropertyView.Public, PropertyView.Ui);
 		type.addIntegerProperty("mountScanInterval",       PropertyView.Public, PropertyView.Ui);
 		type.addLongProperty("mountLastScanned",           PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("mountTargetFileType",      PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("mountTargetFolderType",    PropertyView.Public, PropertyView.Ui);
 
 		type.addPropertyGetter("mountTarget", String.class);
+		type.addPropertyGetter("mountTargetFileType", String.class);
+		type.addPropertyGetter("mountTargetFolderType", String.class);
 		type.addPropertyGetter("enabledChecksums", String.class);
 
 		type.addPropertyGetter("children", Iterable.class);
 
 		type.overrideMethod("onCreation",     true, Folder.class.getName() + ".onCreation(this, arg0, arg1);");
 		type.overrideMethod("onModification", true, Folder.class.getName() + ".onModification(this, arg0, arg1, arg2);");
+		type.overrideMethod("onDeletion",     true, Folder.class.getName() + ".onDeletion(this, arg0, arg1, arg2);");
 
 		type.overrideMethod("getFiles",       false, "return " + Folder.class.getName() + ".getFiles(this);");
 		type.overrideMethod("getFolders",     false, "return " + Folder.class.getName() + ".getFolders(this);");
@@ -115,6 +122,8 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextA
 	java.io.File getFileOnDisk(final File file, final String path, final boolean create);
 
 	String getMountTarget();
+	String getMountTargetFileType();
+	String getMountTargetFolderType();
 	String getEnabledChecksums();
 
 	Iterable<AbstractFile> getChildren();
@@ -142,6 +151,11 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextA
 
 			Folder.updateWatchService(thisFolder, true);
 		}
+	}
+
+	static void onDeletion(final Folder thisFolder, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
+
+		Folder.updateWatchService(thisFolder, false);
 	}
 
 
@@ -222,16 +236,19 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextA
 
 	static void updateWatchService(final Folder thisFolder, final boolean mount) {
 
-		final DirectoryWatchService service = StructrApp.getInstance().getService(DirectoryWatchService.class);
-		if (service != null && service.isRunning()) {
+		if (Services.getInstance().isConfigured(DirectoryWatchService.class)) {
 
-			if (mount) {
+			final DirectoryWatchService service = StructrApp.getInstance().getService(DirectoryWatchService.class);
+			if (service != null && service.isRunning()) {
 
-				service.mountFolder(thisFolder);
+				if (mount) {
 
-			} else {
+					service.mountFolder(thisFolder);
 
-				service.unmountFolder(thisFolder);
+				} else {
+
+					service.unmountFolder(thisFolder);
+				}
 			}
 		}
 	}

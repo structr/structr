@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,6 +34,11 @@ public class CleanFunction extends CoreFunction {
 	@Override
 	public String getName() {
 		return "clean";
+	}
+
+	@Override
+	public String getSignature() {
+		return "str";
 	}
 
 	@Override

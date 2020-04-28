@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,7 +19,6 @@
 package org.structr.core.entity;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -107,44 +106,40 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 
 		if (actualSourceNode != null) {
 
-			// remove existing relationships
+			// remove existing relationships (or set properties)
 			for (T targetNode : toBeDeleted) {
 
-				final String uuid = targetNode.getUuid();
+				final PropertyMap foreignProperties = new PropertyMap();
+				final String uuid                   = targetNode.getUuid();
 
-				for (Iterator<AbstractRelationship> it = actualSourceNode.getOutgoingRelationships(relationClass).iterator(); it.hasNext();) {
+				if (map.containsKey(uuid)) {
 
-					final AbstractRelationship rel = it.next();
+					// if the target node UUID is in the intersection, it should not be deleted, only set properties
+					final GraphObject inputObject = map.get(uuid);
 
-					if (actualSourceNode.equals(targetNode)) {
+					// extract and set foreign properties from input object
+					unwrap(securityContext, relationClass, inputObject, foreignProperties);
 
-						logger.debug("Deleted a self relationship {}-[{}]->{}. Versions before 3.3.3/3.4 blocked deletion of self-relationships. If you experience issues, please report to support@structr.com.", new Object[] { actualSourceNode, rel.getRelType(), targetNode } );
+					if (!foreignProperties.isEmpty()) {
 
-						// skip self relationships
-						//continue;
+						final AbstractRelationship rel = actualSourceNode.getRelationshipTo(relation, targetNode);
+						if (rel != null) {
+
+							rel.setProperties(securityContext, foreignProperties);
+						}
 					}
 
-					if (rel.getTargetNode().equals(targetNode)) {
+				} else {
 
-						if (map.containsKey(uuid)) {
+					// delete this relationship only if the UUID of the target node is not in the intersection!
+					final AbstractRelationship rel = actualSourceNode.getRelationshipTo(relation, targetNode);
+					if (rel != null) {
 
-							// only set properties
-							final PropertyMap foreignProperties = new PropertyMap();
-							final GraphObject inputObject       = map.get(uuid);
-
-							// extract and set foreign properties from input object
-							unwrap(securityContext, relationClass, inputObject, foreignProperties);
-							rel.setProperties(securityContext, foreignProperties);
-
-						} else {
-
-							app.delete(rel);
-						}
+						app.delete(rel);
 					}
 				}
 			}
 
-			// test: obtain properties from notion
 			// create new relationships
 			for (T targetNode : toBeCreated) {
 

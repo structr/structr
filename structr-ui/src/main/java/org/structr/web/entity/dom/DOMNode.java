@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,6 +30,10 @@ import java.util.Set;
 import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonReferenceType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.common.CaseHelper;
@@ -52,7 +56,6 @@ import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
@@ -66,9 +69,6 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.Function;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonReferenceType;
-import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -308,7 +308,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	public static final String NOT_SUPPORTED_ERR_MESSAGE_RENAME        = "Renaming of nodes is not supported by this implementation.";
 
 	public static final Set<String> cloneBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
-		"id", "type", "ownerDocument", "pageId", "parent", "parentId", "syncedNodes", "syncedNodesIds", "children", "childrenIds", "linkable", "linkableId", "path"
+		"id", "type", "ownerDocument", "pageId", "parent", "parentId", "syncedNodes", "syncedNodesIds", "children", "childrenIds", "linkable", "linkableId", "path", "relationshipId"
 	}));
 
 	public static final String[] rawProps = new String[] {
@@ -1051,7 +1051,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	}
 
-	static boolean displayForConditions(final DOMNode thisNode, final RenderContext renderContext) {
+	static boolean displayForConditions(final DOMNode thisNode, final RenderContext renderContext)  {
 
 		String _showConditions = thisNode.getProperty(StructrApp.key(DOMNode.class, "showConditions"));
 		String _hideConditions = thisNode.getProperty(StructrApp.key(DOMNode.class, "hideConditions"));
@@ -1060,27 +1060,44 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		if (StringUtils.isBlank(_hideConditions) && StringUtils.isBlank(_showConditions)) {
 			return true;
 		}
+
 		try {
-			// If hide conditions evaluate to "true", don't render
-			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(Scripting.evaluate(renderContext, thisNode, "${".concat(_hideConditions).concat("}"), "hide condition"))) {
+			// If hide conditions evaluates to "true", don't render
+			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(Scripting.evaluate(renderContext, thisNode, "${".concat(_hideConditions.trim()).concat("}"), "hide condition"))) {
 				return false;
 			}
 
-		} catch (UnlicensedScriptException |FrameworkException ex) {
-			logger.error("Hide conditions " + _hideConditions + " could not be evaluated.", ex);
+		} catch (UnlicensedScriptException | FrameworkException ex) {
+
+			final boolean isShadowPage = DOMNode.isSharedComponent(thisNode);
+
+			if (!isShadowPage) {
+				final DOMNode ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
+				logger.error("Error while evaluating hide condition '{}' in page {}[{}], DOMNode[{}]", _hideConditions, ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, ex);
+			} else {
+				logger.error("Error while evaluating hide condition '{}' in shared component, DOMNode[{}]", _hideConditions, thisNode, ex);
+			}
 		}
+
 		try {
-			// If show conditions evaluate to "false", don't render
-			if (StringUtils.isNotBlank(_showConditions) && Boolean.FALSE.equals(Scripting.evaluate(renderContext, thisNode, "${".concat(_showConditions).concat("}"), "show condition"))) {
+			// If show conditions evaluates to "false", don't render
+			if (StringUtils.isNotBlank(_showConditions) && Boolean.FALSE.equals(Scripting.evaluate(renderContext, thisNode, "${".concat(_showConditions.trim()).concat("}"), "show condition"))) {
 				return false;
 			}
 
-		} catch (UnlicensedScriptException |FrameworkException ex) {
-			logger.error("Show conditions " + _showConditions + " could not be evaluated.", ex);
+		} catch (UnlicensedScriptException | FrameworkException ex) {
+
+			final boolean isShadowPage = DOMNode.isSharedComponent(thisNode);
+
+			if (!isShadowPage) {
+				final DOMNode ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
+				logger.error("Error while evaluating show condition '{}' in page {}[{}], DOMNode[{}]", _showConditions, ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, ex);
+			} else {
+				logger.error("Error while evaluating show condition '{}' in shared component, DOMNode[{}]", _showConditions, thisNode, ex);
+			}
 		}
 
 		return true;
-
 	}
 
 	static boolean shouldBeRendered(final DOMNode thisNode, final RenderContext renderContext) {
@@ -1230,94 +1247,48 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	static void getVisibilityInstructions(final DOMNode thisNode, final Set<String> instructions) {
 
-		final Page _ownerDocument       = (Page)thisNode.getOwnerDocument();
+		final DOMNode _parentNode       = (DOMNode)thisNode.getParent();
 
-		if(_ownerDocument == null) {
-
-			logger.warn("DOMNode {} has no owner document!", thisNode.getUuid());
-		}
-
-		final boolean pagePublic        = _ownerDocument != null ? _ownerDocument.isVisibleToPublicUsers() : false;
-		final boolean pageProtected     = _ownerDocument != null ? _ownerDocument.isVisibleToAuthenticatedUsers() : false;
-		final boolean pagePrivate       = !pagePublic && !pageProtected;
-		final boolean pagePublicOnly    = pagePublic && !pageProtected;
 		final boolean elementPublic     = thisNode.isVisibleToPublicUsers();
 		final boolean elementProtected  = thisNode.isVisibleToAuthenticatedUsers();
 		final boolean elementPrivate    = !elementPublic && !elementProtected;
 		final boolean elementPublicOnly = elementPublic && !elementProtected;
 
-		if (pagePrivate && !elementPrivate) {
+
+		boolean addVisibilityInstructions = false;
+
+		if (_parentNode == null) {
+
+			// no parent -> output visibility flags
+			addVisibilityInstructions = true;
+
+		} else {
+
+			// parents visibility flags are different or parent is shadowpage -> output visibility flags
+			final boolean parentPublic      = _parentNode.isVisibleToPublicUsers();
+			final boolean parentProtected   = _parentNode.isVisibleToAuthenticatedUsers();
+
+			addVisibilityInstructions = (_parentNode instanceof ShadowDocument) || (parentPublic != elementPublic || parentProtected != elementProtected);
+		}
+
+		if (addVisibilityInstructions) {
 
 			if (elementPublicOnly) {
 				instructions.add("@structr:public-only");
 				return;
 			}
-
 			if (elementPublic && elementProtected) {
 				instructions.add("@structr:public");
 				return;
 			}
-
 			if (elementProtected) {
 				instructions.add("@structr:protected");
 				return;
 			}
-		}
-
-		if (pageProtected && !elementProtected) {
-
-			if (elementPublicOnly) {
-				instructions.add("@structr:public-only");
-				return;
-			}
-
-			if (elementPublic && elementProtected) {
-				instructions.add("@structr:public");
-				return;
-			}
-
 			if (elementPrivate) {
 				instructions.add("@structr:private");
 				return;
 			}
-		}
-
-		if (pagePublic && !elementPublic) {
-
-			if (elementPublicOnly) {
-				instructions.add("@structr:public-only");
-				return;
-			}
-
-			if (elementProtected) {
-				instructions.add("@structr:protected");
-				return;
-			}
-
-			if (elementPrivate) {
-				instructions.add("@structr:private");
-				return;
-			}
-		}
-
-		if (pagePublicOnly && !elementPublicOnly) {
-
-			if (elementPublic && elementProtected) {
-				instructions.add("@structr:public");
-				return;
-			}
-
-			if (elementProtected) {
-				instructions.add("@structr:protected");
-				return;
-			}
-
-			if (elementPrivate) {
-				instructions.add("@structr:private");
-				return;
-			}
-
-			return;
 		}
 	}
 

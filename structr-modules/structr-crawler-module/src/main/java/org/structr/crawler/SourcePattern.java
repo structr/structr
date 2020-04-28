@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -153,7 +153,7 @@ public class SourcePattern extends AbstractNode {
 					// input transformation requested
 					ActionContext ctx = new ActionContext(securityContext);
 					ctx.setConstant("input", convertedValue);
-					convertedValue = Scripting.evaluate(ctx, null, "${" + mappedAttributeFunction + "}", " virtual property " + mappedAttribute);
+					convertedValue = Scripting.evaluate(ctx, null, "${" + mappedAttributeFunction.trim() + "}", " virtual property " + mappedAttribute);
 
 				} else {
 

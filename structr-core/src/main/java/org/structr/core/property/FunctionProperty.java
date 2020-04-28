@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -109,7 +109,7 @@ public class FunctionProperty<T> extends Property<T> {
 					// don't ignore predicate
 					actionContext.setPredicate(predicate);
 
-					Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction).concat("}"), "getProperty(" + jsonName + ")");
+					Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction.trim()).concat("}"), "getProperty(" + jsonName + ")");
 
 					securityContext.getContextStore().storeFunctionPropertyResult(obj.getUuid(), jsonName, result);
 
@@ -222,7 +222,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 				ctx.setConstant("value", value);
 
-				result = (T)Scripting.evaluate(ctx, obj, "${".concat(func).concat("}"), "setProperty(" + jsonName + ")");
+				result = (T)Scripting.evaluate(ctx, obj, "${".concat(func.trim()).concat("}"), "setProperty(" + jsonName + ")");
 
 			} catch (FrameworkException fex) {
 

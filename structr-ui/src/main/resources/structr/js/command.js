@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -630,7 +630,6 @@ var Command = {
 				localStorageString: LSWrapper.getAsJSON()
 			}
 		};
-		//_Logger.log(_LogType.WS[obj.command], 'saveLocalStorage()', data.localStorageString);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -1198,18 +1197,17 @@ var Command = {
 	 *
 	 * No broadcast.
 	 */
-	autocomplete: function(id, type, currentToken, previousToken, thirdToken, line, cursorPosition, contentType, callback) {
+	autocomplete: function(id, isAutoscriptEnv, before, after, line, cursorPosition, contentType, callback) {
 		var obj  = {
 			command: 'AUTOCOMPLETE',
 			id: id,
 			data: {
-				type: type,
-				currentToken: currentToken,
-				previousToken: previousToken,
-				thirdToken: thirdToken,
+				before: before,
+				after: after,
 				contentType: contentType,
 				line: line,
-				cursorPosition: cursorPosition
+				cursorPosition: cursorPosition,
+				isAutoscriptEnv: isAutoscriptEnv
 			}
 		};
 		_Logger.log(_LogType.WS[obj.command], 'autocomplete()', obj, callback);
@@ -1332,7 +1330,8 @@ var Command = {
 				ownerNames.splice(myIndex,1);
 
 				sortedAndGrouped.push({
-					ownerName: me.username,
+					label: me.username,
+					ownerless: false,
 					configs: grouped[me.username]
 				});
 			}
@@ -1340,7 +1339,8 @@ var Command = {
 			// add ownerless configs
 			if (ownerlessConfigs.length > 0) {
 				sortedAndGrouped.push({
-					ownerName: 'Layouts without owner',
+					label: 'Layouts without owner',
+					ownerless: true,
 					configs: ownerlessConfigs
 				});
 			}
@@ -1348,7 +1348,8 @@ var Command = {
 			// add the other configs grouped by owner and sorted by ownername
 			ownerNames.forEach(function (on) {
 				sortedAndGrouped.push({
-					ownerName: on,
+					label: on,
+					ownerless: false,
 					configs: grouped[on]
 				});
 			});
@@ -1361,7 +1362,7 @@ var Command = {
 	 * Shortcut to get a single ApplicationConfigurationDataNode
 	 */
 	getApplicationConfigurationDataNode: function(id, callback) {
-		return Command.get(id, 'content', callback);
+		return Command.get(id, 'name,content', callback);
 	},
 	/**
 	 * Send a GET_SUGGESTIONS command to the server.

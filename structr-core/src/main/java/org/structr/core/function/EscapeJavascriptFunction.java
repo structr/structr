@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -62,5 +62,10 @@ public class EscapeJavascriptFunction extends CoreFunction {
 	@Override
 	public String shortDescription() {
 		return "Escapes the given string for use with Javascript";
+	}
+
+	@Override
+	public String getSignature() {
+		return "";
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,6 +37,11 @@ public class StopWordsFunction extends Function<Object, Object> {
 	}
 
 	@Override
+	public String getSignature() {
+		return "language";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -70,7 +75,7 @@ public class StopWordsFunction extends Function<Object, Object> {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Returns a list of words (for the given language) which can be safely ignored in a NLP purposes";
 	}
 
 	@Override

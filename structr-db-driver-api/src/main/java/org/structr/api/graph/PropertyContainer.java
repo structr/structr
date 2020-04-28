@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,6 +39,7 @@ public interface PropertyContainer {
 
 	void delete(final boolean deleteRelationships) throws NotInTransactionException;
 
+	boolean isStale();
 	boolean isDeleted();
 
 	default int compare(final String key, final PropertyContainer a, final PropertyContainer b) {

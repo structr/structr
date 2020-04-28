@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,7 +19,6 @@
 package org.structr.pdf.servlet;
 
 import com.github.jhonnymertz.wkhtmltopdf.wrapper.Pdf;
-import com.github.jhonnymertz.wkhtmltopdf.wrapper.params.Param;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.io.EofException;
 import org.slf4j.Logger;
@@ -43,7 +42,6 @@ import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -52,7 +50,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.Pattern;
 
 public class PdfServlet extends HtmlServlet {
 
@@ -62,11 +59,8 @@ public class PdfServlet extends HtmlServlet {
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
 	private static final ExecutorService threadPool                = Executors.newCachedThreadPool();
 
-	private final Pattern FilenameCleanerPattern                      = Pattern.compile("[\n\r]", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
 	private final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
 	private final Set<String> possiblePropertyNamesForEntityResolving = new LinkedHashSet<>();
-
-	private boolean isAsync = false;
 
 	public PdfServlet() {
 
@@ -80,8 +74,6 @@ public class PdfServlet extends HtmlServlet {
 				possiblePropertyNamesForEntityResolving.add(name);
 			}
 		}
-
-		this.isAsync = Settings.Async.getValue();
 	}
 
 	@Override

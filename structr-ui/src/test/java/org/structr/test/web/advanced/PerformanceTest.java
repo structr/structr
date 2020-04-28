@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,13 +22,13 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -37,13 +37,13 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
-import org.structr.core.entity.relationship.NodeHasLocation;
+import org.structr.core.entity.GenericRelationship;
 import org.structr.core.graph.BulkDeleteCommand;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.test.web.StructrUiTest;
+import org.structr.test.web.IndexingTest;
 import org.structr.test.web.entity.TestFive;
 import org.structr.test.web.entity.TestOne;
 import org.structr.test.web.entity.TestTwo;
@@ -55,7 +55,7 @@ import static org.testng.AssertJUnit.fail;
 /**
  *
  */
-public class PerformanceTest extends StructrUiTest {
+public class PerformanceTest extends IndexingTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(PerformanceTest.class);
 
@@ -138,11 +138,11 @@ public class PerformanceTest extends StructrUiTest {
 
 		try {
 
-			int expected                  = 1000;
-			final App app                 = StructrApp.getInstance(setupSecurityContext());
-			final List<GenericNode> nodes = new ArrayList<>(createNodes(app, GenericNode.class, expected + 1));
-			List<NodeHasLocation> rels    = new LinkedList<>();
-			long t0                       = System.nanoTime();
+			int expected                   = 1000;
+			final App app                  = StructrApp.getInstance(setupSecurityContext());
+			final List<GenericNode> nodes  = new ArrayList<>(createNodes(app, GenericNode.class, expected + 1));
+			List<GenericRelationship> rels = new LinkedList<>();
+			long t0                        = System.nanoTime();
 
  			try (final Tx tx = app.tx()) {
 
@@ -151,7 +151,7 @@ public class PerformanceTest extends StructrUiTest {
 					final GenericNode n1 = nodes.get(i);
 					final GenericNode n2 = nodes.get(i+1);
 
-					rels.add(app.create(n1, n2, NodeHasLocation.class));
+					rels.add(app.create(n1, n2, GenericRelationship.class));
 				}
 
 				tx.success();
@@ -292,10 +292,13 @@ public class PerformanceTest extends StructrUiTest {
 
 						t.getName();
 
-						for (final TestFive f : t.getProperty(TestTwo.testFives)) {
+						final List<TestFive> list = Iterables.toList(t.getProperty(TestTwo.testFives));
+						for (final TestFive f : list) {
 
 							f.getName();
 						}
+
+						assertEquals("Invalid collection size", 1, list.size());
 					}
 
 					tx.success();
@@ -310,7 +313,7 @@ public class PerformanceTest extends StructrUiTest {
 			double rate                 = number * loop / ((t1 - t0) / 1000000000.0);
 
 			logger.info("Read {}x {} nodes with relationship in {} seconds ({} per s)", new Object[] { loop, number, decimalFormat.format(time), decimalFormat.format(rate) });
-			assertTrue("Invalid read performance result", rate > 10000);
+			assertTrue("Invalid read performance result", rate > 2000);
 
 		} catch (FrameworkException ex) {
 
@@ -323,9 +326,9 @@ public class PerformanceTest extends StructrUiTest {
 	@Test
 	public void testPerformanceOfNodeDeletion() {
 
-		final App app             = StructrApp.getInstance(setupSecurityContext());
-		final List<TestOne> nodes = new LinkedList<>();
-		final int number          = 1000;
+		final App app                 = StructrApp.getInstance(setupSecurityContext());
+		final List<GraphObject> nodes = new LinkedList<>();
+		final int number              = 1000;
 
 		try {
 
@@ -351,9 +354,7 @@ public class PerformanceTest extends StructrUiTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final Iterator<GraphObject> iterator = (Iterator)nodes.iterator();
-
-				cmd.bulkDelete(iterator);
+				cmd.bulkDelete(nodes);
 
 				tx.success();
 			}

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,12 +20,12 @@ package org.structr.knowledge.iso25964;
 
 import java.net.URI;
 import java.util.Locale;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 
 /**
  * Class as defined in ISO 25964 data model
@@ -36,7 +36,7 @@ public interface ThesaurusTerm extends NodeInterface {
 	static class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		
+
 		final JsonObjectType type                = schema.addType("ThesaurusTerm");
 		final JsonObjectType customTermAttribute = schema.addType("CustomTermAttribute");
 		final JsonObjectType historyNote         = schema.addType("HistoryNote");
@@ -52,7 +52,7 @@ public interface ThesaurusTerm extends NodeInterface {
 		type.addStringProperty("source", PropertyView.All, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("status", PropertyView.All, PropertyView.Ui).setIndexed(true);
 		type.addEnumProperty("lang", PropertyView.All, PropertyView.Ui).setEnums(Locale.getISOLanguages());
-		
+
 		type.relate(customTermAttribute, "hasCustomTermAttribute", Cardinality.OneToMany, "term", "customTermAttributes");
 		type.relate(historyNote,         "hasHistoryNote",         Cardinality.OneToMany, "term", "historyNotes");
 		type.relate(definition,          "hasDefiniton",           Cardinality.OneToMany, "term", "definitions");

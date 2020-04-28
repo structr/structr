@@ -12,14 +12,6 @@
 		<version>3.4.3</version>
 	</parent>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-		<netbeans.hint.license>structr-agpl30</netbeans.hint.license>
-		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-	</properties>
-
 	<build>
 		<plugins>
 			<plugin>
@@ -48,7 +40,7 @@
 			<plugin>
 				<groupId>org.vafer</groupId>
 				<artifactId>jdeb</artifactId>
-				<version>1.3</version>
+				<version>1.8</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -140,6 +132,18 @@
 										<filemode>755</filemode>
 									</mapper>
 								</data>
+
+								<!--
+								<data>
+									<src>${basedir}/src/main/deb/logrotate.d</src>
+									<type>directory</type>
+									<mapper>
+										<type>perm</type>
+										<prefix>/etc/logrotate.d</prefix>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
+								-->
 							</dataSet>
 						</configuration>
 					</execution>
@@ -147,7 +151,7 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<version>3.1.0</version>
+				<version>3.2.0</version>
 				<configuration>
 					<descriptors>
 						<descriptor>src/main/resources/assemblies/dist.xml</descriptor>
@@ -167,7 +171,7 @@
 			<plugin>
 				<groupId>com.spotify</groupId>
 				<artifactId>dockerfile-maven-plugin</artifactId>
-				<version>1.4.10</version>
+				<version>1.4.13</version>
 				<executions>
 					<execution>
 						<id>package</id>
@@ -202,7 +206,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>buildnumber-maven-plugin</artifactId>
-				<version>1.3</version>
+				<version>1.4</version>
 				<executions>
 					<execution>
 						<phase>initialize</phase>
@@ -214,54 +218,6 @@
 				<configuration>
 					<shortRevisionLength>5</shortRevisionLength>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>com.mycila</groupId>
-				<artifactId>license-maven-plugin</artifactId>
-				<version>2.11</version>
-				<configuration>
-					<header>header.txt</header>
-					<includes>
-						<include>src/**</include>
-					</includes>
-					<excludes>
-						<exclude>**/README</exclude>
-						<exclude>src/**/.directory</exclude>
-						<exclude>src/**/*.sh</exclude>
-						<exclude>src/main/resources/**/*.html</exclude>
-						<exclude>src/main/resources/**/*.xml</exclude>
-						<exclude>src/main/resources/**/*.xsl*</exclude>
-						<exclude>src/main/resources/**/*.eot</exclude>
-						<exclude>src/main/resources/**/*.woff</exclude>
-						<exclude>src/main/resources/**/*.woff2</exclude>
-						<exclude>src/main/resources/**/*.ttf</exclude>
-						<exclude>src/main/resources/**/*.otf</exclude>
-						<exclude>src/main/resources/**/*.svg</exclude>
-						<exclude>src/main/resources/bin/**</exclude>
-						<exclude>src/main/resources/mime.types</exclude>
-						<exclude>src/main/resources/structr/codemirror/**</exclude>
-						<exclude>src/main/resources/structr/trumbowyg/**</exclude>
-						<exclude>src/main/resources/structr/js/lib/**</exclude>
-						<exclude>src/main/resources/structr/css/lib/**</exclude>
-						<exclude>src/test/javascript/casperjs/**</exclude>
-						<exclude>src/test/javascript/bin/**</exclude>
-						<exclude>src/test/javascript/lib/**</exclude>
-						<exclude>src/test/**/*.html</exclude>
-						<exclude>src/test/resources</exclude>
-						<exclude>src/main/deb/**</exclude>
-					</excludes>
-					<properties>
-						<year>2019</year>
-						<owner>Structr GmbH</owner>
-					</properties>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 		<finalName>${project.parent.artifactId}-${project.version}-${maven.build.timestamp}.${buildNumber}</finalName>
@@ -297,49 +253,5 @@
 			</plugins>
 		</pluginManagement>
 	</build>
-
-	<licenses>
-		<license>
-			<name>GNU Affero General Public License, Version 3</name>
-			<url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
-			<comments>
-				Copyright (C) 2010-2019 Structr GmbH
-
-				This file is part of Structr &lt;http://structr.org&gt;.
-
-				Structr is free software: you can redistribute it and/or modify
-				it under the terms of the GNU Affero General Public License as
-				published by the Free Software Foundation, either version 3 of the
-				License, or (at your option) any later version.
-
-				Structr is distributed in the hope that it will be useful,
-				but WITHOUT ANY WARRANTY; without even the implied warranty of
-				MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-				GNU Affero General Public License for more details.
-
-				You should have received a copy of the GNU Affero General Public License
-				along with Structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
-			</comments>
-		</license>
-	</licenses>
-
-	<scm>
-		<url>https://github.com/structr/structr</url>
-		<connection>scm:git:https://github.com:structr/structr.git</connection>
-		<developerConnection>scm:git:git@github.com:structr/structr.git</developerConnection>
-	</scm>
-
-	<!--	<distributionManagement>
-		<repository>
-			<id>sonatype-nexus-staging</id>
-			<name>Maven Central Staging</name>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-		</repository>
-		<snapshotRepository>
-			<id>sonatype-nexus-snapshots</id>
-			<name>Maven Central Snapshots</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
-	</distributionManagement>-->
 
 </project>

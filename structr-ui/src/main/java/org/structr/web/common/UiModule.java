@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,11 +18,13 @@
  */
 package org.structr.web.common;
 
+import java.net.URL;
 import java.util.Set;
 import org.structr.api.service.LicenseManager;
 import org.structr.core.datasources.DataSources;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
+import org.structr.files.url.StructrURLStreamHandlerFactory;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
@@ -36,6 +38,11 @@ import org.structr.web.function.*;
 /**
  */
 public class UiModule implements StructrModule {
+
+	static {
+
+		URL.setURLStreamHandlerFactory(new StructrURLStreamHandlerFactory());
+	}
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
@@ -51,6 +58,7 @@ public class UiModule implements StructrModule {
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
 		Functions.put(licenseManager, new EscapeHtmlFunction());
+		Functions.put(licenseManager, new EscapeXmlFunction());
 		Functions.put(licenseManager, new UnescapeHtmlFunction());
 		Functions.put(licenseManager, new StripHtmlFunction());
 		Functions.put(licenseManager, new FromJsonFunction());
@@ -85,6 +93,8 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new SetResponseHeaderFunction());
 		Functions.put(licenseManager, new SetResponseCodeFunction());
 		Functions.put(licenseManager, new GetRequestHeaderFunction());
+		Functions.put(licenseManager, new GetCookieFunction());
+		Functions.put(licenseManager, new SetCookieFunction());
 		Functions.put(licenseManager, new FromXmlFunction());
 		Functions.put(licenseManager, new ParseFunction());
 		Functions.put(licenseManager, new CreateArchiveFunction());

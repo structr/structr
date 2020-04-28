@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,12 +22,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
-/**
- *
- */
 public class AbbrFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_ABBR = "Usage: ${abbr(longString, maxLength)}. Example: ${abbr(this.title, 20)}";
+	public static final String ERROR_MESSAGE_ABBR    = "Usage: ${abbr(longString, maxLength[, abbr = '…'])}. Example: ${abbr(this.title, 20)}";
+	public static final String ERROR_MESSAGE_ABBR_JS = "Usage: ${{Structr.abbr(longString, maxLength[, abbr = '…'])}}. Example: ${{Structr.abbr(this.title, 20)}}";
 
 	@Override
 	public String getName() {
@@ -35,11 +33,16 @@ public class AbbrFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "str, maxLength[, abbr = '…']";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
 
-			if (sources == null || sources.length != 2 || sources[1] == null) {
+			if (sources == null || sources.length < 2 || sources[1] == null) {
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
 				return usage(ctx.isJavaScriptContext());
@@ -50,11 +53,13 @@ public class AbbrFunction extends CoreFunction {
 				return "";
 			}
 
+			final String abbreviationText = ((sources.length == 3 && sources[2] != null) ? sources[2].toString() : "…");
+
 			int maxLength = Double.valueOf(sources[1].toString()).intValue();
 
 			if (sources[0].toString().length() > maxLength) {
 
-				return StringUtils.substringBeforeLast(StringUtils.substring(sources[0].toString(), 0, maxLength), " ").concat("…");
+				return StringUtils.substringBeforeLast(StringUtils.substring(sources[0].toString(), 0, maxLength), " ").concat(abbreviationText);
 
 			} else {
 
@@ -76,15 +81,13 @@ public class AbbrFunction extends CoreFunction {
 
 	}
 
-
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_ABBR;
+		return (inJavaScriptContext ? ERROR_MESSAGE_ABBR_JS : ERROR_MESSAGE_ABBR);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Abbreviates the given string";
+		return "Abbreviates the given string to the given length and appends the abbreviation (default = '…')";
 	}
-
 }

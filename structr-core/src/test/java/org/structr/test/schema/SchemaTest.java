@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,15 +32,23 @@ import org.apache.commons.lang.StringUtils;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseFeature;
 import org.structr.api.config.Settings;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.InvalidSchemaException;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonProperty;
+import org.structr.api.schema.JsonReferenceProperty;
+import org.structr.api.schema.JsonReferenceType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonSchema.Cascade;
+import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
 import org.structr.test.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Relation;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
@@ -54,14 +62,6 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.InvalidSchemaException;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonProperty;
-import org.structr.schema.json.JsonReferenceProperty;
-import org.structr.schema.json.JsonReferenceType;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonSchema.Cascade;
-import org.structr.schema.json.JsonType;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -392,7 +392,7 @@ public class SchemaTest extends StructrTest {
 
 			checkSchemaString(StructrSchema.createFromDatabase(app).toString());
 
-		} catch (FrameworkException | URISyntaxException t) {
+		} catch (FrameworkException t) {
 			logger.warn("", t);
 		}
 	}
@@ -409,7 +409,7 @@ public class SchemaTest extends StructrTest {
 			final JsonObjectType source = schema.addType("Source");
 			final JsonObjectType target = schema.addType("Target");
 
-			source.relate(target, "link", Relation.Cardinality.OneToMany, "sourceLink", "linkTargets");
+			source.relate(target, "link", Cardinality.OneToMany, "sourceLink", "linkTargets");
 
 			checkSchemaString(schema.toString());
 
@@ -432,7 +432,7 @@ public class SchemaTest extends StructrTest {
 			final JsonObjectType source = schema.addType("Source");
 			final JsonObjectType target = schema.addType("Target");
 
-			source.relate(target, "link", Relation.Cardinality.OneToMany);
+			source.relate(target, "link", Cardinality.OneToMany);
 
 			checkSchemaString(schema.toString());
 
@@ -446,8 +446,6 @@ public class SchemaTest extends StructrTest {
 	public void test00DeleteSchemaRelationshipInView() {
 
 		cleanDatabaseAndSchema();
-
-		Settings.CypherDebugLogging.setValue(true);
 
 		SchemaRelationshipNode rel = null;
 
@@ -839,144 +837,154 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void testInitializationOfNonStructrNodesWithTenantIdentifier() {
 
-		cleanDatabaseAndSchema();
+		// don't run tests that depend on Cypher being available in the backend
+		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
-		final String tenantId = Services.getInstance().getDatabaseService().getTenantIdentifier();
+			cleanDatabaseAndSchema();
 
-		try (final Tx tx = app.tx()) {
+			final String tenantId = Services.getInstance().getDatabaseService().getTenantIdentifier();
 
-			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			try (final Tx tx = app.tx()) {
 
-			schema.addType("PERSON");
+				final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
-			StructrSchema.extendDatabaseSchema(app, schema);
+				schema.addType("PERSON");
 
-			tx.success();
+				StructrSchema.extendDatabaseSchema(app, schema);
 
-		} catch (Throwable t) {
+				tx.success();
 
-			t.printStackTrace();
-			fail("Unexpected exception.");
-		}
+			} catch (Throwable t) {
 
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("PERSON");
+				t.printStackTrace();
+				fail("Unexpected exception.");
+			}
 
-		try (final Tx tx = app.tx()) {
+			final Class type = StructrApp.getConfiguration().getNodeEntityClass("PERSON");
 
-			app.query("CREATE (p:PERSON:" + tenantId + " { name: \"p1\" } )", new HashMap<>());
-			app.query("CREATE (p:PERSON:" + tenantId + " { name: \"p2\" } )", new HashMap<>());
-			app.query("CREATE (p:PERSON:" + tenantId + " { name: \"p3\" } )", new HashMap<>());
+			try (final Tx tx = app.tx()) {
 
-			tx.success();
+				app.query("CREATE (p:PERSON:" + tenantId + " { name: \"p1\" } )", new HashMap<>());
+				app.query("CREATE (p:PERSON:" + tenantId + " { name: \"p2\" } )", new HashMap<>());
+				app.query("CREATE (p:PERSON:" + tenantId + " { name: \"p3\" } )", new HashMap<>());
 
-		} catch (Throwable t) {
+				tx.success();
 
-			t.printStackTrace();
-			fail("Unexpected exception.");
-		}
+			} catch (Throwable t) {
 
-		try (final Tx tx = app.tx()) {
+				t.printStackTrace();
+				fail("Unexpected exception.");
+			}
 
-			app.command(BulkCreateLabelsCommand.class).execute(Collections.emptyMap());
-			app.command(BulkSetUuidCommand.class).execute(map("allNodes", true));
-			app.command(BulkRebuildIndexCommand.class).execute(Collections.emptyMap());
+			try (final Tx tx = app.tx()) {
 
-			tx.success();
+				app.command(BulkCreateLabelsCommand.class).execute(Collections.emptyMap());
+				app.command(BulkSetUuidCommand.class).execute(map("allNodes", true));
+				app.command(BulkRebuildIndexCommand.class).execute(Collections.emptyMap());
 
-		} catch (Throwable t) {
+				tx.success();
 
-			t.printStackTrace();
-			fail("Unexpected exception.");
-		}
+			} catch (Throwable t) {
 
-		try (final Tx tx = app.tx()) {
+				t.printStackTrace();
+				fail("Unexpected exception.");
+			}
 
-			final List<NodeInterface> nodes = app.nodeQuery(type).getAsList();
+			try (final Tx tx = app.tx()) {
 
-			assertEquals("Non-Structr nodes not initialized correctly", 3, nodes.size());
-			assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(0).getType());
-			assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(1).getType());
-			assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(2).getType());
+				final List<NodeInterface> nodes = app.nodeQuery(type).getAsList();
 
-			tx.success();
+				assertEquals("Non-Structr nodes not initialized correctly", 3, nodes.size());
+				assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(0).getType());
+				assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(1).getType());
+				assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(2).getType());
 
-		} catch (Throwable t) {
+				tx.success();
 
-			t.printStackTrace();
-			fail("Unexpected exception.");
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				fail("Unexpected exception.");
+			}
 		}
 	}
 
+	/*
 	@Test
 	public void testInitializationOfNonStructrNodesWithoutTenantIdentifier() {
 
-		Settings.TenantIdentifier.setValue(null);
+		// don't run tests that depend on Cypher being available in the backend
+		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
-		cleanDatabaseAndSchema();
+			Settings.TenantIdentifier.setValue(null);
 
-		try (final Tx tx = app.tx()) {
+			cleanDatabaseAndSchema();
 
-			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			try (final Tx tx = app.tx()) {
 
-			schema.addType("PERSON");
+				final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
-			StructrSchema.extendDatabaseSchema(app, schema);
+				schema.addType("PERSON");
 
-			tx.success();
+				StructrSchema.extendDatabaseSchema(app, schema);
 
-		} catch (Throwable t) {
+				tx.success();
 
-			t.printStackTrace();
-			fail("Unexpected exception.");
-		}
+			} catch (Throwable t) {
 
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("PERSON");
+				t.printStackTrace();
+				fail("Unexpected exception.");
+			}
 
-		try (final Tx tx = app.tx()) {
+			final Class type = StructrApp.getConfiguration().getNodeEntityClass("PERSON");
 
-			app.query("CREATE (p:PERSON { name: \"p1\" } )", new HashMap<>());
-			app.query("CREATE (p:PERSON { name: \"p2\" } )", new HashMap<>());
-			app.query("CREATE (p:PERSON { name: \"p3\" } )", new HashMap<>());
+			try (final Tx tx = app.tx()) {
 
-			tx.success();
+				app.query("CREATE (p:PERSON { name: \"p1\" } )", new HashMap<>());
+				app.query("CREATE (p:PERSON { name: \"p2\" } )", new HashMap<>());
+				app.query("CREATE (p:PERSON { name: \"p3\" } )", new HashMap<>());
 
-		} catch (Throwable t) {
+				tx.success();
 
-			t.printStackTrace();
-			fail("Unexpected exception.");
-		}
+			} catch (Throwable t) {
 
-		try (final Tx tx = app.tx()) {
+				t.printStackTrace();
+				fail("Unexpected exception.");
+			}
 
-			app.command(BulkCreateLabelsCommand.class).execute(Collections.emptyMap());
-			app.command(BulkSetUuidCommand.class).execute(map("allNodes", true));
-			app.command(BulkRebuildIndexCommand.class).execute(Collections.emptyMap());
+			try (final Tx tx = app.tx()) {
 
-			tx.success();
+				app.command(BulkCreateLabelsCommand.class).execute(Collections.emptyMap());
+				app.command(BulkSetUuidCommand.class).execute(map("allNodes", true));
+				app.command(BulkRebuildIndexCommand.class).execute(Collections.emptyMap());
 
-		} catch (Throwable t) {
+				tx.success();
 
-			t.printStackTrace();
-			fail("Unexpected exception.");
-		}
+			} catch (Throwable t) {
 
-		try (final Tx tx = app.tx()) {
+				t.printStackTrace();
+				fail("Unexpected exception.");
+			}
 
-			final List<NodeInterface> nodes = app.nodeQuery(type).getAsList();
+			try (final Tx tx = app.tx()) {
 
-			assertEquals("Non-Structr nodes not initialized correctly", 3, nodes.size());
-			assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(0).getType());
-			assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(1).getType());
-			assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(2).getType());
+				final List<NodeInterface> nodes = app.nodeQuery(type).getAsList();
 
-			tx.success();
+				assertEquals("Non-Structr nodes not initialized correctly", 3, nodes.size());
+				assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(0).getType());
+				assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(1).getType());
+				assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(2).getType());
 
-		} catch (Throwable t) {
+				tx.success();
 
-			t.printStackTrace();
-			fail("Unexpected exception.");
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				fail("Unexpected exception.");
+			}
 		}
 	}
+	*/
 
 	@Test
 	public void testRelatedTypeOnNotionProperty() {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.util.Iterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
@@ -35,11 +34,11 @@ public class BulkDeleteCommand extends NodeServiceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(BulkDeleteCommand.class.getName());
 
-	public void bulkDelete(final Iterator<GraphObject> iterator) throws FrameworkException {
+	public void bulkDelete(final Iterable<GraphObject> iterable) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
 
-		final long count = bulkGraphOperation(securityContext, iterator, 1000, "DeleteObjects", new BulkGraphOperation<GraphObject>() {
+		final long count = bulkGraphOperation(securityContext, iterable, 1000, "DeleteObjects", new BulkGraphOperation<GraphObject>() {
 
 			@Override
 			public boolean handleGraphObject(final SecurityContext securityContext, final GraphObject obj) {

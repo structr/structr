@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,7 +36,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
@@ -47,6 +46,7 @@ import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.rest.servlet.ResourceHelper;
 import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.UiResourceProvider;
@@ -180,33 +180,17 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		}
 
 		// add sorting & paging
-		String pageSizeParameter = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
-		String pageParameter     = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
-		String sortOrder         = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
-		String sortKeyName       = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
-		boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
-		int pageSize             = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
-		int page                 = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
-
-		PropertyKey sortKey      = null;
-
-		// set sort key
-		if (sortKeyName != null) {
-
-			Class<? extends GraphObject> type = resource.getEntityClass();
-			if (type == null) {
-
-				// fallback to default implementation
-				// if no type can be determined
-				type = AbstractNode.class;
-
-			}
-
-			sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName, false);
-		}
+		final String pageSizeParameter = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
+		final String pageParameter     = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
+		final String[] sortKeyNames    = wrappedRequest.getParameterValues(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
+		final String[] sortOrders      = wrappedRequest.getParameterValues(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
+		final Class type               = resource.getEntityClassOrDefault();
+		final DefaultSortOrder order   = new DefaultSortOrder(type, sortKeyNames, sortOrders);
+		final int pageSize             = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
+		final int page                 = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
 
 		try {
-			return resource.doGet(sortKey, sortDescending, pageSize, page);
+			return resource.doGet(order, pageSize, page);
 
 		} catch (NotFoundException nfe) {
 			logger.warn("No result from internal REST query: {}", restQuery);

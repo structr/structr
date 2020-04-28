@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -264,6 +264,8 @@ public class Console {
 
 	private void runStructrScript(final String line, final Writable writable) throws FrameworkException, IOException {
 
+		actionContext.setJavaScriptContext(false);
+
 		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
 			final Object result = Functions.evaluate(actionContext, null, line);
@@ -293,6 +295,8 @@ public class Console {
 		final Context scriptingContext = Context.enter();
 
 		init(scriptingContext);
+
+		actionContext.setJavaScriptContext(true);
 
 		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 

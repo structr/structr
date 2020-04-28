@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,9 +38,11 @@ public interface DatabaseService {
 	 * Initializes the service, returns true if the
 	 * service was initialized successfully.
 	 *
+	 * @param serviceName the name of the service
+	 *
 	 * @return whether the service was initialized successfully
 	 */
-	boolean initialize();
+	boolean initialize(final String serviceName);
 	void shutdown();
 	void clearCaches();
 	void cleanDatabase();
@@ -49,6 +51,7 @@ public interface DatabaseService {
 	<X> X forName(final Class<X> type, final String name);
 
 	Transaction beginTx();
+	Transaction beginTx(final int timeoutInSeconds);
 
 	Node createNode(final String type, final Set<String> labels, final Map<String, Object> properties);
 	NodeWithOwnerResult createNodeWithOwner(final Identity ownerId, final String type, final Set<String> labels, final Map<String, Object> nodeProperties, final Map<String, Object> ownsProperties, final Map<String, Object> securityProperties);
@@ -57,6 +60,15 @@ public interface DatabaseService {
 	Relationship getRelationshipById(final Identity id);
 
 	Iterable<Node> getAllNodes();
+
+	/**
+	 * Returns an Iterable that iterates over all nodes in the database,
+	 * optionally filtered by the given label.
+	 *
+	 * @param label the label or null
+	 *
+	 * @return an Iterable of Nodes
+	 */
 	Iterable<Node> getNodesByLabel(final String label);
 	Iterable<Node> getNodesByTypeProperty(final String type);
 
@@ -67,16 +79,19 @@ public interface DatabaseService {
 
 	String getTenantIdentifier();
 	String getInternalTimestamp();
+	String getErrorMessage();
 
 	// ----- index -----
 	Index<Node> nodeIndex();
 	Index<Relationship> relationshipIndex();
-	void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfig, final Map<String, Map<String, Boolean>> removedClasses);
+	void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfig, final Map<String, Map<String, Boolean>> removedClasses, final boolean createOnly);
+	boolean isIndexUpdateFinished();
 
 	// utils
 	CountResult getNodeAndRelationshipCount();
 
 	// native
-	Iterable<Map<String, Object>> execute(final String nativeQuery, final Map<String, Object> parameters);
-	Iterable<Map<String, Object>> execute(final String nativeQuery);
+	<T> T execute(final NativeQuery<T> nativeQuery);
+	<T> NativeQuery<T> query(final Object query, final Class<T> resultType);
+	boolean supportsFeature(final DatabaseFeature feature, final Object...  parameters);
 }

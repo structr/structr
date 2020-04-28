@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Relationship;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
@@ -44,8 +46,6 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
 import org.structr.test.core.entity.TestOne;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -397,7 +397,7 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<GraphObject> result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getAsList();
+				List<GraphObject> result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
 				assertEquals(2, result.size());
 

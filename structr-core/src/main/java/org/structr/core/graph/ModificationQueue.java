@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,7 +39,6 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
-import org.structr.bolt.wrapper.EntityWrapper;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -51,6 +50,8 @@ import org.structr.core.entity.Relation;
 import org.structr.core.function.ChangelogFunction;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
+import org.structr.core.property.RelationProperty;
 
 /**
  *
@@ -133,7 +134,7 @@ public class ModificationQueue {
 		for (final GraphObjectModificationState state : getSortedModifications()) {
 
 			PropertyContainer container = state.getGraphObject().getPropertyContainer();
-			if (container instanceof EntityWrapper && ((EntityWrapper) container).isStale()) {
+			if (container.isStale()) {
 				continue;
 			}
 
@@ -472,10 +473,11 @@ public class ModificationQueue {
 		final GraphObjectMap before = new GraphObjectMap();
 		final GraphObjectMap after  = new GraphObjectMap();
 
-		before.putAll(state.getRemovedProperties());
 
-		after.putAll(state.getModifiedProperties());
-		after.putAll(state.getNewProperties());
+		addLocalProperties(before, state.getRemovedProperties());
+
+		addLocalProperties(after, state.getModifiedProperties());
+		addLocalProperties(after, state.getNewProperties());
 
 		result.put(new GenericProperty("before"),  before);
 		result.put(new GenericProperty("after"),   after);
@@ -483,6 +485,15 @@ public class ModificationQueue {
 		result.put(new GenericProperty("removed"), state.getRemovedRemoteProperties());
 
 		return result;
+	}
+
+	private void addLocalProperties(final GraphObjectMap map, final PropertyMap data) {
+
+		data.getRawMap().forEach((key, value) -> {
+			if ( !(key instanceof RelationProperty) ) {
+				map.put(key, value);
+			}
+		});
 	}
 
 	public void disableChangelog() {
@@ -508,13 +519,6 @@ public class ModificationQueue {
 
 				modifySecurity(startNode);
 				modifySecurity(endNode);
-				return;
-			}
-
-			if (RelType.IS_AT.equals(relType)) {
-
-				modifyLocation(startNode);
-				modifyLocation(endNode);
 				return;
 			}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -317,6 +317,11 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 
 	@Override
 	public void delete(final boolean deleteRelationships) throws NotInTransactionException {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public boolean isStale() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,7 +38,6 @@ import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
-import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,13 +70,17 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 				jsonObject = new JSONObject(queryString);
 			}
 
-			Query query = app.nodeQuery(clazz);
+			final Query query = app.nodeQuery(clazz);
 
 			if (jsonObject != null && jsonObject.getJSONArray("operations").length() > 0) {
 				resolveQueryObject(context, jsonObject, query);
 			}
 
-			return query.getAsList();
+			final List list = query.getAsList();
+
+			tx.success();
+
+			return list;
 
 		} catch (FrameworkException ex) {
 
@@ -115,28 +118,19 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 	}
 
 	private Query resolveSortOperation(final JSONObject object, final Query query) {
+
 		final String queryType = object.getString("queryType");
 		final String key = object.getString("key");
 		final String order = object.getString("order");
 
 		if (queryType != null && queryType.length() > 0 && key != null && key.length() > 0) {
 
-			Class queryTypeClass = StructrApp.getConfiguration().getNodeEntityClass(queryType);
+			final Class queryTypeClass = StructrApp.getConfiguration().getNodeEntityClass(queryType);
 			if (queryTypeClass != null) {
-				PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(queryTypeClass, key);
 
-				switch (order) {
-					case "asc":
-						query.sortAscending(propKey);
-						break;
-					case "desc":
-						query.sortDescending(propKey);
-						break;
-					default:
-						query.sort(propKey);
-						break;
-				}
+				final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(queryTypeClass, key);
 
+				query.sort(propKey, "desc".equals(order));
 			}
 
 		}

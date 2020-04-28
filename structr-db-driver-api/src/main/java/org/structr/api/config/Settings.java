@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,13 +31,14 @@ import java.util.Properties;
 import java.util.Set;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * The Structr configuration settings.
  */
 public class Settings {
+
+	public static final String DEFAULT_DATABASE_DRIVER        = "org.structr.memory.MemoryDatabaseService";
 
 	private static final Map<String, Setting> settings        = new LinkedHashMap<>();
 	private static final Map<String, SettingsGroup> groups    = new LinkedHashMap<>();
@@ -77,8 +78,8 @@ public class Settings {
 	public static final Setting<Boolean> DebugLogging           = new BooleanSetting(generalGroup,            "Logging",     "log.debug",                        false, "Controls the behaviour of the debug() function. If disabled, the debug() function behaves like a NOP. If enabled, it behaves exactly like the log() function.");
 	public static final Setting<Boolean> LogFunctionsStackTrace = new BooleanSetting(generalGroup,            "Logging",     "log.functions.stacktrace",         false, "If true, the full stacktrace is logged for exceptions in built-in functions.");
 	public static final Setting<String> LogPrefix               = new StringSetting(generalGroup,             "Logging",     "log.prefix",                       "structr");
-	public static final Setting<String> LogName                 = new StringSetting(generalGroup,             "Logging",     "log.name",                         "structr-yyyy_mm_dd.request.log", "File name pattern for the logging output");
 	public static final Setting<Boolean> LogJSExcpetionRequest  = new BooleanSetting(generalGroup,            "Logging",     "log.javascript.exception.request", false, "Adds path, queryString and parameterMap to JavaScript exceptions (if available)");
+	public static final Setting<Boolean> SetupWizardCompleted   = new BooleanSetting(generalGroup,            "hidden",      "setup.wizard.completed",           false);
 	public static final Setting<String> Configuration           = new StringSetting(generalGroup,             "hidden",      "configuration.provider",           "org.structr.module.JarConfigurationProvider", "Fully-qualified class name of a Java class in the current class path that implements the <code>org.structr.schema.ConfigurationProvider</code> interface.");
 	public static final StringMultiChoiceSetting Services       = new StringMultiChoiceSetting(generalGroup,  "Services",    "configured.services",              "NodeService SchemaService AgentService CronService HttpService", "Services that are listed in this configuration key will be started when Structr starts.");
 	public static final Setting<Integer> ServicesStartTimeout   = new IntegerSetting(generalGroup,            "Services",    "services.start.timeout",           30);
@@ -96,7 +97,7 @@ public class Settings {
 	public static final Setting<Boolean> HttpsEnabled         = new BooleanSetting(serverGroup, "Interfaces", "application.https.enabled",     false, "Whether SSL is enabled");
 	public static final Setting<String> KeystorePath          = new StringSetting(serverGroup,  "Interfaces", "application.keystore.path",     "", "The path to the JKS keystore containing the SSL certificate");
 	public static final Setting<String> KeystorePassword      = new StringSetting(serverGroup,  "Interfaces", "application.keystore.password", "", "The password for the JKS keystore");
-	public static final Setting<String> RestPath              = new StringSetting(serverGroup,  "Interfaces", "application.rest.path",         "/structr/rest", "Defines the URL path of the Structr REST server. Should not be changed because it is hard-coded in many parts of the application.");
+	public static final Setting<String> RestPath              = new StringSetting(serverGroup,  "hidden",     "application.rest.path",         "/structr/rest", "Defines the URL path of the Structr REST server. Should not be changed because it is hard-coded in many parts of the application.");
 	public static final Setting<String> BaseUrlOverride       = new StringSetting(serverGroup,  "Interfaces", "application.baseurl.override",  "", "Overrides the baseUrl that can be used to prefix links to local web resources. By default, the value is assembled from the protocol, hostname and port of the server instance Structr is running on");
 
 	// HTTP service settings
@@ -112,7 +113,7 @@ public class Settings {
 	public static final Setting<Boolean> ClearSessionsOnStartup  = new BooleanSetting(serverGroup, "HTTP Settings", "application.session.clear.onstartup",  false, "Clear all sessions on startup if set to true.");
 	public static final Setting<Boolean> ClearSessionsOnShutdown = new BooleanSetting(serverGroup, "HTTP Settings", "application.session.clear.onshutdown", false, "Clear all sessions on shutdown if set to true.");
 
-	public static final Setting<Boolean> ForceHttps             = new BooleanSetting(serverGroup, "HTTPS Settings", "httpservice.force.https",         		false, "Allows forcing HTTPS.");
+	public static final Setting<Boolean> ForceHttps             = new BooleanSetting(serverGroup, "HTTPS Settings", "httpservice.force.https",         		false, "Allows forcing HTTPS. (only works if HTTPS is active!)");
 	public static final Setting<Boolean> HttpOnly               = new BooleanSetting(serverGroup, "HTTPS Settings", "httpservice.cookies.httponly",         	false, "Set HttpOnly to true for cookies. Please note that this will disable backend access!");
 	public static final Setting<Boolean> dumpJettyStartupConfig = new BooleanSetting(serverGroup, "HTTPS Settings", "httpservice.log.jetty.startupconfig",  false);
 	public static final Setting<String> excludedProtocols       = new StringSetting(serverGroup,  "HTTPS Settings", "httpservice.ssl.protocols.excluded",   "TLSv1,TLSv1.1");
@@ -131,22 +132,25 @@ public class Settings {
 	public static final Setting<String> UiHandlerWelcomeFiles       = new StringSetting(serverGroup,  "hidden", "structruihandler.welcomefiles",      "index.html");
 
 	// database settings
-	public static final Setting<String> DatabaseDriver          = new StringSetting(databaseGroup,  "Database Driver",         "database.driver",                  "org.structr.bolt.BoltDatabaseService");
-	public static final Setting<String> DatabaseDriverMode      = new ChoiceSetting(databaseGroup,  "Database Driver",         "database.driver.mode",             "embedded", Settings.getStringsAsSet("embedded", "remote"));
-	public static final Setting<String> ConnectionUrl           = new StringSetting(databaseGroup,  "Database Connection",     "database.connection.url",          "bolt://localhost:7688");
-	public static final Setting<String> TestingConnectionUrl    = new StringSetting(databaseGroup,  "hidden",                  "testing.connection.url",           "bolt://localhost:7689");
-	public static final Setting<String> ConnectionUser          = new StringSetting(databaseGroup,  "Database Connection",     "database.connection.username",     "neo4j");
-	public static final Setting<String> ConnectionPassword      = new StringSetting(databaseGroup,  "Database Connection",     "database.connection.password",     "neo4j");
-	public static final Setting<String> TenantIdentifier        = new StringSetting(databaseGroup,  "Database Connection",     "database.tenant.identifier",       "");
-	public static final Setting<Integer> RelationshipCacheSize  = new IntegerSetting(databaseGroup, "Caching",                 "database.cache.relationship.size", 500000);
-	public static final Setting<Integer> NodeCacheSize          = new IntegerSetting(databaseGroup, "Caching",                 "database.cache.node.size",         100000, "Size of the database driver node cache");
-	public static final Setting<Integer> UuidCacheSize          = new IntegerSetting(databaseGroup, "Caching",                 "database.cache.uuid.size",         1000000, "Size of the database driver relationship cache");
-	public static final Setting<Boolean> ForceResultStreaming   = new BooleanSetting(databaseGroup, "Result Streaming",        "database.result.lazy",             false, "Forces Structr to use lazy evaluation for relationship queries");
-	public static final Setting<Boolean> CypherDebugLogging     = new BooleanSetting(databaseGroup, "Debugging",               "log.cypher.debug",                 false, "Turns on debug logging for the generated Cypher queries");
-	public static final Setting<Boolean> CypherDebugLoggingPing = new BooleanSetting(databaseGroup, "Debugging",               "log.cypher.debug.ping",            false, "Turns on debug logging for the generated Cypher queries of the websocket PING command. Can only be used in conjunction with log.cypher.debug");
-	public static final Setting<Boolean> SyncDebugging          = new BooleanSetting(databaseGroup, "Sync debugging",          "sync.debug",                       false);
-	public static final Setting<Integer> ResultCountSoftLimit   = new IntegerSetting(databaseGroup, "Soft result count limit", "database.result.softlimit",        10_000, "Soft result count limit for a single query (can be overridden by pageSize)");
-	public static final Setting<Integer> FetchSize              = new IntegerSetting(databaseGroup, "Result fetch size",       "database.result.fetchsize",        100_000, "Number of database records to fetch per batch when fetching large results");
+	public static final Setting<String> DatabaseAvailableConnections = new StringSetting(databaseGroup,  "hidden",                  "database.available.connections",   null);
+	public static final Setting<String> DatabaseDriverMode           = new ChoiceSetting(databaseGroup,  "hidden",                  "database.driver.mode",             "embedded", Settings.getStringsAsSet("embedded", "remote"));
+	public static final Setting<String> DatabaseDriver               = new StringSetting(databaseGroup,  "hidden",                  "database.driver",                  DEFAULT_DATABASE_DRIVER);
+	public static final Setting<String> ConnectionName               = new StringSetting(databaseGroup,  "hidden",                  "database.connection.name",         "default");
+	public static final Setting<String> SampleConnectionUrl          = new StringSetting(databaseGroup,  "hidden",                  "database.connection.url.sample",   "bolt://localhost:7687");
+	public static final Setting<String> ConnectionUrl                = new StringSetting(databaseGroup,  "hidden",                  "database.connection.url",          "bolt://localhost:7688");
+	public static final Setting<String> TestingConnectionUrl         = new StringSetting(databaseGroup,  "hidden",                  "testing.connection.url",           "bolt://localhost:7689");
+	public static final Setting<String> ConnectionUser               = new StringSetting(databaseGroup,  "hidden",                  "database.connection.username",     "neo4j");
+	public static final Setting<String> ConnectionPassword           = new StringSetting(databaseGroup,  "hidden",                  "database.connection.password",     "neo4j");
+	public static final Setting<String> TenantIdentifier             = new StringSetting(databaseGroup,  "hidden",                  "database.tenant.identifier",       "");
+	public static final Setting<Integer> RelationshipCacheSize       = new IntegerSetting(databaseGroup, "Caching",                 "database.cache.relationship.size", 500000);
+	public static final Setting<Integer> NodeCacheSize               = new IntegerSetting(databaseGroup, "Caching",                 "database.cache.node.size",         100000, "Size of the database driver node cache");
+	public static final Setting<Integer> UuidCacheSize               = new IntegerSetting(databaseGroup, "hidden",                  "database.cache.uuid.size",         1000000, "Size of the database driver relationship cache");
+	public static final Setting<Boolean> ForceResultStreaming        = new BooleanSetting(databaseGroup, "Result Streaming",        "database.result.lazy",             false, "Forces Structr to use lazy evaluation for relationship queries");
+	public static final Setting<Boolean> CypherDebugLogging          = new BooleanSetting(databaseGroup, "Debugging",               "log.cypher.debug",                 false, "Turns on debug logging for the generated Cypher queries");
+	public static final Setting<Boolean> CypherDebugLoggingPing      = new BooleanSetting(databaseGroup, "Debugging",               "log.cypher.debug.ping",            false, "Turns on debug logging for the generated Cypher queries of the websocket PING command. Can only be used in conjunction with log.cypher.debug");
+	public static final Setting<Boolean> SyncDebugging               = new BooleanSetting(databaseGroup, "Sync debugging",          "sync.debug",                       false);
+	public static final Setting<Integer> ResultCountSoftLimit        = new IntegerSetting(databaseGroup, "Soft result count limit", "database.result.softlimit",        10_000, "Soft result count limit for a single query (can be overridden by pageSize)");
+	public static final Setting<Integer> FetchSize                   = new IntegerSetting(databaseGroup, "Result fetch size",       "database.result.fetchsize",        100_000, "Number of database records to fetch per batch when fetching large results");
 
 	// application settings
 	public static final Setting<Boolean> ChangelogEnabled         = new BooleanSetting(applicationGroup, "Changelog",    "application.changelog.enabled",               false, "Turns on logging of changes to nodes and relationships");
@@ -167,8 +171,11 @@ public class Settings {
 	public static final Setting<Boolean> SchemaAutoMigration      = new BooleanSetting(applicationGroup, "Schema",       "application.schema.automigration",            false, "Enable automatic migration of schema information between versions (if possible -- may delete schema nodes)");
 	public static final Setting<Boolean> AllowUnknownPropertyKeys = new BooleanSetting(applicationGroup, "Schema",       "application.schema.allowunknownkeys",         false, "Enables get() and set() built-in functions to use property keys that are not defined in the schema.");
 	public static final Setting<Boolean> logMissingLocalizations  = new BooleanSetting(applicationGroup, "Localization", "application.localization.logmissing",         false, "Turns on logging for requested but non-existing localizations.");
-	public static final Setting<String> SchemaDeploymentFormat    = new ChoiceSetting(applicationGroup,  "Deployment",   "deployment.schema.format",                    "file", Settings.getStringsAsSet("file", "tree"), "Configures how the schema is exported in a deployment export. <code>file</code> exports the schema as a single file. <code>tree</code> exports the schema as a tree where methods/function properties are written to single files in a tree structure.");
+	public static final Setting<String> SchemaDeploymentFormat    = new ChoiceSetting(applicationGroup,  "Deployment",   "deployment.schema.format",                    "tree", Settings.getStringsAsSet("file", "tree"), "Configures how the schema is exported in a deployment export. <code>file</code> exports the schema as a single file. <code>tree</code> exports the schema as a tree where methods/function properties are written to single files in a tree structure.");
 	public static final Setting<String> GlobalSecret              = new StringSetting(applicationGroup,  "Encryption",   "application.encryption.secret",               null,   "Sets the global secret for encrypted string properties. Using this configuration setting is one of several possible ways to set the secret, and it is not recommended for production environments because the key can easily be read by an attacker with scripting access.");
+
+	public static final Setting<Boolean> CallbacksOnLogout      = new BooleanSetting(applicationGroup, "Login/Logout behavior",   "callbacks.logout.onsave",       false, "Setting this to true enables the execution of the User.onSave method when a user logs out. Disabled by default because the global login handler onStructrLogout would be the right place for such functionality.");
+	public static final Setting<Boolean> CallbacksOnLogin       = new BooleanSetting(applicationGroup, "Login/Logout behavior",   "callbacks.login.onsave",      false, "Setting this to true enables the execution of the User.onSave method for login actions. This will also trigger for failed login attempts and for two-factor authentication intermediate steps. Disabled by default because the global login handler onStructrLogin would be the right place for such functionality.");
 
 
 	// mail settings
@@ -194,7 +201,7 @@ public class Settings {
 	public static final Setting<Boolean> CmisEnabled             = new BooleanSetting(advancedGroup, "hidden",      "cmis.enabled",                  false);
 
 	// servlets
-	public static final StringMultiChoiceSetting Servlets     = new StringMultiChoiceSetting(servletsGroup, "General", "httpservice.servlets", "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet", Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet"), "Servlets that are listed in this configuration key will be available in the HttpService. Changes to this setting require a restart of the HttpService in the 'Services' tab.");
+	public static final StringMultiChoiceSetting Servlets     = new StringMultiChoiceSetting(servletsGroup, "General", "httpservice.servlets", "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet LoginServlet LogoutServlet", Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet", "LoginServlet", "LogoutServlet"), "Servlets that are listed in this configuration key will be available in the HttpService. Changes to this setting require a restart of the HttpService in the 'Services' tab.");
 
 	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "configservlet.enabled",             true, "Enables the config servlet (available under <code>http(s)://<your-server>/structr/config</code>)");
 
@@ -280,6 +287,20 @@ public class Settings {
 	public static final Setting<String> GraphQLDefaultView       = new StringSetting(servletsGroup,  "GraphQLServlet", "graphqlservlet.defaultview",           "public");
 	public static final Setting<Integer> GraphQLOutputDepth      = new IntegerSetting(servletsGroup, "GraphQLServlet", "graphqlservlet.outputdepth",	   3);
 
+	public static final Setting<String> LoginServletPath       = new StringSetting(servletsGroup,  "LoginServlet", "loginservlet.path",                  "/structr/login");
+	public static final Setting<String> LoginServletClass      = new StringSetting(servletsGroup,  "LoginServlet", "loginservlet.class",                 "org.structr.web.servlet.LoginServlet");
+	public static final Setting<String> LoginAuthenticator     = new StringSetting(servletsGroup,  "LoginServlet", "loginservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> LoginResourceProvider  = new StringSetting(servletsGroup,  "LoginServlet", "loginservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
+	public static final Setting<String> LoginDefaultView       = new StringSetting(servletsGroup,  "LoginServlet", "loginservlet.defaultview",           "public");
+	public static final Setting<Integer> LoginOutputDepth      = new IntegerSetting(servletsGroup, "LoginServlet", "loginservlet.outputdepth",	   3);
+
+	public static final Setting<String> LogoutServletPath       = new StringSetting(servletsGroup,  "LogoutServlet", "logoutservlet.path",                  "/structr/logout");
+	public static final Setting<String> LogoutServletClass      = new StringSetting(servletsGroup,  "LogoutServlet", "logoutservlet.class",                 "org.structr.web.servlet.LogoutServlet");
+	public static final Setting<String> LogoutAuthenticator     = new StringSetting(servletsGroup,  "LogoutServlet", "logoutservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> LogoutResourceProvider  = new StringSetting(servletsGroup,  "LogoutServlet", "logoutservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
+	public static final Setting<String> LogoutDefaultView       = new StringSetting(servletsGroup,  "LogoutServlet", "logoutservlet.defaultview",           "public");
+	public static final Setting<Integer> LogoutOutputDepth      = new IntegerSetting(servletsGroup, "LogoutServlet", "logoutservlet.outputdepth",	   3);
+
 	public static final Setting<String> DeploymentServletPath                = new StringSetting(servletsGroup,  "DeploymentServlet", "deploymentservlet.path",                      "/structr/deploy");
 	public static final Setting<String> DeploymentServletClass               = new StringSetting(servletsGroup,  "DeploymentServlet", "deploymentservlet.class",                     "org.structr.web.servlet.DeploymentServlet");
 	public static final Setting<String> DeploymentAuthenticator              = new StringSetting(servletsGroup,  "DeploymentServlet", "deploymentservlet.authenticator",             "org.structr.web.auth.UiAuthenticator");
@@ -306,13 +327,15 @@ public class Settings {
 	public static final Setting<Integer> ProxyMaxRequestSize   = new IntegerSetting(servletsGroup, "ProxyServlet", "proxyservlet.maxrequestsize",        1200);
 
 	// cron settings
-	public static final Setting<String> CronTasks              = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations");
+	public static final Setting<String> CronTasks                   = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations");
+	public static final Setting<Boolean> CronAllowParallelExecution = new BooleanSetting(cronGroup,  "", "CronService.allowparallelexecution", false, "Enables the parallel execution of *the same* cron job. This can happen if the method runs longer than the defined cron interval. As thisand could possibly create problems the default is false.");
 
 	//security settings
 	public static final Setting<String> SuperUserName                  = new StringSetting(securityGroup,     "Superuser",            "superuser.username",                    "superadmin", "Name of the superuser");
-	public static final Setting<String> SuperUserPassword              = new PasswordSetting(securityGroup,   "Superuser",            "superuser.password",                    RandomStringUtils.randomAlphanumeric(12), "Password of the superuser (or empty to create a random password at runtime)");
+	public static final Setting<String> SuperUserPassword              = new PasswordSetting(securityGroup,   "Superuser",            "superuser.password",                    null, "Password of the superuser");
 	public static final Setting<Integer> ResolutionDepth               = new IntegerSetting(applicationGroup, "Application Security", "application.security.resolution.depth", 5);
 	public static final Setting<String> OwnerlessNodes                 = new StringSetting(applicationGroup,  "Application Security", "application.security.ownerless.nodes",  "read", "The permission level for users on nodes without an owner. One or more of: <code>read, write, delete, accessControl</code>");
+	public static final Setting<Boolean> XMLParserSecurity             = new BooleanSetting(applicationGroup, "Application Security", "application.xml.parser.security", true, "Enables various security measures for XML parsing to prevent exploits.");
 
 	public static final Setting<Integer> TwoFactorLevel                = new IntegerChoiceSetting(securityGroup, "Two Factor Authentication", "security.twofactorauthentication.level",                1,             Settings.getTwoFactorSettingOptions());
 	public static final Setting<String> TwoFactorIssuer                = new StringSetting(securityGroup,        "Two Factor Authentication", "security.twofactorauthentication.issuer",               "Structr",     "Must be URL-compliant in order to scan the created QR code");
@@ -332,11 +355,23 @@ public class Settings {
 
 	public static final Setting<String> RegistrationCustomUserClass               = new StringSetting(securityGroup,  "User Self Registration", "registration.customuserclass",              "");
 	public static final Setting<Boolean> RegistrationAllowLoginBeforeConfirmation = new BooleanSetting(securityGroup, "User Self Registration", "registration.allowloginbeforeconfirmation", false, "Enables self-registered users to login without clicking the activation link in the registration email.");
-	public static final Setting<String> RegistrationCustomAttributes              = new StringSetting(securityGroup,  "User Self Registration", "registration.customuserattributes",         "name", "User self-registration configuration");
+	public static final Setting<String> RegistrationCustomAttributes              = new StringSetting(securityGroup,  "User Self Registration", "registration.customuserattributes",         "name", "Attributes the registering user is allowed to provide. All other attributes are discarded. (eMail is always allowed)");
 
 	public static final Setting<Integer> ConfirmationKeyPasswordResetValidityPeriod = new IntegerSetting(securityGroup, "Confirmation Key Validity", "confirmationkey.passwordreset.validityperiod", 30,    "Validity period (in minutes) of the confirmation key generated when a user resets his password. Default is 30.");
 	public static final Setting<Integer> ConfirmationKeyRegistrationValidityPeriod  = new IntegerSetting(securityGroup, "Confirmation Key Validity", "confirmationkey.registration.validityperiod",  2880,  "Validity period (in minutes) of the confirmation key generated during self registration. Default is 2 days (2880 minutes)");
 	public static final Setting<Boolean> ConfirmationKeyValidWithoutTimestamp       = new BooleanSetting(securityGroup, "Confirmation Key Validity", "confirmationkey.validwithouttimestamp",        false, "How to interpret confirmation keys without a timestamp");
+
+	public static final Setting<Integer> LetsEncryptWaitBeforeAuthorization         = new IntegerSetting(securityGroup,  "Let's Encrypt", "letsencrypt.wait", 300, "Wait for this amount of seconds before trying to authorize challenge. Default is 300 seconds (5 minutes).");
+	public static final Setting<String> LetsEncryptChallengeType                    = new ChoiceSetting(securityGroup,   "Let's Encrypt", "letsencrypt.challenge.type", "http", Settings.getStringsAsSet("http", "dns"), "Challenge type for Let's Encrypt authorization. Possible values are 'http' and 'dns'.");
+	public static final Setting<String> LetsEncryptDomains                          = new StringSetting(securityGroup,   "Let's Encrypt", "letsencrypt.domains", "", "Space-separated list of domains to fetch and update Let's Encrypt certificates for");
+	public static final Setting<String> LetsEncryptProductionServerURL              = new StringSetting(securityGroup,   "Let's Encrypt", "letsencrypt.production.server.url", "acme://letsencrypt.org", "URL of Let's Encrypt server. Default is 'acme://letsencrypt.org'");
+	public static final Setting<String> LetsEncryptStagingServerURL                 = new StringSetting(securityGroup,   "Let's Encrypt", "letsencrypt.staging.server.url", "acme://letsencrypt.org/staging", "URL of Let's Encrypt staging server for testing only. Default is 'acme://letsencrypt.org/staging'.");
+	public static final Setting<String> LetsEncryptUserKeyFilename                  = new StringSetting(securityGroup,   "Let's Encrypt", "letsencrypt.user.key.filename", "user.key", "File name of the Let's Encrypt user key. Default is 'user.key'.");
+	public static final Setting<String> LetsEncryptDomainKeyFilename                = new StringSetting(securityGroup,   "Let's Encrypt", "letsencrypt.domain.key.filename", "domain.key", "File name of the Let's Encrypt domain key. Default is 'domain.key'.");
+	public static final Setting<String> LetsEncryptDomainCSRFileName                = new StringSetting(securityGroup,   "Let's Encrypt", "letsencrypt.domain.csr.filename", "domain.csr", "File name of the Let's Encrypt CSR. Default is 'domain.csr'.");
+	public static final Setting<String> LetsEncryptDomainChainFilename              = new StringSetting(securityGroup,   "Let's Encrypt", "letsencrypt.domain.chain.filename", "domain-chain.crt", "File name of the Let's Encrypt domain chain. Default is 'domain-chain.crt'.");
+	public static final Setting<Integer> LetsEncryptKeySize                         = new IntegerSetting(securityGroup,  "Let's Encrypt", "letsencrypt.key.size", 2048, "Encryption key length. Default is 2048.");
+
 
 	// oauth settings
 	public static final Setting<String> OAuthServers            = new StringSetting(oauthGroup, "General", "oauth.servers", "github twitter linkedin google facebook auth0");
@@ -499,8 +534,12 @@ public class Settings {
 	}
 
 	public static Setting<?> createSettingForValue(final SettingsGroup group, final String key, final String value) {
+		return createSettingForValue(group, key, value, false);
+	}
 
-		if (value != null) {
+	public static Setting<?> createSettingForValue(final SettingsGroup group, final String key, final String value, final boolean forceString) {
+
+		if (value != null && !forceString) {
 
 			// try to determine property value type, string, integer or boolean?
 			final String lowerCaseValue = value.toLowerCase();
@@ -601,7 +640,7 @@ public class Settings {
 					}
 
 					// create new StringSetting for unknown key
-					Settings.createSettingForValue(targetGroup, key, value);
+					Settings.createSettingForValue(targetGroup, key, value, key.contains(Settings.ConnectionPassword.getKey()));
 				}
 			}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -49,6 +49,11 @@ public class ToCsvFunction extends CsvFunction {
 	@Override
 	public String getName() {
 		return "to_csv";
+	}
+
+	@Override
+	public String getSignature() {
+		return "nodes, propertiesOrView [, d, qc, rs, i, l, ld ]";
 	}
 
 	@Override

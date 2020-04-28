@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,6 +32,11 @@ public class UnlockReadonlyPropertiesFunction extends AdvancedScriptingFunction 
 	@Override
 	public String getName() {
 		return "unlock_readonly_properties_once";
+	}
+
+	@Override
+	public String getSignature() {
+		return null;
 	}
 
 	@Override
@@ -72,5 +77,10 @@ public class UnlockReadonlyPropertiesFunction extends AdvancedScriptingFunction 
 	@Override
 	public String shortDescription() {
 		return "Unlocks any read-only property for a single access";
+	}
+
+	@Override
+	public boolean isHidden() {
+		return true;
 	}
 }

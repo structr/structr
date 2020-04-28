@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,7 @@
  */
 package org.structr.core.graph;
 
-import java.util.Iterator;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -28,42 +28,34 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 
-
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Clears database.
  *
  * This command takes no parameters.
- *
- *
  */
 public class ClearDatabase extends NodeServiceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(ClearDatabase.class.getName());
 
-	//~--- methods --------------------------------------------------------
-
 	public void execute() throws FrameworkException {
 
 		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
-		final NodeFactory nodeFactory = new NodeFactory(securityContext);
 
 		if (graphDb != null) {
 
-			Iterator<NodeInterface> nodeIterator = null;
+			List<NodeInterface> nodes = null;
 			final App app = StructrApp.getInstance();
 
 			try (final Tx tx = app.tx()) {
 
-				nodeIterator = app.nodeQuery(NodeInterface.class).getAsList().iterator();
+				nodes = app.nodeQuery(NodeInterface.class).getAsList();
 				tx.success();
 
 			} catch (FrameworkException fex) {
 				logger.warn("Exception while creating all nodes iterator.", fex);
 			}
 
-			final long deletedNodes = bulkGraphOperation(securityContext, nodeIterator, 1000, "ClearDatabase", new BulkGraphOperation<NodeInterface>() {
+			final long deletedNodes = bulkGraphOperation(securityContext, nodes, 1000, "ClearDatabase", new BulkGraphOperation<NodeInterface>() {
 
 				@Override
 				public boolean handleGraphObject(SecurityContext securityContext, NodeInterface node) {

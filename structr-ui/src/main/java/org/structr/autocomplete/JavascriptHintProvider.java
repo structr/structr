@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,13 +18,16 @@
  */
 package org.structr.autocomplete;
 
+import org.structr.core.function.ParseResult;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.function.Functions;
-import org.structr.schema.action.Function;
 import org.structr.schema.action.Hint;
 
 /**
@@ -33,38 +36,87 @@ import org.structr.schema.action.Hint;
  */
 public class JavascriptHintProvider extends AbstractHintProvider {
 
+	private static final Logger logger = LoggerFactory.getLogger(JavascriptHintProvider.class);
+
 	@Override
-	protected List<Hint> getAllHints(final GraphObject currentNode, final String currentToken, final String previousToken, final String thirdToken) {
+	protected List<Hint> getAllHints(final SecurityContext securityContext, final GraphObject currentNode, final String editorText, final ParseResult result) {
 
-		final boolean isStructrHandle = "Structr".equals(previousToken);
-		final List<Hint> hints        = new LinkedList<>();
+		final List<String> tokens = result.getTokens();
+		final String[] lines      = editorText.split("\n");
+		final String lastLine     = lines[lines.length - 1];
+		final String trimmed      = lastLine.trim();
+		final int length          = trimmed.length();
+		final StringBuilder buf   = new StringBuilder();
 
-		if (isStructrHandle) {
-			
-			// add functions
-			for (final Function<Object, Object> func : Functions.getFunctions()) {
-				hints.add(func);
+		// This loop splits the editor text into text- and non-text tokens while
+		// preserving the separator chars (which String.split() doesn't provide).
+		for (int i=length-1; i>=0; i--) {
+
+			final char c = trimmed.charAt(i);
+			switch (c) {
+
+				case '[':
+				case ']':
+				case '{':
+				case '}':
+				case ' ':
+				case ',':
+				case ';':
+				case ':':
+				case '=':
+				case ')':
+				case '(':
+				case '?':
+				case '&':
+				case '|':
+				case '\\':
+				case '/':
+				case '+':
+				case '-':
+				case '*':
+				case '!':
+				case '#':
+				case '~':
+				case '.':
+					addNonempty(tokens, buf.toString());
+					buf.setLength(0);
+					buf.append(c);
+					break;
+
+				default:
+					buf.insert(0, c);
+					break;
 			}
+		}
 
-			// sort hints
-			Collections.sort(hints, comparator);
+		addNonempty(tokens, buf.toString());
 
-			// add keywords
-			if ("(".equals(currentToken) && "Structr".equals(previousToken)) {
-				
-				hints.add(0, createHint("this",     "", "The current object",         "this"));
-				hints.add(0, createHint("response", "", "The current response",       "response"));
-				hints.add(0, createHint("request",  "", "The current request",        "request"));
-				hints.add(0, createHint("page",     "", "The current page",           "page"));
-				hints.add(0, createHint("me",       "", "The current user",           "me"));
-				hints.add(0, createHint("locale",   "", "The current locale",         "locale"));
-				hints.add(0, createHint("current",  "", "The current details object", "current"));
-				
+		// The resulting token list needs to be reversed since we go backwards through the text.
+		Collections.reverse(tokens);
+
+		final List<Hint> hints  = new LinkedList<>();
+		final int tokenCount    = tokens.size();
+		int startTokenIndex     = -1;
+
+		// try to find a starting point ($. or Structr.) for the expression
+		for (int i=tokenCount-1; i>=0; i--) {
+
+			final String token = tokens.get(i);
+
+			if ("$.".equals(token) || "Structr.".equals(token)) {
+				startTokenIndex = i;
+				break;
 			}
+		}
 
-		} else {
+		// did we find ($. or Structr.) at all?
+		if (startTokenIndex >= 0) {
 
-			hints.add(createHint("Structr", "", "Structr context handle", "Structr"));
+			final String expression = StringUtils.join(tokens.subList(startTokenIndex, tokenCount), "");
+
+			result.setExpression(expression);
+
+			handleJSExpression(securityContext, currentNode, expression, hints, result);
 		}
 
 		return hints;

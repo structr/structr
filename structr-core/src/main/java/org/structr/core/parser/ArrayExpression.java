@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,12 +19,15 @@
 package org.structr.core.parser;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
 
 /**
  *
@@ -39,10 +42,7 @@ public class ArrayExpression extends Expression {
 		final StringBuilder buf = new StringBuilder();
 
 		buf.append("[");
-
-		for (final Expression expr : expressions) {
-			buf.append(expr.toString());
-		}
+		buf.append(StringUtils.join(expressions.stream().map(Expression::toString).collect(Collectors.toList()), ", "));
 		buf.append("]");
 
 		return buf.toString();
@@ -68,10 +68,11 @@ public class ArrayExpression extends Expression {
 				throw new FrameworkException(422, "Invalid expression: expected expression, found ].");
 
 			case 1:
-				final Object value = expressions.get(0).evaluate(ctx, entity);
-				if (value instanceof Number) {
+				final Object value  = expressions.get(0).evaluate(ctx, entity);
+				final Object parsed = Function.parseInt(value);
+				if (parsed instanceof Number) {
 
-					return ((Number)value).intValue();
+					return ((Number)parsed).intValue();
 				}
 		}
 

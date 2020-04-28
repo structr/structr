@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,6 +30,11 @@ public class CoalesceObjectsFunction extends CoreFunction {
 	@Override
 	public String getName() {
 		return "coalesce_objects";
+	}
+
+	@Override
+	public String getSignature() {
+		return "obj1, obj2, obj3, ...";
 	}
 
 	@Override

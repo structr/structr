@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,6 +38,11 @@ public class HttpGetFunction extends UiAdvancedFunction {
 	@Override
 	public String getName() {
 		return "GET";
+	}
+
+	@Override
+	public String getSignature() {
+		return "url [, contentType [, username, password] ]";
 	}
 
 	@Override
@@ -89,7 +94,10 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 						return doc.html();
 					}
-
+				} else if ("application/octet-stream".equals(contentType)) {
+					
+					return getBinaryFromUrl(ctx, address, username, password);
+					
 				} else {
 
 					return getFromUrl(ctx, address, username, password);

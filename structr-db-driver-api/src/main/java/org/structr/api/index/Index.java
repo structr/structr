@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,4 +27,5 @@ import org.structr.api.search.QueryPredicate;
 public interface Index<T> {
 
 	Iterable<T> query(final QueryContext context, final QueryPredicate predicate, final int requestedPageSize, final int requestedPage);
+	boolean supports(final Class type);
 }

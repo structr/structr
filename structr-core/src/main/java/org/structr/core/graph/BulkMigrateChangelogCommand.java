@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,7 +20,6 @@ package org.structr.core.graph;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -54,7 +53,7 @@ public class BulkMigrateChangelogCommand extends NodeServiceCommand implements M
 
 		if (graphDb != null) {
 
-			final Iterator<AbstractNode> nodeIterator = Iterables.map(nodeFactory, graphDb.getAllNodes()).iterator();
+			final Iterable<AbstractNode> nodeIterator = Iterables.map(nodeFactory, graphDb.getAllNodes());
 
 			final long nodeCount = bulkGraphOperation(securityContext, nodeIterator, 1000, "MigrateChangeLog", new BulkGraphOperation<AbstractNode>() {
 
@@ -68,7 +67,7 @@ public class BulkMigrateChangelogCommand extends NodeServiceCommand implements M
 
 			logger.info("Migrated {} nodes ...", nodeCount);
 
-			final Iterator<AbstractRelationship> relIterator = Iterables.map(relFactory, graphDb.getAllRelationships()).iterator();
+			final Iterable<AbstractRelationship> relIterator = Iterables.map(relFactory, graphDb.getAllRelationships());
 
 			final long relCount = bulkGraphOperation(securityContext, relIterator, 1000, "MigrateChangeLog", new BulkGraphOperation<AbstractRelationship>() {
 

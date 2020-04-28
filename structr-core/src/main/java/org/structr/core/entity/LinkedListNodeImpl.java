@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,9 @@
  */
 package org.structr.core.entity;
 
+import java.util.List;
 import org.structr.api.graph.Node;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -191,9 +193,10 @@ public abstract class LinkedListNodeImpl<T extends NodeInterface> extends Valida
 
 	private <R extends Relation<T, T, OneStartpoint<T>, OneEndpoint<T>>> void unlinkNodes(final Class<R> linkType, final T startNode, final T endNode) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
+		final App app      = StructrApp.getInstance(securityContext);
+		final List<R> list = Iterables.toList(startNode.getRelationships(linkType));
 
-		for (RelationshipInterface rel : startNode.getRelationships(linkType)) {
+		for (RelationshipInterface rel : list) {
 
 			if (rel != null && rel.getTargetNode().equals(endNode)) {
 				app.delete(rel);

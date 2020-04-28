@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -369,7 +369,7 @@ public abstract class StreamingWriter {
 				final PropertyConverter converter = key.inputConverter(securityContext);
 				if (converter != null) {
 
-					Object convertedValue = null;
+					Object convertedValue = value;
 
 					// ignore conversion errors
 					try { convertedValue = converter.revert(value); } catch (Throwable t) {}

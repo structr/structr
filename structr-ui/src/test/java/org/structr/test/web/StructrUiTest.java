@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,6 +37,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.bolt.BoltDatabaseService;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -48,7 +49,6 @@ import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
@@ -81,11 +81,11 @@ public abstract class StructrUiTest {
 	@BeforeClass(alwaysRun = true)
 	public void setup() {
 
-		final long timestamp = System.nanoTime();
+		final long timestamp = System.currentTimeMillis();
 
-		basePath = "/tmp/structr-test-" + timestamp;
+		basePath = "/tmp/structr-test-" + timestamp + System.nanoTime();
 
-		setupNeo4jConnection();
+		setupDatabaseConnection();
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
@@ -140,13 +140,13 @@ public abstract class StructrUiTest {
 		System.out.println("######################################################################################");
 	}
 
-	@AfterMethod
+	@AfterMethod()
 	public void cleanDatabase() {
 
 		try (final Tx tx = app.tx()) {
 
 			// delete everything
-			Services.getInstance().getService(NodeService.class).getDatabaseService().cleanDatabase();
+			Services.getInstance().getDatabaseService().cleanDatabase();
 
 			FlushCachesCommand.flushAll();
 
@@ -617,12 +617,15 @@ public abstract class StructrUiTest {
 		return RandomStringUtils.randomAlphabetic(10).toUpperCase();
 	}
 
-	protected void setupNeo4jConnection() {
+	protected void setupDatabaseConnection() {
 
-		Settings.DatabaseDriverMode.setValue("remote");
+		// use database driver from system property, default to MemoryDatabaseService
+		//Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
+		Settings.DatabaseDriver.setValue(BoltDatabaseService.class.getName());
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+
 		Settings.TenantIdentifier.setValue(randomTenantId);
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,6 +24,7 @@ import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -51,11 +52,10 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
+import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.graph.search.SearchCommand;
-import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.resource.Resource;
 import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
@@ -242,7 +242,15 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		final boolean returnContent = true;
 
-		doGetOrHead(request, response, returnContent);
+		try {
+
+			assertInitialized();
+
+			doGetOrHead(request, response, returnContent);
+
+		} catch (FrameworkException fex) {
+			writeException(response, fex);
+		}
 	}
 
 	@Override
@@ -250,7 +258,15 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		final boolean returnContent = false;
 
-		doGetOrHead(request, response, returnContent);
+		try {
+
+			assertInitialized();
+
+			doGetOrHead(request, response, returnContent);
+
+		} catch (FrameworkException fex) {
+			writeException(response, fex);
+		}
 	}
 
 	@Override
@@ -723,12 +739,13 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 	protected void doPatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		final RestMethodResult result;
 		final SecurityContext securityContext;
 		final Authenticator authenticator;
 		final Resource resource;
 
 		setCustomResponseHeaders(response);
+
+		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
 
 		try {
 
@@ -764,24 +781,58 @@ public class JsonRestServlet extends AbstractDataServlet {
 					tx.success();
 				}
 
-				final List<Map<String, Object>> inputs = new LinkedList<>();
+				if (resource.isCollectionResource()) {
 
-				for (JsonInput propertySet : jsonInput.getJsonInputs()) {
+					final List<Map<String, Object>> inputs = new LinkedList<>();
 
-					inputs.add(convertPropertySetToMap(propertySet));
-				}
+					for (JsonInput propertySet : jsonInput.getJsonInputs()) {
 
-				result = resource.doPatch(inputs);
-
-				// isolate write output
-				try (final Tx tx = app.tx()) {
-
-					if (result != null) {
-
-						commitResponse(securityContext, request, response, result, resource.isCollectionResource());
+						inputs.add(convertPropertySetToMap(propertySet));
 					}
 
-					tx.success();
+					result = resource.doPatch(inputs);
+
+					// isolate write output
+					try (final Tx tx = app.tx()) {
+
+						if (result != null) {
+
+							commitResponse(securityContext, request, response, result, resource.isCollectionResource());
+						}
+
+						tx.success();
+					}
+
+				} else {
+
+					final Map<String, Object> flattenedInputs = new HashMap<>();
+
+					for (JsonInput propertySet : jsonInput.getJsonInputs()) {
+
+						flattenedInputs.putAll(convertPropertySetToMap(propertySet));
+					}
+
+					// isolate doPatch (redirect to doPut)
+					boolean retry = true;
+					while (retry) {
+
+						try (final Tx tx = app.tx()) {
+
+							result = resource.doPut(flattenedInputs);
+							tx.success();
+							retry = false;
+
+						} catch (RetryException ddex) {
+							retry = true;
+						}
+					}
+
+					// isolate write output
+					try (final Tx tx = app.tx()) {
+
+						commitResponse(securityContext, request, response, result, resource.isCollectionResource());
+						tx.success();
+					}
 				}
 
 			} else {
@@ -934,37 +985,21 @@ public class JsonRestServlet extends AbstractDataServlet {
 			resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 			authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 
-			// add sorting & paging
-			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
-			String pageParameter     = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
-			String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
-			String sortKeyName       = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
-			String outputDepth       = request.getParameter(REQUEST_PARAMTER_OUTPUT_DEPTH);
-			boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
-			int pageSize             = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
-			int page                 = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
-			int depth                = Services.parseInt(outputDepth, config.getOutputNestingDepth());
-
-			PropertyKey sortKey      = null;
-
-			// set sort key
-			if (sortKeyName != null) {
-
-				Class<? extends GraphObject> type = resource.getEntityClass();
-				if (type == null) {
-
-					// fallback to default implementation
-					// if no type can be determined
-					type = AbstractNode.class;
-				}
-
-				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName, false);
-			}
+			// add sorting && pagination
+			final String pageSizeParameter          = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
+			final String pageParameter              = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
+			final String outputDepth                = request.getParameter(REQUEST_PARAMTER_OUTPUT_DEPTH);
+			final int pageSize                      = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
+			final int page                          = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
+			final int depth                         = Services.parseInt(outputDepth, config.getOutputNestingDepth());
+			final String[] sortKeyNames             = request.getParameterValues(REQUEST_PARAMETER_SORT_KEY);
+			final String[] sortOrders               = request.getParameterValues(REQUEST_PARAMETER_SORT_ORDER);
+			final Class<? extends GraphObject> type = resource.getEntityClassOrDefault();
 
 			// evaluate constraints and measure query time
 			final double queryTimeStart = System.nanoTime();
 
-			try (final ResultStream result = resource.doGet(sortKey, sortDescending, pageSize, page)) {
+			try (final ResultStream result = resource.doGet(new DefaultSortOrder(type, sortKeyNames, sortOrders), pageSize, page)) {
 
 				final double queryTimeEnd = System.nanoTime();
 

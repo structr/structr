@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,8 +18,12 @@
  */
 package org.structr.websocket.command;
 
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.Tx;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.websocket.StructrWebSocket;
@@ -41,24 +45,35 @@ public class LogoutCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
-		final Principal user = getWebSocket().getCurrentUser();
+		if (Settings.CallbacksOnLogout.getValue() == false) {
+			getWebSocket().getSecurityContext().disableInnerCallbacks();
+		}
 
-		if (user != null) {
+		final App app = StructrApp.getInstance(getWebSocket().getSecurityContext());
 
-			final String sessionId = SessionHelper.getShortSessionId(webSocketData.getSessionId());
-			if (sessionId != null) {
+		try (final Tx tx = app.tx(true, true, true)) {
 
-				SessionHelper.clearSession(sessionId);
-				SessionHelper.invalidateSession(sessionId);
+			final Principal user = getWebSocket().getCurrentUser();
+
+			if (user != null) {
+
+				final String sessionId = SessionHelper.getShortSessionId(webSocketData.getSessionId());
+				if (sessionId != null) {
+
+					SessionHelper.clearSession(sessionId);
+					SessionHelper.invalidateSession(sessionId);
+				}
+
+				AuthHelper.sendLogoutNotification(user);
+
+				getWebSocket().setAuthenticated(null, null);
+
+				getWebSocket().send(MessageBuilder.status().code(401).build(), true);
+
+				getWebSocket().invalidateConsole();
 			}
 
-			AuthHelper.sendLogoutNotification(user);
-
-			getWebSocket().setAuthenticated(null, null);
-
-			getWebSocket().send(MessageBuilder.status().code(401).build(), true);
-
-            getWebSocket().invalidateConsole();
+			tx.success();
 		}
 	}
 
@@ -67,4 +82,8 @@ public class LogoutCommand extends AbstractCommand {
 		return "LOGOUT";
 	}
 
+	@Override
+	public boolean requiresEnclosingTransaction () {
+		return false;
+	}
 }

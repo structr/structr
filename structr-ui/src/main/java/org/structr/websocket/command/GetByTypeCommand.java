@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -90,7 +90,7 @@ public class GetByTypeCommand extends AbstractCommand {
 				final PropertyKey sortProperty = StructrApp.key(type, sortKey);
 				if (sortProperty != null) {
 
-					query.sort(sortProperty).order("desc".equals(sortOrder));
+					query.sort(sortProperty, "desc".equals(sortOrder));
 				}
 			}
 

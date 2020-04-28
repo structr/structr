@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,14 +27,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.schema.parser.DatePropertyParser;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * A property that stores and retrieves a Date string in ISO8601 format. This property
  * uses a long value internally to provide millisecond precision.
- *
- *
- *
  */
 public class ISO8601DateProperty extends DateProperty {
 
@@ -42,33 +37,22 @@ public class ISO8601DateProperty extends DateProperty {
 		super(name);
 	}
 
-	//~--- methods --------------------------------------------------------
-
 	@Override
 	public PropertyConverter<Date, Long> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-
 		return new DatabaseConverter(securityContext, entity);
-
 	}
 
 	@Override
 	public PropertyConverter<String, Date> inputConverter(SecurityContext securityContext) {
-
 		return new InputConverter(securityContext);
-
 	}
-
-	//~--- inner classes --------------------------------------------------
 
 	private class DatabaseConverter extends PropertyConverter<Date, Long> {
 
 		public DatabaseConverter(SecurityContext securityContext, GraphObject entity) {
 
 			super(securityContext, entity);
-
 		}
-
-		//~--- methods ------------------------------------------------
 
 		@Override
 		public Long convert(Date source) throws FrameworkException {
@@ -79,7 +63,6 @@ public class ISO8601DateProperty extends DateProperty {
 			}
 
 			return null;
-
 		}
 
 		@Override
@@ -91,21 +74,14 @@ public class ISO8601DateProperty extends DateProperty {
 			}
 
 			return null;
-
 		}
-
 	}
-
 
 	private class InputConverter extends PropertyConverter<String, Date> {
 
 		public InputConverter(SecurityContext securityContext) {
-
 			super(securityContext, null);
-
 		}
-
-		//~--- methods ------------------------------------------------
 
 		@Override
 		public Date convert(String source) throws FrameworkException {
@@ -113,7 +89,6 @@ public class ISO8601DateProperty extends DateProperty {
 			if (StringUtils.isNotBlank(source)) {
 
 				Date result = DatePropertyParser.parseISO8601DateString(source);
-
 				if (result != null) {
 
 					return result;
@@ -123,18 +98,15 @@ public class ISO8601DateProperty extends DateProperty {
 					throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new DateFormatToken(declaringClass.getSimpleName(), ISO8601DateProperty.this));
 
 				}
-
 			}
 
 			return null;
-
 		}
 
 		@Override
 		public String revert(Date source) throws FrameworkException {
 
 			return DatePropertyParser.format(source, null);
-
 		}
 	}
 }

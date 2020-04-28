@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,6 +35,7 @@ $(document).ready(function() {
 
 var Importer = {
 	_moduleName: 'importer',
+	showNotificationsKey: 'structrImporterShowNotifications_' + port,
 	appDataXMLKey: 'xml-import-config',
 	appDataCSVKey: 'csv-import-config',
 	timeout: undefined,
@@ -62,10 +63,20 @@ var Importer = {
 				Importer.updateJobTable();
 			});
 
+			let showNotifications = Importer.isShowNotifications();
+
+			let showNotificationsCheckbox = document.querySelector('#importer-show-notifications');
+			if (showNotificationsCheckbox) {
+				showNotificationsCheckbox.checked = showNotifications;
+
+				showNotificationsCheckbox.addEventListener('change', () => {
+					LSWrapper.setItem(Importer.showNotificationsKey, showNotificationsCheckbox.checked);
+				});
+			}
+
 			Importer.updateJobTable();
 
 			Structr.unblockMenu(100);
-
 		});
 
 	},
@@ -73,6 +84,9 @@ var Importer = {
 		Importer.schemaTypeCachePopulated = false;
 
 		Importer.restoreButtons();
+	},
+	isShowNotifications: function() {
+		return LSWrapper.getItem(Importer.showNotificationsKey, true);
 	},
 	updateJobTable: function () {
 
@@ -103,7 +117,6 @@ var Importer = {
 			window.clearTimeout(Importer.timeout);
 
 		}, 250);
-
 
 	},
 	createRowForJob: function (job) {

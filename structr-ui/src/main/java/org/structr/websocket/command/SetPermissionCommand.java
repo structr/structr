@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -64,108 +64,100 @@ public class SetPermissionCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		try {
+		AbstractNode obj   = getNode(webSocketData.getId());
+		boolean rec        = webSocketData.getNodeDataBooleanValue(RECURSIVE_KEY);
+		String principalId = webSocketData.getNodeDataStringValue(PRINCIPAL_ID_KEY);
+		String permissions = webSocketData.getNodeDataStringValue(PERMISSIONS_KEY);
+		String action      = webSocketData.getNodeDataStringValue(ACTION_KEY);
 
-			AbstractNode obj   = getNode(webSocketData.getId());
-			boolean rec        = webSocketData.getNodeDataBooleanValue(RECURSIVE_KEY);
-			String principalId = webSocketData.getNodeDataStringValue(PRINCIPAL_ID_KEY);
-			String permissions = webSocketData.getNodeDataStringValue(PERMISSIONS_KEY);
-			String action      = webSocketData.getNodeDataStringValue(ACTION_KEY);
+		if (principalId == null) {
 
-			if (principalId == null) {
-
-				logger.error("This command needs a principalId");
-				getWebSocket().send(MessageBuilder.status().code(400).build(), true);
-			}
-
-			Principal principal = (Principal) getNode(principalId);
-			if (principal == null) {
-
-				logger.error("No principal found with id {}", new Object[]{principalId});
-				getWebSocket().send(MessageBuilder.status().code(400).build(), true);
-			}
-
-			webSocketData.getNodeData().remove("recursive");
-
-			if (obj != null) {
-
-				final SecurityContext securityContext = getWebSocket().getSecurityContext();
-
-				securityContext.setDoTransactionNotifications(false);
-				securityContext.disableEnsureCardinality();
-
-				final App app = StructrApp.getInstance(securityContext);
-				try (final Tx nestedTx = app.tx()) {
-
-					if (!((AbstractNode)obj).isGranted(Permission.accessControl, securityContext)) {
-
-						logger.warn("No access control permission for {} on {}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
-						getWebSocket().send(MessageBuilder.status().message("No access control permission").code(400).build(), true);
-						nestedTx.success();
-
-						return;
-
-					}
-
-					nestedTx.success();
-
-				} catch (FrameworkException ex) {
-					logger.warn("", ex);
-				}
-
-				try {
-
-					final Value<Tx> value = new StaticValue<>(null);
-
-					final Set<Permission> permissionSet = new HashSet();
-					final String[] parts = permissions.split("[,]+");
-
-					for (final String part : parts) {
-
-						final String trimmedPart = part.trim();
-						if (trimmedPart.length() > 0) {
-
-							permissionSet.add(Permissions.valueOf(trimmedPart));
-						}
-					}
-
-
-					setPermission(value, app, obj, principal, action, permissionSet, rec);
-
-					// commit and close transaction
-					final Tx tx = value.get(null);
-					if (tx != null) {
-
-						try {
-							tx.success();
-						} finally {
-							tx.close();
-						}
-
-						value.set(null, null);
-					}
-					webSocketData.setResult(Arrays.asList(principal));
-
-					// send only over local connection (no broadcast)
-					getWebSocket().send(webSocketData, true);
-
-				} catch (FrameworkException ex) {
-
-					logger.error("Unable to set permissions: {}", ((FrameworkException) ex).toString());
-					getWebSocket().send(MessageBuilder.status().code(ex.getStatus()).jsonErrorObject(ex.toJSON()).build(), true);
-				}
-
-			} else {
-
-				logger.warn("Graph object with uuid {} not found.", webSocketData.getId());
-				getWebSocket().send(MessageBuilder.status().code(404).build(), true);
-			}
-
-		} catch (FrameworkException ex) {
-			logger.warn("Exception occured", ex);
-			getWebSocket().send(MessageBuilder.status().code(ex.getStatus()).message(ex.getMessage()).build(), true);
+			logger.error("This command needs a principalId");
+			getWebSocket().send(MessageBuilder.status().code(400).build(), true);
 		}
 
+		Principal principal = (Principal) getNode(principalId);
+		if (principal == null) {
+
+			logger.error("No principal found with id {}", new Object[]{principalId});
+			getWebSocket().send(MessageBuilder.status().code(400).build(), true);
+		}
+
+		webSocketData.getNodeData().remove("recursive");
+
+		if (obj != null) {
+
+			final SecurityContext securityContext = getWebSocket().getSecurityContext();
+
+			securityContext.setDoTransactionNotifications(false);
+			securityContext.disablePreventDuplicateRelationships();
+
+			final App app = StructrApp.getInstance(securityContext);
+			try (final Tx nestedTx = app.tx()) {
+
+				if (!((AbstractNode)obj).isGranted(Permission.accessControl, securityContext)) {
+
+					logger.warn("No access control permission for {} on {}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
+					getWebSocket().send(MessageBuilder.status().message("No access control permission").code(400).build(), true);
+					nestedTx.success();
+
+					return;
+
+				}
+
+				nestedTx.success();
+
+			} catch (FrameworkException ex) {
+				logger.warn("", ex);
+			}
+
+			try {
+
+				final Value<Tx> value = new StaticValue<>(null);
+
+				final Set<Permission> permissionSet = new HashSet();
+				final String[] parts = permissions.split("[,]+");
+
+				for (final String part : parts) {
+
+					final String trimmedPart = part.trim();
+					if (trimmedPart.length() > 0) {
+
+						permissionSet.add(Permissions.valueOf(trimmedPart));
+					}
+				}
+
+
+				setPermission(value, app, obj, principal, action, permissionSet, rec);
+
+				// commit and close transaction
+				final Tx tx = value.get(null);
+				if (tx != null) {
+
+					try {
+						tx.success();
+					} finally {
+						tx.close();
+					}
+
+					value.set(null, null);
+				}
+				webSocketData.setResult(Arrays.asList(principal));
+
+				// send only over local connection (no broadcast)
+				getWebSocket().send(webSocketData, true);
+
+			} catch (FrameworkException ex) {
+
+				logger.error("Unable to set permissions: {}", ((FrameworkException) ex).toString());
+				getWebSocket().send(MessageBuilder.status().code(ex.getStatus()).jsonErrorObject(ex.toJSON()).build(), true);
+			}
+
+		} else {
+
+			logger.warn("Graph object with uuid {} not found.", webSocketData.getId());
+			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
+		}
 	}
 
 	@Override

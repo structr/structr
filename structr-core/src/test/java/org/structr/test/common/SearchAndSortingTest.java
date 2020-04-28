@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,7 @@ import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseFeature;
 import org.structr.api.config.Settings;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Occurrence;
@@ -30,13 +31,14 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -563,7 +565,7 @@ public class SearchAndSortingTest extends StructrTest {
 				int pageSize        = 10;
 				int page            = 1;
 
-				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getAsList();
+				result = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
 				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), Math.min(number, pageSize) });
 				assertEquals(Math.min(number, pageSize), result.size());
@@ -631,7 +633,7 @@ public class SearchAndSortingTest extends StructrTest {
 				int pageSize        = 10;
 				int page            = 1;
 
-				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getAsList();
+				result = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
 				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), Math.min(number, pageSize) });
 				assertTrue(result.size() == Math.min(number, pageSize));
@@ -703,7 +705,7 @@ public class SearchAndSortingTest extends StructrTest {
 				int pageSize        = 10;
 				int page            = 1;
 
-				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getAsList();
+				result = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
 				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
 				assertTrue(result.size() == Math.min(number, pageSize));
@@ -772,7 +774,7 @@ public class SearchAndSortingTest extends StructrTest {
 				int pageSize        = 10;
 				int page            = 1;
 
-				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getAsList();
+				result = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
 				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
 				assertTrue(result.size() == Math.min(number, pageSize));
@@ -796,7 +798,6 @@ public class SearchAndSortingTest extends StructrTest {
 			fail("Unexpected exception");
 
 		}
-
 	}
 
 	@Test
@@ -837,7 +838,7 @@ public class SearchAndSortingTest extends StructrTest {
 				int pageSize        = 5;
 				int page            = 1;
 
-				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getAsList();
+				result = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
 				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
 				assertTrue(result.size() == Math.min(number, pageSize));
@@ -914,12 +915,16 @@ public class SearchAndSortingTest extends StructrTest {
 				PropertyKey sortKey = TestOne.aDate;
 				boolean sortDesc    = true;
 				int pageSize        = 10;
-				int page            = 1;
+				int page            = 2;
 
-				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getAsList();
+				Settings.CypherDebugLogging.setValue(true);
+				result = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
+				Settings.CypherDebugLogging.setValue(false);
 
 				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
 				assertTrue(result.size() == Math.min(number, pageSize));
+
+				result.stream().forEach(r -> System.out.println(r.getProperty(AbstractNode.name)));
 
 				for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
 
@@ -930,6 +935,10 @@ public class SearchAndSortingTest extends StructrTest {
 					assertEquals(expectedName, gotName);
 
 				}
+
+				// allow visual inspection of test results
+				final List<AbstractNode> list = app.nodeQuery(type).sort(sortKey, sortDesc).getAsList();
+				list.stream().forEach(n -> System.out.println(n.getName() + ": " + n.getProperty(TestOne.aDate)));
 
 				tx.success();
 			}
@@ -969,7 +978,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				boolean sortDesc    = false;
 
-				final List<TestOne> result = app.nodeQuery(TestOne.class).sort(TestOne.anInt).order(sortDesc).getAsList();
+				final List<TestOne> result = app.nodeQuery(TestOne.class).sort(TestOne.anInt, sortDesc).sort(AbstractNode.name).getAsList();
 
 				// check that the sorting is stable, i.e. the position of nodes
 				// with equal values (and null) is not modified by sorting
@@ -977,12 +986,7 @@ public class SearchAndSortingTest extends StructrTest {
 				final Iterator<TestOne> nameIterator = result.iterator();
 				while (nameIterator.hasNext()) {
 
-					// nulls first
-					assertEquals("Invalid sort result with mixed values (null vs. int)", "7", nameIterator.next().getProperty(TestOne.name));
-					assertEquals("Invalid sort result with mixed values (null vs. int)", "8", nameIterator.next().getProperty(TestOne.name));
-					assertEquals("Invalid sort result with mixed values (null vs. int)", "9", nameIterator.next().getProperty(TestOne.name));
-
-					// other values after that
+					// values first
 					assertEquals("Invalid sort result with mixed values (null vs. int)", "0", nameIterator.next().getProperty(TestOne.name));
 					assertEquals("Invalid sort result with mixed values (null vs. int)", "1", nameIterator.next().getProperty(TestOne.name));
 					assertEquals("Invalid sort result with mixed values (null vs. int)", "2", nameIterator.next().getProperty(TestOne.name));
@@ -990,19 +994,19 @@ public class SearchAndSortingTest extends StructrTest {
 					assertEquals("Invalid sort result with mixed values (null vs. int)", "4", nameIterator.next().getProperty(TestOne.name));
 					assertEquals("Invalid sort result with mixed values (null vs. int)", "5", nameIterator.next().getProperty(TestOne.name));
 					assertEquals("Invalid sort result with mixed values (null vs. int)", "6", nameIterator.next().getProperty(TestOne.name));
+
+					// nulls after that
+					assertEquals("Invalid sort result with mixed values (null vs. int)", "7", nameIterator.next().getProperty(TestOne.name));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", "8", nameIterator.next().getProperty(TestOne.name));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", "9", nameIterator.next().getProperty(TestOne.name));
 				}
 
 
-				// check that the sorting is "nulls first" as documented
+				// check that the sorting is "nulls last" as documented
 				final Iterator<TestOne> intIterator = result.iterator();
 				while (intIterator.hasNext()) {
 
-					// nulls first
-					assertEquals("Invalid sort result with mixed values (null vs. int)", null, intIterator.next().getProperty(TestOne.anInt));
-					assertEquals("Invalid sort result with mixed values (null vs. int)", null, intIterator.next().getProperty(TestOne.anInt));
-					assertEquals("Invalid sort result with mixed values (null vs. int)", null, intIterator.next().getProperty(TestOne.anInt));
-
-					// other values after that
+					// values first
 					assertEquals("Invalid sort result with mixed values (null vs. int)", 0L, (long)intIterator.next().getProperty(TestOne.anInt));
 					assertEquals("Invalid sort result with mixed values (null vs. int)", 1L, (long)intIterator.next().getProperty(TestOne.anInt));
 					assertEquals("Invalid sort result with mixed values (null vs. int)", 2L, (long)intIterator.next().getProperty(TestOne.anInt));
@@ -1010,6 +1014,11 @@ public class SearchAndSortingTest extends StructrTest {
 					assertEquals("Invalid sort result with mixed values (null vs. int)", 4L, (long)intIterator.next().getProperty(TestOne.anInt));
 					assertEquals("Invalid sort result with mixed values (null vs. int)", 5L, (long)intIterator.next().getProperty(TestOne.anInt));
 					assertEquals("Invalid sort result with mixed values (null vs. int)", 6L, (long)intIterator.next().getProperty(TestOne.anInt));
+
+					// nulls after that
+					assertEquals("Invalid sort result with mixed values (null vs. int)", null, intIterator.next().getProperty(TestOne.anInt));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", null, intIterator.next().getProperty(TestOne.anInt));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", null, intIterator.next().getProperty(TestOne.anInt));
 				}
 
 				tx.success();
@@ -1113,10 +1122,10 @@ public class SearchAndSortingTest extends StructrTest {
 
 		try {
 
-			final NodeHasLocation rel = createTestRelationships(NodeHasLocation.class, 1).get(0);
-			final PropertyKey key1    = new StringProperty("jghsdkhgshdhgsdjkfgh").indexed();
-			final Class type          = NodeHasLocation.class;
-			final String val1         = "54354354546806849870";
+			final GenericRelationship rel = createTestRelationships(GenericRelationship.class, 1).get(0);
+			final PropertyKey key1        = new StringProperty("jghsdkhgshdhgsdjkfgh").indexed();
+			final Class type              = GenericRelationship.class;
+			final String val1             = "54354354546806849870";
 
 			final List<RelationshipInterface> result;
 
@@ -1509,7 +1518,7 @@ public class SearchAndSortingTest extends StructrTest {
 				int pageSize        = 10;
 				int page            = 1;
 
-				result = app.nodeQuery(type).includeHidden().sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getAsList();
+				result = app.nodeQuery(type).includeHidden().sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
 				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
 				assertTrue(result.size() == pageSize);
@@ -1683,101 +1692,93 @@ public class SearchAndSortingTest extends StructrTest {
 				fail("Unexpected exception");
 			}
 
-			try {
+			final SecurityContext tester1Context     = SecurityContext.getInstance(tester1, AccessMode.Backend);
+			final SecurityContext tester2Context     = SecurityContext.getInstance(tester2, AccessMode.Backend);
+			final int softLimit                      = Settings.ResultCountSoftLimit.getValue();
+			final App tester1App                     = StructrApp.getInstance(tester1Context);
+			final App tester2App                     = StructrApp.getInstance(tester2Context);
+			final Class type                         = TestOne.class;
+			final int number                         = 1000;
+			final List<NodeInterface> allNodes       = this.createTestNodes(type, number);
+			final List<NodeInterface> tester1Nodes   = new LinkedList<>();
+			final List<NodeInterface> tester2Nodes   = new LinkedList<>();
+			final int offset                         = 0;
 
-				final SecurityContext tester1Context     = SecurityContext.getInstance(tester1, AccessMode.Backend);
-				final SecurityContext tester2Context     = SecurityContext.getInstance(tester2, AccessMode.Backend);
-				final int softLimit                      = Settings.ResultCountSoftLimit.getValue();
-				final App tester1App                     = StructrApp.getInstance(tester1Context);
-				final App tester2App                     = StructrApp.getInstance(tester2Context);
-				final Class type                         = TestOne.class;
-				final int number                         = 1000;
-				final List<NodeInterface> allNodes       = this.createTestNodes(type, number);
-				final List<NodeInterface> tester1Nodes   = new LinkedList<>();
-				final List<NodeInterface> tester2Nodes   = new LinkedList<>();
-				final int offset                         = 0;
+			try (final Tx tx = app.tx()) {
 
-				try (final Tx tx = app.tx()) {
+				int i = offset;
+				for (NodeInterface node : allNodes) {
 
-					int i = offset;
-					for (NodeInterface node : allNodes) {
+					// System.out.println("Node ID: " + node.getNodeId());
+					String _name = "TestOne-" + StringUtils.leftPad(Integer.toString(i), 5, "0");
 
-						// System.out.println("Node ID: " + node.getNodeId());
-						String _name = "TestOne-" + StringUtils.leftPad(Integer.toString(i), 5, "0");
+					final double rand = Math.random();
 
-						final double rand = Math.random();
+					if (rand < 0.3) {
 
-						if (rand < 0.3) {
+						node.setProperty(NodeInterface.owner, tester1);
+						tester1Nodes.add(node);
 
-							node.setProperty(NodeInterface.owner, tester1);
-							tester1Nodes.add(node);
+					} else if (rand < 0.6) {
 
-						} else if (rand < 0.6) {
-
-							node.setProperty(NodeInterface.owner, tester2);
-							tester2Nodes.add(node);
-						}
-
-						i++;
-
-						node.setProperty(AbstractNode.name, _name);
+						node.setProperty(NodeInterface.owner, tester2);
+						tester2Nodes.add(node);
 					}
 
-					tx.success();
+					i++;
+
+					node.setProperty(AbstractNode.name, _name);
 				}
 
-				Settings.CypherDebugLogging.setValue(true);
-
-				final int tester1NodeCount   = tester1Nodes.size();
-				final int tester2NodeCount   = tester2Nodes.size();
-
-				try (final Tx tx = app.tx()) {
-
-					final PropertyKey sortKey        = AbstractNode.name;
-					final boolean sortDesc           = false;
-					final int pageSize               = 10;
-					final int page                   = 22;
-					final ResultStream<GraphObject> result = tester1App.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getResultStream();
-
-					assertEquals("Invalid paging result count with non-superuser security context", tester1NodeCount, result.calculateTotalResultCount(null, softLimit));
-
-					result.close();
-
-					tx.success();
-
-				} catch (Exception ex) {
-					fail("Unexpected exception");
-				}
-
-				try (final Tx tx = app.tx()) {
-
-					final PropertyKey sortKey        = AbstractNode.name;
-					final boolean sortDesc           = false;
-					final int pageSize               = 10;
-					final int page                   = 22;
-					final ResultStream<GraphObject> result = tester2App.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getResultStream();
-
-					assertEquals("Invalid paging result count with non-superuser security context", tester2NodeCount, result.calculateTotalResultCount(null, softLimit));
-
-					result.close();
-
-					tx.success();
-
-				} catch (Exception ex) {
-					fail("Unexpected exception");
-				}
-
-
-			} catch (FrameworkException ex) {
-
-				logger.error(ex.toString());
-				fail("Unexpected exception");
-
+				tx.success();
 			}
 
-		} finally {
+			Settings.CypherDebugLogging.setValue(true);
 
-			Settings.CypherDebugLogging.setValue(false);
+			final int tester1NodeCount   = tester1Nodes.size();
+			final int tester2NodeCount   = tester2Nodes.size();
+
+			try (final Tx tx = app.tx()) {
+
+				final PropertyKey sortKey        = AbstractNode.name;
+				final boolean sortDesc           = false;
+				final int pageSize               = 10;
+				final int page                   = 22;
+				final ResultStream<GraphObject> result = tester1App.nodeQuery(type).sort(sortKey, sortDesc).pageSize(pageSize).page(page).getResultStream();
+
+				assertEquals("Invalid paging result count with non-superuser security context", tester1NodeCount, result.calculateTotalResultCount(null, softLimit));
+
+				result.close();
+
+				tx.success();
+
+			} catch (Exception ex) {
+				fail("Unexpected exception");
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				final PropertyKey sortKey        = AbstractNode.name;
+				final boolean sortDesc           = false;
+				final int pageSize               = 10;
+				final int page                   = 22;
+				final ResultStream<GraphObject> result = tester2App.nodeQuery(type).sort(sortKey, sortDesc).pageSize(pageSize).page(page).getResultStream();
+
+				assertEquals("Invalid paging result count with non-superuser security context", tester2NodeCount, result.calculateTotalResultCount(null, softLimit));
+
+				result.close();
+
+				tx.success();
+
+			} catch (Exception ex) {
+				fail("Unexpected exception");
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+
 		}
 	}
 
@@ -1903,39 +1904,43 @@ public class SearchAndSortingTest extends StructrTest {
 	@Test
 	public void testSortFunctionForGraphObjectMaps() {
 
-		final Class<Group> groupType      = StructrApp.getConfiguration().getNodeEntityClass("Group");
-		final PropertyKey<String> nameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");
+		// don't run tests that depend on Cypher being available in the backend
+		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
-		try (final Tx tx = app.tx()) {
+			final Class<Group> groupType      = StructrApp.getConfiguration().getNodeEntityClass("Group");
+			final PropertyKey<String> nameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");
 
-			createTestNode(groupType, "zzz");
-			createTestNode(groupType, "aaa");
-			createTestNode(groupType, "ttt");
-			createTestNode(groupType, "xxx");
-			createTestNode(groupType, "bbb");
+			try (final Tx tx = app.tx()) {
 
-			tx.success();
+				createTestNode(groupType, "zzz");
+				createTestNode(groupType, "aaa");
+				createTestNode(groupType, "ttt");
+				createTestNode(groupType, "xxx");
+				createTestNode(groupType, "bbb");
 
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
+				tx.success();
 
-		try (final Tx tx = app.tx()) {
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
 
-			final List<GraphObject> list = (List<GraphObject>)Scripting.evaluate(new ActionContext(securityContext), null, "${sort(cypher('MATCH (n:Group:" + randomTenantId + ") RETURN { id: n.id, type: n.type, name: n.name }'), 'name')}", "test");
+			try (final Tx tx = app.tx()) {
 
-			assertEquals("Invalid sort() result", "aaa", list.get(0).getProperty(nameKey));
-			assertEquals("Invalid sort() result", "bbb", list.get(1).getProperty(nameKey));
-			assertEquals("Invalid sort() result", "ttt", list.get(2).getProperty(nameKey));
-			assertEquals("Invalid sort() result", "xxx", list.get(3).getProperty(nameKey));
-			assertEquals("Invalid sort() result", "zzz", list.get(4).getProperty(nameKey));
+				final List<GraphObject> list = (List<GraphObject>)Scripting.evaluate(new ActionContext(securityContext), null, "${sort(cypher('MATCH (n:Group:" + randomTenantId + ") RETURN { id: n.id, type: n.type, name: n.name }'), 'name')}", "test");
 
-			tx.success();
+				assertEquals("Invalid sort() result", "aaa", list.get(0).getProperty(nameKey));
+				assertEquals("Invalid sort() result", "bbb", list.get(1).getProperty(nameKey));
+				assertEquals("Invalid sort() result", "ttt", list.get(2).getProperty(nameKey));
+				assertEquals("Invalid sort() result", "xxx", list.get(3).getProperty(nameKey));
+				assertEquals("Invalid sort() result", "zzz", list.get(4).getProperty(nameKey));
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			System.out.println(fex.getMessage());
-			fail("Unexpected exception.");
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				System.out.println(fex.getMessage());
+				fail("Unexpected exception.");
+			}
 		}
 	}
 
@@ -1974,8 +1979,7 @@ public class SearchAndSortingTest extends StructrTest {
 						.and().parent()
 						.and().parent()
 						.and().parent()
-					.sort(AbstractNode.name)
-					.order(false)
+					.sort(AbstractNode.name, false)
 					.getAsList();
 
 			assertEquals("Invalid sort() result", "aaa", list.get(0).getProperty(nameKey));
@@ -1995,17 +1999,17 @@ public class SearchAndSortingTest extends StructrTest {
 	@Test
 	public void testComparisonSearchAttributes() {
 
-		final Class<Group> groupType      = StructrApp.getConfiguration().getNodeEntityClass("Group");
-		final PropertyKey<String> nameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");
+		final Class<Group> groupType          = StructrApp.getConfiguration().getNodeEntityClass("Group");
+		final PropertyKey<String> nameKey     = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");
 		final PropertyKey<Principal> ownerKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "owner");
 
 		try (final Tx tx = app.tx()) {
 
-			Group a = createTestNode(groupType, "a");
-			Group b = createTestNode(groupType, "b");
-			Group c = createTestNode(groupType, "c");
-			Group d = createTestNode(groupType, "d");
-			Group e = createTestNode(groupType, "e");
+			createTestNode(groupType, "a");
+			createTestNode(groupType, "b");
+			createTestNode(groupType, "c");
+			createTestNode(groupType, "d");
+			createTestNode(groupType, "e");
 
 			tx.success();
 
@@ -2015,21 +2019,20 @@ public class SearchAndSortingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			List<SearchAttribute> attributes = new ArrayList<>();
-
-			SearchAttributeGroup rootGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
-
-			SearchAttributeGroup mainMatchingGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
+			final List<SearchAttribute> attributes       = new ArrayList<>();
+			final SearchAttributeGroup rootGroup         = new SearchAttributeGroup(Occurrence.REQUIRED);
+			final SearchAttributeGroup mainMatchingGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
 
 			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "a", Occurrence.OPTIONAL));
 			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "b", Occurrence.OPTIONAL));
 			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "c", Occurrence.OPTIONAL));
 			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "d", Occurrence.OPTIONAL));
 
-			SearchAttributeGroup secondaryMatchingGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
+			final SearchAttributeGroup secondaryMatchingGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
 
 			secondaryMatchingGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Operation.isNull, null, Occurrence.REQUIRED));
 			secondaryMatchingGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Operation.isNotNull, null, Occurrence.FORBIDDEN));
+
 			// Test Greater/Less with ASCII chars
 			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.greater, "_", Occurrence.REQUIRED));
 			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.greaterOrEqual, "a", Occurrence.REQUIRED));
@@ -2041,10 +2044,9 @@ public class SearchAndSortingTest extends StructrTest {
 			rootGroup.add(secondaryMatchingGroup);
 			attributes.add(rootGroup);
 
-			List<Group> list = app.nodeQuery(Group.class)
+			final List<Group> list = app.nodeQuery(Group.class)
 					.attributes(attributes)
-					.sort(AbstractNode.name)
-					.order(false)
+					.sort(AbstractNode.name, false)
 					.getAsList();
 
 			assertEquals("Invalid sort() result", "a", list.get(0).getProperty(nameKey));
@@ -2061,10 +2063,102 @@ public class SearchAndSortingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testSortByMultipleKeys() {
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name7"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name5"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name2"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name1"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name3"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 20L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name4"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 10L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name9"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 10L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name8"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 10L));
+			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name6"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 10L));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final List<TestOne> result1 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.name).getAsList();
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result1.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result1.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result1.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result1.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result1.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result1.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result1.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result1.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result1.get(8).getName());
+
+			final List<TestOne> result2 = app.nodeQuery(TestOne.class).sort(TestOne.aLong, true).sort(TestOne.name).getAsList();
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result2.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result2.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result2.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result2.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result2.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result2.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result2.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result2.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result2.get(8).getName());
+
+			final List<TestOne> result3 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.name, true).getAsList();
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result3.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result3.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result3.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result3.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result3.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result3.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result3.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result3.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result3.get(8).getName());
+
+			final List<TestOne> result4 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.anInt).sort(TestOne.name).getAsList();
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result4.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result4.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result4.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result4.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result4.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result4.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result4.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result4.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result4.get(8).getName());
+
+			final List<TestOne> result5 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.anInt, true).sort(TestOne.name).getAsList();
+
+			assertEquals("Sorting by multiple keys returns wrong result", "name9", result5.get(0).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name8", result5.get(1).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name4", result5.get(2).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name6", result5.get(3).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name1", result5.get(4).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name7", result5.get(5).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name3", result5.get(6).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name5", result5.get(7).getName());
+			assertEquals("Sorting by multiple keys returns wrong result", "name2", result5.get(8).getName());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			System.out.println(fex.getMessage());
+			fail("Unexpected exception.");
+		}
+	}
+
 	// ----- private methods -----
 	private void testPaging(final Class type, final int pageSize, final int page, final int number, final int offset, final boolean includeHidden, final PropertyKey sortKey, final boolean sortDesc) throws FrameworkException {
 
-		final Query query = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize);
+		final Query query = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize);
 
 		if (includeHidden) {
 			query.includeHidden();

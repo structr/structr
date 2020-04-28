@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,13 +28,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.Transaction;
-import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
 import org.structr.api.util.Iterables;
 import org.structr.test.common.StructrTest;
@@ -185,28 +183,26 @@ public class MaintenanceTest extends StructrTest {
 
 				for (final TestEleven node : testNodes) {
 
-					Iterable<Label> labels = node.getNode().getLabels();
+					final List<String> labels = Iterables.toList(node.getNode().getLabels());
 
 					assertEquals(labelCount, Iterables.count(labels));
 
-					for (final Label label : labels) {
-						System.out.print(label.name() + " ");
+					for (final String label : labels) {
+						System.out.print(label + " ");
 					}
 					System.out.println();
 
-					final Set<String> names = Iterables.toSet(labels).stream().map(Label::name).collect(Collectors.toSet());
-
-					assertEquals("Number of labels must be 7", labelCount, names.size());
-					assertTrue("Set of labels must contain AbstractNode",       names.contains("AbstractNode"));
-					assertTrue("Set of labels must contain NodeInterface",      names.contains("NodeInterface"));
-					assertTrue("Set of labels must contain AccessControllable", names.contains("AccessControllable"));
-					assertTrue("Set of labels must contain CMISInfo",           names.contains("CMISInfo"));
-					assertTrue("Set of labels must contain CMISItemInfo",       names.contains("CMISItemInfo"));
-					assertTrue("Set of labels must contain TestOne",            names.contains("TestOne"));
-					assertTrue("Set of labels must contain TestEleven",         names.contains("TestEleven"));
+					assertEquals("Number of labels must be 7", labelCount,      labels.size());
+					assertTrue("Set of labels must contain AbstractNode",       labels.contains("AbstractNode"));
+					assertTrue("Set of labels must contain NodeInterface",      labels.contains("NodeInterface"));
+					assertTrue("Set of labels must contain AccessControllable", labels.contains("AccessControllable"));
+					assertTrue("Set of labels must contain CMISInfo",           labels.contains("CMISInfo"));
+					assertTrue("Set of labels must contain CMISItemInfo",       labels.contains("CMISItemInfo"));
+					assertTrue("Set of labels must contain TestOne",            labels.contains("TestOne"));
+					assertTrue("Set of labels must contain TestEleven",         labels.contains("TestEleven"));
 
 					if (tenantIdentifier != null) {
-						assertTrue("Set of labels must contain custom tenant identifier if set", names.contains(tenantIdentifier));
+						assertTrue("Set of labels must contain custom tenant identifier if set", labels.contains(tenantIdentifier));
 					}
 				}
 
@@ -227,9 +223,6 @@ public class MaintenanceTest extends StructrTest {
 			// test import
 			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME));
 
-			final DatabaseService db = app.getDatabaseService();
-
-
 			try (final Tx tx = app.tx()) {
 
 				final List<TestEleven> result = app.nodeQuery(TestEleven.class).getAsList();
@@ -237,21 +230,21 @@ public class MaintenanceTest extends StructrTest {
 
 				for (final TestEleven node : result) {
 
-					Iterable<Label> labels = node.getNode().getLabels();
-					final Set<Label> set   = new HashSet<>(Iterables.toList(labels));
+					Iterable<String> labels = node.getNode().getLabels();
+					final Set<String> set   = new HashSet<>(Iterables.toList(labels));
 
 					assertEquals(labelCount, set.size());
 
-					assertTrue("First label has to be AbstractNode",       set.contains(db.forName(Label.class, "AbstractNode")));
-					assertTrue("Second label has to be NodeInterface",     set.contains(db.forName(Label.class, "NodeInterface")));
-					assertTrue("Third label has to be AccessControllable", set.contains(db.forName(Label.class, "AccessControllable")));
-					assertTrue("Fourth label has to be CMISInfo",          set.contains(db.forName(Label.class, "CMISInfo")));
-					assertTrue("Firth label has to be CMISItemInfo",       set.contains(db.forName(Label.class, "CMISItemInfo")));
-					assertTrue("Sixth label has to be TestEleven",         set.contains(db.forName(Label.class, "TestEleven")));
-					assertTrue("Seventh label has to be TestOne",          set.contains(db.forName(Label.class, "TestOne")));
+					assertTrue("First label has to be AbstractNode",       set.contains("AbstractNode"));
+					assertTrue("Second label has to be NodeInterface",     set.contains("NodeInterface"));
+					assertTrue("Third label has to be AccessControllable", set.contains("AccessControllable"));
+					assertTrue("Fourth label has to be CMISInfo",          set.contains("CMISInfo"));
+					assertTrue("Firth label has to be CMISItemInfo",       set.contains("CMISItemInfo"));
+					assertTrue("Sixth label has to be TestEleven",         set.contains("TestEleven"));
+					assertTrue("Seventh label has to be TestOne",          set.contains("TestOne"));
 
 					if (tenantIdentifier != null) {
-						assertTrue("Set of labels must contain custom tenant identifier if set", set.contains(db.forName(Label.class, tenantIdentifier)));
+						assertTrue("Set of labels must contain custom tenant identifier if set", set.contains(tenantIdentifier));
 					}
 
 				}
@@ -263,8 +256,8 @@ public class MaintenanceTest extends StructrTest {
 			Files.delete(exportFile);
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
-			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -274,19 +267,19 @@ public class MaintenanceTest extends StructrTest {
 
 		try {
 
-			final DatabaseService graphDb   = app.getDatabaseService();
-			final Set<Label> expectedLabels = new LinkedHashSet<>();
+			final DatabaseService graphDb    = app.getDatabaseService();
+			final Set<String> expectedLabels = new LinkedHashSet<>();
 
-			expectedLabels.add(graphDb.forName(Label.class, "Principal"));
-			expectedLabels.add(graphDb.forName(Label.class, "Group"));
-			expectedLabels.add(graphDb.forName(Label.class, "AccessControllable"));
-			expectedLabels.add(graphDb.forName(Label.class, "AbstractNode"));
-			expectedLabels.add(graphDb.forName(Label.class, "NodeInterface"));
-			expectedLabels.add(graphDb.forName(Label.class, "CMISInfo"));
-			expectedLabels.add(graphDb.forName(Label.class, "CMISItemInfo"));
+			expectedLabels.add("Principal");
+			expectedLabels.add("Group");
+			expectedLabels.add("AccessControllable");
+			expectedLabels.add("AbstractNode");
+			expectedLabels.add("NodeInterface");
+			expectedLabels.add("CMISInfo");
+			expectedLabels.add("CMISItemInfo");
 
 			if (graphDb.getTenantIdentifier() != null) {
-				expectedLabels.add(graphDb.forName(Label.class, graphDb.getTenantIdentifier()));
+				expectedLabels.add(graphDb.getTenantIdentifier());
 			}
 
 			// intentionally create raw Neo4j transaction and create nodes in there
@@ -305,22 +298,7 @@ public class MaintenanceTest extends StructrTest {
 				tx.success();
 			}
 
-			/*
-			 * This test will fail with the new Neo4j 3.0 Bolt interface, because
-			 * there is no separation between a (Lucene-based) index and the
-			 * database values any more. Nodes are selected by their 'type'
-			 * property and will always be found even if NOT created using Structr
-			 * methods.
-			// nodes should not be found yet..
-			try (final Tx tx = app.tx()) {
-
-				// check nodes, we should find no Groups here
-				assertEquals(0, app.nodeQuery(Group.class).getAsList().size());
-			}
-			 */
-
 			// test rebuild index and create labels
-			//app.command(BulkRebuildIndexCommand.class).execute(new LinkedHashMap<>());
 			app.command(BulkCreateLabelsCommand.class).execute(new LinkedHashMap<>());
 
 			// nodes should now be visible to Structr
@@ -332,7 +310,7 @@ public class MaintenanceTest extends StructrTest {
 				// check nodes
 				for (final Group group : app.nodeQuery(Group.class)) {
 
-					final Set<Label> labels = Iterables.toSet(group.getNode().getLabels());
+					final Set<String> labels = Iterables.toSet(group.getNode().getLabels());
 
 					assertEquals("Invalid number of labels", expectedLabels.size(), labels.size());
 					assertTrue("Invalid labels found", labels.containsAll(expectedLabels));
@@ -341,9 +319,9 @@ public class MaintenanceTest extends StructrTest {
 				tx.success();
 			}
 
-		} catch (FrameworkException fex) {
+		} catch (Throwable fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 

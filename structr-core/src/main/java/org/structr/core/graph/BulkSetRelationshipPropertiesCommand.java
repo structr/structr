@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,9 +18,6 @@
  */
 package org.structr.core.graph;
 
-//~--- classes ----------------------------------------------------------------
-
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.slf4j.Logger;
@@ -32,20 +29,14 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.SchemaHelper;
-
 
 /**
  * Sets the properties found in the property set on all relationships matching the type.
  * If no type property is found, set the properties on all relationships.
- *
- *
  */
 public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(BulkSetRelationshipPropertiesCommand.class.getName());
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void execute(final Map<String, Object> properties) throws FrameworkException {
@@ -55,20 +46,20 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 		if (graphDb != null) {
 
-			Iterator<AbstractRelationship> relIterator = null;
-			final String typeName                      = "type";
+			Iterable<AbstractRelationship> relationships = null;
+			final String typeName                        = "type";
 
 			if (properties.containsKey(typeName)) {
 
-				relIterator = StructrApp.getInstance(securityContext).relationshipQuery(SchemaHelper.getEntityClassForRawType(typeName)).getAsList().iterator();
+				relationships = Iterables.map(relationshipFactory, graphDb.getRelationshipsByType(typeName));
 				properties.remove(typeName);
 
 			} else {
 
-				relIterator = Iterables.map(relationshipFactory, graphDb.getAllRelationships()).iterator();
+				relationships = Iterables.map(relationshipFactory, graphDb.getAllRelationships());
 			}
 
-			final long count = bulkGraphOperation(securityContext, relIterator, 1000, "SetRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
+			final long count = bulkGraphOperation(securityContext, relationships, 1000, "SetRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
 				public boolean handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {

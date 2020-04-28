@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
+import org.structr.api.graph.Cardinality;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -32,16 +33,15 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonMethod;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonMethod;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.Linkable;
@@ -95,7 +95,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		type.addPropertyGetter("path", String.class);
 		type.addPropertyGetter("elements", Iterable.class);
 		type.addPropertyGetter("cacheForSeconds", Integer.class);
-		type.addPropertyGetter("site", Site.class);
+		type.addPropertyGetter("sites", Iterable.class);
 
 		type.addPropertyGetter("version", Integer.TYPE);
 		type.addPropertySetter("version", Integer.TYPE);
@@ -174,7 +174,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		createElement2.addParameter("tag", "String");
 		createElement2.setSource("return " + Page.class.getName() + ".createElement(this, tag, false);");
 
-		site.relate(type, "CONTAINS", Cardinality.OneToMany, "site", "pages");
+		site.relate(type, "CONTAINS", Cardinality.ManyToMany, "sites", "pages");
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "linkingElements");
@@ -184,12 +184,12 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		type.addViewProperty(PropertyView.Public, "children");
 		type.addViewProperty(PropertyView.Public, "name");
 		type.addViewProperty(PropertyView.Public, "owner");
-		type.addViewProperty(PropertyView.Public, "site");
+		type.addViewProperty(PropertyView.Public, "sites");
 
 		type.addViewProperty(PropertyView.Ui, "pageCreatesRawData");
 		type.addViewProperty(PropertyView.Ui, "dontCache");
 		type.addViewProperty(PropertyView.Ui, "children");
-		type.addViewProperty(PropertyView.Ui, "site");
+		type.addViewProperty(PropertyView.Ui, "sites");
 	}}
 
 	public static final Set<String> nonBodyTags = new HashSet<>(Arrays.asList(new String[] { "html", "head", "body", "meta", "link" } ));
@@ -199,7 +199,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 
 	Iterable<DOMNode> getElements();
 
-	Site getSite();
+	Iterable<Site> getSites();
 
 	void setVersion(int version) throws FrameworkException;
 	void increaseVersion() throws FrameworkException;

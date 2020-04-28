@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,7 +25,7 @@ import org.structr.core.entity.OneToOne;
  *
  */
 public class OneTwoOneToOne extends OneToOne<TestOne, TestTwo> {
-	
+
 	@Override
 	public Class<TestOne> getSourceType() {
 		return TestOne.class;

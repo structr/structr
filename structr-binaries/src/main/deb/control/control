@@ -3,6 +3,6 @@ Version: [[version]]
 Section: misc
 Priority: low
 Architecture: all
-Depends: openjdk-8-jdk-headless | openjdk-8-jdk | oracle-java8-jdk | oracle-java8-installer
+Depends: openjdk-13-jdk-headless | openjdk-13-jdk | logrotate
 Description: [[description]]
 Maintainer: Axel Morgner <axel.morgner@structr.com>

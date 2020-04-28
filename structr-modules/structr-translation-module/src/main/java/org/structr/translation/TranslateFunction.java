@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,6 +38,11 @@ public class TranslateFunction extends UiFunction {
 	@Override
 	public String getName() {
 		return "translate";
+	}
+
+	@Override
+	public String getSignature() {
+		return "text, sourceLanguage, targetLanguage, translationProvider";
 	}
 
 	@Override

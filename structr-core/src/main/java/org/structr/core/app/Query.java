@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.List;
 import org.structr.api.Predicate;
 import org.structr.api.search.QueryContext;
+import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -47,10 +48,9 @@ public interface Query<T extends GraphObject> extends Iterable<T> {
 
 	// ----- builder methods -----
 	public Query<T> disableSorting();
-	public Query<T> sort(final PropertyKey key);
-	public Query<T> sortAscending(final PropertyKey key);
-	public Query<T> sortDescending(final PropertyKey key);
-	public Query<T> order(final boolean descending);
+	public Query<T> sort(final SortOrder sortOrder);
+	public Query<T> sort(final PropertyKey key, final boolean descending);
+	default public Query<T> sort(final PropertyKey key) { return sort(key, false); }
 	public Query<T> comparator(final Comparator<T> comparator);
 	public Query<T> pageSize(final int pageSize);
 	public Query<T> page(final int page);

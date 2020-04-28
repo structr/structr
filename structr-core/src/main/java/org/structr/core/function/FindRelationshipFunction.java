@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -42,6 +42,11 @@ public class FindRelationshipFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "type [, parameterMap ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -53,7 +58,7 @@ public class FindRelationshipFunction extends CoreFunction {
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			final ConfigurationProvider config = StructrApp.getConfiguration();
-			final Query query = StructrApp.getInstance(securityContext).relationshipQuery().sort(GraphObject.createdDate).order(false);
+			final Query query = StructrApp.getInstance(securityContext).relationshipQuery().sort(GraphObject.createdDate);
 
 			// the type to query for
 			Class type = null;

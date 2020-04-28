@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -44,13 +44,13 @@ import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 
 import java.net.URI;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 
 public interface KafkaClient extends MessageClient {
 

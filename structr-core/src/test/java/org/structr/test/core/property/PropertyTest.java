@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
-import org.structr.api.graph.Label;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
 import org.structr.test.common.StructrTest;
@@ -57,8 +56,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -1842,15 +1841,15 @@ public class PropertyTest extends StructrTest {
 	public void testModifyType() {
 
 		final DatabaseService db      = StructrApp.getInstance().getDatabaseService();
-		final Set<Label> labelsBefore = new LinkedHashSet<>();
-		final Set<Label> labelsAfter  = new LinkedHashSet<>();
+		final Set<String> labelsBefore = new LinkedHashSet<>();
+		final Set<String> labelsAfter  = new LinkedHashSet<>();
 		String id                     = null;
 
-		labelsBefore.add(db.forName(Label.class, AccessControllable.class.getSimpleName()));
-		labelsBefore.add(db.forName(Label.class, TestFour.class.getSimpleName()));
+		labelsBefore.add(AccessControllable.class.getSimpleName());
+		labelsBefore.add(TestFour.class.getSimpleName());
 
-		labelsAfter.add(db.forName(Label.class, AccessControllable.class.getSimpleName()));
-		labelsAfter.add(db.forName(Label.class, TestFive.class.getSimpleName()));
+		labelsAfter.add(AccessControllable.class.getSimpleName());
+		labelsAfter.add(TestFive.class.getSimpleName());
 
 		// create a new node, check labels, modify typeProperty, check labels again
 
@@ -2283,7 +2282,7 @@ public class PropertyTest extends StructrTest {
 	}
 
 	@Test
-	public void testEncryptesStringProperty() {
+	public void testEncryptedStringProperty() {
 
 		cleanDatabaseAndSchema();
 

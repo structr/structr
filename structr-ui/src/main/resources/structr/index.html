@@ -10,12 +10,13 @@
 		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/chosen.min.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/select2.min.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/jstree.min.css">
-		<link rel="stylesheet" type="text/css" href="css/lib/font-awesome.min.css">
-		<link rel="stylesheet" href="codemirror/lib/codemirror.css">
-		<link rel="stylesheet" href="codemirror/addon/dialog/dialog.css">
-		<link rel="stylesheet" href="codemirror/addon/hint/show-hint.css">
-		<link rel="stylesheet" href="codemirror/addon/search/matchesonscrollbar.css">
-		<link rel="stylesheet" href="trumbowyg/ui/trumbowyg.min.css">
+		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/vis.min.css">
+		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/font-awesome.min.css">
+		<link rel="stylesheet" type="text/css" media="screen" href="codemirror/lib/codemirror.css">
+		<link rel="stylesheet" type="text/css" media="screen" href="codemirror/addon/dialog/dialog.css">
+		<link rel="stylesheet" type="text/css" media="screen" href="codemirror/addon/hint/show-hint.css">
+		<link rel="stylesheet" type="text/css" media="screen" href="codemirror/addon/search/matchesonscrollbar.css">
+		<link rel="stylesheet" type="text/css" media="screen" href="trumbowyg/ui/trumbowyg.min.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="css/main.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="css/sprites.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="css/crud.css">
@@ -49,6 +50,7 @@
 		<script src="js/lib/linkurious/plugins.min.js"></script>
 		<script src="js/lib/graphbrowser/graph-browser.js"></script>
 		<script src="js/lib/clipboard.min.js"></script>
+		<script src="js/lib/vis.min.js"></script>
 
 		<script src="codemirror/lib/codemirror.js"></script>
 		<script src="codemirror/addon/scroll/annotatescrollbar.js"></script>
@@ -58,6 +60,7 @@
 		<script src="codemirror/addon/dialog/dialog.js"></script>
 		<script src="codemirror/addon/hint/show-hint.js"></script>
 		<script src="codemirror/mode/xml/xml.js"></script>
+		<script src="codemirror/mode/css/css.js"></script>
 		<script src="codemirror/mode/htmlembedded/htmlembedded.js"></script>
 		<script src="codemirror/mode/clike/clike.js"></script>
 		<script src="codemirror/mode/javascript/javascript.js"></script>
@@ -83,6 +86,7 @@
 		<script src="js/contents.js"></script>
 		<script src="js/files.js"></script>
 		<script src="js/code.js"></script>
+		<script src="js/sigma-layouter.js"></script>
 		<script src="js/dashboard.js"></script>
 		<script src="js/graph.js"></script>
 		<script src="js/model.js"></script>
@@ -133,7 +137,9 @@
 			</div>
 			<div class="structr-instance-info">
 				<div class="structr-instance">
-					<span class="structr-instance-name"></span><span class="structr-instance-stage"></span>
+					<span class="structr-instance-db"></span>
+					<span class="structr-instance-name"></span>
+					<span class="structr-instance-stage"></span>
 				</div>
 				<div class="structr-version"></div>
 			</div>

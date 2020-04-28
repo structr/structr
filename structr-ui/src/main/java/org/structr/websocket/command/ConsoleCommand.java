@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -64,69 +64,63 @@ public class ConsoleCommand extends AbstractCommand {
 
 		final String sessionId = webSocketData.getSessionId();
 		logger.debug("CONSOLE received from session {}", sessionId);
+
+		Console console = getWebSocket().getConsole(ConsoleMode.JavaScript);
+
+		final String  line       = webSocketData.getNodeDataStringValue(LINE_KEY);
+		final String  mode       = webSocketData.getNodeDataStringValue(MODE_KEY);
+		final Boolean completion = webSocketData.getNodeDataBooleanValue(COMPLETION_KEY);
+
+		if (StringUtils.isNotBlank(mode)) {
+			console    = getWebSocket().getConsole(ConsoleMode.valueOf(mode));
+		}
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		OutputStreamWritable writeable = new OutputStreamWritable(out);
+
 		try {
+			if (Boolean.TRUE.equals(completion)) {
 
-			Console console = getWebSocket().getConsole(ConsoleMode.JavaScript);
+				final List<TabCompletionResult> tabCompletionResult = console.getTabCompletion(line);
 
-			final String  line       = webSocketData.getNodeDataStringValue(LINE_KEY);
-			final String  mode       = webSocketData.getNodeDataStringValue(MODE_KEY);
-			final Boolean completion = webSocketData.getNodeDataBooleanValue(COMPLETION_KEY);
+				final List<String> commands = new ArrayList<>();
 
-			if (StringUtils.isNotBlank(mode)) {
-				console    = getWebSocket().getConsole(ConsoleMode.valueOf(mode));
-			}
-
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			OutputStreamWritable writeable = new OutputStreamWritable(out);
-
-			try {
-				if (Boolean.TRUE.equals(completion)) {
-
-					final List<TabCompletionResult> tabCompletionResult = console.getTabCompletion(line);
-
-					final List<String> commands = new ArrayList<>();
-
-					for (final TabCompletionResult res : tabCompletionResult) {
-						commands.add(res.getCommand());
-					}
-
-					getWebSocket().send(MessageBuilder.forName(getCommand())
-							.callback(webSocketData.getCallback())
-							.data(COMMANDS_KEY, commands)
-							.data(PROMPT_KEY, console.getPrompt())
-							.data(MODE_KEY, console.getMode())
-							.data(VERSION_INFO_KEY, VersionHelper.getFullVersionInfo())
-							.message(out.toString("UTF-8"))
-							.build(), true);
-
-				} else {
-
-					console.run(line, writeable);
-
-					getWebSocket().send(MessageBuilder.forName(getCommand())
-							.callback(webSocketData.getCallback())
-							.data(PROMPT_KEY, console.getPrompt())
-							.data(MODE_KEY, console.getMode())
-							.data(VERSION_INFO_KEY, VersionHelper.getFullVersionInfo())
-							.message(out.toString("UTF-8"))
-							.build(), true);
+				for (final TabCompletionResult res : tabCompletionResult) {
+					commands.add(res.getCommand());
 				}
-
-			} catch (IOException | FrameworkException ex) {
-
-				logger.debug("Error while executing console line {}", line, ex);
 
 				getWebSocket().send(MessageBuilder.forName(getCommand())
 						.callback(webSocketData.getCallback())
+						.data(COMMANDS_KEY, commands)
+						.data(PROMPT_KEY, console.getPrompt())
 						.data(MODE_KEY, console.getMode())
 						.data(VERSION_INFO_KEY, VersionHelper.getFullVersionInfo())
-						.message(ex.getMessage())
+						.message(out.toString("UTF-8"))
+						.build(), true);
+
+			} else {
+
+				console.run(line, writeable);
+
+				getWebSocket().send(MessageBuilder.forName(getCommand())
+						.callback(webSocketData.getCallback())
+						.data(PROMPT_KEY, console.getPrompt())
+						.data(MODE_KEY, console.getMode())
+						.data(VERSION_INFO_KEY, VersionHelper.getFullVersionInfo())
+						.message(out.toString("UTF-8"))
 						.build(), true);
 			}
 
-		} catch (FrameworkException ex) {
-			logger.warn("Exception occured", ex);
-			getWebSocket().send(MessageBuilder.status().code(ex.getStatus()).message(ex.getMessage()).build(), true);
+		} catch (IOException | FrameworkException ex) {
+
+			logger.debug("Error while executing console line {}", line, ex);
+
+			getWebSocket().send(MessageBuilder.forName(getCommand())
+					.callback(webSocketData.getCallback())
+					.data(MODE_KEY, console.getMode())
+					.data(VERSION_INFO_KEY, VersionHelper.getFullVersionInfo())
+					.message(ex.getMessage())
+					.build(), true);
 		}
 	}
 

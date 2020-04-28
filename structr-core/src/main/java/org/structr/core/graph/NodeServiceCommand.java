@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,10 @@ package org.structr.core.graph;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
@@ -37,20 +41,28 @@ import org.structr.util.Writable;
 
 /**
  * Abstract base class for all graph service commands.
- *
- *
  */
 public abstract class NodeServiceCommand extends Command {
 
 	private static final Logger logger                        = LoggerFactory.getLogger(NodeServiceCommand.class.getName());
 	private static final ArrayBlockingQueue<String> uuidQueue = new ArrayBlockingQueue<>(100000);
 
-	protected SecurityContext securityContext = null;
-	private Writable logWritable              = null;
+	protected final Map<String, String> customHeaders = new LinkedHashMap();
+	protected final List<Object> customPayload        = new LinkedList<>();
+	protected SecurityContext securityContext         = null;
+	private Writable logWritable                      = null;
+
+	public Map<String, String> getCustomHeaders () {
+		return customHeaders;
+	}
+
+	public List<Object> getPayload () {
+		return customPayload;
+	}
 
 	@Override
 	public Class getServiceClass()	{
-		return(NodeService.class);
+		return NodeService.class;
 	}
 
 	@Override
@@ -63,42 +75,49 @@ public abstract class NodeServiceCommand extends Command {
 	 *
 	 * @param <T>
 	 * @param securityContext
-	 * @param iterator the iterator that provides the nodes to operate on
+	 * @param iterable the iterable that provides the nodes to operate on
 	 * @param commitCount
 	 * @param description
 	 * @param operation the operation to execute
 	 * @return the number of nodes processed
 	 */
-	public <T> long bulkGraphOperation(final SecurityContext securityContext, final Iterator<T> iterator, final long commitCount, String description, final BulkGraphOperation<T> operation) {
-		return bulkGraphOperation(securityContext, iterator, commitCount, description, operation, true);
+	public <T> long bulkGraphOperation(final SecurityContext securityContext, final Iterable<T> iterable, final long commitCount, String description, final BulkGraphOperation<T> operation) {
+		return bulkGraphOperation(securityContext, iterable, commitCount, description, operation, true);
 	}
 	/**
 	 * Executes the given operation on all nodes in the given list.
 	 *
 	 * @param <T>
 	 * @param securityContext
-	 * @param iterator the iterator that provides the nodes to operate on
+	 * @param iterable the iterator that provides the nodes to operate on
 	 * @param commitCount
 	 * @param description
 	 * @param operation the operation to execute
 	 * @param validation
 	 * @return the number of nodes processed
 	 */
-	public <T> long bulkGraphOperation(final SecurityContext securityContext, final Iterator<T> iterator, final long commitCount, String description, final BulkGraphOperation<T> operation, boolean validation) {
+	public <T> long bulkGraphOperation(final SecurityContext securityContext, final Iterable<T> iterable, final long commitCount, String description, final BulkGraphOperation<T> operation, boolean validation) {
 
 		final Predicate<Long> condition = operation.getCondition();
 		final App app                   = StructrApp.getInstance(securityContext);
 		final boolean doValidation      = operation.doValidation();
 		final boolean doCallbacks       = operation.doCallbacks();
 		final boolean doNotifications   = operation.doNotifications();
+		Iterator<T> iterator            = null;
 		long objectCount                = 0L;
 		boolean active                  = true;
+
 
 		while (active) {
 
 			active = false;
 
 			try (final Tx tx = app.tx(doValidation, doCallbacks, doNotifications)) {
+
+				// fetch iterator only once
+				if (iterator == null) {
+					iterator = iterable.iterator();
+				}
 
 				while (iterator.hasNext() && (condition == null || condition.accept(objectCount))) {
 

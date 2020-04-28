@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,6 +25,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 
 public abstract class AbstractServletBase extends HttpServlet {
 
@@ -48,6 +50,14 @@ public abstract class AbstractServletBase extends HttpServlet {
 					}
 				}
 			}
+		}
+	}
+
+	protected void assertInitialized() throws FrameworkException {
+
+		final Services services = Services.getInstance();
+		if (!services.isInitialized()) {
+			throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, services.getUnavailableMessage());
 		}
 	}
 }

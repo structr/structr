@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -663,10 +663,10 @@ public class Importer {
 
 				if (page != null) {
 
+					final PropertyKey<String> contentTypeKey = StructrApp.key(Content.class, "contentType");
+
 					// create comment or content node
 					if (!StringUtils.isBlank(comment)) {
-
-						final PropertyKey<String> contentTypeKey = StructrApp.key(Content.class, "contentType");
 
 						newNode = (DOMNode) page.createComment(comment);
 						newNode.setProperty(contentTypeKey, "text/html");
@@ -674,6 +674,12 @@ public class Importer {
 					} else {
 
 						newNode = (Content) page.createTextNode(content);
+
+						final PropertyKey<String> typeKey = StructrApp.key(Input.class, "_html_type");
+
+						if (parent != null && "text/css".equals(parent.getProperty(typeKey))) {
+							newNode.setProperty(contentTypeKey, "text/css");
+						}
 					}
 				}
 
@@ -823,8 +829,13 @@ public class Importer {
 				final PropertyMap newNodeProperties = new PropertyMap();
 				final Class newNodeType             = newNode.getClass();
 
-				newNodeProperties.put(AbstractNode.visibleToPublicUsers,        publicVisible);
-				newNodeProperties.put(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+				if (isDeployment && !DeployCommand.isDOMNodeVisibilityRelativeToParent()) {
+					newNodeProperties.put(AbstractNode.visibleToPublicUsers,        publicVisible);
+					newNodeProperties.put(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+				} else {
+					newNodeProperties.put(AbstractNode.visibleToPublicUsers,        parent != null ? parent.getProperty(AbstractNode.visibleToPublicUsers) : publicVisible);
+					newNodeProperties.put(AbstractNode.visibleToAuthenticatedUsers, parent != null ? parent.getProperty(AbstractNode.visibleToAuthenticatedUsers) : authVisible);
+				}
 
 				// "id" attribute: Put it into the "_html_id" field
 				if (StringUtils.isNotBlank(id)) {
@@ -997,6 +1008,12 @@ public class Importer {
 
 					final PropertyKey<String> typeKey = StructrApp.key(Input.class, "_html_type");
 					final String contentType          = newNode.getProperty(typeKey);
+
+					if (contentType == null) {
+
+						// Set default type of script tag to "text/css" to ensure inline CSS gets imported properly
+						newNode.setProperty(typeKey, "text/css");
+					}
 
 					if ("text/css".equals(contentType)) {
 
@@ -1172,7 +1189,7 @@ public class Importer {
 		}
 
 		//downloadAddress = StringUtils.substringBefore(downloadAddress, "?");
-		final String downloadName = cleanFileName(downloadUrl.getFile());
+		final String downloadName = cleanFileName(StringUtils.substringBefore(downloadUrl.getFile(), "?"));
 		final String fileName     = PathHelper.getName(downloadName);
 
 		if (StringUtils.isBlank(fileName)) {
@@ -1433,7 +1450,17 @@ public class Importer {
 
 		final Content contentNode = (Content)page.createTextNode("");
 
-		contentNode.setVisibility(publicVisible, authVisible);
+		final PropertyMap emptyContentProperties = new PropertyMap();
+
+		if (isDeployment && !DeployCommand.isDOMNodeVisibilityRelativeToParent()) {
+			emptyContentProperties.put(AbstractNode.visibleToPublicUsers,        publicVisible);
+			emptyContentProperties.put(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+		} else {
+			emptyContentProperties.put(AbstractNode.visibleToPublicUsers,        parent != null ? parent.getProperty(AbstractNode.visibleToPublicUsers) : publicVisible);
+			emptyContentProperties.put(AbstractNode.visibleToAuthenticatedUsers, parent != null ? parent.getProperty(AbstractNode.visibleToAuthenticatedUsers) : authVisible);
+		}
+
+		contentNode.setProperties(securityContext, emptyContentProperties);
 
 		if (parent != null) {
 

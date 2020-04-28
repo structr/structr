@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,19 +23,41 @@ import com.sun.mail.util.BASE64DecoderStream;
 import com.sun.mail.util.MailConnectException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.activation.DataSource;
-import javax.mail.*;
+import javax.mail.AuthenticationFailedException;
+import javax.mail.BodyPart;
+import javax.mail.Folder;
+import javax.mail.Header;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.Part;
+import javax.mail.Session;
+import javax.mail.Store;
 import javax.mail.internet.MimeUtility;
 import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.*;
+import org.structr.api.config.IntegerSetting;
+import org.structr.api.config.Setting;
+import org.structr.api.config.Settings;
+import org.structr.api.config.StringSetting;
 import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.ServiceDependency;
@@ -188,7 +210,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 	}
 
 	@Override
-	public boolean initialize(StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 		return true;
 	}
 

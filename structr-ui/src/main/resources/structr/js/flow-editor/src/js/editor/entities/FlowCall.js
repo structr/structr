@@ -2,17 +2,18 @@
 
 import {FlowNode} from "./FlowNode.js";
 import {FlowSockets} from "../FlowSockets.js";
-import {Persistence} from "../../persistence/Persistence.js";
+import {Persistence} from "../../../../../lib/structr/persistence/Persistence.js";
 import {FlowContainer} from "./FlowContainer.js";
 
 export class FlowCall extends FlowNode {
 
-    constructor(node) {
-        super(node);
+    constructor(node, flowEditor) {
+        super(node, flowEditor);
     }
 
     getComponent() {
         let scopedDbNode = this.dbNode;
+        let flowEditor = this.flowEditor;
         return new D3NE.Component('Call', {
             template: FlowCall._nodeTemplate(),
             builder(node) {
@@ -32,14 +33,15 @@ export class FlowCall extends FlowNode {
                 let call = new D3NE.Control('<select class="control-select"><option disabled selected>None</option></select>', (element, control) =>{
 
                     let persistence = new Persistence();
-                    persistence.getNodesByClass(new FlowContainer()).then(result => {
+
+                    persistence.getNodesByClass(new FlowContainer(), 'effectiveNameView').then(result => {
                         
                         result = result.sort((a,b) => {
                             return a.effectiveName.toLowerCase() > b.effectiveName.toLowerCase() ? 1 : a.effectiveName.toLowerCase() < b.effectiveName.toLowerCase() ? -1 : 0;
                         });
 
                         for (let container of result) {
-                            if (container.id !== scopedDbNode.flowContainer.id) {
+                            if (container.id !== flowEditor._flowContainer.id) {
                                 let option = document.createElement("option");
                                 option.text = container.effectiveName;
                                 option.value = container.id;

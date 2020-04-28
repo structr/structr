@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -40,6 +40,11 @@ public class BarcodeFunction extends UiAdvancedFunction {
 	@Override
 	public String getName() {
 		return "barcode";
+	}
+
+	@Override
+	public String getSignature() {
+		return "type, data [, width, height, hintKey, hintValue ]";
 	}
 
 	@Override

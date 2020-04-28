@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,9 @@ package org.structr.flow.impl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 import org.structr.api.util.Iterables;
 
 import org.structr.common.PropertyView;
@@ -53,6 +56,12 @@ public abstract class FlowLogicCondition extends FlowCondition implements Deploy
 		if (_dataSources.isEmpty()) {
 
 			return false;
+		}
+
+
+		if (StreamSupport.stream(getProperty(dataSources).spliterator(), false).count() == 1) {
+
+			return getBoolean(context, getProperty(dataSources).iterator().next());
 		}
 
 		Boolean result = null;

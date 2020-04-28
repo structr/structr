@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -101,7 +101,7 @@ public class SettingsGroup {
 			final String name        = entry.getKey();
 			final Tag groupContainer = div.block("div").css("config-group");
 
-			groupContainer.block("h3").text(name);
+			groupContainer.block("h1").text(name);
 
 			for (final Setting setting : entry.getValue()) {
 
@@ -116,7 +116,7 @@ public class SettingsGroup {
 
 			// display title only if other groups exist
 			if (!mapped.isEmpty()) {
-				groupContainer.block("h3").text("Custom");
+				groupContainer.block("h1").text("Custom");
 			}
 
 			for (final Setting setting : otherSettings) {

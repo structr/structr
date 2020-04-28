@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,10 +18,12 @@
  */
 package org.structr.core.function;
 
+import java.util.List;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Hint;
 
 public class RetrieveFunction extends CoreFunction {
 
@@ -31,6 +33,11 @@ public class RetrieveFunction extends CoreFunction {
 	@Override
 	public String getName() {
 		return "retrieve";
+	}
+
+	@Override
+	public String getSignature() {
+		return "key";
 	}
 
 	@Override
@@ -66,5 +73,13 @@ public class RetrieveFunction extends CoreFunction {
 	@Override
 	public String shortDescription() {
 		return "Returns the value associated with the given key from the temporary store";
+	}
+
+	@Override
+	public List<Hint> getContextHints(final String lastToken) {
+
+		// this might be the place where information about the execution context
+		// of a function etc. can be used, but not yet.
+		return null;
 	}
 }

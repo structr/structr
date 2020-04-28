@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,6 +33,11 @@ public class RenderFunction extends UiCommunityFunction {
 	@Override
 	public String getName() {
 		return "render";
+	}
+
+	@Override
+	public String getSignature() {
+		return "list";
 	}
 
 	@Override

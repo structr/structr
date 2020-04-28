@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -308,15 +308,27 @@ function blink (element, color, bgColor) {
 		element.prop('data-bg-color', oldBg);
 	}
 
-	element.animate({
-		color: color,
-		backgroundColor: bgColor
-	}, 50, function() {
-		$(this).animate({
-			color: oldFg,
-			backgroundColor: oldBg
-		}, 1000);
-	});
+	if (element[0].nodeName === 'SELECT') {
+
+		element.animate({
+			color: color
+		}, 50, function() {
+			$(this).animate({
+				color: oldFg
+			}, 1000);
+		});
+	} else {
+
+		element.animate({
+			color: color,
+			backgroundColor: bgColor
+		}, 50, function() {
+			$(this).animate({
+				color: oldFg,
+				backgroundColor: oldBg
+			}, 1000);
+		});
+	}
 }
 
 function getComments(el) {
@@ -393,43 +405,194 @@ jQuery.isBlank = function (obj) {
 };
 
 $.fn.showInlineBlock = function () {
-	return this.css('display','inline-block');
+	return this.css('display', 'inline-block');
 };
+
 
 /**
  * thin wrapper for localStorage with a success-check and error display
  */
-
 var LSWrapper = new (function() {
 
-	var _localStorageObject = {};
+	let _localStorageObject = {};
+	let _localStoragePersistenceKey = 'structrLocalStoragePersistence_';
+	let _localStoragePersistenceDateKey = 'structrLocalStoragePersistenceDate_';
+	let _localStorageLastSyncToServerKey = 'structrLocalStorageLastSyncToServer_';
+	let _persistInterval = 60;
+
+	let _lastLoadTimestamp = null;
+
+	this.save = function (callback) {
+
+		Command.saveLocalStorage(function () {
+
+			localStorage.setItem(_localStorageLastSyncToServerKey, new Date().getTime());
+
+			if (typeof callback === 'function') {
+				callback();
+			}
+		});
+	};
+
+	this.restore = function (callback) {
+
+		if (!this.isLoaded()) {
+
+			if (this.isRecent()) {
+
+				let success = this.restoreFromRealLocalStorage();
+
+				if (success) {
+					callback();
+				} else {
+					this.restoreFromServer(callback);
+				}
+
+			} else {
+				this.restoreFromServer(callback);
+			}
+
+		} else {
+			callback();
+		}
+	};
 
 	this.isLoaded = function () {
+
 		return !(!_localStorageObject || (Object.keys(_localStorageObject).length === 0 && _localStorageObject.constructor === Object));
 	};
 
 	this.setItem = function(key, value) {
+
 		_localStorageObject[key] = value;
+
+		this.persistToRealLocalStorage();
 	};
 
 	this.getItem = function (key, defaultValue = null) {
+
+		let lastPersist = JSON.parse(localStorage.getItem(_localStoragePersistenceDateKey));
+		if (_lastLoadTimestamp < lastPersist) {
+			this.restoreFromRealLocalStorage();
+		}
+
 		return (_localStorageObject[key] === undefined) ? defaultValue : _localStorageObject[key];
 	};
 
 	this.removeItem = function (key) {
+
 		delete _localStorageObject[key];
+
+		this.persistToRealLocalStorage();
 	};
 
 	this.clear = function () {
+
 		_localStorageObject = {};
+
+		this.persistToRealLocalStorage();
 	};
 
 	this.getAsJSON = function () {
+
 		return JSON.stringify(_localStorageObject);
 	};
 
+	this.restoreFromServer = function (callback) {
+
+		Command.getLocalStorage(callback);
+	};
+
 	this.setAsJSON = function (json) {
+
 		_localStorageObject = JSON.parse(json);
+		_lastLoadTimestamp  = new Date().getTime();
+
+		this.persistToRealLocalStorage();
+	};
+
+	this.isRecent = function () {
+
+		let lastPersist = JSON.parse(localStorage.getItem(_localStoragePersistenceDateKey));
+
+		if (!lastPersist) {
+
+			return false;
+
+		} else {
+
+			return ((new Date().getTime() - lastPersist) <= (_persistInterval * 1000));
+		}
+	};
+
+	this.persistToRealLocalStorage = function(retry = true) {
+
+		try {
+
+			let now = new Date().getTime();
+
+			localStorage.setItem(_localStoragePersistenceKey, this.getAsJSON());
+			localStorage.setItem(_localStoragePersistenceDateKey, now);
+
+			let lastSyncTime = localStorage.getItem(_localStorageLastSyncToServerKey);
+
+			if (!lastSyncTime || (now - lastSyncTime) > (_persistInterval * 1000)) {
+				// send to server
+				_Logger.log(_LogType.INIT, 'sending localstorage to server');
+
+				this.save();
+			}
+
+		} catch (e) {
+
+			// localstorage failed. probably quota exceeded. prune and retry once
+			if (retry === true) {
+
+				this.prune();
+				this.persistToRealLocalStorage(false);
+
+			} else {
+				Structr.error('Failed to save localstorage. The following error occurred: <p>' + e + '</p>', true);
+			}
+		}
+	};
+
+	this.restoreFromRealLocalStorage = function () {
+
+		let lsContent = localStorage.getItem(_localStoragePersistenceKey);
+
+		if (!lsContent) {
+			return false;
+		} else {
+
+			_lastLoadTimestamp = new Date().getTime();
+
+			_localStorageObject = JSON.parse(lsContent);
+			return true;
+		}
+	};
+
+	this.prune = function() {
+
+		// if localstorage save fails, remove the following elements
+		let pruneKeys = [
+			'structrActiveEditTab',			// last selected properties tab for node
+			'activeFileTabPrefix',			// last selected properties tab for file
+			'structrScrollInfoKey',			// scroll info in editor
+			'structrTreeExpandedIds'		// expanded tree info for pages tree
+		];
+
+		let lsKeys = Object.keys(_localStorageObject);
+
+		for (let lsKey of lsKeys) {
+
+			for (let pruneKey of pruneKeys) {
+
+				if (lsKey.indexOf(pruneKey) === 0) {
+					delete _localStorageObject[lsKey];
+				}
+			}
+		}
 	};
 
 });
@@ -879,19 +1042,18 @@ var _Favorites = new (function () {
 								'</div>'
 							);
 
-							var lineWrapping = LSWrapper.getItem(lineWrappingKey);
-
 							CodeMirror.defineMIME("text/html", "htmlmixed-structr");
-							var editor = CodeMirror($('#editor-' + id).get(0), {
+							var editor = CodeMirror($('#editor-' + id).get(0), Structr.getCodeMirrorSettings({
 								value: favorite.favoriteContent || '',
 								mode: favorite.favoriteContentType || 'text/plain',
 								autoFocus: true,
 								lineNumbers: true,
-								lineWrapping: lineWrapping,
+								lineWrapping: false,
 								indentUnit: 4,
-								tabSize:4,
+								tabSize: 4,
 								indentWithTabs: true
-							});
+							}));
+							_Code.setupAutocompletion(editor, id);
 
 							var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + id));
 							if (scrollInfo) {
@@ -909,16 +1071,11 @@ var _Favorites = new (function () {
 							buttons.children('#saveFile').remove();
 							buttons.children('#saveAndClose').remove();
 
-							buttons.prepend('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
-							$('#lineWrapping').on('change', function() {
+							buttons.prepend('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span>');
+							$('#lineWrapping').off('change').on('change', function() {
 								var inp = $(this);
-								if (inp.is(':checked')) {
-									LSWrapper.setItem(lineWrappingKey, "1");
-									editor.setOption('lineWrapping', true);
-								} else {
-									LSWrapper.removeItem(lineWrappingKey);
-									editor.setOption('lineWrapping', false);
-								}
+								Structr.updateCodeMirrorOptionGlobally('lineWrapping', inp.is(':checked'));
+								blinkGreen(inp.parent());
 								editor.refresh();
 							});
 

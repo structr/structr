@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -309,9 +309,10 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 
 	private <R extends Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>>> void unlinkNodes(final Class<R> linkType, final T startNode, final T endNode) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
+		final App app      = StructrApp.getInstance(securityContext);
+		final List<R> list = Iterables.toList(startNode.getRelationships(linkType));
 
-		for (RelationshipInterface rel : startNode.getRelationships(linkType)) {
+		for (RelationshipInterface rel : list) {
 
 			if (rel != null && rel.getTargetNode().equals(endNode)) {
 				app.delete(rel);

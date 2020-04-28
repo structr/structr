@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -77,8 +77,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.Folder;
@@ -162,6 +162,53 @@ public class UiScriptingTest extends StructrUiTest {
 			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
 
 			template.setContent("${each(request.param, print(data))}");
+
+			page.appendChild(template);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		try (final Tx tx = app.tx()) {
+
+			RestAssured
+			.given()
+				//.headers("X-User", "admin" , "X-Password", "admin")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+				.statusCode(200)
+				.body(equalTo("abc"))
+			.when()
+				.get("/test?param=a&param=b&param=c");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testMultiRequestParametersInJavascript() {
+
+		try (final Tx tx = app.tx()) {
+
+			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
+			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
+
+			template.setContent("${{ $.print($.get('request').param.join('')); }}");
 
 			page.appendChild(template);
 

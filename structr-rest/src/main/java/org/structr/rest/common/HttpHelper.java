@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -172,6 +172,11 @@ public class HttpHelper {
 		return get(address, username, password, null, null, null, null, headers);
 	}
 
+	public static byte[] getBinary(final String address, final String username, final String password, final Map<String, String> headers)
+	throws FrameworkException {
+		return getBinary(address, username, password, null, null, null, null, headers);
+	}
+	
 	public static String get(final String address, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers)
 	throws FrameworkException {
 		return get(address, null, null, proxyUrl, proxyUsername, proxyPassword, cookie, headers);
@@ -200,6 +205,24 @@ public class HttpHelper {
 		}
 
 		return content;
+	}
+
+	public static byte[] getBinary(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers)
+	throws FrameworkException {
+
+		try {
+
+			final URI     url = URI.create(address);
+			final HttpGet req = new HttpGet(url);
+
+			configure(req, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
+
+			return IOUtils.toByteArray(getAsStream(address, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers));
+
+		} catch (final Throwable t) {
+			logger.error("Error while dowloading binary data from " + address, t);
+			throw new FrameworkException(422, "Unable to fetch binary data from address " + address + ": " + t.getMessage());
+		}
 	}
 
 	public static Map<String, String> head(final String address) {

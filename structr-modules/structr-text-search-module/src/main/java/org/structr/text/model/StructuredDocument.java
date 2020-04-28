@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,11 +19,11 @@
 package org.structr.text.model;
 
 import java.net.URI;
-import org.structr.core.entity.Relation;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonReferenceType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonReferenceType;
 
 /**
  *
@@ -46,7 +46,7 @@ public interface StructuredDocument extends StructuredTextNode {
 
 		type.addPropertyGetter("metadata", Iterable.class);
 
-		final JsonReferenceType rel = type.relate(meta, "METADATA", Relation.Cardinality.OneToMany, "document", "metadata");
+		final JsonReferenceType rel = type.relate(meta, "METADATA", Cardinality.OneToMany, "document", "metadata");
 
 		// enable cascading delete for metadata nodes
 		rel.setCascadingDelete(JsonSchema.Cascade.sourceToTarget);

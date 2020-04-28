@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,12 +28,13 @@ public interface Node extends PropertyContainer {
 	Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType);
 	Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties);
 
-	void addLabel(final Label label);
-	void removeLabel(final Label label);
+	void addLabel(final String label);
+	void removeLabel(final String label);
 
-	Iterable<Label> getLabels();
+	Iterable<String> getLabels();
 
 	boolean hasRelationshipTo(final RelationshipType relationshipType, final Node targetNode);
+	Relationship getRelationshipTo(final RelationshipType relationshipType, final Node targetNode);
 
 	Iterable<Relationship> getRelationships();
 	Iterable<Relationship> getRelationships(final Direction direction);

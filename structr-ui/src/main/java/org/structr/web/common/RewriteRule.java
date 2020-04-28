@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,8 @@ package org.structr.web.common;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.api.config.Settings;
+import org.structr.core.Services;
+import org.structr.rest.service.HttpService;
 
 /**
  * Custom rewrite rule to transport the "force https" config setting
@@ -30,9 +32,19 @@ public class RewriteRule extends org.tuckey.web.filters.urlrewrite.extend.Rewrit
 
 	public void checkConfig(final HttpServletRequest request, final HttpServletResponse response) {
 
+		boolean forceHttps = Settings.ForceHttps.getValue();
+
+		if (forceHttps) {
+			final Services services      = Services.getInstance();
+			final Class httpServiceClass = services.getServiceClassForName("HttpService");
+			final boolean httpsActive    = ((HttpService)services.getService(httpServiceClass, "default")).isHttpsActive();
+
+			forceHttps = forceHttps && httpsActive;
+		}
+
 		// Set a request attribute that the URL rewrite engine can evaluate to find
 		// out whether forced redirect to HTTPS is desired. The setting can be found
 		// in urlrewrite.xml:17.
-		request.setAttribute("structr.force.https", Settings.ForceHttps.getValue());
+		request.setAttribute("structr.force.https", forceHttps);
 	}
 }

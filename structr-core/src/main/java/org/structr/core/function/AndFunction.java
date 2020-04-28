@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,6 +28,11 @@ public class AndFunction extends CoreFunction {
 	@Override
 	public String getName() {
 		return "and";
+	}
+
+	@Override
+	public String getSignature() {
+		return "bool1, bool2, ...";
 	}
 
 	@Override

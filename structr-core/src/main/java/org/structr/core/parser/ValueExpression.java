@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,6 +34,10 @@ public class ValueExpression extends Expression {
 
 	public ValueExpression(final String keyword) {
 		this.keyword = keyword;
+	}
+
+	public String getKeyword() {
+		return keyword;
 	}
 
 	@Override

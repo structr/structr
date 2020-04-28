@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,12 +25,17 @@ import org.structr.schema.action.ActionContext;
 
 public class EncryptFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_ENCRYPT    = "Usage: ${encrypt(value[, secret])}";
-	public static final String ERROR_MESSAGE_ENCRYPT_JS = "Usage: ${{Structr.encrypt(value[, secret])}}";
+	public static final String ERROR_MESSAGE_ENCRYPT    = "Usage: ${encrypt(value[, key])}";
+	public static final String ERROR_MESSAGE_ENCRYPT_JS = "Usage: ${{Structr.encrypt(value[, key])}}";
 
 	@Override
 	public String getName() {
 		return "encrypt";
+	}
+
+	@Override
+	public String getSignature() {
+		return "value [, key]";
 	}
 
 	@Override
@@ -97,6 +102,6 @@ public class EncryptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Encrypts the given string with a secret key from structr.conf or argument 2";
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,11 +23,16 @@ import org.structr.schema.action.ActionContext;
 
 public class LtFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_LT = "Usage: ${lt(value1, value2)}. Example: ${if(lt(this.children, 2), \"Less than two\", \"Equal to or more than two\")}";
+	public static final String ERROR_MESSAGE_LT = "Usage: ${lt(value1, value2)}. Example: ${if(lt(size(this.children), 2), \"Less than two\", \"Equal to or more than two\")}";
 
 	@Override
 	public String getName() {
 		return "lt";
+	}
+
+	@Override
+	public String getSignature() {
+		return "value1, value2";
 	}
 
 	@Override

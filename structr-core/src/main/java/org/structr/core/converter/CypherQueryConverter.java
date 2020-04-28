@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,11 +19,11 @@
 package org.structr.core.converter;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
+import org.structr.api.NativeQuery;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -85,10 +85,13 @@ public class CypherQueryConverter extends PropertyConverter {
 
 			try {
 
-				List<AbstractNode> nodes = (List<AbstractNode>)handler.handleQueryResults(graphDb.execute(query, parameters));
+				final NativeQuery<Iterable> nativeQuery = graphDb.query(query, Iterable.class);
+
+				nativeQuery.configure(parameters);
+
+				Iterable<AbstractNode> nodes = (Iterable<AbstractNode>)handler.handleQueryResults(graphDb.execute(nativeQuery));
 
 				return nodes;
-
 
 			} catch(FrameworkException fex) {
 

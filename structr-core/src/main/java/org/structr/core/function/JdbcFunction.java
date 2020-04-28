@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -42,6 +42,11 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "jdbcUrl, sqlQuery [, driverClass ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -53,13 +58,13 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 			final String sql                     = (String)sources[1];
 
 			String driverClass = "com.mysql.jdbc.Driver";
-			
+
 			if (sources.length == 3) {
 				driverClass = (String)sources[2];
 			}
 
 			try {
-				
+
 				Class.forName(driverClass).newInstance();
 
 				final Connection connection      = DriverManager.getConnection(url);

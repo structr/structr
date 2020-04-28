@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,9 @@
  */
 package org.structr.core.function;
 
+import java.util.Collection;
+import org.apache.commons.lang3.StringUtils;
+import org.python.google.common.collect.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
@@ -31,16 +34,44 @@ public class StartsWithFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "str, prefix";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
+			if (sources != null && sources.length == 2) {
 
-			final String searchString = sources[0].toString();
-			final String prefix       = sources[1].toString();
+				if (sources[0] != null && sources[0] instanceof Iterable) {
 
-			return searchString.startsWith(prefix);
+					final Iterable collection = (Iterable) sources[0];
+					return Iterables.size(collection) > 0 && Iterables.get(collection, 0).equals(sources[1]);
+
+				} else if (sources[0] != null && sources[0] instanceof Collection) {
+
+					final Collection collection = (Collection) sources[0];
+					return collection.size() > 0 && collection.iterator().next().equals(sources[1]);
+
+				} else if (sources[0] != null && sources[0].getClass().isArray() && ((Object[]) sources[0]).length > 0) {
+
+					return ((Object[]) sources[0])[0].equals(sources[1]);
+
+				} else {
+
+					final String searchString = String.valueOf(sources[0]);
+					final String prefix       = String.valueOf(sources[1]);
+
+					return StringUtils.startsWith(searchString, prefix);
+				}
+
+			} else {
+
+				return usage(ctx.isJavaScriptContext());
+
+			}
 
 		} catch (IllegalArgumentException e) {
 

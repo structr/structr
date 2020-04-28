@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.web.auth;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
@@ -57,17 +58,17 @@ public class Auth0AuthClient extends StructrOAuthClient {
 		if (userInfo != null) {
 
 			String name = (String)userInfo.get("nickname");
-			
+
 			// fallback 1
-			if (name == null) {
+			if (StringUtils.isBlank(name)) {
 				name = (String)userInfo.get("name");
 			}
 
 			// fallback 2
-			if (name == null) {
+			if (StringUtils.isBlank(name)) {
 				name = (String)userInfo.get("email");
 			}
-			
+
 			user.setProperty(Principal.name, name);
 		}
 	}

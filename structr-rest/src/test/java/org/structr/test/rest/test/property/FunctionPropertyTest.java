@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,8 +35,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.structr.test.rest.entity.TestTen;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotSame;
 import static org.testng.AssertJUnit.fail;
@@ -111,7 +111,6 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 		} catch (FrameworkException ex) {
 			fail("Exception during test: " + ex.getMessage());
 		}
-
 	}
 
 	@Test

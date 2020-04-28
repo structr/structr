@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,6 +34,11 @@ public class ReplaceFunction extends CoreFunction {
 	@Override
 	public String getName() {
 		return "replace";
+	}
+
+	@Override
+	public String getSignature() {
+		return "template, entity";
 	}
 
 	@Override
@@ -88,6 +93,6 @@ public class ReplaceFunction extends CoreFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Replaces script expressions in the given template with values from the given entity";
 	}
 }

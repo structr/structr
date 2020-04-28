@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -54,21 +54,15 @@ public class DeleteNodeCommand extends AbstractCommand {
 	public void processMessage(final WebSocketMessage webSocketData) {
 
 		setDoTransactionNotifications(true);
-		
-		try {
-			
-			final Boolean recursive = webSocketData.getNodeDataBooleanValue("recursive");
-			final NodeInterface obj = getNode(webSocketData.getId());
 
-			if (obj != null) {
+		final Boolean recursive = webSocketData.getNodeDataBooleanValue("recursive");
+		final NodeInterface obj = getNode(webSocketData.getId());
 
-				TransactionCommand.registerNodeCallback((NodeInterface) obj, callback);
+		if (obj != null) {
 
-				deleteNode(getWebSocket(), obj, recursive);
-			}
-		} catch (FrameworkException ex) {
-			logger.warn("Exception occured", ex);
-			getWebSocket().send(MessageBuilder.status().code(ex.getStatus()).message(ex.getMessage()).build(), true);
+			TransactionCommand.registerNodeCallback((NodeInterface) obj, callback);
+
+			deleteNode(getWebSocket(), obj, recursive);
 		}
 	}
 

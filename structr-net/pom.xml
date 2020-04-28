@@ -13,44 +13,12 @@
 	</parent>
 
 	<packaging>jar</packaging>
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>1.7</maven.compiler.source>
-		<maven.compiler.target>1.7</maven.compiler.target>
-	</properties>
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>com.mycila</groupId>
-				<artifactId>license-maven-plugin</artifactId>
-				<version>2.11</version>
-				<configuration>
-					<header>header.txt</header>
-					<includes>
-						<include>src/**</include>
-					</includes>
-					<excludes>
-						<exclude>**/README</exclude>
-						<exclude>src/**/.directory</exclude>
-						<exclude>src/**/*.properties</exclude>
-					</excludes>
-					<properties>
-						<year>2019</year>
-						<owner>Structr GmbH</owner>
-					</properties>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.0.2</version>
+				<version>${maven.plugin.jar.version}</version>
 				<configuration>
 					<archive>
 						<manifest>
@@ -63,15 +31,8 @@
 	</build>
 	<dependencies>
 		<dependency>
-			<groupId>bouncycastle</groupId>
-			<artifactId>bcprov-jdk16</artifactId>
-			<version>140</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<optional>true</optional>
 		</dependency>
 	</dependencies>
 </project>

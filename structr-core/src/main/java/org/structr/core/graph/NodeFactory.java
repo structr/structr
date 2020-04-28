@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,8 +19,6 @@
 package org.structr.core.graph;
 
 
-import java.util.LinkedList;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Identity;
@@ -29,7 +27,6 @@ import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.relationship.NodeHasLocation;
 
 /**
  * A factory for Structr nodes.
@@ -117,29 +114,5 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 		factoryProfile.setPublicOnly(publicOnly);
 
 		return instantiate(node);
-	}
-
-	/**
-	 * Return all nodes which are connected by an incoming IS_AT relationships
-	 *
-	 * @param locationNode
-	 * @return connected nodes
-	 */
-	protected List<NodeInterface> getNodesAt(final NodeInterface locationNode) {
-
-		final List<NodeInterface> nodes = new LinkedList<>();
-
-		for(RelationshipInterface rel : locationNode.getIncomingRelationships(NodeHasLocation.class)) {
-
-			NodeInterface startNode = rel.getSourceNode();
-
-			nodes.add(startNode);
-
-			// add more nodes which are "at" this one
-			nodes.addAll(getNodesAt(startNode));
-		}
-
-		return nodes;
-
 	}
 }

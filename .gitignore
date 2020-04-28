@@ -37,3 +37,8 @@ license.key
 # IntelliJ specific ignores
 .idea
 *.iml
+<<<<<<< HEAD
+/structr-ui/nbproject/
+/structr-neo4j-bolt-driver/nbproject/
+=======
+>>>>>>> master

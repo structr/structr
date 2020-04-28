@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,24 +21,25 @@ package org.structr.schema.export;
 import java.net.URI;
 import java.util.Map;
 import java.util.TreeMap;
+import org.structr.api.graph.Cardinality;
+import static org.structr.api.graph.Cardinality.OneToOne;
+import org.structr.api.graph.PropagationDirection;
+import org.structr.api.graph.PropagationMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Relation;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.core.entity.SchemaRelationshipNode.Direction;
-import org.structr.core.entity.SchemaRelationshipNode.Propagation;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonProperty;
-import org.structr.schema.json.JsonReferenceProperty;
-import org.structr.schema.json.JsonReferenceType;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonSchema.Cascade;
-import org.structr.schema.json.JsonType;
+import org.structr.api.schema.JsonProperty;
+import org.structr.api.schema.JsonReferenceProperty;
+import org.structr.api.schema.JsonReferenceType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonSchema.Cascade;
+import org.structr.api.schema.JsonType;
 
 /**
  *
@@ -56,11 +57,11 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	private Cardinality cardinality               = null;
 	private Cascade cascadingDelete               = null;
 	private Cascade cascadingCreate               = null;
-	private Direction permissionPropagation       = Direction.None;
-	private Propagation readPropagation           = Propagation.Remove;
-	private Propagation writePropagation          = Propagation.Remove;
-	private Propagation deletePropagation         = Propagation.Remove;
-	private Propagation accessControlPropagation  = Propagation.Remove;
+	private PropagationDirection permissionPropagation       = PropagationDirection.None;
+	private PropagationMode readPropagation           = PropagationMode.Remove;
+	private PropagationMode writePropagation          = PropagationMode.Remove;
+	private PropagationMode deletePropagation         = PropagationMode.Remove;
+	private PropagationMode accessControlPropagation  = PropagationMode.Remove;
 	private String aclHiddenProperties            = null;
 	private boolean isPartOfBuiltInSchema         = false;
 
@@ -178,60 +179,60 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	}
 
 	@Override
-	public Direction getPermissionPropagation() {
+	public PropagationDirection getPermissionPropagation() {
 		return permissionPropagation;
 	}
 
 	@Override
-	public Propagation getReadPermissionPropagation() {
+	public PropagationMode getReadPermissionPropagation() {
 		return readPropagation;
 	}
 
 	@Override
-	public Propagation getWritePermissionPropagation() {
+	public PropagationMode getWritePermissionPropagation() {
 		return writePropagation;
 	}
 
 	@Override
-	public Propagation getDeletePermissionPropagation() {
+	public PropagationMode getDeletePermissionPropagation() {
 		return deletePropagation;
 	}
 
 	@Override
-	public Propagation getAccessControlPermissionPropagation() {
+	public PropagationMode getAccessControlPermissionPropagation() {
 		return accessControlPropagation;
 	}
 
 	@Override
-	public JsonReferenceType setPermissionPropagation(final Direction value) {
+	public JsonReferenceType setPermissionPropagation(final PropagationDirection value) {
 
 		permissionPropagation = value;
 		return this;
 	}
 
 	@Override
-	public JsonReferenceType setReadPermissionPropagation(final Propagation value) {
+	public JsonReferenceType setReadPermissionPropagation(final PropagationMode value) {
 
 		readPropagation = value;
 		return this;
 	}
 
 	@Override
-	public JsonReferenceType setWritePermissionPropagation(final Propagation value) {
+	public JsonReferenceType setWritePermissionPropagation(final PropagationMode value) {
 
 		writePropagation = value;
 		return this;
 	}
 
 	@Override
-	public JsonReferenceType setDeletePermissionPropagation(final Propagation value) {
+	public JsonReferenceType setDeletePermissionPropagation(final PropagationMode value) {
 
 		deletePropagation = value;
 		return this;
 	}
 
 	@Override
-	public JsonReferenceType setAccessControlPermissionPropagation(final Propagation value) {
+	public JsonReferenceType setAccessControlPermissionPropagation(final PropagationMode value) {
 
 		accessControlPropagation = value;
 		return this;
@@ -251,23 +252,23 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 
 		// only write values that differ from the default
-		if (!SchemaRelationshipNode.Direction.None.equals(permissionPropagation)) {
+		if (!PropagationDirection.None.equals(permissionPropagation)) {
 
 			map.put(JsonSchema.KEY_ACL_RESOLUTION, permissionPropagation);
 
-			if (!SchemaRelationshipNode.Propagation.Remove.equals(readPropagation)) {
+			if (!PropagationMode.Remove.equals(readPropagation)) {
 				map.put(JsonSchema.KEY_ACL_READ_MASK, readPropagation);
 			}
 
-			if (!SchemaRelationshipNode.Propagation.Remove.equals(writePropagation)) {
+			if (!PropagationMode.Remove.equals(writePropagation)) {
 				map.put(JsonSchema.KEY_ACL_WRITE_MASK, writePropagation);
 			}
 
-			if (!SchemaRelationshipNode.Propagation.Remove.equals(deletePropagation)) {
+			if (!PropagationMode.Remove.equals(deletePropagation)) {
 				map.put(JsonSchema.KEY_ACL_DELETE_MASK, deletePropagation);
 			}
 
-			if (!SchemaRelationshipNode.Propagation.Remove.equals(accessControlPropagation)) {
+			if (!PropagationMode.Remove.equals(accessControlPropagation)) {
 				map.put(JsonSchema.KEY_ACL_ACCESS_CONTROL_MASK, accessControlPropagation);
 			}
 
@@ -382,35 +383,35 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		final Object aclResolutionValue = source.get(JsonSchema.KEY_ACL_RESOLUTION);
 		if (aclResolutionValue != null) {
 
-			this.permissionPropagation = Direction.valueOf(aclResolutionValue.toString());
+			this.permissionPropagation = PropagationDirection.valueOf(aclResolutionValue.toString());
 		}
 
 		// ACL read mask
 		final Object aclReadMaskValue = source.get(JsonSchema.KEY_ACL_READ_MASK);
 		if (aclReadMaskValue != null) {
 
-			this.readPropagation = Propagation.valueOf(aclReadMaskValue.toString());
+			this.readPropagation = PropagationMode.valueOf(aclReadMaskValue.toString());
 		}
 
 		// ACL write mask
 		final Object aclWriteMaskValue = source.get(JsonSchema.KEY_ACL_WRITE_MASK);
 		if (aclWriteMaskValue != null) {
 
-			this.writePropagation = Propagation.valueOf(aclWriteMaskValue.toString());
+			this.writePropagation = PropagationMode.valueOf(aclWriteMaskValue.toString());
 		}
 
 		// ACL delete mask
 		final Object aclDeleteMaskValue = source.get(JsonSchema.KEY_ACL_DELETE_MASK);
 		if (aclDeleteMaskValue != null) {
 
-			this.deletePropagation = Propagation.valueOf(aclDeleteMaskValue.toString());
+			this.deletePropagation = PropagationMode.valueOf(aclDeleteMaskValue.toString());
 		}
 
 		// ACL accessControl mask
 		final Object aclAccessControlMaskValue = source.get(JsonSchema.KEY_ACL_ACCESS_CONTROL_MASK);
 		if (aclAccessControlMaskValue != null) {
 
-			this.accessControlPropagation = Propagation.valueOf(aclAccessControlMaskValue.toString());
+			this.accessControlPropagation = PropagationMode.valueOf(aclAccessControlMaskValue.toString());
 		}
 
 		// ACL hidden properties

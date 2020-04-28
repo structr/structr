@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,7 +23,7 @@ import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
 import javax.tools.SimpleJavaFileObject;
-import org.parboiled.common.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  */
@@ -33,9 +33,9 @@ public class SourceFile extends SimpleJavaFileObject {
 	private String className                  = null;
 	private CharSequence content              = null;
 	private int indentLevel                   = 0;
-		
+
 	public SourceFile(final String className) {
-		
+
 		super(URI.create("string:///" + className.replace('.', '/') + Kind.SOURCE.extension), Kind.SOURCE);
 	}
 
@@ -46,26 +46,26 @@ public class SourceFile extends SimpleJavaFileObject {
 	public SourceLine begin(final CodeSource source, final Object... data) {
 
 		final SourceLine line = line(source, data);
-		
+
 		indent();
 
 		return line;
 	}
 
 	public void end() {
-		
+
 		outdent();
 		line(null, "}");
 	}
 
 	public SourceLine end(final Object... data) {
-		
+
 		outdent();
 		return line(null, data);
 	}
 
 	public SourceLine endBegin(final CodeSource source, final Object... data) {
-		
+
 		outdent();
 		return begin(source, data);
 	}
@@ -86,7 +86,7 @@ public class SourceFile extends SimpleJavaFileObject {
 	public List<SourceLine> getLines() {
 		return lines;
 	}
-	
+
 	public String getContent() {
 		return StringUtils.join(lines, "\n");
 	}
@@ -98,7 +98,7 @@ public class SourceFile extends SimpleJavaFileObject {
 	public void outdent() {
 		indentLevel--;
 	}
-	
+
 	@Override
 	public CharSequence getCharContent(boolean ignoreEncodingErrors) throws IOException {
 		return getContent();
@@ -108,7 +108,7 @@ public class SourceFile extends SimpleJavaFileObject {
 	private String getIndentation() {
 
 		final StringBuilder buf = new StringBuilder();
-		
+
 		for (int i=0; i<indentLevel; i++) {
 
 			buf.append("\t");
@@ -119,8 +119,8 @@ public class SourceFile extends SimpleJavaFileObject {
 
 	private void storePosition(final String uuid) {
 
-		
 
-		
+
+
 	}
 }

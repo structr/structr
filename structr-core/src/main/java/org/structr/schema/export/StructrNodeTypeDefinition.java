@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,16 +21,18 @@ package org.structr.schema.export;
 import java.net.URI;
 import java.util.Map;
 import java.util.TreeMap;
+import org.structr.api.graph.Cardinality;
+import static org.structr.api.graph.Cardinality.ManyToOne;
+import static org.structr.api.graph.Cardinality.OneToOne;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonReferenceType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonReferenceType;
+import org.structr.api.schema.JsonSchema;
 
 /**
  *

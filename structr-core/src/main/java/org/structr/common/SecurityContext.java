@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -73,7 +73,7 @@ public class SecurityContext {
 	private boolean modifyAccessTime                      = true;
 	private boolean disableSoftLimit                      = false;
 	private boolean forceResultCount                      = false;
-	private boolean ensureCardinality                     = true;
+	private boolean preventDuplicateRelationships         = true;
 	private boolean doInnerCallbacks                      = true;
 	private boolean isReadOnlyTransaction                 = false;
 	private boolean doMultiThreadedJsonOutput             = false;
@@ -272,6 +272,22 @@ public class SecurityContext {
 
 	}
 
+	public static SecurityContext getSuperUserInstance(HttpServletRequest request) {
+		return new SuperUserSecurityContext(request);
+	}
+
+	public static SecurityContext getSuperUserInstance() {
+		return new SuperUserSecurityContext();
+	}
+
+	public static SecurityContext getInstance(Principal user, AccessMode accessMode) {
+		return new SecurityContext(user, accessMode);
+	}
+
+	public static SecurityContext getInstance(Principal user, HttpServletRequest request, AccessMode accessMode) {
+		return new SecurityContext(user, request, accessMode);
+	}
+
 	public void removeForbiddenNodes(List<? extends GraphObject> nodes, final boolean includeHidden, final boolean publicOnly) {
 
 		boolean readableByUser = false;
@@ -294,25 +310,6 @@ public class SecurityContext {
 			}
 
 		}
-
-	}
-
-	public static SecurityContext getSuperUserInstance(HttpServletRequest request) {
-		return new SuperUserSecurityContext(request);
-	}
-
-	public static SecurityContext getSuperUserInstance() {
-		return new SuperUserSecurityContext();
-
-	}
-
-	public static SecurityContext getInstance(Principal user, AccessMode accessMode) {
-		return new SecurityContext(user, accessMode);
-
-	}
-
-	public static SecurityContext getInstance(Principal user, HttpServletRequest request, AccessMode accessMode) {
-		return new SecurityContext(user, request, accessMode);
 
 	}
 
@@ -856,16 +853,16 @@ public class SecurityContext {
 		return disableSoftLimit;
 	}
 
-	public boolean doEnsureCardinality() {
-		return ensureCardinality;
+	public boolean preventDuplicateRelationships() {
+		return preventDuplicateRelationships;
 	}
 
-	public void disableEnsureCardinality() {
-		ensureCardinality = false;
+	public void disablePreventDuplicateRelationships() {
+		preventDuplicateRelationships = false;
 	}
 
-	public void enableEnsureCardinality() {
-		ensureCardinality = false;
+	public void enablePreventDuplicateRelationships() {
+		preventDuplicateRelationships = false;
 	}
 
 	public void disableInnerCallbacks() {

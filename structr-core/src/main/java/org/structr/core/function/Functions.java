@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -106,11 +107,12 @@ public class Functions {
 		return new LinkedList<>(functions.values());
 	}
 
-	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String expression) throws FrameworkException, UnlicensedScriptException {
+	public static Expression parse(final ActionContext actionContext, final GraphObject entity, final String expression, final ParseResult result) throws FrameworkException, UnlicensedScriptException {
 
 		final Map<Integer, String> namespaceMap = new TreeMap<>();
 		final String expressionWithoutNewlines  = expression.replace('\n', ' ').replace('\r', ' ');
 		final StreamTokenizer tokenizer         = new StreamTokenizer(new StringReader(expressionWithoutNewlines));
+		final List<String> tokens               = result.getTokens();
 
 		tokenizer.eolIsSignificant(true);
 		tokenizer.ordinaryChar('.');
@@ -124,6 +126,9 @@ public class Functions {
 		String lastToken = null;
 		int token = 0;
 		int level = 0;
+
+		// store root result for access even when an exception occurs while parsing
+		result.setRootExpression(root);
 
 		while (token != StreamTokenizer.TT_EOF) {
 
@@ -141,6 +146,7 @@ public class Functions {
 					if (current == null) {
 						throw new FrameworkException(422, "Invalid expression: mismatched opening bracket before NUMBER");
 					}
+					tokens.add(Double.valueOf(tokenizer.nval).toString());
 					next = new ConstantExpression(tokenizer.nval);
 					current.add(next);
 					lastToken += "NUMBER";
@@ -161,19 +167,20 @@ public class Functions {
 					} else {
 						current.add(next);
 					}
+					tokens.add(tokenizer.sval);
 					lastToken = tokenizer.sval;
 					break;
 
 				case '(':
 					if (((current == null || current instanceof RootExpression) && next == null) || current == next) {
 
-						// an additional bracket without a new function,
-						// this can only be an execution group.
+						// an additional bracket without a new function, this can only be an execution group.
 						next = new GroupExpression();
 						current.add(next);
 					}
 
 					current = next;
+					tokens.add("(");
 					lastToken += "(";
 					level++;
 					break;
@@ -186,6 +193,7 @@ public class Functions {
 					if (current == null) {
 						throw new FrameworkException(422, "Invalid expression: mismatched closing bracket after " + lastToken);
 					}
+					tokens.add(")");
 					lastToken += ")";
 					level--;
 					namespaceMap.remove(level);
@@ -196,6 +204,7 @@ public class Functions {
 					next = new ArrayExpression();
 					current.add(next);
 					current = next;
+					tokens.add("[");
 					lastToken += "[";
 					level++;
 					break;
@@ -208,16 +217,19 @@ public class Functions {
 					if (current == null) {
 						throw new FrameworkException(422, "Invalid expression: mismatched closing bracket after " + lastToken);
 					}
+					tokens.add("]");
 					lastToken += "]";
 					level--;
 					break;
 
 				case ';':
 					next = null;
+					tokens.add(";");
 					lastToken += ";";
 					break;
 
 				case ',':
+					tokens.add(",");
 					next = current;
 					lastToken += ",";
 					break;
@@ -226,7 +238,15 @@ public class Functions {
 					if (current == null) {
 						throw new FrameworkException(422, "Invalid expression: mismatched opening bracket before " + tokenizer.sval);
 					}
-					current.add(new ConstantExpression(tokenizer.sval));
+					final ConstantExpression constantExpression = new ConstantExpression(tokenizer.sval);
+					final String quoteChar                      = new String(new int[] { tokenizer.ttype }, 0, 1);
+					current.add(constantExpression);
+					constantExpression.setQuoteChar(quoteChar);
+					if (StringUtils.isEmpty(tokenizer.sval)) {
+						tokens.add(quoteChar);
+					} else {
+						tokens.add(quoteChar + tokenizer.sval + quoteChar);
+					}
 					lastToken = tokenizer.sval;
 
 			}
@@ -235,6 +255,13 @@ public class Functions {
 		if (level > 0) {
 			throw new FrameworkException(422, "Invalid expression: mismatched closing bracket after " + lastToken);
 		}
+
+		return root;
+	}
+
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String expression) throws FrameworkException, UnlicensedScriptException {
+
+		final Expression root = parse(actionContext, entity, expression, new ParseResult());
 
 		return root.evaluate(actionContext, entity);
 	}

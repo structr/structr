@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,7 +33,6 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.rest.servlet.ResourceHelper;
-import org.structr.web.function.UiFunction;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -97,7 +96,7 @@ public class FlowServlet extends JsonRestServlet {
 
 			try (final Tx tx = app.tx()) {
 
-				final List<GraphObject> source = Iterables.toList(resource.doGet(null, false, -1, -1));
+				final List<GraphObject> source = Iterables.toList(resource.doGet(null, -1, -1));
 
 				if (!source.isEmpty() && source.size() == 1 && source.get(0) instanceof FlowContainer) {
 
@@ -158,7 +157,7 @@ public class FlowServlet extends JsonRestServlet {
 		final App app                          = StructrApp.getInstance(securityContext);
 		final boolean indentJson               = Settings.JsonIndentation.getValue();
 		final StreamingFlowWriter flowStreamer = new StreamingFlowWriter(propertyView, indentJson, nestingDepth, wrapSingleResultInArray);
-		
+
 		// isolate write output
 		try (final Tx tx = app.tx()) {
 

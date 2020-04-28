@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,6 +31,11 @@ public class EscapeJsonFunction extends CoreFunction {
 	@Override
 	public String getName() {
 		return "escape_json";
+	}
+
+	@Override
+	public String getSignature() {
+		return "str";
 	}
 
 	@Override

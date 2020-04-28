@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.core.entity;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.structr.api.graph.Cardinality;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.SecurityContext;
@@ -80,8 +81,6 @@ public interface Relation<A extends NodeInterface, B extends NodeInterface, S ex
 		"CONSTRAINT_BASED"
 	};
 
-	public enum Cardinality { OneToOne, ManyToOne, OneToMany, ManyToMany }
-
 	public enum Multiplicity { One, Many }
 
 	public Class<A> getSourceType();
@@ -134,5 +133,27 @@ public interface Relation<A extends NodeInterface, B extends NodeInterface, S ex
 		}
 
 		return instance;
+	}
+
+	public static Cardinality getCardinality(final Relation relation) {
+
+		final Multiplicity sm = relation.getSourceMultiplicity();
+		final Multiplicity tm = relation.getTargetMultiplicity();
+
+		switch (sm) {
+
+			case One:
+				switch (tm) {
+					case One: return Cardinality.OneToOne;
+					case Many: return Cardinality.OneToMany;
+				}
+			case Many:
+				switch (tm) {
+					case One: return Cardinality.ManyToOne;
+					case Many: return Cardinality.ManyToMany;
+				}
+		}
+
+		return null;
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,6 +31,11 @@ public class ComplementFunction extends CoreFunction {
 	@Override
 	public String getName() {
 		return "complement";
+	}
+
+	@Override
+	public String getSignature() {
+		return "list1, list2, list3, ...";
 	}
 
 	@Override
@@ -84,7 +89,7 @@ public class ComplementFunction extends CoreFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Returns the complement of all lists";
 	}
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,10 +26,16 @@ import org.hamcrest.Matchers;
 import org.testng.annotations.Test;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.app.Query;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.test.web.StructrUiTest;
 import org.structr.test.web.entity.TestOne;
+import org.structr.web.common.FileHelper;
+import org.structr.web.entity.File;
+import org.structr.web.entity.Linkable;
 import org.structr.web.entity.dom.Page;
 import org.testng.annotations.BeforeClass;
 import org.w3c.dom.DOMException;
@@ -154,5 +160,47 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 			.body(Matchers.containsString(testObjectIDs.get(2)))
 			.when()
 			.get("/testPage/abcdefg");
+	}
+
+	@Test
+	public void testFileResolutionQuery() {
+
+		String uuid = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final File file = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", File.class, "test.txt", true);
+
+			uuid = file.getUuid();
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Query query = StructrApp.getInstance(securityContext).nodeQuery();
+
+			query
+				.and()
+					.or()
+					.andTypes(Page.class)
+					.andTypes(File.class)
+					.parent()
+				.and(GraphObject.id, uuid);
+
+			// Searching for pages needs super user context anyway
+			List<Linkable> results = query.getAsList();
+
+			System.out.println(results);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
 	}
 }

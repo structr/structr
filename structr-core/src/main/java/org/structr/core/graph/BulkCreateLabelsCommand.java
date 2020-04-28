@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,7 +19,6 @@
 package org.structr.core.graph;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Map;
 import org.structr.api.DatabaseService;
 import org.structr.api.util.Iterables;
@@ -42,7 +41,7 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 		final SecurityContext superUserContext    = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory             = new NodeFactory(superUserContext);
 		final boolean removeUnused                = !attributes.containsKey("removeUnused");
-		final Iterator<AbstractNode> nodeIterator = Iterables.map(nodeFactory, graphDb.getNodesByTypeProperty(entityType)).iterator();
+		final Iterable<AbstractNode> nodes        = Iterables.map(nodeFactory, graphDb.getNodesByTypeProperty(entityType));
 
 		if (entityType == null) {
 
@@ -53,7 +52,7 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 			info("Starting creation of labels for all nodes of type {}", entityType);
 		}
 
-		final long count = bulkGraphOperation(securityContext, nodeIterator, 10000, "CreateLabels", new BulkGraphOperation<AbstractNode>() {
+		final long count = bulkGraphOperation(securityContext, nodes, 10000, "CreateLabels", new BulkGraphOperation<AbstractNode>() {
 
 			@Override
 			public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {

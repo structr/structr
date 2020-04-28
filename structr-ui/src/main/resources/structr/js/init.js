@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,16 +29,18 @@ var dialogMaximizedKey = 'structrDialogMaximized_' + port;
 var expandedIdsKey = 'structrTreeExpandedIds_' + port;
 var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
 var pagerDataKey = 'structrPagerData_' + port + '_';
-var autoRefreshDisabledKey = 'structrAutoRefreshDisabled_' + port;
-var detailsObjectIdKey = 'structrDetailsObjectId_' + port;
 var dialogDataKey = 'structrDialogData_' + port;
 var dialogHtmlKey = 'structrDialogHtml_' + port;
 var scrollInfoKey = 'structrScrollInfoKey_' + port;
 var consoleModeKey = 'structrConsoleModeKey_' + port;
 var resizeFunction;
-var altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
+var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 
 $(function() {
+
+	$.blockUI.defaults.overlayCSS.opacity        = .6;
+	$.blockUI.defaults.overlayCSS.cursor         = 'default';
+	$.blockUI.defaults.applyPlatformOpacityRules = false;
 
 	header = $('#header');
 	main = $('#main');
@@ -78,10 +80,14 @@ $(function() {
 		Structr.doLogout();
 	});
 
-	$(window).on('hashchange', function(e) {
+	window.addEventListener('hashchange', (e) => {
 		var anchor = getAnchorFromUrl(window.location.href);
 		if (anchor === 'logout' || loginBox.is(':visible')) return;
-		Structr.requestActivateModule(e, anchor);
+		let allow = Structr.requestActivateModule(e, anchor);
+
+		if (allow === false) {
+			window.location.href = e.oldURL;
+		}
 	});
 
 	$(document).on('mouseenter', '[data-toggle="popup"]', function() {
@@ -94,21 +100,15 @@ $(function() {
 		$(target).removeClass('visible');
 	});
 
-	$(document).on('click', '[data-activate-module]', function(e) {
-		var module = $(this).data('activateModule');
-		_Logger.log(_LogType.INIT, 'Activating module ' + module);
-		Structr.requestActivateModule(e, module);
-	});
-
 	Structr.connect();
 
 	// Reset keys in case of window switching
 	$(window).blur(function(e) {
-		altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
+		altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 	});
 
 	$(window).focus(function(e) {
-		altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
+		altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 	});
 
 	$(window).keyup(function(e) {
@@ -125,9 +125,7 @@ $(function() {
 		if (k === 69) {
 			eKey = false;
 		}
-		if (navigator.platform === 'MacIntel' && k === 91) {
-			cmdKey = false;
-		}
+
 		if (e.keyCode === 27) {
 			if (ignoreKeyUp) {
 				ignoreKeyUp = false;
@@ -179,10 +177,11 @@ $(function() {
 		if (k === 69) {
 			eKey = true;
 		}
-		if (navigator.platform === 'MacIntel' && k === 91) {
-			cmdKey = true;
-		}
-		if ((e.ctrlKey && (e.which === 83)) || (navigator.platform === 'MacIntel' && cmdKey && (e.which === 83))) {
+
+		let cmdKey = (navigator.platform === 'MacIntel' && e.metaKey);
+
+		// ctrl-s / cmd-s
+		if (k === 83 && ((navigator.platform !== 'MacIntel' && e.ctrlKey) || (navigator.platform === 'MacIntel' && cmdKey))) {
 			e.preventDefault();
 			if (dialogSaveButton && dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
 				dialogSaveButton.click();
@@ -204,7 +203,7 @@ $(function() {
 			var uuid = prompt('Enter the UUID for which you want to open the properties dialog');
 			if (uuid) {
 				if (uuid.length === 32) {
-					Command.get(uuid, null, function(obj) {
+					Command.get(uuid, null, function (obj) {
 						_Entities.showProperties(obj);
 					});
 				} else {
@@ -212,20 +211,30 @@ $(function() {
 				}
 			}
 		}
-        // Ctrl-Alt-g
-        if (k === 71 && altKey && ctrlKey) {
-            e.preventDefault();
-            var uuid = prompt('Enter the UUID for which you want to open the access control dialog');
-            if (uuid) {
-                if (uuid.length === 32) {
-                    Command.get(uuid, null, function(obj) {
-                        _Entities.showAccessControlDialog(obj);
-                    });
-                } else {
-                    alert('That does not look like a UUID! length != 32');
-                }
-            }
-        }
+		// Ctrl-Alt-t
+		if (k === 77 && altKey && ctrlKey) {
+			e.preventDefault();
+			var uuid = prompt('Enter the UUID for which you want to open the edit dialog');
+			if (uuid && uuid.length === 32) {
+				Command.get(uuid, null, function(obj) {
+					_Elements.openEditContentDialog(this, obj);
+				});
+			} else {
+				alert('That does not look like a UUID! length != 32');
+			}
+		}
+		// Ctrl-Alt-g
+		if (k === 71 && altKey && ctrlKey) {
+		    e.preventDefault();
+		    var uuid = prompt('Enter the UUID for which you want to open the access control dialog');
+		    if (uuid && uuid.length === 32) {
+				Command.get(uuid, null, function(obj) {
+					_Entities.showAccessControlDialog(obj);
+				});
+			} else {
+				alert('That does not look like a UUID! length != 32');
+		    }
+		}
 		// Ctrl-Alt-h
 		if (k === 72 && altKey && ctrlKey) {
 			e.preventDefault();
@@ -233,10 +242,10 @@ $(function() {
 				_Schema.hideSelectedSchemaTypes();
 			}
 		}
-		// Ctrl-Alt-s
-		if (k === 83 && altKey && ctrlKey) {
+		// Ctrl-Alt-e
+		if (k === 69 && altKey && ctrlKey) {
 			e.preventDefault();
-			Structr.dialog('Refactoring helper');
+			Structr.dialog('Bulk Editing Helper (Ctrl-Alt-E)');
 			new RefactoringHelper(dialog).show();
 		}
 
@@ -276,12 +285,19 @@ var Structr = {
 	modules: {},
 	activeModules: {},
 	moduleAvailabilityCallbacks: [],
+	keyMenuConfig: 'structrMenuConfig_' + port,
 	edition: '',
 	classes: [],
 	expanded: {},
 	msgCount: 0,
 	currentlyActiveSortable: undefined,
 	loadingSpinnerTimeout: undefined,
+	keyCodeMirrorSettings: 'structrCodeMirrorSettings_' + port,
+	defaultBlockUICss: {
+		cursor: 'default',
+		border: 'none',
+		backgroundColor: 'transparent'
+	},
 	templateCache: new AsyncObjectCache(function(templateName) {
 
 		Promise.resolve($.ajax('templates/' + templateName + '.html?t=' + (new Date().getTime()))).then(function(templateHtml) {
@@ -394,17 +410,12 @@ var Structr = {
 
 			fastRemoveAllChildren(main[0]);
 
-			$.blockUI.defaults.overlayCSS.opacity = .6;
-			$.blockUI.defaults.applyPlatformOpacityRules = false;
 			$.blockUI({
 				fadeIn: 25,
 				fadeOut: 25,
 				message: loginBox,
 				forceInput: true,
-				css: {
-					border: 'none',
-					backgroundColor: 'transparent'
-				}
+				css: Structr.defaultBlockUICss
 			});
 		}
 
@@ -464,11 +475,11 @@ var Structr = {
 	doLogout: function(text) {
 		_Favorites.logoutAction();
 		_Console.logoutAction();
-		Structr.saveLocalStorage();
+		LSWrapper.save();
 		if (Command.logout(user)) {
 			Cookies.remove('JSESSIONID');
 			sessionId.length = 0;
-			LSWrapper.clear();
+			//LSWrapper.clear();
 			Structr.renewSessionId();
 			Structr.clearMain();
 			Structr.clearVersionInfo();
@@ -481,6 +492,17 @@ var Structr = {
 	renewSessionId: function(callback) {
 		$.get('/').always(function() {
 			sessionId = Structr.getSessionId();
+
+			if (!sessionId && location.protocol === 'http:') {
+
+				new MessageBuilder()
+						.title("Unable to retrieve session id cookie")
+						.warning("This is most likely due to a pre-existing secure HttpOnly cookie. Please navigate to the HTTPS version of this page (even if HTTPS is inactive) and delete the JSESSIONID cookie. Then return to this page and reload. This should solve the problem.")
+						.requiresConfirmation()
+						.uniqueClass("http-only-cookie")
+						.show();
+			}
+
 			if (typeof callback === "function") {
 				callback();
 			}
@@ -488,7 +510,7 @@ var Structr = {
 	},
 	loadInitialModule: function(isLogin, callback) {
 
-		Structr.restoreLocalStorage(function() {
+		LSWrapper.restore(function() {
 
 			Structr.expanded = JSON.parse(LSWrapper.getItem(expandedIdsKey));
 			_Logger.log(_LogType.INIT, '######## Expanded IDs after reload ##########', Structr.expanded);
@@ -502,8 +524,8 @@ var Structr = {
 				_Logger.log(_LogType.INIT, 'Last menu entry found: ' + lastMenuEntry);
 			}
 			_Logger.log(_LogType.INIT, 'lastMenuEntry', lastMenuEntry);
-			Structr.doActivateModule(lastMenuEntry);
 			Structr.updateVersionInfo();
+			Structr.doActivateModule(lastMenuEntry);
 
 			callback();
 		});
@@ -548,35 +570,17 @@ var Structr = {
 			yesButton.off('click');
 			noButton.off('click');
 		});
-		$.blockUI.defaults.overlayCSS.opacity = .6;
-		$.blockUI.defaults.applyPlatformOpacityRules = false;
+
 		$.blockUI({
 			fadeIn: 25,
 			fadeOut: 25,
 			message: $('#confirmation'),
-			css: {
-				border: 'none',
-				backgroundColor: 'transparent'
-			}
+			css: Structr.defaultBlockUICss
 		});
 
 	},
-	saveLocalStorage: function(callback) {
-		_Logger.log(_LogType.INIT, "Saving localstorage");
-		Command.saveLocalStorage(callback);
-	},
-	restoreLocalStorage: function(callback) {
-		if (!LSWrapper.isLoaded()) {
-			_Logger.log(_LogType.INIT, "Restoring localstorage");
-			Command.getLocalStorage(callback);
-		} else {
-			callback();
-		}
-	},
 	restoreDialog: function(dialogData) {
 		_Logger.log(_LogType.INIT, 'restoreDialog', dialogData, dialogBox);
-		$.blockUI.defaults.overlayCSS.opacity = .6;
-		$.blockUI.defaults.applyPlatformOpacityRules = false;
 
 		window.setTimeout(function() {
 
@@ -586,7 +590,7 @@ var Structr = {
 		}, 1000);
 
 	},
-	dialog: function(text, callbackOk, callbackCancel) {
+	dialog: function(text, callbackOk, callbackCancel, customClasses) {
 
 		if (browser) {
 
@@ -595,6 +599,13 @@ var Structr = {
 			dialogMsg.empty();
 			dialogMeta.empty();
 			dialogBtn.empty();
+
+			dialogBox[0].classList = ["dialog"];
+			if (customClasses) {
+				for (let customClass of customClasses) {
+					dialogBox.addClass(customClass);
+				}
+			}
 
 			dialogBtn.html('<button class="closeButton">Close</button>');
 			dialogCancelButton = $('.closeButton', dialogBox);
@@ -626,9 +637,6 @@ var Structr = {
 				}
 			});
 
-			$.blockUI.defaults.overlayCSS.opacity = .4;
-			$.blockUI.defaults.applyPlatformOpacityRules = false;
-
 			var dimensions = Structr.getDialogDimensions(24, 24);
 			Structr.blockUI(dimensions);
 
@@ -637,7 +645,6 @@ var Structr = {
 			dimensions.text = text;
 			_Logger.log(_LogType.INIT, 'Open dialog', dialog, dimensions, callbackOk, callbackCancel);
 			LSWrapper.setItem(dialogDataKey, JSON.stringify(dimensions));
-
 		}
 	},
 	getDialogDimensions: function(marginLeft, marginTop) {
@@ -662,15 +669,12 @@ var Structr = {
 			fadeIn: 25,
 			fadeOut: 25,
 			message: dialogBox,
-			css: {
-				cursor: 'default',
-				border: 'none',
-				backgroundColor: 'transparent',
+			css: Object.assign({
 				width: dimensions.width + 'px',
 				height: dimensions.height + 'px',
 				top: dimensions.top + 'px',
 				left: dimensions.left + 'px'
-			},
+			}, Structr.defaultBlockUICss),
 			themedCSS: {
 				width: dimensions.width + 'px',
 				height: dimensions.height + 'px',
@@ -761,7 +765,9 @@ var Structr = {
 	maximize: function() {
 
 		// Calculate dimensions of dialog
-		Structr.setSize($(window).width(), $(window).height(), $(window).width() - 24, $(window).height() - 24);
+		if ($('.blockPage').length && !loginBox.is(':visible')) {
+			Structr.setSize($(window).width(), $(window).height(), $(window).width() - 24, $(window).height() - 24);
+		}
 
 		isMax = true;
 		$('#maximizeDialog').hide();
@@ -860,6 +866,7 @@ var Structr = {
 			case 404: return 'Not found';
 			case 422: return 'Unprocessable entity';
 			case 500: return 'Internal Error';
+			case 503: return 'Service Unavailable';
 		}
 	},
 	loaderIcon: function(element, css) {
@@ -900,14 +907,10 @@ var Structr = {
 			if (searchField)
 				searchField.focus();
 		});
-		$.blockUI.defaults.overlayCSS.opacity = .6;
-		$.blockUI.defaults.applyPlatformOpacityRules = false;
+
 		$.blockUI({
 			message: $('#tempInfoBox'),
-			css: {
-				border: 'none',
-				backgroundColor: 'transparent'
-			}
+			css: Structr.defaultBlockUICss
 		});
 	},
 	reconnectDialog: function(text) {
@@ -915,14 +918,10 @@ var Structr = {
 			$('#tempErrorBox .errorText').html('<i class="' + _Icons.getFullSpriteClass(_Icons.error_icon) + '" /> ' + text);
 		}
 		$('#tempErrorBox .closeButton').hide();
-		$.blockUI.defaults.overlayCSS.opacity = .6;
-		$.blockUI.defaults.applyPlatformOpacityRules = false;
+
 		$.blockUI({
 			message: $('#tempErrorBox'),
-			css: {
-				border: 'none',
-				backgroundColor: 'transparent'
-			}
+			css: Structr.defaultBlockUICss
 		});
 	},
 	blockMenu: function() {
@@ -941,23 +940,37 @@ var Structr = {
 		if (menuBlocked) return;
 		event.stopPropagation();
 		if (Structr.getActiveModuleName() !== name || main.children().length === 0) {
-			Structr.doActivateModule(name);
+			return Structr.doActivateModule(name);
 		}
+
+		return true;
 	},
 	doActivateModule: function(name) {
 		if (Structr.modules[name]) {
-			var activeModule = Structr.modules[Structr.getActiveModuleName()];
+			var activeModule = Structr.getActiveModule();
+
+			let moduleAllowsNavigation = true;
 			if (activeModule && activeModule.unload) {
-				activeModule.unload();
+				let moduleOverride = activeModule.unload();
+				if (moduleOverride === false) {
+					moduleAllowsNavigation = false;
+				}
 			}
-			Structr.clearMain();
-			Structr.activateMenuEntry(name);
-			Structr.modules[name].onload();
-			Structr.adaptUiToAvailableFeatures();
+
+			if (moduleAllowsNavigation) {
+				Structr.clearMain();
+				Structr.activateMenuEntry(name);
+				Structr.modules[name].onload();
+				Structr.adaptUiToAvailableFeatures();
+			}
+
+			return moduleAllowsNavigation;
 		} else {
 			_Logger.log(_LogType.INIT, 'Module ' + name + ' does not exist.');
 			Structr.unblockMenu();
 		}
+
+		return true;
 	},
 	activateMenuEntry: function(name) {
 		Structr.blockMenu();
@@ -987,7 +1000,7 @@ var Structr = {
 		}
 	},
 	getActiveModuleName: function() {
-		return LSWrapper.getItem(lastMenuEntryKey);
+		return lastMenuEntry || LSWrapper.getItem(lastMenuEntryKey);
 	},
 	getActiveModule: function() {
 		return Structr.modules[Structr.getActiveModuleName()];
@@ -1124,6 +1137,7 @@ var Structr = {
 		t.draggable({
 			axis: 'x',
 			start: function(e, ui) {
+				$('.column-resizer-blocker').show();
 				t.addClass('noclick');
 			},
 			drag: function(e, ui) {
@@ -1142,6 +1156,7 @@ var Structr = {
 				}
 			},
 			stop: function(e, ui) {
+				$('.column-resizer-blocker').hide();
 				// remove noclick class after 200ms in case the mouseup event is not triggered while over the element (which leads to noclick remaining)
 				window.setTimeout(function() {
 					t.removeClass('noclick');
@@ -1173,6 +1188,7 @@ var Structr = {
 		t.draggable({
 			axis: 'x',
 			start: function(e, ui) {
+				$('.column-resizer-blocker').show();
 				$(this).addClass('noclick');
 			},
 			drag: function(e, ui) {
@@ -1191,6 +1207,7 @@ var Structr = {
 				}
 			},
 			stop: function(e, ui) {
+				$('.column-resizer-blocker').hide();
 				// remove noclick class after 200ms in case the mouseup event is not triggered while over the element (which leads to noclick remaining)
 				window.setTimeout(function() {
 					t.removeClass('noclick');
@@ -1220,11 +1237,10 @@ var Structr = {
 						callback(wasOpen, 0, -rsw);
 					}
 				}).zIndex(2);
-				$('.compTab.active', slideout).removeClass('active').draggable("destroy");
+				$('.compTab.active', slideout).removeClass('active').draggable('destroy');
 
 				var openSlideoutCallback = slideout.data('closeCallback');
-				if (typeof openSlideoutCallback === "function") {
-					console.log(openSlideoutCallback)
+				if (typeof openSlideoutCallback === 'function') {
 					openSlideoutCallback();
 				}
 			}
@@ -1249,83 +1265,172 @@ var Structr = {
 						callback(wasOpen, -osw, 0);
 					}
 				}).zIndex(2);
-				$('.compTab.active', slideout).removeClass('active').draggable("destroy");
+				$('.compTab.active', slideout).removeClass('active').draggable('destroy');
 			}
 		});
 
 		LSWrapper.removeItem(activeTabKey);
 	},
-	updateVersionInfo: function() {
-		$.get(rootUrl + '_env', function(data) {
-			if (data && data.result) {
+	updateVersionInfo: function(retryCount = 0) {
 
-				var envInfo = data.result;
+		fetch(rootUrl + '/_env').then(function(response) {
 
-				$('#header .structr-instance-name').text(envInfo.instanceName);
-				$('#header .structr-instance-stage').text(envInfo.instanceStage);
+			if (response.ok) {
+				return response.json();
+			} else {
+				throw Error("Unable to read env resource data");
+			}
 
-				var ui = envInfo.components['structr-ui'];
-				if (ui) {
+		}).then(function(data) {
 
-					var version = ui.version;
-					var build = ui.build;
-					var date = ui.date;
-					var versionLink = 'https://structr.org/download';
-					var versionInfo = '<a target="_blank" href="' + versionLink + '">' + version + '</a>';
-					if (build && date) {
-						versionInfo += '<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a><span> (' + date + ')</span>';
-					}
+			let envInfo = data.result;
 
-					if (envInfo.edition) {
+			let dbInfoEl = $('#header .structr-instance-db');
 
-						Structr.edition = envInfo.edition;
+			if (envInfo.databaseService) {
+				let driverName = Structr.getDatabaseDriverNameForDatabaseServiceName(envInfo.databaseService);
+				let icon       = _Icons.database_icon;
 
-						var tooltipText = 'Structr ' + envInfo.edition + ' Edition';
-						if (envInfo.licensee) {
-							tooltipText += '\nLicensed to: ' + envInfo.licensee;
-						} else {
-							tooltipText += '\nUnlicensed';
-						}
+				if (envInfo.databaseService === 'MemoryDatabaseService') {
+					icon = _Icons.database_error_icon;
+				}
 
-						versionInfo += '<i title="' + tooltipText + '" class="edition-icon ' + _Icons.getFullSpriteClass(_Icons.getIconForEdition(envInfo.edition)) + '"></i>';
+				dbInfoEl.html('<span><i class="' + _Icons.getFullSpriteClass(icon) + '" title="' + driverName + '"></span>');
 
-						$('.structr-version').html(versionInfo);
+				if (envInfo.databaseService === 'MemoryDatabaseService') {
+					Structr.appendInMemoryInfoToElement($('span', dbInfoEl), $('span i', dbInfoEl));
+				}
+			}
 
-						_Dashboard.checkLicenseEnd(envInfo, $('.structr-version'), {
-							offsetX: -300,
-							helpElementCss: {
-								color: "black",
-								fontSize: "8pt",
-								lineHeight: "1.7em"
-							}
-						});
+			$('#header .structr-instance-name').text(envInfo.instanceName);
+			$('#header .structr-instance-stage').text(envInfo.instanceStage);
 
+			let ui = envInfo.components['structr-ui'];
+			if (ui) {
+
+				let version     = ui.version;
+				let build       = ui.build;
+				let date        = ui.date;
+				let versionLink = 'https://structr.com/download';
+				let versionInfo = '<a target="_blank" href="' + versionLink + '">' + version + '</a>';
+				if (build && date) {
+					versionInfo += '<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a><span> (' + date + ')</span>';
+				}
+
+				if (envInfo.edition) {
+
+					Structr.edition = envInfo.edition;
+
+					var tooltipText = 'Structr ' + envInfo.edition + ' Edition';
+					if (envInfo.licensee) {
+						tooltipText += '\nLicensed to: ' + envInfo.licensee;
 					} else {
-						$('.structr-version').html(versionInfo);
+						tooltipText += '\nUnlicensed';
 					}
+
+					versionInfo += '<i title="' + tooltipText + '" class="edition-icon ' + _Icons.getFullSpriteClass(_Icons.getIconForEdition(envInfo.edition)) + '"></i>';
+
+					$('.structr-version').html(versionInfo);
+
+					_Dashboard.checkLicenseEnd(envInfo, $('.structr-version'), {
+						offsetX: -300,
+						helpElementCss: {
+							color: "black",
+							fontSize: "8pt",
+							lineHeight: "1.7em"
+						}
+					});
+
+				} else {
+					$('.structr-version').html(versionInfo);
 				}
+			}
 
-				var hamburger = $('#menu li.submenu-trigger');
-				var subMenu = $('#submenu');
-				envInfo.mainMenu.forEach(function(entry) {
-					$('li[data-name="' + entry + '"]', subMenu).insertBefore(hamburger);
-				});
+			Structr.activeModules = envInfo.modules;
+			Structr.adaptUiToAvailableFeatures();
 
-				Structr.activeModules = envInfo.modules;
-				Structr.adaptUiToAvailableFeatures();
+			let userConfigMenu = LSWrapper.getItem(Structr.keyMenuConfig);
+			if (!userConfigMenu) {
+				userConfigMenu = {
+					main: envInfo.mainMenu,
+					sub: []
+				};
+			}
 
-				if (envInfo.resultCountSoftLimit !== undefined) {
-					_Crud.resultCountSoftLimit = envInfo.resultCountSoftLimit;
-				}
+			Structr.updateMainMenu(userConfigMenu);
 
-				// run previously registered callbacks
-				let registeredCallbacks = Structr.moduleAvailabilityCallbacks;
-				Structr.moduleAvailabilityCallbacks = [];
-				registeredCallbacks.forEach((cb) => {
-					cb();
-				});
+			if (envInfo.resultCountSoftLimit !== undefined) {
+				_Crud.resultCountSoftLimit = envInfo.resultCountSoftLimit;
+			}
+
+			// run previously registered callbacks
+			let registeredCallbacks = Structr.moduleAvailabilityCallbacks;
+			Structr.moduleAvailabilityCallbacks = [];
+			registeredCallbacks.forEach((cb) => {
+				cb();
+			});
+		}).catch((e) => {
+			if (retryCount < 3) {
+				setTimeout(() => {
+					Structr.updateVersionInfo(++retryCount);
+				}, 250);
+			} else {
+				console.log(e);
 			}
 		});
+	},
+	updateMainMenu: function (menuConfig) {
+
+		LSWrapper.setItem(Structr.keyMenuConfig, menuConfig);
+
+		let menu      = $('#menu');
+		let submenu   = $('#submenu');
+		let hamburger = $('#menu li.submenu-trigger');
+
+		// first move all elements from main menu to submenu
+		$('li[data-name]', menu).appendTo(submenu);
+
+		menuConfig.main.forEach(function(entry) {
+			$('li[data-name="' + entry + '"]', menu).insertBefore(hamburger);
+		});
+
+		menuConfig.sub.forEach(function(entry) {
+			$('#submenu li').last().after($('li[data-name="' + entry + '"]', menu));
+		});
+
+	},
+	appendInMemoryInfoToElement: function(el, optionalToggleElement) {
+
+		let config = {
+			element: el,
+			text: "Currently running on an in-memory database implementation. Data is no persisted and will be lost after restarting the instance! You can use the configuration servlet to configure a database connection.",
+			customToggleIcon: _Icons.database_error_icon,
+			helpElementCss: {
+				'border': '2px solid red',
+				'border-radius': '4px',
+				'font-weight': 'bold',
+				'font-size': '15px',
+				'color': '#000'
+			}
+		};
+
+		if (optionalToggleElement) {
+			config.toggleElement = optionalToggleElement;
+		}
+
+		Structr.appendInfoTextToElement(config);
+	},
+	getDatabaseDriverNameForDatabaseServiceName: function (databaseServiceName) {
+		switch (databaseServiceName) {
+			case 'BoltDatabaseService':
+				return 'Bolt Database Driver';
+
+			case 'MemoryDatabaseService':
+				return 'In-Memory Database Driver';
+				break;
+		}
+
+		return 'Unknown database driver!';
 	},
 	clearVersionInfo: function() {
 		$('.structr-version').html('');
@@ -1470,20 +1575,34 @@ var Structr = {
 	},
 	initVerticalSlider: function(sliderEl, localstorageKey, minWidth, dragCallback) {
 
-		if (typeof dragCallback !== "function") {
+		if (typeof dragCallback !== 'function') {
 			console.error('dragCallback is not a function!');
 			return;
 		}
 
 		$(sliderEl).draggable({
 			axis: 'x',
+			start: function(e, ui) {
+				$('.column-resizer-blocker').show();
+				let left = Math.min(window.innerWidth - minWidth, Math.max(minWidth, ui.position.left));
+			},
 			drag: function(e, ui) {
-				var left = Math.max(minWidth, ui.position.left);
-				ui.position.left = left;
 
+				let left = Math.min(window.innerWidth - minWidth, Math.max(minWidth, ui.position.left));
+
+				// If there are two resizer elements, distance between resizers
+				// must always be larger than minWidth.
+				if ($(this).hasClass('column-resizer-left') && $('.column-resizer-right').length > 0) {
+					left = Math.min(left, $('.column-resizer-right').position().left - minWidth);
+				} else if ($(this).hasClass('column-resizer-right') && $('.column-resizer-left').length > 0) {
+					left = Math.max(left, $('.column-resizer-left').position().left + minWidth);
+				}
+
+				ui.position.left = left;
 				dragCallback(left);
 			},
 			stop: function(e, ui) {
+				$('.column-resizer-blocker').hide();
 				LSWrapper.setItem(localstorageKey, ui.position.left);
 			}
 		});
@@ -1522,7 +1641,7 @@ var Structr = {
 				.on("mousemove", function(e) {
 					helpElement.show();
 					helpElement.css({
-						left: e.clientX + 20 + offsetX,
+						left: Math.min(e.clientX + 20 + offsetX, window.innerWidth - helpElement.width() - 50),
 						top: Math.min(e.clientY + 10 + offsetY, window.innerHeight - helpElement.height() - 10)
 					});
 				}).on("mouseout", function(e) {
@@ -1555,6 +1674,8 @@ var Structr = {
 		}
 	},
 	handleGenericMessage: function(data) {
+
+		let showScheduledJobsNotifications = Importer.isShowNotifications();
 
 		switch (data.type) {
 
@@ -1616,7 +1737,7 @@ var Structr = {
 					RESUMED: 'The import of <b>' + data.filename + '</b> has been resumed'
 				};
 
-				if (me.username === data.username) {
+				if (showScheduledJobsNotifications && me.username === data.username) {
 
 					var msg = new MessageBuilder()
 							.title(data.jobtype + ' ' + fileImportTitles[data.subtype])
@@ -1629,16 +1750,16 @@ var Structr = {
 					}
 
 					msg.show();
+				}
 
-					if (Structr.isModuleActive(Importer)) {
-						Importer.updateJobTable();
-					}
+				if (Structr.isModuleActive(Importer)) {
+					Importer.updateJobTable();
 				}
 				break;
 
 			case "FILE_IMPORT_EXCEPTION":
 
-				if (me.username === data.username) {
+				if (showScheduledJobsNotifications && me.username === data.username) {
 
 					var text = data.message;
 					if (data.message !== data.stringvalue) {
@@ -1651,10 +1772,10 @@ var Structr = {
 							.requiresConfirmation()
 							.allowConfirmAll()
 							.show();
+				}
 
-					if (Structr.isModuleActive(Importer)) {
-						Importer.updateJobTable();
-					}
+				if (Structr.isModuleActive(Importer)) {
+					Importer.updateJobTable();
 				}
 				break;
 
@@ -1667,27 +1788,27 @@ var Structr = {
 				};
 				var scriptJobTexts = {
 					QUEUED: 'Script job #' + data.jobId + ' will begin after currently running/queued job(s)',
-					BEGIN: 'Started script job #' + data.jobId + ((data.jobName.length === 0) ? '' : '<br>' + data.jobName),
-					END: 'Finished script job #' + data.jobId + ((data.jobName.length === 0) ? '' : '<br>' + data.jobName)
+					BEGIN: 'Started script job #' + data.jobId + ((data.jobName.length === 0) ? '' : ' (' + data.jobName + ')'),
+					END: 'Finished script job #' + data.jobId + ((data.jobName.length === 0) ? '' : ' (' + data.jobName + ')')
 				};
 
-				if (me.username === data.username) {
+				if (showScheduledJobsNotifications && me.username === data.username) {
 
-					var msg = new MessageBuilder()
+					let msg = new MessageBuilder()
 							.title(scriptJobTitles[data.subtype])
 							.className((data.subtype === 'END') ? 'success' : 'info')
-							.text(scriptJobTexts[data.subtype])
-							.uniqueClass(data.jobtype + '-status-' + data.jobId);
+							.text('<div>' + scriptJobTexts[data.subtype] + '</div>')
+							.uniqueClass(data.jobtype + '-' + data.subtype).appendsText();
 
 					if (data.subtype !== 'QUEUED') {
-						msg.updatesText().requiresConfirmation().allowConfirmAll();
+						msg.requiresConfirmation().allowConfirmAll();
 					}
 
 					msg.show();
+				}
 
-					if (Structr.isModuleActive(Importer)) {
-						Importer.updateJobTable();
-					}
+				if (Structr.isModuleActive(Importer)) {
+					Importer.updateJobTable();
 				}
 				break;
 
@@ -1832,17 +1953,13 @@ var Structr = {
 	},
 	blockUiGeneric: function(html, timeout) {
 		Structr.loadingSpinnerTimeout = window.setTimeout(function() {
-			$.blockUI.defaults.overlayCSS.opacity = .2;
-			$.blockUI.defaults.applyPlatformOpacityRules = false;
+
 			$.blockUI({
 				fadeIn: 0,
 				fadeOut: 0,
 				message: html,
 				forceInput: true,
-				css: {
-					border: 'none',
-					backgroundColor: 'transparent'
-				}
+				css: Structr.defaultBlockUICss
 			});
 		}, timeout || 0);
 	},
@@ -1872,6 +1989,50 @@ var Structr = {
 	},
 	hideLoadingMessage: function() {
 		Structr.unblockUiGeneric();
+	},
+
+	nonBlockUIBlockerId: 'non-block-ui-blocker',
+	nonBlockUIBlockerContentId: 'non-block-ui-blocker-content',
+	showNonBlockUILoadingMessage: function(title, text) {
+
+		var messageTitle = title || 'Executing Task';
+		var messageText  = text || 'Please wait until the operation has finished...';
+
+		let pageBlockerDiv = $('<div id="' + Structr.nonBlockUIBlockerId +'"></div>');
+
+		let messageDiv = $('<div id="' + Structr.nonBlockUIBlockerContentId +'"></div>');
+		messageDiv.html('<img src="' + _Icons.getSpinnerImageAsData() + '"> <b>' + messageTitle + '</b><br><br>' + messageText);
+
+		$('body').append(pageBlockerDiv);
+		$('body').append(messageDiv);
+	},
+	hideNonBlockUILoadingMessage: function() {
+		$('#' + Structr.nonBlockUIBlockerId).remove();
+		$('#' + Structr.nonBlockUIBlockerContentId).remove();
+	},
+
+	getCodeMirrorSettings: function(baseConfig) {
+
+		let savedSettings = LSWrapper.getItem(Structr.keyCodeMirrorSettings) || {};
+
+		if (baseConfig) {
+			return Object.assign(baseConfig, savedSettings);
+		}
+
+		return savedSettings;
+	},
+
+	updateCodeMirrorOptionGlobally: function(optionName, value) {
+
+		let codeMirrorSettings = Structr.getCodeMirrorSettings();
+
+		$('.CodeMirror').each(function(idx, cmEl) {
+			cmEl.CodeMirror.setOption(optionName, value);
+			codeMirrorSettings[optionName] = value;
+			cmEl.CodeMirror.refresh();
+		});
+
+		LSWrapper.setItem(Structr.keyCodeMirrorSettings, codeMirrorSettings);
 	}
 };
 
@@ -1915,6 +2076,15 @@ var _TreeHelper = {
 	},
 	refreshTree: function(tree, callback) {
 		$(tree).jstree('refresh');
+
+		if (typeof callback === "function") {
+			window.setTimeout(function() {
+				callback();
+			}, 500);
+		}
+	},
+	refreshNode: function(tree, node, callback) {
+		$(tree).jstree('refresh_node', node);
 
 		if (typeof callback === "function") {
 			window.setTimeout(function() {
@@ -2238,11 +2408,22 @@ function formatKey(text) {
 var keyEventBlocked = true;
 var keyEventTimeout;
 
-$(window).on('beforeunload', function(event) {
+window.addEventListener('beforeunload', (event) => {
 	if (event.target === document) {
+
+		let activeModule = Structr.getActiveModule();
+		if (activeModule && activeModule.beforeunloadHandler && typeof activeModule.beforeunloadHandler === "function") {
+			let ret = activeModule.beforeunloadHandler();
+			if (ret) {
+				event.returnValue = ret;
+			}
+			// persist last menu entry
+			LSWrapper.setItem(lastMenuEntryKey, lastMenuEntry);
+		}
+
 		_Logger.log(_LogType.INIT, '########################################### unload #####################################################');
 		// Remove dialog data in case of page reload
 		LSWrapper.removeItem(dialogDataKey);
-		Structr.saveLocalStorage();
+		LSWrapper.save();
 	}
 });

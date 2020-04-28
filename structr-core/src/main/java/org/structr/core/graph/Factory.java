@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,10 +21,10 @@ package org.structr.core.graph;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
-import org.neo4j.helpers.collection.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Identity;
+import org.structr.api.util.Iterables;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;

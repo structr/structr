@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -41,10 +41,12 @@ var _Dashboard = {
 		let tabId = LSWrapper.getItem(_Dashboard.activeTabPrefixKey);
 		if (tabId) {
 			let tab = document.querySelector('#dashboard .tabs-menu li a[href="' + tabId + '"]');
-			tab.click();
+			if (tab) {
+				tab.click();
+			}
 		}
 	},
-	onload: function() {
+	onload: function(retryCount = 0) {
 
 		_Dashboard.init();
 		Structr.updateMainHelpLink('https://support.structr.com/article/202');
@@ -55,7 +57,11 @@ var _Dashboard = {
 
 		fetch(rootUrl + '/_env').then(function(response) {
 
-			return response.json();
+			if (response.ok) {
+				return response.json();
+			} else {
+				throw Error("Unable to read env resource data");
+			}
 
 		}).then(function(data) {
 
@@ -75,6 +81,8 @@ var _Dashboard = {
 			if (templateConfig.envInfo.endDate) {
 				templateConfig.envInfo.endDate = _Dashboard.dateToIsoString(templateConfig.envInfo.endDate);
 			}
+
+			templateConfig.databaseDriver = Structr.getDatabaseDriverNameForDatabaseServiceName(templateConfig.envInfo.databaseService);
 
 			return fetch(rootUrl + '/me/ui');
 
@@ -98,6 +106,10 @@ var _Dashboard = {
 
 				main.append(html);
 
+				if (templateConfig.envInfo.databaseService === 'MemoryDatabaseService') {
+					Structr.appendInMemoryInfoToElement($('#dashboard-about-structr .db-driver'));
+				}
+
 				_Dashboard.gatherVersionUpdateInfo(templateConfig.envInfo.version, releasesIndexUrl, snapshotsIndexUrl);
 
 				document.querySelectorAll('#dashboard .tabs-menu li a').forEach(function(tabLink) {
@@ -118,37 +130,124 @@ var _Dashboard = {
 					_Dashboard.clearLocalStorageOnServer(templateConfig.meObj.id);
 				});
 
-				_Dashboard.checkLicenseEnd(templateConfig.envInfo, $('#dash-about-structr .end-date'));
+				_Dashboard.checkLicenseEnd(templateConfig.envInfo, $('#dashboard-about-structr .end-date'));
 
-				$('button#do-import').on('click', function() {
-					var location = $('#deployment-source-input').val();
-					if (location && location.length) {
-						_Dashboard.deploy('import', location);
-					} else {
-						// show error message
-					}
+				$('button#do-app-import').on('click', function() {
+					_Dashboard.deploy('import', $('#deployment-source-input').val());
 				});
 
-				$('button#do-export').on('click', function() {
-					var location = $('#deployment-target-input').val();
-					if (location && location.length) {
-						_Dashboard.deploy('export', location);
-					} else {
-						// show error message
+				$('button#do-app-export').on('click', function() {
+					_Dashboard.deploy('export', $('#app-export-target-input').val());
+				});
+
+				$('button#do-app-import-from-url').on('click', function() {
+					_Dashboard.deployFromURL($('#redirect-url').val(), $('#deployment-url-input').val());
+				});
+
+				$('button#do-data-import').on('click', function() {
+					_Dashboard.deployData('import', $('#data-import-source-input').val());
+				});
+
+				$('button#do-data-export').on('click', function() {
+					_Dashboard.deployData('export', $('#data-export-target-input').val(), $('#data-export-types-input').val());
+				});
+
+				let typesSelectElem = $('#data-export-types-input');
+
+				Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isBuiltinType', function(nodes) {
+
+					let builtinTypes = [];
+					let customTypes = [];
+
+					for (let n of nodes) {
+						if (n.isBuiltinType) {
+							builtinTypes.push(n);
+						} else {
+							customTypes.push(n);
+						}
 					}
+
+					if (customTypes.length > 0) {
+
+						typesSelectElem.append(customTypes.reduce(function(html, node) {
+							return html + '<option>' + node.name + '</option>';
+						}, '<optgroup label="Custom Types">') + '</optgroup>');
+					}
+
+					typesSelectElem.append(builtinTypes.reduce(function(html, node) {
+							return html + '<option>' + node.name + '</option>';
+						}, '<optgroup label="Builtin Types">') + '</optgroup>');
+
+
+					typesSelectElem.chosen({
+						search_contains: true,
+						width: 'calc(100% - 14px)',
+						display_selected_options: false,
+						hide_results_on_select: false,
+						display_disabled_options: false
+					}).chosenSortable();
 				});
 
 				_Dashboard.activateLogBox();
 				_Dashboard.activateLastActiveTab();
-				_Dashboard.appendGlobalSchemaMethods($('#dash-global-schema-methods'));
+				_Dashboard.appendGlobalSchemaMethods($('#dashboard-global-schema-methods'));
 
 				$(window).off('resize');
 				$(window).on('resize', function() {
 					Structr.resize();
 				});
 
+
+				let userConfigMenu = LSWrapper.getItem(Structr.keyMenuConfig);
+				if (!userConfigMenu) {
+					userConfigMenu = {
+						main: templateConfig.envInfo.mainMenu,
+						sub: []
+					};
+				}
+
+				let mainMenuConfigContainer = document.querySelector('#main-menu-entries-config');
+				let subMenuConfigContainer = document.querySelector('#sub-menu-entries-config');
+
+				for (let menuitem of document.querySelectorAll('#menu li[data-name]')) {
+
+					// account for missing modules because of license
+					if (menuitem.style.display !== 'none') {
+						let n = document.createElement('div');
+						n.classList.add('menu-item');
+						n.textContent = menuitem.dataset.name;
+						n.dataset.name = menuitem.dataset.name;
+						subMenuConfigContainer.appendChild(n);
+					}
+				}
+
+				for (let mainMenuItem of userConfigMenu.main) {
+					mainMenuConfigContainer.appendChild(subMenuConfigContainer.querySelector('div[data-name="' + mainMenuItem + '"]'));
+				}
+
+				$('#main-menu-entries-config, #sub-menu-entries-config').sortable({
+					connectWith: ".connectedSortable"
+				}).disableSelection();
+
+				document.querySelector('#save-menu-config').addEventListener('click', () => {
+					let newMenuConfig = {
+						main: [].map.call(mainMenuConfigContainer.querySelectorAll('div.menu-item'), (el) => { return el.dataset.name; }),
+						sub: [].map.call(subMenuConfigContainer.querySelectorAll('div.menu-item'), (el) => { return el.dataset.name; })
+					};
+
+					Structr.updateMainMenu(newMenuConfig);
+				});
+
 				Structr.unblockMenu(100);
 			});
+		}).catch((e) => {
+			if (retryCount < 3) {
+				setTimeout(() => {
+					_Dashboard.onload(++retryCount);
+				}, 250);
+			} else {
+				console.log(e);
+			}
 		});
 	},
 	gatherVersionUpdateInfo(currentVersion, releasesIndexUrl, snapshotsIndexUrl) {
@@ -308,85 +407,17 @@ var _Dashboard = {
 				}
 
 				$('button#run-' + result.id).on('click', function() {
-
-					Structr.dialog('Run global schema method ' + result.name, function() {}, function() {
-						$('#run-method').remove();
-						$('#clear-log').remove();
-					});
-
-					dialogBtn.prepend('<button id="run-method">Run</button>');
-					dialogBtn.append('<button id="clear-log">Clear output</button>');
-
-					var paramsOuterBox = $('<div id="params"><h3 class="heading-narrow">Parameters</h3></div>');
-					var paramsBox = $('<div></div>');
-					paramsOuterBox.append(paramsBox);
-					var addParamBtn = $('<i title="Add parameter" class="button ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" />');
-					paramsBox.append(addParamBtn);
-					dialog.append(paramsOuterBox);
-
-					if (cleanedComment.trim() !== '') {
-						dialog.append('<div id="global-method-comment"><h3 class="heading-narrow">Comment</h3>' + cleanedComment + '</div>');
-					}
-
-					Structr.appendInfoTextToElement({
-						element: $('#params h3'),
-						text: "Parameters can be accessed by using the <code>retrieve()</code> function.",
-						css: { marginLeft: "5px" },
-						helpElementCss: { fontSize: "12px" }
-					});
-
-					addParamBtn.on('click', function() {
-						var newParam = $('<div class="param"><input class="param-name" placeholder="Parameter name"> : <input class="param-value" placeholder="Parameter value"></div>');
-						var removeParam = $('<i class="button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" alt="Remove parameter" title="Remove parameter"/>');
-
-						newParam.append(removeParam);
-						removeParam.on('click', function() {
-							newParam.remove();
-						});
-						paramsBox.append(newParam);
-					});
-
-					dialog.append('<h3>Method output</h3>');
-					dialog.append('<pre id="log-output"></pre>');
-
-					$('#run-method').on('click', function() {
-
-						$('#log-output').empty();
-						$('#log-output').append('Running method..\n');
-
-						var params = {};
-						$('#params .param').each(function (index, el) {
-							var name = $('.param-name', el).val();
-							var val = $('.param-value', el).val();
-							if (name) {
-								params[name] = val;
-							}
-						});
-
-						$.ajax({
-							url: rootUrl + '/maintenance/globalSchemaMethods/' + result.name,
-							data: JSON.stringify(params),
-							method: 'POST',
-							complete: function(data) {
-								$('#log-output').append(data.responseText);
-								$('#log-output').append('Done.');
-							}
-						});
-					});
-
-					$('#clear-log').on('click', function() {
-						$('#log-output').empty();
-					});
+					_Code.runGlobalSchemaMethod(result);
 				});
 			});
 		});
 	},
     activateLogBox: function() {
 
-		let feedbackElement = document.querySelector('#dash-server-log-feedback');
+		let feedbackElement = document.querySelector('#dashboard-server-log-feedback');
 
 		let numberOfLines      = LSWrapper.getItem(_Dashboard.logLinesKey, 300);
-		let numberOfLinesInput = document.querySelector('#dash-server-log-lines');
+		let numberOfLinesInput = document.querySelector('#dashboard-server-log-lines');
 
 		numberOfLinesInput.value = numberOfLines;
 
@@ -407,7 +438,7 @@ var _Dashboard = {
 		};
 
 		let logRefreshTimeInterval    = LSWrapper.getItem(_Dashboard.logRefreshTimeIntervalKey, 1000);
-		let refreshTimeIntervalSelect = document.querySelector('#dash-server-log-refresh-interval');
+		let refreshTimeIntervalSelect = document.querySelector('#dashboard-server-log-refresh-interval');
 
 		refreshTimeIntervalSelect.value = logRefreshTimeInterval;
 
@@ -421,7 +452,7 @@ var _Dashboard = {
 			blinkGreen($(refreshTimeIntervalSelect));
 		});
 
-		let logBoxContentBox = $('#dash-server-log textarea');
+		let logBoxContentBox = $('#dashboard-server-log textarea');
 
         let scrollEnabled = true;
 		let textAreaHasFocus = false;
@@ -468,7 +499,7 @@ var _Dashboard = {
 			}
 		});
 
-		new Clipboard('#dash-server-log-copy', {
+		new Clipboard('#dashboard-server-log-copy', {
 			target: function () {
 				return logBoxContentBox[0];
 			}
@@ -477,6 +508,11 @@ var _Dashboard = {
         updateLog();
     },
 	deploy: function(mode, location) {
+
+		if (!(location && location.length)) {
+			new MessageBuilder().title('Unable to start data ' + mode + '').warning('Please enter a local directory path for data export.').requiresConfirmation().show();
+			return;
+		}
 
 		var data = {
 			mode: mode
@@ -491,7 +527,80 @@ var _Dashboard = {
 		$.ajax({
 			url: rootUrl + '/maintenance/deploy',
 			data: JSON.stringify(data),
-			method: 'POST'
+			method: 'POST',
+			dataType: 'json',
+			contentType: 'application/json; charset=utf-8',
+			statusCode: {
+				422: function(data) {
+					//new MessageBuilder().title('Unable to start app ' + mode + '').warning(data.responseJSON.message).requiresConfirmation().show();
+				}
+			}
+		});
+	},
+	deployFromURL: function(redirectUrl, downloadUrl) {
+
+		if (!(downloadUrl && downloadUrl.length)) {
+			new MessageBuilder().title('Unable to start app import from URL').warning('Please enter the URL of the ZIP file containing the app.').requiresConfirmation().show();
+			return;
+		}
+
+		let data = new FormData();
+		data.append('redirectUrl', redirectUrl);
+		data.append('downloadUrl', downloadUrl);
+
+		$.ajax({
+			url: '/structr/deploy',
+			method: 'POST',
+			processData: false,
+			contentType: false,
+			data: data,
+			statusCode: {
+				400: function(data) {
+					new MessageBuilder().title('Unable to import app from URL ' + downloadUrl).warning(data.responseJSON.message).requiresConfirmation().show();
+				}
+			},
+			success: function() {
+				//console.log('Deployment successful!');
+			}
+		});
+	},
+	deployData: function(mode, location, types) {
+
+		if (!(location && location.length)) {
+			new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please enter a directory path for data ' + mode + '.').requiresConfirmation().show();
+			return;
+		}
+
+		var data = {
+			mode: mode
+		};
+
+		if (mode === 'import') {
+			data['source'] = location;
+		} else if (mode === 'export') {
+			data['target'] = location;
+			if (types && types.length) {
+				data['types'] = types.join(',');
+			} else {
+				new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please select at least one data type.').requiresConfirmation().show();
+				return;
+			}
+
+		}
+
+		let url = rootUrl + '/maintenance/deployData';
+
+		$.ajax({
+			url: url,
+			data: JSON.stringify(data),
+			method: 'POST',
+			dataType: 'json',
+			contentType: 'application/json; charset=utf-8',
+			statusCode: {
+				422: function(data) {
+					new MessageBuilder().warning(data.responseJSON.message).requiresConfirmation().show();
+				}
+			}
 		});
 
 	}

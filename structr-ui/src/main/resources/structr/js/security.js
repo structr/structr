@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -406,19 +406,19 @@ var _ResourceAccessGrants = {
 		e.stopPropagation();
 
 		var inp = $('#resource-signature');
-		inp.prop('disabled', 'disabled').addClass('disabled').addClass('read-only');
-		$('.add_grant_icon', _Security.resourceAccesses).prop('disabled', 'disabled').addClass('disabled').addClass('read-only');
+		inp.attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
+		$('.add_grant_icon', _Security.resourceAccesses).attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
 
 		var reEnableInput = function () {
-			$('.add_grant_icon', _Security.resourceAccesses).removeProp('disabled').removeClass('disabled').removeClass('readonly');
-			inp.removeProp('disabled').removeClass('disabled').removeClass('readonly');
+			$('.add_grant_icon', _Security.resourceAccesses).attr('disabled', null).removeClass('disabled').removeClass('read-only');
+			inp.attr('disabled', null).removeClass('disabled').removeClass('readonly');
 		};
 
 		var sig = inp.val();
 		if (sig) {
 			Command.create({type: 'ResourceAccess', signature: sig, flags: 0}, function() {
 				reEnableInput();
-				inp.focus();
+				inp.val('');
 			});
 		} else {
 			reEnableInput();

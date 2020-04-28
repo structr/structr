@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -43,6 +43,7 @@ import static org.structr.core.entity.SchemaNode.GraphQLNodeReferenceName;
 import org.structr.core.entity.relationship.SchemaNodeProperty;
 import org.structr.core.entity.relationship.SchemaViewProperty;
 import org.structr.core.graph.ModificationQueue;
+import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.BooleanProperty;
@@ -320,9 +321,14 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 		super.onModification(securityContext, errorBuffer, modificationQueue);
 
-		// prevent modification of properties using a content hash value
-		if (getProperty(isBuiltinProperty) && !getContentHash().equals(getProperty(contentHash))) {
-			throw new FrameworkException(403, "Modification of built-in properties not permitted.");
+		if (getProperty(schemaNode) == null) {
+			StructrApp.getInstance().delete(this);
+		} else {
+
+			// prevent modification of properties using a content hash value
+			if (getProperty(isBuiltinProperty) && !getContentHash().equals(getProperty(contentHash))) {
+				throw new FrameworkException(403, "Modification of built-in properties not permitted.");
+			}
 		}
 	}
 

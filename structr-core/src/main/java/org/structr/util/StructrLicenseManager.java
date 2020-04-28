@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -620,20 +620,20 @@ public class StructrLicenseManager implements LicenseManager {
 		final Map<String, String> properties = new LinkedHashMap<>();
 		final SimpleDateFormat format        = new SimpleDateFormat(DatePattern);
 
-		properties.put(NameKey,    name);
+		properties.put(NameKey,    name.trim());
 		properties.put(DateKey,    format.format(System.currentTimeMillis()));
-		properties.put(StartKey,   start);
-		properties.put(EndKey,     end);
-		properties.put(EditionKey, edition);
-		properties.put(ModulesKey, modules);
-		properties.put(MachineKey, hostId);
+		properties.put(StartKey,   start.trim());
+		properties.put(EndKey,     end.trim());
+		properties.put(EditionKey, edition.trim());
+		properties.put(ModulesKey, modules.trim());
+		properties.put(MachineKey, hostId.trim());
 
 		if (StringUtils.isNotBlank(servers)) {
-			properties.put(ServersKey, servers);
+			properties.put(ServersKey, servers.trim());
 		}
 
 		if (StringUtils.isNotBlank(users)) {
-			properties.put(UsersKey, users);
+			properties.put(UsersKey, users.trim());
 		}
 
 		sign(properties, keystoreFileName, password);

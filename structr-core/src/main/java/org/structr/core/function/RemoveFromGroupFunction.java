@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,6 +33,11 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 		return "remove_from_group";
+	}
+
+	@Override
+	public String getSignature() {
+		return "group, user";
 	}
 
 	@Override
@@ -79,6 +84,6 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Removes a user from a group.";
+		return "Removes the given user from the given group";
 	}
 }

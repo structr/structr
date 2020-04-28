@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,12 +19,12 @@
 package org.structr.knowledge.iso25964;
 
 import java.net.URI;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 
 /**
  * Class as defined in ISO 25964 data model
@@ -34,17 +34,17 @@ public interface ConceptGroup extends NodeInterface {
 	static class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		
+
 		final JsonObjectType type    = schema.addType("ConceptGroup");
 		final JsonObjectType concept = schema.addType("ThesaurusConcept");
 		final JsonObjectType label   = schema.addType("ConceptGroupLabel");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ConceptGroup"));
-		
+
 		type.addStringArrayProperty("identifier", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
 		type.addStringArrayProperty("conceptGroupType", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
 		type.addStringArrayProperty("notation", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		
+
 		type.relate(type, "hasSubGroup", Cardinality.ManyToMany, "superGroups", "subGroups");
 		type.relate(concept, "hasAsMember", Cardinality.ManyToMany, "conceptGroups", "thesaurusConcepts");
 		type.relate(label, "hasConceptGroupLabel", Cardinality.OneToMany, "conceptGroup", "conceptGroupLabels");

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,14 +23,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import org.structr.api.graph.Cardinality;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 
 public interface Mailbox extends NodeInterface {
 
@@ -68,7 +68,7 @@ public interface Mailbox extends NodeInterface {
 				.setDoExport(true);
 
 
-		type.relate(mail, "CONTAINS_EMAILMESSAGES", Relation.Cardinality.OneToMany, "mailbox", "emails").setCascadingDelete(JsonSchema.Cascade.sourceToTarget);
+		type.relate(mail, "CONTAINS_EMAILMESSAGES", Cardinality.OneToMany, "mailbox", "emails").setCascadingDelete(JsonSchema.Cascade.sourceToTarget);
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "id,type,name");

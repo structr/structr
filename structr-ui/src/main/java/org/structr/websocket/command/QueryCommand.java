@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -92,7 +92,7 @@ public class QueryCommand extends AbstractCommand {
 			final PropertyKey sortProperty = StructrApp.key(type, sortKey);
 			final String sortOrder         = webSocketData.getSortOrder();
 
-			query.sort(sortProperty).order("desc".equals(sortOrder));
+			query.sort(sortProperty, "desc".equals(sortOrder));
 		}
 
 		if (properties != null) {

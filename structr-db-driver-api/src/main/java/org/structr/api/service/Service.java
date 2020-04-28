@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,6 +39,7 @@ public interface Service extends Feature {
 	 * service-specific resources etc.
 	 *
 	 * @param services
+	 * @param serviceName
 	 *
 	 * @throws ClassNotFoundException
 	 * @throws InstantiationException
@@ -46,7 +47,7 @@ public interface Service extends Feature {
 	 *
 	 * @return a boolean indicating whether the service was initialized successfully
 	 */
-	boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException;
+	boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException;
 
 	/**
 	 * Called before the service is discarded. Note that this method will not be called
@@ -90,5 +91,9 @@ public interface Service extends Feature {
 
 	default int getRetryDelay() {
 		return Settings.ServicesStartTimeout.getValue(30);
+	}
+
+	default String getErrorMessage() {
+		return null;
 	}
 }

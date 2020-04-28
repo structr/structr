@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -74,9 +74,9 @@ import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.schema.action.JavaScriptSource;
-import org.structr.schema.json.JsonMethod;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonMethod;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.web.common.ClosingFileOutputStream;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;

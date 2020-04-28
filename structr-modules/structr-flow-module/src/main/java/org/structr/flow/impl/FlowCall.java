@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -50,7 +50,7 @@ public class FlowCall extends FlowActionNode implements DataSource, DeployableEn
 	public static final Property<FlowContainer> flow                      = new EndNode<>("flow", FlowCallContainer.class);
 
 	public static final View defaultView 								= new View(FlowCall.class, PropertyView.Public, flow, dataTarget, parameters, isStartNodeOfContainer);
-	public static final View uiView      								= new View(FlowCall.class, PropertyView.Ui,     flow, dataTarget, parameters, isStartNodeOfContainer);
+	public static final View uiView      								= new View(FlowCall.class, PropertyView.Ui,     flow, dataTarget, parameters, isStartNodeOfContainer, flowContainer);
 
 	@Override
 	public void execute(Context context) throws FlowException {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,7 +20,11 @@ package org.structr.web.entity.dom;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.Charset;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.io.IOUtils;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
@@ -29,6 +33,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Favoritable;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyKey;
@@ -36,8 +41,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -87,7 +90,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		type.overrideMethod("setFavoriteContent",         false, "setContent(arg0);");
 		type.overrideMethod("getFavoriteContent",         false, "return getContent();");
 		type.overrideMethod("getFavoriteContentType",     false, "return getContentType();");
-		type.overrideMethod("getContext",                 false, "return getPagePath();");
+		type.overrideMethod("getContext",                 false, "if (StringUtils.isNotBlank(getName())) { return getName(); } else { return getPagePath(); }");
 
 		// ----- interface org.w3c.dom.Node -----
 		type.overrideMethod("getTextContent",        false, "return getData();");
@@ -156,18 +159,6 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 	String getContent();
 	void setContent(final String content) throws FrameworkException;
 	void setContentType(final String contentType) throws FrameworkException;
-
-	/*
-	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui,
-		content, contentType, parent, pageId, syncedNodes, sharedComponent, sharedComponentConfiguration, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
-		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent, isDOMNode, isFavoritable
-	);
-
-	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public,
-		content, contentType, parent, pageId, syncedNodes, sharedComponent, sharedComponentConfiguration, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
-		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent, isDOMNode, isFavoritable
-	);
-	*/
 
 	static void onModification(final Content thisContent, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
@@ -246,17 +237,17 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 				return;
 			}
 
-			final ContentHandler handler = new RenderContextContentHandler(thisNode, renderContext);
-			final String id              = thisNode.getUuid();
-			final boolean inBody         = renderContext.inBody();
-			final AsyncBuffer out        = renderContext.getBuffer();
-			final String _contentType    = thisNode.getContentType();
+			final RenderContextContentHandler handler = new RenderContextContentHandler(thisNode, renderContext);
+			final String id                           = thisNode.getUuid();
+			final boolean inBody                      = renderContext.inBody();
+			final AsyncBuffer out                     = renderContext.getBuffer();
+			final String _contentType                 = thisNode.getContentType();
 
 			// apply configuration for shared component if present
 			final String _sharedComponentConfiguration = thisNode.getSharedComponentConfiguration();
 			if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
 
-				Scripting.evaluate(renderContext, thisNode, "${" + _sharedComponentConfiguration + "}", "shared component configuration");
+				Scripting.evaluate(renderContext, thisNode, "${" + _sharedComponentConfiguration.trim() + "}", "shared component configuration");
 			}
 
 			// determine some postprocessing flags
@@ -319,9 +310,15 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
 		} catch (Throwable t) {
 
-			// catch exception to prevent ugly status 500 error pages in frontend.
-			logger.error("", t);
+			final boolean isShadowPage = DOMNode.isSharedComponent(thisNode);
 
+			// catch exception to prevent status 500 error pages in frontend.
+			if (!isShadowPage) {
+				final DOMNode ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
+				logger.error("Error while evaluating script in page {}[{}], Content[{}]", ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, t);
+			} else {
+				logger.error("Error while evaluating script in shared component, Content[{}]", thisNode, t);
+			}
 		}
 	}
 
@@ -541,6 +538,8 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 			boolean hasBackslash             = false;
 			boolean hasDollar                = false;
 			int level                        = 0;
+			int row                          = 0;
+			int column                       = 0;
 
 			for (int i=0; i<length; i++) {
 
@@ -594,6 +593,8 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 							textBuffer.setLength(0);
 							scriptBuffer.append("$");
 
+							handler.possibleStartOfScript(row, column-1);
+
 						} else if (inTemplate && !inSingleQuotes && !inDoubleQuotes && !inComment) {
 							level++;
 						}
@@ -643,6 +644,8 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 					case '\r':
 					case '\n':
 						inComment = false;
+						column = 0;
+						row++;
 						break;
 
 					default:
@@ -666,11 +669,14 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 						textBuffer.append(c);
 					}
 				}
+
+				column++;
 			}
 
 			if (scriptBuffer.length() > 0) {
 
 				// something's wrong, content ended inside of script template block
+				handler.handleIncompleteScript(scriptBuffer.toString());
 			}
 
 			if (textBuffer.length() > 0) {
@@ -683,12 +689,10 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
 	static interface ContentHandler {
 
-		void setConverter(final Adapter<String, String> converter);
-		void setReplaceNewlines(final boolean replaceNewlines);
-		void setEscapeForHtml(final boolean escapeForHtml);
 		void handleScript(final String script) throws FrameworkException, IOException;
+		void handleIncompleteScript(final String script) throws FrameworkException, IOException;
 		void handleText(final String text) throws FrameworkException;
-		boolean isEmpty();
+		void possibleStartOfScript(final int row, final int column);
 	}
 
 	static class RenderContextContentHandler implements ContentHandler {
@@ -706,22 +710,24 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 			this.node          = node;
 		}
 
-		@Override
 		public void setConverter(final Adapter<String, String> converter) {
-
 			this.converter = converter;
 		}
 
-		@Override
 		public void setReplaceNewlines(final boolean replaceNewlines) {
-
 			this.replaceNewlines = replaceNewlines;
 		}
 
-		@Override
 		public void setEscapeForHtml(final boolean escapeForHtml) {
-
 			this.escapeForHtml = escapeForHtml;
+		}
+
+		public boolean isEmpty() {
+			return isEmpty;
+		}
+
+		@Override
+		public void handleIncompleteScript(final String script) throws FrameworkException, IOException {
 		}
 
 		@Override
@@ -740,7 +746,16 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 				final Object value = Scripting.evaluate(renderContext, node, script, "script source");
 				if (value != null) {
 
-					final String content = value.toString();
+					String content = null;
+					
+					// Convert binary data to String with charset from response
+					if (value instanceof byte[]) {
+						//StringUtils.toEncodedString((byte[]) value, renderContext.getPage().getProperty(StructrApp.key(Page.class, "contentType")));
+						content = StringUtils.toEncodedString((byte[]) value, Charset.forName(renderContext.getResponse().getCharacterEncoding()));
+					} else {
+						content = value.toString();
+					}
+					
 					if (StringUtils.isNotBlank(content)) {
 
 						renderContext.getBuffer().append(transform(content));
@@ -761,8 +776,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		}
 
 		@Override
-		public boolean isEmpty() {
-			return isEmpty;
+		public void possibleStartOfScript(final int row, final int column) {
 		}
 
 		private String transform(final String src) throws FrameworkException {

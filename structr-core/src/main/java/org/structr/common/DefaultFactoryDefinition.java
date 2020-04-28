@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,17 +18,11 @@
  */
 package org.structr.common;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Function;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
-import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
-import org.structr.api.util.Iterables;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -102,7 +96,6 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 					return nodeType;
 				}
 			}
-
 		}
 
 		return getGenericNodeType();
@@ -116,14 +109,14 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 		}
 
 		final String type = GraphObject.type.dbName();
-		
+
 		final Node startNode = relationship.getStartNode();
 		final Node endNode   = relationship.getEndNode();
 
 		if (startNode == null || endNode == null) {
 			return null;
 		}
-		
+
 		// first try: duck-typing
 		final String sourceType = startNode.hasProperty(type) ? startNode.getProperty(type).toString() : "";
 		final String targetType = endNode.hasProperty(type) ? endNode.getProperty(type).toString() : "";
@@ -131,7 +124,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 		final Class entityType  = getClassForCombinedType(sourceType, relType, targetType);
 
 		if (entityType != null) {
-			
+
 			logger.debug("Class for assembled combined {}", entityType.getName());
 			return entityType;
 		}
@@ -183,13 +176,5 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 
 	private Class getClassForCombinedType(final String sourceType, final String relType, final String targetType) {
 		return StructrApp.getConfiguration().getRelationClassForCombinedType(sourceType, relType, targetType);
-	}
-
-	private class LabelExtractor implements Function<Label, String> {
-
-		@Override
-		public String apply(final Label from) throws RuntimeException {
-			return from.name();
-		}
 	}
 }

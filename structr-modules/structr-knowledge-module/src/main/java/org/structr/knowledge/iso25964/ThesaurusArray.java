@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,12 +19,12 @@
 package org.structr.knowledge.iso25964;
 
 import java.net.URI;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 
 /**
  * Class as defined in ISO 25964 data model
@@ -34,17 +34,17 @@ public interface ThesaurusArray extends NodeInterface {
 	static class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		
+
 		final JsonObjectType type    = schema.addType("ThesaurusArray");
 		final JsonObjectType label   = schema.addType("NodeLabel");
 		final JsonObjectType concept = schema.addType("ThesaurusConcept");
-		
+
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ThesaurusArray"));
-		
+
 		type.addStringProperty("identifier", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
 		type.addBooleanProperty("ordered", PropertyView.All, PropertyView.Ui).setDefaultValue("false").setRequired(true);
 		type.addStringArrayProperty("notation", PropertyView.All, PropertyView.Ui);
-		
+
 		type.relate(label,   "hasNodeLabel",     Cardinality.OneToMany, "thesaurusArray", "nodeLabels");
 		type.relate(type,    "hasMemberArray",   Cardinality.OneToMany, "superOrdinateArray", "memberArrays");
 		type.relate(concept, "hasMemberConcept", Cardinality.ManyToMany, "thesaurusArrays", "memberConcepts");

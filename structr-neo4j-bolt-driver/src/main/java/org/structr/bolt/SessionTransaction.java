@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,6 +28,7 @@ import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.Transaction;
+import org.neo4j.driver.v1.TransactionConfig;
 import org.neo4j.driver.v1.Value;
 import org.neo4j.driver.v1.Values;
 import org.neo4j.driver.v1.exceptions.ClientException;
@@ -46,16 +47,11 @@ import org.structr.api.RetryException;
 import org.structr.api.UnknownClientException;
 import org.structr.api.UnknownDatabaseException;
 import org.structr.api.util.Iterables;
-import org.structr.bolt.index.IterableQueueingRecordConsumer;
-import org.structr.bolt.mapper.RecordMapMapper;
-import org.structr.bolt.wrapper.EntityWrapper;
-import org.structr.bolt.wrapper.NodeWrapper;
-import org.structr.bolt.wrapper.RelationshipWrapper;
 
 /**
  *
  */
-public class SessionTransaction implements org.structr.api.Transaction {
+class SessionTransaction implements org.structr.api.Transaction {
 
 	private static final AtomicLong ID_SOURCE         = new AtomicLong();
 	private final Set<EntityWrapper> accessedEntities = new HashSet<>();
@@ -75,7 +71,17 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		this.transactionId = ID_SOURCE.getAndIncrement();
 		this.session       = session;
-		this.tx            = session.beginTransaction();
+		this.tx            = session.beginTransaction(db.getTransactionConfig(transactionId));
+		this.db            = db;
+	}
+
+	public SessionTransaction(final BoltDatabaseService db, final Session session, final int timeoutInSeconds) {
+
+		final TransactionConfig config = db.getTransactionConfigForTimeout(timeoutInSeconds, transactionId);
+
+		this.transactionId = ID_SOURCE.getAndIncrement();
+		this.session       = session;
+		this.tx            = session.beginTransaction(config);
 		this.db            = db;
 	}
 
@@ -182,8 +188,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 	public boolean getBoolean(final String statement, final Map<String, Object> map) {
 
-		final long t0 = System.currentTimeMillis();
-
 		try {
 
 			logQuery(statement, map);
@@ -204,8 +208,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	public long getLong(final String statement) {
-
-		final long t0 = System.currentTimeMillis();
 
 		try {
 
@@ -228,8 +230,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 	public long getLong(final String statement, final Map<String, Object> map) {
 
-		final long t0 = System.currentTimeMillis();
-
 		try {
 
 			logQuery(statement, map);
@@ -250,8 +250,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	public Object getObject(final String statement, final Map<String, Object> map) {
-
-		final long t0 = System.currentTimeMillis();
 
 		try {
 
@@ -280,8 +278,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 	public Entity getEntity(final String statement, final Map<String, Object> map) {
 
-		final long t0 = System.currentTimeMillis();
-
 		try {
 
 			logQuery(statement, map);
@@ -302,8 +298,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	public Node getNode(final String statement, final Map<String, Object> map) {
-
-		final long t0 = System.currentTimeMillis();
 
 		try {
 
@@ -329,8 +323,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	public Relationship getRelationship(final String statement, final Map<String, Object> map) {
-
-		final long t0 = System.currentTimeMillis();
 
 		try {
 
@@ -368,8 +360,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 	public Iterable<String> getStrings(final String statement, final Map<String, Object> map) {
 
-		final long t0 = System.currentTimeMillis();
-
 		try {
 
 			logQuery(statement, map);
@@ -395,8 +385,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 	public Iterable<Map<String, Object>> run(final String statement, final Map<String, Object> map) {
 
-		final long t0 = System.currentTimeMillis();
-
 		try {
 
 			logQuery(statement, map);
@@ -417,8 +405,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	public void set(final String statement, final Map<String, Object> map) {
-
-		final long t0 = System.currentTimeMillis();
 
 		try {
 
@@ -507,40 +493,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		// we need a simple object that can be used in a weak hash map
 		return transactionKey;
 	}
-
-	/**
-	 * This method uses reflection to hack into Neo4j's internal driver implementation
-	 * and remove CompletionStage instances from a list that is only ever added to. It
-	 * was intended to solve a memory leak problem that occurs with small heap sizes
-	 * when a large number of results is fetched incrementally in a single transaction,
-	 * but was disabled because an external user of the driver should not act in such
-	 * a way.
-	 */
-	public void clearCursors() {
-
-		/* disabled!
-		if (tx instanceof ExplicitTransaction) {
-
-			try {
-
-				final Field resultCursors = ExplicitTransaction.class.getDeclaredField("resultCursors");
-				final Field cursorStages  = ResultCursorsHolder.class.getDeclaredField("cursorStages");
-
-				resultCursors.setAccessible(true);
-				cursorStages.setAccessible(true);
-
-				final ResultCursorsHolder holder = (ResultCursorsHolder)resultCursors.get(tx);
-				final List stages                = (List)cursorStages.get(holder);
-
-				stages.clear();
-
-			} catch (Throwable t) {
-				t.printStackTrace();
-			}
-		}
-		*/
-	}
-
 
 	// ----- public static methods -----
 	public static RuntimeException translateClientException(final ClientException cex) {

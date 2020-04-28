@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -105,7 +105,7 @@ var _Apps = {
 								$.unblockUI({ fadeOut: 25 });
 
 								LSWrapper.removeItem(_Schema.hiddenSchemaNodesKey);
-								Structr.saveLocalStorage(function() {
+								LSWrapper.save(function() {
 									form.submit();
 								});
 							}

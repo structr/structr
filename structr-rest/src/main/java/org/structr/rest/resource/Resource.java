@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,10 +28,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.search.SortOrder;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
 import org.structr.common.CaseHelper;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -81,7 +81,7 @@ public abstract class Resource {
 	public abstract String getResourceSignature();
 	public abstract boolean isCollectionResource() throws FrameworkException;
 
-	public abstract ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException;
+	public abstract ResultStream doGet(final SortOrder sortOrder, final int pageSize, final int page) throws FrameworkException;
 	public abstract RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException;
 
 	@Override
@@ -120,7 +120,7 @@ public abstract class Resource {
 				chunk++;
 
 				// always fetch the first page
-				try (final ResultStream<GraphObject> result = doGet(null, false, pageSize, 1)) {
+				try (final ResultStream<GraphObject> result = doGet(null, pageSize, 1)) {
 
 					for (final GraphObject obj : result) {
 
@@ -162,7 +162,7 @@ public abstract class Resource {
 
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
-		final List<GraphObject> results = Iterables.toList(doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
+		final List<GraphObject> results = Iterables.toList(doGet(null, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
 
 		if (results != null && !results.isEmpty()) {
 
@@ -227,6 +227,17 @@ public abstract class Resource {
 		return true;
 	}
 
+	public Class getEntityClassOrDefault() {
+
+		final Class entityClass = getEntityClass();
+		if (entityClass != null) {
+
+			return entityClass;
+		}
+
+		return AbstractNode.class;
+	}
+
 	// ----- protected methods -----
 	protected PropertyKey findPropertyKey(final TypedIdResource typedIdResource, final TypeResource typeResource) {
 
@@ -258,13 +269,11 @@ public abstract class Resource {
 		return uriBuilder.toString();
 	}
 
-	protected void applyDefaultSorting(List<? extends GraphObject> list, PropertyKey sortKey, boolean sortDescending) {
+	protected void applyDefaultSorting(final List<? extends GraphObject> list, final SortOrder sortOrder) {
 
-		String finalSortOrder = sortDescending ? "desc" : "asc";
+		if (sortOrder != null && !sortOrder.isEmpty()) {
 
-		if (sortKey != null) {
-
-			Collections.sort(list, new GraphObjectComparator(sortKey, finalSortOrder));
+			Collections.sort(list, sortOrder);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,12 +27,17 @@ import org.structr.schema.action.ActionContext;
 
 public class AddToGroupFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE    = "Usage: ${add_to_group(group, principal)}";
-	public static final String ERROR_MESSAGE_JS = "Usage: ${{Structr.addToGroup(group, principal);}}";
+	public static final String ERROR_MESSAGE    = "Usage: ${add_to_group(group, user)}";
+	public static final String ERROR_MESSAGE_JS = "Usage: ${{Structr.addToGroup(group, user);}}";
 
 	@Override
 	public String getName() {
 		return "add_to_group";
+	}
+
+	@Override
+	public String getSignature() {
+		return "group, user";
 	}
 
 	@Override

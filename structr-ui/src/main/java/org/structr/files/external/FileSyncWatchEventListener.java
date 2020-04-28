@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,6 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -117,19 +118,41 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 
 		if (folder != null) {
 
+			Class<? extends File> targetFileType      = null;
+			Class<? extends Folder> targetFolderType    = null;
+
+			try {
+				if (folder.getMountTargetFileType() != null) {
+					final Class clazz = StructrApp.getConfiguration().getNodeEntityClass(folder.getMountTargetFileType());
+					if (clazz != null && clazz != GenericNode.class && File.class.isAssignableFrom(clazz)) {
+						targetFileType = clazz;
+					}
+				}
+
+				if (folder.getMountTargetFolderType() != null) {
+					final Class clazz = StructrApp.getConfiguration().getNodeEntityClass(folder.getMountTargetFolderType());
+					if (clazz != null && clazz != GenericNode.class && Folder.class.isAssignableFrom(clazz)) {
+						targetFolderType = clazz;
+					}
+				}
+			} catch (ClassCastException ex) {
+
+				logger.error("Given target type for mounted files or folders was not extending AbstractFile.", ex);
+			}
+
 			final String mountFolderPath = folder.getProperty(StructrApp.key(Folder.class, "path"));
 			if (mountFolderPath != null) {
 
 				final Path relativePathParent = relativePath.getParent();
 				if (relativePathParent == null) {
 
-					return new FolderAndFile(folder, getOrCreate(folder, path, relativePath, create));
+					return new FolderAndFile(folder, getOrCreate(folder, path, relativePath, create, targetFolderType, targetFileType));
 
 				} else {
 
 					final String pathRelativeToRoot = folder.getPath() + "/" + relativePathParent.toString();
 					final Folder parentFolder       = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), pathRelativeToRoot);
-					final AbstractFile file         = getOrCreate(parentFolder, path, relativePath, create);
+					final AbstractFile file         = getOrCreate(parentFolder, path, relativePath, create, targetFolderType, targetFileType);
 
 					return new FolderAndFile(folder, file);
 				}
@@ -143,14 +166,14 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 		return null;
 	}
 
-	private AbstractFile getOrCreate(final Folder parentFolder, final Path fullPath, final Path relativePath, final boolean doCreate) throws FrameworkException {
+	private AbstractFile getOrCreate(final Folder parentFolder, final Path fullPath, final Path relativePath, final boolean doCreate, final Class<? extends Folder> folderType, final Class<? extends File> fileType) throws FrameworkException {
 
 		final PropertyKey<Boolean> isExternalKey = StructrApp.key(AbstractFile.class, "isExternal");
 		final PropertyKey<Folder> parentKey      = StructrApp.key(AbstractFile.class, "parent");
 		final String fileName                    = relativePath.getFileName().toString();
 		final boolean isFile                     = !Files.isDirectory(fullPath);
-		final Class<? extends AbstractFile> type = isFile ? org.structr.web.entity.File.class : Folder.class;
 		final App app                            = StructrApp.getInstance();
+		final Class<? extends AbstractFile> type = isFile ? (fileType != null ? fileType : org.structr.web.entity.File.class) : (folderType != null ? folderType : Folder.class);
 
 		AbstractFile file = app.nodeQuery(type).and(AbstractFile.name, fileName).and(parentKey, parentFolder).getFirst();
 		if (file == null && doCreate) {

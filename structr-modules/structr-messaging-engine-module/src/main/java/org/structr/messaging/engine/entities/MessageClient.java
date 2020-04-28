@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,18 +21,18 @@ package org.structr.messaging.engine.entities;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 
 public interface MessageClient extends NodeInterface {
 
@@ -46,7 +46,7 @@ public interface MessageClient extends NodeInterface {
 
 			type.setImplements(URI.create("https://structr.org/v1.1/definitions/MessageClient"));
 
-			type.relate(sub, "HAS_SUBSCRIBER", Relation.Cardinality.ManyToMany, "clients", "subscribers");
+			type.relate(sub, "HAS_SUBSCRIBER", Cardinality.ManyToMany,"clients","subscribers");
 
 			type.addViewProperty(PropertyView.Public, "subscribers");
 			type.addViewProperty(PropertyView.Ui,     "subscribers");

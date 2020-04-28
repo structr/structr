@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -68,7 +68,10 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 	@Override
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
-		if (securityContext.doEnsureCardinality() && targetNode != null && sourceNode.hasRelationshipTo(this, targetNode)) {
+		// The following code has nothing to do with cardinality, although it is implemented in the ensureCardinality method.
+		// It checks for and prevents duplicate relationships (between exactly the same two nodes, which we don't want).
+
+		if (securityContext.preventDuplicateRelationships() && targetNode != null && sourceNode.hasRelationshipTo(this, targetNode)) {
 
 			final String message = "Relationship already exists from " + sourceNode.getType() + "(" + sourceNode.getUuid() + ") " + sourceNode.getName() + " to " + targetNode.getType() + " (" + targetNode.getUuid() + ") " + targetNode.getName();
 

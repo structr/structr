@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,7 +23,6 @@ import java.net.URI;
 import java.util.Collections;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
@@ -33,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Principal;
@@ -66,6 +66,24 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
+
+		try {
+
+			assertInitialized();
+
+		} catch (FrameworkException fex) {
+
+			try {
+				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
+
+			} catch (IOException ioex) {
+
+				logger.warn("Unable to send response", ioex);
+			}
+
+			return;
+		}
 
 		setCustomResponseHeaders(response);
 
@@ -148,6 +166,24 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 
 	@Override
 	protected void doOptions(final HttpServletRequest request, final HttpServletResponse response) {
+
+		try {
+
+			assertInitialized();
+
+		} catch (FrameworkException fex) {
+
+			try {
+				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
+
+			} catch (IOException ioex) {
+
+				logger.warn("Unable to send response", ioex);
+			}
+
+			return;
+		}
 
 		try {
 

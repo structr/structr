@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -82,38 +82,56 @@ public class CronService extends Thread implements RunnableService {
 
 			for (CronEntry entry : cronEntries) {
 
-				if (entry.getDelayToNextExecutionInMillis() < GRANULARITY_UNIT.toMillis(GRANULARITY)) {
+				if (entry.shouldExecuteNow()) {
 
 					final String taskClassName = entry.getName();
 					final Class taskClass      = instantiate(taskClassName);
 
-					try {
+					if (entry.isRunning() && Settings.CronAllowParallelExecution.getValue() == false) {
+						logger.warn("Prevented parallel execution of '{}' - if this happens regularly you should consider adjusting the cronExpression!", taskClassName);
+					} else {
 
-						if (taskClass != null) {
+						new Thread(new Runnable() {
 
-							Task task = (Task)taskClass.newInstance();
+							@Override
+							public void run() {
 
-							logger.debug("Starting task {}", taskClassName);
-							StructrApp.getInstance().processTasks(task);
+								try {
 
-						} else {
+									entry.incrementRunCount();
 
-							try (final Tx tx = StructrApp.getInstance().tx()) {
+									if (taskClass != null) {
 
-								// check for schema method with the given name
-								Actions.callAsSuperUser(taskClassName, Collections.EMPTY_MAP);
+										Task task = (Task)taskClass.newInstance();
 
-								tx.success();
+										logger.debug("Starting task {}", taskClassName);
+										StructrApp.getInstance().processTasks(task);
+
+									} else {
+
+										try (final Tx tx = StructrApp.getInstance().tx()) {
+
+											// check for schema method with the given name
+											Actions.callAsSuperUser(taskClassName, Collections.EMPTY_MAP);
+
+											tx.success();
+										}
+									}
+
+								} catch (FrameworkException fex) {
+
+									logger.warn("Exception while executing cron task {}: {}", taskClassName, fex.toString());
+
+								} catch (Throwable t) {
+
+									logger.warn("Exception while executing cron task {}: {}", taskClassName, t.getMessage());
+
+								} finally {
+
+									entry.decrementRunCount();
+								}
 							}
-						}
-
-					} catch (FrameworkException fex) {
-
-						logger.warn("Exception while executing cron task {}: {}", taskClassName, fex.toString());
-
-					} catch (Throwable t) {
-
-						logger.warn("Exception while executing cron task {}: {}", taskClassName, t.getMessage());
+						}).start();
 					}
 				}
 			}
@@ -147,7 +165,7 @@ public class CronService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final String taskList = Settings.CronTasks.getValue();
 		if (StringUtils.isNotBlank(taskList)) {
@@ -162,18 +180,18 @@ public class CronService extends Thread implements RunnableService {
 						CronEntry entry = CronEntry.parse(task, cronSetting.getValue().toString());
 						if(entry != null) {
 
-							logger.info("Adding cron entry {} for {}", new Object[]{ entry, task });
+							logger.info("Adding cron entry {} for '{}'", entry, task);
 
 							cronEntries.add(entry);
 
 						} else {
 
-							logger.warn("Unable to parse cron expression for taks {}, ignoring.", task);
+							logger.warn("Unable to parse cron expression for task '{}', ignoring.", task);
 						}
 
 					} else {
 
-						logger.warn("No cron expression for task {}, ignoring.", task);
+						logger.warn("No cron expression for task '{}', ignoring.", task);
 					}
 				}
 			}

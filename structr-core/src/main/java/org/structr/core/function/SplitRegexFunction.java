@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,11 +26,16 @@ import org.structr.schema.action.ActionContext;
 
 public class SplitRegexFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_SPLIT_REGEX = "Usage: ${split_regex(value)}. Example: ${split_regex('foo|bar', '|')}";
+	public static final String ERROR_MESSAGE_SPLIT_REGEX = "Usage: ${split_regex(str, regex)}. Example: ${split_regex('foo|bar', '|')}";
 
 	@Override
 	public String getName() {
 		return "split_regex";
+	}
+
+	@Override
+	public String getSignature() {
+		return "str, regex";
 	}
 
 	@Override

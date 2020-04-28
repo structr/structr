@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -78,5 +78,13 @@ public class ChangeAwareMap {
 
 	public Object remove(final String key) {
 		return data.remove(key);
+	}
+
+	public int size() {
+		return data.size();
+	}
+
+	public Set<Entry<String, Object>> entrySet() {
+		return data.entrySet();
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.schema;
 
 import graphql.Scalars;
@@ -38,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -54,6 +54,7 @@ import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InstantiationErrorToken;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -75,7 +76,7 @@ import org.structr.schema.compiler.RemoveDuplicateClasses;
 import org.structr.schema.compiler.RemoveExportedMethodsWithoutSecurityContext;
 import org.structr.schema.compiler.RemoveMethodsWithUnusedSignature;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonSchema;
 
 /**
  * Structr Schema Service for dynamic class support at runtime.
@@ -108,7 +109,7 @@ public class SchemaService implements Service {
 	}
 
 	@Override
-	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 		return reloadSchema(new ErrorBuffer(), null);
 	}
 
@@ -389,8 +390,6 @@ public class SchemaService implements Service {
 
 					FlushCachesCommand.flushAll();
 
-					t.printStackTrace();
-
 					logger.error("Unable to compile dynamic schema: {}", t.getMessage());
 					success = false;
 				}
@@ -440,15 +439,7 @@ public class SchemaService implements Service {
 	}
 
 	public static void ensureBuiltinTypesExist(final App app) throws FrameworkException {
-
-		try {
-
-			StructrSchema.extendDatabaseSchema(app, dynamicSchema);
-
-		} catch (Exception ex) {
-
-			ex.printStackTrace();
-		}
+		StructrSchema.extendDatabaseSchema(app, dynamicSchema);
 	}
 
 	@Override
@@ -508,6 +499,12 @@ public class SchemaService implements Service {
 
 	private static void updateIndexConfiguration(final Map<String, Map<String, PropertyKey>> removedClasses) {
 
+		if (Services.isTesting() && !Services.updateIndexConfiguration()) {
+
+			logger.info("Skipping index creation in test mode.");
+			return;
+		}
+
 		final Thread indexUpdater = new Thread(new Runnable() {
 
 			@Override
@@ -543,8 +540,8 @@ public class SchemaService implements Service {
 									boolean createIndex        = key.isIndexed() || key.isIndexedWhenEmpty();
 									final Class declaringClass = key.getDeclaringClass();
 
-									createIndex &= declaringClass == null || whitelist.contains(type) || type.equals(declaringClass);
-									createIndex &= !NonIndexed.class.isAssignableFrom(type);
+									createIndex &= (declaringClass == null || whitelist.contains(type) || type.equals(declaringClass));
+									createIndex &= (!NonIndexed.class.isAssignableFrom(type));
 
 									typeConfig.put(key.dbName(), createIndex);
 								}
@@ -568,7 +565,7 @@ public class SchemaService implements Service {
 							}
 						}
 
-						graphDb.updateIndexConfiguration(schemaIndexConfig, removedClassesConfig);
+						graphDb.updateIndexConfiguration(schemaIndexConfig, removedClassesConfig, Services.isTesting());
 
 					} finally {
 

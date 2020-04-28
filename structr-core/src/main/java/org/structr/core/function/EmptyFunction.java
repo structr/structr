@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import java.util.Collection;
+import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.Undefined;
@@ -35,6 +36,11 @@ public class EmptyFunction extends CoreFunction {
 	@Override
 	public String getName() {
 		return "empty";
+	}
+
+	@Override
+	public String getSignature() {
+		return "value";
 	}
 
 	@Override
@@ -66,6 +72,10 @@ public class EmptyFunction extends CoreFunction {
 
 			return (((NativeObject) sources[0]).size() == 0);
 
+		} else if (sources[0] instanceof Map) {
+
+			return (((Map) sources[0]).isEmpty());
+
 		} else {
 
 			return false;
@@ -80,7 +90,7 @@ public class EmptyFunction extends CoreFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Returns true if the given string or collection is null or empty";
+		return "Returns true if the given value is null or empty";
 	}
 
 }

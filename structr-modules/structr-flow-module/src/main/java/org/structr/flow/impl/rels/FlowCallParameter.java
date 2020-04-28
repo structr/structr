@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,12 +18,15 @@
  */
 package org.structr.flow.impl.rels;
 
+import org.structr.api.graph.PropagationDirection;
+import org.structr.api.graph.PropagationMode;
+import org.structr.common.PermissionPropagation;
 import org.structr.core.entity.ManyToMany;
 import org.structr.core.entity.Relation;
 import org.structr.flow.impl.FlowCall;
 import org.structr.flow.impl.FlowParameterInput;
 
-public class FlowCallParameter extends ManyToMany<FlowParameterInput, FlowCall> {
+public class FlowCallParameter extends ManyToMany<FlowParameterInput, FlowCall> implements PermissionPropagation {
 
 	@Override
 	public Class<FlowParameterInput> getSourceType() {
@@ -43,5 +46,35 @@ public class FlowCallParameter extends ManyToMany<FlowParameterInput, FlowCall> 
 	@Override
 	public int getAutocreationFlag() {
 		return Relation.ALWAYS;
+	}
+
+	@Override
+	public PropagationDirection getPropagationDirection() {
+		return PropagationDirection.Both;
+	}
+
+	@Override
+	public PropagationMode getReadPropagation() {
+		return PropagationMode.Add;
+	}
+
+	@Override
+	public PropagationMode getWritePropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getDeletePropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getAccessControlPropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public String getDeltaProperties() {
+		return null;
 	}
 }

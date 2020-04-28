@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,7 +22,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import org.structr.api.DatabaseService;
-import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
@@ -84,38 +83,36 @@ public class TypeProperty extends StringProperty {
 
 	public static void updateLabels(final DatabaseService graphDb, final NodeInterface node, final Class inputType, final boolean removeUnused) {
 
-		final Set<Label> intersection = new LinkedHashSet<>();
-		final Set<Label> toRemove     = new LinkedHashSet<>();
-		final Set<Label> toAdd        = new LinkedHashSet<>();
-		final Node dbNode             = node.getNode();
-		final List<Label> labels      = Iterables.toList(dbNode.getLabels());
-		Class singleLabelType         = inputType;
+		final Set<String> intersection = new LinkedHashSet<>();
+		final Set<String> toRemove     = new LinkedHashSet<>();
+		final Set<String> toAdd        = new LinkedHashSet<>();
+		final Node dbNode              = node.getNode();
+		final List<String> labels      = Iterables.toList(dbNode.getLabels());
+		Class singleLabelType          = inputType;
 
 		// include optional tenant identifier when modifying labels
 		final String tenantIdentifier = graphDb.getTenantIdentifier();
 		if (tenantIdentifier != null) {
 
-			final Label tenantLabel = graphDb.forName(Label.class, tenantIdentifier);
-
-			toAdd.add(tenantLabel);
-			labels.remove(tenantLabel);
+			toAdd.add(tenantIdentifier);
+			labels.remove(tenantIdentifier);
 		}
 
 		// initialize type property from single label on unknown nodes
 		if (node instanceof GenericNode && labels.size() == 1 && !dbNode.hasProperty("type")) {
 
-			final String singleLabelTypeName = labels.get(0).name();
+			final String singleLabelTypeName = labels.get(0);
 			final Class typeCandidate        = StructrApp.getConfiguration().getNodeEntityClass(singleLabelTypeName);
 
 			if (typeCandidate != null) {
 				singleLabelType = typeCandidate;
 			}
 
-			dbNode.setProperty("type", labels.get(0).name());
+			dbNode.setProperty("type", labels.get(0));
 		}
 
 		// collect labels that are already present on a node
-		for (final Label label : labels) {
+		for (final String label : labels) {
 			toRemove.add(label);
 		}
 
@@ -125,7 +122,7 @@ public class TypeProperty extends StringProperty {
 			final String supertypeName = supertype.getName();
 
 			if (supertypeName.startsWith("org.structr.") || supertypeName.startsWith("com.structr.")) {
-				toAdd.add(graphDb.forName(Label.class, supertype.getSimpleName()));
+				toAdd.add(supertype.getSimpleName());
 			}
 		}
 
@@ -140,13 +137,13 @@ public class TypeProperty extends StringProperty {
 		if (removeUnused) {
 
 			// remove difference
-			for (final Label remove : toRemove) {
+			for (final String remove : toRemove) {
 				dbNode.removeLabel(remove);
 			}
 		}
 
 		// add difference
-		for (final Label add : toAdd) {
+		for (final String add : toAdd) {
 			dbNode.addLabel(add);
 		}
 	}

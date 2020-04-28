@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -378,8 +378,8 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public <T extends Service> T getService(Class<T> serviceClass) {
-		return Services.getInstance().getService(serviceClass);
+	public <T extends Service> T getService(final Class<T> serviceClass) {
+		return Services.getInstance().getService(serviceClass, "default");
 	}
 
 	@Override

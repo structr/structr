@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,15 +20,15 @@ package org.structr.mail.entity;
 
 import java.net.URI;
 import java.util.Date;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.graph.PropagationDirection;
+import org.structr.api.graph.PropagationMode;
 import org.structr.common.PropertyView;
-import org.structr.core.entity.Relation;
-import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonReferenceProperty;
-import org.structr.schema.json.JsonReferenceType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonReferenceType;
+import org.structr.api.schema.JsonSchema;
 
 public interface EMailMessage extends NodeInterface {
 
@@ -69,10 +69,10 @@ public interface EMailMessage extends NodeInterface {
 		type.addPropertyGetter("receivedDate",      Date.class);
 		type.addPropertyGetter("sentDate",          Date.class);
 
-		JsonReferenceType rel = type.relate(file, "HAS_ATTACHMENT", Relation.Cardinality.OneToMany, "attachedMail", "attachedFiles");
+		JsonReferenceType rel = type.relate(file, "HAS_ATTACHMENT", Cardinality.OneToMany, "attachedMail", "attachedFiles");
 		rel.setCascadingDelete(JsonSchema.Cascade.sourceToTarget);
-		rel.setReadPermissionPropagation(SchemaRelationshipNode.Propagation.Add);
-		rel.setPermissionPropagation(SchemaRelationshipNode.Direction.Out);
+		rel.setReadPermissionPropagation(PropagationMode.Add);
+		rel.setPermissionPropagation(PropagationDirection.Out);
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "id,type");

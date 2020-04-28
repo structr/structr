@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,9 +23,9 @@ import java.util.Set;
 import java.util.TreeSet;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
-import org.structr.schema.json.JsonProperty;
-import org.structr.schema.json.JsonReferenceProperty;
-import org.structr.schema.json.JsonType;
+import org.structr.api.schema.JsonProperty;
+import org.structr.api.schema.JsonReferenceProperty;
+import org.structr.api.schema.JsonType;
 
 /**
  *

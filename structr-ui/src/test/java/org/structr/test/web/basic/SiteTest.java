@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.test.web.basic;
 
 import com.jayway.restassured.RestAssured;
+import java.util.Arrays;
 import org.testng.annotations.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -63,10 +64,10 @@ public class SiteTest extends StructrUiTest {
 			page3.setProperty(StructrApp.key(Page.class, "position"), 10);
 			page4.setProperty(StructrApp.key(Page.class, "position"), 10);
 
-			page1.setProperty(StructrApp.key(Page.class, "site"), site1);
-			page2.setProperty(StructrApp.key(Page.class, "site"), site1);
-			page3.setProperty(StructrApp.key(Page.class, "site"), site2);
-			page4.setProperty(StructrApp.key(Page.class, "site"), site2);
+			page1.setProperty(StructrApp.key(Page.class, "sites"), Arrays.asList(site1));
+			page2.setProperty(StructrApp.key(Page.class, "sites"), Arrays.asList(site1));
+			page3.setProperty(StructrApp.key(Page.class, "sites"), Arrays.asList(site2));
+			page4.setProperty(StructrApp.key(Page.class, "sites"), Arrays.asList(site2));
 
 			tx.success();
 
@@ -118,10 +119,10 @@ public class SiteTest extends StructrUiTest {
 			page3.setProperty(StructrApp.key(Page.class, "position"), 10);
 			page4.setProperty(StructrApp.key(Page.class, "position"), 10);
 
-			page1.setProperty(StructrApp.key(Page.class, "site"), site1);
-			page2.setProperty(StructrApp.key(Page.class, "site"), site1);
-			page3.setProperty(StructrApp.key(Page.class, "site"), site2);
-			page4.setProperty(StructrApp.key(Page.class, "site"), site2);
+			page1.setProperty(StructrApp.key(Page.class, "sites"), Arrays.asList(site1));
+			page2.setProperty(StructrApp.key(Page.class, "sites"), Arrays.asList(site1));
+			page3.setProperty(StructrApp.key(Page.class, "sites"), Arrays.asList(site2));
+			page4.setProperty(StructrApp.key(Page.class, "sites"), Arrays.asList(site2));
 
 			tx.success();
 

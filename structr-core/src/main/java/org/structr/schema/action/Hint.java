@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,8 @@
  */
 package org.structr.schema.action;
 
+import java.util.List;
+
 /**
  *
  *
@@ -28,10 +30,29 @@ public abstract class Hint {
 	private boolean isDynamic      = false;
 
 	public abstract String shortDescription();
+	public abstract String getSignature();
 	public abstract String getName();
 
+	public String getDisplayName() {
+
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append(getName());
+		buf.append("(");
+
+		final String signature = getSignature();
+		if (signature != null) {
+
+			buf.append(signature);
+		}
+
+		buf.append(")");
+
+		return buf.toString();
+	}
+
 	public String getReplacement() {
-		return getName().concat("()");
+		return getName();
 	}
 
 	public void allowNameModification(final boolean allowModification) {
@@ -48,5 +69,13 @@ public abstract class Hint {
 
 	public boolean isDynamic() {
 		return isDynamic;
+	}
+
+	public boolean isHidden() {
+		return false;
+	}
+
+	public List<Hint> getContextHints(final String lastToken) {
+		return null;
 	}
 }

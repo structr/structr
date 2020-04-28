@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -49,6 +49,7 @@ public class NodeService implements SingletonService {
 	private String filesPath                = null;
 	private boolean isInitialized           = false;
 	private CountResult initialCount        = null;
+	private String errorMessage             = null;
 
 	@Override
 	public void injectArguments(Command command) {
@@ -63,13 +64,14 @@ public class NodeService implements SingletonService {
 	}
 
 	@Override
-	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		final String databaseDriver = Settings.DatabaseDriver.getValue();
+		final String databaseDriver = Settings.DatabaseDriver.getPrefixedValue(serviceName);
+
 		databaseService = (DatabaseService)Class.forName(databaseDriver).newInstance();
 		if (databaseService != null) {
 
-			if (databaseService.initialize()) {
+			if (databaseService.initialize(serviceName)) {
 
 				filesPath = Settings.FilesPath.getValue();
 
@@ -99,6 +101,10 @@ public class NodeService implements SingletonService {
 
 					logger.warn("Error while initializing indexes: {}", t.getMessage());
 				}
+
+			} else {
+
+				errorMessage = databaseService.getErrorMessage();
 			}
 		}
 
@@ -119,6 +125,8 @@ public class NodeService implements SingletonService {
 		if (!Services.isTesting()) {
 			checkCacheSizes();
 		}
+
+		createAdminUser();
 	}
 
 	@Override
@@ -230,12 +238,18 @@ public class NodeService implements SingletonService {
 						tx.success();
 
 					} catch (Throwable t) {
-						logger.warn("Unable to count number of nodes and relationships: {}", t.getMessage());
+						logger.warn("Unable to create initial user: {}", t.getMessage());
 					}
 				}
 			}
 		}
 	}
+
+	@Override
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
 
 	// ----- private methods -----
 	private void checkCacheSizes() {

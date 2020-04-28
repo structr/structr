@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -70,10 +70,10 @@ public abstract class AbstractIndex<Q extends DatabaseQuery, R extends PropertyC
 
 		createQuery(predicate, query, true);
 
-		final String sortKey = predicate.getSortKey();
-		if (sortKey != null) {
+		final SortOrder sortOrder = predicate.getSortOrder();
+		if (sortOrder != null) {
 
-			query.sort(predicate.getSortType(), sortKey, predicate.sortDescending());
+			query.sort(sortOrder);
 		}
 
 		return query;

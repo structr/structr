@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,9 +39,9 @@ import static org.structr.schema.SchemaHelper.Type.Count;
 import static org.structr.schema.SchemaHelper.Type.Cypher;
 import static org.structr.schema.SchemaHelper.Type.Double;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonProperty;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
+import org.structr.api.schema.JsonProperty;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 
 /**
  *

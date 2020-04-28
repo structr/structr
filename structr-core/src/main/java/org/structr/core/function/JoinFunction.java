@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,6 +31,11 @@ public class JoinFunction extends CoreFunction {
 	@Override
 	public String getName() {
 		return "join";
+	}
+
+	@Override
+	public String getSignature() {
+		return "list, separator";
 	}
 
 	@Override
@@ -70,6 +75,6 @@ public class JoinFunction extends CoreFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Joins all its parameters to a single string";
+		return "Joins all its parameters to a single string using the given separator";
 	}
 }

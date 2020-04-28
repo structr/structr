@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang.StringUtils;
 import org.structr.api.config.Settings;
-import org.structr.api.graph.Label;
 import org.structr.api.graph.RelationshipType;
 
 /**
@@ -31,16 +30,10 @@ import org.structr.api.graph.RelationshipType;
 public abstract class AbstractDatabaseService implements DatabaseService {
 
 	private static final Map<String, RelationshipType> relTypeCache   = new ConcurrentHashMap<>();
-	private static final Map<String, Label> labelCache                = new ConcurrentHashMap<>();
 	private static final long nanoEpoch                               = System.nanoTime();
 
 	@Override
 	public <T> T forName(final Class<T> type, final String name) {
-
-		if (Label.class.equals(type)) {
-
-			return (T)getOrCreateLabel(name);
-		}
 
 		if (RelationshipType.class.equals(type)) {
 
@@ -52,11 +45,11 @@ public abstract class AbstractDatabaseService implements DatabaseService {
 
 	@Override
 	public String getTenantIdentifier() {
-		
+
 		final String tenantId = Settings.TenantIdentifier.getValue();
 
 		if (StringUtils.isBlank(tenantId)) {
-		
+
 			return null;
 		}
 
@@ -73,18 +66,6 @@ public abstract class AbstractDatabaseService implements DatabaseService {
 	}
 
 	// ----- private methods -----
-	private Label getOrCreateLabel(final String name) {
-
-		Label label = labelCache.get(name);
-		if (label == null) {
-
-			label = new LabelImpl(name);
-			labelCache.put(name, label);
-		}
-
-		return label;
-	}
-
 	private RelationshipType getOrCreateRelationshipType(final String name) {
 
 		RelationshipType relType = relTypeCache.get(name);
@@ -98,35 +79,6 @@ public abstract class AbstractDatabaseService implements DatabaseService {
 	}
 
 	// ----- nested classes -----
-	private static class LabelImpl implements Label {
-
-		private String name = null;
-
-		private LabelImpl(final String name) {
-			this.name = name;
-		}
-
-		@Override
-		public String name() {
-			return name;
-		}
-
-		@Override
-		public int hashCode() {
-			return name.hashCode();
-		}
-
-		@Override
-		public boolean equals(final Object other) {
-
-			if (other instanceof Label) {
-				return other.hashCode() == hashCode();
-			}
-
-			return false;
-		}
-	}
-
 	private static class RelationshipTypeImpl implements RelationshipType {
 
 		private String name = null;

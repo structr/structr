@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,6 +32,7 @@ import org.structr.api.Predicate;
 import org.structr.api.UnknownClientException;
 import org.structr.api.UnknownDatabaseException;
 import org.structr.api.graph.PropertyContainer;
+import org.structr.api.search.SortOrder;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -46,6 +47,7 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.ISO8601DateProperty;
@@ -535,4 +537,9 @@ public interface GraphObject extends CodeSource {
 	 * @return a CMIS info object or null
 	 */
 	public CMISInfo getCMISInfo();
+
+	// ----- static methods -----
+	public static SortOrder sorted(final PropertyKey key, final boolean sortDescending) {
+		return new DefaultSortOrder(key, sortDescending);
+	}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,7 +34,7 @@ import org.w3c.dom.DOMException;
 /**
  * Websocket command to clone a page.
  */
-public class ClonePageCommand extends AbstractCommand {
+	public class ClonePageCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(ClonePageCommand.class.getName());
 
@@ -62,16 +62,27 @@ public class ClonePageCommand extends AbstractCommand {
 					final Page newPage = (Page) pageToClone.cloneNode(false);
 					newPage.setProperties(securityContext, new PropertyMap(Page.name, pageToClone.getProperty(Page.name) + "-" + newPage.getPropertyContainer().getId().toString()));
 
-					DOMNode firstChild = (DOMNode) pageToClone.getFirstChild().getNextSibling();
+//					DOMNode firstChild = (DOMNode) pageToClone.getFirstChild().getNextSibling();
+//
+//					if (firstChild == null) {
+//						firstChild = (DOMNode) pageToClone.treeGetFirstChild();
+//					}
+//
+//					if (firstChild != null) {
+//						final DOMNode newHtmlNode = DOMNode.cloneAndAppendChildren(securityContext, firstChild);
+//						newPage.adoptNode(newHtmlNode);
+//						newPage.appendChild(newHtmlNode);
+//					}
 
-					if (firstChild == null) {
-						firstChild = (DOMNode) pageToClone.treeGetFirstChild();
-					}
+					DOMNode subNode = (DOMNode) pageToClone.treeGetFirstChild();
 
-					if (firstChild != null) {
-						final DOMNode newHtmlNode = DOMNode.cloneAndAppendChildren(securityContext, firstChild);
+					while (subNode != null) {
+
+						final DOMNode newHtmlNode = DOMNode.cloneAndAppendChildren(securityContext, subNode);
 						newPage.adoptNode(newHtmlNode);
 						newPage.appendChild(newHtmlNode);
+
+						subNode = (DOMNode) subNode.getNextSibling();
 					}
 				}
 

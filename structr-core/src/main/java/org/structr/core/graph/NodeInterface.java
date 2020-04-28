@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -75,6 +75,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	String getName();
 
 	boolean hasRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
+	<R extends AbstractRelationship> R getRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
 
 	<R extends AbstractRelationship> Iterable<R> getRelationships();
 	<R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser();

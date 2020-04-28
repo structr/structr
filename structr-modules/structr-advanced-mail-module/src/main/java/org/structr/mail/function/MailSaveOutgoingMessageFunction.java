@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,6 +38,11 @@ public class MailSaveOutgoingMessageFunction extends AdvancedMailModuleFunction 
 	}
 
 	@Override
+	public String getSignature() {
+		return "bool";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
@@ -62,6 +67,6 @@ public class MailSaveOutgoingMessageFunction extends AdvancedMailModuleFunction 
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "If set to true, the mail will be saved after it has been sent and can be retrieved via the getLastOutgoingMessage() function";
 	}
 }

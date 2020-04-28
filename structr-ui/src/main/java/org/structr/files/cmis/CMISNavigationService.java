@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,7 +39,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.wrapper.CMISObjectWrapper;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -142,7 +141,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 				if (folder != null) {
 
 					final List<Folder> children = Iterables.toList(folder.getFolders());
-					Collections.sort(children, new GraphObjectComparator(AbstractNode.name, false));
+					Collections.sort(children, AbstractNode.name.sorted(false));
 
 					for (final Folder child : children) {
 
@@ -247,7 +246,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 
 		// fetch and sort children
 		final List<Folder> children = Iterables.toList(child.getFolders());
-		Collections.sort(children, new GraphObjectComparator(AbstractNode.name, false));
+		Collections.sort(children, AbstractNode.name.sorted(false));
 
 		// descend into children
 		for (final Folder folderChild: children) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,10 +29,12 @@ import java.util.Set;
 import java.util.function.Function;
 import org.apache.commons.lang.StringUtils;
 import org.structr.api.Predicate;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.ResultTransformer;
 import org.structr.common.SecurityContext;
@@ -40,14 +42,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 
 /**
  *
@@ -75,7 +74,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 		type.overrideMethod("transformOutput",      false, "return " + VirtualType.class.getName() + ".transformOutput(this, arg0, arg1, arg2);");
 		type.overrideMethod("transformInput",       false, VirtualType.class.getName() + ".transformInput(this, arg0, arg1, arg2);");
 
-		type.relate(prop, "virtualProperty", Relation.Cardinality.OneToMany, "virtualType", "properties").setCascadingCreate(JsonSchema.Cascade.sourceToTarget);
+		type.relate(prop, "virtualProperty", Cardinality.OneToMany, "virtualType", "properties").setCascadingCreate(JsonSchema.Cascade.sourceToTarget);
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "name");
@@ -126,7 +125,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 	// ----- private methods -----
 	static List<VirtualProperty> sort(final List<VirtualProperty> source) {
 
-		Collections.sort(source, new GraphObjectComparator(StructrApp.key(VirtualProperty.class, "position"), false));
+		Collections.sort(source, StructrApp.key(VirtualProperty.class, "position").sorted(false));
 
 		return source;
 	}
@@ -161,7 +160,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 
 				try {
 
-					return Boolean.TRUE.equals(Scripting.evaluate(ctx, value, "${" + expression + "}", "virtual type filter"));
+					return Boolean.TRUE.equals(Scripting.evaluate(ctx, value, "${" + expression.trim() + "}", "virtual type filter"));
 
 				} catch (FrameworkException fex) {
 					logger.warn("", fex);

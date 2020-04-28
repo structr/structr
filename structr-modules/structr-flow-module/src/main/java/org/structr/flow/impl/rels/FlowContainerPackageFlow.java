@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,12 +18,15 @@
  */
 package org.structr.flow.impl.rels;
 
+import org.structr.api.graph.PropagationDirection;
+import org.structr.api.graph.PropagationMode;
+import org.structr.common.PermissionPropagation;
 import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Relation;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.flow.impl.FlowContainerPackage;
 
-public class FlowContainerPackageFlow extends OneToMany<FlowContainerPackage, FlowContainer> {
+public class FlowContainerPackageFlow extends OneToMany<FlowContainerPackage, FlowContainer> implements PermissionPropagation {
 
 	@Override
 	public Class<FlowContainerPackage> getSourceType() {
@@ -43,10 +46,40 @@ public class FlowContainerPackageFlow extends OneToMany<FlowContainerPackage, Fl
 	@Override
 	public int getCascadingDeleteFlag() {
 		return Relation.SOURCE_TO_TARGET;
-	}	
+	}
 
 	@Override
 	public int getAutocreationFlag() {
 		return Relation.ALWAYS;
+	}
+
+	@Override
+	public PropagationDirection getPropagationDirection() {
+		return PropagationDirection.Both;
+	}
+
+	@Override
+	public PropagationMode getReadPropagation() {
+		return PropagationMode.Add;
+	}
+
+	@Override
+	public PropagationMode getWritePropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getDeletePropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getAccessControlPropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public String getDeltaProperties() {
+		return null;
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -112,6 +112,24 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
+
+		try {
+
+			assertInitialized();
+
+		} catch (FrameworkException fex) {
+
+			try {
+				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
+
+			} catch (IOException ioex) {
+
+				logger.warn("Unable to send response", ioex);
+			}
+
+			return;
+		}
 
 		setCustomResponseHeaders(response);
 
@@ -397,6 +415,24 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
+
+		try {
+
+			assertInitialized();
+
+		} catch (FrameworkException fex) {
+
+			try {
+				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
+
+			} catch (IOException ioex) {
+
+				logger.warn("Unable to send response", ioex);
+			}
+
+			return;
+		}
 
 		setCustomResponseHeaders(response);
 

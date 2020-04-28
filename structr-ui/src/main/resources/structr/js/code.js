@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+/* global Command, Structr, LSWrapper, _TreeHelper, _Icons, scrollInfoKey, Promise, _Schema, dialogBtn, dialog, me, rootUrl, port, _LogType, _Logger, _Entities */
+
 var main, codeMain, codeTree, codeContents, codeContext;
 var drop;
 var selectedElements = [];
@@ -26,6 +28,7 @@ var timeout, attempts = 0, maxRetry = 10;
 var displayingFavorites = false;
 var codeLastOpenMethodKey = 'structrCodeLastOpenMethod_' + port;
 var codeResizerLeftKey = 'structrCodeResizerLeftKey_' + port;
+var codeResizerRightKey = 'structrCodeResizerRightKey_' + port;
 var activeCodeTabPrefix = 'activeCodeTabPrefix' + port;
 
 $(document).ready(function() {
@@ -39,6 +42,8 @@ var _Code = {
 	searchThreshold: 3,
 	searchTextLength: 0,
 	lastClickedPath: '',
+	layouter: null,
+	seed: 42,
 	codeRecentElementsKey: 'structrCodeRecentElements_' + port,
 	init: function() {
 
@@ -47,7 +52,13 @@ var _Code = {
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
 
+		$(window).off('keydown', _Code.handleKeyDownEvent).on('keydown', _Code.handleKeyDownEvent);
 
+	},
+	beforeunloadHandler: function() {
+		if (_Code.isDirty()) {
+			return 'There are unsaved changes - discard changes?';
+		}
 	},
 	resize: function() {
 
@@ -72,7 +83,8 @@ var _Code = {
 			});
 		}
 
-		_Code.moveResizer();
+		_Code.moveLeftResizer();
+		_Code.moveRightResizer();
 		Structr.resize();
 
 		var nameColumnWidth = $('#code-table th:nth-child(2)').width();
@@ -107,16 +119,24 @@ var _Code = {
 		var contentBox = $('.CodeMirror');
 		contentBox.height('100%');
 	},
-	moveResizer: function(left) {
+	moveLeftResizer: function(left) {
 		left = left || LSWrapper.getItem(codeResizerLeftKey) || 300;
-		$('.column-resizer', codeMain).css({ left: left });
+		$('.column-resizer-left', codeMain).css({ left: left + 'px'});
 
-		var contextWidth = 240;
-		var width        = $(window).width() - left - contextWidth - 80;
+		var contextWidth  = $('#code-context').width();
+		var contentsWidth = window.innerWidth - left - contextWidth - 82;
 
 		$('#code-tree').css({width: left - 14 + 'px'});
-		$('#code-contents').css({left: left + 8 + 'px', width: width + 'px'});
-		$('#code-context').css({left: left + width + 41 + 'px', width: contextWidth + 'px'});
+		$('#code-contents').css({left: left + 8 + 'px', width: contentsWidth + 'px'});
+		$('#code-context').css({left: left + contentsWidth + 42 + 'px', width: contextWidth + 'px'});
+	},
+	moveRightResizer: function(left) {
+		left = left || LSWrapper.getItem(codeResizerRightKey) || window.innerWidth - 240;
+		$('.column-resizer-right').css({left: left + 'px'});
+
+		var treeWidth = $('#code-tree-container').width();
+		$('#code-contents').css({width: left - treeWidth - 46 + 'px'});
+		$('#code-context').css({left: left + 8 + 'px', width: window.innerWidth - left - 48 + 'px'});
 	},
 	onload: function() {
 
@@ -124,102 +144,321 @@ var _Code = {
 
 			main.append(html);
 
-			_Code.init();
+			// preload action button
+			Structr.fetchHtmlTemplate('code/action-button', { }, function(html) {
 
-			codeMain     = $('#code-main');
-			codeTree     = $('#code-tree');
-			codeContents = $('#code-contents');
-			codeContext  = $('#code-context');
+				_Code.init();
 
-			_Code.moveResizer();
-			Structr.initVerticalSlider($('.column-resizer', codeMain), codeResizerLeftKey, 204, _Code.moveResizer);
+				codeMain     = $('#code-main');
+				codeTree     = $('#code-tree');
+				codeContents = $('#code-contents');
+				codeContext  = $('#code-context');
 
-			$.jstree.defaults.core.themes.dots      = false;
-			$.jstree.defaults.dnd.inside_pos        = 'last';
-			$.jstree.defaults.dnd.large_drop_target = true;
+				Structr.initVerticalSlider($('.column-resizer-left', codeMain), codeResizerLeftKey, 204, _Code.moveLeftResizer);
+				Structr.initVerticalSlider($('.column-resizer-right', codeMain), codeResizerRightKey, 204, _Code.moveRightResizer);
 
-			codeTree.on('select_node.jstree', _Code.handleTreeClick);
-			codeTree.on('refresh.jstree', _Code.activateLastClicked);
+				$.jstree.defaults.core.themes.dots      = false;
+				$.jstree.defaults.dnd.inside_pos        = 'last';
+				$.jstree.defaults.dnd.large_drop_target = true;
 
-			_Code.loadRecentlyUsedElements(function() {
-				_TreeHelper.initTree(codeTree, _Code.treeInitFunction, 'structr-ui-code');
-			});
+				codeTree.on('select_node.jstree', _Code.handleTreeClick);
+				codeTree.on('refresh.jstree', _Code.activateLastClicked);
 
-			$(window).off('resize').resize(function() {
+				_Code.loadRecentlyUsedElements(function() {
+					_TreeHelper.initTree(codeTree, _Code.treeInitFunction, 'structr-ui-code');
+				});
+
+				$(window).off('resize').resize(function() {
+					_Code.resize();
+				});
+
+				Structr.unblockMenu(100);
+
 				_Code.resize();
-			});
+				Structr.adaptUiToAvailableFeatures();
 
-			Structr.unblockMenu(100);
+				$('#tree-search-input').on('input', _Code.doSearch);
+				$('#tree-forward-button').on('click', _Code.pathLocationForward);
+				$('#tree-back-button').on('click', _Code.pathLocationBackward);
+				$('#cancel-search-button').on('click', _Code.cancelSearch);
 
-			_Code.resize();
-			Structr.adaptUiToAvailableFeatures();
-
-			$('#tree-search-input').on('input', _Code.doSearch);
-			$('#tree-forward-button').on('click', _Code.pathLocationForward);
-			$('#tree-back-button').on('click', _Code.pathLocationBackward);
-			$('#cancel-search-button').on('click', _Code.cancelSearch);
-
-			$(window).on('keydown.search', function(e) {
-				if (_Code.searchIsActive()) {
-					if (e.key === 'Escape') {
-						_Code.cancelSearch();
-					}
-				};
+				$(window).on('keydown.search', function(e) {
+					if (_Code.searchIsActive()) {
+						if (e.key === 'Escape') {
+							_Code.cancelSearch();
+						}
+					};
+				});
 			});
 		});
 
+	},
+	handleKeyDownEvent: function(e) {
+
+		if (Structr.isModuleActive(_Code)) {
+
+			// This hack prevents FF from closing WS connections on ESC
+			if (e.keyCode === 27) {
+				e.preventDefault();
+			}
+			var k = e.which;
+			if (k === 16) {
+				shiftKey = true;
+			}
+			if (k === 18) {
+				altKey = true;
+			}
+			if (k === 17) {
+				ctrlKey = true;
+			}
+			if (k === 69) {
+				eKey = true;
+			}
+
+			let cmdKey = (navigator.platform === 'MacIntel' && e.metaKey);
+
+			// ctrl-s / cmd-s
+			if (k === 83 && ((navigator.platform !== 'MacIntel' && e.ctrlKey) || (navigator.platform === 'MacIntel' && cmdKey))) {
+				e.preventDefault();
+				_Code.runCurrentEntitySaveAction();
+			}
+			// ctrl-u / cmd-u
+			if (k === 85 && ((navigator.platform !== 'MacIntel' && e.ctrlKey) || (navigator.platform === 'MacIntel' && cmdKey))) {
+				e.preventDefault();
+				_Code.showGeneratedSource();
+			}
+		}
+	},
+	isDirty: function() {
+		let isDirty = false;
+		if (codeContents) {
+			isDirty = (codeContents.find('.to-delete').length + codeContents.find('.has-changes').length) > 0;
+		}
+		return isDirty;
+	},
+	updateDirtyFlag: function(entity) {
+
+		let formContent = _Code.collectChangedPropertyData(entity);
+		let dirty       = Object.keys(formContent).length > 0;
+
+		if (dirty) {
+			$('#action-button-save').removeClass('disabled').attr('disabled', null);
+			$('#action-button-cancel').removeClass('disabled').attr('disabled', null);
+		} else {
+			$('#action-button-save').addClass('disabled').attr('disabled', 'disabled');
+			$('#action-button-cancel').addClass('disabled').attr('disabled', 'disabled');
+		}
+
+		if (dirty === true) {
+			codeContents.children().first().addClass('has-changes');
+		} else {
+			codeContents.children().first().removeClass('has-changes');
+		}
+	},
+	testAllowNavigation: function() {
+		if (_Code.isDirty()) {
+			return confirm('Discard unsaved changes?');
+		}
+
+		return true;
+	},
+	collectPropertyData: function() {
+
+		let propertyData = {};
+
+		for (let p of document.querySelectorAll('#code-contents input[data-property]')) {
+			switch (p.type) {
+				case "checkbox":
+					propertyData[p.dataset.property] = p.checked;
+					break;
+				case "number":
+					if (p.value) {
+						propertyData[p.dataset.property] = parseInt(p.value);
+					} else {
+						propertyData[p.dataset.property] = null;
+					}
+					break;
+				case "text":
+				default:
+					if (p.value) {
+						propertyData[p.dataset.property] = p.value;
+					} else {
+						propertyData[p.dataset.property] = null;
+					}
+					break;
+			}
+		}
+
+		for (let p of document.querySelectorAll('#code-contents div.editor[data-property]')) {
+			let cm = p.querySelector('.CodeMirror');
+			if (cm) {
+				propertyData[p.dataset.property] = p.querySelector('.CodeMirror').CodeMirror.getValue();
+			}
+		}
+
+		return propertyData;
+	},
+	collectChangedPropertyData: function(entity) {
+
+		let formContent = _Code.collectPropertyData();
+		let keys = Object.keys(formContent);
+
+		for (let key of keys) {
+			if (!(formContent[key] !== entity[key] && !((formContent[key] === null && entity[key] === "") || (formContent[key] === "" && entity[key] === null)))) {
+				delete formContent[key];
+			}
+		}
+
+		return formContent;
+	},
+	revertFormData: function(entity) {
+
+		for (let p of document.querySelectorAll('#code-contents input[data-property]')) {
+			switch (p.type) {
+				case "checkbox":
+					p.checked = entity[p.dataset.property];
+					break;
+				case "number":
+					p.value = entity[p.dataset.property];
+					break;
+				case "text":
+				default:
+					p.value = entity[p.dataset.property];
+					break;
+			}
+		}
+
+		for (let p of document.querySelectorAll('#code-contents div.editor[data-property]')) {
+			p.querySelector('.CodeMirror').CodeMirror.setValue(entity[p.dataset.property] || '');
+		}
+
+		_Code.updateDirtyFlag(entity);
+	},
+	isCompileRequiredForSave: function (changes) {
+
+		let compileRequired = false;
+
+		for (let key of Object.keys(changes)) {
+			compileRequired = compileRequired || _Code.compileRequiredForKey(key);
+		}
+
+		return compileRequired;
+	},
+	compileRequiredForKey: function(key) {
+
+		let element = _Code.getElementForKey(key);
+		if (element && element.dataset.recompile === "false") {
+			return false;
+		}
+
+		return true;
+	},
+	getElementForKey: function (key) {
+
+		let input = document.querySelector('#code-contents input[data-property=' + key + ']');
+		if (input) {
+
+			return input;
+
+		} else {
+			let editor = document.querySelector('#code-contents div.editor[data-property=' + key + ']');
+			if (editor) {
+
+				return editor;
+			}
+		}
+
+		return null;
+	},
+	showSaveAction: function(changes) {
+
+		for (let key of Object.keys(changes)) {
+			let element = _Code.getElementForKey(key);
+			if (element) {
+
+				if (element.tagName === 'INPUT' && element.type === 'text' && !element.classList.contains('hidden')) {
+					blinkGreen($(element));
+				} else if (element.tagName === 'INPUT' && element.type === 'checkbox' && !element.classList.contains('hidden')) {
+					blinkGreen($(element.closest('.checkbox')));
+				} else {
+					blinkGreen($(element.closest('.property-options-group')));
+				}
+			}
+		}
+	},
+	runCurrentEntitySaveAction: function () {
+		// this is the default action - it should always be overwritten by specific save actions and is only here to prevent errors
+		if (_Code.isDirty()) {
+			new MessageBuilder().warning('No save action is defined - but the editor is dirty!').requiresConfirmation().show();
+		}
+	},
+	saveEntityAction:function(entity, callback) {
+
+		if (_Code.isDirty()) {
+
+			let formData        = _Code.collectChangedPropertyData(entity);
+			let compileRequired = _Code.isCompileRequiredForSave(formData);
+
+			if (compileRequired) {
+				_Code.showSchemaRecompileMessage();
+			}
+
+			Command.setProperties(entity.id, formData, function() {
+				Object.assign(entity, formData);
+				_Code.updateDirtyFlag(entity);
+
+				_Code.showSaveAction(formData);
+
+				if (formData.name) {
+					_Code.refreshTree();
+				}
+
+				if (compileRequired) {
+					_Code.hideSchemaRecompileMessage();
+				}
+
+				if (typeof callback === 'function') {
+					callback();
+				}
+			});
+		}
 	},
 	loadRecentlyUsedElements: function(doneCallback) {
 
 		var recentElements = LSWrapper.getItem(_Code.codeRecentElementsKey) || [];
 
-		var promises = recentElements.map(function(recentElement) {
-			return new Promise(function(resolve, reject) {
-				Command.query('AbstractNode', 1, 1, 'name', true, { id: recentElement.id }, function(res) {
-					resolve(res[0]);
-				});
-			});
+		recentElements.forEach(function(element) {
+			_Code.addRecentlyUsedElement(element.id, element.name, element.iconClass, element.path, true);
 		});
 
-		Promise.all(promises).then(foundElements => {
-
-			var updatedRecentElements = [];
-
-			foundElements.forEach(function(entity) {
-				if (entity) {
-					_Code.addRecentlyUsedElement(entity, true);
-
-					updatedRecentElements.push({id: entity.id});
-				}
-			});
-
-			LSWrapper.setItem(_Code.codeRecentElementsKey, updatedRecentElements);
-
-		}).then(doneCallback);
-
+		doneCallback();
 	},
-	addRecentlyUsedElement: function(entity, fromStorage) {
+	addRecentlyUsedEntity: function(entity, fromStorage) {
 
 		var id   = entity.id;
 		var name = _Code.getDisplayNameInRecentsForType(entity);
-		var icon = _Code.getIconForNodeType(entity);
+		var iconClass = 'fa fa-' + _Code.getIconForNodeType(entity);
 		var path = _Code.getPathForEntity(entity);
+
+		_Code.addRecentlyUsedElement(id, name, iconClass, path, fromStorage);
+	},
+	addRecentlyUsedElement: function(id, name, iconClass, path, fromStorage) {
 
 		if (!fromStorage) {
 
 			var recentElements = LSWrapper.getItem(_Code.codeRecentElementsKey) || [];
 
 			var updatedList = recentElements.filter(function(recentElement) {
-				return (recentElement.id !== entity.id);
+				return (recentElement.id !== id);
 			});
-			updatedList.unshift({id: entity.id});
+			updatedList.unshift({ id: id, name: name, iconClass: iconClass, path: path });
 
-			$('#recently-used-' + entity.id).remove();
+			$('#recently-used-' + id).remove();
 
 			LSWrapper.setItem(_Code.codeRecentElementsKey, updatedList);
 		}
 
-		Structr.fetchHtmlTemplate('code/recently-used-button', { id: id, name: name, icon: icon }, function(html) {
+		Structr.fetchHtmlTemplate('code/recently-used-button', { id: id, name: name, iconClass: iconClass }, function(html) {
 			var ctx  = $('#code-context');
 
 			if (fromStorage) {
@@ -235,8 +474,8 @@ var _Code = {
 				e.stopPropagation();
 				_Code.deleteRecentlyUsedElement(id);
 			});
-
 		});
+
 	},
 	deleteRecentlyUsedElement: function(recentlyUsedElementId) {
 
@@ -252,6 +491,9 @@ var _Code = {
 	},
 	refreshTree: function() {
 		_TreeHelper.refreshTree(codeTree);
+		if (_Code.layouter !== null) {
+			_Code.layouter.on('click', _Code.handleGraphClick);
+		}
 	},
 	treeInitFunction: function(obj, callback) {
 
@@ -264,21 +506,33 @@ var _Code = {
 						id: 'globals',
 						text: 'Global Methods',
 						children: true,
-						icon: _Icons.star_icon
+						icon: _Icons.world_icon
 					},
 					{
 						id: 'root',
 						text: 'Types',
 						children: [
-							{ id: 'custom', text: 'Custom', children: true, icon: _Icons.folder_icon },
-							{ id: 'builtin', text: 'Built-In', children: true, icon: _Icons.folder_icon }
+							{ id: 'custom',      text: 'Custom', children: true, icon: _Icons.folder_icon },
+							{ id: 'builtin',     text: 'Built-In', children: true, icon: _Icons.folder_icon },
+							{ id: 'workingsets', text: 'Groups', children: true, icon: _Icons.folder_star_icon }
 						],
 						icon: _Icons.structr_logo_small,
 						path: '/',
 						state: {
 							opened: true
 						}
+					},
+					/*
+					{
+						id: 'facetsearch',
+						text: 'Faceted Search Configurations',
+						children: true,
+						icon: _Icons.find_icon,
+						state: {
+							opened: false
+						}
 					}
+					*/
 				];
 
 				if (_Code.searchIsActive()) {
@@ -310,14 +564,21 @@ var _Code = {
 
 	},
 	unload: function() {
-		fastRemoveAllChildren($('.searchBox', main));
-		fastRemoveAllChildren($('#code-main', main));
+
+		let allow = _Code.testAllowNavigation();
+		if (allow) {
+
+			fastRemoveAllChildren($('.searchBox', main));
+			fastRemoveAllChildren($('#code-main', main));
+		}
+
+		return allow;
 	},
 	load: function(obj, callback) {
 
 		var id = obj.id;
 
-		var displayFunction = function (result, count, isSearch) {
+		var displayFunction = function (result, count, isSearch, identifier, dontSort) {
 
 			var list = [];
 
@@ -337,113 +598,146 @@ var _Code = {
 					treeId = entity.id + '-' + entity.id + '-search';
 				}
 
-				if (entity.type === 'SchemaNode') {
+				if (identifier) {
+					treeId = entity.id + '-' + entity.id + '-' + identifier.type + '-' + identifier.id + '-' + identifier.extended;
+				}
 
-					var data     = {
-						id: entity.id,
-						type: entity.name,
-						name: entity.name
-					};
-					var children = [];
+				switch (entity.type) {
 
-					// build list of children for this type
-					{
+					case 'SchemaGroup':
 
-						children.push({
-							id: 'properties-' + entity.id + '-' + entity.name,
-							text: 'Properties',
-							children: entity.schemaProperties.length > 0,
-							icon: 'fa fa-sliders gray',
-							data: data
+						list.push({
+							id: 'workingsets-' + entity.id,
+							text:  entity.name,
+							children: entity.children.length > 0,
+							icon: entity.name === _WorkingSets.recentlyUsedName ? _Icons.clock_icon : _Icons.folder_icon,
+							data: {
+								id: 'workingsets- ' + entity.id,
+								type: entity.type,
+								name: entity.name
+							}
 						});
+						break;
 
-						children.push({
-							id: 'views-' + entity.id + '-' + entity.name,
-							text: 'Views',
-							children: entity.schemaViews.length > 0,
-							icon: 'fa fa-television gray',
-							data: data
-						});
+					case 'SchemaNode':
 
-						children.push({
-							id: 'methods-' + entity.id + '-' + entity.name,
-							text: 'Methods',
-							children: entity.schemaMethods.length > 0,
-							icon: 'fa fa-code gray',
-							data: data
-						});
-
-						children.push({
-							id: 'inherited-' + entity.id,
-							text: 'Inherited properties',
-							children: true,
-							icon: 'fa fa-sliders gray',
-							data: data
-						});
-					}
-
-					list.push({
-						id: treeId,
-						text:  treeName,
-						children: children,
-						icon: 'fa fa-' + icon,
-						data: {
-							type: entity.type,
+						var data = {
+							id: entity.id,
+							type: entity.name,
 							name: entity.name
+						};
+
+						var children = [];
+
+						// build list of children for this type
+						{
+							children.push({
+								id: 'properties-' + entity.id + '-' + entity.name + '-' + (identifier ? identifier.id : ''),
+								text: 'Local Attributes',
+								children: entity.schemaProperties.length > 0,
+								icon: 'fa fa-sliders gray',
+								data: data
+							});
+
+							children.push({
+								id: 'remoteproperties-' + entity.id + '-' + entity.name + '-' + (identifier ? identifier.id : ''),
+								text: 'Remote Attributes',
+								children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
+								icon: 'fa fa-sliders gray',
+								data: data
+							});
+
+							children.push({
+								id: 'views-' + entity.id + '-' + entity.name + '-' + (identifier ? identifier.id : ''),
+								text: 'Views',
+								children: entity.schemaViews.length > 0,
+								icon: 'fa fa-television gray',
+								data: data
+							});
+
+							children.push({
+								id: 'methods-' + entity.id + '-' + entity.name + '-' + (identifier ? identifier.id : ''),
+								text: 'Methods',
+								children: entity.schemaMethods.length > 0,
+								icon: 'fa fa-code gray',
+								data: data
+							});
+
+							children.push({
+								id: 'inheritedproperties-' + entity.id + '-' + entity.name + '-' + (identifier ? identifier.id : ''),
+								text: 'Inherited Attributes',
+								children: true,
+								icon: 'fa fa-sliders gray',
+								data: data
+							});
 						}
-					});
-
-				} else {
-
-					if (entity.inherited) {
 
 						list.push({
 							id: treeId,
-							text:  treeName + (' (' + (entity.propertyType || '') + ')'),
-							children: false,
+							text:  treeName,
+							children: children,
 							icon: 'fa fa-' + icon,
-							li_attr: {
-								style: 'color: #aaa;'
-							},
 							data: {
 								type: entity.type,
 								name: entity.name
 							}
 						});
+						break;
 
-					} else {
+					default:
 
-						var hasVisibleChildren = _Code.hasVisibleChildren(id, entity);
-						var name               = treeName;
+						if (entity.inherited) {
 
-						if (entity.type === 'SchemaMethod') {
-							name = name + '()';
-						}
+							list.push({
+								id: treeId,
+								text:  treeName + (' (' + (entity.propertyType || '') + ')'),
+								children: false,
+								icon: 'fa fa-' + icon,
+								li_attr: {
+									style: 'color: #aaa;'
+								},
+								data: {
+									type: entity.type,
+									name: entity.name
+								}
+							});
 
-						if (entity.type === 'SchemaProperty') {
-							name = name + ' (' + entity.propertyType + ')';
-						}
+						} else {
 
-						list.push({
-							id: treeId,
-							text:  name,
-							children: hasVisibleChildren,
-							icon: 'fa fa-' + icon,
-							data: {
-								type: entity.type,
-								name: entity.name
+							var hasVisibleChildren = _Code.hasVisibleChildren(id, entity);
+							var name               = treeName;
+
+							if (entity.type === 'SchemaMethod') {
+								name = name + '()';
 							}
-						});
 
-					}
+							if (entity.type === 'SchemaProperty') {
+								name = name + ' (' + entity.propertyType + ')';
+							}
+
+							list.push({
+								id: treeId,
+								text:  name,
+								children: hasVisibleChildren,
+								icon: 'fa fa-' + icon,
+								data: {
+									type: entity.type,
+									name: entity.name
+								}
+							});
+						}
+						break;
 				}
 			});
 
-			list.sort(function(a, b) {
-				if (a.text > b.text) { return 1; }
-				if (a.text < b.text) { return -1; }
-				return 0;
-			});
+			if (!dontSort) {
+
+				list.sort(function(a, b) {
+					if (a.text > b.text) { return 1; }
+					if (a.text < b.text) { return -1; }
+					return 0;
+				});
+			}
 
 			callback(list);
 		};
@@ -455,7 +749,14 @@ var _Code = {
 					var text          = $('#tree-search-input').val();
 					var searchResults = {};
 					var count         = 0;
-					var collectFunction = function(result) { result.forEach(function(r) { searchResults[r.id] = r; }); if (++count === 6) { displayFunction(Object.values(searchResults), 0, true); }};
+					var collectFunction = function(result) {
+						result.forEach(function(r) {
+							searchResults[r.id] = r;
+						});
+						if (++count === 6) {
+							displayFunction(Object.values(searchResults), 0, true);
+						}
+					};
 					Command.query('SchemaNode',     methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
 					Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
 					Command.query('SchemaMethod',   methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
@@ -473,17 +774,14 @@ var _Code = {
 			case 'globals':
 				Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: null}, displayFunction, true, 'ui');
 				break;
+			case 'workingsets':
+				_WorkingSets.getWorkingSets(result => displayFunction(result, 0, false, undefined, true));
+				break;
 			default:
 				var identifier = _Code.splitIdentifier(id);
 				switch (identifier.type) {
 
-					case 'outgoing':
-						Command.query('SchemaRelationshipNode', methodPageSize, methodPage, 'name', 'asc', {relatedFrom: [identifier.id ]}, displayFunction, true, 'ui');
-						break;
-					case 'incoming':
-						Command.query('SchemaRelationshipNode', methodPageSize, methodPage, 'name', 'asc', {relatedTo: [identifier.id ]}, displayFunction, true, 'ui');
-						break;
-					case 'inherited':
+					case 'inheritedproperties':
 						Command.listSchemaProperties(identifier.id, 'custom', function(result) {
 							var filtered = result.filter(function(p) {
 								return p.declaringClass !== obj.data.type;
@@ -499,37 +797,53 @@ var _Code = {
 									propertyType: s.declaringPropertyType ? s.declaringPropertyType : s.propertyType,
 									inherited: true
 								};
-							}));
+							}), 0, false, identifier);
 						});
 						break;
 					case 'properties':
-						Command.listSchemaProperties(identifier.id, 'custom', function(result) {
-							var filtered = result.filter(function(p) {
-								return p.declaringClass === obj.data.type
-									&& p.declaringClass !== 'GraphObject'
-									&& p.declaringClass !== 'NodeInterface'
-									&& p.declaringClass !== 'AbstractNode';
-							});
+						Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', { schemaNode: identifier.id }, function(result) {
+							displayFunction(result, 0, false, identifier);
+						}, true, 'ui');
+						break;
+					case 'remoteproperties':
+						Command.get(identifier.id, null, (entity) => {
 
-							displayFunction(filtered.map(function(s) {
+							let mapFn = (rel, out) => {
+								let attrName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
+
 								return {
-									id: s.declaringClass + '-' + s.declaringUuid + '-' + s.name,
-									type: 'SchemaProperty',
-									name: s.name,
-									propertyType: s.declaringPropertyType ? s.declaringPropertyType : s.propertyType,
+									id: 'remoteproperties-' + entity.id + '-' + entity.name + '-' + attrName,
+									type: rel.type,
+									name: attrName,
+									propertyType: '',
 									inherited: false
 								};
-							}));
+							};
+
+							let processedRemoteAttributes = [].concat(entity.relatedTo.map((r) => mapFn(r, true))).concat(entity.relatedFrom.map((r) => mapFn(r, false)));
+
+							displayFunction(processedRemoteAttributes, 0, false, identifier);
 						});
 						break;
 					case 'views':
-						Command.query('SchemaView', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.id }, displayFunction, true, 'ui');
+						Command.query('SchemaView', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.id }, function(result) {
+							displayFunction(result, 0, false, identifier);
+						}, true, 'ui');
 						break;
 					case 'methods':
-						Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.id }, displayFunction, true, 'ui');
+						Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.id }, function(result) {
+							displayFunction(result, 0, false, identifier);
+						}, true, 'ui');
+						break;
+					case 'workingsets':
+						_WorkingSets.getWorkingSetContents(identifier.id, function(result) {
+							displayFunction(result, 0, false, identifier);
+						});
 						break;
 					default:
-						Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.id}, displayFunction, true, 'ui');
+						Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.id}, function(result) {
+							displayFunction(result, 0, false, identifier);
+						}, true, 'ui');
 						break;
 				}
 		}
@@ -537,20 +851,7 @@ var _Code = {
 	},
 	clearMainArea: function() {
 		fastRemoveAllChildren(codeContents[0]);
-		$('#code-button-container').empty();
-	},
-	displayMethodContents: function(identifier) {
-
-		var split = _Code.splitIdentifier(identifier);
-		var id    = split.id;
-
-		if (id === '#' || id === 'root' || id === 'favorites' || id === 'globals') {
-			return;
-		}
-
-		LSWrapper.setItem(codeLastOpenMethodKey, id);
-
-		_Code.editPropertyContent(undefined, id, 'source', codeContents);
+		fastRemoveAllChildren($('#code-button-container')[0]);
 	},
 	fileOrFolderCreationNotification: function (newFileOrFolder) {
 		if ((currentWorkingDir === undefined || currentWorkingDir === null) && newFileOrFolder.parent === null) {
@@ -584,164 +885,62 @@ var _Code = {
 			return false;
 		});
 	},
-	editPropertyContent: function(button, id, key, element, canDelete) {
+	editPropertyContent: function(entity, key, element) {
 
-		var url  = rootUrl + id;
-		var text = '';
+		var text = entity[key] || '';
 
-		$.ajax({
-			url: url,
-			success: function(result) {
-				var entity = result.result;
-				_Logger.log(_LogType.CODE, entity.id, methodContents);
-				text = entity[key] || '';
-				if (Structr.isButtonDisabled(button)) {
-					return;
-				}
-				var contentBox = $('.editor', element);
-				var editor = CodeMirror(contentBox.get(0), {
-					value: text,
-					mode: _Code.getEditorModeForContent(entity.source),
-					lineNumbers: true,
-					lineWrapping: false,
-					indentUnit: 4,
-					tabSize:4,
-					indentWithTabs: true,
-					extraKeys: {
-						"Ctrl-Space": "autocomplete"
-					}
-				});
-
-				CodeMirror.registerHelper('hint', 'ajax', _Code.getAutocompleteHint);
-				CodeMirror.hint.ajax.async = true;
-				CodeMirror.commands.autocomplete = function(mirror) {
-					mirror.showHint({ hint: CodeMirror.hint.ajax });
-				};
-
-				var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
-				if (scrollInfo) {
-					editor.scrollTo(scrollInfo.left, scrollInfo.top);
-				}
-
-				editor.on('scroll', function() {
-					var scrollInfo = editor.getScrollInfo();
-					LSWrapper.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
-				});
-
-				if (entity.codeType === 'java') {
-
-					editor.setOption('mode', 'text/x-java');
-
-				} else {
-
-					editor.on('change', function() {
-						var type = _Code.getEditorModeForContent(editor.getValue());
-						var prev = editor.getOption('mode');
-						if (prev !== type) {
-							editor.setOption('mode', type);
-						}
-					});
-				}
-
-				editor.id = entity.id;
-
-				var buttonArea = $('.code-button-container', element);
-				buttonArea.empty();
-				buttonArea.append('<button id="resetMethod' + id + '" disabled="disabled" class="disabled"><i title="Cancel" class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /> Cancel</button>');
-				buttonArea.append('<button id="saveMethod' + id + '" disabled="disabled" class="disabled"><i title="Save" class="' + _Icons.getFullSpriteClass(_Icons.floppy_icon) + '" /> Save</button>');
-
-				var codeResetButton  = $('#resetMethod' + id, buttonArea);
-				var codeSaveButton   = $('#saveMethod' + id, buttonArea);
-
-				editor.on('change', function(cm, change) {
-
-					if (text === editor.getValue()) {
-						codeSaveButton.prop("disabled", true).addClass('disabled');
-						codeResetButton.prop("disabled", true).addClass('disabled');
-					} else {
-						codeSaveButton.prop("disabled", false).removeClass('disabled');
-						codeResetButton.prop("disabled", false).removeClass('disabled');
-					}
-				});
-
-				codeResetButton.on('click', function(e) {
-
-					e.preventDefault();
-					e.stopPropagation();
-					editor.setValue(text);
-					codeSaveButton.prop("disabled", true).addClass('disabled');
-					codeResetButton.prop("disabled", true).addClass('disabled');
-				});
-
-				codeSaveButton.on('click', function(e) {
-
-					e.preventDefault();
-					e.stopPropagation();
-					var newText = editor.getValue();
-					if (text === newText) {
-						return;
-					}
-					Command.setProperty(entity.id, key, newText);
-					text = newText;
-					codeSaveButton.prop("disabled", true).addClass('disabled');
-					codeResetButton.prop("disabled", true).addClass('disabled');
-				});
-
-				if (canDelete) {
-
-					buttonArea.append('<button id="deleteMethod' + id + '"><i title="Delete" class="' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /> Delete</button>');
-					var codeDeleteButton = $('#deleteMethod' + id, buttonArea);
-					codeDeleteButton.on('click', function(e) {
-
-						e.preventDefault();
-						e.stopPropagation();
-						_Entities.deleteNode(codeDeleteButton, entity, false, function() {
-							_TreeHelper.refreshTree('#code-tree');
-						});
-					});
-				}
-
-				_Code.resize();
-
-				editor.refresh();
-
-				$(window).on('keydown', function(e) {
-
-					// This hack prevents FF from closing WS connections on ESC
-					if (e.keyCode === 27) {
-						e.preventDefault();
-					}
-					var k = e.which;
-					if (k === 16) {
-						shiftKey = true;
-					}
-					if (k === 18) {
-						altKey = true;
-					}
-					if (k === 17) {
-						ctrlKey = true;
-					}
-					if (k === 69) {
-						eKey = true;
-					}
-					if (navigator.platform === 'MacIntel' && k === 91) {
-						cmdKey = true;
-					}
-					if ((e.ctrlKey && (e.which === 83)) || (navigator.platform === 'MacIntel' && cmdKey && (e.which === 83))) {
-						e.preventDefault();
-						if (codeSaveButton && !codeSaveButton.prop('disabled')) {
-							codeSaveButton.click();
-						}
-					}
-				});
-
-				_Code.displayDefaultMethodOptions(entity);
-
-			},
-			error: function(xhr, statusText, error) {
-				console.log(xhr, statusText, error);
+		var contentBox = $('.editor', element);
+		var editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
+			value: text,
+			mode: _Code.getEditorModeForContent(text),
+			lineNumbers: true,
+			lineWrapping: false,
+			indentUnit: 4,
+			tabSize: 4,
+			indentWithTabs: true,
+			extraKeys: {
+				"Ctrl-Space": "autocomplete"
 			}
+		}));
+
+		_Code.setupAutocompletion(editor, entity.id, true);
+
+		var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
+		if (scrollInfo) {
+			editor.scrollTo(scrollInfo.left, scrollInfo.top);
+		}
+
+		editor.on('scroll', function() {
+			var scrollInfo = editor.getScrollInfo();
+			LSWrapper.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
 		});
+
+		if (entity.codeType === 'java') {
+
+			editor.setOption('mode', 'text/x-java');
+
+		} else {
+
+			editor.on('change', function() {
+				var type = _Code.getEditorModeForContent(editor.getValue());
+				var prev = editor.getOption('mode');
+				if (prev !== type) {
+					editor.setOption('mode', type);
+				}
+			});
+		}
+
+		editor.id = entity.id;
+
+		editor.on('change', function(cm, change) {
+			_Code.updateDirtyFlag(entity);
+		});
+
+		_Code.resize();
+
+		editor.refresh();
+
+		_Code.displayDefaultMethodOptions(entity);
 	},
 	displayCreateButtons: function(showCreateMethodsButton, showCreateGlobalButton, showCreateTypeButton, schemaNodeId) {
 
@@ -792,7 +991,7 @@ var _Code = {
 
 		}
 	},
-	createMethodAndRefreshTree: function(type, name, schemaNode) {
+	createMethodAndRefreshTree: function(type, name, schemaNode, callback) {
 
 		_Code.showSchemaRecompileMessage();
 		Command.create({
@@ -800,9 +999,12 @@ var _Code = {
 			name: name,
 			schemaNode: schemaNode,
 			source: ''
-		}, function() {
+		}, function(result) {
 			_TreeHelper.refreshTree('#code-tree');
 			_Code.hideSchemaRecompileMessage();
+			if (callback && typeof callback === 'function') {
+				callback(result);
+			}
 		});
 	},
 	getDisplayNameInRecentsForType: function (entity) {
@@ -853,6 +1055,9 @@ var _Code = {
 
 			case 'SchemaView':
 				return 'th-large';
+
+			case 'SchemaRelationshipNode':
+				return 'chain';
 		}
 
 		return icon;
@@ -884,7 +1089,7 @@ var _Code = {
 			case "Long":         icon = 'calculator'; break;
 			case 'String':       icon = 'pencil-square-o'; break;
 			case 'Encrypted':    icon = 'lock'; break;
-			default:             icon = 'chain'; break;
+			default:             icon = 'chain';
 		}
 
 		return icon;
@@ -986,80 +1191,76 @@ var _Code = {
 	},
 	handleSelection: function(data) {
 
-		// clear page
-		_Code.clearMainArea();
+		if (_Code.testAllowNavigation()) {
 
-		var identifier = _Code.splitIdentifier(data.id);
-		switch (identifier.type) {
+			_Code.dirty = false;
 
-			// global types that are not associated with an actual entity
-			case 'core':
-			case 'html':
-			case 'root':
-			case 'ui':
-			case 'web':
-				_Code.displayContent(identifier.type);
-				break;
+			// clear page
+			_Code.clearMainArea();
+			var identifier = _Code.splitIdentifier(data.id);
+			switch (identifier.type) {
 
-			case 'globals':
-				_Code.displayGlobalMethodsContent();
-				break;
+				// global types that are not associated with an actual entity
+				case 'core':
+				case 'html':
+				case 'ui':
+				case 'web':
+					_Code.displayContent(identifier.type);
+					break;
 
-			case 'custom':
-				_Code.displayCustomTypesContent(data);
-				break;
+				case 'root':
+					_Code.displayRootContent();
+					break;
 
-			case 'builtin':
-				_Code.displayBuiltInTypesContent(identifier.type);
-				break;
+				case 'globals':
+					_Code.displayGlobalMethodsContent(identifier);
+					break;
 
-			// properties (with uuid)
-			case 'properties':
-				_Code.displayPropertiesContent(identifier, data.updateLocationStack);
-				break;
+				case 'custom':
+					_Code.displayCustomTypesContent(data);
+					break;
 
-			// views (with uuid)
-			case 'views':
-				_Code.displayViewsContent(identifier, data.updateLocationStack);
-				break;
+				case 'builtin':
+					_Code.displayBuiltInTypesContent(identifier.type);
+					break;
 
-			// methods (with uuid)
-			case 'methods':
-				_Code.displayMethodsContent(identifier, data.updateLocationStack);
-				break;
+				// properties (with uuid)
+				case 'properties':
+					_Code.displayPropertiesContent(identifier, data.updateLocationStack);
+					break;
 
-			// outgoing relationships (with uuid)
-			case 'outgoing':
-				_Code.displayOutgoingRelationshipsContent(identifier);
-				break;
+				// remoteproperties (with uuid)
+				case 'remoteproperties':
+					_Code.displayRemotePropertiesContent(identifier, data.updateLocationStack);
+					break;
 
-			// incoming relationships (with uuid)
-			case 'incoming':
-				_Code.displayIncomingRelationshipsContent(identifier);
-				break;
+				// views (with uuid)
+				case 'views':
+					_Code.displayViewsContent(identifier, data.updateLocationStack);
+					break;
 
-			// outgoing relationship (with uuid)
-			case 'out':
-				_Code.displayOutRelationshipContent(identifier);
-				break;
+				// methods (with uuid)
+				case 'methods':
+					_Code.displayMethodsContent(identifier, data.updateLocationStack);
+					break;
 
-			// incoming relationship (with uuid)
-			case 'in':
-				_Code.displayInRelationshipContent(identifier);
-				break;
+				case 'inheritedproperties':
+					_Code.displayInheritedPropertiesContent(identifier, data.updateLocationStack);
+					break;
 
-			case 'inherited':
-				if (identifier.isBuiltinType) {
-					_Code.findAndOpenNode('Types/Built-In/' + identifier.base + '/Properties/' + identifier.property, true);
-				} else {
-					_Code.findAndOpenNode('Types/Custom/' + identifier.base + '/Properties/' + identifier.property, true);
-				}
-				break;
+				case 'inherited':
+					if (identifier.isBuiltinType) {
+						_Code.findAndOpenNode('Types/Built-In/' + identifier.base + '/Local Attributes/' + identifier.property, true);
+					} else {
+						_Code.findAndOpenNode('Types/Custom/' + identifier.base + '/Local Attributes/' + identifier.property, true);
+					}
+					break;
 
-			// other (click on an actual object)
-			default:
-				_Code.handleNodeObjectClick(data);
-				break;
+				// other (click on an actual object)
+				default:
+					_Code.handleNodeObjectClick(data);
+					break;
+			}
 		}
 	},
 	handleNodeObjectClick: function(data) {
@@ -1082,15 +1283,20 @@ var _Code = {
 					Command.get(identifier.id, null, function(result) {
 						_Code.updateRecentlyUsed(result, data.updateLocationStack);
 						Structr.fetchHtmlTemplate('code/method', { method: result }, function(html) {
-							codeContents.empty();
 							codeContents.append(html);
-							_Code.displayMethodContents(data.id);
+
+							LSWrapper.setItem(codeLastOpenMethodKey, result.id);
+							_Code.editPropertyContent(result, 'source', codeContents);
 						});
 					});
 					break;
 
 				case 'SchemaNode':
 					_Code.displaySchemaNodeContent(data);
+					break;
+
+				case 'SchemaGroup':
+					_Code.displaySchemaGroupContent(data);
 					break;
 			}
 
@@ -1104,6 +1310,10 @@ var _Code = {
 
 				case 'custom':
 					_Code.displayCreateButtons(false, false, true, '');
+					break;
+
+				case 'workingsets':
+					_Code.displayWorkingSetsContent();
 					break;
 			}
 		}
@@ -1120,57 +1330,253 @@ var _Code = {
 				codeContents.empty();
 				codeContents.append(html);
 
-				var propertyData   = { type: 'SchemaProperty', schemaNode: identifier.id };
-				var methodData     = { type: 'SchemaMethod', schemaNode: identifier.id };
-				var methodParent   = '#method-actions';
-
 				// delete button
 				if (!result.isBuiltinType) {
-					_Code.displayActionButton('#type-actions', 'remove red', 'delete', 'Delete type', function() {
+					_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete type ' + result.name, function() {
 						_Code.deleteSchemaEntity(result, 'Delete type ' + result.name + '?', 'This will delete all schema relationships as well, but no data will be removed.');
+						_TreeHelper.refreshTree('#code-tree');
 					});
 				}
 
-				_Code.displayCreatePropertyButtonList('#property-actions', propertyData);
+				// manage working sets
+				_WorkingSets.getWorkingSets(function(workingSets) {
 
-				_Code.displayCreateButton('#view-actions', 'tv', 'new-view', 'Add view', '', { type: 'SchemaView', schemaNode: result.id });
+					workingSets.forEach(function(set) {
 
-				_Code.displayCreateMethodButton(methodParent, 'onCreate', methodData, 'onCreate');
-				_Code.displayCreateMethodButton(methodParent, 'onSave',   methodData, 'onSave');
-				_Code.displayCreateMethodButton(methodParent, 'schema',   methodData, '');
+						if (set.name !== _WorkingSets.recentlyUsedName) {
 
-				/* disabled
+							if (set.children.includes(result.name)) {
+
+								_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.delete_folder_icon), 'remove-' + set.id, 'Remove from ' + set.name, function() {
+									_WorkingSets.removeTypeFromSet(set.id, result.name, function() {
+										_TreeHelper.refreshNode('#code-tree', 'workingsets-' + set.id);
+										_Code.displaySchemaNodeContent(data);
+									});
+								});
+
+							} else {
+
+								_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.add_folder_icon), 'add-' + set.id, 'Add to ' + set.name, function() {
+									_WorkingSets.addTypeToSet(set.id, result.name, function() {
+										_TreeHelper.refreshNode('#code-tree', 'workingsets-' + set.id);
+										_Code.displaySchemaNodeContent(data);
+									});
+								});
+							}
+						}
+					});
+
+					_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.add_folder_icon), 'new', 'Create new group', function() {
+
+						_WorkingSets.createNewSetAndAddType(result.name, function() {
+							_TreeHelper.refreshNode('#code-tree', 'workingsets');
+							_Code.displaySchemaNodeContent(data);
+						});
+					});
+
+				});
+
+			});
+		});
+	},
+	displaySchemaGroupContent: function(data) {
+
+		var identifier = _Code.splitIdentifier(data.id);
+
+		_WorkingSets.getWorkingSet(identifier.id, function(workingSet) {
+
+			_Code.updateRecentlyUsed(workingSet, data.updateLocationStack);
+			Structr.fetchHtmlTemplate('code/group', { type: workingSet }, function(html) {
+
+				codeContents.empty();
+				codeContents.append(html);
+
+				if (workingSet.name === _WorkingSets.recentlyUsedName) {
+
+					_Code.displayActionButton('#working-set-content', _Icons.getFullSpriteClass(_Icons.delete_icon), 'clear', 'Clear', function() {
+						_WorkingSets.clearRecentlyUsed(function() {
+							_TreeHelper.refreshTree('#code-tree');
+						});
+					});
+
+					$('#group-name-input').prop('disabled', true);
+
+ 				} else {
+
+					_Code.displayActionButton('#working-set-content', _Icons.getFullSpriteClass(_Icons.delete_icon), 'remove', 'Remove', function() {
+						_WorkingSets.deleteSet(identifier.id, function() {
+							_TreeHelper.refreshNode('#code-tree', 'workingsets');
+						});
+					});
+
+					_Code.activatePropertyValueInput('group-name-input', workingSet.id, 'name');
+				}
+
+				Structr.fetchHtmlTemplate('code/root', { }, function(html) {
+
+					$('#schema-graph').append(html);
+
+					var layouter = new SigmaLayouter('group-contents');
+
+					Command.query('SchemaNode', 10000, 1, 'name', 'asc', { }, function(result1) {
+
+						result1.forEach(function(node) {
+							if (workingSet.children.includes(node.name)) {
+								layouter.addNode(node);
+							}
+						});
+
+						Command.query('SchemaRelationshipNode', 10000, 1, 'name', 'asc', { }, function(result2) {
+
+							result2.forEach(function(r) {
+								layouter.addEdge(r.id, r.relationshipType, r.sourceId, r.targetId, true);
+							});
+
+							layouter.refresh();
+							layouter.layout();
+							layouter.on('click', _Code.handleGraphClick);
+
+							_Code.layouter = layouter;
+
+							// experimental: use positions from schema layouter to initialize positions in schema editor
+							window.setTimeout(function() {
+
+								let minX = 0;
+								let minY = 0;
+
+								layouter.getNodes().forEach(function(node) {
+									if (node.x < minX) { minX = node.x; }
+									if (node.y < minY) { minY = node.y; }
+								});
+
+								let positions = {};
+
+								layouter.getNodes().forEach(function(node) {
+
+									positions[node.label] = {
+										top: node.y - minY + 20,
+										left: node.x - minX + 20
+									};
+								});
+
+								_WorkingSets.updatePositions(workingSet.id, positions);
+
+							}, 300);
+
+						}, true, 'ui');
+
+					}, true, 'ui');
+				});
+			});
+		});
+	},
+	showGeneratedSource: function() {
+
+		let sourceContainer = document.getElementById('generated-source-code');
+		if (sourceContainer) {
+
+			let typeId = sourceContainer.dataset.typeId;
+
+			if (typeId) {
+
 				$.ajax({
-					url: '/structr/rest/SchemaNode/' + result.id + '/getGeneratedSourceCode',
+					url: '/structr/rest/SchemaNode/' + typeId + '/getGeneratedSourceCode',
 					method: 'post',
 					statusCode: {
 						200: function(result) {
 
-							var container = $('#type-source-code');
-							var editor    = CodeMirror(container[0], {
+							var container = $(sourceContainer);
+
+							var editor    = CodeMirror(container[0], Structr.getCodeMirrorSettings({
 								value: result.result,
 								mode: 'text/x-java',
-								lineNumbers: true
-							});
+								lineNumbers: true,
+								readOnly: true
+							}));
 
 							$('.CodeMirror').height('100%');
 							editor.refresh();
-
 						}
 					}
 				});
-				*/
-			});
-		});
+			}
+		}
 	},
 	displayContent: function(templateName) {
 		Structr.fetchHtmlTemplate('code/' + templateName, { }, function(html) {
 			codeContents.append(html);
 		});
 	},
+	random: function() {
+	    var x = Math.sin(_Code.seed++) * 10000;
+	    return x - Math.floor(x);
+	},
+	displayRootContent: function() {
+
+		Structr.fetchHtmlTemplate('code/root', { }, function(html) {
+
+			codeContents.append(html);
+
+			var layouter = new SigmaLayouter('all-types');
+
+			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { }, function(result1) {
+
+				result1.forEach(function(node) {
+					layouter.addNode(node);
+				});
+
+				Command.query('SchemaRelationshipNode', 10000, 1, 'name', 'asc', { }, function(result2) {
+
+					result2.forEach(function(r) {
+						layouter.addEdge(r.id, r.relationshipType, r.sourceId, r.targetId, true);
+					});
+
+					layouter.refresh();
+					layouter.layout();
+					layouter.on('click', _Code.handleGraphClick);
+
+					_Code.layouter = layouter;
+
+				}, true, 'ui');
+
+			}, true, 'ui');
+		});
+	},
+	handleGraphClick: function(data) {
+
+		if (data.nodes.length === 1) {
+
+			Command.get(data.nodes[0], null, function(result) {
+				_Code.findAndOpenNode(_Code.getPathForEntity(result), false, false);
+				_Code.displaySchemaNodeContext(result);
+			});
+		}
+
+	},
+	displaySchemaNodeContext:function(entity) {
+
+		Structr.fetchHtmlTemplate('code/type-context', { entity: entity }, function(html) {
+
+			codeContext.append(html);
+
+			$('#schema-node-name').off('blur').on('blur', function() {
+
+				var name = $(this).val();
+
+				_Code.showSchemaRecompileMessage();
+
+				Command.setProperty(entity.id, 'name', name, false, function() {
+
+					_Code.layouter.getNodes().update({ id: entity.id, label: '<b>' + name + '</b>' });
+					_Code.hideSchemaRecompileMessage();
+					_Code.refreshTree();
+				});
+			});
+		});
+
+	},
 	displayCustomTypesContent: function(data) {
 		Structr.fetchHtmlTemplate('code/custom', { }, function(html) {
-			codeContents.empty();
 			codeContents.append(html);
 
 			// create button
@@ -1179,79 +1585,70 @@ var _Code = {
 			// list of existing custom types
 			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { isBuiltinType: false }, function(result) {
 				result.forEach(function(t) {
-					//displayActionButton: function(targetId, icon, suffix, name, callback) {
-					_Code.displayActionButton('#existing-types', 'file-code-o', t.id, t.name, function() {
+					_Code.displayActionButton('#existing-types', 'fa fa-file-code-o', t.id, t.name, function() {
 						_Code.findAndOpenNode('Types/Custom/' + t.name);
 					});
 				});
 			}, true);
 		});
 	},
-	displayBuiltInTypesContent: function() {
-		Structr.fetchHtmlTemplate('code/builtin', { }, function(html) {
-			codeContents.empty();
+	displayWorkingSetsContent: function() {
+		Structr.fetchHtmlTemplate('code/groups', { }, function(html) {
 			codeContents.append(html);
-			var container = $('#builtin-types');
-			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { isBuiltinType: true}, function(result) {
-				result.forEach(function(t) {
-					if (t.category && t.category === 'html') {
-						return;
-					}
-					_Code.displayTypeContent(container, t.id, t.name, 'file-code-o', 'Types/Built-In/' + t.name);
-				});
-			}, true);
 		});
 	},
-	displayGlobalMethodsContent: function() {
-		Structr.fetchHtmlTemplate('code/globals', { }, function(html) {
-			codeContents.empty();
+	displayBuiltInTypesContent: function() {
+		Structr.fetchHtmlTemplate('code/builtin', { }, function(html) {
 			codeContents.append(html);
-			_Code.displayCreateButton('#method-actions', 'magic', 'new', 'Add global schema method', '', { type: 'SchemaMethod' });
 		});
 	},
 	displayPropertiesContent: function(selection, updateLocationStack) {
 
-		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Properties';
+		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Local Attributes';
 
 		if (updateLocationStack === true) {
 			_Code.updatePathLocationStack(path);
 			_Code.lastClickedPath = path;
 		}
 
-		Structr.fetchHtmlTemplate('code/properties', { identifier: selection }, function(html) {
-			codeContents.empty();
+		Structr.fetchHtmlTemplate('code/properties.local', { identifier: selection }, function(html) {
+
 			codeContents.append(html);
-			var callback = function() { _Code.displayPropertiesContent(selection); };
-			var data     = { type: 'SchemaProperty', schemaNode: selection.id };
-			var id       = '#property-actions';
 
-			_Code.displayCreatePropertyButtonList('#property-actions', data, callback);
+			Command.get(selection.id, null, (entity) => {
+				_Schema.properties.appendLocalProperties($('.content-container', codeContents), entity, {
+					editReadWriteFunction: (property) => {
+						_Code.handleSelection(property);
+					}
+				}, _Code.refreshTree);
 
-			// list of existing properties
-			Command.query('SchemaProperty', 10000, 1, 'name', 'asc', { schemaNode: selection.id }, function(result) {
-				result.forEach(function(t) {
-					//displayActionButton: function(targetId, icon, suffix, name, callback) {
-					_Code.displayActionButton('#existing-properties', _Code.getIconForPropertyType(t.propertyType), t.id, t.name, function() {
-						_Code.findAndOpenNode(path + '/' + t.name);
-					});
-				});
-			}, true);
+				_Code.runCurrentEntitySaveAction = () => {
+					$('.save-all', codeContents).click();
+				};
+			});
 		});
 	},
-	displayCreatePropertyButtonList: function(id, data) {
+	displayRemotePropertiesContent: function (selection, updateLocationStack) {
 
-		// create buttons
-		_Code.displayCreatePropertyButton(id, 'String',   data);
-		_Code.displayCreatePropertyButton(id, 'Encrypted', data);
-		_Code.displayCreatePropertyButton(id, 'Boolean',  data);
-		_Code.displayCreatePropertyButton(id, 'Integer',  data);
-		_Code.displayCreatePropertyButton(id, 'Long',     data);
-		_Code.displayCreatePropertyButton(id, 'Double',   data);
-		_Code.displayCreatePropertyButton(id, 'Enum',     data);
-		_Code.displayCreatePropertyButton(id, 'Date',     data);
-		_Code.displayCreatePropertyButton(id, 'Function', data);
-		_Code.displayCreatePropertyButton(id, 'Cypher',   data);
+		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/RemoteProperties';
 
+		if (updateLocationStack === true) {
+			_Code.updatePathLocationStack(path);
+			_Code.lastClickedPath = path;
+		}
+
+		Structr.fetchHtmlTemplate('code/properties.remote', { identifier: selection }, function(html) {
+
+			codeContents.append(html);
+
+			Command.get(selection.id, null, (entity) => {
+				_Schema.remoteProperties.appendRemote($('.content-container', codeContents), entity, _Code.schemaNodes, _Code.refreshTree);
+
+				_Code.runCurrentEntitySaveAction = () => {
+					$('.save-all', codeContents).click();
+				};
+			});
+		});
 	},
 	displayViewsContent: function(selection, updateLocationStack) {
 
@@ -1263,72 +1660,73 @@ var _Code = {
 		}
 
 		Structr.fetchHtmlTemplate('code/views', { identifier: selection }, function(html) {
-			codeContents.empty();
 			codeContents.append(html);
-			var callback = function() { _Code.displayViewsContent(selection); };
-			var data     = { type: 'SchemaViews', schemaNode: selection.id };
 
-			_Code.displayCreateButton('#view-actions', 'tv', 'new-view', 'Add view', '', data, callback);
+			Command.get(selection.id, null, (entity) => {
+				_Schema.views.appendViews($('.content-container', codeContents), entity, _Code.refreshTree);
 
-			// list of existing properties
-			Command.query('SchemaView', 10000, 1, 'name', 'asc', { schemaNode: selection.id }, function(result) {
-				result.forEach(function(t) {
-					//displayActionButton: function(targetId, icon, suffix, name, callback) {
-					_Code.displayActionButton('#existing-views', _Code.getIconForNodeType(t), t.id, t.name, function() {
-						_Code.findAndOpenNode(path + '/' + t.name);
-					});
-				});
-			}, true);
+				_Code.runCurrentEntitySaveAction = () => {
+					$('.save-all', codeContents).click();
+				};
+			});
 		});
 	},
-	displayMethodsContent: function(identifier, updateLocationStack) {
+	displayGlobalMethodsContent: function(selection) {
 
-		var path = 'Types/' + _Code.getPathComponent(identifier) + '/' + identifier.base + '/Methods';
+		_Code.addRecentlyUsedElement("global-methods", "Global methods", _Icons.getFullSpriteClass(_Icons.world_icon), selection.id, false);
+
+		Structr.fetchHtmlTemplate('code/globals', { }, function(html) {
+			codeContents.append(html);
+
+			Command.rest('SchemaMethod?schemaNode=null&sort=name&order=ascending', function (methods) {
+
+				_Schema.methods.appendMethods($('.content-container', codeContents), null, methods, _Code.refreshTree);
+
+				_Code.runCurrentEntitySaveAction = () => {
+					$('.save-all', codeContents).click();
+				};
+			});
+		});
+	},
+	displayMethodsContent: function(selection, updateLocationStack) {
+
+		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Methods';
 
 		if (updateLocationStack === true) {
 			_Code.updatePathLocationStack(path);
 			_Code.lastClickedPath = path;
 		}
 
-		Structr.fetchHtmlTemplate('code/methods', { identifier: identifier }, function(html) {
-			codeContents.empty();
-			codeContents.append(html);
-			var data     = { type: 'SchemaMethod', schemaNode: identifier.id };
-			var containerId = '#method-actions';
+		_Code.addRecentlyUsedElement(selection.base + '-' + selection.type, selection.base + ' Methods' , 'fa fa-code gray', selection.id, false);
 
-			_Code.displayCreateButton(containerId, 'magic', 'on-create',    'Add onCreate method',    'onCreate',    data);
-			_Code.displayCreateButton(containerId, 'magic', 'after-create', 'Add afterCreate method', 'afterCreate', data);
-			_Code.displayCreateButton(containerId, 'magic', 'on-save',      'Add onSave method',      'onSave',      data);
-			_Code.displayCreateButton(containerId, 'magic', 'new',          'Add schema method',      '',            data);
+		Structr.fetchHtmlTemplate('code/methods', { identifier: selection }, function(html) {
+			codeContents.append(html);
 
-			// list of existing properties
-			Command.query('SchemaMethod', 10000, 1, 'name', 'asc', { schemaNode: identifier.id }, function(result) {
-				result.forEach(function(t) {
-					_Code.displayActionButton('#existing-methods', _Code.getIconForNodeType(t), t.id, t.name, function() {
-						_Code.findAndOpenNode(path + '/' + t.name);
-					});
-				});
-			}, true);
+			Command.get(selection.id, null, (entity) => {
+
+				_Schema.methods.appendMethods($('.content-container', codeContents), entity, entity.schemaMethods, _Code.refreshTree);
+
+				_Code.runCurrentEntitySaveAction = () => {
+					$('.save-all', codeContents).click();
+				};
+			});
 		});
 	},
-	displayOutgoingRelationshipsContent: function(identifier) {
-		Structr.fetchHtmlTemplate('code/outgoing-relationships', { identifier: identifier }, function(html) {
+	displayInheritedPropertiesContent: function(selection, updateLocationStack) {
+
+		var path = 'Types/' + _Code.getPathComponent(selection) + '/' + selection.base + '/Inherited';
+
+		if (updateLocationStack === true) {
+			_Code.updatePathLocationStack(path);
+			_Code.lastClickedPath = path;
+		}
+
+		Structr.fetchHtmlTemplate('code/properties.inherited', { identifier: selection }, function(html) {
 			codeContents.append(html);
-		});
-	},
-	displayIncomingRelationshipsContent: function(identifier) {
-		Structr.fetchHtmlTemplate('code/incoming-relationships', { identifier: identifier }, function(html) {
-			codeContents.append(html);
-		});
-	},
-	displayOutRelationshipContent: function(identifier) {
-		Structr.fetchHtmlTemplate('code/outgoing-relationship', { identifier: identifier }, function(html) {
-			codeContents.append(html);
-		});
-	},
-	displayInRelationshipContent: function(identifier) {
-		Structr.fetchHtmlTemplate('code/incoming-relationship', { identifier: identifier }, function(html) {
-			codeContents.append(html);
+
+			Command.get(selection.id, null, (entity) => {
+				_Schema.properties.appendBuiltinProperties($('.content-container', codeContents), entity);
+			});
 		});
 	},
 	displayPropertyDetails: function(selection) {
@@ -1381,7 +1779,6 @@ var _Code = {
 			_Code.updateRecentlyUsed(result, selection.updateLocationStack);
 
 			Structr.fetchHtmlTemplate('code/default-view', { view: result }, function(html) {
-				codeContents.empty();
 				codeContents.append(html);
 				_Code.displayDefaultViewOptions(result);
 			});
@@ -1390,29 +1787,27 @@ var _Code = {
 	displayFunctionPropertyDetails: function(property) {
 		Structr.fetchHtmlTemplate('code/function-property', { property: property }, function(html) {
 
-			codeContents.empty();
 			codeContents.append(html);
 
-			Structr.activateCommentsInElement(codeContents);
+			Structr.activateCommentsInElement(codeContents, {insertAfter: true});
 
-			_Code.editPropertyContent(undefined, property.id, 'readFunction',  $('#read-code-container'),  false);
-			_Code.editPropertyContent(undefined, property.id, 'writeFunction', $('#write-code-container'), false);
+			_Code.editPropertyContent(property, 'readFunction',  $('#read-code-container'));
+			_Code.editPropertyContent(property, 'writeFunction', $('#write-code-container'));
 			_Code.displayDefaultPropertyOptions(property);
 		});
 	},
 	displayCypherPropertyDetails: function(property) {
 
 		Structr.fetchHtmlTemplate('code/cypher-property', { property: property }, function(html) {
-			codeContents.empty();
 			codeContents.append(html);
-			_Code.editPropertyContent(undefined, property.id, 'format', $('#cypher-code-container'));
+
+			_Code.editPropertyContent(property, 'format', $('#cypher-code-container'));
 			_Code.displayDefaultPropertyOptions(property);
 		});
 	},
 	displayStringPropertyDetails: function(property) {
 
 		Structr.fetchHtmlTemplate('code/string-property', { property: property }, function(html) {
-			codeContents.empty();
 			codeContents.append(html);
 			_Code.displayDefaultPropertyOptions(property);
 		});
@@ -1420,7 +1815,6 @@ var _Code = {
 	displayBooleanPropertyDetails: function(property) {
 
 		Structr.fetchHtmlTemplate('code/boolean-property', { property: property }, function(html) {
-			codeContents.empty();
 			codeContents.append(html);
 			_Code.displayDefaultPropertyOptions(property);
 		});
@@ -1428,7 +1822,6 @@ var _Code = {
 	displayDefaultPropertyDetails: function(property) {
 
 		Structr.fetchHtmlTemplate('code/default-property', { property: property }, function(html) {
-			codeContents.empty();
 			codeContents.append(html);
 			_Code.displayDefaultPropertyOptions(property);
 		});
@@ -1438,57 +1831,43 @@ var _Code = {
 		// default buttons
 		Structr.fetchHtmlTemplate('code/property-options', { property: property }, function(html) {
 
+			_Code.runCurrentEntitySaveAction = function() {
+				_Code.saveEntityAction(property);
+			};
+
 			var buttons = $('#property-buttons');
 			buttons.prepend(html);
 
-			$('.toggle-checkbox', buttons).on('click', function() {
-				var targetId = $(this).data('target');
-				if (targetId) {
-					var box = $(targetId);
-					box.click();
-				}
+			_Code.displayActionButton('#property-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save property', _Code.runCurrentEntitySaveAction);
+
+			_Code.displayActionButton('#property-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
+				_Code.revertFormData(property);
 			});
 
 			// delete button
 			if (!property.schemaNode.isBuiltinType) {
-				_Code.displayActionButton('#property-actions', 'remove red', 'delete', 'Delete property', function() {
+
+				_Code.displayActionButton('#property-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete property', function() {
 					_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'No data will be removed.');
 				});
 			}
 
-			_Code.activatePropertyValueInput('property-name-input',         property.id, 'name');
-			_Code.activatePropertyValueInput('property-content-type-input', property.id, 'contentType');
-			_Code.activatePropertyValueInput('property-dbname-input',       property.id, 'dbname');
-			_Code.activatePropertyValueInput('property-format-input',       property.id, 'format');
-			_Code.activatePropertyValueInput('property-default-input',      property.id, 'defaultValue');
+			_Code.updateDirtyFlag(property);
 
-			if (property.propertyType === 'Function') {
-				_Code.activatePropertyValueInput('property-type-hint-input',    property.id, 'typeHint');
-			} else {
+			if (property.propertyType !== 'Function') {
 				$('#property-type-hint-input').parent().remove();
 			}
 
-			$('input[type=checkbox]', buttons).on('click', function() {
-				var elem         = $(this);
-				var propertyName = elem.data('property');
-				var data         = {};
-				data[propertyName] = elem.prop('checked');
-				_Code.lockPropertyOptions();
-				_Code.showSchemaRecompileMessage();
-				Command.setProperties(property.id, data, function() {
-					_Code.unlockPropertyOptions();
-					blinkGreen(elem.parent());
-					_Code.refreshTree();
-					_Code.hideSchemaRecompileMessage();
-				});
-			})
+			if (property.propertyType === 'Cypher') {
+				$('#property-format-input').parent().remove();
+			}
 
-			// set value from property
-			$('input[type=checkbox]', buttons).each(function(i) {
-				var propertyName = $(this).data('property');
-				if (propertyName && propertyName.length) {
-					$(this).prop('checked', property[propertyName]);
-				}
+			$('input[type=checkbox]', buttons).on('change', function() {
+				_Code.updateDirtyFlag(property);
+			});
+
+			$('input[type=text]', buttons).on('keyup', function() {
+				_Code.updateDirtyFlag(property);
 			});
 
 			if (property.schemaNode.isBuiltinType) {
@@ -1509,64 +1888,119 @@ var _Code = {
 		// default buttons
 		Structr.fetchHtmlTemplate('code/view-options', { view: view }, function(html) {
 
+			_Code.runCurrentEntitySaveAction = function() {
+
+				if (_Code.isDirty()) {
+
+					// update entity before storing the view to make sure that nonGraphProperties are correctly identified..
+					Command.get(view.schemaNode.id, null, function(reloadedEntity) {
+
+						let formData = _Code.collectChangedPropertyData(view);
+						let sortedAttrs = $('.property-attrs.view').sortedVals();
+						formData.schemaProperties   = _Schema.views.findSchemaPropertiesByNodeAndName(reloadedEntity, sortedAttrs);
+						formData.nonGraphProperties = _Schema.views.findNonGraphProperties(reloadedEntity, sortedAttrs);
+
+						_Code.showSchemaRecompileMessage();
+
+						Command.setProperties(view.id, formData, function() {
+							Object.assign(view, formData);
+							_Code.updateDirtyFlag(view);
+
+							_Code.showSaveAction(formData);
+
+							if (formData.name) {
+								_Code.refreshTree();
+							}
+
+							_Code.hideSchemaRecompileMessage();
+						});
+					});
+				}
+			};
+
 			var buttons = $('#view-buttons');
 			buttons.prepend(html);
 
-			// delete button
-			if (!view.schemaNode.isBuiltinType) {
-				_Code.displayActionButton('#view-actions', 'remove red', 'delete', 'Delete view', function() {
-					_Code.deleteSchemaEntity(view, 'Delete view ' + view.name + '?', 'No data will be removed.');
-				});
-			}
+			_Code.displayActionButton('#view-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save view', _Code.runCurrentEntitySaveAction);
 
-			_Code.activatePropertyValueInput('view-name-input', view.id, 'name');
-
-			Command.listSchemaProperties(view.schemaNode.id, view.name, function(data) {
-
-				var properties = [];
-
-				if (view.sortOrder) {
-
-					view.sortOrder.split(',').forEach(function(name) {
-						data.forEach(function(p) {
-							if (p.name === name) {
-								properties.push(p);
-							}
-						});
-					});
-
-				} else {
-
-					properties = data;
-				}
-
-				properties.forEach(function(t) {
-					if (t.isSelected) {
-						Structr.fetchHtmlTemplate('code/sortable-list-item', { id: t.id, name: t.name, icon: '' }, function(html) {
-							$('#view-properties').append(html);
-						});
-					}
-				});
-
-				// make properties sortable
-				$('#view-properties').sortable({
-					handle: '.sortable-list-item-handle',
-					update: function() {
-						var names = [];
-						$('.sortable-list-item').each(function(i, item) {
-							names.push($(item).data('name'));
-						});
-						_Code.showSchemaRecompileMessage();
-						Command.setProperty(view.id, 'sortOrder', names.join(','), false, function() {
-							_Code.hideSchemaRecompileMessage();
-						});
-					}
-				});
+			_Code.displayActionButton('#view-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
+				_Code.revertFormData(view);
+				_Code.displayViewSelect(view);
 			});
+
+			// delete button
+			_Code.displayActionButton('#view-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete view', function() {
+				_Code.deleteSchemaEntity(view, 'Delete view' + ' ' + view.name + '?', 'Note: Builtin views will be restored in their initial configuration');
+			});
+
+			_Code.updateDirtyFlag(view);
+
+			$('input[type=text]', buttons).on('keyup', function() {
+				_Code.updateDirtyFlag(view);
+			});
+
+			_Code.displayViewSelect(view);
 
 			if (typeof callback === 'function') {
 				callback();
 			}
+		});
+	},
+	displayViewSelect: function(view) {
+
+		Command.listSchemaProperties(view.schemaNode.id, view.name, function(properties) {
+
+			let propertySelectContainer = $('#view-properties');
+			fastRemoveAllChildren(propertySelectContainer[0]);
+			propertySelectContainer.append('<div class="view-properties-select"><select class="property-attrs view chosen-sortable" multiple="multiple"></select></div>');
+			let viewSelectElem = $('.property-attrs', propertySelectContainer);
+
+			let appendProperty = function(prop) {
+				let	name       = prop.name;
+				var isSelected = prop.isSelected ? ' selected="selected"' : '';
+				var isDisabled = (view.name === 'ui' || view.name === 'custom' || prop.isDisabled) ? ' disabled="disabled"' : '';
+
+				viewSelectElem.append('<option value="' + name + '"' + isSelected + isDisabled + '>' + name + '</option>');
+			};
+
+			if (view.sortOrder) {
+				view.sortOrder.split(',').forEach(function(sortedProp) {
+
+					let prop = properties.filter(function(prop) {
+						return (prop.name === sortedProp);
+					});
+
+					if (prop.length) {
+						appendProperty(prop[0]);
+
+						properties = properties.filter(function(prop) {
+							return (prop.name !== sortedProp);
+						});
+					}
+				});
+			}
+
+			properties.forEach(function (prop) {
+				appendProperty(prop);
+			});
+
+			let changeFn = function () {
+				var sortedAttrs = viewSelectElem.sortedVals();
+				$('input#view-sort-order').val(sortedAttrs.join(','));
+				_Code.updateDirtyFlag(view);
+			};
+
+			viewSelectElem.chosen({
+				search_contains: true,
+				width: '100%',
+				display_selected_options: false,
+				hide_results_on_select: false,
+				display_disabled_options: false
+			}).on('change', function(e,p) {
+				changeFn();
+			}).chosenSortable(function() {
+				changeFn();
+			});
 		});
 	},
 	displayDefaultMethodOptions: function(method, callback) {
@@ -1574,102 +2008,76 @@ var _Code = {
 		// default buttons
 		Structr.fetchHtmlTemplate('code/method-options', { method: method }, function(html) {
 
+			_Code.runCurrentEntitySaveAction = function() {
+				_Code.saveEntityAction(method);
+			};
+
 			var buttons = $('#method-buttons');
 			buttons.prepend(html);
 
-			$('.toggle-checkbox', buttons).on('click', function() {
-				var targetId = $(this).data('target');
-				if (targetId) {
-					var box = $(targetId);
-					box.click();
-				}
+			_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save method', _Code.runCurrentEntitySaveAction);
+
+			_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
+				_Code.revertFormData(method);
 			});
 
 			// delete button
-			if (!method.schemaNode || !method.schemaNode.isBuiltinType) {
-				_Code.displayActionButton('#method-actions', 'remove red', 'delete', 'Delete method', function() {
-					_Code.deleteSchemaEntity(method, 'Delete method ' + method.name + '?');
-				});
-			}
-
-			_Code.activatePropertyValueInput('method-name-input', method.id, 'name');
-
-			$('input[type=checkbox]', buttons).on('click', function() {
-				var elem         = $(this);
-				var propertyName = elem.data('property');
-				var data         = {};
-				data[propertyName] = elem.prop('checked');
-				_Code.lockPropertyOptions();
-				_Code.showSchemaRecompileMessage();
-				Command.setProperties(method.id, data, function() {
-					_Code.unlockPropertyOptions();
-					blinkGreen(elem.parent());
-					_Code.refreshTree();
-					_Code.hideSchemaRecompileMessage();
-				});
-			})
-
-			// set value from property
-			$('input[type=checkbox]', buttons).each(function(i) {
-				var propertyName = $(this).data('property');
-				if (propertyName && propertyName.length) {
-					$(this).prop('checked', method[propertyName]);
-				}
+			_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete method', function() {
+				_Code.deleteSchemaEntity(method, 'Delete method ' + method.name + '?', 'Note: Builtin methods will be restored in their initial configuration');
 			});
 
-			if (method && method.schemaNode && method.schemaNode.isBuiltinType) {
-				$('button#delete-method-button').parent().remove();
-			} else {
-				$('button#delete-method-button').on('click', function() {
-					_Code.deleteSchemaEntity(method, 'Delete method ' + method.name + '?');
+			// run button
+			if (!method.schemaNode && !method.isPartOfBuiltInSchema) {
+				_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.exec_blue_icon), 'run', 'Run method', function() {
+					_Code.runGlobalSchemaMethod(method);
 				});
 			}
+
+			_Code.updateDirtyFlag(method);
+
+			$('input[type=checkbox]', buttons).on('change', function() {
+				_Code.updateDirtyFlag(method);
+			});
+
+			$('input[type=text]', buttons).on('keyup', function() {
+				_Code.updateDirtyFlag(method);
+			});
 
 			if (typeof callback === 'function') {
 				callback();
 			}
 		});
 	},
-	lockPropertyOptions: function() {
-		$('#property-options').find('input').attr('disabled', true);
-	},
-	unlockPropertyOptions: function() {
-		$('#property-options').find('input').attr('disabled', false);
-	},
-	activatePropertyValueInput: function(inputId, id, name) {
-		$('input#' + inputId).on('blur', function() {
-			var elem     = $(this);
-			var previous = elem.attr('value');
-			if (previous !== elem.val()) {
-				var data   = {};
-				data[name] = elem.val();
-				_Code.lockPropertyOptions();
-				_Code.showSchemaRecompileMessage();
-				Command.setProperties(id, data, function() {
-					_Code.unlockPropertyOptions();
-					blinkGreen(elem);
-					_Code.refreshTree();
-					_Code.hideSchemaRecompileMessage();
-				});
+	setupAutocompletion: function(editor, id, isAutoscriptEnv) {
+
+		CodeMirror.registerHelper('hint', 'ajax', (editor, callback) => _Code.getAutocompleteHint(editor, id, isAutoscriptEnv, callback));
+		CodeMirror.hint.ajax.async = true;
+		CodeMirror.commands.autocomplete = function(mirror) { mirror.showHint({ hint: CodeMirror.hint.ajax }); };
+		editor.on('keyup', (instance, event) => {
+			switch (event.key) {
+
+				case "'":
+				case '"':
+				case '.':
+				case '(':
+					CodeMirror.commands.autocomplete(instance, null, {completeSingle: false});
 			}
-		})
+		});
 	},
-	getAutocompleteHint: function(editor, callback) {
+	getAutocompleteHint: function(editor, id, isAutoscriptEnv, callback) {
 
 		var cursor = editor.getCursor();
-		var word   = editor.findWordAt(cursor);
-		var prev   = editor.findWordAt({ line: word.anchor.line, ch: word.anchor.ch - 2 });
-		var range1 = editor.getRange(prev.anchor, prev.head);
-		var range2 = editor.getRange(word.anchor, word.head);
+		var before = editor.getRange({ line: 0, ch: 0 }, cursor);
+		var after  = editor.getRange(cursor, { line: cursor.line + 1, ch: 0 });
 		var type   = _Code.getEditorModeForContent(editor.getValue());
-		Command.autocomplete('', '', range2, range1, '', cursor.line, cursor.ch, type, function(result) {
+		Command.autocomplete(id, isAutoscriptEnv, before, after, cursor.line, cursor.ch, type, function(result) {
 			var inner  = { from: cursor, to: cursor, list: result };
 			callback(inner);
 		});
 	},
 	activateCreateDialog: function(suffix, presetValue, nodeData, elHtml) {
 
-		var button = $('div#action-button-' + suffix);
+		var button = $('button#action-button-' + suffix);
 
 		var revertFunction = function () {
 			button.replaceWith(elHtml);
@@ -1678,14 +2086,8 @@ var _Code = {
 
 		button.on('click.create-object-' + suffix, function() {
 
-			// hover / overlay effect
-			button.css({
-				'margin':    '0 9px -59px -3px',
-				'padding':   '13px 8px',
-				'z-index':   1000,
-				'border':    '4px solid #81ce25',
-				'box-shadow': '0px 0px 36px rgba(127,127,127,.2)'
-			});
+			button.off('click');
+			button.addClass('action-button-open');
 
 			Structr.fetchHtmlTemplate('code/create-object-form', { value: presetValue, suffix: suffix }, function(html) {
 				button.append(html);
@@ -1704,6 +2106,7 @@ var _Code = {
 					_Code.showSchemaRecompileMessage();
 					Command.create(data, function() {
 						_Code.refreshTree();
+						_Code.clearMainArea();
 						_Code.displayCustomTypesContent();
 						_Code.hideSchemaRecompileMessage();
 					});
@@ -1711,27 +2114,19 @@ var _Code = {
 			});
 		});
 	},
-	displayCreateButton: function(targetId, icon, suffix, name, presetValue, createData) {
-		Structr.fetchHtmlTemplate('code/action-button', { icon: icon, suffix: suffix, name: name }, function(html) {
+	displayCreateButton: function(targetId, iconClass, suffix, name, presetValue, createData) {
+		Structr.fetchHtmlTemplate('code/action-button', { iconClass: iconClass, suffix: suffix, name: name }, function(html) {
 			$(targetId).append(html);
 			_Code.activateCreateDialog(suffix, presetValue, createData, html);
 		});
 	},
-	displayListButton: function(targetId, icon, suffix, name, path) {
-		_Code.displayActionButton(targetId, icon, suffix, name, function() {
-			_Code.findAndOpenNode(path, true);
-		});
-	},
-	displayActionButton: function(targetId, icon, suffix, name, callback) {
-		Structr.fetchHtmlTemplate('code/action-button', { icon: icon, suffix: suffix, name: name }, function(html) {
+	displayActionButton: function(targetId, iconClass, suffix, name, callback) {
+		let buttonId = '#action-button-' + suffix;
+		Structr.fetchHtmlTemplate('code/action-button', { iconClass: iconClass, suffix: suffix, name: name }, function(html) {
 			$(targetId).append(html);
-			$('#action-button-' + suffix).off('click.action').on('click.action', callback);
+			$(buttonId).off('click.action').on('click.action', callback);
 		});
-	},
-	displayButton: function(targetId, icon, suffix, name) {
-		Structr.fetchHtmlTemplate('code/action-button', { icon: icon, suffix: suffix, name: name }, function(html) {
-			$(targetId).append(html);
-		});
+		return buttonId;
 	},
 	displayCreatePropertyButton: function(targetId, type, nodeData) {
 		var data = Object.assign({}, nodeData);
@@ -1739,23 +2134,25 @@ var _Code = {
 		if (type === 'Enum') {
 			data.format = 'value1, value2, value3';
 		}
-		_Code.displayCreateButton(targetId, _Code.getIconForPropertyType(type), type.toLowerCase(), 'Add ' + type + ' property', '', data);
+		_Code.displayCreateButton(targetId, 'fa fa-' + _Code.getIconForPropertyType(type), type.toLowerCase(), 'Add ' + type + ' property', '', data);
 	},
 	displayCreateMethodButton: function(targetId, type, data, presetValue) {
-		_Code.displayCreateButton(targetId, _Code.getIconForNodeType(data), type.toLowerCase(), 'Add ' + type + ' method', presetValue, data);
+		_Code.displayCreateButton(targetId, 'fa fa-' + _Code.getIconForNodeType(data), type.toLowerCase(), 'Add ' + type + ' method', presetValue, data);
 	},
 	displayCreateTypeButton: function(targetId) {
-		_Code.displayCreateButton(targetId, 'magic', 'create-type', 'Create new type', '', { type: 'SchemaNode'});
+		_Code.displayCreateButton(targetId, 'fa fa-magic', 'create-type', 'Create new type', '', { type: 'SchemaNode'});
 	},
 	getEditorModeForContent: function(content) {
-		if (content && content.indexOf('{') === 0) {
-			return 'text/javascript';
-		}
-		return 'text';
+		return (content && content.indexOf('{') === 0) ? 'text/javascript' : 'text';
 	},
 	updateRecentlyUsed: function(entity, updateLocationStack) {
 
-		_Code.addRecentlyUsedElement(entity);
+		_Code.addRecentlyUsedEntity(entity);
+
+		// add recently used types to corresponding working set
+		if (entity.type === 'SchemaNode') {
+			_WorkingSets.addRecentlyUsed(entity.name);
+		}
 
 		var path = _Code.getPathForEntity(entity);
 
@@ -1792,20 +2189,30 @@ var _Code = {
 				tree.activate_node(searchId, { updateLocationStack: updateLocationStack });
 			}
 
-			// also scroll into view if node is in tree
-			var domNode = document.getElementById( tree.get_parent(tree.get_parent(searchId)) );
-			if (domNode) {
+			let selectedNode = tree.get_node(searchId);
+			if (selectedNode) {
 
-				var rect = domNode.getBoundingClientRect();
-				if (rect.bottom > window.innerHeight) {
-
-					domNode.scrollIntoView(false);
+				// depending on the depth we select a different parent level
+				let parentToScrollTo = searchId;
+				switch (selectedNode.parents.length) {
+					case 1:
+					case 2:
+					case 3:
+						parentToScrollTo = searchId;
+						break;
+					case 4:
+						parentToScrollTo = tree.get_parent(searchId);
+						break;
+					case 5:
+						parentToScrollTo = tree.get_parent(tree.get_parent(searchId));
+						break;
 				}
 
-				if (rect.top < 0) {
+				// also scroll into view if node is in tree
+				let domNode = document.getElementById( parentToScrollTo ) ;
+				if (domNode) {
 					domNode.scrollIntoView();
 				}
-
 			}
 
 		} else {
@@ -1985,11 +2392,12 @@ var _Code = {
 				path.push(entity.name);
 				break;
 
+
 			case 'SchemaProperty':
 				path.push('Types');
 				path.push(getPathComponent(entity.schemaNode));
 				path.push(entity.schemaNode.name);
-				path.push('Properties');
+				path.push('Local Attributes');
 				path.push(entity.name);
 				break;
 
@@ -2004,6 +2412,14 @@ var _Code = {
 					path.push('Global Methods');
 					path.push(entity.name);
 				}
+				break;
+
+			case 'SchemaView':
+				path.push('Types');
+				path.push(getPathComponent(entity));
+				path.push(entity.schemaNode.name);
+				path.push('Views');
+				path.push(entity.name);
 				break;
 		}
 
@@ -2029,8 +2445,9 @@ var _Code = {
 				$.unblockUI({
 					fadeOut: 25
 				});
-				_Code.lockPropertyOptions();
 				_Code.showSchemaRecompileMessage();
+				_Code.dirty = false;
+
 				Command.deleteNode(entity.id, false, function() {
 					_Code.hideSchemaRecompileMessage();
 					_Code.findAndOpenNode(parentPath, false);
@@ -2038,5 +2455,320 @@ var _Code = {
 				});
 			}
 		);
+	},
+	runGlobalSchemaMethod: function(schemaMethod) {
+
+		let cleanedComment = (schemaMethod.comment && schemaMethod.comment.trim() !== '') ? schemaMethod.comment.replaceAll("\n", "<br>") : '';
+
+		Structr.dialog('Run global schema method ' + schemaMethod.name, function() {}, function() {
+			$('#run-method').remove();
+			$('#clear-log').remove();
+		});
+
+		dialogBtn.prepend('<button id="run-method">Run</button>');
+		dialogBtn.append('<button id="clear-log">Clear output</button>');
+
+		var paramsOuterBox = $('<div id="params"><h3 class="heading-narrow">Parameters</h3></div>');
+		var paramsBox = $('<div></div>');
+		paramsOuterBox.append(paramsBox);
+		var addParamBtn = $('<i title="Add parameter" class="button ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" />');
+		paramsBox.append(addParamBtn);
+		dialog.append(paramsOuterBox);
+
+		if (cleanedComment.trim() !== '') {
+			dialog.append('<div id="global-method-comment"><h3 class="heading-narrow">Comment</h3>' + cleanedComment + '</div>');
+		}
+
+		Structr.appendInfoTextToElement({
+			element: $('#params h3'),
+			text: "Parameters can be accessed by using the <code>retrieve()</code> function.",
+			css: { marginLeft: "5px" },
+			helpElementCss: { fontSize: "12px" }
+		});
+
+		addParamBtn.on('click', function() {
+			var newParam = $('<div class="param"><input class="param-name" placeholder="Parameter name"> : <input class="param-value" placeholder="Parameter value"></div>');
+			var removeParam = $('<i class="button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" alt="Remove parameter" title="Remove parameter"/>');
+
+			newParam.append(removeParam);
+			removeParam.on('click', function() {
+				newParam.remove();
+			});
+			paramsBox.append(newParam);
+		});
+
+		dialog.append('<h3>Method output</h3>');
+		dialog.append('<pre id="log-output"></pre>');
+
+		$('#run-method').on('click', function() {
+
+			$('#log-output').empty();
+			$('#log-output').append('Running method..\n');
+
+			var params = {};
+			$('#params .param').each(function (index, el) {
+				var name = $('.param-name', el).val();
+				var val = $('.param-value', el).val();
+				if (name) {
+					params[name] = val;
+				}
+			});
+
+			$.ajax({
+				url: rootUrl + '/maintenance/globalSchemaMethods/' + schemaMethod.name,
+				data: JSON.stringify(params),
+				method: 'POST',
+				complete: function(data) {
+					$('#log-output').append(data.responseText);
+					$('#log-output').append('Done.');
+				}
+			});
+		});
+
+		$('#clear-log').on('click', function() {
+			$('#log-output').empty();
+		});
+	},
+	activatePropertyValueInput: function(inputId, id, name) {
+		$('input#' + inputId).on('blur', function() {
+			var elem     = $(this);
+			var previous = elem.attr('value');
+			if (previous !== elem.val()) {
+				var data   = {};
+				data[name] = elem.val();
+				Command.setProperties(id, data, function() {
+					blinkGreen(elem);
+					_TreeHelper.refreshTree('#code-tree');
+				});
+			}
+		});
+	}
+};
+
+var _WorkingSets = {
+
+	recentlyUsedName: 'Recently Used Types',
+	deleted: {},
+
+	getWorkingSets: function(callback) {
+
+		Command.query('ApplicationConfigurationDataNode', 1000, 1, 'name', true, { configType: 'layout' }, function(result) {
+
+			let workingSets = [];
+			let recent;
+
+			for (var layout of result) {
+
+				if (!layout.owner || layout.owner.name === me.username) {
+
+					let content  = JSON.parse(layout.content);
+					let children = Object.keys(content.positions);
+					let data     = {
+						type: 'SchemaGroup',
+						id: layout.id,
+						name: layout.name,
+						children: children
+					};
+
+					if (layout.name === _WorkingSets.recentlyUsedName) {
+
+						data.icon = _Icons.image_icon;
+						recent    = data;
+
+					} else {
+
+						workingSets.push(data);
+					}
+				}
+			}
+
+			// insert most recent at the top
+			if (recent) {
+				workingSets.unshift(recent);
+			}
+
+			callback(workingSets);
+
+		}, true, null, 'id,type,name,content,owner');
+	},
+
+	getWorkingSet: function(id, callback) {
+
+		Command.get(id, null, function(result) {
+
+			let content = JSON.parse(result.content);
+
+			callback({
+				id: result.id,
+				type: result.type,
+				name: result.name,
+				owner: result.owner,
+				children: Object.keys(content.positions)
+			});
+		});
+	},
+
+	getWorkingSetContents: function(id, callback) {
+
+		Command.get(id, null, function(result) {
+
+			let content   = JSON.parse(result.content);
+			let positions = content.positions;
+
+			Command.query('SchemaNode', 1000, 1, 'name', true, {}, function(result) {
+
+				let schemaNodes = [];
+
+				for (var schemaNode of result) {
+
+					if (positions[schemaNode.name]) {
+
+						schemaNodes.push(schemaNode);
+					}
+				}
+
+				callback(schemaNodes);
+			});
+		});
+	},
+
+	addTypeToSet: function(id, type, callback) {
+
+		Command.get(id, null, function(result) {
+
+			let content = JSON.parse(result.content);
+			if (!content.positions[type]) {
+
+				content.positions[type] = {
+					top: 0,
+					left: 0
+				};
+
+				// adjust hidden types as well
+				content.hiddenTypes.splice(content.hiddenTypes.indexOf(type), 1);
+
+				Command.setProperty(id, 'content', JSON.stringify(content), false, callback);
+			}
+		});
+	},
+
+	removeTypeFromSet: function(id, type, callback) {
+
+		Command.get(id, null, function(result) {
+
+			let content = JSON.parse(result.content);
+			delete content.positions[type];
+
+			// adjust hidden types as well
+			content.hiddenTypes.push(type);
+
+			Command.setProperty(id, 'content', JSON.stringify(content), false, callback);
+		});
+	},
+
+	createNewSetAndAddType: function(name, callback, setName) {
+
+		Command.query('SchemaNode', 10000, 1, 'name', true, { }, function(result) {
+
+			let positions = {};
+
+			positions[name] = { top: 0, left: 0 };
+
+			// all types are hidden except the one we want to add
+			let hiddenTypes = result.filter(t => t.name !== name).map(t => t.name);
+
+			let config = {
+				_version: 2,
+				positions: positions,
+				hiddenTypes: hiddenTypes,
+				zoom: 1,
+				connectorStyle: 'Flowchart',
+				showRelLabels: true
+			};
+
+			Command.create({
+				type: 'ApplicationConfigurationDataNode',
+				name: setName || 'New Group',
+				content: JSON.stringify(config),
+				configType: 'layout'
+			}, callback);
+
+		}, true, null, 'id,name');
+	},
+
+	deleteSet: function(id, callback) {
+
+		_WorkingSets.deleted[id] = true;
+
+		Command.deleteNode(id, false, callback);
+	},
+
+	updatePositions: function(id, positions, callback) {
+
+		if (positions && !_WorkingSets.deleted[id]) {
+
+			Command.get(id, null, function(result) {
+
+				let content = JSON.parse(result.content);
+
+				for (var key of Object.keys(content.positions)) {
+
+					let position = content.positions[key];
+
+					if (position && position.left === 0 && position.top === 0 && positions[key]) {
+
+						position.left = positions[key].left * 2;
+						position.top  = positions[key].top * 2;
+					}
+				}
+
+				Command.setProperty(id, 'content', JSON.stringify(content), false, callback);
+			});
+		}
+	},
+
+	addRecentlyUsed: function(name) {
+
+		Command.query('ApplicationConfigurationDataNode', 1, 1, 'name', true, { name: _WorkingSets.recentlyUsedName }, function(result) {
+
+			if (result && result.length) {
+
+				_WorkingSets.addTypeToSet(result[0].id, name, function() {
+					_TreeHelper.refreshNode('#code-tree', 'workingsets-' + result[0].id);
+				});
+
+ 			} else {
+
+				_WorkingSets.createNewSetAndAddType(name, function() {
+					_TreeHelper.refreshNode('#code-tree', 'workingsets');
+				}, _WorkingSets.recentlyUsedName);
+
+			}
+
+		}, true, null, 'id,name');
+	},
+
+	clearRecentlyUsed: function(callback) {
+
+		Command.query('ApplicationConfigurationDataNode', 1, 1, 'name', true, { name: _WorkingSets.recentlyUsedName }, function(result) {
+
+			if (result && result.length) {
+
+				let set     = result[0];
+				let content = JSON.parse(set.content);
+
+				for (var type of Object.keys(content.positions)) {
+
+					// remove type from positions object
+					delete content.positions[type];
+
+					// add type to hidden types
+					content.hiddenTypes.push(type);
+				}
+
+				Command.setProperty(set.id, 'content', JSON.stringify(content), false, callback);
+			}
+
+		}, true, null, 'id,name,content');
 	}
 };

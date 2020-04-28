@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,10 +21,14 @@ package org.structr.web.resource;
 
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.api.config.Settings;
+import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyKey;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
@@ -50,13 +54,24 @@ public class LogoutResource extends Resource {
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
-		securityContext.getAuthenticator().doLogout(securityContext.getRequest());
+		if (Settings.CallbacksOnLogout.getValue() == false) {
+			securityContext.disableInnerCallbacks();
+		}
+
+		final App app = StructrApp.getInstance(securityContext);
+
+		try (final Tx tx = app.tx(true, true, true)) {
+
+			securityContext.getAuthenticator().doLogout(securityContext.getRequest());
+
+			tx.success();
+		}
 
 		return new RestMethodResult(200);
 	}
 
 	@Override
-	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 		throw new NotAllowedException("GET not allowed on " + getResourceSignature());
 	}
 
@@ -97,6 +112,11 @@ public class LogoutResource extends Resource {
 
 	@Override
 	public boolean isCollectionResource() {
+		return false;
+	}
+
+	@Override
+	public boolean createPostTransaction() {
 		return false;
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,6 +30,11 @@ public class ToDateFunction extends CoreFunction {
 	@Override
 	public String getName() {
 		return "to_date";
+	}
+
+	@Override
+	public String getSignature() {
+		return "number";
 	}
 
 	@Override

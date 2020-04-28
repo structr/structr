@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,8 +18,8 @@
  */
 package org.structr.common;
 
-import org.structr.core.entity.SchemaRelationshipNode.Direction;
-import org.structr.core.entity.SchemaRelationshipNode.Propagation;
+import org.structr.api.graph.PropagationDirection;
+import org.structr.api.graph.PropagationMode;
 
 /**
  * Marker interface to signal the configurable support of security
@@ -29,11 +29,11 @@ import org.structr.core.entity.SchemaRelationshipNode.Propagation;
  */
 public interface PermissionPropagation {
 
-	public Direction getPropagationDirection();
-	public Propagation getReadPropagation();
-	public Propagation getWritePropagation();
-	public Propagation getDeletePropagation();
-	public Propagation getAccessControlPropagation();
+	public PropagationDirection getPropagationDirection();
+	public PropagationMode getReadPropagation();
+	public PropagationMode getWritePropagation();
+	public PropagationMode getDeletePropagation();
+	public PropagationMode getAccessControlPropagation();
 
 	public String getDeltaProperties();
 }

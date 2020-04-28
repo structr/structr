@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,10 +21,10 @@ package org.structr.core.function;
 import java.util.Collections;
 import java.util.List;
 import org.structr.api.util.Iterables;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
 
@@ -35,6 +35,11 @@ public class SortFunction extends CoreFunction {
 	@Override
 	public String getName() {
 		return "sort";
+	}
+
+	@Override
+	public String getSignature() {
+		return "list [, propertyName [, descending=false] ]";
 	}
 
 	@Override
@@ -63,17 +68,26 @@ public class SortFunction extends CoreFunction {
 					final Object firstElement = list.get(0);
 					if (firstElement instanceof GraphObject) {
 
-						final Class type         = firstElement.getClass();
-						final PropertyKey key    = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
-						final boolean descending = sources.length == 3 && sources[2] != null && "true".equals(sources[2].toString());
+						final List<GraphObject> sortCollection = (List<GraphObject>)list;
+						final DefaultSortOrder order           = new DefaultSortOrder();
+						final Class type                       = firstElement.getClass();
+						final int length                       = sources.length;
 
-						if (key != null) {
+						for (int i=1; i<length; i+=2) {
 
-							List<GraphObject> sortCollection = (List<GraphObject>)list;
-							Collections.sort(sortCollection, new GraphObjectComparator(key, descending));
+							final String name        = (String)sources[i];
+							final PropertyKey key    = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, name);
+							final boolean descending = length > i+1 && sources[i+1] != null && "true".equals(sources[i+1].toString());
 
-							return sortCollection;
+							order.addElement(key, descending);
 						}
+
+						if (!order.isEmpty()) {
+
+							Collections.sort(sortCollection, order);
+						}
+
+						return sortCollection;
 
 					} else if (firstElement instanceof String) {
 

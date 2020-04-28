@@ -1,35 +1,19 @@
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
 
+	<name>Structr REST</name>
+	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.structr</groupId>
-		<artifactId>structr</artifactId>
 		<version>3.4.3</version>
+		<artifactId>structr-test-configuration</artifactId>
+		<relativePath>../structr-test-configuration</relativePath>
 	</parent>
 
 	<groupId>org.structr</groupId>
 	<artifactId>structr-rest</artifactId>
 	<packaging>jar</packaging>
 	<version>3.4.3</version>
-	<name>Structr REST</name>
-	<description>Structr is an open source framework based on the popular Neo4j graph database.</description>
-	<developers>
-		<developer>
-			<name>Axel Morgner</name>
-			<email>am@structr.org</email>
-		</developer>
-		<developer>
-			<name>Christian Morgner</name>
-			<email>cm@structr.org</email>
-		</developer>
-	</developers>
-	<url>http://structr.org</url>
 
-	<properties>
-		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
@@ -89,30 +73,6 @@
 			<groupId>org.hamcrest</groupId>
 			<artifactId>hamcrest-all</artifactId>
 		</dependency>
-	 <dependency>
-	  <groupId>org.seleniumhq.selenium</groupId>
-	  <artifactId>selenium-java</artifactId>
-	  <scope>test</scope>
-	  <version>2.44.0</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>com.opera</groupId>
-	  <artifactId>operadriver</artifactId>
-	  <scope>test</scope>
-	  <version>1.5</version>
-	  <exclusions>
-	   <exclusion>
-	    <groupId>org.seleniumhq.selenium</groupId>
-	    <artifactId>selenium-remote-driver</artifactId>
-	   </exclusion>
-	  </exclusions>
-	 </dependency>
-	 <dependency>
-	  <groupId>junit</groupId>
-	  <artifactId>junit</artifactId>
-	  <scope>test</scope>
-	  <version>4.11</version>
-	 </dependency>
 	</dependencies>
 
 	<build>
@@ -120,7 +80,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.0.2</version>
+				<version>${maven.plugin.jar.version}</version>
 				<configuration>
 					<archive>
 						<manifestSection>
@@ -132,234 +92,8 @@
 					</archive>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-					<debug>true</debug>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.22.1</version>
-				<configuration>
-					<excludes>
-						<exclude>**/*.java</exclude>
-					</excludes>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-failsafe-plugin</artifactId>
-				<version>2.22.1</version>
-				<configuration>
-					<includes>
-						<include>**/*.java</include>
-					</includes>
-					<argLine>-Xms1g -Xmx1g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
-					<reuseForks>false</reuseForks>
-					<forkCount>1</forkCount>
-					<skipTests>${skipTests}</skipTests>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>integration-test</goal>
-							<goal>verify</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>io.fabric8</groupId>
-				<artifactId>docker-maven-plugin</artifactId>
-				<version>0.28.0</version>
-				<executions>
-					<execution>
-						<id>prepare-database</id>
-						<phase>pre-integration-test</phase>
-						<goals>
-							<goal>start</goal>
-						</goals>
-						<configuration>
-							<images>
-								<image>
-									<name>${test.neo4j.version}</name>
-									<alias>database</alias>
-									<run>
-										<ports>
-											<port>7689:7687</port>
-										</ports>
-										<wait>
-											<log>(.?)Bolt enabled on 0.0.0.0:7687.</log>
-											<time>20000</time>
-										</wait>
-										<env>
-											<NEO4J_AUTH>neo4j/admin</NEO4J_AUTH>
-											<NEO4J_ACCEPT_LICENSE_AGREEMENT>yes</NEO4J_ACCEPT_LICENSE_AGREEMENT>
-											<NEO4J_dbms_memory_heap_max__size>4G</NEO4J_dbms_memory_heap_max__size>
-										</env>
-									</run>
-								</image>
-							</images>
-							<skip>${skipTests}</skip>
-						</configuration>
-					</execution>
-					<execution>
-						<id>remove-database</id>
-						<phase>post-integration-test</phase>
-						<goals>
-							<goal>stop</goal>
-						</goals>
-						<configuration>
-							<skip>${skipTests}</skip>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>com.mycila</groupId>
-				<artifactId>license-maven-plugin</artifactId>
-				<version>2.11</version>
-				<configuration>
-					<header>header.txt</header>
-					<includes>
-						<include>src/**</include>
-					</includes>
-					<excludes>
-						<exclude>**/README</exclude>
-						<exclude>src/**/.directory</exclude>
-						<exclude>src/**/*.properties</exclude>
-						<exclude>src/main/resources/**</exclude>
-						<exclude>src/test/resources/**</exclude>
-					</excludes>
-					<properties>
-						<year>2019</year>
-						<owner>Structr GmbH</owner>
-					</properties>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 	</build>
-	<profiles>
-		<profile>
-			<id>sign-structr-artifacts</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-jarsigner-plugin</artifactId>
-						<version>1.2</version>
-						<executions>
-							<execution>
-								<id>sign</id>
-								<goals>
-									<goal>sign</goal>
-								</goals>
-							</execution>
-						</executions>
-						<configuration>
-							<keystore>${user.home}/.structr/structr.keystore</keystore>
-							<alias>structr</alias>
-							<storepass>${structrKeystorePassword}</storepass>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>doclint-java8-disable</id>
-			<activation>
-				<jdk>[1.8,)</jdk>
-			</activation>
-			<properties>
-				<javadoc.opts>-Xdoclint:none</javadoc.opts>
-			</properties>
-		</profile>
-		<profile>
-			<id>release-sign-artifacts</id>
-			<activation>
-				<property>
-					<name>performRelease</name>
-					<value>true</value>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.4</version>
-						<executions>
-							<execution>
-								<id>sign-artifacts</id>
-								<phase>verify</phase>
-								<goals>
-									<goal>sign</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
-	<licenses>
-		<license>
-			<name>GNU General Public License, Version 3</name>
-			<url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
-			<comments>
-				Copyright (C) 2010-2019 Structr GmbH
-
-				This file is part of Structr &lt;http://structr.org&gt;.
-
-				Structr is free software: you can redistribute it and/or modify
-				it under the terms of the GNU General Public License as published by
-				the Free Software Foundation, either version 3 of the License, or
-				(at your option) any later version.
-
-				Structr is distributed in the hope that it will be useful,
-				but WITHOUT ANY WARRANTY; without even the implied warranty of
-				MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-				GNU General Public License for more details.
-
-				You should have received a copy of the GNU General Public License
-				along with Structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
-			</comments>
-		</license>
-	</licenses>
-
-	<scm>
-		<url>https://github.com/structr/structr</url>
-		<connection>scm:git:https://github.com:structr/structr.git</connection>
-		<developerConnection>scm:git:git@github.com:structr/structr.git</developerConnection>
-	</scm>
-
-	<distributionManagement>
-		<repository>
-			<id>sonatype-nexus-staging</id>
-			<name>Maven Central Staging</name>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-		</repository>
-		<snapshotRepository>
-			<id>sonatype-nexus-snapshots</id>
-			<name>Maven Central Snapshots</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
-	</distributionManagement>
 
 </project>
 

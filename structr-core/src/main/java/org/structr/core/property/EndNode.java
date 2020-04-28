@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -319,6 +319,7 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 
 		} catch (Throwable t) {
 
+			t.printStackTrace();
 		}
 
 		return null;

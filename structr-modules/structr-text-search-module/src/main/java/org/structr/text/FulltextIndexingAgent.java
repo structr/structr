@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -76,6 +76,9 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 	public FulltextIndexingAgent() {
 
+		setName(TASK_NAME);
+		setDaemon(true);
+
 		detector = new DefaultDetector(MimeTypes.getDefaultMimeTypes());
 	}
 
@@ -85,7 +88,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 		final App app                         = StructrApp.getInstance(securityContext);
 
-		securityContext.disableEnsureCardinality();
+		securityContext.disablePreventDuplicateRelationships();
 
 		if (TASK_NAME.equals(task.getType())) {
 

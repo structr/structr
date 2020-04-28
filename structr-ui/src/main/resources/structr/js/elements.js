@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -17,7 +17,6 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var elements, dropBlocked;
-var lineWrappingKey = 'structrEditorLineWrapping_' + port;
 var contents, editor, contentType, currentEntity;
 
 $(function() {
@@ -45,7 +44,7 @@ var _Elements = {
 		// Scripting
 		'script', 'noscript',
 		// Sections
-		'body', 'section', 'nav', 'article', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'header', 'footer', 'address',
+		'body', 'section', 'nav', 'article', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'header', 'footer', 'address', 'main',
 		// Grouping content
 		'p', 'hr', 'pre', 'blockquote', 'ol', 'ul', 'li', 'dl', 'dt', 'dd', 'figure', 'figcaption', 'div',
 		// Text-level semantics
@@ -74,7 +73,7 @@ var _Elements = {
 		},
 		{
 			name: 'Sections',
-			elements: ['body', 'section', 'nav', 'article', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'header', 'footer', 'address']
+			elements: ['body', 'section', 'nav', 'article', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'header', 'footer', 'address', 'main']
 		},
 		{
 			name: 'Grouping',
@@ -223,7 +222,7 @@ var _Elements = {
 		},
 		{
 			name: 'l-m',
-			elements: ['label', 'legend', 'li', 'link', '|', 'map', 'mark', 'menu', 'meta', 'meter']
+			elements: ['label', 'legend', 'li', 'link', '|', 'main', 'map', 'mark', 'menu', 'meta', 'meter']
 		},
 		{
 			name: 'n-o',
@@ -249,30 +248,31 @@ var _Elements = {
 		'custom'
 	],
 	suggestedElements: {
-		html     : [ "head", "body" ],
-		head     : [ "title", "style", "base", "link", "meta", "script", "noscript" ],
-		table    : [ "thead", "tbody", "tr", "tfoot", "caption", "colgroup" ],
-		colgroup : [ "col" ],
-		thead    : [ "tr" ],
-		tbody    : [ "tr" ],
-		tfoot    : [ "tr" ],
-		tr       : [ "th", "td" ],
-		ul       : [ "li" ],
-		ol       : [ "li" ],
-		dir      : [ "li" ],
-		dl       : [ "dt", "dd" ],
-		select   : [ "option", "optgroup" ],
-		optgroup : [ "option" ],
-		form     : [ "input", "textarea", "select", "button", "label", "fieldset" ],
-		fieldset : [ "legend", "input", "textarea", "select", "button", "label", "fieldset" ],
-		figure   : [ "img", "figcaption" ],
-		frameset : [ "frame" , "noframes" ],
-		map      : [ "area" ],
-		nav      : [ "a" ],
-		object   : [ "param" ],
-		details  : [ "summary" ],
-		video    : [ "source", "track" ],
-		audio    : [ "source" ]
+		html     : [ 'head', 'body' ],
+		body     : [ 'header', 'main', 'footer' ],
+		head     : [ 'title', 'style', 'base', 'link', 'meta', 'script', 'noscript' ],
+		table    : [ 'thead', 'tbody', 'tr', 'tfoot', 'caption', 'colgroup' ],
+		colgroup : [ 'col' ],
+		thead    : [ 'tr' ],
+		tbody    : [ 'tr' ],
+		tfoot    : [ 'tr' ],
+		tr       : [ 'th', 'td' ],
+		ul       : [ 'li' ],
+		ol       : [ 'li' ],
+		dir      : [ 'li' ],
+		dl       : [ 'dt', 'dd' ],
+		select   : [ 'option', 'optgroup' ],
+		optgroup : [ 'option' ],
+		form     : [ 'input', 'textarea', 'select', 'button', 'label', 'fieldset' ],
+		fieldset : [ 'legend', 'input', 'textarea', 'select', 'button', 'label', 'fieldset' ],
+		figure   : [ 'img', 'figcaption' ],
+		frameset : [ 'frame' , 'noframes' ],
+		map      : [ 'area' ],
+		nav      : [ 'a' ],
+		object   : [ 'param' ],
+		details  : [ 'summary' ],
+		video    : [ 'source', 'track' ],
+		audio    : [ 'source' ]
 	},
 	selectedEntity: undefined,
 	reloadPalette: function() {
@@ -349,8 +349,6 @@ var _Elements = {
 
 			_Elements.appendEntitiesToDOMElement(result, components);
 			Structr.refreshPositionsForCurrentlyActiveSortable();
-
-			_Pages.componentsTabResizeContent();
 		});
 	},
 	createComponent: function(el) {
@@ -380,7 +378,7 @@ var _Elements = {
 			elementsSlideout.append('<div class="ver-scrollable" id="elementsArea"></div>');
 			elements = $('#elementsArea', elementsSlideout);
 
-			elements.append('<button class="btn action disabled" id="delete-all-unattached-nodes" disabled>Loading </button>');
+			elements.before('<button class="btn action disabled" id="delete-all-unattached-nodes" disabled>Loading </button>');
 
 			var btn = $('#delete-all-unattached-nodes');
 			Structr.loaderIcon(btn, {
@@ -413,8 +411,6 @@ var _Elements = {
 				}
 
 				_Elements.appendEntitiesToDOMElement(result, elements);
-
-				_Pages.unattachedNodesTabResizeContent();
 			});
 		}
 
@@ -447,11 +443,6 @@ var _Elements = {
 
 		entity = StructrModel.ensureObject(entity);
 
-		var hasChildren = entity.childrenIds && entity.childrenIds.length;
-
-		// store active nodes in special place..
-		var isActiveNode = entity.isActiveNode();
-
 		var parent;
 		if (refNodeIsParent) {
 			parent = refNode;
@@ -464,11 +455,28 @@ var _Elements = {
 			return false;
 		}
 
+		var hasChildren = entity.childrenIds && entity.childrenIds.length;
+
+		// store active nodes in special place..
+		var isActiveNode = entity.isActiveNode();
+
+		let elementClasses = ['node', 'element'];
+		elementClasses.push(isActiveNode ? 'activeNode' : 'staticNode');
+		if (_Elements.isEntitySelected(entity)) {
+			elementClasses.push('nodeSelectedFromContextMenu');
+		}
+		if (entity.tag === 'html') {
+			elementClasses.push('html_element');
+		}
+		if (entity.hidden === true) {
+			elementClasses.push('is-hidden');
+		}
+
 		_Entities.ensureExpanded(parent);
 
 		var id = entity.id;
 
-		var html = '<div id="id_' + id + '" class="node element' + (entity.tag === 'html' ? ' html_element' : '') + ' ' + (isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelectedFromContextMenu' : '') + '"></div>';
+		var html = '<div id="id_' + id + '" class="' + elementClasses.join(' ') + '"></div>';
 
 		if (refNode && !refNodeIsParent) {
 			refNode.before(html);
@@ -1300,6 +1308,13 @@ var _Elements = {
 						}
 					},
 					{
+						name: 'Expand subtree recursively',
+						clickHandler: function() {
+							_Entities.expandRecursively([entity.id]);
+							return false;
+						}
+					},
+					{
 						name: 'Collapse subtree',
 						clickHandler: function() {
 							$(div).find('.node').each(function(i, el) {
@@ -1469,41 +1484,6 @@ var _Elements = {
 			_Elements.editContent(this, entity, data.content, dialogText);
 		});
 	},
-    autoComplete: function(cm, pred) {
-      if (!pred || pred()) setTimeout(function() {
-        if (!cm.state.completionActive)
-			CodeMirror.showHint(cm, _Elements.hint, {
-				async: true,
-				extraKeys: {
-				   "Esc": function(cm, e) {
-					   if (cm.state.completionActive) {
-						   cm.state.completionActive.close();
-						   ignoreKeyUp = true;
-					   }
-				   }
-				}
-
-			});
-      }, 100);
-      return CodeMirror.Pass;
-    },
-    hint: function(cm, callback) {
-
-        var cursor        = cm.getCursor();
-        var currentToken  = cm.getTokenAt(cursor);
-        var previousToken = cm.getTokenAt( { line: cursor.line, ch: currentToken.start - 1 } );
-        var thirdToken    = cm.getTokenAt( { line: cursor.line, ch: previousToken.start - 1 } );
-        var id            = "";
-
-        if (currentEntity && currentEntity.id) {
-            id = currentEntity.id;
-        }
-
-		Command.autocomplete(id, currentToken.type, currentToken.string, previousToken.string, thirdToken.string, cursor.line, cursor.ch, function(data) {
-            callback( { from: { line: cursor.line, ch: currentToken.end } , to: { line: cursor.line, ch: currentToken.end } , list: data } );
-        });
-
-    },
 	activateEditorMode: function(contentType) {
 		let modeObj = CodeMirror.findModeByMIME(contentType);
 		let mode = contentType; // default
@@ -1533,23 +1513,23 @@ var _Elements = {
 
 		var text1, text2;
 
-		var lineWrapping = LSWrapper.getItem(lineWrappingKey);
 
 		// Intitialize editor
 		CodeMirror.defineMIME("text/html", "htmlmixed-structr");
-		editor = CodeMirror(contentBox.get(0), {
+		editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
 			value: text,
 			mode: mode || contentType,
 			lineNumbers: true,
-			lineWrapping: lineWrapping,
+			lineWrapping: false,
 			extraKeys: {
-				"'.'":        _Elements.autoComplete,
-				"Ctrl-Space": _Elements.autoComplete
+				"Ctrl-Space": "autocomplete"
 			},
 			indentUnit: 4,
-			tabSize:4,
+			tabSize: 4,
 			indentWithTabs: true
-		});
+		}));
+
+		_Code.setupAutocompletion(editor, entity.id);
 
 		Structr.resize();
 
@@ -1649,7 +1629,9 @@ var _Elements = {
 
 		editor.on('change', function(cm, change) {
 
-			if (text === editor.getValue()) {
+			let editorText = editor.getValue();
+
+			if (text === editorText) {
 				dialogSaveButton.prop("disabled", true).addClass('disabled');
 				saveAndClose.prop("disabled", true).addClass('disabled');
 			} else {
@@ -1657,8 +1639,8 @@ var _Elements = {
 				saveAndClose.prop("disabled", false).removeClass('disabled');
 			}
 
-			$('#chars').text(editor.getValue().length);
-			$('#words').text(editor.getValue().match(/\S+/g) !== null ? editor.getValue().match(/\S+/g).length : 0);
+			$('#chars').text(editorText.length);
+			$('#words').text((editorText.match(/\S+/g) || []).length);
 		});
 
 		var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
@@ -1716,16 +1698,10 @@ var _Elements = {
 			});
 		});
 
-		dialogMeta.append('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
-		$('#lineWrapping').on('change', function() {
+		dialogMeta.append('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span>');
+		$('#lineWrapping').off('change').on('change', function() {
 			var inp = $(this);
-			if  (inp.is(':checked')) {
-				LSWrapper.setItem(lineWrappingKey, "1");
-				editor.setOption('lineWrapping', true);
-			} else {
-				LSWrapper.removeItem(lineWrappingKey);
-				editor.setOption('lineWrapping', false);
-			}
+			Structr.updateCodeMirrorOptionGlobally('lineWrapping', inp.is(':checked'));
 			blinkGreen(inp.parent());
 			editor.refresh();
 		});
@@ -1740,7 +1716,7 @@ var _Elements = {
 	},
 	getSuggestedWidgets: function(entity, callback) {
 
-		if (entity.isPage) {
+		if (entity.isPage || entity.isContent) {
 
 			// no-op
 

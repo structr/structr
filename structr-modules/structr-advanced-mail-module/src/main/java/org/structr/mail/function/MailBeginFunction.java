@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,6 +38,11 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 	@Override
 	public String getName() {
 		return "mail_begin";
+	}
+
+	@Override
+	public String getSignature() {
+		return "fromAddress [, fromName[, subject[, htmlContent[, textContent[, files]]]]]";
 	}
 
 	@Override
@@ -92,6 +97,6 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Begins a new mail configuration - previously started configurations are cleared.";
 	}
 }

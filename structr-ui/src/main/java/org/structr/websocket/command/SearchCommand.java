@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -65,124 +65,115 @@ public class SearchCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		try {
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final String searchString = webSocketData.getNodeDataStringValue(SEARCH_STRING_KEY);
 
-			final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		String typeString = null;
+		Boolean exactSearch = null;
 
-			final String searchString = webSocketData.getNodeDataStringValue(SEARCH_STRING_KEY);
-
-			String typeString = null;
-			Boolean exactSearch = null;
-
-			if (searchString != null) {
-				typeString  = webSocketData.getNodeDataStringValue(TYPE_KEY);
-				exactSearch = webSocketData.getNodeDataBooleanValue(EXACT_KEY);
-			}
-
-			final String restQuery    = webSocketData.getNodeDataStringValue(REST_QUERY_KEY);
-			final String cypherQuery  = webSocketData.getNodeDataStringValue(CYPHER_QUERY_KEY);
-			final String paramString  = webSocketData.getNodeDataStringValue(CYPHER_PARAMS_KEY);
-
-			final int pageSize             = webSocketData.getPageSize();
-			final int page                 = webSocketData.getPage();
-
-			Class type = null;
-			if (typeString != null) {
-				type = SchemaHelper.getEntityClassForRawType(typeString);
-			}
-
-			if (searchString == null) {
-
-				if (cypherQuery != null) {
-
-					try {
-						Map<String, Object> obj = null;
-
-						if (StringUtils.isNoneBlank(paramString)) {
-
-							obj = new Gson().fromJson(paramString, Map.class);
-
-						}
-
-						final List<GraphObject> result = flatten(Iterables.toList(StructrApp.getInstance(securityContext).query(cypherQuery, obj)));
-
-						int resultCountBeforePaging = result.size();
-						webSocketData.setRawResultCount(resultCountBeforePaging);
-
-						if (page != 0 && pageSize != 0) {
-							webSocketData.setResult(result.subList((page-1) * pageSize, Math.min(page * pageSize, resultCountBeforePaging)));
-						} else {
-							webSocketData.setResult(result);
-						}
-
-						getWebSocket().send(webSocketData, true);
-
-						return;
-
-					} catch (JsonSyntaxException | FrameworkException ex) {
-
-						logger.warn("Exception occured", ex);
-						getWebSocket().send(MessageBuilder.status().code(400).message(ex.getMessage()).build(), true);
-						return;
-
-					}
-
-				}
-
-				if (restQuery != null) {
-
-					final RestDataSource restDataSource = new RestDataSource();
-					try {
-						securityContext.setRequest(getWebSocket().getRequest());
-
-						webSocketData.setResult(restDataSource.getData(new RenderContext(securityContext), restQuery));
-						getWebSocket().send(webSocketData, true);
-
-						return;
-
-					} catch (FrameworkException ex) {
-						logger.error("", ex);
-						return;
-					}
-
-				}
-
-			}
-
-			final String sortOrder = webSocketData.getSortOrder();
-			final String sortKey = (webSocketData.getSortKey() == null ? "name" : webSocketData.getSortKey());
-			final PropertyKey sortProperty = StructrApp.key(AbstractNode.class, sortKey);
-			final Query query = StructrApp.getInstance(securityContext).nodeQuery().includeHidden().sort(sortProperty).order("desc".equals(sortOrder));
-
-			query.and(AbstractNode.name, searchString, exactSearch);
-
-			if (type != null) {
-				query.andType(type);
-			}
-
-			try {
-
-				// do search
-				final List<AbstractNode> result = query.getAsList();
-
-				// set full result list
-				webSocketData.setResult(result);
-
-				// send only over local connection
-				getWebSocket().send(webSocketData, true);
-
-			} catch (FrameworkException fex) {
-
-				logger.warn("Exception occured", fex);
-				getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
-
-			}
-
-		} catch (FrameworkException ex) {
-			logger.warn("Exception occured", ex);
-			getWebSocket().send(MessageBuilder.status().code(ex.getStatus()).message(ex.getMessage()).build(), true);
+		if (searchString != null) {
+			typeString  = webSocketData.getNodeDataStringValue(TYPE_KEY);
+			exactSearch = webSocketData.getNodeDataBooleanValue(EXACT_KEY);
 		}
 
+		final String restQuery    = webSocketData.getNodeDataStringValue(REST_QUERY_KEY);
+		final String cypherQuery  = webSocketData.getNodeDataStringValue(CYPHER_QUERY_KEY);
+		final String paramString  = webSocketData.getNodeDataStringValue(CYPHER_PARAMS_KEY);
+
+		final int pageSize             = webSocketData.getPageSize();
+		final int page                 = webSocketData.getPage();
+
+		Class type = null;
+		if (typeString != null) {
+			type = SchemaHelper.getEntityClassForRawType(typeString);
+		}
+
+		if (searchString == null) {
+
+			if (cypherQuery != null) {
+
+				try {
+					Map<String, Object> obj = null;
+
+					if (StringUtils.isNoneBlank(paramString)) {
+
+						obj = new Gson().fromJson(paramString, Map.class);
+
+					}
+
+					final List<GraphObject> result = flatten(Iterables.toList(StructrApp.getInstance(securityContext).query(cypherQuery, obj)));
+
+					int resultCountBeforePaging = result.size();
+					webSocketData.setRawResultCount(resultCountBeforePaging);
+
+					if (page != 0 && pageSize != 0) {
+						webSocketData.setResult(result.subList((page-1) * pageSize, Math.min(page * pageSize, resultCountBeforePaging)));
+					} else {
+						webSocketData.setResult(result);
+					}
+
+					getWebSocket().send(webSocketData, true);
+
+					return;
+
+				} catch (JsonSyntaxException | FrameworkException ex) {
+
+					logger.warn("Exception occured", ex);
+					getWebSocket().send(MessageBuilder.status().code(400).message(ex.getMessage()).build(), true);
+					return;
+
+				}
+
+			}
+
+			if (restQuery != null) {
+
+				final RestDataSource restDataSource = new RestDataSource();
+				try {
+					securityContext.setRequest(getWebSocket().getRequest());
+
+					webSocketData.setResult(restDataSource.getData(new RenderContext(securityContext), restQuery));
+					getWebSocket().send(webSocketData, true);
+
+					return;
+
+				} catch (FrameworkException ex) {
+					logger.error("", ex);
+					return;
+				}
+
+			}
+
+		}
+
+		final String sortOrder = webSocketData.getSortOrder();
+		final String sortKey = (webSocketData.getSortKey() == null ? "name" : webSocketData.getSortKey());
+		final PropertyKey sortProperty = StructrApp.key(AbstractNode.class, sortKey);
+		final Query query = StructrApp.getInstance(securityContext).nodeQuery().includeHidden().sort(sortProperty, "desc".equals(sortOrder));
+
+		query.and(AbstractNode.name, searchString, exactSearch);
+
+		if (type != null) {
+			query.andType(type);
+		}
+
+		try {
+
+			// do search
+			final List<AbstractNode> result = query.getAsList();
+
+			// set full result list
+			webSocketData.setResult(result);
+
+			// send only over local connection
+			getWebSocket().send(webSocketData, true);
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("Exception occured", fex);
+			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
+
+		}
 	}
 
 	@Override

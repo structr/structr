@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.flow.impl;
 
+import org.mozilla.javascript.NativeObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
@@ -77,10 +78,10 @@ public class FlowGetProperty extends FlowDataSource {
 
 						if (name instanceof String) {
 
-							final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(node.getClass(), (String)name, false);
+							final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(node.getClass(), (String) name, false);
 							if (key != null) {
 
-								return ((GraphObject)node).getProperty(key);
+								return ((GraphObject) node).getProperty(key);
 
 							} else {
 
@@ -93,6 +94,27 @@ public class FlowGetProperty extends FlowDataSource {
 						logger.warn("Name source of {} returned null", getUuid());
 					}
 
+				} else if (node instanceof NativeObject) {
+
+					Object name;
+
+					if (_nameSource != null) {
+						name = _nameSource.get(context);
+					} else {
+						name = _propertyName;
+					}
+
+					if (name != null) {
+
+						if (name instanceof String) {
+
+							return ((NativeObject)node).get(name);
+						}
+
+					} else {
+
+						logger.warn("Name source of {} returned null", getUuid());
+					}
 				} else {
 
 					logger.warn("Node data source of {} returned invalid object of type {}", getUuid(), node.getClass().getName());

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.util.Iterator;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +54,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 
 		if(graphDb != null) {
 
-			final Iterator<AbstractRelationship> relIterator = Iterables.map(relFactory, graphDb.getAllRelationships()).iterator();
+			final Iterable<AbstractRelationship> relIterator = Iterables.map(relFactory, graphDb.getAllRelationships());
 			final long count = bulkGraphOperation(securityContext, relIterator, 1000, "CopyRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override

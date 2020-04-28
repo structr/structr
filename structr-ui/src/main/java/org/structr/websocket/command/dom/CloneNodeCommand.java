@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -103,9 +103,10 @@ public class CloneNodeCommand extends AbstractCommand {
 
 				if (parent != null) {
 
-					DOMNode nextSibling = node.getNextSibling();
+					final DOMNode nextSibling      = node.getNextSibling();
+					final DOMNode sourceNodeParent = node.getParent();
 
-					boolean cloneUnderSameParent = parent.getUuid().equals(node.getParent().getUuid());
+					boolean cloneUnderSameParent = (sourceNodeParent != null) && parent.getUuid().equals(sourceNodeParent.getUuid());
 
 					if (ownerPage.equals(node.getOwnerDocument()) && !parent.equals(nextSibling) && cloneUnderSameParent) {
 

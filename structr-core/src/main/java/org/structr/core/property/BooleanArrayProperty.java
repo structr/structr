@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -91,6 +91,12 @@ public class BooleanArrayProperty extends AbstractPrimitiveProperty<Boolean[]> {
 
 	@Override
 	public Class valueType() {
+		// This trick results in returning the proper array class for array properties.
+		// Neccessary because of and since commit 1db80071543018a0766efa2dc895b7bc3e9a0e34
+		try {
+			return Class.forName("[L" + Boolean.class.getName() + ";");
+		} catch (ClassNotFoundException ex) {}
+
 		return Boolean.class;
 	}
 
@@ -159,7 +165,6 @@ public class BooleanArrayProperty extends AbstractPrimitiveProperty<Boolean[]> {
 
 			return (Boolean[])new Boolean[] { Boolean.valueOf(source.toString()) };
 		}
-
 	}
 
 	@Override

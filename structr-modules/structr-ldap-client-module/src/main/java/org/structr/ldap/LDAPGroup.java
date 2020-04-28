@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,8 @@ import java.net.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -31,8 +33,6 @@ import org.structr.core.entity.Group;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 
 /**
  */
@@ -88,7 +88,7 @@ public interface LDAPGroup extends Group {
 
 	static void update(final SecurityContext securityContext, final LDAPGroup thisGroup) {
 
-		final LDAPService ldapService = Services.getInstance().getService(LDAPService.class);
+		final LDAPService ldapService = Services.getInstance().getService(LDAPService.class, "default");
 		if (ldapService != null) {
 
 			try {

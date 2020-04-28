@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,7 +33,7 @@ import org.structr.schema.action.ActionContext;
 
 public class CacheExpression extends Expression {
 
-	public static final String ERROR_MESSAGE_CACHE = "Usage: ${cache(key, timeout, valueExpression)}. Example: ${cache('value', 60, GET('http://rate-limited-URL.com'))}";
+	public static final String ERROR_MESSAGE_CACHE = "Usage: ${cache(key, timeoutSeconds, valueExpression)}. Example: ${cache('value', 60, GET('http://rate-limited-URL.com'))}";
 
 	private Expression keyExpression     = null;
 	private Expression timeoutExpression = null;

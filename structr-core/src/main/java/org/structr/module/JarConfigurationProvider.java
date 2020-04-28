@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -77,6 +78,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(JarConfigurationProvider.class.getName());
 
+	public static final URI StaticSchemaRootURI      = URI.create("https://structr.org/v2.0/#");
 	public static final String DYNAMIC_TYPES_PACKAGE = "org.structr.dynamic";
 
 	private static final Set<String> coreModules                                                   = new HashSet<>(Arrays.asList("core", "rest", "ui"));
@@ -666,13 +668,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			interfaceMap.put(type, interfaces);
 
 			for (Class iface : type.getInterfaces()) {
-
-				/*
-				if (GraphObject.class.isAssignableFrom(iface)) {
-
-					reverseInterfaceMap.put(iface.getSimpleName(), iface);
-				}
-				*/
 
 				interfaces.add(iface);
 			}

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,8 @@ import java.util.Arrays;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.LoggerFactory;
+import org.structr.api.schema.InvalidSchemaException;
+import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
@@ -30,17 +32,16 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.InvalidSchemaException;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonSchema;
 
 public class SchemaJsonResource extends Resource {
+
 	private static final String resourceIdentifier = "_schemaJson";
-	private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SchemaResource.class.getName());
-	private String uriPart = null;
+	private static final org.slf4j.Logger logger   = LoggerFactory.getLogger(SchemaResource.class.getName());
+	private String uriPart                         = null;
 
 	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
@@ -81,18 +82,12 @@ public class SchemaJsonResource extends Resource {
 	}
 
 	@Override
-	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
 		String schema = null;
 
-		try {
-
-			final JsonSchema jsonSchema = StructrSchema.createFromDatabase(StructrApp.getInstance());
-			schema                      = jsonSchema.toString();
-
-		} catch (URISyntaxException ex) {
-			logger.error("Error while creating JsonSchema: " + ex.getMessage());
-		}
+		final JsonSchema jsonSchema = StructrSchema.createFromDatabase(StructrApp.getInstance());
+		schema                      = jsonSchema.toString();
 
 		return new PagingIterable<>(Arrays.asList(schema));
 
@@ -103,18 +98,18 @@ public class SchemaJsonResource extends Resource {
 
 		if(propertySet != null && propertySet.containsKey("schema")) {
 
-			final App app = StructrApp.getInstance(securityContext);
-			String schemaJson = (String)propertySet.get("schema");
-
 			try {
+				final App app           = StructrApp.getInstance(securityContext);
+				final String schemaJson = (String)propertySet.get("schema");
 
 				StructrSchema.replaceDatabaseSchema(app, StructrSchema.createFromSource(schemaJson));
 
-			} catch (URISyntaxException | InvalidSchemaException ex) {
-				logger.error("Error while importing JsonSchema: " + ex.getMessage());
-			}
+				return new RestMethodResult(200, "Schema imported successfully");
 
-			return new RestMethodResult(200, "Schema imported successfully");
+			} catch (InvalidSchemaException | URISyntaxException ex) {
+
+				return new RestMethodResult(422, ex.getMessage());
+			}
 		}
 
 		return new RestMethodResult(400, "Invalid request body. Specify schema json string as 'schema' in request body.");

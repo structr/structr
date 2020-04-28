@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,6 +37,11 @@ public abstract class UiFunction extends Function<Object, Object> {
 	protected String getFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws IOException, FrameworkException {
 
 		return HttpHelper.get(requestUrl, username, password, ctx.getHeaders());
+	}
+
+	protected byte[] getBinaryFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws IOException, FrameworkException {
+
+		return HttpHelper.getBinary(requestUrl, username, password, ctx.getHeaders());
 	}
 
 	protected GraphObjectMap headFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws IOException, FrameworkException {

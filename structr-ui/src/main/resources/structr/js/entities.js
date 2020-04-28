@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -193,8 +193,7 @@ var _Entities = {
 
 	},
 	queryDialog: function(entity, el) {
-
-		_Entities.repeaterConfig(entity, el);
+		return _Entities.repeaterConfig(entity, el);
 
 	},
 	repeaterConfig: function(entity, el) {
@@ -386,19 +385,18 @@ var _Entities = {
 				dialog.append('<div class="editor"></div>');
 
 				var contentBox = $('.editor', dialog);
-				var lineWrapping = LSWrapper.getItem(lineWrappingKey);
 
 				// Intitialize editor
-				CodeMirror.defineMIME("text/html", "htmlmixed-structr");
-				editor = CodeMirror(contentBox.get(0), {
+				CodeMirror.defineMIME('text/html', 'htmlmixed-structr');
+				editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
 					value: unescapeTags(innerText),
 					mode: contentType,
 					lineNumbers: true,
-					lineWrapping: lineWrapping,
+					lineWrapping: false,
 					indentUnit: 4,
 					tabSize:4,
 					indentWithTabs: true
-				});
+				}));
 
 				$('.CodeMirror-scroll').prepend('<div class="starttag"></div>');
 				$('.CodeMirror-scroll').append('<div class="endtag"></div>');
@@ -423,11 +421,11 @@ var _Entities = {
 					text2 = editor.getValue();
 					//console.log(text, text2, text === text2);
 					if (text === text2) {
-						dialogSaveButton.prop("disabled", true).addClass('disabled');
-						saveAndClose.prop("disabled", true).addClass('disabled');
+						dialogSaveButton.prop('disabled', true).addClass('disabled');
+						saveAndClose.prop('disabled', true).addClass('disabled');
 					} else {
-						dialogSaveButton.prop("disabled", false).removeClass('disabled');
-						saveAndClose.prop("disabled", false).removeClass('disabled');
+						dialogSaveButton.prop('disabled', false).removeClass('disabled');
+						saveAndClose.prop('disabled', false).removeClass('disabled');
 					}
 
 					_Entities.hideDataHashAttribute(editor);
@@ -438,11 +436,11 @@ var _Entities = {
 					text2 = editor.getValue();
 					//console.log(text, text2, text === text2);
 					if (text === text2) {
-						dialogSaveButton.prop("disabled", true).addClass('disabled');
-						saveAndClose.prop("disabled", true).addClass('disabled');
+						dialogSaveButton.prop('disabled', true).addClass('disabled');
+						saveAndClose.prop('disabled', true).addClass('disabled');
 					} else {
-						dialogSaveButton.prop("disabled", false).removeClass('disabled');
-						saveAndClose.prop("disabled", false).removeClass('disabled');
+						dialogSaveButton.prop('disabled', false).removeClass('disabled');
+						saveAndClose.prop('disabled', false).removeClass('disabled');
 					}
 
 					Command.saveNode(startTag + editor.getValue() + endTag, entity.id, function() {
@@ -454,8 +452,8 @@ var _Entities = {
 								text = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$2').replace(/^\s+|\s+$/g, '');
 								editor.setValue(text);
 
-								dialogSaveButton.prop("disabled", true).addClass('disabled');
-								saveAndClose.prop("disabled", true).addClass('disabled');
+								dialogSaveButton.prop('disabled', true).addClass('disabled');
+								saveAndClose.prop('disabled', true).addClass('disabled');
 								Structr.showAndHideInfoBoxMessage('Node source saved and DOM tree rebuilt.', 'success', 2000, 200);
 
 								if (_Entities.isExpanded(Structr.node(entity.id))) {
@@ -479,16 +477,11 @@ var _Entities = {
 					}, 500);
 				});
 
-				dialogMeta.append('<span class="editor-info"><label for"lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
-				$('#lineWrapping').on('change', function() {
+				dialogMeta.append('<span class="editor-info"><label for"lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span>');
+				$('#lineWrapping').off('change').on('change', function() {
 					var inp = $(this);
-					if (inp.is(':checked')) {
-						LSWrapper.setItem(lineWrappingKey, "1");
-						editor.setOption('lineWrapping', true);
-					} else {
-						LSWrapper.removeItem(lineWrappingKey);
-						editor.setOption('lineWrapping', false);
-					}
+					Structr.updateCodeMirrorOptionGlobally('lineWrapping', inp.is(':checked'));
+					blinkGreen(inp.parent());
 					editor.refresh();
 				});
 
@@ -556,95 +549,108 @@ var _Entities = {
 	},
 	showProperties: function(obj, activeViewOverride) {
 
-		var handleGraphObject = function(entity) {
+		let handleGraphObject;
 
-			var views = ['ui', 'custom' ];
-			var activeView = 'ui';
-			var tabTexts = [];
+		_Entities.getSchemaProperties(obj.type, 'custom', function(properties) {
 
-			if (activeViewOverride) {
-				activeView = activeViewOverride;
+			handleGraphObject = function(entity) {
+
+				var views      = ['ui'];
+
+				if (Object.keys(properties).length) {
+					views.push('custom');
+				}
+
+				var activeView = 'ui';
+				var tabTexts   = [];
+
+				if (activeViewOverride) {
+					activeView = activeViewOverride;
+				}
+
+				_Schema.getTypeInfo(entity.type, function(typeInfo) {
+
+
+					var dialogTitle;
+
+					if (entity.hasOwnProperty('relType')) {
+
+						tabTexts.ui = 'Relationship Properties';
+						tabTexts.sourceNode = 'Source Node Properties';
+						tabTexts.targetNode = 'Target Node Properties';
+
+						dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' relationship ' + (entity.name ? entity.name : entity.id);
+
+					} else {
+
+						if (entity.isDOMNode && !entity.isContent) {
+							views.unshift('_html_');
+							if (Structr.isModuleActive(_Pages)) {
+								activeView = '_html_';
+							}
+						}
+
+						tabTexts._html_ = 'HTML Attributes';
+						tabTexts.ui = 'Built-in Properties';
+						tabTexts.custom = 'Custom Properties';
+
+						dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' node ' + (entity.name ? entity.name : entity.id);
+
+					}
+
+					Structr.dialog(dialogTitle, function() { return true; }, function() { return true; });
+
+					var tabsdiv = dialogHead.append('<div id="tabs"></div>');
+					var mainTabs = tabsdiv.append('<ul></ul>');
+					var contentEl = dialog.append('<div></div>');
+
+					// custom dialog tab?
+					var hasCustomDialog = _Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
+
+					if (entity.isDOMNode) {
+
+						if (entity.isContent !== true || entity.type === 'Template') {
+
+							_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', !hasCustomDialog, function(c) {
+								_Entities.queryDialog(entity, c, typeInfo);
+							}, function() { }, function() { });
+						}
+
+						if (entity.isContent !== true) {
+
+							_Entities.appendPropTab(entity, mainTabs, contentEl, 'editBinding', 'Edit Mode Binding', false, function(c) {
+								_Entities.dataBindingDialog(entity, c, typeInfo);
+							});
+
+						}
+
+					}
+
+					_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, typeInfo);
+
+					if (!entity.hasOwnProperty('relType')) {
+						_Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Access Control and Visibility', false, function(c) {
+							_Entities.accessControlDialog(entity, c, typeInfo);
+						});
+					}
+
+					activeView = activeViewOverride || LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id) || activeView;
+					$('#tab-' + activeView).click();
+
+					Structr.resize();
+
+				});
+
+			};
+
+			if (obj.relType) {
+				Command.getRelationship(obj.id, obj.target, null, function(entity) { handleGraphObject(entity); });
+			} else {
+				Command.get(obj.id, null, function(entity) { handleGraphObject(entity); }, 'ui');
 			}
 
-			_Schema.getTypeInfo(entity.type, function(typeInfo) {
-				var dialogTitle;
+		});
 
-				if (entity.hasOwnProperty('relType')) {
-
-					tabTexts.ui = 'Relationship Properties';
-					tabTexts.sourceNode = 'Source Node Properties';
-					tabTexts.targetNode = 'Target Node Properties';
-
-					dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' relationship ' + (entity.name ? entity.name : entity.id);
-
-				} else {
-
-					if (entity.isDOMNode && !entity.isContent) {
-						views.unshift('_html_');
-						if (Structr.isModuleActive(_Pages)) {
-							activeView = '_html_';
-						}
-					}
-
-					tabTexts._html_ = 'HTML Attributes';
-					tabTexts.ui = 'Built-in Properties';
-					tabTexts.custom = 'Custom Properties';
-
-					dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' node ' + (entity.name ? entity.name : entity.id);
-
-				}
-
-				Structr.dialog(dialogTitle, function() { return true; }, function() { return true; });
-
-				var tabsdiv = dialogHead.append('<div id="tabs"></div>');
-				var mainTabs = tabsdiv.append('<ul></ul>');
-				var contentEl = dialog.append('<div></div>');
-
-				// custom dialog tab?
-				var hasCustomDialog = _Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
-
-				if (entity.isDOMNode) {
-
-					if (entity.isContent !== true || entity.type === 'Template') {
-
-						_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', !hasCustomDialog, function(c) {
-							_Entities.queryDialog(entity, c, typeInfo);
-						});
-
-					}
-
-					if (entity.isContent !== true) {
-
-						_Entities.appendPropTab(entity, mainTabs, contentEl, 'editBinding', 'Edit Mode Binding', false, function(c) {
-							_Entities.dataBindingDialog(entity, c, typeInfo);
-						});
-
-					}
-
-				}
-
-				_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, typeInfo);
-
-				if (!entity.hasOwnProperty('relType')) {
-					_Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Access Control and Visibility', false, function(c) {
-						_Entities.accessControlDialog(entity, c, typeInfo);
-					});
-				}
-
-				activeView = activeViewOverride || LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id) || activeView;
-				$('#tab-' + activeView).click();
-
-				Structr.resize();
-
-			});
-
-		};
-
-		if (obj.relType) {
-			Command.getRelationship(obj.id, obj.target, null, function(entity) { handleGraphObject(entity); });
-		} else {
-			Command.get(obj.id, null, function(entity) { handleGraphObject(entity); });
-		}
 	},
 	appendPropTab: function(entity, tabsEl, contentEl, name, label, active, callback, initCallback, showCallback) {
 
@@ -672,9 +678,9 @@ var _Entities = {
 
 				// update entity for show callback
 				if (entity.relType) {
-					Command.getRelationship(entity.id, entity.target, null, function(e) { showCallback(e); });
+					Command.getRelationship(entity.id, entity.target, null, function(e) { showCallback($('#tabView-' + name), e); });
 				} else {
-					Command.get(entity.id, null, function(e) { showCallback(e); });
+					Command.get(entity.id, null, function(e) { showCallback($('#tabView-' + name), e); });
 				}
 			}
 		});
@@ -805,7 +811,7 @@ var _Entities = {
 					});
 
 					if (typeof callback === 'function') {
-						callback();
+						callback(properties);
 					}
 				}
 			});
@@ -1233,6 +1239,11 @@ var _Entities = {
 				var resultHandler = function(nodes) {
 
 					nodes.forEach(function(node) {
+
+						if (node.path && node.path.indexOf('/._structr_thumbnails/') === 0) {
+							return;
+						}
+
 						var displayName = node.title || node.name || node.id;
 						box.append('<div title="' + displayName + '" " class="_' + node.id + ' node element">' + fitStringToWidth(displayName, 120) + '</div>');
 						$('._' + node.id, box).on('click', function() {
@@ -1385,6 +1396,9 @@ var _Entities = {
 
 			input.closest('.array-attr').find('i.remove').off('click').on('click', function(el) {
 				let cell = input.closest('.value');
+				if (cell.length === 0) {
+					cell = input.closest('.__value');
+				}
 				input.parent().remove();
 				_Entities.saveArrayValue(cell, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback);
 			});
@@ -1429,6 +1443,9 @@ var _Entities = {
 
 		let val;
 		let cell = input.closest('.value');
+		if (cell.length === 0) {
+			cell = input.closest('.__value');
+		}
 
 		// Array?
 		if (typeInfo[key] && typeInfo[key].isCollection && !typeInfo[key].relatedType) {
@@ -1686,7 +1703,7 @@ var _Entities = {
 					Command.get(id, 'id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', handleGraphObject);
 				}
 			}
-		});
+		}, true);
 
 		_Entities.accessControlDialog(entity, dialogText);
 
@@ -1994,7 +2011,7 @@ var _Entities = {
 		}
 		return b.hasClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon));
 	},
-	ensureExpanded: function(element, callback) {
+	ensureExpanded: function(element, callback, force = false) {
 		if (!element) {
 			return;
 		}
@@ -2007,7 +2024,7 @@ var _Entities = {
 
 		Structr.addExpandedNode(id);
 
-		if (_Entities.isExpanded(element)) {
+		if (force === false && _Entities.isExpanded(element)) {
 			return;
 		} else {
 			_Logger.log(_LogType.ENTITIES, 'ensureExpanded: fetch children', el);
@@ -2053,6 +2070,21 @@ var _Entities = {
 					_Entities.expandAll(ids, lastId);
 				}
 			});
+		});
+	},
+	expandRecursively: function(ids) {
+		if (!ids || ids.length === 0) {
+			return;
+		}
+
+		ids.forEach(function(id) {
+			var el = Structr.node(id);
+
+			_Entities.ensureExpanded(el, function(childNodes) {
+				if (childNodes && childNodes.length) {
+					_Entities.expandRecursively(childNodes.map(n => n.id));
+				}
+			}, true);
 		});
 	},
 	deselectAllElements: function () {
@@ -2303,10 +2335,14 @@ var _Entities = {
 	setPropertyWithFeedback: function(entity, key, newVal, input) {
 		var oldVal = entity[key];
 		Command.setProperty(entity.id, key, newVal, false, function(result) {
-			var newVal= result[key];
+			var newVal = result[key];
+
+			// update entity so this works multiple times
+			entity[key] = newVal;
+
 			if (newVal !== oldVal) {
 				blinkGreen(input);
-				if (newVal.constructor === Array) {
+				if (newVal && newVal.constructor === Array) {
 					newVal = newVal.join(',');
 				}
 				input.val(newVal);

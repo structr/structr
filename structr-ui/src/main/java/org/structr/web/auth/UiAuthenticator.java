@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -207,7 +207,7 @@ public class UiAuthenticator implements Authenticator {
 		// no grants => no access rights
 		if (resourceAccess == null) {
 
-			logger.info("No resource access grant found for signature {} (URI: {})", new Object[] { rawResourceSignature, securityContext.getCompoundRequestURI() } );
+			logger.info("No resource access grant found for signature '{}' (URI: {})", new Object[] { rawResourceSignature, securityContext.getCompoundRequestURI() } );
 
 			throw new UnauthorizedException("Forbidden");
 
@@ -319,7 +319,7 @@ public class UiAuthenticator implements Authenticator {
 			logger.warn("Unknown method {}, cannot determine resource access.", request.getMethod());
 		}
 
-		logger.info("Resource access grant found for signature {}, but method {} not allowed for {}.", new Object[] { rawResourceSignature, method, validUser ? "authenticated users" : "public users" } );
+		logger.info("Resource access grant found for signature '{}', but method '{}' not allowed for {} users.", rawResourceSignature, method, (validUser ? "authenticated" : "public"));
 
 		throw new UnauthorizedException("Forbidden");
 

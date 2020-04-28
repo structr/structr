@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,14 +18,16 @@
  */
 package org.structr.flow.impl.rels;
 
+import org.structr.api.graph.PropagationDirection;
+import org.structr.api.graph.PropagationMode;
+import org.structr.common.PermissionPropagation;
 import org.structr.core.entity.ManyToOne;
-import org.structr.core.entity.OneToOne;
 import org.structr.flow.impl.FlowNode;
 
 /**
  *
  */
-public class FlowNodes extends ManyToOne<FlowNode, FlowNode> {
+public class FlowNodes extends ManyToOne<FlowNode, FlowNode> implements PermissionPropagation {
 
 	@Override
 	public Class<FlowNode> getSourceType() {
@@ -40,5 +42,35 @@ public class FlowNodes extends ManyToOne<FlowNode, FlowNode> {
 	@Override
 	public String name() {
 		return "NEXT_FLOW_NODE";
+	}
+
+	@Override
+	public PropagationDirection getPropagationDirection() {
+		return PropagationDirection.Both;
+	}
+
+	@Override
+	public PropagationMode getReadPropagation() {
+		return PropagationMode.Add;
+	}
+
+	@Override
+	public PropagationMode getWritePropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getDeletePropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getAccessControlPropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public String getDeltaProperties() {
+		return null;
 	}
 }

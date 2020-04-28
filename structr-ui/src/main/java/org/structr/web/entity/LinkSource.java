@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,13 +19,13 @@
 package org.structr.web.entity;
 
 import java.net.URI;
+import org.structr.api.graph.Cardinality;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Relation;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonReferenceType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonReferenceType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
 /**
@@ -50,7 +50,7 @@ public interface LinkSource extends DOMElement {
 			.addException(FrameworkException.class.getName())
 			.addParameter("linkable", "org.structr.web.entity.Linkable");
 
-		final JsonReferenceType rel = type.relate(linkable, "LINK", Relation.Cardinality.ManyToOne, "linkingElements", "linkable");
+		final JsonReferenceType rel = type.relate(linkable, "LINK", Cardinality.ManyToOne, "linkingElements", "linkable");
 
 		type.addIdReferenceProperty("linkableId", rel.getTargetProperty());
 		linkable.addIdReferenceProperty("linkingElementsIds", rel.getSourceProperty());

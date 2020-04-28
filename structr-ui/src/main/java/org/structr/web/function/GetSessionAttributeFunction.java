@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.web.function;
 
+import javax.servlet.http.HttpSession;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -26,12 +27,17 @@ import static org.structr.web.function.SetSessionAttributeFunction.SESSION_ATTRI
 
 public class GetSessionAttributeFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_GET_SESSION_ATTRIBUTE    = "Usage: ${get_session_attribute(key, object)}. Example: ${get_session_attribute(\"do_no_track\")}";
-	public static final String ERROR_MESSAGE_GET_SESSION_ATTRIBUTE_JS = "Usage: ${{Structr.get_session_attribute(key, object)}}. Example: ${{Structr.get_session_attribute(\"do_not_track\")}}";
+	public static final String ERROR_MESSAGE_GET_SESSION_ATTRIBUTE    = "Usage: ${get_session_attribute(key)}. Example: ${get_session_attribute(\"do_no_track\")}";
+	public static final String ERROR_MESSAGE_GET_SESSION_ATTRIBUTE_JS = "Usage: ${{Structr.get_session_attribute(key)}}. Example: ${{Structr.get_session_attribute(\"do_not_track\")}}";
 
 	@Override
 	public String getName() {
 		return "get_session_attribute";
+	}
+
+	@Override
+	public String getSignature() {
+		return "key";
 	}
 
 	@Override
@@ -41,7 +47,15 @@ public class GetSessionAttributeFunction extends UiAdvancedFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			return ctx.getSecurityContext().getSession().getAttribute(SESSION_ATTRIBUTE_PREFIX.concat(sources[0].toString()));
+			final HttpSession session = ctx.getSecurityContext().getSession();
+
+			if (session != null) {
+				return session.getAttribute(SESSION_ATTRIBUTE_PREFIX.concat(sources[0].toString()));
+			} else {
+				logger.warn("{}: No session available to get session attribute from! (this can happen in onStructrLogin/onStructrLogout)", getReplacement());
+			}
+
+			return null;
 
 		} catch (ArgumentNullException pe) {
 
@@ -62,6 +76,6 @@ public class GetSessionAttributeFunction extends UiAdvancedFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Retrieve a value for the given key from the user session.";
 	}
 }

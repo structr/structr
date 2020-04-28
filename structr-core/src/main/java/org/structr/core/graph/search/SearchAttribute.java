@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,15 +24,16 @@ import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryPredicate;
-import org.structr.api.search.SortType;
+import org.structr.api.search.SortOrder;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 
 /**
- * Wrapper representing a part of a search query. All parts of a search query must have a search operator and a payload. The payload can be either a node attribute oder a group of serach attributes.
- *
+ * Wrapper representing a part of a search query. All parts of a search query
+ * must have a search operator and a payload. The payload can be either a node
+ * attribute oder a group of serach attributes.
  *
  * @param <T>
  */
@@ -43,8 +44,7 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 	private Comparator<GraphObject> comparator = null;
  	private Set<GraphObject> result            = new LinkedHashSet<>();
 	private Occurrence occur                   = null;
-	private PropertyKey sortKey                = null;
-	private boolean sortDescending             = false;
+	private SortOrder sortOrder                = null;
 
 	public abstract boolean includeInResult(GraphObject entity);
 
@@ -82,15 +82,8 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 		result.addAll(list);
 	}
 
-	public void setExactMatch(final boolean exact) {};
-
-	public void setSortKey(final PropertyKey sortKey) {
-		this.sortKey = sortKey;
-	}
-
-	public void sortDescending(final boolean sortDescending) {
-		this.sortDescending = sortDescending;
-	}
+	public void setExactMatch(final boolean exact) {
+	};
 
 	public void setComparator(final Comparator<GraphObject> comparator) {
 		this.comparator = comparator;
@@ -99,6 +92,11 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 	public void setOccurrence(final Occurrence occurrence) {
 		this.occur = occurrence;
 	}
+
+	public void setSortOrder(final SortOrder sortOrder) {
+		this.sortOrder = sortOrder;
+	}
+
 
 	// ----- interface Predicate<GraphObject> -----
 	@Override
@@ -151,27 +149,7 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 	}
 
 	@Override
-	public String getSortKey() {
-
-		if (sortKey != null) {
-			return sortKey.jsonName();
-		}
-
-		return null;
-	}
-
-	@Override
-	public SortType getSortType() {
-
-		if (sortKey != null) {
-			return sortKey.getSortType();
-		}
-
-		return SortType.Default;
-	}
-
-	@Override
-	public boolean sortDescending() {
-		return sortDescending;
+	public SortOrder getSortOrder() {
+		return this.sortOrder;
 	}
 }

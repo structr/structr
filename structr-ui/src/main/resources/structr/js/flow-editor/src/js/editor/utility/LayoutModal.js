@@ -1,5 +1,5 @@
 import {LayoutManager} from "./LayoutManager.js";
-import {Persistence} from "../../persistence/Persistence.js";
+import {Persistence} from "../../../../../lib/structr/persistence/Persistence.js";
 
 export class LayoutModal {
 

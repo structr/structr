@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,7 +19,11 @@
 package org.structr.web.entity;
 
 import java.net.URI;
+import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.common.ConstantBooleanTrue;
@@ -30,14 +34,12 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.auth.TimeBasedOneTimePasswordHelper;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 
 public interface User extends Principal {
 
@@ -45,7 +47,6 @@ public interface User extends Principal {
 
 		final JsonSchema schema     = SchemaService.getDynamicSchema();
 		final JsonObjectType user   = schema.addType("User");
-		final JsonObjectType image  = schema.addType("Image");
 		final JsonObjectType folder = schema.addType("Folder");
 
 		user.setExtends(schema.getType("Principal"));
@@ -65,7 +66,7 @@ public interface User extends Principal {
 		user.addPropertyGetter("workingDirectory", Folder.class);
 		user.addPropertyGetter("homeDirectory", Folder.class);
 
-		user.overrideMethod("shouldSkipSecurityRelationships", false, "return getProperty(skipSecurityRelationshipsProperty);");
+		user.overrideMethod("shouldSkipSecurityRelationships", false, "return isAdmin() && getProperty(skipSecurityRelationshipsProperty);");
 
 		user.overrideMethod("onCreation",     true, User.class.getName() + ".onCreateAndModify(this, arg0);");
 		user.overrideMethod("onModification", true, User.class.getName() + ".onCreateAndModify(this, arg0, arg2);");
@@ -150,7 +151,7 @@ public interface User extends Principal {
 			final PropertyKey<Boolean> skipSecurityRels = StructrApp.key(User.class, "skipSecurityRelationships");
 			if (user.getProperty(skipSecurityRels).equals(Boolean.TRUE) && !user.isAdmin()) {
 
-				throw new FrameworkException(422, "The skipSecurityRels flags can only be set for admin accounts");
+				TransactionCommand.simpleBroadcastWarning("Info", "This user has the skipSecurityRels flag set to true. This flag only works for admin accounts!", Predicate.only(securityContext.getSessionId()));
 			}
 
 			if (Principal.getTwoFactorSecret(user) == null) {

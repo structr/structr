@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,7 @@ import java.util.Set;
 import org.apache.commons.lang3.ArrayUtils;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
+import org.structr.api.graph.Cardinality;
 import org.structr.api.graph.Node;
 import org.structr.common.AccessControllable;
 import org.structr.common.EMailValidator;
@@ -43,8 +44,8 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 
 public interface Principal extends NodeInterface, AccessControllable {
 
@@ -154,7 +155,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 			.setSource("AbstractNode.clearCaches(); return super.setProperty(arg0, arg1);");
 
 		// create relationships
-		principal.relate(favoritable, "FAVORITE", Relation.Cardinality.ManyToMany, "favoriteUsers", "favorites");
+		principal.relate(favoritable, "FAVORITE", Cardinality.ManyToMany, "favoriteUsers", "favorites");
 	}}
 
 	public static final Object HIDDEN                            = "****** HIDDEN ******";
@@ -254,11 +255,15 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "sessionIds");
 			final String[] ids              = principal.getProperty(key);
-			Set<String> sessionIds          = new HashSet<>(Arrays.asList(ids));
 
-			sessionIds.remove(sessionId);
+			if (ids != null) {
 
-			principal.setProperty(key, (String[]) sessionIds.toArray(new String[0]));
+				final Set<String> sessionIds = new HashSet<>(Arrays.asList(ids));
+
+				sessionIds.remove(sessionId);
+
+				principal.setProperty(key, (String[]) sessionIds.toArray(new String[0]));
+			}
 
 		} catch (FrameworkException ex) {
 			logger.error("Could not remove sessionId " + sessionId + " from array of sessionIds", ex);

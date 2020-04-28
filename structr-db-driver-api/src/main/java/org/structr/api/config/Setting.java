@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -139,6 +139,10 @@ public abstract class Setting<T> {
 
 	public void setValue(final T value) {
 		this.value = value;
+	}
+
+	public void setDefaultValue(final T value) {
+		this.defaultValue = value;
 	}
 
 	public boolean isModified() {

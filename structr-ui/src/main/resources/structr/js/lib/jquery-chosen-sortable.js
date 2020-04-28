@@ -5,6 +5,7 @@
  * 1. chosenOrder() returned elements twice if a substring was contained in an element ("id" and "hidden" for example)
  * 2. provide a callback function for update event
  * 3. add a "sortedVals" function to just return the values of the selected elements
+ * 4. use selectedOptions as source for options as the chosen-choices elements retain a removed element for a minimal amount of time which will result in errors
  */
 /*
  * Author: Yves Van Broekhoven & Simon Menke
@@ -23,12 +24,12 @@
 		var $this = this.filter('.chosen-sortable[multiple]').first(),
 			$chosen = $this.siblings('.chosen-container');
 
-		var $options = $this.find('option').toArray();
+		var $selectedOptions = $(this[0].selectedOptions).toArray();
 
 		return $($chosen.find('.chosen-choices li[class!="search-field"]').map( function() {
 			if (this) {
 				var text = $(this).text();
-				return $options.filter(function(el) {
+				return $selectedOptions.filter(function(el) {
 					return $(el).text() === text;
 				})[0];
 			}

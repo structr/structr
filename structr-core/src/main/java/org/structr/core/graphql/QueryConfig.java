@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,7 +38,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.PathResolvingComparator;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -150,14 +149,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 		if (sortKey != null) {
 
-			if (sortDescending) {
-
-				query.sortDescending(sortKey);
-
-			} else {
-
-				query.sortAscending(sortKey);
-			}
+			query.sort(sortKey, sortDescending);
 
 		} else if (sortKeySource != null) {
 
@@ -397,11 +389,12 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		}
 	}
 
-	private Comparator<GraphObject> getComparator() {
+	private Comparator getComparator() {
 
 		if (sortKey != null) {
 
-			return new GraphObjectComparator(sortKey, sortDescending);
+			return GraphObject.sorted(sortKey, sortDescending);
+			//return new GraphObjectComparator(sortKey, sortDescending);
 		}
 
 		if (sortKeySource != null) {

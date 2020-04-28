@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,8 +21,12 @@ package org.structr.rest.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeSet;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,23 +37,28 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.config.SettingsGroup;
+import org.structr.api.service.DatabaseConnection;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Document;
+import org.structr.api.util.html.InputField;
 import org.structr.api.util.html.Tag;
 import org.structr.api.util.html.attr.Href;
 import org.structr.api.util.html.attr.Rel;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.graph.ManageDatabasesCommand;
 
 /**
  *
  */
 public class ConfigServlet extends AbstractServletBase {
 
-	private static final Logger logger                     = LoggerFactory.getLogger(ConfigServlet.class);
-	private static final Set<String> authenticatedSessions = new HashSet<>();
-	private static final String ConfigUrl                  = "/structr/config";
-	private static final String ConfigName                 = "structr.conf";
-	private static final String TITLE                      =  "Structr Configuration Editor";
+	private static final Logger logger                = LoggerFactory.getLogger(ConfigServlet.class);
+	private static final Set<String> sessions         = new HashSet<>();
+	private static final String MainUrl               = "/structr/";
+	private static final String ConfigUrl             = "/structr/config";
+	private static final String ConfigName            = "structr.conf";
+	private static final String TITLE                 = "Structr Configuration Editor";
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -85,8 +94,8 @@ public class ConfigServlet extends AbstractServletBase {
 
 			} else if (request.getParameter("reset") != null) {
 
-				final String key      = request.getParameter("reset");
-				Setting setting = Settings.getSetting(key);
+				final String key = request.getParameter("reset");
+				Setting setting  = Settings.getSetting(key);
 
 				if (setting == null) {
 					setting = Settings.getCaseSensitiveSetting(key);
@@ -117,7 +126,19 @@ public class ConfigServlet extends AbstractServletBase {
 				final String serviceName = request.getParameter("start");
 				if (serviceName != null && isAuthenticated(request)) {
 
-					Services.getInstance().startService(serviceName);
+					try {
+						Services.getInstance().startService(serviceName);
+
+					} catch (FrameworkException fex) {
+
+						response.setContentType("application/json");
+						response.setStatus(fex.getStatus());
+						response.getWriter().print(fex.toJSON());
+						response.getWriter().flush();
+						response.getWriter().close();
+
+						return;
+					}
 				}
 
 				// redirect
@@ -147,14 +168,62 @@ public class ConfigServlet extends AbstractServletBase {
 							try { Thread.sleep(1000); } catch (Throwable t) {}
 
 							Services.getInstance().shutdownService(serviceName);
-							Services.getInstance().startService(serviceName);
-						}
 
+							try {
+								Services.getInstance().startService(serviceName);
+
+							} catch (FrameworkException fex) {
+
+								logger.warn("Unable to start service '{}'", serviceName);
+								logger.warn("", fex);
+							}
+						}
 					}).start();
 				}
 
 				// redirect
 				response.sendRedirect(ConfigUrl + "#services");
+
+			} else if (request.getParameter("finish") != null) {
+
+				// finish wizard
+				Settings.SetupWizardCompleted.setValue(true);
+				Settings.storeConfiguration(ConfigName);
+
+				// redirect
+				response.sendRedirect(MainUrl);
+
+			} else if (request.getParameter("useDefault") != null) {
+
+				// create default configuration
+				final ManageDatabasesCommand cmd    = Services.getInstance().command(null, ManageDatabasesCommand.class);
+				final String name                   = "neo-1";
+				final String url                    = Settings.SampleConnectionUrl.getDefaultValue();
+				final String username               = Settings.ConnectionUser.getDefaultValue();
+				final String password               = Settings.ConnectionPassword.getDefaultValue();
+
+				final DatabaseConnection connection = new DatabaseConnection();
+				connection.setName(name);
+				connection.setUrl(url);
+				connection.setUsername(username);
+				connection.setPassword(password);
+
+				try {
+					cmd.addConnection(connection, false);
+
+				} catch (FrameworkException fex) {
+					fex.printStackTrace();
+				}
+
+				// finish wizard
+				Settings.SetupWizardCompleted.setValue(true);
+				Settings.storeConfiguration(ConfigName);
+
+				// make session valid
+				authenticateSession(request);
+
+				// redirect
+				response.sendRedirect(ConfigUrl + "#databases");
 
 			} else {
 
@@ -190,7 +259,7 @@ public class ConfigServlet extends AbstractServletBase {
 			switch (action) {
 
 				case "login":
-					
+
 					if (StringUtils.isNoneBlank(Settings.SuperUserPassword.getValue(), request.getParameter("password")) && Settings.SuperUserPassword.getValue().equals(request.getParameter("password"))) {
 						authenticateSession(request);
 					}
@@ -204,64 +273,166 @@ public class ConfigServlet extends AbstractServletBase {
 
 		} else if (isAuthenticated(request)) {
 
-			// a configuration form was submitted
-			for (final Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+			// set redirect target
+			redirectTarget = request.getParameter("active_section");
 
-				final String value   = getFirstElement(entry.getValue());
-				final String key     = entry.getKey();
-				SettingsGroup parent = null;
+			// database connections form
+			if ("/add".equals(request.getPathInfo())) {
 
-				// skip internal group configuration parameter
-				if (key.endsWith("._settings_group")) {
-					continue;
+				final ManageDatabasesCommand cmd    = Services.getInstance().command(null, ManageDatabasesCommand.class);
+				final String name                   = request.getParameter("name");
+				final String url                    = request.getParameter("url");
+				final String username               = request.getParameter("username");
+				final String password               = request.getParameter("password");
+				final String connectNow             = request.getParameter("now");
+				final DatabaseConnection connection = new DatabaseConnection();
+
+				connection.setName(name);
+				connection.setUrl(url);
+				connection.setUsername(username);
+				connection.setPassword(password);
+
+				try {
+					cmd.addConnection(connection, cmd.getConnections().isEmpty() && "true".equals(connectNow));
+
+					// wizard finished
+					Settings.SetupWizardCompleted.setValue(true);
+
+					// make session valid
+					authenticateSession(request);
+
+				} catch (FrameworkException fex) {
+
+					response.setContentType("application/json");
+					response.setStatus(fex.getStatus());
+					response.getWriter().print(fex.toJSON());
+					response.getWriter().flush();
+					response.getWriter().close();
+
+					return;
 				}
 
-				if ("active_section".equals(key)) {
+			} else {
 
-					redirectTarget = value;
-					continue;
-				}
+				// check for REST action
+				final String path = request.getPathInfo();
+				if (StringUtils.isNotBlank(path)) {
 
-				Setting<?> setting = Settings.getSetting(key);
+					final String[] parts = StringUtils.split(path, "/");
+					if (parts.length == 2) {
 
-				if (setting != null && setting.isDynamic()) {
+						final ManageDatabasesCommand cmd = Services.getInstance().command(null, ManageDatabasesCommand.class);
+						final Map<String, Object> data   = new LinkedHashMap<>();
+						final String name                = parts[0];
+						final String restAction          = parts[1];
 
-					// unregister dynamic settings so the type can change
-					setting.unregister();
-					setting = null;
-				}
+						// values for save action
+						final String connectionUrl       = request.getParameter("url");
+						final String connectionUsername  = request.getParameter("username");
+						final String connectionPassword  = request.getParameter("password");
 
-				if (setting == null) {
+						data.put(DatabaseConnection.KEY_NAME,     name);
+						data.put(DatabaseConnection.KEY_URL,      connectionUrl);
+						data.put(DatabaseConnection.KEY_USERNAME, connectionUsername);
+						data.put(DatabaseConnection.KEY_PASSWORD, connectionPassword);
 
-					if (key.contains(".cronExpression")) {
+						try {
+							switch (restAction) {
 
-						parent = Settings.cronGroup;
+								case "save":
+									cmd.saveConnection(data);
+									break;
 
-					} else {
+								case "delete":
+									cmd.removeConnection(data);
+									break;
 
-						// group specified?
-						final String group = request.getParameter(key + "._settings_group");
-						if (group != null) {
+								case "connect":
+									cmd.saveConnection(data);
+									cmd.activateConnection(data);
+									break;
 
-							parent = Settings.getGroup(group);
-							if (parent == null) {
-
-								// default to misc group
-								parent = Settings.miscGroup;
+								case "disconnect":
+									cmd.deactivateConnections();
+									break;
 							}
 
-						} else {
+						} catch (FrameworkException fex) {
 
-							// fallback to misc group
-							parent = Settings.miscGroup;
+							response.setContentType("application/json");
+							response.setStatus(fex.getStatus());
+							response.getWriter().print(fex.toJSON());
+							response.getWriter().flush();
+							response.getWriter().close();
+
+							return;
 						}
 					}
 
-					setting = Settings.createSettingForValue(parent, key, value);
-				}
+				} else {
 
-				// store new value
-				setting.fromString(value);
+					// a configuration form was submitted
+					for (final Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+
+						final String value   = getFirstElement(entry.getValue());
+						final String key     = entry.getKey();
+						SettingsGroup parent = null;
+
+						// skip internal group configuration parameter
+						if (key.endsWith("._settings_group")) {
+							continue;
+						}
+
+						// skip
+
+						if ("active_section".equals(key)) {
+
+							redirectTarget = value;
+							continue;
+						}
+
+						Setting<?> setting = Settings.getSetting(key);
+
+						if (setting != null && setting.isDynamic()) {
+
+							// unregister dynamic settings so the type can change
+							setting.unregister();
+							setting = null;
+						}
+
+						if (setting == null) {
+
+							if (key.contains(".cronExpression")) {
+
+								parent = Settings.cronGroup;
+
+							} else {
+
+								// group specified?
+								final String group = request.getParameter(key + "._settings_group");
+								if (group != null) {
+
+									parent = Settings.getGroup(group);
+									if (parent == null) {
+
+										// default to misc group
+										parent = Settings.miscGroup;
+									}
+
+								} else {
+
+									// fallback to misc group
+									parent = Settings.miscGroup;
+								}
+							}
+
+							setting = Settings.createSettingForValue(parent, key, value);
+						}
+
+						// store new value
+						setting.fromString(value);
+					}
+				}
 			}
 
 			// serialize settings
@@ -274,88 +445,109 @@ public class ConfigServlet extends AbstractServletBase {
 	// ----- private methods -----
 	private Document createConfigDocument(final HttpServletRequest request, final PrintWriter writer) {
 
-		final Document doc = new Document(writer);
-		final Tag body     = setupDocument(request, doc);
-		final Tag form     = body.block("form").css("config-form");
-		final Tag main     = form.block("div").id("main");
-		final Tag tabs     = main.block("div").id("configTabs");
-		final Tag menu     = tabs.block("ul").css("tabs-menu");
+		final boolean firstStart = !Settings.SetupWizardCompleted.getValue();
+		final Document doc       = new Document(writer);
+		final Tag body           = setupDocument(request, doc);
+		final Tag form           = body.block("form").css("config-form").empty("input").attr(new Attr("type", "submit"), new Attr("disabled", "disabled")).css("hidden").parent();
+		final Tag main           = form.block("div").id("main");
+		final Tag tabs           = main.block("div").id("configTabs");
+		final Tag menu           = tabs.block("ul").css("tabs-menu");
 
 		// configure form
 		form.attr(new Attr("action", ConfigUrl), new Attr("method", "post"));
 
-		for (final SettingsGroup group : Settings.getGroups()) {
+		if (firstStart) {
+			welcomeTab(menu, tabs);
+		}
 
-			final String key  = group.getKey();
-			final String name = group.getName();
+		databasesTab(menu, tabs);
 
-			menu.block("li").block("a").id(key + "Menu").attr(new Attr("href", "#" + key)).block("span").text(name);
+		if (!firstStart) {
 
-			final Tag container = tabs.block("div").css("tab-content").id(key);
+			// settings tabs
+			for (final SettingsGroup group : Settings.getGroups()) {
 
-			// let settings group render itself
-			group.render(container);
+				final String key  = group.getKey();
+				final String name = group.getName();
+
+				menu.block("li").block("a").id(key + "Menu").attr(new Attr("href", "#" + key)).block("span").text(name);
+
+				final Tag container = tabs.block("div").css("tab-content").id(key);
+
+				// let settings group render itself
+				group.render(container);
+
+				// stop floating
+				container.block("div").attr(new Style("clear: both;"));
+			}
+
+			// services tab
+			menu.block("li").block("a").id("servicesMenu").attr(new Attr("href", "#services")).block("span").text("Services");
+
+			final Services services = Services.getInstance();
+			final Tag container     = tabs.block("div").css("tab-content").id("services");
+
+			container.block("h1").text("Services");
+
+			final Tag table         = container.block("table").id("services-table");
+			final Tag header        = table.block("tr");
+
+			header.block("th").text("Service Name");
+			header.block("th").attr(new Attr("colspan", "2"));
+
+			for (final Class serviceClass : services.getRegisteredServiceClasses()) {
+
+				final Set<String> serviceNames = new TreeSet<>();
+
+				serviceNames.addAll(services.getServices(serviceClass).keySet());
+				serviceNames.add("default");
+
+				for (final String name : serviceNames) {
+
+					final boolean running         = serviceClass != null ? services.isReady(serviceClass, name) : false;
+					final String serviceClassName = serviceClass.getSimpleName() + "." + name;
+
+					final Tag row  = table.block("tr");
+
+					row.block("td").text(serviceClassName);
+
+					if (running) {
+
+						row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?restart=" + serviceClassName + "';")).text("Restart");
+
+						if ("HttpService".equals(serviceClassName)) {
+
+							row.block("td");
+
+						} else {
+
+							row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?stop=" + serviceClassName + "';")).text("Stop");
+						}
+
+						row.block("td");
+
+					} else {
+
+						row.block("td");
+						row.block("td");
+						row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?start=" + serviceClassName + "';")).text("Start");
+					}
+				}
+			}
 
 			// stop floating
 			container.block("div").attr(new Style("clear: both;"));
-		}
 
-		// add services tab
-		menu.block("li").block("a").id("servicesMenu").attr(new Attr("href", "#services")).block("span").text("Services");
+			// buttons
+			final Tag buttons = form.block("div").css("buttons");
 
-		final Services services = Services.getInstance();
-		final Tag container     = tabs.block("div").css("tab-content").id("services");
-		final Tag table         = container.block("table").id("services-table");
-		final Tag header        = table.block("tr");
-
-		header.block("th").text("Service Name");
-		header.block("th").attr(new Attr("colspan", "2"));
-
-
-		for (final Class serviceClass : services.getServices()) {
-
-			final boolean running         = serviceClass != null ? services.isReady(serviceClass) : false;
-			final String serviceClassName = serviceClass.getSimpleName();
-
-			final Tag row  = table.block("tr");
-
-			row.block("td").text(serviceClassName);
-
-			if (running) {
-
-				row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?restart=" + serviceClassName + "';")).text("Restart");
-
-				if ("HttpService".equals(serviceClassName)) {
-
-					row.block("td");
-
-				} else {
-
-					row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?stop=" + serviceClassName + "';")).text("Stop");
-				}
-
-				row.block("td");
-
-			} else {
-
-				row.block("td");
-				row.block("td");
-				row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?start=" + serviceClassName + "';")).text("Start");
-			}
+			buttons.block("button").attr(new Type("button")).id("new-entry-button").text("Add entry");
+			buttons.block("button").attr(new Type("button")).id("reload-config-button").text("Reload configuration file");
+			buttons.empty("input").attr(new Type("submit"), new Value("Save to structr.conf"));
 		}
 
 		// update active section so we can restore it when redirecting
-		container.empty("input").attr(new Type("hidden"), new Name("active_section")).id("active_section");
-
-		// stop floating
-		container.block("div").attr(new Style("clear: both;"));
-
-		// buttons
-		final Tag buttons = form.block("div").css("buttons");
-
-		buttons.block("button").attr(new Type("button")).id("new-entry-button").text("Add entry");
-		buttons.block("button").attr(new Type("button")).id("reload-config-button").text("Reload configuration file");
-		buttons.empty("input").attr(new Type("submit"), new Value("Save to structr.conf"));
+		form.empty("input").attr(new Type("hidden"), new Name("active_section")).id("active_section");
 
 		return doc;
 	}
@@ -425,13 +617,17 @@ public class ConfigServlet extends AbstractServletBase {
 
 	private boolean isAuthenticated(final HttpServletRequest request) {
 
+		if (!Settings.SetupWizardCompleted.getValue()) {
+			return true;
+		}
+
 		final HttpSession session = request.getSession();
 		if (session != null) {
 
 			final String sessionId = session.getId();
 			if (sessionId != null) {
 
-				return authenticatedSessions.contains(sessionId);
+				return sessions.contains(sessionId);
 
 			} else {
 
@@ -446,6 +642,144 @@ public class ConfigServlet extends AbstractServletBase {
 		return false;
 	}
 
+	private void welcomeTab(final Tag menu, final Tag tabs) {
+
+		final ManageDatabasesCommand cmd   = Services.getInstance().command(null, ManageDatabasesCommand.class);
+		final boolean databaseIsConfigured = !cmd.getConnections().isEmpty();
+		final boolean passwordIsSet        = StringUtils.isNotBlank(Settings.SuperUserPassword.getValue());
+		final Style fgGreen                = new Style("color: #81ce25;");
+		final Style bgGreen                = new Style("background-color: #81ce25; color: #fff; border: 1px solid rgba(0,0,0,.125);");
+		final String id                    = "welcome";
+
+		menu.block("li").css("active").block("a").id(id + "Menu").attr(new Attr("href", "#" + id)).block("span").text("Welcome").css("active");
+
+		final Tag container = tabs.block("div").css("tab-content").id(id).attr(new Style("display: block;"));
+		final Tag body      = header(container, "Welcome to Structr");
+
+		body.block("p").text("This is the first start, so you need to configure some things.");
+
+		final Tag list  = body.block("ul");
+		final Tag item1 = list.block("li").text("Set a password for the <b>superuser</b>");
+		final Tag item2 = list.block("li").text("Configure a <b>database connection</b>");
+
+		if (passwordIsSet) {
+			item1.block("span").text(" &#x2714;").attr(fgGreen);
+		}
+
+		if (databaseIsConfigured) {
+			item2.block("span").text(" &#x2714;").attr(fgGreen);
+		}
+
+		if (!passwordIsSet) {
+
+			body.block("h3").text("Superuser password");
+
+			final Tag pwd = body.block("p");
+			pwd.empty("input").attr(new Name("superuser.password")).attr(new Type("password")).attr(new Attr("size", 40));
+			pwd.empty("input").attr(new Type("submit")).attr(new Attr("value", "Set password")).attr(bgGreen);
+
+		} else {
+
+			body.block("h3").text("Options");
+
+			if (databaseIsConfigured) {
+
+				body.block("p").css("steps").block("button").attr(new Type("button")).text("Manage database connections").attr(new OnClick("$('#databasesMenu').click();"));
+
+			} else {
+
+				body.block("p").css("steps").block("button").attr(new Type("button")).text("Create connection with default settings").attr(new OnClick("window.location.href='" + ConfigUrl + "?useDefault';"));
+				body.block("p").css("steps").text("or");
+				body.block("p").css("steps").block("button").attr(new Type("button")).text("Configure database connection").attr(new OnClick("$('#databasesMenu').click();"));
+				body.block("p").css("steps").block("button").attr(new Type("button")).text("Continue without database connection").attr(new OnClick("window.location.href='" + ConfigUrl + "?finish';"));
+			}
+
+		}
+	}
+
+	private void databasesTab(final Tag menu, final Tag tabs) {
+
+		final ManageDatabasesCommand cmd           = Services.getInstance().command(null, ManageDatabasesCommand.class);
+		final List<DatabaseConnection> connections = cmd.getConnections();
+		final String id                            = "databases";
+
+		menu.block("li").block("a").id(id + "Menu").attr(new Attr("href", "#" + id)).block("span").text("Database Connections");
+
+		final Tag container = tabs.block("div").css("tab-content").id(id);
+		final Tag body      = header(container, "Database Connections");
+
+		if (connections.isEmpty()) {
+
+			body.block("p").text("There are currently no database connections configured.");
+
+		} else {
+
+			boolean hasActiveConnection = connections.stream().map(DatabaseConnection::isActive).reduce(false, (t, u) -> t || u);
+			if (!hasActiveConnection) {
+
+				body.block("p").text("There is currently no active database connection.");
+			}
+		}
+
+		// database connections
+		for (final DatabaseConnection connection : connections) {
+
+			connection.render(body, ConfigUrl);
+		}
+
+		// new connection form should appear below existing connections
+		body.block("div").attr(new Attr("style", "clear: both;"));
+
+		body.block("h2").text("Add connection");
+
+		final Tag div = body.block("div").css("connection app-tile new-connection");
+
+		div.block("h4").text("Add database connection");
+
+		final Tag name = div.block("p");
+		name.block("label").text("Name");
+		name.add(new InputField(name, "text", "name-structr-new-connection", "", "Enter name.."));
+
+		final Tag url = div.block("p");
+		url.block("label").text("Connection URL");
+		url.add(new InputField(url, "text", "url-structr-new-connection", "bolt://localhost:7687", "Enter url.."));
+
+		final Tag user = div.block("p");
+		user.block("label").text("Username");
+		user.add(new InputField(user, "text", "username-structr-new-connection", "neo4j", "Enter username.."));
+
+		final Tag pass = div.block("p");
+		pass.block("label").text("Password");
+		pass.add(new InputField(pass, "password", "password-structr-new-connection", "", "Enter password.."));
+
+		if (connections.isEmpty()) {
+
+			// allow user to prevent connecting immediately
+			final Tag checkbox = div.block("p");
+			final Tag label    = checkbox.block("label");
+			label.empty("input").attr(new Attr("type", "checkbox"), new Attr("id", "connect-checkbox"), new Attr("checked", "checked"));
+			label.block("span").text(" Connect immediately");
+		}
+
+		final Tag buttons = div.block("p").css("buttons");
+		buttons.block("button").attr(new Attr("type", "button")).text("Add connection").attr(new Attr("onclick", "addConnection(this);"));
+
+		div.block("div").id("status-structr-new-connection").css("warning warning-message hidden");
+	}
+
+	private Tag header(final Tag container, final String title) {
+
+		final Tag div       = container.block("div");
+		final Tag main      = div.block("div").css("config-group");
+
+		main.block("h1").text(title);
+
+		// stop floating
+		container.block("div").attr(new Style("clear: both;"));
+
+		return main;
+	}
+
 	private void authenticateSession(final HttpServletRequest request) {
 
 		final HttpSession session = request.getSession();
@@ -454,7 +788,7 @@ public class ConfigServlet extends AbstractServletBase {
 			final String sessionId = session.getId();
 			if (sessionId != null) {
 
-				authenticatedSessions.add(sessionId);
+				sessions.add(sessionId);
 
 			} else {
 
@@ -475,7 +809,7 @@ public class ConfigServlet extends AbstractServletBase {
 			final String sessionId = session.getId();
 			if (sessionId != null) {
 
-				authenticatedSessions.remove(sessionId);
+				sessions.remove(sessionId);
 
 			} else {
 

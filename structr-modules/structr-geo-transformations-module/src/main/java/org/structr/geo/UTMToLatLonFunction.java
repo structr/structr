@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -44,6 +44,11 @@ public class UTMToLatLonFunction extends GeoFunction {
 	@Override
 	public String getName() {
 		return "utm_to_lat_lon";
+	}
+
+	@Override
+	public String getSignature() {
+		return "utmString";
 	}
 
 	@Override

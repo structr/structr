@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,35 +24,37 @@ class RefactoringHelper {
 
 	show() {
 
-		this.container.append('<p>This helper allows you to find and edit HTML elements in Structr pages and Shared Components based on a type and some common attributes.</p>');
+		this.container.append('<p>'
+			+ 'This helper allows you to find and edit the attributes of HTML elements in Structr pages and Shared Components based on a type and some common attributes. '
+			+ 'Enter a type selector and one or more attributes to show all DOM nodes that contain a value in at least one of the fields. '
+			+ '</p>');
 		this.container.append('<div id="select-container"></div>');
 
 		var selectContainer = $('#select-container');
 
-		selectContainer.append('<input class="refactoring-helper" id="selector-input" placeholder="Selector" />');
-		selectContainer.append('<input class="refactoring-helper" id="query-input" placeholder="Query parameters" />');
-		selectContainer.append('<input class="refactoring-helper" id="property-input" placeholder="Property keys to display" />');
-		selectContainer.append('<input type="checkbox" id="empty-checkbox" /> Show empty results');
+		selectContainer.append('<input class="refactoring-helper" id="selector-input" placeholder="HTML tag, e.g. div, button" />');
+		selectContainer.append('<input class="refactoring-helper" id="property-input" placeholder="Property keys to display, e.g. id, class, name, onclick" />');
+		selectContainer.append('<input type="checkbox" id="empty-checkbox" /><label for="empty-checkbox"> Show empty results</label>');
 		selectContainer.append('<div id="result-container"></div>');
 		selectContainer.append('<div><pre id="error-container"></pre></div>');
 
 		window.setTimeout(() => { $('#selector-input').focus(); }, 100);
 
-		$('#property-input').on('blur', () => { this.loadResults(); });
-		$('#empty-checkbox').on('click', () => { this.loadResults(); });
+		var loadFunction = this.debounce(this.loadResults, 300);
+
+		$('#property-input').on('keyup', loadFunction);
+		$('#empty-checkbox').on('click', loadFunction);
 	}
 
 	loadResults() {
 
 		var typeSelector    = $('#selector-input');
-		var queryInput      = $('#query-input');
 		var keysSelector    = $('#property-input');
 		var emptyCheckbox   = $('#empty-checkbox');
 		var resultContainer = $('#result-container');
 		var errorContainer  = $('#error-container');
 
 		var typeQuery     = typeSelector.val().trim();
-		var searchQuery   = queryInput.val().trim();
 		var properties    = keysSelector.val().trim();
 		var showEmptyRows = emptyCheckbox.is(':checked');
 
@@ -64,7 +66,7 @@ class RefactoringHelper {
 			errorContainer.empty();
 
 			$.ajax({
-				url: '/structr/rest/' + typeQuery + '/all' + searchQuery,
+				url: '/structr/rest/' + typeQuery + '/all',
 				method: 'get',
 				statusCode: {
 					200: (response) => {
@@ -175,5 +177,20 @@ class RefactoringHelper {
 				}
 			});
 		}
+	}
+
+	debounce(func, wait, immediate) {
+		var timeout;
+		return function() {
+			var context = this, args = arguments;
+			var later = function() {
+				timeout = null;
+				if (!immediate) func.apply(context, args);
+			};
+			var callNow = immediate && !timeout;
+			clearTimeout(timeout);
+			timeout = setTimeout(later, wait);
+			if (callNow) func.apply(context, args);
+		};
 	}
 }

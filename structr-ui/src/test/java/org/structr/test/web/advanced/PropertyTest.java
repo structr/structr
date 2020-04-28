@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,7 +20,6 @@ package org.structr.test.web.advanced;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Map;
 import org.testng.annotations.Test;
@@ -32,7 +31,7 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonSchema;
 import org.structr.test.web.StructrUiTest;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
@@ -93,7 +92,7 @@ public class PropertyTest extends StructrUiTest {
 
 			tx.success();
 
-		} catch (FrameworkException|URISyntaxException t) {
+		} catch (FrameworkException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception");

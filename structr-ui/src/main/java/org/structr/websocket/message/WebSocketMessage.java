@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.BooleanUtils;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 
@@ -215,7 +214,7 @@ public class WebSocketMessage {
 		return getNodeData().get(key);
 	}
 
-	public boolean getNodeDataBooleanValue(final String key) throws FrameworkException {
+	public boolean getNodeDataBooleanValue(final String key) {
 		final Object value = getNodeDataValue(key);
 		return BooleanUtils.isTrue((Boolean) value);
 	}

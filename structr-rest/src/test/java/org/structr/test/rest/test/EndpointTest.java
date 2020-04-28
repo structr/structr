@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,13 +28,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
 import static org.testng.AssertJUnit.fail;
 
@@ -61,7 +61,7 @@ public class EndpointTest extends StructrRestTestBase {
 
 			project.addMethod("onSave", "error('nope', 'nope', 'nope')", "");
 
-			project.relate(task, "HAS", Relation.Cardinality.ManyToMany, "projects", "tasks");
+			project.relate(task, "HAS", Cardinality.ManyToMany, "projects", "tasks");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -145,26 +145,4 @@ public class EndpointTest extends StructrRestTestBase {
 			fail("Concurrent property write access is broken.");
 		}
 	}
-
-	/*
-	@Test
-	public void testRestInputValidation() {
-
-		try {
-
-			final JsonSchema schema      = StructrSchema.createFromDatabase(app);
-			final JsonObjectType project = schema.addType("Project");
-
-			project.addStringProperty("name");
-
-			StructrSchema.extendDatabaseSchema(app, schema);
-
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-
-		RestAssured.given().accept("application/json").body("{ name: blah }").expect().statusCode(422).when().post("/Project");
-
-	}
-	*/
 }

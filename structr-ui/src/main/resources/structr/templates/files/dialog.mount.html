@@ -1,26 +1,42 @@
 <table id="mount-dialog" class="props">
+
 	<tr>
-		<td>Name</td>
+		<td data-info-text="The name of the folder which will mount the target directory">Name</td>
 		<td><input type="text" class="mount-option" data-attribute-name="name"></td>
 	</tr>
+
 	<tr>
-		<td>Mount Target</td>
+		<td data-info-text="The absolute path of the local directory to mount">Mount Target</td>
 		<td><input type="text" class="mount-option" data-attribute-name="mountTarget"></td>
 	</tr>
+
 	<tr>
 		<td>Do Fulltext Indexing</td>
 		<td><input type="checkbox" class="mount-option" data-attribute-name="mountDoFulltextIndexing"></td>
 	</tr>
 	<tr>
-		<td>Scan Interval (s)</td>
+		<td data-info-text="The scan interval for repeated scans of this mount target">Scan Interval (s)</td>
 		<td><input type="number" class="mount-option" data-attribute-name="mountScanInterval"></td>
 	</tr>
+
 	<tr>
-		<td data-info-text="${config.typeInfo.enabledChecksums.hint}">Enabled Checksums</td>
+		<td data-info-text="Folders encountered underneath this mounted folder are created with this type">Mount Target Folder Type</td>
+		<td><input type="text" class="mount-option" data-attribute-name="mountTargetFolderType"></td>
+	</tr>
+
+	<tr>
+		<td data-info-text="Files encountered underneath this mounted folder are created with this type">Mount Target File Type</td>
+		<td><input type="text" class="mount-option" data-attribute-name="mountTargetFileType"></td>
+	</tr>
+
+	<tr>
+		<td data-info-text="List of checksum types which are being automatically calculated on file creation.<br>Supported values are: crc32, md5, sha1, sha512">Enabled Checksums</td>
 		<td><input type="text" class="mount-option" data-attribute-name="enabledChecksums"></td>
 	</tr>
+
 	<tr>
-		<td>Watch Folder Contents</td>
+		<td data-info-text="Registers this path with a watch service (if supported by operating/file system)">Watch Folder Contents</td>
 		<td><input type="checkbox" class="mount-option" data-attribute-name="mountWatchContents"></td>
 	</tr>
+
 </table>

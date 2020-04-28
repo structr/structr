@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -60,7 +60,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -77,6 +76,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
+import org.structr.core.function.XmlFunction;
 import org.structr.core.property.PropertyMap;
 import org.structr.javaparser.entity.AddJarsToIndexFunction;
 import org.structr.javaparser.entity.ClassOrInterface;
@@ -910,7 +910,8 @@ public class JavaParserModule implements StructrModule {
 
 	private Document parseXml(final String xml) throws ParserConfigurationException, SAXException, IOException {
 
-		final DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+		final DocumentBuilder builder = XmlFunction.getDocumentBuilder();
+
 		if (builder != null) {
 
 			final StringReader reader = new StringReader(xml);

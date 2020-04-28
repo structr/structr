@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,9 +22,7 @@ import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.autocomplete.AbstractHintProvider;
-import org.structr.autocomplete.JavaHintProvider;
-import org.structr.autocomplete.JavascriptHintProvider;
-import org.structr.autocomplete.PlaintextHintProvider;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -40,17 +38,12 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class AutocompleteCommand extends AbstractCommand {
 
-	private static final Logger logger                                   = LoggerFactory.getLogger(AutocompleteCommand.class.getName());
-	private static final Property<List<GraphObjectMap>> list             = new GenericProperty("list");
-	private static final Map<String, AbstractHintProvider> hintProviders = new HashMap<>();
+	private static final Logger logger                       = LoggerFactory.getLogger(AutocompleteCommand.class.getName());
+	private static final Property<List<GraphObjectMap>> list = new GenericProperty("list");
 
 	static {
 
 		StructrWebSocket.addCommand(AutocompleteCommand.class);
-
-		hintProviders.put("text/javascript",  new JavascriptHintProvider());
-		hintProviders.put("text/x-java",      new JavaHintProvider());
-		hintProviders.put("text",             new PlaintextHintProvider());
 	}
 
 	@Override
@@ -58,35 +51,26 @@ public class AutocompleteCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		final Map<String, Object> data    = webSocketData.getNodeData();
-		final String id                   = webSocketData.getId();
-		final List<GraphObject> result    = new LinkedList<>();
-		final String contentType          = webSocketData.getNodeDataStringValueTrimmedOrDefault("contentType", "text/plain");
+		final String id                       = webSocketData.getId();
+		final List<GraphObject> result        = new LinkedList<>();
+		final String contentType              = webSocketData.getNodeDataStringValueTrimmedOrDefault("contentType", "text/plain");
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 		if (contentType != null) {
 
-			final AbstractHintProvider hintProvider = hintProviders.get(contentType);
-			if (hintProvider != null) {
+			final boolean isAutoscriptEnv = webSocketData.getNodeDataBooleanValue("isAutoscriptEnv");
+			final String before           = webSocketData.getNodeDataStringValue("before");
+			final String after            = webSocketData.getNodeDataStringValue("after");
+			final int cursorPosition      = webSocketData.getNodeDataIntegerValue("cursorPosition");
+			final int line                = webSocketData.getNodeDataIntegerValue("line");
 
-				final String currentToken  = webSocketData.getNodeDataStringValueTrimmed("currentToken");
-				final String previousToken = webSocketData.getNodeDataStringValueTrimmed("previousToken");
-				final String thirdToken    = webSocketData.getNodeDataStringValueTrimmed("thirdToken");
-				final String type          = webSocketData.getNodeDataStringValueTrimmed("type");
-				final int cursorPosition   = webSocketData.getNodeDataIntegerValue("cursorPosition");
-				final int line             = webSocketData.getNodeDataIntegerValue("line");
+			try {
 
-				try {
+				final List<GraphObject> hints = AbstractHintProvider.getHints(securityContext, isAutoscriptEnv, StructrApp.getInstance().get(AbstractNode.class, id), before, after, line, cursorPosition);
+				result.addAll(hints);
 
-					final List<GraphObject> hints = hintProvider.getHints(StructrApp.getInstance().get(AbstractNode.class, id), type, currentToken, previousToken, thirdToken, line, cursorPosition);
-					result.addAll(hints);
-
-				} catch(FrameworkException fex) {
-					logger.warn("", fex);
-				}
-
-			} else {
-
-				logger.warn("No HintProvider for content type {}, ignoring.", contentType);
+			} catch(FrameworkException fex) {
+				logger.warn("", fex);
 			}
 
 		} else {

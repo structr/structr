@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -345,29 +345,33 @@ public class RenderContextTest extends StructrUiTest {
 
 	@Test
 	public void testVariableReplacement() {
-
-		NodeInterface detailsDataObject = null;
-		Page page                       = null;
-		DOMNode html                    = null;
-		DOMNode head                    = null;
-		DOMNode body                    = null;
-		DOMNode title                   = null;
-		DOMNode h1                      = null;
-		DOMNode div1                    = null;
-		DOMNode p1                      = null;
-		DOMNode div2                    = null;
-		DOMNode p2                      = null;
-		DOMNode div3                    = null;
-		DOMNode p3                      = null;
-		A a                             = null;
-		DOMNode div4                    = null;
-		DOMNode p4                      = null;
-		TestOne testOne                 = null;
+			
+		String detailsId = null;
+		String pageId    = null;
+		String p1Id      = null;
+		String p2Id      = null;
+		String aId       = null; 
 
 		try (final Tx tx = app.tx()) {
 
-			detailsDataObject = app.create(TestOne.class, "TestOne");
-			page              = Page.createNewPage(securityContext, "testpage");
+			Page page                       = null;
+			DOMNode html                    = null;
+			DOMNode head                    = null;
+			DOMNode body                    = null;
+			DOMNode title                   = null;
+			DOMNode h1                      = null;
+			DOMNode div1                    = null;
+			DOMNode p1                      = null;
+			DOMNode div2                    = null;
+			DOMNode p2                      = null;
+			DOMNode div3                    = null;
+			DOMNode p3                      = null;
+			A a                             = null;
+			DOMNode div4                    = null;
+			DOMNode p4                      = null;
+
+			detailsId = app.create(TestOne.class, "TestOne").getUuid();
+			page      = Page.createNewPage(securityContext, "testpage");
 
 			page.setProperties(page.getSecurityContext(), new PropertyMap(Page.visibleToPublicUsers, true));
 
@@ -447,6 +451,11 @@ public class RenderContextTest extends StructrUiTest {
 
 			app.create(User.class, adminProperties);
 
+			pageId = page.getUuid();
+			p1Id   = p1.getUuid();
+			p2Id   = p2.getUuid();
+			aId    = a.getUuid();
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -456,7 +465,14 @@ public class RenderContextTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final RenderContext ctx = new RenderContext(securityContext);
+			final RenderContext ctx               = new RenderContext(securityContext);
+			final NodeInterface detailsDataObject = app.getNodeById(detailsId);
+			final Page page                       = app.get(Page.class, pageId);
+			final DOMNode p1                      = app.get(DOMNode.class, p1Id);
+			final DOMNode p2                      = app.get(DOMNode.class, p2Id);
+			final DOMNode a                       = app.get(DOMNode.class, aId);
+			TestOne testOne                       = null;
+
 			ctx.setDetailsDataObject(detailsDataObject);
 			ctx.setPage(page);
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,12 +28,17 @@ import org.structr.schema.action.ActionContext;
 
 public class NumberFormatFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_NUMBER_FORMAT    = "Usage: ${number_format(value, ISO639LangCode, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
-	public static final String ERROR_MESSAGE_NUMBER_FORMAT_JS = "Usage: ${{Structr.numberFormat(value, ISO639LangCode, pattern)}}. Example: ${{Structr.numberFormat(12345.6789, 'en', '#,##0.00')}}";
+	public static final String ERROR_MESSAGE_NUMBER_FORMAT    = "Usage: ${number_format(value, locale, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
+	public static final String ERROR_MESSAGE_NUMBER_FORMAT_JS = "Usage: ${{Structr.numberFormat(value, locale, pattern)}}. Example: ${{Structr.numberFormat(12345.6789, 'en', '#,##0.00')}}";
 
 	@Override
 	public String getName() {
 		return "number_format";
+	}
+
+	@Override
+	public String getSignature() {
+		return "value, locale, format";
 	}
 
 	@Override
@@ -48,9 +53,9 @@ public class NumberFormatFunction extends CoreFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
 
-			final Double val = Double.parseDouble(sources[0].toString());
+			final Double val      = Double.parseDouble(sources[0].toString());
 			final String langCode = sources[1].toString();
-			final String pattern = sources[2].toString();
+			final String pattern  = sources[2].toString();
 
 			return new DecimalFormat(pattern, DecimalFormatSymbols.getInstance(Locale.forLanguageTag(langCode))).format(val);
 
@@ -79,6 +84,6 @@ public class NumberFormatFunction extends CoreFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Formats the given value using the given number format string";
+		return "Formats the given value using the given locale and format string";
 	}
 }

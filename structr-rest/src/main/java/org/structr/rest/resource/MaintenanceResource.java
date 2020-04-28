@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.Task;
+import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -33,7 +34,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotAllowedException;
@@ -62,7 +62,7 @@ public class MaintenanceResource extends Resource {
 	}
 
 	@Override
-	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 		throw new NotAllowedException("GET not allowed on " + getResourceSignature());
 	}
 
@@ -84,13 +84,13 @@ public class MaintenanceResource extends Resource {
 
 					if (Task.class.isAssignableFrom(taskOrCommand)) {
 
-						Task task = (Task) taskOrCommand.newInstance();
+						final Task task = (Task) taskOrCommand.newInstance();
 
 						app.processTasks(task);
 
 					} else if (MaintenanceCommand.class.isAssignableFrom(taskOrCommand)) {
 
-						MaintenanceCommand cmd = (MaintenanceCommand)StructrApp.getInstance(securityContext).command(taskOrCommand);
+						final MaintenanceCommand cmd = (MaintenanceCommand)StructrApp.getInstance(securityContext).command(taskOrCommand);
 
 						// flush caches if required
 						if (cmd.requiresFlushingOfCaches()) {
@@ -113,10 +113,11 @@ public class MaintenanceResource extends Resource {
 						}
 
 						final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_OK);
-						cmd.getCustomHeaders().forEach((final String headerName, final String headerValue) -> {
-							result.addHeader(headerName, headerValue);
-						});
+
+						cmd.getPayload().forEach(result::addContent);
+						cmd.getCustomHeaders().forEach(result::addHeader);
 						cmd.getCustomHeaders().clear();
+
 						return result;
 
 					} else {
@@ -193,7 +194,7 @@ public class MaintenanceResource extends Resource {
 
 	@Override
 	public boolean isCollectionResource() {
-		return false;
+		return true;
 	}
 
         @Override

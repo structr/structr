@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.web.function;
 
+import javax.servlet.http.HttpSession;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -35,13 +36,24 @@ public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "key";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			ctx.getSecurityContext().getSession().removeAttribute(SESSION_ATTRIBUTE_PREFIX.concat(sources[0].toString()));
+			final HttpSession session = ctx.getSecurityContext().getSession();
+
+			if (session != null) {
+				session.removeAttribute(SESSION_ATTRIBUTE_PREFIX.concat(sources[0].toString()));
+			} else {
+				logger.warn("{}: No session available to remvoe session attribute! (this can happen in onStructrLogin/onStructrLogout)", getReplacement());
+			}
 
 			return "";
 
@@ -64,6 +76,6 @@ public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Remove key/value pair from the user session.";
 	}
 }

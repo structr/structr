@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -56,6 +56,7 @@ import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 /**
+ *
  */
 public class StructrWebSocket implements WebSocketListener {
 
@@ -93,6 +94,13 @@ public class StructrWebSocket implements WebSocketListener {
 
 		logger.debug("New connection with protocol {}", session.getProtocolVersion());
 
+		final Services services = Services.getInstance();
+		if (!services.isInitialized()) {
+
+			logger.warn("Ignoring new websocket connection: {}", services.getUnavailableMessage());
+			return;
+		}
+
 		this.session = session;
 
 		syncController.registerClient(this);
@@ -105,6 +113,13 @@ public class StructrWebSocket implements WebSocketListener {
 	public void onWebSocketClose(final int closeCode, final String message) {
 
 		logger.debug("Connection closed with closeCode {} and message {}", new Object[]{closeCode, message});
+
+		final Services services = Services.getInstance();
+		if (!services.isInitialized()) {
+
+			logger.warn("Ignoring websocket close: {}", services.getUnavailableMessage());
+			return;
+		}
 
 		final App app = StructrApp.getInstance(securityContext);
 
@@ -134,15 +149,14 @@ public class StructrWebSocket implements WebSocketListener {
 	@Override
 	public void onWebSocketText(final String data) {
 
-		if (!Services.getInstance().isInitialized()) {
-			// send 401 Authentication Required
-			send(MessageBuilder.status().code(503).message("System is not initialized yet").build(), true);
+		final Services services = Services.getInstance();
+
+		if (!services.isInitialized()) {
+			send(MessageBuilder.status().code(503).message(services.getUnavailableMessage()).build(), true);
 		}
 
-		final Services servicesInstance = Services.getInstance();
-
 		// wait for service layer to be initialized
-		while (!servicesInstance.isInitialized()) {
+		while (!services.isInitialized()) {
 			try { Thread.sleep(1000); } catch(InterruptedException iex) { }
 		}
 
@@ -350,7 +364,14 @@ public class StructrWebSocket implements WebSocketListener {
 				securityContext.clearCustomView();
 			}
 
-			session.getRemote().sendStringByFuture(msg);
+			if (session != null && session.getRemote() != null) {
+
+				session.getRemote().sendStringByFuture(msg);
+
+			} else {
+
+				logger.warn("Unable to send websocket message - either no session or no remote.");
+			}
 
 			tx.success();
 
@@ -582,5 +603,4 @@ public class StructrWebSocket implements WebSocketListener {
 	public void onWebSocketError(final Throwable t) {
 		logger.debug("Error in StructrWebSocket occured", t);
 	}
-
 }

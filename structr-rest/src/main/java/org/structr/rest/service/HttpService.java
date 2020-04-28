@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,7 +31,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.servlet.DispatcherType;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.chemistry.opencmis.server.impl.CmisRepositoryContextListener;
 import org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet;
 import org.apache.chemistry.opencmis.server.impl.browser.CmisBrowserBindingServlet;
@@ -42,6 +45,7 @@ import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -101,6 +105,7 @@ public class HttpService implements RunnableService {
 	private Server server                         = null;
 	private int maxIdleTime                       = 30000;
 	private int requestHeaderSize                 = 8192;
+	private boolean httpsActive                   = false;
 
 	@Override
 	public void startService() throws Exception {
@@ -157,7 +162,7 @@ public class HttpService implements RunnableService {
 	}
 
 	@Override
-	public boolean initialize(final StructrServices services) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
 		final LicenseManager licenseManager = services.getLicenseManager();
 		final boolean isTest                = Services.isTesting();
@@ -296,8 +301,6 @@ public class HttpService implements RunnableService {
 		}
 
 		final StructrSessionDataStore sessionDataStore = new StructrSessionDataStore();
-		//final FileSessionDataStore store = new FileSessionDataStore();
-		//store.setStoreDir(baseDir.toPath().resolve("sessions").toFile());
 
 		sessionCache.setSessionDataStore(sessionDataStore);
 		sessionCache.setSaveOnInactiveEviction(false);
@@ -388,7 +391,6 @@ public class HttpService implements RunnableService {
 		} else {
 
 			server.setHandler(contexts);
-
 		}
 
 		final List<ContextHandler> resourceHandler = collectResourceHandlers();
@@ -434,9 +436,13 @@ public class HttpService implements RunnableService {
 			logger.warn("Unable to configure HTTP server port, please make sure that {} and {} are set correctly in structr.conf.", Settings.ApplicationHost.getKey(), Settings.HttpPort.getKey());
 		}
 
+		httpsActive = false;
+
 		if (enableHttps) {
 
 			if (httpsPort > -1 && keyStorePath != null && !keyStorePath.isEmpty() && keyStorePassword != null) {
+
+				httpsActive = true;
 
 				httpsConfig = new HttpConfiguration(httpConfig);
 				httpsConfig.addCustomizer(new SecureRequestCustomizer());
@@ -485,6 +491,8 @@ public class HttpService implements RunnableService {
 				connectors.add(httpsConnector);
 
 			} else {
+
+				httpsActive = false;
 
 				logger.warn("Unable to configure SSL, please make sure that {}, {} and {} are set correctly in structr.conf.", new Object[]{
 					Settings.HttpsPort.getKey(),
@@ -551,6 +559,10 @@ public class HttpService implements RunnableService {
 		return false;
 	}
 
+	public boolean isHttpsActive() {
+		return httpsActive;
+	}
+
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
@@ -583,7 +595,7 @@ public class HttpService implements RunnableService {
 						final String resourceBase = Settings.getOrCreateStringSetting(resourceHandlerName, "resourceBase").getValue();
 						if (resourceBase != null) {
 
-							final ResourceHandler resourceHandler = new ResourceHandler();
+							final ResourceHandler resourceHandler = new RedirectingResourceHandler();
 							resourceHandler.setDirectoriesListed(Settings.getBooleanSetting(resourceHandlerName, "directoriesListed").getValue());
 
 							final String welcomeFiles = Settings.getOrCreateStringSetting(resourceHandlerName, "welcomeFiles").getValue();
@@ -746,4 +758,30 @@ public class HttpService implements RunnableService {
 			}
 		}
 	}
+
+	/**
+	 * A resource handler that redirects all requests to the config
+	 * servlet if the system is not configured yet.
+	 */
+	private class RedirectingResourceHandler extends ResourceHandler {
+
+		@Override
+		public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+
+			if (Settings.SetupWizardCompleted.getValue() == false && ("/".equals(target) || "/index.html".equals(target))) {
+
+				// please don't cache this redirect
+				response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+				response.setHeader("Expires", null);
+
+				// redirect to setup wizard
+				response.sendRedirect("/structr/config");
+
+			} else {
+
+				super.handle(target, baseRequest, request, response);
+			}
+		}
+	}
 }
+

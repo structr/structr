@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
@@ -29,7 +28,6 @@ import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
@@ -55,39 +53,33 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 		final String type = (String)properties.get("type");
 		if (StringUtils.isBlank(type)) {
+
 			throw new FrameworkException(422, "Type must not be empty");
 		}
 
-		final Class cls = SchemaHelper.getEntityClassForRawType(type);
-		if (cls == null) {
+		final Class clazz = SchemaHelper.getEntityClassForRawType(type);
+		if (clazz == null) {
 
 			throw new FrameworkException(422, "Invalid type " + type);
 		}
 
 		if (graphDb != null) {
 
-			final App app                       = StructrApp.getInstance(securityContext);
-			Iterator<AbstractNode> nodeIterator = null;
+			Iterable<AbstractNode> nodes = null;
 
 			if (properties.containsKey(AbstractNode.type.dbName())) {
 
-				try (final Tx tx = app.tx()) {
-
-					nodeIterator = app.nodeQuery(cls).getResultStream().iterator();
-					properties.remove(AbstractNode.type.dbName());
-
-					tx.success();
-				}
+				nodes = Iterables.map(nodeFactory, graphDb.getNodesByLabel(type));
 
 			} else {
 
-				nodeIterator = Iterables.map(nodeFactory, graphDb.getAllNodes()).iterator();
+				nodes = Iterables.map(nodeFactory, graphDb.getAllNodes());
 			}
 
 			// remove "type" so it won't be set later
 			properties.remove("type");
 
-			final long count = bulkGraphOperation(securityContext, nodeIterator, 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
+			final long count = bulkGraphOperation(securityContext, nodes, 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
@@ -105,30 +97,31 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 								key = "type";
 							}
 
-							PropertyConverter inputConverter = StructrApp.key(cls, key).inputConverter(securityContext);
-
-
-							if (inputConverter != null) {
-								try {
-									val = inputConverter.convert(entry.getValue());
-								} catch (FrameworkException ex) {
-									logger.error("", ex);
-								}
-
-							} else {
-								val = entry.getValue();
-							}
-
 							PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
 							if (propertyKey != null) {
+
+								final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
+								if (inputConverter != null) {
+
+									try {
+
+										val = inputConverter.convert(entry.getValue());
+
+									} catch (FrameworkException ex) {
+										ex.printStackTrace();
+									}
+
+								} else {
+
+									val = entry.getValue();
+								}
 
 								try {
 									node.unlockSystemPropertiesOnce();
 									node.setProperty(propertyKey, val);
 
 								} catch (FrameworkException fex) {
-
-									logger.warn("Unable to set node property {} of node {} to {}: {}", new Object[] { propertyKey, node.getUuid(), val, fex.getMessage() } );
+									logger.warn("Unable to set node property {} of node {} to {}: {}", propertyKey, node.getUuid(), val, fex.getMessage());
 
 								}
 							}

@@ -1,15 +1,14 @@
-<tr class="${config.rowClass}">
+<tr class="has-changes">
 	<td><input size="15" type="text" class="property-name" placeholder="Enter JSON name" autofocus></td>
 	<td><input size="15" type="text" class="property-dbname" placeholder="Enter DB name"></td>
 	<td>${_Schema.typeOptions}</td>
 	<td><input size="15" type="text" class="property-format" placeholder="Enter format"></td>
-	<td><input class="not-null" type="checkbox"></td>
-	<td><input class="compound" type="checkbox"></td>
-	<td><input class="unique" type="checkbox"></td>
-	<td><input class="indexed" type="checkbox"></td>
+	<td class="centered"><input class="not-null" type="checkbox"></td>
+	<td class="centered"><input class="compound" type="checkbox"></td>
+	<td class="centered"><input class="unique" type="checkbox"></td>
+	<td class="centered"><input class="indexed" type="checkbox"></td>
 	<td><input class="property-default" size="10" type="text"></td>
-	<td>
-		<i title="Save changes" class="create-icon create-property ${_Icons.getFullSpriteClass(_Icons.tick_icon)}" />
-		<i title="Discard changes" class="remove-icon remove-property ${_Icons.getFullSpriteClass(_Icons.cross_icon)}" />
+	<td class="centered">
+		<i title="Discard changes" class="remove-icon discard-changes ${_Icons.getFullSpriteClass(_Icons.cross_icon)}" />
 	</td>
 </tr>

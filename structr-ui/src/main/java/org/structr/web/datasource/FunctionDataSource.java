@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.web.datasource;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
@@ -26,11 +27,11 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
-import org.structr.core.script.Scripting;
-import org.structr.schema.action.Function;
 import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.function.UiFunction;
@@ -44,7 +45,7 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 	public Iterable<GraphObject> getData(final ActionContext actionContext, final NodeInterface referenceNode) throws FrameworkException {
 
 		final RenderContext renderContext = (RenderContext) actionContext;
-		
+
 		final String functionQuery = ((DOMNode) referenceNode).getFunctionQuery();
 		if (StringUtils.isBlank(functionQuery)) {
 
@@ -53,7 +54,7 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 
 		try {
 
-			final Object result = Scripting.evaluate(renderContext, referenceNode, "${" + functionQuery + "}", "function query");
+			final Object result = Scripting.evaluate(renderContext, referenceNode, "${" + functionQuery.trim() + "}", "function query");
 			if (result instanceof Iterable) {
 
 				return FunctionDataSource.map((Iterable)result);
@@ -61,6 +62,15 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 			} else if (result instanceof Object[]) {
 
 				return (List<GraphObject>) UiFunction.toGraphObject(result, 1);
+
+			} else if (result instanceof GraphObject) {
+
+				// allow single-element results to be evaluated
+				final List<GraphObject> wrapped = new LinkedList<>();
+
+				wrapped.add((GraphObject)result);
+
+				return wrapped;
 			}
 
 		} catch (UnlicensedScriptException ex) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,15 +16,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Persistence }         from "./flow-editor/src/js/persistence/Persistence.js";
+import { Persistence }         from "./lib/structr/persistence/Persistence.js";
 import { FlowContainer }       from "./flow-editor/src/js/editor/entities/FlowContainer.js";
 import { FlowEditor }          from "./flow-editor/src/js/editor/FlowEditor.js";
-import { FlowConnectionTypes } from "./flow-editor/src/js/editor/FlowConnectionTypes.js";
 import { LayoutModal }         from "./flow-editor/src/js/editor/utility/LayoutModal.js";
-
-import { Component }           from "./lib/structr/Component.js";
-import {StructrRest} from "./flow-editor/src/js/rest/StructrRest.js";
-import {Rest} from "./flow-editor/src/js/rest/Rest.js";
+import {Rest} from "./lib/structr/rest/Rest.js";
 
 let main, flowsMain, flowsTree, flowsCanvas;
 let flowEditor, flowId;
@@ -402,7 +398,7 @@ var _Flows = {
                 if (name.indexOf(".") !== -1) {
 					dataObject.effectiveName = name;
 				} else {
-                	dataObject.name = name;	
+                	dataObject.name = name;
 				}
 
                 if (id !== null) {
@@ -491,13 +487,6 @@ var _Flows = {
 			case '#':
 
                 let defaultEntries = [
-                    {
-                        id: 'globals',
-                        text: 'Favorites',
-                        children: true,
-                        icon: _Icons.star_icon,
-                        data: {type: "favorite"}
-                    },
                     {
                         id: 'root',
                         text: 'Flows',
@@ -632,17 +621,17 @@ var _Flows = {
 
         dialogText.append('<div class="editor"></div>');
 		let contentBox = $('.editor', dialogText);
-		let lineWrapping = LSWrapper.getItem(lineWrappingKey);
-		let cmEditor = CodeMirror(contentBox.get(0), {
+
+		let cmEditor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
 			value: element.value,
 			mode: "application/javascript",
 			lineNumbers: true,
-			lineWrapping: lineWrapping,
+			lineWrapping: false,
 			indentUnit: 4,
-			tabSize:4,
+			tabSize: 4,
 			indentWithTabs: true,
 			autofocus: true
-		});
+		}));
 
         Structr.resize();
 
@@ -721,12 +710,14 @@ var _Flows = {
 					if (Array.isArray(result)) {
 						for (let node of result) {
 
-							flowEditor.renderNode(persistence._wrapObject(node, node));
+							flowEditor.renderNode(persistence._wrapObject(node, node), true);
 						}
 					} else {
 
-						flowEditor.renderNode(persistence._wrapObject(result, result));
+						flowEditor.renderNode(persistence._wrapObject(result, result), true);
 					}
+
+					flowEditor._editor.view.update();
 
 				}).then(() => {
 
@@ -747,6 +738,10 @@ var _Flows = {
 						flowEditor.applySavedLayout();
 						flowEditor._editor.view.update();
 						flowEditor.resetView();
+
+						flowEditor.setupContextMenu();
+
+						flowEditor.disableRelationshipEvents = false;
 
 						// activate buttons
 						document.querySelector('.run_flow_icon').classList.remove('disabled');

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -40,7 +41,6 @@ import org.structr.core.auth.exception.TwoFactorAuthenticationRequiredException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationTokenInvalidException;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
@@ -69,7 +69,7 @@ public class LoginResource extends FilterableResource {
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
+	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
 		final String username       = (String) propertySet.get("name");
 		final String email          = (String) propertySet.get("eMail");
@@ -82,7 +82,12 @@ public class LoginResource extends FilterableResource {
 		Principal user = null;
 		RestMethodResult returnedMethodResult = null;
 
-		final App app = StructrApp.getInstance();
+		final SecurityContext ctx       = SecurityContext.getSuperUserInstance();
+		final App app                   = StructrApp.getInstance(ctx);
+
+		if (Settings.CallbacksOnLogin.getValue() == false) {
+			ctx.disableInnerCallbacks();
+		}
 
 		try (final Tx tx = app.tx(true, true, true)) {
 
@@ -158,14 +163,14 @@ public class LoginResource extends FilterableResource {
 
 		if (returnedMethodResult == null) {
 			// should not happen
-			returnedMethodResult = new RestMethodResult(401);
+			throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);
 		}
 
 		return returnedMethodResult;
 	}
 
 	@Override
-	public ResultStream doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 		throw new NotAllowedException("GET not allowed on " + getResourceSignature());
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -53,7 +53,6 @@ public interface ConfigurationProvider {
 	public Map<String, Class> getInterfaces();
 
 	public Set<Class> getClassesForInterface(final String simpleName);
-
 
 	public void registerPropertyGroup(final Class entityClass, final PropertyKey propertyKey, final PropertyGroup propertyGroup);
 	public void registerConvertedProperty(final PropertyKey property);

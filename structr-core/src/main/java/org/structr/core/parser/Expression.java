@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -63,6 +63,12 @@ public abstract class Expression {
 			this.add(newExpression);
 		}
 	}
+
+	public List<Expression> getChildren() {
+		return expressions;
+
+	}
+
 
 	public Expression getParent() {
 		return parent;

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,6 +31,7 @@ import org.structr.core.function.ChangelogFunction;
 import org.structr.core.function.ConfigFunction;
 import org.structr.core.function.DecryptFunction;
 import org.structr.core.function.DisableCascadingDeleteFunction;
+import org.structr.core.function.DisablePreventDuplicateRelationshipsFunction;
 import org.structr.core.function.DisableNotificationsFunction;
 import org.structr.core.function.EnableCascadingDeleteFunction;
 import org.structr.core.function.EnableNotificationsFunction;
@@ -70,9 +71,10 @@ import org.structr.core.function.WriteFunction;
 import org.structr.core.function.XPathFunction;
 import org.structr.core.function.XmlFunction;
 import org.structr.core.function.search.FindAndFunction;
-import org.structr.core.function.search.FindEqualsFunction;
+import org.structr.core.function.search.FindWithinDistanceFunction;
 import org.structr.core.function.search.FindContainsFunction;
 import org.structr.core.function.search.FindEmptyFunction;
+import org.structr.core.function.search.FindEqualsFunction;
 import org.structr.core.function.search.FindNotFunction;
 import org.structr.core.function.search.FindOrFunction;
 import org.structr.core.function.search.FindPageFunction;
@@ -134,6 +136,7 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new DisableCascadingDeleteFunction());
 		Functions.put(licenseManager, new EnableCascadingDeleteFunction());
 		Functions.put(licenseManager, new DisableNotificationsFunction());
+		Functions.put(licenseManager, new DisablePreventDuplicateRelationshipsFunction());
 		Functions.put(licenseManager, new EnableNotificationsFunction());
 		Functions.put(licenseManager, new RInterpreterFunction());
 		Functions.put(licenseManager, new EvaluateScriptFunction());
@@ -150,6 +153,7 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new DecryptFunction());
 
 		Functions.put(licenseManager, new RangeFunction());
+		Functions.put(licenseManager, new FindWithinDistanceFunction());
 		Functions.put(licenseManager, new FindEmptyFunction());
 		Functions.put(licenseManager, new FindEqualsFunction());
 		Functions.put(licenseManager, new FindContainsFunction());

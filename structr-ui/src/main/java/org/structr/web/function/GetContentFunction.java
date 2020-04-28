@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,6 +38,11 @@ public class GetContentFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "file [, encoding=UTF-8 ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -47,6 +52,11 @@ public class GetContentFunction extends UiAdvancedFunction {
 			if (sources[0] instanceof File) {
 
 				final File file = (File)sources[0];
+
+				if (file.getSize() == 0) {
+					return "";
+				}
+
 				final String encoding = (sources.length == 2 && sources[1] != null) ? sources[1].toString() : "UTF-8";
 
 				try (final InputStream is = file.getInputStream()) {

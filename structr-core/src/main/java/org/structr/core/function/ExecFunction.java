@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,6 +38,11 @@ public class ExecFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 		return "exec";
+	}
+
+	@Override
+	public String getSignature() {
+		return "scriptName [, parameterMap ]";
 	}
 
 	@Override
@@ -104,7 +109,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Calls the given exported / dynamic method on the given entity";
+		return "Executes a script configured in structr.conf with the given script name and parameters, returning the output";
 	}
 
 	private static class ScriptingProcess extends AbstractProcess<String> {

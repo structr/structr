@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,11 +27,16 @@ import org.structr.schema.action.ActionContext;
 
 public class NthFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_NTH = "Usage: ${nth(collection)}. Example: ${nth(this.children, 2)}";
+	public static final String ERROR_MESSAGE_NTH = "Usage: ${nth(list, index)}. Example: ${nth(this.children, 2)}";
 
 	@Override
 	public String getName() {
 		return "nth";
+	}
+
+	@Override
+	public String getSignature() {
+		return "list, index";
 	}
 
 	@Override

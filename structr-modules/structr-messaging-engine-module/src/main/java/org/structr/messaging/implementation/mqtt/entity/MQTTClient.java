@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,8 @@ package org.structr.messaging.implementation.mqtt.entity;
 
 import java.net.URI;
 import java.util.List;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -37,8 +39,6 @@ import org.structr.messaging.implementation.mqtt.MQTTContext;
 import org.structr.messaging.implementation.mqtt.MQTTInfo;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 
 public interface MQTTClient extends MessageClient, MQTTInfo {
 

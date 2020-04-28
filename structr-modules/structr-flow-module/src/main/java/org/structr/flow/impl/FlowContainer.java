@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -62,8 +62,9 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 	public static final Property<Iterable<DOMNode>> repeaterNodes                         = new StartNodes<>("repeaterNodes", DOMNodeFLOWFlowContainer.class);
 
 
-	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public, name, flowNodes, startNode, flowPackage, effectiveName, scheduledForIndexing, repeaterNodes, activeFlowConfiguration);
-	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui,     name, flowNodes, startNode, flowPackage, effectiveName, scheduledForIndexing, repeaterNodes, activeFlowConfiguration);
+	public static final View defaultView       = new View(FlowContainer.class, PropertyView.Public, name, flowNodes, startNode, effectiveName, scheduledForIndexing, repeaterNodes, activeFlowConfiguration);
+	public static final View uiView            = new View(FlowContainer.class, PropertyView.Ui,     name, flowNodes, startNode, flowPackage, effectiveName, scheduledForIndexing, repeaterNodes, activeFlowConfiguration);
+	public static final View effectiveNameView = new View(FlowContainer.class, "effectiveNameView", type, id, effectiveName);
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowContainer.class);
 

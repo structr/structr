@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,6 +37,11 @@ public class Base64DecodeFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "text [, scheme, charset ]";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -47,7 +52,7 @@ public class Base64DecodeFunction extends CoreFunction {
 			final Charset charset = (sources.length == 3) ? Charset.forName(sources[2].toString()) : Charset.defaultCharset();
 
 			String decodingScheme = "basic";
-			if (sources.length == 2) {
+			if (sources.length >= 2) {
 				decodingScheme = sources[1].toString();
 			}
 

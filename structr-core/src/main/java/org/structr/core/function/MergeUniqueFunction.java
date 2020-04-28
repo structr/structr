@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,11 +26,16 @@ import org.structr.schema.action.ActionContext;
 
 public class MergeUniqueFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_MERGE_UNIQUE = "Usage: ${merge_unique(list1, list2, list3, ...)}. Example: ${merge_unique(this.children, this.siblings)}";
+	public static final String ERROR_MESSAGE_MERGE_UNIQUE = "Usage: ${merge_unique(list1, list2, list3...)}. Example: ${merge_unique(this.children, this.siblings)}";
 
 	@Override
 	public String getName() {
 		return "merge_unique";
+	}
+
+	@Override
+	public String getSignature() {
+		return "list1, list2, list3...";
 	}
 
 	@Override

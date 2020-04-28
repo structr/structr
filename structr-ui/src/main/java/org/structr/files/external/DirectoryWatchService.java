@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -285,7 +285,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		this.listener = new FileSyncWatchEventListener();
 
@@ -380,7 +380,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		int count                             = 0;
 
 		// configure security context for maximum performance
-		securityContext.disableEnsureCardinality();
+		securityContext.disablePreventDuplicateRelationships();
 		securityContext.disableModificationOfAccessTime();
 
 		final List<File> files  = Arrays.asList(path.toFile().listFiles());

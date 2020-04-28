@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -141,7 +142,8 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 			node.onNodeDeletion();
 
 			// Delete any relationship (this is PASSIVE DELETION)
-			for (AbstractRelationship r : node.getRelationships()) {
+			final List<AbstractRelationship> list = Iterables.toList(node.getRelationships());
+			for (AbstractRelationship r : list) {
 
 				if (r != null) {
 

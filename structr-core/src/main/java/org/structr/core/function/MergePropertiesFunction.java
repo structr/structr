@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,7 +26,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
 public class MergePropertiesFunction extends CoreFunction {
@@ -39,6 +38,11 @@ public class MergePropertiesFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "source, target, keys";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -47,11 +51,10 @@ public class MergePropertiesFunction extends CoreFunction {
 
 			if (sources[0] instanceof GraphObject && sources[1] instanceof GraphObject) {
 
-				final ConfigurationProvider config = StructrApp.getConfiguration();
 				final Set<PropertyKey> mergeKeys = new LinkedHashSet<>();
-				final GraphObject source = (GraphObject)sources[0];
-				final GraphObject target = (GraphObject)sources[1];
-				final int paramCount = sources.length;
+				final GraphObject source         = (GraphObject)sources[0];
+				final GraphObject target         = (GraphObject)sources[1];
+				final int paramCount             = sources.length;
 
 				for (int i = 2; i < paramCount; i++) {
 
@@ -95,6 +98,6 @@ public class MergePropertiesFunction extends CoreFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Copies property values from source entity to target entity, using the given list of keys";
 	}
 }

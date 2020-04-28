@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,14 +18,29 @@
  */
 package org.structr.api.index;
 
-import org.structr.api.search.SortType;
+import org.structr.api.search.SortOrder;
 
 public interface DatabaseQuery {
 
+	/**
+	 * Indicates AND conjunction with the next predicate.
+	 */
 	public void and();
+
+	/**
+	 * Indicates OR conjunction with the next predicate.
+	 */
 	public void or();
+
+	/**
+	 * Indicates negation of the next predicate.
+	 */
 	public void not();
+
+	/**
+	 * Indicates AND conjunction and negation of the next predicate.
+	 */
 	public void andNot();
 
-	void sort(final SortType sortType, final String sortKey, final boolean sortDescending);
+	void sort(final SortOrder sortOrder);
 }

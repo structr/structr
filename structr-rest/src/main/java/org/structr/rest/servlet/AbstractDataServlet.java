@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -279,19 +279,6 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 		writer.println();
 	}
 
-	protected void assertInitialized() throws FrameworkException {
-
-		if (!Services.getInstance().isInitialized()) {
-			throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "System is not initialized yet");
-		}
-
-		/*
-		if (Settings.MaintenanceModeActive.getValue()) {
-			throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "System is currently in maintenance mode");
-		}
-		*/
-	}
-
 	protected Gson getGson() {
 
 		final JsonInputGSONAdapter jsonInputAdapter = new JsonInputGSONAdapter();
@@ -310,6 +297,19 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 		}
 
 		return gsonBuilder.create();
+	}
+
+	protected String coalesce(final String... sources) {
+
+		for (final String source : sources) {
+
+			if (source != null) {
+
+				return source;
+			}
+		}
+
+		return null;
 	}
 
 	// ----- nested classes -----

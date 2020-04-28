@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -450,7 +450,7 @@ public class FileHelper {
 				}
 
 				long fileSize = FileHelper.getSize(fileOnDisk);
-				if (fileSize > 0) {
+				if (fileSize >= 0) {
 
 					map.put(sizeKey, fileSize);
 				}

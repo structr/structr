@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,20 +34,19 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 
 
 
@@ -138,7 +137,7 @@ public interface DataFeed extends NodeInterface {
 			final PropertyKey<Date> dateKey = StructrApp.key(FeedItem.class, "pubDate");
 
 			// Sort by publication date, youngest items first
-			feedItems.sort(new GraphObjectComparator(dateKey, GraphObjectComparator.DESCENDING));
+			feedItems.sort(dateKey.sorted(true));
 
 			for (final FeedItem item : feedItems) {
 

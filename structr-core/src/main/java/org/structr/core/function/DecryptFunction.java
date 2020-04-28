@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,6 +31,11 @@ public class DecryptFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 		return "decrypt";
+	}
+
+	@Override
+	public String getSignature() {
+		return "value [, secret ]";
 	}
 
 	@Override
@@ -97,6 +102,6 @@ public class DecryptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Decrypts the given string with a secret key from structr.conf or argument 2";
 	}
 }

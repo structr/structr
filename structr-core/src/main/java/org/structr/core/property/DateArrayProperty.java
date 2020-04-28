@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -50,9 +50,9 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 
 	public DateArrayProperty(final String name) {
 		super(name);
-                this.format = getDefaultFormat();
-        }
-        
+		this.format = getDefaultFormat();
+	}
+
 	public DateArrayProperty(final String jsonName, final String dbName) {
 		super(jsonName, dbName);
 		this.format = getDefaultFormat();
@@ -81,6 +81,12 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 
 	@Override
 	public Class valueType() {
+		// This trick results in returning the proper array class for array properties.
+		// Neccessary because of and since commit 1db80071543018a0766efa2dc895b7bc3e9a0e34
+		try {
+			return Class.forName("[L" + Date.class.getName() + ";");
+		} catch (ClassNotFoundException ex) {}
+
 		return Date.class;
 	}
 
@@ -112,7 +118,7 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 
 		@Override
 		public Long[] convert(Date[] source) throws FrameworkException {
-			
+
 			if (source != null) {
 
 				return convertDateArrayToLongArray(source);
@@ -132,8 +138,8 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 			return null;
 
 		}
-	}	
-	
+	}
+
 	private class ArrayInputConverter extends PropertyConverter<Object, Date[]> {
 
 		public ArrayInputConverter(SecurityContext securityContext) {
@@ -142,12 +148,12 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 
 		@Override
 		public Object revert(Date[] source) throws FrameworkException {
-			
+
 			final ArrayList<String> result = new ArrayList<>();
 			for (final Date o : source) {
 				result.add(DatePropertyParser.format(o, format));
 			}
-			
+
 			return result;
 		}
 
@@ -215,7 +221,7 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 		final ArrayList<Date> result = new ArrayList<>();
 
 		for (final Long o : source) {
-			
+
 			result.add(new Date(o));
 		}
 
@@ -227,7 +233,7 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 		final ArrayList<Long> result = new ArrayList<>();
 
 		for (final Date o : source) {
-			
+
 			result.add(o.getTime());
 		}
 

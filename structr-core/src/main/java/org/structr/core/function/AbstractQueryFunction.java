@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,8 @@
  */
 package org.structr.core.function;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.structr.common.ContextStore;
@@ -30,12 +32,31 @@ import static org.structr.core.function.FindFunction.ERROR_MESSAGE_FIND;
 import org.structr.core.function.search.AndPredicate;
 import org.structr.core.function.search.SearchFunctionPredicate;
 import org.structr.core.function.search.SearchParameter;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.schema.action.Hint;
 
 /**
  * Abstract implementation of the basic functions of the Interface QueryFunction.
  */
 public abstract class AbstractQueryFunction extends CoreFunction implements QueryFunction {
+
+	@Override
+	public List<Hint> getContextHints(final String lastToken) {
+
+		final List<Hint> hints = new LinkedList<>();
+		final String quoteChar = lastToken.startsWith("'") ? "'" : lastToken.startsWith("\"") ? "\"" : "'";
+
+		for (final Entry<String, Class<? extends NodeInterface>> entry : StructrApp.getConfiguration().getNodeEntities().entrySet()) {
+
+			final String name = entry.getKey();
+			final Class type  = entry.getValue();
+
+			hints.add(new KeywordHint(quoteChar + name + quoteChar, type.getName()));
+		}
+
+		return hints;
+	}
 
 	public void applyQueryParameters(final SecurityContext securityContext, final Query query) {
 
@@ -66,14 +87,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 				final PropertyKey key = StructrApp.key(type, sortKey);
 				if (key != null) {
 
-					if (contextStore.getSortDescending()) {
-
-						query.sortDescending(key);
-
-					} else {
-
-						query.sortAscending(key);
-					}
+					query.sort(key, contextStore.getSortDescending());
 				}
 
 			} else {

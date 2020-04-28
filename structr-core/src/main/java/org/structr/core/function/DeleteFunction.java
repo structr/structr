@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,7 +33,7 @@ public class DeleteFunction extends CoreFunction implements BatchableFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeleteFunction.class);
 
-	public static final String ERROR_MESSAGE_DELETE = "Usage: ${delete(entityOrCollection)}. Example: ${delete(this)}";
+	public static final String ERROR_MESSAGE_DELETE = "Usage: ${delete(objectOrList)}. Example: ${delete(this)}";
 
 	private boolean batched = false;
 	private int batchSize   = -1;
@@ -41,6 +41,11 @@ public class DeleteFunction extends CoreFunction implements BatchableFunction {
 	@Override
 	public String getName() {
 		return "delete";
+	}
+
+	@Override
+	public String getSignature() {
+		return "objectOrList";
 	}
 
 	@Override

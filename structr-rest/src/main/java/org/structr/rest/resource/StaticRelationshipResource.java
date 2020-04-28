@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Node;
+import org.structr.api.search.SortOrder;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -85,7 +86,7 @@ public class StaticRelationshipResource extends WrappingResource {
 	}
 
 	@Override
-	public ResultStream doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
+	public ResultStream doGet(final SortOrder sortOrder, final int pageSize, final int page) throws FrameworkException {
 
 		// ok, source node exists, fetch it
 		final GraphObject sourceEntity = typedIdResource.getEntity();
@@ -103,7 +104,7 @@ public class StaticRelationshipResource extends WrappingResource {
 						final Class relationshipType = typeResource.entityClass;
 						final Relation relation      = AbstractNode.getRelationshipForType(relationshipType);
 						final Class destNodeType     = relation.getOtherType(typedIdResource.getEntityClass());
-						final Set partialResult      = new LinkedHashSet<>(Iterables.toList(typeResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE)));
+						final Set partialResult      = new LinkedHashSet<>(Iterables.toList(typeResource.doGet(sortOrder, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE)));
 
 						// filter list according to end node type
 						final Set<GraphObject> set = Iterables.toSet(Iterables.filter(new OtherNodeTypeRelationFilter(securityContext, sourceNode, destNodeType), source.getRelationships(relationshipType)));
@@ -114,7 +115,7 @@ public class StaticRelationshipResource extends WrappingResource {
 						final List<GraphObject> finalResult = new LinkedList<>(set);
 
 						// sort after merge
-						applyDefaultSorting(finalResult, sortKey, sortDescending);
+						applyDefaultSorting(finalResult, sortOrder);
 
 						// return result
 						//return new ResultStream(PagingHelper.subList(finalResult, pageSize, page), isCollectionResource(), isPrimitiveArray());
@@ -187,7 +188,7 @@ public class StaticRelationshipResource extends WrappingResource {
 							v -> finalResult.add((GraphObject) v)
 						);
 
-						applyDefaultSorting(finalResult, sortKey, sortDescending);
+						applyDefaultSorting(finalResult, sortOrder);
 
 						// return result
 						//return new ResultStream(PagingHelper.subList(finalResult, pageSize, page), isCollectionResource(), isPrimitiveArray());
@@ -252,7 +253,7 @@ public class StaticRelationshipResource extends WrappingResource {
 	@Override
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
-		final List<? extends GraphObject> results = Iterables.toList(typedIdResource.doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
+		final List<? extends GraphObject> results = Iterables.toList(typedIdResource.doGet(null, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
 		final App app = StructrApp.getInstance(securityContext);
 
 		if (results != null) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -43,17 +43,24 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseService;
+import org.structr.api.NativeQuery;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
+import org.structr.api.graph.PropagationDirection;
+import static org.structr.api.graph.PropagationDirection.In;
+import static org.structr.api.graph.PropagationDirection.Out;
+import static org.structr.api.graph.PropagationMode.Add;
+import static org.structr.api.graph.PropagationMode.Keep;
+import static org.structr.api.graph.PropagationMode.Remove;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.api.util.Iterables;
-import org.structr.bolt.wrapper.NodeWrapper;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.common.CMISExtensionsData;
 import org.structr.cmis.common.StructrItemActions;
@@ -573,6 +580,23 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
+	public <R extends AbstractRelationship> R getRelationshipTo(final RelationshipType type, final NodeInterface targetNode) {
+
+		if (dbNode != null && type != null && targetNode != null) {
+
+			final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
+			final Relationship rel               = dbNode.getRelationshipTo(type, targetNode.getNode());
+
+			if (rel != null) {
+
+				return factory.adapt(rel);
+			}
+		}
+
+		return null;
+	}
+
+	@Override
 	public final <R extends AbstractRelationship> Iterable<R> getRelationships() {
 		return new IterableAdapter<>(dbNode.getRelationships(), new RelationshipFactory<R>(securityContext));
 	}
@@ -868,8 +892,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			}
 
 			// new experimental custom permission resultion based on query
-			PropertyKey<String> permissionPropertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "customPermissionQuery" + StringUtils.capitalise(permission.name()));
-			final String customPermissionQuery = accessingUser.getProperty(permissionPropertyKey);
+			final PropertyKey<String> permissionPropertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "customPermissionQuery" + StringUtils.capitalise(permission.name()));
+			final String customPermissionQuery              = accessingUser.getProperty(permissionPropertyKey);
 
 			if (StringUtils.isNotEmpty(customPermissionQuery)) {
 
@@ -885,7 +909,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				boolean result = false;
 				try {
 
-					result = ((NodeWrapper) getNode()).evaluateCustomQuery(customPermissionQuery, params);
+					final DatabaseService db       = Services.getInstance().getDatabaseService();
+					final NativeQuery<Boolean> cpq = db.query(customPermissionQuery, Boolean.class);
+
+					cpq.configure(params);
+
+					result = db.execute(cpq);
 
 				} catch (final Exception ex) {
 					logger.error("Error in custom permission resolution", ex);
@@ -1057,15 +1086,15 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	 *
 	 * @return whether permission resolution can continue along this relationship
 	 */
-	private boolean propagationAllowed(final AbstractNode thisNode, final RelationshipInterface rel, final SchemaRelationshipNode.Direction propagationDirection, final boolean doLog) {
+	private boolean propagationAllowed(final AbstractNode thisNode, final RelationshipInterface rel, final PropagationDirection propagationDirection, final boolean doLog) {
 
 		// early exit
-		if (propagationDirection.equals(SchemaRelationshipNode.Direction.Both)) {
+		if (propagationDirection.equals(PropagationDirection.Both)) {
 			return true;
 		}
 
 		// early exit
-		if (propagationDirection.equals(SchemaRelationshipNode.Direction.None)) {
+		if (propagationDirection.equals(PropagationDirection.None)) {
 			return false;
 		}
 
@@ -1807,7 +1836,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				// ensureCardinality is not neccessary here
 				final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 				final PropertyMap properties           = new PropertyMap();
-				superUserContext.disableEnsureCardinality();
+				superUserContext.disablePreventDuplicateRelationships();
 
 				// performance improvement for grant(): add properties to the CREATE call that would
 				// otherwise be set in separate calls later in the transaction.
@@ -1886,7 +1915,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 					// ensureCardinality is not neccessary here
 					final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 					final PropertyMap properties           = new PropertyMap();
-					superUserContext.disableEnsureCardinality();
+					superUserContext.disablePreventDuplicateRelationships();
 
 					// performance improvement for grant(): add properties to the CREATE call that would
 					// otherwise be set in separate calls later in the transaction.

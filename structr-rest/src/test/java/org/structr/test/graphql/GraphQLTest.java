@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,7 +21,6 @@ package org.structr.test.graphql;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.RequestLoggingFilter;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,6 +30,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Cardinality;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -38,7 +38,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
@@ -49,11 +48,11 @@ import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonBooleanProperty;
-import org.structr.schema.json.JsonEnumProperty;
-import org.structr.schema.json.JsonFunctionProperty;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonBooleanProperty;
+import org.structr.api.schema.JsonEnumProperty;
+import org.structr.api.schema.JsonFunctionProperty;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.test.rest.common.StructrGraphQLTest;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
@@ -423,14 +422,14 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType project = schema.addType("Project");
 			final JsonObjectType task    = schema.addType("Task");
 
-			project.relate(task, "HAS", Relation.Cardinality.ManyToMany, "projects", "tasks");
+			project.relate(task, "HAS", Cardinality.ManyToMany, "projects", "tasks");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -540,14 +539,14 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType project = schema.addType("Project");
 			final JsonObjectType task    = schema.addType("Task");
 
-			project.relate(task, "HAS", Relation.Cardinality.OneToMany, "project", "tasks");
+			project.relate(task, "HAS", Cardinality.OneToMany, "project", "tasks");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -805,7 +804,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -988,7 +987,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType type           = schema.addType("Test");
 			final JsonObjectType tmpType        = schema.addType("Tmp");
 
-			type.relate(tmpType, "TMP", Relation.Cardinality.OneToMany, "parent", "children");
+			type.relate(tmpType, "TMP", Cardinality.OneToMany, "parent", "children");
 
 			type.addFunctionProperty("test1").setReadFunction("'test'").setTypeHint("String");
 			type.addFunctionProperty("test2").setReadFunction("false").setTypeHint("Boolean");
@@ -1002,7 +1001,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			tx.success();
 
-		} catch (URISyntaxException | FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1090,13 +1089,13 @@ public class GraphQLTest extends StructrGraphQLTest {
 			extProject1.setExtends(project);
 			extProject2.setExtends(project);
 
-			project.relate(task, "HAS", Relation.Cardinality.OneToMany, "project", "tasks");
+			project.relate(task, "HAS", Cardinality.OneToMany, "project", "tasks");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -1219,7 +1218,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType project     = schema.addType("Project");
 			final JsonObjectType task        = schema.addType("Task");
 
-			project.relate(task, "HAS", Relation.Cardinality.OneToMany, "project", "tasks");
+			project.relate(task, "HAS", Cardinality.OneToMany, "project", "tasks");
 
 			final JsonFunctionProperty p1 = task.addFunctionProperty("projectId");
 			p1.setIndexed(true);
@@ -1239,7 +1238,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -1520,7 +1519,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType project = schema.addType("Project");
 			final JsonObjectType task    = schema.addType("Task");
 
-			project.relate(task, "HAS", Relation.Cardinality.OneToMany, "project", "tasks");
+			project.relate(task, "HAS", Cardinality.OneToMany, "project", "tasks");
 
 			task.addBooleanProperty("testBoolean").setIndexed(true);
 			task.addLongProperty("testLong").setIndexed(true);
@@ -1644,7 +1643,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType project = schema.addType("Project");
 			final JsonObjectType task    = schema.addType("Task");
 
-			project.relate(task, "HAS", Relation.Cardinality.OneToOne, "project", "task");
+			project.relate(task, "HAS", Cardinality.OneToOne, "project", "task");
 
 			task.addBooleanProperty("testBoolean").setIndexed(true);
 
@@ -1712,7 +1711,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType project    = schema.addType("Project");
 			final JsonObjectType identifier = schema.addType("Identifier");
 
-			project.relate(identifier, "HAS",    Relation.Cardinality.OneToOne, "project", "identifier");
+			project.relate(identifier, "HAS",    Cardinality.OneToOne, "project", "identifier");
 
 			identifier.addStringProperty("test1").setIndexed(true);
 			identifier.addStringProperty("test2").setIndexed(true);
@@ -1722,7 +1721,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -1805,16 +1804,16 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType manyToOne = schema.addType("ManyToOneTest");
 			final JsonObjectType manyToMany = schema.addType("ManyToManyTest");
 
-			root.relate(oneToOne,   "oneToOne",   Relation.Cardinality.OneToOne,   "rootOneToOne",   "oneToOne");
-			root.relate(oneToMany,  "oneToMany",  Relation.Cardinality.OneToMany,  "rootOneToMany",  "oneToMany");
-			root.relate(manyToOne,  "manyToOne",  Relation.Cardinality.ManyToOne,  "rootManyToOne",  "manyToOne");
-			root.relate(manyToMany, "manyToMany", Relation.Cardinality.ManyToMany, "rootManyToMany", "manyToMany");
+			root.relate(oneToOne,   "oneToOne",   Cardinality.OneToOne,   "rootOneToOne",   "oneToOne");
+			root.relate(oneToMany,  "oneToMany",  Cardinality.OneToMany,  "rootOneToMany",  "oneToMany");
+			root.relate(manyToOne,  "manyToOne",  Cardinality.ManyToOne,  "rootManyToOne",  "manyToOne");
+			root.relate(manyToMany, "manyToMany", Cardinality.ManyToMany, "rootManyToMany", "manyToMany");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -2103,7 +2102,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType project = schema.addType("Project");
 			final JsonObjectType task    = schema.addType("Task");
 
-			project.relate(task, "TASK", Relation.Cardinality.OneToMany, "project", "tasks");
+			project.relate(task, "TASK", Cardinality.OneToMany, "project", "tasks");
 
 			// add function property that extracts the project ID
 			final JsonFunctionProperty projectId = task.addFunctionProperty("projectId");
@@ -2116,7 +2115,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -2264,8 +2263,8 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType project   = schema.addType("Project");
 			final JsonObjectType task      = schema.addType("Task");
 
-			project.relate(task,   "TASK",    Relation.Cardinality.OneToMany, "project",   "tasks");
-			taskGroup.relate(task, "PART_OF", Relation.Cardinality.OneToMany, "taskGroup", "tasks");
+			project.relate(task,   "TASK",    Cardinality.OneToMany, "project",   "tasks");
+			taskGroup.relate(task, "PART_OF", Cardinality.OneToMany, "taskGroup", "tasks");
 
 			// add function property that extracts the project ID
 			final JsonFunctionProperty projectId = task.addFunctionProperty("projectId");
@@ -2285,7 +2284,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -2407,7 +2406,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -2451,7 +2450,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final JsonObjectType project   = schema.addType("Project");
 			final JsonObjectType task      = schema.addType("Task");
 
-			project.relate(task,   "TASK",    Relation.Cardinality.OneToMany, "project",   "tasks");
+			project.relate(task,   "TASK",    Cardinality.OneToMany, "project",   "tasks");
 
 			// add function property that extracts the project ID
 			final JsonFunctionProperty hasProject = task.addFunctionProperty("hasProject");
@@ -2464,7 +2463,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
@@ -2560,13 +2559,13 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			baseType.addBooleanProperty("isChecked").setIndexed(true);
 
-			project.relate(task, "TASK",  Relation.Cardinality.OneToMany, "project",   "tasks");
+			project.relate(task, "TASK",  Cardinality.OneToMany, "project",   "tasks");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			tx.success();
 
-		} catch (URISyntaxException|FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 

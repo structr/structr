@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,7 +19,12 @@
 package org.structr.core.entity;
 
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.ValidationHelper;
 import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaNodeView;
 import org.structr.core.entity.relationship.SchemaViewProperty;
 import org.structr.core.graph.ModificationQueue;
@@ -36,6 +41,8 @@ import org.structr.core.property.StringProperty;
  *
  */
 public class SchemaView extends SchemaReloadingNode {
+
+	public static final String schemaViewNamePattern    = "[a-zA-Z_][a-zA-Z0-9_]*";
 
 	public static final Property<AbstractSchemaNode>   schemaNode           = new StartNode<>("schemaNode", SchemaNodeView.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
 	public static final Property<Iterable<SchemaProperty>> schemaProperties = new EndNodes<>("schemaProperties", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaProperty.isBuiltinProperty));
@@ -60,6 +67,16 @@ public class SchemaView extends SchemaReloadingNode {
 	);
 
 	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
+
+		boolean valid = super.isValid(errorBuffer);
+
+		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, schemaViewNamePattern, errorBuffer);
+
+		return valid;
+	}
+
+	@Override
 	public boolean reloadSchemaOnCreate() {
 		return true;
 	}
@@ -72,5 +89,15 @@ public class SchemaView extends SchemaReloadingNode {
 	@Override
 	public boolean reloadSchemaOnDelete() {
 		return true;
+	}
+
+	@Override
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		super.onModification(securityContext, errorBuffer, modificationQueue);
+
+		if (getProperty(schemaNode) == null) {
+			StructrApp.getInstance().delete(this);
+		}
 	}
 }

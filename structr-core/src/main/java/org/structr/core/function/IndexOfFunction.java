@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,6 +33,11 @@ public class IndexOfFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "str, word";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -63,6 +68,6 @@ public class IndexOfFunction extends CoreFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Returns the position of string in a string, or -1";
+		return "Returns the position of the given word in the given string, or -1";
 	}
 }

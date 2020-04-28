@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,11 @@ public class FromXmlFunction extends UiAdvancedFunction {
 	@Override
 	public String getName() {
 		return "from_xml";
+	}
+
+	@Override
+	public String getSignature() {
+		return "source";
 	}
 
 	@Override
@@ -67,6 +72,6 @@ public class FromXmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Parses the given XML and returns a list of objects.";
+		return "Parses the given XML and returns a list of objects";
 	}
 }

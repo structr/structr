@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -60,6 +60,14 @@ public abstract class Agent<T> extends Thread implements StatusInfo {
 		agentService.notifyAgentStart(this);
 
 		do {
+
+			if (!Services.getInstance().isInitialized()) {
+
+				try { Thread.sleep(100); } catch (InterruptedException i) {}
+
+				// loop until we are stopped
+				continue;
+			}
 
 			while (suspended.get()) {
 

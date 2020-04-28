@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -40,6 +40,11 @@ public class ToJsonFunction extends UiCommunityFunction {
 	@Override
 	public String getName() {
 		return "to_json";
+	}
+
+	@Override
+	public String getSignature() {
+		return "obj [, view, depth = 3 ]";
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -47,6 +47,10 @@ public class FindPageFunction extends AdvancedScriptingFunction {
 				case 1: page     = parseInt(sources[0]);
 			}
 
+			if (page == 0) {
+				logger.warn("Page function used with page == 0 while page count starts at 1.");
+			}
+
 			return new PagePredicate(page, pageSize);
 
 		} catch (final IllegalArgumentException e) {
@@ -65,5 +69,15 @@ public class FindPageFunction extends AdvancedScriptingFunction {
 	@Override
 	public String shortDescription() {
 		return "Returns a query predicate that can be used with find() or search().";
+	}
+
+	@Override
+	public boolean isHidden() {
+		return true;
+	}
+
+	@Override
+	public String getSignature() {
+		return null;
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,9 @@
  */
 package org.structr.flow.impl.rels;
 
+import org.structr.api.graph.PropagationDirection;
+import org.structr.api.graph.PropagationMode;
+import org.structr.common.PermissionPropagation;
 import org.structr.core.entity.ManyToOne;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.web.entity.dom.DOMNode;
@@ -25,7 +28,7 @@ import org.structr.web.entity.dom.DOMNode;
 /**
  *
  */
-public class DOMNodeFLOWFlowContainer extends ManyToOne<DOMNode, FlowContainer> {
+public class DOMNodeFLOWFlowContainer extends ManyToOne<DOMNode, FlowContainer> implements PermissionPropagation {
 
 	@Override
 	public Class<DOMNode> getSourceType() {
@@ -40,5 +43,35 @@ public class DOMNodeFLOWFlowContainer extends ManyToOne<DOMNode, FlowContainer> 
 	@Override
 	public String name() {
 		return "FLOW";
+	}
+
+	@Override
+	public PropagationDirection getPropagationDirection() {
+		return PropagationDirection.Both;
+	}
+
+	@Override
+	public PropagationMode getReadPropagation() {
+		return PropagationMode.Add;
+	}
+
+	@Override
+	public PropagationMode getWritePropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getDeletePropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getAccessControlPropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public String getDeltaProperties() {
+		return null;
 	}
 }

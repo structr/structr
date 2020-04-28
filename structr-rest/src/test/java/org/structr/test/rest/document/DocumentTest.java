@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,15 +25,17 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonReferenceType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonSchema.Cascade;
+import org.structr.api.schema.JsonType;
+import org.structr.common.PropertyView;
 import org.testng.annotations.Test;
 import org.structr.core.entity.Relation;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonReferenceType;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonSchema.Cascade;
 import org.structr.test.rest.common.StructrRestTestBase;
 import static org.testng.AssertJUnit.fail;
 
@@ -1658,6 +1660,59 @@ public class DocumentTest extends StructrRestTestBase {
 
 			.when()
 				.get("/ProjectHASTask");
+
+	}
+
+	@Test
+	public void testForeignPropertiesOnRelationship() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.getType("GroupCONTAINSPrincipal");
+
+			type.addStringProperty("test", PropertyView.Public);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String parent = createEntity("Group", "{ name: 'parent' }");
+		final String child  = createEntity("Group", "{ name: 'child' }");
+
+
+		// create data
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.body("{ members: [ { id: '" + child + "', test: 'success!!' } ] }")
+
+			.expect()
+				.statusCode(200)
+
+			.when()
+				.put("/Group/" + parent);
+
+		// check result
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+			.expect()
+				.statusCode(200)
+				.body("result[0].test", equalTo("success!!"))
+
+			.when()
+				.get("/GroupCONTAINSPrincipal");
 
 	}
 

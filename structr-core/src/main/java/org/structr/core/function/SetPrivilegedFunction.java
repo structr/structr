@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,6 +36,11 @@ public class SetPrivilegedFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "entity, parameterMap";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		synchronized (ctx) {
@@ -65,7 +70,7 @@ public class SetPrivilegedFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Sets the given key/value pair on the given entity with super-user privileges";
+		return "Sets the given key/value pair(s) on the given entity with super-user privileges";
 	}
 
 }

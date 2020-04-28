@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -79,7 +79,7 @@ public class ListCommand extends AbstractCommand {
 		final int pageSize             = webSocketData.getPageSize();
 		final int page                 = webSocketData.getPage();
 		final PropertyKey sortProperty = StructrApp.key(type, sortKey);
-		final Query query              = StructrApp.getInstance(securityContext).nodeQuery(type)/*.includeHidden()*/.sort(sortProperty).order("desc".equals(sortOrder)).page(page).pageSize(pageSize);
+		final Query query              = StructrApp.getInstance(securityContext).nodeQuery(type).sort(sortProperty, "desc".equals(sortOrder)).page(page).pageSize(pageSize);
 
 		if (File.class.isAssignableFrom(type)) {
 

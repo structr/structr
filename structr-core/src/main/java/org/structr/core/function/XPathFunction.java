@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,11 +31,16 @@ import org.w3c.dom.Document;
 
 public class XPathFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_XPATH = "Usage: ${xpath(xmlDocument, expression)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\" [, \"STRING\"])}";
+	public static final String ERROR_MESSAGE_XPATH = "Usage: ${xpath(xmlDocument, expression, returnType)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\" [, \"STRING\"])}";
 
 	@Override
 	public String getName() {
 		return "xpath";
+	}
+
+	@Override
+	public String getSignature() {
+		return "document, xpath [, returnType ]";
 	}
 
 	@Override

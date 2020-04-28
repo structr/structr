@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -548,7 +548,7 @@ public class ValidationHelper {
 						result = StructrApp.getInstance()
 							.nodeQuery(type)
 							.and(key, value)
-							.sortAscending(GraphObject.createdDate)
+							.sort(GraphObject.createdDate)
 							.getAsList();
 
 					} else {
@@ -556,7 +556,7 @@ public class ValidationHelper {
 						result = StructrApp.getInstance()
 							.relationshipQuery(type)
 							.and(key, value)
-							.sortAscending(GraphObject.createdDate)
+							.sort(GraphObject.createdDate)
 							.getAsList();
 
 					}
@@ -634,7 +634,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 						.nodeQuery(type)
 						.and(properties)
-						.sortAscending(GraphObject.createdDate)
+						.sort(GraphObject.createdDate)
 						.getAsList();
 
 				} else {
@@ -642,7 +642,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 						.relationshipQuery(type)
 						.and(properties)
-						.sortAscending(GraphObject.createdDate)
+						.sort(GraphObject.createdDate)
 						.getAsList();
 
 				}
@@ -701,7 +701,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 						.nodeQuery(NodeInterface.class)
 						.and(key, value)
-						.sortAscending(GraphObject.createdDate)
+						.sort(GraphObject.createdDate)
 						.getAsList();
 
 				} else if (object instanceof RelationshipInterface) {
@@ -709,7 +709,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 						.relationshipQuery(RelationshipInterface.class)
 						.and(key, value)
-						.sortAscending(GraphObject.createdDate)
+						.sort(GraphObject.createdDate)
 						.getAsList();
 
 				} else {

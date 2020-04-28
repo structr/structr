@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -81,6 +81,11 @@ public class ImportGPXFunction extends GeoFunction {
 	@Override
 	public String getName() {
 		return "import_gpx";
+	}
+
+	@Override
+	public String getSignature() {
+		return "gpxString";
 	}
 
 	@Override

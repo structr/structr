@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,6 +31,11 @@ public class InstantiateFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 		return "instantiate";
+	}
+
+	@Override
+	public String getSignature() {
+		return "node";
 	}
 
 	@Override
@@ -66,6 +71,6 @@ public class InstantiateFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Instantiates the given Neo4j nodes into Structr nodes";
+		return "Instantiates the given Neo4j node into a Structr node";
 	}
 }

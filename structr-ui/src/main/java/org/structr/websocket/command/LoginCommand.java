@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,6 +25,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -67,7 +68,12 @@ public class LoginCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
-		final App app = StructrApp.getInstance();
+		final SecurityContext ctx       = SecurityContext.getSuperUserInstance();
+		final App app                   = StructrApp.getInstance(ctx);
+
+		if (Settings.CallbacksOnLogin.getValue() == false) {
+			ctx.disableInnerCallbacks();
+		}
 
 		try (final Tx tx = app.tx(true, true, true)) {
 
@@ -110,12 +116,12 @@ public class LoginCommand extends AbstractCommand {
 
 							// Clear possible existing sessions
 							SessionHelper.clearSession(sessionId);
-							
+
 							if (!user.addSessionId(sessionId)) {
-								
-								logger.debug("Unable to login {}: Unable to add new sessionId found", new Object[]{ username, password });
+
+								logger.debug("Unable to login {}: Unable to add new sessionId", new Object[]{ username, password });
 								getWebSocket().send(MessageBuilder.status().code(403).data("reason", "sessionLimitExceeded").build(), true);
-								
+
 							} else {
 
 								AuthHelper.sendLoginNotification(user);
@@ -132,7 +138,7 @@ public class LoginCommand extends AbstractCommand {
 
 								// send data..
 								getWebSocket().send(webSocketData, false);
-							
+
 							}
 						}
 					}

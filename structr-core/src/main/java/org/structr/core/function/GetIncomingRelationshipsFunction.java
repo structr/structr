@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,6 +36,11 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 	@Override
 	public String getName() {
 		return "get_incoming_relationships";
+	}
+
+	@Override
+	public String getSignature() {
+		return "source, target [, relType ]";
 	}
 
 	@Override

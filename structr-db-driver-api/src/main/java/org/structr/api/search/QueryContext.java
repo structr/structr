@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -73,6 +73,14 @@ public class QueryContext {
 	}
 
 	public int getLimit() {
+		return limit;
+	}
+
+	public int getPage() {
+		return (skip / Math.max(1, limit)) + 1;
+	}
+
+	public int getPageSize() {
 		return limit;
 	}
 

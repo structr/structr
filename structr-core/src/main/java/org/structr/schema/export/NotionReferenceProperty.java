@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,8 +30,8 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 
 /**
  *

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,8 +35,8 @@ public abstract class FlowBaseNode extends AbstractNode implements DeployableEnt
 
 	public static final Property<FlowContainer> flowContainer = new StartNode<>("flowContainer", FlowContainerBaseNode.class).indexed();
 
-	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public, flowContainer);
-	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui,     flowContainer);
+	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public);
+	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui, flowContainer);
 
 	@Override
 	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {

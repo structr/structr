@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,8 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.cxf.common.util.StringUtils;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -33,8 +35,6 @@ import org.structr.core.script.Scripting;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 
 public interface MessageSubscriber extends NodeInterface {
 
@@ -112,7 +112,7 @@ public interface MessageSubscriber extends NodeInterface {
 
 		if (!StringUtils.isEmpty(thisSubscriber.getCallback())) {
 
-			String script = "${" + thisSubscriber.getCallback() + "}";
+			String script = "${" + thisSubscriber.getCallback().trim() + "}";
 
 			Map<String, Object> params = new HashMap<>();
 			params.put("topic", topic);

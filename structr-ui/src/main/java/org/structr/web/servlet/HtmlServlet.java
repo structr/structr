@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -54,17 +54,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.io.QuietException;
+import org.neo4j.driver.internal.util.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -96,7 +95,6 @@ import org.structr.web.entity.Site;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.websocket.command.AbstractCommand;
 
 /**
  * Main servlet for content rendering.
@@ -155,6 +153,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	@Override
 	public void init() {
 
+		/*
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			AbstractCommand.getOrCreateHiddenDocument();
@@ -163,6 +162,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		} catch (FrameworkException fex) {
 			logger.warn("Unable to create shadow page: {}", fex.getMessage());
 		}
+		*/
 	}
 
 	@Override
@@ -283,7 +283,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					final String queryString = request.getQueryString();
 
 					// Look for a file, first include the query string
-					file = findFile(securityContext, request, path + (queryString != null ? "?" + queryString : ""));
+					if (StringUtils.isNotBlank(queryString)) {
+						file = findFile(securityContext, request, path + "?" + queryString);
+					}
 
 					// If no file with query string in the file name found, try without query string
 					if (file == null) {
@@ -366,46 +368,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						}
 
 						setLimitingDataObject(securityContext, request, renderContext);
-
-//						//if (dataNode != null && !(dataNode instanceof Linkable)) {
-//						if (dataNode != null) {
-//
-//							// Last path part matches a data node
-//							// Remove last path part and try again searching for a page
-//							// clear possible entry points
-//							request.removeAttribute(POSSIBLE_ENTRY_POINTS_KEY);
-//
-//							final String pagePart = StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP);
-//
-//							// Search for a page only when page part is non-empty
-//							if (StringUtils.isNotBlank(pagePart)) {
-//
-//								rootElement = findPage(securityContext, pages, pagePart, edit);
-//							}
-//
-//							//renderContext.setDetailsDataObject(dataNode);
-//
-//							// Start rendering on data node (partial)
-//							if (rootElement == null && dataNode instanceof DOMNode) {
-//
-//								// check visibleForSite here as well
-//								if (!(dataNode instanceof Page) || isVisibleForSite(request, (Page)dataNode)) {
-//
-//									rootElement = ((DOMNode) dataNode);
-//								}
-//
-//							// Allow rendering of a partial with a data node (accessible via the 'current' keyword)
-//							} else if (rootElement == null) {
-//
-//								final AbstractNode possibleRootNode = findNodeByUuid(securityContext, PathHelper.getName(pagePart));
-//
-//								if (possibleRootNode instanceof DOMNode) {
-//									rootElement = (DOMNode) possibleRootNode;
-//								}
-//							}
-//
-//							setDetailsObject(securityContext, request, renderContext);
-//						}
 					}
 				}
 
@@ -582,11 +544,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	@Override
 	protected void doHead(final HttpServletRequest request, final HttpServletResponse response) {
 
-		final Authenticator auth = getConfig().getAuthenticator();
-		SecurityContext securityContext;
+		final Authenticator auth        = getConfig().getAuthenticator();
+		SecurityContext securityContext = null;
 		List<Page> pages                = null;
 		boolean requestUriContainsUuids = false;
-		final App app;
 
 		try {
 
@@ -600,7 +561,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				tx.success();
 			}
 
-			app = StructrApp.getInstance(securityContext);
+			final App app = StructrApp.getInstance(securityContext);
 
 			try (final Tx tx = app.tx()) {
 
@@ -779,10 +740,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				if (rootElement == null) {
 
-					// no content
-					response.setContentLength(0);
-					response.getOutputStream().close();
-
 					tx.success();
 					return;
 				}
@@ -834,15 +791,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						response.setContentType(contentType);
 
 						setCustomResponseHeaders(response);
-
-						response.getOutputStream().close();
 					}
 
 				} else {
 
 					notFound(response, securityContext);
-
-					response.getOutputStream().close();
 				}
 
 				tx.success();
@@ -1141,7 +1094,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		if (pages == null) {
 
 			pages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).getAsList();
-			Collections.sort(pages, new GraphObjectComparator(StructrApp.key(Page.class, "position"), GraphObjectComparator.ASCENDING));
+			Collections.sort(pages, StructrApp.key(Page.class, "position").sorted(false));
 		}
 
 		for (final Page page : pages) {
@@ -1193,7 +1146,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		if (pages == null) {
 
 			pages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).getAsList();
-			Collections.sort(pages, new GraphObjectComparator(positionKey, GraphObjectComparator.ASCENDING));
+			Collections.sort(pages, positionKey.sorted(false));
 		}
 
 		for (Page page : pages) {
@@ -1387,8 +1340,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			final Query query = StructrApp.getInstance(securityContext).nodeQuery();
 
-			query.and(GraphObject.id, uuid);
-			query.and().orType(Page.class).orTypes(File.class);
+			query
+				.and()
+					.or()
+					.andTypes(Page.class)
+					.andTypes(File.class)
+					.parent()
+				.and(GraphObject.id, uuid);
 
 			// Searching for pages needs super user context anyway
 			List<Linkable> results = query.getAsList();
@@ -1666,12 +1624,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					} else {
 
-						long fileSize = IOUtils.copyLarge(in, out);
+						final long fileSize = IOUtils.copyLarge(in, out);
+						final int status    = response.getStatus();
 
 						response.addHeader("Content-Length", Long.toString(fileSize));
+						response.setStatus(status);
 
-						response.setStatus(HttpServletResponse.SC_OK);
-						callbackMap.put("statusCode", HttpServletResponse.SC_OK);
+						callbackMap.put("statusCode", status);
 					}
 
 				} catch (Throwable t) {
@@ -1693,7 +1652,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						in.close();
 					}
 
-					response.setStatus(HttpServletResponse.SC_OK);
+					response.setStatus(response.getStatus());
 				}
 			}
 		}
@@ -1721,10 +1680,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 * @param page
 	 * @return
 	 */
-	private boolean isVisibleForSite(final HttpServletRequest request, final Page page) {
+	public static boolean isVisibleForSite(final HttpServletRequest request, final Page page) {
 
-		final Site site = page.getSite();
-		if (site == null) {
+		final List<Site> sites = Iterables.asList(page.getSites());
+		if (sites == null || sites.isEmpty()) {
 
 			return true;
 		}
@@ -1732,17 +1691,22 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		final String serverName = request.getServerName();
 		final int serverPort    = request.getServerPort();
 
-		if (StringUtils.isNotBlank(serverName) && !serverName.equals(site.getHostname())) {
-			return false;
+		boolean isVisible = false;
+
+		for (final Site site : sites) {
+
+				if (StringUtils.isBlank(serverName) || serverName.equals(site.getHostname())) {
+					isVisible = true;
+				}
+
+				final Integer sitePort = site.getPort();
+
+				if (isVisible && (sitePort == null || serverPort == sitePort)) {
+					isVisible = true;
+				}
 		}
 
-		final Integer sitePort = site.getPort();
-
-		if (sitePort != null && serverPort != sitePort) {
-			return false;
-		}
-
-		return true;
+		return isVisible;
 
 	}
 
@@ -1915,14 +1879,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		return null;
 	}
 
-	private void assertInitialized() throws FrameworkException {
-
-		if (!Services.getInstance().isInitialized()) {
-			throw new FrameworkException(503, "System is not initialized yet.");
-		}
-	}
-
-	private String filterMaliciousRedirects(final String source) {
+	public static String filterMaliciousRedirects(final String source) {
 
 		if (source != null) {
 

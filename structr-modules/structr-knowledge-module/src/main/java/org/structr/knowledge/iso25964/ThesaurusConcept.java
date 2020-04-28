@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,13 +19,13 @@
 package org.structr.knowledge.iso25964;
 
 import java.net.URI;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonReferenceType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonReferenceType;
-import org.structr.schema.json.JsonSchema;
 
 /**
  * Class as defined in ISO 25964 data model
@@ -36,7 +36,7 @@ public interface ThesaurusConcept extends NodeInterface {
 	static class Impl { static {
 
 		final JsonSchema schema            = SchemaService.getDynamicSchema();
-		
+
 		final JsonObjectType type                   = schema.addType("ThesaurusConcept");
 		final JsonObjectType simpleTerm             = schema.addType("SimpleNonPreferredTerm");
 		final JsonObjectType prefTerm               = schema.addType("PreferredTerm");
@@ -45,16 +45,16 @@ public interface ThesaurusConcept extends NodeInterface {
 		final JsonObjectType customNote             = schema.addType("CustomNote");
 		final JsonObjectType scopeNote              = schema.addType("ScopeNote");
 		final JsonObjectType historyNote            = schema.addType("HistoryNote");
-		
+
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ThesaurusConcept"));
-		
+
 		type.addStringProperty(     "identifier", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
 		type.addDateProperty(       "created",    PropertyView.All, PropertyView.Ui).setIndexed(true);
 		type.addDateProperty(       "modified",   PropertyView.All, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty(     "status",     PropertyView.All, PropertyView.Ui).setIndexed(true);
 		type.addStringArrayProperty("notation",   PropertyView.All, PropertyView.Ui).setIndexed(true);
 		type.addBooleanProperty(    "topConcept", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		
+
 		type.relate(type,                   "hasTopConcept",             Cardinality.ManyToMany, "childConcepts",        "topmostConcept");
 		type.relate(type,                   "hasRelatedConcept",         Cardinality.ManyToMany, "relatedConcepts",      "relatedConcepts");
 		type.relate(simpleTerm,             "hasNonPreferredLabel",      Cardinality.OneToMany,  "concepts",             "simpleNonPreferredTerms");

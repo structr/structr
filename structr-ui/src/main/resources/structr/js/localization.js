@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -17,10 +17,7 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 $(document).ready(function() {
-
 	Structr.registerModule(_Localization);
-	_Localization.resize();
-
 });
 
 var _Localization = {

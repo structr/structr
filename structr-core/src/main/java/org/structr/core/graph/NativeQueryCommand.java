@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
+import org.structr.api.NativeQuery;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Path;
 import org.structr.api.graph.PropertyContainer;
@@ -62,10 +63,16 @@ public class NativeQueryCommand extends NodeServiceCommand {
 
 	public Iterable execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted, boolean publicOnly) throws FrameworkException {
 
-		DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
+		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
 		if (graphDb != null) {
 
-			final Iterable result    = graphDb.execute(query, parameters != null ? parameters : Collections.emptyMap());
+			final NativeQuery<Iterable> nativeQuery = graphDb.query(query, Iterable.class);
+
+			if (parameters != null) {
+				nativeQuery.configure(parameters);
+			}
+
+			final Iterable result    = graphDb.execute(nativeQuery);
 			final Iterable extracted = extractRows(result, includeHiddenAndDeleted, publicOnly);
 
 			if (!dontFlushCachesIfKeywordsInQuery && query.matches("(?i)(?s)(?m).*\\s+(delete|set|remove)\\s+.*")) {

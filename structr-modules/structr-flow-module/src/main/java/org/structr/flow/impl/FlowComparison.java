@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -73,6 +73,11 @@ public class FlowComparison extends FlowCondition implements DataSource, Deploya
 			Object data = _ds.get(context);
 
 			if (data == null || data instanceof Comparable) {
+
+				if (data != null && data.getClass().isEnum()) {
+
+					data = ((Enum)data).name();
+				}
 
 				Comparable c = (Comparable) data;
 

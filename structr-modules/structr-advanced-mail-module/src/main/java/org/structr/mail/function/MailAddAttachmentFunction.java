@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -44,6 +44,11 @@ public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
+	public String getSignature() {
+		return "file [, name ]";
+	}
+
+	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
@@ -83,7 +88,7 @@ public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Adds an attachment file and an optional file name to the current mail";
 	}
 
 	public static void addAttachment(final AdvancedMailContainer amc, final File fileNode) throws MalformedURLException {

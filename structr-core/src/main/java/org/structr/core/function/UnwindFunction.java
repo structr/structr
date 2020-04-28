@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,6 +30,11 @@ public class UnwindFunction extends CoreFunction {
 	@Override
 	public String getName() {
 		return "unwind";
+	}
+
+	@Override
+	public String getSignature() {
+		return "list1, list2, ...";
 	}
 
 	@Override
@@ -77,6 +82,6 @@ public class UnwindFunction extends CoreFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Converts a list of lists into a flat list";
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,8 @@ import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
@@ -37,8 +39,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.User;
 
 /**
@@ -79,7 +79,7 @@ public interface LDAPUser extends User {
 
 	static void initializeFrom(final LDAPUser thisUser, final Entry entry) throws FrameworkException {
 
-		final LDAPService ldapService      = Services.getInstance().getService(LDAPService.class);
+		final LDAPService ldapService      = Services.getInstance().getService(LDAPService.class, "default");
 		final Map<String, String> mappings = new LinkedHashMap<>();
 
 		if (ldapService != null) {
@@ -112,7 +112,7 @@ public interface LDAPUser extends User {
 
 	static boolean isValidPassword(final LDAPUser thisUser, final String password) {
 
-		final LDAPService ldapService = Services.getInstance().getService(LDAPService.class);
+		final LDAPService ldapService = Services.getInstance().getService(LDAPService.class, "default");
 		boolean hasLDAPGroups         = false;
 
 		if (ldapService != null) {
@@ -157,7 +157,7 @@ public interface LDAPUser extends User {
 
 		try {
 
-			final LDAPService service = Services.getInstance().getService(LDAPService.class);
+			final LDAPService service = Services.getInstance().getService(LDAPService.class, "default");
 			if (service != null) {
 
 				for (final LDAPGroup group : StructrApp.getInstance().nodeQuery(LDAPGroup.class).getAsList()) {

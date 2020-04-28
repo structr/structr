@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,8 +24,8 @@ import org.structr.schema.action.ActionContext;
 
 public class MailAddCcFunction extends AdvancedMailModuleFunction {
 
-	public final String ERROR_MESSAGE    = "Usage: ${mail_add_cc(ccAddress[, bccName])}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_add_cc(ccAddress[, bccName]) }}";
+	public final String ERROR_MESSAGE    = "Usage: ${mail_add_cc(ccAddress[, ccName])}";
+	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_add_cc(ccAddress[, ccName]) }}";
 
 	public MailAddCcFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -34,6 +34,11 @@ public class MailAddCcFunction extends AdvancedMailModuleFunction {
 	@Override
 	public String getName() {
 		return "mail_add_cc";
+	}
+
+	@Override
+	public String getSignature() {
+		return "ccAddress [, ccName ]";
 	}
 
 	@Override
@@ -64,6 +69,6 @@ public class MailAddCcFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Adds a CC address and optional CC name to the current mail";
 	}
 }

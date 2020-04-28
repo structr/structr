@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -48,27 +48,27 @@ import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonBooleanArrayProperty;
-import org.structr.schema.json.JsonBooleanProperty;
-import org.structr.schema.json.JsonDateArrayProperty;
-import org.structr.schema.json.JsonDateProperty;
-import org.structr.schema.json.JsonDynamicProperty;
-import org.structr.schema.json.JsonEnumProperty;
-import org.structr.schema.json.JsonFunctionProperty;
-import org.structr.schema.json.JsonIntegerArrayProperty;
-import org.structr.schema.json.JsonIntegerProperty;
-import org.structr.schema.json.JsonLongArrayProperty;
-import org.structr.schema.json.JsonLongProperty;
-import org.structr.schema.json.JsonMethod;
-import org.structr.schema.json.JsonNumberArrayProperty;
-import org.structr.schema.json.JsonNumberProperty;
-import org.structr.schema.json.JsonProperty;
-import org.structr.schema.json.JsonReferenceProperty;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonScriptProperty;
-import org.structr.schema.json.JsonStringArrayProperty;
-import org.structr.schema.json.JsonStringProperty;
-import org.structr.schema.json.JsonType;
+import org.structr.api.schema.JsonBooleanArrayProperty;
+import org.structr.api.schema.JsonBooleanProperty;
+import org.structr.api.schema.JsonDateArrayProperty;
+import org.structr.api.schema.JsonDateProperty;
+import org.structr.api.schema.JsonDynamicProperty;
+import org.structr.api.schema.JsonEnumProperty;
+import org.structr.api.schema.JsonFunctionProperty;
+import org.structr.api.schema.JsonIntegerArrayProperty;
+import org.structr.api.schema.JsonIntegerProperty;
+import org.structr.api.schema.JsonLongArrayProperty;
+import org.structr.api.schema.JsonLongProperty;
+import org.structr.api.schema.JsonMethod;
+import org.structr.api.schema.JsonNumberArrayProperty;
+import org.structr.api.schema.JsonNumberProperty;
+import org.structr.api.schema.JsonProperty;
+import org.structr.api.schema.JsonReferenceProperty;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonScriptProperty;
+import org.structr.api.schema.JsonStringArrayProperty;
+import org.structr.api.schema.JsonStringProperty;
+import org.structr.api.schema.JsonType;
 
 /**
  * @param <T>

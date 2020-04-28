@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,9 @@
  */
 package org.structr.flow.impl.rels;
 
+import org.structr.api.graph.PropagationDirection;
+import org.structr.api.graph.PropagationMode;
+import org.structr.common.PermissionPropagation;
 import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Relation;
 import org.structr.flow.api.DataSource;
@@ -25,7 +28,7 @@ import org.structr.flow.api.DataSource;
 /**
  *
  */
-public class FlowNodeDataSource extends OneToMany<DataSource, DataSource> {
+public class FlowNodeDataSource extends OneToMany<DataSource, DataSource> implements PermissionPropagation {
 
 	@Override
 	public Class<DataSource> getSourceType() {
@@ -45,5 +48,35 @@ public class FlowNodeDataSource extends OneToMany<DataSource, DataSource> {
 	@Override
 	public int getAutocreationFlag() {
 		return Relation.ALWAYS;
+	}
+
+	@Override
+	public PropagationDirection getPropagationDirection() {
+		return PropagationDirection.Both;
+	}
+
+	@Override
+	public PropagationMode getReadPropagation() {
+		return PropagationMode.Add;
+	}
+
+	@Override
+	public PropagationMode getWritePropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getDeletePropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getAccessControlPropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public String getDeltaProperties() {
+		return null;
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -84,7 +84,8 @@ public abstract class FlowAbstractDeploymentHandler implements FlowDeploymentInt
 			FlowContainerPackageFlow.class,
 			FlowContainerPackagePackage.class,
 			FlowConditionBaseNode.class,
-			FlowForkBody.class
+			FlowForkBody.class,
+			DOMNodeFLOWFlowContainer.class
 	};
 
 }

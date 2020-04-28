@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,6 +33,11 @@ public class ParseFunction extends UiAdvancedFunction {
 	@Override
 	public String getName() {
 		return "parse";
+	}
+
+	@Override
+	public String getSignature() {
+		return "url, selector";
 	}
 
 	@Override
@@ -79,6 +84,6 @@ public class ParseFunction extends UiAdvancedFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Parses the given string and returns an object";
+		return "Fetches content from an URL, parses it and returns data based on the given CSS selector";
 	}
 }

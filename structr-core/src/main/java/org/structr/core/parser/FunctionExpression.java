@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,9 @@
 package org.structr.core.parser;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
@@ -27,6 +30,7 @@ import org.structr.core.function.BatchableFunction;
 import org.structr.core.graph.Tx;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
+import org.structr.schema.action.Hint;
 
 /**
  *
@@ -41,11 +45,14 @@ public class FunctionExpression extends Expression {
 
 		final StringBuilder buf = new StringBuilder();
 
-		buf.append("function(");
-
-		for (final Expression expr : expressions) {
-			buf.append(expr.toString());
+		if (this.function != null) {
+			buf.append(function.getName());
+			buf.append("(");
+		} else {
+			buf.append("function(");
 		}
+
+		buf.append(StringUtils.join(expressions.stream().map(Expression::toString).collect(Collectors.toList()), ", "));
 		buf.append(")");
 
 		return buf.toString();
@@ -108,5 +115,28 @@ public class FunctionExpression extends Expression {
 
 	public Function<Object, Object> getFunction() {
 		return function;
+	}
+
+	public List<Hint> getContextHints() {
+
+		if (this.function != null) {
+
+			if (this.expressions.isEmpty()) {
+
+				return function.getContextHints("'");
+
+			} else {
+
+				final Expression last = expressions.get(expressions.size() - 1);
+				if (last instanceof ConstantExpression) {
+
+					final ConstantExpression c = (ConstantExpression)last;
+
+					return function.getContextHints(c.getQuoteChar());
+				}
+			}
+		}
+
+		return null;
 	}
 }

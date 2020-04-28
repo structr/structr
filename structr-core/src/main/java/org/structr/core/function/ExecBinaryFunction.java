@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,6 +39,11 @@ public class ExecBinaryFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 		return "exec_binary";
+	}
+
+	@Override
+	public String getSignature() {
+		return "outputStream, scriptName [, parameterMap ]";
 	}
 
 	@Override
@@ -107,7 +112,7 @@ public class ExecBinaryFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Calls the given exported / dynamic method on the given entity";
+		return "Executes a script configured in structr.conf with the given script name and parameters, returning the raw output";
 	}
 
 	private static class ScriptingProcess extends AbstractBinaryProcess<String> {

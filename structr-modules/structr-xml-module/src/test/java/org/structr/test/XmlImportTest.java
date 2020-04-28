@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,6 +26,8 @@ import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.testng.annotations.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -34,8 +36,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;

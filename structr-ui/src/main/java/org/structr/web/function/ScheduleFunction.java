@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,6 +33,11 @@ public class ScheduleFunction extends UiAdvancedFunction {
 	@Override
 	public String getName() {
 		return "schedule";
+	}
+
+	@Override
+	public String getSignature() {
+		return "script [, title ]";
 	}
 
 	@Override

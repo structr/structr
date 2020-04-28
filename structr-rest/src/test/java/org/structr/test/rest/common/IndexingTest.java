@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -45,7 +45,7 @@ public abstract class IndexingTest extends StructrRestTestBase {
 		basePath = "/tmp/structr-test-" + timestamp;
 
 		Settings.Services.setValue("NodeService SchemaService HttpService");
-		setupNeo4jConnection();
+		setupDatabaseConnection();
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
@@ -66,6 +66,10 @@ public abstract class IndexingTest extends StructrRestTestBase {
 		Settings.RestUserClass.setValue("");
 
 		final Services services = Services.getInstance();
+
+		Services.enableUpdateIndexConfiguration();
+
+		System.out.println("############################################ INDEXING ENABLED");
 
 		// wait for service layer to be initialized
 		do {

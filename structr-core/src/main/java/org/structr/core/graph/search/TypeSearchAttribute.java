@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -92,10 +92,12 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 		}
 	}
 
+	@Override
 	public Class getSourceType() {
 		return sourceType;
 	}
 
+	@Override
 	public Class getTargetType() {
 		return targetType;
 	}

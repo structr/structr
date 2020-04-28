@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.core.entity;
 
 import java.net.URI;
 import java.util.List;
+import org.structr.api.graph.Cardinality;
 import org.structr.api.util.Iterables;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
@@ -28,8 +29,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 
 /**
  */
@@ -63,7 +64,7 @@ public interface Group extends Principal {
 				.setDoExport(true);
 
 		// create relationship
-		group.relate(principal, "CONTAINS", Relation.Cardinality.ManyToMany, "groups", "members");
+		group.relate(principal, "CONTAINS", Cardinality.ManyToMany, "groups", "members");
 
 		// view configuration
 		group.addViewProperty(PropertyView.Ui, "members");

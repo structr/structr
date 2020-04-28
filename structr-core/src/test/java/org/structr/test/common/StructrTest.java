@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -44,7 +44,6 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -67,6 +66,7 @@ public class StructrTest {
 	protected static String basePath                 = null;
 	protected static App app                         = null;
 	protected static String randomTenantId           = RandomStringUtils.randomAlphabetic(10).toUpperCase();
+	private boolean first                            = true;
 
 	@BeforeMethod
 	protected void starting(Method method) {
@@ -84,34 +84,39 @@ public class StructrTest {
 		System.out.println("######################################################################################");
 	}
 
-	@AfterMethod
+	@BeforeMethod
 	public void cleanDatabaseAndSchema() {
 
-		try (final Tx tx = app.tx()) {
+		if (!first) {
 
-			// delete everything
-			Services.getInstance().getService(NodeService.class).getDatabaseService().cleanDatabase();
+			try (final Tx tx = app.tx()) {
 
-			FlushCachesCommand.flushAll();
+				// delete everything
+				Services.getInstance().getDatabaseService().cleanDatabase();
 
-			tx.success();
+				FlushCachesCommand.flushAll();
 
-		} catch (Throwable t) {
+				tx.success();
 
-			t.printStackTrace();
-			logger.error("Exception while trying to clean database: {}", t.getMessage());
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				logger.error("Exception while trying to clean database: {}", t.getMessage());
+			}
+
+
+			try {
+
+				SchemaService.ensureBuiltinTypesExist(app);
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				logger.error("Exception while trying to clean database: {}", t.getMessage());
+			}
 		}
 
-
-		try {
-
-			SchemaService.ensureBuiltinTypesExist(app);
-
-		} catch (Throwable t) {
-
-			t.printStackTrace();
-			logger.error("Exception while trying to clean database: {}", t.getMessage());
-		}
+		first = false;
 	}
 
 	@BeforeClass(alwaysRun = true)
@@ -123,11 +128,8 @@ public class StructrTest {
 		basePath = "/tmp/structr-test-" + timestamp;
 
 		Settings.Services.setValue("NodeService SchemaService");
-		Settings.DatabaseDriverMode.setValue("remote");
-		Settings.ConnectionUser.setValue("neo4j");
-		Settings.ConnectionPassword.setValue("admin");
-		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
-		Settings.TenantIdentifier.setValue(randomTenantId);
+
+		setupDatabaseConnection();
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
@@ -361,5 +363,15 @@ public class StructrTest {
 		}
 
 		return null;
+	}
+
+	protected void setupDatabaseConnection() {
+
+		// use database driver from system property, default to MemoryDatabaseService
+		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
+		Settings.ConnectionUser.setValue("neo4j");
+		Settings.ConnectionPassword.setValue("admin");
+		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+		Settings.TenantIdentifier.setValue(randomTenantId);
 	}
 }

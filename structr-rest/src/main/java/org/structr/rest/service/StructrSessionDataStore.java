@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,7 +23,6 @@ import org.eclipse.jetty.server.session.SessionData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -34,6 +33,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 
 import java.util.*;
+import org.structr.common.SecurityContext;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 
@@ -42,8 +42,6 @@ import org.structr.core.property.PropertyKey;
 public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	private static final Logger logger       = LoggerFactory.getLogger(StructrSessionDataStore.class.getName());
-	private static final SecurityContext ctx = SecurityContext.getSuperUserInstance();
-	private static final App app             = StructrApp.getInstance(ctx);
 	private static final Services services   = Services.getInstance();
 
 	private static final Map<String, SessionData> anonymousSessionCache = new HashMap<>();
@@ -53,7 +51,10 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 		assertInitialized();
 
-		try (final Tx tx = app.tx(true, false, false)) {
+		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
+		final App app             = StructrApp.getInstance(ctx);
+
+		try (final Tx tx = app.tx()) {
 
 			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "sessionIds");
 			final String[] value            = new String[] { id };
@@ -99,7 +100,9 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 			}
 		}
 
-		try (final Tx tx = app.tx(true, false, false)) {
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
 
 			for (final SessionDataNode node : app.nodeQuery(SessionDataNode.class).andRange(SessionDataNode.lastAccessed, new Date(0), timeoutDate).getAsList()) {
 
@@ -130,7 +133,9 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 		assertInitialized();
 
-		try (final Tx tx = app.tx(true, false, false)) {
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
 
 			final SessionDataNode node = app.nodeQuery(SessionDataNode.class).and(SessionDataNode.sessionId, id).getFirst();
 
@@ -155,9 +160,10 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 		assertInitialized();
 
-		SessionData result        = null;
+		final App app      = StructrApp.getInstance();
+		SessionData result = null;
 
-		try (final Tx tx = app.tx(true, false, false)) {
+		try (final Tx tx = app.tx()) {
 
 			final SessionDataNode node = app.nodeQuery(SessionDataNode.class).and(SessionDataNode.sessionId, id).getFirst();
 			if (node != null) {
@@ -193,7 +199,9 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 		assertInitialized();
 
-		try (final Tx tx = app.tx(true, false, false)) {
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
 
 			// delete nodes
 			for (final SessionDataNode node : app.nodeQuery(SessionDataNode.class).and(SessionDataNode.sessionId, id).getAsList()) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -355,7 +356,9 @@ public class StructrScriptable extends ScriptableObject {
 
 			if (clazz != null) {
 
-				if (StructrApp.getConfiguration().getPropertyKeyForJSONName(clazz, key) instanceof ArrayProperty) {
+				final PropertyKey pkey = StructrApp.getConfiguration().getPropertyKeyForJSONName(clazz, key);
+
+				if (pkey instanceof ArrayProperty || pkey instanceof BooleanArrayProperty || pkey instanceof DateArrayProperty) {
 					return new StructrArray(scope, key, (Object[]) Array.newInstance(Object.class, 0));
 				}
 			}
@@ -431,6 +434,10 @@ public class StructrScriptable extends ScriptableObject {
 
 				return unwrap(((Wrapper)source).unwrap());
 
+			} else if (source instanceof byte[]) {
+
+				return source;
+
 			} else if (source.getClass().isArray()) {
 
 				final List list = new ArrayList();
@@ -455,6 +462,17 @@ public class StructrScriptable extends ScriptableObject {
 
 				final Double value = ScriptRuntime.toNumber(source);
 				return new Date(value.longValue());
+
+			} else if (source instanceof Map && source instanceof NativeObject) {
+
+				// Map can contain ConsString and other things that need unwrapping
+				final Map<String, Object> tmp = new HashMap<>();
+
+				((Map<Object, Object>)source).forEach((k, v) -> {
+					tmp.put(k.toString(), unwrap(v));
+				});
+
+				return tmp;
 
 			} else {
 
@@ -740,8 +758,9 @@ public class StructrScriptable extends ScriptableObject {
 
 								if (valueType.isArray() && value instanceof ArrayList) {
 
-									// we need to convert the wrapped array so the converter can handle it ( StructrArray -> ArrayList -> Object[])
-									value = ((ArrayList)value).toArray();
+									// let the scripting engine handle the conversion for us
+									final NativeArray tmp = new NativeArray(((ArrayList)value).toArray());
+									value = Context.jsToJava(tmp, valueType);
 
 								} else {
 
@@ -901,7 +920,13 @@ public class StructrScriptable extends ScriptableObject {
 
 		@Override
 		public Object get(String name, Scriptable start) {
-			return request.getParameter(name);
+
+			Object value = request.getParameterValues(name);
+			if (value != null && ((String[]) value).length == 1) {
+				value = ((String[]) value)[0];
+			}
+
+			return value;
 		}
 
 		@Override
@@ -1009,6 +1034,11 @@ public class StructrScriptable extends ScriptableObject {
 		@Override
 		public Object get(String name, Scriptable start) {
 			return wrap(context, scope, name, map.get(name));
+		}
+
+		@Override
+		public Object get(int index, Scriptable start) {
+			return get("" + index, start);
 		}
 
 		@Override

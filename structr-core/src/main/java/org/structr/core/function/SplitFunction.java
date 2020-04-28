@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2019 Structr GmbH
+ * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,11 +27,16 @@ import org.structr.schema.action.ActionContext;
 
 public class SplitFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_SPLIT = "Usage: ${split(value)}. Example: ${split(this.commaSeparatedItems)}";
+	public static final String ERROR_MESSAGE_SPLIT = "Usage: ${split(str[, expression])}. Example: ${split(this.commaSeparatedItems)}";
 
 	@Override
 	public String getName() {
 		return "split";
+	}
+
+	@Override
+	public String getSignature() {
+		return "str [, regex ]";
 	}
 
 	@Override

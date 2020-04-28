@@ -7,7 +7,7 @@ import {FlowNode} from "./entities/FlowNode.js";
 import {FlowAction} from "./entities/FlowAction.js";
 import {FlowParameterInput} from "./entities/FlowParameterInput.js";
 import {FlowConnectionTypes} from "./FlowConnectionTypes.js";
-import {Persistence} from "../persistence/Persistence.js";
+import {Persistence} from "../../../../lib/structr/persistence/Persistence.js";
 import {FlowParameterDataSource} from "./entities/FlowParameterDataSource.js";
 import {FlowNotNull} from "./entities/FlowNotNull.js";
 import {FlowDecision} from "./entities/FlowDecision.js";
@@ -19,7 +19,7 @@ import {FlowNot} from "./entities/FlowNot.js";
 import {FlowOr} from "./entities/FlowOr.js";
 import {FlowAnd} from "./entities/FlowAnd.js";
 import {FlowForEach} from "./entities/FlowForEach.js";
-import {Rest} from "../rest/Rest.js";
+import {Rest} from "../../../../lib/structr/rest/Rest.js";
 import {CodeModal} from "./utility/CodeModal.js";
 import {DependencyLoader} from "./utility/DependencyLoader.js";
 import {FlowAggregate} from "./entities/FlowAggregate.js";
@@ -58,6 +58,7 @@ export class FlowEditor {
 				this._flowContainer = flowContainer;
 				this._rootElement = rootElement;
 				this.flowNodes = [];
+				this.disableRelationshipEvents = true;
 
 				window._rootElement = rootElement;
 
@@ -169,6 +170,12 @@ export class FlowEditor {
 							self.selectAllNodes();
 							event.preventDefault();
 							event.stopPropagation();
+						} else if (event.key === "c" && event.ctrlKey && event.altKey) {
+							event.stopPropagation();
+							self._copyElementsForCloning();
+						} else if (event.key === "v" && event.ctrlKey && event.altKey) {
+							event.stopPropagation();
+							self._pasteClonedElements();
 						}
 					}
 				},
@@ -209,12 +216,6 @@ export class FlowEditor {
 							self._editor.selected.list.map((node) => console.log(node.data.dbNode.type + '[' + node.data.dbNode.id + "]"));
 							event.stopPropagation();
 
-						} else if (event.key === "c" && event.ctrlKey && event.altKey) {
-							event.stopPropagation();
-							self._copyElementsForCloning();
-						} else if (event.key === "v" && event.ctrlKey && event.altKey) {
-							event.stopPropagation();
-							self._pasteClonedElements();
 						}
 
 					},
@@ -359,55 +360,63 @@ export class FlowEditor {
 
 	_connectionCreationHandler(input, output) {
 
-		if (input.node.id === output.node.id) {
-			this._editor.view.pickedOutput = null;
-			throw new TypeError("Cannot connect a node to itself. Cancelling connection creation.");
-		}
+		if (!this.disableRelationshipEvents) {
 
-		if(input.node.data.dbNode !== undefined && output.node.data.dbNode !== undefined) {
-			try {
-				for (let [key, con] of Object.entries(FlowConnectionTypes.getInst().getAllConnectionTypes())) {
-
-					if (con.sourceAttribute === output.socket.id && con.targetAttribute === input.socket.id) {
-						let sourceId = output.node.data.dbNode.id;
-						let targetId = input.node.data.dbNode.id;
-						let relType = con.type;
-
-						let persistence = new Persistence();
-
-						persistence.getNodesByClass({type:relType}).then( result => {
-
-							let shouldCreate = result.filter( el => el.sourceId == sourceId && el.targetId == targetId).length == 0;
-
-							if (shouldCreate) {
-								persistence.createNode({type: relType, sourceId: sourceId, targetId: targetId});
-							}
-						});
-
-						break;
-					}
-
-				}
-			} catch (e) {
-				console.log("Exception during rel creation:");
-				console.log(e);
+			if (input.node.id === output.node.id) {
+				this._editor.view.pickedOutput = null;
+				throw new TypeError("Cannot connect a node to itself. Cancelling connection creation.");
 			}
 
-		} else {
+			if (input.node.data.dbNode !== undefined && output.node.data.dbNode !== undefined) {
+				try {
+					for (let [key, con] of Object.entries(FlowConnectionTypes.getInst().getAllConnectionTypes())) {
 
-			console.log('Error in connectionCreationHandler. Input or Output dbnode were null.');
+						if (con.sourceAttribute === output.socket.id && con.targetAttribute === input.socket.id) {
+							let sourceId = output.node.data.dbNode.id;
+							let targetId = input.node.data.dbNode.id;
+							let relType = con.type;
+
+							let persistence = new Persistence();
+
+							persistence.getNodesByClass({type: relType}).then(result => {
+
+								let shouldCreate = result.filter(el => el.sourceId == sourceId && el.targetId == targetId).length == 0;
+
+								if (shouldCreate) {
+									persistence.createNode({type: relType, sourceId: sourceId, targetId: targetId});
+								}
+							});
+
+							break;
+						}
+
+					}
+				} catch (e) {
+					console.log("Exception during rel creation:");
+					console.log(e);
+				}
+
+			} else {
+
+				console.log('Error in connectionCreationHandler. Input or Output dbnode were null.');
+			}
+
 		}
 
 	}
 
 	_connectionDeletionHandler(connection) {
-		let persistence = new Persistence();
-		persistence.deleteNode(connection);
+		if (!this.disableRelationshipEvents) {
+			let persistence = new Persistence();
+			persistence.deleteNode(connection);
+		}
 	}
 
 	_nodeDeletionHandler(node) {
-		let persistence = new Persistence();
-		persistence.deleteNode(node.data.dbNode);
+		if (!this.disableRelationshipEvents) {
+			let persistence = new Persistence();
+			persistence.deleteNode(node.data.dbNode);
+		}
 	}
 
 	_getFlowClasses() {
@@ -599,7 +608,7 @@ export class FlowEditor {
 
 	}
 
-	renderNode(node) {
+	renderNode(node, preventViewUpdate) {
 		let fNode = undefined;
 		switch (node.type) {
 			case 'FlowAction':
@@ -706,11 +715,19 @@ export class FlowEditor {
 
 		this._editor.addNode(editorNode);
 
-		this._editor.view.update();
-
-		this._overrideContextMenu(fNode);
+		if (!preventViewUpdate) {
+			this._editor.view.update();
+		}
 
 		return fNode;
+	}
+
+	setupContextMenu() {
+
+		for (let node of this.flowNodes) {
+
+			this._overrideContextMenu(node);
+		}
 	}
 
 	getFlowNodeForDbId(id) {
@@ -744,6 +761,7 @@ export class FlowEditor {
 
 	selectNodeById(id) {
 		this._editor.selected.list = this.flowNodes.filter((fNode) => {return fNode.dbNode.id === id}).map( n => n.editorNode);
+		this._editor.view.zoomAt(this._editor.selected.list);
 		this._editor.view.update();
 	}
 
