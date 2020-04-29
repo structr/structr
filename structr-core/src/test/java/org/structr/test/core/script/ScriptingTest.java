@@ -844,6 +844,10 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid complement() result", "[]", Scripting.replaceVariables(ctx, testOne, "${complement(merge('one', 'two', 'three'), 'one', merge('two', 'three', 'four'))}"));
 			assertEquals("Invalid complement() result", "[two]", Scripting.replaceVariables(ctx, testOne, "${complement(merge('one', 'two', 'three'), merge('one', 'four', 'three'))}"));
 
+			assertEquals("Invalid complement() result", "[two, two]", Scripting.replaceVariables(ctx, testOne, "${complement(merge('one', 'two', 'three', 'two'), merge('one', 'four', 'three'))}"));
+			assertEquals("Invalid complement() result", "[one]", Scripting.replaceVariables(ctx, testOne, "${complement(merge('one', 'two', 'three', 'two'), merge('two', 'four', 'three'))}"));
+			assertEquals("Invalid complement() result", "[one, three]", Scripting.replaceVariables(ctx, testOne, "${complement(merge('one', 'two', 'three', 'two'), 'two')}"));
+
 			// join
 			assertEquals("Invalid join() result", "one,two,three", Scripting.replaceVariables(ctx, testOne, "${join(merge(\"one\", \"two\", \"three\"), \",\")}"));
 

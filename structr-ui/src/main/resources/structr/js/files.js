@@ -383,16 +383,20 @@ var _Files = {
 		}
 	},
 	uploadFile: function(file) {
-		var worker = new Worker('js/upload-worker.js');
+		let worker = new Worker('js/upload-worker.js');
 		worker.onmessage = function(e) {
 
-			var binaryContent = e.data;
-			var chunks = Math.ceil(file.size / chunkSize);
+			let binaryContent = e.data;
+			let fileSize      = e.data.byteLength;
+			let node          = Structr.node(file.id);
+			node.find('.size').text(fileSize);
 
-			for (var c = 0; c < chunks; c++) {
-				var start = c * chunkSize;
-				var end = (c + 1) * chunkSize;
-				var chunk = window.btoa(String.fromCharCode.apply(null, new Uint8Array(binaryContent.slice(start, end))));
+			let chunks = Math.ceil(fileSize / chunkSize);
+
+			for (let c = 0; c < chunks; c++) {
+				let start = c * chunkSize;
+				let end = (c + 1) * chunkSize;
+				let chunk = window.btoa(String.fromCharCode.apply(null, new Uint8Array(binaryContent.slice(start, end))));
 				Command.chunk(file.id, c, chunkSize, chunk, chunks);
 			}
 		};
