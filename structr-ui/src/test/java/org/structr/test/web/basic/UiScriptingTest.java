@@ -54,10 +54,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
-import org.structr.schema.action.Actions;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
@@ -76,13 +76,12 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
+import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.test.web.StructrUiTest;
+import org.structr.test.web.entity.TestOne;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.Folder;
-import org.structr.test.web.entity.TestOne;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
@@ -97,6 +96,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
 /**
  *
@@ -161,7 +161,17 @@ public class UiScriptingTest extends StructrUiTest {
 			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
 			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
 
-			template.setContent("${each(request.param, print(data))}");
+			template.setContent("${if (\n" +
+				"	is_collection(request.param),\n" +
+				"	(\n" +
+				"		print('collection! '),\n" +
+				"		each(request.param, print(data))\n" +
+				"	),\n" +
+				"	(\n" +
+				"		print('single param!'),\n" +
+				"		print(request.param)\n" +
+				"	)\n" +
+				")}");
 
 			page.appendChild(template);
 
@@ -188,9 +198,34 @@ public class UiScriptingTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 				.statusCode(200)
-				.body(equalTo("abc"))
+				.body(equalTo("collection! abc"))
 			.when()
 				.get("/test?param=a&param=b&param=c");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			RestAssured
+			.given()
+				//.headers("X-User", "admin" , "X-Password", "admin")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+				.statusCode(200)
+				.body(equalTo("single param!a"))
+			.when()
+				.get("/test?param=a");
 
 			tx.success();
 
