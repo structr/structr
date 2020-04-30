@@ -435,6 +435,13 @@ var StructrModel = {
 
 				icon = _Icons.getFileIconClass(obj);
 
+				if (Structr.isModuleActive(_Files)) {
+					let row = element.closest('tr');
+					if (row.length) {
+						$('td.size', row).text(obj.size);
+					}
+				}
+
 			} else if (element.hasClass('folder')) {
 
 				if (Structr.isModuleActive(_Files)) {
