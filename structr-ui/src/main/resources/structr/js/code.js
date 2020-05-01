@@ -428,7 +428,9 @@ var _Code = {
 		var recentElements = LSWrapper.getItem(_Code.codeRecentElementsKey) || [];
 
 		recentElements.forEach(function(element) {
-			_Code.addRecentlyUsedElement(element.id, element.name, element.iconClass, element.path, true);
+			if (element.name !== undefined) {
+				_Code.addRecentlyUsedElement(element.id, element.name, element.iconClass, element.path, true);
+			}
 		});
 
 		doneCallback();
