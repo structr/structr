@@ -539,7 +539,7 @@ var _Code = {
 
 				if (_Code.searchIsActive()) {
 
-					callback({
+					defaultEntries.unshift({
 						id: 'search-results',
 						text: 'Search Results',
 						children: true,
@@ -548,11 +548,9 @@ var _Code = {
 							opened: true
 						}
 					});
-
-				} else {
-
-					callback(defaultEntries);
 				}
+
+				callback(defaultEntries);
 				break;
 
 			case 'root':
