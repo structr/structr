@@ -23,7 +23,6 @@ import graphql.schema.GraphQLType;
 
 /**
  *
- * @author Christian Morgner
  */
 public class GraphQLListType extends GraphQLList {
 

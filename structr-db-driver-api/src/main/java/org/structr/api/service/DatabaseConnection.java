@@ -26,7 +26,6 @@ import org.structr.api.util.html.Tag;
 
 /**
  *
- * @author Christian Morgner
  */
 public class DatabaseConnection extends LinkedHashMap<String, Object> {
 
@@ -102,31 +101,40 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 		final String name        = getName();
 		final Tag div            = parent.block("div").css("connection app-tile" + (active ? " active" : ""));
 
-		if (!active) {
-			div.block("button").attr(new Attr("type", "button")).text("x").css("delete-button").attr(new Attr("onclick", "deleteConnection('" + name + "');"));
-		}
-
 		div.block("h4").text(displayName + (isActive() ? " (active)" : ""));
 
 		final Tag url = div.block("p");
 		url.block("label").text("Connection URL");
-		url.add(new InputField(url, "text", "url-" + name, getUrl()));
+		final InputField nameInput = new InputField(url, "text", "url-" + name, getUrl());
+		if (isActive()) {
+			nameInput.attr(new Attr("readonly", "readonly"));
+		}
+		url.add(nameInput);
 
 		final Tag user = div.block("p");
 		user.block("label").text("Username");
-		user.add(new InputField(user, "text", "username-" + name, getUsername()));
+		final InputField usernameInput = new InputField(user, "text", "username-" + name, getUsername());
+		if (isActive()) {
+			usernameInput.attr(new Attr("readonly", "readonly"));
+		}
+		user.add(usernameInput);
 
 		final Tag pass = div.block("p");
 		pass.block("label").text("Password");
-		pass.add(new InputField(pass, "password", "password-" + name, getPassword()));
+		final InputField passwordInput = new InputField(pass, "password", "password-" + name, getPassword());
+		if (isActive()) {
+			passwordInput.attr(new Attr("readonly", "readonly"));
+		}
+		pass.add(passwordInput);
 
 		final Tag buttons = div.block("p").css("buttons");
 
 		if (isActive()) {
-			buttons.block("button").attr(new Attr("type", "button")).text("Go to Structr").attr(new Attr("onclick", "window.location.href = '/structr';"));
+			buttons.block("a").css("align-left").attr(new Attr("href", "/structr")).text("Open Structr UI");
 			buttons.block("button").attr(new Attr("type", "button")).text("Disconnect").attr(new Attr("onclick", "disconnect(this, '" + name + "');"));
 		} else {
-			buttons.block("button").attr(new Attr("type", "button")).text("Connect").attr(new Attr("onclick", "connect(this, '" + name + "');"));
+			buttons.block("button").attr(new Attr("type", "button")).text("Remove").attr(new Attr("onclick", "deleteConnection('" + name + "');"));
+			buttons.block("button").css("default-action").attr(new Attr("type", "button")).text("Connect").attr(new Attr("onclick", "connect(this, '" + name + "');"));
 		}
 
 		//buttons.block("button").attr(new Attr("type", "button")).text("Save").attr(new Attr("onclick", "saveConnection('" + name + "')"));

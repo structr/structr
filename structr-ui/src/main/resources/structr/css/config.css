@@ -61,9 +61,22 @@ body.login {
 	background-color: #606060;
 }
 
+#configTabs {
+	margin: 12px 24px 0 12px;
+	width: calc(100vw - 24px);
+	min-width: calc(570px + 4em);
+	height: calc(100vh - 106px);
+	border: none;
+	background: none;
+}
+
+#configTabs .tab-content {
+	padding-left: 12px;
+}
+
 .tab-content {
 	overflow: auto;
-	height: calc(100% - 10em);
+	height: calc(100% - 48px);
 	border-radius: 0;
 }
 
@@ -75,8 +88,8 @@ body.login {
 form.config-form div.buttons {
 	text-align: right;
 	position: absolute;
-	right: 20px;
-	bottom: 18px;
+	right: 12px;
+	bottom: 12px;
 }
 
 form.config-form div.buttons input[type=reset] {
@@ -84,16 +97,15 @@ form.config-form div.buttons input[type=reset] {
 }
 
 form.config-form div.buttons input[type=submit] {
-	background-color: #f6f6f6;
+	/*background-color: #f6f6f6;*/
 }
 
 form.config-form div.buttons input[type=submit]:hover {
-	background-color: #fff;
+	/*background-color: #fff;*/
 }
 
-form.config-form .tab-content button {
-	border: 1px solid #999;
-	background-color: #f6f6f6;
+.default-action {
+	background-color: #81ce25;
 }
 
 .config-group h1 {
@@ -196,7 +208,6 @@ button.toggle-option.active::after {
 	content: " \2718";
 }*/
 
-
 #search-container {
     position: absolute;
     top: 16px;
@@ -253,13 +264,18 @@ td.search-matches {
 }
 
 p.steps button {
-	width: 300px;
-	border: none !important;
-	height: 32px;
 }
 
 h2 {
 	margin: 2em 0 0 0;
+}
+
+.align-left {
+	float: left;
+}
+
+.inline-block {
+	display: inline-block;
 }
 
 div.connection {
@@ -281,6 +297,34 @@ div.connection.new-connection {
 	border: 1px dashed #ddd;
 }
 
+.app-tile.collapsed {
+	width: 24px;
+	height: 24px;
+	padding: 4px;
+}
+
+div.connection.collapsed {
+	min-width: 0px;
+	min-height: 0px;
+	border: none;
+	background-color: #f6f6f6;
+	box-shadow: none;
+	border-radius: 0;
+	text-align: center;
+}
+
+div.connection.collapsed::after {
+	content: '+';
+}
+
+div.connection.collapsed:hover {
+	cursor: pointer;
+}
+
+div.connection.collapsed p {
+	display: none;
+}
+
 div.connection h4 {
 	font-size: 1.2em;
 }
@@ -289,11 +333,15 @@ div.connection p {
 	padding: 1em 0 0 0;
 }
 
+div.connection input[readonly="readonly"] {
+	background-color: #f0f0f0;
+	color: #aaa;
+}
+
 div.connection input[type="password"],
 div.connection input[type="text"] {
 	box-sizing: border-box;
 	width: 100%;
-	border-radius: 3px;
 }
 
 div.connection p.buttons {
@@ -302,18 +350,12 @@ div.connection p.buttons {
 }
 
 div.connection button {
-	border: none !important;
-	height: 32px;
+	border: 1px solid rgba(0,0,0,.125);
 	position: relative;
 	margin: 0;
-	padding-left: 1em;
-	padding-right: 1em;
-	background-color: #eee !important;
 }
 
 div.connection button:hover {
-	padding-left: 1em !important;
-	padding-right: 1em !important;
 	background-color: #ddd !important;
 }
 

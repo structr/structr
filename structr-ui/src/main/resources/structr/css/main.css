@@ -3009,19 +3009,6 @@ table.push {
 	background: none;
 }
 
-#configTabs {
-	margin: 12px 24px 0 12px;
-	width: calc(100vw - 36px);
-	min-width: calc(570px + 4em);
-	height: calc(100vh - 78px);
-	border: none;
-	background: none;
-}
-
-#configTabs .tab-content {
-	padding-left: 12px;
-}
-
 .tabs-menu {
 	border: none;
 	background: none;
@@ -3098,6 +3085,11 @@ input.bitmask {
 	font-size: 11pt;
 }
 
+#non-block-ui-blocker-content img {
+	vertical-align: middle;
+	margin: 4px;
+}
+
 /*
  * Apps
  */
@@ -3146,7 +3138,6 @@ input.bitmask {
 .app-tile p {
 	margin: 0;
 	font-size: 1em;
-	font-weight: 300;
 	font-size: 0.8em;
 }
 

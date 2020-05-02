@@ -34,7 +34,6 @@ import org.structr.schema.SchemaService;
 
 /**
  *
- * @author Christian Morgner
  */
 public interface StructuredTextNode extends NodeInterface, LinkedTreeNode<StructuredTextNode> {
 

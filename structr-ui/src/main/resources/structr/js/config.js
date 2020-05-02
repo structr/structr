@@ -146,6 +146,10 @@ $(function () {
 			target.val(parts.filter(function(e) { return e && e.length; }).join(' '));
 		}
 	});
+	
+	$('.new-connection.collapsed').on('click', function() {
+		$(this).removeClass('collapsed');
+	});
 });
 
 
@@ -417,6 +421,13 @@ function deleteConnection(name) {
 	});
 }
 
+function setNeo4jDefaults() {
+	$('#name-structr-new-connection').val('neo4j-localhost-7687');
+	$('#url-structr-new-connection').val('bolt://localhost:7687');
+	$('#username-structr-new-connection').val('neo4j');
+	$('#password-structr-new-connection').val('neo4j');
+}
+
 function saveConnection(name) {
 
 	let data = collectData(name);
@@ -481,7 +492,7 @@ function disconnect(button, name) {
 	status.addClass('hidden');
 	status.empty();
 
-	_Config.showNonBlockUILoadingMessage('Connection is being disconnected', 'Please wait...');
+	_Config.showNonBlockUILoadingMessage('Database is being disconnected', 'Please wait...');
 
 	$.ajax({
 		type: 'post',
