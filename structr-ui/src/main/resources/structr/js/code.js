@@ -2032,13 +2032,6 @@ var _Code = {
 					_Code.runGlobalSchemaMethod(method);
 				});
 			}
-			
-			// run button
-			if (!method.schemaNode && !method.isPartOfBuiltInSchema) {
-				_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.exec_blue_icon), 'run', 'Run method', function() {
-					_Code.runGlobalSchemaMethod(method);
-				});
-			}
 
 			_Code.updateDirtyFlag(method);
 
