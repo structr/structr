@@ -428,7 +428,9 @@ var _Code = {
 		var recentElements = LSWrapper.getItem(_Code.codeRecentElementsKey) || [];
 
 		recentElements.forEach(function(element) {
-			_Code.addRecentlyUsedElement(element.id, element.name, element.iconClass, element.path, true);
+			if (element.name !== undefined) {
+				_Code.addRecentlyUsedElement(element.id, element.name, element.iconClass, element.path, true);
+			}
 		});
 
 		doneCallback();
@@ -537,7 +539,7 @@ var _Code = {
 
 				if (_Code.searchIsActive()) {
 
-					callback({
+					defaultEntries.unshift({
 						id: 'search-results',
 						text: 'Search Results',
 						children: true,
@@ -546,11 +548,9 @@ var _Code = {
 							opened: true
 						}
 					});
-
-				} else {
-
-					callback(defaultEntries);
 				}
+
+				callback(defaultEntries);
 				break;
 
 			case 'root':
