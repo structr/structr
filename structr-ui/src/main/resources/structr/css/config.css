@@ -76,7 +76,6 @@ body.login {
 
 .tab-content {
 	overflow: auto;
-	height: calc(100% - 48px);
 	border-radius: 0;
 }
 
@@ -88,8 +87,8 @@ body.login {
 form.config-form div.buttons {
 	text-align: right;
 	position: absolute;
-	right: 12px;
-	bottom: 12px;
+	right: 8px;
+	bottom: 8px;
 }
 
 form.config-form div.buttons input[type=reset] {
