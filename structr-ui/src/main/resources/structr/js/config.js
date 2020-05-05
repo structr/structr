@@ -146,7 +146,7 @@ $(function () {
 			target.val(parts.filter(function(e) { return e && e.length; }).join(' '));
 		}
 	});
-	
+
 	$('.new-connection.collapsed').on('click', function() {
 		$(this).removeClass('collapsed');
 	});
@@ -354,10 +354,10 @@ function collectData(name) {
 	let pwdInput    = $('input#password-' + name);
 	let nowCheckbox = $('input#connect-checkbox');
 
-	nameInput.removeClass();
-	urlInput.removeClass();
-	userInput.removeClass();
-	pwdInput.removeClass();
+	nameInput.parent().removeClass();
+	urlInput.parent().removeClass();
+	userInput.parent().removeClass();
+	pwdInput.parent().removeClass();
 
 	let data = {
 		name:     nameInput.val(),
