@@ -1146,7 +1146,7 @@ public class UiScriptingTest extends StructrUiTest {
 				"${{ return $.eq($.remote_address,        $.get('remote_address')); }}" +
 				"${{ return $.eq($.statusCode,            $.get('statusCode')); }}" +
 				"${{ return $.eq($.status_code,           $.get('status_code')); }}" +
-				"${{ return $.eq($.now,                   $.get('now')); }}" +
+//				"${{ return $.eq($.now,                   $.get('now')); }}" +
 				"${{ return $.eq($.this,                  $.get('this')); }}" +
 				"${{ return $.eq($.locale,                $.get('locale')); }}" +
 				"${{ return $.eq($.tenantIdentifier,      $.get('tenantIdentifier')); }}" +
