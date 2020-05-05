@@ -614,7 +614,6 @@ public class UiScriptingTest extends StructrUiTest {
 			.get("/test/" + uuid);
 	}
 
-
 	@Test
 	public void testRestQueryWithRemoteAttributeRepeater() {
 
@@ -1069,7 +1068,6 @@ public class UiScriptingTest extends StructrUiTest {
 		}
 	}
 
-
 	@Test
 	public void testScriptReplacement() {
 
@@ -1120,7 +1118,81 @@ public class UiScriptingTest extends StructrUiTest {
 			.get("/html/test");
 	}
 
+	@Test
+	public void testKeywordShortcutsInJavaScript() {
 
+		String userId = "";
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page       = Page.createSimplePage(securityContext, "test");
+			final Div div         = (Div)page.getElementsByTagName("div").item(0);
+			final Content content = (Content)div.getFirstChild();
+
+			content.setProperty(StructrApp.key(Content.class, "content"),
+				"${{ return $.eq($.current,               $.get('current')); }}" +
+				"${{ return $.eq($.baseUrl,               $.get('baseUrl')); }}" +
+				"${{ return $.eq($.base_url,              $.get('base_url')); }}" +
+				"${{ return $.eq($.me,                    $.get('me')); }}" +
+				"${{ return $.eq($.host,                  $.get('host')); }}" +
+				"${{ return $.eq($.port,                  $.get('port')); }}" +
+				"${{ return $.eq($.pathInfo,              $.get('pathInfo')); }}" +
+				"${{ return $.eq($.path_info,             $.get('path_info')); }}" +
+				"${{ return $.eq($.queryString,           $.get('queryString')); }}" +
+				"${{ return $.eq($.query_string,          $.get('query_string')); }}" +
+				"${{ return $.eq($.parameterMap,          $.get('parameterMap')); }}" +
+				"${{ return $.eq($.parameter_map,         $.get('parameter_map')); }}" +
+				"${{ return $.eq($.remoteAddress,         $.get('remoteAddress')); }}" +
+				"${{ return $.eq($.remote_address,        $.get('remote_address')); }}" +
+				"${{ return $.eq($.statusCode,            $.get('statusCode')); }}" +
+				"${{ return $.eq($.status_code,           $.get('status_code')); }}" +
+				"${{ return $.eq($.now,                   $.get('now')); }}" +
+				"${{ return $.eq($.this,                  $.get('this')); }}" +
+				"${{ return $.eq($.locale,                $.get('locale')); }}" +
+				"${{ return $.eq($.tenantIdentifier,      $.get('tenantIdentifier')); }}" +
+				"${{ return $.eq($.tenant_identifier,     $.get('tenant_identifier')); }}" +
+				"${{ return $.eq($.request.myParam,       'myValue'); }}" +
+				"${{ return $.eq($.get(request').myParam, 'myValue'); }}"
+			);
+
+			// create admin user
+			final User user = createTestNode(User.class,
+				new NodeAttribute<>(StructrApp.key(User.class, "name"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			);
+
+			userId = user.getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		// test successful basic auth
+		RestAssured
+			.given()
+				.headers("X-User", "admin" , "X-Password", "admin")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+				.statusCode(200)
+				.body("html.head.title", Matchers.equalTo("Test"))
+				.body("html.body.h1",    Matchers.equalTo("Test"))
+				.body("html.body.div",   Matchers.equalTo("truetruetruetruetruetruetruetruetruetruetruetruetruetruetruetruetruetruetruetruetruetruetrue"))
+			.when()
+			.get("/test/" + userId + "?myParam=myValue&locale=de_DE");
+	}
 
 	// ----- private methods -----
 	private String getEncodingInUse() {

@@ -140,18 +140,6 @@ public class StructrScriptable extends ScriptableObject {
 			}, null, 0, 0);
 		}
 
-		if ("this".equals(name)) {
-
-			return wrap(this.scriptingContext, start, null, entity);
-
-		}
-
-		if ("me".equals(name)) {
-
-			return wrap(this.scriptingContext, start, null, actionContext.getSecurityContext().getUser(false));
-
-		}
-
 		if ("vars".equals(name)) {
 
 			NativeObject nobj = new NativeObject();
@@ -325,7 +313,14 @@ public class StructrScriptable extends ScriptableObject {
 			return new IdFunctionObject(new FunctionWrapper(function), "Function", 0, 0);
 		}
 
-		return null;
+		try {
+
+			return wrap(this.scriptingContext, start, null, actionContext.evaluate(entity, name, null, null, 0));
+
+		} catch (FrameworkException ex) {
+			exception = ex;
+			return null;
+		}
 	}
 
 	public boolean hasException() {
