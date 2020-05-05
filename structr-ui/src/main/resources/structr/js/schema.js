@@ -2717,14 +2717,16 @@ var _Schema = {
 
 					dialogMeta.show();
 					instance.repaintEverything();
-				});
+				}, ['schema-edit-dialog']);
 
 				dialogMeta.hide();
 
 				var contentEl = dialogText;
 
 				var contentDiv = $('<div id="tabView-methods" class="schema-details"></div>');
-				contentEl.append(contentDiv);
+				var outerDiv = $('<div class="schema-details"></div>');
+				outerDiv.append(contentDiv);
+				contentEl.append(outerDiv);
 
 				_Schema.methods.appendMethods(contentDiv, null, methods);
 			});
