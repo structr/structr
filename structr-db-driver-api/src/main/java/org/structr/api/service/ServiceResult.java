@@ -16,21 +16,35 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.schema;
-
-import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.TransactionPostProcess;
+package org.structr.api.service;
 
 /**
- *
- *
  */
-public class ReloadSchema implements TransactionPostProcess {
+public class ServiceResult {
+
+	private boolean success = false;
+	private String message  = null;
+
+	public ServiceResult(final boolean success) {
+		this(null, success);
+	}
+
+	public ServiceResult(final String message, final boolean success) {
+
+		this.message = message;
+		this.success = success;
+	}
+
+	public boolean isSuccess() {
+		return success;
+	}
+
+	public String getMessage() {
+		return message;
+	}
 
 	@Override
-	public boolean execute(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		return SchemaHelper.reloadSchema(errorBuffer, securityContext.getSessionId()).isSuccess();
+	public String toString() {
+		return "ServiceResult(" + success + ", " + message + ")";
 	}
 }

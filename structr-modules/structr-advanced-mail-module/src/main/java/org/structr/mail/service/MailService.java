@@ -61,6 +61,7 @@ import org.structr.api.config.StringSetting;
 import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.ServiceDependency;
+import org.structr.api.service.ServiceResult;
 import org.structr.api.service.StructrServices;
 import org.structr.common.AdvancedMailContainer;
 import org.structr.common.DynamicMailAttachment;
@@ -95,8 +96,6 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 	public static final Setting<Integer> maxEmails          = new IntegerSetting(Settings.smtpGroup, "MailService", "mail.maxemails",          25,                  "The number of mails which are checked");
 	public static final Setting<Integer> updateInterval     = new IntegerSetting(Settings.smtpGroup, "MailService", "mail.updateinterval",     30000,               "The interval in which the mailbox is checked. Unit is milliseconds");
 	public static final Setting<String> attachmentBasePath  = new StringSetting (Settings.smtpGroup, "MailService", "mail.attachmentbasepath", "/mail/attachments", "The path in structrs virtual filesystem where attachments are downloaded to");
-
-	//////////////////////////////////////////////////////////////// Public Methods
 
 	public MailService() {
 
@@ -210,8 +209,8 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 	}
 
 	@Override
-	public boolean initialize(StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-		return true;
+	public ServiceResult initialize(StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+		return new ServiceResult(true);
 	}
 
 	@Override

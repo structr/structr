@@ -53,6 +53,7 @@ import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.service.LicenseManager;
+import org.structr.api.service.ServiceResult;
 import org.structr.api.util.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.PermissionPropagation;
@@ -364,7 +365,7 @@ public class SchemaHelper {
 		return type;
 	}
 
-	public static boolean reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId) {
+	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId) {
 
 		try {
 

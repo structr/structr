@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.ServiceDependency;
+import org.structr.api.service.ServiceResult;
 import org.structr.api.service.SingletonService;
 import org.structr.api.service.StructrServices;
 import org.structr.common.error.FrameworkException;
@@ -372,7 +373,7 @@ public class LDAPService extends Thread implements SingletonService {
 	}
 
 	@Override
-	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		logger.info("host:    {}", Settings.LDAPHost.getValue("localhost"));
 		logger.info("port:    {}", Settings.LDAPPort.getValue(389));
@@ -382,7 +383,7 @@ public class LDAPService extends Thread implements SingletonService {
 		logger.info("mapping: {}", Settings.LDAPPropertyMapping.getValue("{ sn: name, email: eMail }"));
 		logger.info("groups:  {}", Settings.LDAPGroupNames.getValue("{ group: member, groupOfNames: member, groupOfUniqueNames: uniqueMember }"));
 
-		return true;
+		return new ServiceResult(true);
 	}
 
 	@Override

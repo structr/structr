@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -77,6 +76,7 @@ import org.structr.schema.compiler.RemoveExportedMethodsWithoutSecurityContext;
 import org.structr.schema.compiler.RemoveMethodsWithUnusedSignature;
 import org.structr.schema.export.StructrSchema;
 import org.structr.api.schema.JsonSchema;
+import org.structr.api.service.ServiceResult;
 
 /**
  * Structr Schema Service for dynamic class support at runtime.
@@ -109,7 +109,7 @@ public class SchemaService implements Service {
 	}
 
 	@Override
-	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 		return reloadSchema(new ErrorBuffer(), null);
 	}
 
@@ -121,7 +121,7 @@ public class SchemaService implements Service {
 		return graphQLSchema;
 	}
 
-	public static boolean reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId) {
+	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId) {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final App app                      = StructrApp.getInstance();
@@ -271,7 +271,7 @@ public class SchemaService implements Service {
 											logger.error("{}", token.toString());
 										}
 
-										return false;
+										return new ServiceResult(false);
 
 									} else {
 
@@ -409,7 +409,7 @@ public class SchemaService implements Service {
 			}
 		}
 
-		return success;
+		return new ServiceResult(success);
 	}
 
 	@Override
