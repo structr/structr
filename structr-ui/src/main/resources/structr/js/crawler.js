@@ -41,38 +41,15 @@ var _Crawler = {
 
 	},
 	resize: function() {
-
-		var windowHeight = $(window).height();
-		var headerOffsetHeight = 100;
-
-		if (crawlerTree) {
-			crawlerTree.css({
-				height: windowHeight - headerOffsetHeight + 5 + 'px'
-			});
-		}
-
-		if (crawlerList) {
-			crawlerList.css({
-				height: windowHeight - headerOffsetHeight - 43 + 'px'
-			});
-
-			var pagerHeight         = $('.pager').height();
-			var crawlerInputsHeight = $('.crawler-inputs').height();
-			var filesTableHeight    = $('#files-table').height();
-
-			$('#page-frame').css({height: (windowHeight - (headerOffsetHeight + pagerHeight + crawlerInputsHeight + filesTableHeight + 74)) + 'px'});
-		}
-
 		_Crawler.moveResizer();
 		Structr.resize();
-
 	},
 	moveResizer: function(left) {
 		left = left || LSWrapper.getItem(crawlerResizerLeftKey) || 300;
 		$('.column-resizer', crawlerMain).css({ left: left });
 
-		$('#crawler-tree').css({width: left - 14 + 'px'});
-		$('#crawler-list').css({left: left + 8 + 'px', width: $(window).width() - left - 47 + 'px'});
+		$('#crawler-tree-container').css({width: left - 10 + 'px'});
+		$('#crawler-list').css({ left: left + 8 + 'px', width: $(window).width() - left - 70 + 'px' });
 	},
 	onload: function() {
 
@@ -83,7 +60,7 @@ var _Crawler = {
 
 		Structr.updateMainHelpLink('https://support.structr.com/knowledge-graph');
 
-		main.append(`<div class="tree-main" id="crawler-main"><div class="column-resizer"></div><div class="fit-to-height tree-container" id="crawler-tree-container"><div class="tree" id="crawler-tree"></div></div><div class="fit-to-height tree-contents-container" id="crawler-list-container"><div class="tree-contents tree-contents-with-top-buttons" id="crawler-list"></div></div>`);
+		main.append(`<div class="tree-main" id="crawler-main"><div class="column-resizer"></div><div class="tree-container" id="crawler-tree-container"><div class="tree" id="crawler-tree"></div></div><div class="fit-to-height tree-contents-container" id="crawler-list-container"><div class="tree-contents tree-contents-with-top-buttons" id="crawler-list"></div></div>`);
 		crawlerMain = $('#crawler-main');
 
 		crawlerTree = $('#crawler-tree');
@@ -350,7 +327,7 @@ var _Crawler = {
 		var row = $('#' + rowId);
 		var icon = 'fa-file-code-o';
 
-		row.append(`<td class="file-type"><a href="${sourcePage.url || ''}" target="_blank"><i class="fa ' + icon + '"></i></a></td>`);
+		row.append(`<td class="file-type"><a href="${sourcePage.url || ''}" target="_blank"><i class="fa ${icon}"></i></a></td>`);
 		row.append(`<td><div id="id_${sourcePage.id}" data-structr_type="item" class="node item"><b title="${sourcePage.name ? sourcePage.name : '[unnamed]'}" class="name_">${sourcePage.name ? fitStringToWidth(sourcePage.name, 200) : '[unnamed]'}</b></td>`);
 
 		row.append(`<td><div class="editable url_" title="${sourcePage.url || ''}">${sourcePage.url && sourcePage.url.length ? sourcePage.url : '<span class="placeholder">click to edit</span>'}</div></td>`);

@@ -88,21 +88,6 @@ var _Files = {
 	},
 	resize: function() {
 
-		var windowHeight = $(window).height();
-		var headerOffsetHeight = 100;
-
-		if (fileTree) {
-			fileTree.parent().css({
-				height: windowHeight - headerOffsetHeight + 16 + 'px'
-			});
-		}
-
-		if (folderContents) {
-			folderContents.css({
-				height: windowHeight - headerOffsetHeight - 43 + 'px'
-			});
-		}
-
 		_Files.moveResizer();
 		Structr.resize();
 
@@ -152,7 +137,7 @@ var _Files = {
 		$('.column-resizer', filesMain).css({ left: left });
 
 		$('#file-tree').css({width: left - 14 + 'px'});
-		$('#folder-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 47 + 'px'});
+		$('#folder-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 50 + 'px'});
 	},
 	onload: function() {
 

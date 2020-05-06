@@ -1829,9 +1829,8 @@ button.action.disabled:hover {
 #switches {
 	width: 200px;
 	position: absolute;
-	top: 12px;
-	right: 12px;
-	text-align: right;
+	top: 114px;
+	right: 4px;
 }
 
 #switch-list.active {
@@ -3553,10 +3552,6 @@ td#cascading-options, td#propagation-options {
 	font-weight: bold;
 }
 
-.tree-main {
-	display: table-row;
-}
-
 .tree-main b.name_, .tree-main input.new-name {
 	font-weight: normal;
 }
@@ -3568,6 +3563,7 @@ td#cascading-options, td#propagation-options {
 
 .tree {
 	padding-top: 8px;
+	height: 100%;
 	overflow: auto;
 	vertical-align: top;
 	background-color: #fff;
@@ -3575,9 +3571,22 @@ td#cascading-options, td#propagation-options {
 	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
 }
 
+.tree-main {
+	display: flex;
+	height: calc(100% - 24px);
+	margin: 12px;
+}
+
 .tree-container {
 	vertical-align: top;
-	padding: 12px 0 12px 12px;
+	height: 100%;
+	margin-right: 9px;
+}
+
+.tree-contents-container, .tree-context-container {
+	vertical-align: top;
+	overflow: auto;
+	height: 100%;
 }
 
 .tree-search-container {
@@ -3636,12 +3645,6 @@ input.tree-search-input:focus {
 	color: #000088;
 }
 
-.tree-contents-container, .tree-context-container {
-	display: table-cell;
-	vertical-align: top;
-	padding: 12px 12px 12px 8px;
-}
-
 .tree-contents-container select, #crawler-list-container select, #schema-container select, #flows-canvas-container select {
 	padding: 2px 2px 3px 2px;
 	border: 1px solid rgba(0,0,0,.125);
@@ -3693,6 +3696,7 @@ input.tree-search-input:focus {
 }
 
 .tree-contents, .tree-context {
+	height: calc(100% - 26px);
 	vertical-align: top;
 	background-color: #fff;
 	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
@@ -3701,12 +3705,36 @@ input.tree-search-input:focus {
 	margin-top: 0;
 	overflow: auto;
 	font-size: 9pt;
-	position: absolute;
 }
 
-/*.tree-contents {
-	overflow: hidden;
-}*/
+#contents-contents-container, #folder-contents-container, #code-context-container {
+	margin-left: 2px;
+}
+
+#code-contents-container {
+	margin-left: 2px;
+	margin-right: 9px;
+}
+
+#contents-contents {
+	height: calc(100% - 60px);
+}
+
+#folder-contents {
+	height: calc(100% - 60px);
+}
+
+#flows-canvas {
+	height: calc(100% - 40px);
+}
+
+#code-tree-container {
+	height: calc(100% - 40px);
+}
+
+#crawler-list {
+	height: calc(100% - 84px);
+}
 
 .tree-contents-with-top-buttons {
 	margin-top: 8px;
@@ -4522,24 +4550,8 @@ i.fa.ps {
 	overflow: auto;
 }
 
-#localizations-list-container {
-	display: table-cell;
-	padding-right: 6px;
-}
-
-#localization-main {
-	margin: 12px;
-}
-
-#localizations-list {
-	vertical-align: top;
-	height: 100%;
-	padding: 6px;
-}
-
 #localization-detail {
 	padding: 12px;
-	display: table-cell;
 	vertical-align: top;
 }
 
@@ -4568,28 +4580,37 @@ i.fa.ps {
 	text-align: center;
 }
 
-/**
- * Virtual Types/Mail Templates
- */
+#simple-pages-main {
+	display: flex;
+}
 
-#mail-templates-main, #virtual-types-main {
+#simple-pages-tree {
+	height: calc(100% - 32px);
+}
+
+#simple-pages-contents-container {
+	margin-right: 9px;
+	margin-left: 2px;
+}
+
+#mail-templates-main, #virtual-types-main, #localization-main {
+	display: flex;
+	height: calc(100% - 24px);
 	margin: 12px;
 }
-#mail-templates-list-container, #virtual-types-list-container {
-	display: table-cell;
-	padding-right: 12px;
-}
 
-#virtual-types-list, #mail-templates-list {
+#virtual-types-list, #mail-templates-list, #localizations-list {
 	vertical-align: top;
 	height: 100%;
 	padding: 6px;
+	margin-right: 9px;
 }
 
-#virtual-type-detail, #mail-template-detail {
-	padding: 12px;
-	display: table-cell;
+#virtual-type-detail, #mail-template-detail, #localization-detail {
+	padding: 6px;
 	vertical-align: top;
+	overflow: auto;
+	height: 100%;
 }
 
 #mail-template-detail-inner {
@@ -4849,6 +4870,7 @@ input#element-class {
 	top: 73px;
 	cursor: ew-resize;
 	border: 1px solid transparent;
+	margin-left: 2px;
 }
 
 .column-resizer::after {
