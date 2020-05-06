@@ -1130,29 +1130,29 @@ public class UiScriptingTest extends StructrUiTest {
 			final Content content = (Content)div.getFirstChild();
 
 			content.setProperty(StructrApp.key(Content.class, "content"),
-				"${{ return ($.eq($.current,               $.get('current')))           ? 'A' : 'a'; }}" +
-				"${{ return ($.eq($.baseUrl,               $.get('baseUrl')))           ? 'B' : 'b'; }}" +
-				"${{ return ($.eq($.base_url,              $.get('base_url')))          ? 'C' : 'c'; }}" +
-				"${{ return ($.eq($.me,                    $.get('me')))                ? 'D' : 'd'; }}" +
-				"${{ return ($.eq($.host,                  $.get('host')))              ? 'E' : 'e'; }}" +
-				"${{ return ($.eq($.port,                  $.get('port')))              ? 'F' : 'f'; }}" +
-				"${{ return ($.eq($.pathInfo,              $.get('pathInfo')))          ? 'G' : 'g'; }}" +
-				"${{ return ($.eq($.path_info,             $.get('path_info')))         ? 'H' : 'h'; }}" +
-				"${{ return ($.eq($.queryString,           $.get('queryString')))       ? 'I' : 'i'; }}" +
-				"${{ return ($.eq($.query_string,          $.get('query_string')))      ? 'J' : 'j'; }}" +
-				"${{ return ($.eq($.parameterMap,          $.get('parameterMap')))      ? 'K' : 'k'; }}" +
-				"${{ return ($.eq($.parameter_map,         $.get('parameter_map')))     ? 'L' : 'l'; }}" +
-				"${{ return ($.eq($.remoteAddress,         $.get('remoteAddress')))     ? 'M' : 'm'; }}" +
-				"${{ return ($.eq($.remote_address,        $.get('remote_address')))    ? 'N' : 'n'; }}" +
-				"${{ return ($.eq($.statusCode,            $.get('statusCode')))        ? 'O' : 'o'; }}" +
-				"${{ return ($.eq($.status_code,           $.get('status_code')))       ? 'P' : 'p'; }}" +
-				"${{ return ($.eq($.now,                   $.get('now')))               ? 'Q' : 'q'; }}" +
-				"${{ return ($.eq($.this,                  $.get('this')))              ? 'R' : 'r'; }}" +
-				"${{ return ($.eq($.locale,                $.get('locale')))            ? 'S' : 's'; }}" +
-				"${{ return ($.eq($.tenantIdentifier,      $.get('tenantIdentifier')))  ? 'T' : 't'; }}" +
-				"${{ return ($.eq($.tenant_identifier,     $.get('tenant_identifier'))) ? 'U' : 'u'; }}" +
-				"${{ return ($.eq($.request.myParam,       'myValue'))                  ? 'V' : 'v'; }}" +
-				"${{ return ($.eq($.get(request').myParam, 'myValue'))                  ? 'W' : 'w'; }}"
+				"${{ return ($.eq($.current,                $.get('current')))           ? 'A' : 'a'; }}" +
+				"${{ return ($.eq($.baseUrl,                $.get('baseUrl')))           ? 'B' : 'b'; }}" +
+				"${{ return ($.eq($.base_url,               $.get('base_url')))          ? 'C' : 'c'; }}" +
+				"${{ return ($.eq($.me,                     $.get('me')))                ? 'D' : 'd'; }}" +
+				"${{ return ($.eq($.host,                   $.get('host')))              ? 'E' : 'e'; }}" +
+				"${{ return ($.eq($.port,                   $.get('port')))              ? 'F' : 'f'; }}" +
+				"${{ return ($.eq($.pathInfo,               $.get('pathInfo')))          ? 'G' : 'g'; }}" +
+				"${{ return ($.eq($.path_info,              $.get('path_info')))         ? 'H' : 'h'; }}" +
+				"${{ return ($.eq($.queryString,            $.get('queryString')))       ? 'I' : 'i'; }}" +
+				"${{ return ($.eq($.query_string,           $.get('query_string')))      ? 'J' : 'j'; }}" +
+				"${{ return ($.eq($.parameterMap,           $.get('parameterMap')))      ? 'K' : 'k'; }}" +
+				"${{ return ($.eq($.parameter_map,          $.get('parameter_map')))     ? 'L' : 'l'; }}" +
+				"${{ return ($.eq($.remoteAddress,          $.get('remoteAddress')))     ? 'M' : 'm'; }}" +
+				"${{ return ($.eq($.remote_address,         $.get('remote_address')))    ? 'N' : 'n'; }}" +
+				"${{ return ($.eq($.statusCode,             $.get('statusCode')))        ? 'O' : 'o'; }}" +
+				"${{ return ($.eq($.status_code,            $.get('status_code')))       ? 'P' : 'p'; }}" +
+				"${{ return ($.eq($.now,                    $.get('now')))               ? 'Q' : 'q'; }}" +
+				"${{ return ($.eq($.this,                   $.get('this')))              ? 'R' : 'r'; }}" +
+				"${{ return ($.eq($.locale,                 $.get('locale')))            ? 'S' : 's'; }}" +
+				"${{ return ($.eq($.tenantIdentifier,       $.get('tenantIdentifier')))  ? 'T' : 't'; }}" +
+				"${{ return ($.eq($.tenant_identifier,      $.get('tenant_identifier'))) ? 'U' : 'u'; }}" +
+				"${{ return ($.eq($.request.myParam,        'myValue'))                  ? 'V' : 'v'; }}" +
+				"${{ return ($.eq($.get('request').myParam, 'myValue'))                  ? 'W' : 'w'; }}"
 			);
 
 			// create admin user
