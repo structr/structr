@@ -1130,29 +1130,29 @@ public class UiScriptingTest extends StructrUiTest {
 			final Content content = (Content)div.getFirstChild();
 
 			content.setProperty(StructrApp.key(Content.class, "content"),
-				"${{ return $.eq($.current,               $.get('current')); }}" +
-				"${{ return $.eq($.baseUrl,               $.get('baseUrl')); }}" +
-				"${{ return $.eq($.base_url,              $.get('base_url')); }}" +
-				"${{ return $.eq($.me,                    $.get('me')); }}" +
-				"${{ return $.eq($.host,                  $.get('host')); }}" +
-				"${{ return $.eq($.port,                  $.get('port')); }}" +
-				"${{ return $.eq($.pathInfo,              $.get('pathInfo')); }}" +
-				"${{ return $.eq($.path_info,             $.get('path_info')); }}" +
-				"${{ return $.eq($.queryString,           $.get('queryString')); }}" +
-				"${{ return $.eq($.query_string,          $.get('query_string')); }}" +
-				"${{ return $.eq($.parameterMap,          $.get('parameterMap')); }}" +
-				"${{ return $.eq($.parameter_map,         $.get('parameter_map')); }}" +
-				"${{ return $.eq($.remoteAddress,         $.get('remoteAddress')); }}" +
-				"${{ return $.eq($.remote_address,        $.get('remote_address')); }}" +
-				"${{ return $.eq($.statusCode,            $.get('statusCode')); }}" +
-				"${{ return $.eq($.status_code,           $.get('status_code')); }}" +
-//				"${{ return $.eq($.now,                   $.get('now')); }}" +
-				"${{ return $.eq($.this,                  $.get('this')); }}" +
-				"${{ return $.eq($.locale,                $.get('locale')); }}" +
-				"${{ return $.eq($.tenantIdentifier,      $.get('tenantIdentifier')); }}" +
-				"${{ return $.eq($.tenant_identifier,     $.get('tenant_identifier')); }}" +
-				"${{ return $.eq($.request.myParam,       'myValue'); }}" +
-				"${{ return $.eq($.get(request').myParam, 'myValue'); }}"
+				"${{ return ($.eq($.current,               $.get('current')))           ? 'A' : 'a'; }}" +
+				"${{ return ($.eq($.baseUrl,               $.get('baseUrl')))           ? 'B' : 'b'; }}" +
+				"${{ return ($.eq($.base_url,              $.get('base_url')))          ? 'C' : 'c'; }}" +
+				"${{ return ($.eq($.me,                    $.get('me')))                ? 'D' : 'd'; }}" +
+				"${{ return ($.eq($.host,                  $.get('host')))              ? 'E' : 'e'; }}" +
+				"${{ return ($.eq($.port,                  $.get('port')))              ? 'F' : 'f'; }}" +
+				"${{ return ($.eq($.pathInfo,              $.get('pathInfo')))          ? 'G' : 'g'; }}" +
+				"${{ return ($.eq($.path_info,             $.get('path_info')))         ? 'H' : 'h'; }}" +
+				"${{ return ($.eq($.queryString,           $.get('queryString')))       ? 'I' : 'i'; }}" +
+				"${{ return ($.eq($.query_string,          $.get('query_string')))      ? 'J' : 'j'; }}" +
+				"${{ return ($.eq($.parameterMap,          $.get('parameterMap')))      ? 'K' : 'k'; }}" +
+				"${{ return ($.eq($.parameter_map,         $.get('parameter_map')))     ? 'L' : 'l'; }}" +
+				"${{ return ($.eq($.remoteAddress,         $.get('remoteAddress')))     ? 'M' : 'm'; }}" +
+				"${{ return ($.eq($.remote_address,        $.get('remote_address')))    ? 'N' : 'n'; }}" +
+				"${{ return ($.eq($.statusCode,            $.get('statusCode')))        ? 'O' : 'o'; }}" +
+				"${{ return ($.eq($.status_code,           $.get('status_code')))       ? 'P' : 'p'; }}" +
+				"${{ return ($.eq($.now,                   $.get('now')))               ? 'Q' : 'q'; }}" +
+				"${{ return ($.eq($.this,                  $.get('this')))              ? 'R' : 'r'; }}" +
+				"${{ return ($.eq($.locale,                $.get('locale')))            ? 'S' : 's'; }}" +
+				"${{ return ($.eq($.tenantIdentifier,      $.get('tenantIdentifier')))  ? 'T' : 't'; }}" +
+				"${{ return ($.eq($.tenant_identifier,     $.get('tenant_identifier'))) ? 'U' : 'u'; }}" +
+				"${{ return ($.eq($.request.myParam,       'myValue'))                  ? 'V' : 'v'; }}" +
+				"${{ return ($.eq($.get(request').myParam, 'myValue'))                  ? 'W' : 'w'; }}"
 			);
 
 			// create admin user
@@ -1189,7 +1189,7 @@ public class UiScriptingTest extends StructrUiTest {
 				.statusCode(200)
 				.body("html.head.title", Matchers.equalTo("Test"))
 				.body("html.body.h1",    Matchers.equalTo("Test"))
-				.body("html.body.div",   Matchers.equalTo("truetruetruetruetruetruetruetruetruetruetruetruetruetruetruetruetruetruetruetruetruetruetrue"))
+				.body("html.body.div",   Matchers.equalTo("ABCDEFGHIJKLMNOPQRSTUVW"))
 			.when()
 			.get("/test/" + userId + "?myParam=myValue&locale=de_DE");
 	}
