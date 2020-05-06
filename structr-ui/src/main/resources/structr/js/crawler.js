@@ -48,8 +48,8 @@ var _Crawler = {
 		left = left || LSWrapper.getItem(crawlerResizerLeftKey) || 300;
 		$('.column-resizer', crawlerMain).css({ left: left });
 
-		$('#crawler-tree-container').css({width: left - 10 + 'px'});
-		$('#crawler-list').css({ left: left + 8 + 'px', width: $(window).width() - left - 70 + 'px' });
+		$('#crawler-tree-container').css({width: left - 14 + 'px'});
+		$('#crawler-list').css({ left: left + 8 + 'px', width: $(window).width() - left - 50 + 'px' });
 	},
 	onload: function() {
 

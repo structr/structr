@@ -67,7 +67,7 @@ var _Contents = {
 		$('.column-resizer', contentsMain).css({ left: left });
 
 		$('#contents-tree').css({width: left - 14 + 'px'});
-		$('#contents-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 70 + 'px'});
+		$('#contents-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 50 + 'px'});
 	},
 	onload: function() {
 

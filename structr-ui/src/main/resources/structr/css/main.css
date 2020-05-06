@@ -2935,7 +2935,7 @@ table.push {
  */
 
 #usersAndGroups, #resourceAccess {
-	height: calc(100% + 6px);
+	height: calc(100% - 28px);
 }
 
 #usersAndGroups #users, #usersAndGroups #groups {
@@ -3011,10 +3011,8 @@ table.push {
 }
 
 #securityTabs {
-	margin: 12px 24px 12px 12px;
-	width: calc(100vw - 36px);
-	min-width: calc(804px + 4em);
-	height: calc(100vh - 120px);
+	margin: 12px;
+	height: calc(100% - 12px);
 	border: none;
 	background: none;
 }
@@ -3540,10 +3538,6 @@ td#cascading-options, td#propagation-options {
  * Filesystem-like pages (Filesystem, Contents, Crawer)
  */
 
-#file-tree {
-	height: calc(100% - 11px);
-}
-
 .jstree-anchor {
 	font-size: 9pt;
 }
@@ -3562,25 +3556,24 @@ td#cascading-options, td#propagation-options {
 }
 
 .tree {
-	padding-top: 8px;
 	height: 100%;
 	overflow: auto;
 	vertical-align: top;
 	background-color: #fff;
-	border: 1px solid rgba(0,0,0,.125);
-	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
 }
 
 .tree-main {
 	display: flex;
-	height: calc(100% - 24px);
+	height: calc(100% - 12px);
 	margin: 12px;
 }
 
 .tree-container {
 	vertical-align: top;
-	height: 100%;
+	height: calc(100% - 2px);
 	margin-right: 9px;
+	border: 1px solid rgba(0,0,0,.125);
+	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
 }
 
 .tree-contents-container, .tree-context-container {
@@ -3707,7 +3700,7 @@ input.tree-search-input:focus {
 	font-size: 9pt;
 }
 
-#contents-contents-container, #folder-contents-container, #code-context-container {
+#contents-contents-container, #folder-contents-container, #code-context-container, #crawler-list-container {
 	margin-left: 2px;
 }
 
@@ -3716,20 +3709,25 @@ input.tree-search-input:focus {
 	margin-right: 9px;
 }
 
-#contents-contents {
-	height: calc(100% - 60px);
-}
-
-#folder-contents {
-	height: calc(100% - 60px);
+#folder-contents, #contents-contents {
+	height: calc(100% - 58px);
 }
 
 #flows-canvas {
-	height: calc(100% - 40px);
+	height: calc(100% - 34px);
+	padding: 0;
 }
 
-#code-tree-container {
-	height: calc(100% - 40px);
+#code-tree-container, #simple-pages-tree-container {
+	height: 100%;
+	border: none;
+	box-shadow: none;
+}
+
+#code-tree, #simple-pages-tree {
+	border: 1px solid rgba(0,0,0,.125);
+	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
+	height: calc(100% - 34px);
 }
 
 #crawler-list {
@@ -3776,10 +3774,6 @@ input.tree-search-input:focus {
 #code-contents .schema-props .chosen-choices {
 	border: none;
 }
-
- #flows-canvas {
-	 padding: 0;
- }
 
 #folder-contents h1, #code-contents h1, #contents-contents h1, #crawler-list h1, #flows-canvas h1 {
 	margin: 0px;
@@ -4582,10 +4576,6 @@ i.fa.ps {
 
 #simple-pages-main {
 	display: flex;
-}
-
-#simple-pages-tree {
-	height: calc(100% - 32px);
 }
 
 #simple-pages-contents-container {

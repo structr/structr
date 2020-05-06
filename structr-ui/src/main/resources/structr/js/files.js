@@ -145,7 +145,7 @@ var _Files = {
 
 		Structr.updateMainHelpLink('https://support.structr.com/article/49');
 
-		main.append('<div class="tree-main" id="files-main"><div class="column-resizer"></div><div class="fit-to-height tree-container" id="file-tree-container"><div class="tree" id="file-tree"></div></div><div class="fit-to-height tree-contents-container" id="folder-contents-container"><div class="tree-contents tree-contents-with-top-buttons" id="folder-contents"></div></div>');
+		main.append('<div class="tree-main" id="files-main"><div class="column-resizer"></div><div class="tree-container" id="file-tree-container"><div class="tree" id="file-tree"></div></div><div class="tree-contents-container" id="folder-contents-container"><div class="tree-contents tree-contents-with-top-buttons" id="folder-contents"></div></div>');
 		filesMain = $('#files-main');
 
 		fileTree = $('#file-tree');

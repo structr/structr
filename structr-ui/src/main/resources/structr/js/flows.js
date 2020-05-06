@@ -49,7 +49,7 @@ var _Flows = {
 		left = left || LSWrapper.getItem(_Flows.flowsResizerLeftKey) || 300;
 		document.querySelector('#flows-main .column-resizer').style.left = left + 'px';
 
-		document.querySelector('#flows-tree-container').style.width   = left - 10 + 'px';
+		document.querySelector('#flows-tree-container').style.width   = left - 12 + 'px';
 		document.querySelector('#flows-canvas-container').style.width = window.innerWidth - left - 40 + 'px';
 	},
 	onload: function() {
