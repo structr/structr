@@ -4540,7 +4540,7 @@ i.fa.ps {
 	display: inline-block;
 	vertical-align: top;
 	padding: 10px;
-	height: calc(100vh - 104px);
+	height: calc(100% - 34px);
 	overflow: auto;
 }
 
