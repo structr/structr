@@ -1573,7 +1573,7 @@ var Structr = {
 		dialogMsg.html(newDiv);
 		$('.infoBox', dialogMsg).delay(delayTime).fadeOut(fadeTime);
 	},
-	initVerticalSlider: function(sliderEl, localstorageKey, minWidth, dragCallback) {
+	initVerticalSlider: function(sliderEl, localstorageKey, minWidth, dragCallback, isRight) {
 
 		if (typeof dragCallback !== 'function') {
 			console.error('dragCallback is not a function!');
@@ -1599,11 +1599,13 @@ var Structr = {
 				}
 
 				ui.position.left = left;
-				dragCallback(left);
+				let val = (isRight === true) ? window.innerWidth - ui.position.left : ui.position.left;
+				dragCallback(val);
 			},
 			stop: function(e, ui) {
 				$('.column-resizer-blocker').hide();
-				LSWrapper.setItem(localstorageKey, ui.position.left);
+				let val = (isRight === true) ? window.innerWidth - ui.position.left : ui.position.left;
+				LSWrapper.setItem(localstorageKey, val);
 			}
 		});
 

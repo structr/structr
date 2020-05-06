@@ -101,18 +101,18 @@ var _Code = {
 		_Code.updatedResizers(left, null);
 	},
 	moveRightResizer: function(left) {
-		left = left || LSWrapper.getItem(_Code.codeResizerRightKey) || window.innerWidth - 240;
+		left = left || LSWrapper.getItem(_Code.codeResizerRightKey) || 240;
 		_Code.updatedResizers(null, left);
 	},
 	updatedResizers: function(left, right) {
 		left = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || 300;
-		right = right || LSWrapper.getItem(_Code.codeResizerRightKey) || 300;
+		right = right || LSWrapper.getItem(_Code.codeResizerRightKey) || 240;
 
 		$('.column-resizer-left', codeMain).css({ left: left + 'px'});
-		$('.column-resizer-right', codeMain).css({left: right + 'px'});
+		$('.column-resizer-right', codeMain).css({left: window.innerWidth - right + 'px'});
 
 		let leftWidth = left - 14;
-		let rightWidth = window.innerWidth - right - 24;
+		let rightWidth = right - 24;
 		let middleWidth = window.innerWidth - leftWidth - rightWidth - 74;
 
 		$('#code-tree').css({ width: leftWidth + 'px' });
@@ -137,7 +137,7 @@ var _Code = {
 				codeContext  = $('#code-context');
 
 				Structr.initVerticalSlider($('.column-resizer-left', codeMain), _Code.codeResizerLeftKey, 204, _Code.moveLeftResizer);
-				Structr.initVerticalSlider($('.column-resizer-right', codeMain), _Code.codeResizerRightKey, 204, _Code.moveRightResizer);
+				Structr.initVerticalSlider($('.column-resizer-right', codeMain), _Code.codeResizerRightKey, 204, _Code.moveRightResizer, true);
 
 				$.jstree.defaults.core.themes.dots      = false;
 				$.jstree.defaults.dnd.inside_pos        = 'last';
