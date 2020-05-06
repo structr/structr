@@ -79,7 +79,7 @@ var _Flows = {
 		flowsMain = document.querySelector('#flows-main');
 
 		let markup = `
-			<div class="input-and-button"><input id="name-input" type="text" size="12" placeholder="Enter flow name"><button id="create-new-flow" class="action btn"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add</button></div>
+			<div class="input-and-button"><input id="name-input" type="text" placeholder="Enter flow name"><button id="create-new-flow" class="action btn"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add</button></div>
 			<!--button class="add-flow-node"><i class="${_Icons.getFullSpriteClass(_Icons.add_brick_icon)}"></i> Add node</button-->
 			<button class="delete_flow_icon button disabled"><i title="Delete" class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i> Delete flow</button>
 			<button class="run_flow_icon button disabled"><i title="Run" class="${_Icons.getFullSpriteClass(_Icons.exec_icon)}"></i> Run</button>
