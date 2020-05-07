@@ -193,7 +193,6 @@ var _Files = {
 					elem.append('<option value="' + type + '">' + type + '</option>');
 				});
 			});
-
 		});
 
 		$.jstree.defaults.core.themes.dots      = false;
@@ -212,7 +211,7 @@ var _Files = {
 
 					$('#favorites_anchor').click();
 
-				} else if (currentWorkingDir) {
+				} else if (currentWorkingDir && currentWorkingDir.parent) {
 
 					_Files.deepOpen(currentWorkingDir.parent);
 
