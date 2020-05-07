@@ -211,9 +211,9 @@ var _Files = {
 
 					$('#favorites_anchor').click();
 
-				} else if (currentWorkingDir && currentWorkingDir.parent) {
+				} else if (currentWorkingDir) {
 
-					_Files.deepOpen(currentWorkingDir.parent);
+					_Files.deepOpen(currentWorkingDir);
 
 				} else {
 
@@ -330,9 +330,6 @@ var _Files = {
 					return;
 				}
 
-				_Logger.log(_LogType.FILES, 'dropped something in the #files area');
-
-
 				fileList = event.originalEvent.dataTransfer.files;
 				var filesToUpload = [];
 				var tooLargeFiles = [];
@@ -350,16 +347,41 @@ var _Files = {
 					var errorText = 'The following files are too large (limit ' + sizeLimit / (1024 * 1024) + ' Mbytes):<br>\n';
 
 					$(tooLargeFiles).each(function(i, tooLargeFile) {
-						errorText += tooLargeFile.name + ': ' + Math.round(tooLargeFile.size / (1024 * 1024)) + ' Mbytes<br>\n';
+						errorText += '<b>' + tooLargeFile.name + '</b>: ' + Math.round(tooLargeFile.size / (1024 * 1024)) + ' Mbytes<br>\n';
 					});
 
-					Structr.error(errorText, true);
+					new MessageBuilder().error(errorText).title('File(s) too large for upload').requiresConfirmation().show();
 				}
+
+				let probeErrors = [];
+				let probeCount = 0;
 
 				filesToUpload.forEach(function(file) {
 					file.parentId = currentWorkingDir ? currentWorkingDir.id : null;
 					file.hasParent = true; // Setting hasParent = true forces the backend to upload the file to the root dir even if parentId is null
-					Command.createFile(file); // appending to UI is triggered by StructrModel call only
+
+					// probe for errors
+					let probeError = undefined;
+					let reader = new FileReader();
+					reader.onloadstart = (e) => { reader.abort(); };			// abort immediatley so nothing is read
+					reader.onerror = (e) => {
+						probeError = reader.error;
+						reader.abort();
+					};
+					reader.onloadend = (e) => {
+						if (!probeError) {
+							Command.createFile(file); // appending to UI is triggered by StructrModel call only
+						} else {
+							probeErrors.push('Item name: <b>' + file.name + '</b>: ' + probeError);
+						}
+
+						if (++probeCount === filesToUpload.length) {
+							if (probeErrors.length > 0) {
+								new MessageBuilder().error('This can happen if folders are being dropped - uploading folders is not possible. It can also happen if dropped files are removed before being processed.<br><br>' + probeErrors.join('<br>')).title('Error(s) for upload items').requiresConfirmation().show();
+							}
+						}
+					};
+					reader.readAsArrayBuffer(file);
 				});
 
 				return false;
