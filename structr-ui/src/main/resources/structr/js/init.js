@@ -2044,15 +2044,15 @@ var _TreeHelper = {
 			plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
 			core: {
 				animation: 0,
-				state: {
-					key: stateKey
-				},
 				async: true,
 				data: initFunction
+			},
+			state: {
+				key: stateKey
 			}
 		});
 	},
-	deepOpen: function(tree, element, parentElements, parentKey, selectedNode) {
+	deepOpen: function(tree, element, parentElements, parentKey, selectedNodeId) {
 		if (element && element.id) {
 
 			parentElements = parentElements || [];
@@ -2060,20 +2060,33 @@ var _TreeHelper = {
 
 			Command.get(element.id, parentKey, function(loadedElement) {
 				if (loadedElement && loadedElement[parentKey]) {
-					_TreeHelper.deepOpen(tree, loadedElement[parentKey], parentElements, selectedNode);
+					_TreeHelper.deepOpen(tree, loadedElement[parentKey], parentElements, parentKey, selectedNodeId);
 				} else {
-					_TreeHelper.open(tree, parentElements, selectedNode);
+					_TreeHelper.open(tree, parentElements, selectedNodeId);
 				}
 			});
 		}
 	},
 	open: function(tree, dirs, selectedNode) {
 		if (dirs.length) {
-			var d = dirs.shift();
-			tree.jstree('deselect_node', d.id);
-			tree.jstree('open_node', d.id, function() {
-				tree.jstree('select_node', selectedNode);
-			});
+			tree.jstree('deselect_all');
+
+			let openRecursively = function(list) {
+
+				if (list.length > 0) {
+
+					let first = list.shift();
+
+					tree.jstree('open_node', first.id, function() {
+						openRecursively(list);
+					});
+
+				} else {
+					tree.jstree('select_node', selectedNode);
+				}
+			};
+
+			openRecursively(dirs);
 		}
 	},
 	refreshTree: function(tree, callback) {
