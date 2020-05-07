@@ -2540,6 +2540,8 @@ var _Schema = {
 				let row = $(html);
 				fakeTbody.append(row);
 
+				fakeTbody.scrollTop(row.position().top);
+
 				_Schema.methods.methodsData[tplConfig.methodId] = {
 					isNew: true,
 					name: tplConfig.name,
