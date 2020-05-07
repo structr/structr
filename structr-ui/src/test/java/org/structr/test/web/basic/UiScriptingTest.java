@@ -1189,7 +1189,7 @@ public class UiScriptingTest extends StructrUiTest {
 				.statusCode(200)
 				.body("html.head.title", Matchers.equalTo("Test"))
 				.body("html.body.h1",    Matchers.equalTo("Test"))
-				.body("html.body.div",   Matchers.equalTo("ABCDEFGHIJKLMNOPQRSTUVW"))
+				.body("html.body.div",   Matchers.equalTo("ABCDEFGHIJKLMNOPRSTUVW"))
 			.when()
 			.get("/test/" + userId + "?myParam=myValue&locale=de_DE");
 	}
