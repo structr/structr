@@ -92,9 +92,6 @@ var _Code = {
 				_Entities.setMouseOver($(this), true);
 			});
 		}
-
-		var contentBox = $('.CodeMirror');
-		contentBox.height('100%');
 	},
 	moveLeftResizer: function(left) {
 		left = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || 300;

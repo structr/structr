@@ -3939,6 +3939,11 @@ input.tree-search-input:focus {
 #dialogBox.dialog.schema-edit-dialog .dialogText .schema-details #tabView-methods #methods-container #methods-content {
 	height: calc(100% - 72px);
 }
+
+#dialogBox.dialog.schema-edit-dialog .dialogText .schema-details #tabView-methods #methods-container #methods-content .method-tab-content,
+#dialogBox.dialog.schema-edit-dialog .dialogText .schema-details #tabView-methods #methods-container #methods-content .method-tab-content .cm-schema-methods {
+	height: 100%;
+}
 /* END: styles to maximize methods editors in bulk save dialog for SCHEMA area */
 
 #type-content-add-property i,
