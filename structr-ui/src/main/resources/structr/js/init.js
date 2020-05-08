@@ -211,10 +211,10 @@ $(function() {
 				}
 			}
 		}
-		// Ctrl-Alt-t
+		// Ctrl-Alt-m
 		if (k === 77 && altKey && ctrlKey) {
 			e.preventDefault();
-			var uuid = prompt('Enter the UUID for which you want to open the edit dialog');
+			var uuid = prompt('Enter the UUID for which you want to open the content/template edit dialog');
 			if (uuid && uuid.length === 32) {
 				Command.get(uuid, null, function(obj) {
 					_Elements.openEditContentDialog(this, obj);
