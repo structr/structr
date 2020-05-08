@@ -344,9 +344,6 @@ public class ActionContext {
 					case "now":
 						return this.isJavaScriptContext() ? new Date() : DatePropertyParser.format(new Date(), Settings.DefaultDateFormat.getValue());
 
-					case "element":
-						logger.warn("The \"element\" keyword is deprecated! Please use \"this\" instead. Used in {}", entity.getProperty(GraphObject.id));
-
 					case "this":
 						return entity;
 

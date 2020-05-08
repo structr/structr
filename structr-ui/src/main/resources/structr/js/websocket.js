@@ -158,7 +158,7 @@ function wsConnect() {
 					Structr.clearLoginForm();
 					$('table.username-password', loginBox).show();
 					$('table.twofactor', loginBox).hide();
-					Structr.refreshUi();
+					Structr.refreshUi((command === 'LOGIN'));
 				}
 
 				StructrModel.callCallback(data.callback, data.data[data.data['key']]);
