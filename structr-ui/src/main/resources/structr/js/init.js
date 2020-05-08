@@ -1403,7 +1403,7 @@ var Structr = {
 		});
 
 	},
-	inMemorWarningText:"Please not that the system is currently running on an in-memory database implementation. Data is not persisted and will be lost after restarting the instance! You can use the configuration servlet to configure a database connection.",
+	inMemorWarningText:"Please note that the system is currently running on an in-memory database implementation. Data is not persisted and will be lost after restarting the instance! You can use the configuration tool to configure a database connection.",
 	appendInMemoryInfoToElement: function(el, optionalToggleElement) {
 
 		let config = {
