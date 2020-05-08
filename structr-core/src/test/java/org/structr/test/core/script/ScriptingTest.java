@@ -1513,6 +1513,20 @@ public class ScriptingTest extends StructrTest {
 			final List sliceResultList = (List)sliceResult;
 			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResultList.size());
 
+			// slice with find
+			final Object sliceWithFindResult = Scripting.evaluate(ctx, null, "${slice(find('TestSix'), 0, 1)}", "slice test with find");
+			assertTrue("Invalid slice() result, must return collection for valid results", sliceWithFindResult instanceof Collection);
+			assertTrue("Invalid slice() result, must return list for valid results", sliceWithFindResult instanceof List);
+			final List sliceWithFindResultList = (List)sliceWithFindResult;
+			assertEquals("Invalid slice() result, must return a list of 1 object", 1, sliceWithFindResultList.size());
+
+			// slice with find JS
+			final Object sliceWithFindJSResult = Scripting.evaluate(ctx, null, "${{ return $.slice(function() { return $.find('TestSix') }, 0, 1); }}", "slice test with find in JS");
+			assertTrue("Invalid slice() result, must return collection for valid results", sliceWithFindJSResult instanceof Collection);
+			assertTrue("Invalid slice() result, must return list for valid results", sliceWithFindJSResult instanceof List);
+			final List sliceWithFindJSResultList = (List)sliceWithFindJSResult;
+			assertEquals("Invalid slice() result, must return a list of 1 objects", 1, sliceWithFindJSResultList.size());
+
 			// test error cases
 			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.alwaysNull, 1, 2)}"));
 			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, -1, 1)}"));
