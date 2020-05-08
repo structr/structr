@@ -480,7 +480,7 @@ var _Pages = {
 				return true;
 			}, function() {
 				return true;
-			}, true);
+			});
 
 			dialog.empty();
 			dialogMsg.empty();

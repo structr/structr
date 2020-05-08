@@ -31,6 +31,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.bolt.BoltDatabaseService;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -368,7 +369,8 @@ public class StructrTest {
 	protected void setupDatabaseConnection() {
 
 		// use database driver from system property, default to MemoryDatabaseService
-		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
+		//Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
+		Settings.DatabaseDriver.setValue(BoltDatabaseService.class.getName());
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());

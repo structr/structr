@@ -26,10 +26,6 @@ var currentWorkingDir;
 var methodPageSize = 10000, methodPage = 1;
 var timeout, attempts = 0, maxRetry = 10;
 var displayingFavorites = false;
-var codeLastOpenMethodKey = 'structrCodeLastOpenMethod_' + port;
-var codeResizerLeftKey = 'structrCodeResizerLeftKey_' + port;
-var codeResizerRightKey = 'structrCodeResizerRightKey_' + port;
-var activeCodeTabPrefix = 'activeCodeTabPrefix' + port;
 
 $(document).ready(function() {
 	Structr.registerModule(_Code);
@@ -45,6 +41,9 @@ var _Code = {
 	layouter: null,
 	seed: 42,
 	codeRecentElementsKey: 'structrCodeRecentElements_' + port,
+	codeLastOpenMethodKey: 'structrCodeLastOpenMethod_' + port,
+	codeResizerLeftKey: 'structrCodeResizerLeftKey_' + port,
+	codeResizerRightKey: 'structrCodeResizerRightKey_' + port,
 	init: function() {
 
 		_Logger.log(_LogType.CODE, '_Code.init');
@@ -62,29 +61,7 @@ var _Code = {
 	},
 	resize: function() {
 
-		var windowHeight = $(window).height();
-		var headerOffsetHeight = 100;
-
-		if (codeTree) {
-			codeTree.css({
-				height: windowHeight - headerOffsetHeight - 27 + 'px'
-			});
-		}
-
-		if (codeContents) {
-			codeContents.css({
-				height: windowHeight - headerOffsetHeight - 11 + 'px'
-			});
-		}
-
-		if (codeContext) {
-			codeContext.css({
-				height: windowHeight - headerOffsetHeight - 11 + 'px'
-			});
-		}
-
-		_Code.moveLeftResizer();
-		_Code.moveRightResizer();
+		_Code.updatedResizers();
 		Structr.resize();
 
 		var nameColumnWidth = $('#code-table th:nth-child(2)').width();
@@ -115,28 +92,30 @@ var _Code = {
 				_Entities.setMouseOver($(this), true);
 			});
 		}
-
-		var contentBox = $('.CodeMirror');
-		contentBox.height('100%');
 	},
 	moveLeftResizer: function(left) {
-		left = left || LSWrapper.getItem(codeResizerLeftKey) || 300;
-		$('.column-resizer-left', codeMain).css({ left: left + 'px'});
-
-		var contextWidth  = $('#code-context').width();
-		var contentsWidth = window.innerWidth - left - contextWidth - 82;
-
-		$('#code-tree').css({width: left - 14 + 'px'});
-		$('#code-contents').css({left: left + 8 + 'px', width: contentsWidth + 'px'});
-		$('#code-context').css({left: left + contentsWidth + 42 + 'px', width: contextWidth + 'px'});
+		left = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || 300;
+		_Code.updatedResizers(left, null);
 	},
 	moveRightResizer: function(left) {
-		left = left || LSWrapper.getItem(codeResizerRightKey) || window.innerWidth - 240;
-		$('.column-resizer-right').css({left: left + 'px'});
+		left = left || LSWrapper.getItem(_Code.codeResizerRightKey) || 240;
+		_Code.updatedResizers(null, left);
+	},
+	updatedResizers: function(left, right) {
+		left = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || 300;
+		right = right || LSWrapper.getItem(_Code.codeResizerRightKey) || 240;
 
-		var treeWidth = $('#code-tree-container').width();
-		$('#code-contents').css({width: left - treeWidth - 46 + 'px'});
-		$('#code-context').css({left: left + 8 + 'px', width: window.innerWidth - left - 48 + 'px'});
+		$('.column-resizer-left', codeMain).css({ left: left + 'px'});
+		$('.column-resizer-right', codeMain).css({left: window.innerWidth - right + 'px'});
+
+		let leftWidth = left - 14;
+		let rightWidth = right - 24;
+		let middleWidth = window.innerWidth - leftWidth - rightWidth - 74;
+
+		$('#code-tree').css({ width: leftWidth + 'px' });
+		$('#code-context-container').css({ width: rightWidth + 'px' });
+
+		$('#code-contents').css({width: middleWidth + 'px'});
 	},
 	onload: function() {
 
@@ -154,8 +133,8 @@ var _Code = {
 				codeContents = $('#code-contents');
 				codeContext  = $('#code-context');
 
-				Structr.initVerticalSlider($('.column-resizer-left', codeMain), codeResizerLeftKey, 204, _Code.moveLeftResizer);
-				Structr.initVerticalSlider($('.column-resizer-right', codeMain), codeResizerRightKey, 204, _Code.moveRightResizer);
+				Structr.initVerticalSlider($('.column-resizer-left', codeMain), _Code.codeResizerLeftKey, 204, _Code.moveLeftResizer);
+				Structr.initVerticalSlider($('.column-resizer-right', codeMain), _Code.codeResizerRightKey, 204, _Code.moveRightResizer, true);
 
 				$.jstree.defaults.core.themes.dots      = false;
 				$.jstree.defaults.dnd.inside_pos        = 'last';
@@ -428,7 +407,9 @@ var _Code = {
 		var recentElements = LSWrapper.getItem(_Code.codeRecentElementsKey) || [];
 
 		recentElements.forEach(function(element) {
-			_Code.addRecentlyUsedElement(element.id, element.name, element.iconClass, element.path, true);
+			if (element.name !== undefined) {
+				_Code.addRecentlyUsedElement(element.id, element.name, element.iconClass, element.path, true);
+			}
 		});
 
 		doneCallback();
@@ -537,7 +518,7 @@ var _Code = {
 
 				if (_Code.searchIsActive()) {
 
-					callback({
+					defaultEntries.unshift({
 						id: 'search-results',
 						text: 'Search Results',
 						children: true,
@@ -546,11 +527,9 @@ var _Code = {
 							opened: true
 						}
 					});
-
-				} else {
-
-					callback(defaultEntries);
 				}
+
+				callback(defaultEntries);
 				break;
 
 			case 'root':
@@ -1285,7 +1264,7 @@ var _Code = {
 						Structr.fetchHtmlTemplate('code/method', { method: result }, function(html) {
 							codeContents.append(html);
 
-							LSWrapper.setItem(codeLastOpenMethodKey, result.id);
+							LSWrapper.setItem(_Code.codeLastOpenMethodKey, result.id);
 							_Code.editPropertyContent(result, 'source', codeContents);
 						});
 					});
@@ -2459,7 +2438,6 @@ var _Code = {
 	runGlobalSchemaMethod: function(schemaMethod) {
 
 		let cleanedComment = (schemaMethod.comment && schemaMethod.comment.trim() !== '') ? schemaMethod.comment.replaceAll("\n", "<br>") : '';
-
 		Structr.dialog('Run global schema method ' + schemaMethod.name, function() {}, function() {
 			$('#run-method').remove();
 			$('#clear-log').remove();

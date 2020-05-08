@@ -29,6 +29,7 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
 import org.structr.api.service.Command;
+import org.structr.api.service.ServiceResult;
 import org.structr.api.service.SingletonService;
 import org.structr.api.service.StructrServices;
 import org.structr.api.util.CountResult;
@@ -49,7 +50,6 @@ public class NodeService implements SingletonService {
 	private String filesPath                = null;
 	private boolean isInitialized           = false;
 	private CountResult initialCount        = null;
-	private String errorMessage             = null;
 
 	@Override
 	public void injectArguments(Command command) {
@@ -64,9 +64,10 @@ public class NodeService implements SingletonService {
 	}
 
 	@Override
-	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final String databaseDriver = Settings.DatabaseDriver.getPrefixedValue(serviceName);
+		String errorMessage         = null;
 
 		databaseService = (DatabaseService)Class.forName(databaseDriver).newInstance();
 		if (databaseService != null) {
@@ -108,7 +109,7 @@ public class NodeService implements SingletonService {
 			}
 		}
 
-		return isInitialized;
+		return new ServiceResult(errorMessage, isInitialized);
 	}
 
 	@Override
@@ -244,12 +245,6 @@ public class NodeService implements SingletonService {
 			}
 		}
 	}
-
-	@Override
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
 
 	// ----- private methods -----
 	private void checkCacheSizes() {

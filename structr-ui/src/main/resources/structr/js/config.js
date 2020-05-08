@@ -45,7 +45,7 @@ function resetToDefault(key) {
 
 function resize() {
 	$('.tab-content').css({
-		height: $(window).height() - 160 - $('#configTabsMenu').height() + 'px'
+		height: $(window).height() - $('#header').height() - $('#configTabs .tabs-menu').height() - 60 + 'px'
 	});
 }
 
@@ -145,6 +145,10 @@ $(function () {
 
 			target.val(parts.filter(function(e) { return e && e.length; }).join(' '));
 		}
+	});
+
+	$('.new-connection.collapsed').on('click', function() {
+		$(this).removeClass('collapsed');
 	});
 });
 
@@ -350,10 +354,10 @@ function collectData(name) {
 	let pwdInput    = $('input#password-' + name);
 	let nowCheckbox = $('input#connect-checkbox');
 
-	nameInput.removeClass();
-	urlInput.removeClass();
-	userInput.removeClass();
-	pwdInput.removeClass();
+	nameInput.parent().removeClass();
+	urlInput.parent().removeClass();
+	userInput.parent().removeClass();
+	pwdInput.parent().removeClass();
 
 	let data = {
 		name:     nameInput.val(),
@@ -415,6 +419,13 @@ function deleteConnection(name) {
 			503: response => handleErrorResponse(name, response)
 		}
 	});
+}
+
+function setNeo4jDefaults() {
+	$('#name-structr-new-connection').val('neo4j-localhost-7687');
+	$('#url-structr-new-connection').val('bolt://localhost:7687');
+	$('#username-structr-new-connection').val('neo4j');
+	$('#password-structr-new-connection').val('neo4j');
 }
 
 function saveConnection(name) {
@@ -481,7 +492,7 @@ function disconnect(button, name) {
 	status.addClass('hidden');
 	status.empty();
 
-	_Config.showNonBlockUILoadingMessage('Connection is being disconnected', 'Please wait...');
+	_Config.showNonBlockUILoadingMessage('Database is being disconnected', 'Please wait...');
 
 	$.ajax({
 		type: 'post',

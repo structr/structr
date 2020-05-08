@@ -844,6 +844,10 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid complement() result", "[]", Scripting.replaceVariables(ctx, testOne, "${complement(merge('one', 'two', 'three'), 'one', merge('two', 'three', 'four'))}"));
 			assertEquals("Invalid complement() result", "[two]", Scripting.replaceVariables(ctx, testOne, "${complement(merge('one', 'two', 'three'), merge('one', 'four', 'three'))}"));
 
+			assertEquals("Invalid complement() result", "[two, two]", Scripting.replaceVariables(ctx, testOne, "${complement(merge('one', 'two', 'three', 'two'), merge('one', 'four', 'three'))}"));
+			assertEquals("Invalid complement() result", "[one]", Scripting.replaceVariables(ctx, testOne, "${complement(merge('one', 'two', 'three', 'two'), merge('two', 'four', 'three'))}"));
+			assertEquals("Invalid complement() result", "[one, three]", Scripting.replaceVariables(ctx, testOne, "${complement(merge('one', 'two', 'three', 'two'), 'two')}"));
+
 			// join
 			assertEquals("Invalid join() result", "one,two,three", Scripting.replaceVariables(ctx, testOne, "${join(merge(\"one\", \"two\", \"three\"), \",\")}"));
 
@@ -1501,24 +1505,6 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid nth() result",   testSixs.get( 9).toString(), Scripting.replaceVariables(ctx, testOne, "${nth(this.manyToManyTestSixs,  9)}"));
 			assertEquals("Invalid nth() result",   testSixs.get(12).toString(), Scripting.replaceVariables(ctx, testOne, "${nth(this.manyToManyTestSixs, 12)}"));
 			assertEquals("Invalid nth() result",   "", Scripting.replaceVariables(ctx, testOne, "${nth(this.manyToManyTestSixs, 21)}"));
-
-			// slice
-			final Object sliceResult = Scripting.evaluate(ctx, testOne, "${slice(this.manyToManyTestSixs, 0, 5)}", "slice test");
-			assertTrue("Invalid slice() result, must return collection for valid results", sliceResult instanceof Collection);
-			assertTrue("Invalid slice() result, must return list for valid results", sliceResult instanceof List);
-			final List sliceResultList = (List)sliceResult;
-			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResultList.size());
-
-			// test error cases
-			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.alwaysNull, 1, 2)}"));
-			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, -1, 1)}"));
-			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 2, 1)}"));
-
-			// test with interval larger than number of elements
-			assertEquals("Invalid slice() result for invalid inputs",
-				Iterables.toList(testOne.getProperty(TestOne.manyToManyTestSixs)).toString(),
-				Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 0, 1000)}")
-			);
 
 			// find with range
 			assertEquals("Invalid find range result",  4, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   2,    5))}", "range test")).size());
@@ -4943,6 +4929,95 @@ public class ScriptingTest extends StructrTest {
 
 	}
 
+	@Test
+	public void testSlice() {
+
+		final ActionContext ctx           = new ActionContext(securityContext);
+		final List<String> testSixNames   = new LinkedList<>();
+		TestOne testOne                   = null;
+		List<TestSix> testSixs            = null;
+		int index                         = 0;
+
+		try (final Tx tx = app.tx()) {
+
+			testOne        = createTestNode(TestOne.class);
+			testSixs       = createTestNodes(TestSix.class, 20, 1);
+
+			final Calendar cal = GregorianCalendar.getInstance();
+
+			// set calendar to 2018-01-01T00:00:00+0000
+			cal.set(2018, 0, 1, 0, 0, 0);
+
+			for (final TestSix testSix : testSixs) {
+
+				final String name = "TestSix" + StringUtils.leftPad(Integer.toString(index), 2, "0");
+
+				testSix.setProperty(TestSix.name, name);
+				testSix.setProperty(TestSix.index, index);
+				testSix.setProperty(TestSix.date, cal.getTime());
+
+				index++;
+				cal.add(Calendar.DAY_OF_YEAR, 3);
+
+				// build list of names
+				testSixNames.add(name);
+			}
+
+			testOne.setProperty(TestOne.manyToManyTestSixs, testSixs);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		Settings.CypherDebugLogging.setValue(true);
+
+		try (final Tx tx = app.tx()) {
+
+			// slice
+			final Object sliceResult = Scripting.evaluate(ctx, testOne, "${slice(this.manyToManyTestSixs, 0, 5)}", "slice test");
+			assertTrue("Invalid slice() result, must return collection for valid results", sliceResult instanceof Collection);
+			assertTrue("Invalid slice() result, must return list for valid results", sliceResult instanceof List);
+			final List sliceResultList = (List)sliceResult;
+			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResultList.size());
+
+			// slice with find
+			final Object sliceWithFindResult = Scripting.evaluate(ctx, null, "${slice(find('TestSix'), 0, 2)}", "slice test with find");
+			assertTrue("Invalid slice() result, must return collection for valid results", sliceWithFindResult instanceof Collection);
+			assertTrue("Invalid slice() result, must return list for valid results", sliceWithFindResult instanceof List);
+			final List sliceWithFindResultList = (List)sliceWithFindResult;
+			assertEquals("Invalid slice() result, must return a list of 2 object", 2, sliceWithFindResultList.size());
+
+			// slice with find JS
+			//final Object sliceWithFindJSResult = Scripting.evaluate(ctx, null, "${{ return $.slice(function() { return $.find('TestSix') }, 0, 2); }}", "slice test with find in JS");
+			//assertTrue("Invalid slice() result, must return collection for valid results", sliceWithFindJSResult instanceof Collection);
+			//assertTrue("Invalid slice() result, must return list for valid results", sliceWithFindJSResult instanceof List);
+			//final List sliceWithFindJSResultList = (List)sliceWithFindJSResult;
+			//assertEquals("Invalid slice() result, must return a list of 2 objects", 2, sliceWithFindJSResultList.size());
+
+			// test error cases
+			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.alwaysNull, 1, 2)}"));
+			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, -1, 1)}"));
+			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 2, 1)}"));
+
+			// test with interval larger than number of elements
+			assertEquals("Invalid slice() result for invalid inputs",
+				Iterables.toList(testOne.getProperty(TestOne.manyToManyTestSixs)).toString(),
+				Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 0, 1000)}")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+		} finally {
+
+			Settings.CypherDebugLogging.setValue(false);
+		}
+	}
 
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource, final String comment) {

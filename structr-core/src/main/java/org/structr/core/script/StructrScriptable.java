@@ -140,18 +140,6 @@ public class StructrScriptable extends ScriptableObject {
 			}, null, 0, 0);
 		}
 
-		if ("this".equals(name)) {
-
-			return wrap(this.scriptingContext, start, null, entity);
-
-		}
-
-		if ("me".equals(name)) {
-
-			return wrap(this.scriptingContext, start, null, actionContext.getSecurityContext().getUser(false));
-
-		}
-
 		if ("vars".equals(name)) {
 
 			NativeObject nobj = new NativeObject();
@@ -253,11 +241,12 @@ public class StructrScriptable extends ScriptableObject {
 			}, null, 0, 0);
 		}
 
+		/*
 		if ("slice".equals(name)) {
 
-			return new IdFunctionObject(new SliceFunctionCall(actionContext, entity, scriptingContext), null, 0, 0);
-
+			return new IdFunctionObject(new SliceFunctionCall(), null, 0, 0);
 		}
+		*/
 
 		if ("doPrivileged".equals(name) || "do_privileged".equals(name)) {
 
@@ -325,7 +314,14 @@ public class StructrScriptable extends ScriptableObject {
 			return new IdFunctionObject(new FunctionWrapper(function), "Function", 0, 0);
 		}
 
-		return null;
+		try {
+
+			return wrap(this.scriptingContext, start, null, actionContext.evaluate(entity, name, null, null, 0));
+
+		} catch (FrameworkException ex) {
+			exception = ex;
+			return null;
+		}
 	}
 
 	public boolean hasException() {

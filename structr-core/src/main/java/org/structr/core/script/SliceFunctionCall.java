@@ -18,31 +18,21 @@
  */
 package org.structr.core.script;
 
+import java.util.Arrays;
+import java.util.List;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.IdFunctionCall;
 import org.mozilla.javascript.IdFunctionObject;
+import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.CaseHelper;
-import org.structr.common.ContextStore;
-import org.structr.core.GraphObject;
-import org.structr.core.function.Functions;
-import org.structr.core.function.QueryFunction;
-import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 
 public class SliceFunctionCall implements IdFunctionCall {
 
 	private static final Logger logger = LoggerFactory.getLogger(BatchFunctionCall.class);
-
-	private SlicedScriptable scriptable = null;
-
-	public SliceFunctionCall(final ActionContext actionContext, final GraphObject entity, final Context scriptingContext) {
-		this.scriptable = new SlicedScriptable(actionContext, entity, scriptingContext);
-	}
 
 	@Override
 	public Object execIdCall(final IdFunctionObject f, final Context cx, final Scriptable scope, final Scriptable thisObj, final Object[] args) {
@@ -53,27 +43,39 @@ public class SliceFunctionCall implements IdFunctionCall {
 			return null;
 		}
 
+		/**
+		 * This function produces wrong results and errors if the bounds
+		 * don't match the data, will be removed soon.
+		 */
+
+
+
 		final Script mainCall = toScript("function", args, 0);
-		scriptable.setRangeStart(toInt(args, 1));
-		scriptable.setRangeEnd(toInt(args, 2));
+		final int start       = toInt(args, 1);
+		final int end         = toInt(args, 2);
 
-		Object result = null;
+		final Object result = mainCall.exec(cx, scope);
 
-		Scripting.setupJavascriptContext();
+		if ( result instanceof NativeArray) {
 
-		try {
+			final NativeArray arr = (NativeArray)result;
+			final Object[] data   = arr.toArray();
 
-			// register Structr scriptable
-			scope.put("Structr", scope, scriptable);
+			return Arrays.copyOfRange(data, start, end);
 
-			result = mainCall.exec(cx, scope);
+		} else if (result instanceof List) {
 
-		} finally {
+			final List list = (List)result;
+			return list.subList(start, end);
 
-			Scripting.destroyJavascriptContext();
+		} else if (result != null) {
+
+			throw new RuntimeException("Unable to use splice() function on object of type " + result.getClass());
+
+		} else {
+
+			throw new RuntimeException("Unable to use splice() function on null object");
 		}
-
-		return result;
 	}
 
 	// ----- private methods -----
@@ -124,43 +126,5 @@ public class SliceFunctionCall implements IdFunctionCall {
 		}
 
 		return -1;
-	}
-
-	// ----- private class -----
-	private class SlicedScriptable extends StructrScriptable {
-
-		private int start                    = -1;
-		private int end                      = -1;
-
-		public SlicedScriptable(ActionContext actionContext, GraphObject entity, Context scriptingContext) {
-			super(actionContext, entity, scriptingContext);
-		}
-
-		@Override
-		public Object get(final String name, Scriptable start) {
-
-			// execute builtin function?
-			final Function<Object, Object> function = Functions.get(CaseHelper.toUnderscore(name, false));
-
-			if (function != null && function instanceof QueryFunction) {
-
-				final ContextStore contextStore = actionContext.getContextStore();
-
-				contextStore.setRangeStart(this.start);
-				contextStore.setRangeEnd(this.end);
-
-				return new IdFunctionObject(new FunctionWrapper(function), null, 0, 0);
-			}
-
-			return super.get(name, start);
-		}
-
-		public void setRangeStart (final int start) {
-			this.start = start;
-		}
-
-		public void setRangeEnd (final int end) {
-			this.end = end;
-		}
 	}
 }

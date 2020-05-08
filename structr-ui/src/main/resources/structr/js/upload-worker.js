@@ -26,7 +26,8 @@ self.addEventListener('message', function (e) {
 
 	} catch (e) {
 		postMessage({
-			result: 'error'
+			result: 'error',
+			error: e
 		});
 	}
 }, false);

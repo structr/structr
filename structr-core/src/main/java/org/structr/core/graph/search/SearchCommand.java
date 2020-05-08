@@ -134,7 +134,16 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		} else {
 
-			queryContext.setIsSuperuser(user.isAdmin());
+			if (user.isAdmin()) {
+
+				queryContext.setIsSuperuser(user.isAdmin());
+
+				if (queryContext.isSliced()) {
+
+					page     = queryContext.getPage();
+					pageSize = queryContext.getPageSize();
+				}
+			}
 		}
 
 		// special handling of deleted and hidden flags

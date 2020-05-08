@@ -45,9 +45,9 @@ public interface Service extends Feature {
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 *
-	 * @return a boolean indicating whether the service was initialized successfully
+	 * @return service result object
 	 */
-	boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException;
+	ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException;
 
 	/**
 	 * Called before the service is discarded. Note that this method will not be called
@@ -91,9 +91,5 @@ public interface Service extends Feature {
 
 	default int getRetryDelay() {
 		return Settings.ServicesStartTimeout.getValue(30);
-	}
-
-	default String getErrorMessage() {
-		return null;
 	}
 }

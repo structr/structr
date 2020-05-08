@@ -224,7 +224,7 @@ var _Crud = {
 
 		$('#crud-types').css({width: left - 12 + 'px'});
 		$('#crud-recent-types').css({width: left - 12 + 'px'});
-		$('#crud-right').css({left: left - 222 + 'px', width: $(window).width() - left - 58 + 'px'});
+		$('#crud-right').css({left: left - 220 + 'px', width: window.innerWidth - left - 58 + 'px'});
 	},
 	init: function() {
 

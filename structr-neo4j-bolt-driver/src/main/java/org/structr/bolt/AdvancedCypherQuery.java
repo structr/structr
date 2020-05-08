@@ -38,8 +38,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 	private final Set<String> indexLabels           = new LinkedHashSet<>();
 	private final Set<String> typeLabels            = new LinkedHashSet<>();
 	private final StringBuilder buffer              = new StringBuilder();
-	private int fetchSize                           = Settings.FetchSize.getValue();
-	private boolean canUseCountStore                = false;
+	private final int fetchSize                     = Settings.FetchSize.getValue();
 	private String sourceTypeLabel                  = null;
 	private String targetTypeLabel                  = null;
 	private AbstractCypherIndex<?> index            = null;
@@ -356,10 +355,6 @@ public class AdvancedCypherQuery implements CypherQuery {
 	@Override
 	public QueryContext getQueryContext() {
 		return queryContext;
-	}
-
-	public boolean canUseCountStore() {
-		return canUseCountStore;
 	}
 
 	// ----- private methods -----

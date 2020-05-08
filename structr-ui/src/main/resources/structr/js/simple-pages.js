@@ -471,18 +471,6 @@ var _SimplePages = {
 		var windowHeight = window.innerHeight;
 		var headerOffsetHeight = 100;
 
-		if (_SimplePages.components.tree) {
-			_SimplePages.components.tree.style.height = windowHeight - headerOffsetHeight - 27 + 'px';
-		}
-
-		if (_SimplePages.components.contents) {
-			_SimplePages.components.contents.style.height = windowHeight - headerOffsetHeight - 11 + 'px';
-		}
-
-		if (_SimplePages.components.context) {
-			_SimplePages.components.context.style.height = windowHeight - headerOffsetHeight - 11 + 'px';
-		}
-
 		let iframes = document.querySelector('.page-root iframe.preview');
 		if (iframes) {
 			iframes.style.height = windowHeight - headerOffsetHeight - 13 + 'px';
@@ -501,7 +489,7 @@ var _SimplePages = {
 
 		_SimplePages.components.tree.style.width = left - 14 + 'px';
 		_SimplePages.components.contents.style.left = left + 8 + 'px';
-		_SimplePages.components.contents.style.width = width - 24 + 'px';
+		_SimplePages.components.contents.style.width = width - 14 + 'px';
 		_SimplePages.components.context.style.left = left + width + 18 + 'px';
 		_SimplePages.components.context.style.width = contextWidth + 'px';
 	},
