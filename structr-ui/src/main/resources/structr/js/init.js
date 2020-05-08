@@ -349,11 +349,11 @@ var Structr = {
 			});
 		}
 	},
-	refreshUi: function() {
+	refreshUi: function(isLogin = false) {
 		Structr.showLoadingSpinner();
 
 		Structr.clearMain();
-		Structr.loadInitialModule(false, function() {
+		Structr.loadInitialModule(isLogin, function() {
 			Structr.startPing();
 			if (!dialogText.text().length) {
 				LSWrapper.removeItem(dialogDataKey);
@@ -524,7 +524,7 @@ var Structr = {
 				_Logger.log(_LogType.INIT, 'Last menu entry found: ' + lastMenuEntry);
 			}
 			_Logger.log(_LogType.INIT, 'lastMenuEntry', lastMenuEntry);
-			Structr.updateVersionInfo();
+			Structr.updateVersionInfo(0, isLogin);
 			Structr.doActivateModule(lastMenuEntry);
 
 			callback();
@@ -1271,7 +1271,7 @@ var Structr = {
 
 		LSWrapper.removeItem(activeTabKey);
 	},
-	updateVersionInfo: function(retryCount = 0) {
+	updateVersionInfo: function(retryCount = 0, isLogin = false) {
 
 		fetch(rootUrl + '/_env').then(function(response) {
 
@@ -1299,6 +1299,10 @@ var Structr = {
 
 				if (envInfo.databaseService === 'MemoryDatabaseService') {
 					Structr.appendInMemoryInfoToElement($('span', dbInfoEl), $('span i', dbInfoEl));
+
+					if (isLogin) {
+						new MessageBuilder().warning(Structr.inMemorWarningText).requiresConfirmation().show();
+					}
 				}
 			}
 
@@ -1372,7 +1376,7 @@ var Structr = {
 		}).catch((e) => {
 			if (retryCount < 3) {
 				setTimeout(() => {
-					Structr.updateVersionInfo(++retryCount);
+					Structr.updateVersionInfo(++retryCount, isLogin);
 				}, 250);
 			} else {
 				console.log(e);
@@ -1399,11 +1403,12 @@ var Structr = {
 		});
 
 	},
+	inMemorWarningText:"Please not that the system is currently running on an in-memory database implementation. Data is not persisted and will be lost after restarting the instance! You can use the configuration servlet to configure a database connection.",
 	appendInMemoryInfoToElement: function(el, optionalToggleElement) {
 
 		let config = {
 			element: el,
-			text: "Currently running on an in-memory database implementation. Data is no persisted and will be lost after restarting the instance! You can use the configuration servlet to configure a database connection.",
+			text: Structr.inMemorWarningText,
 			customToggleIcon: _Icons.database_error_icon,
 			helpElementCss: {
 				'border': '2px solid red',
