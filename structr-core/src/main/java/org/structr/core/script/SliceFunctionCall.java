@@ -43,6 +43,13 @@ public class SliceFunctionCall implements IdFunctionCall {
 			return null;
 		}
 
+		/**
+		 * This function produces wrong results and errors if the bounds
+		 * don't match the data, will be removed soon.
+		 */
+
+
+
 		final Script mainCall = toScript("function", args, 0);
 		final int start       = toInt(args, 1);
 		final int end         = toInt(args, 2);
