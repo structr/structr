@@ -54,16 +54,18 @@ public class PageImportVisitor implements FileVisitor<Path> {
 
 	private Map<String, Object> pagesConfiguration = null;
 	private SecurityContext securityContext        = null;
+	private boolean relativeVisibility             = false;
 	private Path basePath                          = null;
 	private App app                                = null;
 
-	public PageImportVisitor(final Path basePath, final Map<String, Object> pagesConfiguration) {
+	public PageImportVisitor(final Path basePath, final Map<String, Object> pagesConfiguration, final boolean relativeVisibility) {
 
 		this.pagesConfiguration = pagesConfiguration;
 		this.securityContext    = SecurityContext.getSuperUserInstance();
 		this.securityContext.setDoTransactionNotifications(false);
 		this.basePath           = basePath;
 		this.app                = StructrApp.getInstance(this.securityContext);
+		this.relativeVisibility = relativeVisibility;
 	}
 
 	@Override
@@ -206,7 +208,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 				boolean visibleToPublic = get(properties, GraphObject.visibleToPublicUsers, false);
 				boolean visibleToAuth   = get(properties, GraphObject.visibleToAuthenticatedUsers, false);
 
-				final Importer importer = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth, false);
+				final Importer importer = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth, false, relativeVisibility);
 
 				// enable literal import of href attributes
 				importer.setIsDeployment(true);

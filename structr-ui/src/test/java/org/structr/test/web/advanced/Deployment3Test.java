@@ -239,7 +239,7 @@ public class Deployment3Test extends DeploymentTestBase {
 					new NodeAttribute<>(StructrApp.key(Widget.class, "visibleToAuthenticatedUsers"), true)
 			);
 
-			Importer importer = new Importer(securityContext, widgetToImport.getProperty(new StringProperty("source")), null, null, true, true, false);
+			Importer importer = new Importer(securityContext, widgetToImport.getProperty(new StringProperty("source")), null, null, true, true, false, false);
 
 			importer.setIsDeployment(true);
 			importer.setCommentHandler(new DeploymentCommentHandler());

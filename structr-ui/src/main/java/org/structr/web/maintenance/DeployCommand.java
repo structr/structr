@@ -122,13 +122,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private static final Logger logger                     = LoggerFactory.getLogger(DeployCommand.class.getName());
 	private static final Pattern pattern                   = Pattern.compile("[a-f0-9]{32}");
 
-	private static final Map<String, String> deploymentConf    = new LinkedHashMap<>();
 	private static final Map<String, String> deferredPageLinks = new LinkedHashMap<>();
 	protected static final Set<String> missingPrincipals       = new HashSet<>();
 	protected static final Set<String> missingSchemaFile       = new HashSet<>();
 
 	private final static String DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY          = "visibility-flags-relative-to";
 	private final static String DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE = "parent";
+	private final static String DEPLOYMENT_VERSION_KEY                                  = "structr-version";
+	private final static String DEPLOYMENT_DATE_KEY                                     = "deployment-date";
 
 	private final static String DEPLOYMENT_IMPORT_STATUS   = "DEPLOYMENT_IMPORT_STATUS";
 	private final static String DEPLOYMENT_EXPORT_STATUS   = "DEPLOYMENT_EXPORT_STATUS";
@@ -203,7 +204,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	/**
-	 * Checks if the given string ends with a uuid
+	 * Checks if the given string ends with a uuid.
 	 */
 	public static boolean endsWithUuid(final String name) {
 		if (name.length() > 32) {
@@ -274,16 +275,45 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			logger.info("Importing from '{}'", path);
 
+			// read deployment.conf (file containing information about deployment export)
+			final Path deploymentConfFile            = source.resolve("deployment.conf");
+			final Map<String, String> deploymentConf = readDeploymentConfigurationFile(deploymentConfFile);
+			final boolean relativeVisibility         = isDOMNodeVisibilityRelativeToParent(deploymentConf);
+
+			// version check (don't import deployment exports from newer versions!)
+			if (!acceptDeploymentExportVersion(deploymentConf)) {
+
+				final String currentVersion = VersionHelper.getFullVersionInfo();
+				final String exportVersion  = StringUtils.defaultIfEmpty(deploymentConf.get(DEPLOYMENT_VERSION_KEY), "pre 3.5");
+
+				final String title = "Incompatible Deployment Import";
+				final String text = "The deployment export data currently being imported has been created with a newer version of Structr\n"
+						+ "which is not supported because of incompatible changes in the deployment format.\n"
+						+ "Current version: " + currentVersion + "\n"
+						+ "Export version:  " + exportVersion;
+				final String htmlText = "The deployment export data currently being imported has been created with a newer version of Structr<br>"
+						+ "which is not supported because of incompatible changes in the deployment format.<br><br><table>"
+						+ "<tr><th>Current version: </th><td>" + currentVersion + "</td></tr>"
+						+ "<tr><th>Export version: </th><td>" + exportVersion + "</td></tr>"
+						+ "</table>";
+
+				logger.info(title + ": " + text);
+				publishWarningMessage(title, htmlText);
+
+				return;
+			}
+
+			final String message = "Read deployment config file '" + deploymentConfFile + "': " + deploymentConf.size() + " entries.";
+			logger.info(message);
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, message);
+
 			final Map<String, Object> broadcastData = new HashMap();
 			broadcastData.put("start",   startTime);
 			broadcastData.put("source",  source.toString());
 			publishBeginMessage(DEPLOYMENT_IMPORT_STATUS, broadcastData);
 
-			// read deployment.conf (file containing information about deployment export)
-			final Path deploymentConfFile = source.resolve("deployment.conf");
-			readDeploymentConfigurationFile(deploymentConfFile);
-
-			if (!isDOMNodeVisibilityRelativeToParent()) {
+			// visibility check
+			if (!relativeVisibility) {
 
 				final String title = "Important Information";
 				final String text = "The deployment export data currently being imported has been created with an older version of Structr\n"
@@ -545,7 +575,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Importing shared components");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing shared components");
 
-					final ComponentImportVisitor visitor = new ComponentImportVisitor(componentsMetadata);
+					final ComponentImportVisitor visitor = new ComponentImportVisitor(componentsMetadata, relativeVisibility);
 
 					Files.walkFileTree(components, visitor);
 
@@ -576,7 +606,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Importing pages");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing pages");
 
-					Files.walkFileTree(pages, new PageImportVisitor(pages, pagesMetadata));
+					Files.walkFileTree(pages, new PageImportVisitor(pages, pagesMetadata, relativeVisibility));
 
 				} catch (IOException ioex) {
 					logger.warn("Exception while importing pages", ioex);
@@ -1968,13 +1998,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	public static boolean isDOMNodeVisibilityRelativeToParent() {
+	public boolean isDOMNodeVisibilityRelativeToParent(final Map<String, String> deploymentConf) {
 		return DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE.equals(deploymentConf.get(DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY));
 	}
 
-	protected void readDeploymentConfigurationFile (final Path confFile) {
+	protected Map<String, String> readDeploymentConfigurationFile (final Path confFile) {
 
-		deploymentConf.clear();
+		final Map<String, String> deploymentConf = new LinkedHashMap<>();
 
 		if (Files.exists(confFile)) {
 
@@ -1991,10 +2021,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					deploymentConf.put(key, value);
 				}
 
-				final String message = "Reading deployment config file '" + confFile + "': " + deploymentConf.size() + " entries.";
-				logger.info(message);
-				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, message);
-
 			} catch (Throwable t) {
 
 				final String msg = "Exception caught while importing '" + confFile + "'";
@@ -2002,6 +2028,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				publishWarningMessage(msg, t.toString());
 			}
 		}
+
+		return deploymentConf;
 	}
 
 	protected void writeDeploymentConfigurationFile (final Path confFile) {
@@ -2014,8 +2042,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final PropertiesConfiguration config = new PropertiesConfiguration();
 
-			config.setProperty("structr-version", VersionHelper.getFullVersionInfo());
-			config.setProperty("deployment-date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date()));
+			config.setProperty(DEPLOYMENT_VERSION_KEY,                         VersionHelper.getFullVersionInfo());
+			config.setProperty(DEPLOYMENT_DATE_KEY,                            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date()));
 			config.setProperty(DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY, DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE);
 
 			config.save(confFile.toFile());
@@ -2092,6 +2120,34 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		return false;
 	}
 
+	private boolean acceptDeploymentExportVersion(final Map<String, String> deploymentConfig) {
+
+		final int currentVersion = parseVersionString(VersionHelper.getFullVersionInfo());
+		final int exportVersion  = parseVersionString(deploymentConfig.get(DEPLOYMENT_VERSION_KEY));
+
+		return currentVersion >= exportVersion;
+	}
+
+	private int parseVersionString(final String source) {
+
+		if (source != null) {
+
+			// "normalize" version string by removing all non-digit
+			// characters and take only the first two digits
+			final String[] parts = source.split(" ");
+			final String digits  = parts[0].replaceAll("[\\D]*", "");
+
+			try {
+
+				return Integer.valueOf(digits.substring(0, 2));
+
+			} catch (Throwable t) {}
+		}
+
+		// no version info present => return 0
+		return 0;
+	}
+
 	// ----- public static methods -----
 	public static void addDeferredPagelink (String linkableUUID, String pagePath) {
 		deferredPageLinks.put(linkableUUID, pagePath);
@@ -2123,4 +2179,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+
+	public static void main(final String[] args) {
+
+		System.out.println(Float.valueOf("3.5-SNAPSHPOT"));
+		System.out.println(Float.valueOf("3.4.3"));
+	}
 }
