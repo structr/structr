@@ -2996,6 +2996,6 @@ var _Crud = {
 		el.attr('title', _Crud.getSoftLimitMessage());
 	},
 	cssClassForKey: function (key) {
-		return '___' + key.replaceAll(/\s/,  '_whitespace_');
+		return '___' + key.replace(/\s/g,  '_whitespace_');
 	}
 };
