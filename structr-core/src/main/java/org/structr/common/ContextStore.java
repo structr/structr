@@ -19,7 +19,6 @@
 package org.structr.common;
 
 import java.util.*;
-
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.Localization;
@@ -59,6 +58,10 @@ public class ContextStore {
 	// --- Headers ---
 	public void addHeader(final String key, final String value) {
 		headers.put(key, value);
+	}
+
+	public void removeHeader(final String key) {
+		headers.remove(key);
 	}
 
 	public Map<String, String> getHeaders() {
