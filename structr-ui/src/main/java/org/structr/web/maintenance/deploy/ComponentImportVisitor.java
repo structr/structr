@@ -58,11 +58,13 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 	private final List<Path> deferredPaths    = new LinkedList<>();
 	private Map<String, Object> configuration = null;
 	private SecurityContext securityContext   = null;
+	private boolean relativeVisibility        = false;
 	private App app                           = null;
 
-	public ComponentImportVisitor(final Map<String, Object> pagesConfiguration) {
+	public ComponentImportVisitor(final Map<String, Object> pagesConfiguration, final boolean relativeVisibility) {
 
-		this.configuration = pagesConfiguration;
+		this.relativeVisibility = relativeVisibility;
+		this.configuration      = pagesConfiguration;
 		this.securityContext    = SecurityContext.getSuperUserInstance();
 		this.app                = StructrApp.getInstance();
 	}
@@ -229,7 +231,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 				final String src        = new String(Files.readAllBytes(file), Charset.forName("UTF-8"));
 				boolean visibleToPublic = get(properties, GraphObject.visibleToPublicUsers, false);
 				boolean visibleToAuth   = get(properties, GraphObject.visibleToAuthenticatedUsers, false);
-				final Importer importer = new Importer(securityContext, src, null, componentName, visibleToPublic, visibleToAuth, false);
+				final Importer importer = new Importer(securityContext, src, null, componentName, visibleToPublic, visibleToAuth, false, relativeVisibility);
 
 				// enable literal import of href attributes
 				importer.setIsDeployment(true);

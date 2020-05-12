@@ -129,8 +129,9 @@ public class Importer {
 	private final boolean publicVisible;
 	private final boolean authVisible;
 	private CommentHandler commentHandler;
-	private boolean isDeployment    = false;
-	private Document parsedDocument = null;
+	private boolean relativeVisibility = false;
+	private boolean isDeployment       = false;
+	private Document parsedDocument    = null;
 	private final String name;
 	private URL originalUrl;
 	private String address;
@@ -149,16 +150,18 @@ public class Importer {
 	 * @param name
 	 * @param publicVisible
 	 * @param authVisible
+	 * @param includeInExport
 	 */
-	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final boolean publicVisible, final boolean authVisible, final boolean includeInExport) {
+	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final boolean publicVisible, final boolean authVisible, final boolean includeInExport, final boolean relativeVisibility) {
 
-		this.code            = code;
-		this.address         = address;
-		this.name            = name;
-		this.securityContext = securityContext;
-		this.publicVisible   = publicVisible;
-		this.authVisible     = authVisible;
-		this.includeInExport = includeInExport;
+		this.code               = code;
+		this.address            = address;
+		this.name               = name;
+		this.securityContext    = securityContext;
+		this.publicVisible      = publicVisible;
+		this.authVisible        = authVisible;
+		this.includeInExport    = includeInExport;
+		this.relativeVisibility = relativeVisibility;
 
 		if (address != null && !address.endsWith("/") && !address.endsWith(".html")) {
 			this.address = this.address.concat("/");
@@ -353,7 +356,7 @@ public class Importer {
 
 	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name, final boolean removeHashAttribute) throws FrameworkException {
 
-		final Importer importer = new Importer(securityContext, source, null, "source", false, false, false);
+		final Importer importer = new Importer(securityContext, source, null, "source", false, false, false, false);
 		final App localAppCtx = StructrApp.getInstance(securityContext);
 		Page page = null;
 
@@ -829,7 +832,7 @@ public class Importer {
 				final PropertyMap newNodeProperties = new PropertyMap();
 				final Class newNodeType             = newNode.getClass();
 
-				if (isDeployment && !DeployCommand.isDOMNodeVisibilityRelativeToParent()) {
+				if (isDeployment && !relativeVisibility) {
 					newNodeProperties.put(AbstractNode.visibleToPublicUsers,        publicVisible);
 					newNodeProperties.put(AbstractNode.visibleToAuthenticatedUsers, authVisible);
 				} else {
@@ -1452,7 +1455,7 @@ public class Importer {
 
 		final PropertyMap emptyContentProperties = new PropertyMap();
 
-		if (isDeployment && !DeployCommand.isDOMNodeVisibilityRelativeToParent()) {
+		if (isDeployment && !relativeVisibility) {
 			emptyContentProperties.put(AbstractNode.visibleToPublicUsers,        publicVisible);
 			emptyContentProperties.put(AbstractNode.visibleToAuthenticatedUsers, authVisible);
 		} else {

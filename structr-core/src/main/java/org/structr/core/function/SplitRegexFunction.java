@@ -26,7 +26,7 @@ import org.structr.schema.action.ActionContext;
 
 public class SplitRegexFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_SPLIT_REGEX = "Usage: ${split_regex(str, regex)}. Example: ${split_regex('foo|bar', '|')}";
+	public static final String ERROR_MESSAGE_SPLIT_REGEX = "Usage: ${split_regex(str[, regex])}. Example: ${split_regex('foo:bar;baz', ':|;')}";
 
 	@Override
 	public String getName() {
@@ -35,7 +35,7 @@ public class SplitRegexFunction extends CoreFunction {
 
 	@Override
 	public String getSignature() {
-		return "str, regex";
+		return "str [, regex ]";
 	}
 
 	@Override

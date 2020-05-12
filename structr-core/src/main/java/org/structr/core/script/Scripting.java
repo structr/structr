@@ -18,14 +18,13 @@
  */
 package org.structr.core.script;
 
+import com.caucho.quercus.env.Env;
+import com.caucho.quercus.env.JavaListAdapter;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.script.*;
-
-import com.caucho.quercus.env.Env;
-import com.caucho.quercus.env.JavaListAdapter;
 import org.apache.commons.collections4.map.LRUMap;
 import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.Context;
@@ -47,6 +46,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.function.Functions;
 import org.structr.core.property.DateProperty;
@@ -684,7 +684,7 @@ public class Scripting {
 
 			return buf.toString();
 
-		} else if (value instanceof GraphObject) {
+		} else if (value instanceof GraphObject && !(value instanceof GraphObjectMap)) {
 
 			final StringBuilder buf = new StringBuilder();
 			final GraphObject obj   = (GraphObject)value;

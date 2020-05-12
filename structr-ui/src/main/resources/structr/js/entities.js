@@ -320,7 +320,12 @@ var _Entities = {
 			_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-rest');
 		};
 
-		if (Structr.isModulePresent('flows') && !flowSelector.length) {
+		if (Structr.isModulePresent('flows')) {
+			
+			if (flowSelector && flowSelector.length) {
+				flowSelector.remove();
+			}
+			
 			flowSelector = $('<select class="hidden" id="flow-selector"></select>').insertBefore(textArea);
 
 			flowSelector.append('<option>--- Select Flow ---</option>');

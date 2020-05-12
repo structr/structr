@@ -27,7 +27,7 @@ import org.structr.schema.action.ActionContext;
 
 public class SplitFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_SPLIT = "Usage: ${split(str[, expression])}. Example: ${split(this.commaSeparatedItems)}";
+	public static final String ERROR_MESSAGE_SPLIT = "Usage: ${split(str[, splitChars])}. Example: ${split(this.commaSeparatedItems)}";
 
 	@Override
 	public String getName() {
@@ -36,7 +36,7 @@ public class SplitFunction extends CoreFunction {
 
 	@Override
 	public String getSignature() {
-		return "str [, regex ]";
+		return "str [, splitChars ]";
 	}
 
 	@Override
