@@ -161,7 +161,8 @@ export class FlowEditor {
 			this._eventHandlers = {
 				local: {
 					keydown: function (event) {
-						if (event.shiftKey === true && event.ctrlKey === true) {
+
+						if ((navigator.platform !== 'MacIntel' && event.shiftKey === true && event.ctrlKey === true) || (navigator.platform === 'MacIntel' && event.shiftKey === true && event.metaKey === true)) {
 							// Enable area selection on shift+ctrl
 							new AreaSelector(self).enable();
 							event.stopPropagation();
