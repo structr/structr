@@ -3927,6 +3927,18 @@ input.tree-search-input:focus {
 /* END: styles to maximize methods editors in bulk save dialog for CODE area */
 
 
+/* BEGIN: styles to maximize methods editors in the detail dialog for CODE area */
+#method-code-container {
+	height: calc(100% - 240px);
+}
+
+#method-code-container .editor,
+#method-code-container .cm-s-default {
+	height: 100%;
+}
+/* END: styles to maximize methods editors in the detail dialog for CODE area */
+
+
 /* BEGIN: styles to maximize methods editors in bulk save dialog for SCHEMA area */
 #dialogBox.dialog.schema-edit-dialog .dialogText,
 #dialogBox.dialog.schema-edit-dialog .dialogText .schema-details,
