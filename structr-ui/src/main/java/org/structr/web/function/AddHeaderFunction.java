@@ -40,10 +40,20 @@ public class AddHeaderFunction extends UiAdvancedFunction {
 
 		if (sources != null && sources.length == 2) {
 
-			final String name = sources[0].toString();
-			final String value = sources[1].toString();
+			if (sources[0] != null) {
 
-			ctx.addHeader(name, value);
+				final String name = sources[0].toString();
+
+				if (sources[1] == null) {
+					ctx.removeHeader(name);
+
+				} else {
+
+					final String value = sources[1].toString();
+
+					ctx.addHeader(name, value);
+				}
+			}
 
 			return "";
 

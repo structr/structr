@@ -48,13 +48,7 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
-			final String configKey = sources[0].toString();
-
-			if (Settings.SuperUserPassword.getKey().equals(configKey)) {
-
-				return Principal.HIDDEN;
-			}
-
+			final String configKey    = sources[0].toString();
 			final String defaultValue = sources.length >= 2 ? sources[1].toString() : "";
 			Setting setting           = Settings.getSetting(configKey);
 
@@ -66,7 +60,14 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 
 			if (setting != null) {
 
-				return setting.getValue();
+				if (setting.equals(Settings.SuperUserPassword)) {
+
+					return Principal.HIDDEN;
+
+				} else {
+
+					return setting.getValue();
+				}
 
 			} else {
 

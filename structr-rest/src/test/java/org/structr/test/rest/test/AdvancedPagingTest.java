@@ -20,16 +20,27 @@ package org.structr.test.rest.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
+import org.structr.api.schema.JsonSchema;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.structr.test.rest.entity.TestFive;
 import org.structr.test.rest.entity.TestOne;
@@ -337,6 +348,125 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result[0].id",   equalTo(t3_not_connected.getUuid()))
 			.when()
 				.get("/test_threes?oneToOneTestFive=null&pageSize=1");
+
+	}
+
+	@Test
+	public void testSoftLimit() {
+
+		Settings.ResultCountSoftLimit.setValue(1500);
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Nested");
+
+			type.relate(type, "child", Cardinality.OneToMany, "parent", "children");
+
+			type.addViewProperty("public", "children");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final Class type               = StructrApp.getConfiguration().getNodeEntityClass("Nested");
+		final PropertyKey parentKey    = StructrApp.key(type, "parent");
+		final List<NodeInterface> list = new ArrayList<>();
+		final Random random            = new Random(1234L);
+		final int num                  = 1234;
+
+		try (final Tx tx = app.tx()) {
+
+			for (int i=0; i<num; i++) {
+
+				list.add(app.create(type));
+			}
+
+			for (int i=0; i<200;i++) {
+
+				final int parentIndex      = random.nextInt(num);
+				final NodeInterface parent = list.get(parentIndex);
+
+				for (int j=0; j<20; j++) {
+
+					final int childIndex      = random.nextInt(num);
+					if (childIndex != parentIndex) {
+
+						final NodeInterface child = list.get(childIndex);
+						child.setProperty(parentKey, parent);
+					}
+				}
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+
+			.expect()
+				.statusCode(200)
+				.body("result.size()",  is(100))
+				.body("result_count",   equalTo(num))
+			.when()
+				.get("/Nested?pageSize=100");
+
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+
+			.expect()
+				.statusCode(200)
+				.body("result.size()",  is(1000))
+				.body("result_count",   equalTo(num))
+			.when()
+				.get("/Nested?pageSize=1000");
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+
+			.expect()
+				.statusCode(200)
+				.body("result.size()",  is(num))
+				.body("result_count",   equalTo(num))
+			.when()
+				.get("/Nested?pageSize=2000");
+
+		Settings.ResultCountSoftLimit.setValue(num);
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+
+			.expect()
+				.statusCode(200)
+				.body("result.size()",  is(num))
+				.body("result_count",   equalTo(num))
+			.when()
+				.get("/Nested?pageSize=1234");
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+
+			.expect()
+				.statusCode(200)
+				.body("result.size()",  is(num))
+				.body("result_count",   equalTo(num))
+			.when()
+				.get("/Nested?pageSize=1235");
 
 	}
 
