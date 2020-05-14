@@ -346,7 +346,7 @@ var _Dashboard = {
 		if (envInfo && envInfo.endDate && element) {
 
 			var showMessage = true;
-			var daysLeft = Math.ceil((new Date(envInfo.endDate) - new Date()) / 86400000) + 1;
+			var daysLeft = Math.ceil((new Date(envInfo.endDate.slice(0, 10)) - new Date()) / 86400000) + 1;
 
 			var config = {
 				element: element,
