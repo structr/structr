@@ -483,6 +483,7 @@ export class FlowEditor {
 				node.flowContainer = self._flowContainer.id;
 				fNode.editorNode.position = self._editor.view.mouse;
 				self._editor.view.update();
+				self.setupContextMenu();
 				return node;
 			});
 		}
