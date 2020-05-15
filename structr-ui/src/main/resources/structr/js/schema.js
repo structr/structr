@@ -53,7 +53,6 @@ var _Schema = {
 	nodePositions: undefined,
 	availableTypeNames: [],
 	hiddenSchemaNodes: [],
-	noSchemaNodeVisibilityConfigured: true,
 	hiddenSchemaNodesKey: 'structrHiddenSchemaNodes_' + port,
 	schemaPositionsKey: 'structrSchemaPositions_' + port,
 	showSchemaOverlaysKey: 'structrShowSchemaOverlays_' + port,
@@ -405,12 +404,11 @@ var _Schema = {
 
 			if (data.result.length > 0) {
 
-				_Schema.noSchemaNodeVisibilityConfigured = false;
 				return data.result[0].content;
 
 			} else {
+
 				_Schema.hiddenSchemaNodes = [];
-				_Schema.noSchemaNodeVisibilityConfigured = true;
 				return false;
 			}
 		});
@@ -418,6 +416,8 @@ var _Schema = {
 	loadNodes: function(callback) {
 
 		_Schema.hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
+
+		let savedHiddenSchemaNodesNull = (_Schema.hiddenSchemaNodes === null);
 
 		Promise.resolve().then(function() {
 
@@ -431,7 +431,7 @@ var _Schema = {
 
 		}).then(function(schemaLayout) {
 
-			if (schemaLayout) {
+			if (schemaLayout && !savedHiddenSchemaNodesNull) {
 
 				_Schema.applySavedLayoutConfiguration(schemaLayout);
 				return;
@@ -459,7 +459,7 @@ var _Schema = {
 			var hierarchy = {};
 			var x=0, y=0;
 
-			if (_Schema.noSchemaNodeVisibilityConfigured) {
+			if (savedHiddenSchemaNodesNull) {
 				_Schema.hiddenSchemaNodes = data.result.filter(function(entity) {
 					return entity.isBuiltinType;
 				}).map(function(entity) {
