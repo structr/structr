@@ -53,6 +53,7 @@ var _Schema = {
 	nodePositions: undefined,
 	availableTypeNames: [],
 	hiddenSchemaNodes: [],
+	noSchemaNodeVisibilityConfigured: true,
 	hiddenSchemaNodesKey: 'structrHiddenSchemaNodes_' + port,
 	schemaPositionsKey: 'structrSchemaPositions_' + port,
 	showSchemaOverlaysKey: 'structrShowSchemaOverlays_' + port,
@@ -404,18 +405,18 @@ var _Schema = {
 
 			if (data.result.length > 0) {
 
+				_Schema.noSchemaNodeVisibilityConfigured = false;
 				return data.result[0].content;
 
 			} else {
 				_Schema.hiddenSchemaNodes = [];
-				noSchemaNodeVisibilityConfigured = true;
+				_Schema.noSchemaNodeVisibilityConfigured = true;
 				return false;
 			}
 		});
 	},
 	loadNodes: function(callback) {
 
-		let noSchemaNodeVisibilityConfigured = false;
 		_Schema.hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
 
 		Promise.resolve().then(function() {
@@ -458,7 +459,7 @@ var _Schema = {
 			var hierarchy = {};
 			var x=0, y=0;
 
-			if (noSchemaNodeVisibilityConfigured) {
+			if (_Schema.noSchemaNodeVisibilityConfigured) {
 				_Schema.hiddenSchemaNodes = data.result.filter(function(entity) {
 					return entity.isBuiltinType;
 				}).map(function(entity) {
