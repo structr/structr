@@ -72,6 +72,6 @@ public class FromXmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Parses the given XML and returns a list of objects";
+		return "Parses the given XML and returns a JSON representation of the XML";
 	}
 }
