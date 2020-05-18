@@ -2339,7 +2339,7 @@ var _Crud = {
 		}, 1000);
 	},
 	searchResult: function(searchResults, type, node, onClickCallback) {
-		if (!$('#resultsFor' + type).length) {
+		if (!$('#resultsFor' + type, searchResults).length) {
 			searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox"><h3>' + type.capitalize() + '</h3></div>');
 		}
 		var displayName = _Crud.displayName(node);

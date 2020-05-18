@@ -51,6 +51,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.StringUtils;
@@ -126,6 +127,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	protected static final Set<String> missingPrincipals       = new HashSet<>();
 	protected static final Set<String> missingSchemaFile       = new HashSet<>();
 
+	protected static final AtomicBoolean deploymentActive      = new AtomicBoolean(false);
+
 	private final static String DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY          = "visibility-flags-relative-to";
 	private final static String DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE = "parent";
 	private final static String DEPLOYMENT_VERSION_KEY                                  = "structr-version";
@@ -151,18 +154,35 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final String mode = (String) parameters.get("mode");
 
-		if ("export".equals(mode)) {
+		if (Boolean.FALSE.equals(deploymentActive.get())) {
 
-			doExport(parameters);
+			try {
 
-		} else if ("import".equals(mode)) {
+				deploymentActive.set(true);
 
-			doImport(parameters);
+				if ("export".equals(mode)) {
 
+					doExport(parameters);
+
+				} else if ("import".equals(mode)) {
+
+					doImport(parameters);
+
+				} else {
+
+					logger.warn("Unsupported mode '{}'", mode);
+				}
+
+			} finally {
+				deploymentActive.set(false);
+			}
 		} else {
 
-			logger.warn("Unsupported mode '{}'", mode);
+			logger.warn("Prevented deployment '{}' while another deployment is active.", mode);
+			publishWarningMessage("Prevented deployment '" + mode + "'", "Another deployment is currently active. Please wait until it is finished.");
+
 		}
+
 	}
 
 	@Override

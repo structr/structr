@@ -26,7 +26,7 @@ import org.structr.schema.action.ActionContext;
 
 public class RintFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_RINT = "Usage: ${rint(range)}. Example: ${rint(1000)}";
+	public static final String ERROR_MESSAGE_RINT = "Usage: ${rint(bound)}. Example: ${rint(1000)}";
 
 	@Override
 	public String getName() {
@@ -35,7 +35,7 @@ public class RintFunction extends CoreFunction {
 
 	@Override
 	public String getSignature() {
-		return "range";
+		return "bound";
 	}
 
 	@Override

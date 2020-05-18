@@ -75,11 +75,11 @@ var _Dashboard = {
 			snapshotsIndexUrl = data.result.availableSnapshotsUrl;
 
 			if (templateConfig.envInfo.startDate) {
-				templateConfig.envInfo.startDate = _Dashboard.dateToIsoString(templateConfig.envInfo.startDate);
+				templateConfig.envInfo.startDate = templateConfig.envInfo.startDate.slice(0, 10);
 			}
 
 			if (templateConfig.envInfo.endDate) {
-				templateConfig.envInfo.endDate = _Dashboard.dateToIsoString(templateConfig.envInfo.endDate);
+				templateConfig.envInfo.endDate = templateConfig.envInfo.endDate.slice(0, 10);
 			}
 
 			templateConfig.databaseDriver = Structr.getDatabaseDriverNameForDatabaseServiceName(templateConfig.envInfo.databaseService);
@@ -325,10 +325,6 @@ var _Dashboard = {
 			});
 		}
 	},
-	dateToIsoString: function(dateString) {
-		let date = new Date(dateString);
-		return date.getFullYear() + '-' + ('' + (date.getMonth() + 1)).padStart(2, '0') + '-' + ('' + date.getDate()).padStart(2, '0');
-	},
 	displayVersion: function(obj) {
 		return (obj.version ? ' (v' + obj.version + ')': '');
 	},
@@ -350,7 +346,7 @@ var _Dashboard = {
 		if (envInfo && envInfo.endDate && element) {
 
 			var showMessage = true;
-			var daysLeft = Math.ceil((new Date(envInfo.endDate) - new Date()) / 86400000) + 1;
+			var daysLeft = Math.ceil((new Date(envInfo.endDate.slice(0, 10)) - new Date()) / 86400000) + 1;
 
 			var config = {
 				element: element,

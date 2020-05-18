@@ -114,10 +114,14 @@ public abstract class Function<S, T> extends Hint {
 	 * @param messageParams The parameters for the message
 	 */
 	protected void logException (final Throwable t, final String msg, final Object[] messageParams) {
+		logException(logger, t, msg, messageParams);
+	}
+
+	public static void logException (final Logger l, final Throwable t, final String msg, final Object[] messageParams) {
 		if (Settings.LogFunctionsStackTrace.getValue()) {
-			logger.error(msg, ArrayUtils.add(messageParams, t));
+			l.error(msg, ArrayUtils.add(messageParams, t));
 		} else {
-			logger.error(msg + " (Stacktrace suppressed - see setting " + Settings.LogFunctionsStackTrace.getKey() + ")", messageParams);
+			l.error(msg + " (Stacktrace suppressed - see setting " + Settings.LogFunctionsStackTrace.getKey() + ")", messageParams);
 		}
 	}
 

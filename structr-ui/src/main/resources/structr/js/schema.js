@@ -407,16 +407,17 @@ var _Schema = {
 				return data.result[0].content;
 
 			} else {
+
 				_Schema.hiddenSchemaNodes = [];
-				noSchemaNodeVisibilityConfigured = true;
 				return false;
 			}
 		});
 	},
 	loadNodes: function(callback) {
 
-		let noSchemaNodeVisibilityConfigured = false;
 		_Schema.hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
+
+		let savedHiddenSchemaNodesNull = (_Schema.hiddenSchemaNodes === null);
 
 		Promise.resolve().then(function() {
 
@@ -430,7 +431,7 @@ var _Schema = {
 
 		}).then(function(schemaLayout) {
 
-			if (schemaLayout) {
+			if (schemaLayout && !savedHiddenSchemaNodesNull) {
 
 				_Schema.applySavedLayoutConfiguration(schemaLayout);
 				return;
@@ -458,7 +459,7 @@ var _Schema = {
 			var hierarchy = {};
 			var x=0, y=0;
 
-			if (noSchemaNodeVisibilityConfigured) {
+			if (savedHiddenSchemaNodesNull) {
 				_Schema.hiddenSchemaNodes = data.result.filter(function(entity) {
 					return entity.isBuiltinType;
 				}).map(function(entity) {

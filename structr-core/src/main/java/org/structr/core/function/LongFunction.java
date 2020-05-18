@@ -23,18 +23,18 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
-public class SubstringFunction extends CoreFunction {
+public class LongFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_SUBSTRING = "Usage: ${substring(string, start [, length ])}. Example: ${substring(this.name, 19, 3)}";
+	public static final String ERROR_MESSAGE_LONG = "Usage: ${long(string)}. Example: ${num(this.numericalStringValue)}";
 
 	@Override
 	public String getName() {
-		return "substring";
+		return "long";
 	}
 
 	@Override
 	public String getSignature() {
-		return "str, start [, length ]";
+		return "str";
 	}
 
 	@Override
@@ -42,39 +42,39 @@ public class SubstringFunction extends CoreFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 3);
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
-			final String source = sources[0].toString();
-			final int sourceLength = source.length();
-			final int beginIndex = parseInt(sources[1]);
-			final int length = sources.length == 3 ? parseInt(sources[2]) : sourceLength - beginIndex;
-			final int endIndex = Math.min(beginIndex + length, sourceLength);
+			try {
 
-			if (beginIndex >= 0 && beginIndex < sourceLength && endIndex >= beginIndex && endIndex <= sourceLength) {
+				final Double dbl = getDoubleOrNull(sources[0]);
 
-				return source.substring(beginIndex, endIndex);
+				return (dbl == null) ? null : dbl.longValue();
+
+			} catch (Throwable t) {
+
+				logException(caller, t, sources);
+				return null;
 			}
 
 		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			// silently ignore null arguments
+			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
-
-		return "";
 	}
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SUBSTRING;
+		return ERROR_MESSAGE_LONG;
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Returns the substring of the given string";
+		return "Converts the given string to a long";
 	}
 }
