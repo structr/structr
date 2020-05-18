@@ -117,7 +117,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 		buf.append(tenantIdentifier);
 		buf.append("), (m");
 		buf.append(tenantIdentifier);
-		buf.append(") WHERE ID(n) = {id1} AND ID(m) = {id2} ");
+		buf.append(") WHERE ID(n) = $id1 AND ID(m) = $id2 ");
 		buf.append("MERGE (n)-[r:");
 		buf.append(relationshipType.name());
 		buf.append("]->(m)");
