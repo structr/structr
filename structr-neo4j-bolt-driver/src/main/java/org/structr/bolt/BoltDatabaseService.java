@@ -464,12 +464,13 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 			for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
 
-				final String indexDescription = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
-				final String state            = existingDbIndexes.get(indexDescription);
-				final boolean alreadySet      = Boolean.TRUE.equals("ONLINE".equals(state));
-				final boolean createIndex     = propertyIndexConfig.getValue();
+				final String indexDescriptionForLookup = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
+				final String indexDescription          = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
+				final String currentState              = existingDbIndexes.get(indexDescriptionForLookup);
+				final boolean indexAlreadyOnline       = Boolean.TRUE.equals("ONLINE".equals(currentState));
+				final boolean configuredAsIndexed      = propertyIndexConfig.getValue();
 
-				if ("FAILED".equals(state)) {
+				if ("FAILED".equals(currentState)) {
 
 					logger.warn("Index is in FAILED state - dropping the index before handling it further. {}. If this error is recurring, please verify that the data in the concerned property is indexable by Neo4j", indexDescription);
 
@@ -522,9 +523,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 							try (final Transaction tx = beginTx(timeoutSeconds)) {
 
-								if (createIndex) {
+								if (configuredAsIndexed) {
 
-									if (!alreadySet) {
+									if (!indexAlreadyOnline) {
 
 										try {
 
@@ -536,7 +537,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 										}
 									}
 
-								} else if (alreadySet && !createOnly) {
+								} else if (indexAlreadyOnline && !createOnly) {
 
 									try {
 
