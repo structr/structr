@@ -594,11 +594,12 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 				for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
 
-					final String indexDescription = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
-					final boolean indexExists     = Boolean.TRUE.equals(existingDbIndexes.get(indexDescription));
-					final boolean dropIndex       = propertyIndexConfig.getValue();
+					final String indexDescriptionForLookup = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
+					final String indexDescription          = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
+					final boolean indexExists              = (existingDbIndexes.get(indexDescriptionForLookup) != null);
+					final boolean configuredAsIndexed      = propertyIndexConfig.getValue();
 
-					if (indexExists && dropIndex) {
+					if (indexExists && configuredAsIndexed) {
 
 						final AtomicBoolean retry = new AtomicBoolean(true);
 						final AtomicInteger retryCount = new AtomicInteger(0);
