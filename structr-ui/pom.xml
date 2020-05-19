@@ -16,10 +16,6 @@
 	<packaging>jar</packaging>
 	<version>3.6-SNAPSHOT</version>
 
-	<properties>
-		<test.forkCount>3</test.forkCount>
-	</properties>
-
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
