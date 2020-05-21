@@ -59,6 +59,7 @@ import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.StaticValue;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -67,6 +68,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.resource.MaintenanceParameterResource;
+import org.structr.rest.service.HttpService;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.Folder;
@@ -94,6 +96,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 		final String challenge      = (String) attributes.get("challenge");
 		final String server         = (String) attributes.get("server");
 		final String wait           = (String) attributes.get("wait");
+		final Boolean reload        = Boolean.TRUE.equals(attributes.get("reload"));
 
 		final int waitForSeconds;
 		if (StringUtils.isBlank(wait)) {
@@ -102,7 +105,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			waitForSeconds = Integer.parseInt((String) attributes.get("wait")) * 1000;
 		}
 
-		execute(server, challenge, waitForSeconds);
+		execute(server, challenge, waitForSeconds, reload);
 	}
 
 	@Override
@@ -120,7 +123,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 		return null;
 	}
 
-	public void execute(final String server, final String challenge, final Integer wait) throws FrameworkException {
+	public void execute(final String server, final String challenge, final Integer wait, final Boolean reload) throws FrameworkException {
 
 		if (server != null) {
 
@@ -143,13 +146,13 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 
 		challengeType = (challenge != null ? challenge : Settings.LetsEncryptChallengeType.getValue());
 
-		getCertificate(challengeType, wait);
+		getCertificate(challengeType, wait, reload);
 
 	}
 
 	// ----- private methods -----
 
-	private void getCertificate(final String challengeType, final Integer wait) throws FrameworkException {
+	private void getCertificate(final String challengeType, final Integer wait, final Boolean reload) throws FrameworkException {
 
 		try {
 
@@ -183,6 +186,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			order.execute(csrb.getEncoded());
 
 			try {
+
 				int attempts = 3;
 				while (org.shredzone.acme4j.Status.VALID != order.getStatus() && attempts-- > 0) {
 
@@ -195,7 +199,9 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 
 					order.update();
 				}
+
 			} catch (InterruptedException ex) {
+
 				logger.error("Order thread has been interrupted", ex);
 				Thread.currentThread().interrupt();
 			}
@@ -218,11 +224,18 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 
 				logger.info("Keystore file successfully written.");
 
+				if (reload) {
+
+					logger.info("Reloading ssl cert");
+
+					Services.getInstance().getService(HttpService.class, "default").reloadSSLCertificate();
+				}
+
 			} else {
+
 				logger.info("Unable to get certificate from order, aborting.");
 				throw new FrameworkException(422, "Unable to get certificate from order, aborting.");
 			}
-
 
 		} catch (final Exception e) {
 
@@ -236,6 +249,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 		final String password = Settings.KeystorePassword.getValue();
 
 		final KeyStore keyStore = getOrCreateKeyStore();
+
 		try {
 
 			final String certificateAlias = StringUtils.join(domains, ", ");

@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import javax.servlet.DispatcherType;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -103,6 +104,7 @@ public class HttpService implements RunnableService {
 	private GzipHandler gzipHandler               = null;
 	private HttpConfiguration httpConfig          = null;
 	private HttpConfiguration httpsConfig         = null;
+	private SslContextFactory sslContextFactory   = null;
 	private Server server                         = null;
 	private int maxIdleTime                       = 30000;
 	private int requestHeaderSize                 = 8192;
@@ -448,7 +450,7 @@ public class HttpService implements RunnableService {
 				httpsConfig = new HttpConfiguration(httpConfig);
 				httpsConfig.addCustomizer(new SecureRequestCustomizer());
 
-				final SslContextFactory sslContextFactory = new SslContextFactory();
+				sslContextFactory = new SslContextFactory();
 				sslContextFactory.setKeyStorePath(keyStorePath);
 				sslContextFactory.setKeyStorePassword(keyStorePassword);
 
@@ -517,6 +519,35 @@ public class HttpService implements RunnableService {
 		server.setStopAtShutdown(true);
 
 		return new ServiceResult(true);
+	}
+
+	public void reloadSSLCertificate() {
+
+		if (sslContextFactory != null) {
+
+			try {
+
+				final String keyStorePath           = Settings.KeystorePath.getValue();
+				final String keyStorePassword       = Settings.KeystorePassword.getValue();
+
+				// in case path/password changed
+				sslContextFactory.setKeyStorePath(keyStorePath);
+				sslContextFactory.setKeyStorePassword(keyStorePassword);
+
+				sslContextFactory.reload(new Consumer<SslContextFactory>() {
+					@Override
+					public void accept(SslContextFactory t) {
+					}
+				});
+
+			} catch (Exception e) {
+
+				logger.error("Unable to reload SSL certificate.", e);
+			}
+		} else {
+
+			logger.warn("Server started without SSL. Need to restart service.");
+		}
 	}
 
 	@Override
