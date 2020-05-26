@@ -8,22 +8,38 @@ fi
 
 BASE_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 cd $BASE_DIR
+
 PIDFILE=./structr-$NAME.pid
-LOGS_DIR=./logs
-SERVER_LOG=./logs/server.log
 
 if [ ! -f $PIDFILE ]; then
 	echo "No pid file exists, exiting."
 	exit 0
 fi
 
+COUNT=0
 PID=`cat $PIDFILE`
 kill -15 $PID
 
-( tail -q -n0 -F $SERVER_LOG & echo $! >tail.pid ) | sed -n '/Shutdown complete/q'
+while [ -n "$PID" ]; do
 
-rm $PIDFILE
+	kill -0 $PID 2>/dev/null || unset PID
+	sleep 1
 
-echo "Structr instance '$NAME' stopped."
-kill `cat tail.pid`
-rm tail.pid
+	if [ "$COUNT" -gt "30" ]; then
+		echo "Waited more than 30 seconds.."
+		break
+	fi
+
+	COUNT=$((COUNT+1))
+done
+
+if [ -z "$PID" ]; then
+
+	rm $PIDFILE
+	echo "Structr instance '$NAME' stopped."
+
+else
+	echo "Structr instance '$NAME' did not stop after 30 seconds, please check logfile."
+
+fi
+

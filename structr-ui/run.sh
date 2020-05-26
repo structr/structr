@@ -21,7 +21,6 @@ STRUCTR_ARGS="-server -Xms${HEAPSIZE}g -Xmx${HEAPSIZE}g -XX:+UseNUMA -XX:+UseG1G
 
 PIDFILE=$BASE_DIR/structr-$NAME.pid
 LOGS_DIR=$BASE_DIR/logs
-SERVER_LOG=$BASE_DIR/logs/server.log
 
 if [ ! -d $LOGS_DIR ]; then
         mkdir $LOGS_DIR
@@ -33,31 +32,11 @@ if [ -f $PIDFILE ]; then
 	exit 0
 fi
 
-if [ -f $SERVER_LOG ]; then
-        NOW=$(date +%Y%m%d-%H%M%S)
-        SERVER_LOG_BACKUP=$SERVER_LOG-$NOW
-	echo "Rotating existing logfile $SERVER_LOG to $SERVER_LOG_BACKUP"
-        mv $SERVER_LOG $SERVER_LOG_BACKUP
-        touch $SERVER_LOG
-fi
-
 STRUCTR_CONF=`find $BASE_DIR -name structr.conf`
 echo "Starting Structr instance '$NAME' with config file $STRUCTR_CONF"
 
-nohup $JAVA $STRUCTR_ARGS $STRUCTR > $SERVER_LOG 2>&1 &
+nohup $JAVA $STRUCTR_ARGS $STRUCTR >/dev/null 2>&1 &
 echo $! >$PIDFILE
-
-( tail -q -n0 -F $SERVER_LOG 2>/dev/null & echo $! >tail.pid ) | sed -n '/Initialization complete/q'
-tail -q -200 $SERVER_LOG 2> /dev/null | grep 'Starting'
-
-# If your console font is rather slim, you can change the ascii art message to
-# better fit the structr logo ;-) (you know, details matter...)
-
-#echo "       _                          _         "
-#echo " ___  | |_   ___   _   _   ____  | |_   ___ "
-#echo "(  _| | __| |  _| | | | | |  __| | __| |  _|"
-#echo " \ \  | |_  | |   | |_| | | |__  | |_  | |  "
-#echo "|___) |___| |_|   |_____| |____| |___| |_|  "
 
 echo "        _                          _         "
 echo " ____  | |_   ___   _   _   ____  | |_   ___ "
@@ -67,8 +46,3 @@ echo " _\ \  | |_  | |   | |_| | | |__  | |_  | |  "
 echo "|____) |___| |_|   |_____| |____| |___| |_|  "
 echo
 echo "$VERSION"
-
-echo
-echo "Structr instance '$NAME' started successfully (PID $!)"
-kill `cat tail.pid`
-rm tail.pid

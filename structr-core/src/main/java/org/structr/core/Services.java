@@ -22,9 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.URI;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -367,9 +365,7 @@ public class Services implements StructrServices {
 		}
 
 		logger.info("Started Structr {}", VersionHelper.getFullVersionInfo());
-
-		// Don't use logger here because start/stop scripts rely on this line.
-		System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.ms").format(new Date()) + "  ---------------- Initialization complete ----------------");
+		logger.info("---------------- Initialization complete ----------------");
 
 		setOverridingSchemaTypesAllowed(false);
 
