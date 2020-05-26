@@ -22,23 +22,23 @@ import org.structr.common.error.FrameworkException;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
-public class MailSelectConfigFunction extends AdvancedMailModuleFunction {
+public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
 
-	public final String ERROR_MESSAGE    = "Usage: ${mail_select_config(name)}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_select_config(name) }}";
+	public final String ERROR_MESSAGE    = "Usage: ${ mail_reset_manual_config() }";
+	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_reset_manual_config() }}";
 
-	public MailSelectConfigFunction(final AdvancedMailModule parent) {
+	public MailResetManualConfigFunction(final AdvancedMailModule parent) {
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
-		return "mail_select_config";
+		return "mail_reset_manual_config";
 	}
 
 	@Override
 	public String getSignature() {
-		return "name";
+			return "";
 	}
 
 	@Override
@@ -46,14 +46,7 @@ public class MailSelectConfigFunction extends AdvancedMailModuleFunction {
 
 		try {
 
-			if (sources[0] == null) {
-
-				ctx.getAdvancedMailContainer().setConfigurationPrefix(null);
-
-			} else {
-
-				ctx.getAdvancedMailContainer().setConfigurationPrefix(sources[0].toString());
-			}
+			ctx.getAdvancedMailContainer().resetManualConfiguration();
 
 			return "";
 
@@ -71,6 +64,6 @@ public class MailSelectConfigFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Selects a configuration prefix for the mail configuration (as configured in structr.conf)";
+		return "Resets a manual SMTP configuration for the current mail";
 	}
 }

@@ -226,7 +226,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 
 				if (reload) {
 
-					logger.info("Reloading ssl cert");
+					logger.info("Reloading ssl certificate");
 
 					Services.getInstance().getService(HttpService.class, "default").reloadSSLCertificate();
 				}
