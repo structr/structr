@@ -405,8 +405,9 @@ public abstract class StreamingWriter {
 				// prevent endless recursion by pruning at depth n
 				if (depth <= outputNestingDepth) {
 
-					// property keys
-					Iterable<PropertyKey> keys = source.getPropertyKeys(localPropertyView);
+					// property keys (for nested objects check if view exists on type)
+					Iterable<PropertyKey> keys = (depth == 0 || StructrApp.getConfiguration().hasView(source.getClass(), localPropertyView)) ? source.getPropertyKeys(localPropertyView) : idTypeNameOnly;
+
 					if (keys != null) {
 
 						// speciality for all, custom and ui view: limit recursive rendering to (id, name)
