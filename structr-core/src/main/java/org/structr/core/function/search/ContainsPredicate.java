@@ -18,6 +18,7 @@
  */
 package org.structr.core.function.search;
 
+import org.structr.api.search.Occurrence;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
@@ -35,6 +36,14 @@ public class ContainsPredicate extends AbstractPredicate {
 
 	@Override
 	public void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey propertyKey, final Query query, final boolean exact) throws FrameworkException {
-		query.and(propertyKey, value, false);
+
+		if (propertyKey.isCollection()) {
+
+			query.and(propertyKey, value, false, Occurrence.CONTAINS);
+
+		} else {
+
+			query.and(propertyKey, value, false);
+		}
 	}
 }

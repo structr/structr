@@ -256,14 +256,78 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 
 			if (!Occurrence.FORBIDDEN.equals(occur)) {
 
-				final Set<GraphObject> intersectionResult = new LinkedHashSet<>();
+				if (Occurrence.EXACT.equals(occur)) {
 
-				for (NodeInterface node : searchValue) {
+					boolean first = true;
+					final Set<GraphObject> overlayResult = new LinkedHashSet<>();
+					final Set<GraphObject> finalResult = new LinkedHashSet<>();
 
-					intersectionResult.addAll(getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
+					// only add nodes if they are found for each search value
+					for (NodeInterface node : searchValue) {
+
+						if (first) {
+							overlayResult.addAll(getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
+							first = false;
+						} else {
+							overlayResult.retainAll(getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
+						}
+					}
+
+					// test each result if the collection is exactly the asked collection
+					for (GraphObject possibleResult : overlayResult) {
+						boolean isExact = true;
+
+						for (GraphObject possibleResultRemoteNode : possibleResult.getProperty(this)) {
+							boolean isContained = false;
+
+							for (NodeInterface searchedNode : searchValue) {
+								if (searchedNode.getUuid().equals(possibleResultRemoteNode.getUuid())) {
+									isContained = true;
+								}
+							}
+
+							if (!isContained) {
+								isExact = false;
+							}
+						}
+
+						if (isExact) {
+							finalResult.add(possibleResult);
+						}
+					}
+
+					attr.setResult(finalResult);
+
+				} else if (Occurrence.CONTAINS.equals(occur)) {
+
+					boolean first = true;
+					final Set<GraphObject> overlayResult = new LinkedHashSet<>();
+
+					// only add nodes if they are found for each search value
+					for (NodeInterface node : searchValue) {
+
+						if (first) {
+							overlayResult.addAll(getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
+							first = false;
+						} else {
+							overlayResult.retainAll(getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
+						}
+					}
+
+					attr.setResult(overlayResult);
+
+				} else {
+
+					final Set<GraphObject> intersectionResult = new LinkedHashSet<>();
+
+					for (NodeInterface node : searchValue) {
+
+						intersectionResult.addAll(getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
+					}
+
+					attr.setResult(intersectionResult);
 				}
 
-				attr.setResult(intersectionResult);
 			}
 
 		} else {
