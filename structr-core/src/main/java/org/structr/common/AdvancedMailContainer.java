@@ -54,6 +54,14 @@ public class AdvancedMailContainer {
 
 	private String configurationPrefix = null;
 
+	private boolean useManualConfiguration = false;
+	private String smtpHost        = null;
+	private Integer smtpPort       = null;
+	private String smtpUser        = null;
+	private String smtpPassword    = null;
+	private Boolean smtpUseTLS     = null;
+	private Boolean smtpRequireTLS = null;
+
 	public String getFromName() {
 		return fromName;
 	}
@@ -231,6 +239,53 @@ public class AdvancedMailContainer {
 		this.configurationPrefix = configurationPrefix;
 	}
 
+	public boolean shouldUseManualConfiguration() {
+		return useManualConfiguration;
+	}
+
+	public void setManualConfiguration(final String smtpHost, final int smtpPort, final String smtpUser, final String smtpPassword, final boolean smtpUseTLS, final boolean smtpRequireTLS) {
+
+		useManualConfiguration = true;
+
+		this.smtpHost       = smtpHost;
+		this.smtpPort       = smtpPort;
+		this.smtpUser       = smtpUser;
+		this.smtpPassword   = smtpPassword;
+		this.smtpUseTLS     = smtpUseTLS;
+		this.smtpRequireTLS = smtpRequireTLS;
+	}
+
+	public String getSmtpHost() {
+		return smtpHost;
+	}
+	public int getSmtpPort() {
+		return smtpPort;
+	}
+	public String getSmtpUser() {
+		return smtpUser;
+	}
+	public String getSmtpPassword() {
+		return smtpPassword;
+	}
+	public boolean getSmtpUseTLS() {
+		return smtpUseTLS;
+	}
+	public boolean getSmtpRequireTLS() {
+		return smtpRequireTLS;
+	}
+
+	public void resetManualConfiguration() {
+
+		useManualConfiguration = false;
+
+		this.smtpHost       = null;
+		this.smtpPort       = null;
+		this.smtpUser       = null;
+		this.smtpPassword   = null;
+		this.smtpUseTLS     = null;
+		this.smtpRequireTLS = null;
+	}
+
 	public void clearMailContainer() {
 
 		setFromName(null);
@@ -246,6 +301,7 @@ public class AdvancedMailContainer {
 		this.lastOutgoingMessage = null;
 
 		setConfigurationPrefix(null);
+		resetManualConfiguration();
 
 		clearTo();
 		clearCc();
@@ -253,7 +309,6 @@ public class AdvancedMailContainer {
 		clearReplyTo();
 		clearAttachments();
 		clearCustomHeaders();
-
 	}
 
 	public String send(final SecurityContext securityContext) throws EmailException, FrameworkException {
