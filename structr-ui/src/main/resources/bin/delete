@@ -1,4 +1,0 @@
-#!/bin/bash
-echo curl -i -XDELETE -HX-User:$REST_USER -HX-Password:$REST_PW "$REST_URL/$@"
-curl -i -XDELETE -HX-User:$REST_USER -HX-Password:$REST_PW "$REST_URL/$@"
-

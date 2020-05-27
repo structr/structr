@@ -11,7 +11,7 @@ if [ -e $PID_FILE ]; then
 	result=$?
 
 	if [ $result -eq 1 ]; then
-		echo 
+		echo
 		echo "        Found $PID_FILE, but server is not running."
 		echo "        Removing $PID_FILE and proceeding with startup."
 		echo
@@ -37,13 +37,6 @@ if [ ! -d $LOGS_DIR ]; then
         touch $LOG_FILE
 fi
 
-echo -n "        Starting structr server $DISPLAY_NAME: "
+echo "        Starting structr server $DISPLAY_NAME"
 
-java $RUN_OPTS $JAVA_OPTS $MAIN_CLASS >$LOG_FILE 2>&1 & echo $! >$PID_FILE
-
-sleep 1
-
-echo "OK"
-echo
-
-tail -f $LOG_FILE
+java $RUN_OPTS $JAVA_OPTS $MAIN_CLASS

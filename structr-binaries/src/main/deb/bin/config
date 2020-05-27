@@ -3,8 +3,8 @@
 # configuration options for FINAL_NAME
 #
 
-if [ -f /usr/lib/structr/bin/memory.config ]; then
-	MEMORY_OPTS="$(cat /usr/lib/structr/bin/memory.config)"
+if [ -f bin/memory.config ]; then
+	MEMORY_OPTS="$(cat bin/memory.config)"
 elif [ -n "$MEMORY_OPTS" ]; then
 	MEMORY_OPTS="$MEMORY_OPTS"
 else
