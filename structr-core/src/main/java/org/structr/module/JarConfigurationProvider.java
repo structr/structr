@@ -808,6 +808,15 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
+	public boolean hasView(final Class type, final String propertyView) {
+
+		final Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
+		final Set<PropertyKey> properties = propertyViewMap.get(propertyView);
+
+		return (properties != null);
+	}
+
+	@Override
 	public Set<PropertyKey> getPropertySet(Class type, String propertyView) {
 
 		Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
