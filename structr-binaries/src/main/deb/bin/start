@@ -1,7 +1,5 @@
 #!/bin/bash
 
-cd /usr/lib/structr
-
 . bin/config
 
 PID=$(pgrep -P 1 -f org.structr.Server)

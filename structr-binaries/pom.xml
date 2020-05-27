@@ -133,17 +133,6 @@
 									</mapper>
 								</data>
 
-								<!--
-								<data>
-									<src>${basedir}/src/main/deb/logrotate.d</src>
-									<type>directory</type>
-									<mapper>
-										<type>perm</type>
-										<prefix>/etc/logrotate.d</prefix>
-										<filemode>755</filemode>
-									</mapper>
-								</data>
-								-->
 							</dataSet>
 						</configuration>
 					</execution>

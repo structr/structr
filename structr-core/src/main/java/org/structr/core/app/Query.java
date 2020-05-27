@@ -21,6 +21,7 @@ package org.structr.core.app;
 import java.util.Comparator;
 import java.util.List;
 import org.structr.api.Predicate;
+import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
@@ -86,6 +87,7 @@ public interface Query<T extends GraphObject> extends Iterable<T> {
 
 	public <P> Query<T> and(final PropertyKey<P> key, final P value);
 	public <P> Query<T> and(final PropertyKey<P> key, final P value, final boolean exact);
+	public <P> Query<T> and(final PropertyKey<P> key, final P value, final boolean exact, final Occurrence occur);
 	public <P> Query<T> and(final PropertyMap attributes);
 	public Query<T> and();
 	public <P> Query<T> or(final PropertyKey<P> key, P value);
