@@ -79,6 +79,7 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
@@ -1468,7 +1469,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(abstractFile.getClass(), PropertyView.All)) {
 
 			// only export dynamic (=> additional) keys that are *not* remote properties
-			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null) {
+			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null && !(key instanceof FunctionProperty)) {
 
 				putData(config, key.jsonName(), abstractFile.getProperty(key));
 			}
