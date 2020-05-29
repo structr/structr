@@ -39,8 +39,11 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
+import org.structr.core.entity.SchemaGrant;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -1606,9 +1609,7 @@ public class AccessControlTest extends StructrTest {
 			fail("Unexpected exception.");
 
 		}
-
 	}
-
 
 	// ----- private methods -----
 	public static void clearResourceAccess() {

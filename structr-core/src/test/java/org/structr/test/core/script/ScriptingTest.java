@@ -3435,10 +3435,10 @@ public class ScriptingTest extends StructrTest {
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			// create some test objects
-			Scripting.evaluate(ctx, null, "${{ Structr.create('Group', { name: 'test' + 123 + 'structr' }); }}", "test");
-			Scripting.evaluate(ctx, null, "${{ var g = Structr.create('Group'); g.name = 'test' + 123 + 'structr'; }}", "test");
-			Scripting.evaluate(ctx, null, "${{ var g = Structr.create('Group'); Structr.set(g, 'name', 'test' + 123 + 'structr'); }}", "test");
-			Scripting.evaluate(ctx, null, "${{ Structr.create('Group', 'name', 'test' + 123 + 'structr'); }}", "test");
+			Scripting.evaluate(ctx, null, "${{ Structr.create('Group', { name: 'test' + 1231 + 'structr' }); }}", "test");
+			Scripting.evaluate(ctx, null, "${{ var g = Structr.create('Group'); g.name = 'test' + 1232 + 'structr'; }}", "test");
+			Scripting.evaluate(ctx, null, "${{ var g = Structr.create('Group'); Structr.set(g, 'name', 'test' + 1233 + 'structr'); }}", "test");
+			Scripting.evaluate(ctx, null, "${{ Structr.create('Group', 'name', 'test' + 1234 + 'structr'); }}", "test");
 
 			tx.success();
 
@@ -3455,11 +3455,11 @@ public class ScriptingTest extends StructrTest {
 
 			int index = 1;
 
-			for (final Group group : app.nodeQuery(Group.class).getAsList()) {
+			for (final Group group : app.nodeQuery(Group.class).sort(Group.name).getAsList()) {
 
 				System.out.println(group.getName());
 
-				assertEquals("Invalid JavaScript string concatenation result for script #" + index++, "test123structr", group.getName());
+				assertEquals("Invalid JavaScript string concatenation result for script #" + index, "test123" + index++ + "structr", group.getName());
 			}
 
 			final NodeInterface project = app.create(projectType, "structr");
@@ -4246,7 +4246,7 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(Group.class, "group1");
-			app.create(Group.class);
+			app.create(Group.class, "group2");
 
 			tx.success();
 
