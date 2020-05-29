@@ -49,6 +49,7 @@ import org.structr.common.error.UnlicensedTypeException;
 import org.structr.core.Export;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.relationship.SchemaGrantSchemaNodeRelationship;
 import org.structr.core.entity.relationship.SchemaRelationshipSourceNode;
 import org.structr.core.entity.relationship.SchemaRelationshipTargetNode;
 import org.structr.core.graph.ModificationQueue;
@@ -83,18 +84,19 @@ public class SchemaNode extends AbstractSchemaNode {
 		"Relation", "Property"
 	}));
 
-	public static final Property<Iterable<SchemaRelationshipNode>> relatedTo        = new EndNodes<>("relatedTo", SchemaRelationshipSourceNode.class);
-	public static final Property<Iterable<SchemaRelationshipNode>> relatedFrom      = new StartNodes<>("relatedFrom", SchemaRelationshipTargetNode.class);
-	public static final Property<String>                       extendsClass         = new StringProperty("extendsClass").indexed();
-	public static final Property<String>                       implementsInterfaces = new StringProperty("implementsInterfaces").indexed();
-	public static final Property<String>                       defaultSortKey       = new StringProperty("defaultSortKey");
-	public static final Property<String>                       defaultSortOrder     = new StringProperty("defaultSortOrder");
-	public static final Property<Boolean>                      isBuiltinType        = new BooleanProperty("isBuiltinType").readOnly().indexed();
-	public static final Property<Integer>                      hierarchyLevel       = new IntProperty("hierarchyLevel").indexed();
-	public static final Property<Integer>                      relCount             = new IntProperty("relCount").indexed();
-	public static final Property<Boolean>                      isInterface          = new BooleanProperty("isInterface").indexed();
-	public static final Property<Boolean>                      isAbstract           = new BooleanProperty("isAbstract").indexed();
-	public static final Property<String>                       category             = new StringProperty("category").indexed();
+	public static final Property<Iterable<SchemaRelationshipNode>> relatedTo            = new EndNodes<>("relatedTo", SchemaRelationshipSourceNode.class);
+	public static final Property<Iterable<SchemaRelationshipNode>> relatedFrom          = new StartNodes<>("relatedFrom", SchemaRelationshipTargetNode.class);
+	public static final Property<Iterable<SchemaGrant>>            schemaGrants         = new StartNodes<>("schemaGrants", SchemaGrantSchemaNodeRelationship.class);
+	public static final Property<String>                           extendsClass         = new StringProperty("extendsClass").indexed();
+	public static final Property<String>                           implementsInterfaces = new StringProperty("implementsInterfaces").indexed();
+	public static final Property<String>                           defaultSortKey       = new StringProperty("defaultSortKey");
+	public static final Property<String>                           defaultSortOrder     = new StringProperty("defaultSortOrder");
+	public static final Property<Boolean>                          isBuiltinType        = new BooleanProperty("isBuiltinType").readOnly().indexed();
+	public static final Property<Integer>                          hierarchyLevel       = new IntProperty("hierarchyLevel").indexed();
+	public static final Property<Integer>                          relCount             = new IntProperty("relCount").indexed();
+	public static final Property<Boolean>                          isInterface          = new BooleanProperty("isInterface").indexed();
+	public static final Property<Boolean>                          isAbstract           = new BooleanProperty("isAbstract").indexed();
+	public static final Property<String>                           category             = new StringProperty("category").indexed();
 
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
 		extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract
@@ -105,7 +107,7 @@ public class SchemaNode extends AbstractSchemaNode {
 	);
 
 	public static final View schemaView = new View(SchemaNode.class, "schema",
-		name, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract
+		name, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, schemaGrants
 	);
 
 	public static final View exportView = new View(SchemaNode.class, "export",
@@ -537,6 +539,11 @@ public class SchemaNode extends AbstractSchemaNode {
 	@Override
 	public boolean reloadSchemaOnDelete() {
 		return true;
+	}
+
+	@Override
+	public Iterable<SchemaGrant> getSchemaGrants() {
+		return getProperty(schemaGrants);
 	}
 
 	// ----- private methods -----

@@ -33,11 +33,12 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.Tx;
 import org.structr.api.schema.InvalidSchemaException;
 import org.structr.api.schema.JsonSchema;
+import org.structr.core.entity.SchemaGrant;
+import org.structr.core.entity.SchemaRelationshipNode;
 
 /**
  * The main class to interact with the Structr Schema API.
@@ -89,6 +90,8 @@ public class StructrSchema {
 	 *
 	 * @return
 	 *
+	 * @throws FrameworkException
+	 * @throws URISyntaxException
 	 * @throws InvalidSchemaException
 	 */
 	public static JsonSchema createFromSource(final String source) throws InvalidSchemaException, URISyntaxException, FrameworkException {
@@ -101,7 +104,8 @@ public class StructrSchema {
 	 * @param reader
 	 *
 	 * @return
-	 *
+	 * @throws FrameworkException
+	 * @throws URISyntaxException
 	 * @throws InvalidSchemaException
 	 */
 	public static JsonSchema createFromSource(final Reader reader) throws InvalidSchemaException, URISyntaxException, FrameworkException {
@@ -116,7 +120,9 @@ public class StructrSchema {
 	 * Creates a minimal JsonSchema object without any classes
 	 *
 	 * @return
-	 *
+	 * @throws FrameworkException
+	 * @throws URISyntaxException
+	 * @throws InvalidSchemaException
 	 */
 	public static JsonSchema createEmptySchema() throws InvalidSchemaException, URISyntaxException, FrameworkException {
 		return StructrSchema.createFromSource(JsonSchema.EMPTY_SCHEMA);
@@ -139,7 +145,6 @@ public class StructrSchema {
 	 * @param newSchema the new schema to replace the current Structr schema
 	 *
 	 * @throws FrameworkException
-	 * @throws URISyntaxException
 	 */
 	public static void replaceDatabaseSchema(final App app, final JsonSchema newSchema) throws FrameworkException {
 
@@ -147,38 +152,32 @@ public class StructrSchema {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final SchemaRelationshipNode schemaRelationship : app.nodeQuery(SchemaRelationshipNode.class).getAsList()) {
-				app.delete(schemaRelationship);
-			}
-
-			for (final SchemaNode schemaNode : app.nodeQuery(SchemaNode.class).getAsList()) {
-				app.delete(schemaNode);
-			}
-
-			for (final SchemaMethod schemaMethod : app.nodeQuery(SchemaMethod.class).getAsList()) {
-				app.delete(schemaMethod);
-			}
-
-			for (final SchemaMethodParameter schemaMethodParameter : app.nodeQuery(SchemaMethodParameter.class).getAsList()) {
-				app.delete(schemaMethodParameter);
-			}
-
-			for (final SchemaProperty schemaProperty : app.nodeQuery(SchemaProperty.class).getAsList()) {
-				app.delete(schemaProperty);
-			}
-
-			for (final SchemaView schemaView : app.nodeQuery(SchemaView.class).getAsList()) {
-				app.delete(schemaView);
-			}
+			app.delete(SchemaRelationshipNode.class);
+			app.delete(SchemaNode.class);
+			app.delete(SchemaMethod.class);
+			app.delete(SchemaMethodParameter.class);
+			app.delete(SchemaProperty.class);
+			app.delete(SchemaView.class);
+			app.delete(SchemaGrant.class);
 
 			newSchema.createDatabaseSchema(JsonSchema.ImportMode.replace);
 
 			tx.success();
 
-		} catch (Exception ex) {
+		} catch (Throwable ex) {
 
 			if (ex instanceof FrameworkException) {
+
 				throw (FrameworkException)ex;
+
+			} else {
+
+				ex.printStackTrace();
+
+				final FrameworkException fex = new FrameworkException(500, "Unable to import schema");
+				fex.initCause(ex);
+
+				throw fex;
 			}
 		}
 	}
@@ -190,7 +189,6 @@ public class StructrSchema {
 	 * @param newSchema the new schema to add to the current Structr schema
 	 *
 	 * @throws FrameworkException
-	 * @throws URISyntaxException
 	 */
 	public static void extendDatabaseSchema(final App app, final JsonSchema newSchema) throws FrameworkException {
 

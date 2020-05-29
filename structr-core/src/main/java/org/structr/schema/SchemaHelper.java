@@ -56,6 +56,7 @@ import org.structr.api.service.LicenseManager;
 import org.structr.api.service.ServiceResult;
 import org.structr.api.util.Iterables;
 import org.structr.common.CaseHelper;
+import org.structr.common.Permission;
 import org.structr.common.PermissionPropagation;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -78,6 +79,7 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.DynamicResourceAccess;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.ResourceAccess;
+import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaMethod;
 import static org.structr.core.entity.SchemaMethod.source;
 import org.structr.core.entity.SchemaNode;
@@ -721,6 +723,7 @@ public class SchemaHelper {
 
 		SchemaHelper.formatValidators(sourceFile, schemaNode, validators, compoundIndexKeys, extendsAbstractNode, propertyValidators);
 		SchemaHelper.formatMethods(sourceFile, schemaNode, methods, implementedInterfaces);
+		SchemaHelper.formatSchemaGrants(sourceFile, schemaNode);
 
 		// insert source code from module
 		for (final StructrModule module : modules) {
@@ -1123,11 +1126,14 @@ public class SchemaHelper {
 		sourceFile.importLine(StructrApp.class.getName());
 		sourceFile.importLine(LinkedList.class.getName());
 		sourceFile.importLine(Collection.class.getName());
+		sourceFile.importLine(Permission.class.getName());
 		sourceFile.importLine(Direction.class.getName());
 		sourceFile.importLine(Iterables.class.getName());
 		sourceFile.importLine(Services.class.getName());
 		sourceFile.importLine(Actions.class.getName());
 		sourceFile.importLine(HashMap.class.getName());
+		sourceFile.importLine(HashSet.class.getName());
+		sourceFile.importLine(Arrays.class.getName());
 		sourceFile.importLine(Export.class.getName());
 		sourceFile.importLine(View.class.getName());
 		sourceFile.importLine(List.class.getName());
@@ -1434,6 +1440,73 @@ public class SchemaHelper {
 		action.getSource(src, "this", true, false);
 
 		src.end();
+	}
+
+	private static void formatSchemaGrants(final SourceFile src, final AbstractSchemaNode schemaNode) {
+
+		final Iterable<SchemaGrant> schemaGrants = schemaNode.getSchemaGrants();
+		if (schemaGrants != null) {
+
+			final List<SchemaGrant> list = Iterables.toList(schemaGrants);
+			if (!list.isEmpty()) {
+
+				final Set<String> read          = new HashSet<>();
+				final Set<String> write         = new HashSet<>();
+				final Set<String> delete        = new HashSet<>();
+				final Set<String> accessControl = new HashSet<>();
+
+				for (final SchemaGrant grant : list) {
+
+					final String principalName = grant.getProperty(SchemaGrant.principalName);
+
+					if (grant.getProperty(SchemaGrant.allowRead)) {
+						read.add(principalName);
+					}
+
+					if (grant.getProperty(SchemaGrant.allowWrite)) {
+						write.add(principalName);
+					}
+
+					if (grant.getProperty(SchemaGrant.allowDelete)) {
+						delete.add(principalName);
+					}
+
+					if (grant.getProperty(SchemaGrant.allowAccessControl)) {
+						accessControl.add(principalName);
+					}
+				}
+
+				src.line(schemaNode, "private static final Set<String> readGrants          = new HashSet<>(",          formatJoined(read), ");");
+				src.line(schemaNode, "private static final Set<String> writeGrants         = new HashSet<>(",         formatJoined(write), ");");
+				src.line(schemaNode, "private static final Set<String> deleteGrants        = new HashSet<>(",        formatJoined(delete), ");");
+				src.line(schemaNode, "private static final Set<String> accessControlGrants = new HashSet<>(", formatJoined(accessControl), ");");
+
+				src.line(schemaNode, "@Override");
+				src.begin(schemaNode, "protected boolean allowedBySchema(final org.structr.core.entity.Principal principal, final org.structr.common.Permission permission) {");
+
+				src.line(schemaNode, "final String name = principal.getName();");
+
+				src.begin(schemaNode, "switch (permission.name()) {");
+				src.line(schemaNode, "case \"read\":          return readGrants.contains(name);");
+				src.line(schemaNode, "case \"write\":         return writeGrants.contains(name);");
+				src.line(schemaNode, "case \"delete\":        return deleteGrants.contains(name);");
+				src.line(schemaNode, "case \"accessControl\": return accessControlGrants.contains(name);");
+				src.end();
+
+				src.line(schemaNode, "return super.allowedBySchema(principal, permission);");
+				src.end();
+			}
+		}
+	}
+
+	private static String formatJoined(Set<String> set) {
+
+		if (set.isEmpty()) {
+
+			return "";
+		}
+
+		return "Arrays.asList(\"" + StringUtils.join(set, "\", \"") + "\")";
 	}
 
 	private static Map<String, Object> getPropertiesForView(final SecurityContext securityContext, final Class type, final String propertyView) throws FrameworkException {

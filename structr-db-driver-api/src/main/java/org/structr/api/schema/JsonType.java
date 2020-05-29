@@ -63,6 +63,7 @@ public interface JsonType extends Comparable<JsonType> {
 	Set<String> getViewNames();
 	Set<String> getViewPropertyNames(final String viewName);
 	List<JsonMethod> getMethods();
+	List<JsonGrant> getGrants();
 
 	JsonType addViewProperty(final String viewName, final String propertyName);
 

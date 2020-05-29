@@ -1355,8 +1355,102 @@ var _Code = {
 
 				});
 
+				let grants = {};
+
+				result.schemaGrants.forEach(function(grant) {
+					grants[grant.principal.id] = grant;
+				});
+
+				Command.query('Group', 1000, 1, 'name', 'asc', { }, function(groupResult) {
+
+					let grantsContainer = document.querySelector('#schema-grants');
+
+					grantsContainer.innerHTML = '<tr><th>Name</th><th>read</th><th>write</th><th>delete</th><th>access control</th></tr>';
+
+					groupResult.forEach(function(group) {
+
+						let row  = document.createElement('tr');
+						let name = document.createElement('td');
+						let r    = document.createElement('td');
+						let w    = document.createElement('td');
+						let d    = document.createElement('td');
+						let a    = document.createElement('td');
+
+						row.appendChild(name);
+						row.appendChild(r);
+						row.appendChild(w);
+						row.appendChild(d);
+						row.appendChild(a);
+
+						let readBox          = document.createElement('input');
+						let writeBox         = document.createElement('input');
+						let deleteBox        = document.createElement('input');
+						let accessControlBox = document.createElement('input');
+
+						name.innerHTML        = group.name;
+						readBox.type          = 'checkbox';
+						writeBox.type         = 'checkbox';
+						deleteBox.type        = 'checkbox';
+						accessControlBox.type = 'checkbox';
+
+						r.appendChild(readBox);
+						w.appendChild(writeBox);
+						d.appendChild(deleteBox);
+						a.appendChild(accessControlBox);
+
+						grantsContainer.appendChild(row);
+
+						let grant = grants[group.id];
+						if (grant) {
+
+							readBox.checked          = grant.allowRead;
+							writeBox.checked         = grant.allowWrite;
+							deleteBox.checked        = grant.allowDelete;
+							accessControlBox.checked = grant.allowAccessControl;
+
+							let update = function(id, d) {
+								_Code.showSchemaRecompileMessage();
+								Command.setProperties(id, d, function() {
+									_Code.hideSchemaRecompileMessage();
+									_Code.displaySchemaNodeContent(data);
+								});
+							};
+
+							readBox.addEventListener('click', function() { update(grant.id, { allowRead: readBox.checked}); });
+							writeBox.addEventListener('click', function() { update(grant.id, { allowWrite: writeBox.checked }); });
+							deleteBox.addEventListener('click', function() { update(grant.id, { allowDelete: deleteBox.checked }); });
+							accessControlBox.addEventListener('click', function() { update(grant.id, { allowAccessControl: accessControlBox.checked }); });
+
+						} else {
+
+							let create = function() {
+
+								_Code.showSchemaRecompileMessage();
+								Command.create({
+									type:               'SchemaGrant',
+									principal:          group.id,
+									schemaNode:         result.id,
+									allowRead:          readBox.checked,
+									allowWrite:         writeBox.checked,
+									allowDelete:        deleteBox.checked,
+									allowAccessControl: accessControlBox.checked,
+								}, function() {
+									_Code.hideSchemaRecompileMessage();
+									_Code.displaySchemaNodeContent(data);
+								});
+							};
+
+							readBox.addEventListener('click', create);
+							writeBox.addEventListener('click', create);
+							deleteBox.addEventListener('click', create);
+							accessControlBox.addEventListener('click', create);
+						}
+					});
+
+				});
+
 			});
-		});
+		}, 'schema');
 	},
 	displaySchemaGroupContent: function(data) {
 

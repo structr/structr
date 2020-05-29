@@ -50,12 +50,12 @@ import org.structr.schema.Schema;
  */
 public abstract class AbstractSchemaNode extends SchemaReloadingNode implements Schema {
 
-	public static final Property<Iterable<SchemaProperty>> schemaProperties = new EndNodes<>("schemaProperties", SchemaNodeProperty.class);
-	public static final Property<Iterable<SchemaMethod>>   schemaMethods    = new EndNodes<>("schemaMethods", SchemaNodeMethod.class);
-	public static final Property<Iterable<SchemaView>>     schemaViews      = new EndNodes<>("schemaViews", SchemaNodeView.class);
-	public static final Property<String>               icon                 = new StringProperty("icon");
-	public static final Property<String>               description          = new StringProperty("description");
-	public static final Set<String> hiddenPropertyNames                     = new LinkedHashSet<>();
+	public static final Property<Iterable<SchemaProperty>> schemaProperties     = new EndNodes<>("schemaProperties", SchemaNodeProperty.class);
+	public static final Property<Iterable<SchemaMethod>>   schemaMethods        = new EndNodes<>("schemaMethods", SchemaNodeMethod.class);
+	public static final Property<Iterable<SchemaView>>     schemaViews          = new EndNodes<>("schemaViews", SchemaNodeView.class);
+	public static final Property<String>                   icon                 = new StringProperty("icon");
+	public static final Property<String>                   description          = new StringProperty("description");
+	public static final Set<String>                        hiddenPropertyNames  = new LinkedHashSet<>();
 
 	public static final View defaultView = new View(AbstractSchemaNode.class, PropertyView.Public,
 		name, icon

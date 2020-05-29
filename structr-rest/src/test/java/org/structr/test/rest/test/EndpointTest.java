@@ -89,13 +89,10 @@ public class EndpointTest extends StructrRestTestBase {
 		final AtomicInteger numFailure = new AtomicInteger();
 		final List<Future> futures     = new LinkedList<>();
 		final String finalProjectUuid  = projectUuid;
-		final String finalTaskUuid     = taskUuid;
 		final int num                  = 100;
 		final long t0                  = System.currentTimeMillis();
 
 		for (int i=0; i<num; i++) {
-
-			final int index = i;
 
 			futures.add(service.submit(() -> {
 
