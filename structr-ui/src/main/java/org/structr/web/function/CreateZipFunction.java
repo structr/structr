@@ -33,8 +33,8 @@ import org.structr.web.entity.Folder;
 
 public class CreateZipFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_CREATE_ZIP    = "Usage: ${create_zip(archiveFileName, files [, password, encryptionMethod ])}. Example: ${create_zip(\"archive\", find(\"File\"))}";
-	public static final String ERROR_MESSAGE_CREATE_ZIP_JS = "Usage: ${{Structr.createArchive(archiveFileName, files [, password, encryptionMethod ])}}. Example: ${{Structr.createZip(\"archive\", Structr.find(\"File\"))}}";
+	public static final String ERROR_MESSAGE_CREATE_ZIP    = "Usage: ${create_zip(archiveFileName, files [, password [, encryptionMethod ] ])}. Example: ${create_zip(\"archive\", find(\"File\"))}";
+	public static final String ERROR_MESSAGE_CREATE_ZIP_JS = "Usage: ${{Structr.createArchive(archiveFileName, files [, password [, encryptionMethod ] ])}}. Example: ${{Structr.createZip(\"archive\", Structr.find(\"File\"))}}";
 
 	@Override
 	public String getName() {
@@ -43,14 +43,14 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getSignature() {
-		return "fileName, files [, password, encryptionMethod ]";
+		return "archiveFileName, files [, password [, encryptionMethod ] ]";
 	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		if (sources == null || sources.length < 1 || sources[0] == null || sources[1] == null || !(sources[1] instanceof File || sources[1] instanceof Folder || sources[1] instanceof Collection)) {
-			
+
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
@@ -58,21 +58,21 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 		String name             = null;
 		String password         = null;
-		
+
 		String encryptionMethodString     = null;
 		EncryptionMethod encryptionMethod = EncryptionMethod.ZIP_STANDARD;
-		
+
 		if (sources[0] instanceof String) {
 			name = (String) sources[0];
 		}
-		
+
 		if (sources.length > 2 && sources[2] != null && sources[2] instanceof String) {
-			
+
 			password = (String) sources[2];
 		}
-		
+
 		if (sources.length > 3 && sources[3] != null && sources[3] instanceof String) {
-			
+
 			encryptionMethodString = (String) sources[3];
 			encryptionMethod       = "aes".equals(encryptionMethodString.toLowerCase()) ? EncryptionMethod.AES : EncryptionMethod.ZIP_STANDARD;
 		}
@@ -81,30 +81,30 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 			ZipFile            zipFile = null;
 			final ZipParameters params = new ZipParameters();
-			
+
 			if (password != null) {
-				
+
 				params.setEncryptFiles(true);
 				params.setEncryptionMethod(encryptionMethod);
 				zipFile = new ZipFile(name + ".zip", password.toCharArray());
-				
+
 			} else {
-				
+
 				zipFile = new ZipFile(name + ".zip");
 			}
 
 			zipFile.setCharset(Charset.forName("UTF-8"));
-			
+
 			if (sources[1] instanceof File) {
 
 				File file = (File) sources[1];
 				addFileToZipArchive(file.getProperty(AbstractFile.name), file, zipFile, params);
-				
+
 
 			} else if (sources[1] instanceof Folder) {
 
 				Folder folder = (Folder) sources[1];
-				
+
 				addFilesToArchive(folder.getProperty(Folder.name) + "/", folder.getFiles(), zipFile, params);
 				addFoldersToArchive(folder.getProperty(Folder.name) + "/", folder.getFolders(), zipFile, params);
 
@@ -134,7 +134,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 			}
 
 			return FileHelper.createFile(ctx.getSecurityContext(), zipFile.getFile(), "application/zip", sources[0].toString() + ".zip");
-			
+
 
 		} catch (IOException e) {
 
