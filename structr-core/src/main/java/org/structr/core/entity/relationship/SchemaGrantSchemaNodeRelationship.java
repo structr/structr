@@ -16,31 +16,35 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.schema;
+package org.structr.core.entity.relationship;
 
-import java.util.Map;
-import org.structr.api.graph.PropertyContainer;
+import org.structr.core.entity.ManyToOne;
 import org.structr.core.entity.SchemaGrant;
-import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaView;
 
 /**
  *
  *
  */
-public interface Schema {
+public class SchemaGrantSchemaNodeRelationship extends ManyToOne<SchemaGrant, SchemaNode> {
 
-	public String getMultiplicity(final Map<String, SchemaNode> schemaNodes, final String propertyNameToCheck);
-	public String getRelatedType(final Map<String, SchemaNode> schemaNodes, final String propertyNameToCheck);
-	public PropertyContainer getPropertyContainer();
-	public String getClassName();
-	public String getSuperclassName();
-	public String getUuid();
+	@Override
+	public Class<SchemaGrant> getSourceType() {
+		return SchemaGrant.class;
+	}
 
-	public Iterable<SchemaProperty> getSchemaProperties();
-	public Iterable<SchemaView> getSchemaViews();
-	public Iterable<SchemaMethod> getSchemaMethods();
-	public Iterable<SchemaGrant> getSchemaGrants();
+	@Override
+	public Class<SchemaNode> getTargetType() {
+		return SchemaNode.class;
+	}
+
+	@Override
+	public String name() {
+		return "SCHEMA_GRANT";
+	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
 }

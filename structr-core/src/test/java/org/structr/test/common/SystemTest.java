@@ -50,6 +50,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
@@ -1402,6 +1403,131 @@ public class SystemTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
+		}
+	}
+
+	@Test
+	public void testSchemaGrantAutoDelete() {
+
+		// setup - schema type
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			// add test type
+			schema.addType("Project");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// setup 2 - schema grant
+		try (final Tx tx = app.tx()) {
+
+			final Group testGroup1       = app.create(Group.class, "Group1");
+			final Group testGroup2       = app.create(Group.class, "Group2");
+			final Group testGroup3       = app.create(Group.class, "Group3");
+
+			// create group hierarchy
+			testGroup1.addMember(securityContext, testGroup2);
+			testGroup2.addMember(securityContext, testGroup3);
+
+			final Principal user = app.create(Principal.class,
+				new NodeAttribute<>(AbstractNode.name, "user"),
+				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "password")
+			);
+
+			testGroup3.addMember(securityContext, user);
+
+			final SchemaNode projectNode = app.nodeQuery(SchemaNode.class).andName("Project").getFirst();
+
+			// create grant
+			app.create(SchemaGrant.class,
+				new NodeAttribute<>(SchemaGrant.schemaNode,          projectNode),
+				new NodeAttribute<>(SchemaGrant.principal,           testGroup1),
+				new NodeAttribute<>(SchemaGrant.allowRead,           true),
+				new NodeAttribute<>(SchemaGrant.allowWrite,          true),
+				new NodeAttribute<>(SchemaGrant.allowDelete,         true),
+				new NodeAttribute<>(SchemaGrant.allowAccessControl,  true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test - delete groups => should work and remove schema grant as well
+		try (final Tx tx = app.tx()) {
+
+			app.delete(Group.class);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// verify that no groups and no schema grants exist
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Schema grants should be removed automatically when principal or schema node are removed", 0, app.nodeQuery(SchemaGrant.class).getAsList().size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// setup schema grant again
+		try (final Tx tx = app.tx()) {
+
+			final Group testGroup1       = app.create(Group.class, "Group1");
+			final SchemaNode projectNode = app.nodeQuery(SchemaNode.class).andName("Project").getFirst();
+
+			app.create(SchemaGrant.class,
+				new NodeAttribute<>(SchemaGrant.schemaNode,          projectNode),
+				new NodeAttribute<>(SchemaGrant.principal,           testGroup1),
+				new NodeAttribute<>(SchemaGrant.allowRead,           true),
+				new NodeAttribute<>(SchemaGrant.allowWrite,          true),
+				new NodeAttribute<>(SchemaGrant.allowDelete,         true),
+				new NodeAttribute<>(SchemaGrant.allowAccessControl,  true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test - delete schema node
+		try (final Tx tx = app.tx()) {
+
+			app.delete(app.nodeQuery(SchemaNode.class).andName("Project").getFirst());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// verify that no groups and no schema grants exist
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Schema grants should be removed automatically when principal or schema node are removed", 0, app.nodeQuery(SchemaGrant.class).getAsList().size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
 		}
 	}
 

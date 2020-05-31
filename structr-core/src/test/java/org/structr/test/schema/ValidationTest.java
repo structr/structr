@@ -35,6 +35,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.test.core.entity.TestOne;
@@ -2130,6 +2131,89 @@ public class ValidationTest extends StructrTest {
 			assertEquals("Invalid validation error UUID", uuid,             token.getDetail());
 			assertTrue("Invalid validation error type", Arrays.equals(keys, (PropertyKey[])token.getValue()));
 
+		}
+	}
+
+	@Test
+	public void testSchemaGrantAndGroupUniqueness() {
+
+		this.cleanDatabaseAndSchema();
+
+		// test that two identical SchemaGrant objects (identical SchemaNode and Principal) throw an error
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("Group").getFirst();
+			final Group group           = app.create(Group.class, "Group1");
+
+			app.create(SchemaGrant.class, new NodeAttribute<>(SchemaGrant.principal, group), new NodeAttribute<>(SchemaGrant.schemaNode, schemaNode));
+			app.create(SchemaGrant.class, new NodeAttribute<>(SchemaGrant.principal, group), new NodeAttribute<>(SchemaGrant.schemaNode, schemaNode));
+
+			tx.success();
+
+			fail("SchemaGrant uniqueness constraint violation, creating two identical SchemaGrants should not be allowed");
+
+		} catch (FrameworkException fex) {
+
+			final List<ErrorToken> tokens = fex.getErrorBuffer().getErrorTokens();
+
+			assertEquals("Invalid SchemaGrant validation result",   1, tokens.size());
+			assertEquals("Invalid SchemaGrant validation result", 422, fex.getStatus());
+
+			final ErrorToken token = tokens.get(0);
+
+			assertEquals("Invalid SchemaGrant validation result", "SchemaGrant",          token.getType());
+			assertEquals("Invalid SchemaGrant validation result", "already_taken",        token.getToken());
+			assertEquals("Invalid SchemaGrant validation result", SchemaGrant.principal,  ((PropertyKey[])token.getValue())[0]);
+			assertEquals("Invalid SchemaGrant validation result", SchemaGrant.schemaNode, ((PropertyKey[])token.getValue())[1]);
+		}
+
+		// test that tho Group objects with the same name throw an error
+		try (final Tx tx = app.tx()) {
+
+			// create a second group with name Group1
+			app.create(Group.class, "Group1");
+			app.create(Group.class, "Group1");
+
+			tx.success();
+
+			fail("Group uniqueness constraint violation, creating two Groups with the same name should not be allowed");
+
+		} catch (FrameworkException fex) {
+
+			final List<ErrorToken> tokens = fex.getErrorBuffer().getErrorTokens();
+
+			assertEquals("Invalid Group validation result",   1, tokens.size());
+			assertEquals("Invalid Group validation result", 422, fex.getStatus());
+
+			final ErrorToken token1 = tokens.get(0);
+
+			assertEquals("Invalid Group validation result", "Group",         token1.getType());
+			assertEquals("Invalid Group validation result", "name",          token1.getProperty());
+			assertEquals("Invalid Group validation result", "already_taken", token1.getToken());
+		}
+
+		// verify that a Group cannot have an empty name
+		try (final Tx tx = app.tx()) {
+
+			// create a second group with name Group1
+			app.create(Group.class);
+
+			tx.success();
+
+			fail("Group constraint violation, creating a Group without a name should not be allowed");
+
+		} catch (FrameworkException fex) {
+
+			final List<ErrorToken> tokens = fex.getErrorBuffer().getErrorTokens();
+
+			assertEquals("Invalid Group validation result",   1, tokens.size());
+			assertEquals("Invalid Group validation result", 422, fex.getStatus());
+
+			final ErrorToken token1 = tokens.get(0);
+
+			assertEquals("Invalid Group validation result", "Group",             token1.getType());
+			assertEquals("Invalid Group validation result", "name",              token1.getProperty());
+			assertEquals("Invalid Group validation result", "must_not_be_empty", token1.getToken());
 		}
 	}
 

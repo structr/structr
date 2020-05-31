@@ -46,6 +46,11 @@ public interface Group extends Principal {
 		group.setExtends(URI.create("#/definitions/Principal"));
 		group.setCategory("core");
 
+		group.addStringProperty("name")
+			.setIndexed(true)
+			.setRequired(true)
+			.setUnique(true);
+
 		group.addBooleanProperty("isGroup", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 		group.addPropertyGetter("members", Iterable.class);
 

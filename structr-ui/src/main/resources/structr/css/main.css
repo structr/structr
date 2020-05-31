@@ -3860,6 +3860,29 @@ input.tree-search-input:focus {
 	vertical-align: middle;
 }
 
+/* BEGIN: schema grants editor */
+table#schema-grants {
+	width: 600px;
+	margin-top: 16px;
+}
+
+table#schema-grants tr:nth-child(even) {
+	background-color: #f6f6f6;
+}
+
+table#schema-grants tr:nth-child(odd) {
+	background-color: #fff;
+}
+
+table#schema-grants th:first-child, table#schema-grants td:first-child {
+	text-align: left;
+}
+
+table#schema-grants th, table#schema-grants td {
+	text-align: center;
+}
+
+/* END: schema grants editor */
 
 /* BEGIN: Fake table styles for schema methods editor */
 .fake-tbody .fake-tr {
