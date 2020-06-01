@@ -406,7 +406,11 @@ public abstract class StreamingWriter {
 				if (depth <= outputNestingDepth) {
 
 					// property keys (for nested objects check if view exists on type)
-					Iterable<PropertyKey> keys = (depth == 0 || StructrApp.getConfiguration().hasView(source.getClass(), localPropertyView)) ? source.getPropertyKeys(localPropertyView) : idTypeNameOnly;
+					Set<PropertyKey> keys = source.getPropertyKeys(localPropertyView);
+
+					if (keys.isEmpty() && depth > 0 && !StructrApp.getConfiguration().hasView(source.getClass(), localPropertyView)) {
+						keys = idTypeNameOnly;
+					}
 
 					if (keys != null) {
 
