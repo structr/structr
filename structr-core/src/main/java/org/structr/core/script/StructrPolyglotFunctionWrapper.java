@@ -48,7 +48,7 @@ public class StructrPolyglotFunctionWrapper implements ProxyExecutable {
 		try {
 			Object[] args = Arrays.stream(arguments).map(arg -> StructrPolyglotWrapper.unwrap(arg)).toArray();
 
-			return StructrPolyglotWrapper.wrap(func.apply(actionContext, entity, args));
+			return StructrPolyglotWrapper.wrap(actionContext, func.apply(actionContext, entity, args));
 		} catch (FrameworkException ex) {
 
 			logger.error("Error while executing function in scripting context.", ex);

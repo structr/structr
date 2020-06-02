@@ -22,27 +22,27 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
+import org.structr.schema.action.ActionContext;
 
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 public abstract class StructrPolyglotWrapper {
 
-	public static Object wrap(Object obj) {
+	public static Object wrap(ActionContext actionContext, Object obj) {
 
-		if (obj instanceof GraphObject) {
+		if (obj instanceof AbstractNode) {
 
-			return StructrPolyglotGraphObjectWrapper.getProxy((GraphObject) obj);
+			return new StructrPolyglotGraphObjectWrapper(actionContext, (AbstractNode) obj);
 		} else 	if (obj instanceof Iterable) {
 
-			return ProxyArray.fromList(wrapIterable((Iterable)obj));
+			return ProxyArray.fromList(wrapIterable(actionContext, (Iterable)obj));
 		} else if (obj instanceof Map) {
 
-			return ProxyObject.fromMap(wrapMap((Map<String, Object>)obj));
+			return ProxyObject.fromMap(wrapMap(actionContext, (Map<String, Object>)obj));
 		}
 
 		return obj;
@@ -58,7 +58,22 @@ public abstract class StructrPolyglotWrapper {
 				return new FunctionWrapper(value);
 			} else if (value.isHostObject()) {
 
-				return unwrap(value.asHostObject());
+				if (value.hasArrayElements()) {
+
+					return unwrap(Arrays.asList(value.asHostObject()));
+				} else {
+
+					return unwrap(value.asHostObject());
+				}
+			} else if (value.isProxyObject() && value.hasMembers()) {
+				ProxyObject proxy = value.asProxyObject();
+
+				if (proxy instanceof StructrPolyglotGraphObjectWrapper) {
+					return ((StructrPolyglotGraphObjectWrapper)proxy).getOriginalObject();
+				} else {
+
+					return proxy;
+				}
 			} else if (value.hasArrayElements()) {
 
 				return convertValueToList(value);
@@ -69,9 +84,9 @@ public abstract class StructrPolyglotWrapper {
 
 				return unwrap(value.as(Object.class));
 			}
-		} else if (obj instanceof java.lang.reflect.Proxy) {
+		} else if (obj instanceof StructrPolyglotGraphObjectWrapper) {
 
-			return ((StructrPolyglotGraphObjectWrapper.GraphObjectInvocationHandler)Proxy.getInvocationHandler(obj)).getOriginalObject();
+			return ((StructrPolyglotGraphObjectWrapper)obj).getOriginalObject();
 		} else if (obj instanceof Iterable) {
 
 			return unwrapIterable((Iterable) obj);
@@ -84,13 +99,13 @@ public abstract class StructrPolyglotWrapper {
 		}
 	}
 
-	protected static List<Object> wrapIterable(final Iterable<Object> iterable) {
+	protected static List<Object> wrapIterable(ActionContext actionContext, final Iterable<Object> iterable) {
 
 		final List<Object> wrappedList = new ArrayList<>();
 
 		for (Object o : iterable) {
 
-			wrappedList.add(wrap(o));
+			wrappedList.add(wrap(actionContext, o));
 		}
 		return wrappedList;
 	}
@@ -106,13 +121,13 @@ public abstract class StructrPolyglotWrapper {
 		return unwrappedList;
 	}
 
-	protected static Map<String, Object> wrapMap(final Map<String, Object> map) {
+	protected static Map<String, Object> wrapMap(ActionContext actionContext, final Map<String, Object> map) {
 
 		final Map<String, Object> wrappedMap = new HashMap<>();
 
 		for (Map.Entry<String,Object> entry : map.entrySet()) {
 
-			wrappedMap.put(entry.getKey(), wrap(entry.getValue()));
+			wrappedMap.put(entry.getKey(), wrap(actionContext, entry.getValue()));
 		}
 		return wrappedMap;
 	}

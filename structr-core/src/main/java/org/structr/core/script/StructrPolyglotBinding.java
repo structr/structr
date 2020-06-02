@@ -56,16 +56,16 @@ public class StructrPolyglotBinding implements ProxyObject {
 			case "get":
 				return getGetFunctionWrapper();
 			case "this":
-				return wrap(entity);
+				return wrap(actionContext, entity);
 			case "me":
-				return wrap(actionContext.getSecurityContext().getUser(false));
+				return wrap(actionContext,actionContext.getSecurityContext().getUser(false));
 			default:
 				if (actionContext.getConstant(name) != null) {
-					return wrap(actionContext.getConstant(name));
+					return wrap(actionContext,actionContext.getConstant(name));
 				}
 
 				if (actionContext.getAllVariables().containsKey(name)) {
-					return wrap(actionContext.getAllVariables().get(name));
+					return wrap(actionContext, actionContext.getAllVariables().get(name));
 				}
 
 				Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
@@ -107,12 +107,12 @@ public class StructrPolyglotBinding implements ProxyObject {
 
 					if (args.length == 1) {
 
-						return StructrPolyglotWrapper.wrap(actionContext.evaluate(entity, args[0].toString(), null, null, 0));
+						return StructrPolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, args[0].toString(), null, null, 0));
 					} else if (args.length > 1) {
 
 						final Function<Object, Object> function = Functions.get("get");
 
-						return wrap(function.apply(actionContext, entity, args));
+						return wrap(actionContext, function.apply(actionContext, entity, args));
 					}
 
 				} catch (FrameworkException ex) {

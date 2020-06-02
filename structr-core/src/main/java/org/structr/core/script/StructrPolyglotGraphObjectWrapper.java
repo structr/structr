@@ -18,37 +18,94 @@
  */
 package org.structr.core.script;
 
-import org.structr.core.GraphObject;
+import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyExecutable;
+import org.graalvm.polyglot.proxy.ProxyObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Export;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.PropertyKey;
+import org.structr.schema.action.ActionContext;
 
-import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-public abstract class StructrPolyglotGraphObjectWrapper {
+public class StructrPolyglotGraphObjectWrapper<T extends AbstractNode> implements ProxyObject {
+	private static final Logger logger = LoggerFactory.getLogger(StructrPolyglotGraphObjectWrapper.class);
+	private final T node;
+	private ActionContext actionContext;
 
-	public static GraphObject getProxy(GraphObject graphObject) {
-
-		return (GraphObject)Proxy.newProxyInstance(GraphObject.class.getClassLoader(), new Class[] {GraphObject.class}, new GraphObjectInvocationHandler(graphObject) );
+	public StructrPolyglotGraphObjectWrapper(ActionContext actionContext, final T node) {
+		this.node = node;
+		this.actionContext = actionContext;
 	}
 
-	protected static class GraphObjectInvocationHandler implements InvocationHandler {
-		private final GraphObject graphObject;
+	public T getOriginalObject() {
 
-		public GraphObjectInvocationHandler(final GraphObject graphObject) {
-
-			this.graphObject = graphObject;
-		}
-
-		public GraphObject getOriginalObject() {
-
-			return this.graphObject;
-		}
-
-		@Override
-		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-
-			return method.invoke(graphObject, args);
-		}
+		return node;
 	}
 
+	@Override
+	public Object getMember(String key) {
+		Map<String, Method> methods = StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class);
+		if (methods.containsKey(key)) {
+			Method method = methods.get(key);
+
+			return (ProxyExecutable) arguments -> {
+
+				Map<String, Object> params = null;
+				if (arguments.length >= 1) {
+					Object arg0 = StructrPolyglotWrapper.unwrap(arguments[0]);
+					if (arg0 instanceof Map) {
+						params = (Map<String, Object>) arg0;
+					}
+				} else {
+
+					params = new HashMap<>();
+				}
+				try {
+
+					return method.invoke(node, actionContext.getSecurityContext(), params);
+				} catch (IllegalAccessException | InvocationTargetException ex) {
+
+					logger.error("Could not invoke method on graph object.", ex);
+				}
+				return null;
+			};
+		}
+
+		return node.getProperty(key);
+	}
+
+	@Override
+	public Object getMemberKeys() {
+		return null;
+	}
+
+	@Override
+	public boolean hasMember(String key) {
+		return StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class).containsKey(key) ||
+				StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key) != null;
+	}
+
+	@Override
+	public void putMember(String key, Value value) {
+
+		try {
+
+			final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
+			node.setProperty(propKey, StructrPolyglotWrapper.unwrap(value));
+		} catch (FrameworkException ex) {
+
+			logger.error("Could not set property on graph object within scripting context.", ex);
+		}
+	}
 }
