@@ -58,13 +58,7 @@ public abstract class StructrPolyglotWrapper {
 				return new FunctionWrapper(value);
 			} else if (value.isHostObject()) {
 
-				if (value.hasArrayElements()) {
-
-					return unwrap(Arrays.asList(value.asHostObject()));
-				} else {
-
-					return unwrap(value.asHostObject());
-				}
+				return unwrap(value.asHostObject());
 			} else if (value.isProxyObject() && value.hasMembers()) {
 				ProxyObject proxy = value.asProxyObject();
 
