@@ -31,6 +31,7 @@ import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
@@ -209,6 +210,8 @@ public class UiAuthenticator implements Authenticator {
 
 			logger.info("No resource access grant found for signature '{}' (URI: {})", new Object[] { rawResourceSignature, securityContext.getCompoundRequestURI() } );
 
+			RuntimeEventLog.resourceAccess("No grant", rawResourceSignature, method, validUser);
+
 			throw new UnauthorizedException("Forbidden");
 
 		} else if (method != null) {
@@ -321,6 +324,8 @@ public class UiAuthenticator implements Authenticator {
 
 		logger.info("Resource access grant found for signature '{}', but method '{}' not allowed for {} users.", rawResourceSignature, method, (validUser ? "authenticated" : "public"));
 
+		RuntimeEventLog.resourceAccess("Method not allowed", rawResourceSignature, method, validUser);
+
 		throw new UnauthorizedException("Forbidden");
 
 	}
@@ -338,6 +343,7 @@ public class UiAuthenticator implements Authenticator {
 			if (user.getProperty(confKey) != null && !allowLoginBeforeConfirmation) {
 
 				logger.warn("Login as {} not allowed before confirmation.", user.getName());
+				RuntimeEventLog.failedLogin("Login attempt before confirmation", user.getUuid(), user.getName());
 				throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);
 			}
 
@@ -436,6 +442,8 @@ public class UiAuthenticator implements Authenticator {
 
 						// let oauth implementation augment user info
 						oauthServer.initializeUser(user);
+
+						RuntimeEventLog.registration("OAuth user created", user.getUuid(), user.getName());
 					}
 
 					if (user != null) {
@@ -530,7 +538,6 @@ public class UiAuthenticator implements Authenticator {
 				if (tryLogin) {
 
 					user = AuthHelper.getPrincipalForPassword(AbstractNode.name, userName, password);
-
 				}
 			}
 		}

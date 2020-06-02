@@ -33,6 +33,7 @@ import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.ServiceResult;
 import org.structr.api.service.StructrServices;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -100,6 +101,8 @@ public class CronService extends Thread implements RunnableService {
 								try {
 
 									entry.incrementRunCount();
+
+									RuntimeEventLog.cron(taskClassName);
 
 									if (taskClass != null) {
 

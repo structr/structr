@@ -65,20 +65,21 @@ public class UiResourceProvider implements ResourceProvider {
 		resourceMap.put(Pattern.compile(PropertyView.Custom), ViewFilterResource.class);      // custom view
 
 		resourceMap.put(Pattern.compile("log"), LogResource.class);                           // log resource
-		resourceMap.put(Pattern.compile("resolver"), EntityResolverResource.class);		// resolves [] of UUIDs to complete result
+		resourceMap.put(Pattern.compile("resolver"), EntityResolverResource.class);           // resolves [] of UUIDs to complete result
 
 		resourceMap.put(Pattern.compile("[a-zA-Z]+"), MaintenanceParameterResource.class);    // maintenance parameter
 		resourceMap.put(Pattern.compile("[0-9]+"), UuidResource.class);                       // this matches the ID resource
 
-		resourceMap.put(Pattern.compile("_schema"), SchemaResource.class);	               // special resource for schema information
-		resourceMap.put(Pattern.compile("_schemaJson"), SchemaJsonResource.class);	// special resource for schema json import and export !needs to be below any type match
-		resourceMap.put(Pattern.compile("_env"), EnvResource.class);	                       // special resource for environment information
+		resourceMap.put(Pattern.compile("_schema"), SchemaResource.class);	               // schema information
+		resourceMap.put(Pattern.compile("_schemaJson"), SchemaJsonResource.class);             // schema json import and export !needs to be below any type match
+		resourceMap.put(Pattern.compile("_env"), EnvResource.class);	                       // environment information
+		resourceMap.put(Pattern.compile("_runtimeEventLog"), RuntimeEventLogResource.class);   // runtime events
 
 		resourceMap.put(Pattern.compile("globalSchemaMethods"),    GlobalSchemaMethodsResource.class);
 		resourceMap.put(Pattern.compile("[a-z_A-Z][a-z_A-Z0-9]*"), GlobalSchemaMethodResource.class);
 
 		// fallback, match any type
-		resourceMap.put(Pattern.compile("[a-z_A-Z][a-z_A-Z0-9]*"), TypeResource.class);	               // any type match
+		resourceMap.put(Pattern.compile("[a-z_A-Z][a-z_A-Z0-9]*"), TypeResource.class); // any type match
 
 		return resourceMap;
 

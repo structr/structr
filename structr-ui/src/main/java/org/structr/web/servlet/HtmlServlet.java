@@ -63,6 +63,7 @@ import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
@@ -239,6 +240,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					dontCache = true;
 
 				}
+
+				RuntimeEventLog.http(path, user);
 
 				final RenderContext renderContext = RenderContext.getInstance(securityContext, request, response);
 

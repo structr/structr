@@ -29,6 +29,7 @@ import org.apache.commons.collections4.map.LRUMap;
 import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
+import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Undefined;
@@ -45,6 +46,7 @@ import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.AbstractNode;
@@ -259,7 +261,7 @@ public class Scripting {
 			if (compiledScript == null) {
 
 				final String sourceLocation     = entityType + snippet.getName() + " [" + entityDescription + "]";
-				final String embeddedSourceCode = embedInFunction(actionContext, snippet.getSource());
+				final String embeddedSourceCode = embedInFunction(snippet.getSource());
 
 				compiledScript = compileOrGetCached(scriptingContext, embeddedSourceCode, sourceLocation, 1);
 			}
@@ -318,6 +320,19 @@ public class Scripting {
 
 			throw new FrameworkException(422, message);
 
+		} catch (final EcmaError ecmaError) {
+
+			final String type      = entity != null ? entity.getClass().getSimpleName() : "";
+			final String errorName = ecmaError.getName();
+			final String message   = ecmaError.getErrorMessage();
+			final int lineNumber   = ecmaError.lineNumber();
+			final int columnNumber = ecmaError.columnNumber();
+
+			RuntimeEventLog.javascript(errorName, message, lineNumber, columnNumber, type, snippet.getName(), entityDescription);
+
+			// if any other kind of Throwable is encountered throw a new FrameworkException and be done with it
+			throw new FrameworkException(422, ecmaError.getMessage());
+
 		} catch (final Throwable t) {
 
 			if (!actionContext.getDisableVerboseExceptionLogging()) {
@@ -365,9 +380,8 @@ public class Scripting {
 		ScriptEngine engine = manager.getEngineByName(engineName);
 
 		if (engine == null) {
-			List<ScriptEngineFactory> factories = manager.getEngineFactories();
 
-			for (ScriptEngineFactory factory : factories) {
+			for (ScriptEngineFactory factory : manager.getEngineFactories()) {
 
 				if (factory.getNames().contains(engineName)) {
 
@@ -496,7 +510,7 @@ public class Scripting {
 		Context.exit();
 	}
 
-	private static String embedInFunction(final ActionContext actionContext, final String source) {
+	private static String embedInFunction(final String source) {
 
 		final StringBuilder buf = new StringBuilder();
 

@@ -44,6 +44,7 @@ import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
 import org.structr.core.IJsonInput;
 import org.structr.core.JsonInput;
@@ -161,6 +162,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				tx.success();
 			}
+
+			RuntimeEventLog.rest("Delete", resource.getResourceSignature(), securityContext.getUser(false));
 
 			// isolate doDelete
 			boolean retry = true;
@@ -306,6 +309,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 				tx.success();
 			}
 
+			RuntimeEventLog.rest("Options", resource.getResourceSignature(), securityContext.getUser(false));
+
 			// isolate doOptions
 			boolean retry = true;
 			while (retry) {
@@ -426,6 +431,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
+
+				RuntimeEventLog.rest("Post", resource.getResourceSignature(), securityContext.getUser(false));
 
 				// isolate doPost
 				boolean retry = true;
@@ -632,6 +639,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 					tx.success();
 				}
 
+				RuntimeEventLog.rest("Put", resource.getResourceSignature(), securityContext.getUser(false));
+
 				// isolate doPut
 				boolean retry = true;
 				while (retry) {
@@ -780,6 +789,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
+
+				RuntimeEventLog.rest("Patch", resource.getResourceSignature(), securityContext.getUser(false));
 
 				if (resource.isCollectionResource()) {
 
@@ -984,6 +995,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 			// isolate resource authentication
 			resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 			authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+
+			RuntimeEventLog.rest(returnContent ? "Get" : "Head", resource.getResourceSignature(), securityContext.getUser(false));
 
 			// add sorting && pagination
 			final String pageSizeParameter          = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);

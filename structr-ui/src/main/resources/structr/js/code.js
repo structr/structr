@@ -144,6 +144,7 @@ var _Code = {
 				codeTree.on('refresh.jstree', _Code.activateLastClicked);
 
 				_Code.loadRecentlyUsedElements(function() {
+
 					_TreeHelper.initTree(codeTree, _Code.treeInitFunction, 'structr-ui-code');
 				});
 
@@ -684,6 +685,7 @@ var _Code = {
 						} else {
 
 							var hasVisibleChildren = _Code.hasVisibleChildren(id, entity);
+							var listItemAttributes = {};
 							var name               = treeName;
 
 							if (entity.type === 'SchemaMethod') {
@@ -699,6 +701,7 @@ var _Code = {
 								text:  name,
 								children: hasVisibleChildren,
 								icon: 'fa fa-' + icon,
+								li_attr: listItemAttributes,
 								data: {
 									type: entity.type,
 									name: entity.name
@@ -866,10 +869,9 @@ var _Code = {
 	},
 	editPropertyContent: function(entity, key, element) {
 
-		var text = entity[key] || '';
-
+		var text       = entity[key] || '';
 		var contentBox = $('.editor', element);
-		var editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
+		var editor     = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
 			value: text,
 			mode: _Code.getEditorModeForContent(text),
 			lineNumbers: true,
@@ -877,6 +879,13 @@ var _Code = {
 			indentUnit: 4,
 			tabSize: 4,
 			indentWithTabs: true,
+			lint: {
+				getAnnotations: function(text, callback) {
+					_Code.showScriptErrors(entity, text, callback);
+				},
+				async: true
+			},
+			gutters: ["CodeMirror-lint-markers"],
 			extraKeys: {
 				"Ctrl-Space": "autocomplete"
 			}
@@ -2612,6 +2621,50 @@ var _Code = {
 					blinkGreen(elem);
 					_TreeHelper.refreshTree('#code-tree');
 				});
+			}
+		});
+	},
+	showScriptErrors: function(entity, text, callback) {
+
+		let schemaType = entity.schemaNode.name;
+		let methodName = entity.name;
+
+		$.ajax({
+			url: '/structr/rest/_runtimeEventLog?type=Javascript&pageSize=100',
+			method: 'get',
+			statusCode: {
+				200: function(eventLog) {
+
+					let events = [];
+
+					for (var runtimeEvent of eventLog.result) {
+
+						if (runtimeEvent.description === 'ReferenceError') {
+
+							if (runtimeEvent.data && runtimeEvent.data.length >= 5) {
+
+								let message = runtimeEvent.data[0];
+								let line    = runtimeEvent.data[1]-1;
+								let column  = runtimeEvent.data[2];
+								let type    = runtimeEvent.data[3];
+								let name    = runtimeEvent.data[4];
+
+								if (type === schemaType && name === methodName) {
+
+									events.push({
+
+										from: CodeMirror.Pos(line, column),
+										to: CodeMirror.Pos(line, column + 1),
+										message: 'Scripting error: ' + message,
+										severity : 'warning'
+									});
+								}
+							}
+						}
+					}
+
+					callback(events);
+				}
 			}
 		});
 	}

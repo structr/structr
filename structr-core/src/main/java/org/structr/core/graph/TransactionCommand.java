@@ -34,6 +34,7 @@ import org.structr.common.error.DatabaseServiceNetworkException;
 import org.structr.common.error.DatabaseServiceNotAvailableException;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.StructrTransactionListener;
@@ -125,6 +126,10 @@ public class TransactionCommand {
 
 				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
 
+					if (modificationQueue != null && modificationQueue.getSize() > 0) {
+						RuntimeEventLog.transaction("Failed", modificationQueue.getTransactionStats());
+					}
+
 					cmd.transaction.failure();
 					throw new FrameworkException(422, "Unable to commit transaction, validation failed", errorBuffer);
 				}
@@ -143,6 +148,10 @@ public class TransactionCommand {
 
 				cmd.transaction.failure();
 
+				if (modificationQueue != null && modificationQueue.getSize() > 0) {
+					RuntimeEventLog.transaction("Failed", modificationQueue.getTransactionStats());
+				}
+
 				// create error
 				throw new FrameworkException(422, "Unable to commit transaction, validation failed", errorBuffer);
 			}
@@ -151,6 +160,11 @@ public class TransactionCommand {
 			if (!modificationQueue.doPostProcessing(securityContext, errorBuffer)) {
 
 				cmd.transaction.failure();
+
+				if (modificationQueue != null && modificationQueue.getSize() > 0) {
+					RuntimeEventLog.transaction("Failed", modificationQueue.getTransactionStats());
+				}
+
 				throw new FrameworkException(422, "Unable to commit transaction, transaction post processing failed", errorBuffer);
 			}
 
@@ -159,6 +173,10 @@ public class TransactionCommand {
 
 			} catch (Throwable t) {
 				logger.error("Unable to commit transaction", t);
+			}
+
+			if (modificationQueue != null && modificationQueue.getSize() > 0) {
+				RuntimeEventLog.transaction("Success", modificationQueue.getTransactionStats());
 			}
 		}
 	}
@@ -215,6 +233,7 @@ public class TransactionCommand {
 
 		} else {
 
+			RuntimeEventLog.transaction("Not in transaction");
 			throw new NotInTransactionException("Not in transaction.");
 		}
 	}
@@ -236,6 +255,7 @@ public class TransactionCommand {
 
 		} else {
 
+			RuntimeEventLog.transaction("Not in transaction");
 			throw new NotInTransactionException("Not in transaction.");
 		}
 
@@ -260,6 +280,7 @@ public class TransactionCommand {
 
 		} else {
 
+			RuntimeEventLog.transaction("Not in transaction");
 			throw new NotInTransactionException("Not in transaction.");
 		}
 	}
@@ -283,6 +304,7 @@ public class TransactionCommand {
 
 		} else {
 
+			RuntimeEventLog.transaction("Not in transaction");
 			throw new NotInTransactionException("Not in transaction.");
 		}
 	}
@@ -306,6 +328,7 @@ public class TransactionCommand {
 
 		} else {
 
+			RuntimeEventLog.transaction("Not in transaction");
 			throw new NotInTransactionException("Not in transaction.");
 		}
 	}
@@ -329,6 +352,7 @@ public class TransactionCommand {
 
 		} else {
 
+			RuntimeEventLog.transaction("Not in transaction");
 			throw new NotInTransactionException("Not in transaction.");
 		}
 	}
@@ -352,6 +376,7 @@ public class TransactionCommand {
 
 		} else {
 
+			RuntimeEventLog.transaction("Not in transaction");
 			throw new NotInTransactionException("Not in transaction.");
 		}
 	}
@@ -375,6 +400,7 @@ public class TransactionCommand {
 
 		} else {
 
+			RuntimeEventLog.transaction("Not in transaction");
 			throw new NotInTransactionException("Not in transaction.");
 		}
 	}
@@ -453,6 +479,7 @@ public class TransactionCommand {
 			return cmd.getTransactionId();
 		}
 
+		RuntimeEventLog.transaction("Not in transaction");
 		throw new NotInTransactionException("Not in transaction.");
 	}
 
@@ -464,6 +491,7 @@ public class TransactionCommand {
 			return cmd.queue.isDeleted(node);
 		}
 
+		RuntimeEventLog.transaction("Not in transaction");
 		throw new NotInTransactionException("Not in transaction.");
 	}
 
@@ -477,6 +505,7 @@ public class TransactionCommand {
 
 		} else {
 
+			RuntimeEventLog.transaction("Not in transaction");
 			throw new NotInTransactionException("Not in transaction.");
 		}
 	}

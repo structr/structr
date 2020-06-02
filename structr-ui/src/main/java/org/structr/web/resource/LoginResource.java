@@ -31,6 +31,7 @@ import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.AuthenticationException;
@@ -111,6 +112,8 @@ public class LoginResource extends FilterableResource {
 						AuthHelper.doLogin(securityContext.getRequest(), user);
 
 						logger.info("Login successful: {}", user);
+
+						RuntimeEventLog.login("Login successful", user.getUuid(), user.getName());
 
 						user.setSecurityContext(securityContext);
 
