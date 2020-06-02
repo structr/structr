@@ -222,7 +222,8 @@ public class Scripting {
 		final Context context = Context.newBuilder("js")
 				.allowPolyglotAccess(StructrPolyglotAccessProvider.getPolyglotAccessConfig())
 				.allowHostAccess(StructrPolyglotAccessProvider.getHostAccessConfig())
-				.allowHostClassLookup(s -> true)
+				// TODO: Add config switch to toggle Host Class Lookup
+				//.allowHostClassLookup(s -> true)
 				.allowExperimentalOptions(true)
 				.option("js.experimental-foreign-object-prototype", "true")
 				.option("js.nashorn-compat", "true")
