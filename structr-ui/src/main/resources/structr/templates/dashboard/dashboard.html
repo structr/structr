@@ -100,6 +100,12 @@
 							<button class="action" id="do-data-export">Export data to local directory</button>
 						</div>
 
+						<h3>Export and download <u>application</u> as ZIP file</h3>
+						${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Export and download as ZIP file is not possible because <code>DeployServlet</code> is not running.</span>')}
+						<div>
+							<button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-app-export-to-zip">Export and download app as ZIP file</button>
+						</div>
+
 					</td>
 				</tr>
 			</table>

@@ -229,7 +229,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 		} else {
 
 			final String title = "Deprecation warning";
-			final String text = "This schema snapshot was created with an older version of structr. Newer versions contain global schema methods. Re-create the snapshot with the current version to avoid compatibility issues.";
+			final String text = "This schema snapshot was created with an older version of Structr. More recent versions support global schema methods. Please re-create the snapshot with the latest version to avoid compatibility issues.";
 
 			final Map<String, Object> deprecationBroadcastData = new TreeMap();
 			deprecationBroadcastData.put("type", "WARNING");

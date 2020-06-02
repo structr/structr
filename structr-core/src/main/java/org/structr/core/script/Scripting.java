@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.EcmaError;
+import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Undefined;
@@ -665,6 +666,10 @@ public class Scripting {
 
 			return Iterables.toList((Iterable)value).toString();
 
+		} else if (value instanceof NativeObject) {
+
+			return StructrScriptable.formatForLogging(value);
+
 		} else {
 
 			return value.toString();
@@ -717,6 +722,10 @@ public class Scripting {
 			buf.append(")");
 
 			return buf.toString();
+
+		} else if (value instanceof NativeObject) {
+
+			return StructrScriptable.formatForLogging(value);
 
 		} else {
 

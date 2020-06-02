@@ -254,7 +254,8 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		final String filePath   = Settings.FilesPath.getValue();
 		final String uuidPath   = AbstractFile.getDirectoryPath(uuid);
 		final String finalPath  = filePath + "/" + uuidPath + "/" + uuid;
-		final Path path         = Paths.get(URI.create("file://" + finalPath));
+		//final Path path         = Paths.get(URI.create("file://" + finalPath));
+		final Path path         = Paths.get(finalPath);
 		final java.io.File file = path.toFile();
 
 		// create parent directory tree

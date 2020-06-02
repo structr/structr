@@ -309,11 +309,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final String exportVersion  = StringUtils.defaultIfEmpty(deploymentConf.get(DEPLOYMENT_VERSION_KEY), "pre 3.5");
 
 				final String title = "Incompatible Deployment Import";
-				final String text = "The deployment export data currently being imported has been created with a newer version of Structr\n"
+				final String text = "The deployment export data currently being imported has been created with a newer version of Structr "
 						+ "which is not supported because of incompatible changes in the deployment format.\n"
 						+ "Current version: " + currentVersion + "\n"
 						+ "Export version:  " + exportVersion;
-				final String htmlText = "The deployment export data currently being imported has been created with a newer version of Structr<br>"
+				final String htmlText = "The deployment export data currently being imported has been created with a newer version of Structr "
 						+ "which is not supported because of incompatible changes in the deployment format.<br><br><table>"
 						+ "<tr><th>Current version: </th><td>" + currentVersion + "</td></tr>"
 						+ "<tr><th>Export version: </th><td>" + exportVersion + "</td></tr>"
@@ -338,13 +338,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			if (!relativeVisibility) {
 
 				final String title = "Important Information";
-				final String text = "The deployment export data currently being imported has been created with an older version of Structr\n"
-						+ "in which the visibility flags of DOM elements were exported depending on the flags of the containing page.\n"
-						+ "***The data will be imported correctly, based on the old format.***\n"
+				final String text = "The deployment export data currently being imported has been created with an older version of Structr "
+						+ "in which the visibility flags of DOM elements were exported depending on the flags of the containing page.\n\n"
+						+ "***The data will be imported correctly, based on the old format.***\n\n"
 						+ "After this import has finished, you should **export again to the same location** so that the deployment export data will be upgraded to the most recent format.";
-				final String htmlText = "The deployment export currently being imported has been created with an older version of Structr<br>"
-						+ "in which the visibility flags of DOM elements were exported depending on the flags of the containing page.<br>"
-						+ "<b>The data will be imported correctly, based on the old format.</b><br>"
+				final String htmlText = "The deployment export currently being imported has been created with an older version of Structr "
+						+ "in which the visibility flags of DOM elements were exported depending on the flags of the containing page.<br><br>"
+						+ "<b>The data will be imported correctly, based on the old format.</b><br><br>"
 						+ "After this import has finished, you should <b>export again to the same location</b> so that the deployment export data will be upgraded to the most recent format.";
 
 				logger.info(title + ": " + text);
