@@ -129,8 +129,9 @@ public class Importer {
 	private final boolean publicVisible;
 	private final boolean authVisible;
 	private CommentHandler commentHandler;
-	private boolean isDeployment    = false;
-	private Document parsedDocument = null;
+	private boolean relativeVisibility = false;
+	private boolean isDeployment       = false;
+	private Document parsedDocument    = null;
 	private final String name;
 	private URL originalUrl;
 	private String address;
@@ -149,16 +150,18 @@ public class Importer {
 	 * @param name
 	 * @param publicVisible
 	 * @param authVisible
+	 * @param includeInExport
 	 */
-	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final boolean publicVisible, final boolean authVisible, final boolean includeInExport) {
+	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final boolean publicVisible, final boolean authVisible, final boolean includeInExport, final boolean relativeVisibility) {
 
-		this.code            = code;
-		this.address         = address;
-		this.name            = name;
-		this.securityContext = securityContext;
-		this.publicVisible   = publicVisible;
-		this.authVisible     = authVisible;
-		this.includeInExport = includeInExport;
+		this.code               = code;
+		this.address            = address;
+		this.name               = name;
+		this.securityContext    = securityContext;
+		this.publicVisible      = publicVisible;
+		this.authVisible        = authVisible;
+		this.includeInExport    = includeInExport;
+		this.relativeVisibility = relativeVisibility;
 
 		if (address != null && !address.endsWith("/") && !address.endsWith(".html")) {
 			this.address = this.address.concat("/");
@@ -353,7 +356,7 @@ public class Importer {
 
 	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name, final boolean removeHashAttribute) throws FrameworkException {
 
-		final Importer importer = new Importer(securityContext, source, null, "source", false, false, false);
+		final Importer importer = new Importer(securityContext, source, null, "source", false, false, false, false);
 		final App localAppCtx = StructrApp.getInstance(securityContext);
 		Page page = null;
 
@@ -674,9 +677,9 @@ public class Importer {
 					} else {
 
 						newNode = (Content) page.createTextNode(content);
-						
+
 						final PropertyKey<String> typeKey = StructrApp.key(Input.class, "_html_type");
-						
+
 						if (parent != null && "text/css".equals(parent.getProperty(typeKey))) {
 							newNode.setProperty(contentTypeKey, "text/css");
 						}
@@ -829,8 +832,13 @@ public class Importer {
 				final PropertyMap newNodeProperties = new PropertyMap();
 				final Class newNodeType             = newNode.getClass();
 
-				newNodeProperties.put(AbstractNode.visibleToPublicUsers,        publicVisible);
-				newNodeProperties.put(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+				if (isDeployment && !relativeVisibility) {
+					newNodeProperties.put(AbstractNode.visibleToPublicUsers,        publicVisible);
+					newNodeProperties.put(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+				} else {
+					newNodeProperties.put(AbstractNode.visibleToPublicUsers,        parent != null ? parent.getProperty(AbstractNode.visibleToPublicUsers) : publicVisible);
+					newNodeProperties.put(AbstractNode.visibleToAuthenticatedUsers, parent != null ? parent.getProperty(AbstractNode.visibleToAuthenticatedUsers) : authVisible);
+				}
 
 				// "id" attribute: Put it into the "_html_id" field
 				if (StringUtils.isNotBlank(id)) {
@@ -1003,13 +1011,13 @@ public class Importer {
 
 					final PropertyKey<String> typeKey = StructrApp.key(Input.class, "_html_type");
 					final String contentType          = newNode.getProperty(typeKey);
-	
+
 					if (contentType == null) {
 
 						// Set default type of script tag to "text/css" to ensure inline CSS gets imported properly
 						newNode.setProperty(typeKey, "text/css");
 					}
-					
+
 					if ("text/css".equals(contentType)) {
 
 						// parse content of style elements and add referenced files to list of resources to be downloaded
@@ -1445,7 +1453,17 @@ public class Importer {
 
 		final Content contentNode = (Content)page.createTextNode("");
 
-		contentNode.setVisibility(publicVisible, authVisible);
+		final PropertyMap emptyContentProperties = new PropertyMap();
+
+		if (isDeployment && !relativeVisibility) {
+			emptyContentProperties.put(AbstractNode.visibleToPublicUsers,        publicVisible);
+			emptyContentProperties.put(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+		} else {
+			emptyContentProperties.put(AbstractNode.visibleToPublicUsers,        parent != null ? parent.getProperty(AbstractNode.visibleToPublicUsers) : publicVisible);
+			emptyContentProperties.put(AbstractNode.visibleToAuthenticatedUsers, parent != null ? parent.getProperty(AbstractNode.visibleToAuthenticatedUsers) : authVisible);
+		}
+
+		contentNode.setProperties(securityContext, emptyContentProperties);
 
 		if (parent != null) {
 

@@ -69,6 +69,7 @@ public interface JsonSchema {
 	public static final String KEY_VIEWS                   = "views";
 	public static final String KEY_VIEW_ORDER              = "viewOrder";
 	public static final String KEY_METHODS                 = "methods";
+	public static final String KEY_GRANTS                  = "grants";
 	public static final String KEY_REQUIRED                = "required";
 	public static final String KEY_MIN_ITEMS               = "minItems";
 	public static final String KEY_MAX_ITEMS               = "maxItems";
@@ -106,6 +107,11 @@ public interface JsonSchema {
 	public static final String KEY_ACL_ACCESS_CONTROL_MASK = "aclAccessControlMask";
 	public static final String KEY_ACL_HIDDEN_PROPERTIES   = "aclHiddenProperties";
 	public static final String KEY_IS_CACHING_ENABLED      = "cachingEnabled";
+
+	public static final String KEY_GRANT_READ              = "read";
+	public static final String KEY_GRANT_WRITE             = "write";
+	public static final String KEY_GRANT_DELETE            = "delete";
+	public static final String KEY_GRANT_ACCESS_CONTROL    = "accessControl";
 
 
 	public static final String KEY_MINIMUM                 = "minimum";

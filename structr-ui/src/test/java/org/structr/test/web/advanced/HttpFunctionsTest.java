@@ -39,7 +39,6 @@ import org.testng.annotations.Test;
 
 /**
  *
- * @author Christian Morgner
  */
 public class HttpFunctionsTest extends StructrUiTest {
 

@@ -75,7 +75,7 @@ public class SearchFunction extends AbstractQueryFunction {
 
 				} else {
 
-					logger.warn("Error in search(): type {} not found.", typeString);
+					logger.warn("Error in search(): type '{}' not found.", typeString);
 					return "Error in search(): type " + typeString + " not found.";
 				}
 			}
@@ -90,7 +90,7 @@ public class SearchFunction extends AbstractQueryFunction {
 			// apply sorting and pagination by surrounding sort() and slice() expressions
 			applyQueryParameters(securityContext, query);
 
-			return handleQuerySources(securityContext, type, query, sources, false);
+			return handleQuerySources(securityContext, type, query, sources, false, usage(ctx.isJavaScriptContext()));
 
 		} catch (final IllegalArgumentException e) {
 

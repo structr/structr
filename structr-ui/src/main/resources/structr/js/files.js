@@ -88,21 +88,6 @@ var _Files = {
 	},
 	resize: function() {
 
-		var windowHeight = $(window).height();
-		var headerOffsetHeight = 100;
-
-		if (fileTree) {
-			fileTree.parent().css({
-				height: windowHeight - headerOffsetHeight + 16 + 'px'
-			});
-		}
-
-		if (folderContents) {
-			folderContents.css({
-				height: windowHeight - headerOffsetHeight - 43 + 'px'
-			});
-		}
-
 		_Files.moveResizer();
 		Structr.resize();
 
@@ -152,7 +137,7 @@ var _Files = {
 		$('.column-resizer', filesMain).css({ left: left });
 
 		$('#file-tree').css({width: left - 14 + 'px'});
-		$('#folder-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 47 + 'px'});
+		$('#folder-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 50 + 'px'});
 	},
 	onload: function() {
 
@@ -160,7 +145,7 @@ var _Files = {
 
 		Structr.updateMainHelpLink('https://support.structr.com/article/49');
 
-		main.append('<div class="tree-main" id="files-main"><div class="column-resizer"></div><div class="fit-to-height tree-container" id="file-tree-container"><div class="tree" id="file-tree"></div></div><div class="fit-to-height tree-contents-container" id="folder-contents-container"><div class="tree-contents tree-contents-with-top-buttons" id="folder-contents"></div></div>');
+		main.append('<div class="tree-main" id="files-main"><div class="column-resizer"></div><div class="tree-container" id="file-tree-container"><div class="tree" id="file-tree"></div></div><div class="tree-contents-container" id="folder-contents-container"><div class="tree-contents tree-contents-with-top-buttons" id="folder-contents"></div></div>');
 		filesMain = $('#files-main');
 
 		fileTree = $('#file-tree');
@@ -208,7 +193,6 @@ var _Files = {
 					elem.append('<option value="' + type + '">' + type + '</option>');
 				});
 			});
-
 		});
 
 		$.jstree.defaults.core.themes.dots      = false;
@@ -229,7 +213,7 @@ var _Files = {
 
 				} else if (currentWorkingDir) {
 
-					_Files.deepOpen(currentWorkingDir.parent);
+					_Files.deepOpen(currentWorkingDir);
 
 				} else {
 
@@ -346,9 +330,6 @@ var _Files = {
 					return;
 				}
 
-				_Logger.log(_LogType.FILES, 'dropped something in the #files area');
-
-
 				fileList = event.originalEvent.dataTransfer.files;
 				var filesToUpload = [];
 				var tooLargeFiles = [];
@@ -366,10 +347,10 @@ var _Files = {
 					var errorText = 'The following files are too large (limit ' + sizeLimit / (1024 * 1024) + ' Mbytes):<br>\n';
 
 					$(tooLargeFiles).each(function(i, tooLargeFile) {
-						errorText += tooLargeFile.name + ': ' + Math.round(tooLargeFile.size / (1024 * 1024)) + ' Mbytes<br>\n';
+						errorText += '<b>' + tooLargeFile.name + '</b>: ' + Math.round(tooLargeFile.size / (1024 * 1024)) + ' Mbytes<br>\n';
 					});
 
-					Structr.error(errorText, true);
+					new MessageBuilder().error(errorText).title('File(s) too large for upload').requiresConfirmation().show();
 				}
 
 				filesToUpload.forEach(function(file) {
@@ -383,16 +364,20 @@ var _Files = {
 		}
 	},
 	uploadFile: function(file) {
-		var worker = new Worker('js/upload-worker.js');
+		let worker = new Worker('js/upload-worker.js');
 		worker.onmessage = function(e) {
 
-			var binaryContent = e.data;
-			var chunks = Math.ceil(file.size / chunkSize);
+			let binaryContent = e.data;
+			let fileSize      = e.data.byteLength;
+			let node          = Structr.node(file.id);
+			node.find('.size').text(fileSize);
 
-			for (var c = 0; c < chunks; c++) {
-				var start = c * chunkSize;
-				var end = (c + 1) * chunkSize;
-				var chunk = window.btoa(String.fromCharCode.apply(null, new Uint8Array(binaryContent.slice(start, end))));
+			let chunks = Math.ceil(fileSize / chunkSize);
+
+			for (let c = 0; c < chunks; c++) {
+				let start = c * chunkSize;
+				let end = (c + 1) * chunkSize;
+				let chunk = window.btoa(String.fromCharCode.apply(null, new Uint8Array(binaryContent.slice(start, end))));
 				Command.chunk(file.id, c, chunkSize, chunk, chunks);
 			}
 		};
@@ -686,7 +671,7 @@ var _Files = {
 				+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + d.size + '</span></div></div></div><span class="id">' + d.id + '</span></div></td>');
 			}
 
-			row.append('<td>' + size + '</td>');
+			row.append('<td class="size">' + size + '</td>');
 			row.append('<td>' + d.type + (d.isThumbnail ? ' thumbnail' : '') + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
 			row.append('<td>' + (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '') + '</td>');
 

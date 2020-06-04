@@ -19,6 +19,7 @@
 package org.structr.schema.action;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -195,6 +196,10 @@ public class ActionContext {
 		getContextStore().addHeader(key, value);
 	}
 
+	public void removeHeader(final String key) {
+		getContextStore().removeHeader(key);
+	}
+
 	public Map<String, String> getHeaders() {
 		return getContextStore().getHeaders();
 	}
@@ -216,8 +221,12 @@ public class ActionContext {
 			if (data instanceof HttpServletRequest) {
 				value = ((HttpServletRequest)data).getParameterValues(key);
 
-				if (value != null && ((String[]) value).length == 1) {
-					value = ((String[]) value)[0];
+				if (value != null) {
+					if (((String[]) value).length == 1) {
+						value = ((String[]) value)[0];
+					} else {
+						value = Arrays.asList((String[]) value);
+					}
 				}
 			}
 
@@ -338,9 +347,6 @@ public class ActionContext {
 
 					case "now":
 						return this.isJavaScriptContext() ? new Date() : DatePropertyParser.format(new Date(), Settings.DefaultDateFormat.getValue());
-
-					case "element":
-						logger.warn("The \"element\" keyword is deprecated! Please use \"this\" instead. Used in {}", entity.getProperty(GraphObject.id));
 
 					case "this":
 						return entity;

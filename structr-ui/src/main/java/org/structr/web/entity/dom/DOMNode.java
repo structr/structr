@@ -1247,94 +1247,48 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	static void getVisibilityInstructions(final DOMNode thisNode, final Set<String> instructions) {
 
-		final Page _ownerDocument       = (Page)thisNode.getOwnerDocument();
+		final DOMNode _parentNode       = (DOMNode)thisNode.getParent();
 
-		if(_ownerDocument == null) {
-
-			logger.warn("DOMNode {} has no owner document!", thisNode.getUuid());
-		}
-
-		final boolean pagePublic        = _ownerDocument != null ? _ownerDocument.isVisibleToPublicUsers() : false;
-		final boolean pageProtected     = _ownerDocument != null ? _ownerDocument.isVisibleToAuthenticatedUsers() : false;
-		final boolean pagePrivate       = !pagePublic && !pageProtected;
-		final boolean pagePublicOnly    = pagePublic && !pageProtected;
 		final boolean elementPublic     = thisNode.isVisibleToPublicUsers();
 		final boolean elementProtected  = thisNode.isVisibleToAuthenticatedUsers();
 		final boolean elementPrivate    = !elementPublic && !elementProtected;
 		final boolean elementPublicOnly = elementPublic && !elementProtected;
 
-		if (pagePrivate && !elementPrivate) {
+
+		boolean addVisibilityInstructions = false;
+
+		if (_parentNode == null) {
+
+			// no parent -> output visibility flags
+			addVisibilityInstructions = true;
+
+		} else {
+
+			// parents visibility flags are different or parent is shadowpage -> output visibility flags
+			final boolean parentPublic      = _parentNode.isVisibleToPublicUsers();
+			final boolean parentProtected   = _parentNode.isVisibleToAuthenticatedUsers();
+
+			addVisibilityInstructions = (_parentNode instanceof ShadowDocument) || (parentPublic != elementPublic || parentProtected != elementProtected);
+		}
+
+		if (addVisibilityInstructions) {
 
 			if (elementPublicOnly) {
 				instructions.add("@structr:public-only");
 				return;
 			}
-
 			if (elementPublic && elementProtected) {
 				instructions.add("@structr:public");
 				return;
 			}
-
 			if (elementProtected) {
 				instructions.add("@structr:protected");
 				return;
 			}
-		}
-
-		if (pageProtected && !elementProtected) {
-
-			if (elementPublicOnly) {
-				instructions.add("@structr:public-only");
-				return;
-			}
-
-			if (elementPublic && elementProtected) {
-				instructions.add("@structr:public");
-				return;
-			}
-
 			if (elementPrivate) {
 				instructions.add("@structr:private");
 				return;
 			}
-		}
-
-		if (pagePublic && !elementPublic) {
-
-			if (elementPublicOnly) {
-				instructions.add("@structr:public-only");
-				return;
-			}
-
-			if (elementProtected) {
-				instructions.add("@structr:protected");
-				return;
-			}
-
-			if (elementPrivate) {
-				instructions.add("@structr:private");
-				return;
-			}
-		}
-
-		if (pagePublicOnly && !elementPublicOnly) {
-
-			if (elementPublic && elementProtected) {
-				instructions.add("@structr:public");
-				return;
-			}
-
-			if (elementProtected) {
-				instructions.add("@structr:protected");
-				return;
-			}
-
-			if (elementPrivate) {
-				instructions.add("@structr:private");
-				return;
-			}
-
-			return;
 		}
 	}
 

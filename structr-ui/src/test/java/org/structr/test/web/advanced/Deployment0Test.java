@@ -65,12 +65,240 @@ public class Deployment0Test extends DeploymentTestBase {
 	}
 
 	@Test
-	public void test02Visibilities() {
+	public void test02aVisibilities() {
 
 		// setup
 		try (final Tx tx = app.tx()) {
 
+			// create page with visibility false/false
 			final Page page       = Page.createNewPage(securityContext,   "test02");
+			page.setProperty(Page.visibleToPublicUsers, false);
+			page.setProperty(Page.visibleToAuthenticatedUsers, false);
+			final Html html       = createElement(page, page, "html");
+			final Head head       = createElement(page, html, "head");
+			createElement(page, head, "title", "test02");
+
+			final Body body       = createElement(page, html, "body");
+
+			// create a div for admin only
+			{
+				final Div div1 = createElement(page, body, "div");
+				createElement(page, div1, "h1", "private - ${find('User')}");
+
+				div1.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "me.isAdmin");
+			}
+
+			// create a private div
+			{
+				final Div div1 = createElement(page, body, "div");
+				 createElement(page, div1, "h1", "private - test abcdefghjiklmnopqrstuvwyzöäüßABCDEFGHIJKLMNOPQRSTUVWXYZÖÄÜ?\"'");
+
+				div1.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "me.isAdmin");
+			}
+
+			// create a protected div
+			{
+				final Div div1 = createElement(page, body, "div");
+				createElement(page, div1, "h1", "protected - $%&/()=?¼½¬{[]}");
+
+				final PropertyMap div1Properties = new PropertyMap();
+				div1Properties.put(DOMNode.visibleToPublicUsers,        false);
+				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  true);
+				div1.setProperties(div1.getSecurityContext(), div1Properties);
+			}
+
+			// create a public div
+			{
+				final Div div1 = createElement(page, body, "div");
+				createElement(page, div1, "h1", "public");
+
+				final PropertyMap div1Properties = new PropertyMap();
+				div1Properties.put(DOMNode.visibleToPublicUsers,         true);
+				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  true);
+				div1.setProperties(div1.getSecurityContext(), div1Properties);
+			}
+
+			// create a public only div
+			{
+				final Div div1 = createElement(page, body, "div");
+				createElement(page, div1, "h1", "public only");
+
+				final PropertyMap div1Properties = new PropertyMap();
+				div1Properties.put(DOMNode.visibleToPublicUsers,         true);
+				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  false);
+				div1.setProperties(div1.getSecurityContext(), div1Properties);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+	}
+
+	@Test
+	public void test02bVisibilities() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			// create page with visibility false/true
+			final Page page       = Page.createNewPage(securityContext,   "test02");
+			page.setProperty(Page.visibleToPublicUsers, false);
+			page.setProperty(Page.visibleToAuthenticatedUsers, true);
+			final Html html       = createElement(page, page, "html");
+			final Head head       = createElement(page, html, "head");
+			createElement(page, head, "title", "test02");
+
+			final Body body       = createElement(page, html, "body");
+
+			// create a div for admin only
+			{
+				final Div div1 = createElement(page, body, "div");
+				createElement(page, div1, "h1", "private - ${find('User')}");
+
+				div1.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "me.isAdmin");
+			}
+
+			// create a private div
+			{
+				final Div div1 = createElement(page, body, "div");
+				 createElement(page, div1, "h1", "private - test abcdefghjiklmnopqrstuvwyzöäüßABCDEFGHIJKLMNOPQRSTUVWXYZÖÄÜ?\"'");
+
+				div1.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "me.isAdmin");
+			}
+
+			// create a protected div
+			{
+				final Div div1 = createElement(page, body, "div");
+				createElement(page, div1, "h1", "protected - $%&/()=?¼½¬{[]}");
+
+				final PropertyMap div1Properties = new PropertyMap();
+				div1Properties.put(DOMNode.visibleToPublicUsers,        false);
+				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  true);
+				div1.setProperties(div1.getSecurityContext(), div1Properties);
+			}
+
+			// create a public div
+			{
+				final Div div1 = createElement(page, body, "div");
+				createElement(page, div1, "h1", "public");
+
+				final PropertyMap div1Properties = new PropertyMap();
+				div1Properties.put(DOMNode.visibleToPublicUsers,         true);
+				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  true);
+				div1.setProperties(div1.getSecurityContext(), div1Properties);
+			}
+
+			// create a public only div
+			{
+				final Div div1 = createElement(page, body, "div");
+				createElement(page, div1, "h1", "public only");
+
+				final PropertyMap div1Properties = new PropertyMap();
+				div1Properties.put(DOMNode.visibleToPublicUsers,         true);
+				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  false);
+				div1.setProperties(div1.getSecurityContext(), div1Properties);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+	}
+
+	@Test
+	public void test02cVisibilities() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			// create page with visibility true/false
+			final Page page       = Page.createNewPage(securityContext,   "test02");
+			page.setProperty(Page.visibleToPublicUsers, true);
+			page.setProperty(Page.visibleToAuthenticatedUsers, false);
+			final Html html       = createElement(page, page, "html");
+			final Head head       = createElement(page, html, "head");
+			createElement(page, head, "title", "test02");
+
+			final Body body       = createElement(page, html, "body");
+
+			// create a div for admin only
+			{
+				final Div div1 = createElement(page, body, "div");
+				createElement(page, div1, "h1", "private - ${find('User')}");
+
+				div1.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "me.isAdmin");
+			}
+
+			// create a private div
+			{
+				final Div div1 = createElement(page, body, "div");
+				 createElement(page, div1, "h1", "private - test abcdefghjiklmnopqrstuvwyzöäüßABCDEFGHIJKLMNOPQRSTUVWXYZÖÄÜ?\"'");
+
+				div1.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "me.isAdmin");
+			}
+
+			// create a protected div
+			{
+				final Div div1 = createElement(page, body, "div");
+				createElement(page, div1, "h1", "protected - $%&/()=?¼½¬{[]}");
+
+				final PropertyMap div1Properties = new PropertyMap();
+				div1Properties.put(DOMNode.visibleToPublicUsers,        false);
+				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  true);
+				div1.setProperties(div1.getSecurityContext(), div1Properties);
+			}
+
+			// create a public div
+			{
+				final Div div1 = createElement(page, body, "div");
+				createElement(page, div1, "h1", "public");
+
+				final PropertyMap div1Properties = new PropertyMap();
+				div1Properties.put(DOMNode.visibleToPublicUsers,         true);
+				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  true);
+				div1.setProperties(div1.getSecurityContext(), div1Properties);
+			}
+
+			// create a public only div
+			{
+				final Div div1 = createElement(page, body, "div");
+				createElement(page, div1, "h1", "public only");
+
+				final PropertyMap div1Properties = new PropertyMap();
+				div1Properties.put(DOMNode.visibleToPublicUsers,         true);
+				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  false);
+				div1.setProperties(div1.getSecurityContext(), div1Properties);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+	}
+
+	@Test
+	public void test02dVisibilities() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			// create page with visibility true/true
+			final Page page       = Page.createNewPage(securityContext,   "test02");
+			page.setProperty(Page.visibleToPublicUsers, true);
+			page.setProperty(Page.visibleToAuthenticatedUsers, true);
 			final Html html       = createElement(page, page, "html");
 			final Head head       = createElement(page, html, "head");
 			createElement(page, head, "title", "test02");

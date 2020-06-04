@@ -74,7 +74,6 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		principal.addPasswordProperty("password");
 
-
 		// Password Policy
 		principal.addDateProperty("passwordChangeDate");
 		principal.addPropertySetter("passwordChangeDate", Date.class);

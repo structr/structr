@@ -41,6 +41,7 @@ import static org.structr.api.service.DatabaseConnection.KEY_TENANT_IDENTIFIER;
 import static org.structr.api.service.DatabaseConnection.KEY_URL;
 import static org.structr.api.service.DatabaseConnection.KEY_USERNAME;
 import static org.structr.api.service.DatabaseConnection.KEY_UUID_CACHE_SIZE;
+import org.structr.api.service.ServiceResult;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
@@ -122,16 +123,18 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		final String name = (String)data.get(KEY_NAME);
 		if ("default".equals(name)) {
 
-			if (!Services.getInstance().activateService(NodeService.class, "")) {
+			final ServiceResult result = Services.getInstance().activateService(NodeService.class, "");
+			if (!result.isSuccess()) {
 
-				throw new FrameworkException(503, "Failed to start service");
+				throw new FrameworkException(503, result.getMessage());
 			}
 
 		} else if (getConnectionNames().contains(name)) {
 
-			if (!Services.getInstance().activateService(NodeService.class, name)) {
+			final ServiceResult result = Services.getInstance().activateService(NodeService.class, name);
+			if (!result.isSuccess()) {
 
-				throw new FrameworkException(503, "Failed to start service");
+				throw new FrameworkException(503, result.getMessage());
 			}
 
 		} else {

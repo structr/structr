@@ -55,6 +55,7 @@ import org.structr.api.schema.JsonDateProperty;
 import org.structr.api.schema.JsonDynamicProperty;
 import org.structr.api.schema.JsonEnumProperty;
 import org.structr.api.schema.JsonFunctionProperty;
+import org.structr.api.schema.JsonGrant;
 import org.structr.api.schema.JsonIntegerArrayProperty;
 import org.structr.api.schema.JsonIntegerProperty;
 import org.structr.api.schema.JsonLongArrayProperty;
@@ -69,6 +70,7 @@ import org.structr.api.schema.JsonScriptProperty;
 import org.structr.api.schema.JsonStringArrayProperty;
 import org.structr.api.schema.JsonStringProperty;
 import org.structr.api.schema.JsonType;
+import org.structr.core.entity.SchemaGrant;
 
 /**
  * @param <T>
@@ -81,6 +83,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	protected final Map<String, Set<String>> views                = new TreeMap<>();
 	protected final Map<String, String> viewOrder                 = new TreeMap<>();
 	protected final List<StructrMethodDefinition> methods         = new LinkedList<>();
+	protected final List<StructrGrantDefinition> grants           = new LinkedList<>();
 	protected final Set<URI> implementedInterfaces                = new TreeSet<>();
 	protected boolean isInterface                                 = false;
 	protected boolean isAbstract                                  = false;
@@ -304,6 +307,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	@Override
 	public List<JsonMethod> getMethods() {
 		return (List)methods;
+	}
+
+	@Override
+	public List<JsonGrant> getGrants() {
+		return (List)grants;
 	}
 
 	@Override
@@ -637,6 +645,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		final Map<String, Object> serializedForm       = new TreeMap<>();
 		final Map<String, Object> serializedProperties = new TreeMap<>();
 		final Map<String, Object> serializedMethods    = new TreeMap<>();
+		final Map<String, Object> serializedGrants     = new TreeMap<>();
 
 		// populate properties
 		for (final StructrPropertyDefinition property : properties) {
@@ -684,6 +693,12 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 		}
 
+		// populate grants
+		for (final StructrGrantDefinition grant : grants) {
+
+			serializedGrants.put(grant.getPrincipalName(), grant.serialize());
+		}
+
 		serializedForm.put(JsonSchema.KEY_TYPE, "object");
 		serializedForm.put(JsonSchema.KEY_IS_ABSTRACT, isAbstract);
 		serializedForm.put(JsonSchema.KEY_IS_INTERFACE, isInterface);
@@ -714,6 +729,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		// methods
 		if (!serializedMethods.isEmpty()) {
 			serializedForm.put(JsonSchema.KEY_METHODS, serializedMethods);
+		}
+
+		// grants
+		if (!serializedGrants.isEmpty()) {
+			serializedForm.put(JsonSchema.KEY_GRANTS, serializedGrants);
 		}
 
 		final URI ext = getExtends();
@@ -842,6 +862,15 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 		}
 
+		for (final SchemaGrant grant : schemaNode.getProperty(SchemaNode.schemaGrants)) {
+
+			final StructrGrantDefinition newGrant = StructrGrantDefinition.deserialize(this, grant);
+			if (newGrant != null) {
+
+				grants.add(newGrant);
+			}
+		}
+
 		// $extends
 		final String extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);
 		if (extendsClass != null) {
@@ -900,6 +929,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		final Map<String, SchemaProperty> schemaProperties = new TreeMap<>();
 		final Map<String, SchemaMethod> schemaMethods      = new TreeMap<>();
+		final Map<String, SchemaGrant> schemaGrants        = new TreeMap<>();
 		final PropertyMap createProperties                 = new PropertyMap();
 		final PropertyMap nodeProperties                   = new PropertyMap();
 
@@ -971,6 +1001,15 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			if (schemaMethod != null) {
 
 				schemaMethods.put(schemaMethod.getName(), schemaMethod);
+			}
+		}
+
+		for (final StructrGrantDefinition grant : grants) {
+
+			final SchemaGrant schemaGrant = grant.createDatabaseSchema(app, schemaNode);
+			if (schemaGrant != null) {
+
+				schemaGrants.put(schemaGrant.getPrincipalName(), schemaGrant);
 			}
 		}
 
@@ -1191,12 +1230,14 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		final Map<String, StructrPropertyDefinition> deserializedProperties = new TreeMap<>();
 		final Map<String, StructrMethodDefinition> deserializedMethods      = new TreeMap<>();
+		final Map<String, StructrGrantDefinition> deserializedGrants        = new TreeMap<>();
 		final StructrTypeDefinition typeDefinition                          = StructrTypeDefinition.determineType(root, name, source);
 		final Map<String, Object> properties                                = (Map)source.get(JsonSchema.KEY_PROPERTIES);
 		final List<String> requiredPropertyNames                            = (List)source.get(JsonSchema.KEY_REQUIRED);
 		final Map<String, Object> views                                     = (Map)source.get(JsonSchema.KEY_VIEWS);
 		final Map<String, String> viewOrder                                 = (Map)source.get(JsonSchema.KEY_VIEW_ORDER);
 		final Map<String, Object> methods                                   = (Map)source.get(JsonSchema.KEY_METHODS);
+		final Map<String, Object> grants                                    = (Map)source.get(JsonSchema.KEY_GRANTS);
 
 		if (properties != null) {
 
@@ -1296,6 +1337,29 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 				} else {
 
 					throw new IllegalStateException("Method definition " + methodName + " must be of type string or map.");
+				}
+			}
+		}
+
+		if (grants != null) {
+
+			for (final Entry<String, Object> entry : grants.entrySet()) {
+
+				final String principalName = entry.getKey();
+				final Object value         = entry.getValue();
+
+				if (value instanceof Map) {
+
+					final StructrGrantDefinition grant = StructrGrantDefinition.deserialize(typeDefinition, principalName, (Map)value);
+					if (grant != null) {
+
+						deserializedGrants.put(grant.getPrincipalName(), grant);
+						typeDefinition.getGrants().add(grant);
+					}
+
+				} else {
+
+					throw new IllegalStateException("Grant definition " + principalName + " must be of type map.");
 				}
 			}
 		}

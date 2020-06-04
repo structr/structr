@@ -89,13 +89,10 @@ public class EndpointTest extends StructrRestTestBase {
 		final AtomicInteger numFailure = new AtomicInteger();
 		final List<Future> futures     = new LinkedList<>();
 		final String finalProjectUuid  = projectUuid;
-		final String finalTaskUuid     = taskUuid;
 		final int num                  = 100;
 		final long t0                  = System.currentTimeMillis();
 
 		for (int i=0; i<num; i++) {
-
-			final int index = i;
 
 			futures.add(service.submit(() -> {
 
@@ -145,26 +142,4 @@ public class EndpointTest extends StructrRestTestBase {
 			fail("Concurrent property write access is broken.");
 		}
 	}
-
-	/*
-	@Test
-	public void testRestInputValidation() {
-
-		try {
-
-			final JsonSchema schema      = StructrSchema.createFromDatabase(app);
-			final JsonObjectType project = schema.addType("Project");
-
-			project.addStringProperty("name");
-
-			StructrSchema.extendDatabaseSchema(app, schema);
-
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-
-		RestAssured.given().accept("application/json").body("{ name: blah }").expect().statusCode(422).when().post("/Project");
-
-	}
-	*/
 }

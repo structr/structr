@@ -1,4 +1,0 @@
-#!/bin/bash
-echo curl -i -HX-User:$REST_USER -HX-Password:$REST_PW -XPOST "$REST_URL/$1" -d\'"$2"\'
-curl -i -HX-User:$REST_USER -HX-Password:$REST_PW -XPOST "$REST_URL/$1" -d''"$2"''
-

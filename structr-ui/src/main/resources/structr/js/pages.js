@@ -480,7 +480,7 @@ var _Pages = {
 				return true;
 			}, function() {
 				return true;
-			}, true);
+			});
 
 			dialog.empty();
 			dialogMsg.empty();
@@ -707,18 +707,24 @@ var _Pages = {
 			return false;
 		}
 		_Pages.unloadIframes();
-		var iframe = $('#preview_' + id);
-		Command.get(id, 'id,name', function(obj) {
-			let detailsObject     = (LSWrapper.getItem(_Pages.detailsObjectIdKey + id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + id) : '');
-			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + id) : '');
-			var url = viewRootUrl + obj.name + detailsObject + '?edit=2' + requestParameters;
-			iframe.prop('src', url);
-			_Logger.log(_LogType.PAGES, 'iframe', id, 'activated');
 
-			_Pages.hideAllPreviews();
-			iframe.parent().show();
-			_Pages.resize();
-		});
+		window.clearTimeout(_Pages.loadIframeTimer);
+
+		_Pages.loadIframeTimer = window.setTimeout(function() {
+
+			var iframe = $('#preview_' + id);
+			Command.get(id, 'id,name', function(obj) {
+				let detailsObject     = (LSWrapper.getItem(_Pages.detailsObjectIdKey + id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + id) : '');
+				let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + id) : '');
+				var url = viewRootUrl + obj.name + detailsObject + '?edit=2' + requestParameters;
+				iframe.prop('src', url);
+				_Logger.log(_LogType.PAGES, 'iframe', id, 'activated');
+
+				_Pages.hideAllPreviews();
+				iframe.parent().show();
+				_Pages.resize();
+			});
+		}, 100);
 	},
 	/**
 	 * Reload preview iframe with given id

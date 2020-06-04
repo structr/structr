@@ -18,25 +18,34 @@
  */
 package org.structr.test.web.advanced;
 
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import org.hamcrest.Matchers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SchemaGrant;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.export.StructrSchema;
+import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.User;
@@ -475,6 +484,187 @@ public class Deployment4Test extends DeploymentTestBase {
 
 		// test
 		compare(calculateHash(), true);
+	}
+
+	@Test
+	public void test48SchemaGrants() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			app.create(User.class,
+				new NodeAttribute<>(StructrApp.key(Principal.class,     "name"), "admin"),
+				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(Principal.class,  "isAdmin"),    true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// setup 1 - schema type
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			// add test type
+			schema.addType("Project");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// setup 2 - schema grant
+		try (final Tx tx = app.tx()) {
+
+			final Group testGroup1       = app.create(Group.class, "Group1");
+			final Group testGroup2       = app.create(Group.class, "Group2");
+			final Group testGroup3       = app.create(Group.class, "Group3");
+
+			// create group hierarchy
+			testGroup1.addMember(securityContext, testGroup2);
+			testGroup2.addMember(securityContext, testGroup3);
+
+			final User user = app.create(User.class,
+				new NodeAttribute<>(AbstractNode.name, "user"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "password")
+			);
+
+			testGroup3.addMember(securityContext, user);
+
+			// create grant
+			final SchemaNode projectNode = app.nodeQuery(SchemaNode.class).andName("Project").getFirst();
+			final SchemaGrant grant      = app.create(SchemaGrant.class,
+				new NodeAttribute<>(SchemaGrant.schemaNode,          projectNode),
+				new NodeAttribute<>(SchemaGrant.principal,           testGroup1),
+				new NodeAttribute<>(SchemaGrant.allowRead,           true),
+				new NodeAttribute<>(SchemaGrant.allowWrite,          true),
+				new NodeAttribute<>(SchemaGrant.allowDelete,         true),
+				new NodeAttribute<>(SchemaGrant.allowAccessControl,  true)
+			);
+
+			// create 2 projects as superuser, no visibility flags etc.
+			final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+			app.create(projectType, "Project1");
+			app.create(projectType, "Project2");
+
+			// allow REST access
+			grant("Project", UiAuthenticator.AUTH_USER_GET, true);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test before roundtrip
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("X-User", "user" , "X-Password", "password")
+
+			.expect()
+				.statusCode(200)
+
+				.body("result", Matchers.hasSize(2))
+
+			.when()
+				.get("/Project");
+
+
+		// test
+		compare(calculateHash(), true);
+
+		// test after roundtrip
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("X-User", "user" , "X-Password", "password")
+
+			.expect()
+				.statusCode(200)
+
+				.body("result", Matchers.hasSize(2))
+
+			.when()
+				.get("/Project");
+
+		// test again but delete group hierarchy first
+		try (final Tx tx = app.tx()) {
+
+			final Group group2 = app.nodeQuery(Group.class).andName("Group2").getFirst();
+
+			// Group2 connects the schema grant group (Group1) with the user in Group3,
+			// so we expect the user to not see any Projects after this
+			app.delete(group2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test before roundtrip
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("X-User", "user" , "X-Password", "password")
+
+			.expect()
+				.statusCode(200)
+
+				.body("result", Matchers.hasSize(0))
+
+			.when()
+				.get("/Project");
+
+
+		// test
+		compare(calculateHash(), true);
+
+		// test after roundtrip
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("X-User", "user" , "X-Password", "password")
+
+			.expect()
+				.statusCode(200)
+
+				.body("result", Matchers.hasSize(0))
+
+			.when()
+				.get("/Project");
 	}
 
 	// ----- private methods -----

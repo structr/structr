@@ -22,9 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.URI;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -51,6 +49,7 @@ import org.structr.api.service.LicenseManager;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.Service;
 import org.structr.api.service.ServiceDependency;
+import org.structr.api.service.ServiceResult;
 import org.structr.api.service.StructrServices;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
@@ -366,9 +365,7 @@ public class Services implements StructrServices {
 		}
 
 		logger.info("Started Structr {}", VersionHelper.getFullVersionInfo());
-
-		// Don't use logger here because start/stop scripts rely on this line.
-		System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.ms").format(new Date()) + "  ---------------- Initialization complete ----------------");
+		logger.info("---------------- Initialization complete ----------------");
 
 		setOverridingSchemaTypesAllowed(false);
 
@@ -426,7 +423,7 @@ public class Services implements StructrServices {
 
 		if (!shutdownDone) {
 
-			System.out.println("INFO: Shutting down...");
+			logger.info("Shutting down...");
 
 			final List<Class> configuredServiceClasses = getCongfiguredServiceClasses();
 			final List<Class> reverseServiceClassNames = new LinkedList<>(configuredServiceClasses);
@@ -438,7 +435,7 @@ public class Services implements StructrServices {
 
 			if (!serviceCache.isEmpty()) {
 
-				System.out.println("Not all services were removed: " + serviceCache);
+				logger.info("Not all services were removed: " + serviceCache);
 				serviceCache.clear();
 			}
 
@@ -448,7 +445,7 @@ public class Services implements StructrServices {
 			// clear singleton instance
 			singletonInstance = null;
 
-			System.out.println("INFO: Shutdown complete");
+			logger.info("Shutdown complete");
 
 			// signal shutdown is complete
 			shutdownDone = true;
@@ -530,7 +527,7 @@ public class Services implements StructrServices {
 		attributes.remove(name);
 	}
 
-	public boolean startService(final String serviceTypeAndName) throws FrameworkException {
+	public ServiceResult startService(final String serviceTypeAndName) throws FrameworkException {
 
 		final String serviceTypeName = StringUtils.substringBefore(serviceTypeAndName, ".");
 		final Class serviceType      = getServiceClassForName(serviceTypeName);
@@ -542,15 +539,16 @@ public class Services implements StructrServices {
 			return startService(serviceType, serviceName, false);
 		}
 
-		return false;
+		return new ServiceResult("Unknown service", false);
 	}
 
 	public boolean isConfigured(final Class serviceClass) {
 		return getCongfiguredServiceClasses().contains(serviceClass);
 	}
 
-	public boolean startService(final Class serviceClass, final String serviceName, final boolean disableRetry) throws FrameworkException {
+	public ServiceResult startService(final Class serviceClass, final String serviceName, final boolean disableRetry) throws FrameworkException {
 
+		String errorMessage  = serviceClass.getSimpleName() + " " + serviceName + " failed to start.";
 		boolean waitAndRetry = true;
 		boolean isVital      = false;
 
@@ -561,7 +559,7 @@ public class Services implements StructrServices {
 			if (!getCongfiguredServiceClasses().contains(serviceClass)) {
 
 				logger.warn("Service {} is not listed in {}, will not be started.", serviceClass.getName(), "configured.services");
-				return false;
+				return new ServiceResult("Service is not listed in configured.services", false);
 			}
 
 			logger.info("Creating {}..", serviceClass.getSimpleName());
@@ -571,7 +569,7 @@ public class Services implements StructrServices {
 			if (licenseManager != null && !licenseManager.isValid(service)) {
 
 				logger.error("Configured service {} is not part of the currently licensed Structr Edition.", serviceClass.getSimpleName());
-				return false;
+				return new ServiceResult("Service is not part of the currently licensed Structr Edition", false);
 			}
 
 			final int retryDelay     = service.getRetryDelay();
@@ -582,57 +580,45 @@ public class Services implements StructrServices {
 
 				waitAndRetry = service.waitAndRetry() && !disableRetry;
 
-				try {
+				final ServiceResult result = service.initialize(this, serviceName);
+				if (result.isSuccess()) {
 
-					if (service.initialize(this, serviceName)) {
+					if (service instanceof RunnableService) {
 
-						if (service instanceof RunnableService) {
+						RunnableService runnableService = (RunnableService) service;
 
-							RunnableService runnableService = (RunnableService) service;
+						if (runnableService.runOnStartup()) {
 
-							if (runnableService.runOnStartup()) {
-
-								// start RunnableService and cache it
-								runnableService.startService();
-							}
+							// start RunnableService and cache it
+							runnableService.startService();
 						}
-
-						if (service.isRunning()) {
-
-							// cache service instance
-							addService(serviceClass, service, serviceName);
-						}
-
-						// store service name after successful activation
-						setActiveServiceName(serviceClass, serviceName);
-
-						// initialization callback
-						service.initialized();
-
-						// abort wait and retry loop
-						waitAndRetry = false;
-
-						// success
-						return true;
-
-					} else if (!disableRetry && isVital && !waitAndRetry) {
-
-						checkVitalService(serviceClass, null);
-
-					} else {
-
-						throw new FrameworkException(503, service.getErrorMessage());
 					}
 
-				} catch (Throwable t) {
+					if (service.isRunning()) {
 
-					t.printStackTrace();
-
-					logger.warn("Service {} failed to start: {}", serviceClass.getSimpleName(), t.getMessage());
-
-					if (!disableRetry && isVital && !waitAndRetry) {
-						checkVitalService(serviceClass, t);
+						// cache service instance
+						addService(serviceClass, service, serviceName);
 					}
+
+					// store service name after successful activation
+					setActiveServiceName(serviceClass, serviceName);
+
+					// initialization callback
+					service.initialized();
+
+					// abort wait and retry loop
+					waitAndRetry = false;
+
+					// success
+					return new ServiceResult(true);
+
+				} else if (!disableRetry && isVital && !waitAndRetry) {
+
+					checkVitalService(serviceClass, null);
+
+				} else {
+
+					errorMessage = result.getMessage();
 				}
 
 				if (waitAndRetry) {
@@ -659,7 +645,7 @@ public class Services implements StructrServices {
 
 			} else {
 
-				throw new FrameworkException(503, t.getMessage());
+				throw new FrameworkException(503, errorMessage);
 			}
 
 		} finally {
@@ -667,7 +653,7 @@ public class Services implements StructrServices {
 			reloading.readLock().unlock();
 		}
 
-		return false;
+		return new ServiceResult(errorMessage, false);
 	}
 
 	public <T extends Service> void shutdownServices(final Class<T> serviceClass) {
@@ -710,7 +696,7 @@ public class Services implements StructrServices {
 
 		} catch (Throwable t) {
 
-			System.out.println("WARNING: Failed to shut down " + service.getName() + ": " + t.getMessage());
+			logger.warn("Failed to shut down " + service.getName() + ": " + t.getMessage());
 		}
 
 		// remove from service cache
@@ -957,7 +943,7 @@ public class Services implements StructrServices {
 		}
 	}
 
-	public boolean activateService(final Class type, final String name) throws FrameworkException {
+	public ServiceResult activateService(final Class type, final String name) throws FrameworkException {
 
 		try {
 
@@ -967,20 +953,19 @@ public class Services implements StructrServices {
 
 			shutdownServices(type);
 
-			if (startService(type, name, true)) {
+			final ServiceResult result = startService(type, name, true);
+			if (result.isSuccess()) {
 
 				// reload schema..
 				SchemaService.reloadSchema(new ErrorBuffer(), null);
-
-				return true;
 			}
+
+			return result;
 
 		} finally {
 
 			reloading.writeLock().unlock();
 		}
-
-		return false;
 	}
 
 	public <T extends Service> String getNameOfActiveService(final Class<T> type) {
@@ -1048,6 +1033,7 @@ public class Services implements StructrServices {
 			System.err.println("Vital service " + service.getSimpleName() + " failed to start, aborting.");
 
 		}
+
 		System.exit(1);
 	}
 

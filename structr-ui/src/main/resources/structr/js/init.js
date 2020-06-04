@@ -211,10 +211,10 @@ $(function() {
 				}
 			}
 		}
-		// Ctrl-Alt-t
+		// Ctrl-Alt-m
 		if (k === 77 && altKey && ctrlKey) {
 			e.preventDefault();
-			var uuid = prompt('Enter the UUID for which you want to open the edit dialog');
+			var uuid = prompt('Enter the UUID for which you want to open the content/template edit dialog');
 			if (uuid && uuid.length === 32) {
 				Command.get(uuid, null, function(obj) {
 					_Elements.openEditContentDialog(this, obj);
@@ -349,11 +349,11 @@ var Structr = {
 			});
 		}
 	},
-	refreshUi: function() {
+	refreshUi: function(isLogin = false) {
 		Structr.showLoadingSpinner();
 
 		Structr.clearMain();
-		Structr.loadInitialModule(false, function() {
+		Structr.loadInitialModule(isLogin, function() {
 			Structr.startPing();
 			if (!dialogText.text().length) {
 				LSWrapper.removeItem(dialogDataKey);
@@ -524,7 +524,7 @@ var Structr = {
 				_Logger.log(_LogType.INIT, 'Last menu entry found: ' + lastMenuEntry);
 			}
 			_Logger.log(_LogType.INIT, 'lastMenuEntry', lastMenuEntry);
-			Structr.updateVersionInfo();
+			Structr.updateVersionInfo(0, isLogin);
 			Structr.doActivateModule(lastMenuEntry);
 
 			callback();
@@ -590,7 +590,7 @@ var Structr = {
 		}, 1000);
 
 	},
-	dialog: function(text, callbackOk, callbackCancel) {
+	dialog: function(text, callbackOk, callbackCancel, customClasses) {
 
 		if (browser) {
 
@@ -599,6 +599,13 @@ var Structr = {
 			dialogMsg.empty();
 			dialogMeta.empty();
 			dialogBtn.empty();
+
+			dialogBox[0].classList = ["dialog"];
+			if (customClasses) {
+				for (let customClass of customClasses) {
+					dialogBox.addClass(customClass);
+				}
+			}
 
 			dialogBtn.html('<button class="closeButton">Close</button>');
 			dialogCancelButton = $('.closeButton', dialogBox);
@@ -1264,7 +1271,7 @@ var Structr = {
 
 		LSWrapper.removeItem(activeTabKey);
 	},
-	updateVersionInfo: function(retryCount = 0) {
+	updateVersionInfo: function(retryCount = 0, isLogin = false) {
 
 		fetch(rootUrl + '/_env').then(function(response) {
 
@@ -1292,6 +1299,10 @@ var Structr = {
 
 				if (envInfo.databaseService === 'MemoryDatabaseService') {
 					Structr.appendInMemoryInfoToElement($('span', dbInfoEl), $('span i', dbInfoEl));
+
+					if (isLogin) {
+						new MessageBuilder().warning(Structr.inMemorWarningText).requiresConfirmation().show();
+					}
 				}
 			}
 
@@ -1365,7 +1376,7 @@ var Structr = {
 		}).catch((e) => {
 			if (retryCount < 3) {
 				setTimeout(() => {
-					Structr.updateVersionInfo(++retryCount);
+					Structr.updateVersionInfo(++retryCount, isLogin);
 				}, 250);
 			} else {
 				console.log(e);
@@ -1392,11 +1403,12 @@ var Structr = {
 		});
 
 	},
+	inMemorWarningText:"Please note that the system is currently running on an in-memory database implementation. Data is not persisted and will be lost after restarting the instance! You can use the configuration tool to configure a database connection.",
 	appendInMemoryInfoToElement: function(el, optionalToggleElement) {
 
 		let config = {
 			element: el,
-			text: "Currently running on an in-memory database implementation. Data is no persisted and will be lost after restarting the instance! You can use the configuration servlet to configure a database connection.",
+			text: Structr.inMemorWarningText,
 			customToggleIcon: _Icons.database_error_icon,
 			helpElementCss: {
 				'border': '2px solid red',
@@ -1566,7 +1578,7 @@ var Structr = {
 		dialogMsg.html(newDiv);
 		$('.infoBox', dialogMsg).delay(delayTime).fadeOut(fadeTime);
 	},
-	initVerticalSlider: function(sliderEl, localstorageKey, minWidth, dragCallback) {
+	initVerticalSlider: function(sliderEl, localstorageKey, minWidth, dragCallback, isRight) {
 
 		if (typeof dragCallback !== 'function') {
 			console.error('dragCallback is not a function!');
@@ -1592,11 +1604,13 @@ var Structr = {
 				}
 
 				ui.position.left = left;
-				dragCallback(left);
+				let val = (isRight === true) ? window.innerWidth - ui.position.left : ui.position.left;
+				dragCallback(val);
 			},
 			stop: function(e, ui) {
 				$('.column-resizer-blocker').hide();
-				LSWrapper.setItem(localstorageKey, ui.position.left);
+				let val = (isRight === true) ? window.innerWidth - ui.position.left : ui.position.left;
+				LSWrapper.setItem(localstorageKey, val);
 			}
 		});
 
@@ -2035,15 +2049,15 @@ var _TreeHelper = {
 			plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
 			core: {
 				animation: 0,
-				state: {
-					key: stateKey
-				},
 				async: true,
 				data: initFunction
+			},
+			state: {
+				key: stateKey
 			}
 		});
 	},
-	deepOpen: function(tree, element, parentElements, parentKey, selectedNode) {
+	deepOpen: function(tree, element, parentElements, parentKey, selectedNodeId) {
 		if (element && element.id) {
 
 			parentElements = parentElements || [];
@@ -2051,20 +2065,33 @@ var _TreeHelper = {
 
 			Command.get(element.id, parentKey, function(loadedElement) {
 				if (loadedElement && loadedElement[parentKey]) {
-					_TreeHelper.deepOpen(tree, loadedElement[parentKey], parentElements, selectedNode);
+					_TreeHelper.deepOpen(tree, loadedElement[parentKey], parentElements, parentKey, selectedNodeId);
 				} else {
-					_TreeHelper.open(tree, parentElements, selectedNode);
+					_TreeHelper.open(tree, parentElements, selectedNodeId);
 				}
 			});
 		}
 	},
 	open: function(tree, dirs, selectedNode) {
 		if (dirs.length) {
-			var d = dirs.shift();
-			tree.jstree('deselect_node', d.id);
-			tree.jstree('open_node', d.id, function() {
-				tree.jstree('select_node', selectedNode);
-			});
+			tree.jstree('deselect_all');
+
+			let openRecursively = function(list) {
+
+				if (list.length > 0) {
+
+					let first = list.shift();
+
+					tree.jstree('open_node', first.id, function() {
+						openRecursively(list);
+					});
+
+				} else {
+					tree.jstree('select_node', selectedNode);
+				}
+			};
+
+			openRecursively(dirs);
 		}
 	},
 	refreshTree: function(tree, callback) {

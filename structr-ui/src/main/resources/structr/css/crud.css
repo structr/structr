@@ -23,19 +23,21 @@
 	background: none;
 	padding: 0;
 	font-family: Roboto, Arial, Helvetica, Sans-serif;
+	height: 100%;
 }
 
 #crud-left {
 	width: 210px;
 	margin: 12px 4px 12px 12px;
 	display: inline-block;
+	height: calc(100% - 12px);
 }
 
 #crud-left .resourceBox {
-	width: 210px;
 	display: inline-block;
 	vertical-align: top;
-	height: calc(50vh - 46px);
+	height: calc(50% - 5px);
+	width: 100%;
 }
 
 #crud-left h2 {
@@ -86,7 +88,7 @@
 }
 
 #crud-recent-types {
-	margin-top: 4px;
+	margin-top: 3px;
 }
 
 #crud-recent-types li .remove-recent-type {

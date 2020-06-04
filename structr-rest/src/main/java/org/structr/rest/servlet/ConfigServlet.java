@@ -543,7 +543,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 			buttons.block("button").attr(new Type("button")).id("new-entry-button").text("Add entry");
 			buttons.block("button").attr(new Type("button")).id("reload-config-button").text("Reload configuration file");
-			buttons.empty("input").attr(new Type("submit"), new Value("Save to structr.conf"));
+			buttons.empty("input").css("default-action").attr(new Type("submit"), new Value("Save to structr.conf"));
 		}
 
 		// update active section so we can restore it when redirecting
@@ -651,15 +651,16 @@ public class ConfigServlet extends AbstractServletBase {
 		final Style bgGreen                = new Style("background-color: #81ce25; color: #fff; border: 1px solid rgba(0,0,0,.125);");
 		final String id                    = "welcome";
 
-		menu.block("li").css("active").block("a").id(id + "Menu").attr(new Attr("href", "#" + id)).block("span").text("Welcome").css("active");
+		menu.block("li").css("active").block("a").id(id + "Menu").attr(new Attr("href", "#" + id)).block("span").text("Start").css("active");
 
 		final Tag container = tabs.block("div").css("tab-content").id(id).attr(new Style("display: block;"));
-		final Tag body      = header(container, "Welcome to Structr");
+		final Tag body      = header(container, "Initial Configuration");
 
-		body.block("p").text("This is the first start, so you need to configure some things.");
+		body.block("p").text("This is the first startup in configuration-only mode.");
+		body.block("p").text("To start the server and access the user interface, the following actions must be performed:");
 
-		final Tag list  = body.block("ul");
-		final Tag item1 = list.block("li").text("Set a password for the <b>superuser</b>");
+		final Tag list  = body.block("ol");
+		final Tag item1 = list.block("li").text("Set a <b>superuser</b> password");
 		final Tag item2 = list.block("li").text("Configure a <b>database connection</b>");
 
 		if (passwordIsSet) {
@@ -676,11 +677,11 @@ public class ConfigServlet extends AbstractServletBase {
 
 			final Tag pwd = body.block("p");
 			pwd.empty("input").attr(new Name("superuser.password")).attr(new Type("password")).attr(new Attr("size", 40));
-			pwd.empty("input").attr(new Type("submit")).attr(new Attr("value", "Set password")).attr(bgGreen);
+			pwd.empty("input").attr(new Type("submit")).attr(new Attr("value", "Save")).attr(bgGreen);
 
 		} else {
 
-			body.block("h3").text("Options");
+			body.block("h3").text("Next step: ");
 
 			if (databaseIsConfigured) {
 
@@ -688,10 +689,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 			} else {
 
-				body.block("p").css("steps").block("button").attr(new Type("button")).text("Create connection with default settings").attr(new OnClick("window.location.href='" + ConfigUrl + "?useDefault';"));
-				body.block("p").css("steps").text("or");
-				body.block("p").css("steps").block("button").attr(new Type("button")).text("Configure database connection").attr(new OnClick("$('#databasesMenu').click();"));
-				body.block("p").css("steps").block("button").attr(new Type("button")).text("Continue without database connection").attr(new OnClick("window.location.href='" + ConfigUrl + "?finish';"));
+				body.block("p").css("steps").block("button").attr(new Type("button")).text("Configure a database connection").attr(new OnClick("window.location.href='/structr/config#databases'; $('#databasesMenu').click();"));
 			}
 
 		}
@@ -710,7 +708,17 @@ public class ConfigServlet extends AbstractServletBase {
 
 		if (connections.isEmpty()) {
 
-			body.block("p").text("There are currently no database connections configured.");
+			body.block("p").text("There are currently no database connections configured. To use Structr, you have the following options:");
+			
+			final Tag div = body.block("div");
+			
+			final Tag leftDiv  = div.block("div").css("inline-block");
+			leftDiv.block("button").css("default-action").attr(new Type("button")).text("Create new database connection").attr(new OnClick("$('.new-connection.collapsed').removeClass('collapsed')"));
+			leftDiv.block("p").text("Configure Structr to connect to a running database.");
+			
+			final Tag rightDiv = div.block("div").css("inline-block");
+			rightDiv.block("button").attr(new Type("button")).text("Start in demo mode").attr(new OnClick("window.location.href='" + ConfigUrl + "?finish';"));
+			rightDiv.block("p").text("Start Structr in demo mode. Please note that in this mode any data will be lost when stopping the server.");
 
 		} else {
 
@@ -728,29 +736,29 @@ public class ConfigServlet extends AbstractServletBase {
 		}
 
 		// new connection form should appear below existing connections
-		body.block("div").attr(new Attr("style", "clear: both;"));
+		//body.block("div").attr(new Attr("style", "clear: both;"));
 
-		body.block("h2").text("Add connection");
+		//body.block("h2").text("Add connection");
 
-		final Tag div = body.block("div").css("connection app-tile new-connection");
+		final Tag div = body.block("div").css("connection app-tile new-connection collapsed");
 
-		div.block("h4").text("Add database connection");
+		//div.block("h4").text("Add database connection");
 
 		final Tag name = div.block("p");
 		name.block("label").text("Name");
-		name.add(new InputField(name, "text", "name-structr-new-connection", "", "Enter name.."));
+		name.add(new InputField(name, "text", "name-structr-new-connection", "", "Enter a connection name"));
 
 		final Tag url = div.block("p");
 		url.block("label").text("Connection URL");
-		url.add(new InputField(url, "text", "url-structr-new-connection", "bolt://localhost:7687", "Enter url.."));
+		url.add(new InputField(url, "text", "url-structr-new-connection", "", "Enter URL"));
 
 		final Tag user = div.block("p");
 		user.block("label").text("Username");
-		user.add(new InputField(user, "text", "username-structr-new-connection", "neo4j", "Enter username.."));
+		user.add(new InputField(user, "text", "username-structr-new-connection", "", "Enter username"));
 
 		final Tag pass = div.block("p");
 		pass.block("label").text("Password");
-		pass.add(new InputField(pass, "password", "password-structr-new-connection", "", "Enter password.."));
+		pass.add(new InputField(pass, "password", "password-structr-new-connection", "", "Enter password"));
 
 		if (connections.isEmpty()) {
 
@@ -758,11 +766,12 @@ public class ConfigServlet extends AbstractServletBase {
 			final Tag checkbox = div.block("p");
 			final Tag label    = checkbox.block("label");
 			label.empty("input").attr(new Attr("type", "checkbox"), new Attr("id", "connect-checkbox"), new Attr("checked", "checked"));
-			label.block("span").text(" Connect immediately");
+			label.block("span").text("Connect immediately");
 		}
 
 		final Tag buttons = div.block("p").css("buttons");
-		buttons.block("button").attr(new Attr("type", "button")).text("Add connection").attr(new Attr("onclick", "addConnection(this);"));
+		buttons.block("button").attr(new Attr("type", "button")).text("Set Neo4j defaults").attr(new Attr("onclick", "setNeo4jDefaults(this);"));
+		buttons.block("button").css("default-action").attr(new Attr("type", "button")).text("Add connection").attr(new Attr("onclick", "addConnection(this);"));
 
 		div.block("div").id("status-structr-new-connection").css("warning warning-message hidden");
 	}

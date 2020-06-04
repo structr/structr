@@ -1,5 +1,5 @@
 <table class="${config.class}">
-	<thead>${config.cols.reduce((acc, col) => { return acc + '<th class=' + col.class + '>' + col.title + '</th>'; }, '')}</thead>
+	<thead>${config.cols.reduce((acc, col) => { return acc + '<th class="' + col.class + '">' + col.title + '</th>'; }, '')}</thead>
 	<tbody></tbody>
 	<tfoot class="hidden">
 		<th colspan=${config.cols.length} class="actions-col">
@@ -7,4 +7,4 @@
 			<button class="save-all"><i class="${_Icons.getFullSpriteClass(_Icons.tick_icon)}"></i> Save all</button>
 		</th>
 	</tfoot>
-</table>'
+</table>

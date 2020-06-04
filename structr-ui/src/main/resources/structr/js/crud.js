@@ -224,7 +224,7 @@ var _Crud = {
 
 		$('#crud-types').css({width: left - 12 + 'px'});
 		$('#crud-recent-types').css({width: left - 12 + 'px'});
-		$('#crud-right').css({left: left - 222 + 'px', width: $(window).width() - left - 58 + 'px'});
+		$('#crud-right').css({left: left - 220 + 'px', width: window.innerWidth - left - 58 + 'px'});
 	},
 	init: function() {
 
@@ -2339,7 +2339,7 @@ var _Crud = {
 		}, 1000);
 	},
 	searchResult: function(searchResults, type, node, onClickCallback) {
-		if (!$('#resultsFor' + type).length) {
+		if (!$('#resultsFor' + type, searchResults).length) {
 			searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox"><h3>' + type.capitalize() + '</h3></div>');
 		}
 		var displayName = _Crud.displayName(node);
@@ -2996,6 +2996,6 @@ var _Crud = {
 		el.attr('title', _Crud.getSoftLimitMessage());
 	},
 	cssClassForKey: function (key) {
-		return '___' + key.replaceAll(/\s/,  '_whitespace_');
+		return '___' + key.replace(/\s/g,  '_whitespace_');
 	}
 };

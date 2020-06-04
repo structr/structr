@@ -25,7 +25,7 @@ import org.structr.schema.action.ActionContext;
 
 public class SubstringFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_SUBSTRING = "Usage: ${substring(string, start, length)}. Example: ${substring(this.name, 19, 3)}";
+	public static final String ERROR_MESSAGE_SUBSTRING = "Usage: ${substring(string, start [, length ])}. Example: ${substring(this.name, 19, 3)}";
 
 	@Override
 	public String getName() {
@@ -34,7 +34,7 @@ public class SubstringFunction extends CoreFunction {
 
 	@Override
 	public String getSignature() {
-		return "str, start, length";
+		return "str, start [, length ]";
 	}
 
 	@Override
@@ -48,7 +48,7 @@ public class SubstringFunction extends CoreFunction {
 			final int sourceLength = source.length();
 			final int beginIndex = parseInt(sources[1]);
 			final int length = sources.length == 3 ? parseInt(sources[2]) : sourceLength - beginIndex;
-			final int endIndex = beginIndex + length;
+			final int endIndex = Math.min(beginIndex + length, sourceLength);
 
 			if (beginIndex >= 0 && beginIndex < sourceLength && endIndex >= beginIndex && endIndex <= sourceLength) {
 

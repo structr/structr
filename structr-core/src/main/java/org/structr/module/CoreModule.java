@@ -82,6 +82,7 @@ import org.structr.core.function.KeysFunction;
 import org.structr.core.function.LastFunction;
 import org.structr.core.function.LengthFunction;
 import org.structr.core.function.LogFunction;
+import org.structr.core.function.LongFunction;
 import org.structr.core.function.LowerFunction;
 import org.structr.core.function.LtFunction;
 import org.structr.core.function.LteFunction;
@@ -159,6 +160,7 @@ public class CoreModule implements StructrModule {
 		Functions.put(licenseManager, new CapitalizeFunction());
 		Functions.put(licenseManager, new TitleizeFunction());
 		Functions.put(licenseManager, new NumFunction());
+		Functions.put(licenseManager, new LongFunction());
 		Functions.put(licenseManager, new IntFunction());
 		Functions.put(licenseManager, new RandomFunction());
 		Functions.put(licenseManager, new RintFunction());

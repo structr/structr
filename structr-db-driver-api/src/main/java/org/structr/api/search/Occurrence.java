@@ -25,5 +25,7 @@ public enum Occurrence {
 
 	REQUIRED,
 	OPTIONAL,
+	EXACT,
+	CONTAINS,
 	FORBIDDEN
 }

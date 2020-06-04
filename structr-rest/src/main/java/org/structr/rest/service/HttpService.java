@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import javax.servlet.DispatcherType;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -50,7 +51,6 @@ import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
-import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
@@ -76,6 +76,7 @@ import org.structr.api.service.Command;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.ServiceDependency;
+import org.structr.api.service.ServiceResult;
 import org.structr.api.service.StructrServices;
 import org.structr.core.Services;
 import org.structr.rest.ResourceProvider;
@@ -103,6 +104,7 @@ public class HttpService implements RunnableService {
 	private GzipHandler gzipHandler               = null;
 	private HttpConfiguration httpConfig          = null;
 	private HttpConfiguration httpsConfig         = null;
+	private SslContextFactory sslContextFactory   = null;
 	private Server server                         = null;
 	private int maxIdleTime                       = 30000;
 	private int requestHeaderSize                 = 8192;
@@ -163,7 +165,7 @@ public class HttpService implements RunnableService {
 	}
 
 	@Override
-	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
 		final LicenseManager licenseManager = services.getLicenseManager();
 		final boolean isTest                = Services.isTesting();
@@ -217,13 +219,6 @@ public class HttpService implements RunnableService {
 		server = new Server(Settings.HttpPort.getValue());
 		final ContextHandlerCollection contexts = new ContextHandlerCollection();
 
-		contexts.addHandler(new AbstractHandler() {
-			@Override
-			public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-				System.out.println(target);
-			}
-
-		});
 		contexts.addHandler(new DefaultHandler());
 
 		final ServletContextHandler servletContext = new ServletContextHandler(server, contextPath, true, true);
@@ -455,7 +450,7 @@ public class HttpService implements RunnableService {
 				httpsConfig = new HttpConfiguration(httpConfig);
 				httpsConfig.addCustomizer(new SecureRequestCustomizer());
 
-				final SslContextFactory sslContextFactory = new SslContextFactory();
+				sslContextFactory = new SslContextFactory();
 				sslContextFactory.setKeyStorePath(keyStorePath);
 				sslContextFactory.setKeyStorePassword(keyStorePassword);
 
@@ -523,7 +518,36 @@ public class HttpService implements RunnableService {
 		server.setStopTimeout(1000);
 		server.setStopAtShutdown(true);
 
-		return true;
+		return new ServiceResult(true);
+	}
+
+	public void reloadSSLCertificate() {
+
+		if (sslContextFactory != null) {
+
+			try {
+
+				final String keyStorePath           = Settings.KeystorePath.getValue();
+				final String keyStorePassword       = Settings.KeystorePassword.getValue();
+
+				// in case path/password changed
+				sslContextFactory.setKeyStorePath(keyStorePath);
+				sslContextFactory.setKeyStorePassword(keyStorePassword);
+
+				sslContextFactory.reload(new Consumer<SslContextFactory>() {
+					@Override
+					public void accept(SslContextFactory t) {
+					}
+				});
+
+			} catch (Exception e) {
+
+				logger.error("Unable to reload SSL certificate.", e);
+			}
+		} else {
+
+			logger.warn("Server started without SSL. Need to restart service.");
+		}
 	}
 
 	@Override

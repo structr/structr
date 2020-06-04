@@ -40,7 +40,7 @@ import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -835,10 +835,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	private boolean isGranted(final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog, final Map<String, Security> incomingSecurityRelationships, final boolean isCreation) {
 
-		final Map<String, Security> localIncomingSecurityRelationships = (Map<String, Security>) incomingSecurityRelationships != null ? incomingSecurityRelationships : mapSecurityRelationshipsMapped(getIncomingRelationshipsAsSuperUser(Security.class));
-
-		if (level > 100) {
-			logger.warn("Aborting recursive permission resolution because of recursion level > 100, this is quite likely an infinite loop.");
+		if (level > 300) {
+			logger.warn("Aborting recursive permission resolution for {} on {} because of recursion level > 300, this is quite likely an infinite loop.", permission.name(), getType() + "(" + getUuid() + ")");
 			return false;
 		}
 
@@ -847,9 +845,17 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			return true;
 		}
 
-		// this includes SuperUser
-		if (accessingUser != null && accessingUser.isAdmin()) {
-			return true;
+		if (accessingUser != null) {
+
+			// this includes SuperUser
+			if (accessingUser.isAdmin()) {
+				return true;
+			}
+
+			// schema- (type-) based permissions
+			if (allowedBySchema(accessingUser, permission)) {
+				return true;
+			}
 		}
 
 		// allow accessingUser to access itself, but not parents etc.
@@ -886,13 +892,15 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				return true;
 			}
 
-			final Security security = getSecurityRelationship(accessingUser, localIncomingSecurityRelationships);
+			final Map<String, Security> localIncomingSecurityRelationships = (Map<String, Security>) incomingSecurityRelationships != null ? incomingSecurityRelationships : mapSecurityRelationshipsMapped(getIncomingRelationshipsAsSuperUser(Security.class));
+			final Security security                                        = getSecurityRelationship(accessingUser, localIncomingSecurityRelationships);
+
 			if (security != null && security.isAllowed(permission)) {
 				return true;
 			}
 
 			// new experimental custom permission resultion based on query
-			final PropertyKey<String> permissionPropertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "customPermissionQuery" + StringUtils.capitalise(permission.name()));
+			final PropertyKey<String> permissionPropertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "customPermissionQuery" + StringUtils.capitalize(permission.name()));
 			final String customPermissionQuery              = accessingUser.getProperty(permissionPropertyKey);
 
 			if (StringUtils.isNotEmpty(customPermissionQuery)) {
@@ -2148,6 +2156,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	protected boolean isGenericNode() {
+		return false;
+	}
+
+	protected boolean allowedBySchema(final Principal principal, final Permission permission) {
 		return false;
 	}
 

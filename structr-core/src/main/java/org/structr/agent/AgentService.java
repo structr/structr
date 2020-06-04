@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.ServiceDependency;
+import org.structr.api.service.ServiceResult;
 import org.structr.api.service.StructrServices;
 import org.structr.core.Services;
 import org.structr.schema.ConfigurationProvider;
@@ -125,8 +126,8 @@ public class AgentService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public boolean initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-		return true;
+	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+		return new ServiceResult(true);
 	}
 
 	@Override

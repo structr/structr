@@ -26,7 +26,6 @@ import org.structr.schema.SchemaService;
 
 /**
  *
- * @author Christian Morgner
  */
 public interface MetadataNode extends NodeInterface {
 

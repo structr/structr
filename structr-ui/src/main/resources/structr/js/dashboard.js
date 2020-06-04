@@ -75,11 +75,11 @@ var _Dashboard = {
 			snapshotsIndexUrl = data.result.availableSnapshotsUrl;
 
 			if (templateConfig.envInfo.startDate) {
-				templateConfig.envInfo.startDate = _Dashboard.dateToIsoString(templateConfig.envInfo.startDate);
+				templateConfig.envInfo.startDate = templateConfig.envInfo.startDate.slice(0, 10);
 			}
 
 			if (templateConfig.envInfo.endDate) {
-				templateConfig.envInfo.endDate = _Dashboard.dateToIsoString(templateConfig.envInfo.endDate);
+				templateConfig.envInfo.endDate = templateConfig.envInfo.endDate.slice(0, 10);
 			}
 
 			templateConfig.databaseDriver = Structr.getDatabaseDriverNameForDatabaseServiceName(templateConfig.envInfo.databaseService);
@@ -151,6 +151,12 @@ var _Dashboard = {
 				$('button#do-data-export').on('click', function() {
 					_Dashboard.deployData('export', $('#data-export-target-input').val(), $('#data-export-types-input').val());
 				});
+
+				$('button#do-app-export-to-zip').on('click', function() {
+					_Dashboard.exportAsZip();
+				});
+				
+				
 
 				let typesSelectElem = $('#data-export-types-input');
 
@@ -325,10 +331,6 @@ var _Dashboard = {
 			});
 		}
 	},
-	dateToIsoString: function(dateString) {
-		let date = new Date(dateString);
-		return date.getFullYear() + '-' + ('' + (date.getMonth() + 1)).padStart(2, '0') + '-' + ('' + date.getDate()).padStart(2, '0');
-	},
 	displayVersion: function(obj) {
 		return (obj.version ? ' (v' + obj.version + ')': '');
 	},
@@ -350,7 +352,7 @@ var _Dashboard = {
 		if (envInfo && envInfo.endDate && element) {
 
 			var showMessage = true;
-			var daysLeft = Math.ceil((new Date(envInfo.endDate) - new Date()) / 86400000) + 1;
+			var daysLeft = Math.ceil((new Date(envInfo.endDate.slice(0, 10)) - new Date()) / 86400000) + 1;
 
 			var config = {
 				element: element,
@@ -537,10 +539,33 @@ var _Dashboard = {
 			}
 		});
 	},
+	exportAsZip: function() {
+
+		var data = {
+			mode: 'export',
+			target: '/tmp/app-data-' + new Date().getTime()
+		};
+
+		$.ajax({
+			url: rootUrl + '/maintenance/deploy',
+			data: JSON.stringify(data),
+			method: 'POST',
+			dataType: 'json',
+			contentType: 'application/json; charset=utf-8',
+			statusCode: {
+				422: function(data) {
+					//new MessageBuilder().title('Unable to start app ' + mode + '').warning(data.responseJSON.message).requiresConfirmation().show();
+				}
+			},
+			success: function() {
+				window.location = '/structr/deploy?path=' + data.target;
+			}
+		});
+	},	
 	deployFromURL: function(redirectUrl, downloadUrl) {
 
 		if (!(downloadUrl && downloadUrl.length)) {
-			new MessageBuilder().title('Unable to start app import from URL').warning('Please enter the URL of the ZIP file containing the app.').requiresConfirmation().show();
+			new MessageBuilder().title('Unable to start app import from URL').warning('Please enter the URL of the ZIP file containing the app data.').requiresConfirmation().show();
 			return;
 		}
 
@@ -556,11 +581,14 @@ var _Dashboard = {
 			data: data,
 			statusCode: {
 				400: function(data) {
-					new MessageBuilder().title('Unable to import app from URL ' + downloadUrl).warning(data.responseJSON.message).requiresConfirmation().show();
+					new MessageBuilder().title('Unable to import app from URL').warning(data.responseText).requiresConfirmation().show();
 				}
 			},
-			success: function() {
-				//console.log('Deployment successful!');
+			error: function(a,b,c) {
+				console.log('Deployment failed:',a,b,c);
+			},
+			success: function(a,b,c) {
+				console.log('Deployment successful:',a,b,c);
 			}
 		});
 	},

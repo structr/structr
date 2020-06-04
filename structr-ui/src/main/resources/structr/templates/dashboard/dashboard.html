@@ -100,6 +100,12 @@
 							<button class="action" id="do-data-export">Export data to local directory</button>
 						</div>
 
+						<h3>Export and download <u>application</u> as ZIP file</h3>
+						${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Export and download as ZIP file is not possible because <code>DeployServlet</code> is not running.</span>')}
+						<div>
+							<button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-app-export-to-zip">Export and download app as ZIP file</button>
+						</div>
+
 					</td>
 				</tr>
 			</table>
@@ -170,6 +176,8 @@
 
 		div#dashboard .tab-content {
 			padding: 12px;
+			height: calc(100% - 34px);
+			overflow: auto;
 		}
 
 		div#dashboard .tab-content.active {
@@ -177,7 +185,7 @@
 		}
 
 		div#dashboard .tabs-contents {
-			height: calc(100% - 14px);
+			height: calc(100% - 18px);
 		}
 
 		#about-structr .props {
@@ -285,10 +293,6 @@
 			top: 2px;
 		}
 
-		#dashboard-server-log {
-			height: calc(100% - 34px);
-		}
-
 		#dashboard-server-log-controls {
 			height: 30px;
 		}
@@ -298,7 +302,7 @@
 		}
 
 		#dashboard-server-log textarea {
-			height: calc(100% - 30px);
+			height: calc(100% - 40px);
 			width: 100%;
 			resize: none;
 			font-family: monospace ! important;

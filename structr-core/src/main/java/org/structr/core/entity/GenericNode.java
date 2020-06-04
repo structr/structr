@@ -38,7 +38,7 @@ public class GenericNode extends AbstractNode implements NonIndexed {
 	public int hashCode() {
 		final String uuid = getUuid();
 		if (uuid != null) {
-			return getUuid().hashCode();
+			return uuid.hashCode();
 		} else {
 			return dbNode.getId().hashCode();
 		}

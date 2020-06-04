@@ -21,6 +21,7 @@ package org.structr.core.script;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
+import org.mozilla.javascript.NativeObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -29,6 +30,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.function.Functions;
 import org.structr.core.property.DateProperty;
@@ -463,6 +465,10 @@ public class Scripting {
 
 			return Iterables.toList((Iterable)value).toString();
 
+		} else if (value instanceof NativeObject) {
+
+			return StructrScriptable.formatForLogging(value);
+
 		} else {
 
 			return value.toString();
@@ -496,7 +502,7 @@ public class Scripting {
 
 			return buf.toString();
 
-		} else if (value instanceof GraphObject) {
+		} else if (value instanceof GraphObject && !(value instanceof GraphObjectMap)) {
 
 			final StringBuilder buf = new StringBuilder();
 			final GraphObject obj   = (GraphObject)value;
@@ -515,6 +521,10 @@ public class Scripting {
 			buf.append(")");
 
 			return buf.toString();
+
+		} else if (value instanceof NativeObject) {
+
+			return StructrScriptable.formatForLogging(value);
 
 		} else {
 

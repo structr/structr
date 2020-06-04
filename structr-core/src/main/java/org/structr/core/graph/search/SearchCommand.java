@@ -134,7 +134,16 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		} else {
 
-			queryContext.setIsSuperuser(user.isAdmin());
+			if (user.isAdmin()) {
+
+				queryContext.setIsSuperuser(user.isAdmin());
+
+				if (queryContext.isSliced()) {
+
+					page     = queryContext.getPage();
+					pageSize = queryContext.getPageSize();
+				}
+			}
 		}
 
 		// special handling of deleted and hidden flags
@@ -549,7 +558,20 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		assertPropertyIsIndexed(key);
 
-		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Occurrence.REQUIRED, value, exact, this));
+		return and(key, value, exact, Occurrence.REQUIRED);
+	}
+
+	@Override
+	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value, final boolean exact, final Occurrence occur) {
+
+		if (GraphObject.id.equals(key)) {
+
+			this.doNotSort = false;
+		}
+
+		assertPropertyIsIndexed(key);
+
+		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, occur, value, exact, this));
 
 		return this;
 	}

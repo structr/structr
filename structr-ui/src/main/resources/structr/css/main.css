@@ -1537,11 +1537,13 @@ button.action.disabled:hover {
 	min-width: 200px;
 }
 
-.schema-props tbody tr:nth-child(odd) {
+.schema-props tbody tr:nth-child(odd),
+.schema-props .fake-tbody .fake-tr:nth-child(odd) {
 	background-color: #f6f6f6;
 }
 
-.schema-props tbody tr:nth-child(even) {
+.schema-props tbody tr:nth-child(even),
+.schema-props .fake-tbody .fake-tr:nth-child(even) {
 	background-color: #fff;
 }
 
@@ -1554,25 +1556,29 @@ button.action.disabled:hover {
     vertical-align: initial;
 }
 
-.schema-props tbody tr.to-delete {
-	opacity: 0.5;
+.schema-props .to-delete {
 	background-image: linear-gradient(135deg, #ffffff 25%, #b3b3b3 25%, #b3b3b3 50%, #ffffff 50%, #ffffff 75%, #b3b3b3 75%, #b3b3b3 100%);
 	background-size: 20px 20px;
+}
+
+.schema-props .to-delete td:not(.actions-col),
+.schema-props .to-delete .fake-td:not(.actions-col) {
+	opacity: 0.5;
 }
 
 .schema-props i.discard-changes {
 	display: none;
 }
 
-.schema-props tr.to-delete i.discard-changes, .schema-props tr.has-changes i.discard-changes {
+.schema-props tr.to-delete i.discard-changes,
+.schema-props tr.has-changes i.discard-changes,
+.schema-props .fake-tr.has-changes i.discard-changes
+{
 	display: inline-block;
 }
 
-.schema-props tr.to-delete i.remove-action {
-	display: none;
-}
-
-.schema-props tr.editing i.edit-action {
+.schema-props tr.to-delete i.remove-action,
+.schema-props .fake-tr.to-delete i.remove-action {
 	display: none;
 }
 
@@ -1585,7 +1591,8 @@ button.action.disabled:hover {
 	display: inline-block;
 }
 
-.schema-props tfoot .actions-col {
+.schema-props tfoot .actions-col,
+.schema-props .fake-tfoot .actions-col {
 	text-align: right;
 }
 
@@ -1822,9 +1829,8 @@ button.action.disabled:hover {
 #switches {
 	width: 200px;
 	position: absolute;
-	top: 12px;
-	right: 12px;
-	text-align: right;
+	top: 114px;
+	right: 4px;
 }
 
 #switch-list.active {
@@ -2215,7 +2221,7 @@ button.add_property {
 }
 
 #methods-container-left {
-	flex-basis: 25%;
+	flex-basis: 28%;
 	flex-shrink: 0;
 	margin-right: 6px;
 }
@@ -2238,7 +2244,7 @@ button.add_property {
 	vertical-align: top;
 }
 
-.actions.schema-props tr.editing {
+.actions.schema-props .fake-tr.editing {
 	background: #a5e25a;
 }
 
@@ -2929,7 +2935,7 @@ table.push {
  */
 
 #usersAndGroups, #resourceAccess {
-	height: calc(100% + 6px);
+	height: calc(100% - 28px);
 }
 
 #usersAndGroups #users, #usersAndGroups #groups {
@@ -3005,25 +3011,10 @@ table.push {
 }
 
 #securityTabs {
-	margin: 12px 24px 12px 12px;
-	width: calc(100vw - 36px);
-	min-width: calc(804px + 4em);
-	height: calc(100vh - 120px);
+	margin: 12px;
+	height: calc(100% - 12px);
 	border: none;
 	background: none;
-}
-
-#configTabs {
-	margin: 12px 24px 0 12px;
-	width: calc(100vw - 36px);
-	min-width: calc(570px + 4em);
-	height: calc(100vh - 78px);
-	border: none;
-	background: none;
-}
-
-#configTabs .tab-content {
-	padding-left: 12px;
 }
 
 .tabs-menu {
@@ -3102,6 +3093,11 @@ input.bitmask {
 	font-size: 11pt;
 }
 
+#non-block-ui-blocker-content img {
+	vertical-align: middle;
+	margin: 4px;
+}
+
 /*
  * Apps
  */
@@ -3150,7 +3146,6 @@ input.bitmask {
 .app-tile p {
 	margin: 0;
 	font-size: 1em;
-	font-weight: 300;
 	font-size: 0.8em;
 }
 
@@ -3543,20 +3538,12 @@ td#cascading-options, td#propagation-options {
  * Filesystem-like pages (Filesystem, Contents, Crawer)
  */
 
-#file-tree {
-	height: calc(100% - 11px);
-}
-
 .jstree-anchor {
 	font-size: 9pt;
 }
 
 .bold {
 	font-weight: bold;
-}
-
-.tree-main {
-	display: table-row;
 }
 
 .tree-main b.name_, .tree-main input.new-name {
@@ -3569,17 +3556,30 @@ td#cascading-options, td#propagation-options {
 }
 
 .tree {
-	padding-top: 8px;
+	height: 100%;
 	overflow: auto;
 	vertical-align: top;
 	background-color: #fff;
-	border: 1px solid rgba(0,0,0,.125);
-	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
+}
+
+.tree-main {
+	display: flex;
+	height: calc(100% - 12px);
+	margin: 12px;
 }
 
 .tree-container {
 	vertical-align: top;
-	padding: 12px 0 12px 12px;
+	height: calc(100% - 2px);
+	margin-right: 9px;
+	border: 1px solid rgba(0,0,0,.125);
+	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
+}
+
+.tree-contents-container, .tree-context-container {
+	vertical-align: top;
+	overflow: auto;
+	height: 100%;
 }
 
 .tree-search-container {
@@ -3638,12 +3638,6 @@ input.tree-search-input:focus {
 	color: #000088;
 }
 
-.tree-contents-container, .tree-context-container {
-	display: table-cell;
-	vertical-align: top;
-	padding: 12px 12px 12px 8px;
-}
-
 .tree-contents-container select, #crawler-list-container select, #schema-container select, #flows-canvas-container select {
 	padding: 2px 2px 3px 2px;
 	border: 1px solid rgba(0,0,0,.125);
@@ -3695,6 +3689,7 @@ input.tree-search-input:focus {
 }
 
 .tree-contents, .tree-context {
+	height: calc(100% - 26px);
 	vertical-align: top;
 	background-color: #fff;
 	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
@@ -3703,12 +3698,41 @@ input.tree-search-input:focus {
 	margin-top: 0;
 	overflow: auto;
 	font-size: 9pt;
-	position: absolute;
 }
 
-/*.tree-contents {
-	overflow: hidden;
-}*/
+#contents-contents-container, #folder-contents-container, #code-context-container, #crawler-list-container {
+	margin-left: 2px;
+}
+
+#code-contents-container {
+	margin-left: 2px;
+	margin-right: 9px;
+}
+
+#folder-contents, #contents-contents {
+	height: calc(100% - 58px);
+}
+
+#flows-canvas {
+	height: calc(100% - 34px);
+	padding: 0;
+}
+
+#code-tree-container, #simple-pages-tree-container {
+	height: 100%;
+	border: none;
+	box-shadow: none;
+}
+
+#code-tree, #simple-pages-tree {
+	border: 1px solid rgba(0,0,0,.125);
+	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
+	height: calc(100% - 34px);
+}
+
+#crawler-list {
+	height: calc(100% - 84px);
+}
 
 .tree-contents-with-top-buttons {
 	margin-top: 8px;
@@ -3750,10 +3774,6 @@ input.tree-search-input:focus {
 #code-contents .schema-props .chosen-choices {
 	border: none;
 }
-
- #flows-canvas {
-	 padding: 0;
- }
 
 #folder-contents h1, #code-contents h1, #contents-contents h1, #crawler-list h1, #flows-canvas h1 {
 	margin: 0px;
@@ -3840,8 +3860,80 @@ input.tree-search-input:focus {
 	vertical-align: middle;
 }
 
+/* BEGIN: schema grants editor */
+table#schema-grants {
+	width: 600px;
+	margin-top: 16px;
+}
 
-/* BEGIN: styles to maximize methods editors in bulk save dialog for code area */
+table#schema-grants tr:nth-child(even) {
+	background-color: #f6f6f6;
+}
+
+table#schema-grants tr:nth-child(odd) {
+	background-color: #fff;
+}
+
+table#schema-grants th:first-child, table#schema-grants td:first-child {
+	text-align: left;
+}
+
+table#schema-grants th, table#schema-grants td {
+	text-align: center;
+}
+
+/* END: schema grants editor */
+
+/* BEGIN: Fake table styles for schema methods editor */
+.fake-tbody .fake-tr {
+	height: 34px;
+}
+
+.fake-th {
+	text-align: center;
+	font-weight: 700;
+}
+
+.fake-th, .fake-td {
+	display: inline-block;
+	padding: 4px 4px;
+	width: calc(100% - 77px);
+}
+
+.fake-th.actions-col, .fake-td.actions-col {
+	width: 56px;
+	text-align: center;
+}
+
+.fake-tfoot .fake-td.actions-col {
+	width: calc(100% - 8px);
+}
+
+.fake-td.actions-col i {
+	vertical-align: middle;
+}
+
+#methods-table-container {
+	height: 100%;
+}
+
+.fake-table.actions.schema-props {
+	background: none;
+	height: 100%;
+	border: none;
+}
+
+.fake-thead, .fake-tfoot {
+	background: #fff;
+}
+
+.fake-tbody {
+	max-height: calc(100% - 120px);
+	overflow-y: auto;
+}
+/* END: Fake table styles for schema methods editor */
+
+/* BEGIN: styles to maximize methods editors in bulk save dialog for CODE area */
 #code-methods-container {
 	height: calc(100% - 37px);
 }
@@ -3855,7 +3947,39 @@ input.tree-search-input:focus {
 #code-methods-container #methods-container #methods-content .method-tab-content .cm-schema-methods {
 	height: 100%;
 }
-/* END: styles to maximize methods editors in bulk save dialog for code area */
+/* END: styles to maximize methods editors in bulk save dialog for CODE area */
+
+
+/* BEGIN: styles to maximize methods editors in the detail dialog for CODE area */
+#method-code-container {
+	height: calc(100% - 240px);
+}
+
+#method-code-container .editor,
+#method-code-container .cm-s-default {
+	height: 100%;
+}
+/* END: styles to maximize methods editors in the detail dialog for CODE area */
+
+
+/* BEGIN: styles to maximize methods editors in bulk save dialog for SCHEMA area */
+#dialogBox.dialog.schema-edit-dialog .dialogText,
+#dialogBox.dialog.schema-edit-dialog .dialogText .schema-details,
+#dialogBox.dialog.schema-edit-dialog .dialogText .schema-details #tabView-methods,
+#dialogBox.dialog.schema-edit-dialog .dialogText .schema-details #tabView-methods #methods-container {
+	height: 100%;
+    margin-bottom: 0;
+}
+
+#dialogBox.dialog.schema-edit-dialog .dialogText .schema-details #tabView-methods #methods-container #methods-content {
+	height: calc(100% - 72px);
+}
+
+#dialogBox.dialog.schema-edit-dialog .dialogText .schema-details #tabView-methods #methods-container #methods-content .method-tab-content,
+#dialogBox.dialog.schema-edit-dialog .dialogText .schema-details #tabView-methods #methods-container #methods-content .method-tab-content .cm-schema-methods {
+	height: 100%;
+}
+/* END: styles to maximize methods editors in bulk save dialog for SCHEMA area */
 
 #type-content-add-property i,
 #type-content-add-method i {
@@ -4456,28 +4580,12 @@ i.fa.ps {
 	display: inline-block;
 	vertical-align: top;
 	padding: 10px;
-	height: calc(100vh - 104px);
+	height: calc(100% - 34px);
 	overflow: auto;
-}
-
-#localizations-list-container {
-	display: table-cell;
-	padding-right: 6px;
-}
-
-#localization-main {
-	margin: 12px;
-}
-
-#localizations-list {
-	vertical-align: top;
-	height: 100%;
-	padding: 6px;
 }
 
 #localization-detail {
 	padding: 12px;
-	display: table-cell;
 	vertical-align: top;
 }
 
@@ -4506,28 +4614,33 @@ i.fa.ps {
 	text-align: center;
 }
 
-/**
- * Virtual Types/Mail Templates
- */
+#simple-pages-main {
+	display: flex;
+}
 
-#mail-templates-main, #virtual-types-main {
+#simple-pages-contents-container {
+	margin-right: 9px;
+	margin-left: 2px;
+}
+
+#mail-templates-main, #virtual-types-main, #localization-main {
+	display: flex;
+	height: calc(100% - 24px);
 	margin: 12px;
 }
-#mail-templates-list-container, #virtual-types-list-container {
-	display: table-cell;
-	padding-right: 12px;
-}
 
-#virtual-types-list, #mail-templates-list {
+#virtual-types-list, #mail-templates-list, #localizations-list {
 	vertical-align: top;
 	height: 100%;
 	padding: 6px;
+	margin-right: 9px;
 }
 
-#virtual-type-detail, #mail-template-detail {
-	padding: 12px;
-	display: table-cell;
+#virtual-type-detail, #mail-template-detail, #localization-detail {
+	padding: 6px;
 	vertical-align: top;
+	overflow: auto;
+	height: 100%;
 }
 
 #mail-template-detail-inner {
@@ -4787,6 +4900,7 @@ input#element-class {
 	top: 73px;
 	cursor: ew-resize;
 	border: 1px solid transparent;
+	margin-left: 2px;
 }
 
 .column-resizer::after {

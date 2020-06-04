@@ -23,7 +23,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -140,18 +140,6 @@ public class StructrScriptable extends ScriptableObject {
 			}, null, 0, 0);
 		}
 
-		if ("this".equals(name)) {
-
-			return wrap(this.scriptingContext, start, null, entity);
-
-		}
-
-		if ("me".equals(name)) {
-
-			return wrap(this.scriptingContext, start, null, actionContext.getSecurityContext().getUser(false));
-
-		}
-
 		if ("vars".equals(name)) {
 
 			NativeObject nobj = new NativeObject();
@@ -253,11 +241,12 @@ public class StructrScriptable extends ScriptableObject {
 			}, null, 0, 0);
 		}
 
+		/*
 		if ("slice".equals(name)) {
 
-			return new IdFunctionObject(new SliceFunctionCall(actionContext, entity, scriptingContext), null, 0, 0);
-
+			return new IdFunctionObject(new SliceFunctionCall(), null, 0, 0);
 		}
+		*/
 
 		if ("doPrivileged".equals(name) || "do_privileged".equals(name)) {
 
@@ -325,7 +314,14 @@ public class StructrScriptable extends ScriptableObject {
 			return new IdFunctionObject(new FunctionWrapper(function), "Function", 0, 0);
 		}
 
-		return null;
+		try {
+
+			return wrap(this.scriptingContext, start, null, actionContext.evaluate(entity, name, null, null, 0));
+
+		} catch (FrameworkException ex) {
+			exception = ex;
+			return null;
+		}
 	}
 
 	public boolean hasException() {
@@ -435,9 +431,9 @@ public class StructrScriptable extends ScriptableObject {
 				return unwrap(((Wrapper)source).unwrap());
 
 			} else if (source instanceof byte[]) {
-				
+
 				return source;
-				
+
 			} else if (source.getClass().isArray()) {
 
 				final List list = new ArrayList();
@@ -463,22 +459,27 @@ public class StructrScriptable extends ScriptableObject {
 				final Double value = ScriptRuntime.toNumber(source);
 				return new Date(value.longValue());
 
-			} else if (source instanceof Map && source instanceof NativeObject) {
+			} else if (source instanceof NativeObject) {
 
-				// Map can contain ConsString and other things that need unwrapping
-				final Map<String, Object> tmp = new HashMap<>();
+				// NativeObject can contain ConsString and other things that need unwrapping
+				for (Map.Entry entry : ((NativeObject)source).entrySet()) {
 
-				((Map<String, Object>)source).forEach((k, v) -> {
-					tmp.put(k, unwrap(v));
-				});
+					final Object value     = entry.getValue();
+					final Object overwrite = (value instanceof NativeObject) ? unwrap(value) : (value instanceof ConsString) ? value.toString() : value;
 
-				return tmp;
+					if (entry.getKey() instanceof Integer) {
+						NativeObject.putProperty((NativeObject)source, (Integer)entry.getKey(), overwrite);
+					} else {
+						NativeObject.putProperty((NativeObject)source, entry.getKey().toString(), overwrite);
+					}
+				}
+
+				return source;
 
 			} else {
 
 				return ScriptUtils.unwrap(source);
 			}
-
 		}
 
 		return source;
@@ -506,6 +507,36 @@ public class StructrScriptable extends ScriptableObject {
 		}
 
 		return Functions.get(word);
+	}
+
+	public static String formatForLogging(final Object value) {
+
+		if (value instanceof NativeObject) {
+
+			final StringBuffer buf = new StringBuffer("{");
+
+			// NativeObject can contain ConsString and other things that need unwrapping
+			for (final Iterator<Map.Entry<Object, Object>> it = ((NativeObject)value).entrySet().iterator(); it.hasNext();) {
+
+				final Map.Entry entry = it.next();
+
+				buf.append(Scripting.formatForLogging(entry.getKey()));
+				buf.append(": ");
+				buf.append(Scripting.formatForLogging(entry.getValue()));
+
+				if (it.hasNext()) {
+					buf.append(", ");
+				}
+			}
+
+			buf.append("}");
+
+			return buf.toString();
+
+		} else {
+
+			return value.toString();
+		}
 	}
 
 	// ----- nested classes -----
@@ -1034,6 +1065,11 @@ public class StructrScriptable extends ScriptableObject {
 		@Override
 		public Object get(String name, Scriptable start) {
 			return wrap(context, scope, name, map.get(name));
+		}
+
+		@Override
+		public Object get(int index, Scriptable start) {
+			return get("" + index, start);
 		}
 
 		@Override

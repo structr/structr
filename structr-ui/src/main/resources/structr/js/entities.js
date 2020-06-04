@@ -320,7 +320,12 @@ var _Entities = {
 			_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-rest');
 		};
 
-		if (Structr.isModulePresent('flows') && !flowSelector.length) {
+		if (Structr.isModulePresent('flows')) {
+			
+			if (flowSelector && flowSelector.length) {
+				flowSelector.remove();
+			}
+			
 			flowSelector = $('<select class="hidden" id="flow-selector"></select>').insertBefore(textArea);
 
 			flowSelector.append('<option>--- Select Flow ---</option>');
@@ -695,7 +700,6 @@ var _Entities = {
 		if (active && typeof initCallback === "function") {
 			initCallback();
 		}
-		console.log(active)
 		return content;
 	},
 	appendViews: function(entity, views, texts, tabsEl, contentEl, typeInfo) {
@@ -1704,7 +1708,7 @@ var _Entities = {
 					Command.get(id, 'id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', handleGraphObject);
 				}
 			}
-		}, true);
+		});
 
 		_Entities.accessControlDialog(entity, dialogText);
 

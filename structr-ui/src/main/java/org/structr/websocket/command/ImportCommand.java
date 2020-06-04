@@ -55,7 +55,7 @@ public class ImportCommand extends AbstractCommand {
 
 		try {
 
-			final Importer pageImporter = new Importer(securityContext, code, address, name, publicVisible, authVisible, includeInExport);
+			final Importer pageImporter = new Importer(securityContext, code, address, name, publicVisible, authVisible, includeInExport, false);
 
 			if (processDeploymentInfo) {
 

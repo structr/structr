@@ -7,13 +7,15 @@
 		<version>9</version>
 	</parent>
 
+	<name>Structr</name>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.structr</groupId>
 	<artifactId>structr</artifactId>
 	<packaging>pom</packaging>
-	<version>3.5-SNAPSHOT</version>
-	<name>Structr</name>
-	<url>http://structr.org</url>
+	<version>3.6-SNAPSHOT</version>
+
+	<url>https://structr.com</url>
+
 	<description>Structr is an open source framework based on the popular Neo4j graph database.</description>
 	<developers>
 		<developer>
@@ -23,6 +25,22 @@
 		<developer>
 			<name>Christian Morgner</name>
 			<email>christian.morgner@structr.com</email>
+		</developer>
+		<developer>
+			<name>Kai Schwaiger</name>
+			<email>kai.schwaiger@structr.com</email>
+		</developer>
+		<developer>
+			<name>Lukas Reich</name>
+			<email>lukas.reich@structr.com</email>
+		</developer>
+		<developer>
+			<name>Christian Kramp</name>
+			<email>christian.kramp@structr.com</email>
+		</developer>
+		<developer>
+			<name>Jakob Laenge</name>
+			<email>jakob.laenge@structr.com</email>
 		</developer>
 	</developers>
 
@@ -39,7 +57,7 @@
 		<structr.lib.directory>${structr.root.directory}/structr-ui/target/lib</structr.lib.directory>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 		<maven.plugin.jar.version>3.2.0</maven.plugin.jar.version>
-		<test.forkCount>4</test.forkCount>
+		<test.forkCount>3</test.forkCount>
 	</properties>
 
 	<modules>
@@ -54,6 +72,19 @@
 		<module>structr-binaries</module>
 		<module>structr-test-configuration</module>
 	</modules>
+
+	<repositories>
+		<repository>
+			<id>central</id>
+			<name>Central Repository</name>
+			<url>https://repo.maven.apache.org/maven2</url>
+		</repository>
+		<repository>
+			<id>bedatadriven</id>
+			<name>bedatadriven public repo</name>
+			<url>https://nexus.bedatadriven.com/content/groups/public/</url>
+		</repository>
+	</repositories>
 
 	<dependencyManagement>
 		<dependencies>
@@ -156,7 +187,7 @@
 			<dependency>
 				<groupId>org.apache.pdfbox</groupId>
 				<artifactId>fontbox</artifactId>
-				<version>2.0.6</version>
+				<version>2.0.19</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>

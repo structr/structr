@@ -37,11 +37,13 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -49,7 +51,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +61,7 @@ import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.StaticValue;
 import org.structr.core.app.App;
@@ -74,6 +79,8 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.CypherProperty;
+import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
@@ -122,6 +129,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	protected static final Set<String> missingPrincipals       = new HashSet<>();
 	protected static final Set<String> missingSchemaFile       = new HashSet<>();
 
+	protected static final AtomicBoolean deploymentActive      = new AtomicBoolean(false);
+
+	private final static String DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY          = "visibility-flags-relative-to";
+	private final static String DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE = "parent";
+	private final static String DEPLOYMENT_VERSION_KEY                                  = "structr-version";
+	private final static String DEPLOYMENT_DATE_KEY                                     = "deployment-date";
+
 	private final static String DEPLOYMENT_IMPORT_STATUS   = "DEPLOYMENT_IMPORT_STATUS";
 	private final static String DEPLOYMENT_EXPORT_STATUS   = "DEPLOYMENT_EXPORT_STATUS";
 
@@ -142,18 +156,35 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final String mode = (String) parameters.get("mode");
 
-		if ("export".equals(mode)) {
+		if (Boolean.FALSE.equals(deploymentActive.get())) {
 
-			doExport(parameters);
+			try {
 
-		} else if ("import".equals(mode)) {
+				deploymentActive.set(true);
 
-			doImport(parameters);
+				if ("export".equals(mode)) {
 
+					doExport(parameters);
+
+				} else if ("import".equals(mode)) {
+
+					doImport(parameters);
+
+				} else {
+
+					logger.warn("Unsupported mode '{}'", mode);
+				}
+
+			} finally {
+				deploymentActive.set(false);
+			}
 		} else {
 
-			logger.warn("Unsupported mode '{}'", mode);
+			logger.warn("Prevented deployment '{}' while another deployment is active.", mode);
+			publishWarningMessage("Prevented deployment '" + mode + "'", "Another deployment is currently active. Please wait until it is finished.");
+
 		}
+
 	}
 
 	@Override
@@ -195,7 +226,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	/**
-	 * Checks if the given string ends with a uuid
+	 * Checks if the given string ends with a uuid.
 	 */
 	public static boolean endsWithUuid(final String name) {
 		if (name.length() > 32) {
@@ -207,7 +238,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			return false;
 		}
 	}
-
 
 	protected void doImport(final Map<String, Object> attributes) throws FrameworkException {
 
@@ -267,10 +297,59 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			logger.info("Importing from '{}'", path);
 
+			// read deployment.conf (file containing information about deployment export)
+			final Path deploymentConfFile            = source.resolve("deployment.conf");
+			final Map<String, String> deploymentConf = readDeploymentConfigurationFile(deploymentConfFile);
+			final boolean relativeVisibility         = isDOMNodeVisibilityRelativeToParent(deploymentConf);
+
+			// version check (don't import deployment exports from newer versions!)
+			if (!acceptDeploymentExportVersion(deploymentConf)) {
+
+				final String currentVersion = VersionHelper.getFullVersionInfo();
+				final String exportVersion  = StringUtils.defaultIfEmpty(deploymentConf.get(DEPLOYMENT_VERSION_KEY), "pre 3.5");
+
+				final String title = "Incompatible Deployment Import";
+				final String text = "The deployment export data currently being imported has been created with a newer version of Structr "
+						+ "which is not supported because of incompatible changes in the deployment format.\n"
+						+ "Current version: " + currentVersion + "\n"
+						+ "Export version:  " + exportVersion;
+				final String htmlText = "The deployment export data currently being imported has been created with a newer version of Structr "
+						+ "which is not supported because of incompatible changes in the deployment format.<br><br><table>"
+						+ "<tr><th>Current version: </th><td>" + currentVersion + "</td></tr>"
+						+ "<tr><th>Export version: </th><td>" + exportVersion + "</td></tr>"
+						+ "</table>";
+
+				logger.info(title + ": " + text);
+				publishWarningMessage(title, htmlText);
+
+				return;
+			}
+
+			final String message = "Read deployment config file '" + deploymentConfFile + "': " + deploymentConf.size() + " entries.";
+			logger.info(message);
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, message);
+
 			final Map<String, Object> broadcastData = new HashMap();
 			broadcastData.put("start",   startTime);
 			broadcastData.put("source",  source.toString());
 			publishBeginMessage(DEPLOYMENT_IMPORT_STATUS, broadcastData);
+
+			// visibility check
+			if (!relativeVisibility) {
+
+				final String title = "Important Information";
+				final String text = "The deployment export data currently being imported has been created with an older version of Structr "
+						+ "in which the visibility flags of DOM elements were exported depending on the flags of the containing page.\n\n"
+						+ "***The data will be imported correctly, based on the old format.***\n\n"
+						+ "After this import has finished, you should **export again to the same location** so that the deployment export data will be upgraded to the most recent format.";
+				final String htmlText = "The deployment export currently being imported has been created with an older version of Structr "
+						+ "in which the visibility flags of DOM elements were exported depending on the flags of the containing page.<br><br>"
+						+ "<b>The data will be imported correctly, based on the old format.</b><br><br>"
+						+ "After this import has finished, you should <b>export again to the same location</b> so that the deployment export data will be upgraded to the most recent format.";
+
+				logger.info(title + ": " + text);
+				publishWarningMessage(title, htmlText);
+			}
 
 			// apply pre-deploy.conf
 			applyConfigurationFile(ctx, source.resolve("pre-deploy.conf"), DEPLOYMENT_IMPORT_STATUS);
@@ -518,7 +597,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Importing shared components");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing shared components");
 
-					final ComponentImportVisitor visitor = new ComponentImportVisitor(componentsMetadata);
+					final ComponentImportVisitor visitor = new ComponentImportVisitor(componentsMetadata, relativeVisibility);
 
 					Files.walkFileTree(components, visitor);
 
@@ -549,7 +628,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Importing pages");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing pages");
 
-					Files.walkFileTree(pages, new PageImportVisitor(pages, pagesMetadata));
+					Files.walkFileTree(pages, new PageImportVisitor(pages, pagesMetadata, relativeVisibility));
 
 				} catch (IOException ioex) {
 					logger.warn("Exception while importing pages", ioex);
@@ -657,6 +736,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			broadcastData.put("duration", duration);
 			publishEndMessage(DEPLOYMENT_IMPORT_STATUS, broadcastData);
 
+		} catch (Throwable t) {
+
+			publishWarningMessage("Fatal Error", "Something went wrong - the deployment import has stopped. Please see the log for more information");
+
+			throw t;
+
 		} finally {
 
 			// restore saved value
@@ -713,8 +798,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path mailTemplatesConf   = target.resolve("mail-templates.json");
 			final Path localizationsConf   = target.resolve("localizations.json");
 			final Path widgetsConf         = target.resolve("widgets.json");
-
+			final Path deploymentConfFile = target.resolve("deployment.conf");
 			final Path applicationConfigurationData = target.resolve("application-configuration-data.json");
+
+			writeDeploymentConfigurationFile(deploymentConfFile);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Files");
 			exportFiles(files, filesConf);
@@ -1310,7 +1397,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(node.getClass(), PropertyView.All)) {
 
 			// only export dynamic (=> additional) keys that are *not* remote properties
-			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null) {
+			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null && !(key instanceof FunctionProperty) && !(key instanceof CypherProperty)) {
 
 				putData(config, key.jsonName(), node.getProperty(key));
 			}
@@ -1383,7 +1470,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(abstractFile.getClass(), PropertyView.All)) {
 
 			// only export dynamic (=> additional) keys that are *not* remote properties
-			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null) {
+			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null && !(key instanceof FunctionProperty) && !(key instanceof CypherProperty)) {
 
 				putData(config, key.jsonName(), abstractFile.getProperty(key));
 			}
@@ -1933,6 +2020,64 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+	public boolean isDOMNodeVisibilityRelativeToParent(final Map<String, String> deploymentConf) {
+		return DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE.equals(deploymentConf.get(DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY));
+	}
+
+	protected Map<String, String> readDeploymentConfigurationFile (final Path confFile) {
+
+		final Map<String, String> deploymentConf = new LinkedHashMap<>();
+
+		if (Files.exists(confFile)) {
+
+			try {
+
+				final PropertiesConfiguration config = new PropertiesConfiguration(confFile.toFile());
+				final Iterator<String> keys          = config.getKeys();
+
+				while (keys.hasNext()) {
+
+					final String key   = keys.next();
+					final String value = StringUtils.trim(config.getString(key));
+
+					deploymentConf.put(key, value);
+				}
+
+			} catch (Throwable t) {
+
+				final String msg = "Exception caught while importing '" + confFile + "'";
+				logger.warn(msg, t);
+				publishWarningMessage(msg, t.toString());
+			}
+		}
+
+		return deploymentConf;
+	}
+
+	protected void writeDeploymentConfigurationFile (final Path confFile) {
+
+		try {
+
+			final String message = "Writing deployment config file '" + confFile + "'";
+			logger.info(message);
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, message);
+
+			final PropertiesConfiguration config = new PropertiesConfiguration();
+
+			config.setProperty(DEPLOYMENT_VERSION_KEY,                         VersionHelper.getFullVersionInfo());
+			config.setProperty(DEPLOYMENT_DATE_KEY,                            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date()));
+			config.setProperty(DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY, DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE);
+
+			config.save(confFile.toFile());
+
+		} catch (Throwable t) {
+
+			final String msg = "Exception caught while importing '" + confFile + "'";
+			logger.warn(msg, t);
+			publishWarningMessage(msg, t.toString());
+		}
+	}
+
 	void deleteDirectoryContentsRecursively (final Path path) throws IOException {
 
 		if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
@@ -1997,6 +2142,34 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		return false;
 	}
 
+	private boolean acceptDeploymentExportVersion(final Map<String, String> deploymentConfig) {
+
+		final int currentVersion = parseVersionString(VersionHelper.getFullVersionInfo());
+		final int exportVersion  = parseVersionString(deploymentConfig.get(DEPLOYMENT_VERSION_KEY));
+
+		return currentVersion >= exportVersion;
+	}
+
+	private int parseVersionString(final String source) {
+
+		if (source != null) {
+
+			// "normalize" version string by removing all non-digit
+			// characters and take only the first two digits
+			final String[] parts = source.split(" ");
+			final String digits  = parts[0].replaceAll("[\\D]*", "");
+
+			try {
+
+				return Integer.valueOf(digits.substring(0, 2));
+
+			} catch (Throwable t) {}
+		}
+
+		// no version info present => return 0
+		return 0;
+	}
+
 	// ----- public static methods -----
 	public static void addDeferredPagelink (String linkableUUID, String pagePath) {
 		deferredPageLinks.put(linkableUUID, pagePath);
@@ -2028,4 +2201,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+
+	public static void main(final String[] args) {
+
+		System.out.println(Float.valueOf("3.5-SNAPSHPOT"));
+		System.out.println(Float.valueOf("3.4.3"));
+	}
 }

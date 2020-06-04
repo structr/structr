@@ -1,0 +1,18 @@
+<div class="fake-table ${config.class}">
+	<div class="fake-thead"><div class="fake-tr">${config.cols.reduce((acc, col) => { return acc + '<div class="fake-th ' + col.class + '">' + col.title + '</div>'; }, '')}</div></div>
+	<div class="fake-tbody"></div>
+	<div class="fake-tfoot hidden">
+		<div class="fake-tr">
+			<div class="fake-td actions-col">
+			<button class="discard-all"><i class="${_Icons.getFullSpriteClass(_Icons.cross_icon)}"></i> Discard all</button>
+			<button class="save-all"><i class="${_Icons.getFullSpriteClass(_Icons.tick_icon)}"></i> Save all</button>
+			</div>
+		</div>
+	</div>
+	<div class="fake-tfoot-buttons">
+		<button class="add-icon add-action-button"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add method</button>
+		<button class="add-icon add-onCreate-button"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add onCreate</button>
+		<button class="add-icon add-afterCreate-button"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add afterCreate</button>
+		<button class="add-icon add-onSave-button"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add onSave</button>
+	</div>
+</div>

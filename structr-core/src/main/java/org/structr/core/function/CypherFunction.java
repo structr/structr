@@ -20,9 +20,11 @@ package org.structr.core.function;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.structr.api.UnknownClientException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NativeQueryCommand;
 import org.structr.schema.action.ActionContext;
@@ -47,17 +49,61 @@ public class CypherFunction extends CoreFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
+			if (sources.length < 1) {
+				throw ArgumentCountException.tooFew(sources.length, 1);
+			}
+			if (sources[0] == null) {
+				throw new ArgumentNullException();
+			}
 
 			final Map<String, Object> params = new LinkedHashMap<>();
 			final String query = sources[0].toString();
 
-			// parameters?
-			if (sources.length > 1 && sources[1] != null && sources[1] instanceof Map) {
-				params.putAll((Map)sources[1]);
-			}
+			boolean dontFlushCaches = false;
 
-			final boolean dontFlushCaches = (sources.length > 2 && sources[2] instanceof Boolean) ? ((boolean)sources[2]) : false;
+			// parameters?
+			if (sources.length > 1) {
+
+				if (sources[1] instanceof Map) {
+
+					params.putAll((Map)sources[1]);
+
+					if (sources.length > 2 && sources[2] instanceof Boolean) {
+						dontFlushCaches = ((boolean)sources[2]);
+					}
+
+				} else if (sources[1] instanceof GraphObjectMap) {
+
+					params.putAll(((GraphObjectMap)sources[1]).toMap());
+
+					if (sources.length > 2 && sources[2] instanceof Boolean) {
+						dontFlushCaches = ((boolean)sources[2]);
+					}
+
+				} else {
+
+					int parameter_count = sources.length;
+
+					if (parameter_count % 2 == 0) {
+
+						// count indicates trailing parameter. If this is a boolean, interpret it as dontFlushCaches flag. otherwise throw error
+						if (sources[parameter_count - 1] instanceof Boolean) {
+
+							dontFlushCaches = ((boolean)sources[parameter_count - 1]);
+							parameter_count--;
+
+						} else {
+
+							throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+						}
+					}
+
+					for (int c = 1; c < parameter_count; c += 2) {
+
+						params.put(sources[c].toString(), sources[c + 1]);
+					}
+				}
+			}
 
 			final NativeQueryCommand nqc = StructrApp.getInstance(ctx.getSecurityContext()).command(NativeQueryCommand.class);
 
@@ -76,9 +122,13 @@ public class CypherFunction extends CoreFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
+
+		} catch (UnknownClientException uce) {
+
+			logException(uce, "{}: Exception in '{}' for parameters: {} (Cause: {})", new Object[] { getReplacement(), caller, sources, uce.getMessage() });
+			return null;
 		}
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {

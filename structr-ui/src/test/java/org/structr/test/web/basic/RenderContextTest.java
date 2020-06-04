@@ -345,12 +345,12 @@ public class RenderContextTest extends StructrUiTest {
 
 	@Test
 	public void testVariableReplacement() {
-			
+
 		String detailsId = null;
 		String pageId    = null;
 		String p1Id      = null;
 		String p2Id      = null;
-		String aId       = null; 
+		String aId       = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -501,7 +501,6 @@ public class RenderContextTest extends StructrUiTest {
 
 
 			assertEquals("${id} should be equal to ${current.id}", "true", Scripting.replaceVariables(ctx, p1, "${equal(id, current.id)}"));
-			assertEquals("${element} should evaluate to the current DOM node", p1.toString(), Scripting.replaceVariables(ctx, p1, "${element}"));
 
 			assertEquals("", Scripting.replaceVariables(ctx, p1, "${if(true, null, \"no\")}"));
 			assertEquals("", Scripting.replaceVariables(ctx, p1, "${null}"));

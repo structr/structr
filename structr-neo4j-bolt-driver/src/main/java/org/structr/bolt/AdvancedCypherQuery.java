@@ -38,8 +38,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 	private final Set<String> indexLabels           = new LinkedHashSet<>();
 	private final Set<String> typeLabels            = new LinkedHashSet<>();
 	private final StringBuilder buffer              = new StringBuilder();
-	private int fetchSize                           = Settings.FetchSize.getValue();
-	private boolean canUseCountStore                = false;
+	private final int fetchSize                     = Settings.FetchSize.getValue();
 	private String sourceTypeLabel                  = null;
 	private String targetTypeLabel                  = null;
 	private AbstractCypherIndex<?> index            = null;
@@ -258,9 +257,8 @@ public class AdvancedCypherQuery implements CypherQuery {
 			}
 
 			buffer.append(operator);
-			buffer.append(" {");
+			buffer.append(" $");
 			buffer.append(paramKey);
-			buffer.append("}");
 
 			parameters.put(paramKey, caseInsensitive && value instanceof String ? ((String) value).toLowerCase() : value);
 
@@ -291,9 +289,9 @@ public class AdvancedCypherQuery implements CypherQuery {
 			buffer.append(key);
 			buffer.append("` WHERE x ");
 			buffer.append(operator);
-			buffer.append(" {");
+			buffer.append(" $");
 			buffer.append(paramKey);
-			buffer.append("})");
+			buffer.append(")");
 
 			parameters.put(paramKey, value);
 
@@ -316,17 +314,16 @@ public class AdvancedCypherQuery implements CypherQuery {
 		buffer.append(key);
 		buffer.append("` ");
 		buffer.append(operator1);
-		buffer.append(" {");
+		buffer.append(" $");
 		buffer.append(paramKey1);
-		buffer.append("}");
 		buffer.append(" AND ");
 		buffer.append("n.`");
 		buffer.append(key);
 		buffer.append("` ");
 		buffer.append(operator2);
-		buffer.append(" {");
+		buffer.append(" $");
 		buffer.append(paramKey2);
-		buffer.append("})");
+		buffer.append(")");
 
 		parameters.put(paramKey1, value1);
 		parameters.put(paramKey2, value2);
@@ -356,10 +353,6 @@ public class AdvancedCypherQuery implements CypherQuery {
 	@Override
 	public QueryContext getQueryContext() {
 		return queryContext;
-	}
-
-	public boolean canUseCountStore() {
-		return canUseCountStore;
 	}
 
 	// ----- private methods -----

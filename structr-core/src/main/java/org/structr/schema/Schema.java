@@ -20,6 +20,7 @@ package org.structr.schema;
 
 import java.util.Map;
 import org.structr.api.graph.PropertyContainer;
+import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
@@ -41,4 +42,5 @@ public interface Schema {
 	public Iterable<SchemaProperty> getSchemaProperties();
 	public Iterable<SchemaView> getSchemaViews();
 	public Iterable<SchemaMethod> getSchemaMethods();
+	public Iterable<SchemaGrant> getSchemaGrants();
 }

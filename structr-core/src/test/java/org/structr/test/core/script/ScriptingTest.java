@@ -844,6 +844,10 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid complement() result", "[]", Scripting.replaceVariables(ctx, testOne, "${complement(merge('one', 'two', 'three'), 'one', merge('two', 'three', 'four'))}"));
 			assertEquals("Invalid complement() result", "[two]", Scripting.replaceVariables(ctx, testOne, "${complement(merge('one', 'two', 'three'), merge('one', 'four', 'three'))}"));
 
+			assertEquals("Invalid complement() result", "[two, two]", Scripting.replaceVariables(ctx, testOne, "${complement(merge('one', 'two', 'three', 'two'), merge('one', 'four', 'three'))}"));
+			assertEquals("Invalid complement() result", "[one]", Scripting.replaceVariables(ctx, testOne, "${complement(merge('one', 'two', 'three', 'two'), merge('two', 'four', 'three'))}"));
+			assertEquals("Invalid complement() result", "[one, three]", Scripting.replaceVariables(ctx, testOne, "${complement(merge('one', 'two', 'three', 'two'), 'two')}"));
+
 			// join
 			assertEquals("Invalid join() result", "one,two,three", Scripting.replaceVariables(ctx, testOne, "${join(merge(\"one\", \"two\", \"three\"), \",\")}"));
 
@@ -941,6 +945,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid substring() result", "", Scripting.replaceVariables(ctx, testOne, "${substring('a-nice-little-name-for-my-test-object', -1, -1)}"));
 			assertEquals("Invalid substring() result", "", Scripting.replaceVariables(ctx, testOne, "${substring('a-nice-little-name-for-my-test-object', 100, -1)}"));
 			assertEquals("Invalid substring() result", "", Scripting.replaceVariables(ctx, testOne, "${substring('a-nice-little-name-for-my-test-object', 5, -2)}"));
+			assertEquals("Invalid substring() result", "y-short", Scripting.replaceVariables(ctx, testOne, "${substring('very-short', 3, 200)}"));
 
 			// length
 			assertEquals("Invalid length() result", "37", Scripting.replaceVariables(ctx, testOne, "${length(this.name)}"));
@@ -1501,24 +1506,6 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid nth() result",   testSixs.get( 9).toString(), Scripting.replaceVariables(ctx, testOne, "${nth(this.manyToManyTestSixs,  9)}"));
 			assertEquals("Invalid nth() result",   testSixs.get(12).toString(), Scripting.replaceVariables(ctx, testOne, "${nth(this.manyToManyTestSixs, 12)}"));
 			assertEquals("Invalid nth() result",   "", Scripting.replaceVariables(ctx, testOne, "${nth(this.manyToManyTestSixs, 21)}"));
-
-			// slice
-			final Object sliceResult = Scripting.evaluate(ctx, testOne, "${slice(this.manyToManyTestSixs, 0, 5)}", "slice test");
-			assertTrue("Invalid slice() result, must return collection for valid results", sliceResult instanceof Collection);
-			assertTrue("Invalid slice() result, must return list for valid results", sliceResult instanceof List);
-			final List sliceResultList = (List)sliceResult;
-			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResultList.size());
-
-			// test error cases
-			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.alwaysNull, 1, 2)}"));
-			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, -1, 1)}"));
-			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 2, 1)}"));
-
-			// test with interval larger than number of elements
-			assertEquals("Invalid slice() result for invalid inputs",
-				Iterables.toList(testOne.getProperty(TestOne.manyToManyTestSixs)).toString(),
-				Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 0, 1000)}")
-			);
 
 			// find with range
 			assertEquals("Invalid find range result",  4, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', range(   2,    5))}", "range test")).size());
@@ -2934,22 +2921,12 @@ public class ScriptingTest extends StructrTest {
 			final Map<String, Object> projectModifications  = getLoggedModifications(p);
 			final Map<String, Object> taskModifications     = getLoggedModifications(t);
 
-			assertMapPathValueIs(customerModifications, "before.project",  null);
-			assertMapPathValueIs(customerModifications, "before.grantees", null);
-			assertMapPathValueIs(customerModifications, "after.project",   null);
-			assertMapPathValueIs(customerModifications, "after.grantees",  new LinkedList<>());
 			assertMapPathValueIs(customerModifications, "added.project",   p.getUuid());
 			assertMapPathValueIs(customerModifications, "removed",         new LinkedHashMap<>());
 			assertMapPathValueIs(customerModifications, "added.grantees",  Arrays.asList(tester.getUuid()));
 
 			assertMapPathValueIs(projectModifications, "before.name",     "Testproject");
-			assertMapPathValueIs(projectModifications, "before.tasks",    null);
-			assertMapPathValueIs(projectModifications, "before.customer", null);
-			assertMapPathValueIs(projectModifications, "before.grantees", null);
 			assertMapPathValueIs(projectModifications, "after.name",     "newName");
-			assertMapPathValueIs(projectModifications, "after.tasks",    new LinkedList<>());
-			assertMapPathValueIs(projectModifications, "after.customer", null);
-			assertMapPathValueIs(projectModifications, "after.grantees", new LinkedList<>());
 			assertMapPathValueIs(projectModifications, "added.customer", c.getUuid());
 			assertMapPathValueIs(projectModifications, "removed",        new LinkedHashMap<>());
 
@@ -2962,8 +2939,6 @@ public class ScriptingTest extends StructrTest {
 			assertMapPathValueIs(projectModifications, "added.grantees",    Arrays.asList(tester.getUuid()));
 
 
-			assertMapPathValueIs(taskModifications, "before.project",  null);
-			assertMapPathValueIs(taskModifications, "after.project",   null);
 			assertMapPathValueIs(taskModifications, "added.project",   p.getUuid());
 			assertMapPathValueIs(taskModifications, "removed",         new LinkedHashMap<>());
 
@@ -3002,20 +2977,12 @@ public class ScriptingTest extends StructrTest {
 			final Map<String, Object> projectModifications  = getLoggedModifications(p);
 			final Map<String, Object> taskModifications     = getLoggedModifications(t);
 
-			assertMapPathValueIs(customerModifications, "before.project",  null);
-			assertMapPathValueIs(customerModifications, "after.project",   null);
 			assertMapPathValueIs(customerModifications, "added",           new LinkedHashMap<>());
 			assertMapPathValueIs(customerModifications, "removed.project", p.getUuid());
 
-			assertMapPathValueIs(projectModifications, "before.tasks",     null);
-			assertMapPathValueIs(projectModifications, "before.customer",  null);
-			assertMapPathValueIs(projectModifications, "after.tasks",      new LinkedList<>());
-			assertMapPathValueIs(projectModifications, "after.customer",   null);
 			assertMapPathValueIs(projectModifications, "removed.customer", c.getUuid());
 			assertMapPathValueIs(projectModifications, "added",            new LinkedHashMap<>());
 
-			assertMapPathValueIs(taskModifications, "before.project",  null);
-			assertMapPathValueIs(taskModifications, "after.project",   null);
 			assertMapPathValueIs(taskModifications, "added.project",   p.getUuid());
 			assertMapPathValueIs(taskModifications, "removed",         new LinkedHashMap<>());
 
@@ -3468,10 +3435,10 @@ public class ScriptingTest extends StructrTest {
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			// create some test objects
-			Scripting.evaluate(ctx, null, "${{ Structr.create('Group', { name: 'test' + 123 + 'structr' }); }}", "test");
-			Scripting.evaluate(ctx, null, "${{ var g = Structr.create('Group'); g.name = 'test' + 123 + 'structr'; }}", "test");
-			Scripting.evaluate(ctx, null, "${{ var g = Structr.create('Group'); Structr.set(g, 'name', 'test' + 123 + 'structr'); }}", "test");
-			Scripting.evaluate(ctx, null, "${{ Structr.create('Group', 'name', 'test' + 123 + 'structr'); }}", "test");
+			Scripting.evaluate(ctx, null, "${{ Structr.create('Group', { name: 'test' + 1231 + 'structr' }); }}", "test");
+			Scripting.evaluate(ctx, null, "${{ var g = Structr.create('Group'); g.name = 'test' + 1232 + 'structr'; }}", "test");
+			Scripting.evaluate(ctx, null, "${{ var g = Structr.create('Group'); Structr.set(g, 'name', 'test' + 1233 + 'structr'); }}", "test");
+			Scripting.evaluate(ctx, null, "${{ Structr.create('Group', 'name', 'test' + 1234 + 'structr'); }}", "test");
 
 			tx.success();
 
@@ -3488,11 +3455,11 @@ public class ScriptingTest extends StructrTest {
 
 			int index = 1;
 
-			for (final Group group : app.nodeQuery(Group.class).getAsList()) {
+			for (final Group group : app.nodeQuery(Group.class).sort(Group.name).getAsList()) {
 
 				System.out.println(group.getName());
 
-				assertEquals("Invalid JavaScript string concatenation result for script #" + index++, "test123structr", group.getName());
+				assertEquals("Invalid JavaScript string concatenation result for script #" + index, "test123" + index++ + "structr", group.getName());
 			}
 
 			final NodeInterface project = app.create(projectType, "structr");
@@ -3683,10 +3650,10 @@ public class ScriptingTest extends StructrTest {
 		final Class testType    = StructrApp.getConfiguration().getNodeEntityClass("Test");
 		final Class type        = StructrApp.getConfiguration().getNodeEntityClass("Project");
 		final PropertyKey name1 = StructrApp.key(type, "name1");
-                final PropertyKey name2 = StructrApp.key(type, "name2");
-                final PropertyKey name3 = StructrApp.key(type, "name3");
-                final PropertyKey age   = StructrApp.key(type, "age");
-                final PropertyKey count = StructrApp.key(type, "count");
+		final PropertyKey name2 = StructrApp.key(type, "name2");
+		final PropertyKey name3 = StructrApp.key(type, "name3");
+		final PropertyKey age   = StructrApp.key(type, "age");
+		final PropertyKey count = StructrApp.key(type, "count");
 
 		String group1 = null;
 		String group2 = null;
@@ -3813,6 +3780,126 @@ public class ScriptingTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
+	}
+
+	@Test
+	public void testAdvancedFindForRemoteProperties() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema      = StructrSchema.createFromDatabase(app);
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			// create relation
+			final JsonReferenceType rel = project.relate(task, "has", Cardinality.ManyToMany, "projects", "tasks");
+			rel.setName("ProjectTasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final ActionContext ctx = new ActionContext(securityContext);
+		final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final Class taskType    = StructrApp.getConfiguration().getNodeEntityClass("Task");
+
+		final PropertyKey projectName  = StructrApp.key(projectType, "name");
+		final PropertyKey projectTasks = StructrApp.key(projectType, "tasks");
+
+		final PropertyKey taskName     = StructrApp.key(taskType, "name");
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface task1 = app.create(taskType, new NodeAttribute<>(taskName, "t1") );
+			final NodeInterface task2 = app.create(taskType, new NodeAttribute<>(taskName, "t2") );
+			final NodeInterface task3 = app.create(taskType, new NodeAttribute<>(taskName, "t3") );
+
+			final NodeInterface task4 = app.create(taskType, new NodeAttribute<>(taskName, "t4") );
+			final NodeInterface task5 = app.create(taskType, new NodeAttribute<>(taskName, "t5") );
+
+			app.create(projectType, new NodeAttribute<>(projectName, "p1a"), new NodeAttribute<>(projectTasks, Arrays.asList(task1)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p2a"), new NodeAttribute<>(projectTasks, Arrays.asList(task2)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p3a"), new NodeAttribute<>(projectTasks, Arrays.asList(task3)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p4a"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task2)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p5a"), new NodeAttribute<>(projectTasks, Arrays.asList(task2, task3)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p6a"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task3)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p7a"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task2, task3)) );
+
+			app.create(projectType, new NodeAttribute<>(projectName, "p1b"), new NodeAttribute<>(projectTasks, Arrays.asList(task1)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p2b"), new NodeAttribute<>(projectTasks, Arrays.asList(task2)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p3b"), new NodeAttribute<>(projectTasks, Arrays.asList(task3)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p4b"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task2)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p5b"), new NodeAttribute<>(projectTasks, Arrays.asList(task2, task3)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p6b"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task3)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p7b"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task2, task3)) );
+
+
+			app.create(projectType, new NodeAttribute<>(projectName, "p8a"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task2, task3, task4)) );
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); return $.find('Project', 'tasks', t1); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t2 = $.find('Task', 'name', 't2'); return $.find('Project', 'tasks', t2); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t3 = $.find('Task', 'name', 't3'); return $.find('Project', 'tasks', t3); }}", "testFindOldSyntax")).size());
+
+			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't2'))); return $.find('Project', 'tasks', t1_t2); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t3 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't3'))); return $.find('Project', 'tasks', t1_t3); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t2_t3 = $.find('Task', 'name', $.or($.equals('name', 't2'), $.equals('name', 't3'))); return $.find('Project', 'tasks', t2_t3); }}", "testFindOldSyntax")).size());
+
+			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2_t3 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't2'), $.equals('name', 't3'))); return $.find('Project', 'tasks', t1_t2_t3); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', 'tasks', $.find('Task')); }}", "testFindOldSyntax")).size());
+
+
+			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); return $.find('Project', 'tasks', $.equals(t1)); }}", "testFindNewSyntax")).size());
+
+			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't2'))); return $.find('Project', 'tasks', $.equals(t1_t2)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t3 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't3'))); return $.find('Project', 'tasks', $.equals(t1_t3)); }}", "testFindNewSyntax")).size());
+
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); return $.find('Project', 'tasks', $.contains(t1)); }}", "testFindNewSyntax")).size());
+
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 5, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't2'))); return $.find('Project', 'tasks', $.contains(t1_t2)); }}", "testFindNewSyntax")).size());
+
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 3, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2_t3 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't2'), $.equals('name', 't3'))); return $.find('Project', 'tasks', $.contains(t1_t2_t3)); }}", "testFindOldSyntax")).size());
+
+			// test with unconnected Task
+			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t5 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't5'))); return $.find('Project', 'tasks', $.equals(t1_t5)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t5 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't5'))); return $.find('Project', 'tasks', $.contains(t1_t5)); }}", "testFindNewSyntax")).size());
+
+			// test unconnected Task
+			assertEquals("Normal find() should use OR to search for remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', t5); }}", "testFindOldSyntax")).size());
+			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', $.equals(t5)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', $.contains(t5)); }}", "testFindNewSyntax")).size());
+
+
+			// SEMI-WORKING TESTS
+//			($.and and $.or with $.contains)
+//			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', $.or($.contains(t1), $.contains(t5))); }}", "testFindNewSyntax")).size());
+//			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', $.and($.contains(t1), $.contains(t5))); }}", "testFindNewSyntax")).size());
+
+			// ($.not and $.empty)
+//			assertEquals("Advanced find() should understand $.not predicate for remote properties", 4, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.not($.empty('projects'))); }}", "testFindNewSyntax")).size());
+//			assertEquals("Advanced find() should understand $.not predicate for remote properties", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.empty('projects')); }}", "testFindNewSyntax")).size());
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
 	}
 
 	@Test
@@ -4279,7 +4366,7 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(Group.class, "group1");
-			app.create(Group.class);
+			app.create(Group.class, "group2");
 
 			tx.success();
 
@@ -4925,6 +5012,132 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Wrong error message for exception inside of advanced find() context", "Cannot parse input error for property test", fex.getMessage());
 		}
 
+	}
+
+	@Test
+	public void testJavaScriptQuirksDuckTypingNumericalMapIndex () {
+
+		/*
+			This test makes sure that map access works even though javascript interprets numerical strings (e.g. "1", "25") as ints (after the map has undergone wrapping/unwrapping
+		*/
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			final String script =  "${{\n" +
+				"	$.store('testStore', {\n" +
+				"		'01': 'valueAtZeroOne',\n" +
+				"		'2' : 'valueAtTwo'\n" +
+				"	});\n" +
+				"	\n" +
+				"	let x = $.retrieve('testStore');\n" +
+				"	\n" +
+				"	return (x['2'] === 'valueAtTwo');\n" +
+				"}}";
+
+			final Object result = Scripting.evaluate(ctx, null, script, "test");
+
+			assertEquals("Result should not be undefined! Access to maps at numerical indexes should work.", true, result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+
+	}
+
+	@Test
+	public void testSlice() {
+
+		final ActionContext ctx           = new ActionContext(securityContext);
+		final List<String> testSixNames   = new LinkedList<>();
+		TestOne testOne                   = null;
+		List<TestSix> testSixs            = null;
+		int index                         = 0;
+
+		try (final Tx tx = app.tx()) {
+
+			testOne        = createTestNode(TestOne.class);
+			testSixs       = createTestNodes(TestSix.class, 20, 1);
+
+			final Calendar cal = GregorianCalendar.getInstance();
+
+			// set calendar to 2018-01-01T00:00:00+0000
+			cal.set(2018, 0, 1, 0, 0, 0);
+
+			for (final TestSix testSix : testSixs) {
+
+				final String name = "TestSix" + StringUtils.leftPad(Integer.toString(index), 2, "0");
+
+				testSix.setProperty(TestSix.name, name);
+				testSix.setProperty(TestSix.index, index);
+				testSix.setProperty(TestSix.date, cal.getTime());
+
+				index++;
+				cal.add(Calendar.DAY_OF_YEAR, 3);
+
+				// build list of names
+				testSixNames.add(name);
+			}
+
+			testOne.setProperty(TestOne.manyToManyTestSixs, testSixs);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		Settings.CypherDebugLogging.setValue(true);
+
+		try (final Tx tx = app.tx()) {
+
+			// slice
+			final Object sliceResult = Scripting.evaluate(ctx, testOne, "${slice(this.manyToManyTestSixs, 0, 5)}", "slice test");
+			assertTrue("Invalid slice() result, must return collection for valid results", sliceResult instanceof Collection);
+			assertTrue("Invalid slice() result, must return list for valid results", sliceResult instanceof List);
+			final List sliceResultList = (List)sliceResult;
+			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResultList.size());
+
+			// slice with find
+			final Object sliceWithFindResult = Scripting.evaluate(ctx, null, "${slice(find('TestSix'), 0, 2)}", "slice test with find");
+			assertTrue("Invalid slice() result, must return collection for valid results", sliceWithFindResult instanceof Collection);
+			assertTrue("Invalid slice() result, must return list for valid results", sliceWithFindResult instanceof List);
+			final List sliceWithFindResultList = (List)sliceWithFindResult;
+			assertEquals("Invalid slice() result, must return a list of 2 object", 2, sliceWithFindResultList.size());
+
+			// slice with find JS
+			//final Object sliceWithFindJSResult = Scripting.evaluate(ctx, null, "${{ return $.slice(function() { return $.find('TestSix') }, 0, 2); }}", "slice test with find in JS");
+			//assertTrue("Invalid slice() result, must return collection for valid results", sliceWithFindJSResult instanceof Collection);
+			//assertTrue("Invalid slice() result, must return list for valid results", sliceWithFindJSResult instanceof List);
+			//final List sliceWithFindJSResultList = (List)sliceWithFindJSResult;
+			//assertEquals("Invalid slice() result, must return a list of 2 objects", 2, sliceWithFindJSResultList.size());
+
+			// test error cases
+			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.alwaysNull, 1, 2)}"));
+			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, -1, 1)}"));
+			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 2, 1)}"));
+
+			// test with interval larger than number of elements
+			assertEquals("Invalid slice() result for invalid inputs",
+				Iterables.toList(testOne.getProperty(TestOne.manyToManyTestSixs)).toString(),
+				Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 0, 1000)}")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+		} finally {
+
+			Settings.CypherDebugLogging.setValue(false);
+		}
 	}
 
 	// ----- private methods ----

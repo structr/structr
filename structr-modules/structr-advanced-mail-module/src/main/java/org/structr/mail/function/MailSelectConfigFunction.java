@@ -46,9 +46,14 @@ public class MailSelectConfigFunction extends AdvancedMailModuleFunction {
 
 		try {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
+			if (sources[0] == null) {
 
-			ctx.getAdvancedMailContainer().setConfigurationPrefix(sources[0].toString());
+				ctx.getAdvancedMailContainer().setConfigurationPrefix(null);
+
+			} else {
+
+				ctx.getAdvancedMailContainer().setConfigurationPrefix(sources[0].toString());
+			}
 
 			return "";
 

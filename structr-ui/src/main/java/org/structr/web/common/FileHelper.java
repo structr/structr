@@ -136,6 +136,28 @@ public class FileHelper {
 	}
 
 	/**
+	 * 
+	 * @param <T>
+	 * @param securityContext
+	 * @param existingFileOnDisk
+	 * @param contentType
+	 * @param name
+	 * @return
+	 * @throws FrameworkException
+	 * @throws IOException 
+	 */
+	public static <T extends File> T createFile(final SecurityContext securityContext, final java.io.File existingFileOnDisk, final String contentType, final String name)
+		throws FrameworkException, IOException {
+		
+		final T newFile = (T) StructrApp.getInstance(securityContext).create(File.class, name);
+		final java.io.File newFileOnDisk = newFile.getFileOnDisk(false);
+		
+		FileUtils.moveFile(existingFileOnDisk, newFileOnDisk);
+		
+		return newFile;
+	}
+	
+	/**
 	 * Create a new file node from the given input stream and sets the parentFolder
 	 *
 	 * @param <T>
@@ -264,7 +286,6 @@ public class FileHelper {
 	 * @param file
 	 * @param fileData
 	 * @param contentType if null, try to auto-detect content type
-	 * @param updateMetadata
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
@@ -272,6 +293,15 @@ public class FileHelper {
 		FileHelper.setFileData(file, fileData, contentType, true);
 	}
 
+	/**
+	 * 
+	 * @param file
+	 * @param fileData
+	 * @param contentType
+	 * @param updateMetadata
+	 * @throws FrameworkException
+	 * @throws IOException 
+	 */
 	public static void setFileData(final File file, final byte[] fileData, final String contentType, final boolean updateMetadata) throws FrameworkException, IOException {
 
 		FileHelper.writeToFile(file, fileData);

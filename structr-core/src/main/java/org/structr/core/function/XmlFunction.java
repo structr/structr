@@ -23,6 +23,7 @@ import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -55,7 +56,8 @@ public class XmlFunction extends AdvancedScriptingFunction {
 
 				try {
 
-					final DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+					final DocumentBuilder builder = getDocumentBuilder();
+
 					if (builder != null) {
 
 						final String xml = (String)sources[0];
@@ -94,5 +96,23 @@ public class XmlFunction extends AdvancedScriptingFunction {
 	@Override
 	public String shortDescription() {
 		return "Parses the given string to an XML DOM";
+	}
+
+	public static DocumentBuilder getDocumentBuilder() throws ParserConfigurationException {
+
+		final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+
+		if (Settings.XMLParserSecurity.getValue()) {
+
+			factory.setNamespaceAware(true);
+			factory.setXIncludeAware(false);
+			factory.setExpandEntityReferences(false);
+			factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+			factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+			factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+			factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+		}
+
+		return factory.newDocumentBuilder();
 	}
 }

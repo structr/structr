@@ -948,6 +948,11 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		return true;
 	}
 
+	@Override
+	public Iterable<SchemaGrant> getSchemaGrants() {
+		return Collections.emptyList();
+	}
+
 	// ----- private methods -----
 	private void formatRelationshipFlags(final SourceFile src) {
 

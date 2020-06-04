@@ -73,6 +73,7 @@ public interface ConfigurationProvider {
 	public Set<String> getPropertyViews();
 	public Set<String> getPropertyViewsForType(final Class type);
 	public void registerDynamicViews(final Set<String> dynamicViews);
+	public boolean hasView(final Class type, final String propertyView);
 
 	public void registerPropertySet(final Class type, final String propertyView, final PropertyKey... propertyKey);
 	public void registerPropertySet(final Class type, final String propertyView, final String propertyName);
