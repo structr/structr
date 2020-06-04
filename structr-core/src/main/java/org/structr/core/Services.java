@@ -423,7 +423,7 @@ public class Services implements StructrServices {
 
 		if (!shutdownDone) {
 
-			System.out.println("INFO: Shutting down...");
+			logger.info("Shutting down...");
 
 			final List<Class> configuredServiceClasses = getCongfiguredServiceClasses();
 			final List<Class> reverseServiceClassNames = new LinkedList<>(configuredServiceClasses);
@@ -435,7 +435,7 @@ public class Services implements StructrServices {
 
 			if (!serviceCache.isEmpty()) {
 
-				System.out.println("Not all services were removed: " + serviceCache);
+				logger.info("Not all services were removed: " + serviceCache);
 				serviceCache.clear();
 			}
 
@@ -445,7 +445,7 @@ public class Services implements StructrServices {
 			// clear singleton instance
 			singletonInstance = null;
 
-			System.out.println("INFO: Shutdown complete");
+			logger.info("Shutdown complete");
 
 			// signal shutdown is complete
 			shutdownDone = true;
@@ -696,7 +696,7 @@ public class Services implements StructrServices {
 
 		} catch (Throwable t) {
 
-			System.out.println("WARNING: Failed to shut down " + service.getName() + ": " + t.getMessage());
+			logger.warn("Failed to shut down " + service.getName() + ": " + t.getMessage());
 		}
 
 		// remove from service cache
