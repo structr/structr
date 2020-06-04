@@ -310,6 +310,8 @@ public class Importer {
 
 			// create Head element and append nodes to it
 			final Head headElement = (Head)page.createElement("head");
+			headElement.setProperty(AbstractNode.visibleToPublicUsers,        publicVisible);
+			headElement.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
 			createChildNodes(head, headElement, page);
 
 			// head is a special case
