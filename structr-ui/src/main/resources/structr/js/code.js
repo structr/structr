@@ -2639,28 +2639,45 @@ var _Code = {
 
 					for (var runtimeEvent of eventLog.result) {
 
-						if (runtimeEvent.description === 'ReferenceError') {
+						if (runtimeEvent.data && runtimeEvent.data.length >= 5) {
 
-							if (runtimeEvent.data && runtimeEvent.data.length >= 5) {
+							let message = runtimeEvent.data[0];
+							let line    = runtimeEvent.data[1];
+							let column  = runtimeEvent.data[2];
+							let type    = runtimeEvent.data[3];
+							let name    = runtimeEvent.data[4];
 
-								let message = runtimeEvent.data[0];
-								let line    = runtimeEvent.data[1]-1;
-								let column  = runtimeEvent.data[2];
-								let type    = runtimeEvent.data[3];
-								let name    = runtimeEvent.data[4];
+							if (type === schemaType && name === methodName) {
 
-								if (type === schemaType && name === methodName) {
+								let fromLine = line-1;
+								let toLine   = line-1;
+								let fromCol  = column-2;
+								let toCol    = column-1;
 
-									events.push({
+								// column == 0 => error column unknown
+								if (column === 0) {
 
-										from: CodeMirror.Pos(line, column),
-										to: CodeMirror.Pos(line, column + 1),
-										message: 'Scripting error: ' + message,
-										severity : 'warning'
-									});
+									toLine  = line;
+									fromCol = 0;
+									toCol   = 0;
 								}
+
+								events.push({
+
+									from: CodeMirror.Pos(fromLine, fromCol),
+									to: CodeMirror.Pos(toLine, toCol),
+									message: 'Scripting error: ' + message,
+									severity : 'warning'
+								});
 							}
 						}
+					}
+
+					if (events.length > 0) {
+						// must be delayed because the button is not always loaded when this code runs.. :(
+						window.setTimeout(function() {
+							$('.dismiss-warnings-button').removeClass('hidden');
+						}, 200);
 					}
 
 					callback(events);

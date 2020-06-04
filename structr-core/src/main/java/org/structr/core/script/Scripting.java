@@ -31,6 +31,7 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.NativeObject;
+import org.mozilla.javascript.RhinoException;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Undefined;
@@ -333,6 +334,20 @@ public class Scripting {
 
 			// if any other kind of Throwable is encountered throw a new FrameworkException and be done with it
 			throw new FrameworkException(422, ecmaError.getMessage());
+
+		} catch (final RhinoException rhinoException) {
+
+			final String type      = entity != null ? entity.getClass().getSimpleName() : "";
+			final String errorName = "RhinoException";
+			final String message   = rhinoException.details();
+			final int lineNumber   = rhinoException.lineNumber();
+			final int columnNumber = rhinoException.columnNumber();
+
+			RuntimeEventLog.javascript(errorName, message, lineNumber, columnNumber, type, snippet.getName(), entityDescription);
+
+			// if any other kind of Throwable is encountered throw a new FrameworkException and be done with it
+			throw new FrameworkException(422, rhinoException.getMessage());
+
 
 		} catch (final Throwable t) {
 
