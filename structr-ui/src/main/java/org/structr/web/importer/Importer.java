@@ -320,7 +320,14 @@ public class Importer {
 
 		if (body != null && !body.html().isEmpty()) {
 
-			return createChildNodes(body, parent, page);
+			// create Head element and append nodes to it
+			final Body bodyElement = (Body)page.createElement("body");
+			bodyElement.setProperty(AbstractNode.visibleToPublicUsers,        publicVisible);
+			bodyElement.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+			createChildNodes(body, bodyElement, page);
+
+			// body is another special case
+			return bodyElement;
 		}
 
 		// fallback, no head no body => document is parent
