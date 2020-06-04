@@ -512,22 +512,26 @@ public abstract class Function<S, T> extends Hint {
 
 		if (!basePath.isEmpty()) {
 
-			boolean isDebug = java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments().toString().contains("jdwp");
-
 			final String logPath = basePath.endsWith(File.separator) ? basePath.concat("logs" + File.separator) : basePath.concat(File.separator + "logs" + File.separator);
 
-			File logFile = new File(logPath.concat(isDebug ? "debug.log" : "server.log"));
+			// log file name from env
+			File logFile = new File(System.getenv("LOG_FILE"));
 			if (logFile.exists()) {
 
 				return logFile;
+			}
 
-			} else if (!isDebug) {
+			// logs/server.log
+			logFile = new File(logPath.concat("server.log"));
+			if (logFile.exists()) {
 
-				// special handling for .deb installation
-				logFile = new File("/var/log/structr.log");
-				if (logFile.exists()) {
-					return logFile;
-				}
+				return logFile;
+			}
+
+			// special handling for .deb installation
+			logFile = new File("/var/log/structr.log");
+			if (logFile.exists()) {
+				return logFile;
 			}
 
 			logger.warn("Could not locate logfile");
