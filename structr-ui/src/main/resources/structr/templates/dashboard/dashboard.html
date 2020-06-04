@@ -17,14 +17,14 @@
 			<a href="#dashboard-server-log">Server Log</a>
 		</li>
 		<li>
+			<a href="#dashboard-event-log">Event Log</a>
+		</li>
+		<li>
 			<a href="#dashboard-ui-config">UI Settings</a>
 		</li>
 <!--		<li>
 			<a href="#dashboard-sysinfo">System Information</a>
 		</li>-->
-		<li>
-			<a href="#dashboard-event-log">Event Log</a>
-		</li>
 	</ul>
 
 	<div class="tabs-contents">
@@ -169,6 +169,23 @@
 		</div>
 
 		<div class="tab-content" id="dashboard-event-log">
+
+			<div id="event-log-options">
+				<label>Filter: </label>
+				<select id="event-type-filter">
+					<option value="">All events</option>
+					<option value="Authentication">Authentication events</option>
+					<option value="Cron">Cron events</option>
+					<option value="Csv">CSV requests</option>
+					<option value="Javascript">Javascript events</option>
+					<option value="Rest">REST requests</option>
+					<option value="ResourceAccess">ResourceAccess events</option>
+					<option value="Transaction">Transactions</option>
+				</select>
+				<label>Number of events to show: </label>
+				<input id="event-type-page-size" type="number" size="6" value="100" />
+				<button id="refresh-event-log"><i class="sprite sprite-arrow_refresh"></i> Refresh</button>
+			</div>
 
 			<table class="props">
 				<thead>

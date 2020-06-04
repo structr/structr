@@ -640,43 +640,60 @@ var _Dashboard = {
 		if (container) {
 
 			container.on('show', function() {
-
-				let row = document.querySelector('#event-log-container');
-
-				fetch(rootUrl + '/_runtimeEventLog?pageSize=100')
-					.then(response => response.json())
-					.then(result => {
-						/*
-						<th>Timestamp</th>
-						<th>Type</th>
-						<th>Message</th>
-						<th></th>
-						<th></th>
-						<th></th>
-						<th></th>
-						<th></th>
-						 */
-
-						for (event of result.result) {
-
-							let timestamp = new Date(event.absoluteTimestamp).toISOString();
-							let tr        = document.createElement('tr');
-
-							_Dashboard.elementWithContent(tr, 'td', timestamp);
-							_Dashboard.elementWithContent(tr, 'td', event.type);
-							_Dashboard.elementWithContent(tr, 'td', event.description);
-							_Dashboard.elementWithContent(tr, 'td', event.data[0] || '');
-							_Dashboard.elementWithContent(tr, 'td', event.data[1] || '');
-							_Dashboard.elementWithContent(tr, 'td', event.data[2] || '');
-							_Dashboard.elementWithContent(tr, 'td', event.data[3] || '');
-							_Dashboard.elementWithContent(tr, 'td', event.data[4] || '');
-
-							row.appendChild(tr);
-						}
-					}
-				);
+				_Dashboard.loadRuntimeEventLog();
 			});
+
+			$('#refresh-event-log').off('click').on('click', _Dashboard.loadRuntimeEventLog);
+			$('#event-type-filter').off('change').on('change', _Dashboard.loadRuntimeEventLog);
 		}
+	},
+
+	loadRuntimeEventLog: function() {
+
+		let row    = document.querySelector('#event-log-container');
+		let num    = document.querySelector('#event-type-page-size');
+		let filter = document.querySelector('#event-type-filter');
+		let url    = rootUrl + '/_runtimeEventLog?pageSize=' + num.value;
+		let type   = filter.value;
+
+		row.innerHTML = '';
+
+		if ( type &&type.length) {
+			url += '&type=' + type;
+		}
+
+		fetch(url)
+			.then(response => response.json())
+			.then(result => {
+				/*
+				<th>Timestamp</th>
+				<th>Type</th>
+				<th>Message</th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				 */
+
+				for (event of result.result) {
+
+					let timestamp = new Date(event.absoluteTimestamp).toISOString();
+					let tr        = document.createElement('tr');
+
+					_Dashboard.elementWithContent(tr, 'td', timestamp);
+					_Dashboard.elementWithContent(tr, 'td', event.type);
+					_Dashboard.elementWithContent(tr, 'td', event.description);
+					_Dashboard.elementWithContent(tr, 'td', event.data[0] || '');
+					_Dashboard.elementWithContent(tr, 'td', event.data[1] || '');
+					_Dashboard.elementWithContent(tr, 'td', event.data[2] || '');
+					_Dashboard.elementWithContent(tr, 'td', event.data[3] || '');
+					_Dashboard.elementWithContent(tr, 'td', event.data[4] || '');
+
+					row.appendChild(tr);
+				}
+			}
+		);
 	},
 	elementWithContent: function(parent, tag, content) {
 
