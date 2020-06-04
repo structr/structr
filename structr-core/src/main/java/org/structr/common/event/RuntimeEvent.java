@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.StringProperty;
@@ -33,6 +34,7 @@ public class RuntimeEvent {
 
 	private static final StringProperty _type            = new StringProperty("type");
 	private static final GenericProperty _data           = new GenericProperty("data");
+	private static final BooleanProperty _seen           = new BooleanProperty("seen");
 	private static final StringProperty _description     = new StringProperty("description");
 	private static final LongProperty _absoluteTimestamp = new LongProperty("absoluteTimestamp");
 	private static final LongProperty _relativeTimestamp = new LongProperty("relativeTimestamp");
@@ -40,6 +42,7 @@ public class RuntimeEvent {
 	private final long absoluteTimestamp = System.currentTimeMillis();
 	private final long relativeTimestamp = System.nanoTime();
 	private final List<Object> data      = new LinkedList<>();
+	private boolean seen                 = false;
 	private String description           = null;
 	private String type                  = null;
 
@@ -70,6 +73,11 @@ public class RuntimeEvent {
 		return data;
 	}
 
+	public boolean getSeen() {
+		return seen;
+	}
+
+
 	public GraphObject toGraphObject() {
 
 		final GraphObject result = new GraphObjectMap();
@@ -80,6 +88,7 @@ public class RuntimeEvent {
 			result.setProperty(_absoluteTimestamp, absoluteTimestamp);
 			result.setProperty(_relativeTimestamp, relativeTimestamp);
 			result.setProperty(_description,       description);
+			result.setProperty(_seen,              seen);
 			result.setProperty(_data,              data);
 
 		} catch (Throwable t) {
@@ -88,4 +97,9 @@ public class RuntimeEvent {
 
 		return result;
 	}
+
+	public void acknowledge() {
+		this.seen = true;
+	}
+
 }

@@ -2630,7 +2630,7 @@ var _Code = {
 		let methodName = entity.name;
 
 		$.ajax({
-			url: '/structr/rest/_runtimeEventLog?type=Javascript&pageSize=100',
+			url: '/structr/rest/_runtimeEventLog?type=Javascript&seen=false&pageSize=100',
 			method: 'get',
 			statusCode: {
 				200: function(eventLog) {
@@ -2674,9 +2674,32 @@ var _Code = {
 					}
 
 					if (events.length > 0) {
+
 						// must be delayed because the button is not always loaded when this code runs.. :(
 						window.setTimeout(function() {
-							$('.dismiss-warnings-button').removeClass('hidden');
+
+							let button = $('#dismiss-warnings-button');
+							button.removeClass('hidden');
+							button.off('click').on('click', function() {
+								var editor = $('.CodeMirror')[0].CodeMirror;
+								if (editor) {
+
+									// mark events as seen
+									$.ajax({
+										url: '/structr/rest/_runtimeEventLog?type=Javascript',
+										method: 'post',
+										data: JSON.stringify({
+											action: 'acknowledge'
+										}),
+										statusCode: {
+											200: function() {
+												button.addClass('hidden');
+												editor.performLint();
+											}
+										}
+									});
+								}
+							});
 						}, 200);
 					}
 

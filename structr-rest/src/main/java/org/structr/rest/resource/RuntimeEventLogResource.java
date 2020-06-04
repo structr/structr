@@ -23,9 +23,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
+import org.structr.api.AndPredicate;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
@@ -36,7 +38,6 @@ import org.structr.common.event.RuntimeEvent;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
 
 /**
@@ -66,8 +67,17 @@ public class RuntimeEventLogResource extends Resource {
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-		throw new IllegalMethodException("POST not allowed on " + getResourceSignature());
+	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+
+		final Consumer<RuntimeEvent> visitor    = getVisitor(propertySet);
+		final Predicate<RuntimeEvent> predicate = getPredicate();
+
+		if (visitor != null) {
+
+			RuntimeEventLog.getEvents(predicate).stream().forEach(visitor);
+		}
+
+		return new RestMethodResult(200);
 	}
 
 	@Override
@@ -98,30 +108,40 @@ public class RuntimeEventLogResource extends Resource {
 	// ----- private methods -----
 	private Predicate<RuntimeEvent> getPredicate() {
 
+		final AndPredicate<RuntimeEvent> root = new AndPredicate<>();
+
 		if (securityContext != null && securityContext.getRequest() != null) {
 
-			final HttpServletRequest request = securityContext.getRequest();
+			final HttpServletRequest request   = securityContext.getRequest();
+
+			if (request.getParameter("seen") != null) {
+
+				final boolean seen = Boolean.parseBoolean(request.getParameter("seen"));
+
+				root.addPredicate(new Predicate<>() {
+
+					@Override
+					public boolean accept(final RuntimeEvent value) {
+						return seen == value.getSeen();
+					}
+				});
+			}
+
 			if (request.getParameter("type") != null) {
 
 				final Set<String> filter = new LinkedHashSet<>(split(request.getParameter("type")));
 
-				return new Predicate<>() {
+				root.addPredicate(new Predicate<>() {
 
 					@Override
 					public boolean accept(final RuntimeEvent value) {
 						return filter.contains(value.getType());
 					}
-				};
+				});
 			}
 		}
 
-		return new Predicate<>() {
-
-			@Override
-			public boolean accept(final RuntimeEvent value) {
-				return true;
-			}
-		};
+		return root;
 	}
 
 	private List<String> split(final String source) {
@@ -141,5 +161,14 @@ public class RuntimeEventLogResource extends Resource {
 		}
 
 		return parts;
+	}
+
+	private Consumer<RuntimeEvent> getVisitor(final Map<String, Object> properties) {
+
+		if ("acknowledge".equals(properties.get("action"))) {
+			return t -> t.acknowledge();
+		}
+
+		return null;
 	}
 }

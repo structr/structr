@@ -36,7 +36,6 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DatabaseServiceNotAvailableException;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.event.RuntimeEventLog;
 import org.structr.console.Console;
 import org.structr.console.Console.ConsoleMode;
 import org.structr.core.GraphObject;
@@ -591,8 +590,6 @@ public class StructrWebSocket implements WebSocketListener {
 		}
 
 		logger.debug("Session ID of security context " + securityContext + " set to " + sessionId);
-
-		RuntimeEventLog.login("Websocket login", user.getUuid(), user.getName());
 
 		timedOut = false;
 	}
