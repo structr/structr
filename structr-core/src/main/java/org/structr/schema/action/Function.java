@@ -514,11 +514,17 @@ public abstract class Function<S, T> extends Hint {
 
 			final String logPath = basePath.endsWith(File.separator) ? basePath.concat("logs" + File.separator) : basePath.concat(File.separator + "logs" + File.separator);
 
-			// log file name from env
-			File logFile = new File(System.getenv("LOG_FILE"));
-			if (logFile.exists()) {
+			File logFile;
 
-				return logFile;
+			// log file name from env
+			final String envLogFile = System.getenv("LOG_FILE");
+			if (envLogFile != null) {
+
+				logFile = new File(envLogFile);
+				if (logFile.exists()) {
+
+					return logFile;
+				}
 			}
 
 			// logs/server.log
