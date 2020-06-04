@@ -224,6 +224,7 @@ public class Scripting {
 				.allowHostAccess(StructrPolyglotAccessProvider.getHostAccessConfig())
 				// TODO: Add config switch to toggle Host Class Lookup
 				//.allowHostClassLookup(s -> true)
+				// TODO: Add configurable chrome debug
 				.allowExperimentalOptions(true)
 				.option("js.experimental-foreign-object-prototype", "true")
 				.option("js.nashorn-compat", "true")

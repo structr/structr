@@ -25,20 +25,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
+import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.RelationProperty;
 import org.structr.schema.action.ActionContext;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-public class StructrPolyglotGraphObjectWrapper<T extends AbstractNode> implements ProxyObject {
+public class StructrPolyglotGraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 	private static final Logger logger = LoggerFactory.getLogger(StructrPolyglotGraphObjectWrapper.class);
 	private final T node;
 	private ActionContext actionContext;
@@ -73,7 +72,7 @@ public class StructrPolyglotGraphObjectWrapper<T extends AbstractNode> implement
 				}
 				try {
 
-					return method.invoke(node, actionContext.getSecurityContext(), params);
+					return StructrPolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext(), params));
 				} catch (IllegalAccessException | InvocationTargetException ex) {
 
 					logger.error("Could not invoke method on graph object.", ex);
@@ -82,7 +81,13 @@ public class StructrPolyglotGraphObjectWrapper<T extends AbstractNode> implement
 			};
 		}
 
-		return node.getProperty(key);
+		PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
+		if (propKey instanceof RelationProperty) {
+			// RelationshipProperty needs special binding
+			return new StructrPolyglotRelationshipPropertyProxy(actionContext, node, propKey);
+		}
+
+		return StructrPolyglotWrapper.wrap(actionContext, node.getProperty(key));
 	}
 
 	@Override

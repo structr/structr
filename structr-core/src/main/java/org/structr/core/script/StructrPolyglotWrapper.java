@@ -29,17 +29,19 @@ import org.structr.schema.action.ActionContext;
 import java.lang.reflect.Proxy;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public abstract class StructrPolyglotWrapper {
 
 	public static Object wrap(ActionContext actionContext, Object obj) {
 
-		if (obj instanceof AbstractNode) {
+		if (obj instanceof GraphObject) {
 
-			return new StructrPolyglotGraphObjectWrapper(actionContext, (AbstractNode) obj);
+			return new StructrPolyglotGraphObjectWrapper(actionContext, (GraphObject) obj);
 		} else 	if (obj instanceof Iterable) {
 
-			return ProxyArray.fromList(wrapIterable(actionContext, (Iterable)obj));
+			return new StructrPolyglotProxyArray(actionContext, (List)StreamSupport.stream(((Iterable)obj).spliterator(), false).collect(Collectors.toList()));
 		} else if (obj instanceof Map) {
 
 			return ProxyObject.fromMap(wrapMap(actionContext, (Map<String, Object>)obj));
