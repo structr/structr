@@ -1,0 +1,152 @@
+/**
+ * Copyright (C) 2010-2020 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.common.event;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
+import org.structr.api.Predicate;
+import org.structr.core.entity.Principal;
+
+/**
+ * An event log implementation that records runtime events and stores
+ * them for a limited amount of time.
+ */
+public class RuntimeEventLog {
+
+	private static final BlockingDeque<RuntimeEvent> events = new LinkedBlockingDeque<>(101_000);
+
+	private enum EventType {
+		Transaction, Maintenance, Cron, ResourceAccess, Authentication, Rest, Http, Csv, Javascript
+	}
+
+	public static void resourceAccess(final String description, final Object... data) {
+		add(EventType.ResourceAccess, description, data);
+	}
+
+	public static void failedLogin(final String description, final Object... data) {
+		add(EventType.Authentication, description, data);
+	}
+
+	public static void login(final String description, final Object... data) {
+		add(EventType.Authentication, description, data);
+	}
+
+	public static void logout(final String description, final Object... data) {
+		add(EventType.Authentication, description, data);
+	}
+
+	public static void registration(final String description, final Object... data) {
+		add(EventType.Authentication, description, data);
+	}
+
+	public static void transaction(final String status, final Object... data) {
+		add(EventType.Transaction, status, data);
+	}
+
+	public static void cron(final String command, final Object... data) {
+		add(EventType.Cron, command, data);
+	}
+
+	public static void maintenance(final String command, final Object... data) {
+		add(EventType.Maintenance, command, data);
+	}
+
+	public static void rest(final String method, final String path, final Principal user) {
+
+		if (user != null) {
+
+			add(EventType.Rest, method, path, user.getUuid(), user.getName());
+
+		} else {
+
+			add(EventType.Rest, method, path);
+		}
+	}
+
+	public static void csv(final String method, final String path, final Principal user) {
+
+		if (user != null) {
+
+			add(EventType.Csv, method, path, user.getUuid(), user.getName());
+
+		} else {
+
+			add(EventType.Csv, method, path);
+		}
+	}
+
+	public static void graphQL(final String query, final Principal user) {
+
+		if (user != null) {
+
+			add(EventType.Csv, query, user.getUuid(), user.getName());
+
+		} else {
+
+			add(EventType.Csv, query);
+		}
+	}
+
+	public static void http(final String path, final Principal user) {
+
+		if (user != null) {
+
+			add(EventType.Http, path, user.getUuid(), user.getName());
+
+		} else {
+
+			add(EventType.Http, path);
+		}
+	}
+
+	public static void javascript(final String errorName, final Object... data) {
+		add(EventType.Javascript, errorName, data);
+	}
+
+	public static List<RuntimeEvent> getEvents() {
+		return getEvents(null);
+	}
+
+	public static List<RuntimeEvent> getEvents(final Predicate<RuntimeEvent> filter) {
+
+		final List<RuntimeEvent> list = new LinkedList<>();
+
+		for (final RuntimeEvent event : events) {
+
+			if (filter == null || filter.accept(event)) {
+
+				list.add(event);
+			}
+		}
+
+		return list;
+	}
+
+	// ----- private methods -----
+	private static void add(final EventType type, final String description, final Object... data) {
+
+		events.addFirst(new RuntimeEvent(type.name(), description, data));
+
+		if (events.remainingCapacity() < 1000) {
+			events.removeLast();
+		}
+	}
+}

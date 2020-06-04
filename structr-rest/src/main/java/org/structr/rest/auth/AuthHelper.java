@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.AuthenticationException;
@@ -119,6 +120,8 @@ public class AuthHelper {
 
 			principal = new SuperUser();
 
+			RuntimeEventLog.login("Authenticate", principal.getUuid(), principal.getName());
+
 		} else {
 
 			try {
@@ -134,6 +137,8 @@ public class AuthHelper {
 
 				logger.info("No principal found for {} {}", key.dbName(), value);
 
+				RuntimeEventLog.failedLogin("No principal found", key.dbName(), value);
+
 				throw new AuthenticationException(STANDARD_ERROR_MSG);
 
 			} else {
@@ -141,6 +146,8 @@ public class AuthHelper {
 				if (principal.isBlocked()) {
 
 					logger.info("Principal {} is blocked", principal);
+
+					RuntimeEventLog.failedLogin("Principal is blocked", principal.getUuid(), principal.getName());
 
 					throw new AuthenticationException(STANDARD_ERROR_MSG);
 				}
@@ -157,6 +164,8 @@ public class AuthHelper {
 
 				if (!passwordValid) {
 
+					RuntimeEventLog.failedLogin("Wrong password", principal.getUuid(), principal.getName());
+
 					throw new AuthenticationException(STANDARD_ERROR_MSG);
 
 				} else {
@@ -166,6 +175,8 @@ public class AuthHelper {
 
 					// allow external users (LDAP etc.) to update group membership
 					principal.onAuthenticate();
+
+					RuntimeEventLog.login("Authenticate", principal.getUuid(), principal.getName());
 				}
 			}
 		}
@@ -205,15 +216,17 @@ public class AuthHelper {
 			final String sessionId = request.getSession(false).getId();
 
 			SessionHelper.clearSession(sessionId);
-			
+
 			if (user.addSessionId(sessionId)) {
-				
+
 				AuthHelper.sendLoginNotification(user);
-				
+
 			} else {
-				
+
 				SessionHelper.clearSession(sessionId);
 				SessionHelper.invalidateSession(sessionId);
+
+				RuntimeEventLog.failedLogin("Max. number of sessions exceeded", user.getName());
 				throw new SessionLimitExceededException();
 			}
 		}
@@ -227,6 +240,8 @@ public class AuthHelper {
 
 		SessionHelper.clearSession(sessionId);
 		SessionHelper.invalidateSession(sessionId);
+
+		RuntimeEventLog.logout("Logout", user.getUuid(), user.getName());
 
 		AuthHelper.sendLogoutNotification(user);
 	}
@@ -326,6 +341,8 @@ public class AuthHelper {
 
 			if (failedAttempts > maximumAllowedFailedAttempts) {
 
+				RuntimeEventLog.failedLogin("Too many login attempts", principal.getUuid(), principal.getName(), failedAttempts, maximumAllowedFailedAttempts);
+
 				throw new TooManyFailedLoginAttemptsException();
 			}
 		}
@@ -381,6 +398,8 @@ public class AuthHelper {
 			if (!AuthHelper.isTwoFactorTokenValid(twoFactorIdentificationToken)) {
 
 				principal.setProperty(twoFactorTokenKey, null);
+
+				RuntimeEventLog.failedLogin("Two factor authentication token not valid anymore", principal.getUuid(), principal.getName());
 
 				throw new TwoFactorAuthenticationTokenInvalidException();
 			}
@@ -459,12 +478,16 @@ public class AuthHelper {
 
 							logger.info("Successful two factor authentication ({})", principal.getName());
 
+							RuntimeEventLog.login("Two factor authentication successful", principal.getUuid(), principal.getName());
+
 							return true;
 
 						} else {
 
 							// two factor authentication not successful
 						   logger.info("Two factor authentication failed ({})", principal.getName());
+
+						   RuntimeEventLog.failedLogin("Two factor authentication failed", principal.getUuid(), principal.getName());
 
 						   throw new TwoFactorAuthenticationFailedException();
 						}

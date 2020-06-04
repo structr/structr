@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
@@ -151,6 +152,8 @@ public class GraphQLServlet extends AbstractServletBase implements HttpServiceSe
 			final App app = StructrApp.getInstance(securityContext);
 
 			if (securityContext != null) {
+
+				RuntimeEventLog.graphQL(query, securityContext.getUser(false));
 
 				// isolate write output
 				try (final Tx tx = app.tx()) {

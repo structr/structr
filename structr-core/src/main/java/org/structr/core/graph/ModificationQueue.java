@@ -68,6 +68,12 @@ public class ModificationQueue {
 	private final Set<String> alreadyPropagated                                             = new LinkedHashSet<>();
 	private final Set<String> synchronizationKeys                                           = new TreeSet<>();
 	private boolean doUpateChangelogIfEnabled                                               = true;
+	private long changelogUpdateTime                                                        = 0L;
+	private long outerCallbacksTime                                                         = 0L;
+	private long innerCallbacksTime                                                         = 0L;
+	private long postProcessingTime                                                         = 0L;
+	private long validationTime                                                             = 0L;
+	private long indexingTime                                                               = 0L;
 
 	public ModificationQueue() {
 		this(true);
@@ -115,9 +121,9 @@ public class ModificationQueue {
 			}
 		}
 
-		long t = System.currentTimeMillis() - t0;
-		if (t > 1000) {
-			logger.info("{} ms ({} modifications)", t, modifications.size());
+		innerCallbacksTime = System.currentTimeMillis() - t0;
+		if (innerCallbacksTime > 1000) {
+			logger.info("{} ms ({} modifications)", innerCallbacksTime, modifications.size());
 		}
 
 		return true;
@@ -126,9 +132,6 @@ public class ModificationQueue {
 	public boolean doValidation(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final boolean doValidation) throws FrameworkException {
 
 		long t0 = System.currentTimeMillis();
-
-		long validationTime = 0;
-		long indexingTime = 0;
 
 		// do validation and indexing
 		for (final GraphObjectModificationState state : getSortedModifications()) {
@@ -169,9 +172,9 @@ public class ModificationQueue {
 			}
 		}
 
-		long t = System.currentTimeMillis() - t0;
-		if (t > 1000) {
-			logger.info("doPostProcessing: {} ms", t);
+		postProcessingTime = System.currentTimeMillis() - t0;
+		if (postProcessingTime > 1000) {
+			logger.info("doPostProcessing: {} ms", postProcessingTime);
 		}
 
 		return true;
@@ -186,15 +189,17 @@ public class ModificationQueue {
 			state.doOuterCallback(securityContext);
 		}
 
-		long t = System.currentTimeMillis() - t0;
-		if (t > 3000) {
-			logger.info("doOutCallbacks: {} ms ({} modifications)", t, modifications.size());
+		outerCallbacksTime = System.currentTimeMillis() - t0;
+		if (outerCallbacksTime > 3000) {
+			logger.info("doOutCallbacks: {} ms ({} modifications)", outerCallbacksTime, modifications.size());
 		}
 	}
 
 	public void updateChangelog() {
 
 		if (doUpateChangelogIfEnabled && (Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue())) {
+
+			final long t0 = System.currentTimeMillis();
 
 			for (final ModificationEvent ev: modificationEvents) {
 
@@ -232,6 +237,8 @@ public class ModificationQueue {
 					logger.warn("", t);
 				}
 			}
+
+			changelogUpdateTime = System.currentTimeMillis() - t0;
 		}
 	}
 
@@ -250,7 +257,6 @@ public class ModificationQueue {
 		if (Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue()) {
 
 			getState(node).updateChangeLog(user, GraphObjectModificationState.Verb.create, node.getUuid());
-
 		}
 	}
 
@@ -445,15 +451,11 @@ public class ModificationQueue {
 				if (!modifiedKeys.contains(key)) {
 
 					modifiedKeys.add(key);
-
 				}
-
 			}
-
 		}
 
 		return modifiedKeys;
-
 	}
 
 	public GraphObjectMap getModifications(final GraphObject forObject) {
@@ -498,6 +500,21 @@ public class ModificationQueue {
 
 	public void disableChangelog() {
 		this.doUpateChangelogIfEnabled = false;
+	}
+
+	public Map<String, Object> getTransactionStats() {
+
+		final Map<String, Object> stats = new LinkedHashMap<>();
+
+		stats.put("changelogUpdateTime", changelogUpdateTime);
+		stats.put("outerCallbacksTime",  outerCallbacksTime);
+		stats.put("innerCallbacksTime",  innerCallbacksTime);
+		stats.put("postProcessingTime",  postProcessingTime);
+		stats.put("validationTime",      validationTime);
+		stats.put("indexingTime",        indexingTime);
+		stats.put("changes",             getSize());
+
+		return stats;
 	}
 
 	// ----- private methods -----

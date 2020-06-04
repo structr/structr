@@ -106,6 +106,15 @@ public class JobQueueManager {
 		removeFromQueueInternal(jobId);
 	}
 
+	public void cancelAllQueuedJobsAfter(final Long jobId) {
+
+		queuedJobs.keySet().forEach((queuedJobId) -> {
+			if (queuedJobId > jobId) {
+				removeFromQueueInternal(queuedJobId);
+			}
+		});
+	}
+
 	public List<Map<String, Object>> listJobs () {
 
 		final List<Map<String, Object>> jobInfoList = new LinkedList<>();

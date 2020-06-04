@@ -182,65 +182,91 @@ let doSearch = (q) => {
 
 		let hitInTab = false;
 
-		// all form-groups in tab
-		tab.querySelectorAll('.form-group').forEach((formGroup) => {
+		if (tab.id === 'databases') {
 
-			let hitInFormGroup = false;
+			tab.querySelectorAll('.config-group').forEach((configGroup) => {
 
-			// key
-			formGroup.querySelectorAll('label').forEach((label) => {
-				if (containsIgnoreCase(label.firstChild.textContent, q)) {
-					hitInFormGroup = true;
-					label.classList.add(hitClass);
-				}
+				let hitInConfigGroup = false;
+
+				configGroup.querySelectorAll('label').forEach((label) => {
+					if (containsIgnoreCase(label.firstChild.textContent, q)) {
+						hitInConfigGroup = true;
+						label.classList.add(hitClass);
+					}
+				});
+
+				configGroup.querySelectorAll('[type=text]').forEach((input) => {
+					if (input.value && containsIgnoreCase(input.value, q)) {
+						hitInConfigGroup = true;
+						input.classList.add(hitClass);
+					}
+				});
+
+				hitInTab = hitInTab || hitInConfigGroup;
 			});
 
-			// input
-			formGroup.querySelectorAll('[type=text][name]').forEach((input) => {
-				if (input.value && containsIgnoreCase(input.value, q)) {
-					hitInFormGroup = true;
-					input.classList.add(hitClass);
+		} else {
+
+			// all form-groups in tab
+			tab.querySelectorAll('.form-group').forEach((formGroup) => {
+
+				let hitInFormGroup = false;
+
+				// key
+				formGroup.querySelectorAll('label').forEach((label) => {
+					if (containsIgnoreCase(label.firstChild.textContent, q)) {
+						hitInFormGroup = true;
+						label.classList.add(hitClass);
+					}
+				});
+
+				// input
+				formGroup.querySelectorAll('[type=text][name]').forEach((input) => {
+					if (input.value && containsIgnoreCase(input.value, q)) {
+						hitInFormGroup = true;
+						input.classList.add(hitClass);
+					}
+				});
+
+				// textarea
+				formGroup.querySelectorAll('textarea').forEach((textarea) => {
+					if (textarea.value && containsIgnoreCase(textarea.value, q)) {
+						hitInFormGroup = true;
+						textarea.classList.add(hitClass);
+					}
+				});
+
+				// select
+				formGroup.querySelectorAll('select option').forEach((option) => {
+					if (containsIgnoreCase(option.textContent, q)) {
+						hitInFormGroup = true;
+						option.closest('select').classList.add(hitClass);
+					}
+				});
+
+				// button
+				formGroup.querySelectorAll('button[data-value]').forEach((button) => {
+					if (containsIgnoreCase(button.dataset.value, q)) {
+						hitInFormGroup = true;
+						button.classList.add(hitClass);
+					}
+				});
+
+				// help text
+				formGroup.querySelectorAll('label[data-comment]').forEach((label) => {
+					if (containsIgnoreCase(label.dataset.comment, q)) {
+						hitInFormGroup = true;
+						label.querySelector('span').classList.add(hitClass);
+					}
+				});
+
+				if (!hitInFormGroup) {
+					formGroup.classList.add(noHitClass);
 				}
+
+				hitInTab = hitInTab || hitInFormGroup;
 			});
-
-			// textarea
-			formGroup.querySelectorAll('textarea').forEach((textarea) => {
-				if (textarea.value && containsIgnoreCase(textarea.value, q)) {
-					hitInFormGroup = true;
-					textarea.classList.add(hitClass);
-				}
-			});
-
-			// select
-			formGroup.querySelectorAll('select option').forEach((option) => {
-				if (containsIgnoreCase(option.textContent, q)) {
-					hitInFormGroup = true;
-					option.closest('select').classList.add(hitClass);
-				}
-			});
-
-			// button
-			formGroup.querySelectorAll('button[data-value]').forEach((button) => {
-				if (containsIgnoreCase(button.dataset.value, q)) {
-					hitInFormGroup = true;
-					button.classList.add(hitClass);
-				}
-			});
-
-			// help text
-			formGroup.querySelectorAll('label[data-comment]').forEach((label) => {
-				if (containsIgnoreCase(label.dataset.comment, q)) {
-					hitInFormGroup = true;
-					label.querySelector('span').classList.add(hitClass);
-				}
-			});
-
-			if (!hitInFormGroup) {
-				formGroup.classList.add(noHitClass);
-			}
-
-			hitInTab = hitInTab || hitInFormGroup;
-		});
+		}
 
 		let servicesTable = tab.querySelector('#services-table');
 		if (servicesTable) {
@@ -255,7 +281,7 @@ let doSearch = (q) => {
 		let liElement = tabLink.parentNode;
 
 		if (hitInTab) {
-			liElement.classList.add(hitClass)
+			liElement.classList.add(hitClass);
 		} else {
 			liElement.classList.add(noHitClass);
 			tab.classList.add(noHitClass);
@@ -264,7 +290,7 @@ let doSearch = (q) => {
 
 	// hide everything without search hits
 	document.querySelectorAll('.config-group').forEach((configGroup) => {
-		let hitsInGroup = configGroup.querySelectorAll('.form-group:not(.' + noHitClass + ')').length;
+		let hitsInGroup = configGroup.querySelectorAll('.' + hitClass).length;
 		if (hitsInGroup === 0) {
 			configGroup.classList.add(noHitClass);
 		}

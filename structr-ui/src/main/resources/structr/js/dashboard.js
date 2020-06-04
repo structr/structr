@@ -123,6 +123,8 @@ var _Dashboard = {
 						e.target.closest('li').classList.add('active');
 						document.querySelector(targetId).classList.add('active');
 						LSWrapper.setItem(_Dashboard.activeTabPrefixKey, targetId);
+
+						$(targetId).trigger('show');
 					});
 				});
 
@@ -155,8 +157,8 @@ var _Dashboard = {
 				$('button#do-app-export-to-zip').on('click', function() {
 					_Dashboard.exportAsZip();
 				});
-				
-				
+
+				_Dashboard.initializeRuntimeEventLog();
 
 				let typesSelectElem = $('#data-export-types-input');
 
@@ -561,7 +563,7 @@ var _Dashboard = {
 				window.location = '/structr/deploy?path=' + data.target;
 			}
 		});
-	},	
+	},
 	deployFromURL: function(redirectUrl, downloadUrl) {
 
 		if (!(downloadUrl && downloadUrl.length)) {
@@ -631,5 +633,75 @@ var _Dashboard = {
 			}
 		});
 
+	},
+	initializeRuntimeEventLog: function() {
+
+		let container = $('#dashboard-event-log');
+		if (container) {
+
+			container.on('show', function() {
+				_Dashboard.loadRuntimeEventLog();
+			});
+
+			$('#refresh-event-log').off('click').on('click', _Dashboard.loadRuntimeEventLog);
+			$('#event-type-filter').off('change').on('change', _Dashboard.loadRuntimeEventLog);
+		}
+	},
+
+	loadRuntimeEventLog: function() {
+
+		let row    = document.querySelector('#event-log-container');
+		let num    = document.querySelector('#event-type-page-size');
+		let filter = document.querySelector('#event-type-filter');
+		let url    = rootUrl + '/_runtimeEventLog?pageSize=' + num.value;
+		let type   = filter.value;
+
+		row.innerHTML = '';
+
+		if ( type &&type.length) {
+			url += '&type=' + type;
+		}
+
+		fetch(url)
+			.then(response => response.json())
+			.then(result => {
+				/*
+				<th>Timestamp</th>
+				<th>Type</th>
+				<th>Message</th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				 */
+
+				for (event of result.result) {
+
+					let timestamp = new Date(event.absoluteTimestamp).toISOString();
+					let tr        = document.createElement('tr');
+
+					_Dashboard.elementWithContent(tr, 'td', timestamp);
+					_Dashboard.elementWithContent(tr, 'td', event.type);
+					_Dashboard.elementWithContent(tr, 'td', event.description);
+					_Dashboard.elementWithContent(tr, 'td', event.data[0] || '');
+					_Dashboard.elementWithContent(tr, 'td', event.data[1] || '');
+					_Dashboard.elementWithContent(tr, 'td', event.data[2] || '');
+					_Dashboard.elementWithContent(tr, 'td', event.data[3] || '');
+					_Dashboard.elementWithContent(tr, 'td', event.data[4] || '');
+
+					row.appendChild(tr);
+				}
+			}
+		);
+	},
+	elementWithContent: function(parent, tag, content) {
+
+		let element = document.createElement(tag);
+		element.innerHTML = content;
+
+		parent.appendChild(element);
+
+		return element;
 	}
 };

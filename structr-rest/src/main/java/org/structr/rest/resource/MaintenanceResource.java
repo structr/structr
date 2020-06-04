@@ -29,6 +29,7 @@ import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.FlushCachesCommand;
@@ -77,6 +78,8 @@ public class MaintenanceResource extends Resource {
 		if ((securityContext != null) && isSuperUser()) {
 
 			if (this.taskOrCommand != null) {
+
+				RuntimeEventLog.maintenance(taskOrCommand.getSimpleName());
 
 				try {
 
