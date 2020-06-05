@@ -20,52 +20,147 @@ package org.structr.core.script;
 
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class StructrPolyglotProxyArray implements ProxyArray {
+	private static final Logger logger = LoggerFactory.getLogger(StructrPolyglotProxyArray.class);
 	final ActionContext actionContext;
+	final GraphObject node;
+	final PropertyKey propKey;
 	List<Object> list;
 
-	public StructrPolyglotProxyArray(final ActionContext actionContext, final List list) {
+	// Using StructrPolyglotProxyArray as a simple Wrapper/Proxy
+	public StructrPolyglotProxyArray(final ActionContext actionContext, final Object[] arr) {
 		this.actionContext = actionContext;
-		this.list = list;
+		this.list = Arrays.asList(arr);
+		this.node = null;
+		this.propKey = null;
+	}
+
+	// Using StructrPolyglotProxyArray as a synchronized proxy that automatically writes updates to it's source object
+	public StructrPolyglotProxyArray(final ActionContext actionContext, final GraphObject node, final PropertyKey propKey) {
+		this.actionContext = actionContext;
+		this.list = new ArrayList<>();
+		this.node = node;
+		this.propKey = propKey;
+		updateListFromSource();
 	}
 
 	@Override
 	public Object get(long index) {
 		this.checkIndex(index);
+		updateListFromSource();
+
+		if (index >= list.size()) {
+
+			return null;
+		}
+		
 		return StructrPolyglotWrapper.wrap(actionContext, list.get((int)index));
 	}
 
 	@Override
 	public void set(long index, Value value) {
 		this.checkIndex(index);
+		updateListFromSource();
 
-		if (list.size() == index) {
+		if (list.size() >= index) {
+
+			// Determine delta between current index and target index
+			long indexDelta = index -(list.size() -1);
+
+			// Fill intermediate indices with null and leave one slot in the final index for the actual value to be set
+			while (indexDelta > 1) {
+
+				list.add(null);
+			}
+
 			list.add(StructrPolyglotWrapper.unwrap(value));
+		} else {
+
+			list.set((int) index, StructrPolyglotWrapper.unwrap(value));
 		}
 
-		list.set((int)index, StructrPolyglotWrapper.unwrap(value));
+		writeListToSource();
 	}
 
 	@Override
 	public long getSize() {
-		return (long)list.size();
+		return list.size();
 	}
 
 	@Override
 	public boolean remove(long index) {
 		this.checkIndex(index);
-		list.remove((int)index);
-		return true;
+		updateListFromSource();
+
+		if (index < list.size()) {
+
+			list.remove((int) index);
+			writeListToSource();
+			return true;
+		}
+		return false;
 	}
 
 	private void checkIndex(long index) {
 		if (index > 2147483647L || index < 0L) {
+
 			throw new ArrayIndexOutOfBoundsException("invalid index.");
+		}
+	}
+
+	private void updateListFromSource() {
+		if (this.node != null && propKey != null) {
+
+			list.clear();
+			Object value = node.getProperty(propKey);
+
+			if (value.getClass().isArray()) {
+
+				for (Object o : (Object[])value) {
+
+					list.add(o);
+				}
+			} else if (value instanceof Iterable) {
+
+				Iterable it = (Iterable)value;
+				list = (List) StreamSupport.stream(it.spliterator(), false).collect(Collectors.toList());
+			} else if (value instanceof Collection) {
+
+				if (!(value instanceof List)) {
+
+					list = new ArrayList<>((Collection) value);
+				} else {
+
+					list = (List)value;
+				}
+			}
+		}
+	}
+
+	private void writeListToSource() {
+		if (this.node != null && this.propKey != null) {
+
+			try {
+
+				node.setProperty(propKey, propKey.inputConverter(actionContext.getSecurityContext()).convert(list));
+			} catch (FrameworkException ex) {
+
+				logger.error("Could not set relationship property on node.", ex);
+			}
 		}
 	}
 

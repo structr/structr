@@ -30,14 +30,18 @@ import java.util.stream.StreamSupport;
 
 public abstract class StructrPolyglotWrapper {
 
+	// Wraps values going into the scripting context. E.g.: GraphObject -> StructrPolyglotGraphObjectWrapper
 	public static Object wrap(ActionContext actionContext, Object obj) {
 
 		if (obj instanceof GraphObject) {
 
 			return new StructrPolyglotGraphObjectWrapper(actionContext, (GraphObject) obj);
+		} else if (obj.getClass().isArray()) {
+
+			return new StructrPolyglotProxyArray(actionContext, (Object[])obj);
 		} else 	if (obj instanceof Iterable) {
 
-			return new StructrPolyglotProxyArray(actionContext, (List)StreamSupport.stream(((Iterable)obj).spliterator(), false).collect(Collectors.toList()));
+			return new StructrPolyglotProxyArray(actionContext, StreamSupport.stream(((Iterable)obj).spliterator(), false).toArray());
 		} else if (obj instanceof Map) {
 
 			return new StructrPolyglotProxyMap(actionContext, (Map<String, Object>)obj);
@@ -46,6 +50,7 @@ public abstract class StructrPolyglotWrapper {
 		return obj;
 	}
 
+	// Unwraps values coming out of the scripting engine. Maps/Lists will be unwrapped recursively to ensure all values will be in their native state.
 	public static Object unwrap(Object obj) {
 
 		if (obj instanceof Value) {

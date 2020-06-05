@@ -28,10 +28,12 @@ import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
 import org.structr.schema.action.ActionContext;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -82,9 +84,10 @@ public class StructrPolyglotGraphObjectWrapper<T extends GraphObject> implements
 		}
 
 		PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
-		if (propKey instanceof RelationProperty) {
+		if (propKey instanceof RelationProperty || propKey instanceof ArrayProperty) {
 			// RelationshipProperty needs special binding
-			return new StructrPolyglotRelationshipPropertyProxy(actionContext, node, propKey);
+			// ArrayProperty values need synchronized ProxyArrays as well
+			return new StructrPolyglotProxyArray(actionContext, node, propKey);
 		}
 
 		return StructrPolyglotWrapper.wrap(actionContext, node.getProperty(key));
@@ -107,7 +110,9 @@ public class StructrPolyglotGraphObjectWrapper<T extends GraphObject> implements
 		try {
 
 			final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
-			node.setProperty(propKey, StructrPolyglotWrapper.unwrap(value));
+			Object unwrappedValue = StructrPolyglotWrapper.unwrap(value);
+			Object convertedValue = propKey.inputConverter(actionContext.getSecurityContext()).convert(unwrappedValue);
+			node.setProperty(propKey, convertedValue);
 		} catch (FrameworkException ex) {
 
 			logger.error("Could not set property on graph object within scripting context.", ex);
