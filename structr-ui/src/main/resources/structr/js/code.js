@@ -2626,7 +2626,7 @@ var _Code = {
 	},
 	showScriptErrors: function(entity, text, callback) {
 
-		let schemaType = entity.schemaNode.name;
+		let schemaType = entity && entity.schemaNode ? entity.schemaNode.name : '';
 		let methodName = entity.name;
 
 		$.ajax({
