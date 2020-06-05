@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -37,8 +39,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.export.StructrSchema;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -61,8 +61,6 @@ import org.structr.web.entity.html.Td;
 import org.structr.web.entity.html.Thead;
 import org.structr.web.entity.html.Tr;
 import org.structr.web.entity.html.Ul;
-import org.structr.web.importer.Importer;
-import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
@@ -239,16 +237,15 @@ public class Deployment3Test extends DeploymentTestBase {
 					new NodeAttribute<>(StructrApp.key(Widget.class, "visibleToAuthenticatedUsers"), true)
 			);
 
-			Importer importer = new Importer(securityContext, widgetToImport.getProperty(new StringProperty("source")), null, null, true, true, false, false);
+			Map<String,Object> paramMap = new HashMap<>();
+			paramMap.put("widgetHostBaseUrl", "https://widgets.structr.org/structr/rest/widgets");
+			paramMap.put("parentId", widgetToImport.getProperty(new StartNode<>("owner", PrincipalOwnsNode.class)));
+			paramMap.put("source", widgetToImport.getProperty(new StringProperty("source")));
+			paramMap.put("processDeploymentInfo", true);
 
-			importer.setIsDeployment(true);
-			importer.setCommentHandler(new DeploymentCommentHandler());
+			Widget.expandWidget(securityContext, testPage, div, baseUri, paramMap, true);
 
-			importer.parse(true);
-			DOMNode template = importer.createComponentChildNodes(div, testPage);
-			div.appendChild(template);
-
-			makePublic(testPage, html,head, body, div, div2, template);
+			makePublic(testPage, html,head, body, div, div2);
 
 			tx.success();
 
