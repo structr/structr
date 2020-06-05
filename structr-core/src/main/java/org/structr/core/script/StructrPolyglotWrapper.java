@@ -19,14 +19,10 @@
 package org.structr.core.script;
 
 import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 
-import java.lang.reflect.Proxy;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -44,7 +40,7 @@ public abstract class StructrPolyglotWrapper {
 			return new StructrPolyglotProxyArray(actionContext, (List)StreamSupport.stream(((Iterable)obj).spliterator(), false).collect(Collectors.toList()));
 		} else if (obj instanceof Map) {
 
-			return ProxyObject.fromMap(wrapMap(actionContext, (Map<String, Object>)obj));
+			return new StructrPolyglotProxyMap(actionContext, (Map<String, Object>)obj);
 		}
 
 		return obj;
@@ -66,6 +62,9 @@ public abstract class StructrPolyglotWrapper {
 
 				if (proxy instanceof StructrPolyglotGraphObjectWrapper) {
 					return ((StructrPolyglotGraphObjectWrapper)proxy).getOriginalObject();
+				} else if (proxy instanceof StructrPolyglotProxyMap) {
+
+					return ((StructrPolyglotProxyMap)proxy).getOriginalObject();
 				} else {
 
 					return proxy;
@@ -115,17 +114,6 @@ public abstract class StructrPolyglotWrapper {
 			unwrappedList.add(unwrap(o));
 		}
 		return unwrappedList;
-	}
-
-	protected static Map<String, Object> wrapMap(ActionContext actionContext, final Map<String, Object> map) {
-
-		final Map<String, Object> wrappedMap = new HashMap<>();
-
-		for (Map.Entry<String,Object> entry : map.entrySet()) {
-
-			wrappedMap.put(entry.getKey(), wrap(actionContext, entry.getValue()));
-		}
-		return wrappedMap;
 	}
 
 	protected static Map<String, Object> unwrapMap(final Map<String, Object> map) {
