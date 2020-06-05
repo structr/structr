@@ -263,7 +263,7 @@ public class Scripting {
 			if (compiledScript == null) {
 
 				final String sourceLocation     = entityType + snippet.getName() + " [" + entityDescription + "]";
-				final String embeddedSourceCode = embedInFunction(snippet.getSource());
+				final String embeddedSourceCode = embedInFunction(snippet);
 
 				compiledScript = compileOrGetCached(scriptingContext, embeddedSourceCode, sourceLocation, 1);
 			}
@@ -526,16 +526,21 @@ public class Scripting {
 		Context.exit();
 	}
 
-	private static String embedInFunction(final String source) {
+	private static String embedInFunction(final Snippet snippet) {
 
-		final StringBuilder buf = new StringBuilder();
+		if (snippet.embed()) {
 
-		buf.append("function main() { ");
-		buf.append(source);
-		buf.append("\n}\n");
-		buf.append("\n\nvar _structrMainResult = main();");
+			final StringBuilder buf = new StringBuilder();
 
-		return buf.toString();
+			buf.append("function main() { ");
+			buf.append(snippet);
+			buf.append("\n}\n");
+			buf.append("\n\nvar _structrMainResult = main();");
+
+			return buf.toString();
+		}
+
+		return snippet.getSource();
 	}
 
 	public static Script compileOrGetCached(final Context context, final String source, final String sourceName, final int lineNo) {

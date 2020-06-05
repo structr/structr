@@ -75,6 +75,7 @@ import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
@@ -5026,18 +5027,7 @@ public class ScriptingTest extends StructrTest {
 		// test
 		try (final Tx tx = app.tx()) {
 
-			final String script =  "${{\n" +
-				"	$.store('testStore', {\n" +
-				"		'01': 'valueAtZeroOne',\n" +
-				"		'2' : 'valueAtTwo'\n" +
-				"	});\n" +
-				"	\n" +
-				"	let x = $.retrieve('testStore');\n" +
-				"	\n" +
-				"	return (x['2'] === 'valueAtTwo');\n" +
-				"}}";
-
-			final Object result = Scripting.evaluate(ctx, null, script, "test");
+			final Object result = ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testJavaScriptQuirksDuckTypingNumericalMapIndex.js"));
 
 			assertEquals("Result should not be undefined! Access to maps at numerical indexes should work.", true, result);
 

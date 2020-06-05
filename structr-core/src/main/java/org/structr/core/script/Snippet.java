@@ -51,4 +51,8 @@ public class Snippet {
 	public String getSource() {
 		return source;
 	}
+
+	public boolean embed() {
+		return true;
+	}
 }
