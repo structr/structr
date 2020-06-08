@@ -432,8 +432,7 @@
 						<exclude>src/main/deb/**</exclude>
 						<exclude>src/main/resources/CollapsibleLists.js</exclude>
 						<exclude>src/main/resources/structr/js/flow-editor/**/*</exclude>
-						<exclude>src/test/resources/**/*.properties</exclude>
-						<exclude>src/test/resources/**/*.txt</exclude>
+						<exclude>src/test/resources/**/*</exclude>
 					</excludes>
 					<properties>
 						<year>2020</year>

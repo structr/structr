@@ -533,7 +533,7 @@ public class Scripting {
 			final StringBuilder buf = new StringBuilder();
 
 			buf.append("function main() { ");
-			buf.append(snippet);
+			buf.append(snippet.getSource());
 			buf.append("\n}\n");
 			buf.append("\n\nvar _structrMainResult = main();");
 
