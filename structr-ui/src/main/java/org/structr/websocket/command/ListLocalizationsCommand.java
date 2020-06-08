@@ -19,6 +19,7 @@
 package org.structr.websocket.command;
 
 import java.util.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
@@ -58,6 +59,7 @@ public class ListLocalizationsCommand extends AbstractCommand {
 		final String id                       = webSocketData.getId();
 		final String locale                   = webSocketData.getNodeDataStringValue("locale");
 		final String detailsObjectId          = webSocketData.getNodeDataStringValue("detailObjectId");
+		final String queryString              = webSocketData.getNodeDataStringValue("queryString");
 
 		try (final Tx tx = app.tx(true, true, false)) {
 
@@ -70,7 +72,24 @@ public class ListLocalizationsCommand extends AbstractCommand {
 
 				final RenderContext rCtx = new RenderContext(securityContext);
 				securityContext.setRequest(getWebSocket().getRequest());
+
+				if (queryString != null) {
+
+					String[] parts = StringUtils.split(queryString, "&");
+					Map<String, String[]> parameterMap = new HashMap();
+					for (String p : parts) {
+						String[] kv = StringUtils.split(p, "=");
+						if (kv.length > 1) {
+							parameterMap.put(kv[0], new String[]{kv[1]});
+						}
+					}
+
+					getWebSocket().getRequest().getParameterMap().putAll(parameterMap);
+				}
+
+				// after the query string so it is overwritten (if present)
 				getWebSocket().getRequest().getParameterMap().put("locale", new String[]{ locale });
+
 				rCtx.setLocale(securityContext.getEffectiveLocale());
 
 				if (detailsObjectId != null) {
