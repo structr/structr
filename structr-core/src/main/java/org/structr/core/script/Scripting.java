@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -325,10 +325,18 @@ public class Scripting {
 
 	}
 
+
+	private static String embedInFunction(final Snippet snippet) {
+
+		if (snippet.embed()) {
+
+			return embedInFunction(snippet.getSource());
+		}
+	}
+
 	private static String embedInFunction(final String source) {
 
-		final StringBuilder buf = new StringBuilder();
-
+		StringBuilder buf = new StringBuilder();
 		buf.append("function main() { ");
 		buf.append(source);
 		buf.append("\n}\n");

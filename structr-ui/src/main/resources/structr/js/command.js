@@ -1093,13 +1093,14 @@ var Command = {
 		_Logger.log(_LogType.WS[obj.command], 'list_active_elements()', obj);
 		return sendObj(obj, callback);
 	},
-	listLocalizations: function(pageId, locale, detailObjectId, callback) {
+	listLocalizations: function(pageId, locale, detailObjectId, queryString, callback) {
 		var obj = {
 			command: 'LIST_LOCALIZATIONS',
 			id: pageId,
 			data: {
 				locale: locale,
-				detailObjectId: detailObjectId
+				detailObjectId: detailObjectId,
+				queryString: queryString
 			}
 		};
 		return sendObj(obj, callback);

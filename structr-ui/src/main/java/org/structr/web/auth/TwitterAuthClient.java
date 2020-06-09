@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -69,7 +69,7 @@ public class TwitterAuthClient extends StructrOAuthClient {
 	 *
 	 * Use with {@literal response.setRedirect(request.getLocationUri());}
 	 *
-	 * @param request
+	 * @param request HTTP request
 	 * @return auth request URI
 	 */
 	@Override
@@ -155,8 +155,9 @@ public class TwitterAuthClient extends StructrOAuthClient {
 		return "";
 	}
 	
+	@Override
 	protected String getScope() {
-		return "";
+		return Settings.OAuthTwitterScope.getValue();
 	}
 
 	@Override
@@ -170,7 +171,7 @@ public class TwitterAuthClient extends StructrOAuthClient {
 	}
 
 	@Override
-	public PropertyKey getCredentialKey() {
+	public PropertyKey<?> getCredentialKey() {
 		return StructrApp.key(User.class, "twitterName");
 	}
 

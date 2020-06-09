@@ -56,7 +56,7 @@ var _Flows = {
 
 		_Flows.init();
 
-		Structr.updateMainHelpLink('https://support.structr.com/article/527');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('flows'));
 
 		main = document.querySelector('#main');
 

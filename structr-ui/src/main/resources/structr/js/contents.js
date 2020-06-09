@@ -73,7 +73,7 @@ var _Contents = {
 
 		_Contents.init();
 
-		Structr.updateMainHelpLink('https://support.structr.com/knowledge-graph');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('contents'));
 
 		main.append('<div class="tree-main" id="contents-main"><div class="column-resizer"></div><div class="tree-container" id="content-tree-container"><div class="tree" id="contents-tree"></div></div><div class="tree-contents-container" id="contents-contents-container"><div class="tree-contents tree-contents-with-top-buttons" id="contents-contents"></div></div>');
 		contentsMain = $('#contents-main');

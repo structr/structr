@@ -399,6 +399,9 @@
 				<version>3.0</version>
 				<configuration>
 					<header>header.txt</header>
+					<mapping>
+						<java>SLASHSTAR_STYLE</java>
+					</mapping>
 					<includes>
 						<include>src/**</include>
 					</includes>
@@ -432,8 +435,7 @@
 						<exclude>src/main/deb/**</exclude>
 						<exclude>src/main/resources/CollapsibleLists.js</exclude>
 						<exclude>src/main/resources/structr/js/flow-editor/**/*</exclude>
-						<exclude>src/test/resources/**/*.properties</exclude>
-						<exclude>src/test/resources/**/*.txt</exclude>
+						<exclude>src/test/resources/**/*</exclude>
 					</excludes>
 					<properties>
 						<year>2020</year>

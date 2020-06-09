@@ -332,7 +332,7 @@ var _Schema = {
 		});
 
 		_Schema.init();
-		Structr.updateMainHelpLink('https://support.structr.com/article/193');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('schema'));
 
 		$(window).off('resize').on('resize', function() {
 			_Schema.resize();
@@ -1463,7 +1463,7 @@ var _Schema = {
 
 				if (containsSpace) {
 					blinkRed($('.property-format', tr).closest('td'));
-					new MessageBuilder().warning('Enum values must be separated by commas and cannot contain spaces<br>See the <a href="https://support.structr.com/article/329" target="_blank">support article on enum properties</a> for more information.').requiresConfirmation().show();
+					new MessageBuilder().warning('Enum values must be separated by commas and cannot contain spaces<br>See the <a href="' + Structr.getDocumentationURLForTopic('schema-enum') + '" target="_blank">support article on enum properties</a> for more information.').requiresConfirmation().show();
 					return false;
 				}
 			}
@@ -2321,10 +2321,10 @@ var _Schema = {
 
 							_Schema.methods.bindRowEvents(fakeRow, entity, method);
 
-							// auto-edit first method
-							if (isFirst) {
+							// auto-edit first method (or last used)
+							if (isFirst|| (_Schema.methods.lastEditedMethod && ((_Schema.methods.lastEditedMethod.isNew === false && _Schema.methods.lastEditedMethod.id === method.id) || (_Schema.methods.lastEditedMethod.isNew === true && _Schema.methods.lastEditedMethod.name === method.name)))) {
 								isFirst = false;
-								$('.edit-action', methodsFakeTable).click();
+								$('.edit-action', fakeRow).click();
 							}
 						});
 					});
@@ -2416,6 +2416,13 @@ var _Schema = {
 				message += (counts.update > 0 ? 'Update ' + counts.update + ' methods.\n' : '');
 
 				if (confirm(message)) {
+
+					let activeMethod = fakeTbody.find('.fake-tr.editing');
+					if (activeMethod) {
+						_Schema.methods.lastEditedMethod = _Schema.methods.methodsData[activeMethod.data('methodId')];
+					} else {
+						_Schema.methods.lastEditedMethod = undefined;
+					}
 
 					_Schema.showSchemaRecompileMessage();
 
@@ -2672,6 +2679,7 @@ var _Schema = {
 			_Schema.methods.cm.source.setValue(methodData.source);
 			_Schema.methods.cm.source.setOption('mode', _Schema.methods.senseCodeMirrorMode(methodData.source));
 			_Schema.methods.cm.source.refresh();
+			_Schema.methods.cm.source.clearHistory();
 			_Schema.methods.cm.source.on('change', function (cm, changeset) {
 				cm.save();
 				cm.setOption('mode', _Schema.methods.senseCodeMirrorMode(cm.getValue()));
@@ -2696,6 +2704,7 @@ var _Schema = {
 			$(_Schema.methods.cm.comment.getWrapperElement()).addClass('cm-schema-methods');
 			_Schema.methods.cm.comment.setValue(methodData.comment);
 			_Schema.methods.cm.comment.refresh();
+			_Schema.methods.cm.comment.clearHistory();
 			_Schema.methods.cm.comment.on('change', function (cm, changeset) {
 				cm.save();
 				$(cm.getTextArea()).trigger('change');

@@ -194,7 +194,7 @@ var _Graph = {
 
 	onload: function() {
 
-		Structr.updateMainHelpLink('https://support.structr.com/article/203');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('graph'));
 
 		activeTabLeftGraph = LSWrapper.getItem(activeTabRightGraphKey);
 		activeTabRightGraph = LSWrapper.getItem(activeTabLeftGraphKey);

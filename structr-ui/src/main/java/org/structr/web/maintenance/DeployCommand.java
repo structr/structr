@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -434,7 +434,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				importListData(Localization.class, readConfigList(localizationsMetadataFile), additionalData);
 			}
 
-			// read widgets.json
+			// read application-configuration-data.json
 			final Path applicationConfigurationDataMetadataFile = source.resolve("application-configuration-data.json");
 			if (Files.exists(applicationConfigurationDataMetadataFile)) {
 
@@ -1685,7 +1685,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			tx.success();
 		}
 
-		writeJsonToFile(target, applicationConfigurationDataNodes);
+		writeSortedCompactJsonToFile(target, applicationConfigurationDataNodes, new AbstractMapComparator<Object>() {
+			@Override
+			public String getKey (Map<String, Object> map) {
+
+				final Object configType = map.get("configType");
+				final Object name       = map.get("name");
+				final Object id         = map.get("id");
+
+				return (configType != null ? configType.toString() : "00-configType").concat((name != null ? name.toString() : "00-name")).concat(id.toString());
+			}
+		});
 	}
 
 	private void exportLocalizations(final Path target) throws FrameworkException {
@@ -1720,44 +1730,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			tx.success();
 		}
 
-		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
+		writeSortedCompactJsonToFile(target, localizations, new AbstractMapComparator<Object>() {
+			@Override
+			public String getKey (Map<String, Object> map) {
 
-			localizations.sort(new AbstractMapComparator<Object>() {
-				@Override
-				public String getKey (Map<String, Object> map) {
+				final Object name   = map.get("name");
+				final Object domain = map.get("domain");
+				final Object locale = map.get("locale");
+				final Object id     = map.get("id");
 
-					final Object name   = map.get("name");
-					final Object domain = map.get("domain");
-					final Object locale = map.get("locale");
-					final Object id     = map.get("id");
-
-					// null domain is replaced by a string so that those localizations are shown first
-					return (name != null ? name.toString() : "null").concat((domain != null ? domain.toString() : "00-nulldomain")).concat((locale != null ? locale.toString() : "null")).concat(id.toString());
-				}
-			});
-
-			final Gson gson = new GsonBuilder().serializeNulls().create();
-
-			final StringBuilder sb = new StringBuilder("[");
-
-			List<String> jsonStrings = new LinkedList();
-
-			for (Map<String, Object> loc : localizations) {
-				jsonStrings.add("\t" + gson.toJson(loc));
+				// null domain is replaced by a string so that those localizations are shown first
+				return (name != null ? name.toString() : "null").concat((domain != null ? domain.toString() : "00-nulldomain")).concat((locale != null ? locale.toString() : "null")).concat(id.toString());
 			}
-
-			if (!jsonStrings.isEmpty()) {
-
-				sb.append("\n").append(String.join(",\n", jsonStrings)).append("\n");
-			}
-
-			sb.append("]");
-
-			fos.write(sb.toString());
-
-		} catch (IOException ioex) {
-			logger.warn("", ioex);
-		}
+		});
 	}
 
 	protected void putData(final Map<String, Object> target, final String key, final Object value) {
@@ -2126,6 +2111,37 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(path.toFile()))) {
 
 			getGson().toJson(data, fos);
+
+		} catch (IOException ioex) {
+			logger.warn("", ioex);
+		}
+	}
+
+	protected void writeSortedCompactJsonToFile (final Path target, final List<Map<String, Object>> objects, final AbstractMapComparator<Object> sortComparator) {
+
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
+
+			if (sortComparator != null) {
+				objects.sort(sortComparator);
+			}
+
+			final Gson gson = new GsonBuilder().serializeNulls().create();
+
+			final StringBuilder sb = new StringBuilder("[");
+
+			List<String> jsonStrings = new LinkedList();
+
+			for (Map<String, Object> obj : objects) {
+				jsonStrings.add("\t" + gson.toJson(obj));
+			}
+
+			if (!jsonStrings.isEmpty()) {
+				sb.append("\n").append(String.join(",\n", jsonStrings)).append("\n");
+			}
+
+			sb.append("]");
+
+			fos.write(sb.toString());
 
 		} catch (IOException ioex) {
 			logger.warn("", ioex);

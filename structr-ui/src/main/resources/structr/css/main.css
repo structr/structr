@@ -1561,6 +1561,11 @@ button.action.disabled:hover {
 	background-size: 20px 20px;
 }
 
+.actions.schema-props .fake-tr.editing.to-delete {
+	background-image: linear-gradient(135deg, #a5e25a 25%, #b3b3b3 25%, #b3b3b3 50%, #a5e25a 50%, #a5e25a 75%, #b3b3b3 75%, #b3b3b3 100%);
+	background-size: 20px 20px;
+}
+
 .schema-props .to-delete td:not(.actions-col),
 .schema-props .to-delete .fake-td:not(.actions-col) {
 	opacity: 0.5;
