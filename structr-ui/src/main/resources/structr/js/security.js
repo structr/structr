@@ -162,6 +162,7 @@ var _UsersAndGroups = {
 		_UsersAndGroups.setMouseOver(userDiv, user.id, '.userid_');
 	},
 	appendMemberToGroup: function (member, group, groupEl) {
+
 		var groupId = group.id;
 		var prefix = (member.isUser) ? '.userid_' : '.groupid_';
 
@@ -177,57 +178,82 @@ var _UsersAndGroups = {
 
 		if (member.isUser) {
 
-			var userDiv = _UsersAndGroups.createUserElement(member, group);
+			groupEl.each(function (idx, grpEl) {
 
-			groupEl.append(userDiv.css({
-				top: 0,
-				left: 0
-			}));
-			userDiv.removeClass('disabled');
+				let memberAlreadyListed = $(prefix + member.id, grpEl).length > 0;
+				if (!memberAlreadyListed) {
 
-			_Entities.appendEditPropertiesIcon(userDiv, member);
-			_UsersAndGroups.setMouseOver(userDiv, member.id, prefix);
+					var userDiv = _UsersAndGroups.createUserElement(member, group);
+
+					$(grpEl).append(userDiv.css({
+						top: 0,
+						left: 0
+					}));
+					userDiv.removeClass('disabled');
+
+					_Entities.appendEditPropertiesIcon(userDiv, member);
+					_UsersAndGroups.setMouseOver(userDiv, member.id, prefix);
+				}
+			});
 
 		} else {
 
 			groupEl.each(function (idx, grpEl) {
 
-				var groupDiv = _UsersAndGroups.createGroupElement(member);
+				let alreadyShownInParents = _UsersAndGroups.isGroupAlreadyShown(member, $(grpEl));
+				let alreadyShownInMembers = $(prefix + member.id, grpEl).length > 0;
 
-				$('.delete_icon', groupDiv).remove();
+				if (!alreadyShownInMembers && !alreadyShownInParents) {
 
-				groupDiv.append('<i title="Remove \'' + member.name + '\' from group \'' + group.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.user_delete_icon) + '" />');
+					var groupDiv = _UsersAndGroups.createGroupElement(member);
 
-				$('.delete_icon', groupDiv).on('click', function(e) {
-					e.stopPropagation();
-					Command.removeFromCollection(group.id, 'members', member.id, function () {
-						_UsersAndGroups.deactivateNodeHover(member.id, prefix);
-					});
-				});
+					$('.delete_icon', groupDiv).remove();
 
-				$(grpEl).append(groupDiv.css({
-					top: 0,
-					left: 0
-				}));
+					groupDiv.append('<i title="Remove \'' + member.name + '\' from group \'' + group.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.user_delete_icon) + '" />');
 
-				groupDiv.removeClass('disabled');
-
-				_Entities.appendEditPropertiesIcon(groupDiv, member);
-				_UsersAndGroups.setMouseOver(groupDiv, member.id, prefix);
-
-				if (member.members === null) {
-					Command.get(member.id, null, function (fetchedGroup) {
-						fetchedGroup.members.forEach(function(subMember) {
-							_UsersAndGroups.appendMemberToGroup(subMember, member, groupDiv);
+					$('.delete_icon', groupDiv).on('click', function(e) {
+						e.stopPropagation();
+						Command.removeFromCollection(group.id, 'members', member.id, function () {
+							_UsersAndGroups.deactivateNodeHover(member.id, prefix);
 						});
 					});
-				} else if (member.members && member.members.length) {
-					member.members.forEach(function(subMember) {
-						_UsersAndGroups.appendMemberToGroup(subMember, member, groupDiv);
-					});
+
+					$(grpEl).append(groupDiv.css({
+						top: 0,
+						left: 0
+					}));
+
+					groupDiv.removeClass('disabled');
+
+					_Entities.appendEditPropertiesIcon(groupDiv, member);
+					_UsersAndGroups.setMouseOver(groupDiv, member.id, prefix);
+
+					if (member.members === null) {
+						Command.get(member.id, null, function (fetchedGroup) {
+							fetchedGroup.members.forEach(function(subMember) {
+								_UsersAndGroups.appendMemberToGroup(subMember, member, groupDiv);
+							});
+						});
+					} else if (member.members && member.members.length) {
+						member.members.forEach(function(subMember) {
+							_UsersAndGroups.appendMemberToGroup(subMember, member, groupDiv);
+						});
+					}
 				}
 			});
 		}
+	},
+	isGroupAlreadyShown: function(group, groupEl) {
+		console.log(group, groupEl)
+		if (groupEl.length === 0) {
+			return false;
+		}
+
+		let containerGroupId = groupEl.data('groupId');
+		if (containerGroupId === group.id) {
+			return true;
+		}
+		return _UsersAndGroups.isGroupAlreadyShown(group, groupEl.parent().closest('.group'));
 	},
 	deleteUser: function(button, user) {
 		_Entities.deleteNode(button, user);
