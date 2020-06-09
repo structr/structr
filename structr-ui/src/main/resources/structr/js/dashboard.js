@@ -653,7 +653,7 @@ var _Dashboard = {
 		let row    = document.querySelector('#event-log-container');
 		let num    = document.querySelector('#event-type-page-size');
 		let filter = document.querySelector('#event-type-filter');
-		let url    = rootUrl + '/_runtimeEventLog?pageSize=' + num.value;
+		let url    = rootUrl + '/_runtimeEventLog?order=absoluteTimestamp&sort=desc&pageSize=' + num.value;
 		let type   = filter.value;
 
 		row.innerHTML = '';
@@ -676,15 +676,17 @@ var _Dashboard = {
 				<th></th>
 				 */
 
-				for (event of result.result) {
+				for (let event of result.result) {
 
 					let timestamp = new Date(event.absoluteTimestamp).toISOString();
 					let tr        = document.createElement('tr');
 
+					let firstDataCol = ("object" === typeof event.data[0]) ? JSON.stringify(event.data) : event.data[0];
+
 					_Dashboard.elementWithContent(tr, 'td', timestamp);
 					_Dashboard.elementWithContent(tr, 'td', event.type);
 					_Dashboard.elementWithContent(tr, 'td', event.description);
-					_Dashboard.elementWithContent(tr, 'td', event.data[0] || '');
+					_Dashboard.elementWithContent(tr, 'td', firstDataCol || '');
 					_Dashboard.elementWithContent(tr, 'td', event.data[1] || '');
 					_Dashboard.elementWithContent(tr, 'td', event.data[2] || '');
 					_Dashboard.elementWithContent(tr, 'td', event.data[3] || '');
