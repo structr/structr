@@ -115,6 +115,12 @@ var _Dashboard = {
 				document.querySelectorAll('#dashboard .tabs-menu li a').forEach(function(tabLink) {
 					tabLink.addEventListener('click', function(e) {
 						e.preventDefault();
+
+						let activeLink = document.querySelector('#dashboard .tabs-menu li.active a');
+						if (activeLink) {
+							$(activeLink.getAttribute('href')).trigger('hide');
+						}
+
 						let targetId = e.target.getAttribute('href');
 
 						_Dashboard.removeActiveClass(document.querySelectorAll('#dashboard .tabs-contents .tab-content'));
@@ -446,8 +452,6 @@ var _Dashboard = {
 
 		refreshTimeIntervalSelect.value = logRefreshTimeInterval;
 
-		registerRefreshInterval(logRefreshTimeInterval);
-
 		refreshTimeIntervalSelect.addEventListener('change', () => {
 			logRefreshTimeInterval = refreshTimeIntervalSelect.value;
 			LSWrapper.setItem(_Dashboard.logRefreshTimeIntervalKey, logRefreshTimeInterval);
@@ -458,7 +462,7 @@ var _Dashboard = {
 
 		let logBoxContentBox = $('#dashboard-server-log textarea');
 
-        let scrollEnabled = true;
+		let scrollEnabled = true;
 		let textAreaHasFocus = false;
 
 		logBoxContentBox.on('focus', () => {
@@ -509,7 +513,18 @@ var _Dashboard = {
 			}
 		});
 
-        updateLog();
+		let container = $('#dashboard-server-log');
+		if (container) {
+
+			container.on('show', function() {
+				updateLog();
+				registerRefreshInterval(logRefreshTimeInterval);
+			});
+
+			container.on('hide', function() {
+				window.clearInterval(_Dashboard.logInterval);
+			});
+		}
     },
 	deploy: function(mode, location) {
 
