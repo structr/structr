@@ -538,4 +538,9 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	public long getSourceTransactionId() {
 		return TransactionCommand.getCurrentTransactionId();
 	}
+
+	@Override
+	public boolean changelogEnabled() {
+		return true;
+	}
 }

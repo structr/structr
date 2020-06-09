@@ -197,7 +197,10 @@ public class ModificationQueue {
 
 	public void updateChangelog() {
 
-		if (doUpateChangelogIfEnabled && (Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue())) {
+		final boolean objectChangelog = Settings.ChangelogEnabled.getValue();
+		final boolean userChangelog   = Settings.UserChangelogEnabled.getValue();
+
+		if (doUpateChangelogIfEnabled && (objectChangelog || userChangelog)) {
 
 			final long t0 = System.currentTimeMillis();
 
@@ -205,12 +208,12 @@ public class ModificationQueue {
 
 				try {
 
-					if (Settings.ChangelogEnabled.getValue()) {
+					if (objectChangelog) {
 
 						final GraphObject obj = ev.getGraphObject();
 						final String newLog   = ev.getChangeLog();
 
-						if (obj != null) {
+						if (obj != null && obj.changelogEnabled()) {
 
 							final String uuid           = ev.isDeleted() ? ev.getUuid() : obj.getUuid();
 							final String typeFolderName = obj.isNode() ? "n" : "r";
@@ -221,7 +224,7 @@ public class ModificationQueue {
 						}
 					}
 
-					if (Settings.UserChangelogEnabled.getValue()) {
+					if (userChangelog) {
 
 						for (Map.Entry<String, StringBuilder> entry : ev.getUserChangeLogs().entrySet()) {
 

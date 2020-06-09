@@ -344,4 +344,14 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 
 		return -1L;
 	}
+
+	@Override
+	public boolean changelogEnabled() {
+
+		if (wrappedObj != null) {
+			return wrappedObj.changelogEnabled();
+		}
+
+		return true;
+	}
 }

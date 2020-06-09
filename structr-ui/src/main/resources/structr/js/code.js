@@ -1364,6 +1364,17 @@ var _Code = {
 
 				});
 
+				// changelog checkbox
+				let checkbox = $('#changelog-checkbox');
+				checkbox.prop('checked', result.changelogDisabled);
+				checkbox.on('click', function() {
+					_Code.showSchemaRecompileMessage();
+					Command.setProperties(result.id, { changelogDisabled: checkbox.prop('checked') }, function() {
+						_Code.hideSchemaRecompileMessage();
+						_Code.displaySchemaNodeContent(data);
+					});
+				});
+
 				let grants = {};
 
 				result.schemaGrants.forEach(function(grant) {

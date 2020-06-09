@@ -497,4 +497,9 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	public long getSourceTransactionId() {
 		return entity.getSourceTransactionId();
 	}
+
+	@Override
+	public boolean changelogEnabled() {
+		return entity.changelogEnabled();
+	}
 }
