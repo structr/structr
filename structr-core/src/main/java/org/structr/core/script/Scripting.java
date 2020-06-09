@@ -332,6 +332,8 @@ public class Scripting {
 
 			return embedInFunction(snippet.getSource());
 		}
+
+		return snippet.getSource();
 	}
 
 	private static String embedInFunction(final String source) {
