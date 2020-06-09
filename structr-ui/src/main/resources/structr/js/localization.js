@@ -45,7 +45,7 @@ var _Localization = {
 	onload: function() {
 		_Localization.init();
 
-		Structr.updateMainHelpLink('https://support.structr.com/article/135');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('localization'));
 
 		Structr.fetchHtmlTemplate('localization/main', {}, function (html) {
 

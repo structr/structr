@@ -332,7 +332,7 @@ var _Schema = {
 		});
 
 		_Schema.init();
-		Structr.updateMainHelpLink('https://support.structr.com/article/193');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('schema'));
 
 		$(window).off('resize').on('resize', function() {
 			_Schema.resize();
@@ -1463,7 +1463,7 @@ var _Schema = {
 
 				if (containsSpace) {
 					blinkRed($('.property-format', tr).closest('td'));
-					new MessageBuilder().warning('Enum values must be separated by commas and cannot contain spaces<br>See the <a href="https://support.structr.com/article/329" target="_blank">support article on enum properties</a> for more information.').requiresConfirmation().show();
+					new MessageBuilder().warning('Enum values must be separated by commas and cannot contain spaces<br>See the <a href="' + Structr.getDocumentationURLForTopic('schema-enum') + '" target="_blank">support article on enum properties</a> for more information.').requiresConfirmation().show();
 					return false;
 				}
 			}

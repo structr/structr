@@ -49,7 +49,7 @@ var _Dashboard = {
 	onload: function(retryCount = 0) {
 
 		_Dashboard.init();
-		Structr.updateMainHelpLink('https://support.structr.com/article/202');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('dashboard'));
 
 		let templateConfig = {};
 		let releasesIndexUrl = '';

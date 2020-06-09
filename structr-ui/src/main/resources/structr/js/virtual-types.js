@@ -36,7 +36,7 @@ var _VirtualTypes = {
 	unload: function() {},
 	onload: function() {
 
-		Structr.updateMainHelpLink('https://support.structr.com/article/233');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('virtual-types'));
 
 		Structr.fetchHtmlTemplate('virtual-types/main', {}, function (html) {
 
