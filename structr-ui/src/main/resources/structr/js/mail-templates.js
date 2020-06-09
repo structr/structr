@@ -40,7 +40,7 @@ var _MailTemplates = {
 	init: function() {},
 	unload: function() {},
 	onload: function() {
-		Structr.updateMainHelpLink('https://support.structr.com/article/343');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('mail-templates'));
 
 		Structr.fetchHtmlTemplate('mail-templates/main', {}, function(html) {
 			main.append(html);

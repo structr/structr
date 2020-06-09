@@ -126,7 +126,7 @@ var _Pages = {
 
 		_Pages.init();
 
-		Structr.updateMainHelpLink('https://support.structr.com/article/204');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('pages'));
 
 		activeTab = LSWrapper.getItem(_Pages.activeTabKey);
 		activeTabLeft = LSWrapper.getItem(_Pages.activeTabLeftKey);

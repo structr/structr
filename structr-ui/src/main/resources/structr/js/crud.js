@@ -314,7 +314,7 @@ var _Crud = {
 	},
 	onload: function() {
 
-		Structr.updateMainHelpLink('https://support.structr.com/article/210');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('crud'));
 
 		if (!_Crud.type) {
 			_Crud.restoreType();

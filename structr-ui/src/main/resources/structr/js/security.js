@@ -37,7 +37,7 @@ var _Security = {
 	onload: function() {
 		_Security.init();
 
-		Structr.updateMainHelpLink('https://support.structr.com/article/207');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('security'));
 
 		Structr.fetchHtmlTemplate('security/main', {}, function (html) {
 
