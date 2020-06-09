@@ -2679,6 +2679,7 @@ var _Schema = {
 			_Schema.methods.cm.source.setValue(methodData.source);
 			_Schema.methods.cm.source.setOption('mode', _Schema.methods.senseCodeMirrorMode(methodData.source));
 			_Schema.methods.cm.source.refresh();
+			_Schema.methods.cm.source.clearHistory();
 			_Schema.methods.cm.source.on('change', function (cm, changeset) {
 				cm.save();
 				cm.setOption('mode', _Schema.methods.senseCodeMirrorMode(cm.getValue()));
@@ -2703,6 +2704,7 @@ var _Schema = {
 			$(_Schema.methods.cm.comment.getWrapperElement()).addClass('cm-schema-methods');
 			_Schema.methods.cm.comment.setValue(methodData.comment);
 			_Schema.methods.cm.comment.refresh();
+			_Schema.methods.cm.comment.clearHistory();
 			_Schema.methods.cm.comment.on('change', function (cm, changeset) {
 				cm.save();
 				$(cm.getTextArea()).trigger('change');
