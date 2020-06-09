@@ -2321,10 +2321,10 @@ var _Schema = {
 
 							_Schema.methods.bindRowEvents(fakeRow, entity, method);
 
-							// auto-edit first method
-							if (isFirst) {
+							// auto-edit first method (or last used)
+							if (isFirst|| (_Schema.methods.lastEditedMethod && ((_Schema.methods.lastEditedMethod.isNew === false && _Schema.methods.lastEditedMethod.id === method.id) || (_Schema.methods.lastEditedMethod.isNew === true && _Schema.methods.lastEditedMethod.name === method.name)))) {
 								isFirst = false;
-								$('.edit-action', methodsFakeTable).click();
+								$('.edit-action', fakeRow).click();
 							}
 						});
 					});
@@ -2416,6 +2416,13 @@ var _Schema = {
 				message += (counts.update > 0 ? 'Update ' + counts.update + ' methods.\n' : '');
 
 				if (confirm(message)) {
+
+					let activeMethod = fakeTbody.find('.fake-tr.editing');
+					if (activeMethod) {
+						_Schema.methods.lastEditedMethod = _Schema.methods.methodsData[activeMethod.data('methodId')];
+					} else {
+						_Schema.methods.lastEditedMethod = undefined;
+					}
 
 					_Schema.showSchemaRecompileMessage();
 
