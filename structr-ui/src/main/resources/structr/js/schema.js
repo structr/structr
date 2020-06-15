@@ -2362,8 +2362,8 @@ var _Schema = {
 
 			fakeTbody.find('.fake-tr').each((i, tr) => {
 
-				let row    = $(tr);
-				let methodId = row.data('methodId');
+				let row        = $(tr);
+				let methodId   = row.data('methodId');
 				let methodData = _Schema.methods.methodsData[methodId];
 
 				if (methodData.isNew === false) {
