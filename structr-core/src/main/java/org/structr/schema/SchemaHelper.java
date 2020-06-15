@@ -721,6 +721,14 @@ public class SchemaHelper {
 			sourceFile.end();
 		}
 
+		if (schemaNode.getProperty(AbstractSchemaNode.changelogDisabled)) {
+
+			sourceFile.line(schemaNode, "@Override");
+			sourceFile.begin(schemaNode, "public boolean changelogEnabled() {");
+			sourceFile.line(schemaNode, "return false;");
+			sourceFile.end();
+		}
+
 		SchemaHelper.formatValidators(sourceFile, schemaNode, validators, compoundIndexKeys, extendsAbstractNode, propertyValidators);
 		SchemaHelper.formatMethods(sourceFile, schemaNode, methods, implementedInterfaces);
 		SchemaHelper.formatSchemaGrants(sourceFile, schemaNode);

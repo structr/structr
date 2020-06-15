@@ -88,6 +88,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	protected boolean isInterface                                 = false;
 	protected boolean isAbstract                                  = false;
 	protected boolean isBuiltinType                               = false;
+	protected boolean changelogDisabled                           = false;
 	protected StructrSchemaDefinition root                        = null;
 	protected URI baseTypeReference                               = null;
 	protected String category                                     = null;
@@ -180,6 +181,17 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	@Override
 	public JsonType setIsAbstract() {
 		this.isAbstract = true;
+		return this;
+	}
+
+	@Override
+	public boolean isChangelogDisabled() {
+		return changelogDisabled;
+	}
+
+	@Override
+	public JsonType setIsChangelogDisabled() {
+		this.changelogDisabled = true;
 		return this;
 	}
 
@@ -702,6 +714,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		serializedForm.put(JsonSchema.KEY_TYPE, "object");
 		serializedForm.put(JsonSchema.KEY_IS_ABSTRACT, isAbstract);
 		serializedForm.put(JsonSchema.KEY_IS_INTERFACE, isInterface);
+		serializedForm.put(JsonSchema.KEY_CHANGELOG_DISABLED, changelogDisabled);
+
 		if (getClass().equals(StructrNodeTypeDefinition.class)) {
 			serializedForm.put(JsonSchema.KEY_IS_BUILTIN_TYPE, isBuiltinType);
 		}
@@ -774,6 +788,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		if (source.containsKey(JsonSchema.KEY_IS_BUILTIN_TYPE)) {
 			this.isBuiltinType = (Boolean)source.get(JsonSchema.KEY_IS_BUILTIN_TYPE);
+		}
+
+		if (source.containsKey(JsonSchema.KEY_CHANGELOG_DISABLED)) {
+			this.changelogDisabled = (Boolean)source.get(JsonSchema.KEY_CHANGELOG_DISABLED);
 		}
 
 		if (source.containsKey(JsonSchema.KEY_EXTENDS)) {
@@ -909,11 +927,12 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 		}
 
-		this.isInterface   = schemaNode.getProperty(SchemaNode.isInterface);
-		this.isAbstract    = schemaNode.getProperty(SchemaNode.isAbstract);
-		this.isBuiltinType = schemaNode.getProperty(SchemaNode.isBuiltinType);
-		this.category      = schemaNode.getProperty(SchemaNode.category);
-		this.schemaNode    = schemaNode;
+		this.isInterface       = schemaNode.getProperty(SchemaNode.isInterface);
+		this.isAbstract        = schemaNode.getProperty(SchemaNode.isAbstract);
+		this.isBuiltinType     = schemaNode.getProperty(SchemaNode.isBuiltinType);
+		this.changelogDisabled = schemaNode.getProperty(SchemaNode.changelogDisabled);
+		this.category          = schemaNode.getProperty(SchemaNode.category);
+		this.schemaNode        = schemaNode;
 
 		if (this.category == null && getClass().equals(StructrNodeTypeDefinition.class)) {
 
@@ -938,6 +957,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		createProperties.put(SchemaNode.isAbstract, isAbstract);
 		createProperties.put(SchemaNode.category, category);
 		createProperties.put(SchemaNode.isBuiltinType, isBuiltinType || SchemaService.DynamicSchemaRootURI.equals(root.getId()));
+		createProperties.put(SchemaNode.changelogDisabled, changelogDisabled);
 
 		final T schemaNode = createSchemaNode(schemaNodes, app, createProperties);
 
@@ -1380,6 +1400,12 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		if (isBuiltinType != null && Boolean.TRUE.equals(isBuiltinType)) {
 
 			typeDefinition.setIsBuiltinType();
+		}
+
+		final Object isChangelogDisabled = source.get(JsonSchema.KEY_CHANGELOG_DISABLED);
+		if (isChangelogDisabled != null && Boolean.TRUE.equals(isChangelogDisabled)) {
+
+			typeDefinition.setIsChangelogDisabled();
 		}
 
 		final Object categoryValue = source.get(JsonSchema.KEY_CATEGORY);

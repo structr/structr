@@ -542,4 +542,6 @@ public interface GraphObject extends CodeSource {
 	public static SortOrder sorted(final PropertyKey key, final boolean sortDescending) {
 		return new DefaultSortOrder(key, sortDescending);
 	}
+
+	boolean changelogEnabled();
 }

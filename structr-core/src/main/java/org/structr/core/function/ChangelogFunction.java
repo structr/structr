@@ -23,6 +23,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.IOException;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -222,6 +226,37 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 		}
 
 		return file;
+	}
+
+	public static SeekableByteChannel getWriterForChangeLogOnDisk(final String typeFolderName, final String uuid, final boolean create) {
+
+		final String changelogPath    = Settings.ChangelogPath.getValue();
+		final String uuidPath         = getDirectoryPath(uuid);
+		final java.nio.file.Path path = Paths.get(changelogPath, typeFolderName, uuidPath, uuid);
+
+		try {
+
+			// create parent directory tree
+			Files.createDirectories(path.getParent());
+
+			// create file only if requested
+			if (create) {
+
+				if (!Files.exists(path)) {
+
+					Files.createFile(path);
+				}
+			}
+
+			//return Files.newBufferedWriter(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND);
+			return Files.newByteChannel(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND);
+
+		} catch (IOException ioex) {
+
+			logger.error("Unable to create changelog file {}: {}", path.toString(), ioex.getMessage());
+		}
+
+		return null;
 	}
 
 	static String getDirectoryPath(final String uuid) {

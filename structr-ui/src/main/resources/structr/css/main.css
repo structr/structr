@@ -3877,7 +3877,7 @@ input.tree-search-input:focus {
 
 /* BEGIN: schema grants editor */
 table#schema-grants {
-	width: 600px;
+	width: 100%;
 	margin-top: 16px;
 }
 

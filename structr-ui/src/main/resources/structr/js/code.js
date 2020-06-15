@@ -1326,32 +1326,61 @@ var _Code = {
 					});
 				}
 
+				Structr.appendInfoTextToElement({
+					element: $('#type-groups-heading'),
+					text: "Groups are identical to layouts. Removing an element from a group removes it from the layout",
+					css: { marginLeft: "5px" },
+					helpElementCss: { fontSize: "12px" }
+				});
+
 				// manage working sets
 				_WorkingSets.getWorkingSets(function(workingSets) {
 
-					workingSets.forEach(function(set) {
+					let groupSelect = document.querySelector('select#type-groups');
+
+					for (let set of workingSets) {
 
 						if (set.name !== _WorkingSets.recentlyUsedName) {
 
+							let setOption = document.createElement('option');
+							setOption.textContent = set.name;
+							setOption.dataset['groupId'] = set.id;
+
 							if (set.children.includes(result.name)) {
-
-								_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.delete_folder_icon), 'remove-' + set.id, 'Remove from ' + set.name, function() {
-									_WorkingSets.removeTypeFromSet(set.id, result.name, function() {
-										_TreeHelper.refreshNode('#code-tree', 'workingsets-' + set.id);
-										_Code.displaySchemaNodeContent(data);
-									});
-								});
-
-							} else {
-
-								_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.add_folder_icon), 'add-' + set.id, 'Add to ' + set.name, function() {
-									_WorkingSets.addTypeToSet(set.id, result.name, function() {
-										_TreeHelper.refreshNode('#code-tree', 'workingsets-' + set.id);
-										_Code.displaySchemaNodeContent(data);
-									});
-								});
+								setOption.selected = true;
 							}
+
+							groupSelect.appendChild(setOption);
 						}
+					}
+
+					let isUnselect = false;
+					$(groupSelect).select2({
+						search_contains: true,
+						width: '100%',
+						closeOnSelect: false
+					}).on('select2:unselecting', function(e, p) {
+						isUnselect = true;
+
+					}).on('select2:opening', function(e, p) {
+						if (isUnselect) {
+							e.preventDefault();
+							isUnselect = false;
+						}
+
+					}).on('select2:select', function(e, p) {
+						let id = e.params.data.element.dataset['groupId'];
+
+						_WorkingSets.addTypeToSet(id, result.name, function() {
+							_TreeHelper.refreshNode('#code-tree', 'workingsets-' + id);
+						});
+
+					}).on('select2:unselect', function(e, p) {
+						let id = e.params.data.element.dataset['groupId'];
+
+						_WorkingSets.removeTypeFromSet(id, result.name, function() {
+							_TreeHelper.refreshNode('#code-tree', 'workingsets-' + id);
+						});
 					});
 
 					_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.add_folder_icon), 'new', 'Create new group', function() {
@@ -1361,103 +1390,149 @@ var _Code = {
 							_Code.displaySchemaNodeContent(data);
 						});
 					});
-
 				});
 
-				let grants = {};
-
-				result.schemaGrants.forEach(function(grant) {
-					grants[grant.principal.id] = grant;
+				let changelogCheckbox = $('#changelog-checkbox');
+				Structr.appendInfoTextToElement({
+					element: changelogCheckbox.closest('label'),
+					text: "Only takes effect if the changelog is active",
+					css: { marginLeft: "5px" },
+					helpElementCss: { fontSize: "12px" }
+				});
+				changelogCheckbox.prop('checked', result.changelogDisabled);
+				changelogCheckbox.on('click', function() {
+					_Code.showSchemaRecompileMessage();
+					Command.setProperties(result.id, { changelogDisabled: changelogCheckbox.prop('checked') }, function() {
+						_Code.hideSchemaRecompileMessage();
+						_Code.displaySchemaNodeContent(data);
+					});
 				});
 
-				Command.query('Group', 1000, 1, 'name', 'asc', { }, function(groupResult) {
+				let schemaGrantsTableConfig = {
+					class: 'schema-grants-table schema-props',
+					cols: [
+						{ class: '', title: 'Name' },
+						{ class: '', title: 'read' },
+						{ class: '', title: 'write' },
+						{ class: '', title: 'delete' },
+						{ class: '', title: 'access control' }
+					]
+				};
 
-					let grantsContainer = document.querySelector('#schema-grants');
+				Structr.fetchHtmlTemplate('code/schema-grants-table', schemaGrantsTableConfig, function(html) {
 
-					grantsContainer.innerHTML = '<tr><th>Name</th><th>read</th><th>write</th><th>delete</th><th>access control</th></tr>';
+					let schemaGrantsContainer = document.querySelector('#schema-grants');
+					schemaGrantsContainer.innerHTML = html;
 
-					groupResult.forEach(function(group) {
+					let tbody = schemaGrantsContainer.querySelector('tbody');
+					let tfoot = schemaGrantsContainer.querySelector('tfoot');
 
-						let row  = document.createElement('tr');
-						let name = document.createElement('td');
-						let r    = document.createElement('td');
-						let w    = document.createElement('td');
-						let d    = document.createElement('td');
-						let a    = document.createElement('td');
-
-						row.appendChild(name);
-						row.appendChild(r);
-						row.appendChild(w);
-						row.appendChild(d);
-						row.appendChild(a);
-
-						let readBox          = document.createElement('input');
-						let writeBox         = document.createElement('input');
-						let deleteBox        = document.createElement('input');
-						let accessControlBox = document.createElement('input');
-
-						name.innerHTML        = group.name;
-						readBox.type          = 'checkbox';
-						writeBox.type         = 'checkbox';
-						deleteBox.type        = 'checkbox';
-						accessControlBox.type = 'checkbox';
-
-						r.appendChild(readBox);
-						w.appendChild(writeBox);
-						d.appendChild(deleteBox);
-						a.appendChild(accessControlBox);
-
-						grantsContainer.appendChild(row);
-
-						let grant = grants[group.id];
-						if (grant) {
-
-							readBox.checked          = grant.allowRead;
-							writeBox.checked         = grant.allowWrite;
-							deleteBox.checked        = grant.allowDelete;
-							accessControlBox.checked = grant.allowAccessControl;
-
-							let update = function(id, d) {
-								_Code.showSchemaRecompileMessage();
-								Command.setProperties(id, d, function() {
-									_Code.hideSchemaRecompileMessage();
-									_Code.displaySchemaNodeContent(data);
-								});
-							};
-
-							readBox.addEventListener('click', function() { update(grant.id, { allowRead: readBox.checked}); });
-							writeBox.addEventListener('click', function() { update(grant.id, { allowWrite: writeBox.checked }); });
-							deleteBox.addEventListener('click', function() { update(grant.id, { allowDelete: deleteBox.checked }); });
-							accessControlBox.addEventListener('click', function() { update(grant.id, { allowAccessControl: accessControlBox.checked }); });
-
+					let schemaGrantsTableChange = function (cb, rowConfig) {
+						if (rowConfig[cb.name] !== cb.checked) {
+							cb.classList.add('changed');
 						} else {
-
-							let create = function() {
-
-								_Code.showSchemaRecompileMessage();
-								Command.create({
-									type:               'SchemaGrant',
-									principal:          group.id,
-									schemaNode:         result.id,
-									allowRead:          readBox.checked,
-									allowWrite:         writeBox.checked,
-									allowDelete:        deleteBox.checked,
-									allowAccessControl: accessControlBox.checked,
-								}, function() {
-									_Code.hideSchemaRecompileMessage();
-									_Code.displaySchemaNodeContent(data);
-								});
-							};
-
-							readBox.addEventListener('click', create);
-							writeBox.addEventListener('click', create);
-							deleteBox.addEventListener('click', create);
-							accessControlBox.addEventListener('click', create);
+							cb.classList.remove('changed');
 						}
+
+						if (schemaGrantsContainer.querySelector('.changed')) {
+							tfoot.classList.remove('hidden');
+						} else {
+							tfoot.classList.add('hidden');
+						}
+					};
+
+					schemaGrantsContainer.querySelector('.discard-all').addEventListener('click', function (e) {
+
+						for (let changedCb of tbody.querySelectorAll('.changed')) {
+
+							changedCb.checked = !changedCb.checked;
+							changedCb.classList.remove('changed');
+						}
+
+						tfoot.classList.add('hidden');
 					});
 
-				});
+					schemaGrantsContainer.querySelector('.save-all').addEventListener('click', function (e) {
 
+						let grantData = [];
+
+						for (let row of tbody.querySelectorAll('tr')) {
+
+							if (row.querySelector('.changed')) {
+
+								let rowConfig = {
+									principal:          row.dataset['groupId'],
+									schemaNode:         result.id,
+									allowRead:          row.querySelector('input[name=allowRead]').checked,
+									allowWrite:         row.querySelector('input[name=allowWrite]').checked,
+									allowDelete:        row.querySelector('input[name=allowDelete]').checked,
+									allowAccessControl: row.querySelector('input[name=allowAccessControl]').checked
+								};
+
+								let grantId = row.dataset['grantId'];
+								if (grantId) {
+									rowConfig.id = grantId;
+								}
+
+								grantData.push(rowConfig);
+							}
+						}
+
+						_Code.showSchemaRecompileMessage();
+
+						fetch(rootUrl + 'SchemaGrant', {
+							dataType: 'json',
+							contentType: 'application/json; charset=utf-8',
+							method: 'PATCH',
+							body: JSON.stringify(grantData)
+						}).then((response) => {
+
+							if (response.ok) {
+
+								_Code.hideSchemaRecompileMessage();
+								_Code.displaySchemaNodeContent(data);
+							}
+						});
+					});
+
+					let grants = {};
+
+					result.schemaGrants.forEach(function(grant) {
+						grants[grant.principal.id] = grant;
+					});
+
+					Command.query('Group', 1000, 1, 'name', 'asc', { }, function(groupResult) {
+
+						for (let group of groupResult) {
+
+							let tplConfig = {
+								groupId: group.id,
+								name: group.name,
+								grantId            : (!grants[group.id]) ? '' : grants[group.id].id,
+								allowRead          : (!grants[group.id]) ? false : grants[group.id].allowRead,
+								allowWrite         : (!grants[group.id]) ? false : grants[group.id].allowWrite,
+								allowDelete        : (!grants[group.id]) ? false : grants[group.id].allowDelete,
+								allowAccessControl : (!grants[group.id]) ? false : grants[group.id].allowAccessControl
+							};
+
+							Structr.fetchHtmlTemplate('code/schema-grants-row', tplConfig, function(html) {
+
+								let dummyTbody = document.createElement('tbody');
+								dummyTbody.innerHTML = html;
+								let row = dummyTbody.firstChild;
+
+								tbody.appendChild(row);
+
+								for (let cb of row.querySelectorAll('input')) {
+
+									cb.addEventListener('change', function (e) {
+										schemaGrantsTableChange(cb, tplConfig);
+									});
+								}
+							});
+						}
+					});
+				});
 			});
 		}, 'schema');
 	},
@@ -1557,6 +1632,8 @@ var _Code = {
 		let sourceContainer = document.getElementById('generated-source-code');
 		if (sourceContainer) {
 
+			fastRemoveAllChildren(sourceContainer);
+
 			let typeId = sourceContainer.dataset.typeId;
 
 			if (typeId) {
@@ -1567,9 +1644,8 @@ var _Code = {
 					statusCode: {
 						200: function(result) {
 
-							var container = $(sourceContainer);
-
-							var editor    = CodeMirror(container[0], Structr.getCodeMirrorSettings({
+							let container = $(sourceContainer);
+							let editor    = CodeMirror(container[0], Structr.getCodeMirrorSettings({
 								value: result.result,
 								mode: 'text/x-java',
 								lineNumbers: true,

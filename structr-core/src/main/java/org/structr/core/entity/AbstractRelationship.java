@@ -671,6 +671,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		return targetProperty;
 	}
 
+	@Override
+	public boolean changelogEnabled() {
+		return true;
+	}
+
 	// ----- protected methods -----
 	protected final Direction getDirectionForType(final Class<S> sourceType, final Class<T> targetType, final Class<? extends NodeInterface> type) {
 

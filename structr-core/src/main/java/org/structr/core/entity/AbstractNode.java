@@ -1992,6 +1992,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return grants;
 	}
 
+	@Override
+	public boolean changelogEnabled() {
+		return true;
+	}
+
 	// ----- Cloud synchronization and replication -----
 	@Override
 	public List<GraphObject> getSyncData() throws FrameworkException {
