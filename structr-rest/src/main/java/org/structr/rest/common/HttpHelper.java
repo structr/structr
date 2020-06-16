@@ -560,7 +560,6 @@ public class HttpHelper {
 
 				content = skipBOMIfPresent(content);
 
-				System.out.println("Response body: " + content);
 				logger.warn("Unable to create file from URI {}: status code was {}", new Object[]{ address, statusCode });
 			}
 

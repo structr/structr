@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.Charset;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.ConstantBooleanTrue;
@@ -309,13 +311,17 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
 		} catch (Throwable t) {
 
+			final Logger logger        = LoggerFactory.getLogger(Content.class);
 			final boolean isShadowPage = DOMNode.isSharedComponent(thisNode);
 
 			// catch exception to prevent status 500 error pages in frontend.
 			if (!isShadowPage) {
+
 				final DOMNode ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
 				logger.error("Error while evaluating script in page {}[{}], Content[{}]", ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, t);
+
 			} else {
+
 				logger.error("Error while evaluating script in shared component, Content[{}]", thisNode, t);
 			}
 		}

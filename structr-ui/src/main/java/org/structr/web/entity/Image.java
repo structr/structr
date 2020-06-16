@@ -23,6 +23,8 @@ import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.Permission;
@@ -227,6 +229,7 @@ public interface Image extends File {
 
 					if ( !expectedThumbnailName.equals(currentThumbnailName) ) {
 
+						final Logger logger = LoggerFactory.getLogger(Image.class);
 						logger.debug("Auto-renaming Thumbnail({}) from '{}' to '{}'", tn.getUuid(), currentThumbnailName, expectedThumbnailName);
 						tn.setProperty(AbstractNode.name, expectedThumbnailName);
 
@@ -234,33 +237,6 @@ public interface Image extends File {
 				}
 			}
 		}
-	}
-
-	/*
-
-	public Integer getWidth() {
-
-		return getProperty(Image.width);
-
-	}
-
-	public Integer getHeight() {
-
-		return getProperty(Image.height);
-
-	}
-
-	public List<Image> getThumbnails() {
-
-		final List<Image> thumbnails = new LinkedList<>();
-
-		for (final AbstractRelationship s : getThumbnailRelationships()) {
-
-			thumbnails.add((Image) s.getTargetNode());
-		}
-
-		return thumbnails;
-
 	}
 
 	/**
@@ -319,11 +295,13 @@ public interface Image extends File {
 
 				if (newChecksum == null || newChecksum == 0) {
 
+					final Logger logger = LoggerFactory.getLogger(Image.class);
 					logger.warn("Unable to calculate checksum of {}", originalImage.getName());
 					return null;
 				}
 
 			} catch (IOException ex) {
+				final Logger logger = LoggerFactory.getLogger(Image.class);
 				logger.warn("Unable to calculate checksum of {}: {}", originalImage.getName(), ex.getMessage());
 			}
 
@@ -382,11 +360,14 @@ public interface Image extends File {
 
 		if (originalImage.getIsCreatingThumb()) {
 
+			final Logger logger = LoggerFactory.getLogger(Image.class);
 			logger.debug("Another thumbnail is being created - waiting....");
 
 		} else {
 
 			try {
+
+				final Logger logger = LoggerFactory.getLogger(Image.class);
 
 				// No thumbnail exists, or thumbnail was too old, so let's create a new one
 				logger.debug("Creating thumbnail for {} (w={} h={} crop={})", new Object[] { getName(), maxWidth, maxHeight, cropToFit });
@@ -462,6 +443,7 @@ public interface Image extends File {
 
 			} catch (FrameworkException fex) {
 
+				final Logger logger = LoggerFactory.getLogger(Image.class);
 				logger.warn("Unable to create thumbnail for " + getUuid(), fex);
 
 			}

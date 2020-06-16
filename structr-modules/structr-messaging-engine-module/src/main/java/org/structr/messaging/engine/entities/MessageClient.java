@@ -21,6 +21,8 @@ package org.structr.messaging.engine.entities;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -101,6 +103,7 @@ public interface MessageClient extends NodeInterface {
                         try {
                             sub.invokeMethod(securityContext, "onMessage", params, false);
                         } catch (FrameworkException e) {
+			    final Logger logger = LoggerFactory.getLogger(MessageClient.class);
                             logger.warn("Could not invoke 'onMessage' method on MessageSubscriber: " + e.getMessage());
                         }
                     }

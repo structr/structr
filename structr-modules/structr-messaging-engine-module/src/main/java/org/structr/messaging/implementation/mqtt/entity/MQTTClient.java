@@ -20,6 +20,8 @@ package org.structr.messaging.implementation.mqtt.entity;
 
 import java.net.URI;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
@@ -167,6 +169,7 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 			tx.success();
 		} catch (FrameworkException ex) {
 
+			final Logger logger = LoggerFactory.getLogger(MQTTClient.class);
 			logger.warn("Error in connection status callback for MQTTClient.");
 		}
 
@@ -189,6 +192,7 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 
 		} catch (FrameworkException ex ) {
 
+			final Logger logger = LoggerFactory.getLogger(MQTTClient.class);
 			logger.error("Couldn't retrieve client topics for MQTT subscription.");
 			return null;
 		}
