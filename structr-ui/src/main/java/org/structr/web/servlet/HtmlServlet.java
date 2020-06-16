@@ -952,7 +952,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 *
 	 * @param response
 	 * @param securityContext
-	 * @param renderContext
 	 * @throws IOException
 	 * @throws FrameworkException
 	 */
@@ -1018,7 +1017,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 * Find node by uuid
 	 *
 	 * @param securityContext
-	 * @param request
 	 * @param uuid
 	 * @return node
 	 * @throws FrameworkException
