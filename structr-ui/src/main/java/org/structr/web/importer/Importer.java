@@ -708,7 +708,7 @@ public class Importer {
 
 						if (template == null) {
 
-							System.out.println("##################################### template with UUID " + src + " not found, this is a known bug");
+							logger.warn("##################################### template with UUID {} not found, this is a known bug", src);
 
 						}
 
@@ -719,7 +719,7 @@ public class Importer {
 
 						if (template == null) {
 
-							System.out.println("##################################### template with UUID " + uuid + " not found, this is a known bug");
+							logger.warn("##################################### template with UUID not found, this is a known bug", uuid);
 						}
 
 					} else {

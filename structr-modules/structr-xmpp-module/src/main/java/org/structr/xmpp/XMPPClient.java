@@ -24,6 +24,8 @@ import java.util.Map;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence.Mode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -337,6 +339,7 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 
 		} catch (FrameworkException fex) {
 
+			final Logger logger = LoggerFactory.getLogger(XMPPClient.class);
 			logger.warn("", fex);
 		}
 	}
@@ -362,6 +365,7 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 
 		} catch (FrameworkException fex) {
 
+			final Logger logger = LoggerFactory.getLogger(XMPPClient.class);
 			logger.warn("", fex);
 		}
 	}

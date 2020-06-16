@@ -39,6 +39,8 @@ import org.neo4j.driver.v1.exceptions.TransientException;
 import org.neo4j.driver.v1.types.Entity;
 import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Relationship;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.ConstraintViolationException;
 import org.structr.api.DataFormatException;
 import org.structr.api.NetworkException;
@@ -53,6 +55,7 @@ import org.structr.api.util.Iterables;
  */
 class SessionTransaction implements org.structr.api.Transaction {
 
+	private static final Logger logger                = LoggerFactory.getLogger(SessionTransaction.class);
 	private static final AtomicLong ID_SOURCE         = new AtomicLong();
 	private final Set<EntityWrapper> accessedEntities = new HashSet<>();
 	private final Set<EntityWrapper> modifiedEntities = new HashSet<>();
@@ -438,14 +441,14 @@ class SessionTransaction implements org.structr.api.Transaction {
 				if (map != null && map.size() > 0) {
 
 					if (statement.contains("extractedContent")) {
-						System.out.println(Thread.currentThread().getId() + ": " + statement + "\t\t SET on extractedContent - value suppressed");
+						logger.info("{}: {}\t\t SET on extractedContent - value suppressed", Thread.currentThread().getId(), statement);
 					} else {
-						System.out.println(Thread.currentThread().getId() + ": " + statement + "\t\t Parameters: " + map.toString());
+						logger.info("{}: {}\t\t Parameters: {}", Thread.currentThread().getId(), statement, map.toString());
 					}
 
 				} else {
 
-					System.out.println(Thread.currentThread().getId() + ": " + statement);
+					logger.info("{}: {}", Thread.currentThread().getId(), statement);
 				}
 			}
 		}

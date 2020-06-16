@@ -24,6 +24,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -444,6 +446,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 				out.append("Error while rendering node ").append(thisElement.getUuid()).append(": ").append(t.getMessage());
 
+				final Logger logger = LoggerFactory.getLogger(DOMElement.class);
 				logger.warn("", t);
 			}
 

@@ -32,13 +32,16 @@ import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowConditionBaseNode;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FlowFilter extends FlowNode implements DataSource, Filter, DeployableEntity {
+
+	private static final Logger logger                              = LoggerFactory.getLogger(FlowFilter.class);
 	public static final Property<DataSource> dataSource             = new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<FlowCondition> condition           = new StartNode<>("condition", FlowConditionBaseNode.class);
@@ -58,7 +61,7 @@ public class FlowFilter extends FlowNode implements DataSource, Filter, Deployab
 
 	@Override
 	public void filter(Context context) throws FlowException {
-		
+
 		DataSource ds = getProperty(dataSource);
 		FlowCondition condition = getProperty(FlowFilter.condition);
 

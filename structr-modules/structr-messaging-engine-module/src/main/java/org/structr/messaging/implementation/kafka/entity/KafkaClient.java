@@ -55,6 +55,7 @@ import org.structr.api.schema.JsonSchema;
 public interface KafkaClient extends MessageClient {
 
 	class Impl {
+
 		static {
 
 
@@ -105,6 +106,7 @@ public interface KafkaClient extends MessageClient {
 					tx.success();
 
 				} catch (Throwable t) {
+					final Logger logger = LoggerFactory.getLogger(KafkaClient.class);
 					logger.error("Unable to initialize Kafka clients: {}", t.getMessage());
 				}
 			});
@@ -154,6 +156,7 @@ public interface KafkaClient extends MessageClient {
 		if(getProducer(thisClient) == null && thisClient.getServers() != null && thisClient.getServers().length > 0) {
 			setProducer(thisClient,new KafkaProducer<>(getConfiguration(thisClient, KafkaProducer.class)));
 		} else if(thisClient.getServers() == null || thisClient.getServers().length == 0) {
+			final Logger logger = LoggerFactory.getLogger(KafkaClient.class);
 			logger.error("Could not initialize producer. No servers configured.");
 			return new RestMethodResult(422);
 		}
@@ -202,6 +205,7 @@ public interface KafkaClient extends MessageClient {
 				setProducer(thisClient, new KafkaProducer<>(getConfiguration(thisClient, KafkaProducer.class)));
 			}
 		} catch (JsonSyntaxException | KafkaException ex) {
+			final Logger logger = LoggerFactory.getLogger(KafkaClient.class);
 			logger.error("Could not refresh Kafka configuration: " + ex.getLocalizedMessage());
 		}
 	}
@@ -252,6 +256,7 @@ public interface KafkaClient extends MessageClient {
 
 		} catch (FrameworkException ex) {
 
+			final Logger logger = LoggerFactory.getLogger(KafkaClient.class);
 			logger.error("Exception while trying to generate KafkaClient configuration: ", ex);
 		}
 

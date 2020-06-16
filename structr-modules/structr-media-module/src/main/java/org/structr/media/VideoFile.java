@@ -23,6 +23,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -260,6 +262,7 @@ public interface VideoFile extends File {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+			final Logger logger = LoggerFactory.getLogger(VideoFile.class);
 			logger.warn("", fex);
 		}
 	}

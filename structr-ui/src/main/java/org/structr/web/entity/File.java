@@ -42,6 +42,8 @@ import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Iterables;
@@ -328,6 +330,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				}
 
 			} catch (Throwable t) {
+
+				final Logger logger = LoggerFactory.getLogger(File.class);
 				logger.debug("Exception while trying to delete file {}: {}", toDelete.getPath(), t.getMessage());
 			}
 		}
@@ -342,6 +346,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		} catch (FrameworkException ex) {
 
+			final Logger logger = LoggerFactory.getLogger(File.class);
 			logger.error("Could not update metadata of {}: {}", thisFile.getPath(), ex.getMessage());
 		}
 
@@ -383,6 +388,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		} catch (FrameworkException fex) {
 
+			final Logger logger = LoggerFactory.getLogger(File.class);
 			logger.warn("Unable to index {}: {}", thisFile, fex.getMessage());
 		}
 	}
@@ -433,6 +439,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 					try {
 						minifiedFile.minify(thisFile.getSecurityContext());
 					} catch (IOException ex) {
+
+						final Logger logger = LoggerFactory.getLogger(File.class);
 						logger.warn("Could not automatically update minification target: ".concat(minifiedFile.getName()), ex);
 					}
 				}
@@ -442,6 +450,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	static InputStream getInputStream(final File thisFile) {
 
+		final Logger logger = LoggerFactory.getLogger(File.class);
 		final java.io.File fileOnDisk = thisFile.getFileOnDisk();
 
 		try {
@@ -513,7 +522,9 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		if (thisFile.isTemplate()) {
 
+			final Logger logger = LoggerFactory.getLogger(File.class);
 			logger.error("File is in template mode, no write access allowed: {}", thisFile.getPath());
+
 			return null;
 		}
 
@@ -523,6 +534,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			return new ClosingFileOutputStream(thisFile, append, notifyIndexerAfterClosing);
 
 		} catch (IOException e) {
+
+			final Logger logger = LoggerFactory.getLogger(File.class);
 			logger.error("Unable to open file output stream for {}: {}", thisFile.getPath(), e.getMessage());
 		}
 
@@ -626,6 +639,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 				} catch (UnlicensedScriptException ex) {
 
+					final Logger logger = LoggerFactory.getLogger(File.class);
 					logger.warn("CSV module is not available.");
 				}
 			}
@@ -862,7 +876,9 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 			try {
 
+				final Logger logger = LoggerFactory.getLogger(File.class);
 				logger.info("Moving file {} from {} to {}..", previousFile, previousParent, newFile);
+
 				Files.move(previousFile, newFile);
 
 			} catch (IOException ioex) {
@@ -904,6 +920,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			return IOUtils.toString(new InputStreamReader(is));
 
 		} catch (IOException ioex) {
+
+			final Logger logger = LoggerFactory.getLogger(File.class);
 			logger.warn("", ioex);
 		}
 
@@ -930,6 +948,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			return IOUtils.toString(is, "utf-8");
 
 		} catch (IOException ioex) {
+
+			final Logger logger = LoggerFactory.getLogger(File.class);
 			logger.warn("Unable to get favorite content from {}: {}", thisFile, ioex.getMessage());
 		}
 
@@ -944,6 +964,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			os.flush();
 
 		} catch (IOException ioex) {
+
+			final Logger logger = LoggerFactory.getLogger(File.class);
 			logger.warn("Unable to set favorite content from {}: {}", thisFile, ioex.getMessage());
 		}
 	}

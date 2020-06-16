@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
@@ -122,6 +124,8 @@ public interface AbstractMinifiedFile extends File {
 				thisFile.minify(securityContext);
 
 			} catch (IOException ex) {
+
+				final Logger logger = LoggerFactory.getLogger(AbstractMinifiedFile.class);
 				logger.warn("Could not automatically minify file", ex);
 			}
 		}

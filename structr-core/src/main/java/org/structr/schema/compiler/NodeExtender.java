@@ -100,12 +100,12 @@ public class NodeExtender {
 
 			if (Settings.LogSchemaOutput.getValue()) {
 
-				System.out.println("########################################################################################################################################################");
+				logger.info("######################################## {}", sourceFile.getName());
 
 				int count = 0;
 
 				for (final SourceLine line : sourceFile.getLines()) {
-					System.out.println(StringUtils.rightPad(++count + ": ", 6) + line);
+					logger.info(StringUtils.rightPad(++count + ": ", 6) + line);
 				}
 			}
 		}
@@ -205,22 +205,23 @@ public class NodeExtender {
 					final AbstractNode source   = (AbstractNode)line.getCodeSource();
 					final int size              = code.size();
 
-					System.out.println("Error: " + diagnostic.getMessage(Locale.ENGLISH));
+					logger.error(diagnostic.getMessage(Locale.ENGLISH));
 
 					if (source != null) {
-						System.out.println("     code source: " + source.getUuid() + " of type " + source.getClass().getSimpleName() + " name " + source.getName());
+						logger.error("code source: {} of type {} name {}", source.getUuid(), source.getClass().getSimpleName(), source.getName());
 					}
 
 					for (int i = errorLineNumber - 3; i < errorLineNumber + 3; i++) {
 
 						if (inRange(i, size)) {
 
+							String prefix = "  ";
+
 							if (i == errorLineNumber-1) {
-								System.out.print("> ");
-							} else {
-								System.out.print("  ");
+								prefix = "> ";
 							}
-							System.out.println(StringUtils.leftPad("" + i, 5) + ": " + code.get(i));
+
+							logger.error(prefix + StringUtils.leftPad("" + i, 5) + ": " + code.get(i));
 						}
 					}
 				}

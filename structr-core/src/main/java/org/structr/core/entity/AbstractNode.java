@@ -994,21 +994,23 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	private void backtrack(final BFSInfo info, final String principalId, final Permission permission, final boolean value, final int level, final boolean doLog) {
 
+		final StringBuilder buf = new StringBuilder();
+
 		if (doLog) {
 
 			if (level == 0) {
 
 				if (value) {
 
-					System.out.print(permission.name() + ": granted: ");
+					buf.append(permission.name()).append(": granted: ");
 
 				} else {
 
-					System.out.print(permission.name() + ": denied: ");
+					buf.append(permission.name()).append(": denied: ");
 				}
 			}
 
-			System.out.print(info.node.getType() + " (" + info.node.getUuid() + ") --> ");
+			buf.append(info.node.getType()).append(" (").append(info.node.getUuid()).append(") --> ");
 		}
 
 		info.node.storePermissionResolutionResult(principalId, permission, value);
@@ -1020,7 +1022,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 
 		if (doLog && level == 0) {
-			System.out.println();
+			logger.info(buf.toString());
 		}
 	}
 

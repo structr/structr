@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
@@ -640,6 +642,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			} catch (FrameworkException fex) {
 
+				final Logger logger = LoggerFactory.getLogger(DOMNode.class);
 				logger.warn("Unable fetch ShadowDocument node: {}", fex.getMessage());
 			}
 		}
@@ -969,6 +972,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			// Shadow doc is neutral
 			if (otherDoc != null && !doc.equals(otherDoc) && !(doc instanceof ShadowDocument)) {
 
+				final Logger logger = LoggerFactory.getLogger(DOMNode.class);
 				logger.warn("{} node with UUID {} has owner document {} with UUID {} whereas this node has owner document {} with UUID {}",
 					otherNode.getClass().getSimpleName(),
 					((NodeInterface)otherNode).getUuid(),
@@ -1069,12 +1073,16 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		} catch (UnlicensedScriptException | FrameworkException ex) {
 
+			final Logger logger        = LoggerFactory.getLogger(DOMNode.class);
 			final boolean isShadowPage = DOMNode.isSharedComponent(thisNode);
 
 			if (!isShadowPage) {
+
 				final DOMNode ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
 				logger.error("Error while evaluating hide condition '{}' in page {}[{}], DOMNode[{}]", _hideConditions, ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, ex);
+
 			} else {
+
 				logger.error("Error while evaluating hide condition '{}' in shared component, DOMNode[{}]", _hideConditions, thisNode, ex);
 			}
 		}
@@ -1087,12 +1095,16 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		} catch (UnlicensedScriptException | FrameworkException ex) {
 
+			final Logger logger        = LoggerFactory.getLogger(DOMNode.class);
 			final boolean isShadowPage = DOMNode.isSharedComponent(thisNode);
 
 			if (!isShadowPage) {
+
 				final DOMNode ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
 				logger.error("Error while evaluating show condition '{}' in page {}[{}], DOMNode[{}]", _showConditions, ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, ex);
+
 			} else {
+
 				logger.error("Error while evaluating show condition '{}' in shared component, DOMNode[{}]", _showConditions, thisNode, ex);
 			}
 		}
@@ -1239,6 +1251,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 				} else {
 
+					final Logger logger = LoggerFactory.getLogger(DOMNode.class);
 					logger.warn("Cannot export linkable relationship, no path.");
 				}
 			}
@@ -1463,6 +1476,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			}
 
 		} catch (FrameworkException ex) {
+
+			final Logger logger = LoggerFactory.getLogger(DOMNode.class);
 			logger.warn("", ex);
 		}
 	}
@@ -1616,6 +1631,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			} catch (FrameworkException fex) {
 
+				final Logger logger = LoggerFactory.getLogger(DOMNode.class);
 				logger.warn("Could not retrieve data from graph data source {}: {}", source, fex);
 			}
 		}

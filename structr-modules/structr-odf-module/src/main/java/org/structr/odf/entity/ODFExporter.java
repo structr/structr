@@ -21,6 +21,8 @@ package org.structr.odf.entity;
 import java.net.URI;
 import org.odftoolkit.odfdom.doc.OdfDocument;
 import org.odftoolkit.odfdom.pkg.OdfPackage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -152,6 +154,7 @@ public interface ODFExporter extends NodeInterface {
 
 		} catch (Exception e) {
 
+			final Logger logger = LoggerFactory.getLogger(ODFExporter.class);
 			logger.error("Error while creating ODS from template", e);
 
 		}
@@ -203,6 +206,7 @@ public interface ODFExporter extends NodeInterface {
 
 		} catch (Exception e) {
 
+			final Logger logger = LoggerFactory.getLogger(ODFExporter.class);
 			logger.error("Error while exporting image to document", e);
 
 		}

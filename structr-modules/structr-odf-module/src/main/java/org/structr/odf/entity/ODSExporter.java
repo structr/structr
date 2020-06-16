@@ -31,6 +31,8 @@ import java.util.StringJoiner;
 import org.odftoolkit.odfdom.doc.OdfSpreadsheetDocument;
 import org.odftoolkit.odfdom.doc.table.OdfTable;
 import org.odftoolkit.odfdom.doc.table.OdfTableCell;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
@@ -190,6 +192,7 @@ public interface ODSExporter extends ODFExporter {
 			spreadsheet.close();
 
 		} catch (Exception e) {
+			final Logger logger = LoggerFactory.getLogger(ODSExporter.class);
 			logger.error("Error while exporting to ODS", e);
 		}
 	}

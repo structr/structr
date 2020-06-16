@@ -47,7 +47,7 @@ public class RemoveClassesWithUnknownSymbols implements MigrationHandler {
 			final Matcher matcher = PATTERN.matcher(detail);
 			if (matcher.matches()) {
 
-				System.out.println(errorToken.toJSON());
+				logger.warn(errorToken.toJSON().getAsString());
 
 				/*
 

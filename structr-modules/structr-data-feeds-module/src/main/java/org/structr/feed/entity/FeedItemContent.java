@@ -23,6 +23,8 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
@@ -79,6 +81,7 @@ public interface FeedItemContent extends NodeInterface, Indexable {
 
 		} catch (FrameworkException fex) {
 
+			final Logger logger = LoggerFactory.getLogger(FeedItemContent.class);
 			logger.warn("Unable to index {}: {}", thisIndexable, fex.getMessage());
 		}
 	}

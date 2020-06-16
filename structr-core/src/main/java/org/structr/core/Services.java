@@ -274,6 +274,15 @@ public class Services implements StructrServices {
 
 			logger.warn("Maximum heap size is smaller than recommended, this can lead to problems with large databases!");
 			logger.warn("Please configure AT LEAST 8 GBs of heap memory using -Xmx8g.");
+
+			// reduce fetch size
+			Settings.FetchSize.setValue(10_000);
+
+			if (max < 1) {
+
+				// reduce fetch size even more for < 1 GB heap
+				Settings.FetchSize.setValue(1_000);
+			}
 		}
 
 		final List<Class> configuredServiceClasses = getCongfiguredServiceClasses();
