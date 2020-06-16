@@ -77,7 +77,7 @@ public class LoginCommand extends AbstractCommand {
 
 		try (final Tx tx = app.tx(true, true, true)) {
 
-			final String username       = webSocketData.getNodeDataStringValue("username");
+			String username       = webSocketData.getNodeDataStringValue("username");
 			final String password       = webSocketData.getNodeDataStringValue("password");
 			final String twoFactorToken = webSocketData.getNodeDataStringValue("twoFactorToken");
 			final String twoFactorCode  = webSocketData.getNodeDataStringValue("twoFactorCode");
@@ -92,6 +92,13 @@ public class LoginCommand extends AbstractCommand {
 					user = AuthHelper.getUserForTwoFactorToken(twoFactorToken);
 
 				} else if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {
+
+					// cleanup user input
+					if (StringUtils.contains(username, "@")) {
+
+						username = username.toLowerCase();
+					}
+					username = username.trim();
 
 					user = auth.doLogin(getWebSocket().getRequest(), username, password);
 

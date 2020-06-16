@@ -33,10 +33,7 @@ import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.graph.Node;
-import org.structr.common.AccessControllable;
-import org.structr.common.EMailValidator;
-import org.structr.common.LowercaseTransformator;
-import org.structr.common.PropertyView;
+import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.HashHelper;
@@ -72,7 +69,8 @@ public interface Principal extends NodeInterface, AccessControllable {
 			.setIndexed(true)
 			.setUnique(true)
 			.addValidator(EMailValidator.class.getName())
-			.addTransformer(LowercaseTransformator.class.getName());
+			.addTransformer(LowercaseTransformator.class.getName())
+			.addTransformer(TrimTransformator.class.getName());
 
 		principal.addPasswordProperty("password");
 
