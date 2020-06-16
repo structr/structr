@@ -23,7 +23,6 @@ import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import org.apache.commons.collections4.map.LRUMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,14 +41,14 @@ public class FixedSizeCache<K, V> {
 	private static final Logger logger  = LoggerFactory.getLogger(FixedSizeCache.class);
 	private long lastUpdate             = System.currentTimeMillis();
 	private MemoryPoolMXBean bean       = null;
-	private Map<K, V> cache             = null;
+	private LRUMap<K, V> cache          = null;
 	private String name                 = null;
 
 	public FixedSizeCache(final String name, final int maxSize) {
 
-		this.cache = new InvalidatingLRUMap<>(maxSize);
-		this.bean  = getOldGenerationMXBean();
-		this.name  = name;
+		this.cache       = new InvalidatingLRUMap<>(maxSize);
+		this.bean        = getOldGenerationMXBean();
+		this.name        = name;
 	}
 
 	public synchronized void put(final K key, final V value) {
@@ -112,16 +111,24 @@ public class FixedSizeCache<K, V> {
 
 			if (percentage > 98.00) {
 
-				int size = cache.size();
+				int size = cache.maxSize();
 
-				size *= 0.8;
+				size *= 0.5;
 				size /= 10000;
 				size *= 10000;
 
 				// enforce lower bound for cache size
 				size = Math.max(1000, size);
 
-				logger.warn("JVM is running low on memory, limiting {} size to {}", name, size);
+				if (size == 1000) {
+
+					logger.warn("JVM is running low on memory and {} size is at its minimum of {}. Please increase JVM heap size.", name, size);
+
+				} else {
+
+					logger.warn("JVM is running low on memory, limiting {} size to {}", name, size);
+					logger.warn("If this happens more than once, please increase JVM heap size or reduce cache sizes.");
+				}
 
 				cache.clear();
 
