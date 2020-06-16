@@ -81,6 +81,8 @@ public interface DatabaseService {
 	String getInternalTimestamp();
 	String getErrorMessage();
 
+	public Map<String, Map<String, Integer>> getCachesInfo();
+
 	// ----- index -----
 	Index<Node> nodeIndex();
 	Index<Relationship> relationshipIndex();

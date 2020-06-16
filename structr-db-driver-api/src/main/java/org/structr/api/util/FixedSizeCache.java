@@ -23,6 +23,7 @@ import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import org.apache.commons.collections4.map.LRUMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,6 +75,10 @@ public class FixedSizeCache<K, V> {
 
 	public synchronized int size() {
 		return cache.size();
+	}
+
+	public synchronized Map<String, Integer> getCacheInfo() {
+		return Map.of("max", cache.maxSize(), "size", size());
 	}
 
 	public synchronized boolean isEmpty() {
