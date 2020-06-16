@@ -323,7 +323,7 @@ public abstract class StructrOAuthClient {
 			this.userInfo = JSONUtils.parseJSON(body);
 
 			// return desired value
-			return (String)this.userInfo.get(key);
+			return (String) this.userInfo.get(key);
 
 		} catch (Exception ex) {
 
