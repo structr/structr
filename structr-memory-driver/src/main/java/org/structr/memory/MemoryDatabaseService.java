@@ -20,8 +20,6 @@ package org.structr.memory;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import org.structr.memory.index.MemoryRelationshipIndex;
-import org.structr.memory.index.MemoryNodeIndex;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,11 +35,13 @@ import org.structr.api.graph.GraphProperties;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
+import org.structr.api.graph.RelationshipType;
 import org.structr.api.index.Index;
 import org.structr.api.util.CountResult;
-import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
+import org.structr.memory.index.MemoryNodeIndex;
+import org.structr.memory.index.MemoryRelationshipIndex;
 import org.structr.memory.index.filter.Filter;
 import org.structr.memory.index.filter.MemoryLabelFilter;
 import org.structr.memory.index.filter.MemoryTypeFilter;
@@ -313,6 +313,11 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 	@Override
 	public String getErrorMessage() {
 		return null;
+	}
+
+	@Override
+	public Map<String, Map<String, Integer>> getCachesInfo() {
+		return Map.of();
 	}
 
 	// ----- graph repository methods -----

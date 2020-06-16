@@ -21,6 +21,7 @@ package org.structr.core.function;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import org.structr.api.config.Settings;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.common.AccessMode;
@@ -220,6 +221,10 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 	public static synchronized void invalidateCache() {
 		localizationCache.clear();
+	}
+
+	public static synchronized Map getCacheInfo() {
+		return localizationCache.getCacheInfo();
 	}
 
 	private static String cacheKey(final String locale, final String key, final String domain) {

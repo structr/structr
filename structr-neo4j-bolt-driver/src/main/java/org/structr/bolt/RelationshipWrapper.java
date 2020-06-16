@@ -32,7 +32,7 @@ import org.structr.api.util.FixedSizeCache;
  */
 class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relationship> implements Relationship {
 
-	private static FixedSizeCache<Long, RelationshipWrapper> relationshipCache = null;
+	protected static FixedSizeCache<Long, RelationshipWrapper> relationshipCache = null;
 
 	private long sourceNodeId = -1L;
 	private long targetNodeId = -1L;
