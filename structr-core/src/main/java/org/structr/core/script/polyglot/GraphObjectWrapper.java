@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.script;
+package org.structr.core.script.polyglot;
 
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
@@ -27,24 +27,22 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
 import org.structr.schema.action.ActionContext;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StructrPolyglotGraphObjectWrapper<T extends GraphObject> implements ProxyObject {
-	private static final Logger logger = LoggerFactory.getLogger(StructrPolyglotGraphObjectWrapper.class);
+public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
+	private static final Logger logger = LoggerFactory.getLogger(GraphObjectWrapper.class);
 	private final T node;
 	private ActionContext actionContext;
 
-	public StructrPolyglotGraphObjectWrapper(ActionContext actionContext, final T node) {
+	public GraphObjectWrapper(ActionContext actionContext, final T node) {
 		this.node = node;
 		this.actionContext = actionContext;
 	}
@@ -64,7 +62,7 @@ public class StructrPolyglotGraphObjectWrapper<T extends GraphObject> implements
 
 				Map<String, Object> params = null;
 				if (arguments.length >= 1) {
-					Object arg0 = StructrPolyglotWrapper.unwrap(arguments[0]);
+					Object arg0 = PolyglotWrapper.unwrap(arguments[0]);
 					if (arg0 instanceof Map) {
 						params = (Map<String, Object>) arg0;
 					}
@@ -74,7 +72,7 @@ public class StructrPolyglotGraphObjectWrapper<T extends GraphObject> implements
 				}
 				try {
 
-					return StructrPolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext(), params));
+					return PolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext(), params));
 				} catch (IllegalAccessException | InvocationTargetException ex) {
 
 					logger.error("Could not invoke method on graph object.", ex);
@@ -87,10 +85,10 @@ public class StructrPolyglotGraphObjectWrapper<T extends GraphObject> implements
 		if (propKey instanceof RelationProperty || propKey instanceof ArrayProperty) {
 			// RelationshipProperty needs special binding
 			// ArrayProperty values need synchronized ProxyArrays as well
-			return new StructrPolyglotProxyArray(actionContext, node, propKey);
+			return new PolyglotProxyArray(actionContext, node, propKey);
 		}
 
-		return StructrPolyglotWrapper.wrap(actionContext, node.getProperty(key));
+		return PolyglotWrapper.wrap(actionContext, node.getProperty(key));
 	}
 
 	@Override
@@ -110,7 +108,7 @@ public class StructrPolyglotGraphObjectWrapper<T extends GraphObject> implements
 		try {
 
 			final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
-			Object unwrappedValue = StructrPolyglotWrapper.unwrap(value);
+			Object unwrappedValue = PolyglotWrapper.unwrap(value);
 			Object convertedValue = propKey.inputConverter(actionContext.getSecurityContext()).convert(unwrappedValue);
 			node.setProperty(propKey, convertedValue);
 		} catch (FrameworkException ex) {

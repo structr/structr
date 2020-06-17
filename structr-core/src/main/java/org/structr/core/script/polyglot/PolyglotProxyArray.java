@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.script;
+package org.structr.core.script.polyglot;
 
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
@@ -34,15 +34,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class StructrPolyglotProxyArray implements ProxyArray {
-	private static final Logger logger = LoggerFactory.getLogger(StructrPolyglotProxyArray.class);
+public class PolyglotProxyArray implements ProxyArray {
+	private static final Logger logger = LoggerFactory.getLogger(PolyglotProxyArray.class);
 	final ActionContext actionContext;
 	final GraphObject node;
 	final PropertyKey propKey;
 	List<Object> list;
 
 	// Using StructrPolyglotProxyArray as a simple Wrapper/Proxy
-	public StructrPolyglotProxyArray(final ActionContext actionContext, final Object[] arr) {
+	public PolyglotProxyArray(final ActionContext actionContext, final Object[] arr) {
 		this.actionContext = actionContext;
 		this.list = Arrays.asList(arr);
 		this.node = null;
@@ -50,7 +50,7 @@ public class StructrPolyglotProxyArray implements ProxyArray {
 	}
 
 	// Using StructrPolyglotProxyArray as a synchronized proxy that automatically writes updates to it's source object
-	public StructrPolyglotProxyArray(final ActionContext actionContext, final GraphObject node, final PropertyKey propKey) {
+	public PolyglotProxyArray(final ActionContext actionContext, final GraphObject node, final PropertyKey propKey) {
 		this.actionContext = actionContext;
 		this.list = new ArrayList<>();
 		this.node = node;
@@ -68,7 +68,7 @@ public class StructrPolyglotProxyArray implements ProxyArray {
 			return null;
 		}
 		
-		return StructrPolyglotWrapper.wrap(actionContext, list.get((int)index));
+		return PolyglotWrapper.wrap(actionContext, list.get((int)index));
 	}
 
 	@Override
@@ -87,10 +87,10 @@ public class StructrPolyglotProxyArray implements ProxyArray {
 				list.add(null);
 			}
 
-			list.add(StructrPolyglotWrapper.unwrap(value));
+			list.add(PolyglotWrapper.unwrap(value));
 		} else {
 
-			list.set((int) index, StructrPolyglotWrapper.unwrap(value));
+			list.set((int) index, PolyglotWrapper.unwrap(value));
 		}
 
 		writeListToSource();

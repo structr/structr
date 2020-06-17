@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.script;
+package org.structr.core.script.polyglot;
 
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
@@ -25,26 +25,25 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public abstract class StructrPolyglotWrapper {
+public abstract class PolyglotWrapper {
 
 	// Wraps values going into the scripting context. E.g.: GraphObject -> StructrPolyglotGraphObjectWrapper
 	public static Object wrap(ActionContext actionContext, Object obj) {
 
 		if (obj instanceof GraphObject) {
 
-			return new StructrPolyglotGraphObjectWrapper(actionContext, (GraphObject) obj);
+			return new GraphObjectWrapper(actionContext, (GraphObject) obj);
 		} else if (obj.getClass().isArray()) {
 
-			return new StructrPolyglotProxyArray(actionContext, (Object[])obj);
+			return new PolyglotProxyArray(actionContext, (Object[])obj);
 		} else 	if (obj instanceof Iterable) {
 
-			return new StructrPolyglotProxyArray(actionContext, StreamSupport.stream(((Iterable)obj).spliterator(), false).toArray());
+			return new PolyglotProxyArray(actionContext, StreamSupport.stream(((Iterable)obj).spliterator(), false).toArray());
 		} else if (obj instanceof Map) {
 
-			return new StructrPolyglotProxyMap(actionContext, (Map<String, Object>)obj);
+			return new PolyglotProxyMap(actionContext, (Map<String, Object>)obj);
 		}
 
 		return obj;
@@ -65,11 +64,11 @@ public abstract class StructrPolyglotWrapper {
 			} else if (value.isProxyObject() && value.hasMembers()) {
 				ProxyObject proxy = value.asProxyObject();
 
-				if (proxy instanceof StructrPolyglotGraphObjectWrapper) {
-					return ((StructrPolyglotGraphObjectWrapper)proxy).getOriginalObject();
-				} else if (proxy instanceof StructrPolyglotProxyMap) {
+				if (proxy instanceof GraphObjectWrapper) {
+					return ((GraphObjectWrapper)proxy).getOriginalObject();
+				} else if (proxy instanceof PolyglotProxyMap) {
 
-					return ((StructrPolyglotProxyMap)proxy).getOriginalObject();
+					return ((PolyglotProxyMap)proxy).getOriginalObject();
 				} else {
 
 					return proxy;
@@ -84,9 +83,9 @@ public abstract class StructrPolyglotWrapper {
 
 				return unwrap(value.as(Object.class));
 			}
-		} else if (obj instanceof StructrPolyglotGraphObjectWrapper) {
+		} else if (obj instanceof GraphObjectWrapper) {
 
-			return ((StructrPolyglotGraphObjectWrapper)obj).getOriginalObject();
+			return ((GraphObjectWrapper)obj).getOriginalObject();
 		} else if (obj instanceof Iterable) {
 
 			return unwrapIterable((Iterable) obj);

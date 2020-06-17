@@ -18,10 +18,10 @@
  */
 package org.structr.core.script;
 
-import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import javax.script.Bindings;
 import org.structr.core.GraphObject;
+import org.structr.core.script.polyglot.StructrBinding;
 import org.structr.schema.action.ActionContext;
 
 
@@ -33,6 +33,6 @@ public class StructrScriptBindings extends HashMap<String, Object> implements Bi
 
 	public StructrScriptBindings(final ActionContext actionContext, final GraphObject entity) {
 
-		put("Structr", new StructrPolyglotBinding(actionContext, entity));
+		put("Structr", new StructrBinding(actionContext, entity));
 	}
 }

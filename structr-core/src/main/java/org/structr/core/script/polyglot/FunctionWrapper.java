@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.script;
+package org.structr.core.script.polyglot;
 
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
@@ -29,15 +29,15 @@ import org.structr.schema.action.Function;
 
 import java.util.Arrays;
 
-public class StructrPolyglotFunctionWrapper implements ProxyExecutable {
+public class FunctionWrapper implements ProxyExecutable {
 
-	private static final Logger logger = LoggerFactory.getLogger(StructrPolyglotFunctionWrapper.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FunctionWrapper.class.getName());
 
 	private final ActionContext actionContext;
 	private final GraphObject entity;
 	private final Function<Object, Object> func;
 
-	public StructrPolyglotFunctionWrapper(final ActionContext actionContext, final GraphObject entity, final Function<Object, Object> func) {
+	public FunctionWrapper(final ActionContext actionContext, final GraphObject entity, final Function<Object, Object> func) {
 		this.entity = entity;
 		this.actionContext = actionContext;
 		this.func = func;
@@ -46,9 +46,9 @@ public class StructrPolyglotFunctionWrapper implements ProxyExecutable {
 	@Override
 	public Object execute(Value... arguments) {
 		try {
-			Object[] args = Arrays.stream(arguments).map(arg -> StructrPolyglotWrapper.unwrap(arg)).toArray();
+			Object[] args = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(arg)).toArray();
 
-			return StructrPolyglotWrapper.wrap(actionContext, func.apply(actionContext, entity, args));
+			return PolyglotWrapper.wrap(actionContext, func.apply(actionContext, entity, args));
 		} catch (FrameworkException ex) {
 
 			logger.error("Error while executing function in scripting context.", ex);

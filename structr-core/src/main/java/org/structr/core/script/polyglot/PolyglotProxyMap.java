@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.script;
+package org.structr.core.script.polyglot;
 
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
@@ -24,11 +24,11 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
 
-public class StructrPolyglotProxyMap implements ProxyObject {
+public class PolyglotProxyMap implements ProxyObject {
 	final private Map<String, Object> map;
 	final private ActionContext actionContext;
 
-	public StructrPolyglotProxyMap(final ActionContext actionContext, final Map<String, Object> map) {
+	public PolyglotProxyMap(final ActionContext actionContext, final Map<String, Object> map) {
 		this.actionContext = actionContext;
 		this.map = map;
 	}
@@ -39,7 +39,7 @@ public class StructrPolyglotProxyMap implements ProxyObject {
 
 	@Override
 	public Object getMember(String key) {
-		return StructrPolyglotWrapper.wrap(actionContext, map.get(key));
+		return PolyglotWrapper.wrap(actionContext, map.get(key));
 	}
 
 	@Override
@@ -54,6 +54,6 @@ public class StructrPolyglotProxyMap implements ProxyObject {
 
 	@Override
 	public void putMember(String key, Value value) {
-		map.put(key, StructrPolyglotWrapper.unwrap(value));
+		map.put(key, PolyglotWrapper.unwrap(value));
 	}
 }

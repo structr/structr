@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.script;
+package org.structr.core.script.polyglot;
 
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
@@ -27,23 +27,24 @@ import org.structr.common.CaseHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.function.Functions;
+import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-import java.awt.*;
+import java.sql.Struct;
 import java.util.Arrays;
 import java.util.Set;
 
-import static org.structr.core.script.StructrPolyglotWrapper.wrap;
+import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
 
-public class StructrPolyglotBinding implements ProxyObject {
+public class StructrBinding implements ProxyObject {
 
-	private static final Logger logger           = LoggerFactory.getLogger(Scripting.class.getName());
+	private static final Logger logger           = LoggerFactory.getLogger(StructrBinding.class.getName());
 
 	private GraphObject entity                   = null;
 	private ActionContext actionContext          = null;
 
-	public StructrPolyglotBinding(final ActionContext actionContext, final GraphObject entity) {
+	public StructrBinding(final ActionContext actionContext, final GraphObject entity) {
 
 		this.actionContext = actionContext;
 		this.entity        = entity;
@@ -59,6 +60,8 @@ public class StructrPolyglotBinding implements ProxyObject {
 				return wrap(actionContext, entity);
 			case "me":
 				return wrap(actionContext,actionContext.getSecurityContext().getUser(false));
+			case "predicate":
+				return new PredicateBinding(actionContext, entity);
 			default:
 				if (actionContext.getConstant(name) != null) {
 					return wrap(actionContext,actionContext.getConstant(name));
@@ -71,7 +74,7 @@ public class StructrPolyglotBinding implements ProxyObject {
 				Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
 				if (func != null) {
 
-					return new StructrPolyglotFunctionWrapper(actionContext, entity, func);
+					return new FunctionWrapper(actionContext, entity, func);
 				}
 
 				return null;
@@ -83,6 +86,7 @@ public class StructrPolyglotBinding implements ProxyObject {
 		Set<String> keys = actionContext.getAllVariables().keySet();
 		keys.add("this");
 		keys.add("me");
+		keys.add("predicate");
 		return keys;
 	}
 
@@ -98,30 +102,27 @@ public class StructrPolyglotBinding implements ProxyObject {
 
 	private ProxyExecutable getGetFunctionWrapper() {
 
-		return new ProxyExecutable() {
-			@Override
-			public Object execute(Value... arguments) {
+		return arguments -> {
 
-				try {
-					Object[] args = Arrays.stream(arguments).map(arg -> StructrPolyglotWrapper.unwrap(arg)).toArray();
+			try {
+				Object[] args = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(arg)).toArray();
 
-					if (args.length == 1) {
+				if (args.length == 1) {
 
-						return StructrPolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, args[0].toString(), null, null, 0));
-					} else if (args.length > 1) {
+					return PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, args[0].toString(), null, null, 0));
+				} else if (args.length > 1) {
 
-						final Function<Object, Object> function = Functions.get("get");
+					final Function<Object, Object> function = Functions.get("get");
 
-						return wrap(actionContext, function.apply(actionContext, entity, args));
-					}
-
-				} catch (FrameworkException ex) {
-
-					logger.error("Exception while trying to call get on scripting object.", ex);
+					return wrap(actionContext, function.apply(actionContext, entity, args));
 				}
 
-				return null;
+			} catch (FrameworkException ex) {
+
+				logger.error("Exception while trying to call get on scripting object.", ex);
 			}
+
+			return null;
 		};
 	}
 

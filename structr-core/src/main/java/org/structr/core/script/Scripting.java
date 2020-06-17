@@ -34,6 +34,9 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.function.Functions;
 import org.structr.core.property.DateProperty;
+import org.structr.core.script.polyglot.AccessProvider;
+import org.structr.core.script.polyglot.StructrBinding;
+import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.parser.DatePropertyParser;
 
@@ -222,8 +225,8 @@ public class Scripting {
 		final String entityDescription = entity != null ? ( StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + entity.getUuid() : "anonymous";
 
 		final Context context = Context.newBuilder("js")
-				.allowPolyglotAccess(StructrPolyglotAccessProvider.getPolyglotAccessConfig())
-				.allowHostAccess(StructrPolyglotAccessProvider.getHostAccessConfig())
+				.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
+				.allowHostAccess(AccessProvider.getHostAccessConfig())
 				// TODO: Add config switch to toggle Host Class Lookup
 				//.allowHostClassLookup(s -> true)
 				// TODO: Add configurable chrome debug
@@ -232,13 +235,13 @@ public class Scripting {
 				.option("js.nashorn-compat", "true")
 				.build();
 
-		final StructrPolyglotBinding structrBinding = new StructrPolyglotBinding(actionContext, entity);
+		final StructrBinding structrBinding = new StructrBinding(actionContext, entity);
 
 		context.getBindings("js").putMember("Structr", structrBinding);
 		context.getBindings("js").putMember("$", structrBinding);
 
 		try {
-			Object result = StructrPolyglotWrapper.unwrap(context.eval("js", embedInFunction(snippet.getSource())));
+			Object result = PolyglotWrapper.unwrap(context.eval("js", embedInFunction(snippet.getSource())));
 
 			return result;
 		} catch (Exception ex) {
@@ -279,11 +282,11 @@ public class Scripting {
 		try {
 
 			final Context context = Context.newBuilder()
-					.allowPolyglotAccess(StructrPolyglotAccessProvider.getPolyglotAccessConfig())
-					.allowHostAccess(StructrPolyglotAccessProvider.getHostAccessConfig())
+					.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
+					.allowHostAccess(AccessProvider.getHostAccessConfig())
 					.build();
 
-			final StructrPolyglotBinding structrBinding = new StructrPolyglotBinding(actionContext, entity);
+			final StructrBinding structrBinding = new StructrBinding(actionContext, entity);
 
 			context.getBindings(engineName).putMember("Structr", structrBinding);
 			context.getBindings(engineName).putMember("$", structrBinding);
@@ -308,11 +311,11 @@ public class Scripting {
 
 					context.eval(engineName, wrappedScript.toString());
 
-					return StructrPolyglotWrapper.unwrap(context.getBindings(engineName).getMember("main").execute());
+					return PolyglotWrapper.unwrap(context.getBindings(engineName).getMember("main").execute());
 			}
 
 
-				Object result = StructrPolyglotWrapper.unwrap(context.eval(engineName, wrappedScript.toString()));
+				Object result = PolyglotWrapper.unwrap(context.eval(engineName, wrappedScript.toString()));
 
 				return result;
 		} catch (PolyglotException ex) {

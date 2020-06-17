@@ -16,12 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.script;
+package org.structr.core.script.polyglot;
 
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.PolyglotAccess;
 
-public abstract class StructrPolyglotAccessProvider {
+public abstract class AccessProvider {
 
 	public static HostAccess getHostAccessConfig() {
 
